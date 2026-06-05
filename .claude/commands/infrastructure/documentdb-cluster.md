@@ -65,3 +65,6 @@ resource "aws_ssm_parameter" "docdb_endpoint" {
 - `db.t4g.medium` (Graviton). Prod = 1 primary + 1 replica; staging = 1 instance.
 - VPC-only (private subnets, port 27017) — never publicly reachable.
 - Lambdas read creds at runtime from `DOCDB_SECRET_ARN` (set by IaC in api.tf), not from SSM. See `/infrastructure/ssm-config-bus`.
+
+## Rationale — DocumentDB over DynamoDB
+The document model fits nested CV data (experience/roles/tech as sub-docs) and articles (body/tags/metadata in one doc). DynamoDB single-table design adds key-construction complexity with no benefit at portfolio scale. DocumentDB is VPC-only (aligns with the private-subnet backend). Tradeoff: higher fixed cost (~$54/mo `db.t4g.medium`), no pay-per-request. Prod 1 primary + 1 replica; staging single.

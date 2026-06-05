@@ -39,3 +39,6 @@ aws apigatewayv2 reimport-api --api-id "$API_ID" --body file://openapi/openapi.r
 ## Pipeline independence
 
 If a future IaC apply resets the API GW body (seed spec replaces full contract), the api deploy pipeline is re-run manually. No cross-repo trigger. This is intentional.
+
+## Rationale — no API versioning (Phase 1-3)
+Single co-owned consumer (the fed). Versioning is operational overhead that only pays off with external consumers. Evolution path: add a `/v2/` route prefix + a new Lambda alias when needed.

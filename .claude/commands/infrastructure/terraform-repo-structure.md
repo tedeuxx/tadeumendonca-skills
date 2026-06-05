@@ -68,3 +68,6 @@ provider "aws" {
 - Public modules called directly; glue (`aws_route53_record`, `aws_lambda_permission`, `aws_wafv2_web_acl_association`, raw lambda SG) only where no module abstracts it.
 - `data "aws_route53_zone" "main"`, `data "aws_acm_certificate" "main"` (us-east-1), `data "aws_caller_identity" "current"` declared once at root (in `data.tf`).
 - Per-env differences expressed via `var.environment == "production"` conditionals — avoid extra variables.
+
+## Rationale — ACM out-of-band
+DNS validation inside Terraform (`wait_for_validation`) blocks `apply` and couples the cert lifecycle to the infra. Certs are created/validated once outside Terraform; ARNs resolve at runtime via `data "aws_acm_certificate"` (by domain) — no sensitive ARNs in tfvars. `account_id` likewise via `data "aws_caller_identity"`.

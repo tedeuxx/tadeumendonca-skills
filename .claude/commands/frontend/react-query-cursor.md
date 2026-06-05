@@ -41,3 +41,6 @@ interface PageResponse<T> {
 - `limit` default: 20 for posts, 10 for articles
 - Tag filter (articles): `?tag={tag}&cursor=...&limit=10`
 - Response fields are snake_case — matches DB and API convention (no transformation)
+
+## Rationale — cursor, not offset
+Pagination uses an opaque cursor over the indexed sort key (`_id`/`created_at`), not `skip`/offset. On DocumentDB a range query on an indexed field (`find({_id:{$lt:cursor}}).sort({_id:-1}).limit(n)`) stays index-efficient, while `.skip(n)` scans and discards. Cursors also survive re-ordering (e.g. sort by engagement) where offset pagination breaks.

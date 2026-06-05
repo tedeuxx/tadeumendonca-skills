@@ -51,3 +51,7 @@ A minimal `index.js` that exports `handler` returning 503. Uploaded to S3 before
 ## Lambda@Edge variant
 
 Same pattern, but: `publish = true`, `lambda_at_edge = true`, provider `aws.us_east_1`. After `update-function-code`, api deploy must also call `publish-version` to get a new qualified ARN.
+
+## Rationale
+- **Pattern B** keeps code out of Terraform so a code change never triggers a TFC plan/apply round-trip — IaC owns config (memory/VPC/IAM/env), the api repo ships code via `update-function-code`. The module's built-in `ignore_source_code_hash` is the supported mechanism (no raw resource).
+- **arm64 (Graviton2):** ~20% cheaper per GB-second, equal-or-better Node.js performance; esbuild output is platform-agnostic JS — zero cost to adopt.

@@ -44,3 +44,6 @@ S3_BUCKET=$(aws ssm get-parameter --name /$ENV_NAME/storage/artifacts-bucket-nam
 ## IaC writes all SSM params after provisioning
 
 Every `aws_ssm_parameter` resource in IaC writes the output of the corresponding module. App repos never write to SSM — they only read at deploy time.
+
+## Rationale
+Non-sensitive infra outputs go in SSM Standard String (free); secrets stay in Secrets Manager. This makes IaC the single source of truth — app repos read current values at deploy with no GitHub secret to rotate, and never write to SSM.

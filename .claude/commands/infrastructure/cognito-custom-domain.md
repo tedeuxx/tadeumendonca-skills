@@ -46,3 +46,6 @@ resource "aws_ssm_parameter" "cognito_hosted_ui_url" {
 ## ACM requirement
 
 Cognito custom domain requires a certificate in **us-east-1** (same region as CloudFront). Use `data.aws_acm_certificate.main.arn` — pre-created, domain `tadeumendonca.io`, covers all subdomains.
+
+## Rationale — three user profiles
+public / registered (self-signup) / admin. `allow_admin_create_user_only = false` lets registered users self-signup via the hosted UI (auto-verified email) to receive notifications; the single `admin` is created manually. REGIONAL WAF fronts the hosted UI to mitigate abuse on the open signup. Public users need no auth for any GET.

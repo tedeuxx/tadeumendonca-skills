@@ -39,3 +39,6 @@ import SideNavigation from '@cloudscape-design/components/side-navigation';
 ```typescript
 import '@cloudscape-design/global-styles/index.css';  // in main.tsx
 ```
+
+## Rationale — why Cloudscape
+AWS's open-source design system, used across AWS Console products. On a personal portfolio it signals product-engineering maturity and AWS fluency, and ships accessible, responsive components out of the box (`AppLayout`, `Cards`, `Table`, `Badge`, `ContentLayout`) — no bespoke design system to build.
