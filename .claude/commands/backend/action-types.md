@@ -26,13 +26,12 @@ export const ActionType = {
 export type ActionType = (typeof ActionType)[keyof typeof ActionType];
 ```
 
-## Per-handler usage (index.ts)
+## Per-route usage (index.ts)
 
 ```typescript
 import { ActionType } from '../../shared/constants/action-types';
 
-export const handler = middy(baseHandler)
-  .use(auditMiddleware({ actionType: ActionType.POSTS_LIST }));
+app.get('/posts', audit(ActionType.POSTS_LIST), listPosts);   // Hono middleware
 ```
 
 ## Conventions
