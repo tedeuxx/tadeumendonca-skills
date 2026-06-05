@@ -54,13 +54,15 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 
 ## Command reference
 
-### backend/ (5)
+### backend/ (7)
 
 | Command | Purpose |
 |---|---|
 | `/backend/lambda-handler` | Implement a Lambda fn: middy + powertools + audit + DocumentDB |
 | `/backend/docdb-connection` | DocumentDB TLS singleton + Secrets Manager pattern |
 | `/backend/audit-middleware` | Audit collection: actionType config, capture, collection schema |
+| `/backend/action-types` | Central action-type constants, declared statically per handler |
+| `/backend/error-handling` | Throw AppError/NotFoundError/Unauthorized — never return 4xx |
 | `/backend/og-image-generator` | OG image: satori JSX→SVG + resvg→PNG + S3 cache |
 | `/backend/og-edge-handler` | Lambda@Edge: bot UA detection + `/og-meta` call + OG HTML |
 
@@ -72,22 +74,34 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/frontend/react-query-cursor` | Cursor-based pagination: useInfiniteQuery + infinite scroll |
 | `/frontend/cloudscape-patterns` | Which Cloudscape components for CV sections, feed, articles |
 
-### infrastructure/ (4)
+### infrastructure/ (12)
 
 | Command | Purpose |
 |---|---|
+| `/infrastructure/terraform-repo-structure` | Canonical root + per-env tfvars, providers, TFC workspaces, checkov CI |
+| `/infrastructure/vpc-networking` | vpc.tf: subnets/NAT (single vs per-AZ), S3 endpoint, lambda SG |
+| `/infrastructure/documentdb-cluster` | data.tf: cloudposse docdb + Secrets Manager + SSM |
+| `/infrastructure/s3-buckets` | storage.tf: frontend(OAC)/artifacts/og-images + SSM |
+| `/infrastructure/cloudfront-spa` | frontend.tf: CloudFront + OAC + Lambda@Edge + SPA error routing |
+| `/infrastructure/waf` | WAF CLOUDFRONT + REGIONAL (shared by API GW + Cognito) |
+| `/infrastructure/iam-oidc-roles` | iam.tf: deploy policies + assumable-role-with-oidc (api, fed) |
+| `/infrastructure/ses-email` | auth.tf: SES domain verify + DKIM (fn-notifications) |
 | `/infrastructure/lambda-pattern-b` | Pattern B: IaC owns config, api repo ships code |
 | `/infrastructure/api-gw-contract` | Seed spec in IaC + `openapi.yaml` ownership in api repo |
 | `/infrastructure/ssm-config-bus` | SSM namespace, what to store, how repos read at deploy |
 | `/infrastructure/cognito-custom-domain` | Module config + Route53 alias + SSM outputs |
 
-### workflow/ (3)
+### workflow/ (7)
 
 | Command | Purpose |
 |---|---|
-| `/workflow/gitflow` | GitFlow: feature → develop → main + bump-my-version |
+| `/workflow/gitflow` | GitFlow + numeric SemVer (develop=patch, main=label bump), loop guard |
 | `/workflow/deploy-api` | api deploy: esbuild → zip → S3 → update-function-code + reimport |
 | `/workflow/deploy-fed` | fed deploy: vite build → S3 sync (split headers) → CF invalidation |
+| `/workflow/issue-backlog` | GitHub Issues: labels, milestones, templates, auto-maintained backlog |
+| `/workflow/testing-coverage` | vitest ≥85% gate (api+fed) + Playwright E2E (fed) |
+| `/workflow/bootstrap-migration` | Landing-zone destroy + manual bootstrap before first IaC apply |
+| `/workflow/documentation-standard` | Markdown + Mermaid only; diagram types per repo |
 
 ---
 
@@ -108,16 +122,20 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 Same automated semantic-versioning standard as every repo on the platform, via
 `bump-my-version`:
 
+Purely **numeric SemVer** `MAJOR.MINOR.PATCH` — no `-dev` pre-release suffix.
+
 - `VERSION` — current version (starts at `0.1.0`).
-- `.bumpversion.toml` — bump config (parse/serialize, `tag_name = v{new_version}`).
-- `.github/workflows/version-develop.yml` — on push to `develop`: `bump-my-version bump pre_n`
-  → `vX.Y.Z-dev.N` → commit + tag.
+- `.bumpversion.toml` — bump config; `parse`/`serialize` numeric only, `tag_name = v{new_version}`,
+  `message = tag_message = "bump: {current_version} → {new_version}"` (CI loop guard).
+- `.github/workflows/version-develop.yml` — on push to `develop`: `bump-my-version bump patch`
+  → `0.1.0 → 0.1.1 → …` → commit + tag.
 - `.github/workflows/version-main.yml` — on push to `main`: reads the merged PR's semver label
   (`semver:major` | `semver:minor` (default) | `semver:patch`) → bump → `vX.Y.Z` → commit +
   tag + GitHub Release.
 
 **Required secret:** `VERSION_BUMP_TOKEN` — a GitHub fine-grained PAT with `contents: write` +
-`workflows: write`, so the version-bump commit does not retrigger CI in a loop.
+`workflows: write`. The workflows skip commits whose message starts with `bump:`, so the
+version-bump commit does not retrigger CI in a loop.
 
 **Required PR labels:** `semver:major` | `semver:minor` | `semver:patch` — set before merging
 to `main`.

@@ -1,0 +1,42 @@
+Provision or review the S3 buckets (storage.tf) in tadeumendonca-iac.
+
+Context: $ARGUMENTS
+
+## Three buckets via terraform-aws-modules/s3-bucket/aws (~> 4.0)
+
+```hcl
+# Frontend SPA origin — bucket name = the domain, private, served only via CloudFront OAC
+module "frontend_bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "~> 4.0"
+  bucket  = var.domain_name                 # staging.tadeumendonca.io | tadeumendonca.io
+  # block_public_acls/policy = true, versioning, server-side encryption — keep private
+}
+
+# Lambda code artifacts (Pattern B bootstrap + deploy zips)
+module "artifacts_bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "~> 4.0"
+  bucket  = "tadeumendonca-artifacts-${var.environment}"
+}
+
+# Generated OG images cache (served via main CloudFront /og/* behavior)
+module "og_images_bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "~> 4.0"
+  bucket  = "tadeumendonca-og-images-${var.environment}"
+}
+```
+
+## SSM outputs
+
+```hcl
+# /{env}/frontend/s3-bucket-name           = module.frontend_bucket.s3_bucket_id
+# /{env}/storage/artifacts-bucket-name     = module.artifacts_bucket.s3_bucket_id
+# /{env}/storage/og-images-bucket-name     = module.og_images_bucket.s3_bucket_id
+```
+
+## Conventions
+- **frontend bucket stays private** — no public access; CloudFront reaches it via Origin Access Control (OAC), wired in `frontend.tf` (`module.frontend_bucket.s3_bucket_bucket_regional_domain_name`). See `/infrastructure/cloudfront-spa`.
+- **artifacts bucket** holds `{fn}/bootstrap.zip` (first apply, Pattern B) and `{fn}/latest.zip` (api deploy `update-function-code`). See `/infrastructure/lambda-pattern-b` and `/workflow/deploy-api`.
+- **og-images bucket** is written by `fn-og-image` (`s3:PutObject`) with key `/{type}/{slug}.png`; read by the `/og/*` CloudFront behavior. See `/backend/og-image-generator`.
