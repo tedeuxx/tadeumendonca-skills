@@ -1,58 +1,53 @@
-Implement or configure the audit middleware for a Lambda handler.
+Implement or configure the audit middleware (Hono) for a Lambda handler.
 
 Handler/context: $ARGUMENTS
 
-## Middleware: `src/shared/middleware/audit.ts`
+## Hono middleware: `src/shared/middleware/audit.ts`
 
-Captures every request/response → writes to `audits` DocumentDB collection.
+Captures every request/response → writes to the `audits` DocumentDB collection. Applied per route with a static `ActionType`.
 
 ```typescript
-export function auditMiddleware(options: { actionType: ActionType }): middy.MiddlewareObj {
-  return {
-    after: async (request) => {
-      const { event, response, context } = request;
-      const claims = event.requestContext?.authorizer?.jwt?.claims ?? {};
-      const { audits } = await getCollections();
-      await audits.insertOne({
-        timestamp: new Date(),
-        action_type: options.actionType,
-        user: {
-          user_id: claims.sub ?? null,
-          email: claims.email ?? null,
-          groups: (claims['cognito:groups'] as string[] | undefined) ?? [],
-          ip_address: event.requestContext.http.sourceIp,
-          user_agent: event.requestContext.http.userAgent,
-        },
-        request: {
-          method: event.requestContext.http.method,
-          path: event.requestContext.http.path,
-          query_params: event.queryStringParameters ?? {},
-          body: event.body ? JSON.parse(event.body) : null,
-          // Authorization header intentionally excluded
-        },
-        response: {
-          status_code: response.statusCode,
-          body: truncateBody(response.body, 4096),
-        },
-        http_status_code: response.statusCode,
-        success: response.statusCode >= 200 && response.statusCode < 300,
-        duration_ms: Date.now() - Number(context.startTime ?? 0),
-        function_name: context.functionName,
-        request_id: event.requestContext.requestId,
-      });
-    },
+import { MiddlewareHandler } from 'hono';
+import type { LambdaBindings } from 'hono/aws-lambda';
+
+export const audit = (actionType: ActionType): MiddlewareHandler<{ Bindings: LambdaBindings }> =>
+  async (c, next) => {
+    const start = Date.now();
+    await next();                                   // run the handler first
+    const claims = c.env.event.requestContext?.authorizer?.jwt?.claims ?? {};
+    const { audits } = await getCollections();
+    await audits.insertOne({
+      timestamp: new Date(),
+      action_type: actionType,
+      user: {
+        user_id: claims.sub ?? null,
+        email: claims.email ?? null,
+        groups: (claims['cognito:groups'] as string[]) ?? [],
+        ip_address: c.env.event.requestContext.http.sourceIp,
+        user_agent: c.req.header('user-agent') ?? null,
+      },
+      request: {
+        method: c.req.method,
+        path: c.req.path,
+        query_params: c.req.queries(),
+        // Authorization header intentionally excluded
+      },
+      response: { status_code: c.res.status },
+      http_status_code: c.res.status,
+      success: c.res.status >= 200 && c.res.status < 300,
+      duration_ms: Date.now() - start,
+      request_id: c.env.event.requestContext.requestId,
+    });
   };
-}
 ```
 
-## Per-handler usage (in index.ts)
+## Per-route usage (index.ts)
 
 ```typescript
-.use(auditMiddleware({ actionType: ActionType.POSTS_LIST }))
+app.post('/posts', audit(ActionType.POSTS_CREATE), createPosts);
 ```
 
-Declare actionType in `src/shared/constants/action-types.ts` first. Never derive from path.
+Declare the actionType in `action-types.ts` first (`/backend/action-types`). Never derive from path.
 
 ## og-edge exception: NO audit
-
-`fn-og-edge` runs as Lambda@Edge — no VPC, no DocumentDB access. Do NOT add audit middleware.
+`fn-og-edge` runs as Lambda@Edge — no VPC, no DocumentDB, no Hono. Do NOT add audit.

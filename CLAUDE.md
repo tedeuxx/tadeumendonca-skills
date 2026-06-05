@@ -6,7 +6,7 @@ developers (via Claude Code) while building `tadeumendonca-iac`, `-api`, and `-f
 
 Each command is a per-component guide: when the owner runs `/backend/lambda-handler posts`,
 Claude reads the guide and knows exactly how to implement that piece following this project's
-established patterns (middy, powertools, audit middleware, DocumentDB, snake_case, Pattern B,
+established patterns (Hono, powertools, audit middleware, DocumentDB, snake_case, Pattern B,
 SSM config bus, GitFlow, etc.).
 
 All skills are created up front (before `v0.2.0`) and validated by the owner before each phase
@@ -54,11 +54,12 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 
 ## Command reference
 
-### backend/ (13)
+### backend/ (14)
 
 | Command | Purpose |
 |---|---|
-| `/backend/lambda-handler` | Implement a Lambda fn: middy + powertools + audit + DocumentDB |
+| `/backend/framework` | Hono on Lambda: app + aws-lambda adapter, routing, middleware, zod |
+| `/backend/lambda-handler` | Implement a Lambda fn: Hono app + routes + audit + DocumentDB |
 | `/backend/docdb-connection` | DocumentDB TLS singleton + Secrets Manager pattern |
 | `/backend/audit-middleware` | Audit collection: actionType config, capture, collection schema |
 | `/backend/action-types` | Central action-type constants, declared statically per handler |
