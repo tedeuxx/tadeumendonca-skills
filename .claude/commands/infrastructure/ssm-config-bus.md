@@ -21,6 +21,7 @@ Context: $ARGUMENTS
 /{env}/auth/cognito-hosted-ui-url
 /{env}/data/docdb-cluster-endpoint
 /{env}/data/docdb-secret-arn       ← ARN of the secret, NOT the secret itself
+/{env}/cache/redis-endpoint        ← ElastiCache Redis endpoint (AUTH token in Secrets Manager)
 /{env}/storage/artifacts-bucket-name
 /{env}/storage/og-images-bucket-name
 /{env}/iam/github-actions-api-role-arn
@@ -30,6 +31,7 @@ Context: $ARGUMENTS
 ## What stays in Secrets Manager (sensitive)
 
 - `tadeumendonca/{env}/docdb` — username, password, host, port, dbname
+- `tadeumendonca/{env}/redis` — auth_token (Redis in-transit AUTH)
 - Never store passwords or tokens in SSM (even SecureString for runtime secrets)
 
 ## How app repos read SSM at deploy time (GitHub Actions)

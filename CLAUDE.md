@@ -54,7 +54,7 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 
 ## Command reference
 
-### backend/ (7)
+### backend/ (12)
 
 | Command | Purpose |
 |---|---|
@@ -63,6 +63,11 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/backend/audit-middleware` | Audit collection: actionType config, capture, collection schema |
 | `/backend/action-types` | Central action-type constants, declared statically per handler |
 | `/backend/error-handling` | Throw AppError/NotFoundError/Unauthorized — never return 4xx |
+| `/backend/logging` | Structured logging via Powertools Logger (JSON, level per env) |
+| `/backend/metrics` | OTel metrics → ADOT collector → CloudWatch (awsemf), no AMP |
+| `/backend/environment-config` | dotenv per env + typed config accessor (non-secrets only) |
+| `/backend/secrets-management` | Sensitive values from Secrets Manager at runtime (cached) |
+| `/backend/redis-cache` | ElastiCache Redis cache-aside, fail-open, TTLs, invalidation |
 | `/backend/og-image-generator` | OG image: satori JSX→SVG + resvg→PNG + S3 cache |
 | `/backend/og-edge-handler` | Lambda@Edge: bot UA detection + `/og-meta` call + OG HTML |
 
@@ -74,13 +79,14 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/frontend/react-query-cursor` | Cursor-based pagination: useInfiniteQuery + infinite scroll |
 | `/frontend/cloudscape-patterns` | Which Cloudscape components for CV sections, feed, articles |
 
-### infrastructure/ (12)
+### infrastructure/ (13)
 
 | Command | Purpose |
 |---|---|
 | `/infrastructure/terraform-repo-structure` | Canonical root + per-env tfvars, providers, TFC workspaces, checkov CI |
 | `/infrastructure/vpc-networking` | vpc.tf: subnets/NAT (single vs per-AZ), S3 endpoint, lambda SG |
 | `/infrastructure/documentdb-cluster` | data.tf: cloudposse docdb + Secrets Manager + SSM |
+| `/infrastructure/elasticache-redis` | cache.tf: cloudposse redis + AUTH in Secrets Manager + SSM |
 | `/infrastructure/s3-buckets` | storage.tf: frontend(OAC)/artifacts/og-images + SSM |
 | `/infrastructure/cloudfront-spa` | frontend.tf: CloudFront + OAC + Lambda@Edge + SPA error routing |
 | `/infrastructure/waf` | WAF CLOUDFRONT + REGIONAL (shared by API GW + Cognito) |
