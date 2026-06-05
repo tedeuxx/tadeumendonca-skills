@@ -54,11 +54,18 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 
 ## Command reference
 
-### backend/ (14)
+### architecture/ (1)
+
+| Command | Purpose |
+|---|---|
+| `/architecture/fed-spa` | Blueprint: SPA + BFF + serverless backend; links every component skill |
+
+### backend/ (15)
 
 | Command | Purpose |
 |---|---|
 | `/backend/framework` | Hono on Lambda: app + aws-lambda adapter, routing, middleware, zod |
+| `/backend/bff` | Backend-for-Frontend: server-side OIDC PKCE + session cookie + API proxy |
 | `/backend/lambda-handler` | Implement a Lambda fn: Hono app + routes + audit + DocumentDB |
 | `/backend/docdb-connection` | DocumentDB TLS singleton + Secrets Manager pattern |
 | `/backend/audit-middleware` | Audit collection: actionType config, capture, collection schema |
@@ -73,21 +80,25 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/backend/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
 | `/backend/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DocDB |
 
-### frontend/ (4)
+### frontend/ (6)
 
 | Command | Purpose |
 |---|---|
-| `/frontend/cognito-pkce` | PKCE auth: authStore (Zustand) + CallbackPage + RequireAuth |
+| `/frontend/framework` | React + Vite SPA stack: router, React Query, Zustand, Cloudscape |
+| `/frontend/cognito-pkce` | SPA auth via BFF session (OIDC PKCE handled by /backend/bff) |
 | `/frontend/react-query-cursor` | Cursor-based pagination: useInfiniteQuery + infinite scroll |
 | `/frontend/cloudscape-patterns` | Which Cloudscape components for CV sections, feed, articles |
+| `/frontend/environment-config` | Vite VITE_* build-time env via typed env.ts (from SSM) |
 | `/frontend/seo` | Client-side SEO: react-helmet-async meta + sitemap + robots + JSON-LD |
 
-### infrastructure/ (13)
+### infrastructure/ (19)
 
 | Command | Purpose |
 |---|---|
-| `/infrastructure/terraform-repo-structure` | Canonical root + per-env tfvars, providers, TFC workspaces, checkov CI |
-| `/infrastructure/vpc-networking` | vpc.tf: subnets/NAT (single vs per-AZ), S3 endpoint, lambda SG |
+| `/infrastructure/module-policy` | Module sourcing: official-first, trusted non-official, no L3, raw as glue |
+| `/infrastructure/terraform-repo-structure` | Canonical root, per-env tfvars, providers, TFC remote state/workspaces, checkov |
+| `/infrastructure/vpc-networking` | vpc.tf: subnets/NAT, S3 endpoint, lambda SG, traffic design (off-NAT) |
+| `/infrastructure/dns` | Route53: hosted-zone data source + A-alias records (CF/API/Cognito) |
 | `/infrastructure/documentdb-cluster` | data.tf: cloudposse docdb + Secrets Manager + SSM |
 | `/infrastructure/elasticache-redis` | cache.tf: cloudposse redis + AUTH in Secrets Manager + SSM |
 | `/infrastructure/s3-buckets` | storage.tf: frontend(OAC)/artifacts/og-images + SSM |
@@ -99,8 +110,12 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/infrastructure/api-gw-contract` | Seed spec in IaC + `openapi.yaml` ownership in api repo |
 | `/infrastructure/ssm-config-bus` | SSM namespace, what to store, how repos read at deploy |
 | `/infrastructure/cognito-custom-domain` | Module config + Route53 alias + SSM outputs |
+| `/infrastructure/environment-domains` | Per-env domain/subdomain naming pattern (apex + service subdomains) |
+| `/infrastructure/encryption` | TLS in-transit + at-rest everywhere (CF/API/DocDB/Redis/S3/Secrets) |
+| `/infrastructure/kms` | KMS policy: AWS-managed by default, CMK only when needed, rotation |
+| `/infrastructure/tagging` | Mandatory tags via default_tags for a shared account (Project/Env/ManagedBy) |
 
-### workflow/ (7)
+### workflow/ (6)
 
 | Command | Purpose |
 |---|---|
@@ -108,8 +123,7 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/workflow/deploy-api` | api deploy: esbuild → zip → S3 → update-function-code + reimport |
 | `/workflow/deploy-fed` | fed deploy: vite build → S3 sync (split headers) → CF invalidation |
 | `/workflow/issue-backlog` | GitHub Issues: labels, milestones, templates, auto-maintained backlog |
-| `/workflow/testing-coverage` | vitest ≥85% gate (api+fed) + Playwright E2E (fed) |
-| `/workflow/bootstrap-migration` | Landing-zone destroy + manual bootstrap before first IaC apply |
+| `/workflow/testing-coverage` | Quality/test/security gates: lint, typecheck, ≥85% cov, E2E, checkov, audit |
 | `/workflow/documentation-standard` | Markdown + Mermaid only; diagram types per repo |
 
 ---

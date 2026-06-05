@@ -58,5 +58,5 @@ module "oidc_fed" { /* same shape, fed repo + module.policy_fed_deploy.arn */ }
 
 ## Notes
 - The GitHub OIDC provider (`token.actions.githubusercontent.com`) is **pre-existing** (created once out-of-band / from the landing zone) — the module references it by `provider_url`, it does not create it.
-- The `iac` repo's own deploy role (`github-actions-tadeumendonca-iac`) is bootstrapped manually outside Terraform (chicken-and-egg). See `/workflow/bootstrap-migration`.
+- The `iac` repo's own deploy role (`github-actions-tadeumendonca-iac`) is bootstrapped manually outside Terraform (chicken-and-egg) — a one-time task tracked in the plan.
 - `api`/`fed` repos read `AWS_OIDC_ROLE_ARN` from SSM at deploy time — never a GitHub secret to rotate. See `/infrastructure/ssm-config-bus`.

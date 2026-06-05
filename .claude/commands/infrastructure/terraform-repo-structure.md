@@ -54,9 +54,11 @@ provider "aws" {
 
 `aws_region`, `environment`, `vpc_cidr` (default `10.0.0.0/16`), `azs`, `domain_name`, `api_domain_name`, `auth_domain_name`, `callback_urls`, `logout_urls`, `ses_from_address`. **No** `account_id` (→ `data.aws_caller_identity`), **no** ACM ARNs (→ `data.aws_acm_certificate`, looked up by domain — never in tfvars).
 
-## TFC workspace selection
+## State management & TFC workspaces
 
-`cloud{}` uses `workspaces { tags = ["tadeumendonca-iac"] }`; execution mode **Local** (TFC = state backend only, GitHub Actions runs plan/apply). CI picks the target with `TF_WORKSPACE=tadeumendonca-iac-{staging|production}` paired with the matching `-var-file`. `var.environment` uses the full word (`staging`/`production`).
+**Remote state only — Terraform Cloud is the state backend** (`cloud{}` block); no local state, no S3/DynamoDB backend, state never committed. **One workspace per environment** (`tadeumendonca-iac-staging` / `-production`), tagged `["tadeumendonca-iac"]`. Execution mode **Local**: TFC stores and locks state while **GitHub Actions runs `plan`/`apply`** (TFC does not execute). CI selects the target with `TF_WORKSPACE=tadeumendonca-iac-{staging|production}` paired with the matching `-var-file`; `var.environment` uses the full word. Module sourcing/customization follows `/infrastructure/module-policy`.
+
+> This state strategy (TFC remote state + Local execution + per-env workspaces) is the convention inherited from the now-decommissioned landing-zone project.
 
 ## CI/CD workflows (.github/workflows)
 

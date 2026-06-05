@@ -1,25 +1,27 @@
-Set up or review the test coverage / E2E gates for a tadeumendonca.io repo.
+Set up or review the quality, test, and security gates for a tadeumendonca.io repo.
 
 Repo / context: $ARGUMENTS
 
-CI **blocks deploy** if the gate fails. Gates run in `deploy.yml` before the AWS steps.
+CI **blocks deploy** if any gate fails. Gates run on PR and on the deploy path, before the AWS steps.
 
-## api (tadeumendonca-api)
-- **Unit/integration:** `vitest`. Coverage threshold **≥ 85%** enforced via `vitest.config.ts` (`coverage.thresholds`).
-- CI fails the deploy if coverage < 85%.
+## Quality gates (all repos)
+- **Lint** — ESLint (`eslint.config.mjs`); zero errors.
+- **Typecheck** — `tsc --noEmit` (api/fed) / `terraform validate` + `fmt -check` (iac).
 
-```ts
-// vitest.config.ts
-test: { coverage: { provider: 'v8', thresholds: { lines: 85, functions: 85, branches: 85, statements: 85 } } }
-```
+## Test gates
+- **api:** `vitest` unit/integration, coverage **≥ 85%** (`vitest.config.ts` thresholds).
+  ```ts
+  test: { coverage: { provider: 'v8', thresholds: { lines: 85, functions: 85, branches: 85, statements: 85 } } }
+  ```
+- **fed:** `vitest` unit (**≥ 85%**) + **Playwright** E2E (`home` / `feed` / `auth` specs) — any failure blocks.
 
-## fed (tadeumendonca-fed)
-- **Unit:** `vitest` — same **≥ 85%** coverage gate.
-- **E2E:** `Playwright` — CI fails the deploy if any E2E spec fails.
-  - `home.spec.ts` (Phase 1: CV renders), `feed.spec.ts` (Phase 2: infinite scroll), `auth.spec.ts` (Phase 2: Cognito PKCE callback).
+## Security / artifact verification
+- **IaC:** **`checkov`** static analysis on `terraform/` — blocks on HIGH `FAILED` (`/infrastructure/terraform-repo-structure`).
+- **Dependencies:** `npm audit --audit-level=high` (api/fed) blocks on high/critical; `dependency-review` / Dependabot on PRs.
+- **Code (SAST):** CodeQL on PR (JS/TS) where enabled; secret scanning — no committed secrets (they live in Secrets Manager, `/backend/secrets-management`).
+- **Automated review:** Claude Code review action (`claude-code-review.yml`) on every PR.
 
 ## Conventions
-- Coverage + E2E run on the deploy path; a red gate means no S3/CloudFront/Lambda changes ship.
-- Keep tests close to the source (`*.spec.ts`); E2E lives under `tests/e2e/`.
-- The gate is intentionally identical across repos — don't lower the threshold per repo.
-- See `/workflow/deploy-api` and `/workflow/deploy-fed` for where the gate sits in the pipeline.
+- A red gate means **nothing ships** — no S3/CloudFront/Lambda change, no `terraform apply`.
+- Gates are identical across repos — don't lower a threshold per repo.
+- See `/workflow/deploy-api`, `/workflow/deploy-fed` for where gates sit in the pipeline.

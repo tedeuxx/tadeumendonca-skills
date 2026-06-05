@@ -52,7 +52,13 @@ resource "aws_security_group" "lambda" {
 - `module.vpc.private_subnets` → lambda `vpc_subnet_ids`, docdb `subnet_ids`
 - `aws_security_group.lambda.id` → lambda `vpc_security_group_ids`, docdb `allowed_security_groups`
 
-## Topology & cost notes
-- Lambda ENIs live in private subnets; API GW v2 and CloudFront are AWS-edge managed (not in VPC).
-- Only Cognito JWT validation, Secrets Manager, and SES egress go via NAT (low volume). S3 and DocumentDB stay off the NAT path.
-- Migrated from `tadeumendonca-io-aws-landing-zone` (same topology, re-created inline). Stack is created fresh — **no state import** (see `/workflow/bootstrap-migration`).
+## Traffic design — communication preferences
+- **S3** from Lambda routes via the **S3 Gateway endpoint** (free, AWS backbone) — never via NAT or the public internet.
+- **DocumentDB (27017)** and **Redis (6379)** are reached **in-VPC over their security groups**, off the NAT path.
+- Only **Cognito JWT validation, Secrets Manager, and SES** egress go via **NAT** — minimize what crosses NAT (low volume).
+- Lambda ENIs live in **private subnets**; API GW v2 and CloudFront are AWS-edge managed (not in the VPC).
+- NAT sizing: **single** in staging (cost) vs **one per AZ** in production (HA).
+
+## Notes
+- Lambda SG egress is limited to HTTPS (443); inbound to DocDB/Redis is granted by their cluster SGs allowing the Lambda SG as source.
+- This VPC topology was established in the (now-decommissioned) landing-zone project and re-created inline — the migration itself is a one-time task tracked in the plan, not a skill.
