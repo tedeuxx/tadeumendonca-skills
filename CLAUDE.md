@@ -54,7 +54,7 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 
 ## Command reference
 
-### backend/ (12)
+### backend/ (13)
 
 | Command | Purpose |
 |---|---|
@@ -69,15 +69,17 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/backend/secrets-management` | Sensitive values from Secrets Manager at runtime (cached) |
 | `/backend/redis-cache` | ElastiCache Redis cache-aside, fail-open, TTLs, invalidation |
 | `/backend/og-image-generator` | OG image: satori JSX→SVG + resvg→PNG + S3 cache |
-| `/backend/og-edge-handler` | Lambda@Edge: bot UA detection + `/og-meta` call + OG HTML |
+| `/backend/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
+| `/backend/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DocDB |
 
-### frontend/ (3)
+### frontend/ (4)
 
 | Command | Purpose |
 |---|---|
 | `/frontend/cognito-pkce` | PKCE auth: authStore (Zustand) + CallbackPage + RequireAuth |
 | `/frontend/react-query-cursor` | Cursor-based pagination: useInfiniteQuery + infinite scroll |
 | `/frontend/cloudscape-patterns` | Which Cloudscape components for CV sections, feed, articles |
+| `/frontend/seo` | Client-side SEO: react-helmet-async meta + sitemap + robots + JSON-LD |
 
 ### infrastructure/ (13)
 

@@ -2,56 +2,64 @@ Implement or update the Lambda@Edge handler in tadeumendonca-api/src/functions/o
 
 Context: $ARGUMENTS
 
-## Lambda@Edge constraints (mandatory)
-- NO VPC — Lambda@Edge runs at CloudFront PoP, cannot be in a VPC
-- NO middy — middy uses Node.js features incompatible with Lambda@Edge strict runtime
-- NO audit middleware — no DocumentDB access
-- NO process.env at runtime — environment variables are NOT available in Lambda@Edge viewer-request
-- Handler signature: `CloudFrontRequestEvent` (not APIGatewayProxyEventV2)
+The edge does a **3-way classification** at CloudFront Viewer Request — humans get the SPA, bots get server-built HTML. It covers **two bot functionalities**: OG previews for social scrapers, and dynamic rendering for SEO crawlers.
 
-## Pattern: `src/functions/og-edge/index.ts`
+## Lambda@Edge constraints (mandatory)
+- NO VPC / NO middy / NO audit / NO DocumentDB — runs at the CloudFront PoP.
+- NO `process.env` at runtime — hardcode the API base per build (or read a CloudFront custom header).
+- Handler signature: `CloudFrontRequestEvent` (not APIGatewayProxyEventV2).
+- Keep the bundle tiny; only `fetch` to the API.
+
+## Classification: `src/functions/og-edge/index.ts`
 
 ```typescript
 import { CloudFrontRequestHandler } from 'aws-lambda';
 
-const BOT_UA_REGEX = /facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|slackbot|discordbot/i;
-const API_BASE = 'https://api.tadeumendonca.io';  // hardcoded — no env vars in Lambda@Edge
+const SOCIAL_UA  = /facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|slackbot|discordbot|pinterest/i;
+const CRAWLER_UA = /googlebot|bingbot|duckduckbot|yandex|baiduspider|applebot/i;
+const API_BASE = 'https://api.tadeumendonca.io';   // no env vars at edge
 
 export const handler: CloudFrontRequestHandler = async (event) => {
-  const request = event.Records[0].cf.request;
-  const ua = request.headers['user-agent']?.[0]?.value ?? '';
+  const req = event.Records[0].cf.request;
+  const ua  = req.headers['user-agent']?.[0]?.value ?? '';
+  const { type, slug } = parsePath(req.uri);   // '/' → {type:'profile'}; '/articles/x' → {type,slug}
 
-  if (!BOT_UA_REGEX.test(ua)) {
-    return request; // human — passthrough to S3 (SPA)
+  // 1) Social scrapers (no JS) → minimal <head> with OG/Twitter tags
+  if (SOCIAL_UA.test(ua)) {
+    const meta = await fetch(`${API_BASE}/og-meta/${type}/${slug}`).then(r => r.json());
+    return html(buildOgHead(meta));
   }
-
-  // Bot: parse path → call /og-meta → return OG HTML
-  const [, type, slug] = request.uri.match(/\/(posts|articles)\/([^/]+)/) ?? [];
-  if (!type || !slug) return request;
-
-  const meta = await fetch(`${API_BASE}/og-meta/${type}/${slug}`).then(r => r.json());
-
-  return {
-    status: '200',
-    statusDescription: 'OK',
-    headers: { 'content-type': [{ value: 'text/html; charset=utf-8' }] },
-    body: buildOgHtml(meta),
-  };
+  // 2) Search crawlers → full indexable HTML (head + body content)
+  if (CRAWLER_UA.test(ua)) {
+    const page = await fetch(`${API_BASE}/prerender/${type}/${slug}`).then(r => r.text());
+    return html(page);
+  }
+  // 3) Humans → passthrough to S3 (React SPA, CSR)
+  return req;
 };
 
-function buildOgHtml(meta: { title: string; description: string; imageUrl: string; url: string }) {
-  return `<!DOCTYPE html><html><head>
-    <meta property="og:title" content="${meta.title}" />
-    <meta property="og:description" content="${meta.description}" />
-    <meta property="og:image" content="${meta.imageUrl}" />
-    <meta property="og:url" content="${meta.url}" />
-    <script>window.location.href = "${meta.url}"</script>
-  </head></html>`;
-}
+const html = (body: string) => ({
+  status: '200', statusDescription: 'OK',
+  headers: {
+    'content-type':  [{ value: 'text/html; charset=utf-8' }],
+    'cache-control': [{ value: 'public, max-age=300' }],
+  },
+  body,
+});
 ```
 
+## The two functionalities
+
+| | Social (web scraping) | SEO (search crawlers) |
+|---|---|---|
+| UA | facebook/linkedin/whatsapp/x… | googlebot/bingbot/… |
+| Calls | `GET /og-meta/{type}/{slug}` | `GET /prerender/{type}/{slug}` |
+| Returns | `<head>` only: OG/Twitter tags | full HTML: head + **content body** + JSON-LD |
+| Goal | rich share card | indexable page (no SSR) |
+
+Both come from the API (DocumentDB) — see `/backend/prerender`. The React app and the human path are unchanged (CSR). Not cloaking: crawler and user resolve to the same content.
+
 ## Deploy notes
-- Must be deployed to us-east-1 (Lambda@Edge requirement)
-- Must use `publish-version` after `update-function-code` — CloudFront needs a qualified ARN
-- Qualified ARN stored in SSM `/{env}/api/lambda-edge-og-qualified-arn`
-- esbuild target: `node22`, platform: `node`, bundle: `true`
+- us-east-1 (Lambda@Edge); `publish-version` after `update-function-code`; qualified ARN → SSM `/{env}/api/lambda-edge-og-qualified-arn`.
+- esbuild target `node22`, platform `node`, bundle `true`.
+- Attached at CloudFront Viewer Request — see `/infrastructure/cloudfront-spa`.
