@@ -60,7 +60,7 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 |---|---|
 | `/architecture/fed-spa-bff-monolith` | Blueprint: SPA + BFF + modular-monolith backend (auth external); links component skills |
 
-### backend/ (16)
+### backend/ (18)
 
 | Command | Purpose |
 |---|---|
@@ -74,9 +74,11 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/backend/error-handling` | Throw AppError/NotFoundError/Unauthorized — never return 4xx |
 | `/backend/logging` | Structured logging via Powertools Logger (JSON, level per env) |
 | `/backend/metrics` | OTel metrics → ADOT collector → CloudWatch (awsemf), no AMP |
+| `/backend/tracing` | Powertools Tracer / X-Ray: segments, annotations, downstream capture |
 | `/backend/environment-config` | dotenv per env + typed config accessor (non-secrets only) |
 | `/backend/secrets-management` | Sensitive values from Secrets Manager at runtime (cached) |
 | `/backend/redis-cache` | ElastiCache Redis cache-aside, fail-open, TTLs, invalidation |
+| `/backend/notifications` | Email via SES + SNS async fan-out; subscriptions |
 | `/backend/og-image-generator` | OG image: satori JSX→SVG + resvg→PNG + S3 cache |
 | `/backend/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
 | `/backend/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DocDB |
@@ -93,7 +95,7 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/frontend/analytics` | Google Analytics (GA4): SPA page_view per route + events |
 | `/frontend/seo` | Client-side SEO: react-helmet-async meta + sitemap + robots + JSON-LD |
 
-### infrastructure/ (28)
+### infrastructure/ (29)
 
 **Services** — how we use each tool/AWS service (reusable):
 
@@ -113,6 +115,7 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/infrastructure/documentdb-cluster` | DocumentDB: cloudposse cluster + Secrets Manager + SSM |
 | `/infrastructure/elasticache-redis` | ElastiCache Redis + AUTH in Secrets Manager + SSM |
 | `/infrastructure/ses-email` | SES: domain verify + DKIM |
+| `/infrastructure/sns` | SNS: async domain-event fan-out (notifications); cheapest pub/sub |
 | `/infrastructure/iam` | IAM: least privilege, roles-not-users, OIDC for pipelines |
 | `/infrastructure/secrets-manager` | Secrets Manager (provision): naming, jsonencode, ARN-only to SSM |
 | `/infrastructure/cloudwatch` | CloudWatch: log groups/retention, flow logs, EMF metrics, alarms |

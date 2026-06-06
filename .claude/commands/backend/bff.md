@@ -28,10 +28,17 @@ SPA ─Bearer JWT─► API Gateway (Cognito JWT authorizer) ─► BFF Lambda (
 4. BFF handler reads claims (RBAC/shaping — `/backend/action-types`), calls the domain logic / microservices, **aggregates** into a screen-shaped payload, returns it.
 5. Cross-cutting (audit/log/metrics) via the standard Hono middleware.
 
+## Shaping & aggregation (the BFF's core job)
+Endpoints are **per screen, not per resource** — the BFF composes one response from what a view needs, so the SPA makes **one call per screen** and stays decoupled from the data model.
+- **Aggregate** from several modules/sources (later: microservices) into one payload — e.g. a feed item = post + author summary + counts.
+- **Shape/trim** to only the fields the screen renders (projections), snake_case; never leak internal/document structure.
+- **One round trip** — prefer a single composed endpoint over the SPA fanning out N calls.
+Keep aggregation/shaping here; keep **domain rules** in the modules/services.
+
 ## Communicating with microservices (now → future)
 Today the domain logic can live **inside** the BFF (modular monolith — fastest to ship). As it grows, split into **microservices the BFF calls**, keeping the SPA contract stable:
 - **Sync:** direct **Lambda invoke** (`InvokeCommand`) or a **private/internal API GW** (VPC link). Propagate the user claims explicitly; internal services trust the BFF (network + IAM), they don't re-validate the JWT.
-- **Async:** **EventBridge / SQS** for fire-and-forget (e.g. notifications) — the BFF publishes, a worker consumes.
+- **Async:** **SNS** pub/sub for fire-and-forget (e.g. notifications) — the BFF publishes a domain event, a subscribed Lambda consumes (+ DLQ). See `/infrastructure/sns`, `/backend/notifications`.
 - The **BFF owns the public contract** (its OpenAPI at root — `/backend/openapi`); microservices keep internal contracts. Changing a microservice never changes the SPA while the BFF endpoint is stable.
 
 ## Why use a BFF
