@@ -54,5 +54,5 @@ if (!groups.includes('admin')) throw new UnauthorizedError();
 ## Conventions
 - Error body is snake_case `{ error, message }` — same shape across the API.
 - `500` never leaks internals to the client (logged via Powertools instead).
-- `@hono/zod-validator` failures map to a `400` `ValidationError` (custom hook) so they share the shape.
+- `@hono/zod-openapi` validation failures map to a `400` `ValidationError` (default hook) so they share the shape.
 - `app.onError` is wired once per Hono app — see `/backend/framework`.
