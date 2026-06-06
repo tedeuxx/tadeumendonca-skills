@@ -1,6 +1,8 @@
-Use SSM Parameter Store as cross-repo config bus in tadeumendonca.io.
+Use AWS SSM Parameter Store in tadeumendonca infrastructure (the cross-repo config bus).
 
 Context: $ARGUMENTS
+
+SSM Parameter Store is how IaC publishes non-sensitive infra outputs for the app repos to read at deploy time — the single source of truth, no GitHub secret to rotate. Secrets stay in Secrets Manager (`/infrastructure/secrets-manager`).
 
 ## Namespace convention
 

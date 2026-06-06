@@ -1,4 +1,4 @@
-Reference architecture: SPA + BFF + modular-monolith backend — the `fed-spa-bff-monolith` pattern.
+Reference architecture: SPA + BFF + modular-monolith backend — the `fed-spa-bff` pattern.
 
 Context: $ARGUMENTS
 
@@ -37,17 +37,17 @@ Authentication/authorization is **kept out of the BFF**: the **Cognito SDK in th
 `/backend/framework-hono` (Hono) · `/backend/openapi` · `/backend/bff` · `/backend/lambda-handler` · `/backend/document-db` · `/backend/redis-cache` · `/backend/logging` · `/backend/metrics` · `/backend/error-handling` · `/backend/audit-middleware` · `/backend/action-types` · `/backend/secrets-management` · `/backend/environment-config` · `/backend/og-image-generator`
 
 ## Infrastructure (Terraform, IaC = single source of truth)
-- Repo/state/modules → `/infrastructure/terraform` · `/infrastructure/module-policy`
-- Network/DNS → `/infrastructure/vpc-networking` · `/infrastructure/dns`
-- Compute/API → `/infrastructure/lambda-pattern-b` · `/infrastructure/api-gw-contract`
-- Edge/CDN → `/infrastructure/cloudfront-spa` · `/infrastructure/waf`
-- Data → `/infrastructure/documentdb-cluster` · `/infrastructure/elasticache-redis` · `/infrastructure/s3-buckets`
-- Auth/email → `/infrastructure/cognito-custom-domain` · `/infrastructure/ses-email`
-- Access/config → `/infrastructure/iam-oidc-roles` · `/infrastructure/ssm-config-bus`
-- Governance → `/infrastructure/encryption` · `/infrastructure/kms` · `/infrastructure/tagging`
+- Repo/state/modules → `/infrastructure/terraform` · `/infrastructure/terraform`
+- Network/DNS → `/infrastructure/vpc` · `/infrastructure/route53`
+- Compute/API → `/infrastructure/lambda` · `/infrastructure/api-gateway`
+- Edge/CDN → `/infrastructure/cloudfront` · `/infrastructure/waf`
+- Data → `/infrastructure/documentdb` · `/infrastructure/elasticache` · `/infrastructure/s3`
+- Auth/email → `/infrastructure/cognito` · `/infrastructure/ses`
+- Access/config → `/infrastructure/iam` · `/infrastructure/ssm`
+- Governance → `/infrastructure/kms` · `/infrastructure/kms` · `/infrastructure/terraform`
 
 ## Cross-repo & delivery
-Config bus (IaC → SSM → api/fed at deploy) · GitFlow + numeric SemVer (`/workflow/gitflow`) · deploys (`/workflow/deploy-api`, `/workflow/deploy-fed`) · gates (`/workflow/testing-coverage`) · backlog/docs (`/workflow/issue-backlog`, `/workflow/documentation-standard`).
+Config bus (IaC → SSM → api/fed at deploy) · GitFlow + numeric SemVer (`/workflow/github-actions`) · deploys (`/workflow/github-actions`, `/workflow/github-actions`) · gates (`/backend/coverage`, `/frontend/coverage`) · backlog/docs (`/workflow/github-actions`, `/workflow/documentation-standard`).
 
 ## Defining properties
 Public + read-heavy · SEO-friendly via **edge dynamic rendering, not SSR** · **one dedicated BFF Lambda per SPA (1:1), API GW fronts only the BFF (routes at root)** · **auth external to the BFF (Cognito SDK + GW authorizer)** · VPC-isolated data · IaC as single source of truth · independent per-repo pipelines · encrypted in transit + at rest · one shared AWS account (tagged per workload).

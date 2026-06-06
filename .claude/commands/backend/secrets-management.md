@@ -37,4 +37,4 @@ const { auth_token } = await getSecret(config.redisSecretArn);                  
 - Fetch by **ARN** from `config`; the ARN itself is non-sensitive (fine in env var / SSM).
 - IAM: Lambda role needs `secretsmanager:GetSecretValue` scoped to `tadeumendonca/{env}/*` (`policy_statements`, api.tf).
 - Cache in memory for the container lifetime; never re-fetch per request. Rotation is picked up on the next cold start.
-- Naming: `tadeumendonca/{env}/{component}` (e.g. `tadeumendonca/staging/docdb`, `tadeumendonca/staging/redis`). See `/infrastructure/documentdb-cluster`, `/infrastructure/elasticache-redis`.
+- Naming: `tadeumendonca/{env}/{component}` (e.g. `tadeumendonca/staging/docdb`, `tadeumendonca/staging/redis`). See `/infrastructure/documentdb`, `/infrastructure/elasticache`.

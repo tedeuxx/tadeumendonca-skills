@@ -1,48 +1,30 @@
-Implement or review metrics in tadeumendonca-api (OpenTelemetry → ADOT → CloudWatch).
+Implement or review metrics in tadeumendonca-api (Powertools Metrics → EMF → CloudWatch).
 
 Context: $ARGUMENTS
 
-## Architecture
+## Why EMF (not Prometheus, not a collector)
+Lambda is ephemeral — Prometheus' pull/scrape model doesn't apply (no stable endpoint to scrape), and a long-running collector adds cost. Metrics are **pushed as EMF (Embedded Metric Format)**: the function writes a structured JSON log line with embedded metrics to its log group; CloudWatch **auto-extracts** them as metrics. No ADOT collector, no Amazon Managed Prometheus.
 
-Lambda is ephemeral, so the Prometheus *pull* model doesn't apply — metrics are **pushed**. Instrument once with OpenTelemetry (Prometheus-style counters/histograms); the **ADOT collector** (Lambda layer) receives them via OTLP and exports to **CloudWatch via the `awsemf` exporter** (Embedded Metric Format). **No Amazon Managed Prometheus needed.**
-
-> Changing destination later is a collector-config change only (`awsemf` → CloudWatch, or `prometheusremotewrite` → AMP). The code instrumentation does not change.
-
-## Setup (api.tf, per VPC function)
-- Add the **ADOT Lambda layer** and set `AWS_LAMBDA_EXEC_WRAPPER=/opt/otel-handler`.
-- Bundle a collector config and point at it: `OPENTELEMETRY_COLLECTOR_CONFIG_URI=/var/task/collector.yaml`.
-
-## collector.yaml (awsemf → CloudWatch)
-
-```yaml
-receivers:
-  otlp: { protocols: { http: {}, grpc: {} } }
-exporters:
-  awsemf:
-    namespace: tadeumendonca/${ENVIRONMENT}
-    dimension_rollup_option: NoDimensionRollup
-service:
-  pipelines:
-    metrics: { receivers: [otlp], exporters: [awsemf] }
-```
-
-## Instrumentation: src/shared/metrics.ts
-
+## Powertools Metrics (src/shared/metrics.ts)
 ```typescript
-import { metrics } from '@opentelemetry/api';
-const meter = metrics.getMeter('tadeumendonca-api');
+import { Metrics, MetricUnit } from '@aws-lambda-powertools/metrics';
 
-export const requestCount   = meter.createCounter('requests_total');
-export const requestLatency = meter.createHistogram('request_duration_ms');
-export const cacheHits      = meter.createCounter('cache_hits_total');
-export const cacheMisses    = meter.createCounter('cache_misses_total');
+export const metrics = new Metrics({
+  namespace:   `tadeumendonca/${process.env.ENVIRONMENT}`,
+  serviceName: process.env.POWERTOOLS_SERVICE_NAME,   // = "bff"
+});
 
-// low-cardinality attributes only
-requestCount.add(1, { action_type, environment: process.env.ENVIRONMENT });
+// in a module:
+metrics.addDimension('action_type', action_type);     // low-cardinality only
+metrics.addMetric('requests_total',      MetricUnit.Count,        1);
+metrics.addMetric('request_duration_ms', MetricUnit.Milliseconds, ms);
 ```
+- **Flush once per invocation** — call `metrics.publishStoredMetrics()` in a `finally`, wired in the Hono handler/middleware (`/backend/framework-hono`); optionally `metrics.captureColdStartMetric()`.
+- The EMF lands in the BFF log group `/aws/lambda/tadeumendonca-bff-${env}`; CloudWatch extracts metrics under namespace `tadeumendonca/${env}` (`/infrastructure/cloudwatch`).
 
 ## Conventions
-- Keep **cardinality low** — attributes: `action_type`, `environment`, `function`. Never user_id or id-bearing paths as a dimension.
-- IAM: Lambda role needs `cloudwatch:PutMetricData` (`policy_statements`, api.tf).
+- **No `cloudwatch:PutMetricData`** — EMF metrics are extracted from logs, so the exec role needs no metrics IAM action (basic logs perms suffice). See `/infrastructure/iam`.
+- **Low cardinality** — dimensions limited to `action_type` / `environment` / `service`. Never `user_id` or id-bearing paths.
 - Suggested metrics: request count + latency, cache hit/miss (`/backend/redis-cache`), DocDB query duration, handler errors.
-- `fn-og-edge` emits no metrics (Lambda@Edge constraints).
+- `og-edge` (Lambda@Edge) emits no metrics (edge constraints).
+- Powertools owns Logger / Metrics / Tracer uniformly (`/backend/logging`, `/backend/tracing`).

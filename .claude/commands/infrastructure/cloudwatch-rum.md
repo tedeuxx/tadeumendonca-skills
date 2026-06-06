@@ -25,5 +25,5 @@ Publish to SSM: `/{env}/frontend/rum-app-monitor-id`, `/{env}/frontend/rum-ident
 ## Conventions
 - Separate monitor **per environment**; keep `session_sample_rate` low (RUM bills per event).
 - Guest role is least-privilege — only `rum:PutRumEvents` on this monitor's ARN (`/infrastructure/iam`).
-- Encrypted log group + tagged (`/infrastructure/encryption`, `/infrastructure/tagging`).
+- Encrypted log group + tagged (`/infrastructure/kms`, `/infrastructure/terraform`).
 - Pairs with `/infrastructure/cloudwatch-xray` for browser→backend traces.

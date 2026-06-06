@@ -3,7 +3,7 @@ Implement or review the Backend-for-Frontend (BFF) pattern.
 Context: $ARGUMENTS
 
 ## What a BFF is
-A **BFF is the single backend that exists to serve one frontend.** API Gateway fronts **only the BFF** — there is no other public backend for this SPA — so the BFF's **routes live at the root** (`/profile`, `/posts`, …); the whole API *is* the BFF. **One BFF per SPA** (1:1, never shared — `/architecture/fed-spa-bff-monolith`). Its job: expose endpoints **shaped for this frontend's screens** and **orchestrate/aggregate** the domain logic / downstream microservices behind it — one round trip per screen instead of the SPA fanning out to many resource APIs.
+A **BFF is the single backend that exists to serve one frontend.** API Gateway fronts **only the BFF** — there is no other public backend for this SPA — so the BFF's **routes live at the root** (`/profile`, `/posts`, …); the whole API *is* the BFF. **One BFF per SPA** (1:1, never shared — `/architecture/fed-spa-bff`). Its job: expose endpoints **shaped for this frontend's screens** and **orchestrate/aggregate** the domain logic / downstream microservices behind it — one round trip per screen instead of the SPA fanning out to many resource APIs.
 
 ## Auth/authz are EXTERNAL to the BFF (kept simple)
 The BFF contains **no authentication or authorization code**. Auth is handled outside it:
@@ -52,6 +52,6 @@ Today the domain logic can live **inside** the BFF (modular monolith — fastest
 **Cons:** an extra hop/Lambda to operate; risk of a "god BFF" if business rules creep in (keep it orchestration + shaping; push domain rules into the services); per-SPA duplication with many frontends; tokens live in the browser (the Cognito SDK manages them — accepted trade for simpler code vs. a server-side session BFF).
 
 ## Conventions
-- Built on Hono (`/backend/framework-hono`), in-VPC, Pattern B; **routes at root**; OpenAPI generated from them (`/backend/openapi`) = the contract API GW imports (`/infrastructure/api-gw-contract`).
+- Built on Hono (`/backend/framework-hono`), in-VPC, Pattern B; **routes at root**; OpenAPI generated from them (`/backend/openapi`) = the contract API GW imports (`/infrastructure/api-gateway`).
 - **No auth code in the BFF** — claims come from the API GW Cognito authorizer (`/infrastructure/api-gateway`, `/infrastructure/cognito`); the SPA holds the JWT via the Cognito SDK (`/frontend/authentication`).
 - One BFF per SPA. Keep it thin: read claims → orchestrate → shape. Domain rules belong in the domain logic/microservices.

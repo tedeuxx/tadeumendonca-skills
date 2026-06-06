@@ -2,7 +2,7 @@ Connect to and access DocumentDB in tadeumendonca-api.
 
 Context: $ARGUMENTS
 
-The MongoDB-compatible data layer for the BFF: connection, collections, document conventions, queries, indexes, and cursor pagination. Provisioning is `/infrastructure/documentdb-cluster`; creds come via `/backend/secrets-management`.
+The MongoDB-compatible data layer for the BFF: connection, collections, document conventions, queries, indexes, and cursor pagination. Provisioning is `/infrastructure/documentdb`; creds come via `/backend/secrets-management`.
 
 ## Connection singleton: `src/shared/db/client.ts`
 ```typescript
@@ -44,7 +44,7 @@ Repositories use this accessor — no scattered `db.collection('…')` string li
 ## Document conventions
 - **snake_case fields** everywhere (DB = TS type = JSON) — no mapping layer.
 - `_id`: ObjectId, or a domain slug for articles (`_id = slug`); timestamps `created_at` / `updated_at` (ISODate).
-- One document models the whole aggregate (nested sub-docs) — the reason for DocumentDB over DynamoDB (`/infrastructure/documentdb-cluster`).
+- One document models the whole aggregate (nested sub-docs) — the reason for DocumentDB over DynamoDB (`/infrastructure/documentdb`).
 
 ## Queries (repository pattern, per module)
 ```typescript

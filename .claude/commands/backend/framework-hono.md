@@ -64,6 +64,13 @@ app.openapi(createPost, createPostHandler);
 const claims = c.env.event.requestContext.authorizer?.jwt?.claims ?? {};  // validated by the API GW authorizer
 ```
 
+## Testing (vitest)
+Unit/integration tests run on **vitest**; the coverage gate (≥ 85%) is the agnostic policy in `/backend/coverage`. Thresholds in `vitest.config.ts`:
+```ts
+test: { coverage: { provider: 'v8', thresholds: { lines: 85, functions: 85, branches: 85, statements: 85 } } }
+```
+Test routes with `app.request(...)` (no network); mock DocumentDB/secrets at the module boundary. lcov feeds SonarCloud (`/workflow/sonarcloud`). Contract/smoke tests are Postman/newman (`/backend/postman`).
+
 ## Conventions
 - One `OpenAPIHono` app (the BFF), routes at root; modules register their routes (`/backend/lambda-handler`).
 - Infra/cross-cutting concerns stay **framework-agnostic**; this skill holds the Hono-specific glue.

@@ -8,7 +8,7 @@ Two layers: **per-route meta** (title, description, canonical, OG, JSON-LD) so G
 
 ## Contract
 - Each page declares its meta: `<title>`, description (≤160), canonical (absolute, prod domain), OG/Twitter, and **JSON-LD** (`Person` for CV, `BlogPosting` for articles).
-- `robots.txt` (static) + a build step that generates `sitemap.xml` from the articles list (`/workflow/deploy-fed`).
+- `robots.txt` (static) + a build step that generates `sitemap.xml` from the articles list (`/workflow/github-actions`).
 - Keep client meta **consistent with the edge prerender** output (same title/description) — not cloaking.
 
 ## Conventions

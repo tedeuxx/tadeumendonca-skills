@@ -24,4 +24,4 @@ resource "aws_secretsmanager_secret_version" "x" {
 ## Conventions
 - Encrypted with the **AWS-managed key** by default (`/infrastructure/kms`); CMK only if cross-account/audit is needed.
 - Only the **ARN** is non-sensitive (fine in env var / SSM). The Lambda role gets `secretsmanager:GetSecretValue` scoped to `tadeumendonca/{env}/*` (`/infrastructure/iam`).
-- Provisioned today for: DocumentDB creds (`/infrastructure/documentdb-cluster`) and Redis AUTH (`/infrastructure/elasticache-redis`); any future API keys/tokens as needed. (The Cognito app client is public/PKCE — no client secret; the BFF keeps no session — `/backend/bff`.)
+- Provisioned today for: DocumentDB creds (`/infrastructure/documentdb`) and Redis AUTH (`/infrastructure/elasticache`); any future API keys/tokens as needed. (The Cognito app client is public/PKCE — no client secret; the BFF keeps no session — `/backend/bff`.)

@@ -69,5 +69,5 @@ await redis?.incr(`${env}:posts:list:version`);
 ## Conventions
 - Connection reused across warm invocations (singleton, `lazyConnect`) — never connect per request.
 - Reached in-VPC over the cluster SG (port 6379, off the NAT path), like DocumentDB.
-- AUTH token from Secrets Manager (`/backend/secrets-management`); endpoint from `REDIS_ENDPOINT` (IaC). Provisioned in `/infrastructure/elasticache-redis`.
+- AUTH token from Secrets Manager (`/backend/secrets-management`); endpoint from `REDIS_ENDPOINT` (IaC). Provisioned in `/infrastructure/elasticache`.
 - Emits `cache_hits_total` / `cache_misses_total` — see `/backend/metrics`.

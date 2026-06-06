@@ -7,7 +7,7 @@ Conceptual skill — the config contract. The Vite / `import.meta.env` snippet l
 Config is **build-time** (static SPA): CI reads values from **SSM** and injects them as `VITE_*` before the build; a single **typed accessor** is the only place that reads them.
 
 ## Contract
-- Source of truth = **SSM** (written by IaC); `deploy.yml` fetches + injects (`/workflow/deploy-fed`, `/infrastructure/ssm-config-bus`).
+- Source of truth = **SSM** (written by IaC); `deploy.yml` fetches + injects (`/workflow/github-actions`, `/infrastructure/ssm`).
 - Keys: API base URL, Cognito ids/hosted-UI, GA measurement id, RUM app-monitor + identity-pool ids, region.
 - One typed accessor; components/services never read env directly.
 

@@ -55,6 +55,7 @@ resource "aws_ssm_parameter" "redis_endpoint" {
 - Lambda role `policy_statements`: `secretsmanager:GetSecretValue` on the redis secret.
 
 ## Notes
+- **Encryption:** in-transit (`transit_encryption_enabled` + AUTH token) and at-rest (`at_rest_encryption_enabled`) both on; AWS-managed key by default — key choice in `/infrastructure/kms`.
 - Private subnets, port 6379, reached in-VPC over the SG — off the NAT path (like DocumentDB).
 - Prod = 1 primary + 1 replica; staging = single node. `cache.t4g.micro` (Graviton).
 - Fail-open is enforced on the api side — see `/backend/redis-cache`.

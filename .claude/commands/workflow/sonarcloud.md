@@ -19,7 +19,7 @@ SonarCloud runs on every PR and on develop/main as a **Quality Gate** — static
 ```
 
 ## Conventions
-- Runs after lint/typecheck/tests (needs the lcov); the **Quality Gate failure blocks** — it's part of `/workflow/testing-coverage`.
+- Runs after lint/typecheck/tests (needs the lcov); the **Quality Gate failure blocks** — it's part of the quality gates (`/backend/coverage`, `/frontend/coverage`).
 - Configure the gate on **new code** (clean-as-you-code).
 - SonarCloud covers JS/TS (api/fed); **`checkov`** remains the Terraform security scan (`/infrastructure/terraform`).
 - Vitest still enforces the local **≥85%** as a fast pre-check; Sonar owns the authoritative quality/coverage gate.

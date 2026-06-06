@@ -8,7 +8,7 @@ SNS is the **simplest, lowest-cost** pub/sub for async fan-out — used for doma
 ```hcl
 resource "aws_sns_topic" "events" {
   name              = "tadeumendonca-events-${var.environment}"
-  kms_master_key_id = "alias/aws/sns"            # SSE at rest (/infrastructure/encryption)
+  kms_master_key_id = "alias/aws/sns"            # SSE at rest (/infrastructure/kms)
 }
 resource "aws_sns_topic_subscription" "notifications" {
   topic_arn = aws_sns_topic.events.arn
@@ -28,6 +28,6 @@ resource "aws_lambda_permission" "sns" {
 
 ## Conventions
 - Message = a small JSON domain event (`{ "type": "post_published", "post_id": "…" }`, snake_case); use **subscription filter policies** on `type` if several event types share the topic.
-- SSE at rest (`/infrastructure/encryption`); tagged (`/infrastructure/tagging`).
+- SSE at rest (`/infrastructure/kms`); tagged (`/infrastructure/terraform`).
 - Producer (BFF module) publishes; consumers subscribe — `/backend/notifications`.
 - Scale-up path: if content routing / replay / many event types appear, revisit EventBridge.

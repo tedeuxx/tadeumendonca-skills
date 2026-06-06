@@ -21,4 +21,4 @@ Authentication is **external to the BFF**: the SPA uses the **Cognito IdP SDK** 
 
 ## Conventions
 - The **SDK owns tokens + the session** — never hand-roll PKCE/token exchange, refresh, or token storage.
-- Role-based UI gating is `/frontend/authorization`. Blueprint: `/architecture/fed-spa-bff-monolith`.
+- Role-based UI gating is `/frontend/authorization`. Blueprint: `/architecture/fed-spa-bff`.

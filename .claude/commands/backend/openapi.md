@@ -6,7 +6,7 @@ Context: $ARGUMENTS
 
 ## Principles
 1. **Generated from code, never hand-written** — the backend's route/schema definitions are the single source of truth; the OpenAPI is emitted from them. No drift between code and contract.
-2. **Versioned with the backend** — the generated spec's `info.version` is stamped with the backend's current **VERSION** (the SemVer tag — `/workflow/gitflow`). Each release's contract carries the **same version as the code** that produced it.
+2. **Versioned with the backend** — the generated spec's `info.version` is stamped with the backend's current **VERSION** (the SemVer tag — `/workflow/github-actions`). Each release's contract carries the **same version as the code** that produced it.
 3. **A committed copy lives at the repo root** — the generated `openapi.json` (and/or `.yaml`) is written to the **root of the backend repo** and committed, so it's diffable in PRs, reviewable, and consumable by clients/tools without running the app.
 
 ## Generation (CI + local)
@@ -20,13 +20,13 @@ VERSION=$(cat VERSION)
 ## Two artifacts: vendor-neutral root copy vs AWS-published spec
 - The **root `openapi.json` is vendor-neutral** — pure paths + schemas + security scheme references. This is the reviewable/consumable contract.
 - **When publishing to AWS API Gateway**, the spec must carry the **AWS-specific OpenAPI extensions** — produced as an overlay on top of the neutral contract, not committed at root:
-  - `x-amazon-apigateway-integration` per route → the Lambda invoke ARN (`AWS_PROXY`) — single BFF integration (`/infrastructure/api-gw-contract`).
+  - `x-amazon-apigateway-integration` per route → the Lambda invoke ARN (`AWS_PROXY`) — single BFF integration (`/infrastructure/api-gateway`).
   - `x-amazon-apigateway-authorizer` + `securitySchemes` → the Cognito JWT authorizer (issuer = pool URL, audience = client id, from SSM).
-  - Applied at deploy (envsubst) → `aws apigatewayv2 reimport-api …` (`/workflow/deploy-api`).
+  - Applied at deploy (envsubst) → `aws apigatewayv2 reimport-api …` (`/workflow/github-actions`).
 
 ## Downstream
-- **API Gateway:** root contract + AWS overlay → reimport — `/infrastructure/api-gw-contract`.
-- **Clients/tests:** Postman/newman + consumers read the committed root copy — `/workflow/postman`.
+- **API Gateway:** root contract + AWS overlay → reimport — `/infrastructure/api-gateway`.
+- **Clients/tests:** Postman/newman + consumers read the committed root copy — `/backend/postman`.
 
 ## Conventions
 - `info.version` **==** backend `VERSION`; `info.title` == the service name.

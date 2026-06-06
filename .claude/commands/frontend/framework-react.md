@@ -68,7 +68,14 @@ new AwsRum(env.rumAppMonitorId, '1.0.0', env.region, { sessionSampleRate: 0.1, i
 // router.tsx — react-router v6; <RequireAuth> gates admin routes off cognito:groups (/frontend/authorization)
 ```
 
+## Testing (vitest + RTL)
+Unit/component tests run on **vitest** + React Testing Library (`environment: 'jsdom'`); the coverage gate (≥ 85%) is the agnostic policy in `/frontend/coverage`. Thresholds in `vitest.config.ts`:
+```ts
+test: { environment: 'jsdom', coverage: { provider: 'v8', thresholds: { lines: 85, functions: 85, branches: 85, statements: 85 } } }
+```
+E2E is Playwright, not vitest (`/frontend/playwright`). lcov feeds SonarCloud (`/workflow/sonarcloud`).
+
 ## Conventions
 - **Only this skill carries React/library code**; the concept skills (authentication, authorization, api-client, pagination, seo, analytics, cloudwatch-rum, environment-config, forms, markdown) stay agnostic.
 - snake_case API payloads (no mapping layer); build-time config from SSM (`/frontend/environment-config`).
-- Content-hashed assets (immutable); cache split + invalidation in `/workflow/deploy-fed`. UI primitives from `/frontend/design-system`; components developed in `/frontend/storybook`.
+- Content-hashed assets (immutable); cache split + invalidation in `/workflow/github-actions`. UI primitives from `/frontend/design-system`; components developed in `/frontend/storybook`.

@@ -62,4 +62,4 @@ Both come from the API (DocumentDB) — see `/backend/prerender`. The React app 
 ## Deploy notes
 - us-east-1 (Lambda@Edge); `publish-version` after `update-function-code`; qualified ARN → SSM `/{env}/api/lambda-edge-og-qualified-arn`.
 - esbuild target `node22`, platform `node`, bundle `true`.
-- Attached at CloudFront Viewer Request — see `/infrastructure/cloudfront-spa`.
+- Attached at CloudFront Viewer Request — see `/infrastructure/cloudfront`.

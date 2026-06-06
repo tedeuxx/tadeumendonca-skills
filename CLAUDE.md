@@ -46,8 +46,8 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 ```
 /backend/lambda-handler posts
 /frontend/pagination articles
-/infrastructure/cognito-custom-domain staging
-/workflow/deploy-api production
+/infrastructure/cognito staging
+/workflow/github-actions production
 ```
 
 ---
@@ -58,9 +58,9 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 
 | Command | Purpose |
 |---|---|
-| `/architecture/fed-spa-bff-monolith` | Blueprint: SPA + BFF + modular-monolith backend (auth external); links component skills |
+| `/architecture/fed-spa-bff` | Blueprint: SPA + BFF + modular-monolith backend (auth external); links component skills |
 
-### backend/ (18)
+### backend/ (20)
 
 | Command | Purpose |
 |---|---|
@@ -82,8 +82,10 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/backend/og-image-generator` | OG image: satori JSX→SVG + resvg→PNG + S3 cache |
 | `/backend/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
 | `/backend/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DocDB |
+| `/backend/postman` | API/contract tests (lives in api repo): Bearer JWT auth, collection run in CI |
+| `/backend/coverage` | Backend quality/test/security gates (agnostic): lint, typecheck, ≥85% cov, audit, Sonar |
 
-### frontend/ (16)
+### frontend/ (18)
 
 | Command | Purpose |
 |---|---|
@@ -103,61 +105,47 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/frontend/analytics` | GA4 (concept): SPA page_view per route + events |
 | `/frontend/cloudwatch-rum` | RUM (concept): web vitals, JS errors, http; X-Ray end-to-end |
 | `/frontend/seo` | Client SEO (concept): per-route meta + sitemap/robots + JSON-LD |
+| `/frontend/playwright` | E2E browser tests (lives in fed repo): login via Cognito SDK, critical journeys |
+| `/frontend/coverage` | Frontend quality/test/security gates (agnostic): lint, typecheck, ≥85% cov, E2E, audit, Sonar |
 
-### infrastructure/ (31)
+### infrastructure/ (21)
 
-**Services** — how we use each tool/AWS service (reusable):
+One skill per AWS service / tool used — each is the canonical parametrization + usage pattern (Terraform-resource detail). Cross-cutting policies are folded into their owning service (module sourcing + tagging → `terraform`; domain model → `route53`; encryption → `kms`; IAM authoring + OIDC roles → `iam`).
 
 | Command | Purpose |
 |---|---|
-| `/infrastructure/terraform` | Terraform overall: versions, providers, state(TFC), layout, tfvars, CI |
-| `/infrastructure/terraform-cloud` | TFC as remote-state backend; per-env workspaces; Local execution |
-| `/infrastructure/vpc-networking` | VPC: subnets/NAT, S3 endpoint, lambda SG, traffic design (off-NAT) |
-| `/infrastructure/dns` | Route53: hosted-zone data source + A-alias records |
-| `/infrastructure/acm` | ACM: out-of-band certs, us-east-1, resolved by domain (no ARNs in tfvars) |
-| `/infrastructure/s3-buckets` | S3: frontend(OAC)/artifacts/og-images + SSM |
-| `/infrastructure/cloudfront` | CloudFront: OAC, TLS, cache policies, Lambda@Edge, WAF assoc |
+| `/infrastructure/terraform` | Terraform overall: versions/providers, TFC state, layout, **module-sourcing policy**, **tagging**, tfvars, CI |
+| `/infrastructure/vpc` | VPC: subnets/NAT, S3 endpoint, lambda SG, traffic design (off-NAT) |
+| `/infrastructure/route53` | Route53: **per-env domain model** + hosted-zone data source + A-alias records |
+| `/infrastructure/acm` | ACM: per-env wildcard certs (reused, out-of-band), us-east-1, resolved by domain |
+| `/infrastructure/s3` | S3: frontend(OAC)/artifacts/og-images + SSE + SSM |
+| `/infrastructure/cloudfront` | CloudFront: OAC, TLS, cache policies, **SPA error routing + /og/***, Lambda@Edge, WAF |
 | `/infrastructure/waf` | WAF CLOUDFRONT + REGIONAL (shared by API GW + Cognito) |
-| `/infrastructure/lambda` | Lambda: nodejs22/arm64, in-VPC, tracing, least-priv policy_statements |
-| `/infrastructure/api-gateway` | API GW v2 HTTP: fronts only the BFF, custom domain, CORS, per-route JWT authorizer |
-| `/infrastructure/cognito` | Cognito: user pool, 3 groups, PKCE public client, hosted UI |
-| `/infrastructure/documentdb-cluster` | DocumentDB: cloudposse cluster + Secrets Manager + SSM |
-| `/infrastructure/elasticache-redis` | ElastiCache Redis + AUTH in Secrets Manager + SSM |
-| `/infrastructure/ses-email` | SES: domain verify + DKIM |
+| `/infrastructure/lambda` | Lambda: nodejs22/arm64, in-VPC, **Pattern B**, tracing; og-edge exception |
+| `/infrastructure/api-gateway` | API GW v2 HTTP: fronts only the BFF, per-route JWT authorizer, **contract reimport** |
+| `/infrastructure/cognito` | Cognito: user pool, 3 groups, PKCE public client, **custom domain** |
+| `/infrastructure/documentdb` | DocumentDB: cloudposse cluster params + TLS + Secrets Manager + SSM |
+| `/infrastructure/elasticache` | ElastiCache Redis + AUTH in Secrets Manager + SSM |
+| `/infrastructure/ses` | SES: domain verify + DKIM |
 | `/infrastructure/sns` | SNS: async domain-event fan-out (notifications); cheapest pub/sub |
-| `/infrastructure/iam` | IAM: least privilege, roles-not-users, OIDC for pipelines |
+| `/infrastructure/iam` | IAM: **canonical role/policy authoring catalog** + OIDC deploy roles |
 | `/infrastructure/secrets-manager` | Secrets Manager (provision): naming, jsonencode, ARN-only to SSM |
+| `/infrastructure/ssm` | SSM Parameter Store: cross-repo config bus (namespace, read at deploy) |
+| `/infrastructure/kms` | KMS + **encryption**: in-transit/at-rest matrix, AWS-managed vs CMK, rotation |
 | `/infrastructure/cloudwatch` | CloudWatch: log groups/retention, flow logs, EMF metrics, alarms |
 | `/infrastructure/cloudwatch-rum` | RUM: app monitor + Cognito guest identity pool (real-user monitoring) |
 | `/infrastructure/cloudwatch-xray` | X-Ray: active tracing (API GW+Lambda), sampling rules, service map |
-| `/infrastructure/kms` | KMS: AWS-managed by default, CMK only when needed, rotation |
 
-**Patterns & policies** — compositions and cross-cutting decisions:
+### workflow/ (5)
 
-| Command | Purpose |
-|---|---|
-| `/infrastructure/module-policy` | Module sourcing: official-first, trusted non-official, no L3, raw as glue |
-| `/infrastructure/environment-domains` | Per-env domain/subdomain naming (apex + service subdomains) |
-| `/infrastructure/cloudfront-spa` | SPA delivery on CloudFront: error routing, /og/*, cache split |
-| `/infrastructure/lambda-pattern-b` | Pattern B: IaC owns config, api repo ships code |
-| `/infrastructure/api-gw-contract` | IaC seed shell + generated OpenAPI reimported by api repo |
-| `/infrastructure/ssm-config-bus` | SSM as cross-repo config bus (namespace, read at deploy) |
-| `/infrastructure/cognito-custom-domain` | Cognito hosted-UI custom domain + Route53 + SSM |
-| `/infrastructure/iam-oidc-roles` | GitHub OIDC deploy roles (api, fed) + deploy policies |
-| `/infrastructure/encryption` | TLS in-transit + at-rest everywhere |
-| `/infrastructure/tagging` | Mandatory tags via default_tags (shared account) |
-
-### workflow/ (8)
+DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella for OIDC, secrets/environments, GitFlow branching, the api/fed deploy workflows, and the Issues backlog; the numeric-SemVer tagging rules are their own skill (`versioning`). Test-runner + gate skills live with their repo (`/backend/postman` + `/backend/coverage`, `/frontend/playwright` + `/frontend/coverage`); IaC checkov is in `/infrastructure/terraform`.
 
 | Command | Purpose |
 |---|---|
-| `/workflow/gitflow` | GitFlow + numeric SemVer (develop=patch, main=label bump), loop guard |
-| `/workflow/github-actions` | CI/CD platform: OIDC to AWS, secrets, environments, workflow set |
+| `/workflow/github-actions` | GitHub/CI-CD capability: OIDC, secrets/envs, GitFlow branching, api/fed deploys, Issues backlog |
+| `/workflow/versioning` | Semantic versioning + tags: numeric SemVer via bump-my-version, loop guard, PR labels |
+| `/workflow/terraform-cloud` | TFC as remote-state backend; per-env workspaces; Local execution mode |
 | `/workflow/sonarcloud` | SonarCloud quality gate (SAST + coverage + smells), blocks merge |
-| `/workflow/deploy-api` | api deploy: esbuild → zip → S3 → update-function-code + reimport |
-| `/workflow/deploy-fed` | fed deploy: vite build → S3 sync (split headers) → CF invalidation |
-| `/workflow/issue-backlog` | GitHub Issues: labels, milestones, templates, auto-maintained backlog |
-| `/workflow/testing-coverage` | Quality/test/security gates: lint, typecheck, ≥85% cov, E2E, checkov, audit |
 | `/workflow/documentation-standard` | Markdown + Mermaid only; diagram types per repo |
 
 ---
