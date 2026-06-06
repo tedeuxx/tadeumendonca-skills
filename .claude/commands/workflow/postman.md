@@ -11,7 +11,7 @@ Postman collections document and smoke/contract-test the API; run headless via *
 ## What it covers
 - **Smoke:** `GET /health`, `GET /profile` (public) → 200 + expected shape.
 - **Contract:** response bodies match the generated OpenAPI (snake_case fields) — `/backend/openapi`.
-- **Auth:** protected routes → 401 without a session; 200 via the BFF session.
+- **Auth:** protected routes → 401 without a Bearer JWT; 200 with a valid `Authorization: Bearer` token.
 
 ## CI (newman)
 ```bash

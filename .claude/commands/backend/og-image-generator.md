@@ -1,10 +1,10 @@
-Implement or update the OG image generator in tadeumendonca-api/src/functions/og-image/.
+Implement or update the OG image generator — a module of the BFF (`tadeumendonca-api/src/modules/og-image/`).
 
 Context: $ARGUMENTS
 
 ## Pattern: generate PNG on-demand, cache in S3
 
-**`index.ts`** — handler: `GET /og/{type}/{slug}.png`
+**route** (`routes.ts`) — public BFF route `GET /og/{type}/{slug}.png` (no authorizer)
 1. Check S3 cache: `og-images/{type}/{slug}.png`
 2. If cache hit → return presigned URL redirect (302)
 3. If miss → call `generator.ts` → upload to S3 → return PNG

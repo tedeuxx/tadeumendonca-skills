@@ -58,7 +58,7 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 
 | Command | Purpose |
 |---|---|
-| `/architecture/fed-spa` | Blueprint: SPA + BFF + serverless backend; links every component skill |
+| `/architecture/fed-spa-bff-monolith` | Blueprint: SPA + BFF + modular-monolith backend (auth external); links component skills |
 
 ### backend/ (16)
 
@@ -66,8 +66,8 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 |---|---|
 | `/backend/framework` | Hono on Lambda: OpenAPIHono adapter, routing, middleware, zod-openapi |
 | `/backend/openapi` | Auto-generate OpenAPI from Hono+zod (createRoute); spec for API GW reimport |
-| `/backend/bff` | Backend-for-Frontend: server-side OIDC PKCE + session cookie + API proxy |
-| `/backend/lambda-handler` | Implement a Lambda fn: Hono app + routes + audit + DocumentDB |
+| `/backend/bff` | Backend-for-Frontend: API GW fronts only it (root routes); auth external, no auth code |
+| `/backend/lambda-handler` | Implement a BFF domain module (Hono routes + audit + DocumentDB) |
 | `/backend/docdb-connection` | DocumentDB TLS singleton + Secrets Manager pattern |
 | `/backend/audit-middleware` | Audit collection: actionType config, capture, collection schema |
 | `/backend/action-types` | Central action-type constants, declared statically per handler |
@@ -86,7 +86,7 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | Command | Purpose |
 |---|---|
 | `/frontend/framework` | React + Vite SPA stack: router, React Query, Zustand, Cloudscape |
-| `/frontend/cognito-pkce` | SPA auth via BFF session (OIDC PKCE handled by /backend/bff) |
+| `/frontend/cognito-pkce` | SPA auth via Cognito SDK (Amplify); JWT validated by the API GW authorizer |
 | `/frontend/react-query-cursor` | Cursor-based pagination: useInfiniteQuery + infinite scroll |
 | `/frontend/cloudscape-patterns` | Which Cloudscape components for CV sections, feed, articles |
 | `/frontend/environment-config` | Vite VITE_* build-time env via typed env.ts (from SSM) |
@@ -108,7 +108,7 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/infrastructure/cloudfront` | CloudFront: OAC, TLS, cache policies, Lambda@Edge, WAF assoc |
 | `/infrastructure/waf` | WAF CLOUDFRONT + REGIONAL (shared by API GW + Cognito) |
 | `/infrastructure/lambda` | Lambda: nodejs22/arm64, in-VPC, tracing, least-priv policy_statements |
-| `/infrastructure/api-gateway` | API GW v2 HTTP: stage, custom domain, CORS, JWT authorizer |
+| `/infrastructure/api-gateway` | API GW v2 HTTP: fronts only the BFF, custom domain, CORS, per-route JWT authorizer |
 | `/infrastructure/cognito` | Cognito: user pool, 3 groups, PKCE public client, hosted UI |
 | `/infrastructure/documentdb-cluster` | DocumentDB: cloudposse cluster + Secrets Manager + SSM |
 | `/infrastructure/elasticache-redis` | ElastiCache Redis + AUTH in Secrets Manager + SSM |

@@ -16,9 +16,11 @@ create_routes_and_integrations = false                      # IaC seeds the shel
 body = templatefile("bootstrap/openapi-health.json.tftpl", { ... })   # seed GET /health
 ```
 
+## Fronts only the BFF
+The API covers a **single backend — the BFF** (`/backend/bff`): one `AWS_PROXY` integration to the BFF Lambda, routes at the **root**. A broad `/*/*` invoke permission means reimported routes need no new grant.
+
 ## Auth & integration
-- **Cognito JWT authorizer** declared in the OpenAPI (`x-amazon-apigateway-authorizer`): issuer = pool URL, audience = client id (from SSM).
-- Lambda integration `AWS_PROXY`; a broad `/*/*` invoke permission so reimported routes need no new grant.
+- **Cognito JWT authorizer** (`x-amazon-apigateway-authorizer`): issuer = pool URL, audience = client id (from SSM) — **applied per route**: public routes (health, public GETs, `/og-meta`, `/prerender`) are open; mutations require the JWT. The SPA sends `Authorization: Bearer` (Cognito SDK); the BFF has no auth code.
 - **REGIONAL WAF** associated with the stage (`/infrastructure/waf`).
 
 ## Conventions

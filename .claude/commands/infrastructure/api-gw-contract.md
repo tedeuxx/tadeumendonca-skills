@@ -6,7 +6,7 @@ Context: $ARGUMENTS
 
 **IaC (api.tf):** provisions API GW with a seed spec (`bootstrap/openapi-health.json.tftpl`) containing only `GET /health`. Sets `create_routes_and_integrations = false` — Terraform does NOT manage routes.
 
-**api repo (contract as code):** owns the full route set + Cognito JWT authorizer. The OpenAPI is **generated from the Hono code** (`@hono/zod-openapi`) — see `/backend/openapi` — not hand-written. On every deploy the api repo generates the spec, overlays the AWS integration + authorizer, and runs `reimport-api`.
+**api repo (contract as code):** owns the full **root** route set (the API *is* the BFF) + the Cognito JWT authorizer (applied per route). The OpenAPI is **generated from the Hono code** (`@hono/zod-openapi`) — see `/backend/openapi` — not hand-written. On every deploy the api repo generates the spec, overlays the **single AWS integration (the BFF Lambda)** + authorizer, and runs `reimport-api`.
 
 ## Seed spec (IaC side)
 
@@ -15,7 +15,7 @@ module "apigw" {
   source  = "terraform-aws-modules/apigateway-v2/aws"
   version = "~> 6.0"
   body                           = templatefile("${path.module}/bootstrap/openapi-health.json.tftpl", {
-    health_integration_uri = module.fn["profile"].lambda_function_invoke_arn
+    health_integration_uri = module.bff.lambda_function_invoke_arn
   })
   create_routes_and_integrations = false
   ...
@@ -33,7 +33,7 @@ aws apigatewayv2 reimport-api --api-id "$API_ID" --body file://openapi/openapi.r
 ```
 
 ## openapi.yaml placeholders (resolved at deploy)
-- `${INVOKE_ARN_profile}`, `${INVOKE_ARN_posts}`, etc.
+- `${INVOKE_ARN_bff}` — every route integrates the one BFF Lambda (single integration)
 - `${COGNITO_ISSUER}` = `https://cognito-idp.{region}.amazonaws.com/{pool-id}`
 - `${COGNITO_CLIENT_ID}` = Cognito app client ID
 

@@ -4,12 +4,12 @@ Context: $ARGUMENTS
 
 Module: `terraform-aws-modules/lambda/aws ~> 7.0` (`/infrastructure/module-policy`).
 
-## Standard config (every function)
+## Standard config (the BFF Lambda; og-edge is the edge exception)
 ```hcl
 runtime       = "nodejs22.x"
 architectures = ["arm64"]          # Graviton — ~20% cheaper, equal/better perf
 timeout       = 29                 # API GW max
-memory_size   = 128                # per-fn (og-image = 256 for satori/resvg)
+memory_size   = 256                # the BFF bundles satori/resvg (OG image module)
 tracing_mode  = "Active"           # X-Ray
 
 vpc_subnet_ids         = module.vpc.private_subnets

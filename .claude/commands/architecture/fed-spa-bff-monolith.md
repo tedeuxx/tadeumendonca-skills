@@ -1,4 +1,4 @@
-Reference architecture: frontend SPA + serverless backend (the "fed SPA" pattern).
+Reference architecture: SPA + BFF + modular-monolith backend — the `fed-spa-bff-monolith` pattern.
 
 Context: $ARGUMENTS
 
@@ -13,11 +13,14 @@ Browser ─► CloudFront ─► S3 (React + Vite SPA, CSR)
                    ├ social bot → OG <head>
                    └ crawler   → prerendered HTML (SEO, no SSR)
 
-SPA ─► its OWN BFF Lambda (Hono, 1 per SPA): OIDC PKCE + httpOnly session ─► API GW v2 (JWT) ─► Hono Lambdas (VPC, Pattern B)
-                                                                          ├ DocumentDB (in-VPC)
-                                                                          ├ Redis (cache-aside + sessions)
-                                                                          ├ Secrets Manager (creds)
-                                                                          └ S3 (OG images)
+SPA ─(Cognito SDK: login + holds JWT)─► Cognito
+SPA ─Bearer JWT─► API GW (Cognito JWT authorizer) ─► its OWN BFF Lambda (Hono, 1 per SPA, routes at root)
+                                                        ├ reads claims (no auth code) → RBAC/shaping
+                                                        └ domain logic / microservices
+                                                             ├ DocumentDB (in-VPC)
+                                                             ├ Redis (cache-aside)
+                                                             ├ Secrets Manager (creds)
+                                                             └ S3 (OG images)
 IaC (Terraform/TFC) writes all wiring to SSM  ◄─ api & fed read at deploy
 ```
 
@@ -27,11 +30,11 @@ IaC (Terraform/TFC) writes all wiring to SSM  ◄─ api & fed read at deploy
 ## SEO without SSR (edge dynamic rendering)
 `/backend/og-edge-handler` · `/backend/prerender`
 
-## Auth — always BFF + OIDC PKCE (one BFF per SPA)
-**Every fed/SPA has its own dedicated BFF Lambda — a 1:1 mapping, never a BFF shared across frontends.** The BFF (`/backend/bff`) runs OIDC Authorization Code + PKCE server-side with Cognito and gives *its* SPA an httpOnly session cookie — **no tokens in the browser**. A new frontend → a new BFF (its own Cognito app client, its own session store + cookie, its own domain). The SPA side is `/frontend/cognito-pkce`.
+## Auth — external to the BFF (Cognito SDK + API GW authorizer)
+Authentication/authorization is **kept out of the BFF**: the **Cognito SDK in the SPA** runs login and holds/refreshes the JWT, and the **API Gateway Cognito JWT authorizer** validates every request. The BFF reads the validated claims and has **no auth code** — simpler. Each SPA still has its **own dedicated BFF Lambda (1:1)**, fronted by an API GW that covers only that BFF (routes at root), with its own Cognito app client and domain. SPA side: `/frontend/cognito-pkce`; BFF: `/backend/bff`.
 
-## Backend (serverless, in-VPC)
-`/backend/framework` (Hono) · `/backend/bff` · `/backend/lambda-handler` · `/backend/docdb-connection` · `/backend/redis-cache` · `/backend/logging` · `/backend/metrics` · `/backend/error-handling` · `/backend/audit-middleware` · `/backend/action-types` · `/backend/secrets-management` · `/backend/environment-config` · `/backend/og-image-generator`
+## Backend (BFF monolith, in-VPC)
+`/backend/framework` (Hono) · `/backend/openapi` · `/backend/bff` · `/backend/lambda-handler` · `/backend/docdb-connection` · `/backend/redis-cache` · `/backend/logging` · `/backend/metrics` · `/backend/error-handling` · `/backend/audit-middleware` · `/backend/action-types` · `/backend/secrets-management` · `/backend/environment-config` · `/backend/og-image-generator`
 
 ## Infrastructure (Terraform, IaC = single source of truth)
 - Repo/state/modules → `/infrastructure/terraform` · `/infrastructure/module-policy`
@@ -47,7 +50,7 @@ IaC (Terraform/TFC) writes all wiring to SSM  ◄─ api & fed read at deploy
 Config bus (IaC → SSM → api/fed at deploy) · GitFlow + numeric SemVer (`/workflow/gitflow`) · deploys (`/workflow/deploy-api`, `/workflow/deploy-fed`) · gates (`/workflow/testing-coverage`) · backlog/docs (`/workflow/issue-backlog`, `/workflow/documentation-standard`).
 
 ## Defining properties
-Public + read-heavy · SEO-friendly via **edge dynamic rendering, not SSR** · **one dedicated BFF Lambda per SPA (1:1)** · VPC-isolated data · IaC as single source of truth · independent per-repo pipelines · encrypted in transit + at rest · one shared AWS account (tagged per workload).
+Public + read-heavy · SEO-friendly via **edge dynamic rendering, not SSR** · **one dedicated BFF Lambda per SPA (1:1), API GW fronts only the BFF (routes at root)** · **auth external to the BFF (Cognito SDK + GW authorizer)** · VPC-isolated data · IaC as single source of truth · independent per-repo pipelines · encrypted in transit + at rest · one shared AWS account (tagged per workload).
 
 ## When NOT this pattern
 Heavy server-rendered/interactive apps (use SSR), pure API products (no SPA/edge), or event/stream-driven workloads — those are future `architecture/*` patterns.

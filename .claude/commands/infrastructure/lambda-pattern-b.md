@@ -9,24 +9,24 @@ IaC provisions the Lambda with a placeholder zip. The api repo deploys code inde
 ## Terraform module configuration (api.tf)
 
 ```hcl
-module "fn" {
-  source   = "terraform-aws-modules/lambda/aws"
-  version  = "~> 7.0"
-  for_each = toset(local.vpc_functions)
+# One BFF Lambda (modular monolith) — API GW fronts only this. og-edge is separate (Lambda@Edge).
+module "bff" {
+  source  = "terraform-aws-modules/lambda/aws"
+  version = "~> 7.0"
 
-  function_name = "tadeumendonca-fn-${each.value}-${var.environment}"
+  function_name = "tadeumendonca-bff-${var.environment}"
   handler       = "index.handler"
   runtime       = "nodejs22.x"
   architectures = ["arm64"]
   timeout       = 29
-  memory_size   = local.fn_memory[each.value]
+  memory_size   = 256              # bundles satori/resvg (OG image module)
 
   # Pattern B — module built-in support
   create_package          = false
   ignore_source_code_hash = true
   s3_existing_package     = {
     bucket = module.artifacts_bucket.s3_bucket_id
-    key    = "${each.value}/bootstrap.zip"
+    key    = "bff/bootstrap.zip"
   }
 
   vpc_subnet_ids         = module.vpc.private_subnets
@@ -44,7 +44,7 @@ A minimal `index.js` that exports `handler` returning 503. Uploaded to S3 before
 ## Lifecycle after first apply
 
 - IaC apply: sets config (memory, VPC, env vars, IAM role) — never touches code
-- api deploy: `update-function-code --s3-bucket $BUCKET --s3-key {fn}/latest.zip` — code only
+- api deploy: `update-function-code --s3-bucket $BUCKET --s3-key bff/latest.zip` — code only
 - If IaC apply changes env vars → Lambda config updated, code unchanged
 - If api deploys new code → Lambda code updated, config unchanged
 

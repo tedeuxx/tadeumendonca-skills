@@ -35,7 +35,7 @@ export function renderArticleHtml(a: Article): string {
 - `posts` → minimal `Article`/`SocialMediaPosting`.
 
 ## Conventions
-- Reuses the content repositories (`profile`/`posts`/`articles`); routes can live on those functions or a small dedicated `fn-prerender`. Markdown deps (`markdown-it`) isolated in `shared/render`.
+- These are **public root routes of the BFF** (no authorizer) — `/og-meta/*` and `/prerender/*` — reusing the domain repositories (`profile`/`posts`/`articles`). Markdown deps (`markdown-it`) isolated in `shared/render`.
 - Content fields are snake_case (`body_markdown`, `published_at`, `image_url`).
 - HTML must mirror what the SPA renders (same content) — not cloaking. Keep `og-meta` and `prerender` titles/descriptions identical to the client `/frontend/seo` output.
 - Public routes (no JWT); cached at the edge (`max-age=300`). Hit/miss can feed `/backend/metrics`.

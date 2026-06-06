@@ -1,24 +1,50 @@
-Implement or review the Backend-for-Frontend (BFF) for the fed SPA.
+Implement or review the Backend-for-Frontend (BFF) pattern.
 
 Context: $ARGUMENTS
 
-## Pattern: the BFF owns the session; the SPA holds no tokens
+## What a BFF is
+A **BFF is the single backend that exists to serve one frontend.** API Gateway fronts **only the BFF** — there is no other public backend for this SPA — so the BFF's **routes live at the root** (`/profile`, `/posts`, …); the whole API *is* the BFF. **One BFF per SPA** (1:1, never shared — `/architecture/fed-spa-bff-monolith`). Its job: expose endpoints **shaped for this frontend's screens** and **orchestrate/aggregate** the domain logic / downstream microservices behind it — one round trip per screen instead of the SPA fanning out to many resource APIs.
 
-The SPA never handles OAuth tokens. A **dedicated BFF Lambda** (Hono — **one per SPA, 1:1**, never shared across frontends) runs the **OIDC Authorization Code + PKCE** flow server-side with Cognito, keeps the tokens server-side, and exposes the SPA only an **httpOnly, Secure, SameSite session cookie**. The BFF also proxies/aggregates the domain API for the frontend. This is the standard auth combo for the fed-SPA pattern — it removes tokens from the browser (XSS-safe) and lets responses be tailored to the UI.
+## Auth/authz are EXTERNAL to the BFF (kept simple)
+The BFF contains **no authentication or authorization code**. Auth is handled outside it:
+- **Frontend:** the **Cognito SDK** (AWS Amplify Auth / `amazon-cognito-identity-js`) runs login and **holds + refreshes the JWT**; the SPA sends `Authorization: Bearer <access_token>`.
+- **API Gateway:** a **Cognito JWT authorizer** validates the token on every request before it reaches the BFF (`/infrastructure/api-gateway`).
+- The BFF just **reads the validated claims** from the authorizer context (`requestContext.authorizer.jwt.claims` — `sub`, `email`, `cognito:groups`) and uses them for shaping/RBAC. No token exchange, no session store, no PKCE in the BFF.
 
-## Endpoints (Hono, behind CloudFront / API GW at `/bff/*`)
-- `GET  /bff/login`    → redirect to the Cognito hosted UI (auth request, PKCE `code_challenge`, `state`).
-- `GET  /bff/callback` → verify `state`, exchange `code` + `code_verifier` for tokens (PKCE), create a server session, set the cookie, redirect to the SPA.
-- `POST /bff/logout`   → clear session + cookie, redirect to Cognito logout.
-- `GET  /bff/me`       → current user (from session) so the SPA can render auth state.
-- `ALL  /bff/api/*`    → proxy to the domain API, injecting the session's access token (silent refresh near expiry).
+> This deliberately trades the "no-tokens-in-browser" BFF-session variant for **much simpler code**: the Cognito SDK + GW authorizer own auth; the BFF stays pure orchestration.
 
-## Session
-- Tokens stored **server-side** — an opaque session id in the cookie, the tokens persisted in **Redis** (`/backend/redis-cache`) or DynamoDB. Never put tokens in the cookie.
-- Cookie: `HttpOnly; Secure; SameSite=Lax`; short TTL with refresh-token rotation.
-- The PKCE `code_verifier` + `state` live in a short pre-auth session during the redirect.
+## Topology
+```
+SPA ─(Cognito SDK: login + holds JWT)─► Cognito
+SPA ─Bearer JWT─► API Gateway (Cognito JWT authorizer) ─► BFF Lambda (Hono, VPC, root routes)
+                                                            ├ reads claims (no auth code)
+                                                            └ domain logic / microservices ─► DocumentDB · Redis (cache) · S3
+```
+
+## How it works (request lifecycle)
+1. SPA authenticates with Cognito via the SDK → gets a JWT (the SDK refreshes it).
+2. SPA calls the BFF (`/posts`) with `Authorization: Bearer <jwt>`.
+3. **API GW authorizer** validates the JWT (issuer = pool URL, audience = client id) → injects claims.
+4. BFF handler reads claims (RBAC/shaping — `/backend/action-types`), calls the domain logic / microservices, **aggregates** into a screen-shaped payload, returns it.
+5. Cross-cutting (audit/log/metrics) via the standard Hono middleware.
+
+## Communicating with microservices (now → future)
+Today the domain logic can live **inside** the BFF (modular monolith — fastest to ship). As it grows, split into **microservices the BFF calls**, keeping the SPA contract stable:
+- **Sync:** direct **Lambda invoke** (`InvokeCommand`) or a **private/internal API GW** (VPC link). Propagate the user claims explicitly; internal services trust the BFF (network + IAM), they don't re-validate the JWT.
+- **Async:** **EventBridge / SQS** for fire-and-forget (e.g. notifications) — the BFF publishes, a worker consumes.
+- The **BFF owns the public contract** (its OpenAPI at root — `/backend/openapi`); microservices keep internal contracts. Changing a microservice never changes the SPA while the BFF endpoint is stable.
+
+## Why use a BFF
+- **Frontend-shaped API** — endpoints tailored to screens; one call per view, not many resource calls.
+- **Decouples the SPA from backend topology** — monolith today, microservices tomorrow, no SPA change.
+- **Aggregation/composition server-side** — lower latency, less chatter, no business logic leaking into the SPA.
+- **Simple auth** — delegated to the Cognito SDK + GW authorizer; the BFF code stays focused on orchestration.
+
+## Pros / cons
+**Pros:** tailored payloads + fewer round trips; backend evolves freely; clear 1:1 ownership; auth kept out of app code; one narrow public surface.
+**Cons:** an extra hop/Lambda to operate; risk of a "god BFF" if business rules creep in (keep it orchestration + shaping; push domain rules into the services); per-SPA duplication with many frontends; tokens live in the browser (the Cognito SDK manages them — accepted trade for simpler code vs. a server-side session BFF).
 
 ## Conventions
-- Built on Hono (`/backend/framework`), in-VPC, Pattern B; audit/log/metrics via the standard middleware.
-- Cognito issuer/client-id/hosted-UI from SSM/env (`/backend/environment-config`); client secret (confidential client) from Secrets Manager (`/backend/secrets-management`).
-- The SPA calls `/bff/*` with `credentials: 'include'` and holds **no tokens** — SPA side is `/frontend/cognito-pkce`. Blueprint: `/architecture/fed-spa`.
+- Built on Hono (`/backend/framework`), in-VPC, Pattern B; **routes at root**; OpenAPI generated from them (`/backend/openapi`) = the contract API GW imports (`/infrastructure/api-gw-contract`).
+- **No auth code in the BFF** — claims come from the API GW Cognito authorizer (`/infrastructure/api-gateway`, `/infrastructure/cognito`); the SPA holds the JWT via the Cognito SDK (`/frontend/cognito-pkce`).
+- One BFF per SPA. Keep it thin: read claims → orchestrate → shape. Domain rules belong in the domain logic/microservices.

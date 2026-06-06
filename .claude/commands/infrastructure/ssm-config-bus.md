@@ -13,7 +13,7 @@ Context: $ARGUMENTS
 /{env}/frontend/cloudfront-distribution-id
 /{env}/api/gateway-url
 /{env}/api/gateway-id
-/{env}/api/lambda-function-name-{profile|posts|articles|og-image|notifications}
+/{env}/api/bff-function-name       ← the single BFF Lambda (API GW fronts only this)
 /{env}/api/lambda-edge-og-qualified-arn
 /{env}/auth/cognito-user-pool-id
 /{env}/auth/cognito-client-id

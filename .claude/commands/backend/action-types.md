@@ -66,7 +66,7 @@ export const authorize = (action: ActionType): MiddlewareHandler => async (c, ne
 
 Use it **only when needed** — the three-profile model (`/infrastructure/cognito`) via a simple group check is often enough; promote to an action-type RBAC map when permissions get finer-grained.
 
-**Feature toggles:** make the role→actions map **config-driven** (not hardcoded) to flip a profile's allowed set at runtime — turning features on/off per role via `/backend/environment-config` or a flags store, no deploy. Expose the session's allowed actions (e.g. via `/bff/me`) so the SPA renders UI accordingly.
+**Feature toggles:** make the role→actions map **config-driven** (not hardcoded) to flip a profile's allowed set at runtime — turning features on/off per role via `/backend/environment-config` or a flags store, no deploy. Expose the user's allowed actions (e.g. via a `/me` route on the BFF) so the SPA renders UI accordingly.
 
 ## Pros / cons
 

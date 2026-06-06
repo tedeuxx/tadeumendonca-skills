@@ -11,7 +11,7 @@ End-to-end tests that drive the real SPA in a browser; part of the deploy gate (
 ## What we cover (per phase)
 - `home.spec.ts` — Phase 1: CV page renders all profile sections.
 - `feed.spec.ts` — Phase 2: feed loads + infinite scroll.
-- `auth.spec.ts` — Phase 2: BFF login round-trip (redirect → `/bff/callback` → session → `/bff/me`).
+- `auth.spec.ts` — Phase 2: Cognito SDK login (redirect → `/callback` → token via Amplify) + an authenticated call.
 
 ## Patterns
 - **Locators by role/text** (`getByRole`, `getByText`) — avoid brittle CSS selectors.
