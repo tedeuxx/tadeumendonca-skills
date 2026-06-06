@@ -1,4 +1,4 @@
-Write or review docs for a <apex-domain> repo following the documentation standard.
+Write or review docs for any <project> repo following the documentation standard.
 
 Context: $ARGUMENTS
 

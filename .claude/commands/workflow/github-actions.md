@@ -31,6 +31,12 @@ main ←── release/* ←── develop ←── feature/*
 
 **Versioning & tags** — numeric SemVer via bump-my-version on every push to `develop` (patch) / `main` (PR `semver:` label), with the `bump:` loop guard. All the rules live in **`/workflow/versioning`**; `version-develop.yml` / `version-main.yml` run it.
 
+## Deploy — iac (Terraform)
+Role = the bootstrapped `github-actions-<project>-iac` OIDC role (broad provisioning perms; created out-of-band). State + locking live in Terraform Cloud, execution mode **Local** — GitHub runs `plan`/`apply` (`/workflow/terraform-cloud`); the `TFC_API_TOKEN` secret authenticates to TFC.
+- **`terraform-plan.yml` (PR):** `checkov -d terraform/` (block on HIGH) → `terraform fmt -check` + `validate` → `plan` (`TF_WORKSPACE=<project>-iac-<env>`, `-var-file=env/<env>.tfvars`) → post the plan as a PR comment.
+- **`terraform-deploy.yml`:** merge to `develop` → `apply` to **staging** (auto); merge to `main` → `apply` to **production**, gated by the `production` GitHub Environment approval.
+- On apply, IaC writes all SSM params → the api/fed pipelines read current values at their own deploy (`/infrastructure/ssm`). Pipelines stay **independent** — IaC never triggers the api/fed pipelines.
+
 ## Deploy — api (the BFF)
 The api is **one BFF Lambda** (+ the separate og-edge Lambda@Edge). Role from SSM `/{env}/iam/github-actions-api-role-arn`.
 ```bash
