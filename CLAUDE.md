@@ -159,7 +159,8 @@ DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella f
 3. **snake_case everywhere** — DB fields, TypeScript interfaces, request/response JSON. No
    mapping layer.
 4. **REST** — resources are nouns; HTTP verbs express the action; paths and parameters in
-   kebab-case.
+   kebab-case. Resource ids in paths are **opaque** (slug or hashid/nanoid `public_id`), never
+   enumerable/sequential.
 
 ---
 

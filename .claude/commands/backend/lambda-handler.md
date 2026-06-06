@@ -15,6 +15,7 @@ The single entry (`src/index.ts`) creates the app, wires the middleware, and reg
 
 ## Mandatory conventions
 - snake_case everywhere (DB = TS = JSON, no mapping layer).
+- **Opaque path ids** — a resource is addressed by a **slug** (articles) or a generated **hashid/nanoid `public_id`** (posts/etc.), **never** the Mongo `_id` or a sequential integer (non-enumerable, no information leak). Store + index the `public_id`/slug on the document and look up by it (`/backend/document-db`). RESTful nouns, kebab-case paths.
 - ActionType declared in `action-types.ts`, passed statically to `audit()` — never derived from method/path (`/backend/action-types`).
 - HTTP errors: throw `AppError`/`NotFoundError`/`UnauthorizedError` — never inline 4xx; the central handler maps it (`/backend/error-handling`, wired in `/backend/framework-hono`).
 - SDK clients (Mongo, SecretsManager, Redis) module-level, never inside a handler.

@@ -77,6 +77,13 @@ resource "aws_wafv2_web_acl_association" "api_gw" {       # aws_apigatewayv2_sta
 - Logs go to an `aws-waf-logs-<project>-${env}` group (mandated prefix — `/infrastructure/cloudwatch`); WAF holds no at-rest data of its own. TLS is terminated at CloudFront / API GW, which enforce TLS 1.2+ (`/infrastructure/kms`).
 - `aws_wafv2_web_acl_association` is justified raw glue — no module abstracts the stage/user-pool association.
 
+## Managed rules & OWASP coverage
+**Use AWS managed rule groups wherever possible** — AWS maintains the signatures, minimizing our operational overhead (no custom-rule upkeep). The chosen groups give **baseline OWASP Top 10-aligned coverage**:
+- **`AWSManagedRulesCommonRuleSet`** (both scopes) — core protections across common OWASP categories (XSS, LFI/RFI, oversized payloads, bad bots).
+- **`AWSManagedRulesKnownBadInputsRuleSet`** (REGIONAL) — known-exploit / SSRF / Log4j-style inputs.
+- **Optional add-ons** per surface: `AWSManagedRulesSQLiRuleSet` (SQLi — for rich API query input), `AWSManagedRulesAmazonIpReputationList`, `AWSManagedRulesAnonymousIpList`.
+Write a custom rule **only** when no managed group covers the need; tune a noisy managed rule with `override_action="count"` rather than replacing it.
+
 ## Pros & cons
 **Pros**
 - AWS-maintained managed rule groups + rate limit — OWASP-ish coverage for free.

@@ -54,6 +54,10 @@ Same Pattern B, but: `publish = true`, `lambda_at_edge = true`, provider `aws.us
 ## Conventions
 - Env from IaC + Secrets Manager (`/backend/environment-config`, `/backend/secrets-management`); logs/metrics → `/infrastructure/cloudwatch`, tracing → `/infrastructure/cloudwatch-xray`.
 - Function name to SSM `/{env}/api/bff-function-name` (`/infrastructure/ssm`).
+## Encryption
+- **Env vars** are encrypted at rest with the **AWS-managed Lambda key** by default — kept (no CMK), because the env holds only non-secret config + **secret ARNs** (the secrets live in Secrets Manager, `/backend/secrets-management`). Set `kms_key_arn` only if a CMK is mandated (`/infrastructure/kms`).
+- In transit: everything the BFF calls is TLS (DocDB, Redis, AWS APIs); it runs in private subnets (`/infrastructure/vpc`).
+
 ## Pros & cons
 **Pros**
 - arm64 (Graviton) — cheaper, equal/better perf; in-VPC reaches DocDB/Redis.

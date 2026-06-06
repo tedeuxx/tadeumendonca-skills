@@ -24,9 +24,14 @@ module "ses" {
 - **Root domain identity** (`<apex-domain>`), not per-env — one verified domain; the from-address is `var.ses_from_address` (default `no-reply@<apex-domain>`).
 - `verify_dkim = true` — DKIM CNAMEs are auto-created in Route53 (`/infrastructure/route53`), required for deliverability.
 
-## Available but not used (yet)
-- **Custom MAIL FROM domain** (`mail.<apex-domain>`) — improves SPF alignment; add when deliverability tuning is needed.
-- **Configuration set + event destination** (SNS/CloudWatch) for bounce/complaint tracking — wire when sending volume grows (`/infrastructure/sns`).
+## Sending architecture (the full deliverability + ops picture)
+Beyond domain verification, a production sender needs:
+- **Auth records (Route53):** **DKIM** (signing, module-created) + **SPF** (TXT `v=spf1 include:amazonses.com -all`) + **DMARC** (`_dmarc` TXT, e.g. `v=DMARC1; p=quarantine; rua=mailto:…`). Add SPF/DMARC for inbox placement.
+- **Custom MAIL FROM** (`mail.<apex-domain>`): aligns SPF + Return-Path to your domain instead of amazonses.com — recommended once sending starts.
+- **Configuration set + event destination:** route **bounces / complaints / deliveries** to SNS (or CloudWatch) so the app suppresses bad addresses and watches reputation. AWS **requires** handling bounces/complaints — high rates get sending paused (`/infrastructure/sns`).
+- **Account suppression list:** SES auto-suppresses known bounces/complaints account-wide; honor it (don't re-send).
+- **Sandbox → production + limits:** new accounts are sandboxed (verified recipients only, tiny quota). Request production access (manual, out-of-band), then respect the **sending quota + max send rate** — throttle the SNS→notifications fan-out accordingly (`/backend/notifications`).
+- **Sending path:** the BFF calls `ses:SendEmail` (role-scoped, `/infrastructure/iam`), reaches SES via NAT (`/infrastructure/vpc`), TLS in transit by default.
 
 ## Notes
 - New AWS accounts start in the **SES sandbox** (send only to verified addresses) — requesting production access is a manual, out-of-band step, not Terraform.

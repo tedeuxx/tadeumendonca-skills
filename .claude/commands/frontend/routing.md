@@ -17,7 +17,7 @@ Conceptual skill — the routing structure + conventions. The react-router snipp
 ## Conventions
 - Routes are SEO surface — keep public routes crawlable and in the sitemap (`/frontend/seo`).
 - Page-view tracking fires on route change (`/frontend/analytics`).
-- Route params follow the API (`:slug`, `:id`).
+- Route params are the API's **opaque** ids — `:slug` (articles) or a hashid/nanoid `:public_id` (other resources); **never** an enumerable/sequential id. Mirrors the backend (`/backend/lambda-handler`).
 
 ## Pros & cons
 **Pros**

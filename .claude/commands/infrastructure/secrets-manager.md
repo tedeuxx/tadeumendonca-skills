@@ -26,6 +26,11 @@ resource "aws_secretsmanager_secret_version" "x" {
 - Only the **ARN** is non-sensitive (fine in env var / SSM). The Lambda role gets `secretsmanager:GetSecretValue` scoped to `<project>/{env}/*` (`/infrastructure/iam`).
 - Provisioned today for: DocumentDB creds (`/infrastructure/documentdb`) and Redis AUTH (`/infrastructure/elasticache`); any future API keys/tokens as needed. (The Cognito app client is public/PKCE — no client secret; the BFF keeps no session — `/backend/bff`.)
 
+## Path structure & naming
+Same shape as the SSM config bus (`/infrastructure/ssm`) — first levels make ownership obvious. Secret name: `<project>/{env}/{component}`
+- **L1 `<project>`** — workload slug. **L2 `{env}`** — `staging` | `production` (hard isolation; never shared across envs). **L3 `{component}`** — the owning area (`docdb`, `redis`, …); one secret per component, its JSON holds the fields.
+- Only the **ARN** (`arn:aws:secretsmanager:{region}:{account}:secret:<project>/{env}/{component}-*`) is non-sensitive → goes to SSM / Lambda env. The Lambda role is scoped to `<project>/{env}/*` (`/infrastructure/iam`).
+
 ## Pros & cons
 **Pros**
 - Native rotation hooks, fine-grained IAM, and access auditing.

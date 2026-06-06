@@ -28,6 +28,9 @@ Verify **both axes** for every new resource before merge. `checkov` enforces man
 | Secrets Manager | KMS (`aws/secretsmanager`) by default | `/infrastructure/secrets-manager` |
 | SNS topic + SQS DLQ | `kms_master_key_id` (`aws/sns`, `aws/sqs`) | `/infrastructure/sns` |
 | CloudWatch Logs | encrypted (CMK when required) | `/infrastructure/cloudwatch` |
+| Lambda env vars | AWS-managed Lambda key (`kms_key_arn` for a CMK) | `/infrastructure/lambda` |
+
+> **No customer-KMS surface (AWS encrypts internally):** Cognito user pool, API Gateway, CloudFront, Route53, WAF, ACM — there's no key to choose; the at-rest mandate is met by AWS's own encryption. Every service that *does* expose a key surface is listed above and states its choice.
 
 > All AWS API calls (Secrets Manager, SNS, SES, SSM, S3, STS…) are HTTPS/TLS by default — the SSL-by-default mandate holds end to end.
 

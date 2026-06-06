@@ -80,6 +80,9 @@ module "cloudfront" {
 - **`/og/*` behavior** routes to the `og-images` bucket so OG PNGs serve from the same distribution.
 - **Cache-header split** (immutable hashed assets vs `no-cache` index.html) is set by the **fed deploy**, not here (`/workflow/github-actions`).
 - CLOUDFRONT-scope WAF requires the us-east-1 alias (`/infrastructure/waf`); cert via `/infrastructure/acm`; distribution id to SSM `/{env}/frontend/cloudfront-distribution-id` (`/infrastructure/ssm`).
+## Custom domain (standard)
+The distribution serves the **custom domain** — `aliases = [var.domain_name]` (`<apex-domain>` / `staging.<apex-domain>`). The generated `*.cloudfront.net` host is **never** the public URL. Cert via `/infrastructure/acm` (us-east-1, `sni-only`); the Route53 A-alias to the distribution is in `/infrastructure/route53`.
+
 ## Pros & cons
 **Pros**
 - Global TLS edge with OAC — origin S3 stays private.

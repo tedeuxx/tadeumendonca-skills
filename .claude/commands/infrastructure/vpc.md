@@ -79,6 +79,19 @@ Downstream: `module.vpc.vpc_id` → docdb/redis SGs · `module.vpc.private_subne
 ## Notes
 - Lambda SG egress is limited to HTTPS (443) — **everything that crosses the VPC boundary is TLS** (`/infrastructure/kms`); flow logs are encrypted at the CloudWatch group.
 - This topology was established in the (now-decommissioned) landing-zone project and re-created inline — the migration is a one-time task tracked in the plan, not a skill.
+## Managed prefix lists (SG perimeters)
+Define **customer-managed prefix lists** (`aws_ec2_managed_prefix_list`) for logical perimeters (e.g. `admin-cidrs`) and reference the **prefix-list id** in security-group rules instead of inlining CIDRs — maintenance happens in one place (update the list; every SG that references it follows, no rule edits).
+```hcl
+resource "aws_ec2_managed_prefix_list" "admin" {
+  name           = "<project>-admin-${var.environment}"
+  address_family = "IPv4"
+  max_entries    = 16
+  entry { cidr = var.admin_cidr, description = "admin access" }
+}
+# SG rule:  ingress { prefix_list_ids = [aws_ec2_managed_prefix_list.admin.id] }
+```
+Also use the **AWS-managed** prefix lists (S3 / DynamoDB) in egress rules instead of wide CIDRs.
+
 ## Pros & cons
 **Pros**
 - Private subnets + SG-gated data tier; S3 gateway endpoint (free, off-NAT).
