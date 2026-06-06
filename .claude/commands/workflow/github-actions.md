@@ -15,7 +15,7 @@ Workflows assume an AWS role via **GitHub OIDC** (`aws-actions/configure-aws-cre
 - `ci.yml` — PR: lint + typecheck + tests + **SonarCloud** + security gates (`/backend/coverage`, `/frontend/coverage`, `/workflow/sonarcloud`).
 - `deploy.yml` — develop→staging (auto), main→production (approval); iac uses `terraform-plan.yml` + `terraform-deploy.yml` (`/workflow/terraform-cloud`).
 - `version-develop.yml` / `version-main.yml` — numeric SemVer bump (below).
-- `claude.yml` + `claude-code-review.yml` — Claude GitHub App (assistant + auto review).
+- `claude.yml` + `claude-code-review.yml` — Claude GitHub App (assistant + auto review) — `/workflow/claude-code`.
 - **`concurrency`** groups to avoid overlapping deploys/version bumps (`cancel-in-progress: false`); pin action versions (`@v4`); least-privilege `permissions:` per job (`id-token: write` only where OIDC is needed).
 
 ## Branching (GitFlow)
