@@ -2,6 +2,14 @@ Define or review action types (audit + RBAC) in tadeumendonca-api.
 
 Context: $ARGUMENTS
 
+## What they're for
+
+Action types are the stable identifier behind **two things**:
+1. **Audit identification** — every user interaction with the app is written to the `audits` collection classified by its `action_type`. That constant is **how we identify, query, and filter what the user did** afterward (per-user activity, forensics, usage metrics) — see `/backend/audit-middleware`.
+2. **RBAC composition** — they're the unit of authorization (below).
+
+One constant, used by both — so audit and authz never drift.
+
 ## Mandatory rule
 
 Every VPC Lambda handler declares its action type **statically** and passes it to `auditMiddleware`. **NEVER derive the action type from the HTTP method/path at runtime** — it must be an explicit, centrally-defined constant.
