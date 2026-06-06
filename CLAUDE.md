@@ -1,10 +1,10 @@
 # tadeumendonca-skills
 
-Claude Code custom slash command library for the **tadeumendonca.io** platform.
-No AWS dependencies — these are project-specific **implementation guides** consumed by
-developers (via Claude Code) while building `tadeumendonca-iac`, `-api`, and `-fed`.
+Claude Code **plugin** (slash-command library) for the **tadeumendonca.io** platform — distributed
+via the **marketplace in this repo** and reused across `tadeumendonca-iac`, `-api`, and `-fed`.
+The commands are generic, reusable implementation guides (no AWS dependency to run).
 
-Each command is a per-component guide: when the owner runs `/backend/lambda-handler posts`,
+Each command is a per-component guide: when the owner runs `/tadeumendonca-skills:backend/lambda-handler posts`,
 Claude reads the guide and knows exactly how to implement that piece following this project's
 established patterns (Hono, powertools, audit middleware, DocumentDB, snake_case, Pattern B,
 SSM config bus, GitFlow, etc.).
@@ -14,63 +14,66 @@ starts — none are created ad-hoc during development.
 
 ---
 
-## Installation
+## Installation (Claude Code plugin)
 
-These are Claude Code slash-commands under `.claude/commands/`. A consuming repo (`-iac`, `-api`,
-`-fed`) needs that directory present so Claude Code picks the commands up when you work inside it.
+This repo is a **Claude Code plugin + marketplace** — the native way to reuse skills across
+projects. Commands live in `commands/`; `.claude-plugin/marketplace.json` is the catalog and
+`.claude-plugin/plugin.json` the manifest. **Nothing is published outside this git repo** — the
+marketplace is just a metadata file the consumer points at.
 
-**Recommended — vendor a pinned release (reproducible):** copy `.claude/commands` from a tagged
-release into the consuming repo and **commit it**, so every dev + CI gets the exact same guidance.
-Update with a controlled bump via a small script in the consuming repo:
-
-```bash
-# scripts/sync-skills.sh — pins the consuming repo to a skills version
-REF="${1:-v0.2.0}"
-TMP=$(mktemp -d)
-git clone --depth 1 --branch "$REF" https://github.com/<github-org>/tadeumendonca-skills "$TMP"
-rm -rf .claude/commands && cp -R "$TMP/.claude/commands" .claude/commands
-echo "$REF" > .claude/SKILLS_VERSION        # record the pinned version in the repo
-rm -rf "$TMP" && git add .claude && echo "skills synced to $REF"
-```
-
-**Local dev / skill authoring — symlink (always tip, not pinned):**
+**Consume it in a repo (`-iac`, `-api`, `-fed`)** — add the marketplace from this git + install:
 
 ```bash
-ln -s ../tadeumendonca-skills/.claude/commands .claude/commands             # per-repo
-ln -s ~/git-reps/tadeumendonca-skills/.claude/commands ~/.claude/commands   # global (all projects)
+claude plugin marketplace add tedeuxx/tadeumendonca-skills
+claude plugin install tadeumendonca-skills@tadeumendonca
+# or interactively: /plugin marketplace add tedeuxx/tadeumendonca-skills  then  /plugin install …
 ```
 
-**Git submodule** — add the repo as a submodule at a tag and symlink `.claude/commands` to it
-(explicit pin without vendoring the content).
+**Version it per repo (recommended):** commit a `.claude/settings.json` so every dev + CI on that
+repo auto-gets the plugin when they trust the folder (copy the one in this repo):
 
-Once present, the commands appear in Claude Code grouped by capability (`/architecture/...`,
-`/backend/...`, `/frontend/...`, `/infrastructure/...`, `/workflow/...`). The skills are **generic**
-(`<project>` / `<apex-domain>` placeholders) — Claude substitutes the real values per project
-(in `-iac`, these become `var.project` / `var.apex_domain`).
+```json
+{
+  "extraKnownMarketplaces": {
+    "tadeumendonca": { "source": { "source": "github", "repo": "tedeuxx/tadeumendonca-skills" } }
+  },
+  "enabledPlugins": { "tadeumendonca-skills@tadeumendonca": true }
+}
+```
+
+By default this tracks `main` (= the latest release). To **pin a release**, add `"ref": "v0.2.0"`
+to the marketplace `source`. Refresh with `/plugin marketplace update` (or `claude plugin
+marketplace update`). For **local skill authoring** (test edits to this repo, unpinned):
+`claude --plugin-dir .`
+
+The skills are **generic** (`<project>` / `<apex-domain>` placeholders) — Claude substitutes the
+real values per project (in `-iac`, they become `var.project` / `var.apex_domain`).
 
 ### Usage
 
-Type the command and pass context after it — Claude receives it as `$ARGUMENTS`:
+Plugin commands are **namespaced under the plugin name**. Type the command and pass context after
+it (received as `$ARGUMENTS`):
 
 ```
-/backend/lambda-handler posts
-/frontend/pagination articles
-/infrastructure/cognito staging
-/workflow/github-actions production
+/tadeumendonca-skills:backend/lambda-handler posts
+/tadeumendonca-skills:infrastructure/cognito staging
+/tadeumendonca-skills:workflow/github-actions production
 ```
 
 ### Releasing a version
 
-Numeric SemVer, automated (`/workflow/versioning`). `develop` auto-bumps **patch** on each push.
-To cut a deliberate release, open a PR `develop → main` with the bump label:
+Numeric SemVer, automated (`/workflow/versioning`). `develop` auto-bumps **patch** on each push and
+`plugin.json`'s `version` is bumped in lockstep. To cut a deliberate release, open a PR
+`develop → main` with the bump label:
 
 ```bash
-gh pr create --base main --head develop --title "release: v0.2.0" --label semver:minor
-# on merge, version-main.yml bumps the version, tags vX.Y.Z, and creates the GitHub Release
+gh pr create --base main --head develop --title "release: v0.3.0" --label semver:minor
+# on merge: version-main.yml bumps + tags vX.Y.Z + creates the Release. Then back-merge main→develop.
 ```
 
-Consuming repos then run `scripts/sync-skills.sh vX.Y.Z` to adopt it. Pin to a tag for
-reproducibility; never depend on `develop` tip in CI.
+Consumers tracking `main` get it on the next `/plugin marketplace update`; pinned consumers bump
+their `ref`. **After each release, back-merge `main → develop`** so the version lineage stays in
+sync (see `/workflow/versioning`).
 
 ---
 

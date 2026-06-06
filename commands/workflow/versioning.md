@@ -23,6 +23,7 @@ allow_dirty     = false
 [[tool.bumpversion.files]]
 filename = "VERSION"
 ```
+> Add a `[[tool.bumpversion.files]]` entry per file that **also** carries the version (e.g. `package.json`, `openapi.json`, or — in the skills repo — `.claude-plugin/plugin.json`) so they bump in lockstep with `VERSION`.
 
 ## When each part bumps
 - **push to `develop`** → `version-develop.yml` runs `bump-my-version bump patch` → `0.1.0 → 0.1.1 → …` → commit + tag `vX.Y.Z`.
@@ -39,6 +40,13 @@ Bump commits use message `bump: {current} → {new}`; **both workflows skip any 
 ## Conventions
 - Same scheme/threshold in all repos — never a per-repo variant.
 - The version is the contract stamp: the api's OpenAPI `info.version` == its `VERSION` (`/backend/openapi`).
+
+## Post-release: back-merge `main → develop`
+After a release to `main`, the version-bump commit + tag live only on `main`, so `develop`'s `VERSION` lags. **Back-merge `main` into `develop`** so the lineage reconciles and the next dev work continues from the released version (e.g. `0.2.0` → next `develop` push → `0.2.1`):
+```bash
+git checkout develop && git merge --no-ff origin/main -m "chore: back-merge main into develop" && git push
+```
+Skipping it leaves `develop` on an older minor (e.g. `0.1.x`) while `main` is `0.2.x` — harmless for consumers (they pin `main` tags) but confusing. Do it **once per release**.
 
 ## Pros & cons
 **Pros**
