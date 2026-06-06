@@ -12,12 +12,9 @@ on:
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-
+    # Skip the develop→main release/promotion PR (huge diff, nothing new to review) — auto-review
+    # only PRs that target develop, where it adds value. (Add author/path filters here if needed.)
+    if: github.event.pull_request.base.ref != 'main'
     runs-on: ubuntu-latest
     permissions:
       contents: read

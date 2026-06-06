@@ -27,11 +27,12 @@ jobs:
 With no `prompt`, Claude follows the instruction in the comment that tagged it.
 
 ## `claude-code-review.yml` — automatic PR review
-Runs on every PR `opened` / `synchronize` / `ready_for_review` / `reopened`:
+Runs on PR `opened` / `synchronize` / `ready_for_review` / `reopened` — but **skips PRs into `main`** (the `develop→main` release/promotion diff is huge and has nothing new to review). **Cost scales with diff size, and `synchronize` re-reviews on _every_ push** to the PR branch (so a long-lived PR that keeps getting commits — e.g. version bumps — re-triggers a full review each time). Keep PRs tight; gate big/release PRs out.
 ```yaml
 on: { pull_request: { types: [opened, synchronize, ready_for_review, reopened] } }
 jobs:
   claude-review:
+    if: github.event.pull_request.base.ref != 'main'   # skip the develop→main release PR
     permissions: { contents: read, pull-requests: read, issues: read, id-token: write }
     steps:
       - uses: actions/checkout@v4            # fetch-depth: 1
