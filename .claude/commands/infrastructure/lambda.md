@@ -1,4 +1,4 @@
-Use AWS Lambda in ${var.project} infrastructure.
+Use AWS Lambda in <project> infrastructure.
 
 Context: $ARGUMENTS
 
@@ -10,7 +10,7 @@ module "bff" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 7.0"
 
-  function_name = "${var.project}-bff-${var.environment}"
+  function_name = "<project>-bff-${var.environment}"
   handler       = "index.handler"
   runtime       = "nodejs22.x"
   architectures = ["arm64"]          # Graviton — ~20% cheaper, equal/better Node perf

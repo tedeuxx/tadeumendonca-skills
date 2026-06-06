@@ -1,4 +1,4 @@
-Author or review any IAM role/policy in ${var.project} infrastructure.
+Author or review any IAM role/policy in <project> infrastructure.
 
 Context: $ARGUMENTS
 
@@ -14,10 +14,10 @@ Modules: `terraform-aws-modules/iam/aws` submodules `iam-policy` + `iam-assumabl
 
 ## Authoring conventions
 - **Statement shape:** `{ Sid, Effect="Allow", Action=[...], Resource=[...], Condition? }`. One Sid per concern (e.g. `ReadDocdbSecret`, `WriteOgCache`).
-- **ARN scoping:** parametrize by env — `arn:aws:secretsmanager:${region}:${account}:secret:${var.project}/${env}/*`, `arn:aws:s3:::${var.project}-og-images-${env}/*`, SSM `arn:aws:ssm:${region}:${account}:parameter/${env}/*`. Use `data.aws_caller_identity`/`data.aws_region`.
+- **ARN scoping:** parametrize by env — `arn:aws:secretsmanager:${region}:${account}:secret:<project>/${env}/*`, `arn:aws:s3:::<project>-og-images-${env}/*`, SSM `arn:aws:ssm:${region}:${account}:parameter/${env}/*`. Use `data.aws_caller_identity`/`data.aws_region`.
 - **Confused-deputy guard:** resource-based trust (Lambda@Edge, cross-service) carries `Condition.StringEquals` on `aws:SourceArn`/`aws:SourceAccount`. OIDC trust uses `StringLike` on `token.actions.githubusercontent.com:sub`.
 - **Managed vs customer-managed:** lean on AWS-managed policies for boilerplate (logs, VPC ENIs, X-Ray); write a customer-managed `iam-policy` only for app-specific grants.
-- **Naming:** roles `${var.project}-${purpose}-${env}` / `github-actions-${repo}-${env}`; policies `${var.project}-${purpose}-deploy-${env}`.
+- **Naming:** roles `<project>-${purpose}-${env}` / `github-actions-${repo}-${env}`; policies `<project>-${purpose}-deploy-${env}`.
 - **Region:** Lambda@Edge roles/policies are **global** (created in us-east-1 with the function); everything else is regional.
 
 ## AWS-managed policies we rely on
@@ -38,7 +38,7 @@ policy_statements = {
   read_secrets = {                         # docdb + redis creds (/infrastructure/secrets-manager)
     effect    = "Allow"
     actions   = ["secretsmanager:GetSecretValue"]
-    resources = ["arn:aws:secretsmanager:${region}:${account}:secret:${var.project}/${env}/*"]
+    resources = ["arn:aws:secretsmanager:${region}:${account}:secret:<project>/${env}/*"]
   }
   read_ssm = {                             # config bus (/infrastructure/ssm)
     effect    = "Allow"
@@ -48,7 +48,7 @@ policy_statements = {
   og_cache = {                             # og-image PNG cache (/infrastructure/s3)
     effect    = "Allow"
     actions   = ["s3:GetObject", "s3:PutObject"]
-    resources = ["arn:aws:s3:::${var.project}-og-images-${env}/*"]
+    resources = ["arn:aws:s3:::<project>-og-images-${env}/*"]
   }
   publish_events = {                       # async domain events (/infrastructure/sns)
     effect    = "Allow"
@@ -71,16 +71,16 @@ assume_role_policy = jsonencode({ Version = "2012-10-17", Statement = [{
 }]})
 ```
 - Managed: `AWSLambdaBasicExecutionRole` (logs land in each edge region). **No VPC** (edge functions can't be in a VPC).
-- Inline: `s3:GetObject` on `arn:aws:s3:::${var.project}-og-images-${env}/*` (serve cached OG images). It calls the BFF's **public** routes over HTTPS — no IAM for that.
+- Inline: `s3:GetObject` on `arn:aws:s3:::<project>-og-images-${env}/*` (serve cached OG images). It calls the BFF's **public** routes over HTTPS — no IAM for that.
 - Created in **us-east-1** (global).
 
 ### 3. GitHub OIDC deploy roles (api, fed) — iam.tf
-IaC creates a **deploy policy** (`iam-policy` submodule) + an **OIDC-assumable role** (`iam-assumable-role-with-oidc`) per app repo, then writes the role ARNs to SSM. Trust = the **pre-existing** GitHub OIDC provider, scoped to `repo:${var.github_org}/<repo>:*`.
+IaC creates a **deploy policy** (`iam-policy` submodule) + an **OIDC-assumable role** (`iam-assumable-role-with-oidc`) per app repo, then writes the role ARNs to SSM. Trust = the **pre-existing** GitHub OIDC provider, scoped to `repo:<github-org>/<repo>:*`.
 ```hcl
 module "policy_api_deploy" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
   version = "~> 5.0"
-  name    = "${var.project}-api-deploy-${var.environment}"
+  name    = "<project>-api-deploy-${var.environment}"
   policy  = jsonencode({ Version = "2012-10-17", Statement = [{
     Effect = "Allow"
     Action = ["lambda:UpdateFunctionCode", "lambda:PublishVersion",   # BFF code + og-edge version
@@ -92,7 +92,7 @@ module "policy_api_deploy" {
 }
 module "policy_fed_deploy" {
   source = "terraform-aws-modules/iam/aws//modules/iam-policy"; version = "~> 5.0"
-  name   = "${var.project}-fed-deploy-${var.environment}"
+  name   = "<project>-fed-deploy-${var.environment}"
   policy = jsonencode({ Version = "2012-10-17", Statement = [{
     Effect = "Allow"
     Action = ["s3:PutObject", "s3:DeleteObject", "s3:ListBucket",     # site sync
@@ -106,7 +106,7 @@ module "oidc_api" {
   create_role                  = true
   role_name                    = "github-actions-api-${var.environment}"
   provider_url                 = "token.actions.githubusercontent.com"   # pre-existing provider
-  oidc_subjects_with_wildcards = ["repo:${var.github_org}/${var.project}-api:*"]
+  oidc_subjects_with_wildcards = ["repo:<github-org>/<project>-api:*"]
   role_policy_arns             = [module.policy_api_deploy.arn]
 }
 module "oidc_fed" { /* same shape, fed repo + module.policy_fed_deploy.arn */ }
@@ -120,7 +120,7 @@ module "oidc_fed" { /* same shape, fed repo + module.policy_fed_deploy.arn */ }
 Cognito **identity pool** unauthenticated role used by CloudWatch RUM to put events (`/infrastructure/cloudwatch-rum`). Trust = `cognito-identity.amazonaws.com` with `Condition.StringEquals "cognito-identity.amazonaws.com:aud" = <identity_pool_id>` and `ForAnyValue:StringLike "amr" = "unauthenticated"`. Inline: `rum:PutRumEvents` scoped to the app-monitor ARN.
 
 ### 5. iac repo's own deploy role
-`github-actions-${var.project}-iac` is **bootstrapped out-of-band** (chicken-and-egg) — a one-time landing-zone task in the plan, not Terraform-managed here.
+`github-actions-<project>-iac` is **bootstrapped out-of-band** (chicken-and-egg) — a one-time landing-zone task in the plan, not Terraform-managed here.
 
 ## Conventions
 - Role ARNs → SSM for app repos to assume at deploy (`/infrastructure/ssm`); app repos read `AWS_OIDC_ROLE_ARN`, never a rotatable GitHub secret.

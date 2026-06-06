@@ -1,4 +1,4 @@
-Provision or review SES (domain verification + DKIM) in ${var.project}-iac (auth.tf).
+Provision or review SES (domain verification + DKIM) in <project>-iac (auth.tf).
 
 Context: $ARGUMENTS
 
@@ -10,7 +10,7 @@ module "ses" {
   source  = "cloudposse/ses/aws"
   version = "~> 0.25"
 
-  domain        = "${var.apex_domain}"                 # root identity — shared across environments
+  domain        = "<apex-domain>"                 # root identity — shared across environments
   zone_id       = data.aws_route53_zone.main.zone_id # module writes verification + DKIM records here
   verify_domain = true
   verify_dkim   = true
@@ -21,11 +21,11 @@ module "ses" {
 ```
 **Choices that matter:**
 - **`ses_user_enabled = false`** — we do **not** create an SES SMTP IAM user/credentials; the BFF Lambda sends through the SES API using its exec role (`ses:SendEmail` scoped to the identity ARN — `/infrastructure/iam`). No long-lived SMTP secret.
-- **Root domain identity** (`${var.apex_domain}`), not per-env — one verified domain; the from-address is `var.ses_from_address` (default `no-reply@${var.apex_domain}`).
+- **Root domain identity** (`<apex-domain>`), not per-env — one verified domain; the from-address is `var.ses_from_address` (default `no-reply@<apex-domain>`).
 - `verify_dkim = true` — DKIM CNAMEs are auto-created in Route53 (`/infrastructure/route53`), required for deliverability.
 
 ## Available but not used (yet)
-- **Custom MAIL FROM domain** (`mail.${var.apex_domain}`) — improves SPF alignment; add when deliverability tuning is needed.
+- **Custom MAIL FROM domain** (`mail.<apex-domain>`) — improves SPF alignment; add when deliverability tuning is needed.
 - **Configuration set + event destination** (SNS/CloudWatch) for bounce/complaint tracking — wire when sending volume grows (`/infrastructure/sns`).
 
 ## Notes

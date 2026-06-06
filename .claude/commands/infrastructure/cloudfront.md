@@ -1,4 +1,4 @@
-Use CloudFront in ${var.project} infrastructure (incl. the SPA distribution).
+Use CloudFront in <project> infrastructure (incl. the SPA distribution).
 
 Context: $ARGUMENTS
 
@@ -10,7 +10,7 @@ module "waf_cloudfront" {
   source    = "aws-ia/waf/aws"
   version   = "~> 1.0"
   providers = { aws = aws.us_east_1 }
-  name      = "${var.project}-cloudfront-${var.environment}"
+  name      = "<project>-cloudfront-${var.environment}"
   scope     = "CLOUDFRONT"
   managed_rule_groups = [{ name = "AWSManagedRulesCommonRuleSet", vendor_name = "AWS", priority = 1 }]
 }

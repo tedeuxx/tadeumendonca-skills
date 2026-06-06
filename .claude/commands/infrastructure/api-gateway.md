@@ -1,4 +1,4 @@
-Use API Gateway v2 (HTTP API) in ${var.project} infrastructure.
+Use API Gateway v2 (HTTP API) in <project> infrastructure.
 
 Context: $ARGUMENTS
 

@@ -1,4 +1,4 @@
-Provision secrets in AWS Secrets Manager (${var.project} infrastructure).
+Provision secrets in AWS Secrets Manager (<project> infrastructure).
 
 Context: $ARGUMENTS
 
@@ -6,12 +6,12 @@ This is the **provisioning** (IaC) side. The runtime **consumption** side is `/b
 
 ## What & how
 - Every sensitive value lives here — never in SSM plain text, tfvars, or code.
-- Naming: `${var.project}/{env}/{component}` (e.g. `…/docdb`, `…/redis`).
+- Naming: `<project>/{env}/{component}` (e.g. `…/docdb`, `…/redis`).
 - Value is `jsonencode({...})` with **snake_case** fields (`auth_token`, `username`, `password`, `host`, `port`, `dbname`).
 
 ```hcl
 resource "aws_secretsmanager_secret" "x" {
-  name                    = "${var.project}/${var.environment}/x"
+  name                    = "<project>/${var.environment}/x"
   recovery_window_in_days = var.environment == "production" ? 7 : 0
 }
 resource "aws_secretsmanager_secret_version" "x" {
@@ -23,5 +23,5 @@ resource "aws_secretsmanager_secret_version" "x" {
 
 ## Conventions
 - Encrypted with the **AWS-managed key** by default (`/infrastructure/kms`); CMK only if cross-account/audit is needed.
-- Only the **ARN** is non-sensitive (fine in env var / SSM). The Lambda role gets `secretsmanager:GetSecretValue` scoped to `${var.project}/{env}/*` (`/infrastructure/iam`).
+- Only the **ARN** is non-sensitive (fine in env var / SSM). The Lambda role gets `secretsmanager:GetSecretValue` scoped to `<project>/{env}/*` (`/infrastructure/iam`).
 - Provisioned today for: DocumentDB creds (`/infrastructure/documentdb`) and Redis AUTH (`/infrastructure/elasticache`); any future API keys/tokens as needed. (The Cognito app client is public/PKCE — no client secret; the BFF keeps no session — `/backend/bff`.)

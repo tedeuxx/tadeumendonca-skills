@@ -1,4 +1,4 @@
-Apply the encryption + KMS key policy across ${var.project}-iac.
+Apply the encryption + KMS key policy across <project>-iac.
 
 Context: $ARGUMENTS
 

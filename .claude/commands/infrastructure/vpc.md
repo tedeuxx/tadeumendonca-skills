@@ -1,4 +1,4 @@
-Implement or review the VPC and networking layer (vpc.tf) in ${var.project}-iac.
+Implement or review the VPC and networking layer (vpc.tf) in <project>-iac.
 
 Context: $ARGUMENTS
 
@@ -10,7 +10,7 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
 
-  name = "${var.project}-${var.environment}"
+  name = "<project>-${var.environment}"
   cidr = var.vpc_cidr                                  # 10.0.0.0/16
 
   azs             = var.azs                            # 2 AZs
@@ -51,7 +51,7 @@ module "vpc" {
 ## Lambda security group (raw — app-specific, out of module scope)
 ```hcl
 resource "aws_security_group" "lambda" {
-  name   = "${var.project}-lambda-${var.environment}"
+  name   = "<project>-lambda-${var.environment}"
   vpc_id = module.vpc.vpc_id
   egress {
     from_port = 443, to_port = 443, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"]

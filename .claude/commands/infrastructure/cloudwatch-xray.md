@@ -1,4 +1,4 @@
-Use AWS X-Ray in ${var.project} infrastructure (distributed tracing service).
+Use AWS X-Ray in <project> infrastructure (distributed tracing service).
 
 Context: $ARGUMENTS
 
@@ -12,7 +12,7 @@ The tracing **service** side — the backend instrumentation is `/backend/tracin
 ## Sampling
 ```hcl
 resource "aws_xray_sampling_rule" "default" {
-  rule_name      = "${var.project}-${var.environment}"
+  rule_name      = "<project>-${var.environment}"
   priority       = 1000
   fixed_rate     = 0.1            # 10% (+ reservoir) — cost control
   reservoir_size = 1

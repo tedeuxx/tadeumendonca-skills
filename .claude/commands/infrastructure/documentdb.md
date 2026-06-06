@@ -1,4 +1,4 @@
-Provision or review the DocumentDB cluster (data.tf) in ${var.project}-iac.
+Provision or review the DocumentDB cluster (data.tf) in <project>-iac.
 
 Context: $ARGUMENTS
 
@@ -11,7 +11,7 @@ module "docdb" {
   version = "~> 1.0"
 
   # identity / engine
-  name            = "${var.project}"           # + namespace/stage via context; → ${var.project}-${env}
+  name            = "<project>"           # + namespace/stage via context; → <project>-${env}
   stage           = var.environment
   engine          = "docdb"
   engine_version  = "5.0.0"                    # DocumentDB 5.0 (parameter family docdb5.0)
@@ -62,13 +62,13 @@ resource "random_password" "docdb" { length = 32, special = false }
 ## Credentials → Secrets Manager (never SSM plaintext)
 ```hcl
 resource "aws_secretsmanager_secret" "docdb" {
-  name                    = "${var.project}/${var.environment}/docdb"
+  name                    = "<project>/${var.environment}/docdb"
   recovery_window_in_days = var.environment == "production" ? 7 : 0
 }
 resource "aws_secretsmanager_secret_version" "docdb" {
   secret_id     = aws_secretsmanager_secret.docdb.id
   secret_string = jsonencode({ username = "admin", password = random_password.docdb.result,
-                               host = module.docdb.endpoint, port = 27017, dbname = "${var.project}" })
+                               host = module.docdb.endpoint, port = 27017, dbname = "<project>" })
 }
 ```
 

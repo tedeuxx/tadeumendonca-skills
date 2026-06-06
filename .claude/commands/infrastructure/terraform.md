@@ -1,15 +1,15 @@
-Use Terraform in ${var.project} infrastructure (how we use it as a whole).
+Use Terraform in <project> infrastructure (how we use it as a whole).
 
 Context: $ARGUMENTS
 
-The single `${var.project}-iac` repo provisions everything. This is the end-to-end Terraform usage — versions, state, layout, **module sourcing/customization policy**, and **tagging** (both folded in here).
+The single `<project>-iac` repo provisions everything. This is the end-to-end Terraform usage — versions, state, layout, **module sourcing/customization policy**, and **tagging** (both folded in here).
 
 ## Versions & providers
 ```hcl
 terraform {
   required_version = ">= 1.9"
   required_providers { aws = { source = "hashicorp/aws", version = "~> 5.0" } }
-  cloud { organization = "${var.tfc_organization}", workspaces { tags = ["${var.project}-iac"] } }
+  cloud { organization = "<tfc-org>", workspaces { tags = ["<project>-iac"] } }
 }
 provider "aws" { region = var.aws_region; default_tags { tags = local.tags } }
 provider "aws" { alias = "us_east_1"; region = "us-east-1"; default_tags { tags = local.tags } }  # CloudFront/WAF/ACM
@@ -17,19 +17,25 @@ provider "aws" { alias = "us_east_1"; region = "us-east-1"; default_tags { tags 
 Pin provider + module versions with `~>`. Two providers: default + `us_east_1` alias (CloudFront, WAF CLOUDFRONT, ACM, Cognito custom domain).
 
 ## State management (TFC)
-Remote state only — **Terraform Cloud is the state backend** (`cloud{}`); no local state, no S3/Dynamo backend, state never committed. **One workspace per environment** (`${var.project}-iac-{staging|production}`, tagged). Execution mode **Local**: TFC stores/locks state, **GitHub Actions runs `plan`/`apply`**. CI selects the target with `TF_WORKSPACE` + matching `-var-file`. Details: `/workflow/terraform-cloud`.
+Remote state only — **Terraform Cloud is the state backend** (`cloud{}`); no local state, no S3/Dynamo backend, state never committed. **One workspace per environment** (`<project>-iac-{staging|production}`, tagged). Execution mode **Local**: TFC stores/locks state, **GitHub Actions runs `plan`/`apply`**. CI selects the target with `TF_WORKSPACE` + matching `-var-file`. Details: `/workflow/terraform-cloud`.
 > Inherited from the now-decommissioned landing-zone project.
 
 ## Repo layout (single canonical root)
 One `terraform/` root, **never duplicated per env** — only the `.tfvars` differs at plan/apply (`-var-file=env/stg.tfvars`). One `.tf` per layer (vpc/storage/data/cache/auth/api/frontend/iam) + `versions`/`providers`/`variables`/`outputs` + `env/*.tfvars` + `bootstrap/`. Public modules called **directly** at root, glue inline — no L3 wrappers (see policy below).
 
 ## Project parameterization (reusable across projects)
-These skills are **project-agnostic** — every workload-specific value is a variable, so the same skills provision any project by changing tfvars:
-- **`project`** — the slug used in every resource name / SSM path / secret name (`${var.project}-bff-${var.environment}`, `${var.project}/${var.environment}/docdb`). The example instance sets `project = "tadeumendonca"`.
-- **`apex_domain`** — the registrable apex (e.g. `tadeumendonca.io`); per-env hosts derive from it (`/infrastructure/route53`).
-- **`github_org`** — GitHub org for the OIDC trust subjects (`repo:${var.github_org}/${var.project}-api:*` — `/infrastructure/iam`).
-- **`tfc_organization`** — Terraform Cloud org for the `cloud{}` block.
-> The `cloud{}` block and workspace tags **can't interpolate variables** (they're parsed before vars resolve) — substitute `tfc_organization`/`project` literally there, or pass them via a partial config / `TF_WORKSPACE`. Everywhere else uses the variables directly.
+These skills are **project-agnostic templates**. Workload-specific values appear as **`<…>` placeholders** (a universal notation that reads correctly in HCL, TypeScript, bash, and prose) — substitute them per project. In your IaC each maps to a real variable:
+
+| Placeholder | Backing variable | Used in |
+|---|---|---|
+| `<project>` | `var.project` | every resource name / SSM path / secret name (`<project>-bff-…`, `<project>/{env}/docdb`) |
+| `<apex-domain>` | `var.apex_domain` | the registrable apex; per-env hosts derive from it (`/infrastructure/route53`) |
+| `<github-org>` | `var.github_org` | OIDC trust subjects `repo:<github-org>/<project>-api:*` (`/infrastructure/iam`) |
+| `<tfc-org>` | `var.tfc_organization` | the `cloud{}` block |
+| `<account-id>` | `data.aws_caller_identity` | prose only — never hardcoded in config |
+
+The **example instance** is `project = tadeumendonca`, `apex_domain = tadeumendonca.io`. The per-environment value (`var.environment` = `staging`/`production`) is a **real variable**, not a placeholder — it's `${var.environment}` in HCL, `process.env.ENVIRONMENT` in TS, `$ENV_NAME` in bash.
+> The `cloud{}` block + workspace tags **can't interpolate variables** (parsed before vars resolve) — substitute `<tfc-org>`/`<project>` literally there, or pass via partial config / `TF_WORKSPACE`. Everywhere else uses the variables directly.
 
 ## Variables & data sources
 `variables.tf` is canonical (`project`, `apex_domain`, `github_org`, `tfc_organization`, `aws_region`, `environment`, `vpc_cidr`, `azs`, `domain_name`, `api/auth_domain_name`, `acm_certificate_domain`, `callback/logout_urls`, `ses_from_address`). **No** `account_id` (→ `data.aws_caller_identity`), **no** ACM ARNs (→ `data.aws_acm_certificate` by `var.acm_certificate_domain` — `/infrastructure/acm`). `data.aws_route53_zone.main` declared once at root.
@@ -53,12 +59,12 @@ The account (`<account-id>`) hosts **multiple workloads/environments**; consiste
 
 | Tag | Value | Why |
 |---|---|---|
-| `Project` | `${var.project}` | workload boundary — separates this from other workloads in the account |
+| `Project` | `<project>` | workload boundary — separates this from other workloads in the account |
 | `Environment` | `staging` \| `production` | env isolation + cost split |
 | `ManagedBy` | `terraform` | provenance (vs console / other tooling) |
 
 ```hcl
-locals { tags = { Project = "${var.project}", Environment = var.environment, ManagedBy = "terraform" } }
+locals { tags = { Project = "<project>", Environment = var.environment, ManagedBy = "terraform" } }
 # applied once via default_tags on BOTH providers (default + us_east_1) — never per resource
 ```
 - **Set tags once** via `default_tags`; add a resource-level tag only for a specific need (e.g. `Name`).
@@ -67,7 +73,7 @@ locals { tags = { Project = "${var.project}", Environment = var.environment, Man
 
 ## Conventions
 - Per-env differences via `var.environment == "production"` conditionals — avoid extra variables.
-- Resource names `${var.project}-{...}-${var.environment}`; tags via `default_tags` only.
+- Resource names `<project>-{...}-${var.environment}`; tags via `default_tags` only.
 - Raw glue resources only where no module abstracts (`aws_route53_record`, `aws_lambda_permission`, `aws_wafv2_web_acl_association`, lambda SG).
 
 ## CI/CD (.github/workflows)

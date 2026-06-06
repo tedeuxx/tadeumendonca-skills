@@ -1,4 +1,4 @@
-Use Amazon Cognito in ${var.project} infrastructure.
+Use Amazon Cognito in <project> infrastructure.
 
 Context: $ARGUMENTS
 
@@ -10,7 +10,7 @@ module "cognito" {
   source  = "terraform-aws-modules/cognito-idp/aws"
   version = "~> 8.0"
 
-  user_pool_name           = "${var.project}-${var.environment}"
+  user_pool_name           = "<project>-${var.environment}"
   username_attributes      = ["email"]
   auto_verified_attributes = ["email"]
   mfa_configuration        = "OPTIONAL"
@@ -33,8 +33,8 @@ module "cognito" {
     }
   }
 
-  domain          = "auth-${var.environment}-${var.project}"   # Cognito-managed prefix (fallback)
-  custom_domain   = var.auth_domain_name                      # auth.{env}.${var.apex_domain}
+  domain          = "auth-${var.environment}-<project>"   # Cognito-managed prefix (fallback)
+  custom_domain   = var.auth_domain_name                      # auth.{env}.<apex-domain>
   certificate_arn = data.aws_acm_certificate.main.arn         # us-east-1, pre-created (/infrastructure/acm)
 }
 ```
