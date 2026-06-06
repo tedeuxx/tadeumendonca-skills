@@ -49,4 +49,4 @@ One document per user interaction (all fields snake_case):
 **Cons:** a write per request adds latency + DocDB load on hot paths (mitigate: fire-and-forget, or batch/async via a queue if volume grows); coupled to the request DB (fail open); stores PII (set a retention TTL + access controls); captures response **status only** by default — add body capture deliberately, with truncation + redaction.
 
 ## Wiring
-The Hono middleware `audit(action)` that runs after the handler and inserts this document is defined in `/backend/hono`; the action constants in `/backend/action-types`; the collection access/connection in `/backend/docdb-connection`.
+The Hono middleware `audit(action)` that runs after the handler and inserts this document is defined in `/backend/hono`; the action constants in `/backend/action-types`; the collection access/connection in `/backend/document-db`.

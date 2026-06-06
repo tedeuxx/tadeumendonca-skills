@@ -2,7 +2,7 @@ Provision or review the DocumentDB cluster (data.tf) in tadeumendonca-iac.
 
 Context: $ARGUMENTS
 
-This is the **infra side** (cluster provisioning + Secrets Manager + SSM). The api-side TLS client singleton lives in `/backend/docdb-connection`.
+This is the **infra side** (cluster provisioning + Secrets Manager + SSM). The api-side TLS client singleton lives in `/backend/document-db`.
 
 ## Module: cloudposse/documentdb-cluster/aws (~> 1.0)
 

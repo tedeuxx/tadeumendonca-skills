@@ -10,7 +10,7 @@ Context: $ARGUMENTS
 - **CloudFront:** `minimum_protocol_version = "TLSv1.2_2021"`, `viewer_protocol_policy = redirect-to-https` (`/infrastructure/cloudfront-spa`).
 - **API GW v2:** HTTPS-only custom domain (ACM); no HTTP.
 - **Cognito hosted UI:** HTTPS (ACM, us-east-1).
-- **DocumentDB:** client connects `tls: true` + CA bundle (`/backend/docdb-connection`); cluster requires TLS.
+- **DocumentDB:** client connects `tls: true` + CA bundle (`/backend/document-db`); cluster requires TLS.
 - **Redis:** `transit_encryption_enabled = true` + AUTH token (`/infrastructure/elasticache-redis`).
 - **S3:** reached only via CloudFront OAC over HTTPS; bucket policy denies `aws:SecureTransport = false`.
 

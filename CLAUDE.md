@@ -68,7 +68,7 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/backend/openapi` | Contract auto-maintained from code (agnostic): versioned, committed root copy, AWS overlay |
 | `/backend/bff` | Backend-for-Frontend: API GW fronts only it (root routes); auth external, no auth code |
 | `/backend/lambda-handler` | Implement a BFF domain module (Hono routes + audit + DocumentDB) |
-| `/backend/docdb-connection` | DocumentDB TLS singleton + Secrets Manager pattern |
+| `/backend/document-db` | DocumentDB: connection singleton, collections, queries, indexes, cursor pagination |
 | `/backend/audit-middleware` | Audit trail (conceptual): what's captured + the audits document shape |
 | `/backend/action-types` | Action types (conceptual): audit + RBAC + feature toggles |
 | `/backend/error-handling` | Throw AppError/NotFoundError/Unauthorized — never return 4xx |
