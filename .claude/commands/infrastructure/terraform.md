@@ -79,7 +79,7 @@ variable "apex_domain" {
 ## Module sourcing & customization policy
 **Sourcing priority:**
 1. **Official first** — prefer official `terraform-aws-modules/*` (HashiCorp/AWS-maintained) for any resource that has one: `vpc`, `s3-bucket`, `cloudfront`, `cognito-idp`, `apigateway-v2`, `lambda`, `iam`, `kms`.
-2. **Trusted non-official next** — only when no official module exists, use established sources with a track record: `cloudposse/*` (documentdb, elasticache-redis, ses), `aws-ia/*` (waf). Never a low-reputation / unmaintained / single-author module.
+2. **Trusted non-official next** — only when no official module exists, use established sources with a track record: `cloudposse/*` (documentdb, elasticache, ses, waf). Never a low-reputation / unmaintained / single-author module.
 3. **Raw `aws_*` last** — justified glue only where no module abstracts the need: `aws_lambda_permission`, `aws_wafv2_web_acl_association`, the app-specific lambda SG, `aws_route53_record`, `aws_ssm_parameter`, `aws_secretsmanager_secret`. Note which gap each fills.
 
 **Customization:**

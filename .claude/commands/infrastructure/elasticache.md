@@ -20,7 +20,7 @@ module "redis" {
   # network (VPC-only, private)
   vpc_id                  = module.vpc.vpc_id
   subnets                 = module.vpc.private_subnets
-  allowed_security_groups = [aws_security_group.lambda.id]      # inbound 6379 only from the Lambda SG
+  allowed_security_group_ids = [aws_security_group.lambda.id]  # inbound 6379 only from the Lambda SG
 
   # sizing / HA
   instance_type              = "cache.t4g.micro"               # Graviton; the floor

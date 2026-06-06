@@ -6,13 +6,17 @@ Module: `terraform-aws-modules/cloudfront/aws ~> 3.0`. Composes WAF(CLOUDFRONT) 
 
 ## WAF CLOUDFRONT (us-east-1 alias required)
 ```hcl
-module "waf_cloudfront" {
-  source    = "aws-ia/waf/aws"
+module "waf_cloudfront" {                            # full config in /infrastructure/waf
+  source    = "cloudposse/waf/aws"
   version   = "~> 1.0"
   providers = { aws = aws.us_east_1 }
   name      = "<project>-cloudfront-${var.environment}"
   scope     = "CLOUDFRONT"
-  managed_rule_groups = [{ name = "AWSManagedRulesCommonRuleSet", vendor_name = "AWS", priority = 1 }]
+  default_action = "allow"
+  managed_rule_group_statement_rules = [
+    { name = "common", priority = 1, override_action = "none",
+      statement = { name = "AWSManagedRulesCommonRuleSet", vendor_name = "AWS" } }
+  ]
 }
 ```
 

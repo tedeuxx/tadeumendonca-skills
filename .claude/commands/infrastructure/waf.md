@@ -2,7 +2,7 @@ Implement or review the WAF WebACLs (CLOUDFRONT + REGIONAL) in <project>-iac.
 
 Context: $ARGUMENTS
 
-Two WebACLs via **`aws-ia/waf/aws ~> 1.0`** (`/infrastructure/terraform`). CLOUDFRONT scope **must** use the us-east-1 provider alias. Inputs below follow the module's schema.
+Two WebACLs via **`cloudposse/waf/aws ~> 1.0`** (`/infrastructure/terraform`). CLOUDFRONT scope **must** use the us-east-1 provider alias. Inputs below follow the module's schema.
 
 ## Common knobs (both WebACLs)
 ```hcl
@@ -12,19 +12,20 @@ visibility_config = {                                 # CloudWatch metrics + sam
   sampled_requests_enabled   = true
   metric_name                = "<project>-${scope}-${var.environment}"
 }
-# rate limiting — blunt DoS / brute-force guard
+# rate limiting — blunt DoS / brute-force guard (limit + key nest inside `statement`)
 rate_based_statement_rules = [
-  { name = "rate-limit", priority = 10, action = "block", limit = 2000, aggregate_key_type = "IP" }
+  { name = "rate-limit", priority = 10, action = "block",
+    statement = { limit = 2000, aggregate_key_type = "IP" } }
 ]
 # logging → the AWS-mandated `aws-waf-logs-` group (/infrastructure/cloudwatch)
-enable_logging          = true
+logging_enabled         = true
 log_destination_configs = [aws_cloudwatch_log_group.waf.arn]   # name MUST start with aws-waf-logs-
 ```
 
 ## CLOUDFRONT scope (frontend.tf) — us-east-1
 ```hcl
 module "waf_cloudfront" {
-  source    = "aws-ia/waf/aws"
+  source    = "cloudposse/waf/aws"
   version   = "~> 1.0"
   providers = { aws = aws.us_east_1 }                # CLOUDFRONT scope requires us-east-1
   name      = "<project>-cloudfront-${var.environment}"
@@ -42,7 +43,7 @@ module "waf_cloudfront" {
 ## REGIONAL scope (auth.tf) — shared by API GW + Cognito
 ```hcl
 module "waf_regional" {
-  source  = "aws-ia/waf/aws"
+  source  = "cloudposse/waf/aws"
   version = "~> 1.0"
   name    = "<project>-regional-${var.environment}"
   scope   = "REGIONAL"
