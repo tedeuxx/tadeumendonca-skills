@@ -9,7 +9,7 @@ The third observability pillar (with `/backend/logging` + `/backend/metrics`): *
 import { Tracer } from '@aws-lambda-powertools/tracer';
 export const tracer = new Tracer({ serviceName: process.env.POWERTOOLS_SERVICE_NAME });
 ```
-- Enable **active tracing** on the Lambda (`tracing_mode = "Active"` — `/infrastructure/lambda`); the role gets X-Ray write perms.
+- Enable **active tracing** on the Lambda (`tracing_mode = "Active"` — `/infrastructure/lambda`) and the API GW stage; sampling rules + service map are the service side (`/infrastructure/cloudwatch-xray`).
 - The framework wiring (a middleware that opens a segment per request, marks cold start + response, closes on error) lives in `/backend/hono`.
 
 ## Usage

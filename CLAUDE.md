@@ -83,7 +83,7 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/backend/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
 | `/backend/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DocDB |
 
-### frontend/ (7)
+### frontend/ (8)
 
 | Command | Purpose |
 |---|---|
@@ -93,9 +93,10 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/frontend/cloudscape-patterns` | Which Cloudscape components for CV sections, feed, articles |
 | `/frontend/environment-config` | Vite VITE_* build-time env via typed env.ts (from SSM) |
 | `/frontend/analytics` | Google Analytics (GA4): SPA page_view per route + events |
+| `/frontend/cloudwatch-rum` | RUM: real-user web vitals, JS errors, http; X-Ray end-to-end |
 | `/frontend/seo` | Client-side SEO: react-helmet-async meta + sitemap + robots + JSON-LD |
 
-### infrastructure/ (29)
+### infrastructure/ (31)
 
 **Services** — how we use each tool/AWS service (reusable):
 
@@ -119,6 +120,8 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/infrastructure/iam` | IAM: least privilege, roles-not-users, OIDC for pipelines |
 | `/infrastructure/secrets-manager` | Secrets Manager (provision): naming, jsonencode, ARN-only to SSM |
 | `/infrastructure/cloudwatch` | CloudWatch: log groups/retention, flow logs, EMF metrics, alarms |
+| `/infrastructure/cloudwatch-rum` | RUM: app monitor + Cognito guest identity pool (real-user monitoring) |
+| `/infrastructure/cloudwatch-xray` | X-Ray: active tracing (API GW+Lambda), sampling rules, service map |
 | `/infrastructure/kms` | KMS: AWS-managed by default, CMK only when needed, rotation |
 
 **Patterns & policies** — compositions and cross-cutting decisions:
