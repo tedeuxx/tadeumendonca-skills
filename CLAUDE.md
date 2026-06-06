@@ -45,7 +45,7 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 
 ```
 /backend/lambda-handler posts
-/frontend/react-query-cursor articles
+/frontend/pagination articles
 /infrastructure/cognito-custom-domain staging
 /workflow/deploy-api production
 ```
@@ -64,7 +64,7 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 
 | Command | Purpose |
 |---|---|
-| `/backend/hono` | Hono framework + middleware wiring (logger/error/audit/authorize); routing, zod-openapi |
+| `/backend/framework-hono` | Hono framework + middleware wiring (logger/error/audit/authorize); routing, zod-openapi |
 | `/backend/openapi` | Contract auto-maintained from code (agnostic): versioned, committed root copy, AWS overlay |
 | `/backend/bff` | Backend-for-Frontend: API GW fronts only it (root routes); auth external, no auth code |
 | `/backend/lambda-handler` | Implement a BFF domain module (Hono routes + audit + DocumentDB) |
@@ -83,19 +83,23 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/backend/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
 | `/backend/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DocDB |
 
-### frontend/ (9)
+### frontend/ (13)
 
 | Command | Purpose |
 |---|---|
-| `/frontend/framework` | React + Vite SPA stack: router, React Query, Zustand, Cloudscape |
-| `/frontend/authentication` | SPA auth via Cognito SDK (Amplify); JWT validated by the API GW authorizer |
+| `/frontend/framework-react` | React+Vite impl home: providers, Amplify, React Query, api client, routing (only place with React snippets) |
+| `/frontend/authentication` | SPA auth (concept): Cognito SDK holds JWT → Bearer; API GW authorizer validates |
 | `/frontend/authorization` | SPA UI gating by groups/claims (cosmetic); real authz is server-side |
-| `/frontend/react-query-cursor` | Cursor-based pagination: useInfiniteQuery + infinite scroll |
-| `/frontend/cloudscape-patterns` | Which Cloudscape components for CV sections, feed, articles |
-| `/frontend/environment-config` | Vite VITE_* build-time env via typed env.ts (from SSM) |
-| `/frontend/analytics` | Google Analytics (GA4): SPA page_view per route + events |
-| `/frontend/cloudwatch-rum` | RUM: real-user web vitals, JS errors, http; X-Ray end-to-end |
-| `/frontend/seo` | Client-side SEO: react-helmet-async meta + sitemap + robots + JSON-LD |
+| `/frontend/api-client` | BFF calls (concept): base URL from SSM, Bearer, 401, queries/mutations + invalidation |
+| `/frontend/pagination` | Cursor pagination contract + infinite-scroll UX (concept) |
+| `/frontend/forms` | Admin forms: controlled inputs + zod (mirrors BFF) → mutation |
+| `/frontend/markdown` | Article markdown render: highlight + sanitize; consistent with edge prerender |
+| `/frontend/design-system` | Cloudscape: which component per UI pattern (CV / feed / articles) |
+| `/frontend/storybook` | Component library: stories, autodocs, interaction/visual tests |
+| `/frontend/environment-config` | Build-time VITE_* from SSM (concept); typed accessor |
+| `/frontend/analytics` | GA4 (concept): SPA page_view per route + events |
+| `/frontend/cloudwatch-rum` | RUM (concept): web vitals, JS errors, http; X-Ray end-to-end |
+| `/frontend/seo` | Client SEO (concept): per-route meta + sitemap/robots + JSON-LD |
 
 ### infrastructure/ (31)
 

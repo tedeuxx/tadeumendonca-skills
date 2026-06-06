@@ -23,6 +23,6 @@ attach_policy_statements = true    # least privilege: secretsmanager:GetSecretVa
 
 ## Conventions
 - **arm64** always; **in-VPC** (private subnets) for DocDB/Redis access; least-privilege `policy_statements`.
-- Code/deploy via **Pattern B** (`/infrastructure/lambda-pattern-b`); handler code via `/backend/hono`.
+- Code/deploy via **Pattern B** (`/infrastructure/lambda-pattern-b`); handler code via `/backend/framework-hono`.
 - **Lambda@Edge** (og-edge) is the exception: us-east-1, `publish = true`, no VPC (`/backend/og-edge-handler`).
 - Env from IaC + Secrets Manager (`/backend/environment-config`, `/backend/secrets-management`); logs/metrics → `/infrastructure/cloudwatch`.

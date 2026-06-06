@@ -1,6 +1,8 @@
-Use the correct Cloudscape Design System components for each UI pattern in tadeumendonca-fed.
+Design system (Cloudscape) — which component for each UI pattern in tadeumendonca-fed.
 
 Pattern/section: $ARGUMENTS
+
+Like `/frontend/framework-react`, this skill is allowed library-specific snippets (Cloudscape is the chosen design system). Components are developed/documented in `/frontend/storybook`.
 
 ## Page shell
 ```typescript
@@ -28,7 +30,7 @@ import SideNavigation from '@cloudscape-design/components/side-navigation';
 - `Table` — articles list with tag filter
 - `Select` — tag filter dropdown
 - `Container` — single article view wrapper
-- Use `react-markdown` + `rehype-highlight` inside Container for article body rendering
+- Article body rendered as markdown inside `Container` — see `/frontend/markdown`
 
 ## Feedback states
 - `Alert` type="error" — API errors, form validation

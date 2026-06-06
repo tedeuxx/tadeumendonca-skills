@@ -2,7 +2,7 @@ Implement or review structured logging in tadeumendonca-api.
 
 Context: $ARGUMENTS
 
-Conceptual skill — the logging standard. The framework-specific context wiring (the middleware that attaches the Lambda context per request) lives in `/backend/hono`.
+Conceptual skill — the logging standard. The framework-specific context wiring (the middleware that attaches the Lambda context per request) lives in `/backend/framework-hono`.
 
 ## Standard: AWS Lambda Powertools Logger
 Structured JSON logs via Powertools Logger (framework-agnostic). **Never `console.log`** in VPC handlers.
@@ -24,6 +24,6 @@ logger.error('docdb query failed', { error });
 ## Conventions
 - JSON only; custom fields **snake_case**.
 - Never log the raw event or the Authorization header (PII/JWT).
-- Attach the Lambda context (cold-start, request id) **once per request** and reset appended keys afterward — that wiring is framework-specific (`/backend/hono`).
+- Attach the Lambda context (cold-start, request id) **once per request** and reset appended keys afterward — that wiring is framework-specific (`/backend/framework-hono`).
 - Levels via `LOG_LEVEL`: DEBUG (staging) / WARN (production) — `/backend/environment-config`.
 - `og-edge` (Lambda@Edge) has no Powertools — minimal `console` only.

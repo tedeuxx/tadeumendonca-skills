@@ -2,7 +2,7 @@ Maintain the backend API contract (OpenAPI) — generated, versioned, committed.
 
 Context: $ARGUMENTS
 
-**Principle: the contract is maintained automatically by the backend.** It is generated from the code itself on every change, so the OpenAPI can **never drift** from the implementation — there is no manual update step to forget, hence **no contract-update gaps**. This is the whole point of the skill. It is framework-agnostic; the framework-specific *generation* (here: Hono + `@hono/zod-openapi`) lives in `/backend/hono`.
+**Principle: the contract is maintained automatically by the backend.** It is generated from the code itself on every change, so the OpenAPI can **never drift** from the implementation — there is no manual update step to forget, hence **no contract-update gaps**. This is the whole point of the skill. It is framework-agnostic; the framework-specific *generation* (here: Hono + `@hono/zod-openapi`) lives in `/backend/framework-hono`.
 
 ## Principles
 1. **Generated from code, never hand-written** — the backend's route/schema definitions are the single source of truth; the OpenAPI is emitted from them. No drift between code and contract.
@@ -15,7 +15,7 @@ VERSION=$(cat VERSION)
 <gen-command> --version "$VERSION" --out openapi.json     # framework adapter → version-stamped root copy
 ```
 - Runs on build/deploy **and** as a CI / pre-commit check: regenerate and **fail if the root `openapi.json` is out of date** (contract-drift guard).
-- The adapter that produces the document is the framework's job — `/backend/hono` (`app.getOpenAPI31Document`).
+- The adapter that produces the document is the framework's job — `/backend/framework-hono` (`app.getOpenAPI31Document`).
 
 ## Two artifacts: vendor-neutral root copy vs AWS-published spec
 - The **root `openapi.json` is vendor-neutral** — pure paths + schemas + security scheme references. This is the reviewable/consumable contract.

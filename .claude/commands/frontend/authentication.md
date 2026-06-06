@@ -1,35 +1,17 @@
-Implement or review SPA authentication in tadeumendonca-fed.
+SPA authentication in tadeumendonca-fed (concept).
 
 Context: $ARGUMENTS
 
-Authentication lives in the **frontend (Cognito SDK) + the API GW authorizer** — not in the BFF. The SPA authenticates directly with Cognito via the SDK (AWS Amplify Auth), which **holds and refreshes the JWT**; every API call carries `Authorization: Bearer <access_token>`; the API GW Cognito authorizer validates it (`/infrastructure/api-gateway`); the BFF reads claims, no auth code (`/backend/bff`). The Cognito **service** (pool, app client, hosted UI, groups) is `/infrastructure/cognito`.
+Conceptual skill — the auth contract. React/Amplify snippets live in `/frontend/framework-react`.
 
-## Setup (Amplify Auth)
-```typescript
-import { Amplify } from 'aws-amplify';
-Amplify.configure({ Auth: { Cognito: {
-  userPoolId: env.cognitoUserPoolId,
-  userPoolClientId: env.cognitoClientId,             // public client, PKCE
-  loginWith: { oauth: {
-    domain: env.cognitoHostedUi, scopes: ['openid','email','profile'],
-    redirectSignIn: [`${location.origin}/callback`], responseType: 'code',
-  } },
-} } });
-```
-Config values come from SSM at build time (`/frontend/environment-config`) — never hardcoded.
+Authentication is **external to the BFF**: the SPA uses the **Cognito IdP SDK** to log in and **hold/refresh the JWT**, then sends `Authorization: Bearer <access_token>` on every API call. The **API GW Cognito authorizer** validates it (`/infrastructure/api-gateway`); the BFF reads claims, no auth code (`/backend/bff`). The Cognito service is `/infrastructure/cognito`.
 
-## Login / logout / token
-```typescript
-import { signInWithRedirect, signOut, fetchAuthSession } from 'aws-amplify/auth';
-// login: signInWithRedirect();   logout: signOut();
-const { tokens } = await fetchAuthSession();           // SDK caches + refreshes
-const jwt = tokens?.accessToken?.toString();
-// services/api.ts injects it on every call:
-fetch(`${env.apiBaseUrl}/posts`, { headers: { Authorization: `Bearer ${jwt}` } });
-```
-A `401` from the API → re-auth (`signInWithRedirect`). The `/callback` route lets the SDK finish the code exchange.
+## Contract
+- Login → redirect to the Cognito hosted UI (Authorization Code + **PKCE**); the callback completes the exchange; the SDK stores + refreshes tokens.
+- Every BFF call carries the access token as a Bearer header (`/frontend/api-client`).
+- `401` → re-authenticate.
+- Config (pool/client/hosted-UI ids) from **SSM** at build time (`/frontend/environment-config`).
 
 ## Conventions
-- The **Cognito SDK owns tokens** (storage + refresh) — don't hand-roll PKCE/token exchange.
-- Send `Authorization: Bearer` to the BFF; the **API GW authorizer** validates.
-- Role-based UI gating is `/frontend/authorization`; blueprint `/architecture/fed-spa-bff-monolith`.
+- The **SDK owns tokens** — never hand-roll PKCE/token exchange or store tokens manually.
+- Role-based UI gating is `/frontend/authorization`. Blueprint: `/architecture/fed-spa-bff-monolith`.

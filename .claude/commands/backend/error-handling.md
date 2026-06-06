@@ -2,7 +2,7 @@ Implement or review HTTP error handling in tadeumendonca-api.
 
 Context: $ARGUMENTS
 
-Conceptual skill — the error model and response shape. The framework-specific central handler (how thrown errors map to responses) is wired in `/backend/hono`.
+Conceptual skill — the error model and response shape. The framework-specific central handler (how thrown errors map to responses) is wired in `/backend/framework-hono`.
 
 ## Mandatory rule
 **Throw typed errors — never return an inline 4xx.** A single central handler maps thrown errors to the HTTP response; handlers stay on the happy path.
@@ -37,4 +37,4 @@ if (!groups.includes('admin')) throw new UnauthorizedError();
 - Error body is snake_case `{ error, message }` — same shape across the API.
 - `500` never leaks internals (logged via Powertools — `/backend/logging`).
 - Schema-validation failures map to a `400` `ValidationError` so they share the shape.
-- The central handler that catches thrown errors and writes the response is wired in `/backend/hono`.
+- The central handler that catches thrown errors and writes the response is wired in `/backend/framework-hono`.

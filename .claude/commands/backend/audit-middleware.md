@@ -2,7 +2,7 @@ Define or review the audit trail in tadeumendonca-api.
 
 Context: $ARGUMENTS
 
-Conceptual skill — *what* an audit record is and how the trail works. The framework-specific wiring (the Hono middleware that captures and writes it) lives in `/backend/hono`.
+Conceptual skill — *what* an audit record is and how the trail works. The framework-specific wiring (the Hono middleware that captures and writes it) lives in `/backend/framework-hono`.
 
 ## How it works (concept)
 
@@ -49,4 +49,4 @@ One document per user interaction (all fields snake_case):
 **Cons:** a write per request adds latency + DocDB load on hot paths (mitigate: fire-and-forget, or batch/async via a queue if volume grows); coupled to the request DB (fail open); stores PII (set a retention TTL + access controls); captures response **status only** by default — add body capture deliberately, with truncation + redaction.
 
 ## Wiring
-The Hono middleware `audit(action)` that runs after the handler and inserts this document is defined in `/backend/hono`; the action constants in `/backend/action-types`; the collection access/connection in `/backend/document-db`.
+The Hono middleware `audit(action)` that runs after the handler and inserts this document is defined in `/backend/framework-hono`; the action constants in `/backend/action-types`; the collection access/connection in `/backend/document-db`.

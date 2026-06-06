@@ -60,7 +60,7 @@ Opaque cursor over the **indexed** sort key; the range query stays index-efficie
 const filter = cursor ? { _id: { $lt: new ObjectId(cursor) } } : {};
 const page = await posts.find({ status: 'published', ...filter }).sort({ _id: -1 }).limit(limit + 1).toArray();
 const next_cursor = page.length > limit ? page.pop()!._id.toString() : null;
-return { items: page, next_cursor };          // snake_case; frontend side = /frontend/react-query-cursor
+return { items: page, next_cursor };          // snake_case; frontend side = /frontend/pagination
 ```
 Cursors survive re-ordering where offset breaks.
 

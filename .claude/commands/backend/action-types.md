@@ -2,7 +2,7 @@ Define or review action types (audit + RBAC + feature toggles) in tadeumendonca-
 
 Context: $ARGUMENTS
 
-Conceptual skill — *what* action types are and the rules around them. Framework wiring (the Hono middleware that uses them) lives in `/backend/hono`.
+Conceptual skill — *what* action types are and the rules around them. Framework wiring (the Hono middleware that uses them) lives in `/backend/framework-hono`.
 
 ## What they're for
 
@@ -48,4 +48,4 @@ Use it **only when needed** — a simple group check (the three Cognito profiles
 - Constant **name** SCREAMING_SNAKE_CASE; stored **value** snake_case — same value everywhere, no mapping.
 - One action type per handler action; add the constant **before** wiring a route — never inline a string literal.
 - `og-edge` writes no audit and declares no action type.
-- The Hono middleware that attaches `audit(action)` / `authorize(action)` to routes is in `/backend/hono`.
+- The Hono middleware that attaches `audit(action)` / `authorize(action)` to routes is in `/backend/framework-hono`.
