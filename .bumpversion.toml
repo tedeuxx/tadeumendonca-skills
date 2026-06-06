@@ -10,3 +10,8 @@ serialize = ["{major}.{minor}.{patch}"]
 
 [[tool.bumpversion.files]]
 filename = "VERSION"
+
+[[tool.bumpversion.files]]
+filename = ".claude-plugin/plugin.json"
+search = '"version": "{current_version}"'
+replace = '"version": "{new_version}"'

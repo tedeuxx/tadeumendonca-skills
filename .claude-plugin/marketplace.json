@@ -1,0 +1,12 @@
+{
+  "name": "tadeumendonca",
+  "owner": { "name": "Luiz Tadeu Mendonça" },
+  "description": "tadeumendonca.io platform skills — reusable Claude Code commands for architecture, backend, frontend, infrastructure, and workflow.",
+  "plugins": [
+    {
+      "name": "tadeumendonca-skills",
+      "source": "./",
+      "description": "Reference skills for the tadeumendonca.io platform (generic, reusable templates)."
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "tadeumendonca-skills",
+  "description": "Reference skills for the tadeumendonca.io platform: the fed-spa-bff architecture blueprint, backend (Hono BFF on Lambda, DocumentDB, observability), frontend (React+Vite SPA, Cognito), AWS infrastructure (Terraform, one skill per service), and CI/CD workflows. Generic, reusable templates (<project>/<apex-domain> placeholders).",
+  "version": "0.2.0",
+  "author": { "name": "Luiz Tadeu Mendonça" },
+  "homepage": "https://tadeumendonca.io",
+  "repository": "https://github.com/tedeuxx/tadeumendonca-skills",
+  "license": "MIT"
+}

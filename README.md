@@ -10,7 +10,7 @@ Each skill in this repo encodes a specific type of technical task I perform regu
 
 The goal: transfer domain knowledge into repeatable, high-quality AI-assisted workflows.
 
-## Capabilities (`.claude/commands/`)
+## Capabilities (`commands/`)
 
 - `architecture/` — reference patterns (the `fed-spa-bff` blueprint) tying the pieces together
 - `backend/` — Hono BFF on Lambda, DocumentDB, observability, OG/SEO, contract & test gates
@@ -19,7 +19,7 @@ The goal: transfer domain knowledge into repeatable, high-quality AI-assisted wo
 - `workflow/` — GitHub Actions CI/CD, numeric versioning, Terraform Cloud, SonarCloud, docs
 
 Generic, reusable templates — workload-specific values are `<project>` / `<apex-domain>` placeholders.
-See [`CLAUDE.md`](./CLAUDE.md) for the full command reference, install (vendor a pinned release), and versioning.
+Distributed as a **Claude Code plugin + marketplace** (this repo). See [`CLAUDE.md`](./CLAUDE.md) for the full command reference, install (`/plugin marketplace add tedeuxx/tadeumendonca-skills`), and versioning.
 
 ## Related
 
