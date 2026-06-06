@@ -6,7 +6,7 @@ The commands are generic, reusable implementation guides (no AWS dependency to r
 
 Each command is a per-component guide: when the owner runs `/tadeumendonca-skills:backend/lambda-handler posts`,
 Claude reads the guide and knows exactly how to implement that piece following this project's
-established patterns (Hono, powertools, audit middleware, DocumentDB, snake_case, Pattern B,
+established patterns (Hono, powertools, audit middleware, DynamoDB, snake_case, Pattern B,
 SSM config bus, GitFlow, etc.).
 
 All skills are created up front (before `v0.2.0`) and validated by the owner before each phase
@@ -92,8 +92,8 @@ sync (see `/workflow/versioning`).
 | `/backend/framework-hono` | Hono framework + middleware wiring (logger/error/audit/authorize); routing, zod-openapi |
 | `/backend/openapi` | Contract auto-maintained from code (agnostic): versioned, committed root copy, AWS overlay |
 | `/backend/bff` | Backend-for-Frontend: API GW fronts only it (root routes); auth external, no auth code |
-| `/backend/lambda-handler` | Implement a BFF domain module (Hono routes + audit + DocumentDB) |
-| `/backend/document-db` | DocumentDB: connection singleton, collections, queries, indexes, cursor pagination |
+| `/backend/lambda-handler` | Implement a BFF domain module (Hono routes + audit + DynamoDB) |
+| `/backend/dynamodb` | DynamoDB: client singleton, per-entity tables, key/GSI access, cursor pagination (LastEvaluatedKey) |
 | `/backend/audit-middleware` | Audit trail (conceptual): what's captured + the audits document shape |
 | `/backend/action-types` | Action types (conceptual): audit + RBAC + feature toggles |
 | `/backend/error-handling` | Throw AppError/NotFoundError/Unauthorized — never return 4xx |
@@ -106,7 +106,7 @@ sync (see `/workflow/versioning`).
 | `/backend/notifications` | Email via SES + SNS async fan-out; subscriptions |
 | `/backend/og-image-generator` | OG image: satori JSX→SVG + resvg→PNG + S3 cache |
 | `/backend/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
-| `/backend/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DocDB |
+| `/backend/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DynamoDB |
 | `/backend/postman` | API/contract tests (lives in api repo): Bearer JWT auth, collection run in CI |
 | `/backend/coverage` | Backend quality/test/security gates (agnostic): lint, typecheck, ≥85% cov, audit, Sonar |
 
@@ -149,7 +149,7 @@ One skill per AWS service / tool used — each is the canonical parametrization 
 | `/infrastructure/lambda` | Lambda: nodejs22/arm64, in-VPC, **Pattern B**, tracing; og-edge exception |
 | `/infrastructure/api-gateway` | API GW v2 HTTP: fronts only the BFF, per-route JWT authorizer, **contract reimport** |
 | `/infrastructure/cognito` | Cognito: user pool, 3 groups, PKCE public client, **custom domain** |
-| `/infrastructure/documentdb` | DocumentDB: cloudposse cluster params + TLS + Secrets Manager + SSM |
+| `/infrastructure/dynamodb` | DynamoDB: per-entity tables, on-demand, GSIs, PITR, IAM access, SSM table names |
 | `/infrastructure/elasticache` | ElastiCache Redis + AUTH in Secrets Manager + SSM |
 | `/infrastructure/ses` | SES: domain verify + DKIM |
 | `/infrastructure/sns` | SNS: async domain-event fan-out (notifications); cheapest pub/sub |

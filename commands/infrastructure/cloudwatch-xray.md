@@ -2,7 +2,7 @@ Use AWS X-Ray in <project> infrastructure (distributed tracing service).
 
 Context: $ARGUMENTS
 
-The tracing **service** side — the backend instrumentation is `/backend/tracing`. Gives a **service map** + traces across API GW → BFF → downstream (DocumentDB/Redis/SES), and — with RUM — browser → backend end-to-end.
+The tracing **service** side — the backend instrumentation is `/backend/tracing`. Gives a **service map** + traces across API GW → BFF → downstream (DynamoDB/Redis/SES), and — with RUM — browser → backend end-to-end.
 
 ## Enable active tracing
 - **Lambda** (BFF, og-edge): `tracing_mode = "Active"` (`/infrastructure/lambda`); role gets `xray:PutTraceSegments` + `xray:PutTelemetryRecords`.

@@ -23,14 +23,18 @@ module "bff" {
   ignore_source_code_hash = true
   s3_existing_package     = { bucket = module.artifacts_bucket.s3_bucket_id, key = "bff/bootstrap.zip" }
 
-  # in-VPC (private subnets) for DocDB/Redis
+  # in-VPC (private subnets) — reaches DynamoDB via the Gateway endpoint + Redis over its SG
   vpc_subnet_ids         = module.vpc.private_subnets
   vpc_security_group_ids = [aws_security_group.lambda.id]
   attach_network_policy  = true      # AWSLambdaVPCAccessExecutionRole (ENIs)
 
-  environment_variables = {          # non-secret config + secret ARNs (/backend/environment-config)
+  environment_variables = {          # non-secret config + table names + secret ARNs (/backend/environment-config)
     ENVIRONMENT = var.environment, LOG_LEVEL = "INFO", POWERTOOLS_SERVICE_NAME = "bff",
-    DOCDB_SECRET_ARN = aws_secretsmanager_secret.docdb.arn,
+    PROFILE_TABLE_NAME = module.profile_table.dynamodb_table_id,            # DynamoDB tables (pure IAM, no secret)
+    POSTS_TABLE_NAME = module.posts_table.dynamodb_table_id,
+    ARTICLES_TABLE_NAME = module.articles_table.dynamodb_table_id,
+    SUBSCRIPTIONS_TABLE_NAME = module.subscriptions_table.dynamodb_table_id,
+    AUDITS_TABLE_NAME = module.audits_table.dynamodb_table_id,
     REDIS_ENDPOINT = module.redis.endpoint, REDIS_SECRET_ARN = aws_secretsmanager_secret.redis.arn,
     OG_IMAGES_BUCKET = module.og_images_bucket.s3_bucket_id, SNS_TOPIC_ARN = module.sns_domain_events.topic_arn
   }
@@ -56,11 +60,11 @@ Same Pattern B, but: `publish = true`, `lambda_at_edge = true`, provider `aws.us
 - Function name to SSM `/{env}/api/bff-function-name` (`/infrastructure/ssm`).
 ## Encryption
 - **Env vars** are encrypted at rest with the **AWS-managed Lambda key** by default — kept (no CMK), because the env holds only non-secret config + **secret ARNs** (the secrets live in Secrets Manager, `/backend/secrets-management`). Set `kms_key_arn` only if a CMK is mandated (`/infrastructure/kms`).
-- In transit: everything the BFF calls is TLS (DocDB, Redis, AWS APIs); it runs in private subnets (`/infrastructure/vpc`).
+- In transit: everything the BFF calls is TLS (DynamoDB, Redis, AWS APIs); it runs in private subnets (`/infrastructure/vpc`).
 
 ## Pros & cons
 **Pros**
-- arm64 (Graviton) — cheaper, equal/better perf; in-VPC reaches DocDB/Redis.
+- arm64 (Graviton) — cheaper, equal/better perf; in-VPC reaches DynamoDB (Gateway endpoint) + Redis.
 - Pattern B decouples code deploys from IaC (no TFC round-trip per code change).
 **Cons**
 - In-VPC ENI/cold-start overhead; 29s API GW timeout ceiling.

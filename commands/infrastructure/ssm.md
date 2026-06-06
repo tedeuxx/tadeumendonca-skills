@@ -20,15 +20,15 @@ Rules: type **`String`** only (never `SecureString` — runtime secrets live in 
 | `frontend` | `s3-bucket-name`, `cloudfront-distribution-id`, `ga-measurement-id`, `rum-app-monitor-id`, `rum-identity-pool-id` |
 | `api` | `gateway-url`, `gateway-id`, `bff-function-name`, `lambda-edge-og-qualified-arn` |
 | `auth` | `cognito-user-pool-id`, `cognito-client-id`, `cognito-domain`, `cognito-hosted-ui-url`, `waf-regional-arn` |
-| `data` | `docdb-cluster-endpoint`, `docdb-secret-arn` *(ARN of the secret, not the secret)* |
+| `data` | `profile-table-name`, `posts-table-name`, `articles-table-name`, `subscriptions-table-name`, `audits-table-name` *(DynamoDB table names — access is pure IAM, no secret)* |
 | `cache` | `redis-endpoint` *(AUTH token stays in Secrets Manager)* |
 | `storage` | `artifacts-bucket-name`, `og-images-bucket-name` |
 | `iam` | `github-actions-api-role-arn`, `github-actions-fed-role-arn` |
 | `events` | `topic-arn` *(SNS domain events — `/infrastructure/sns`)* |
 
 ## What stays in Secrets Manager (sensitive)
-- `<project>/{env}/docdb` — username, password, host, port, dbname.
 - `<project>/{env}/redis` — auth_token.
+- *(DynamoDB has no secret — access is pure IAM on the table ARNs, `/infrastructure/iam`.)*
 - Never store passwords/tokens in SSM (even SecureString) — only the **ARN** of the secret goes in SSM.
 
 ## How app repos read at deploy (GitHub Actions)

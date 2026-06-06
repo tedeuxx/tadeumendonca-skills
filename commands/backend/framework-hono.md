@@ -4,7 +4,7 @@ Context: $ARGUMENTS
 
 ## Hono on AWS Lambda
 
-Hono owns the request lifecycle inside the **single BFF Lambda** — routing + middleware + error handling. It **replaces middy**. The api is one `OpenAPIHono` app with routes at the **root**; domain features register as modules (`/backend/lambda-handler`). The infra/cross-cutting concerns are **framework-agnostic** skills (`/backend/audit-middleware`, `/backend/action-types`, `/backend/logging`, `/backend/error-handling`, `/backend/document-db`, …) — **this skill is where they get wired** as Hono middleware.
+Hono owns the request lifecycle inside the **single BFF Lambda** — routing + middleware + error handling. It **replaces middy**. The api is one `OpenAPIHono` app with routes at the **root**; domain features register as modules (`/backend/lambda-handler`). The infra/cross-cutting concerns are **framework-agnostic** skills (`/backend/audit-middleware`, `/backend/action-types`, `/backend/logging`, `/backend/error-handling`, `/backend/dynamodb`, …) — **this skill is where they get wired** as Hono middleware.
 
 ## App + Lambda adapter: src/index.ts
 ```typescript
@@ -45,7 +45,7 @@ export const loggerContext = (): MiddlewareHandler<{ Bindings: LambdaBindings }>
 export const errorHandler: ErrorHandler = (err, c) => c.json(toErrorBody(err), statusOf(err));
 // audit — capture after the handler (/backend/audit-middleware)
 export const audit = (action: ActionType): MiddlewareHandler => async (c, next) => {
-  const start = Date.now(); await next(); await writeAudit(c, action, start);   // builds the audit document
+  const start = Date.now(); await next(); await writeAudit(c, action, start);   // builds + Puts the audit item
 };
 // RBAC guard — reads validated claims, no auth here (/backend/action-types, /backend/bff)
 export const authorize = (action: ActionType): MiddlewareHandler => async (c, next) => {
@@ -69,7 +69,7 @@ Unit/integration tests run on **vitest**; the coverage gate (≥ 85%) is the agn
 ```ts
 test: { coverage: { provider: 'v8', thresholds: { lines: 85, functions: 85, branches: 85, statements: 85 } } }
 ```
-Test routes with `app.request(...)` (no network); mock DocumentDB/secrets at the module boundary. lcov feeds SonarCloud (`/workflow/sonarcloud`). Contract/smoke tests are Postman/newman (`/backend/postman`).
+Test routes with `app.request(...)` (no network); mock DynamoDB/secrets at the module boundary. lcov feeds SonarCloud (`/workflow/sonarcloud`). Contract/smoke tests are Postman/newman (`/backend/postman`).
 
 ## Conventions
 - One `OpenAPIHono` app (the BFF), routes at root; modules register their routes (`/backend/lambda-handler`).

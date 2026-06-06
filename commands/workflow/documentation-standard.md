@@ -11,15 +11,15 @@ All documentation is **Markdown + Mermaid**. **No static image diagrams** — ev
 | Diagram | Mermaid | Where |
 |---|---|---|
 | Infra architecture | `flowchart TD` / `graph LR` | `docs/architecture.md` (each repo) |
-| Data model (collections) | `erDiagram` | `<project>-api/docs/data-model.md` |
+| Data model (tables) | `erDiagram` | `<project>-api/docs/data-model.md` |
 | Flows / integrations | `sequenceDiagram` | `docs/sequences.md` (api + fed) |
 | Frontend components | `flowchart LR` | `<project>-fed/docs/architecture.md` |
 
 ## Expected content per file
 - **`iac/docs/architecture.md`** — network topology (VPC/subnets/NAT/endpoints) + Terraform module dependency graph.
 - **`api/docs/data-model.md`** — `erDiagram` of `profiles`, `posts`, `articles`, `subscribers` (fields, types, implicit relations).
-- **`api/docs/sequences.md`** — full PKCE auth, `POST /posts` (admin → API → DocDB → SES notification), OG edge (bot → Lambda@Edge → API → S3).
-- **`api/docs/architecture.md`** — Lambdas × API GW × DocumentDB × Secrets Manager × S3.
+- **`api/docs/sequences.md`** — full PKCE auth, `POST /posts` (admin → API → DynamoDB → SES notification), OG edge (bot → Lambda@Edge → API → S3).
+- **`api/docs/architecture.md`** — Lambdas × API GW × DynamoDB × Secrets Manager × S3.
 - **`fed/docs/sequences.md`** — Cognito PKCE login, `useProfile` fetch, infinite-scroll posts.
 - **`fed/docs/architecture.md`** — pages × hooks × store × services.
 

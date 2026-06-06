@@ -2,7 +2,7 @@ Author or review any IAM role/policy in <project> infrastructure.
 
 Context: $ARGUMENTS
 
-**Canonical IAM authoring reference.** Every role/policy we create is catalogued here with its exact permission set + a ready example. Service skills (`documentdb`, `s3`, `sns`, `lambda`, …) **do not embed policy JSON** — they state what a role needs and point here.
+**Canonical IAM authoring reference.** Every role/policy we create is catalogued here with its exact permission set + a ready example. Service skills (`dynamodb`, `s3`, `sns`, `lambda`, …) **do not embed policy JSON** — they state what a role needs and point here.
 
 Modules: `terraform-aws-modules/iam/aws` submodules `iam-policy` + `iam-assumable-role-with-oidc` (`/infrastructure/terraform`). Lambda exec policies via the lambda module's `attach_policy_statements` / `policy_statements`.
 
@@ -13,7 +13,7 @@ Modules: `terraform-aws-modules/iam/aws` submodules `iam-policy` + `iam-assumabl
 - **No permission boundaries / no inline user policies** at this scale — managed (AWS) + customer-managed (our `iam-policy`) only.
 
 ## Authoring conventions
-- **Statement shape:** `{ Sid, Effect="Allow", Action=[...], Resource=[...], Condition? }`. One Sid per concern (e.g. `ReadDocdbSecret`, `WriteOgCache`).
+- **Statement shape:** `{ Sid, Effect="Allow", Action=[...], Resource=[...], Condition? }`. One Sid per concern (e.g. `ReadRedisSecret`, `DataTableAccess`, `WriteOgCache`).
 - **ARN scoping:** parametrize by env — `arn:aws:secretsmanager:${region}:${account}:secret:<project>/${env}/*`, `arn:aws:s3:::<project>-og-images-${env}/*`, SSM `arn:aws:ssm:${region}:${account}:parameter/${env}/*`. Use `data.aws_caller_identity`/`data.aws_region`.
 - **Confused-deputy guard:** resource-based trust (Lambda@Edge, cross-service) carries `Condition.StringEquals` on `aws:SourceArn`/`aws:SourceAccount`. OIDC trust uses `StringLike` on `token.actions.githubusercontent.com:sub`.
 - **Managed vs customer-managed:** lean on AWS-managed policies for boilerplate (logs, VPC ENIs, X-Ray); write a customer-managed `iam-policy` only for app-specific grants.
@@ -35,10 +35,19 @@ Modules: `terraform-aws-modules/iam/aws` submodules `iam-policy` + `iam-assumabl
 In-VPC Hono Lambda (`/infrastructure/lambda`, `/backend/bff`). Trust = `lambda.amazonaws.com`. Managed: BasicExecution + VPCAccess + XRayDaemonWrite. Customer-managed inline statements (via lambda module `attach_policy_statements = true`, `policy_statements = {...}`):
 ```hcl
 policy_statements = {
-  read_secrets = {                         # docdb + redis creds (/infrastructure/secrets-manager)
+  read_secrets = {                         # redis AUTH token (/infrastructure/secrets-manager)
     effect    = "Allow"
     actions   = ["secretsmanager:GetSecretValue"]
     resources = ["arn:aws:secretsmanager:${region}:${account}:secret:<project>/${env}/*"]
+  }
+  data_tables = {                          # DynamoDB data tier — pure IAM, no secret (/infrastructure/dynamodb)
+    effect  = "Allow"
+    actions = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem",
+               "dynamodb:DeleteItem", "dynamodb:Query", "dynamodb:BatchGetItem"]   # no Scan in hot paths
+    resources = [                          # the five per-entity tables + their GSIs — never dynamodb:* on *
+      "arn:aws:dynamodb:${region}:${account}:table/<project>-*-${env}",        # <project>-<entity>-<env>
+      "arn:aws:dynamodb:${region}:${account}:table/<project>-*-${env}/index/*"
+    ]
   }
   read_ssm = {                             # config bus (/infrastructure/ssm)
     effect    = "Allow"

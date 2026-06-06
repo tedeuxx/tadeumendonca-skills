@@ -18,7 +18,7 @@ The BFF contains **no authentication or authorization code**. Auth is handled ou
 SPA ─(Cognito SDK: login + holds JWT)─► Cognito
 SPA ─Bearer JWT─► API Gateway (Cognito JWT authorizer) ─► BFF Lambda (Hono, VPC, root routes)
                                                             ├ reads claims (no auth code)
-                                                            └ domain logic / microservices ─► DocumentDB · Redis (cache) · S3
+                                                            └ domain logic / microservices ─► DynamoDB · Redis (cache) · S3
 ```
 
 ## How it works (request lifecycle)

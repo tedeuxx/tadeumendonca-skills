@@ -5,7 +5,7 @@ Context: $ARGUMENTS
 The edge does a **3-way classification** at CloudFront Viewer Request — humans get the SPA, bots get server-built HTML. It covers **two bot functionalities**: OG previews for social scrapers, and dynamic rendering for SEO crawlers.
 
 ## Lambda@Edge constraints (mandatory)
-- NO VPC / NO Hono / NO audit / NO DocumentDB — runs at the CloudFront PoP.
+- NO VPC / NO Hono / NO audit / NO DynamoDB — runs at the CloudFront PoP.
 - NO `process.env` at runtime — hardcode the API base per build (or read a CloudFront custom header).
 - Handler signature: `CloudFrontRequestEvent` (not APIGatewayProxyEventV2).
 - Keep the bundle tiny; only `fetch` to the API.
@@ -57,7 +57,7 @@ const html = (body: string) => ({
 | Returns | `<head>` only: OG/Twitter tags | full HTML: head + **content body** + JSON-LD |
 | Goal | rich share card | indexable page (no SSR) |
 
-Both come from the API (DocumentDB) — see `/backend/prerender`. The React app and the human path are unchanged (CSR). Not cloaking: crawler and user resolve to the same content.
+Both come from the API (DynamoDB) — see `/backend/prerender`. The React app and the human path are unchanged (CSR). Not cloaking: crawler and user resolve to the same content.
 
 ## Deploy notes
 - us-east-1 (Lambda@Edge); `publish-version` after `update-function-code`; qualified ARN → SSM `/{env}/api/lambda-edge-og-qualified-arn`.
