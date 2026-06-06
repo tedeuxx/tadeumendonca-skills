@@ -1,4 +1,4 @@
-Implement or review the bot-rendering API (og-meta + prerender) in tadeumendonca-api.
+Implement or review the bot-rendering API (og-meta + prerender) in <project>-api.
 
 Context: $ARGUMENTS
 
@@ -21,8 +21,8 @@ export function renderArticleHtml(a: Article): string {
   return htmlDoc({
     title: a.title,
     description: a.excerpt,
-    canonical: `https://tadeumendonca.io/articles/${a.slug}`,
-    ogImage: `https://tadeumendonca.io/og/articles/${a.slug}.png`,
+    canonical: `https://<apex-domain>/articles/${a.slug}`,
+    ogImage: `https://<apex-domain>/og/articles/${a.slug}.png`,
     jsonLd: blogPostingJsonLd(a),
     body: `<article><h1>${a.title}</h1>${body}</article>`,
   });

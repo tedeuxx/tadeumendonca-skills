@@ -1,4 +1,4 @@
-Use SonarCloud in tadeumendonca repos (code quality + security scan).
+Use SonarCloud in <project> repos (code quality + security scan).
 
 Context: $ARGUMENTS
 

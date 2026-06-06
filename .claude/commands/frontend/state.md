@@ -1,4 +1,4 @@
-Frontend state management in tadeumendonca-fed (concept).
+Frontend state management in <project>-fed (concept).
 
 Context: $ARGUMENTS
 

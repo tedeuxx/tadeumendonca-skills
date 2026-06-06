@@ -1,4 +1,4 @@
-Define or review action types (audit + RBAC + feature toggles) in tadeumendonca-api.
+Define or review action types (audit + RBAC + feature toggles) in <project>-api.
 
 Context: $ARGUMENTS
 

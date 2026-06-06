@@ -1,4 +1,4 @@
-Implement or update the Lambda@Edge handler in tadeumendonca-api/src/functions/og-edge/.
+Implement or update the Lambda@Edge handler in <project>-api/src/functions/og-edge/.
 
 Context: $ARGUMENTS
 
@@ -17,7 +17,7 @@ import { CloudFrontRequestHandler } from 'aws-lambda';
 
 const SOCIAL_UA  = /facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegrambot|slackbot|discordbot|pinterest/i;
 const CRAWLER_UA = /googlebot|bingbot|duckduckbot|yandex|baiduspider|applebot/i;
-const API_BASE = 'https://api.tadeumendonca.io';   // no env vars at edge
+const API_BASE = 'https://api.<apex-domain>';   // no env vars at edge
 
 export const handler: CloudFrontRequestHandler = async (event) => {
   const req = event.Records[0].cf.request;

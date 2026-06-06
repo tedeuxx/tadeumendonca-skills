@@ -1,4 +1,4 @@
-Implement or review notifications (email via SES) in tadeumendonca-api.
+Implement or review notifications (email via SES) in <project>-api.
 
 Context: $ARGUMENTS
 
@@ -11,7 +11,7 @@ const ses = new SESv2Client({});                              // module-level si
 
 export async function sendEmail(to: string, subject: string, html: string) {
   await ses.send(new SendEmailCommand({
-    FromEmailAddress: process.env.SES_FROM_ADDRESS,           // no-reply@tadeumendonca.io (IaC)
+    FromEmailAddress: process.env.SES_FROM_ADDRESS,           // no-reply@<apex-domain> (IaC)
     Destination: { ToAddresses: [to] },
     Content: { Simple: { Subject: { Data: subject }, Body: { Html: { Data: html } } } },
   }));

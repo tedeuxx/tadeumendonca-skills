@@ -1,4 +1,4 @@
-Render article markdown in tadeumendonca-fed (concept).
+Render article markdown in <project>-fed (concept).
 
 Context: $ARGUMENTS
 

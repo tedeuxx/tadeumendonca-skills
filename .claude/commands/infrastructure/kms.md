@@ -1,4 +1,4 @@
-Apply the encryption + KMS key policy across tadeumendonca-iac.
+Apply the encryption + KMS key policy across ${var.project}-iac.
 
 Context: $ARGUMENTS
 

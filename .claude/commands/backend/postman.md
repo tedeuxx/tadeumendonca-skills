@@ -1,12 +1,12 @@
-Use Postman (+ newman) for API testing in tadeumendonca-api.
+Use Postman (+ newman) for API testing in <project>-api.
 
 Context: $ARGUMENTS
 
 Postman collections document and smoke/contract-test the API; run headless via **newman** in CI.
 
 ## Files (api repo, `postman/`)
-- `tadeumendonca-api.postman_collection.json` — all routes + request examples + test scripts (`pm.test(...)`).
-- `tadeumendonca-api.postman_environment.json` — `base_url`, auth/session vars (no secrets committed).
+- `<project>-api.postman_collection.json` — all routes + request examples + test scripts (`pm.test(...)`).
+- `<project>-api.postman_environment.json` — `base_url`, auth/session vars (no secrets committed).
 
 ## What it covers
 - **Smoke:** `GET /health`, `GET /profile` (public) → 200 + expected shape.
@@ -15,8 +15,8 @@ Postman collections document and smoke/contract-test the API; run headless via *
 
 ## CI (newman)
 ```bash
-npx newman run postman/tadeumendonca-api.postman_collection.json \
-  -e postman/tadeumendonca-api.postman_environment.json \
+npx newman run postman/<project>-api.postman_collection.json \
+  -e postman/<project>-api.postman_environment.json \
   --env-var base_url=$API_URL --reporters cli,junit
 ```
 Runs in `ci.yml` (`/workflow/github-actions`) as a post-deploy smoke (staging) or against a local server.

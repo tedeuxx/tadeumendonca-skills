@@ -1,17 +1,17 @@
-Use Terraform Cloud (TFC) in tadeumendonca infrastructure (state backend).
+Use Terraform Cloud (TFC) in <project> infrastructure (state backend).
 
 Context: $ARGUMENTS
 
 TFC is the **remote state backend only** — not the execution engine.
 
 ## Setup
-- Org **`tadeumendonca-io`**. The `iac` repo's `cloud{}` block: `workspaces { tags = ["tadeumendonca-iac"] }`.
-- **One workspace per environment:** `tadeumendonca-iac-staging`, `tadeumendonca-iac-production`.
+- Org **`<tfc-org>`**. The `iac` repo's `cloud{}` block: `workspaces { tags = ["<project>-iac"] }`.
+- **One workspace per environment:** `<project>-iac-staging`, `<project>-iac-production`.
 - **Execution mode: Local** — TFC stores + locks state; **GitHub Actions runs `plan`/`apply`** (TFC does not execute runs).
 
 ## CI selection
 ```bash
-TF_WORKSPACE=tadeumendonca-iac-staging terraform init
+TF_WORKSPACE=<project>-iac-staging terraform init
 terraform plan  -var-file=env/stg.tfvars
 terraform apply -var-file=env/stg.tfvars
 ```

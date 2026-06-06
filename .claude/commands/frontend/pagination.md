@@ -1,4 +1,4 @@
-Cursor pagination in tadeumendonca-fed (concept).
+Cursor pagination in <project>-fed (concept).
 
 Context: $ARGUMENTS
 

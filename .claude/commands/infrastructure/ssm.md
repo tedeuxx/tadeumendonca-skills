@@ -1,4 +1,4 @@
-Use AWS SSM Parameter Store in tadeumendonca infrastructure (the cross-repo config bus).
+Use AWS SSM Parameter Store in ${var.project} infrastructure (the cross-repo config bus).
 
 Context: $ARGUMENTS
 
@@ -27,8 +27,8 @@ Rules: type **`String`** only (never `SecureString` — runtime secrets live in 
 | `events` | `topic-arn` *(SNS domain events — `/infrastructure/sns`)* |
 
 ## What stays in Secrets Manager (sensitive)
-- `tadeumendonca/{env}/docdb` — username, password, host, port, dbname.
-- `tadeumendonca/{env}/redis` — auth_token.
+- `${var.project}/{env}/docdb` — username, password, host, port, dbname.
+- `${var.project}/{env}/redis` — auth_token.
 - Never store passwords/tokens in SSM (even SecureString) — only the **ARN** of the secret goes in SSM.
 
 ## How app repos read at deploy (GitHub Actions)

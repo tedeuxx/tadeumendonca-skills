@@ -1,4 +1,4 @@
-SPA authorization / UI gating in tadeumendonca-fed (concept).
+SPA authorization / UI gating in <project>-fed (concept).
 
 Context: $ARGUMENTS
 

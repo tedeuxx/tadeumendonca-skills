@@ -1,4 +1,4 @@
-Build the component library with Storybook in tadeumendonca-fed.
+Build the component library with Storybook in <project>-fed.
 
 Context: $ARGUMENTS
 

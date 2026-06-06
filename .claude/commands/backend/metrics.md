@@ -1,4 +1,4 @@
-Implement or review metrics in tadeumendonca-api (Powertools Metrics → EMF → CloudWatch).
+Implement or review metrics in <project>-api (Powertools Metrics → EMF → CloudWatch).
 
 Context: $ARGUMENTS
 
@@ -10,7 +10,7 @@ Lambda is ephemeral — Prometheus' pull/scrape model doesn't apply (no stable e
 import { Metrics, MetricUnit } from '@aws-lambda-powertools/metrics';
 
 export const metrics = new Metrics({
-  namespace:   `tadeumendonca/${process.env.ENVIRONMENT}`,
+  namespace:   `<project>/${process.env.ENVIRONMENT}`,
   serviceName: process.env.POWERTOOLS_SERVICE_NAME,   // = "bff"
 });
 
@@ -20,7 +20,7 @@ metrics.addMetric('requests_total',      MetricUnit.Count,        1);
 metrics.addMetric('request_duration_ms', MetricUnit.Milliseconds, ms);
 ```
 - **Flush once per invocation** — call `metrics.publishStoredMetrics()` in a `finally`, wired in the Hono handler/middleware (`/backend/framework-hono`); optionally `metrics.captureColdStartMetric()`.
-- The EMF lands in the BFF log group `/aws/lambda/tadeumendonca-bff-${env}`; CloudWatch extracts metrics under namespace `tadeumendonca/${env}` (`/infrastructure/cloudwatch`).
+- The EMF lands in the BFF log group `/aws/lambda/<project>-bff-${env}`; CloudWatch extracts metrics under namespace `<project>/${env}` (`/infrastructure/cloudwatch`).
 
 ## Conventions
 - **No `cloudwatch:PutMetricData`** — EMF metrics are extracted from logs, so the exec role needs no metrics IAM action (basic logs perms suffice). See `/infrastructure/iam`.

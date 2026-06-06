@@ -1,4 +1,4 @@
-Implement or review distributed tracing in tadeumendonca-api.
+Implement or review distributed tracing in <project>-api.
 
 Context: $ARGUMENTS
 

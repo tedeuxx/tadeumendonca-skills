@@ -1,4 +1,4 @@
-Implement or review backend caching with Redis (ElastiCache) in tadeumendonca-api.
+Implement or review backend caching with Redis (ElastiCache) in <project>-api.
 
 Context: $ARGUMENTS
 

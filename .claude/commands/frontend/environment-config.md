@@ -1,4 +1,4 @@
-Frontend environment config in tadeumendonca-fed (concept).
+Frontend environment config in <project>-fed (concept).
 
 Context: $ARGUMENTS
 

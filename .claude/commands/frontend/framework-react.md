@@ -1,4 +1,4 @@
-Implement or review the React frontend framework for tadeumendonca-fed.
+Implement or review the React frontend framework for <project>-fed.
 
 Context: $ARGUMENTS
 

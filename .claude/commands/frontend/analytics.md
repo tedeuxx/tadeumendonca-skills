@@ -1,4 +1,4 @@
-Frontend analytics (GA4) in tadeumendonca-fed (concept).
+Frontend analytics (GA4) in <project>-fed (concept).
 
 Context: $ARGUMENTS
 

@@ -1,4 +1,4 @@
-Use Amazon SNS in tadeumendonca infrastructure (async domain events).
+Use Amazon SNS in ${var.project} infrastructure (async domain events).
 
 Context: $ARGUMENTS
 
@@ -7,15 +7,15 @@ SNS is the **simplest, lowest-cost** pub/sub for async fan-out — domain events
 ## Configuration
 ```hcl
 resource "aws_sns_topic" "events" {
-  name              = "tadeumendonca-events-${var.environment}"
-  display_name      = "tadeumendonca events"
+  name              = "${var.project}-events-${var.environment}"
+  display_name      = "${var.project} events"
   fifo_topic        = false                           # standard topic — cheapest; no strict ordering need
   kms_master_key_id = "alias/aws/sns"                 # SSE at rest, MANDATORY (/infrastructure/kms)
 }
 
 # DLQ — MANDATORY on every SNS→Lambda subscription (no event silently lost)
 resource "aws_sqs_queue" "events_dlq" {
-  name                      = "tadeumendonca-events-dlq-${var.environment}"
+  name                      = "${var.project}-events-dlq-${var.environment}"
   message_retention_seconds = 1209600                 # 14 days
   kms_master_key_id         = "alias/aws/sqs"         # SSE at rest
 }

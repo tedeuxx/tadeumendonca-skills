@@ -1,4 +1,4 @@
-Write or review docs for a tadeumendonca.io repo following the documentation standard.
+Write or review docs for a <apex-domain> repo following the documentation standard.
 
 Context: $ARGUMENTS
 
@@ -11,9 +11,9 @@ All documentation is **Markdown + Mermaid**. **No static image diagrams** — ev
 | Diagram | Mermaid | Where |
 |---|---|---|
 | Infra architecture | `flowchart TD` / `graph LR` | `docs/architecture.md` (each repo) |
-| Data model (collections) | `erDiagram` | `tadeumendonca-api/docs/data-model.md` |
+| Data model (collections) | `erDiagram` | `<project>-api/docs/data-model.md` |
 | Flows / integrations | `sequenceDiagram` | `docs/sequences.md` (api + fed) |
-| Frontend components | `flowchart LR` | `tadeumendonca-fed/docs/architecture.md` |
+| Frontend components | `flowchart LR` | `<project>-fed/docs/architecture.md` |
 
 ## Expected content per file
 - **`iac/docs/architecture.md`** — network topology (VPC/subnets/NAT/endpoints) + Terraform module dependency graph.

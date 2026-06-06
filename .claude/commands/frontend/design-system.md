@@ -1,4 +1,4 @@
-Design system (Cloudscape) — which component for each UI pattern in tadeumendonca-fed.
+Design system (Cloudscape) — which component for each UI pattern in <project>-fed.
 
 Pattern/section: $ARGUMENTS
 

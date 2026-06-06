@@ -1,4 +1,4 @@
-Apply the semantic-versioning + tagging rules (bump-my-version) in any tadeumendonca repo.
+Apply the semantic-versioning + tagging rules (bump-my-version) in any <project> repo.
 
 Context: $ARGUMENTS
 

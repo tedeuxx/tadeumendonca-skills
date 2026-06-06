@@ -1,4 +1,4 @@
-Provision CloudWatch RUM (app monitor) in tadeumendonca-iac.
+Provision CloudWatch RUM (app monitor) in ${var.project}-iac.
 
 Context: $ARGUMENTS
 
@@ -7,8 +7,8 @@ The real-user-monitoring app monitor the SPA sends to (`/frontend/cloudwatch-rum
 ## App monitor + guest identity (Terraform)
 ```hcl
 resource "aws_rum_app_monitor" "fed" {
-  name   = "tadeumendonca-${var.environment}"
-  domain = var.domain_name                          # staging.tadeumendonca.io | tadeumendonca.io
+  name   = "${var.project}-${var.environment}"
+  domain = var.domain_name                          # staging.${var.apex_domain} | ${var.apex_domain}
   app_monitor_configuration {
     session_sample_rate = 0.1                        # cost control
     telemetries         = ["performance", "errors", "http"]

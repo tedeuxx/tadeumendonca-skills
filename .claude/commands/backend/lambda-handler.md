@@ -1,4 +1,4 @@
-Implement a domain module in the BFF (tadeumendonca-api).
+Implement a domain module in the BFF (<project>-api).
 
 Module: $ARGUMENTS (e.g., "posts", "articles", "notifications")
 

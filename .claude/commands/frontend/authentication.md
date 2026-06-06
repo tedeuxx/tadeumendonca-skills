@@ -1,4 +1,4 @@
-SPA authentication in tadeumendonca-fed (concept).
+SPA authentication in <project>-fed (concept).
 
 Context: $ARGUMENTS
 

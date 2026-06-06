@@ -1,4 +1,4 @@
-Use API Gateway v2 (HTTP API) in tadeumendonca infrastructure.
+Use API Gateway v2 (HTTP API) in ${var.project} infrastructure.
 
 Context: $ARGUMENTS
 

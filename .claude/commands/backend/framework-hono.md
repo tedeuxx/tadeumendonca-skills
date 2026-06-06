@@ -1,4 +1,4 @@
-Implement or review the Hono backend framework for tadeumendonca-api (the BFF).
+Implement or review the Hono backend framework for <project>-api (the BFF).
 
 Context: $ARGUMENTS
 

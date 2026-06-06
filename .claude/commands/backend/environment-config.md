@@ -1,4 +1,4 @@
-Configure and validate backend environments in tadeumendonca-api.
+Configure and validate backend environments in <project>-api.
 
 Context: $ARGUMENTS
 

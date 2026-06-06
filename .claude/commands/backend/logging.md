@@ -1,4 +1,4 @@
-Implement or review structured logging in tadeumendonca-api.
+Implement or review structured logging in <project>-api.
 
 Context: $ARGUMENTS
 
@@ -9,7 +9,7 @@ Structured JSON logs via Powertools Logger (framework-agnostic). **Never `consol
 ```typescript
 import { Logger } from '@aws-lambda-powertools/logger';
 export const logger = new Logger({
-  serviceName: process.env.POWERTOOLS_SERVICE_NAME,    // tadeumendonca-bff, set by IaC
+  serviceName: process.env.POWERTOOLS_SERVICE_NAME,    // <project>-bff, set by IaC
   logLevel: (process.env.LOG_LEVEL ?? 'INFO') as any,  // WARN prod, DEBUG staging (IaC)
 });
 ```

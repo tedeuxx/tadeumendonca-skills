@@ -1,4 +1,4 @@
-Use AWS Certificate Manager (ACM) in tadeumendonca infrastructure.
+Use AWS Certificate Manager (ACM) in ${var.project} infrastructure.
 
 Context: $ARGUMENTS
 
@@ -12,15 +12,15 @@ The environment is the subdomain boundary (`/infrastructure/route53`), so there 
 
 | Environment | Primary domain | SANs | Covers |
 |---|---|---|---|
-| production | `tadeumendonca.io` | `*.tadeumendonca.io` | apex (SPA), `api.tadeumendonca.io`, `auth.tadeumendonca.io` |
-| staging | `staging.tadeumendonca.io` | `*.staging.tadeumendonca.io` | `staging.` (SPA), `api.staging.`, `auth.staging.` |
+| production | `${var.apex_domain}` | `*.${var.apex_domain}` | apex (SPA), `api.${var.apex_domain}`, `auth.${var.apex_domain}` |
+| staging | `staging.${var.apex_domain}` | `*.staging.${var.apex_domain}` | `staging.` (SPA), `api.staging.`, `auth.staging.` |
 
-> A wildcard matches exactly **one** label, so the environment host itself (`tadeumendonca.io`, `staging.tadeumendonca.io`) must be its own SAN — the wildcard alone doesn't cover it. That's why each cert carries `{env-host}` **and** `*.{env-host}`.
+> A wildcard matches exactly **one** label, so the environment host itself (`${var.apex_domain}`, `staging.${var.apex_domain}`) must be its own SAN — the wildcard alone doesn't cover it. That's why each cert carries `{env-host}` **and** `*.{env-host}`.
 
 ## Resolution — per-env data source (resolve by the env's domain)
 ```hcl
-# env/prd.tfvars → acm_certificate_domain = "tadeumendonca.io"
-# env/stg.tfvars → acm_certificate_domain = "staging.tadeumendonca.io"
+# env/prd.tfvars → acm_certificate_domain = "${var.apex_domain}"
+# env/stg.tfvars → acm_certificate_domain = "staging.${var.apex_domain}"
 
 data "aws_acm_certificate" "main" {
   provider    = aws.us_east_1

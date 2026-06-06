@@ -1,4 +1,4 @@
-Implement or update the OG image generator — a module of the BFF (`tadeumendonca-api/src/modules/og-image/`).
+Implement or update the OG image generator — a module of the BFF (`<project>-api/src/modules/og-image/`).
 
 Context: $ARGUMENTS
 

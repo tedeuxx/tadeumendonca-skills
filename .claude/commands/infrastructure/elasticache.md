@@ -1,4 +1,4 @@
-Provision or review the ElastiCache for Redis cluster (cache.tf) in tadeumendonca-iac.
+Provision or review the ElastiCache for Redis cluster (cache.tf) in ${var.project}-iac.
 
 Context: $ARGUMENTS
 
@@ -10,7 +10,7 @@ module "redis" {
   source  = "cloudposse/elasticache-redis/aws"
   version = "~> 1.0"
 
-  name = "tadeumendonca-${var.environment}"
+  name = "${var.project}-${var.environment}"
 
   # engine
   engine_version = "7.1"
@@ -47,9 +47,9 @@ module "redis" {
 
   # logs → CloudWatch (/infrastructure/cloudwatch)
   log_delivery_configuration = [
-    { destination = "/aws/elasticache/tadeumendonca-${var.environment}/slow-log",
+    { destination = "/aws/elasticache/${var.project}-${var.environment}/slow-log",
       destination_type = "cloudwatch-logs", log_format = "json", log_type = "slow-log" },
-    { destination = "/aws/elasticache/tadeumendonca-${var.environment}/engine-log",
+    { destination = "/aws/elasticache/${var.project}-${var.environment}/engine-log",
       destination_type = "cloudwatch-logs", log_format = "json", log_type = "engine-log" }
   ]
 }
@@ -59,7 +59,7 @@ resource "random_password" "redis_auth" { length = 32, special = false }
 
 ## AUTH token → Secrets Manager (never SSM/tfvars)
 ```hcl
-resource "aws_secretsmanager_secret" "redis" { name = "tadeumendonca/${var.environment}/redis" }
+resource "aws_secretsmanager_secret" "redis" { name = "${var.project}/${var.environment}/redis" }
 resource "aws_secretsmanager_secret_version" "redis" {
   secret_id     = aws_secretsmanager_secret.redis.id
   secret_string = jsonencode({ auth_token = random_password.redis_auth.result })

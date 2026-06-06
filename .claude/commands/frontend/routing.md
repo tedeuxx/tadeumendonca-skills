@@ -1,4 +1,4 @@
-Frontend routing in tadeumendonca-fed (concept).
+Frontend routing in <project>-fed (concept).
 
 Context: $ARGUMENTS
 

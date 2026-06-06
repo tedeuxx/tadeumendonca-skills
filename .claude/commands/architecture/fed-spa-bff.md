@@ -2,7 +2,7 @@ Reference architecture: SPA + BFF + modular-monolith backend — the `fed-spa-bf
 
 Context: $ARGUMENTS
 
-Use this when building a **public, content-driven single-page app with a serverless backend on AWS** — the pattern `tadeumendonca.io` is built on. This file is the **blueprint**; each piece links to the component skill that implements it.
+Use this when building a **public, content-driven single-page app with a serverless backend on AWS** — the pattern `<apex-domain>` is built on. This file is the **blueprint**; each piece links to the component skill that implements it.
 
 ## Shape
 ```

@@ -1,4 +1,4 @@
-Connect to and access DocumentDB in tadeumendonca-api.
+Connect to and access DocumentDB in <project>-api.
 
 Context: $ARGUMENTS
 
@@ -21,7 +21,7 @@ export async function getDb() {
     });
     await client.connect();
   }
-  return client.db('tadeumendonca');
+  return client.db('<project>');
 }
 ```
 Module-level singleton — reused across warm invocations; never connect inside a handler.

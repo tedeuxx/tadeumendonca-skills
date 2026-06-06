@@ -1,4 +1,4 @@
-Frontend real-user monitoring (CloudWatch RUM) in tadeumendonca-fed (concept).
+Frontend real-user monitoring (CloudWatch RUM) in <project>-fed (concept).
 
 Context: $ARGUMENTS
 

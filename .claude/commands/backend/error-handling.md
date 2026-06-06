@@ -1,4 +1,4 @@
-Implement or review HTTP error handling in tadeumendonca-api.
+Implement or review HTTP error handling in <project>-api.
 
 Context: $ARGUMENTS
 

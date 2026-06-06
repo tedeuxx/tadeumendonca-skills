@@ -1,4 +1,4 @@
-Use Playwright for E2E tests in tadeumendonca-fed.
+Use Playwright for E2E tests in <project>-fed.
 
 Context: $ARGUMENTS
 

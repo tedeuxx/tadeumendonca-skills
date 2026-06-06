@@ -1,4 +1,4 @@
-Define or review the audit trail in tadeumendonca-api.
+Define or review the audit trail in <project>-api.
 
 Context: $ARGUMENTS
 

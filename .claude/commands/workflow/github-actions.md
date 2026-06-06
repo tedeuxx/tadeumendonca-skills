@@ -1,4 +1,4 @@
-Use GitHub for tadeumendonca repos — the CI/CD capability (Actions, GitFlow + versioning, deploys, issues).
+Use GitHub for <project> repos — the CI/CD capability (Actions, GitFlow + versioning, deploys, issues).
 
 Context: $ARGUMENTS
 

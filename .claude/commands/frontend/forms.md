@@ -1,4 +1,4 @@
-Implement or review forms in tadeumendonca-fed (admin compose).
+Implement or review forms in <project>-fed (admin compose).
 
 Context: $ARGUMENTS
 

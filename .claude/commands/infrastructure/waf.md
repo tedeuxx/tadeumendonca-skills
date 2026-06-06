@@ -1,4 +1,4 @@
-Implement or review the WAF WebACLs (CLOUDFRONT + REGIONAL) in tadeumendonca-iac.
+Implement or review the WAF WebACLs (CLOUDFRONT + REGIONAL) in ${var.project}-iac.
 
 Context: $ARGUMENTS
 
@@ -10,7 +10,7 @@ default_action = "allow"                              # allow unless a rule bloc
 visibility_config = {                                 # CloudWatch metrics + sampled requests for tuning
   cloudwatch_metrics_enabled = true
   sampled_requests_enabled   = true
-  metric_name                = "tadeumendonca-${scope}-${var.environment}"
+  metric_name                = "${var.project}-${scope}-${var.environment}"
 }
 # rate limiting — blunt DoS / brute-force guard
 rate_based_statement_rules = [
@@ -27,7 +27,7 @@ module "waf_cloudfront" {
   source    = "aws-ia/waf/aws"
   version   = "~> 1.0"
   providers = { aws = aws.us_east_1 }                # CLOUDFRONT scope requires us-east-1
-  name      = "tadeumendonca-cloudfront-${var.environment}"
+  name      = "${var.project}-cloudfront-${var.environment}"
   scope     = "CLOUDFRONT"
   default_action = "allow"
   managed_rule_group_statement_rules = [
@@ -44,7 +44,7 @@ module "waf_cloudfront" {
 module "waf_regional" {
   source  = "aws-ia/waf/aws"
   version = "~> 1.0"
-  name    = "tadeumendonca-regional-${var.environment}"
+  name    = "${var.project}-regional-${var.environment}"
   scope   = "REGIONAL"
   default_action = "allow"
   managed_rule_group_statement_rules = [
@@ -73,5 +73,5 @@ resource "aws_wafv2_web_acl_association" "api_gw" {       # aws_apigatewayv2_sta
 ## Notes
 - CLOUDFRONT WAF protects the SPA distribution; REGIONAL WAF is **shared** by the API GW stage + Cognito hosted UI (mitigates abuse on open signup).
 - SSM: `/{env}/auth/waf-regional-arn = module.waf_regional.web_acl_arn` (cross-file reference).
-- Logs go to an `aws-waf-logs-tadeumendonca-${env}` group (mandated prefix — `/infrastructure/cloudwatch`); WAF holds no at-rest data of its own. TLS is terminated at CloudFront / API GW, which enforce TLS 1.2+ (`/infrastructure/kms`).
+- Logs go to an `aws-waf-logs-${var.project}-${env}` group (mandated prefix — `/infrastructure/cloudwatch`); WAF holds no at-rest data of its own. TLS is terminated at CloudFront / API GW, which enforce TLS 1.2+ (`/infrastructure/kms`).
 - `aws_wafv2_web_acl_association` is justified raw glue — no module abstracts the stage/user-pool association.

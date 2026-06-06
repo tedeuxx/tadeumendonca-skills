@@ -1,4 +1,4 @@
-SPA → BFF API calls in tadeumendonca-fed (concept).
+SPA → BFF API calls in <project>-fed (concept).
 
 Context: $ARGUMENTS
 

@@ -1,4 +1,4 @@
-Loading / empty / error UX states in tadeumendonca-fed (concept).
+Loading / empty / error UX states in <project>-fed (concept).
 
 Context: $ARGUMENTS
 

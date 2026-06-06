@@ -1,4 +1,4 @@
-Fetch sensitive backend values from AWS Secrets Manager in tadeumendonca-api.
+Fetch sensitive backend values from AWS Secrets Manager in <project>-api.
 
 Context: $ARGUMENTS
 
@@ -35,6 +35,6 @@ const { auth_token } = await getSecret(config.redisSecretArn);                  
 ## Conventions
 - Secret JSON fields are **snake_case** (`auth_token`, `dbname`).
 - Fetch by **ARN** from `config`; the ARN itself is non-sensitive (fine in env var / SSM).
-- IAM: Lambda role needs `secretsmanager:GetSecretValue` scoped to `tadeumendonca/{env}/*` (`policy_statements`, api.tf).
+- IAM: Lambda role needs `secretsmanager:GetSecretValue` scoped to `<project>/{env}/*` (`policy_statements`, api.tf).
 - Cache in memory for the container lifetime; never re-fetch per request. Rotation is picked up on the next cold start.
-- Naming: `tadeumendonca/{env}/{component}` (e.g. `tadeumendonca/staging/docdb`, `tadeumendonca/staging/redis`). See `/infrastructure/documentdb`, `/infrastructure/elasticache`.
+- Naming: `<project>/{env}/{component}` (e.g. `<project>/staging/docdb`, `<project>/staging/redis`). See `/infrastructure/documentdb`, `/infrastructure/elasticache`.

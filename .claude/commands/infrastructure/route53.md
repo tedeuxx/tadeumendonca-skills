@@ -1,4 +1,4 @@
-Use Amazon Route53 in tadeumendonca infrastructure (DNS records + the per-env domain model).
+Use Amazon Route53 in ${var.project} infrastructure (DNS records + the per-env domain model).
 
 Context: $ARGUMENTS
 
@@ -7,23 +7,23 @@ The **environment is encoded in the host**. Production uses the bare apex (+ `ap
 
 | Service | Production | Staging |
 |---|---|---|
-| Frontend (SPA) | `tadeumendonca.io` | `staging.tadeumendonca.io` |
-| API | `api.tadeumendonca.io` | `api.staging.tadeumendonca.io` |
-| Auth (Cognito hosted UI) | `auth.tadeumendonca.io` | `auth.staging.tadeumendonca.io` |
+| Frontend (SPA) | `${var.apex_domain}` | `staging.${var.apex_domain}` |
+| API | `api.${var.apex_domain}` | `api.staging.${var.apex_domain}` |
+| Auth (Cognito hosted UI) | `auth.${var.apex_domain}` | `auth.staging.${var.apex_domain}` |
 
 General form: production `{service?}.{apex}`, non-prod `{service?}.{environment}.{apex}` (the frontend has no service prefix). Per-env tfvars:
 ```hcl
 # env/prd.tfvars                              # env/stg.tfvars
-domain_name      = "tadeumendonca.io"              # "staging.tadeumendonca.io"
-api_domain_name  = "api.tadeumendonca.io"          # "api.staging.tadeumendonca.io"
-auth_domain_name = "auth.tadeumendonca.io"         # "auth.staging.tadeumendonca.io"
+domain_name      = "${var.apex_domain}"              # "staging.${var.apex_domain}"
+api_domain_name  = "api.${var.apex_domain}"          # "api.staging.${var.apex_domain}"
+auth_domain_name = "auth.${var.apex_domain}"         # "auth.staging.${var.apex_domain}"
 ```
 These feed CloudFront aliases, the API GW custom domain, the Cognito custom domain, and the Route53 records below. Callback/logout URLs follow the frontend host (`https://{frontend-host}/callback`). Cert coverage per env → `/infrastructure/acm`. **Reusable across future products** — swap the apex, keep the structure.
 
 ## Hosted zone — pre-existing, referenced by data source
-The `tadeumendonca.io` hosted zone is created out-of-band (registrar + NS delegation) and referenced once at the root; this stack creates **records only, never the zone**:
+The `${var.apex_domain}` hosted zone is created out-of-band (registrar + NS delegation) and referenced once at the root; this stack creates **records only, never the zone**:
 ```hcl
-data "aws_route53_zone" "main" { name = "tadeumendonca.io" }
+data "aws_route53_zone" "main" { name = "${var.apex_domain}" }
 ```
 
 ## A-alias records (one per public-facing service)
@@ -32,7 +32,7 @@ Each fronting service gets an **A-alias** in its layer's `.tf`, using `data.aws_
 # frontend.tf — SPA via CloudFront
 resource "aws_route53_record" "frontend" {
   zone_id = data.aws_route53_zone.main.zone_id
-  name    = var.domain_name                  # staging.tadeumendonca.io | tadeumendonca.io
+  name    = var.domain_name                  # staging.${var.apex_domain} | ${var.apex_domain}
   type    = "A"
   alias { name = module.cloudfront.cloudfront_distribution_domain_name
           zone_id = "Z2FDTNDATAQYW2"          # CloudFront's constant hosted-zone id
@@ -42,7 +42,7 @@ resource "aws_route53_record" "frontend" {
 # api.tf — API GW v2 custom domain
 resource "aws_route53_record" "api" {
   zone_id = data.aws_route53_zone.main.zone_id
-  name    = var.api_domain_name              # api.{env}.tadeumendonca.io
+  name    = var.api_domain_name              # api.{env}.${var.apex_domain}
   type    = "A"
   alias { name = module.apigw.domain_name_configuration[0].target_domain_name
           zone_id = module.apigw.domain_name_configuration[0].hosted_zone_id

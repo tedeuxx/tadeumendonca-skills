@@ -1,4 +1,4 @@
-Frontend SEO in tadeumendonca-fed (concept, no SSR).
+Frontend SEO in <project>-fed (concept, no SSR).
 
 Context: $ARGUMENTS
 
