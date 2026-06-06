@@ -49,4 +49,4 @@ resource "aws_route53_record" "auth" {
 - `aws_route53_record` is justified raw glue (no module abstracts a single alias) — `/infrastructure/module-policy`.
 - `Z2FDTNDATAQYW2` is the fixed CloudFront hosted-zone id (frontend SPA + Cognito hosted UI). API GW exposes its own `hosted_zone_id` via the module.
 - SES verification + DKIM records are created by the SES module (`/infrastructure/ses-email`), not here.
-- ACM DNS-validation records are out-of-band/one-time (`/infrastructure/terraform-repo-structure`).
+- ACM DNS-validation records are out-of-band/one-time (`/infrastructure/terraform`).

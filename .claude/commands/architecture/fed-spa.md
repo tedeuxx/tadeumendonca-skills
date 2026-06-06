@@ -34,7 +34,7 @@ The SPA authenticates through a **BFF** (`/backend/bff`): the BFF runs OIDC Auth
 `/backend/framework` (Hono) · `/backend/bff` · `/backend/lambda-handler` · `/backend/docdb-connection` · `/backend/redis-cache` · `/backend/logging` · `/backend/metrics` · `/backend/error-handling` · `/backend/audit-middleware` · `/backend/action-types` · `/backend/secrets-management` · `/backend/environment-config` · `/backend/og-image-generator`
 
 ## Infrastructure (Terraform, IaC = single source of truth)
-- Repo/state/modules → `/infrastructure/terraform-repo-structure` · `/infrastructure/module-policy`
+- Repo/state/modules → `/infrastructure/terraform` · `/infrastructure/module-policy`
 - Network/DNS → `/infrastructure/vpc-networking` · `/infrastructure/dns`
 - Compute/API → `/infrastructure/lambda-pattern-b` · `/infrastructure/api-gw-contract`
 - Edge/CDN → `/infrastructure/cloudfront-spa` · `/infrastructure/waf`

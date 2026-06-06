@@ -16,4 +16,4 @@ Context: $ARGUMENTS
 - **Pin versions** with `~>` (`terraform-aws-modules/vpc/aws ~> 5.0`); no floating / `latest`.
 
 ## Why
-Official and trusted-source modules carry maintenance, security review, and community scrutiny we don't have to own. Using them integrally (no forks/wrappers) keeps upgrades a one-line version bump and avoids drift. Wrappers and raw resources are debt — taken on only when a module genuinely can't express the need, and then done fully. See `/infrastructure/terraform-repo-structure`.
+Official and trusted-source modules carry maintenance, security review, and community scrutiny we don't have to own. Using them integrally (no forks/wrappers) keeps upgrades a one-line version bump and avoids drift. Wrappers and raw resources are debt — taken on only when a module genuinely can't express the need, and then done fully. See `/infrastructure/terraform`.

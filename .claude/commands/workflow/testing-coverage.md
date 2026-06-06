@@ -16,9 +16,10 @@ CI **blocks deploy** if any gate fails. Gates run on PR and on the deploy path, 
 - **fed:** `vitest` unit (**≥ 85%**) + **Playwright** E2E (`home` / `feed` / `auth` specs) — any failure blocks.
 
 ## Security / artifact verification
-- **IaC:** **`checkov`** static analysis on `terraform/` — blocks on HIGH `FAILED` (`/infrastructure/terraform-repo-structure`).
+- **IaC:** **`checkov`** static analysis on `terraform/` — blocks on HIGH `FAILED` (`/infrastructure/terraform`).
 - **Dependencies:** `npm audit --audit-level=high` (api/fed) blocks on high/critical; `dependency-review` / Dependabot on PRs.
-- **Code (SAST):** CodeQL on PR (JS/TS) where enabled; secret scanning — no committed secrets (they live in Secrets Manager, `/backend/secrets-management`).
+- **Code quality + SAST:** **SonarCloud** Quality Gate (bugs, smells, vulnerabilities, security hotspots, coverage, duplication) on every PR — **blocks merge**; imports vitest coverage (lcov). See `/workflow/sonarcloud`.
+- **Secrets:** secret scanning — no committed secrets (they live in Secrets Manager, `/backend/secrets-management`).
 - **Automated review:** Claude Code review action (`claude-code-review.yml`) on every PR.
 
 ## Conventions

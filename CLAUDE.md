@@ -81,7 +81,7 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/backend/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
 | `/backend/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DocDB |
 
-### frontend/ (6)
+### frontend/ (7)
 
 | Command | Purpose |
 |---|---|
@@ -90,37 +90,56 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/frontend/react-query-cursor` | Cursor-based pagination: useInfiniteQuery + infinite scroll |
 | `/frontend/cloudscape-patterns` | Which Cloudscape components for CV sections, feed, articles |
 | `/frontend/environment-config` | Vite VITE_* build-time env via typed env.ts (from SSM) |
+| `/frontend/analytics` | Google Analytics (GA4): SPA page_view per route + events |
 | `/frontend/seo` | Client-side SEO: react-helmet-async meta + sitemap + robots + JSON-LD |
 
-### infrastructure/ (19)
+### infrastructure/ (28)
+
+**Services** — how we use each tool/AWS service (reusable):
+
+| Command | Purpose |
+|---|---|
+| `/infrastructure/terraform` | Terraform overall: versions, providers, state(TFC), layout, tfvars, CI |
+| `/infrastructure/terraform-cloud` | TFC as remote-state backend; per-env workspaces; Local execution |
+| `/infrastructure/vpc-networking` | VPC: subnets/NAT, S3 endpoint, lambda SG, traffic design (off-NAT) |
+| `/infrastructure/dns` | Route53: hosted-zone data source + A-alias records |
+| `/infrastructure/acm` | ACM: out-of-band certs, us-east-1, resolved by domain (no ARNs in tfvars) |
+| `/infrastructure/s3-buckets` | S3: frontend(OAC)/artifacts/og-images + SSM |
+| `/infrastructure/cloudfront` | CloudFront: OAC, TLS, cache policies, Lambda@Edge, WAF assoc |
+| `/infrastructure/waf` | WAF CLOUDFRONT + REGIONAL (shared by API GW + Cognito) |
+| `/infrastructure/lambda` | Lambda: nodejs22/arm64, in-VPC, tracing, least-priv policy_statements |
+| `/infrastructure/api-gateway` | API GW v2 HTTP: stage, custom domain, CORS, JWT authorizer |
+| `/infrastructure/cognito` | Cognito: user pool, 3 groups, PKCE public client, hosted UI |
+| `/infrastructure/documentdb-cluster` | DocumentDB: cloudposse cluster + Secrets Manager + SSM |
+| `/infrastructure/elasticache-redis` | ElastiCache Redis + AUTH in Secrets Manager + SSM |
+| `/infrastructure/ses-email` | SES: domain verify + DKIM |
+| `/infrastructure/iam` | IAM: least privilege, roles-not-users, OIDC for pipelines |
+| `/infrastructure/secrets-manager` | Secrets Manager (provision): naming, jsonencode, ARN-only to SSM |
+| `/infrastructure/cloudwatch` | CloudWatch: log groups/retention, flow logs, EMF metrics, alarms |
+| `/infrastructure/kms` | KMS: AWS-managed by default, CMK only when needed, rotation |
+
+**Patterns & policies** — compositions and cross-cutting decisions:
 
 | Command | Purpose |
 |---|---|
 | `/infrastructure/module-policy` | Module sourcing: official-first, trusted non-official, no L3, raw as glue |
-| `/infrastructure/terraform-repo-structure` | Canonical root, per-env tfvars, providers, TFC remote state/workspaces, checkov |
-| `/infrastructure/vpc-networking` | vpc.tf: subnets/NAT, S3 endpoint, lambda SG, traffic design (off-NAT) |
-| `/infrastructure/dns` | Route53: hosted-zone data source + A-alias records (CF/API/Cognito) |
-| `/infrastructure/documentdb-cluster` | data.tf: cloudposse docdb + Secrets Manager + SSM |
-| `/infrastructure/elasticache-redis` | cache.tf: cloudposse redis + AUTH in Secrets Manager + SSM |
-| `/infrastructure/s3-buckets` | storage.tf: frontend(OAC)/artifacts/og-images + SSM |
-| `/infrastructure/cloudfront-spa` | frontend.tf: CloudFront + OAC + Lambda@Edge + SPA error routing |
-| `/infrastructure/waf` | WAF CLOUDFRONT + REGIONAL (shared by API GW + Cognito) |
-| `/infrastructure/iam-oidc-roles` | iam.tf: deploy policies + assumable-role-with-oidc (api, fed) |
-| `/infrastructure/ses-email` | auth.tf: SES domain verify + DKIM (fn-notifications) |
+| `/infrastructure/environment-domains` | Per-env domain/subdomain naming (apex + service subdomains) |
+| `/infrastructure/cloudfront-spa` | SPA delivery on CloudFront: error routing, /og/*, cache split |
 | `/infrastructure/lambda-pattern-b` | Pattern B: IaC owns config, api repo ships code |
-| `/infrastructure/api-gw-contract` | IaC seed shell + generated OpenAPI (from code) reimported by api repo |
-| `/infrastructure/ssm-config-bus` | SSM namespace, what to store, how repos read at deploy |
-| `/infrastructure/cognito-custom-domain` | Module config + Route53 alias + SSM outputs |
-| `/infrastructure/environment-domains` | Per-env domain/subdomain naming pattern (apex + service subdomains) |
-| `/infrastructure/encryption` | TLS in-transit + at-rest everywhere (CF/API/DocDB/Redis/S3/Secrets) |
-| `/infrastructure/kms` | KMS policy: AWS-managed by default, CMK only when needed, rotation |
-| `/infrastructure/tagging` | Mandatory tags via default_tags for a shared account (Project/Env/ManagedBy) |
+| `/infrastructure/api-gw-contract` | IaC seed shell + generated OpenAPI reimported by api repo |
+| `/infrastructure/ssm-config-bus` | SSM as cross-repo config bus (namespace, read at deploy) |
+| `/infrastructure/cognito-custom-domain` | Cognito hosted-UI custom domain + Route53 + SSM |
+| `/infrastructure/iam-oidc-roles` | GitHub OIDC deploy roles (api, fed) + deploy policies |
+| `/infrastructure/encryption` | TLS in-transit + at-rest everywhere |
+| `/infrastructure/tagging` | Mandatory tags via default_tags (shared account) |
 
-### workflow/ (6)
+### workflow/ (8)
 
 | Command | Purpose |
 |---|---|
 | `/workflow/gitflow` | GitFlow + numeric SemVer (develop=patch, main=label bump), loop guard |
+| `/workflow/github-actions` | CI/CD platform: OIDC to AWS, secrets, environments, workflow set |
+| `/workflow/sonarcloud` | SonarCloud quality gate (SAST + coverage + smells), blocks merge |
 | `/workflow/deploy-api` | api deploy: esbuild → zip → S3 → update-function-code + reimport |
 | `/workflow/deploy-fed` | fed deploy: vite build → S3 sync (split headers) → CF invalidation |
 | `/workflow/issue-backlog` | GitHub Issues: labels, milestones, templates, auto-maintained backlog |

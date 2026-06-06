@@ -24,7 +24,7 @@ auth_domain_name = "auth.tadeumendonca.io"     # "auth.staging.tadeumendonca.io"
 These vars feed CloudFront aliases, the API GW custom domain, the Cognito custom domain, and the Route53 records.
 
 ## ACM coverage
-A single cert per apex covers every service/env host: `{apex}`, `*.{apex}`, `*.staging.{apex}`, `*.production.{apex}` (us-east-1, out-of-band — `/infrastructure/terraform-repo-structure`).
+A single cert per apex covers every service/env host: `{apex}`, `*.{apex}`, `*.staging.{apex}`, `*.production.{apex}` (us-east-1, out-of-band — `/infrastructure/terraform`).
 
 ## Conventions
 - The **subdomain is the environment boundary** — never an env query param/header.
