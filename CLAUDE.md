@@ -83,19 +83,22 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/backend/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
 | `/backend/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DocDB |
 
-### frontend/ (13)
+### frontend/ (16)
 
 | Command | Purpose |
 |---|---|
 | `/frontend/framework-react` | React+Vite impl home: providers, Amplify, React Query, api client, routing (only place with React snippets) |
 | `/frontend/authentication` | SPA auth (concept): Cognito SDK holds JWT → Bearer; API GW authorizer validates |
 | `/frontend/authorization` | SPA UI gating by groups/claims (cosmetic); real authz is server-side |
+| `/frontend/routing` | Route map + patterns: nested layouts, lazy, guards, 404, scroll (concept) |
+| `/frontend/state` | State ownership: server→React Query, UI→Zustand, session→SDK |
 | `/frontend/api-client` | BFF calls (concept): base URL from SSM, Bearer, 401, queries/mutations + invalidation |
 | `/frontend/pagination` | Cursor pagination contract + infinite-scroll UX (concept) |
 | `/frontend/forms` | Admin forms: controlled inputs + zod (mirrors BFF) → mutation |
 | `/frontend/markdown` | Article markdown render: highlight + sanitize; consistent with edge prerender |
 | `/frontend/design-system` | Cloudscape: which component per UI pattern (CV / feed / articles) |
 | `/frontend/storybook` | Component library: stories, autodocs, interaction/visual tests |
+| `/frontend/ux-states` | Loading/empty/error states + ErrorBoundary (consistent async UX) |
 | `/frontend/environment-config` | Build-time VITE_* from SSM (concept); typed accessor |
 | `/frontend/analytics` | GA4 (concept): SPA page_view per route + events |
 | `/frontend/cloudwatch-rum` | RUM (concept): web vitals, JS errors, http; X-Ray end-to-end |

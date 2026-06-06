@@ -12,6 +12,13 @@ Authentication is **external to the BFF**: the SPA uses the **Cognito IdP SDK** 
 - `401` → re-authenticate.
 - Config (pool/client/hosted-UI ids) from **SSM** at build time (`/frontend/environment-config`).
 
+## Session lifecycle (OIDC + PKCE)
+- **Tokens:** `id_token` (identity/claims for UI), `access_token` (sent as Bearer to the BFF), `refresh_token` (renews the other two).
+- **Storage + persistence:** the SDK stores the tokens (default `localStorage`) → the session survives reloads and is shared across tabs. *Trade-off:* tokens in browser storage are an XSS surface — the accepted cost of simplicity vs. a server-side-session BFF (rejected).
+- **Silent refresh:** the SDK uses the `refresh_token` to renew the `access_token` before expiry, transparently — the app only calls `fetchAuthSession()`.
+- **Expiry:** when the `refresh_token` expires or is revoked, `fetchAuthSession` fails → re-authenticate.
+- **Logout:** clearing the session removes the local tokens and redirects to the Cognito logout (global sign-out invalidates the refresh token).
+
 ## Conventions
-- The **SDK owns tokens** — never hand-roll PKCE/token exchange or store tokens manually.
+- The **SDK owns tokens + the session** — never hand-roll PKCE/token exchange, refresh, or token storage.
 - Role-based UI gating is `/frontend/authorization`. Blueprint: `/architecture/fed-spa-bff-monolith`.
