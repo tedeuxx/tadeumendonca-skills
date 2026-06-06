@@ -60,11 +60,12 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 |---|---|
 | `/architecture/fed-spa` | Blueprint: SPA + BFF + serverless backend; links every component skill |
 
-### backend/ (15)
+### backend/ (16)
 
 | Command | Purpose |
 |---|---|
-| `/backend/framework` | Hono on Lambda: app + aws-lambda adapter, routing, middleware, zod |
+| `/backend/framework` | Hono on Lambda: OpenAPIHono adapter, routing, middleware, zod-openapi |
+| `/backend/openapi` | Auto-generate OpenAPI from Hono+zod (createRoute); spec for API GW reimport |
 | `/backend/bff` | Backend-for-Frontend: server-side OIDC PKCE + session cookie + API proxy |
 | `/backend/lambda-handler` | Implement a Lambda fn: Hono app + routes + audit + DocumentDB |
 | `/backend/docdb-connection` | DocumentDB TLS singleton + Secrets Manager pattern |
@@ -107,7 +108,7 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/infrastructure/iam-oidc-roles` | iam.tf: deploy policies + assumable-role-with-oidc (api, fed) |
 | `/infrastructure/ses-email` | auth.tf: SES domain verify + DKIM (fn-notifications) |
 | `/infrastructure/lambda-pattern-b` | Pattern B: IaC owns config, api repo ships code |
-| `/infrastructure/api-gw-contract` | Seed spec in IaC + `openapi.yaml` ownership in api repo |
+| `/infrastructure/api-gw-contract` | IaC seed shell + generated OpenAPI (from code) reimported by api repo |
 | `/infrastructure/ssm-config-bus` | SSM namespace, what to store, how repos read at deploy |
 | `/infrastructure/cognito-custom-domain` | Module config + Route53 alias + SSM outputs |
 | `/infrastructure/environment-domains` | Per-env domain/subdomain naming pattern (apex + service subdomains) |

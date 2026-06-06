@@ -6,7 +6,7 @@ Context: $ARGUMENTS
 
 **IaC (api.tf):** provisions API GW with a seed spec (`bootstrap/openapi-health.json.tftpl`) containing only `GET /health`. Sets `create_routes_and_integrations = false` — Terraform does NOT manage routes.
 
-**api repo (openapi/openapi.yaml):** owns the full route set + Cognito JWT authorizer. On every deploy, the api repo runs `reimport-api` to load the full contract.
+**api repo (contract as code):** owns the full route set + Cognito JWT authorizer. The OpenAPI is **generated from the Hono code** (`@hono/zod-openapi`) — see `/backend/openapi` — not hand-written. On every deploy the api repo generates the spec, overlays the AWS integration + authorizer, and runs `reimport-api`.
 
 ## Seed spec (IaC side)
 
@@ -26,8 +26,9 @@ module "apigw" {
 
 ```bash
 API_ID=$(aws ssm get-parameter --name /$ENV_NAME/api/gateway-id --query 'Parameter.Value' --output text)
-# Template: Cognito issuer/audience + Lambda invoke ARNs via envsubst
-envsubst < openapi/openapi.yaml > openapi/openapi.resolved.json
+npx tsx scripts/gen-openapi.ts                       # generate openapi.gen.json from the Hono code
+# overlay AWS integration + Cognito issuer/audience + Lambda invoke ARNs via envsubst
+envsubst < openapi/openapi.aws.tftpl.json > openapi/openapi.resolved.json
 aws apigatewayv2 reimport-api --api-id "$API_ID" --body file://openapi/openapi.resolved.json
 ```
 
