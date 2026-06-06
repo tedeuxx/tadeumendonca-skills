@@ -31,6 +31,9 @@ filename = "VERSION"
   - `semver:major` → major · `semver:minor` → minor (**default**) · `semver:patch` → patch.
 - PR labels `semver:major | semver:minor | semver:patch` are required before merge to `main` (label set owned by the Issues backlog — `/workflow/github-actions`).
 
+## Release notes (the GitHub Release)
+`version-main` publishes a **GitHub Release** for the tag with notes **auto-categorized from the conventional-commit subjects** between the previous tag and the new one (bump/merge commits excluded): `feat`→Features, `fix`→Fixes, `docs`→Documentation, `refactor`→Refactoring, `ci|chore|build|test`→CI & chores, plus a "Full changelog" compare link. Because GitFlow ships **one** release PR, the notes are built from the **commit log** (not the single PR) — so **commit messages _are_ the changelog**: write `type: subject` (conventional commits). (`--generate-notes` alone would show only the lone release PR.)
+
 ## Loop guard (critical)
 Bump commits use message `bump: {current} → {new}`; **both workflows skip any commit whose message starts with `bump:`**. The workflows push with the `VERSION_BUMP_TOKEN` PAT (which retriggers CI), so this message MUST stay aligned with the guard via `message`/`tag_message` above — otherwise CI loops infinitely.
 
