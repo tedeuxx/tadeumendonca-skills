@@ -2,13 +2,13 @@ Use Amazon Cognito in <project> infrastructure.
 
 Context: $ARGUMENTS
 
-Module: `terraform-aws-modules/cognito-idp/aws ~> 8.0` (auth.tf). Cognito issues the JWT the API GW authorizer validates; the SPA holds it via the Cognito SDK (`/frontend/authentication`).
+Module: **`lgallard/cognito-user-pool/aws`** (auth.tf) — there is **no** official `terraform-aws-modules` Cognito module, so we use lgallard, the established community one (`/infrastructure/terraform` module policy). Cognito issues the JWT the API GW authorizer validates; the SPA holds it via the Cognito SDK (`/frontend/authentication`).
 
 ## Configuration — user pool + client + custom domain
 ```hcl
 module "cognito" {
-  source  = "terraform-aws-modules/cognito-idp/aws"
-  version = "~> 8.0"
+  source  = "lgallard/cognito-user-pool/aws"
+  version = "~> 0.31"                          # community module — pin the current 0.x
 
   user_pool_name           = "<project>-${var.environment}"
   username_attributes      = ["email"]
@@ -18,27 +18,25 @@ module "cognito" {
                       require_numbers = true, require_symbols = true }
   admin_create_user_config = { allow_admin_create_user_only = false }   # registered users self-signup
 
-  groups = { admin = { precedence = 1 }, registered = { precedence = 10 } }   # public = no group
+  user_groups = [{ name = "admin", precedence = 1 }, { name = "registered", precedence = 10 }]   # list; public = no group
 
-  clients = {
-    spa = {
-      generate_secret              = false                  # PUBLIC client (PKCE, no secret)
-      allowed_oauth_flows          = ["code"]               # Authorization Code + PKCE
-      allowed_oauth_flows_user_pool_client = true
-      allowed_oauth_scopes         = ["openid","email","profile"]
-      callback_urls                = var.callback_urls      # https://{frontend-host}/callback
-      logout_urls                  = var.logout_urls
-      supported_identity_providers = ["COGNITO"]
-      explicit_auth_flows          = ["ALLOW_REFRESH_TOKEN_AUTH","ALLOW_USER_SRP_AUTH"]
-    }
-  }
+  # single app client (the SPA) — the module's top-level client_* inputs
+  client_name                                 = "spa"
+  client_generate_secret                      = false   # PUBLIC client (PKCE, no secret)
+  client_allowed_oauth_flows                  = ["code"] # Authorization Code + PKCE
+  client_allowed_oauth_flows_user_pool_client = true
+  client_allowed_oauth_scopes                 = ["openid", "email", "profile"]
+  client_callback_urls                        = var.callback_urls   # https://{frontend-host}/callback
+  client_logout_urls                          = var.logout_urls
+  client_supported_identity_providers         = ["COGNITO"]
+  client_explicit_auth_flows                  = ["ALLOW_REFRESH_TOKEN_AUTH", "ALLOW_USER_SRP_AUTH"]
 
-  domain          = "auth-${var.environment}-<project>"   # Cognito-managed prefix (fallback)
-  custom_domain   = var.auth_domain_name                      # auth.{env}.<apex-domain>
-  certificate_arn = data.aws_acm_certificate.main.arn         # us-east-1, pre-created (/infrastructure/acm)
+  # custom hosted-UI domain is the STANDARD — not the Cognito-generated prefix
+  domain                 = var.auth_domain_name               # auth.{env}.<apex-domain>
+  domain_certificate_arn = data.aws_acm_certificate.main.arn  # ISSUED cert in us-east-1 (/infrastructure/acm)
 }
 ```
-**Key knobs:** app client is **public** (`generate_secret=false`) → Authorization Code + **PKCE**, no client secret anywhere; `mfa_configuration="OPTIONAL"`; 12-char password policy; `allow_admin_create_user_only=false` (self-signup). Custom domain needs the cert in **us-east-1** (same as CloudFront).
+**Key knobs:** public client (`client_generate_secret=false`) → Authorization Code + **PKCE**, no secret anywhere; `mfa_configuration="OPTIONAL"`; 12-char password policy; self-signup. **The custom hosted-UI domain is the default** (`domain` = the FQDN + `domain_certificate_arn`, an ISSUED cert in **us-east-1**) — never the Cognito-generated `*.auth.<region>.amazoncognito.com` prefix.
 
 ## Auth is external to the BFF
 The **SPA runs the Authorization Code + PKCE flow via the Cognito SDK** and holds/refreshes the JWT; it sends `Authorization: Bearer` to the API GW, whose **Cognito JWT authorizer** validates per route (`/infrastructure/api-gateway`). The **BFF has no auth code** — it only reads claims. No client secret exists (public client).
@@ -49,11 +47,11 @@ resource "aws_route53_record" "auth" {                       # /infrastructure/r
   zone_id = data.aws_route53_zone.main.zone_id
   name    = var.auth_domain_name
   type    = "A"
-  alias { name = module.cognito.user_pool_domain_cloudfront_distribution_arn
+  alias { name = module.cognito.domain_cloudfront_distribution_arn   # Cognito custom-domain CloudFront dist (lgallard output)
           zone_id = "Z2FDTNDATAQYW2", evaluate_target_health = false }
 }
 # SSM (/infrastructure/ssm): /{env}/auth/cognito-user-pool-id, cognito-client-id,
-#   cognito-domain (managed prefix), cognito-hosted-ui-url = https://{auth_domain_name}
+#   cognito-hosted-ui-url = https://{auth_domain_name}  (custom domain — the standard)
 ```
 
 ## Conventions

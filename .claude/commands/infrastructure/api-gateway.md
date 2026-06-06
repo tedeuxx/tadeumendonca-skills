@@ -12,8 +12,10 @@ module "apigw" {
 
   protocol_type = "HTTP"                                       # HTTP API ($default stage, auto-deploy)
 
-  domain_name                 = var.api_domain_name            # custom domain + mapping
+  # custom domain is the STANDARD — the generated execute-api endpoint is never the public URL
+  domain_name                 = var.api_domain_name            # api.{env}.<apex-domain> (/infrastructure/route53)
   domain_name_certificate_arn = data.aws_acm_certificate.main.arn  # us-east-1 (/infrastructure/acm)
+  create_certificate          = false                          # reuse the existing cert; do NOT let the module issue one
 
   cors_configuration = {
     allow_origins = ["https://${var.domain_name}"]             # the SPA host only

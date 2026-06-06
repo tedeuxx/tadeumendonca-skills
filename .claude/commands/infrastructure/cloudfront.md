@@ -37,7 +37,9 @@ module "cloudfront" {
     minimum_protocol_version = "TLSv1.2_2021"      # TLS in-transit floor (/infrastructure/kms)
   }
 
-  create_origin_access_control = true              # OAC — S3 stays private (not OAI)
+  origin_access_control = {                        # OAC — S3 stays private (not OAI). Referenced by origins below.
+    s3_oac = { description = "", origin_type = "s3", signing_behavior = "always", signing_protocol = "sigv4" }
+  }
   origin = {
     s3 = { domain_name = module.frontend_bucket.s3_bucket_bucket_regional_domain_name
            origin_access_control = "s3_oac" }
