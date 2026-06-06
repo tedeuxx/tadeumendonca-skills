@@ -25,7 +25,7 @@ metrics.addMetric('request_duration_ms', MetricUnit.Milliseconds, ms);
 ## Conventions
 - **No `cloudwatch:PutMetricData`** — EMF metrics are extracted from logs, so the exec role needs no metrics IAM action (basic logs perms suffice). See `/infrastructure/iam`.
 - **Low cardinality** — dimensions limited to `action_type` / `environment` / `service`. Never `user_id` or id-bearing paths.
-- Suggested metrics: request count + latency, cache hit/miss (`/backend/redis-cache`), DocDB query duration, handler errors.
+- Suggested metrics: request count + latency, cache hit/miss (`/backend/redis-cache`), DynamoDB query duration, handler errors.
 - `og-edge` (Lambda@Edge) emits no metrics (edge constraints).
 - Powertools owns Logger / Metrics / Tracer uniformly (`/backend/logging`, `/backend/tracing`).
 

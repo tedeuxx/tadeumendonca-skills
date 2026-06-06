@@ -18,7 +18,7 @@ export const logger = new Logger({
 ```typescript
 logger.appendKeys({ action_type: 'posts_list' });
 logger.info('listing posts', { cursor, limit });
-logger.error('docdb query failed', { error });
+logger.error('dynamodb query failed', { error });
 ```
 
 ## Conventions

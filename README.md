@@ -13,7 +13,7 @@ The goal: transfer domain knowledge into repeatable, high-quality AI-assisted wo
 ## Capabilities (`commands/`)
 
 - `architecture/` — reference patterns (the `fed-spa-bff` blueprint) tying the pieces together
-- `backend/` — Hono BFF on Lambda, DocumentDB, observability, OG/SEO, contract & test gates
+- `backend/` — Hono BFF on Lambda, DynamoDB, observability, OG/SEO, contract & test gates
 - `frontend/` — React + Vite SPA, Cognito auth, state/routing, design system, RUM, SEO
 - `infrastructure/` — one skill per AWS service/tool (Terraform parametrization, encryption, IAM)
 - `workflow/` — GitHub Actions CI/CD, numeric versioning, Terraform Cloud, SonarCloud, docs

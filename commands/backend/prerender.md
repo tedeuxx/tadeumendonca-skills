@@ -2,7 +2,7 @@ Implement or review the bot-rendering API (og-meta + prerender) in <project>-api
 
 Context: $ARGUMENTS
 
-Serves the HTML the Lambda@Edge returns to bots (see `/backend/og-edge-handler`). Two endpoints, same data source (DocumentDB), **no React on the server** — this is content templating, not SSR.
+Serves the HTML the Lambda@Edge returns to bots (see `/backend/og-edge-handler`). Two endpoints, same data source (DynamoDB), **no React on the server** — this is content templating, not SSR.
 
 ## Endpoints
 - `GET /og-meta/{type}/{slug}` → JSON meta for **social** scrapers: `{ title, description, image_url, url }`. Lightweight, no body render.
@@ -43,7 +43,7 @@ export function renderArticleHtml(a: Article): string {
 
 ## Pros & cons
 **Pros**
-- Crawlable HTML + JSON-LD for bots without SSR; reuses the DocumentDB data.
+- Crawlable HTML + JSON-LD for bots without SSR; reuses the DynamoDB data.
 - Only bots hit it — humans get the SPA.
 **Cons**
 - A second rendering path to keep consistent with the SPA.

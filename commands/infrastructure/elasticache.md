@@ -2,7 +2,7 @@ Provision or review the ElastiCache for Redis cluster (cache.tf) in <project>-ia
 
 Context: $ARGUMENTS
 
-Distributed cache (cache-aside in front of DocumentDB), in-VPC and SG-gated like the database. Module: **`cloudposse/elasticache-redis/aws ~> 1.0`** (`/infrastructure/terraform`). The api-side client lives in `/backend/redis-cache`.
+Distributed cache (cache-aside in front of DynamoDB), in-VPC and SG-gated. Module: **`cloudposse/elasticache-redis/aws ~> 1.0`** (`/infrastructure/terraform`). The api-side client lives in `/backend/redis-cache`.
 
 ## Configuration (every argument we set)
 ```hcl
@@ -72,12 +72,12 @@ resource "aws_secretsmanager_secret_version" "redis" {
 - Exec role: `secretsmanager:GetSecretValue` on the redis secret (`/infrastructure/iam`).
 
 ## Notes
-- Private subnets, port 6379, reached in-VPC over the SG — off the NAT path (like DocumentDB).
+- Private subnets, port 6379, reached in-VPC over the SG — off the NAT path (DynamoDB is off-NAT too, via its Gateway endpoint).
 - Prod = 1 primary + 1 replica (Multi-AZ failover); staging = single node. `cache.t4g.micro` (Graviton).
 - Fail-open is enforced on the api side — see `/backend/redis-cache`.
 ## Backup & retention
 - **Daily automatic snapshots:** `snapshot_retention_limit` = **7d production / 0 (disabled) staging**, window `snapshot_window`; snapshots KMS-encrypted.
-- **It's a cache, not a system of record** — DocumentDB is the source of truth, so snapshots are a warm-restart convenience, not durability. Losing the cache is safe: the api is fail-open and repopulates cache-aside (`/backend/redis-cache`).
+- **It's a cache, not a system of record** — DynamoDB is the source of truth, so snapshots are a warm-restart convenience, not durability. Losing the cache is safe: the api is fail-open and repopulates cache-aside (`/backend/redis-cache`).
 - Restore = create a replacement cluster from a snapshot, or simply let it refill on demand.
 ## Pros & cons
 **Pros**

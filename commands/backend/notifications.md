@@ -20,13 +20,13 @@ export async function sendEmail(to: string, subject: string, html: string) {
 - Lambda role needs `ses:SendEmail` (`/infrastructure/ses`); reaches SES via NAT.
 - Templates: simple HTML strings now; move to SES **templates** / `SendBulkEmail` when volume/variety grows.
 
-## Subscriptions (collection `subscribers`)
+## Subscriptions (table `subscribers`)
 ```jsonc
-{ "_id": "ObjectId", "cognito_sub": "…", "email": "…", "status": "active | unsubscribed", "created_at": "ISODate" }
+{ "cognito_sub": "…", "email": "…", "status": "active | unsubscribed", "created_at": "2026-01-01T00:00:00Z" }
 ```
 - `POST /subscriptions` → upsert an `active` subscriber (the user's `sub`/`email` from the validated claims).
 - `DELETE /subscriptions` (or a one-click unsubscribe link/token) → `status = "unsubscribed"`.
-- Indexes `{ cognito_sub: 1 }` unique, `{ status: 1 }` (`/backend/document-db`).
+- Partition key `cognito_sub`; query active subscribers via a `status` GSI (`/backend/dynamodb`).
 
 ## Sync vs async (never block the request)
 A publish that notifies **N** subscribers must **not** run inline — fan-out is slow and fails partially.

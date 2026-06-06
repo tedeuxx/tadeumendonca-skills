@@ -17,7 +17,7 @@ SPA ─(Cognito SDK: login + holds JWT)─► Cognito
 SPA ─Bearer JWT─► API GW (Cognito JWT authorizer) ─► its OWN BFF Lambda (Hono, 1 per SPA, routes at root)
                                                         ├ reads claims (no auth code) → RBAC/shaping
                                                         └ domain logic / microservices
-                                                             ├ DocumentDB (in-VPC)
+                                                             ├ DynamoDB (IAM, Gateway VPC endpoint)
                                                              ├ Redis (cache-aside)
                                                              ├ Secrets Manager (creds)
                                                              └ S3 (OG images)
@@ -42,14 +42,14 @@ The SPA (`<apex-domain>`) and the BFF API (`api.<apex-domain>`) are **different 
 - **S3/CloudFront assets + `/og/*`** are **same-origin** (served from the SPA's own CloudFront) → no CORS; add S3 bucket CORS only if a cross-origin asset fetch ever appears.
 
 ## Backend (BFF monolith, in-VPC)
-`/backend/framework-hono` (Hono) · `/backend/openapi` · `/backend/bff` · `/backend/lambda-handler` · `/backend/document-db` · `/backend/redis-cache` · `/backend/logging` · `/backend/metrics` · `/backend/error-handling` · `/backend/audit-middleware` · `/backend/action-types` · `/backend/secrets-management` · `/backend/environment-config` · `/backend/og-image-generator`
+`/backend/framework-hono` (Hono) · `/backend/openapi` · `/backend/bff` · `/backend/lambda-handler` · `/backend/dynamodb` · `/backend/redis-cache` · `/backend/logging` · `/backend/metrics` · `/backend/error-handling` · `/backend/audit-middleware` · `/backend/action-types` · `/backend/secrets-management` · `/backend/environment-config` · `/backend/og-image-generator`
 
 ## Infrastructure (Terraform, IaC = single source of truth)
 - Repo/state/modules/policy → `/infrastructure/terraform` · `/workflow/terraform-cloud`
 - Network/DNS → `/infrastructure/vpc` · `/infrastructure/route53`
 - Compute/API → `/infrastructure/lambda` · `/infrastructure/api-gateway`
 - Edge/CDN → `/infrastructure/cloudfront` · `/infrastructure/waf`
-- Data → `/infrastructure/documentdb` · `/infrastructure/elasticache` · `/infrastructure/s3`
+- Data → `/infrastructure/dynamodb` · `/infrastructure/elasticache` · `/infrastructure/s3`
 - Auth/email → `/infrastructure/cognito` · `/infrastructure/ses`
 - Access/config → `/infrastructure/iam` · `/infrastructure/ssm`
 - Governance → `/infrastructure/kms` (encryption) · `/infrastructure/terraform` (tagging)
@@ -58,7 +58,7 @@ The SPA (`<apex-domain>`) and the BFF API (`api.<apex-domain>`) are **different 
 Config bus (IaC → SSM → api/fed at deploy) · GitFlow + numeric SemVer (`/workflow/github-actions` · `/workflow/versioning`) · deploys (`/workflow/github-actions`) · gates (`/backend/coverage` · `/frontend/coverage` · `/workflow/sonarcloud`) · backlog/docs (`/workflow/github-actions` · `/workflow/documentation-standard`).
 
 ## Defining properties
-Public + read-heavy · SEO-friendly via **edge dynamic rendering, not SSR** · **one dedicated BFF Lambda per SPA (1:1), API GW fronts only the BFF (routes at root)** · **auth external to the BFF (Cognito SDK + GW authorizer)** · VPC-isolated data · IaC as single source of truth · independent per-repo pipelines · encrypted in transit + at rest · one shared AWS account (tagged per workload).
+Public + read-heavy · SEO-friendly via **edge dynamic rendering, not SSR** · **one dedicated BFF Lambda per SPA (1:1), API GW fronts only the BFF (routes at root)** · **auth external to the BFF (Cognito SDK + GW authorizer)** · IAM-scoped data (DynamoDB, no creds) · IaC as single source of truth · independent per-repo pipelines · encrypted in transit + at rest · one shared AWS account (tagged per workload).
 
 ## When NOT this pattern
 Heavy server-rendered/interactive apps (use SSR), pure API products (no SPA/edge), or event/stream-driven workloads — those are future `architecture/*` patterns.

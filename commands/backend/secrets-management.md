@@ -6,7 +6,7 @@ Context: $ARGUMENTS
 
 **Every sensitive value comes from Secrets Manager at runtime** — never from `.env`, SSM plain text, hardcode, or tfvars. IaC stores only the **ARN** (env var / SSM); the Lambda fetches the value on cold start and caches it in memory.
 
-In Secrets Manager: DocumentDB credentials (`DOCDB_SECRET_ARN`), Redis AUTH token (`REDIS_SECRET_ARN`), and any future API keys/tokens. Non-secret config stays in `.env`/IaC env vars (see `/backend/environment-config`).
+In Secrets Manager: the Redis AUTH token (`REDIS_SECRET_ARN`) and any future API keys/tokens. The **data tier has no secret** — DynamoDB access is pure IAM via the Lambda exec role, so there's no DB credential to fetch here. Non-secret config stays in `.env`/IaC env vars (see `/backend/environment-config`).
 
 ## Singleton + in-memory cache: src/shared/secrets.ts
 
@@ -28,7 +28,6 @@ export async function getSecret<T>(secretArn: string): Promise<T> {
 ## Usage
 
 ```typescript
-const { username, password, host, port } = await getSecret(config.docdbSecretArn);  // db client
 const { auth_token } = await getSecret(config.redisSecretArn);                       // redis client
 ```
 
@@ -37,7 +36,7 @@ const { auth_token } = await getSecret(config.redisSecretArn);                  
 - Fetch by **ARN** from `config`; the ARN itself is non-sensitive (fine in env var / SSM).
 - IAM: Lambda role needs `secretsmanager:GetSecretValue` scoped to `<project>/{env}/*` (`policy_statements`, api.tf).
 - Cache in memory for the container lifetime; never re-fetch per request. Rotation is picked up on the next cold start.
-- Naming: `<project>/{env}/{component}` (e.g. `<project>/staging/docdb`, `<project>/staging/redis`). See `/infrastructure/documentdb`, `/infrastructure/elasticache`.
+- Naming: `<project>/{env}/{component}` (e.g. `<project>/staging/redis`). The data tier needs no secret — DynamoDB is IAM-only (`/infrastructure/dynamodb`). See `/infrastructure/elasticache`.
 
 ## Pros & cons
 **Pros**

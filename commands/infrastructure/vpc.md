@@ -43,18 +43,20 @@ module "vpc" {
   flow_log_cloudwatch_log_group_retention_in_days = var.environment == "production" ? 90 : 30
 }
 
-# S3 Gateway endpoint — keeps S3 traffic on the AWS backbone (free). In v5 the main vpc module no
-# longer accepts endpoints, so this is the standalone submodule. No DynamoDB endpoint (data = DocumentDB).
+# S3 + DynamoDB Gateway endpoints — keep that traffic on the AWS backbone (free). In v5 the main vpc
+# module no longer accepts endpoints, so this is the standalone submodule. DynamoDB is the data tier
+# (reached via its Gateway endpoint, off the NAT path — like S3).
 module "vpc_endpoints" {
   source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
   version = "~> 5.0"
   vpc_id  = module.vpc.vpc_id
   endpoints = {
-    s3 = { service = "s3", service_type = "Gateway", route_table_ids = module.vpc.private_route_table_ids }
+    s3       = { service = "s3", service_type = "Gateway", route_table_ids = module.vpc.private_route_table_ids }
+    dynamodb = { service = "dynamodb", service_type = "Gateway", route_table_ids = module.vpc.private_route_table_ids }
   }
 }
 ```
-**Choices that matter:** 2 AZs; `/16` VPC, `/24` subnets (8-bit, public `+1..`, private `+11..`); `map_public_ip_on_launch=false` + locked default SG (nothing reachable by accident); NAT single (stg) vs per-AZ (prod); **only an S3 Gateway endpoint** (no interface endpoints — low cross-NAT volume doesn't justify the cost); flow logs ALL with 60s aggregation, retention per env.
+**Choices that matter:** 2 AZs; `/16` VPC, `/24` subnets (8-bit, public `+1..`, private `+11..`); `map_public_ip_on_launch=false` + locked default SG (nothing reachable by accident); NAT single (stg) vs per-AZ (prod); **S3 + DynamoDB Gateway endpoints** (no interface endpoints — low cross-NAT volume doesn't justify the cost); flow logs ALL with 60s aggregation, retention per env.
 
 ## Lambda security group (raw — app-specific, out of module scope)
 ```hcl
@@ -63,16 +65,17 @@ resource "aws_security_group" "lambda" {
   vpc_id = module.vpc.vpc_id
   egress {
     from_port = 443, to_port = 443, protocol = "tcp", cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTPS egress (S3 via endpoint; Cognito/Secrets/SES via NAT)"
+    description = "HTTPS egress (S3 + DynamoDB via endpoints; Cognito/Secrets/SES via NAT)"
   }
-  # inbound to DocumentDB (27017) / Redis (6379) is granted by their cluster SGs allowing this SG as source.
+  # inbound to Redis (6379) is granted by its cluster SG allowing this SG as source. DynamoDB needs no
+  # inbound rule — it's reached over the Gateway endpoint (HTTPS egress), not an in-VPC SG.
 }
 ```
-Downstream: `module.vpc.vpc_id` → docdb/redis SGs · `module.vpc.private_subnets` → lambda/docdb/redis subnets · `aws_security_group.lambda.id` → lambda `vpc_security_group_ids`, docdb/redis `allowed_security_groups`.
+Downstream: `module.vpc.vpc_id` → redis SG · `module.vpc.private_subnets` → lambda/redis subnets · `aws_security_group.lambda.id` → lambda `vpc_security_group_ids`, redis `allowed_security_groups`.
 
 ## Traffic design — communication preferences
-- **S3** from Lambda routes via the **S3 Gateway endpoint** (free, AWS backbone over HTTPS) — never via NAT or the public internet.
-- **DocumentDB (27017)** and **Redis (6379)** are reached **in-VPC over their security groups** (off the NAT path), both over TLS.
+- **S3** and **DynamoDB** from Lambda route via their **Gateway endpoints** (free, AWS backbone over HTTPS) — never via NAT or the public internet.
+- **Redis (6379)** is reached **in-VPC over its security group** (off the NAT path), over TLS.
 - Only **Cognito JWT validation, Secrets Manager, and SES** egress via **NAT** (low volume, all HTTPS).
 - Lambda ENIs live in **private subnets**; API GW v2 and CloudFront are AWS-edge managed (not in the VPC).
 
@@ -94,7 +97,7 @@ Also use the **AWS-managed** prefix lists (S3 / DynamoDB) in egress rules instea
 
 ## Pros & cons
 **Pros**
-- Private subnets + SG-gated data tier; S3 gateway endpoint (free, off-NAT).
+- Private subnets + SG-gated cache; S3 + DynamoDB Gateway endpoints (free, off-NAT).
 - Flow logs for forensics.
 **Cons**
 - NAT cost (especially one-per-AZ in production); in-VPC Lambda ENI/cold-start overhead.

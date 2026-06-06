@@ -2,7 +2,7 @@ Implement or review distributed tracing in <project>-api.
 
 Context: $ARGUMENTS
 
-The third observability pillar (with `/backend/logging` + `/backend/metrics`): **AWS Lambda Powertools Tracer** over **X-Ray** — see a request across the BFF and its downstream calls (DocumentDB, Redis, SES, future microservices).
+The third observability pillar (with `/backend/logging` + `/backend/metrics`): **AWS Lambda Powertools Tracer** over **X-Ray** — see a request across the BFF and its downstream calls (DynamoDB, Redis, SES, future microservices).
 
 ## Standard: Powertools Tracer
 ```typescript
@@ -14,7 +14,7 @@ export const tracer = new Tracer({ serviceName: process.env.POWERTOOLS_SERVICE_N
 
 ## Usage
 ```typescript
-const sub = tracer.getSegment()?.addNewSubsegment('docdb.posts.list');
+const sub = tracer.getSegment()?.addNewSubsegment('dynamodb.posts.query');
 try { /* query */ } finally { sub?.close(); }
 tracer.putAnnotation('action_type', 'posts_list');   // indexed → filterable in X-Ray
 tracer.putMetadata('cursor', cursor);                // non-indexed context

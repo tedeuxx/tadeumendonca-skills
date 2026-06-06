@@ -28,7 +28,7 @@ These skills are **project-agnostic templates**. Workload-specific values appear
 
 | Placeholder | Backing variable | Used in |
 |---|---|---|
-| `<project>` | `var.project` | every resource name / SSM path / secret name (`<project>-bff-…`, `<project>/{env}/docdb`) |
+| `<project>` | `var.project` | every resource name / SSM path / secret name (`<project>-bff-…`, `<project>/{env}/redis`) |
 | `<apex-domain>` | `var.apex_domain` | the registrable apex; per-env hosts derive from it (`/infrastructure/route53`) |
 | `<github-org>` | `var.github_org` | OIDC trust subjects `repo:<github-org>/<project>-api:*` (`/infrastructure/iam`) |
 | `<tfc-org>` | `var.tfc_organization` | the `cloud{}` block |
@@ -78,8 +78,8 @@ variable "apex_domain" {
 
 ## Module sourcing & customization policy
 **Sourcing priority:**
-1. **Official first** — prefer official `terraform-aws-modules/*` (HashiCorp/AWS-maintained) for any resource that has one: `vpc`, `s3-bucket`, `cloudfront`, `apigateway-v2`, `lambda`, `iam`, `kms`.
-2. **Trusted non-official next** — only when no official module exists, use established sources with a track record: `cloudposse/*` (documentdb, elasticache, ses, waf), `lgallard/*` (cognito — there is no official Cognito module). Never a low-reputation / unmaintained / single-author module.
+1. **Official first** — prefer official `terraform-aws-modules/*` (HashiCorp/AWS-maintained) for any resource that has one: `vpc`, `s3-bucket`, `cloudfront`, `apigateway-v2`, `lambda`, `iam`, `kms`, `dynamodb-table` (`~> 4.0`).
+2. **Trusted non-official next** — only when no official module exists, use established sources with a track record: `cloudposse/*` (elasticache, ses, waf), `lgallard/*` (cognito — there is no official Cognito module). Never a low-reputation / unmaintained / single-author module.
 3. **Raw `aws_*` last** — justified glue only where no module abstracts the need: `aws_lambda_permission`, `aws_wafv2_web_acl_association`, the app-specific lambda SG, `aws_route53_record`, `aws_ssm_parameter`, `aws_secretsmanager_secret`. Note which gap each fills.
 
 **Customization:**
