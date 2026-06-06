@@ -64,13 +64,13 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 
 | Command | Purpose |
 |---|---|
-| `/backend/framework` | Hono on Lambda: OpenAPIHono adapter, routing, middleware, zod-openapi |
-| `/backend/openapi` | Auto-generate OpenAPI from Hono+zod (createRoute); spec for API GW reimport |
+| `/backend/hono` | Hono framework + middleware wiring (logger/error/audit/authorize); routing, zod-openapi |
+| `/backend/openapi` | Contract auto-maintained from code (agnostic): versioned, committed root copy, AWS overlay |
 | `/backend/bff` | Backend-for-Frontend: API GW fronts only it (root routes); auth external, no auth code |
 | `/backend/lambda-handler` | Implement a BFF domain module (Hono routes + audit + DocumentDB) |
 | `/backend/docdb-connection` | DocumentDB TLS singleton + Secrets Manager pattern |
-| `/backend/audit-middleware` | Audit collection: actionType config, capture, collection schema |
-| `/backend/action-types` | Central action-type constants, declared statically per handler |
+| `/backend/audit-middleware` | Audit trail (conceptual): what's captured + the audits document shape |
+| `/backend/action-types` | Action types (conceptual): audit + RBAC + feature toggles |
 | `/backend/error-handling` | Throw AppError/NotFoundError/Unauthorized — never return 4xx |
 | `/backend/logging` | Structured logging via Powertools Logger (JSON, level per env) |
 | `/backend/metrics` | OTel metrics → ADOT collector → CloudWatch (awsemf), no AMP |

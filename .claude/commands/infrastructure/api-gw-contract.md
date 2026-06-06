@@ -26,7 +26,7 @@ module "apigw" {
 
 ```bash
 API_ID=$(aws ssm get-parameter --name /$ENV_NAME/api/gateway-id --query 'Parameter.Value' --output text)
-npx tsx scripts/gen-openapi.ts                       # generate openapi.gen.json from the Hono code
+npx tsx scripts/gen-openapi.ts --version "$(cat VERSION)" --out openapi.json   # version-stamped root copy (/backend/openapi)
 # overlay AWS integration + Cognito issuer/audience + Lambda invoke ARNs via envsubst
 envsubst < openapi/openapi.aws.tftpl.json > openapi/openapi.resolved.json
 aws apigatewayv2 reimport-api --api-id "$API_ID" --body file://openapi/openapi.resolved.json

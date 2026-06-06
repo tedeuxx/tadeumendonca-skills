@@ -1,47 +1,34 @@
-Generate the OpenAPI contract from the backend code (Hono + zod-openapi).
+Maintain the backend API contract (OpenAPI) — generated, versioned, committed.
 
 Context: $ARGUMENTS
 
-## The spec is generated, never hand-written
+**Principle: the contract is maintained automatically by the backend.** It is generated from the code itself on every change, so the OpenAPI can **never drift** from the implementation — there is no manual update step to forget, hence **no contract-update gaps**. This is the whole point of the skill. It is framework-agnostic; the framework-specific *generation* (here: Hono + `@hono/zod-openapi`) lives in `/backend/hono`.
 
-Routes are declared with **`@hono/zod-openapi`** (`OpenAPIHono` + `createRoute`) where the **zod schemas are both runtime validation and the OpenAPI definition** — single source of truth. `openapi.json` is emitted from the code; the API GW contract is that generated spec + a thin AWS overlay.
+## Principles
+1. **Generated from code, never hand-written** — the backend's route/schema definitions are the single source of truth; the OpenAPI is emitted from them. No drift between code and contract.
+2. **Versioned with the backend** — the generated spec's `info.version` is stamped with the backend's current **VERSION** (the SemVer tag — `/workflow/gitflow`). Each release's contract carries the **same version as the code** that produced it.
+3. **A committed copy lives at the repo root** — the generated `openapi.json` (and/or `.yaml`) is written to the **root of the backend repo** and committed, so it's diffable in PRs, reviewable, and consumable by clients/tools without running the app.
 
-## Declare routes with createRoute
-```typescript
-import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
-
-const PostSchema = z.object({ id: z.string(), title: z.string(), body_markdown: z.string() }); // snake_case
-
-const listPosts = createRoute({
-  method: 'get', path: '/posts',
-  request: { query: z.object({ cursor: z.string().optional() }) },
-  responses: { 200: { content: { 'application/json': { schema: z.array(PostSchema) } }, description: 'List posts' } },
-});
-
-export const app = new OpenAPIHono<{ Bindings: LambdaBindings }>();
-app.openapi(listPosts, (c) => c.json(/* repository result */));
+## Generation (CI + local)
+```bash
+VERSION=$(cat VERSION)
+<gen-command> --version "$VERSION" --out openapi.json     # framework adapter → version-stamped root copy
 ```
+- Runs on build/deploy **and** as a CI / pre-commit check: regenerate and **fail if the root `openapi.json` is out of date** (contract-drift guard).
+- The adapter that produces the document is the framework's job — `/backend/hono` (`app.getOpenAPI31Document`).
 
-## Emit the document
-```typescript
-app.doc('/openapi.json', { openapi: '3.1.0', info: { title: 'tadeumendonca-api', version } });
+## Two artifacts: vendor-neutral root copy vs AWS-published spec
+- The **root `openapi.json` is vendor-neutral** — pure paths + schemas + security scheme references. This is the reviewable/consumable contract.
+- **When publishing to AWS API Gateway**, the spec must carry the **AWS-specific OpenAPI extensions** — produced as an overlay on top of the neutral contract, not committed at root:
+  - `x-amazon-apigateway-integration` per route → the Lambda invoke ARN (`AWS_PROXY`) — single BFF integration (`/infrastructure/api-gw-contract`).
+  - `x-amazon-apigateway-authorizer` + `securitySchemes` → the Cognito JWT authorizer (issuer = pool URL, audience = client id, from SSM).
+  - Applied at deploy (envsubst) → `aws apigatewayv2 reimport-api …` (`/workflow/deploy-api`).
 
-// scripts/gen-openapi.ts — run in CI before deploy
-import { writeFileSync } from 'node:fs';
-import { app } from '../src/app';
-writeFileSync('openapi/openapi.gen.json', JSON.stringify(app.getOpenAPI31Document({
-  openapi: '3.1.0', info: { title: 'tadeumendonca-api', version: process.env.VERSION! },
-}), null, 2));
-```
-Optional: serve **Swagger UI** via `@hono/swagger-ui` at `/docs` (non-prod only).
-
-## API GW reimport (deploy)
-The generated spec has paths + schemas + the security scheme reference. A build step overlays the AWS-specific parts and resolves env values, then reimports:
-- `x-amazon-apigateway-integration` per route → the function's Lambda invoke ARN (`AWS_PROXY`).
-- Cognito JWT authorizer (`securitySchemes` + `x-amazon-apigateway-authorizer`): issuer = pool URL, audience = client id — from SSM, injected via `envsubst`.
-- `aws apigatewayv2 reimport-api --api-id $(ssm …/api/gateway-id) --body file://openapi/openapi.aws.json`.
+## Downstream
+- **API Gateway:** root contract + AWS overlay → reimport — `/infrastructure/api-gw-contract`.
+- **Clients/tests:** Postman/newman + consumers read the committed root copy — `/workflow/postman`.
 
 ## Conventions
-- Schemas are the single source of truth — **never hand-edit a generated `openapi.*.json`**.
-- snake_case fields (matches the API). Keep the AWS overlay (integration + authorizer) as a small template, not inside the generated file.
-- Replaces the old hand-written `openapi.yaml`. See `/backend/framework`, `/infrastructure/api-gw-contract`, `/workflow/deploy-api`.
+- `info.version` **==** backend `VERSION`; `info.title` == the service name.
+- The root copy is regenerated + committed every release; a stale root copy is a **failing gate**.
+- snake_case schemas (matches the API). **Never hand-edit** the generated file; keep AWS extensions in the overlay template, out of the neutral root copy.

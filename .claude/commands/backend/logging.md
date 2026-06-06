@@ -2,35 +2,21 @@ Implement or review structured logging in tadeumendonca-api.
 
 Context: $ARGUMENTS
 
-## Standard: AWS Lambda Powertools Logger (utility, attached via a Hono middleware)
+Conceptual skill — the logging standard. The framework-specific context wiring (the middleware that attaches the Lambda context per request) lives in `/backend/hono`.
 
-Structured JSON logs, level from `LOG_LEVEL`. Powertools is framework-agnostic — a small Hono middleware attaches the Lambda context to the logger. **Never `console.log`** in VPC handlers.
-
-## Logger + context middleware: src/shared/middleware/logger.ts
-
+## Standard: AWS Lambda Powertools Logger
+Structured JSON logs via Powertools Logger (framework-agnostic). **Never `console.log`** in VPC handlers.
 ```typescript
 import { Logger } from '@aws-lambda-powertools/logger';
-import { MiddlewareHandler } from 'hono';
-import type { LambdaBindings } from 'hono/aws-lambda';
-
 export const logger = new Logger({
-  serviceName: process.env.POWERTOOLS_SERVICE_NAME,    // tadeumendonca-{fn}, set by IaC
+  serviceName: process.env.POWERTOOLS_SERVICE_NAME,    // tadeumendonca-bff, set by IaC
   logLevel: (process.env.LOG_LEVEL ?? 'INFO') as any,  // WARN prod, DEBUG staging (IaC)
 });
-
-export const loggerContext = (): MiddlewareHandler<{ Bindings: LambdaBindings }> =>
-  async (c, next) => {
-    logger.addContext(c.env.lambdaContext);            // cold-start flag, function name, request id
-    logger.appendKeys({ path: c.req.path, method: c.req.method });
-    await next();
-    logger.resetKeys();                                // don't leak across warm invocations
-  };
 ```
 
 ## Usage
-
 ```typescript
-logger.appendKeys({ action_type: ActionType.POSTS_LIST });
+logger.appendKeys({ action_type: 'posts_list' });
 logger.info('listing posts', { cursor, limit });
 logger.error('docdb query failed', { error });
 ```
@@ -38,6 +24,6 @@ logger.error('docdb query failed', { error });
 ## Conventions
 - JSON only; custom fields **snake_case**.
 - Never log the raw event or the Authorization header (PII/JWT).
-- `resetKeys()` after the request so appended keys don't leak across warm invocations.
-- Levels via `LOG_LEVEL`: `DEBUG` (staging) / `WARN` (production) — see `/backend/environment-config`.
-- `fn-og-edge` (Lambda@Edge) has no Powertools/Hono — minimal `console` only.
+- Attach the Lambda context (cold-start, request id) **once per request** and reset appended keys afterward — that wiring is framework-specific (`/backend/hono`).
+- Levels via `LOG_LEVEL`: DEBUG (staging) / WARN (production) — `/backend/environment-config`.
+- `og-edge` (Lambda@Edge) has no Powertools — minimal `console` only.

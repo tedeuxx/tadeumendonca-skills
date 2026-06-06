@@ -34,7 +34,7 @@ IaC (Terraform/TFC) writes all wiring to SSM  ◄─ api & fed read at deploy
 Authentication/authorization is **kept out of the BFF**: the **Cognito SDK in the SPA** runs login and holds/refreshes the JWT, and the **API Gateway Cognito JWT authorizer** validates every request. The BFF reads the validated claims and has **no auth code** — simpler. Each SPA still has its **own dedicated BFF Lambda (1:1)**, fronted by an API GW that covers only that BFF (routes at root), with its own Cognito app client and domain. SPA side: `/frontend/cognito-pkce`; BFF: `/backend/bff`.
 
 ## Backend (BFF monolith, in-VPC)
-`/backend/framework` (Hono) · `/backend/openapi` · `/backend/bff` · `/backend/lambda-handler` · `/backend/docdb-connection` · `/backend/redis-cache` · `/backend/logging` · `/backend/metrics` · `/backend/error-handling` · `/backend/audit-middleware` · `/backend/action-types` · `/backend/secrets-management` · `/backend/environment-config` · `/backend/og-image-generator`
+`/backend/hono` (Hono) · `/backend/openapi` · `/backend/bff` · `/backend/lambda-handler` · `/backend/docdb-connection` · `/backend/redis-cache` · `/backend/logging` · `/backend/metrics` · `/backend/error-handling` · `/backend/audit-middleware` · `/backend/action-types` · `/backend/secrets-management` · `/backend/environment-config` · `/backend/og-image-generator`
 
 ## Infrastructure (Terraform, IaC = single source of truth)
 - Repo/state/modules → `/infrastructure/terraform` · `/infrastructure/module-policy`
