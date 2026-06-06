@@ -19,3 +19,10 @@ React Query exposes `isLoading` / `isError` / `data` — branch on them uniforml
 - One shared set of loading/empty/error components reused everywhere — develop in `/frontend/storybook`.
 - Never leave a pending action without feedback; disable buttons while mutating.
 - `401` is special: re-auth, don't show a generic error (`/frontend/authentication`).
+
+## Pros & cons
+**Pros**
+- Consistent async UX; error boundaries prevent white-screens; one reused set of loading/empty/error components.
+**Cons**
+- Every async view must handle four states (discipline).
+- Boundary fallbacks need designing.

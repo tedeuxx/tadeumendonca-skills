@@ -28,3 +28,11 @@ metrics.addMetric('request_duration_ms', MetricUnit.Milliseconds, ms);
 - Suggested metrics: request count + latency, cache hit/miss (`/backend/redis-cache`), DocDB query duration, handler errors.
 - `og-edge` (Lambda@Edge) emits no metrics (edge constraints).
 - Powertools owns Logger / Metrics / Tracer uniformly (`/backend/logging`, `/backend/tracing`).
+
+## Pros & cons
+**Pros**
+- Serverless-native EMF — no collector, no `PutMetricData` IAM.
+- Low-cardinality discipline keeps cost predictable.
+**Cons**
+- Metrics surface only after log ingestion (slight delay).
+- Cardinality limits constrain dimensions.

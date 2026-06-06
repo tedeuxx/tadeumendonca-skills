@@ -24,3 +24,10 @@ End-to-end tests that drive the real SPA in a browser; part of the deploy gate (
 ## Conventions
 - E2E lives only in fed; api uses Postman/newman (`/backend/postman`) + vitest.
 - E2E asserts user-visible flows — don't re-test unit logic here.
+
+## Pros & cons
+**Pros**
+- Real-browser coverage of critical journeys; catches integration regressions a unit test cannot.
+**Cons**
+- Slower and flakier than unit tests.
+- Selectors/specs to maintain.

@@ -14,3 +14,10 @@ Client-side authorization is **UX only** — it decides what to *render*, not wh
 ## Conventions
 - **Client gating is cosmetic** — never the security boundary; every protected call is re-checked server-side.
 - No secrets/PII in client logic; a hidden button is not protection.
+
+## Pros & cons
+**Pros**
+- Hides UI a user cannot use; reads JWT claims, no extra calls.
+**Cons**
+- Cosmetic only — real authorization is server-side and must never trust the SPA.
+- Claims can be stale until token refresh.

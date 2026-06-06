@@ -25,3 +25,11 @@ Runs in `ci.yml` (`/workflow/github-actions`) as a post-deploy smoke (staging) o
 - Keep the collection in sync with the **generated OpenAPI** (the contract source of truth) — no divergent hand-maintained spec.
 - No secrets in the committed environment file (tokens injected as env vars / via the BFF).
 - Treat it as smoke/contract, not full coverage — vitest owns coverage (`/backend/coverage`).
+
+## Pros & cons
+**Pros**
+- Black-box contract checks against a real deployed BFF; covers the Bearer-JWT auth path.
+- Lives in the api repo next to the code it checks.
+**Cons**
+- Smoke/contract only — not a coverage substitute.
+- Needs a running environment + tokens.

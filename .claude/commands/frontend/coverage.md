@@ -22,3 +22,10 @@ Context: $ARGUMENTS
 ## Conventions
 - Don't lower a threshold to go green; fix the gap. Thresholds are identical to the backend (`/backend/coverage`).
 - Where the gates sit in the pipeline: `/workflow/github-actions`.
+
+## Pros & cons
+**Pros**
+- Deterministic merge gate; framework-agnostic policy; unit + E2E + Sonar.
+**Cons**
+- E2E adds flakiness risk and CI time.
+- An 85% threshold can incentivize trivial tests.

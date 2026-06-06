@@ -13,3 +13,10 @@ Real-user monitoring: **web vitals, JS errors, http latency, sessions**, and **e
 
 ## Conventions
 - No PII. Production primarily. Pairs with `/infrastructure/cloudwatch-xray` for the backend half of the trace.
+
+## Pros & cons
+**Pros**
+- Real-user web-vitals / JS errors / HTTP, correlated with X-Ray end-to-end; native AWS.
+**Cons**
+- Adds a client script + sampling.
+- Guest ingest is an open surface (bounded on the infra side).

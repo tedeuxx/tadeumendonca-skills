@@ -38,3 +38,11 @@ const { auth_token } = await getSecret(config.redisSecretArn);                  
 - IAM: Lambda role needs `secretsmanager:GetSecretValue` scoped to `<project>/{env}/*` (`policy_statements`, api.tf).
 - Cache in memory for the container lifetime; never re-fetch per request. Rotation is picked up on the next cold start.
 - Naming: `<project>/{env}/{component}` (e.g. `<project>/staging/docdb`, `<project>/staging/redis`). See `/infrastructure/documentdb`, `/infrastructure/elasticache`.
+
+## Pros & cons
+**Pros**
+- Secrets never in env/code; fetched at runtime and cached in memory.
+- Only the ARN travels via env/SSM.
+**Cons**
+- Cold-fetch latency on first use.
+- Cache must be invalidated on rotation.

@@ -14,3 +14,10 @@ Config is **build-time** (static SPA): CI reads values from **SSM** and injects 
 ## Conventions
 - **Build-time only** — values are baked into the bundle; **never secrets** in `VITE_*` (everything shipped to the browser is public).
 - `.env.{environment}` for local/tests only; no committed secrets. Backend counterpart: `/backend/environment-config`.
+
+## Pros & cons
+**Pros**
+- Typed accessor; config sourced from SSM at build (single source of truth); no secrets in the bundle.
+**Cons**
+- Build-time only — a value change needs a rebuild.
+- `VITE_*` values are public (shipped in the bundle).

@@ -38,3 +38,11 @@ A publish that notifies **N** subscribers must **not** run inline — fan-out is
 - snake_case payloads; from-address + region from env (`/backend/environment-config`).
 - **SES sandbox:** new accounts only send to verified addresses — production access is a one-time manual request (`/infrastructure/ses`).
 - Audit the action (`subscribers_create`, etc. — `/backend/audit-middleware`); identity from claims (`/backend/action-types`).
+
+## Pros & cons
+**Pros**
+- SNS async fan-out decouples producers from consumers; SES delivers email.
+- Subscriptions + DLQ handle retries/failures.
+**Cons**
+- SES sandbox + deliverability concerns.
+- Delivery is eventual; failures land in the DLQ, not inline.

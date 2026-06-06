@@ -26,3 +26,11 @@ const db = tracer.captureAWSv3Client(new SESv2Client({}));
 - **Annotations** = indexed, low-cardinality (`action_type`, `success`) for filtering; **metadata** = rich context — never PII.
 - Correlate with logs/audit via the same `request_id` (`/backend/logging`, `/backend/audit-middleware`).
 - `og-edge` (Lambda@Edge) has no Powertools — no tracing there.
+
+## Pros & cons
+**Pros**
+- End-to-end traces (API GW→Lambda→browser), annotations, downstream capture.
+- Correlates with RUM for full-stack visibility.
+**Cons**
+- Sampling can miss a trace; minor runtime overhead.
+- X-Ray is less rich than a dedicated APM.

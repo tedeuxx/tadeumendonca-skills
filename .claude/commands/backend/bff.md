@@ -55,3 +55,11 @@ Today the domain logic can live **inside** the BFF (modular monolith — fastest
 - Built on Hono (`/backend/framework-hono`), in-VPC, Pattern B; **routes at root**; OpenAPI generated from them (`/backend/openapi`) = the contract API GW imports (`/infrastructure/api-gateway`).
 - **No auth code in the BFF** — claims come from the API GW Cognito authorizer (`/infrastructure/api-gateway`, `/infrastructure/cognito`); the SPA holds the JWT via the Cognito SDK (`/frontend/authentication`).
 - One BFF per SPA. Keep it thin: read claims → orchestrate → shape. Domain rules belong in the domain logic/microservices.
+
+## Pros & cons
+**Pros**
+- One contract tailored to the SPA; auth is external so the BFF has no auth code.
+- Modular monolith = one deploy, simple ops; split to microservices later.
+**Cons**
+- A single Lambda is a shared fault domain for all routes.
+- A BFF tailored to one consumer does not suit many external clients.

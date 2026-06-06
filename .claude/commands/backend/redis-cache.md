@@ -71,3 +71,11 @@ await redis?.incr(`${env}:posts:list:version`);
 - Reached in-VPC over the cluster SG (port 6379, off the NAT path), like DocumentDB.
 - AUTH token from Secrets Manager (`/backend/secrets-management`); endpoint from `REDIS_ENDPOINT` (IaC). Provisioned in `/infrastructure/elasticache`.
 - Emits `cache_hits_total` / `cache_misses_total` — see `/backend/metrics`.
+
+## Pros & cons
+**Pros**
+- Cuts latency and DB load; fail-open (cache down is not an outage); TTL + invalidation.
+- In-VPC, low latency.
+**Cons**
+- A staleness window between writes and invalidation.
+- Invalidation is per-write/manual; one more dependency.

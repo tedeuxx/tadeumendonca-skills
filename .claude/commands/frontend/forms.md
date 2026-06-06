@@ -13,3 +13,10 @@ Forms for admin flows (PostCompose, article editor — Phase 2/3). Concept + con
 - Validate client-side for UX, but the **server is authoritative** (the BFF re-validates).
 - snake_case field names (match the API). Build form UI from `/frontend/design-system` (Cloudscape `Form`, `FormField`, `Input`, `Textarea`).
 - Admin forms live behind `/frontend/authorization`.
+
+## Pros & cons
+**Pros**
+- Client validation mirrors the BFF zod contract; type-safe; immediate UX feedback.
+**Cons**
+- The schema is duplicated client/server and must be kept in sync.
+- Controlled-input boilerplate.

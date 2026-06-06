@@ -15,3 +15,10 @@ Conceptual skill — the pagination contract + infinite-scroll UX. The React Que
 
 ## Conventions
 - The frontend never computes offsets — it only echoes back `next_cursor`.
+
+## Pros & cons
+**Pros**
+- Stable cursor pagination (no offset drift); infinite-scroll UX; matches the BFF contract.
+**Cons**
+- No random page access (cursor, not page numbers).
+- Couples the UI to the cursor contract.

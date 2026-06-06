@@ -63,3 +63,11 @@ Both come from the API (DocumentDB) — see `/backend/prerender`. The React app 
 - us-east-1 (Lambda@Edge); `publish-version` after `update-function-code`; qualified ARN → SSM `/{env}/api/lambda-edge-og-qualified-arn`.
 - esbuild target `node22`, platform `node`, bundle `true`.
 - Attached at CloudFront Viewer Request — see `/infrastructure/cloudfront`.
+
+## Pros & cons
+**Pros**
+- SEO/social crawling without SSR; runs at the edge (fast); 3-way UA routing.
+- Human traffic passes straight through to the SPA.
+**Cons**
+- Lambda@Edge constraints: no VPC, us-east-1, slow deploys, size limits.
+- UA classification is heuristic.

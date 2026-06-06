@@ -21,3 +21,11 @@ Context: $ARGUMENTS
 ## Conventions
 - Don't lower a threshold to go green; fix the gap. Thresholds are identical to the frontend (`/frontend/coverage`).
 - Where the gates sit in the pipeline: `/workflow/github-actions`.
+
+## Pros & cons
+**Pros**
+- Deterministic merge gate; framework-agnostic policy; thresholds identical to the frontend.
+- Contract tests (Postman) cover the auth path.
+**Cons**
+- An 85% threshold can incentivize trivial tests.
+- Gates add CI time.

@@ -22,3 +22,11 @@ The single entry (`src/index.ts`) creates the app, wires the middleware, and reg
 - Sensitive values from Secrets Manager (`/backend/secrets-management`); non-secret config from `/backend/environment-config`.
 - The domain is a **modular monolith** now; a module can later become a microservice the BFF calls — without changing the SPA (`/backend/bff`).
 - og-edge is the exception: NO Hono / VPC — it's Lambda@Edge (`/backend/og-edge-handler`).
+
+## Pros & cons
+**Pros**
+- Consistent module shape (routes + audit + DocDB) that registers into the one app.
+- Testable in-process with `app.request()`.
+**Cons**
+- A convention to learn.
+- Modules share the BFF Lambda resources/limits.

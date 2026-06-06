@@ -49,3 +49,11 @@ Use it **only when needed** — a simple group check (the three Cognito profiles
 - One action type per handler action; add the constant **before** wiring a route — never inline a string literal.
 - `og-edge` writes no audit and declares no action type.
 - The Hono middleware that attaches `audit(action)` / `authorize(action)` to routes is in `/backend/framework-hono`.
+
+## Pros & cons
+**Pros**
+- Central source of truth for what actions exist; one list drives audit, RBAC, and feature toggles.
+- Type-safe — handlers reference constants, not strings.
+**Cons**
+- Every new action must be registered (small ceremony).
+- A shared enum couples modules to one list.

@@ -13,3 +13,10 @@ Two layers: **per-route meta** (title, description, canonical, OG, JSON-LD) so G
 
 ## Conventions
 - No SSR framework — the architecture is CSR + edge dynamic rendering. Canonical = production domain; one JSON-LD per page.
+
+## Pros & cons
+**Pros**
+- Per-route meta + JSON-LD structured data without SSR; pairs with the edge prerender for bots.
+**Cons**
+- CSR meta is not seen by every crawler (the reason edge prerender exists).
+- Two SEO paths to keep aligned.

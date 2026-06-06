@@ -40,3 +40,11 @@ export function renderArticleHtml(a: Article): string {
 - HTML must mirror what the SPA renders (same content) — not cloaking. Keep `og-meta` and `prerender` titles/descriptions identical to the client `/frontend/seo` output.
 - Public routes (no JWT); cached at the edge (`max-age=300`). Hit/miss can feed `/backend/metrics`.
 - The OG PNG itself comes from `/backend/og-image-generator`; prerender only references its URL.
+
+## Pros & cons
+**Pros**
+- Crawlable HTML + JSON-LD for bots without SSR; reuses the DocumentDB data.
+- Only bots hit it — humans get the SPA.
+**Cons**
+- A second rendering path to keep consistent with the SPA.
+- Bot detection is heuristic.

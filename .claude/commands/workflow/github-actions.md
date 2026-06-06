@@ -79,3 +79,11 @@ The product backlog is **GitHub Issues per repository** — no central backlog r
 - **Milestones:** `v0.1.0 Bootstrap` (iac) · `v0.2.0 Phase 1` (all) · `v0.3.0 Phase 2` · `v0.4.0 Phase 3` · `v1.0.0 GA`.
 - **Templates** (`.github/ISSUE_TEMPLATE/`): `task.md` (`type:feature, semver:minor`; What/Why/Acceptance/Phase·Milestone), `bug.md` (`type:bug, semver:patch, priority:high`; Expected/Actual/Steps/Environment).
 - **Conventions:** title `[area] short description`; always set `type:`/`phase:`/`semver:` on creation, `priority:` when known; translate plan deliverables into one issue each at the start of implementation.
+
+## Pros & cons
+**Pros**
+- One capability for OIDC, secrets/environments, GitFlow, deploys, and the Issues backlog.
+- No long-lived AWS keys (OIDC); pipelines independent per repo.
+**Cons**
+- A large umbrella skill covering many concerns.
+- GitHub-platform lock-in.

@@ -17,3 +17,11 @@ The SPA calls **one backend — the BFF** (`/backend/bff`) at the base URL from 
 - One typed API-client module; components/hooks use it — never call `fetch` directly.
 - snake_case payloads (matches the BFF — no mapping layer).
 - Sane timeouts; **don't retry 4xx**. Loading/error/empty states from `/frontend/design-system`.
+
+## Pros & cons
+**Pros**
+- React Query gives caching, dedup, refetch, invalidation for free; Bearer auto-attached.
+- 401 handling centralized in one client.
+**Cons**
+- React Query cache model is a learning curve.
+- Another abstraction over `fetch`.

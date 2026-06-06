@@ -13,3 +13,11 @@ Product analytics via **Google Analytics (GA4)** — page views + events. SPA-aw
 
 ## Conventions
 - **No PII** in events. Measurement id from SSM, never hardcoded. Respect Do-Not-Track / consent if added.
+
+## Pros & cons
+**Pros**
+- Free, ubiquitous web analytics; SPA `page_view` per route + custom events.
+- No backend work — client-side tag.
+**Cons**
+- Client-side, so ad-blockers/consent reduce data.
+- Privacy/consent handling required; Google dependency.

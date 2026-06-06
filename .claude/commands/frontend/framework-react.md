@@ -79,3 +79,10 @@ E2E is Playwright, not vitest (`/frontend/playwright`). lcov feeds SonarCloud (`
 - **Only this skill carries React/library code**; the concept skills (authentication, authorization, api-client, pagination, seo, analytics, cloudwatch-rum, environment-config, forms, markdown) stay agnostic.
 - snake_case API payloads (no mapping layer); build-time config from SSM (`/frontend/environment-config`).
 - Content-hashed assets (immutable); cache split + invalidation in `/workflow/github-actions`. UI primitives from `/frontend/design-system`; components developed in `/frontend/storybook`.
+
+## Pros & cons
+**Pros**
+- The one place with React/library code; fast Vite DX; the React ecosystem.
+**Cons**
+- CSR-only — SEO relies on the edge prerender path.
+- The intentionally framework-coupled skill.

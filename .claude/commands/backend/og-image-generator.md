@@ -35,3 +35,11 @@ URL is deterministic: same type+slug always produces same URL (cache-friendly).
 ## Env vars (set by IaC)
 - `OG_IMAGES_BUCKET` — S3 bucket name
 - `ENVIRONMENT` — staging | production
+
+## Pros & cons
+**Pros**
+- Dynamic OG images generated from code and cached in S3 (regenerable); no headless browser.
+- Served from the same CloudFront distribution (`/og/*`).
+**Cons**
+- satori/resvg bundle size + memory (drives the 256MB Lambda).
+- Font/layout fidelity is limited vs a real browser.

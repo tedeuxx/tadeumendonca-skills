@@ -21,3 +21,10 @@ Component-driven development + living documentation for the SPA's component libr
 - Develop components in Storybook first (isolation), then compose into pages.
 - Stories are committed and kept in sync with the component — a stale story is a smell.
 - Cloudscape provides the primitives (`/frontend/design-system`); Storybook documents how we compose them.
+
+## Pros & cons
+**Pros**
+- Isolated component development + autodocs + interaction/visual tests; a living catalog.
+**Cons**
+- Stories to write and maintain.
+- Extra build/config overhead.

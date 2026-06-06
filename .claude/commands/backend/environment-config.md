@@ -44,3 +44,11 @@ export const config = {
 - `.env.*` holds **only non-secret values** plus ARNs/endpoints — never passwords/tokens.
 - The esbuild bundle (`dist/`) must not embed `.env` files — they're not a deploy artifact.
 - One accessor (`config`) — handlers never read `process.env` directly.
+
+## Pros & cons
+**Pros**
+- Typed, validated config accessor; per-env dotenv files.
+- Non-secrets only — secrets stay in Secrets Manager.
+**Cons**
+- Build/deploy must inject the right env values.
+- Drift risk if a var is added in one env but not another.

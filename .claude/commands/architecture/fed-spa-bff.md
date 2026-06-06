@@ -54,3 +54,10 @@ Public + read-heavy · SEO-friendly via **edge dynamic rendering, not SSR** · *
 
 ## When NOT this pattern
 Heavy server-rendered/interactive apps (use SSR), pure API products (no SPA/edge), or event/stream-driven workloads — those are future `architecture/*` patterns.
+
+## Pros & cons
+**Pros**
+- One coherent blueprint tying every component skill together; clean separation (SPA / BFF / edge); auth external to the BFF.
+**Cons**
+- Opinionated (CSR + edge SEO, modular monolith, 1 BFF per SPA).
+- The single BFF is a shared fault domain until microservices arrive.

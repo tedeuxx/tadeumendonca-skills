@@ -39,3 +39,10 @@ Bump commits use message `bump: {current} → {new}`; **both workflows skip any 
 ## Conventions
 - Same scheme/threshold in all repos — never a per-repo variant.
 - The version is the contract stamp: the api's OpenAPI `info.version` == its `VERSION` (`/backend/openapi`).
+
+## Pros & cons
+**Pros**
+- Automated, consistent numeric tags across all repos; loop-guarded; PR-label-driven on main.
+**Cons**
+- Numeric-only — no pre-release channel (a deliberate rejection of `-dev`).
+- Requires the `VERSION_BUMP_TOKEN` PAT.

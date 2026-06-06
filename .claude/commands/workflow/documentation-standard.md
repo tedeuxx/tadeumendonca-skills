@@ -26,3 +26,10 @@ All documentation is **Markdown + Mermaid**. **No static image diagrams** — ev
 ## Conventions
 - Every repo has a `docs/` folder; keep diagrams next to the code they describe.
 - Documentation is a deliverable per phase (labeled `type:docs`), part of the `v1.0.0` GA criteria.
+
+## Pros & cons
+**Pros**
+- Diffable, versioned docs; diagrams as code (Mermaid); no binary images to drift.
+**Cons**
+- Mermaid has expressiveness limits.
+- Keeping docs current is a discipline, not enforced.

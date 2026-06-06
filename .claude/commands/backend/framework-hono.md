@@ -75,3 +75,11 @@ Test routes with `app.request(...)` (no network); mock DocumentDB/secrets at the
 - One `OpenAPIHono` app (the BFF), routes at root; modules register their routes (`/backend/lambda-handler`).
 - Infra/cross-cutting concerns stay **framework-agnostic**; this skill holds the Hono-specific glue.
 - Deps: `hono`, `@hono/zod-openapi`, `zod`. No `@middy/core`. og-edge is **not** Hono (`/backend/og-edge-handler`).
+
+## Pros & cons
+**Pros**
+- Tiny, fast, Web-standard router; `@hono/zod-openapi` generates the contract from code.
+- Replaces middy with one coherent middleware model.
+**Cons**
+- Smaller ecosystem than Express.
+- The single place intentionally coupled to a framework.

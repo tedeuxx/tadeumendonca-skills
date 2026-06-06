@@ -76,3 +76,11 @@ Define them in `shared/db/indexes.ts`, ensured at cold start or by the seed scri
 - `directConnection: true` avoids topology-discovery issues in Lambda.
 - `DOCDB_SECRET_ARN` set by IaC (api.tf) — never hardcode; creds via `/backend/secrets-management`.
 - TLS CA path is for the Lambda runtime; **og-edge (Lambda@Edge) cannot reach DocumentDB** (no VPC).
+
+## Pros & cons
+**Pros**
+- TLS client reused across invocations (warm singleton); snake_case docs, no mapping layer.
+- Cursor pagination + explicit indexes.
+**Cons**
+- VPC + TLS CA-bundle setup; Mongo-compatibility gaps.
+- Connection lifecycle on Lambda needs care (singleton, not per-request).

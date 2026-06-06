@@ -44,3 +44,10 @@ import '@cloudscape-design/global-styles/index.css';  // in main.tsx
 
 ## Rationale — why Cloudscape
 AWS's open-source design system, used across AWS Console products. On a personal portfolio it signals product-engineering maturity and AWS fluency, and ships accessible, responsive components out of the box (`AppLayout`, `Cards`, `Table`, `Badge`, `ContentLayout`) — no bespoke design system to build.
+
+## Pros & cons
+**Pros**
+- Consistent, accessible AWS components; fast to build; built-in theming.
+**Cons**
+- An AWS-flavored look; heavier bundle.
+- Less bespoke design freedom.

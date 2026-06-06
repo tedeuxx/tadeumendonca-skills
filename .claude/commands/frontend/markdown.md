@@ -13,3 +13,10 @@ Articles are stored as markdown (`body_markdown`) and rendered to HTML in the SP
 - Keep the rendered HTML **consistent with the edge prerender** the bots get (`/backend/prerender`) — same content, good SEO, not cloaking.
 - Lazy-load the highlighter + theme to keep the initial bundle small.
 - Articles fetched via `/frontend/api-client`; long-form pages are prime SEO targets (`/frontend/seo`).
+
+## Pros & cons
+**Pros**
+- Safe (sanitized) article rendering with syntax highlight; consistent with the edge prerender output.
+**Cons**
+- Sanitization must stay strict to avoid XSS.
+- Render parity with the prerender path to maintain.

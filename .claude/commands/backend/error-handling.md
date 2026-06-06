@@ -38,3 +38,11 @@ if (!groups.includes('admin')) throw new UnauthorizedError();
 - `500` never leaks internals (logged via Powertools — `/backend/logging`).
 - Schema-validation failures map to a `400` `ValidationError` so they share the shape.
 - The central handler that catches thrown errors and writes the response is wired in `/backend/framework-hono`.
+
+## Pros & cons
+**Pros**
+- Uniform error→HTTP mapping in one middleware; throw, never return 4xx — handlers stay clean.
+- Consistent `{ error, message }` body for the SPA.
+**Cons**
+- Relies on a central error middleware being wired.
+- Custom error classes to maintain.

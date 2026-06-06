@@ -50,3 +50,11 @@ One document per user interaction (all fields snake_case):
 
 ## Wiring
 The Hono middleware `audit(action)` that runs after the handler and inserts this document is defined in `/backend/framework-hono`; the action constants in `/backend/action-types`; the collection access/connection in `/backend/document-db`.
+
+## Pros & cons
+**Pros**
+- Automatic, uniform audit trail with no per-handler code; identity comes from the JWT claims.
+- Queryable history of every state-changing interaction.
+**Cons**
+- A write per request adds latency + storage.
+- The audit document shape must evolve carefully (snake_case, no mapping layer).

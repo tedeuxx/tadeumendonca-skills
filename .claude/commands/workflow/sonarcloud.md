@@ -24,3 +24,10 @@ SonarCloud runs on every PR and on develop/main as a **Quality Gate** — static
 - SonarCloud covers JS/TS (api/fed); **`checkov`** remains the Terraform security scan (`/infrastructure/terraform`).
 - Vitest still enforces the local **≥85%** as a fast pre-check; Sonar owns the authoritative quality/coverage gate.
 - `SONAR_TOKEN` is a per-repo GitHub secret (`/workflow/github-actions`).
+
+## Pros & cons
+**Pros**
+- SAST + coverage + smells in one quality gate that blocks merge; free for public repos; trend tracking.
+**Cons**
+- False positives to triage; another account/gate to manage.
+- Quality-gate thresholds need tuning.

@@ -22,3 +22,11 @@ Authentication is **external to the BFF**: the SPA uses the **Cognito IdP SDK** 
 ## Conventions
 - The **SDK owns tokens + the session** — never hand-roll PKCE/token exchange, refresh, or token storage.
 - Role-based UI gating is `/frontend/authorization`. Blueprint: `/architecture/fed-spa-bff`.
+
+## Pros & cons
+**Pros**
+- The Cognito SDK owns PKCE, refresh, and token storage — no hand-rolled auth; session survives reloads.
+- Bearer token sent on every call; the GW authorizer validates.
+**Cons**
+- Tokens in browser storage are an XSS surface (the accepted cost vs a server-session BFF).
+- Tied to Cognito/Amplify.

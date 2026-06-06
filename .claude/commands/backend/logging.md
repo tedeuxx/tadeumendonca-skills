@@ -27,3 +27,11 @@ logger.error('docdb query failed', { error });
 - Attach the Lambda context (cold-start, request id) **once per request** and reset appended keys afterward — that wiring is framework-specific (`/backend/framework-hono`).
 - Levels via `LOG_LEVEL`: DEBUG (staging) / WARN (production) — `/backend/environment-config`.
 - `og-edge` (Lambda@Edge) has no Powertools — minimal `console` only.
+
+## Pros & cons
+**Pros**
+- Structured JSON logs, correlation ids, per-env level; integrates with metrics/tracer.
+- PII/Authorization never logged.
+**Cons**
+- Requires structured-logging discipline.
+- Verbose logs carry a retention cost.

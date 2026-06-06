@@ -13,3 +13,10 @@ Conceptual skill — what state goes where. Library snippets live in `/frontend/
 - **Never mirror server data into Zustand** — it goes stale; derive from React Query.
 - Keep stores small and per-domain; persist only non-sensitive UI prefs.
 - Prefer **URL / search params** for shareable UI state (active tag, tab) over a store.
+
+## Pros & cons
+**Pros**
+- Clear ownership: server→React Query, UI→Zustand, session→SDK; no server data mirrored into stores.
+**Cons**
+- A model to follow consistently.
+- Multiple state tools to learn.

@@ -32,3 +32,11 @@ VERSION=$(cat VERSION)
 - `info.version` **==** backend `VERSION`; `info.title` == the service name.
 - The root copy is regenerated + committed every release; a stale root copy is a **failing gate**.
 - snake_case schemas (matches the API). **Never hand-edit** the generated file; keep AWS extensions in the overlay template, out of the neutral root copy.
+
+## Pros & cons
+**Pros**
+- Contract generated from code — no drift; version-stamped, committed root copy.
+- AWS overlay applied only at deploy (clean source contract).
+**Cons**
+- A generation step in CI.
+- zod-openapi annotations to maintain.
