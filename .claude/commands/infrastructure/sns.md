@@ -2,32 +2,48 @@ Use Amazon SNS in tadeumendonca infrastructure (async domain events).
 
 Context: $ARGUMENTS
 
-SNS is the **simplest, lowest-cost** pub/sub for async fan-out — used for domain events like `post_published` that trigger notifications (`/backend/notifications`). Chosen over EventBridge for cost + simplicity (no content routing / replay needed at this scale).
+SNS is the **simplest, lowest-cost** pub/sub for async fan-out — domain events like `post_published` that trigger notifications (`/backend/notifications`). Chosen over EventBridge for cost/simplicity (no content routing / replay needed at this scale).
 
-## Topic + Lambda subscription (Terraform)
+## Configuration
 ```hcl
 resource "aws_sns_topic" "events" {
   name              = "tadeumendonca-events-${var.environment}"
-  kms_master_key_id = "alias/aws/sns"            # SSE at rest (/infrastructure/kms)
+  display_name      = "tadeumendonca events"
+  fifo_topic        = false                           # standard topic — cheapest; no strict ordering need
+  kms_master_key_id = "alias/aws/sns"                 # SSE at rest, MANDATORY (/infrastructure/kms)
 }
-resource "aws_sns_topic_subscription" "notifications" {
-  topic_arn = aws_sns_topic.events.arn
-  protocol  = "lambda"
-  endpoint  = module.bff.lambda_function_arn     # the notifications consumer (or a dedicated fn)
-}
-resource "aws_lambda_permission" "sns" {
-  action = "lambda:InvokeFunction"; principal = "sns.amazonaws.com"
-  function_name = module.bff.lambda_function_name; source_arn = aws_sns_topic.events.arn
-}
-# topic ARN → SSM: /{env}/events/topic-arn ; BFF role gets sns:Publish
-```
 
-## Reliability
-- Attach a **DLQ** (a small SQS) to the Lambda subscription (`redrive_policy` / `on_failure`) so failed notifications aren't lost — **without** making SQS the primary path.
-- SNS retries Lambda deliveries automatically.
+# DLQ — MANDATORY on every SNS→Lambda subscription (no event silently lost)
+resource "aws_sqs_queue" "events_dlq" {
+  name                      = "tadeumendonca-events-dlq-${var.environment}"
+  message_retention_seconds = 1209600                 # 14 days
+  kms_master_key_id         = "alias/aws/sqs"         # SSE at rest
+}
+
+resource "aws_sns_topic_subscription" "notifications" {
+  topic_arn      = aws_sns_topic.events.arn
+  protocol       = "lambda"
+  endpoint       = module.bff.lambda_function_arn     # the notifications consumer
+  filter_policy  = jsonencode({ type = ["post_published"] })                        # only what this consumer wants
+  redrive_policy = jsonencode({ deadLetterTargetArn = aws_sqs_queue.events_dlq.arn })  # failures → DLQ
+}
+
+resource "aws_lambda_permission" "sns" {
+  action        = "lambda:InvokeFunction"
+  principal     = "sns.amazonaws.com"
+  function_name = module.bff.lambda_function_name
+  source_arn    = aws_sns_topic.events.arn
+}
+# SSM: /{env}/events/topic-arn = aws_sns_topic.events.arn ; the BFF role gets sns:Publish (/infrastructure/iam)
+```
+**Choices that matter:** standard topic (`fifo_topic=false`); **KMS SSE on the topic AND the DLQ** (mandatory); **`redrive_policy` → SQS DLQ is mandatory** on every subscription; `filter_policy` so a consumer only gets the event types it wants.
+
+## DLQ pattern (mandatory)
+- Every SNS→Lambda subscription carries a `redrive_policy` to an **SQS DLQ**. SNS retries Lambda deliveries automatically; once retries are exhausted the message lands in the DLQ (14-day retention) instead of being lost — the DLQ is **never** the primary path.
+- Alarm on the DLQ depth (`ApproximateNumberOfMessagesVisible` > 0 → notify the owner via this topic). Reprocess by redriving from the DLQ.
+- The DLQ is KMS-encrypted at rest (`aws/sqs`).
 
 ## Conventions
-- Message = a small JSON domain event (`{ "type": "post_published", "post_id": "…" }`, snake_case); use **subscription filter policies** on `type` if several event types share the topic.
-- SSE at rest (`/infrastructure/kms`); tagged (`/infrastructure/terraform`).
-- Producer (BFF module) publishes; consumers subscribe — `/backend/notifications`.
+- Message = a small JSON domain event (`{ "type": "post_published", "post_id": "…" }`, snake_case).
+- Producer (BFF module) publishes; consumers subscribe (`/backend/notifications`). TLS in transit by default (`/infrastructure/kms`).
 - Scale-up path: if content routing / replay / many event types appear, revisit EventBridge.

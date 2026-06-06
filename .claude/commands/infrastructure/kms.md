@@ -4,6 +4,8 @@ Context: $ARGUMENTS
 
 **Canonical encryption skill.** Everything is encrypted **in transit AND at rest** — no plaintext data path, no unencrypted storage. **Every service that encrypts data references this skill** for the key choice (AWS-managed vs CMK); they do not restate it.
 
+**Mandate (no exceptions):** every service is **KMS-encrypted at rest** (AWS-managed key by default, CMK when required) **and TLS/SSL-encrypted in transit — SSL by default across the whole architecture.** No plaintext path, ever. A service skill states its mechanism and points here; it never opts out.
+
 ## Rule
 Verify **both axes** for every new resource before merge. `checkov` enforces many of these (`/infrastructure/terraform`).
 
@@ -22,9 +24,12 @@ Verify **both axes** for every new resource before merge. `checkov` enforces man
 |---|---|---|
 | DocumentDB | `storage_encrypted = true` | `/infrastructure/documentdb` |
 | Redis | `at_rest_encryption_enabled = true` | `/infrastructure/elasticache` |
-| S3 (×3) | server-side encryption enabled | `/infrastructure/s3` |
-| Secrets Manager | encrypted by default (KMS) | `/infrastructure/secrets-manager` |
-| CloudWatch Logs | encrypted | `/infrastructure/cloudwatch` |
+| S3 (×3) | **SSE-KMS** (`aws/s3` key + bucket keys) | `/infrastructure/s3` |
+| Secrets Manager | KMS (`aws/secretsmanager`) by default | `/infrastructure/secrets-manager` |
+| SNS topic + SQS DLQ | `kms_master_key_id` (`aws/sns`, `aws/sqs`) | `/infrastructure/sns` |
+| CloudWatch Logs | encrypted (CMK when required) | `/infrastructure/cloudwatch` |
+
+> All AWS API calls (Secrets Manager, SNS, SES, SSM, S3, STS…) are HTTPS/TLS by default — the SSL-by-default mandate holds end to end.
 
 ## Key choice — AWS-managed vs CMK
 - **Default to AWS-managed keys** (`aws/s3`, `aws/secretsmanager`, `aws/rds`, `aws/elasticache`) — zero key management, no extra cost, sufficient for this workload. On the Terraform side this means leaving `kms_key_id` empty/unset.
