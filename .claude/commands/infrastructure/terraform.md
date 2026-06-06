@@ -40,6 +40,42 @@ The **example instance** is `project = tadeumendonca`, `apex_domain = tadeumendo
 ## Variables & data sources
 `variables.tf` is canonical (`project`, `apex_domain`, `github_org`, `tfc_organization`, `aws_region`, `environment`, `vpc_cidr`, `azs`, `domain_name`, `api/auth_domain_name`, `acm_certificate_domain`, `callback/logout_urls`, `ses_from_address`). **No** `account_id` (→ `data.aws_caller_identity`), **no** ACM ARNs (→ `data.aws_acm_certificate` by `var.acm_certificate_domain` — `/infrastructure/acm`). `data.aws_route53_zone.main` declared once at root.
 
+## Input validation (variables)
+**Every input variable declares a `type` and a `validation` block that enforces its domain** — fail fast at `plan`, never discover a bad value at `apply`. This applies to the root variables (the root is the project's own module) **and** to any custom/L3 module you productize (`module sourcing policy` below). Use **`regex`** for format, `contains([...])` for enums, `cidrhost()`/`cidrsubnet()` for networks, comparisons for ranges.
+```hcl
+variable "project" {
+  type = string
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9-]{1,30}[a-z0-9]$", var.project))
+    error_message = "project must be lowercase kebab-case (a-z, 0-9, -), 3–32 chars."
+  }
+}
+variable "environment" {
+  type = string
+  validation {
+    condition     = contains(["staging", "production"], var.environment)
+    error_message = "environment must be 'staging' or 'production'."
+  }
+}
+variable "vpc_cidr" {
+  type = string
+  validation {
+    condition     = can(cidrhost(var.vpc_cidr, 0))
+    error_message = "vpc_cidr must be a valid IPv4 CIDR block."
+  }
+}
+variable "apex_domain" {
+  type = string
+  validation {
+    condition     = can(regex("^([a-z0-9-]+\\.)+[a-z]{2,}$", var.apex_domain))
+    error_message = "apex_domain must be a valid domain name (e.g. example.com)."
+  }
+}
+```
+- **One concern per `validation` block** (a variable may have several), each with a **clear, actionable `error_message`**.
+- Prefer `can(regex(...))` so a non-match becomes a friendly error rather than a crash.
+- A custom module is **not productized until every input is typed + domain-validated** — part of the "complete, self-contained L3 pattern" bar below.
+
 ## Module sourcing & customization policy
 **Sourcing priority:**
 1. **Official first** — prefer official `terraform-aws-modules/*` (HashiCorp/AWS-maintained) for any resource that has one: `vpc`, `s3-bucket`, `cloudfront`, `cognito-idp`, `apigateway-v2`, `lambda`, `iam`, `kms`.

@@ -34,9 +34,6 @@ module "vpc" {
   default_security_group_ingress = []
   default_security_group_egress  = []
 
-  # S3 Gateway endpoint — S3 traffic stays on the AWS backbone (free); no DynamoDB endpoint (data = DocumentDB)
-  vpc_endpoints = { s3 = { service = "s3", service_type = "Gateway" } }
-
   # VPC Flow Logs → CloudWatch (encrypted log group, /infrastructure/cloudwatch)
   enable_flow_log                      = true
   create_flow_log_cloudwatch_iam_role  = true
@@ -44,6 +41,17 @@ module "vpc" {
   flow_log_traffic_type                = "ALL"
   flow_log_max_aggregation_interval    = 60
   flow_log_cloudwatch_log_group_retention_in_days = var.environment == "production" ? 90 : 30
+}
+
+# S3 Gateway endpoint — keeps S3 traffic on the AWS backbone (free). In v5 the main vpc module no
+# longer accepts endpoints, so this is the standalone submodule. No DynamoDB endpoint (data = DocumentDB).
+module "vpc_endpoints" {
+  source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+  version = "~> 5.0"
+  vpc_id  = module.vpc.vpc_id
+  endpoints = {
+    s3 = { service = "s3", service_type = "Gateway", route_table_ids = module.vpc.private_route_table_ids }
+  }
 }
 ```
 **Choices that matter:** 2 AZs; `/16` VPC, `/24` subnets (8-bit, public `+1..`, private `+11..`); `map_public_ip_on_launch=false` + locked default SG (nothing reachable by accident); NAT single (stg) vs per-AZ (prod); **only an S3 Gateway endpoint** (no interface endpoints — low cross-NAT volume doesn't justify the cost); flow logs ALL with 60s aggregation, retention per env.
