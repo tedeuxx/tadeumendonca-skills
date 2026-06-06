@@ -52,7 +52,8 @@ module "cloudfront" {
     viewer_protocol_policy = "redirect-to-https"
     allowed_methods        = ["GET", "HEAD"]
     compress               = true
-    cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6"  # managed CachingOptimized
+    cache_policy_id            = "658327ea-f89d-4fab-a63d-7e88639e58f6"  # managed CachingOptimized
+    response_headers_policy_id = "67f7725c-6f97-4210-82d7-5512b31e9d03"  # managed SecurityHeadersPolicy
     lambda_function_association = {
       viewer-request = { lambda_arn = module.fn_og_edge.lambda_function_qualified_arn, include_body = false }
     }
@@ -69,6 +70,16 @@ module "cloudfront" {
   ]
 }
 ```
+
+## Managed policies (managed-first, like WAF)
+Prefer AWS **managed** CloudFront policies — no custom policy to maintain. What we use, by managed id:
+| Type | Policy | Managed id | Where |
+|---|---|---|---|
+| Cache | `CachingOptimized` | `658327ea-f89d-4fab-a63d-7e88639e58f6` | default + `/og/*` — honors origin `Cache-Control` (immutable hashed assets vs `no-cache` index.html, set by `/workflow/github-actions`) |
+| Response headers | `SecurityHeadersPolicy` | `67f7725c-6f97-4210-82d7-5512b31e9d03` | default — adds HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy |
+| Origin request | none | — | S3 + OAC needs none; add `CORS-S3Origin` only if cross-origin reads appear |
+
+`CachingDisabled` (`4135ea2d-6df8-44a3-9df3-4b5a84be39ad`) is the managed choice for any never-cache behavior. Write a **custom** policy only when no managed one fits.
 
 ## Route53 A-alias → CloudFront
 `aws_route53_record` type `A`, alias target = `module.cloudfront.cloudfront_distribution_domain_name`, `zone_id = "Z2FDTNDATAQYW2"` (CloudFront constant). See `/infrastructure/route53`.
