@@ -71,10 +71,15 @@ jobs:
         id: version
         run: echo "version=$(cat VERSION)" >> "$GITHUB_OUTPUT"
 
-      - name: Build categorized release notes (from commits since the previous tag)
+      - name: Build categorized release notes (commits since the previous release)
+        env:
+          GH_TOKEN: ${{ secrets.VERSION_BUMP_TOKEN }}
         run: |
           NEW="v${{ steps.version.outputs.version }}"
-          PREV=$(git tag --sort=-v:refname | grep -vx "$NEW" | head -1 || true)
+          # previous *release* — only main publishes Releases, so this skips the per-commit
+          # develop tags (v0.1.x). The new release isn't created yet, so exclude NEW defensively.
+          PREV=$(gh release list --exclude-drafts --json tagName \
+            --jq "[.[].tagName | select(. != \"$NEW\")] | .[0]" 2>/dev/null || true)
           RANGE="${PREV:+$PREV..}$NEW"
           log() { git log --no-merges --pretty='%s%x09%h' "$RANGE" | grep -v '^bump:'; }
           section() {  # $1 = heading, $2 = alternation of conventional-commit types
