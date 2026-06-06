@@ -12,8 +12,8 @@ One table per entity — maps 1:1 to the domain aggregates, each evolves indepen
 | `profile` | `profile_id` | — | the CV document (effectively one item) |
 | `posts` | `post_id` | `by-created` (`gsi_pk`="POST" / `created_at`) | feed, newest-first via cursor |
 | `articles` | `article_id` | `by-slug` (`slug`), `by-tag` (`tag` / `created_at`) | slug routing + tag queries |
-| `subscriptions` | `email` | — | newsletter opt-ins |
-| `audits` | `audit_id` | `by-entity` (`entity` / `created_at`) | audit trail (`/backend/audit-middleware`) |
+| `subscriptions` | `email` | `by-status` (`status` / `email`), `by-cognito` (`cognito_sub`) | newsletter opt-ins |
+| `audits` | `audit_id` | `by-entity` (`entity` / `created_at`), `by-actor` (`actor` / `created_at`) | audit trail (`/backend/audit-middleware`) |
 
 Feed ordering uses a GSI with a **constant partition** (`gsi_pk="POST"`) + `created_at` range so a single `Query` returns newest-first; fine at this scale (revisit if a single partition gets hot). All attribute names are **snake_case** — same on the wire and in the TS interfaces, no mapping (`/backend/dynamodb`).
 
