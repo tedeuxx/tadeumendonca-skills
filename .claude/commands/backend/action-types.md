@@ -1,4 +1,4 @@
-Define or review action types for audit logging in tadeumendonca-api.
+Define or review action types (audit + RBAC) in tadeumendonca-api.
 
 Context: $ARGUMENTS
 
@@ -33,6 +33,41 @@ import { ActionType } from '../../shared/constants/action-types';
 
 app.get('/posts', audit(ActionType.POSTS_LIST), listPosts);   // Hono middleware
 ```
+
+## RBAC composition (when authorization is needed)
+
+Action types are the **unit of authorization**, not just an audit label. Because every action is one explicit constant, you compose RBAC by mapping **roles → allowed action types** and checking the route's declared action type against the caller's role — the **same constant drives both audit and authz**, so they never drift.
+
+```typescript
+const RBAC: Record<string, Set<ActionType>> = {
+  admin:      new Set(Object.values(ActionType)),                       // full CRUD
+  registered: new Set([ActionType.SUBSCRIBERS_CREATE]),
+  public:     new Set([ActionType.PROFILE_GET, ActionType.POSTS_LIST,
+                       ActionType.ARTICLES_LIST, ActionType.ARTICLES_GET]),
+};
+
+// a Hono guard reuses the SAME action type the route already declares
+export const authorize = (action: ActionType): MiddlewareHandler => async (c, next) => {
+  const groups = (c.env.event.requestContext.authorizer?.jwt?.claims?.['cognito:groups'] as string[]) ?? ['public'];
+  if (!groups.some((g) => RBAC[g]?.has(action))) throw new UnauthorizedError();
+  await next();
+};
+// route: app.post('/posts', authorize(ActionType.POSTS_CREATE), audit(ActionType.POSTS_CREATE), createPosts);
+```
+
+Use it **only when needed** — the three-profile model (`/infrastructure/cognito`) via a simple group check is often enough; promote to an action-type RBAC map when permissions get finer-grained.
+
+## Pros / cons
+
+**Pros**
+- Single source of truth for "what actions exist" — drives **audit + RBAC** consistently (no drift between them).
+- Authorization **decoupled from HTTP method/path** — refactor routes without touching permissions.
+- Explicit, greppable, testable (assert each role's allowed set); easy to review/audit.
+
+**Cons**
+- **Manual upkeep** — every new action needs a constant (and an RBAC entry); risk of forgetting one (mitigate with a lint/test that every route declares an action type).
+- **Coarse-grained** (action-level) — not attribute/row-level; "edit *own* post" still needs an extra ownership check in the handler.
+- **Overkill for tiny surfaces** — a plain group check may be simpler until permissions grow.
 
 ## Conventions
 - The constant **name** is SCREAMING_SNAKE_CASE; the stored **value** (`audits.action_type`) is snake_case — same value everywhere, no mapping. See `/backend/audit-middleware`.
