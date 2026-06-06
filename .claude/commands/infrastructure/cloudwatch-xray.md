@@ -25,3 +25,10 @@ resource "aws_xray_sampling_rule" "default" {
 - Annotations (indexed, low-cardinality) vs metadata — set in `/backend/tracing`; no PII.
 - The **service map** is the payoff: latency/error hotspots across the request path.
 - Pairs with `/infrastructure/cloudwatch` (logs/metrics) + `/infrastructure/cloudwatch-rum` (RUM) for full observability.
+## Pros & cons
+**Pros**
+- Native end-to-end tracing API GW → Lambda → browser (RUM), no extra vendor.
+- Sampling rules control cost.
+**Cons**
+- Less rich than a dedicated APM (Datadog/Honeycomb).
+- Sampling can drop the trace you wanted; some instrumentation overhead.

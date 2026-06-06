@@ -65,3 +65,11 @@ resource "aws_route53_record" "auth" {
 - `Z2FDTNDATAQYW2` is the fixed CloudFront hosted-zone id (frontend SPA + Cognito hosted UI). API GW exposes its own `hosted_zone_id` via the module.
 - New service → add `{service}.{...}` following the table and include the host in the env's ACM cert (`/infrastructure/acm`).
 - SES verification + DKIM records are created by the SES module (`/infrastructure/ses`), not here. ACM DNS-validation records are out-of-band/one-time.
+
+## Pros & cons
+**Pros**
+- A-alias is free, resolves at the apex (a CNAME can't), and is health-aware.
+- Pre-existing hosted zone means a stack rebuild never destroys DNS / mail delegation.
+**Cons**
+- Alias targets must be AWS resources.
+- The zone lifecycle is out-of-band, not captured in this stack.

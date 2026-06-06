@@ -39,3 +39,10 @@ Every `aws_ssm_parameter` in IaC writes the corresponding module output; app rep
 
 ## Rationale
 Non-sensitive infra outputs in SSM Standard String (free); secrets in Secrets Manager. IaC is the single source of truth — app repos read current values at deploy with no GitHub secret to rotate. Access is HTTPS/TLS by default (`/infrastructure/kms`).
+## Pros & cons
+**Pros**
+- Free config bus; IaC is the single source of truth; no GitHub secret to rotate.
+- Clear `env/component/name` paths make ownership obvious.
+**Cons**
+- Not for secrets (Secrets Manager handles those).
+- App reads at deploy — a changed value needs a redeploy; reads are eventually consistent.

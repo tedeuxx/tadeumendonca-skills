@@ -71,3 +71,10 @@ Downstream: `module.vpc.vpc_id` → docdb/redis SGs · `module.vpc.private_subne
 ## Notes
 - Lambda SG egress is limited to HTTPS (443) — **everything that crosses the VPC boundary is TLS** (`/infrastructure/kms`); flow logs are encrypted at the CloudWatch group.
 - This topology was established in the (now-decommissioned) landing-zone project and re-created inline — the migration is a one-time task tracked in the plan, not a skill.
+## Pros & cons
+**Pros**
+- Private subnets + SG-gated data tier; S3 gateway endpoint (free, off-NAT).
+- Flow logs for forensics.
+**Cons**
+- NAT cost (especially one-per-AZ in production); in-VPC Lambda ENI/cold-start overhead.
+- 2 AZs trades some resilience for cost.

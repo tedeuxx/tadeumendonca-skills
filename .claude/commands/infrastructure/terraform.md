@@ -82,3 +82,10 @@ locals { tags = { Project = "<project>", Environment = var.environment, ManagedB
 - `version-develop/main.yml`: numeric SemVer (`/workflow/github-actions`).
 
 See `/workflow/terraform-cloud`, `/infrastructure/route53`, and the per-service skills.
+## Pros & cons
+**Pros**
+- Single canonical root (no per-env duplication); TFC remote state + locking.
+- Official-first modules used integrally = low maintenance, one-line upgrades.
+**Cons**
+- The `cloud{}` block can't interpolate variables.
+- One root = a larger blast radius per apply; pinned module versions need periodic bumps.

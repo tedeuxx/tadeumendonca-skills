@@ -44,3 +44,10 @@ Phase 1-3 use **AWS-managed keys** everywhere (DocDB, Redis, S3, Secrets Manager
 - Never disable encryption to avoid key setup — use the AWS-managed key.
 - A service needing `kms:Decrypt` adds it to its exec-role statements **only when using a CMK** (`/infrastructure/iam`); with AWS-managed keys no explicit grant is needed.
 - Tag CMKs via provider `default_tags` (`/infrastructure/terraform`).
+## Pros & cons
+**Pros**
+- Encryption everywhere by default (at rest + TLS); one canonical policy.
+- AWS-managed keys = zero key operations and no extra key cost.
+**Cons**
+- AWS-managed keys lack CMK audit/rotation/cross-account control.
+- Always-encrypt adds minor cost (KMS calls; mitigated by S3 bucket keys); moving to CMK later is a migration.

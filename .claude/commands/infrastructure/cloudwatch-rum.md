@@ -27,3 +27,13 @@ Publish to SSM: `/{env}/frontend/rum-app-monitor-id`, `/{env}/frontend/rum-ident
 - Guest role is least-privilege — only `rum:PutRumEvents` on this monitor's ARN (`/infrastructure/iam`).
 - Encrypted log group + tagged (`/infrastructure/kms`, `/infrastructure/terraform`).
 - Pairs with `/infrastructure/cloudwatch-xray` for browser→backend traces.
+
+## Pros & cons
+**Pros**
+- Native CloudWatch + X-Ray correlation, one bill, no extra vendor.
+- Guest identity pool lets anonymous visitors report real-user data without login.
+- Cheap via low session sampling.
+**Cons**
+- Fewer product-analytics features than a dedicated RUM SaaS (Datadog/Sentry).
+- Unauthenticated (open) ingest surface — bounded only by the least-privilege guest role.
+- 10% sampling misses most sessions.

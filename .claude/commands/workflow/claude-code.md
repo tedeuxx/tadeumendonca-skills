@@ -47,12 +47,12 @@ jobs:
 - Install the **Claude GitHub App** on each repo (one-time, via `/install-github-app`) — a runbook step, not Terraform.
 - Create `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`) as a repo secret (`/workflow/github-actions` secrets).
 
-## Choices & trade-offs
-- **AI review is advisory, not a required check** — it informs the PR, it does **not** block merge. *Trade-off:* a non-deterministic reviewer could flake or false-positive, so gating merges on it is wrong; the blocking gates stay deterministic (Sonar + coverage). Cost: a missed issue isn't enforced — accepted, since AI review is an extra net, not the safety net.
-- **OAuth token (`claude setup-token`), not an API key** — user-scoped, no separate billing key to manage/rotate per repo. *Trade-off:* tied to the owner's auth rather than a service principal — fine for a solo/small-team project; revisit if multiple maintainers need separate attribution.
-- **Auto-review on every push (`synchronize`), not just on open** — every revision gets looked at. *Trade-off:* more action runs (cost/noise) vs always-current feedback — accepted at this PR volume; throttle with `paths:` filters if it gets noisy.
-- **Mention-gated assistant (`@claude`)** — explicit opt-in per comment rather than auto-acting. *Trade-off:* an extra step vs avoiding unwanted automated edits.
-
-## Conventions
-- Pin `anthropics/claude-code-action@v1` and `actions/checkout@v4`; least-privilege `permissions:` per job (`id-token: write` for OIDC; `actions: read` only where Claude reads CI).
-- Same two workflows in all repos; scope the review with `paths:` / author filters only if a repo needs it.
+## Pros & cons
+**Pros**
+- On-demand `@claude` assistant + automatic PR review on every revision.
+- Advisory — complements the deterministic gates (Sonar + coverage) without gating on a non-deterministic reviewer.
+- OAuth token (`claude setup-token`) — no API key to manage/rotate per repo.
+**Cons**
+- Non-deterministic, so it must not block merges (a missed issue isn't enforced).
+- Review on every push = more action runs (cost/noise).
+- Tied to the owner's auth — single attribution, not a service principal.

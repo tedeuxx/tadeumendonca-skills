@@ -75,3 +75,14 @@ resource "aws_secretsmanager_secret_version" "redis" {
 - Private subnets, port 6379, reached in-VPC over the SG — off the NAT path (like DocumentDB).
 - Prod = 1 primary + 1 replica (Multi-AZ failover); staging = single node. `cache.t4g.micro` (Graviton).
 - Fail-open is enforced on the api side — see `/backend/redis-cache`.
+## Backup & retention
+- **Daily automatic snapshots:** `snapshot_retention_limit` = **7d production / 0 (disabled) staging**, window `snapshot_window`; snapshots KMS-encrypted.
+- **It's a cache, not a system of record** — DocumentDB is the source of truth, so snapshots are a warm-restart convenience, not durability. Losing the cache is safe: the api is fail-open and repopulates cache-aside (`/backend/redis-cache`).
+- Restore = create a replacement cluster from a snapshot, or simply let it refill on demand.
+## Pros & cons
+**Pros**
+- In-VPC low-latency cache; managed Redis with Multi-AZ failover (prod).
+- `maxmemory-policy=allkeys-lru` evicts cleanly under pressure.
+**Cons**
+- Fixed node cost even when idle; single-shard = vertical scaling only.
+- Cache invalidation/staleness is the application's responsibility.

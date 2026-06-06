@@ -85,3 +85,14 @@ resource "aws_secretsmanager_secret_version" "docdb" {
 
 ## Rationale — DocumentDB over DynamoDB
 Document model fits nested CV/article data; DynamoDB single-table adds key complexity with no benefit at this scale. VPC-only aligns with the private-subnet backend. Tradeoff: fixed cost (~$54/mo `db.t4g.medium`), no pay-per-request.
+## Backup & retention
+- **Continuous automated backups + point-in-time restore (PITR)** within `retention_period` (**7d production / 1d staging**; AWS allows 1–35). Daily window via `preferred_backup_window`; snapshots KMS-encrypted.
+- **Final snapshot on delete in production** (`skip_final_snapshot=false` + `final_snapshot_identifier`); staging skips it for fast teardown. `deletion_protection` on in prod.
+- **Take a manual snapshot before risky migrations.** Restore = launch a **new** cluster from a snapshot or a PITR timestamp (no in-place restore) — update the SSM endpoint after.
+## Pros & cons
+**Pros**
+- Mongo-compatible document model fits nested CV/article aggregates.
+- VPC-only (private); managed PITR + HA replica.
+**Cons**
+- Higher fixed cost (~$54/mo `db.t4g.medium`, no pay-per-request).
+- VPC-only adds NAT/ENI complexity; not a true MongoDB (feature/version gaps).

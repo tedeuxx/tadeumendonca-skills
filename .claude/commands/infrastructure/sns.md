@@ -47,3 +47,10 @@ resource "aws_lambda_permission" "sns" {
 - Message = a small JSON domain event (`{ "type": "post_published", "post_id": "…" }`, snake_case).
 - Producer (BFF module) publishes; consumers subscribe (`/backend/notifications`). TLS in transit by default (`/infrastructure/kms`).
 - Scale-up path: if content routing / replay / many event types appear, revisit EventBridge.
+## Pros & cons
+**Pros**
+- Cheapest, simplest pub/sub; KMS SSE on topic + DLQ.
+- Mandatory SQS DLQ — no event is silently lost.
+**Cons**
+- No replay / event store (vs EventBridge).
+- Routing limited to filter policies; standard topic = no strict ordering.

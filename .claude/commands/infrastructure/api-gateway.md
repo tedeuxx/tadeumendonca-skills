@@ -56,3 +56,11 @@ Placeholders resolved at deploy: `${INVOKE_ARN_bff}` (every route → the one BF
 
 ## Conventions
 - Cert via `/infrastructure/acm`; custom-domain naming via `/infrastructure/route53`; ids to SSM (`gateway-id`, `gateway-url`) via `/infrastructure/ssm`. Contract generation: `/backend/openapi`.
+## Pros & cons
+**Pros**
+- HTTP API is cheaper/faster than REST; fronts only the BFF (one integration).
+- Per-route Cognito JWT authorizer keeps auth out of the BFF code.
+- Contract generated from code — no hand-written drift.
+**Cons**
+- HTTP API lacks REST features (request validation, usage plans, API keys).
+- All routing lives inside the BFF; the reimport step couples deploy to the generated spec.

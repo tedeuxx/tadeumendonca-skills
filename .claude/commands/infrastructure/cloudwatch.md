@@ -25,6 +25,12 @@ Context: $ARGUMENTS
 - Because EMF is extracted from logs, the Lambda role needs **no `cloudwatch:PutMetricData`** (`/infrastructure/iam`).
 - AWS service metrics (Lambda, API GW, DocumentDB, CloudFront, ElastiCache) are available out of the box.
 
+## Log retention policy
+- **Every log group sets `retention_in_days`** — never the default *never-expire*, which grows storage cost unbounded.
+- Per env: **30 days staging / 90 days production** (driven by `var.environment`); raise a specific group only where an audit/incident need justifies it.
+- Module-created groups (lambda / flow-log / docdb exports) set retention via the module input; standalone `aws_cloudwatch_log_group` resources set it directly. All groups are KMS-encrypted (`/infrastructure/kms`).
+- **Long-term archive (optional, not default):** for retention beyond 90d, export a group to S3 with a lifecycle to cheaper storage classes — enable only when a compliance need appears.
+
 ## Alarms & dashboards (as needed)
 - Alarms on error rate / p99 latency / 5xx / DLQ depth → SNS to the owner (`/infrastructure/sns`).
 - One dashboard per env composing the key Lambda / API GW / DocDB / CloudFront widgets.
@@ -32,3 +38,11 @@ Context: $ARGUMENTS
 ## Conventions
 - Never log PII or the Authorization header (`/backend/logging`).
 - Tag log groups / alarms via `default_tags` (`/infrastructure/terraform`); retention via `var.environment` conditionals (no extra variable).
+
+## Pros & cons
+**Pros**
+- Serverless-native EMF — no collector/scrape; one backend for logs + metrics.
+- Service-first log-group paths make ownership obvious at a glance.
+**Cons**
+- Metric queries less expressive than PromQL.
+- Retention is a recurring storage cost; WAF's group can't follow the `/aws/` convention (AWS-mandated prefix).

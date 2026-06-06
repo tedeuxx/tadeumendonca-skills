@@ -36,3 +36,10 @@ Each per-env workspace resolves **its own** cert by its primary domain — no cr
 - Issuing/validating a cert is a **one-time task** (plan bootstrap runbook), not Terraform.
 - New host under an existing env → already covered by that env's `*.{env-host}` wildcard (no cert change). A **new environment** → a new wildcard cert for its subdomain.
 - Consumed by `/infrastructure/cloudfront`, `/infrastructure/api-gateway`, `/infrastructure/cognito`.
+## Pros & cons
+**Pros**
+- Reused certs — no in-stack issuance/validation that would block `apply`.
+- Per-env wildcard covers every host of the env with one cert; resolved by domain (no ARNs in tfvars).
+**Cons**
+- Cert lifecycle is out-of-band / manual.
+- A wildcard doesn't cover the apex host (needs an explicit SAN); a new environment needs a new cert.

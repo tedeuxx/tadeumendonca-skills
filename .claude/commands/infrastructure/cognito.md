@@ -60,3 +60,13 @@ resource "aws_route53_record" "auth" {                       # /infrastructure/r
 - **Three profiles:** public (no auth, no group) / registered (self-signup, auto-verified email) / admin (created manually, single). REGIONAL WAF fronts the open hosted-UI signup to mitigate abuse (`/infrastructure/waf`); public users need no auth for any GET.
 - Pool/client ids → SSM for app repos (`/infrastructure/ssm`); the SPA reads them at build (`/frontend/environment-config`).
 - New environment → its own pool + custom domain under the env subdomain; cert per env (`/infrastructure/acm`, `/infrastructure/route53`).
+
+## Pros & cons
+**Pros**
+- Native API GW JWT authorizer + hosted UI, no extra vendor/cost.
+- Public PKCE client — no secret to leak from the SPA.
+- Self-signup lets registered users subscribe themselves.
+**Cons**
+- Less flexible UI/flows than Auth0; AWS lock-in.
+- No confidential / `client_credentials` flow from the SPA.
+- Open signup surface — needs the REGIONAL WAF + email verification.

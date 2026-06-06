@@ -25,3 +25,11 @@ resource "aws_secretsmanager_secret_version" "x" {
 - Encrypted with the **AWS-managed key** by default (`/infrastructure/kms`); CMK only if cross-account/audit is needed.
 - Only the **ARN** is non-sensitive (fine in env var / SSM). The Lambda role gets `secretsmanager:GetSecretValue` scoped to `<project>/{env}/*` (`/infrastructure/iam`).
 - Provisioned today for: DocumentDB creds (`/infrastructure/documentdb`) and Redis AUTH (`/infrastructure/elasticache`); any future API keys/tokens as needed. (The Cognito app client is public/PKCE — no client secret; the BFF keeps no session — `/backend/bff`.)
+
+## Pros & cons
+**Pros**
+- Native rotation hooks, fine-grained IAM, and access auditing.
+- Only ARNs leave the boundary — the value never lands in SSM/tfvars/code.
+**Cons**
+- ~$0.40/secret/month vs free SSM.
+- One more service to reason about than plain env vars.

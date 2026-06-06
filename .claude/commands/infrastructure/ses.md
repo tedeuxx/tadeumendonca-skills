@@ -32,3 +32,11 @@ module "ses" {
 - New AWS accounts start in the **SES sandbox** (send only to verified addresses) — requesting production access is a manual, out-of-band step, not Terraform.
 - The BFF reaches SES via **NAT egress** (it's a public AWS endpoint, no VPC endpoint here) — `/infrastructure/vpc`.
 - **Encryption:** SES API is **TLS/SSL by default** (HTTPS), and outbound mail is sent with TLS to recipient MTAs. SES holds no at-rest datastore in our usage; if a configuration-set archive / S3 export is added later it must be **KMS-encrypted** (`/infrastructure/kms`).
+
+## Pros & cons
+**Pros**
+- No SMTP credential to store/rotate — the BFF role sends via the SES API.
+- One shared domain verification + DKIM across environments.
+**Cons**
+- Sending is tied to the Lambda role rather than portable SMTP creds.
+- Less env isolation of the sending identity; sandbox→production is a manual step.

@@ -125,3 +125,10 @@ Cognito **identity pool** unauthenticated role used by CloudWatch RUM to put eve
 ## Conventions
 - Role ARNs → SSM for app repos to assume at deploy (`/infrastructure/ssm`); app repos read `AWS_OIDC_ROLE_ARN`, never a rotatable GitHub secret.
 - Key choice + encryption requirements follow `/infrastructure/kms`; tagging via provider `default_tags` (`/infrastructure/terraform`).
+## Pros & cons
+**Pros**
+- One canonical authoring catalog — no policy JSON scattered across service skills.
+- Least-privilege + OIDC (no long-lived keys); per-service permission sets.
+**Cons**
+- The central file must stay in sync with each service's needs.
+- Least-privilege requires upkeep as features change.

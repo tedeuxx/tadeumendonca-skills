@@ -74,3 +74,12 @@ module "cloudfront" {
 - **`/og/*` behavior** routes to the `og-images` bucket so OG PNGs serve from the same distribution.
 - **Cache-header split** (immutable hashed assets vs `no-cache` index.html) is set by the **fed deploy**, not here (`/workflow/github-actions`).
 - CLOUDFRONT-scope WAF requires the us-east-1 alias (`/infrastructure/waf`); cert via `/infrastructure/acm`; distribution id to SSM `/{env}/frontend/cloudfront-distribution-id` (`/infrastructure/ssm`).
+## Pros & cons
+**Pros**
+- Global TLS edge with OAC — origin S3 stays private.
+- Lambda@Edge enables SEO/social crawling without SSR.
+- One distribution serves the SPA + `/og/*`.
+**Cons**
+- Lambda@Edge constraints: no VPC, us-east-1 only, slow propagation.
+- Cache invalidation/propagation latency.
+- PriceClass_100 = fewer edge locations (cost vs reach).

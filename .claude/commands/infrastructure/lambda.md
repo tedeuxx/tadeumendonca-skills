@@ -54,3 +54,10 @@ Same Pattern B, but: `publish = true`, `lambda_at_edge = true`, provider `aws.us
 ## Conventions
 - Env from IaC + Secrets Manager (`/backend/environment-config`, `/backend/secrets-management`); logs/metrics → `/infrastructure/cloudwatch`, tracing → `/infrastructure/cloudwatch-xray`.
 - Function name to SSM `/{env}/api/bff-function-name` (`/infrastructure/ssm`).
+## Pros & cons
+**Pros**
+- arm64 (Graviton) — cheaper, equal/better perf; in-VPC reaches DocDB/Redis.
+- Pattern B decouples code deploys from IaC (no TFC round-trip per code change).
+**Cons**
+- In-VPC ENI/cold-start overhead; 29s API GW timeout ceiling.
+- One BFF Lambda = a shared fault domain for all routes.

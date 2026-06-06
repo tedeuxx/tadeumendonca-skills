@@ -75,3 +75,13 @@ resource "aws_wafv2_web_acl_association" "api_gw" {       # aws_apigatewayv2_sta
 - SSM: `/{env}/auth/waf-regional-arn = module.waf_regional.web_acl_arn` (cross-file reference).
 - Logs go to an `aws-waf-logs-<project>-${env}` group (mandated prefix — `/infrastructure/cloudwatch`); WAF holds no at-rest data of its own. TLS is terminated at CloudFront / API GW, which enforce TLS 1.2+ (`/infrastructure/kms`).
 - `aws_wafv2_web_acl_association` is justified raw glue — no module abstracts the stage/user-pool association.
+
+## Pros & cons
+**Pros**
+- AWS-maintained managed rule groups + rate limit — OWASP-ish coverage for free.
+- `default_action=allow` (block-list) doesn't break legitimate traffic.
+- One shared REGIONAL WebACL for API GW + Cognito — one rule set, one bill.
+**Cons**
+- Less precise than hand-written rules.
+- A novel attack not matched by a rule passes (rate limit is the backstop).
+- Can't tune the API vs Cognito surfaces independently.
