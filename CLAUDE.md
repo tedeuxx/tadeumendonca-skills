@@ -16,28 +16,37 @@ starts — none are created ad-hoc during development.
 
 ## Installation
 
-The commands live under `.claude/commands/`. Install by either symlinking or copying that
-directory into the scope you want.
+These are Claude Code slash-commands under `.claude/commands/`. A consuming repo (`-iac`, `-api`,
+`-fed`) needs that directory present so Claude Code picks the commands up when you work inside it.
 
-**Per-project (recommended — keeps the guides versioned alongside the consuming repo):**
-
-```bash
-# from inside a consuming repo (e.g. tadeumendonca-api)
-ln -s ../tadeumendonca-skills/.claude/commands .claude/commands
-# or copy instead of symlink:
-cp -R ../tadeumendonca-skills/.claude/commands .claude/commands
-```
-
-**Global (available in every project on this machine):**
+**Recommended — vendor a pinned release (reproducible):** copy `.claude/commands` from a tagged
+release into the consuming repo and **commit it**, so every dev + CI gets the exact same guidance.
+Update with a controlled bump via a small script in the consuming repo:
 
 ```bash
-ln -s ~/git-reps/tadeumendonca-skills/.claude/commands ~/.claude/commands
-# or copy:
-cp -R ~/git-reps/tadeumendonca-skills/.claude/commands ~/.claude/commands
+# scripts/sync-skills.sh — pins the consuming repo to a skills version
+REF="${1:-v0.2.0}"
+TMP=$(mktemp -d)
+git clone --depth 1 --branch "$REF" https://github.com/<github-org>/tadeumendonca-skills "$TMP"
+rm -rf .claude/commands && cp -R "$TMP/.claude/commands" .claude/commands
+echo "$REF" > .claude/SKILLS_VERSION        # record the pinned version in the repo
+rm -rf "$TMP" && git add .claude && echo "skills synced to $REF"
 ```
 
-Once installed, the commands appear in Claude Code as slash commands grouped by capability
-(`/backend/...`, `/frontend/...`, `/infrastructure/...`, `/workflow/...`).
+**Local dev / skill authoring — symlink (always tip, not pinned):**
+
+```bash
+ln -s ../tadeumendonca-skills/.claude/commands .claude/commands             # per-repo
+ln -s ~/git-reps/tadeumendonca-skills/.claude/commands ~/.claude/commands   # global (all projects)
+```
+
+**Git submodule** — add the repo as a submodule at a tag and symlink `.claude/commands` to it
+(explicit pin without vendoring the content).
+
+Once present, the commands appear in Claude Code grouped by capability (`/architecture/...`,
+`/backend/...`, `/frontend/...`, `/infrastructure/...`, `/workflow/...`). The skills are **generic**
+(`<project>` / `<apex-domain>` placeholders) — Claude substitutes the real values per project
+(in `-iac`, these become `var.project` / `var.apex_domain`).
 
 ### Usage
 
@@ -49,6 +58,19 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 /infrastructure/cognito staging
 /workflow/github-actions production
 ```
+
+### Releasing a version
+
+Numeric SemVer, automated (`/workflow/versioning`). `develop` auto-bumps **patch** on each push.
+To cut a deliberate release, open a PR `develop → main` with the bump label:
+
+```bash
+gh pr create --base main --head develop --title "release: v0.2.0" --label semver:minor
+# on merge, version-main.yml bumps the version, tags vX.Y.Z, and creates the GitHub Release
+```
+
+Consuming repos then run `scripts/sync-skills.sh vX.Y.Z` to adopt it. Pin to a tag for
+reproducibility; never depend on `develop` tip in CI.
 
 ---
 
