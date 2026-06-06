@@ -7,8 +7,9 @@ Context: $ARGUMENTS
 Action types are the stable identifier behind **two things**:
 1. **Audit identification** — every user interaction with the app is written to the `audits` collection classified by its `action_type`. That constant is **how we identify, query, and filter what the user did** afterward (per-user activity, forensics, usage metrics) — see `/backend/audit-middleware`.
 2. **RBAC composition** — they're the unit of authorization (below).
+3. **Feature toggling per profile** — each capability is a named action, so a profile's enabled action-type set can be flipped via config/flags to turn features on/off **per role, with no code change** (and the frontend can read the session's allowed actions to show/hide UI).
 
-One constant, used by both — so audit and authz never drift.
+One constant, used by all three — so audit, authz, and feature flags never drift.
 
 ## Mandatory rule
 
@@ -64,6 +65,8 @@ export const authorize = (action: ActionType): MiddlewareHandler => async (c, ne
 ```
 
 Use it **only when needed** — the three-profile model (`/infrastructure/cognito`) via a simple group check is often enough; promote to an action-type RBAC map when permissions get finer-grained.
+
+**Feature toggles:** make the role→actions map **config-driven** (not hardcoded) to flip a profile's allowed set at runtime — turning features on/off per role via `/backend/environment-config` or a flags store, no deploy. Expose the session's allowed actions (e.g. via `/bff/me`) so the SPA renders UI accordingly.
 
 ## Pros / cons
 
