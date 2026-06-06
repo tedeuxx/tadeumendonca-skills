@@ -83,12 +83,13 @@ Type the command and pass context after it — Claude receives it as `$ARGUMENTS
 | `/backend/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
 | `/backend/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DocDB |
 
-### frontend/ (8)
+### frontend/ (9)
 
 | Command | Purpose |
 |---|---|
 | `/frontend/framework` | React + Vite SPA stack: router, React Query, Zustand, Cloudscape |
-| `/frontend/cognito-pkce` | SPA auth via Cognito SDK (Amplify); JWT validated by the API GW authorizer |
+| `/frontend/authentication` | SPA auth via Cognito SDK (Amplify); JWT validated by the API GW authorizer |
+| `/frontend/authorization` | SPA UI gating by groups/claims (cosmetic); real authz is server-side |
 | `/frontend/react-query-cursor` | Cursor-based pagination: useInfiniteQuery + infinite scroll |
 | `/frontend/cloudscape-patterns` | Which Cloudscape components for CV sections, feed, articles |
 | `/frontend/environment-config` | Vite VITE_* build-time env via typed env.ts (from SSM) |

@@ -10,7 +10,7 @@ A client-rendered single-page app on S3 + CloudFront. SEO is handled at the edge
 - **React 18 + TypeScript**, built with **Vite** (`vite build` → content-hashed assets in `dist/`).
 - **Routing:** `react-router-dom` v6 (`router.tsx`).
 - **Server state:** `@tanstack/react-query` — cursor pagination (`/frontend/react-query-cursor`).
-- **Client state:** `zustand` (+ persist) — auth store (`/frontend/cognito-pkce`).
+- **Client state:** `zustand` (+ persist) — auth store (`/frontend/authentication`).
 - **UI:** Cloudscape Design System (`/frontend/cloudscape-patterns`).
 - **Markdown:** `react-markdown` + `rehype-highlight` (articles).
 

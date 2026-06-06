@@ -53,5 +53,5 @@ Today the domain logic can live **inside** the BFF (modular monolith — fastest
 
 ## Conventions
 - Built on Hono (`/backend/hono`), in-VPC, Pattern B; **routes at root**; OpenAPI generated from them (`/backend/openapi`) = the contract API GW imports (`/infrastructure/api-gw-contract`).
-- **No auth code in the BFF** — claims come from the API GW Cognito authorizer (`/infrastructure/api-gateway`, `/infrastructure/cognito`); the SPA holds the JWT via the Cognito SDK (`/frontend/cognito-pkce`).
+- **No auth code in the BFF** — claims come from the API GW Cognito authorizer (`/infrastructure/api-gateway`, `/infrastructure/cognito`); the SPA holds the JWT via the Cognito SDK (`/frontend/authentication`).
 - One BFF per SPA. Keep it thin: read claims → orchestrate → shape. Domain rules belong in the domain logic/microservices.
