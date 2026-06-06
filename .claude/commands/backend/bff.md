@@ -4,7 +4,7 @@ Context: $ARGUMENTS
 
 ## Pattern: the BFF owns the session; the SPA holds no tokens
 
-The SPA never handles OAuth tokens. A **BFF Lambda** (Hono) runs the **OIDC Authorization Code + PKCE** flow server-side with Cognito, keeps the tokens server-side, and exposes the SPA only an **httpOnly, Secure, SameSite session cookie**. The BFF also proxies/aggregates the domain API for the frontend. This is the standard auth combo for the fed-SPA pattern — it removes tokens from the browser (XSS-safe) and lets responses be tailored to the UI.
+The SPA never handles OAuth tokens. A **dedicated BFF Lambda** (Hono — **one per SPA, 1:1**, never shared across frontends) runs the **OIDC Authorization Code + PKCE** flow server-side with Cognito, keeps the tokens server-side, and exposes the SPA only an **httpOnly, Secure, SameSite session cookie**. The BFF also proxies/aggregates the domain API for the frontend. This is the standard auth combo for the fed-SPA pattern — it removes tokens from the browser (XSS-safe) and lets responses be tailored to the UI.
 
 ## Endpoints (Hono, behind CloudFront / API GW at `/bff/*`)
 - `GET  /bff/login`    → redirect to the Cognito hosted UI (auth request, PKCE `code_challenge`, `state`).
