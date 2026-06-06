@@ -10,14 +10,16 @@ Each skill in this repo encodes a specific type of technical task I perform regu
 
 The goal: transfer domain knowledge into repeatable, high-quality AI-assisted workflows.
 
-## Domains
+## Capabilities (`.claude/commands/`)
 
-- `cloud/` — AWS architecture, cloud enablement, landing zone patterns
-- `backend/` — API design, distributed systems, event-driven architecture
-- `iac/` — Terraform module patterns, AWS resource provisioning
-- `devops/` — CI/CD, observability, GitLab/GitHub pipelines
-- `frontend/` — React, TypeScript, BFF patterns
-- `system-design/` — Architecture decisions, trade-off analysis
+- `architecture/` — reference patterns (the `fed-spa-bff` blueprint) tying the pieces together
+- `backend/` — Hono BFF on Lambda, DocumentDB, observability, OG/SEO, contract & test gates
+- `frontend/` — React + Vite SPA, Cognito auth, state/routing, design system, RUM, SEO
+- `infrastructure/` — one skill per AWS service/tool (Terraform parametrization, encryption, IAM)
+- `workflow/` — GitHub Actions CI/CD, numeric versioning, Terraform Cloud, SonarCloud, docs
+
+Generic, reusable templates — workload-specific values are `<project>` / `<apex-domain>` placeholders.
+See [`CLAUDE.md`](./CLAUDE.md) for the full command reference, install (vendor a pinned release), and versioning.
 
 ## Related
 
