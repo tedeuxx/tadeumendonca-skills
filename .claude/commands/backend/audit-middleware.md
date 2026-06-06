@@ -8,6 +8,11 @@ Conceptual skill — *what* an audit record is and how the trail works. The fram
 
 Every user interaction produces **one audit document** in the `audits` DocumentDB collection. The audit is taken **after** the handler runs: the request is timed, then the request/response + the caller's claims + the route's `action_type` are assembled into a document and inserted. Audit failures should be **fail-open** (logged, never breaking the request). The Authorization header and any credential material are excluded. `og-edge` (Lambda@Edge) writes no audit.
 
+## Identity — from the validated token, no session store
+The "who" comes from the **JWT claims** the API GW Cognito authorizer already validated and injected into the request (`sub`, `cognito:groups`) — read per request, **zero lookup, no session cache**. This is why the BFF stays stateless and Redis is cache-only (`/backend/redis-cache`).
+- **`user_id` = `sub`** is the canonical reference (always present).
+- **`email`** is usually not in the *access* token (it's in the id token) — include it via a Cognito **Pre-Token-Generation** trigger, or leave it null and **enrich `sub → profile` on demand** (that optional enrichment may be cached in Redis with a TTL — optional, not required for the audit "who").
+
 ## Document shape (`audits` collection)
 
 One document per user interaction (all fields snake_case):
