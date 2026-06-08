@@ -147,7 +147,7 @@ One skill per AWS service / tool used — each is the canonical parametrization 
 | `/infrastructure/cloudfront` | CloudFront: OAC, TLS, cache policies, **SPA error routing + /og/***, Lambda@Edge, WAF |
 | `/infrastructure/waf` | WAF CLOUDFRONT + REGIONAL (shared by API GW + Cognito) |
 | `/infrastructure/lambda` | Lambda: nodejs22/arm64, in-VPC, **Pattern B**, tracing; og-edge exception |
-| `/infrastructure/api-gateway` | API GW v2 HTTP: fronts only the BFF, per-route JWT authorizer, **contract reimport** |
+| `/infrastructure/api-gateway` | API GW (REST v1): fronts only the BFF, per-route Cognito authorizer, WAF-fronted, **contract via put-rest-api** |
 | `/infrastructure/cognito` | Cognito: user pool, 3 groups, PKCE public client, **custom domain** |
 | `/infrastructure/dynamodb` | DynamoDB: per-entity tables, on-demand, GSIs, PITR, IAM access, SSM table names |
 | `/infrastructure/elasticache` | ElastiCache Redis + AUTH in Secrets Manager + SSM |

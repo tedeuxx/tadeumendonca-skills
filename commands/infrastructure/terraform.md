@@ -78,9 +78,9 @@ variable "apex_domain" {
 
 ## Module sourcing & customization policy
 **Sourcing priority:**
-1. **Official first** — prefer official `terraform-aws-modules/*` (HashiCorp/AWS-maintained) for any resource that has one: `vpc`, `s3-bucket`, `cloudfront`, `apigateway-v2`, `lambda`, `iam`, `kms`, `dynamodb-table` (`~> 4.0`).
+1. **Official first** — prefer official `terraform-aws-modules/*` (HashiCorp/AWS-maintained) for any resource that has one: `vpc`, `s3-bucket`, `cloudfront`, `lambda`, `iam`, `kms`, `dynamodb-table` (`~> 4.0`).
 2. **Trusted non-official next** — only when no official module exists, use established sources with a track record: `cloudposse/*` (elasticache, ses, waf), `lgallard/*` (cognito — there is no official Cognito module). Never a low-reputation / unmaintained / single-author module.
-3. **Raw `aws_*` last** — justified glue only where no module abstracts the need: `aws_lambda_permission`, `aws_wafv2_web_acl_association`, the app-specific lambda SG, `aws_route53_record`, `aws_ssm_parameter`, `aws_secretsmanager_secret`. Note which gap each fills.
+3. **Raw `aws_*` last** — justified glue only where no module abstracts the need: **`aws_api_gateway_*`** (the REST API — no official module fits the OpenAPI-body + reimport flow, `/infrastructure/api-gateway`), `aws_lambda_permission`, `aws_wafv2_web_acl_association`, the app-specific lambda SG, `aws_route53_record`, `aws_ssm_parameter`, `aws_secretsmanager_secret`. Note which gap each fills.
 
 **Customization:**
 - **Use public modules integrally** through their documented inputs — do not fork, patch, or wrap to tweak behavior.

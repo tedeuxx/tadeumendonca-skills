@@ -21,8 +21,9 @@ VERSION=$(cat VERSION)
 - The **root `openapi.json` is vendor-neutral** — pure paths + schemas + security scheme references. This is the reviewable/consumable contract.
 - **When publishing to AWS API Gateway**, the spec must carry the **AWS-specific OpenAPI extensions** — produced as an overlay on top of the neutral contract, not committed at root:
   - `x-amazon-apigateway-integration` per route → the Lambda invoke ARN (`AWS_PROXY`) — single BFF integration (`/infrastructure/api-gateway`).
-  - `x-amazon-apigateway-authorizer` + `securitySchemes` → the Cognito JWT authorizer (issuer = pool URL, audience = client id, from SSM).
-  - Applied at deploy (envsubst) → `aws apigatewayv2 reimport-api …` (`/workflow/github-actions`).
+  - `x-amazon-apigateway-authorizer` + `securitySchemes` → the Cognito `cognito_user_pools` authorizer (provider ARN = the user pool, from SSM).
+  - **CORS**: `OPTIONS` (MOCK) per route + gateway responses set the `Access-Control-*` headers (the gateway owns CORS — `/infrastructure/api-gateway`).
+  - Applied at deploy (envsubst) → `aws apigateway put-rest-api --mode overwrite` + `create-deployment` (`/workflow/github-actions`).
 
 ## Downstream
 - **API Gateway:** root contract + AWS overlay → reimport — `/infrastructure/api-gateway`.

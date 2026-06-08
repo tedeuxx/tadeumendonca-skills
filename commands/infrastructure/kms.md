@@ -13,7 +13,7 @@ Verify **both axes** for every new resource before merge. `checkov` enforces man
 | Service | How | Skill |
 |---|---|---|
 | CloudFront | `minimum_protocol_version = "TLSv1.2_2021"`, `viewer_protocol_policy = redirect-to-https` | `/infrastructure/cloudfront` |
-| API GW v2 | HTTPS-only custom domain (ACM); no HTTP | `/infrastructure/api-gateway` |
+| API GW (REST) | HTTPS-only custom domain (ACM); no HTTP | `/infrastructure/api-gateway` |
 | Cognito hosted UI | HTTPS (ACM, us-east-1) | `/infrastructure/cognito` |
 | DynamoDB | reached over HTTPS via the Gateway VPC endpoint (AWS SDK TLS by default) | `/infrastructure/dynamodb`, `/backend/dynamodb` |
 | Redis | `transit_encryption_enabled = true` + AUTH token | `/infrastructure/elasticache` |

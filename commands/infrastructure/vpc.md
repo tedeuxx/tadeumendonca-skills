@@ -77,7 +77,7 @@ Downstream: `module.vpc.vpc_id` → redis SG · `module.vpc.private_subnets` →
 - **S3** and **DynamoDB** from Lambda route via their **Gateway endpoints** (free, AWS backbone over HTTPS) — never via NAT or the public internet.
 - **Redis (6379)** is reached **in-VPC over its security group** (off the NAT path), over TLS.
 - Only **Cognito JWT validation, Secrets Manager, and SES** egress via **NAT** (low volume, all HTTPS).
-- Lambda ENIs live in **private subnets**; API GW v2 and CloudFront are AWS-edge managed (not in the VPC).
+- Lambda ENIs live in **private subnets**; API GW and CloudFront are AWS-edge managed (not in the VPC).
 
 ## Notes
 - Lambda SG egress is limited to HTTPS (443) — **everything that crosses the VPC boundary is TLS** (`/infrastructure/kms`); flow logs are encrypted at the CloudWatch group.
