@@ -49,12 +49,13 @@ aws lambda update-function-code --function-name "$BFF_NAME" --s3-bucket "$S3_BUC
 # 3. deploy og-edge (us-east-1) + publish a new version (qualified ARN)
 aws lambda update-function-code --function-name "$EDGE_FN_NAME" --s3-bucket "$S3_BUCKET" --s3-key og-edge/latest.zip
 aws lambda publish-version --function-name "$EDGE_FN_NAME"
-# 4. reimport the contract (generated from code, /backend/openapi)
+# 4. republish the contract (generated from code, /backend/openapi) — REST API put + deploy
 API_ID=$(aws ssm get-parameter --name /$ENV_NAME/api/gateway-id --query Parameter.Value --output text)
 npx tsx scripts/gen-openapi.ts --version "$(cat VERSION)" --out openapi.json
-export COGNITO_ISSUER=... COGNITO_CLIENT_ID=... INVOKE_ARN_bff=...   # overlay single integration + authorizer
+export COGNITO_POOL_ARN=... COGNITO_CLIENT_ID=... INVOKE_ARN_bff=...   # overlay integration + authorizer + CORS
 envsubst < openapi/openapi.aws.tftpl.json > openapi/openapi.resolved.json
-aws apigatewayv2 reimport-api --api-id "$API_ID" --body file://openapi/openapi.resolved.json
+aws apigateway put-rest-api --rest-api-id "$API_ID" --mode overwrite --body fileb://openapi/openapi.resolved.json
+aws apigateway create-deployment --rest-api-id "$API_ID" --stage-name live   # publish the new spec
 ```
 
 ## Deploy — fed

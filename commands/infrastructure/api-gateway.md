@@ -1,86 +1,107 @@
-Use API Gateway v2 (HTTP API) in <project> infrastructure.
+Use API Gateway (REST API, v1) in <project> infrastructure.
 
 Context: $ARGUMENTS
 
-Module: `terraform-aws-modules/apigateway-v2/aws ~> 5.0` (the 6.x line requires the **aws v6 provider**, which conflicts with the project-wide `aws ~> 5.0` pin — `/infrastructure/terraform`; 5.x is the aws-5-compatible line). The API **fronts only the BFF** (`/backend/bff`): one `AWS_PROXY` integration, routes at the **root** (the API *is* the BFF).
+**REST API (v1), REGIONAL endpoint** — the conventional, full-featured gateway: it supports **WAF**, usage plans + API keys, request/response validation, and resource policies (an HTTP API/v2 has none of these). The API **fronts only the BFF** (`/backend/bff`): one `AWS_PROXY` (Lambda proxy) integration, routes at the **root** (the API *is* the BFF). No official `terraform-aws-modules` REST module fits the OpenAPI-body + Pattern-B reimport flow cleanly, so we use **raw `aws_api_gateway_*`** resources (justified glue — `/infrastructure/terraform`).
 
 ## Configuration (api.tf)
 ```hcl
-module "apigw" {
-  source  = "terraform-aws-modules/apigateway-v2/aws"
-  version = "~> 6.0"
-
-  protocol_type = "HTTP"                                       # HTTP API ($default stage, auto-deploy)
-
-  # custom domain is the STANDARD — the generated execute-api endpoint is never the public URL
-  domain_name                 = var.api_domain_name            # api.{env}.<apex-domain> (/infrastructure/route53)
-  domain_name_certificate_arn = data.aws_acm_certificate.main.arn  # us-east-1 (/infrastructure/acm)
-  create_certificate          = false                          # reuse the existing cert; do NOT let the module issue one
-
-  cors_configuration = {
-    allow_origins = ["https://${var.domain_name}"]             # the SPA host only
-    allow_methods = ["GET","POST","PUT","DELETE","OPTIONS"]
-    allow_headers = ["authorization","content-type"]
-    max_age       = 300
-  }
-
-  # IaC seeds the shell; the api repo owns the full contract
-  create_routes_and_integrations = false
+# REST API — body is the OpenAPI spec; IaC seeds GET /health, the api repo owns the full contract.
+resource "aws_api_gateway_rest_api" "this" {
+  name = "<project>-${var.environment}"
+  endpoint_configuration { types = ["REGIONAL"] }     # REGIONAL (not EDGE) — WAF + regional cert
   body = templatefile("${path.module}/bootstrap/openapi-health.json.tftpl", {
-    health_integration_uri = module.bff.lambda_function_invoke_arn          # seed GET /health
+    health_integration_uri = module.bff.lambda_function_invoke_arn   # seed GET /health → BFF
   })
+  lifecycle { ignore_changes = [body] }               # the api repo owns the body after first apply (put-rest-api)
 }
+
+resource "aws_api_gateway_deployment" "this" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  triggers    = { redeploy = sha1(aws_api_gateway_rest_api.this.body) }   # redeploy when the seed body changes
+  lifecycle { create_before_destroy = true }
+}
+
+resource "aws_api_gateway_stage" "this" {
+  rest_api_id           = aws_api_gateway_rest_api.this.id
+  deployment_id         = aws_api_gateway_deployment.this.id
+  stage_name            = "live"
+  xray_tracing_enabled  = true
+  # access logs → /infrastructure/cloudwatch
+}
+
+# stage throttling + per-method metrics (the conventional rate guard; usage plans/keys are also available)
+resource "aws_api_gateway_method_settings" "this" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  stage_name  = aws_api_gateway_stage.this.stage_name
+  method_path = "*/*"
+  settings { throttling_rate_limit = 1000, throttling_burst_limit = 2000, metrics_enabled = true }
+}
+
+# custom domain (REGIONAL) — the generated execute-api endpoint is never the public URL
+resource "aws_api_gateway_domain_name" "this" {
+  domain_name              = var.api_domain_name                  # api.{env}.<apex-domain>
+  regional_certificate_arn = data.aws_acm_certificate.main.arn    # us-east-1 regional cert (/infrastructure/acm)
+  endpoint_configuration { types = ["REGIONAL"] }
+  security_policy = "TLS_1_2"
+}
+resource "aws_api_gateway_base_path_mapping" "this" {
+  api_id      = aws_api_gateway_rest_api.this.id
+  stage_name  = aws_api_gateway_stage.this.stage_name
+  domain_name = aws_api_gateway_domain_name.this.domain_name
+}
+
 # broad invoke permission so reimported routes need no new grant
 resource "aws_lambda_permission" "apigw_bff" {
   action = "lambda:InvokeFunction"; function_name = module.bff.lambda_function_name
-  principal = "apigateway.amazonaws.com"; source_arn = "${module.apigw.api_execution_arn}/*/*"
+  principal = "apigateway.amazonaws.com"; source_arn = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
+# REGIONAL WAF → the stage (REST stages ARE WAF-associable, unlike HTTP APIs) — /infrastructure/waf
+resource "aws_wafv2_web_acl_association" "api_gw" {
+  resource_arn = aws_api_gateway_stage.this.arn
+  web_acl_arn  = module.waf_regional.arn
 }
 ```
-**Key knobs:** `protocol_type="HTTP"` (HTTP API, cheaper/faster than REST; no API key/usage plans needed), `$default` auto-deploy stage, `create_routes_and_integrations=false` (Terraform does **not** manage routes), single integration → BFF, CORS locked to the SPA host. **Stage throttling** (`stage_default_route_settings` — e.g. 1000 rate / 2000 burst) is the rate guard.
+**Key knobs:** `endpoint_configuration = REGIONAL` (EDGE would force the cert to us-east-1 *edge* + its own CloudFront — REGIONAL keeps it simple and WAF-associable with a regional WebACL); `lifecycle.ignore_changes = [body]` so an IaC apply never fights the api repo's `put-rest-api`; deployment redeploys on seed-body change; custom domain on the reused us-east-1 **regional** cert; `aws_api_gateway_method_settings` for stage throttling.
 
-> **No WAF on an HTTP API.** WAFv2 can't associate with API Gateway **v2 (HTTP APIs)** — only REST (v1) / ALB / CloudFront / Cognito. So the API is **not** WAF-fronted: it relies on **stage throttling** + the per-route **Cognito JWT authorizer** (below). The REGIONAL WAF covers the Cognito hosted UI only (`/infrastructure/waf`). If true WAF on the API is ever required, switch to a REST API or front the HTTP API with CloudFront.
+## Auth — Cognito authorizer (`COGNITO_USER_POOLS`), per route
+The OpenAPI body carries an `x-amazon-apigateway-authorizer` of type `cognito_user_pools` (provider ARN = the user pool) + per-route `security`. Public routes (health, public GETs, `/og-meta`, `/prerender`) open; mutations require the JWT. The SPA sends `Authorization: Bearer` (Cognito SDK); the BFF has **no auth code** — it reads `requestContext.authorizer.claims` (`/frontend/authentication`, `/backend/bff`).
 
-Also set `create_domain_records = false` on the module — it derives its own hosted zone from `domain_name` and mis-looks-it-up for a multi-level host; the A-alias is created explicitly in `/infrastructure/route53`.
+## CORS — owned by the API Gateway, defined in the OpenAPI body
+A REST API has **no `cors_configuration`** knob (that's an HTTP-API feature); CORS is the **gateway's** job here, expressed **in the OpenAPI body** so it is reproducible and survives every `put-rest-api --mode overwrite`:
+- An **`OPTIONS`** method per resource with a **MOCK** integration returns the preflight headers (`Access-Control-Allow-Origin` = the exact SPA host per env — never `*`, since we send `Authorization`; `-Allow-Methods`, `-Allow-Headers: authorization,content-type`; `Max-Age: 300`). The other methods proxy to the BFF.
+- **Gateway responses** (`DEFAULT_4XX`/`DEFAULT_5XX`) add `Access-Control-Allow-Origin` so error responses are also CORS-valid.
+- **`@hono/zod-openapi` generates this into the spec** (`/backend/openapi`); the iac seed body includes it for `GET /health`. **The BFF does NOT set CORS** (one owner), and CORS is **never** configured by hand in the console — `put-rest-api` would wipe a manual config on the next deploy.
 
-## Auth — Cognito JWT authorizer, per route
-`x-amazon-apigateway-authorizer`: issuer = pool URL, audience = client id (from SSM). Applied **per route**: public routes (health, public GETs, `/og-meta`, `/prerender`) open; mutations require the JWT. The SPA sends `Authorization: Bearer` (Cognito SDK); the BFF has **no auth code** — it reads `requestContext.authorizer.jwt.claims` (`/frontend/authentication`, `/backend/bff`).
-
-## Rate limiting — stage throttling (the HTTP API's only native rate guard)
-HTTP APIs have **no usage plans / API keys** (a REST-only feature) and **can't be WAF-fronted** — so throttling is the one native control. It's a **token bucket** on the `$default` stage, set via the module's `stage_default_route_settings`:
-```hcl
-stage_default_route_settings = {
-  throttling_rate_limit  = 1000   # steady-state requests/second (bucket refill rate)
-  throttling_burst_limit = 2000   # max burst (bucket depth) — short spikes above the rate
-  detailed_metrics_enabled = true # per-route CloudWatch metrics (tune limits from real traffic)
-}
-```
-- **Scope = per stage, account-wide aggregate — NOT per client/IP.** All callers share one bucket; over-limit requests get **HTTP 429**. A single abusive client can consume the budget, so this is overload protection, not per-IP abuse protection.
-- **`rate` vs `burst`:** `rate` is sustained throughput; `burst` absorbs short spikes (a page load firing several calls). Set `burst ≥ rate`; size both to expected peak concurrency, not averages. AWS account default is 10000 rate / 5000 burst — we set lower (e.g. 1000/2000) as a deliberate cost/abuse ceiling for a low-traffic site.
-- **Per-route overrides** are possible (`route_settings` per `METHOD /path`) — e.g. tighter limits on mutations, looser on `GET /health`. Default-stage settings suffice until a hot route needs its own.
-- **For real per-IP / per-client limiting** you need REST + usage plans, or **CloudFront + WAF rate-based rules** in front of the API (`/infrastructure/waf`) — not in scope for Phase 1-3.
+## Rate limiting — stage throttling + usage plans (REST has both)
+- **Stage throttling** (`aws_api_gateway_method_settings`, `*/*`): a token bucket — `throttling_rate_limit` (steady req/s) + `throttling_burst_limit` (spike depth); over-limit → **429**. Per-method overrides via a specific `method_path`. Aggregate per stage, not per-client.
+- **Usage plans + API keys** (`aws_api_gateway_usage_plan` + `_api_key` + `_usage_plan_key`): per-key quotas + throttles — REST-only. Not needed while the only consumer is the co-owned fed SPA (it authenticates with Cognito JWT, not API keys), but available if an external/partner consumer appears.
+- **WAF** rate-based rules (per-IP) front the stage via the REGIONAL WebACL (`/infrastructure/waf`) — the per-IP guard the HTTP API couldn't have.
 
 ## Contract ownership — IaC owns the shell, api repo owns the contract
-- **IaC (api.tf):** seed spec `bootstrap/openapi-health.json.tftpl` with only `GET /health`; `create_routes_and_integrations = false`.
-- **api repo:** owns the full root route set + authorizer. The OpenAPI is **generated from the Hono code** (`@hono/zod-openapi`, `/backend/openapi`) — not hand-written. On every deploy it generates the spec, overlays the **single AWS integration (the BFF Lambda)** + authorizer, and runs `reimport-api`:
+- **IaC (api.tf):** seed spec `bootstrap/openapi-health.json.tftpl` with only `GET /health`; `lifecycle.ignore_changes=[body]`.
+- **api repo:** owns the full root route set + authorizer. The OpenAPI is **generated from the Hono code** (`@hono/zod-openapi`, `/backend/openapi`) — not hand-written. On every deploy it generates the spec, overlays the **single AWS integration (the BFF Lambda)** + the Cognito authorizer, then **overwrites + redeploys**:
 ```bash
 API_ID=$(aws ssm get-parameter --name /$ENV_NAME/api/gateway-id --query 'Parameter.Value' --output text)
 npx tsx scripts/gen-openapi.ts --version "$(cat VERSION)" --out openapi.json   # version-stamped root copy
 envsubst < openapi/openapi.aws.tftpl.json > openapi/openapi.resolved.json      # overlay integration + issuer/audience
-aws apigatewayv2 reimport-api --api-id "$API_ID" --body file://openapi/openapi.resolved.json
+aws apigateway put-rest-api --rest-api-id "$API_ID" --mode overwrite --body fileb://openapi/openapi.resolved.json
+aws apigateway create-deployment --rest-api-id "$API_ID" --stage-name live      # publish the new spec
 ```
-Placeholders resolved at deploy: `${INVOKE_ARN_bff}` (every route → the one BFF Lambda), `${COGNITO_ISSUER}` = `https://cognito-idp.{region}.amazonaws.com/{pool-id}`, `${COGNITO_CLIENT_ID}`.
+Placeholders resolved at deploy: `${INVOKE_ARN_bff}` (every route → the one BFF Lambda), `${COGNITO_POOL_ARN}` = the user-pool ARN, `${COGNITO_CLIENT_ID}` (audience).
 
 **Pipeline independence:** if a future IaC apply resets the body to the seed, the api deploy is re-run manually — no cross-repo trigger (intentional).
 
-**No API versioning (Phase 1-3):** single co-owned consumer (the fed); versioning is overhead that only pays off with external consumers. Evolution: add a `/v2/` prefix + a new Lambda alias when needed.
+**No API versioning (Phase 1-3):** single co-owned consumer (the fed); versioning is overhead that only pays off with external consumers. Evolution: add a `/v2/` base path + a new Lambda alias when needed.
 
 ## Conventions
-- Cert via `/infrastructure/acm`; custom-domain naming via `/infrastructure/route53`; ids to SSM (`gateway-id`, `gateway-url`) via `/infrastructure/ssm`. Contract generation: `/backend/openapi`.
+- Cert via `/infrastructure/acm` (regional cert in us-east-1); custom-domain naming via `/infrastructure/route53` (alias → `aws_api_gateway_domain_name.regional_domain_name` / `regional_zone_id`); ids to SSM (`gateway-id` = REST API id, `gateway-url`) via `/infrastructure/ssm`. Contract generation: `/backend/openapi`.
+- Raw `aws_api_gateway_*` is justified glue (no official module fits the OpenAPI-body + reimport flow) — `/infrastructure/terraform`.
 ## Pros & cons
 **Pros**
-- HTTP API is cheaper/faster than REST; fronts only the BFF (one integration).
-- Per-route Cognito JWT authorizer keeps auth out of the BFF code.
-- Contract generated from code — no hand-written drift.
+- REST API is **WAF-associable** (per-IP managed rules + rate limiting) and supports usage plans / API keys / request validation — the conventional, full-featured choice.
+- Per-route Cognito authorizer keeps auth out of the BFF code; contract generated from code (no hand-written drift).
 **Cons**
-- HTTP API lacks REST features (request validation, usage plans, API keys) and **can't be WAF-fronted** — rate control is **per-stage throttling only** (aggregate, not per-IP).
-- All routing lives inside the BFF; the reimport step couples deploy to the generated spec.
+- ~3.5× the per-request cost of an HTTP API and a bit more latency; more moving resources (raw `aws_api_gateway_*`).
+- All routing lives inside the BFF; the put-rest-api + create-deployment step couples deploy to the generated spec.

@@ -40,7 +40,7 @@ module "waf_cloudfront" {
 # attached to CloudFront via web_acl_id = module.waf_cloudfront.web_acl_arn
 ```
 
-## REGIONAL scope (auth.tf) — Cognito hosted UI
+## REGIONAL scope — API GW (REST) stage + Cognito hosted UI
 ```hcl
 module "waf_regional" {
   source  = "cloudposse/waf/aws"
@@ -59,22 +59,25 @@ module "waf_regional" {
 ```
 **Choices that matter:** `default_action="allow"` (we block-list via rules, not allow-list); `override_action="none"` per managed group = the group's rules **block** (use `"count"` to tune a noisy group without blocking); rate-limit 2000 req / 5 min / IP; metrics + sampled requests on for tuning; REGIONAL adds KnownBadInputs on top of Common.
 
-> **The REGIONAL WAF protects the Cognito hosted UI only.** WAFv2 supports CloudFront, ALB, API Gateway **REST (v1)**, AppSync, Cognito user pools, App Runner — **not API Gateway v2 (HTTP APIs)**. Our API is an HTTP API (`/infrastructure/api-gateway`), so it **cannot** be WAF-associated; it relies on **stage throttling** + the per-route Cognito JWT authorizer instead. (To put WAF in front of the API you'd need a REST API or front it with CloudFront.)
+The REGIONAL WAF is **shared** by the **REST API stage** (`/infrastructure/api-gateway`) and the **Cognito hosted UI**. WAFv2 REGIONAL associates with API Gateway **REST (v1)**, ALB, AppSync, Cognito user pools, App Runner — note it does **not** support API Gateway **v2 (HTTP APIs)**; using a REST API is partly what makes this per-IP protection on the API possible.
 
-## Association (raw — no native WAF attribute on the user pool)
+## Associations (raw — no native WAF attribute on these resources)
 ```hcl
-resource "aws_wafv2_web_acl_association" "cognito" {     # Cognito hosted UI — open self-signup
+resource "aws_wafv2_web_acl_association" "cognito" {     # auth.tf — Cognito hosted UI (open self-signup)
   resource_arn = module.cognito.arn                      # lgallard user-pool ARN output
   web_acl_arn  = module.waf_regional.arn
 }
-# No API Gateway association — HTTP APIs (apigatewayv2) are not WAF-associable.
+resource "aws_wafv2_web_acl_association" "api_gw" {       # api.tf — REST API stage (WAF-associable)
+  resource_arn = aws_api_gateway_stage.this.arn
+  web_acl_arn  = module.waf_regional.arn
+}
 ```
 
 ## Notes
-- CLOUDFRONT WAF protects the SPA distribution; REGIONAL WAF protects the **Cognito hosted UI** (mitigates abuse on open signup). The HTTP API is **not** WAF-fronted (see the note above).
+- CLOUDFRONT WAF protects the SPA distribution; REGIONAL WAF is **shared** by the REST API stage + the Cognito hosted UI (mitigates abuse on open signup + the public API surface).
 - SSM: `/{env}/auth/waf-regional-arn = module.waf_regional.arn` (cross-file reference).
 - Logs go to an `aws-waf-logs-<project>-${env}` group (mandated prefix — `/infrastructure/cloudwatch`); WAF holds no at-rest data of its own. TLS is terminated at CloudFront / API GW, which enforce TLS 1.2+ (`/infrastructure/kms`).
-- `aws_wafv2_web_acl_association` is justified raw glue — no module abstracts the user-pool association.
+- `aws_wafv2_web_acl_association` is justified raw glue — no module abstracts the stage/user-pool association.
 
 ## Managed rules & OWASP coverage
 **Use AWS managed rule groups wherever possible** — AWS maintains the signatures, minimizing our operational overhead (no custom-rule upkeep). The chosen groups give **baseline OWASP Top 10-aligned coverage**:
@@ -87,8 +90,8 @@ Write a custom rule **only** when no managed group covers the need; tune a noisy
 **Pros**
 - AWS-maintained managed rule groups + rate limit — OWASP-ish coverage for free.
 - `default_action=allow` (block-list) doesn't break legitimate traffic.
-- One CLOUDFRONT + one REGIONAL WebACL (SPA edge + Cognito hosted UI) — managed rules, low upkeep.
+- One CLOUDFRONT + one REGIONAL WebACL (SPA edge + REST API stage + Cognito hosted UI) — managed rules, low upkeep.
 **Cons**
 - Less precise than hand-written rules.
 - A novel attack not matched by a rule passes (rate limit is the backstop).
-- HTTP API (apigatewayv2) can't be WAF-fronted — it falls back to stage throttling + JWT authz.
+- One shared REGIONAL WebACL for the REST API + Cognito — can't tune those surfaces independently.
