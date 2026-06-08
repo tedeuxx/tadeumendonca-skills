@@ -68,11 +68,32 @@ resource "aws_wafv2_web_acl_association" "api_gw" {
 ## Auth — Cognito authorizer (`COGNITO_USER_POOLS`), per route
 The OpenAPI body carries an `x-amazon-apigateway-authorizer` of type `cognito_user_pools` (provider ARN = the user pool) + per-route `security`. Public routes (health, public GETs, `/og-meta`, `/prerender`) open; mutations require the JWT. The SPA sends `Authorization: Bearer` (Cognito SDK); the BFF has **no auth code** — it reads `requestContext.authorizer.claims` (`/frontend/authentication`, `/backend/bff`).
 
-## CORS — owned by the API Gateway, defined in the OpenAPI body
-A REST API has **no `cors_configuration`** knob (that's an HTTP-API feature); CORS is the **gateway's** job here, expressed **in the OpenAPI body** so it is reproducible and survives every `put-rest-api --mode overwrite`:
-- An **`OPTIONS`** method per resource with a **MOCK** integration returns the preflight headers (`Access-Control-Allow-Origin` = the exact SPA host per env — never `*`, since we send `Authorization`; `-Allow-Methods`, `-Allow-Headers: authorization,content-type`; `Max-Age: 300`). The other methods proxy to the BFF.
-- **Gateway responses** (`DEFAULT_4XX`/`DEFAULT_5XX`) add `Access-Control-Allow-Origin` so error responses are also CORS-valid.
-- **`@hono/zod-openapi` generates this into the spec** (`/backend/openapi`); the iac seed body includes it for `GET /health`. **The BFF does NOT set CORS** (one owner), and CORS is **never** configured by hand in the console — `put-rest-api` would wipe a manual config on the next deploy.
+## CORS — in the OpenAPI body (preflight + errors), echoed by the BFF (success)
+A REST API has **no `cors_configuration`** knob (that's an HTTP-API feature), and with a single **Lambda-proxy** integration CORS is **necessarily split** — the gateway can't inject headers into a proxy *success* response. Put **everything reproducible in the OpenAPI body** (so it survives every `put-rest-api --mode overwrite` — never hand-configure CORS in the console):
+
+1. **Preflight** — an `OPTIONS` method per resource with a **MOCK** integration returns the headers (no Lambda call):
+```json
+"options": {
+  "responses": { "200": { "description": "CORS preflight",
+    "headers": { "Access-Control-Allow-Origin": {"schema":{"type":"string"}},
+                 "Access-Control-Allow-Methods": {"schema":{"type":"string"}},
+                 "Access-Control-Allow-Headers": {"schema":{"type":"string"}} } } },
+  "x-amazon-apigateway-integration": {
+    "type": "mock", "requestTemplates": { "application/json": "{\"statusCode\":200}" },
+    "responses": { "default": { "statusCode": "200", "responseParameters": {
+      "method.response.header.Access-Control-Allow-Origin":  "'https://${spa_host}'",   /* exact host, never * */
+      "method.response.header.Access-Control-Allow-Methods": "'GET,POST,PUT,DELETE,OPTIONS'",
+      "method.response.header.Access-Control-Allow-Headers": "'authorization,content-type'" } } } } }
+```
+2. **Error responses** — gateway responses add the origin to `4XX`/`5XX` (e.g. a 401 from the authorizer is gateway-generated, not from the BFF):
+```json
+"x-amazon-apigateway-gateway-responses": {
+  "DEFAULT_4XX": { "responseParameters": { "gatewayresponse.header.Access-Control-Allow-Origin": "'https://${spa_host}'" } },
+  "DEFAULT_5XX": { "responseParameters": { "gatewayresponse.header.Access-Control-Allow-Origin": "'https://${spa_host}'" } } }
+```
+3. **Success responses** — the proxy returns the **BFF's** response verbatim, so the BFF must set `Access-Control-Allow-Origin` on its 2xx (a one-line Hono `cors`/header — `/backend/bff`). The gateway can't add it to a proxy success.
+
+`@hono/zod-openapi` generates (1)+(2) into the overlay (`/backend/openapi`); the iac seed body includes them for `GET /health`. `${spa_host}` is the exact per-env SPA origin (`<apex-domain>` / `staging.<apex-domain>`) — **never `*`** (we send `Authorization`).
 
 ## Rate limiting — stage throttling + usage plans (REST has both)
 - **Stage throttling** (`aws_api_gateway_method_settings`, `*/*`): a token bucket — `throttling_rate_limit` (steady req/s) + `throttling_burst_limit` (spike depth); over-limit → **429**. Per-method overrides via a specific `method_path`. Aggregate per stage, not per-client.
