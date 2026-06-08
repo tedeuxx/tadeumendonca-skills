@@ -22,7 +22,7 @@ VERSION=$(cat VERSION)
 - **When publishing to AWS API Gateway**, the spec must carry the **AWS-specific OpenAPI extensions** — produced as an overlay on top of the neutral contract, not committed at root:
   - `x-amazon-apigateway-integration` per route → the Lambda invoke ARN (`AWS_PROXY`) — single BFF integration (`/infrastructure/api-gateway`).
   - `x-amazon-apigateway-authorizer` + `securitySchemes` → the Cognito `cognito_user_pools` authorizer (provider ARN = the user pool, from SSM).
-  - **CORS**: `OPTIONS` (MOCK) per route + gateway responses set the `Access-Control-*` headers (the gateway owns CORS — `/infrastructure/api-gateway`).
+  - **CORS** (preflight + errors): `OPTIONS` (MOCK) per route + `x-amazon-apigateway-gateway-responses` set the `Access-Control-*` headers in the spec; the BFF echoes the origin on 2xx (Lambda proxy) — `/infrastructure/api-gateway`.
   - Applied at deploy (envsubst) → `aws apigateway put-rest-api --mode overwrite` + `create-deployment` (`/workflow/github-actions`).
 
 ## Downstream
