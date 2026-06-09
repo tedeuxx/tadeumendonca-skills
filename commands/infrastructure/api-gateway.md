@@ -108,9 +108,14 @@ API_ID=$(aws ssm get-parameter --name /$ENV_NAME/api/gateway-id --query 'Paramet
 npx tsx scripts/gen-openapi.ts --version "$(cat VERSION)" --out openapi.json   # version-stamped root copy
 envsubst < openapi/openapi.aws.tftpl.json > openapi/openapi.resolved.json      # overlay integration + issuer/audience
 aws apigateway put-rest-api --rest-api-id "$API_ID" --mode overwrite --body fileb://openapi/openapi.resolved.json
+sleep 15                                                                         # see "deploy reliability" below
 aws apigateway create-deployment --rest-api-id "$API_ID" --stage-name live      # publish the new spec
 ```
 Placeholders resolved at deploy: `${INVOKE_ARN_bff}` (every route → the one BFF Lambda), `${COGNITO_POOL_ARN}` = the user-pool ARN, `${COGNITO_CLIENT_ID}` (audience).
+
+**Deploy reliability — two real gotchas (both cost a debugging cycle):**
+1. **Settle before deploying.** `put-rest-api --mode overwrite` returns synchronously but the resource graph settles **asynchronously** — an *immediate* `create-deployment` can snapshot BEFORE the newly-added routes register, so the live stage serves **403 "Missing Authentication Token"** for the new paths (old routes keep working, which is the confusing part). Sleep ~15s after `put-rest-api`, then deploy.
+2. **Deploy exactly ONCE.** `CreateDeployment` is aggressively rate-limited account-wide — two back-to-back calls trip **`TooManyRequestsException`**. Do not "deploy twice to be safe"; the settle in (1) is what fixes the race, not a second deployment.
 
 **Pipeline independence:** if a future IaC apply resets the body to the seed, the api deploy is re-run manually — no cross-repo trigger (intentional).
 

@@ -2,7 +2,7 @@ Provision or review SES (domain verification + DKIM) in <project>-iac (auth.tf).
 
 Context: $ARGUMENTS
 
-Module: **`cloudposse/ses/aws ~> 0.25`** (`/infrastructure/terraform`). Phase 1 verifies the domain identity + DKIM; sending lands in Phase 2 via the BFF notifications module (`/backend/notifications`).
+Module: **`cloudposse/ses/aws ~> 0.25`** (`/infrastructure/terraform`), in its own `ses.tf`. Verifies the sending domain identity + DKIM; sending lands in Phase 2 via the BFF notifications module (`/backend/notifications`).
 
 ## Configuration
 ```hcl
@@ -10,19 +10,20 @@ module "ses" {
   source  = "cloudposse/ses/aws"
   version = "~> 0.25"
 
-  domain        = "<apex-domain>"                 # root identity — shared across environments
+  domain        = local.frontend_host             # PER-ENV identity (staging.<apex> / <apex>) — see below
   zone_id       = data.aws_route53_zone.main.zone_id # module writes verification + DKIM records here
   verify_domain = true
   verify_dkim   = true
 
-  ses_user_enabled = false                           # NO SMTP IAM user — the BFF role sends via the SES API
+  ses_user_enabled  = false                          # NO SMTP IAM user — the BFF role sends via the SES API
   ses_group_enabled = false
+  name = "ses"; stage = var.environment; enabled = true
 }
 ```
 **Choices that matter:**
 - **`ses_user_enabled = false`** — we do **not** create an SES SMTP IAM user/credentials; the BFF Lambda sends through the SES API using its exec role (`ses:SendEmail` scoped to the identity ARN — `/infrastructure/iam`). No long-lived SMTP secret.
-- **Root domain identity** (`<apex-domain>`), not per-env — one verified domain; the from-address is `var.ses_from_address` (default `no-reply@<apex-domain>`).
-- `verify_dkim = true` — DKIM CNAMEs are auto-created in Route53 (`/infrastructure/route53`), required for deliverability.
+- **PER-ENV domain identity** (`local.frontend_host` = `staging.<apex>` / `<apex>`), NOT a single apex identity. *Why:* the two environments are **independent Terraform workspaces** and cannot both own the same apex SES identity in one account/region without colliding. Per-env identities isolate them; from-address = `no-reply@<frontend_host>` (a `local`). Trade-off: two verifications instead of one. (To share one identity instead, create it in ONE place and have the other env read it via a data source — never let both workspaces manage it.)
+- `verify_dkim = true` — DKIM CNAMEs are auto-created in Route53 (`/infrastructure/route53`), required for deliverability. Verification + DKIM flip to `Success` a few minutes after apply (Route53 propagation); the BFF can send once verified.
 
 ## Sending architecture (the full deliverability + ops picture)
 Beyond domain verification, a production sender needs:
