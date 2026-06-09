@@ -85,7 +85,7 @@ Prefer AWS **managed** CloudFront policies — no custom policy to maintain. Wha
 `aws_route53_record` type `A`, alias target = `module.cloudfront.cloudfront_distribution_domain_name`, `zone_id = "Z2FDTNDATAQYW2"` (CloudFront constant). See `/infrastructure/route53`.
 
 ## Conventions
-- **OAC, not OAI** — origin S3 buckets stay private; reach them via `s3_bucket_bucket_regional_domain_name` (`/infrastructure/s3`).
+- **OAC, not OAI** — origin S3 buckets stay private; reach them via `s3_bucket_bucket_regional_domain_name` (`/infrastructure/s3`). **OAC origins must be SSE-S3 (AES256), not SSE-KMS** under the `aws/s3` key — OAC can't `kms:Decrypt` it (the origin 403s); use a CMK granting CloudFront if KMS is required (`/infrastructure/kms`).
 - TLS ≥ `TLSv1.2_2021`, HTTPS redirect, compression on; encryption stance `/infrastructure/kms`.
 - **Lambda@Edge (og-edge)** at Viewer Request via `lambda_function_qualified_arn` — bot UA detection for OG/SEO, no SSR (`/backend/og-edge-handler`). CloudFront Functions only for trivial header/redirect logic.
 - **`/og/*` behavior** routes to the `og-images` bucket so OG PNGs serve from the same distribution.
