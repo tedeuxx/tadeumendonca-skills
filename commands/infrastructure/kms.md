@@ -24,7 +24,8 @@ Verify **both axes** for every new resource before merge. `checkov` enforces man
 |---|---|---|
 | DynamoDB | encrypted at rest by default (AWS-managed `aws/dynamodb` key) | `/infrastructure/dynamodb` |
 | Redis | `at_rest_encryption_enabled = true` | `/infrastructure/elasticache` |
-| S3 (×3) | **SSE-KMS** (`aws/s3` key + bucket keys) | `/infrastructure/s3` |
+| S3 artifacts | **SSE-KMS** (`aws/s3` key + bucket keys) | `/infrastructure/s3` |
+| S3 fed + og-images | **SSE-S3 (AES256)** — CloudFront OAC can't decrypt the `aws/s3` KMS key (see note) | `/infrastructure/s3` |
 | Secrets Manager | KMS (`aws/secretsmanager`) by default | `/infrastructure/secrets-manager` |
 | SNS topic + SQS DLQ | `kms_master_key_id` (`aws/sns`, `aws/sqs`) | `/infrastructure/sns` |
 | CloudWatch Logs | encrypted (CMK when required) | `/infrastructure/cloudwatch` |
@@ -41,7 +42,9 @@ Verify **both axes** for every new resource before merge. `checkov` enforces man
 - **Least privilege:** a CMK key policy grants `kms:Decrypt`/`Encrypt`/`GenerateDataKey` only to the roles that need it (e.g. the BFF exec role for Secrets/Redis/DynamoDB data keys — `/infrastructure/iam`) — never `kms:*` to `*`.
 
 ## Current stance
-Phase 1-3 use **AWS-managed keys** everywhere (DynamoDB, Redis, S3, Secrets Manager, CloudWatch Logs) — **no CMK yet**. Revisit if a compliance or key-sharing requirement appears.
+Phase 1-3 use **AWS-managed keys** everywhere (DynamoDB, Redis, Secrets Manager, CloudWatch Logs, the artifacts S3 bucket) — **no CMK yet**. Revisit if a compliance or key-sharing requirement appears.
+
+> **CloudFront-served buckets are the one at-rest exception — SSE-S3, not KMS.** CloudFront **OAC cannot decrypt** objects encrypted with the AWS-managed `aws/s3` KMS key: that key's policy is AWS-owned and can't grant the `cloudfront.amazonaws.com` service principal `kms:Decrypt`, so the origin 403s. So the **fed + og-images** buckets use **SSE-S3 (AES256)** (still encryption-at-rest; their content is public anyway). The KMS-preserving alternative is a **customer CMK** whose key policy grants CloudFront `kms:Decrypt` with a `Condition.StringEquals "AWS:SourceArn" = <distribution-arn>` — adopt that only if these buckets ever need KMS (it's the one case where a CMK buys something AWS-managed keys can't).
 
 ## Conventions
 - Never disable encryption to avoid key setup — use the AWS-managed key.
