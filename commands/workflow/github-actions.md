@@ -4,8 +4,18 @@ Context: $ARGUMENTS
 
 The single GitHub/CI-CD capability skill: the Actions platform, the branching + numeric-versioning model, the per-repo deploy workflows, and the Issues backlog all live here. Pipelines are **independent per repo** — never trigger one repo's pipeline from another.
 
-## Auth to AWS — OIDC, no long-lived keys
-Workflows assume an AWS role via **GitHub OIDC** (`aws-actions/configure-aws-credentials` with `role-to-assume` + `permissions: id-token: write`). The role ARN comes from SSM (`/infrastructure/iam`). **No `AWS_ACCESS_KEY_ID` secrets.**
+## Pipeline roles & AWS auth (OIDC) — what CI can do in the account
+Every pipeline assumes a dedicated AWS role via **GitHub OIDC** (`aws-actions/configure-aws-credentials` + `permissions: id-token: write`) — **no `AWS_ACCESS_KEY_ID` secrets**. A deploy role has two halves: the **trust policy = the OIDC handshake** (WHO may assume — `repo:<github-org>/<repo>:*` on the pre-existing GitHub OIDC provider) and a **least-privilege permissions policy** (WHAT it may do). All of this is a pipeline concern and lives here; **runtime IAM** (the Lambda exec role, the Cognito identity-pool role — what the *running app* uses) is `/infrastructure/iam`.
+
+| Pipeline role | Trust (OIDC subject) | Permissions (scoped, least-privilege) | Authored |
+|---|---|---|---|
+| **iac runner** `github-actions-<project>-iac` | `repo:<org>/<project>-iac:*` | broad provisioning — creates/updates/**deletes** all infra | **out-of-band** (it provisions everything, so can't self-manage) |
+| **api deploy** `github-actions-api-<env>` | `repo:<org>/<project>-api:*` | `lambda:UpdateFunctionCode`/`PublishVersion`/`GetFunction*` on `<project>-*-<env>`; `apigateway:PUT`/`POST`/`GET` on `/restapis/*`; `s3:PutObject`/`GetObject` (artifacts bucket); `ssm:GetParameter*` on `/{env}/*` | Terraform (`iam.tf`) |
+| **fed deploy** `github-actions-fed-<env>` | `repo:<org>/<project>-fed:*` | `s3:PutObject`/`DeleteObject`/`ListBucket` (fed bucket); `cloudfront:CreateInvalidation`; `ssm:GetParameter*` on `/{env}/*` | Terraform (`iam.tf`) |
+
+- **api/fed roles** are created by the **iac Terraform** (`iam.tf`, `iam-policy` + `iam-assumable-role-with-oidc` submodules) and their ARNs written to SSM `/{env}/iam/github-actions-{api,fed}-role-arn`; the app pipelines read `AWS_OIDC_ROLE_ARN` from SSM (never a rotatable secret). The Terraform lives in `iam.tf`, but the role is a **pipeline** concept — documented here.
+- **iac runner** is bootstrapped **out-of-band** (chicken-and-egg); its `<project>-iac-deploy` policy is maintained out-of-band. **Runner-policy gotcha — role deletion:** the runner must be able to **delete** every resource it creates, including IAM roles. The AWS provider calls **`iam:ListInstanceProfilesForRole`** (to detach instance profiles) **before** `iam:DeleteRole` — if the policy has `CreateRole`/`DeleteRole` but not `ListInstanceProfilesForRole` (+ `iam:ListRoleTags`), a `terraform destroy` of any role (e.g. a VPC's flow-log role) fails with `AccessDenied` **mid-apply**, orphaning the role + leaving inconsistent state. Grant those from the start.
+- The **GitHub OIDC provider** itself is **pre-existing** (landing zone), referenced by `provider_url`, not created. Confused-deputy guard: OIDC trust uses `StringLike` on `token.actions.githubusercontent.com:sub`.
 
 ## Secrets & environments
 - Repo secrets: `VERSION_BUMP_TOKEN`, `CLAUDE_CODE_OAUTH_TOKEN`, `SONAR_TOKEN`, `TFC_API_TOKEN` (iac), `AWS_OIDC_ROLE_ARN` (api/fed).
@@ -32,8 +42,7 @@ main ←── release/* ←── develop ←── feature/*
 **Versioning & tags** — numeric SemVer via bump-my-version on every push to `develop` (patch) / `main` (PR `semver:` label), with the `bump:` loop guard. All the rules live in **`/workflow/versioning`**; `version-develop.yml` / `version-main.yml` run it.
 
 ## Deploy — iac (Terraform)
-Role = the bootstrapped `github-actions-<project>-iac` OIDC role (broad provisioning perms; created **out-of-band** — it's the runner that provisions everything, so it can't be Terraform-managed by this repo; its policy `<project>-iac-deploy` is maintained out-of-band, not in iam.tf). State + locking live in Terraform Cloud, execution mode **Local** — GitHub runs `plan`/`apply` (`/workflow/terraform-cloud`); the `TFC_API_TOKEN` secret authenticates to TFC.
-- **Runner-policy gotcha — role deletion:** the runner must be able to **delete** every kind of resource it creates, including IAM roles. The AWS provider calls **`iam:ListInstanceProfilesForRole`** (to detach instance profiles) **before** `iam:DeleteRole`. If the policy has `CreateRole`/`DeleteRole` but not `ListInstanceProfilesForRole` (+ `iam:ListRoleTags`), a `terraform destroy` of any role (e.g. tearing down a VPC's flow-log role) fails with `AccessDenied` **mid-apply**, orphaning the role and leaving an inconsistent state. Grant those alongside the role-lifecycle actions from the start. (Terraform-authored IAM — Lambda exec roles, api/fed OIDC deploy roles — stays in `/infrastructure/iam`; this is the out-of-band runner that sits at the GitHub↔AWS boundary.)
+Uses the **iac runner** OIDC role (see the pipeline-roles table above — out-of-band, broad provisioning, role-deletion gotcha). State + locking live in Terraform Cloud, execution mode **Local** — GitHub runs `plan`/`apply` (`/workflow/terraform-cloud`); the `TFC_API_TOKEN` secret authenticates to TFC.
 - **`terraform-plan.yml` (PR):** `checkov -d terraform/` (block on HIGH) → `terraform fmt -check` + `validate` → `plan` (`TF_WORKSPACE=<project>-iac-<env>`, `-var-file=env/<env>.tfvars`) → post the plan as a PR comment.
 - **`terraform-deploy.yml`:** merge to `develop` → `apply` to **staging** (auto); merge to `main` → `apply` to **production**, gated by the `production` GitHub Environment approval.
 - On apply, IaC writes all SSM params → the api/fed pipelines read current values at their own deploy (`/infrastructure/ssm`). Pipelines stay **independent** — IaC never triggers the api/fed pipelines.
