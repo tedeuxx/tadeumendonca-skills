@@ -2,7 +2,7 @@ Use AWS Lambda in <project> infrastructure.
 
 Context: $ARGUMENTS
 
-Module: `terraform-aws-modules/lambda/aws ~> 7.0` (`/infrastructure/terraform`). The deployable set is **one BFF Lambda** (modular monolith — API GW fronts only it) **+ og-edge** (Lambda@Edge, separate). Exec-role permissions: `/infrastructure/iam`.
+Module: `terraform-aws-modules/lambda/aws ~> 7.0` (`/infrastructure/terraform`). The deployable set is **one BFF Lambda** (modular monolith — API GW fronts only it) **+ og-edge** (Lambda@Edge, separate) **+ fn-cognito-groups** (a small Cognito trigger that assigns federated users to `registered`/`admin` — `/infrastructure/cognito`). Exec-role permissions: `/infrastructure/iam`. The BFF config below is the canonical example; the others reuse the same module + Pattern-B/non-VPC choices.
 
 ## Configuration — the BFF Lambda (api.tf)
 ```hcl
