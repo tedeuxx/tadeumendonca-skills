@@ -85,7 +85,16 @@ assume_role_policy = jsonencode({ Version = "2012-10-17", Statement = [{
 - Inline: `s3:GetObject` on `arn:aws:s3:::<project>-og-images-${env}/*` (serve cached OG images). It calls the BFF's **public** routes over HTTPS — no IAM for that.
 - Created in **us-east-1** (global).
 
-### 3. RUM guest identity-pool role — NOT BUILT (future / only if CloudWatch RUM is added)
+### 3. Cognito trigger role (fn-cognito-groups)
+Trust = `lambda.amazonaws.com`. Managed: `AWSLambdaBasicExecutionRole`. Inline — assign federated users to groups (`/infrastructure/cognito`), scoped to the pool ARN:
+```hcl
+{ effect = "Allow",
+  actions = ["cognito-idp:AdminAddUserToGroup", "cognito-idp:AdminListGroupsForUser"],
+  resources = ["arn:aws:cognito-idp:${region}:${account}:userpool/${pool_id}"] }
+```
+Non-VPC. The **admin allowlist** (which emails get `admin`) is the trigger's config, not an IAM concern.
+
+### 4. RUM guest identity-pool role — NOT BUILT (future / only if CloudWatch RUM is added)
 > We currently have **only a Cognito User Pool** (authentication — issues JWTs the SPA sends to the API GW authorizer). There is **NO identity pool** deployed. An **identity pool is a different service**: it vends **temporary AWS credentials** (via STS) so a *browser* can call AWS APIs **directly**. The only reason to add one is **CloudWatch RUM** (real-user monitoring — the browser calls `rum:PutRumEvents`). RUM is not in Phases 1-3, so this role does not exist yet.
 
 When/if RUM lands: a Cognito **identity pool** unauthenticated (guest) role (`/infrastructure/cloudwatch-rum`). Trust = `cognito-identity.amazonaws.com` with `Condition.StringEquals "cognito-identity.amazonaws.com:aud" = <identity_pool_id>` and `ForAnyValue:StringLike "amr" = "unauthenticated"`. Inline: `rum:PutRumEvents` scoped to the app-monitor ARN. **User-Pool-only is the default** — add an identity pool solely for a browser-direct-AWS feature like RUM.
