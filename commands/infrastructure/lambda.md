@@ -23,10 +23,10 @@ module "bff" {
   ignore_source_code_hash = true
   s3_existing_package     = { bucket = module.artifacts_bucket.s3_bucket_id, key = "bff/bootstrap.zip" }
 
-  # in-VPC (private subnets) — reaches DynamoDB via the Gateway endpoint + Redis over its SG
-  vpc_subnet_ids         = module.vpc.private_subnets
-  vpc_security_group_ids = [aws_security_group.lambda.id]
-  attach_network_policy  = true      # AWSLambdaVPCAccessExecutionRole (ENIs)
+  # NON-VPC by default — see "VPC decision" below. (Add only when an in-VPC dependency like Redis lands:
+  #   vpc_subnet_ids = module.vpc.private_subnets
+  #   vpc_security_group_ids = [aws_security_group.lambda.id]
+  #   attach_network_policy = true )  # AWSLambdaVPCAccessExecutionRole (ENIs)
 
   environment_variables = {          # non-secret config + table names + secret ARNs (/backend/environment-config)
     ENVIRONMENT = var.environment, LOG_LEVEL = "INFO", POWERTOOLS_SERVICE_NAME = "bff",
@@ -35,8 +35,8 @@ module "bff" {
     ARTICLES_TABLE_NAME = module.articles_table.dynamodb_table_id,
     SUBSCRIPTIONS_TABLE_NAME = module.subscriptions_table.dynamodb_table_id,
     AUDITS_TABLE_NAME = module.audits_table.dynamodb_table_id,
-    REDIS_ENDPOINT = module.redis.endpoint, REDIS_SECRET_ARN = aws_secretsmanager_secret.redis.arn,
-    OG_IMAGES_BUCKET = module.og_images_bucket.s3_bucket_id, SNS_TOPIC_ARN = module.sns_domain_events.topic_arn
+    OG_IMAGES_BUCKET = module.og_images_bucket.s3_bucket_id,
+    # REDIS_ENDPOINT / REDIS_SECRET_ARN / SNS_TOPIC_ARN added when those components land (Redis forces in-VPC).
   }
 
   # least-privilege exec role — statements defined in /infrastructure/iam (BFF role)
@@ -44,7 +44,23 @@ module "bff" {
   policy_statements        = local.bff_policy_statements
 }
 ```
-**Key knobs:** `architectures=["arm64"]` always; `timeout=29` (API GW ceiling); `memory_size=256` (OG image deps); `tracing_mode="Active"`; in-VPC (private subnets + lambda SG). Provisioned concurrency: **none** (cost). Never `Resource="*"` policies — see `/infrastructure/iam`.
+**Key knobs:** `architectures=["arm64"]` always; `timeout=29` (API GW ceiling); `memory_size=256` (OG image deps); `tracing_mode="Active"`; **VPC posture is an owner choice** (see below). Provisioned concurrency: **none** (cost). Never `Resource="*"` policies — see `/infrastructure/iam`.
+
+## VPC posture — a security × cost decision (ASK the owner; can differ per env)
+This is **not** a fixed default — it's a deliberate trade-off the owner picks (per the project's "no solo architectural decisions" rule), and it may differ per environment (e.g. non-VPC staging for cost, in-VPC production for posture). Present both:
+
+**Option A — Non-VPC** (Lambda on AWS-managed networking)
+- *Cost/perf (pro):* **no NAT Gateway** (~$33/mo per env, ~$66/mo prod one-per-AZ) and **faster cold starts** (no ENI attach).
+- *Security (con):* egress goes straight to AWS **service endpoints** (still IAM-auth'd + TLS; Lambda has no inbound either way) — but **no private-subnet isolation, no SG egress control, no VPC flow logs** for the function. Cannot reach VPC-only resources.
+- *Mechanics:* omit `vpc_subnet_ids`/`vpc_security_group_ids`/`attach_network_policy`. If the BFF is the only would-be VPC consumer, **don't create `vpc.tf` at all** (no VPC ⇒ no NAT). DynamoDB/S3 Gateway endpoints are a latency/data-cost nicety, **not** a reason to be in-VPC.
+
+**Option B — In-VPC** (private subnets)
+- *Security (pro):* network isolation, **SG-based egress control + flow logs**, and the **only** way to reach in-VPC resources (ElastiCache/**Redis**, RDS, private ALB). Often a compliance/posture requirement.
+- *Cost (con):* ENI cold-start latency + the egress cost below.
+- *Mechanics:* add the three vpc_* knobs + the lambda SG + the VPC (`/infrastructure/vpc`). **Mandatory** once an in-VPC dependency exists.
+- *Egress sub-choice (also security × cost):* reach AWS service APIs via a **NAT Gateway** (~$33–66/mo flat, leaves the VPC) **or** **Interface VPC Endpoints/PrivateLink** (fully private on the AWS backbone, ~$7/mo per service per AZ — can drop the NAT). S3/DynamoDB always use the free Gateway endpoints. See `/infrastructure/vpc` "Egress posture".
+
+Switching A↔B later is a clean, reversible change. **Lambda@Edge (og-edge) is always non-VPC** (the edge can't be in a VPC — not a choice).
 
 ## Pattern B — IaC owns config, api repo ships code
 IaC provisions the Lambda with a placeholder zip; the api repo deploys code via `update-function-code`. Terraform never manages the code artifact after first apply.
@@ -60,12 +76,12 @@ Same Pattern B, but: `publish = true`, `lambda_at_edge = true`, provider `aws.us
 - Function name to SSM `/{env}/api/bff-function-name` (`/infrastructure/ssm`).
 ## Encryption
 - **Env vars** are encrypted at rest with the **AWS-managed Lambda key** by default — kept (no CMK), because the env holds only non-secret config + **secret ARNs** (the secrets live in Secrets Manager, `/backend/secrets-management`). Set `kms_key_arn` only if a CMK is mandated (`/infrastructure/kms`).
-- In transit: everything the BFF calls is TLS (DynamoDB, Redis, AWS APIs); it runs in private subnets (`/infrastructure/vpc`).
+- In transit: everything the BFF calls is TLS (DynamoDB, AWS APIs). Non-VPC by default (`/infrastructure/vpc`); in private subnets only when an in-VPC dependency forces it.
 
 ## Pros & cons
 **Pros**
-- arm64 (Graviton) — cheaper, equal/better perf; in-VPC reaches DynamoDB (Gateway endpoint) + Redis.
+- arm64 (Graviton) — cheaper, equal/better perf. Non-VPC by default → no NAT, faster cold starts.
 - Pattern B decouples code deploys from IaC (no TFC round-trip per code change).
 **Cons**
-- In-VPC ENI/cold-start overhead; 29s API GW timeout ceiling.
-- One BFF Lambda = a shared fault domain for all routes.
+- 29s API GW timeout ceiling; one BFF Lambda = a shared fault domain for all routes.
+- Going in-VPC later (for Redis/RDS) reintroduces ENI cold-start overhead + the NAT cost.
