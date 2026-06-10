@@ -129,7 +129,7 @@ module "oidc_fed" { /* same shape, fed repo + module.policy_fed_deploy.arn */ }
 Cognito **identity pool** unauthenticated role used by CloudWatch RUM to put events (`/infrastructure/cloudwatch-rum`). Trust = `cognito-identity.amazonaws.com` with `Condition.StringEquals "cognito-identity.amazonaws.com:aud" = <identity_pool_id>` and `ForAnyValue:StringLike "amr" = "unauthenticated"`. Inline: `rum:PutRumEvents` scoped to the app-monitor ARN.
 
 ### 5. iac repo's own deploy role
-`github-actions-<project>-iac` is **bootstrapped out-of-band** (chicken-and-egg) — a one-time landing-zone task in the plan, not Terraform-managed here.
+`github-actions-<project>-iac` is **bootstrapped out-of-band** (chicken-and-egg) — a one-time landing-zone task in the plan, not Terraform-managed here. This catalog owns only **Terraform-authored** IAM (Lambda exec roles, the api/fed OIDC deploy roles above, identity-pool roles). The out-of-band runner role + its `<project>-iac-deploy` policy (and the role-deletion permission gotcha) live with the GitHub↔AWS access boundary — **`/workflow/github-actions`**.
 
 ## Conventions
 - Role ARNs → SSM for app repos to assume at deploy (`/infrastructure/ssm`); app repos read `AWS_OIDC_ROLE_ARN`, never a rotatable GitHub secret.

@@ -4,6 +4,8 @@ Context: $ARGUMENTS
 
 Module: **`terraform-aws-modules/vpc/aws ~> 5.0`** (`/infrastructure/terraform`).
 
+> **First decide IF you need a VPC at all — it's a security × cost trade-off, ASK the owner.** A VPC is only required when something must be **in-VPC** (ElastiCache/Redis, RDS, a private ALB). The BFF Lambda can run **non-VPC** and still reach DynamoDB/S3/SES/Cognito over public AWS endpoints with IAM (`/infrastructure/lambda` "VPC posture"). The cost driver is the **NAT Gateway (~$33/mo per env, ~$66 prod one-per-AZ)** — pure overhead if nothing genuinely needs the private network. The security side is network isolation + SG egress control + flow logs. Lay out both options (per "no solo architectural decisions") and let the owner choose — possibly differently per env. If they choose non-VPC and nothing else needs the network, **skip `vpc.tf` entirely** (no VPC ⇒ no NAT, no Gateway endpoints, no flow logs, no lambda SG). The config below applies once a VPC is warranted.
+
 ## Configuration
 ```hcl
 module "vpc" {
@@ -56,7 +58,7 @@ module "vpc_endpoints" {
   }
 }
 ```
-**Choices that matter:** 2 AZs; `/16` VPC, `/24` subnets (8-bit, public `+1..`, private `+11..`); `map_public_ip_on_launch=false` + locked default SG (nothing reachable by accident); NAT single (stg) vs per-AZ (prod); **S3 + DynamoDB Gateway endpoints** (no interface endpoints — low cross-NAT volume doesn't justify the cost); flow logs ALL with 60s aggregation, retention per env.
+**Choices that matter:** 2 AZs; `/16` VPC, `/24` subnets (8-bit, public `+1..`, private `+11..`); `map_public_ip_on_launch=false` + locked default SG (nothing reachable by accident); NAT single (stg) vs per-AZ (prod); **S3 + DynamoDB Gateway endpoints** (always — they're free); **Interface endpoints vs NAT is an owner choice — see "Egress posture" below**; flow logs ALL with 60s aggregation, retention per env.
 
 ## Lambda security group (raw — app-specific, out of module scope)
 ```hcl
@@ -73,10 +75,23 @@ resource "aws_security_group" "lambda" {
 ```
 Downstream: `module.vpc.vpc_id` → redis SG · `module.vpc.private_subnets` → lambda/redis subnets · `aws_security_group.lambda.id` → lambda `vpc_security_group_ids`, redis `allowed_security_groups`.
 
-## Traffic design — communication preferences
-- **S3** and **DynamoDB** from Lambda route via their **Gateway endpoints** (free, AWS backbone over HTTPS) — never via NAT or the public internet.
+## Egress posture for AWS service APIs — a security × cost decision (ASK the owner)
+Once in-VPC, **how the Lambda reaches AWS service APIs** (SES, Cognito-idp, SSM, Secrets Manager, STS, logs, X-Ray, KMS) is itself a trade-off — present both, same rule as the non-VPC question (`/infrastructure/lambda`). S3 + DynamoDB always use the **free Gateway endpoints** either way.
+
+**Option 1 — NAT Gateway:** one flat egress path to all of AWS (and the internet). *Pro:* simple, reaches anything, ~$33/mo (stg single) regardless of how many services. *Con:* traffic leaves the VPC to public endpoints (not "private"), ~$66/mo prod, + $/GB processed.
+
+**Option 2 — Interface VPC Endpoints (PrivateLink):** one endpoint per service (`com.amazonaws.<region>.<service>`), traffic stays **fully on the AWS backbone — never the public internet** (strongest network posture; often a compliance requirement). *Pro:* private, can **drop the NAT entirely** if every service the BFF calls has an endpoint. *Con:* **~$7/mo per endpoint per AZ + $0.01/GB** — cost scales with the number of distinct services × AZs, so it's *cheaper* than NAT for a couple of services but *pricier* for many. No internet egress (can't call non-AWS APIs).
+```hcl
+# add to the vpc-endpoints module alongside the S3/DynamoDB Gateway entries:
+#   secretsmanager = { service = "secretsmanager", service_type = "Interface", subnet_ids = module.vpc.private_subnets, security_group_ids = [aws_security_group.endpoints.id], private_dns_enabled = true }
+#   ses, ssm, sts, logs, xray, kms, cognito-idp … one per service the BFF actually calls
+```
+Rule of thumb: **few AWS services + need privacy → Interface endpoints (no NAT); many services or need internet egress → NAT; no in-VPC dependency at all → non-VPC** (`/infrastructure/lambda`).
+
+## Traffic design (in-VPC)
+- **S3** and **DynamoDB** route via their **Gateway endpoints** (free, AWS backbone over HTTPS) — never via NAT or the public internet, under any posture.
 - **Redis (6379)** is reached **in-VPC over its security group** (off the NAT path), over TLS.
-- Only **Cognito JWT validation, Secrets Manager, and SES** egress via **NAT** (low volume, all HTTPS).
+- Other AWS APIs (Cognito, Secrets Manager, SES, …) egress via **NAT or Interface endpoints** per the posture chosen above.
 - Lambda ENIs live in **private subnets**; API GW and CloudFront are AWS-edge managed (not in the VPC).
 
 ## Notes
