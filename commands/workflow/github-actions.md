@@ -22,7 +22,7 @@ Every pipeline assumes a dedicated AWS role via **GitHub OIDC** (`aws-actions/co
 - **Environments:** `staging` (no rules) + `production` (required reviewer) — production deploys gate on environment approval.
 
 ## Workflow set (per repo)
-- `ci.yml` — PR: lint + typecheck + tests + **SonarCloud** + security gates (`/backend/coverage`, `/frontend/coverage`, `/workflow/sonarcloud`).
+- `ci.yml` (api/fed) — **PR + push to develop/main**: lint + typecheck + tests + **SonarCloud** gate + security gates (`/backend/coverage`, `/frontend/coverage`, `/workflow/sonarcloud`). Push to develop/main sets SonarCloud's new-code baseline. iac has no `ci.yml` — its gates are `terraform-plan.yml` (checkov) + `sonar.yml` (SonarCloud IaC).
 - `deploy.yml` — develop→staging (auto), main→production (approval); iac uses `terraform-plan.yml` + `terraform-deploy.yml` (`/workflow/terraform-cloud`).
 - `version-develop.yml` / `version-main.yml` — numeric SemVer bump (below).
 - `claude.yml` + `claude-code-review.yml` — Claude GitHub App (assistant + auto review) — `/workflow/claude-code`.
@@ -45,6 +45,7 @@ main ←── release/* ←── develop ←── feature/*
 Uses the **iac runner** OIDC role (see the pipeline-roles table above — out-of-band, broad provisioning, role-deletion gotcha). State + locking live in Terraform Cloud, execution mode **Local** — GitHub runs `plan`/`apply` (`/workflow/terraform-cloud`); the `TFC_API_TOKEN` secret authenticates to TFC.
 - **`terraform-plan.yml` (PR):** `checkov -d terraform/` (block on HIGH) → `terraform fmt -check` + `validate` → `plan` (`TF_WORKSPACE=<project>-iac-<env>`, `-var-file=env/<env>.tfvars`) → post the plan as a PR comment.
 - **`terraform-deploy.yml`:** merge to `develop` → `apply` to **staging** (auto); merge to `main` → `apply` to **production**, gated by the `production` GitHub Environment approval.
+- **`sonar.yml` (PR + push to develop/main):** standalone **SonarCloud IaC** quality gate on `terraform/` (`/workflow/sonarcloud`) — separate from `terraform-plan.yml` so push runs the scan without the AWS-OIDC plan; checkov stays in `terraform-plan.yml` (complementary).
 - On apply, IaC writes all SSM params → the api/fed pipelines read current values at their own deploy (`/infrastructure/ssm`). Pipelines stay **independent** — IaC never triggers the api/fed pipelines.
 
 ## Deploy — api (the BFF)

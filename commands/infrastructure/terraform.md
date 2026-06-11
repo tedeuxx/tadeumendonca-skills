@@ -113,7 +113,8 @@ locals { tags = { Project = "<project>", Environment = var.environment, ManagedB
 - Raw glue resources only where no module abstracts (`aws_route53_record`, `aws_lambda_permission`, `aws_wafv2_web_acl_association`, lambda SG).
 
 ## CI/CD (.github/workflows)
-- `terraform-plan.yml` (PR): `checkov -d terraform/` (block on HIGH) → `validate` → `plan` → comment.
+- `terraform-plan.yml` (PR): `checkov -d terraform/` (fail on any unsuppressed finding) → `fmt -check` → `validate` → `plan` → comment.
+- `sonar.yml` (PR + push to develop/main): **SonarCloud IaC** scan of `terraform/` (`/workflow/sonarcloud`) — code smells + security hotspots, gate blocks. **Complementary to checkov, not a replacement** (checkov = policy/security; Sonar = maintainability + the quality gate). Kept standalone (not a job in `terraform-plan.yml`) so it can run on push for the new-code baseline without firing the AWS-OIDC plan.
 - `terraform-deploy.yml`: develop → staging auto-apply; main → production (Environment approval).
 - `version-develop/main.yml`: numeric SemVer (`/workflow/github-actions`).
 
