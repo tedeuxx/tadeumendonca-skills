@@ -55,7 +55,20 @@ await ddb.send(new QueryCommand({
   KeyConditionExpression: 'tag = :t', ExpressionAttributeValues: { ':t': tag },
 }));
 ```
-**`Query`/`GetItem` only — never `Scan` in a hot path** (it reads the whole table). Every list access has a matching GSI (`/infrastructure/dynamodb`). Read-heavy reads go through cache-aside (`/backend/redis-cache`). The BFF shapes responses (`/backend/bff`).
+**`Query`/`GetItem` only — never `Scan`.** A Scan reads the WHOLE table and filters after, so cost + latency scale with table **size**, not the result — and it's not just slow: the BFF exec role grants **no `dynamodb:Scan`** (`/infrastructure/iam`), so a Scan **fails at runtime with `AccessDeniedException` → 500**. There is **no "low-volume exception"** (this exact trap once took the feed down: the articles list/feed Scanned a "low-volume" table and 500'd). Every list access has a matching GSI (`/infrastructure/dynamodb`). For **"list all published X, newest-first"**, add a **sparse `by-created` GSI** — see the recipe below. Read-heavy reads go through cache-aside (`/backend/redis-cache`).
+
+### "List all published, newest-first" — sparse `by-created` GSI (NOT a Scan)
+The pattern used by both `posts` and `articles`. A constant partition key (`gsi_pk = "POST"` / `"ARTICLE"`) is written **only when the item should appear in the list** (i.e. iff `published`), with `created_at` as the range key. The index is **sparse** (drafts carry no `gsi_pk`, so they're absent), so a single `Query` returns exactly the published items, newest-first, paginated — no Scan, no `FilterExpression`.
+```typescript
+// write: set the sparse key iff published; removeUndefinedValues drops it when not (→ leaves the index)
+const item = { ...entity, gsi_pk: entity.published ? 'ARTICLE' : undefined };
+// read: Query the sparse GSI (no Scan, no filter)
+await ddb.send(new QueryCommand({
+  TableName: TABLES.articles, IndexName: 'by-created', ScanIndexForward: false, Limit,
+  KeyConditionExpression: 'gsi_pk = :pk', ExpressionAttributeValues: { ':pk': 'ARTICLE' },
+}));
+```
+Adding such a GSI to an existing table is online, but **backfill** the key on already-stored rows (a one-off migration) or they won't appear until next write.
 
 ## Cursor pagination (server-side — `LastEvaluatedKey`)
 The opaque cursor is the base64 of DynamoDB's `LastEvaluatedKey`; feed lists via the `by-created` GSI (constant PK + `created_at`):
