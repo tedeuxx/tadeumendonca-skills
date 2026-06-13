@@ -33,6 +33,7 @@ Repositories reference `TABLES.x` — no scattered table-name string literals in
 
 ## Item conventions
 - **snake_case attributes** everywhere (table = TS type = JSON) — no mapping layer.
+- **English entity names** — repository, TS type, and keys use the English domain noun (`poll`/`poll_id`, never `pesquisa`/`pesquisa_id`) even when the UI label is pt-BR ("Enquete"). Canonical rule + rationale in `/infrastructure/dynamodb`.
 - Each table's hash key is the entity id (`profile_id`, `post_id`, `article_id`); `subscriptions` is keyed by `email`. Timestamps `created_at` / `updated_at` as ISO-8601 strings (sortable).
 - DynamoDB is **schemaless except for keys** — only key/GSI attributes are declared in IaC; the rest of the aggregate is just stored.
 
