@@ -7,6 +7,8 @@ Infra side (tables + GSIs + PITR + SSM). The api-side client is `/backend/dynamo
 ## Per-entity tables (not single-table)
 One table per entity — maps 1:1 to the domain aggregates, each evolves independently, and on-demand makes the extra tables free at rest. Single-table design is the at-scale DynamoDB pattern; this workload doesn't need its modeling complexity.
 
+**Entity names are always English** — the table, its hash/range keys, GSI partition values, and the matching TS type/repository all use the English domain noun (`polls`/`poll_id`/`gsi_pk="POLL"`, never `pesquisas`/`pesquisa_id`), **even when the product surface is pt-BR** (the UI label can be "Enquete"; the data entity stays `polls`). This keeps the schema, code, IAM ARNs, and SSM keys in one language and consistent with the snake_case-everywhere rule. Why English (not the UI language): the AWS/TS ecosystem, our existing entities (`profile`/`posts`/`articles`/`subscriptions`/`audits`/`comments`/`shortlinks`), and most contributors default to it — mixing languages in identifiers is the kind of drift that's expensive to undo once tables exist (rename = new table + backfill). Mirror this in `/backend/dynamodb` (the repository/type names).
+
 | Table | Hash / Range | GSIs | Purpose |
 |---|---|---|---|
 | `profile` | `profile_id` | — | the CV document (effectively one item) |
