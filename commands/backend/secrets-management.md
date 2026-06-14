@@ -6,7 +6,7 @@ Context: $ARGUMENTS
 
 **Every sensitive value comes from Secrets Manager at runtime** — never from `.env`, SSM plain text, hardcode, or tfvars. IaC stores only the **ARN** (env var / SSM); the Lambda fetches the value on cold start and caches it in memory.
 
-In Secrets Manager: the Redis AUTH token (`REDIS_SECRET_ARN`) and any future API keys/tokens. The **data tier has no secret** — DynamoDB access is pure IAM via the Lambda exec role, so there's no DB credential to fetch here. Non-secret config stays in `.env`/IaC env vars (see `/backend/environment-config`).
+In Secrets Manager: the Redis AUTH token (`REDIS_SECRET_ARN`), third-party API keys (e.g. the Giphy key for the blog editor's GIF-search proxy, `GIPHY_SECRET_ARN` — an out-of-band secret, see `/infrastructure/secrets-manager`), and any future tokens. The **data tier has no secret** — DynamoDB access is pure IAM via the Lambda exec role, so there's no DB credential to fetch here. Non-secret config stays in `.env`/IaC env vars (see `/backend/environment-config`).
 
 ## Singleton + in-memory cache: src/shared/secrets.ts
 
