@@ -13,13 +13,24 @@ Every pipeline assumes a dedicated AWS role via **GitHub OIDC** (`aws-actions/co
 | **api deploy** `github-actions-api-<env>` | `repo:<org>/<project>-api:*` | `lambda:UpdateFunctionCode`/`PublishVersion`/`GetFunction*` on `<project>-*-<env>`; `apigateway:PUT`/`POST`/`GET` on `/restapis/*`; `s3:PutObject`/`GetObject` (artifacts bucket); `ssm:GetParameter*` on `/{env}/*` | Terraform (`iam.tf`) |
 | **fed deploy** `github-actions-fed-<env>` | `repo:<org>/<project>-fed:*` | `s3:PutObject`/`DeleteObject`/`ListBucket` (fed bucket); `cloudfront:CreateInvalidation`; `ssm:GetParameter*` on `/{env}/*` | Terraform (`iam.tf`) |
 
-- **api/fed roles** are created by the **iac Terraform** (`iam.tf`, `iam-policy` + `iam-assumable-role-with-oidc` submodules) and their ARNs written to SSM `/{env}/iam/github-actions-{api,fed}-role-arn`; the app pipelines read `AWS_OIDC_ROLE_ARN` from SSM (never a rotatable secret). The Terraform lives in `iam.tf`, but the role is a **pipeline** concept — documented here.
+- **api/fed roles** are created by the **iac Terraform** (`iam.tf`, `iam-policy` + `iam-assumable-role-with-oidc` submodules) and their ARNs written to SSM `/{env}/iam/github-actions-{api,fed}-role-arn`; the app pipelines assume `AWS_BFF_OIDC_ROLE_ARN` / `AWS_FED_OIDC_ROLE_ARN` (env-scoped secrets; the SSM copy is for reference, never a rotatable key). The Terraform lives in `iam.tf`, but the role is a **pipeline** concept — documented here.
 - **iac runner** is bootstrapped **out-of-band** (chicken-and-egg); its `<project>-iac-deploy` policy is maintained out-of-band. **Runner-policy gotcha — role deletion:** the runner must be able to **delete** every resource it creates, including IAM roles. The AWS provider calls **`iam:ListInstanceProfilesForRole`** (to detach instance profiles) **before** `iam:DeleteRole` — if the policy has `CreateRole`/`DeleteRole` but not `ListInstanceProfilesForRole` (+ `iam:ListRoleTags`), a `terraform destroy` of any role (e.g. a VPC's flow-log role) fails with `AccessDenied` **mid-apply**, orphaning the role + leaving inconsistent state. Grant those from the start.
 - The **GitHub OIDC provider** itself is **pre-existing** (landing zone), referenced by `provider_url`, not created. Confused-deputy guard: OIDC trust uses `StringLike` on `token.actions.githubusercontent.com:sub`.
 
 ## Secrets & environments
-- Repo secrets: `VERSION_BUMP_TOKEN`, `CLAUDE_CODE_OAUTH_TOKEN`, `SONAR_TOKEN`, `TFC_API_TOKEN` (iac), `AWS_OIDC_ROLE_ARN` (api/fed).
-- **Environments:** `staging` (no rules) + `production` (required reviewer) — production deploys gate on environment approval.
+**Naming convention — ONE scheme across every repo (don't diverge per repo).** A reader must infer the
+purpose from the name; no `AWS_ROLE_ARN`-vs-`AWS_OIDC_ROLE_ARN` drift like the early single-purpose repos had.
+- **AWS OIDC role ARNs:** `AWS_<SCOPE>_OIDC_ROLE_ARN`, `SCOPE` ∈ `INFRA` (terraform runner) · `BFF` · `FED`.
+  **Env-scoped** via GitHub Environments — `staging`/`production` each hold the per-env ARN under the **same name**.
+- **Third-party credentials:** keep the name the consuming action mandates (`SONAR_TOKEN`,
+  `CLAUDE_CODE_OAUTH_TOKEN`); otherwise `<PROVIDER>_<KIND>_TOKEN` — `TFC_API_TOKEN`, `VERSION_BUMP_TOKEN`.
+- **Test fixtures:** `TEST_<SUBJECT>_<FIELD>` — `TEST_USER_USERNAME`, `TEST_USER_PASSWORD` (staging only).
+- **Choice:** a single, scope-encoded scheme so role/purpose is obvious and a monorepo with multiple deploy
+  roles (`BFF` + `FED` + `INFRA`) reads unambiguously. **Trade-off:** renaming legacy secrets is a one-time
+  migration — the consuming workflow refs + the GitHub secret store must change together.
+
+**Environments:** `staging` (no rules) + `production` (required reviewer) — production deploys gate on
+environment approval. Per-env role ARNs live as **environment secrets** (same name, different value per env).
 
 ## Workflow set (per repo)
 - `ci.yml` (api/fed) — **PR + push to develop/main**: lint + typecheck + tests + **SonarCloud** gate + security gates (`/backend/coverage`, `/frontend/coverage`, `/workflow/sonarcloud`). Push to develop/main sets SonarCloud's new-code baseline. iac has no `ci.yml` — its gates are `terraform-plan.yml` (checkov) + `sonar.yml` (SonarCloud IaC).
