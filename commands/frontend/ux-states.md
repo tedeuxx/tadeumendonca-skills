@@ -1,11 +1,11 @@
-Loading / empty / error UX states in <project>-fed (concept).
+Loading / empty / error UX states in `apps/fed` (concept).
 
 Context: $ARGUMENTS
 
 Conceptual skill — consistent async UX + error boundaries. Components/snippets live in `/frontend/framework-react` and `/frontend/design-system`.
 
 ## Every async view handles four states
-- **Loading** → spinner/skeleton (Cloudscape `Spinner`).
+- **Loading** → spinner/skeleton (own primitive).
 - **Empty** → a clear empty state, never a blank screen.
 - **Error** → `Alert` with the BFF `{ error, message }` + a retry (`/frontend/api-client`).
 - **Success** → the content.

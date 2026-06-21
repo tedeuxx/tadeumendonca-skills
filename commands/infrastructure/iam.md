@@ -2,18 +2,20 @@ Author or review any IAM role/policy in <project> infrastructure.
 
 Context: $ARGUMENTS
 
-**Canonical IAM authoring reference.** Every role/policy we create is catalogued here with its exact permission set + a ready example. Service skills (`documentdb`, `s3`, `sns`, `lambda`, …) **do not embed policy JSON** — they state what a role needs and point here.
+**Canonical authoring reference for RUNTIME IAM** — the roles the *running application + its services* use (Lambda exec role, Lambda@Edge role, and an identity-pool role IF/when browser-direct AWS access is added). Service skills (`dynamodb`, `s3`, `sns`, `lambda`, …) **do not embed policy JSON** — they state what a role needs and point here.
 
-Modules: `terraform-aws-modules/iam/aws` submodules `iam-policy` + `iam-assumable-role-with-oidc` (`/infrastructure/terraform`). Lambda exec policies via the lambda module's `attach_policy_statements` / `policy_statements`.
+> **Pipeline/deploy roles are NOT here.** The iac-runner + api/fed OIDC deploy roles are **CI concerns** (their trust = the GitHub-OIDC handshake) and live in **`/workflow/github-actions`** — even though the api/fed ones are Terraform-authored in `iam.tf`. This catalog is runtime identity only.
+
+Modules: `terraform-aws-modules/iam/aws//modules/iam-policy` for customer-managed policies (`/infrastructure/terraform`); Lambda exec policies via the lambda module's `attach_policy_statements` / `policy_statements`.
 
 ## Principles
 - **Least privilege** — scope every statement to specific `Action`s and `Resource` ARNs. `Resource = "*"` is allowed **only** for actions with no resource-level permission, and must carry a `# no resource-level support` comment.
 - **No long-lived keys** — GitHub pipelines assume roles via **OIDC**; humans via SSO/console. No IAM users, no access keys.
-- **Roles, not users** — Lambda exec roles, deploy roles, service identity-pool roles. Never attach policies to users.
+- **Roles, not users** — Lambda exec roles + (future) identity-pool roles here; pipeline/deploy roles in `/workflow/github-actions`. Never attach policies to users.
 - **No permission boundaries / no inline user policies** at this scale — managed (AWS) + customer-managed (our `iam-policy`) only.
 
 ## Authoring conventions
-- **Statement shape:** `{ Sid, Effect="Allow", Action=[...], Resource=[...], Condition? }`. One Sid per concern (e.g. `ReadDocdbSecret`, `WriteOgCache`).
+- **Statement shape:** `{ Sid, Effect="Allow", Action=[...], Resource=[...], Condition? }`. One Sid per concern (e.g. `ReadRedisSecret`, `DataTableAccess`, `WriteOgCache`).
 - **ARN scoping:** parametrize by env — `arn:aws:secretsmanager:${region}:${account}:secret:<project>/${env}/*`, `arn:aws:s3:::<project>-og-images-${env}/*`, SSM `arn:aws:ssm:${region}:${account}:parameter/${env}/*`. Use `data.aws_caller_identity`/`data.aws_region`.
 - **Confused-deputy guard:** resource-based trust (Lambda@Edge, cross-service) carries `Condition.StringEquals` on `aws:SourceArn`/`aws:SourceAccount`. OIDC trust uses `StringLike` on `token.actions.githubusercontent.com:sub`.
 - **Managed vs customer-managed:** lean on AWS-managed policies for boilerplate (logs, VPC ENIs, X-Ray); write a customer-managed `iam-policy` only for app-specific grants.
@@ -24,7 +26,7 @@ Modules: `terraform-aws-modules/iam/aws` submodules `iam-policy` + `iam-assumabl
 | Managed policy | Attached to | Grants |
 |---|---|---|
 | `AWSLambdaBasicExecutionRole` | every Lambda role | CloudWatch Logs create/put |
-| `AWSLambdaVPCAccessExecutionRole` | BFF role (in-VPC) | ENI create/describe/delete |
+| `AWSLambdaVPCAccessExecutionRole` | BFF role **only when in-VPC** | ENI create/describe/delete |
 | `AWSXRayDaemonWriteAccess` | BFF role | `xray:PutTraceSegments`/`PutTelemetryRecords` |
 
 ---
@@ -32,13 +34,22 @@ Modules: `terraform-aws-modules/iam/aws` submodules `iam-policy` + `iam-assumabl
 ## Role catalog
 
 ### 1. BFF Lambda execution role
-In-VPC Hono Lambda (`/infrastructure/lambda`, `/backend/bff`). Trust = `lambda.amazonaws.com`. Managed: BasicExecution + VPCAccess + XRayDaemonWrite. Customer-managed inline statements (via lambda module `attach_policy_statements = true`, `policy_statements = {...}`):
+Hono BFF Lambda (`/infrastructure/lambda`, `/backend/bff`). Trust = `lambda.amazonaws.com`. Managed: BasicExecution + XRayDaemonWrite (**+ VPCAccess only if the BFF is in-VPC** — it's non-VPC by default, see `/infrastructure/lambda` "VPC posture"). Customer-managed inline statements (via lambda module `attach_policy_statements = true`, `policy_statements = {...}`):
 ```hcl
 policy_statements = {
-  read_secrets = {                         # docdb + redis creds (/infrastructure/secrets-manager)
+  read_secrets = {                         # redis AUTH token (/infrastructure/secrets-manager)
     effect    = "Allow"
     actions   = ["secretsmanager:GetSecretValue"]
     resources = ["arn:aws:secretsmanager:${region}:${account}:secret:<project>/${env}/*"]
+  }
+  data_tables = {                          # DynamoDB data tier — pure IAM, no secret (/infrastructure/dynamodb)
+    effect  = "Allow"
+    actions = ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem",
+               "dynamodb:DeleteItem", "dynamodb:Query", "dynamodb:BatchGetItem"]   # no Scan in hot paths
+    resources = [                          # the five per-entity tables + their GSIs — never dynamodb:* on *
+      "arn:aws:dynamodb:${region}:${account}:table/<project>-*-${env}",        # <project>-<entity>-<env>
+      "arn:aws:dynamodb:${region}:${account}:table/<project>-*-${env}/index/*"
+    ]
   }
   read_ssm = {                             # config bus (/infrastructure/ssm)
     effect    = "Allow"
@@ -74,57 +85,31 @@ assume_role_policy = jsonencode({ Version = "2012-10-17", Statement = [{
 - Inline: `s3:GetObject` on `arn:aws:s3:::<project>-og-images-${env}/*` (serve cached OG images). It calls the BFF's **public** routes over HTTPS — no IAM for that.
 - Created in **us-east-1** (global).
 
-### 3. GitHub OIDC deploy roles (api, fed) — iam.tf
-IaC creates a **deploy policy** (`iam-policy` submodule) + an **OIDC-assumable role** (`iam-assumable-role-with-oidc`) per app repo, then writes the role ARNs to SSM. Trust = the **pre-existing** GitHub OIDC provider, scoped to `repo:<github-org>/<repo>:*`.
+### 3. Cognito trigger role (fn-cognito-groups)
+Trust = `lambda.amazonaws.com`. Managed: `AWSLambdaBasicExecutionRole`. Inline — assign federated users to groups (`/infrastructure/cognito`), scoped to the pool ARN:
 ```hcl
-module "policy_api_deploy" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
-  version = "~> 5.0"
-  name    = "<project>-api-deploy-${var.environment}"
-  policy  = jsonencode({ Version = "2012-10-17", Statement = [{
-    Effect = "Allow"
-    Action = ["lambda:UpdateFunctionCode", "lambda:PublishVersion",   # BFF code + og-edge version
-              "apigateway:PUT", "apigateway:POST",                    # reimport OpenAPI
-              "s3:PutObject", "s3:GetObject",                         # artifacts bucket
-              "ssm:GetParameter", "ssm:GetParametersByPath"]
-    Resource = "*"                                                    # scope to artifacts/bff/api ARNs where supported
-  }]})
-}
-module "policy_fed_deploy" {
-  source = "terraform-aws-modules/iam/aws//modules/iam-policy"; version = "~> 5.0"
-  name   = "<project>-fed-deploy-${var.environment}"
-  policy = jsonencode({ Version = "2012-10-17", Statement = [{
-    Effect = "Allow"
-    Action = ["s3:PutObject", "s3:DeleteObject", "s3:ListBucket",     # site sync
-              "cloudfront:CreateInvalidation",
-              "ssm:GetParameter", "ssm:GetParametersByPath"]
-    Resource = "*" }]})
-}
-module "oidc_api" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
-  version = "~> 5.0"
-  create_role                  = true
-  role_name                    = "github-actions-api-${var.environment}"
-  provider_url                 = "token.actions.githubusercontent.com"   # pre-existing provider
-  oidc_subjects_with_wildcards = ["repo:<github-org>/<project>-api:*"]
-  role_policy_arns             = [module.policy_api_deploy.arn]
-}
-module "oidc_fed" { /* same shape, fed repo + module.policy_fed_deploy.arn */ }
-# SSM (/infrastructure/ssm): /{env}/iam/github-actions-api-role-arn, /{env}/iam/github-actions-fed-role-arn
+{ effect = "Allow",
+  actions = ["cognito-idp:AdminAddUserToGroup", "cognito-idp:AdminListGroupsForUser"],
+  resources = ["arn:aws:cognito-idp:${region}:${account}:userpool/${pool_id}"] }
 ```
-- **api-deploy** permissions: `lambda:UpdateFunctionCode`/`PublishVersion`, `apigateway:PUT`/`POST`, `s3:PutObject`/`GetObject`, `ssm:GetParameter`/`GetParametersByPath`.
-- **fed-deploy** permissions: `s3:PutObject`/`DeleteObject`/`ListBucket`, `cloudfront:CreateInvalidation`, `ssm:GetParameter`/`GetParametersByPath`.
-- The GitHub OIDC provider is **pre-existing** (landing zone) — referenced by `provider_url`, not created. App repos read `AWS_OIDC_ROLE_ARN` from SSM at deploy — never a rotatable secret (`/workflow/github-actions`).
+Non-VPC. The **admin allowlist** (which emails get `admin`) is the trigger's config, not an IAM concern.
 
-### 4. RUM guest identity-pool role
-Cognito **identity pool** unauthenticated role used by CloudWatch RUM to put events (`/infrastructure/cloudwatch-rum`). Trust = `cognito-identity.amazonaws.com` with `Condition.StringEquals "cognito-identity.amazonaws.com:aud" = <identity_pool_id>` and `ForAnyValue:StringLike "amr" = "unauthenticated"`. Inline: `rum:PutRumEvents` scoped to the app-monitor ARN.
+### 4. RUM guest identity-pool role — NOT BUILT (future / only if CloudWatch RUM is added)
+> We currently have **only a Cognito User Pool** (authentication — issues JWTs the SPA sends to the API GW authorizer). There is **NO identity pool** deployed. An **identity pool is a different service**: it vends **temporary AWS credentials** (via STS) so a *browser* can call AWS APIs **directly**. The only reason to add one is **CloudWatch RUM** (real-user monitoring — the browser calls `rum:PutRumEvents`). RUM is not in Phases 1-3, so this role does not exist yet.
 
-### 5. iac repo's own deploy role
-`github-actions-<project>-iac` is **bootstrapped out-of-band** (chicken-and-egg) — a one-time landing-zone task in the plan, not Terraform-managed here.
+When/if RUM lands: a Cognito **identity pool** unauthenticated (guest) role (`/infrastructure/cloudwatch-rum`). Trust = `cognito-identity.amazonaws.com` with `Condition.StringEquals "cognito-identity.amazonaws.com:aud" = <identity_pool_id>` and `ForAnyValue:StringLike "amr" = "unauthenticated"`. Inline: `rum:PutRumEvents` scoped to the app-monitor ARN. **User-Pool-only is the default** — add an identity pool solely for a browser-direct-AWS feature like RUM.
+
+### Pipeline/deploy roles → `/workflow/github-actions`
+The iac-runner + **api/fed OIDC deploy roles** (trust = OIDC handshake; permissions = least-privilege deploy grants) are documented in `/workflow/github-actions`. Their Terraform still lives in `iam.tf` (`iam-policy` + `iam-assumable-role-with-oidc` submodules, ARNs → SSM `/{env}/iam/github-actions-{api,fed}-role-arn`), but as **pipeline** concerns they're described there, not in this runtime catalog.
 
 ## Conventions
-- Role ARNs → SSM for app repos to assume at deploy (`/infrastructure/ssm`); app repos read `AWS_OIDC_ROLE_ARN`, never a rotatable GitHub secret.
+- Role ARNs → SSM for app deploy jobs to assume at deploy (`/infrastructure/ssm`); app deploy jobs read the env-scoped `AWS_BFF_OIDC_ROLE_ARN` / `AWS_FED_OIDC_ROLE_ARN` (environment secrets; see `/workflow/github-actions`), never a rotatable static GitHub secret.
 - Key choice + encryption requirements follow `/infrastructure/kms`; tagging via provider `default_tags` (`/infrastructure/terraform`).
+## Decision & trade-off
+- **The IAM role boundary substitutes for the missing account boundary.** Because all environments share one AWS account (a cost decision — `/infrastructure/terraform`), IAM is the **primary** isolation mechanism, not an optional hardening. This applies to runtime roles here AND to the deploy/CI roles in `/workflow/github-actions`.
+- **Least-privilege per-JOB roles:** each pipeline gets a minimal role (iac-runner may create/delete; bff-deploy may only update its Lambda code; fed-deploy may only sync its bucket + invalidate CloudFront), so a bug or compromise in one pipeline can't touch another's resources. Per-ENV roles restore the env isolation the single account gave up. *Trade-off:* more roles/policies to author and keep in sync as features change.
+- The full secrets/OIDC/per-env model is in `/workflow/github-actions` — **cross-referenced, not duplicated here** (this catalog is runtime identity only).
+
 ## Pros & cons
 **Pros**
 - One canonical authoring catalog — no policy JSON scattered across service skills.

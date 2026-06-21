@@ -1,10 +1,10 @@
-Implement or review backend caching with Redis (ElastiCache) in <project>-api.
+Implement or review backend caching with Redis (ElastiCache) in `apps/bff`. Redis is VPC-only, so enabling it puts the BFF in-VPC (it is non-VPC by default).
 
 Context: $ARGUMENTS
 
 ## Pattern: cache-aside (lazy), fail-open
 
-Read public, read-heavy data through Redis; on miss, read DocumentDB and populate with a TTL. **If Redis is unavailable, fall back to the database — a cache error must never fail the request.**
+Read public, read-heavy data through Redis; on miss, read DynamoDB and populate with a TTL. **If Redis is unavailable, fall back to the database — a cache error must never fail the request.**
 
 ## Client singleton: src/shared/cache/client.ts
 
@@ -41,7 +41,7 @@ export async function cached<T>(key: string, ttl: number, load: () => Promise<T>
   const redis = await getCache();
   if (redis) { try { const hit = await redis.get(key); if (hit) { cacheHits.add(1); return JSON.parse(hit); } } catch {} }
   cacheMisses.add(1);
-  const value = await load();                                            // DocumentDB
+  const value = await load();                                            // DynamoDB
   if (redis) redis.set(key, JSON.stringify(value), 'EX', ttl).catch(() => {});  // best-effort
   return value;
 }
@@ -68,7 +68,7 @@ await redis?.incr(`${env}:posts:list:version`);
 
 ## Conventions
 - Connection reused across warm invocations (singleton, `lazyConnect`) — never connect per request.
-- Reached in-VPC over the cluster SG (port 6379, off the NAT path), like DocumentDB.
+- Reached in-VPC over the cluster SG (port 6379, off the NAT path). DynamoDB, by contrast, is reached over its VPC gateway endpoint, not the cluster SG.
 - AUTH token from Secrets Manager (`/backend/secrets-management`); endpoint from `REDIS_ENDPOINT` (IaC). Provisioned in `/infrastructure/elasticache`.
 - Emits `cache_hits_total` / `cache_misses_total` — see `/backend/metrics`.
 

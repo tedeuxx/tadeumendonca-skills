@@ -1,4 +1,4 @@
-Frontend analytics (GA4) in <project>-fed (concept).
+Frontend analytics (GA4) in `apps/fed` (concept).
 
 Context: $ARGUMENTS
 

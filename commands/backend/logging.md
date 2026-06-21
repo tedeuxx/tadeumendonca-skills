@@ -1,4 +1,4 @@
-Implement or review structured logging in <project>-api.
+Implement or review structured logging in `apps/bff`.
 
 Context: $ARGUMENTS
 
@@ -18,7 +18,7 @@ export const logger = new Logger({
 ```typescript
 logger.appendKeys({ action_type: 'posts_list' });
 logger.info('listing posts', { cursor, limit });
-logger.error('docdb query failed', { error });
+logger.error('dynamodb query failed', { error });
 ```
 
 ## Conventions
@@ -27,6 +27,10 @@ logger.error('docdb query failed', { error });
 - Attach the Lambda context (cold-start, request id) **once per request** and reset appended keys afterward — that wiring is framework-specific (`/backend/framework-hono`).
 - Levels via `LOG_LEVEL`: DEBUG (staging) / WARN (production) — `/backend/environment-config`.
 - `og-edge` (Lambda@Edge) has no Powertools — minimal `console` only.
+
+## Decision & trade-off
+- **Structured JSON via Powertools Logger — never `console.log`.** One toolkit owns Logger/Metrics/Tracer, JSON lines are queryable in CloudWatch Logs Insights and double as the EMF metric carrier (`/backend/metrics`). *Trade-off:* structured-logging discipline (append keys, don't string-concat) for machine-queryable logs with no separate log backend.
+- **Level per env via `LOG_LEVEL` (DEBUG staging / WARN production); never log the raw event or `Authorization` header.** *Trade-off:* less verbosity in prod (cheaper retention, fewer leaks) at the cost of needing a redeploy/log-level change to capture DEBUG in production.
 
 ## Pros & cons
 **Pros**

@@ -1,8 +1,8 @@
-Implement or review the bot-rendering API (og-meta + prerender) in <project>-api.
+Implement or review the bot-rendering API (og-meta + prerender) in `apps/bff`.
 
 Context: $ARGUMENTS
 
-Serves the HTML the Lambda@Edge returns to bots (see `/backend/og-edge-handler`). Two endpoints, same data source (DocumentDB), **no React on the server** — this is content templating, not SSR.
+Serves the HTML the Lambda@Edge returns to bots (see `/backend/og-edge-handler`). Two endpoints, same data source (DynamoDB), **no React on the server** — this is content templating, not SSR.
 
 ## Endpoints
 - `GET /og-meta/{type}/{slug}` → JSON meta for **social** scrapers: `{ title, description, image_url, url }`. Lightweight, no body render.
@@ -41,9 +41,18 @@ export function renderArticleHtml(a: Article): string {
 - Public routes (no JWT); cached at the edge (`max-age=300`). Hit/miss can feed `/backend/metrics`.
 - The OG PNG itself comes from `/backend/og-image-generator`; prerender only references its URL.
 
+## Decision & trade-off
+- **The bot API mirrors what the SPA renders from the SAME data store — it is content templating, not SSR and not cloaking.** `og-meta` (JSON for social) + `prerender` (full HTML + JSON-LD for crawlers) read the domain repositories directly; no React on the server. *Trade-off:* a **second render path** that must stay in lockstep with the client SEO output (`/frontend/seo`) — keep titles/descriptions/JSON-LD identical or it drifts toward cloaking.
+- **Public root routes, no authorizer, edge-cached (`max-age=300`)** — only bots hit them; humans get the SPA. *Trade-off:* anything served here is world-readable (it's for crawlers), so never include non-public fields.
+
+### Inbound serving vs. outbound scraping — two different things
+*This skill SERVES our own content to crawlers/scrapers. Resolving a **third-party** URL's preview (link unfurl) is the opposite direction — **outbound scraping** — and follows different rules:*
+- **Fetching an external URL's Open Graph data is outbound scraping, distinct from serving our own pages.** The real gotcha: a **datacenter IP + a generic User-Agent** frequently gets a consent/interstitial page or a `403`, so the OG tags aren't there. **Sending a recognized crawler User-Agent** (e.g. a `facebookexternalhit`-style token, honestly suffixed with your own `+URL`) makes most sites serve their OG page from the same IP — exactly how chat apps build rich cards. *Trade-off / caveat:* respect `robots`/ToS and keep the UA honestly attributable; some providers (e.g. login-walled social) still degrade and need their paid official API — ship a clean fallback card and leave that seam.
+- **All outbound fetches go through an SSRF-guarded, bounded fetcher** (allow only http/https, re-resolve + reject private/loopback/link-local/metadata IPs on **every** redirect hop, cap time + bytes). Server-side fetching of arbitrary URLs is a classic SSRF vector even when only an admin submits the URL. *Trade-off:* manual redirect handling + a DNS check per hop, for a closed egress surface.
+
 ## Pros & cons
 **Pros**
-- Crawlable HTML + JSON-LD for bots without SSR; reuses the DocumentDB data.
+- Crawlable HTML + JSON-LD for bots without SSR; reuses the DynamoDB data.
 - Only bots hit it — humans get the SPA.
 **Cons**
 - A second rendering path to keep consistent with the SPA.

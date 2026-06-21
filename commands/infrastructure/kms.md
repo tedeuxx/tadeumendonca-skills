@@ -13,18 +13,19 @@ Verify **both axes** for every new resource before merge. `checkov` enforces man
 | Service | How | Skill |
 |---|---|---|
 | CloudFront | `minimum_protocol_version = "TLSv1.2_2021"`, `viewer_protocol_policy = redirect-to-https` | `/infrastructure/cloudfront` |
-| API GW v2 | HTTPS-only custom domain (ACM); no HTTP | `/infrastructure/api-gateway` |
+| API GW (REST) | HTTPS-only custom domain (ACM); no HTTP | `/infrastructure/api-gateway` |
 | Cognito hosted UI | HTTPS (ACM, us-east-1) | `/infrastructure/cognito` |
-| DocumentDB | client `tls: true` + CA bundle; cluster enforces TLS | `/infrastructure/documentdb`, `/backend/document-db` |
+| DynamoDB | reached over HTTPS via the Gateway VPC endpoint (AWS SDK TLS by default) | `/infrastructure/dynamodb`, `/backend/dynamodb` |
 | Redis | `transit_encryption_enabled = true` + AUTH token | `/infrastructure/elasticache` |
 | S3 | reached only via CloudFront OAC over HTTPS; bucket policy denies `aws:SecureTransport = false` | `/infrastructure/s3` |
 
 ## At rest
 | Service | How | Skill |
 |---|---|---|
-| DocumentDB | `storage_encrypted = true` | `/infrastructure/documentdb` |
+| DynamoDB | encrypted at rest by default (AWS-managed `aws/dynamodb` key) | `/infrastructure/dynamodb` |
 | Redis | `at_rest_encryption_enabled = true` | `/infrastructure/elasticache` |
-| S3 (×3) | **SSE-KMS** (`aws/s3` key + bucket keys) | `/infrastructure/s3` |
+| S3 artifacts | **SSE-KMS** (`aws/s3` key + bucket keys) | `/infrastructure/s3` |
+| S3 fed + og-images | **SSE-S3 (AES256)** — CloudFront OAC can't decrypt the `aws/s3` KMS key (see note) | `/infrastructure/s3` |
 | Secrets Manager | KMS (`aws/secretsmanager`) by default | `/infrastructure/secrets-manager` |
 | SNS topic + SQS DLQ | `kms_master_key_id` (`aws/sns`, `aws/sqs`) | `/infrastructure/sns` |
 | CloudWatch Logs | encrypted (CMK when required) | `/infrastructure/cloudwatch` |
@@ -35,18 +36,25 @@ Verify **both axes** for every new resource before merge. `checkov` enforces man
 > All AWS API calls (Secrets Manager, SNS, SES, SSM, S3, STS…) are HTTPS/TLS by default — the SSL-by-default mandate holds end to end.
 
 ## Key choice — AWS-managed vs CMK
-- **Default to AWS-managed keys** (`aws/s3`, `aws/secretsmanager`, `aws/rds`, `aws/elasticache`) — zero key management, no extra cost, sufficient for this workload. On the Terraform side this means leaving `kms_key_id` empty/unset.
+- **Default to AWS-managed keys** (`aws/s3`, `aws/secretsmanager`, `aws/dynamodb`, `aws/elasticache`) — zero key management, no extra cost, sufficient for this workload. On the Terraform side this means leaving `kms_key_id` empty/unset.
 - **Use a customer-managed key (CMK)** only when you need one of: cross-account/grant control, custom rotation schedule, key-usage auditing (CloudTrail), or one shared key across resources. Provision via `terraform-aws-modules/kms/aws` (`/infrastructure/terraform`).
 - **Rotation:** any CMK sets `enable_key_rotation = true`.
-- **Least privilege:** a CMK key policy grants `kms:Decrypt`/`Encrypt`/`GenerateDataKey` only to the roles that need it (e.g. the BFF exec role for Secrets/Redis/DocDB data keys — `/infrastructure/iam`) — never `kms:*` to `*`.
+- **Least privilege:** a CMK key policy grants `kms:Decrypt`/`Encrypt`/`GenerateDataKey` only to the roles that need it (e.g. the BFF exec role for Secrets/Redis/DynamoDB data keys — `/infrastructure/iam`) — never `kms:*` to `*`.
 
 ## Current stance
-Phase 1-3 use **AWS-managed keys** everywhere (DocDB, Redis, S3, Secrets Manager, CloudWatch Logs) — **no CMK yet**. Revisit if a compliance or key-sharing requirement appears.
+Phase 1-3 use **AWS-managed keys** everywhere (DynamoDB, Redis, Secrets Manager, CloudWatch Logs, the artifacts S3 bucket) — **no CMK yet**. Revisit if a compliance or key-sharing requirement appears.
+
+> **CloudFront-served buckets are the one at-rest exception — SSE-S3, not KMS.** CloudFront **OAC cannot decrypt** objects encrypted with the AWS-managed `aws/s3` KMS key: that key's policy is AWS-owned and can't grant the `cloudfront.amazonaws.com` service principal `kms:Decrypt`, so the origin 403s. So the **fed + og-images** buckets use **SSE-S3 (AES256)** (still encryption-at-rest; their content is public anyway). The KMS-preserving alternative is a **customer CMK** whose key policy grants CloudFront `kms:Decrypt` with a `Condition.StringEquals "AWS:SourceArn" = <distribution-arn>` — adopt that only if these buckets ever need KMS (it's the one case where a CMK buys something AWS-managed keys can't).
 
 ## Conventions
 - Never disable encryption to avoid key setup — use the AWS-managed key.
 - A service needing `kms:Decrypt` adds it to its exec-role statements **only when using a CMK** (`/infrastructure/iam`); with AWS-managed keys no explicit grant is needed.
 - Tag CMKs via provider `default_tags` (`/infrastructure/terraform`).
+## Decision & trade-off
+- **AWS-managed keys everywhere by default; no CMK in Phase 1-3.** *Why:* zero key management and **no extra key cost**, sufficient for this workload. *Traded away:* the CMK-only capabilities — custom rotation schedule, CloudTrail key-usage auditing, cross-account/grant control, one shared key. Adopt a CMK only when a compliance or key-sharing requirement actually appears (a migration at that point, not free to retrofit).
+- **CloudFront-served buckets are the one at-rest exception — SSE-S3 (AES256), not KMS.** CloudFront OAC can't `kms:Decrypt` under the AWS-managed `aws/s3` key (its policy can't grant the CloudFront service principal), so SSE-KMS 403s the origin. The content is public, so AES256 is the correct stance; the KMS-preserving alternative (a CMK whose policy grants CloudFront `kms:Decrypt` scoped to the distribution `SourceArn`) is the *only* case where a CMK buys something AWS-managed keys can't.
+- **S3 Bucket Keys on the KMS buckets** cut KMS API calls (cost) — kept on by default.
+
 ## Pros & cons
 **Pros**
 - Encryption everywhere by default (at rest + TLS); one canonical policy.

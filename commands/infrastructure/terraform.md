@@ -2,7 +2,7 @@ Use Terraform in <project> infrastructure (how we use it as a whole).
 
 Context: $ARGUMENTS
 
-The single `<project>-iac` repo provisions everything. This is the end-to-end Terraform usage — versions, state, layout, **module sourcing/customization policy**, and **tagging** (both folded in here).
+Terraform provisions the app infra from `<project>-pwa/iac` (the monorepo); the separate `<project>-iac` holds only shared regional infra (the WAF). This is the end-to-end Terraform usage — versions, state, layout, **module sourcing/customization policy**, and **tagging** (both folded in here).
 
 ## Versions & providers
 ```hcl
@@ -28,9 +28,9 @@ These skills are **project-agnostic templates**. Workload-specific values appear
 
 | Placeholder | Backing variable | Used in |
 |---|---|---|
-| `<project>` | `var.project` | every resource name / SSM path / secret name (`<project>-bff-…`, `<project>/{env}/docdb`) |
+| `<project>` | `var.project` | every resource name / SSM path / secret name (`<project>-bff-…`, `<project>/{env}/redis`) |
 | `<apex-domain>` | `var.apex_domain` | the registrable apex; per-env hosts derive from it (`/infrastructure/route53`) |
-| `<github-org>` | `var.github_org` | OIDC trust subjects `repo:<github-org>/<project>-api:*` (`/infrastructure/iam`) |
+| `<github-org>` | `var.github_org` | OIDC trust subjects `repo:<github-org>/<project>-pwa:*` (`/infrastructure/iam`) |
 | `<tfc-org>` | `var.tfc_organization` | the `cloud{}` block |
 | `<account-id>` | `data.aws_caller_identity` | prose only — never hardcoded in config |
 
@@ -78,9 +78,9 @@ variable "apex_domain" {
 
 ## Module sourcing & customization policy
 **Sourcing priority:**
-1. **Official first** — prefer official `terraform-aws-modules/*` (HashiCorp/AWS-maintained) for any resource that has one: `vpc`, `s3-bucket`, `cloudfront`, `apigateway-v2`, `lambda`, `iam`, `kms`.
-2. **Trusted non-official next** — only when no official module exists, use established sources with a track record: `cloudposse/*` (documentdb, elasticache, ses, waf), `lgallard/*` (cognito — there is no official Cognito module). Never a low-reputation / unmaintained / single-author module.
-3. **Raw `aws_*` last** — justified glue only where no module abstracts the need: `aws_lambda_permission`, `aws_wafv2_web_acl_association`, the app-specific lambda SG, `aws_route53_record`, `aws_ssm_parameter`, `aws_secretsmanager_secret`. Note which gap each fills.
+1. **Official first** — prefer official `terraform-aws-modules/*` (HashiCorp/AWS-maintained) for any resource that has one: `vpc`, `s3-bucket`, `cloudfront`, `lambda`, `iam`, `kms`, `dynamodb-table` (`~> 4.0`).
+2. **Trusted non-official next** — only when no official module exists, use established sources with a track record: `cloudposse/*` (elasticache, ses, waf), `lgallard/*` (cognito — there is no official Cognito module). Never a low-reputation / unmaintained / single-author module.
+3. **Raw `aws_*` last** — justified glue only where no module abstracts the need: **`aws_api_gateway_*`** (the REST API — no official module fits the OpenAPI-body + reimport flow, `/infrastructure/api-gateway`), `aws_lambda_permission`, `aws_wafv2_web_acl_association`, the app-specific lambda SG, `aws_route53_record`, `aws_ssm_parameter`, `aws_secretsmanager_secret`. Note which gap each fills.
 
 **Customization:**
 - **Use public modules integrally** through their documented inputs — do not fork, patch, or wrap to tweak behavior.
@@ -113,11 +113,18 @@ locals { tags = { Project = "<project>", Environment = var.environment, ManagedB
 - Raw glue resources only where no module abstracts (`aws_route53_record`, `aws_lambda_permission`, `aws_wafv2_web_acl_association`, lambda SG).
 
 ## CI/CD (.github/workflows)
-- `terraform-plan.yml` (PR): `checkov -d terraform/` (block on HIGH) → `validate` → `plan` → comment.
+- `terraform-plan.yml` (PR): `checkov -d terraform/` (fail on any unsuppressed finding) → `fmt -check` → `validate` → `plan` → comment.
+- `sonar.yml` (PR + push to develop/main): **SonarCloud IaC** scan of `terraform/` (`/workflow/sonarcloud`) — code smells + security hotspots, gate blocks. **Complementary to checkov, not a replacement** (checkov = policy/security; Sonar = maintainability + the quality gate). Kept standalone (not a job in `terraform-plan.yml`) so it can run on push for the new-code baseline without firing the AWS-OIDC plan.
 - `terraform-deploy.yml`: develop → staging auto-apply; main → production (Environment approval).
 - `version-develop/main.yml`: numeric SemVer (`/workflow/github-actions`).
 
 See `/workflow/terraform-cloud`, `/infrastructure/route53`, and the per-service skills.
+## Decision & trade-off
+- **Single shared AWS account for all environments — no account-level isolation.** A cost decision: a multi-account org adds real overhead/cost not justified for a solo product. Env separation is done with the `Project`/`Environment` tags, per-env resource names (`*-staging`/`*-production`), and per-env TFC workspaces — **not** separate Organizations accounts.
+- **The IAM role boundary is the isolation that compensates.** Because there is no account boundary, **least-privilege per-job + per-env OIDC roles are the primary isolation mechanism** (a leaked staging token can't assume the prod role; the prod role is gated by the `production` Environment approval). Cross-ref `/workflow/github-actions` (the full secrets/role/OIDC model) and `/infrastructure/iam` (runtime roles) — not restated here.
+- **Validate at plan, not apply.** Every input variable carries a `type` + a `validation` block so a bad value fails at `plan` (fast, cheap) rather than mid-`apply` (partial state). *Trade-off:* a little authoring overhead per variable for a much tighter failure mode.
+- *Blast radius:* one canonical root per repo means a larger blast radius per apply (vs many small states) — accepted for the simplicity of a single, non-duplicated layout.
+
 ## Pros & cons
 **Pros**
 - Single canonical root (no per-env duplication); TFC remote state + locking.

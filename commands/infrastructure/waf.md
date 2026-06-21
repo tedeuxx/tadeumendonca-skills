@@ -1,8 +1,12 @@
-Implement or review the WAF WebACLs (CLOUDFRONT + REGIONAL) in <project>-iac.
+Implement or review the WAF WebACLs (CLOUDFRONT + REGIONAL) across the two repos that own them.
 
 Context: $ARGUMENTS
 
-Two WebACLs via **`cloudposse/waf/aws ~> 1.0`** (`/infrastructure/terraform`). CLOUDFRONT scope **must** use the us-east-1 provider alias. Inputs below follow the module's schema.
+Two WebACLs via **`cloudposse/waf/aws ~> 1.0`** (`/infrastructure/terraform`), split by ownership:
+- **REGIONAL** (shared) lives in **`<project>-iac`** — the shared regional WAF baseline. Its ARN is **published to SSM** (`/{env}/auth/waf-regional-arn`) for workloads to consume; the `<project>-pwa/iac` deploy reads that SSM value to associate the REST API stage + Cognito hosted UI.
+- **CLOUDFRONT** (the SPA WebACL) lives in **`<project>-pwa/iac`**, defined alongside the CloudFront distribution it protects.
+
+CLOUDFRONT scope **must** use the us-east-1 provider alias. Inputs below follow the module's schema.
 
 ## Common knobs (both WebACLs)
 ```hcl
@@ -22,7 +26,7 @@ logging_enabled         = true
 log_destination_configs = [aws_cloudwatch_log_group.waf.arn]   # name MUST start with aws-waf-logs-
 ```
 
-## CLOUDFRONT scope (frontend.tf) — us-east-1
+## CLOUDFRONT scope (`<project>-pwa/iac`, frontend.tf) — us-east-1
 ```hcl
 module "waf_cloudfront" {
   source    = "cloudposse/waf/aws"
@@ -40,7 +44,7 @@ module "waf_cloudfront" {
 # attached to CloudFront via web_acl_id = module.waf_cloudfront.web_acl_arn
 ```
 
-## REGIONAL scope (auth.tf) — shared by API GW + Cognito
+## REGIONAL scope (`<project>-iac`, shared) — associated to API GW (REST) stage + Cognito hosted UI
 ```hcl
 module "waf_regional" {
   source  = "cloudposse/waf/aws"
@@ -59,21 +63,23 @@ module "waf_regional" {
 ```
 **Choices that matter:** `default_action="allow"` (we block-list via rules, not allow-list); `override_action="none"` per managed group = the group's rules **block** (use `"count"` to tune a noisy group without blocking); rate-limit 2000 req / 5 min / IP; metrics + sampled requests on for tuning; REGIONAL adds KnownBadInputs on top of Common.
 
+The REGIONAL WAF is **shared** by the **REST API stage** (`/infrastructure/api-gateway`) and the **Cognito hosted UI**. WAFv2 REGIONAL associates with API Gateway **REST (v1)**, ALB, AppSync, Cognito user pools, App Runner — note it does **not** support API Gateway **v2 (HTTP APIs)**; using a REST API is partly what makes this per-IP protection on the API possible.
+
 ## Associations (raw — no native WAF attribute on these resources)
 ```hcl
-resource "aws_wafv2_web_acl_association" "cognito" {     # Cognito hosted UI — open self-signup
-  resource_arn = module.cognito.user_pool_arn
-  web_acl_arn  = module.waf_regional.web_acl_arn
+resource "aws_wafv2_web_acl_association" "cognito" {     # auth.tf — Cognito hosted UI (open self-signup)
+  resource_arn = module.cognito.arn                      # lgallard user-pool ARN output
+  web_acl_arn  = module.waf_regional.arn
 }
-resource "aws_wafv2_web_acl_association" "api_gw" {       # aws_apigatewayv2_stage has no native WAF arg
-  resource_arn = module.apigw.stage_arn
-  web_acl_arn  = module.waf_regional.web_acl_arn
+resource "aws_wafv2_web_acl_association" "api_gw" {       # api.tf — REST API stage (WAF-associable)
+  resource_arn = aws_api_gateway_stage.this.arn
+  web_acl_arn  = module.waf_regional.arn
 }
 ```
 
 ## Notes
-- CLOUDFRONT WAF protects the SPA distribution; REGIONAL WAF is **shared** by the API GW stage + Cognito hosted UI (mitigates abuse on open signup).
-- SSM: `/{env}/auth/waf-regional-arn = module.waf_regional.web_acl_arn` (cross-file reference).
+- CLOUDFRONT WAF (in `<project>-pwa/iac`) protects the SPA distribution; the REGIONAL WAF (in `<project>-iac`) is **shared** by the REST API stage + the Cognito hosted UI (mitigates abuse on open signup + the public API surface).
+- SSM: `<project>-iac` publishes `/{env}/auth/waf-regional-arn = module.waf_regional.arn`; the `<project>-pwa/iac` deploy reads it to associate the API GW stage + Cognito user pool.
 - Logs go to an `aws-waf-logs-<project>-${env}` group (mandated prefix — `/infrastructure/cloudwatch`); WAF holds no at-rest data of its own. TLS is terminated at CloudFront / API GW, which enforce TLS 1.2+ (`/infrastructure/kms`).
 - `aws_wafv2_web_acl_association` is justified raw glue — no module abstracts the stage/user-pool association.
 
@@ -84,12 +90,18 @@ resource "aws_wafv2_web_acl_association" "api_gw" {       # aws_apigatewayv2_sta
 - **Optional add-ons** per surface: `AWSManagedRulesSQLiRuleSet` (SQLi — for rich API query input), `AWSManagedRulesAmazonIpReputationList`, `AWSManagedRulesAnonymousIpList`.
 Write a custom rule **only** when no managed group covers the need; tune a noisy managed rule with `override_action="count"` rather than replacing it.
 
+## Decision & trade-off
+- **The shared-vs-workload split is a COST decision.** A WAF web ACL costs ~$5/mo + ~$1/rule/mo + ~$0.60/M requests. Provisioning **one** shared REGIONAL WAF (in `<project>-iac`) and reusing it across workloads (API GW stages, Cognito hosted UIs) via the SSM config bus **avoids duplicating that cost per workload** — which is exactly why "reusable security baseline → shared repo" is the dividing line.
+- **Workload-bound WAFs live with the workload.** The CLOUDFRONT WAF is defined alongside the SPA distribution it protects (`<project>-pwa/iac`), because it is specific to that distribution, not a reusable baseline.
+- **WAF is kept despite the cost (security posture).** It is a deliberate defensible-posture investment, not cut for cost — part of what compensates for the single-account / non-VPC cost choices made elsewhere.
+- *Trade-off:* one shared REGIONAL WebACL means the REST API and Cognito hosted UI can't be tuned independently; the managed-rule + rate-limit baseline is less precise than hand-written rules (the rate limit is the backstop for novel attacks).
+
 ## Pros & cons
 **Pros**
 - AWS-maintained managed rule groups + rate limit — OWASP-ish coverage for free.
 - `default_action=allow` (block-list) doesn't break legitimate traffic.
-- One shared REGIONAL WebACL for API GW + Cognito — one rule set, one bill.
+- One CLOUDFRONT + one REGIONAL WebACL (SPA edge + REST API stage + Cognito hosted UI) — managed rules, low upkeep.
 **Cons**
 - Less precise than hand-written rules.
 - A novel attack not matched by a rule passes (rate limit is the backstop).
-- Can't tune the API vs Cognito surfaces independently.
+- One shared REGIONAL WebACL for the REST API + Cognito — can't tune those surfaces independently.

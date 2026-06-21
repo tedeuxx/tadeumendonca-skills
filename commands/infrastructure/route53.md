@@ -39,13 +39,13 @@ resource "aws_route53_record" "frontend" {
           evaluate_target_health = false }
 }
 
-# api.tf — API GW v2 custom domain
+# api.tf — API GW (REST, REGIONAL) custom domain
 resource "aws_route53_record" "api" {
   zone_id = data.aws_route53_zone.main.zone_id
   name    = var.api_domain_name              # api.{env}.<apex-domain>
   type    = "A"
-  alias { name = module.apigw.domain_name_configuration[0].target_domain_name
-          zone_id = module.apigw.domain_name_configuration[0].hosted_zone_id
+  alias { name = aws_api_gateway_domain_name.this.regional_domain_name
+          zone_id = aws_api_gateway_domain_name.this.regional_zone_id
           evaluate_target_health = false }
 }
 

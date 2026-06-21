@@ -1,4 +1,4 @@
-SPA authentication in <project>-fed (concept).
+SPA authentication in `apps/fed` (concept).
 
 Context: $ARGUMENTS
 
@@ -7,7 +7,8 @@ Conceptual skill — the auth contract. React/Amplify snippets live in `/fronten
 Authentication is **external to the BFF**: the SPA uses the **Cognito IdP SDK** to log in and **hold/refresh the JWT**, then sends `Authorization: Bearer <access_token>` on every API call. The **API GW Cognito authorizer** validates it (`/infrastructure/api-gateway`); the BFF reads claims, no auth code (`/backend/bff`). The Cognito service is `/infrastructure/cognito`.
 
 ## Contract
-- Login → redirect to the Cognito hosted UI (Authorization Code + **PKCE**); the callback completes the exchange; the SDK stores + refreshes tokens.
+- **Login is social-only via Google** (`/infrastructure/cognito`): `signInWithRedirect({ provider: 'Google' })` goes straight to Google (the hosted UI's only action is "Continue with Google"). Still **Authorization Code + PKCE**; the callback completes the exchange; the SDK stores + refreshes tokens. **No email/password form** — no native users.
+- **MFA is the IdP's** (Google 2FA) — Cognito applies no second factor to federated users. Groups (`admin`/`registered`) are assigned server-side by a Cognito trigger and arrive in `cognito:groups`; the SPA only **reads** them for cosmetic gating (`/frontend/authorization`).
 - Every BFF call carries the access token as a Bearer header (`/frontend/api-client`).
 - `401` → re-authenticate.
 - Config (pool/client/hosted-UI ids) from **SSM** at build time (`/frontend/environment-config`).

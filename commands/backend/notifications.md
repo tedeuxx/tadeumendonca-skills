@@ -1,4 +1,4 @@
-Implement or review notifications (email via SES) in <project>-api.
+Implement or review notifications (email via SES) in `apps/bff`.
 
 Context: $ARGUMENTS
 
@@ -17,16 +17,16 @@ export async function sendEmail(to: string, subject: string, html: string) {
   }));
 }
 ```
-- Lambda role needs `ses:SendEmail` (`/infrastructure/ses`); reaches SES via NAT.
+- Lambda role needs `ses:SendEmail` (`/infrastructure/ses`); reaches SES over the public AWS endpoint (non-VPC, no NAT); via NAT only if the BFF is in-VPC.
 - Templates: simple HTML strings now; move to SES **templates** / `SendBulkEmail` when volume/variety grows.
 
-## Subscriptions (collection `subscribers`)
+## Subscriptions (table `subscribers`)
 ```jsonc
-{ "_id": "ObjectId", "cognito_sub": "…", "email": "…", "status": "active | unsubscribed", "created_at": "ISODate" }
+{ "cognito_sub": "…", "email": "…", "status": "active | unsubscribed", "created_at": "2026-01-01T00:00:00Z" }
 ```
 - `POST /subscriptions` → upsert an `active` subscriber (the user's `sub`/`email` from the validated claims).
 - `DELETE /subscriptions` (or a one-click unsubscribe link/token) → `status = "unsubscribed"`.
-- Indexes `{ cognito_sub: 1 }` unique, `{ status: 1 }` (`/backend/document-db`).
+- Partition key `cognito_sub`; query active subscribers via a `status` GSI (`/backend/dynamodb`).
 
 ## Sync vs async (never block the request)
 A publish that notifies **N** subscribers must **not** run inline — fan-out is slow and fails partially.
@@ -38,6 +38,11 @@ A publish that notifies **N** subscribers must **not** run inline — fan-out is
 - snake_case payloads; from-address + region from env (`/backend/environment-config`).
 - **SES sandbox:** new accounts only send to verified addresses — production access is a one-time manual request (`/infrastructure/ses`).
 - Audit the action (`subscribers_create`, etc. — `/backend/audit-middleware`); identity from claims (`/backend/action-types`).
+
+## Decision & trade-off
+- **SES for delivery + SNS for async fan-out — a notify-N publish never runs inline.** The request publishes one domain event and returns; a subscribed Lambda fans out the emails with a DLQ for failures. *Trade-off:* delivery is eventual (failures land in the DLQ, not in the response), in exchange for a fast request and partial-failure isolation. SNS is the cheapest pub/sub for this (`/infrastructure/sns`).
+- **Scheduled digests are EventBridge-cron-driven, not a long-running worker** — the schedule fires a Lambda (pay-on-fire), so there's ~$0 idle cost. *Trade-off:* batch cadence (cron granularity) rather than real-time, which is exactly what a digest wants.
+- **Fan-out is idempotent** (dedupe by `(post_id, subscriber_id)`) so retries don't double-send. *Trade-off:* a dedupe key to maintain, for at-least-once delivery safety.
 
 ## Pros & cons
 **Pros**

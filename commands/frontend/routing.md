@@ -1,4 +1,4 @@
-Frontend routing in <project>-fed (concept).
+Frontend routing in `apps/fed` (concept).
 
 Context: $ARGUMENTS
 
@@ -8,7 +8,7 @@ Conceptual skill — the routing structure + conventions. The react-router snipp
 - `/` HomePage (CV) · `/feed` · `/articles` (list + tag filter) · `/articles/:slug` (ArticlePage) · `/callback` (auth code exchange — `/frontend/authentication`) · admin routes (compose) behind a guard · `*` 404.
 
 ## Patterns
-- **Nested layouts** — a shared shell (header/footer / Cloudscape `AppLayout`) wraps the page routes.
+- **Nested layouts** — a shared app shell (header/nav/content — see `/frontend/design-system`) wraps the page routes.
 - **Lazy loading** — code-split heavy/rarely-hit routes (article editor, admin) to keep the initial bundle small.
 - **Guards** — admin routes wrapped by `RequireAuth` (`/frontend/authorization`); `/callback` and public GETs are open.
 - **404** — a catch-all route renders NotFound.

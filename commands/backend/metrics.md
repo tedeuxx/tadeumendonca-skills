@@ -1,4 +1,4 @@
-Implement or review metrics in <project>-api (Powertools Metrics → EMF → CloudWatch).
+Implement or review metrics in `apps/bff` (Powertools Metrics → EMF → CloudWatch).
 
 Context: $ARGUMENTS
 
@@ -25,9 +25,14 @@ metrics.addMetric('request_duration_ms', MetricUnit.Milliseconds, ms);
 ## Conventions
 - **No `cloudwatch:PutMetricData`** — EMF metrics are extracted from logs, so the exec role needs no metrics IAM action (basic logs perms suffice). See `/infrastructure/iam`.
 - **Low cardinality** — dimensions limited to `action_type` / `environment` / `service`. Never `user_id` or id-bearing paths.
-- Suggested metrics: request count + latency, cache hit/miss (`/backend/redis-cache`), DocDB query duration, handler errors.
+- Suggested metrics: request count + latency, cache hit/miss (`/backend/redis-cache`), DynamoDB query duration, handler errors.
 - `og-edge` (Lambda@Edge) emits no metrics (edge constraints).
 - Powertools owns Logger / Metrics / Tracer uniformly (`/backend/logging`, `/backend/tracing`).
+
+## Decision & trade-off
+- **EMF (Embedded Metric Format) over a separate metrics backend/collector.** The function writes a structured log line and CloudWatch auto-extracts the metrics — no ADOT collector, no Amazon Managed Prometheus, no scrape endpoint (which an ephemeral Lambda can't host anyway). *Trade-off:* metrics surface only after log ingestion (slight delay) and you live within CloudWatch Metrics, not a richer dedicated TSDB — accepted for cost/simplicity.
+- **No `cloudwatch:PutMetricData` IAM action** — metrics ride the log stream, so the exec role needs only basic logs perms. *Trade-off:* tied to the log-extraction path; a metric is only as timely as its log line.
+- **Low-cardinality dimensions only** (`action_type`/`environment`/`service`; never `user_id` or id-bearing paths). *Trade-off:* you can't slice by high-cardinality identity, in exchange for predictable metric cost (cardinality is the cost driver).
 
 ## Pros & cons
 **Pros**

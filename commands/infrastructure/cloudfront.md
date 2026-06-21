@@ -85,7 +85,7 @@ Prefer AWS **managed** CloudFront policies — no custom policy to maintain. Wha
 `aws_route53_record` type `A`, alias target = `module.cloudfront.cloudfront_distribution_domain_name`, `zone_id = "Z2FDTNDATAQYW2"` (CloudFront constant). See `/infrastructure/route53`.
 
 ## Conventions
-- **OAC, not OAI** — origin S3 buckets stay private; reach them via `s3_bucket_bucket_regional_domain_name` (`/infrastructure/s3`).
+- **OAC, not OAI** — origin S3 buckets stay private; reach them via `s3_bucket_bucket_regional_domain_name` (`/infrastructure/s3`). **OAC origins must be SSE-S3 (AES256), not SSE-KMS** under the `aws/s3` key — OAC can't `kms:Decrypt` it (the origin 403s); use a CMK granting CloudFront if KMS is required (`/infrastructure/kms`).
 - TLS ≥ `TLSv1.2_2021`, HTTPS redirect, compression on; encryption stance `/infrastructure/kms`.
 - **Lambda@Edge (og-edge)** at Viewer Request via `lambda_function_qualified_arn` — bot UA detection for OG/SEO, no SSR (`/backend/og-edge-handler`). CloudFront Functions only for trivial header/redirect logic.
 - **`/og/*` behavior** routes to the `og-images` bucket so OG PNGs serve from the same distribution.
@@ -93,6 +93,11 @@ Prefer AWS **managed** CloudFront policies — no custom policy to maintain. Wha
 - CLOUDFRONT-scope WAF requires the us-east-1 alias (`/infrastructure/waf`); cert via `/infrastructure/acm`; distribution id to SSM `/{env}/frontend/cloudfront-distribution-id` (`/infrastructure/ssm`).
 ## Custom domain (standard)
 The distribution serves the **custom domain** — `aliases = [var.domain_name]` (`<apex-domain>` / `staging.<apex-domain>`). The generated `*.cloudfront.net` host is **never** the public URL. Cert via `/infrastructure/acm` (us-east-1, `sni-only`); the Route53 A-alias to the distribution is in `/infrastructure/route53`.
+
+## Decision & trade-off
+- **`PriceClass_100` (NA + EU edges only) is the cheapest tier.** *Trade-off:* no APAC/SA edge locations — higher latency for those regions, accepted for cost. Switch to `PriceClass_All` only if the audience warrants global reach.
+- **Ordered cache behaviors are FIRST-MATCH — order is load-bearing.** A broad pattern (e.g. `/assets/*` → the SPA build bucket) will **shadow** a more specific prefix that needs a different origin (e.g. `/assets/avatars/*` → an asset store). List the **specific prefix FIRST**; a misordering is a real, silent bug (the specific prefix routes to the wrong origin). When adding a new sub-prefix under an existing broad pattern, insert it before the broad one — or reserve the broad prefix for one origin and move the other to its own path.
+- **SPA routing is 403/404 → 200 `/index.html`.** *Gotcha:* because a missing path returns the SPA shell with HTTP 200, **a 200 does not prove the app actually loaded** — health checks must assert on rendered content, not just the status code.
 
 ## Pros & cons
 **Pros**

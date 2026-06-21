@@ -1,4 +1,4 @@
-Build the component library with Storybook in <project>-fed.
+Build the component library with Storybook in `apps/fed`.
 
 Context: $ARGUMENTS
 
@@ -6,7 +6,7 @@ Component-driven development + living documentation for the SPA's component libr
 
 ## Setup
 - Storybook with the **Vite** builder; `*.stories.tsx` colocated with each component.
-- Decorate stories with the app providers a component needs (Cloudscape theme — `/frontend/design-system`, React Query, router) so they render like the real app.
+- Decorate stories with the app providers a component needs (the design-system tokens/theme — `/frontend/design-system`, React Query, router) so they render like the real app.
 
 ## What we story
 - Reusable UI (Card, Badge, Timeline, layout, feedback states) and composite sections (CV sections, PostCard, ArticleHeader).
@@ -20,7 +20,7 @@ Component-driven development + living documentation for the SPA's component libr
 ## Conventions
 - Develop components in Storybook first (isolation), then compose into pages.
 - Stories are committed and kept in sync with the component — a stale story is a smell.
-- Cloudscape provides the primitives (`/frontend/design-system`); Storybook documents how we compose them.
+- The design system provides our own primitives (`/frontend/design-system`); Storybook documents how we compose them.
 
 ## Pros & cons
 **Pros**

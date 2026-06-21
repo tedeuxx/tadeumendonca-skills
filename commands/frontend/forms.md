@@ -1,4 +1,4 @@
-Implement or review forms in <project>-fed (admin compose).
+Implement or review forms in `apps/fed` (admin compose).
 
 Context: $ARGUMENTS
 
@@ -11,7 +11,7 @@ Forms for admin flows (PostCompose, article editor — Phase 2/3). Concept + con
 
 ## Conventions
 - Validate client-side for UX, but the **server is authoritative** (the BFF re-validates).
-- snake_case field names (match the API). Build form UI from `/frontend/design-system` (Cloudscape `Form`, `FormField`, `Input`, `Textarea`).
+- snake_case field names (match the API). Build form UI from `/frontend/design-system` (own Tailwind `Field` wrapper + styled `input`/`textarea`/`select`).
 - Admin forms live behind `/frontend/authorization`.
 
 ## Pros & cons

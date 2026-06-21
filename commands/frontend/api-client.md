@@ -1,4 +1,4 @@
-SPA → BFF API calls in <project>-fed (concept).
+SPA → BFF API calls in `apps/fed` (concept).
 
 Context: $ARGUMENTS
 

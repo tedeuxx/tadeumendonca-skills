@@ -1,4 +1,4 @@
-Configure and validate backend environments in <project>-api.
+Configure and validate backend environments in `apps/bff`.
 
 Context: $ARGUMENTS
 
@@ -34,8 +34,13 @@ export const config = {
   logLevel:       process.env.LOG_LEVEL ?? 'INFO',
   ogImagesBucket: required('OG_IMAGES_BUCKET'),
   redisEndpoint:  required('REDIS_ENDPOINT'),
-  docdbSecretArn: required('DOCDB_SECRET_ARN'),     // ARN only — value fetched at runtime
-  redisSecretArn: process.env.REDIS_SECRET_ARN,
+  redisSecretArn: process.env.REDIS_SECRET_ARN,     // Redis AUTH ARN — value fetched at runtime
+  // DynamoDB table names (IaC injects from SSM); access is pure IAM, no secret
+  profileTable:       required('PROFILE_TABLE'),
+  postsTable:         required('POSTS_TABLE'),
+  articlesTable:      required('ARTICLES_TABLE'),
+  subscriptionsTable: required('SUBSCRIPTIONS_TABLE'),
+  auditsTable:        required('AUDITS_TABLE'),
 } as const;
 ```
 
