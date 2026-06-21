@@ -32,11 +32,11 @@ Beyond domain verification, a production sender needs:
 - **Configuration set + event destination:** route **bounces / complaints / deliveries** to SNS (or CloudWatch) so the app suppresses bad addresses and watches reputation. AWS **requires** handling bounces/complaints — high rates get sending paused (`/infrastructure/sns`).
 - **Account suppression list:** SES auto-suppresses known bounces/complaints account-wide; honor it (don't re-send).
 - **Sandbox → production + limits:** new accounts are sandboxed (verified recipients only, tiny quota). Request production access (manual, out-of-band), then respect the **sending quota + max send rate** — throttle the SNS→notifications fan-out accordingly (`/backend/notifications`).
-- **Sending path:** the BFF calls `ses:SendEmail` (role-scoped, `/infrastructure/iam`), reaches SES via NAT (`/infrastructure/vpc`), TLS in transit by default.
+- **Sending path:** the BFF calls `ses:SendEmail` (role-scoped, `/infrastructure/iam`) over the **public AWS endpoint** (non-VPC, no NAT); via NAT only if the BFF is in-VPC (`/infrastructure/vpc`). TLS in transit by default.
 
 ## Notes
 - New AWS accounts start in the **SES sandbox** (send only to verified addresses) — requesting production access is a manual, out-of-band step, not Terraform.
-- The BFF reaches SES via **NAT egress** (it's a public AWS endpoint, no VPC endpoint here) — `/infrastructure/vpc`.
+- The BFF reaches SES over the **public AWS endpoint** (non-VPC, no NAT); via NAT only if the BFF is in-VPC (there is no SES VPC endpoint here) — `/infrastructure/vpc`.
 - **Encryption:** SES API is **TLS/SSL by default** (HTTPS), and outbound mail is sent with TLS to recipient MTAs. SES holds no at-rest datastore in our usage; if a configuration-set archive / S3 export is added later it must be **KMS-encrypted** (`/infrastructure/kms`).
 
 ## Pros & cons

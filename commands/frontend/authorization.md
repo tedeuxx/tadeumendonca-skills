@@ -1,4 +1,4 @@
-SPA authorization / UI gating in <project>-fed (concept).
+SPA authorization / UI gating in `apps/fed` (concept).
 
 Context: $ARGUMENTS
 

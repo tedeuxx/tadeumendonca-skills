@@ -1,4 +1,4 @@
-Frontend SEO in <project>-fed (concept, no SSR).
+Frontend SEO in `apps/fed` (concept, no SSR).
 
 Context: $ARGUMENTS
 

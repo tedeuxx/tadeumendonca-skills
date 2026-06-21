@@ -1,4 +1,4 @@
-Render article markdown in <project>-fed (concept).
+Render article markdown in `apps/fed` (concept).
 
 Context: $ARGUMENTS
 

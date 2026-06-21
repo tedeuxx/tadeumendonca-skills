@@ -1,4 +1,4 @@
-Use Playwright for E2E tests in <project>-fed.
+Use Playwright for E2E tests in `apps/fed`.
 
 Context: $ARGUMENTS
 
@@ -29,7 +29,7 @@ Google's interactive login blocks bots, so you can't drive it in Playwright. For
 - Runs in `ci.yml` (`/workflow/github-actions`); **any failure blocks the deploy**. Upload the HTML report/trace on failure.
 
 ## Conventions
-- E2E lives only in fed; api uses Postman/newman (`/backend/postman`) + vitest.
+- E2E lives in `apps/fed`; `apps/bff` uses Postman/newman (`/backend/postman`) + vitest.
 - E2E asserts user-visible flows — don't re-test unit logic here.
 
 ## Pros & cons

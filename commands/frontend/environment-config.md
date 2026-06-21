@@ -1,4 +1,4 @@
-Frontend environment config in <project>-fed (concept).
+Frontend environment config in `apps/fed` (concept).
 
 Context: $ARGUMENTS
 

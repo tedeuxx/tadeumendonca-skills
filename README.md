@@ -21,6 +21,8 @@ The goal: transfer domain knowledge into repeatable, high-quality AI-assisted wo
 Generic, reusable templates — workload-specific values are `<project>` / `<apex-domain>` placeholders.
 Distributed as a **Claude Code plugin + marketplace** (this repo). See [`CLAUDE.md`](./CLAUDE.md) for the full command reference, install (`/plugin marketplace add tedeuxx/tadeumendonca-skills`), and versioning.
 
+Consumed by the `tadeumendonca.io` platform repos: `tadeumendonca-pwa` (the product monorepo — `apps/fed` SPA + `apps/bff` BFF + `iac/` app infra) and `tadeumendonca-iac` (shared regional WAF baseline).
+
 ## Related
 
 - [tadeumendonca.io](https://tadeumendonca.io)

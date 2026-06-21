@@ -1,4 +1,4 @@
-Implement or review the React frontend framework for <project>-fed.
+Implement or review the React frontend framework for `apps/fed`.
 
 Context: $ARGUMENTS
 

@@ -1,4 +1,4 @@
-Fetch sensitive backend values from AWS Secrets Manager in <project>-api.
+Fetch sensitive backend values from AWS Secrets Manager in `apps/bff`.
 
 Context: $ARGUMENTS
 

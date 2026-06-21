@@ -1,4 +1,4 @@
-Implement or update the og-edge Lambda@Edge handler. **It lives in the `-iac` repo** (`terraform/lambda-src/og-edge/index.js`), not the api repo — see "Where the code lives" below.
+Implement or update the og-edge Lambda@Edge handler. **It lives in `<project>-pwa/iac`** (`iac/lambda-src/og-edge/index.js`), not `apps/bff` — see "Where the code lives" below.
 
 Context: $ARGUMENTS
 
@@ -11,7 +11,7 @@ The edge does a **3-way classification** at CloudFront Viewer Request — humans
 - **Zero dependencies** — only Node built-ins (global `fetch`). Nothing to bundle: Terraform zips the single `index.js` directly. *Trade-off:* no TypeScript at the edge; keep the file small and plain CJS (`exports.handler`).
 - Always **fall back to passthrough** (return the request unchanged) on any fetch error/timeout/oversize/unmapped path — the SPA shell is always a valid response. Use an `AbortController` with a short timeout (~1.5s) well under the 5s viewer-request ceiling.
 
-## Classification: `terraform/lambda-src/og-edge/index.js` (plain CJS, zero deps)
+## Classification: `iac/lambda-src/og-edge/index.js` (plain CJS, zero deps)
 
 ```javascript
 'use strict';
@@ -71,7 +71,7 @@ Both come from the API (DynamoDB) — see `/backend/prerender`. The React app an
 
 ## Where the code lives + deploy (IaC owns it — Pattern-B exception)
 
-Unlike the BFF (api repo ships code, IaC owns config), the **edge code lives in `-iac`** and Terraform owns its full lifecycle. *Why:* CloudFront must reference a **specific published version** (a qualified ARN — `$LATEST` is rejected), so every code change must publish a new version **and** repoint the distribution. Terraform does both in one apply:
+Unlike the BFF (`apps/bff` ships code, IaC owns config), the **edge code lives in `<project>-pwa/iac`** and Terraform owns its full lifecycle. *Why:* CloudFront must reference a **specific published version** (a qualified ARN — `$LATEST` is rejected), so every code change must publish a new version **and** repoint the distribution. Terraform does both in one apply:
 
 ```hcl
 module "fn_og_edge" {
@@ -93,7 +93,7 @@ module "fn_og_edge" {
 resource "aws_ssm_parameter" "lambda_edge_og_qualified_arn" { value = module.fn_og_edge.lambda_function_qualified_arn /* … */ }
 ```
 
-*Trade-off:* an edge code change is a `terraform apply` (not the api repo's CI pipeline). Acceptable — the edge is bot/SEO-only and changes rarely. The rejected alternative (api repo `update-function-code` + `publish-version`, then a separate CloudFront `update-distribution`) would fight the CloudFront module's state permanently, since Terraform reconciles the association back to the version it knows. With `create_package=true` + `source_path` there's **no esbuild** — the zero-dep file is zipped as-is (Terraform's lambda module needs Python 3 on the runner to package).
+*Trade-off:* an edge code change is a `terraform apply` (not the `apps/bff` deploy pipeline). Acceptable — the edge is bot/SEO-only and changes rarely. The rejected alternative (`apps/bff` `update-function-code` + `publish-version`, then a separate CloudFront `update-distribution`) would fight the CloudFront module's state permanently, since Terraform reconciles the association back to the version it knows. With `create_package=true` + `source_path` there's **no esbuild** — the zero-dep file is zipped as-is (Terraform's lambda module needs Python 3 on the runner to package).
 
 After apply, CloudFront propagation + Lambda@Edge replication take several minutes; verify with `curl -A Googlebot` once the distribution is `Deployed` (look for `x-prerendered-by: og-edge`).
 

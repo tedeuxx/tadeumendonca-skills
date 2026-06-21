@@ -1,4 +1,4 @@
-Implement or review notifications (email via SES) in <project>-api.
+Implement or review notifications (email via SES) in `apps/bff`.
 
 Context: $ARGUMENTS
 
@@ -17,7 +17,7 @@ export async function sendEmail(to: string, subject: string, html: string) {
   }));
 }
 ```
-- Lambda role needs `ses:SendEmail` (`/infrastructure/ses`); reaches SES via NAT.
+- Lambda role needs `ses:SendEmail` (`/infrastructure/ses`); reaches SES over the public AWS endpoint (non-VPC, no NAT); via NAT only if the BFF is in-VPC.
 - Templates: simple HTML strings now; move to SES **templates** / `SendBulkEmail` when volume/variety grows.
 
 ## Subscriptions (table `subscribers`)

@@ -1,7 +1,8 @@
 # tadeumendonca-skills
 
 Claude Code **plugin** (slash-command library) for the **tadeumendonca.io** platform — distributed
-via the **marketplace in this repo** and reused across `tadeumendonca-iac`, `-api`, and `-fed`.
+via the **marketplace in this repo** and reused across `tadeumendonca-pwa` (the product monorepo:
+`apps/fed` + `apps/bff` + `iac/`) and `tadeumendonca-iac` (shared regional WAF only).
 The commands are generic, reusable implementation guides (no AWS dependency to run).
 
 Each command is a per-component guide: when the owner runs `/tadeumendonca-skills:backend/lambda-handler posts`,
@@ -21,7 +22,7 @@ projects. Commands live in `commands/`; `.claude-plugin/marketplace.json` is the
 `.claude-plugin/plugin.json` the manifest. **Nothing is published outside this git repo** — the
 marketplace is just a metadata file the consumer points at.
 
-**Consume it in a repo (`-iac`, `-api`, `-fed`)** — add the marketplace from this git + install:
+**Consume it in a repo (`-pwa`, `-iac`)** — add the marketplace from this git + install:
 
 ```bash
 claude plugin marketplace add tedeuxx/tadeumendonca-skills
@@ -47,7 +48,7 @@ marketplace update`). For **local skill authoring** (test edits to this repo, un
 `claude --plugin-dir .`
 
 The skills are **generic** (`<project>` / `<apex-domain>` placeholders) — Claude substitutes the
-real values per project (in `-iac`, they become `var.project` / `var.apex_domain`).
+real values per project (in `-pwa/iac` and `-iac`, they become `var.project` / `var.apex_domain`).
 
 ### Usage
 
@@ -107,7 +108,7 @@ sync (see `/workflow/versioning`).
 | `/backend/og-image-generator` | OG image: satori JSX→SVG + resvg→PNG + S3 cache |
 | `/backend/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
 | `/backend/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DynamoDB |
-| `/backend/postman` | API/contract tests (lives in api repo): Bearer JWT auth, collection run in CI |
+| `/backend/postman` | API/contract tests (lives in `apps/bff`): Bearer JWT auth, collection run in CI |
 | `/backend/coverage` | Backend quality/test/security gates (agnostic): lint, typecheck, ≥85% cov, audit, Sonar |
 
 ### frontend/ (18)
@@ -130,7 +131,7 @@ sync (see `/workflow/versioning`).
 | `/frontend/analytics` | GA4 (concept): SPA page_view per route + events |
 | `/frontend/cloudwatch-rum` | RUM (concept): web vitals, JS errors, http; X-Ray end-to-end |
 | `/frontend/seo` | Client SEO (concept): per-route meta + sitemap/robots + JSON-LD |
-| `/frontend/playwright` | E2E browser tests (lives in fed repo): login via Cognito SDK, critical journeys |
+| `/frontend/playwright` | E2E browser tests (lives in `apps/fed`): login via Cognito SDK, critical journeys |
 | `/frontend/coverage` | Frontend quality/test/security gates (agnostic): lint, typecheck, ≥85% cov, E2E, audit, Sonar |
 
 ### infrastructure/ (21)
@@ -146,7 +147,7 @@ One skill per AWS service / tool used — each is the canonical parametrization 
 | `/infrastructure/s3` | S3: frontend(OAC)/artifacts/og-images + SSE + SSM |
 | `/infrastructure/cloudfront` | CloudFront: OAC, TLS, cache policies, **SPA error routing + /og/***, Lambda@Edge, WAF |
 | `/infrastructure/waf` | WAF CLOUDFRONT + REGIONAL (shared by API GW + Cognito) |
-| `/infrastructure/lambda` | Lambda: nodejs22/arm64, in-VPC, **Pattern B**, tracing; og-edge exception |
+| `/infrastructure/lambda` | Lambda: nodejs22/arm64, non-VPC by default (VPC on demand), **Pattern B**, tracing; og-edge exception |
 | `/infrastructure/api-gateway` | API GW (REST v1): fronts only the BFF, per-route Cognito authorizer, WAF-fronted, **contract via put-rest-api** |
 | `/infrastructure/cognito` | Cognito: user pool, 3 groups, PKCE public client, **custom domain** |
 | `/infrastructure/dynamodb` | DynamoDB: per-entity tables, on-demand, GSIs, PITR, IAM access, SSM table names |
@@ -163,11 +164,11 @@ One skill per AWS service / tool used — each is the canonical parametrization 
 
 ### workflow/ (7)
 
-DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella for OIDC, secrets/environments, GitFlow branching, the api/fed deploy workflows, and the Issues backlog; the numeric-SemVer tagging rules are their own skill (`versioning`). Test-runner + gate skills live with their repo (`/backend/postman` + `/backend/coverage`, `/frontend/playwright` + `/frontend/coverage`); IaC checkov is in `/infrastructure/terraform`.
+DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella for OIDC, secrets/environments, GitFlow branching, the `apps/bff` + `apps/fed` deploy workflows, and the Issues backlog; the numeric-SemVer tagging rules are their own skill (`versioning`). Test-runner + gate skills live with their repo (`/backend/postman` + `/backend/coverage`, `/frontend/playwright` + `/frontend/coverage`); IaC checkov is in `/infrastructure/terraform`.
 
 | Command | Purpose |
 |---|---|
-| `/workflow/github-actions` | GitHub/CI-CD capability: OIDC, secrets/envs, GitFlow branching, api/fed deploys, Issues backlog |
+| `/workflow/github-actions` | GitHub/CI-CD capability: OIDC, secrets/envs, GitFlow branching, `apps/bff` + `apps/fed` deploys, Issues backlog |
 | `/workflow/versioning` | Semantic versioning + tags: numeric SemVer via bump-my-version, loop guard, PR labels |
 | `/workflow/terraform-cloud` | TFC remote-state backend; per-env workspaces; Local execution; **pipeline-only apply/destroy** |
 | `/workflow/sonarcloud` | SonarCloud quality gate (SAST + coverage + smells), blocks merge |

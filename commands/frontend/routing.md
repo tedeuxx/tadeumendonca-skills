@@ -1,4 +1,4 @@
-Frontend routing in <project>-fed (concept).
+Frontend routing in `apps/fed` (concept).
 
 Context: $ARGUMENTS
 

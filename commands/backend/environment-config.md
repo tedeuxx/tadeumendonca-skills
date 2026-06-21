@@ -1,4 +1,4 @@
-Configure and validate backend environments in <project>-api.
+Configure and validate backend environments in `apps/bff`.
 
 Context: $ARGUMENTS
 

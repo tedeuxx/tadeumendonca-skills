@@ -1,4 +1,4 @@
-Set up or review the backend (<project>-api) quality, test, and security gates.
+Set up or review the backend (`apps/bff`) quality, test, and security gates.
 
 Context: $ARGUMENTS
 

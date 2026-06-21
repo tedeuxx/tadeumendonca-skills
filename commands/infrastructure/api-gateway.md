@@ -6,14 +6,14 @@ Context: $ARGUMENTS
 
 ## Configuration (api.tf)
 ```hcl
-# REST API — body is the OpenAPI spec; IaC seeds GET /health, the api repo owns the full contract.
+# REST API — body is the OpenAPI spec; IaC seeds GET /health, apps/bff owns the full contract.
 resource "aws_api_gateway_rest_api" "this" {
   name = "<project>-${var.environment}"
   endpoint_configuration { types = ["REGIONAL"] }     # REGIONAL (not EDGE) — WAF + regional cert
   body = templatefile("${path.module}/bootstrap/openapi-health.json.tftpl", {
     health_integration_uri = module.bff.lambda_function_invoke_arn   # seed GET /health → BFF
   })
-  lifecycle { ignore_changes = [body] }               # the api repo owns the body after first apply (put-rest-api)
+  lifecycle { ignore_changes = [body] }               # apps/bff owns the body after first apply (put-rest-api)
 }
 
 resource "aws_api_gateway_deployment" "this" {
@@ -63,7 +63,7 @@ resource "aws_wafv2_web_acl_association" "api_gw" {
   web_acl_arn  = module.waf_regional.arn
 }
 ```
-**Key knobs:** `endpoint_configuration = REGIONAL` (EDGE would force the cert to us-east-1 *edge* + its own CloudFront — REGIONAL keeps it simple and WAF-associable with a regional WebACL); `lifecycle.ignore_changes = [body]` so an IaC apply never fights the api repo's `put-rest-api`; deployment redeploys on seed-body change; custom domain on the reused us-east-1 **regional** cert; `aws_api_gateway_method_settings` for stage throttling.
+**Key knobs:** `endpoint_configuration = REGIONAL` (EDGE would force the cert to us-east-1 *edge* + its own CloudFront — REGIONAL keeps it simple and WAF-associable with a regional WebACL); `lifecycle.ignore_changes = [body]` so an IaC apply never fights `apps/bff`'s `put-rest-api`; deployment redeploys on seed-body change; custom domain on the reused us-east-1 **regional** cert; `aws_api_gateway_method_settings` for stage throttling.
 
 ## Auth — Cognito authorizer (`COGNITO_USER_POOLS`), per route
 The OpenAPI body carries an `x-amazon-apigateway-authorizer` of type `cognito_user_pools` (provider ARN = the user pool) + per-route `security`. Public routes (health, public GETs, `/og-meta`, `/prerender`) open; mutations require the JWT. The SPA sends `Authorization: Bearer` (Cognito SDK); the BFF has **no auth code** — it reads `requestContext.authorizer.claims` (`/frontend/authentication`, `/backend/bff`).
@@ -100,9 +100,9 @@ A REST API has **no `cors_configuration`** knob (that's an HTTP-API feature), an
 - **Usage plans + API keys** (`aws_api_gateway_usage_plan` + `_api_key` + `_usage_plan_key`): per-key quotas + throttles — REST-only. Not needed while the only consumer is the co-owned fed SPA (it authenticates with Cognito JWT, not API keys), but available if an external/partner consumer appears.
 - **WAF** rate-based rules (per-IP) front the stage via the REGIONAL WebACL (`/infrastructure/waf`) — the per-IP guard the HTTP API couldn't have.
 
-## Contract ownership — IaC owns the shell, api repo owns the contract
+## Contract ownership — IaC owns the shell, `apps/bff` owns the contract
 - **IaC (api.tf):** seed spec `bootstrap/openapi-health.json.tftpl` with only `GET /health`; `lifecycle.ignore_changes=[body]`.
-- **api repo:** owns the full root route set + authorizer. The OpenAPI is **generated from the Hono code** (`@hono/zod-openapi`, `/backend/openapi`) — not hand-written. On every deploy it generates the spec, overlays the **single AWS integration (the BFF Lambda)** + the Cognito authorizer, then **overwrites + redeploys**:
+- **`apps/bff`:** owns the full root route set + authorizer. The OpenAPI is **generated from the Hono code** (`@hono/zod-openapi`, `/backend/openapi`) — not hand-written. On every deploy it generates the spec, overlays the **single AWS integration (the BFF Lambda)** + the Cognito authorizer, then **overwrites + redeploys**:
 ```bash
 API_ID=$(aws ssm get-parameter --name /$ENV_NAME/api/gateway-id --query 'Parameter.Value' --output text)
 npx tsx scripts/gen-openapi.ts --version "$(cat VERSION)" --out openapi.json   # version-stamped root copy

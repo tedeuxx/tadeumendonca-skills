@@ -2,7 +2,7 @@ Use Terraform in <project> infrastructure (how we use it as a whole).
 
 Context: $ARGUMENTS
 
-The single `<project>-iac` repo provisions everything. This is the end-to-end Terraform usage — versions, state, layout, **module sourcing/customization policy**, and **tagging** (both folded in here).
+Terraform provisions the app infra from `<project>-pwa/iac` (the monorepo); the separate `<project>-iac` holds only shared regional infra (the WAF). This is the end-to-end Terraform usage — versions, state, layout, **module sourcing/customization policy**, and **tagging** (both folded in here).
 
 ## Versions & providers
 ```hcl
@@ -30,7 +30,7 @@ These skills are **project-agnostic templates**. Workload-specific values appear
 |---|---|---|
 | `<project>` | `var.project` | every resource name / SSM path / secret name (`<project>-bff-…`, `<project>/{env}/redis`) |
 | `<apex-domain>` | `var.apex_domain` | the registrable apex; per-env hosts derive from it (`/infrastructure/route53`) |
-| `<github-org>` | `var.github_org` | OIDC trust subjects `repo:<github-org>/<project>-api:*` (`/infrastructure/iam`) |
+| `<github-org>` | `var.github_org` | OIDC trust subjects `repo:<github-org>/<project>-pwa:*` (`/infrastructure/iam`) |
 | `<tfc-org>` | `var.tfc_organization` | the `cloud{}` block |
 | `<account-id>` | `data.aws_caller_identity` | prose only — never hardcoded in config |
 

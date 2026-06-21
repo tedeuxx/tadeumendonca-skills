@@ -1,4 +1,4 @@
-Implement or review distributed tracing in <project>-api.
+Implement or review distributed tracing in `apps/bff`.
 
 Context: $ARGUMENTS
 

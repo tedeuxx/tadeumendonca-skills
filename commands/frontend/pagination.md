@@ -1,4 +1,4 @@
-Cursor pagination in <project>-fed (concept).
+Cursor pagination in `apps/fed` (concept).
 
 Context: $ARGUMENTS
 
