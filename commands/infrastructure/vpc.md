@@ -94,6 +94,22 @@ Rule of thumb: **few AWS services + need privacy → Interface endpoints (no NAT
 - Other AWS APIs (Cognito, Secrets Manager, SES, …) egress via **NAT or Interface endpoints** per the posture chosen above.
 - Lambda ENIs live in **private subnets**; API GW and CloudFront are AWS-edge managed (not in the VPC).
 
+## Connecting beyond a single VPC (hybrid / multi-VPC scenarios)
+When a workload must reach **another VPC or on-prem**, the mechanism is again a cost × topology trade-off:
+- **VPC Peering** — a 1:1 private link between two VPCs. Cheap (no hourly charge, just $/GB for cross-AZ), but **non-transitive** (A–B + B–C does **not** give A–C) and requires **non-overlapping CIDRs**. Right for a couple of VPCs.
+- **Transit Gateway (TGW)** — a hub-and-spoke router; **transitive**, scales to many VPCs/accounts and consolidates VPN/DX. Costs **~$/attachment/hr (≈$36/mo each) + $/GB**. Reach for it past a handful of VPCs or for hybrid consolidation.
+- **PrivateLink (Interface endpoint to a service)** — expose/consume **one service** privately across VPC/account boundaries **without joining networks** (no CIDR coordination). Use when you need a service, not full connectivity.
+- **VPN vs Direct Connect** — to on-prem: Site-to-Site VPN (encrypted over the internet, cheap, variable latency) vs Direct Connect (dedicated line, consistent latency/throughput, pricier, lead time). Terminate on a TGW or VGW.
+- **CIDR planning up front:** size the `/16` and pick ranges that won't overlap future peers/on-prem — **overlapping CIDRs are the #1 thing that blocks peering/TGW later** (and can't be changed without re-addressing).
+
+## Further nuances (the scenarios that bite)
+- **Static egress IP** — a 3rd party that **IP-allowlists** you needs a stable source IP: a NAT Gateway's EIP gives one per AZ (pin them). A **non-VPC Lambda has no stable egress IP** — that single requirement can force a VPC.
+- **Endpoint policies** — both Gateway and Interface endpoints accept an **IAM-style resource policy** restricting which principals/resources may use them (e.g. an S3 Gateway endpoint scoped to only your buckets) — a least-privilege layer on the data path itself.
+- **NACLs vs Security Groups** — SGs (stateful, instance-level) are the primary control; **NACLs** (stateless, subnet-level, ordered allow/deny) are a coarse second layer — most designs leave NACLs open and rely on SGs, using NACLs only for subnet-wide blocks (e.g. deny an IP range). Stateless means you must allow **ephemeral return ports** explicitly.
+- **Isolated subnets** — a third tier with **no egress at all** (no IGW, no NAT route) for data stores that must never reach the internet — stricter than "private".
+- **Centralized egress** (multi-account scale) — route all spoke VPCs' egress through a **shared NAT in a central network-account VPC** via TGW, collapsing N NATs into one. Overkill for a single account; the pattern to know once the org grows.
+- **IPv6** — dual-stack VPCs use an **egress-only Internet Gateway** (the IPv6 analog of NAT) for outbound-only IPv6 — and it is **free**, a way to avoid NAT cost for IPv6-capable egress.
+
 ## Notes
 - Lambda SG egress is limited to HTTPS (443) — **everything that crosses the VPC boundary is TLS** (`/infrastructure/kms`); flow logs are encrypted at the CloudWatch group.
 - This topology was established in the (now-decommissioned) landing-zone project and re-created inline — the migration is a one-time task tracked in the plan, not a skill.
