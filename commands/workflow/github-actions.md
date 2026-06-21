@@ -153,13 +153,13 @@ The product backlog is **GitHub Issues per repository** — no central backlog r
 - **Conventions:** title `[area] short description`; always set `type:`/`phase:`/`semver:` on creation, `priority:` when known; translate plan deliverables into one issue each at the start of implementation.
 
 ## Repo metadata
-GitHub repo **descriptions** follow one format — lead with the platform name, concise, no marketing fluff:
+GitHub repo **descriptions** follow one format — lead with the platform name (`<apex-domain>`), concise, no marketing fluff:
 ```
-tadeumendonca.io — <repo role>: <stack/scope>
+<apex-domain> — <repo role>: <stack/scope>
 ```
-- **`-pwa`** — `tadeumendonca.io — product monorepo: PWA (React) + BFF (Hono/Lambda) + app infra (Terraform)`
-- **`-iac`** — `tadeumendonca.io — shared infrastructure: regional WAF baseline (Terraform)`
-- **`-skills`** — `tadeumendonca.io — Claude Code skills library: reusable engineering workflows`
+- App monorepo — `<apex-domain> — product monorepo: PWA (React) + BFF (Hono/Lambda) + app infra (Terraform)`
+- Shared infra — `<apex-domain> — shared infrastructure: regional WAF baseline (Terraform)`
+- Skills plugin — `<apex-domain> — Claude Code skills library: reusable engineering workflows`
 
 ## Language
 Everything published on GitHub is in **English** — repo descriptions, READMEs, `docs/` + `CLAUDE.md`, commit and PR text, and Issues. The product **UI content is pt-BR** and is a separate concern (it never dictates the language of the engineering artifacts).
