@@ -9,17 +9,69 @@ Every pipeline assumes a dedicated AWS role via **GitHub OIDC** (`aws-actions/co
 
 | Pipeline role | Trust (OIDC subject) | Permissions (scoped, least-privilege) | Authored |
 |---|---|---|---|
-| **iac runner** `github-actions-<project>-iac` | `repo:<org>/<project>-iac:*` | broad provisioning — creates/updates/**deletes** all infra | **out-of-band** (it provisions everything, so can't self-manage) |
+| **iac runner** `github-actions-<project>-iac-<env>` | `repo:<org>/<project>-iac:*` (+ the app-infra repo if a monorepo owns infra), optionally pinned per env by branch | broad provisioning — creates/updates/**deletes** all infra **in that env** | **out-of-band** (it provisions everything, so can't self-manage) |
 | **api deploy** `github-actions-api-<env>` | `repo:<org>/<project>-api:*` | `lambda:UpdateFunctionCode`/`PublishVersion`/`GetFunction*` on `<project>-*-<env>`; `apigateway:PUT`/`POST`/`GET` on `/restapis/*`; `s3:PutObject`/`GetObject` (artifacts bucket); `ssm:GetParameter*` on `/{env}/*` | Terraform (`iam.tf`) |
 | **fed deploy** `github-actions-fed-<env>` | `repo:<org>/<project>-fed:*` | `s3:PutObject`/`DeleteObject`/`ListBucket` (fed bucket); `cloudfront:CreateInvalidation`; `ssm:GetParameter*` on `/{env}/*` | Terraform (`iam.tf`) |
 
-- **api/fed roles** are created by the **iac Terraform** (`iam.tf`, `iam-policy` + `iam-assumable-role-with-oidc` submodules) and their ARNs written to SSM `/{env}/iam/github-actions-{api,fed}-role-arn`; the app pipelines read `AWS_OIDC_ROLE_ARN` from SSM (never a rotatable secret). The Terraform lives in `iam.tf`, but the role is a **pipeline** concept — documented here.
-- **iac runner** is bootstrapped **out-of-band** (chicken-and-egg); its `<project>-iac-deploy` policy is maintained out-of-band. **Runner-policy gotcha — role deletion:** the runner must be able to **delete** every resource it creates, including IAM roles. The AWS provider calls **`iam:ListInstanceProfilesForRole`** (to detach instance profiles) **before** `iam:DeleteRole` — if the policy has `CreateRole`/`DeleteRole` but not `ListInstanceProfilesForRole` (+ `iam:ListRoleTags`), a `terraform destroy` of any role (e.g. a VPC's flow-log role) fails with `AccessDenied` **mid-apply**, orphaning the role + leaving inconsistent state. Grant those from the start.
+- **api/fed roles** are created by the **iac Terraform** (`iam.tf`, `iam-policy` + `iam-assumable-role-with-oidc` submodules) and their ARNs written to SSM `/{env}/iam/github-actions-{api,fed}-role-arn`; the app pipelines assume `AWS_BFF_OIDC_ROLE_ARN` / `AWS_FED_OIDC_ROLE_ARN` (env-scoped secrets; the SSM copy is for reference, never a rotatable key). The Terraform lives in `iam.tf`, but the role is a **pipeline** concept — documented here.
+- **iac runner** roles are **per-env** (`github-actions-<project>-iac-<env>`), bootstrapped **out-of-band** (chicken-and-egg); their `<project>-iac-deploy` policy is maintained out-of-band. Their ARNs are the **environment-scoped** `AWS_INFRA_OIDC_ROLE_ARN` secret (one value per Environment) — same treatment as the BFF/FED deploy roles. **Runner-policy gotcha — role deletion:** the runner must be able to **delete** every resource it creates, including IAM roles. The AWS provider calls **`iam:ListInstanceProfilesForRole`** (to detach instance profiles) **before** `iam:DeleteRole` — if the policy has `CreateRole`/`DeleteRole` but not `ListInstanceProfilesForRole` (+ `iam:ListRoleTags`), a `terraform destroy` of any role (e.g. a VPC's flow-log role) fails with `AccessDenied` **mid-apply**, orphaning the role + leaving inconsistent state. Grant those from the start.
 - The **GitHub OIDC provider** itself is **pre-existing** (landing zone), referenced by `provider_url`, not created. Confused-deputy guard: OIDC trust uses `StringLike` on `token.actions.githubusercontent.com:sub`.
 
 ## Secrets & environments
-- Repo secrets: `VERSION_BUMP_TOKEN`, `CLAUDE_CODE_OAUTH_TOKEN`, `SONAR_TOKEN`, `TFC_API_TOKEN` (iac), `AWS_OIDC_ROLE_ARN` (api/fed).
-- **Environments:** `staging` (no rules) + `production` (required reviewer) — production deploys gate on environment approval.
+**ONE standard across every repo — never decide per repo.** A secret has two independent axes, each
+fixed by rule: **SCOPE** (repository vs environment secret) and **NAME**. Audit a repo by listing both
+levels: `gh secret list -R <repo>` **and** `gh secret list -R <repo> --env <staging|production>`.
+
+**SCOPE — repository vs environment secret — decided by ONE question: does the value change per environment?**
+- **Environment secret** (GitHub Environments `staging`/`production`, **same name in each, different value
+  per env**) = **every AWS OIDC role ARN** — `AWS_INFRA_OIDC_ROLE_ARN`, `AWS_BFF_OIDC_ROLE_ARN`,
+  `AWS_FED_OIDC_ROLE_ARN` — plus per-env test fixtures `TEST_USER_*` (staging). Each role is **per-env**
+  (`github-actions-{<project>-iac,bff,fed}-<env>`), **including the iac runner**: split it per env so a
+  leaked staging OIDC token can't assume the production role, and the prod role is released only after the
+  `production` Environment's required-reviewer approval. (Terraform needs broad provisioning rights, so the
+  per-env infra split buys **credential isolation + the approval gate**, not tighter permissions — but that
+  isolation matters most precisely on the most powerful role.) Optionally pin each role's trust by branch
+  (`:ref:refs/heads/develop`→staging, `…/main`→production).
+- **Repository secret** = the SAME value for every environment — reserved for the account/org-wide **tooling
+  tokens only**: `TFC_API_TOKEN`, `SONAR_TOKEN`, `CLAUDE_CODE_OAUTH_TOKEN`, `VERSION_BUMP_TOKEN`.
+- **Rule of thumb:** if the value differs per environment (every deploy/runner role does), it's an
+  **environment** secret — same name in each Environment, **no** `-staging`/`-production` suffix (the
+  Environment supplies it). Only a single value shared across all envs is a **repository** secret.
+
+**NAME — one scheme:**
+- **AWS OIDC role ARNs:** `AWS_<SCOPE>_OIDC_ROLE_ARN`, `SCOPE` ∈ `INFRA` (iac runner) · `BFF` · `FED` — **all
+  environment-scoped**. **No legacy `AWS_ROLE_ARN`** and **no** generic `AWS_OIDC_ROLE_ARN` — the scope in the
+  name keeps a monorepo's three distinct (least-privilege) roles unambiguous.
+- **Third-party credentials:** keep the name the consuming action mandates (`SONAR_TOKEN`,
+  `CLAUDE_CODE_OAUTH_TOKEN`); otherwise `<PROVIDER>_<KIND>_TOKEN` — `TFC_API_TOKEN`, `VERSION_BUMP_TOKEN`.
+- **Test fixtures:** `TEST_<SUBJECT>_<FIELD>` — `TEST_USER_USERNAME`, `TEST_USER_PASSWORD` (staging only).
+
+**Canonical per-repo set — every repo audits against this one list:**
+
+| Secret | Scope | iac repo | app repo (api/fed/pwa) | skills |
+|---|---|:--:|:--:|:--:|
+| `AWS_INFRA_OIDC_ROLE_ARN` | environment | ✓ | ✓ *(only if it owns app-infra, e.g. the pwa monorepo)* | — |
+| `AWS_BFF_OIDC_ROLE_ARN` | environment | — | ✓ *(bff)* | — |
+| `AWS_FED_OIDC_ROLE_ARN` | environment | — | ✓ *(fed)* | — |
+| `TFC_API_TOKEN` | repository | ✓ | ✓ *(if it owns terraform)* | — |
+| `SONAR_TOKEN` | repository | ✓ | ✓ | — |
+| `CLAUDE_CODE_OAUTH_TOKEN` | repository | ✓ | ✓ | ✓ |
+| `VERSION_BUMP_TOKEN` | repository | ✓ | ✓ | ✓ |
+| `TEST_USER_USERNAME` / `TEST_USER_PASSWORD` | environment *(staging)* | — | ✓ *(fed e2e)* | — |
+
+- **Choice:** **every** OIDC role is per-env + environment-scoped (uniform across INFRA/BFF/FED), so credential
+  isolation and the prod approval gate apply to *all* pipelines — including the most powerful one (infra);
+  repository scope is reserved for genuinely cross-env tooling tokens. **Trade-off / migration:** re-scoping a
+  secret (repo→environment) or renaming it means the GitHub secret store AND the consuming jobs change
+  **together** — the deploy/apply jobs already declare `environment:`, so the same `secrets.AWS_*_OIDC_ROLE_ARN`
+  ref resolves from the Environment once the env secret exists; sequence: **add** the env secret in each
+  Environment → prove on a PR/apply → **remove** the old repo-level secret last.
+- **Plan-time caveat:** a read-only `plan` job on a PR also assumes a role. Give it the matching env's role
+  with read access **without** gating PRs behind prod approval — e.g. plan against the staging role, or a
+  dedicated non-gated read-only role — so opening a PR never blocks on the `production` reviewer.
+
+**Environments:** `staging` (no rules) + `production` (required reviewer) — production deploys gate on
+environment approval. **Every** role ARN lives as an **environment secret** (same name, different value per env).
 
 ## Workflow set (per repo)
 - `ci.yml` (api/fed) — **PR + push to develop/main**: lint + typecheck + tests + **SonarCloud** gate + security gates (`/backend/coverage`, `/frontend/coverage`, `/workflow/sonarcloud`). Push to develop/main sets SonarCloud's new-code baseline. iac has no `ci.yml` — its gates are `terraform-plan.yml` (checkov) + `sonar.yml` (SonarCloud IaC).

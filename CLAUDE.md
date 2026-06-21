@@ -169,7 +169,7 @@ DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella f
 |---|---|
 | `/workflow/github-actions` | GitHub/CI-CD capability: OIDC, secrets/envs, GitFlow branching, api/fed deploys, Issues backlog |
 | `/workflow/versioning` | Semantic versioning + tags: numeric SemVer via bump-my-version, loop guard, PR labels |
-| `/workflow/terraform-cloud` | TFC as remote-state backend; per-env workspaces; Local execution mode |
+| `/workflow/terraform-cloud` | TFC remote-state backend; per-env workspaces; Local execution; **pipeline-only apply/destroy** |
 | `/workflow/sonarcloud` | SonarCloud quality gate (SAST + coverage + smells), blocks merge |
 | `/workflow/claude-code` | Claude GitHub App: `@claude` assistant + automatic PR review (advisory, non-blocking) |
 | `/workflow/documentation-standard` | Markdown + Mermaid only; diagram types per repo |
@@ -187,6 +187,10 @@ DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella f
 4. **REST** — resources are nouns; HTTP verbs express the action; paths and parameters in
    kebab-case. Resource ids in paths are **opaque** (slug or hashid/nanoid `public_id`), never
    enumerable/sequential.
+5. **IaC mutations are pipeline-only** — `terraform apply`/`destroy` run **only in CI** (plan on PR,
+   apply on merge); never from a laptop. Local is read-only (`fmt`/`validate`/inspection `plan`).
+   Destroying live infra = remove from config + merge (or a reviewed `workflow_dispatch` teardown).
+   See `/workflow/terraform-cloud`.
 
 ---
 
