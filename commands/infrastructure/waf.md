@@ -1,8 +1,12 @@
-Implement or review the WAF WebACLs (CLOUDFRONT + REGIONAL) in <project>-iac.
+Implement or review the WAF WebACLs (CLOUDFRONT + REGIONAL) across the two repos that own them.
 
 Context: $ARGUMENTS
 
-Two WebACLs via **`cloudposse/waf/aws ~> 1.0`** (`/infrastructure/terraform`). CLOUDFRONT scope **must** use the us-east-1 provider alias. Inputs below follow the module's schema.
+Two WebACLs via **`cloudposse/waf/aws ~> 1.0`** (`/infrastructure/terraform`), split by ownership:
+- **REGIONAL** (shared) lives in **`<project>-iac`** — the shared regional WAF baseline. Its ARN is **published to SSM** (`/{env}/auth/waf-regional-arn`) for workloads to consume; the `<project>-pwa/iac` deploy reads that SSM value to associate the REST API stage + Cognito hosted UI.
+- **CLOUDFRONT** (the SPA WebACL) lives in **`<project>-pwa/iac`**, defined alongside the CloudFront distribution it protects.
+
+CLOUDFRONT scope **must** use the us-east-1 provider alias. Inputs below follow the module's schema.
 
 ## Common knobs (both WebACLs)
 ```hcl
@@ -22,7 +26,7 @@ logging_enabled         = true
 log_destination_configs = [aws_cloudwatch_log_group.waf.arn]   # name MUST start with aws-waf-logs-
 ```
 
-## CLOUDFRONT scope (frontend.tf) — us-east-1
+## CLOUDFRONT scope (`<project>-pwa/iac`, frontend.tf) — us-east-1
 ```hcl
 module "waf_cloudfront" {
   source    = "cloudposse/waf/aws"
@@ -40,7 +44,7 @@ module "waf_cloudfront" {
 # attached to CloudFront via web_acl_id = module.waf_cloudfront.web_acl_arn
 ```
 
-## REGIONAL scope — API GW (REST) stage + Cognito hosted UI
+## REGIONAL scope (`<project>-iac`, shared) — associated to API GW (REST) stage + Cognito hosted UI
 ```hcl
 module "waf_regional" {
   source  = "cloudposse/waf/aws"
@@ -74,8 +78,8 @@ resource "aws_wafv2_web_acl_association" "api_gw" {       # api.tf — REST API 
 ```
 
 ## Notes
-- CLOUDFRONT WAF protects the SPA distribution; REGIONAL WAF is **shared** by the REST API stage + the Cognito hosted UI (mitigates abuse on open signup + the public API surface).
-- SSM: `/{env}/auth/waf-regional-arn = module.waf_regional.arn` (cross-file reference).
+- CLOUDFRONT WAF (in `<project>-pwa/iac`) protects the SPA distribution; the REGIONAL WAF (in `<project>-iac`) is **shared** by the REST API stage + the Cognito hosted UI (mitigates abuse on open signup + the public API surface).
+- SSM: `<project>-iac` publishes `/{env}/auth/waf-regional-arn = module.waf_regional.arn`; the `<project>-pwa/iac` deploy reads it to associate the API GW stage + Cognito user pool.
 - Logs go to an `aws-waf-logs-<project>-${env}` group (mandated prefix — `/infrastructure/cloudwatch`); WAF holds no at-rest data of its own. TLS is terminated at CloudFront / API GW, which enforce TLS 1.2+ (`/infrastructure/kms`).
 - `aws_wafv2_web_acl_association` is justified raw glue — no module abstracts the stage/user-pool association.
 

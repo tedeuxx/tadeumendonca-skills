@@ -1,4 +1,4 @@
-Implement or review structured logging in <project>-api.
+Implement or review structured logging in `apps/bff`.
 
 Context: $ARGUMENTS
 

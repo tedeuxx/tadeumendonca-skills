@@ -1,4 +1,4 @@
-SPA authentication in <project>-fed (concept).
+SPA authentication in `apps/fed` (concept).
 
 Context: $ARGUMENTS
 

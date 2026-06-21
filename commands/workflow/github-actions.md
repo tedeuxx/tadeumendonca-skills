@@ -10,8 +10,8 @@ Every pipeline assumes a dedicated AWS role via **GitHub OIDC** (`aws-actions/co
 | Pipeline role | Trust (OIDC subject) | Permissions (scoped, least-privilege) | Authored |
 |---|---|---|---|
 | **iac runner** `github-actions-<project>-iac-<env>` | `repo:<org>/<project>-iac:*` (+ the app-infra repo if a monorepo owns infra), optionally pinned per env by branch | broad provisioning — creates/updates/**deletes** all infra **in that env** | **out-of-band** (it provisions everything, so can't self-manage) |
-| **api deploy** `github-actions-api-<env>` | `repo:<org>/<project>-api:*` | `lambda:UpdateFunctionCode`/`PublishVersion`/`GetFunction*` on `<project>-*-<env>`; `apigateway:PUT`/`POST`/`GET` on `/restapis/*`; `s3:PutObject`/`GetObject` (artifacts bucket); `ssm:GetParameter*` on `/{env}/*` | Terraform (`iam.tf`) |
-| **fed deploy** `github-actions-fed-<env>` | `repo:<org>/<project>-fed:*` | `s3:PutObject`/`DeleteObject`/`ListBucket` (fed bucket); `cloudfront:CreateInvalidation`; `ssm:GetParameter*` on `/{env}/*` | Terraform (`iam.tf`) |
+| **bff deploy** `github-actions-api-<env>` | `repo:<org>/<project>-pwa:*` (the monorepo `apps/bff` deploy job) | `lambda:UpdateFunctionCode`/`PublishVersion`/`GetFunction*` on `<project>-*-<env>`; `apigateway:PUT`/`POST`/`GET` on `/restapis/*`; `s3:PutObject`/`GetObject` (artifacts bucket); `ssm:GetParameter*` on `/{env}/*` | Terraform (`iam.tf`) |
+| **fed deploy** `github-actions-fed-<env>` | `repo:<org>/<project>-pwa:*` (the monorepo `apps/fed` deploy job) | `s3:PutObject`/`DeleteObject`/`ListBucket` (fed bucket); `cloudfront:CreateInvalidation`; `ssm:GetParameter*` on `/{env}/*` | Terraform (`iam.tf`) |
 
 - **api/fed roles** are created by the **iac Terraform** (`iam.tf`, `iam-policy` + `iam-assumable-role-with-oidc` submodules) and their ARNs written to SSM `/{env}/iam/github-actions-{api,fed}-role-arn`; the app pipelines assume `AWS_BFF_OIDC_ROLE_ARN` / `AWS_FED_OIDC_ROLE_ARN` (env-scoped secrets; the SSM copy is for reference, never a rotatable key). The Terraform lives in `iam.tf`, but the role is a **pipeline** concept — documented here.
 - **iac runner** roles are **per-env** (`github-actions-<project>-iac-<env>`), bootstrapped **out-of-band** (chicken-and-egg); their `<project>-iac-deploy` policy is maintained out-of-band. Their ARNs are the **environment-scoped** `AWS_INFRA_OIDC_ROLE_ARN` secret (one value per Environment) — same treatment as the BFF/FED deploy roles. **Runner-policy gotcha — role deletion:** the runner must be able to **delete** every resource it creates, including IAM roles. The AWS provider calls **`iam:ListInstanceProfilesForRole`** (to detach instance profiles) **before** `iam:DeleteRole` — if the policy has `CreateRole`/`DeleteRole` but not `ListInstanceProfilesForRole` (+ `iam:ListRoleTags`), a `terraform destroy` of any role (e.g. a VPC's flow-log role) fails with `AccessDenied` **mid-apply**, orphaning the role + leaving inconsistent state. Grant those from the start.
@@ -91,6 +91,7 @@ main ←── release/* ←── develop ←── feature/*
 - **main**: protected (PR required); production deploy requires GitHub Environment approval + reviewer.
 - **hotfix/***: from `main`; merged to both `main` and `develop`.
 - Protection on `main` + `develop`: require PR, **0 approvals** (solo dev can't self-approve), `enforce_admins=false` so the owner and the `VERSION_BUMP_TOKEN` actor push directly; no force-push/deletion.
+- **Where this GitFlow applies:** `<project>-iac` and `<project>-pwa` use the **deploy** model above — `develop`→staging (auto), `main`→prod (Environment approval). **`<project>-skills` (this plugin) does NOT** — it has no Environments/deploy. It uses a **plugin release-cut** model instead: `develop` auto-bumps **patch** on each push, a deliberate release is a `develop → main` PR carrying a `semver:` label that **tags `vX.Y.Z`** (the version consumers pin in their marketplace `ref`), then **back-merge `main → develop`**. No app/infra is deployed; the "release" is the tag itself (`/workflow/versioning`).
 
 **Versioning & tags** — numeric SemVer via bump-my-version on every push to `develop` (patch) / `main` (PR `semver:` label), with the `bump:` loop guard. All the rules live in **`/workflow/versioning`**; `version-develop.yml` / `version-main.yml` run it.
 
@@ -99,7 +100,7 @@ Uses the **iac runner** OIDC role (see the pipeline-roles table above — out-of
 - **`terraform-plan.yml` (PR):** `checkov -d terraform/` (block on HIGH) → `terraform fmt -check` + `validate` → `plan` (`TF_WORKSPACE=<project>-iac-<env>`, `-var-file=env/<env>.tfvars`) → post the plan as a PR comment.
 - **`terraform-deploy.yml`:** merge to `develop` → `apply` to **staging** (auto); merge to `main` → `apply` to **production**, gated by the `production` GitHub Environment approval.
 - **`sonar.yml` (PR + push to develop/main):** standalone **SonarCloud IaC** quality gate on `terraform/` (`/workflow/sonarcloud`) — separate from `terraform-plan.yml` so push runs the scan without the AWS-OIDC plan; checkov stays in `terraform-plan.yml` (complementary).
-- On apply, IaC writes all SSM params → the api/fed pipelines read current values at their own deploy (`/infrastructure/ssm`). Pipelines stay **independent** — IaC never triggers the api/fed pipelines.
+- On apply, IaC writes all SSM params → the `apps/bff` + `apps/fed` deploy jobs read current values at their own deploy (`/infrastructure/ssm`). Pipelines stay **independent** — IaC never triggers the app deploy jobs.
 
 ## Deploy — api (the BFF)
 The api is **one BFF Lambda** (+ the separate og-edge Lambda@Edge). Role from SSM `/{env}/iam/github-actions-api-role-arn`.
@@ -150,6 +151,18 @@ The product backlog is **GitHub Issues per repository** — no central backlog r
 - **Milestones:** `v0.1.0 Bootstrap` (iac) · `v0.2.0 Phase 1` (all) · `v0.3.0 Phase 2` · `v0.4.0 Phase 3` · `v1.0.0 GA`.
 - **Templates** (`.github/ISSUE_TEMPLATE/`): `task.md` (`type:feature, semver:minor`; What/Why/Acceptance/Phase·Milestone), `bug.md` (`type:bug, semver:patch, priority:high`; Expected/Actual/Steps/Environment).
 - **Conventions:** title `[area] short description`; always set `type:`/`phase:`/`semver:` on creation, `priority:` when known; translate plan deliverables into one issue each at the start of implementation.
+
+## Repo metadata
+GitHub repo **descriptions** follow one format — lead with the platform name, concise, no marketing fluff:
+```
+tadeumendonca.io — <repo role>: <stack/scope>
+```
+- **`-pwa`** — `tadeumendonca.io — product monorepo: PWA (React) + BFF (Hono/Lambda) + app infra (Terraform)`
+- **`-iac`** — `tadeumendonca.io — shared infrastructure: regional WAF baseline (Terraform)`
+- **`-skills`** — `tadeumendonca.io — Claude Code skills library: reusable engineering workflows`
+
+## Language
+Everything published on GitHub is in **English** — repo descriptions, READMEs, `docs/` + `CLAUDE.md`, commit and PR text, and Issues. The product **UI content is pt-BR** and is a separate concern (it never dictates the language of the engineering artifacts).
 
 ## Pros & cons
 **Pros**

@@ -1,4 +1,4 @@
-Implement or review the bot-rendering API (og-meta + prerender) in <project>-api.
+Implement or review the bot-rendering API (og-meta + prerender) in `apps/bff`.
 
 Context: $ARGUMENTS
 

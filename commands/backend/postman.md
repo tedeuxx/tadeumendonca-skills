@@ -1,10 +1,10 @@
-Use Postman (+ newman) for API testing in <project>-api.
+Use Postman (+ newman) for API testing in `apps/bff`.
 
 Context: $ARGUMENTS
 
 Postman collections document and smoke/contract-test the API; run headless via **newman** in CI.
 
-## Files (api repo, `postman/`)
+## Files (`apps/bff/postman/`)
 - `<project>-api.postman_collection.json` — all routes + request examples + test scripts (`pm.test(...)`).
 - **One environment file PER environment** — `local.postman_environment.json`, `staging.postman_environment.json`, `production.postman_environment.json`, each with `base_url` + a `token` var (NO secrets committed). This is the **multi-environment** parametrization: one command targets local OR any AWS env.
 - `package.json` scripts: `api-test:local` / `api-test:staging` / `api-test:production` (`newman run <collection> -e postman/<env>.postman_environment.json`). Inject the auth token at runtime: `npm run api-test:staging -- --env-var token=$TOKEN`.
@@ -38,7 +38,7 @@ A red smoke surfaces a regression the just-shipped deploy introduced. Can also r
 ## Pros & cons
 **Pros**
 - Black-box contract checks against a real deployed BFF; covers the Bearer-JWT auth path.
-- Lives in the api repo next to the code it checks.
+- Lives in `apps/bff` next to the code it checks.
 **Cons**
 - Smoke/contract only — not a coverage substitute.
 - Needs a running environment + tokens.

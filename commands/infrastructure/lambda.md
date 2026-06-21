@@ -18,7 +18,7 @@ module "bff" {
   memory_size   = 256                # bundles satori/resvg (OG image module)
   tracing_mode  = "Active"           # X-Ray (/infrastructure/cloudwatch-xray)
 
-  # Pattern B — IaC owns config, api repo ships code (module built-in)
+  # Pattern B — IaC owns config, apps/bff ships code (module built-in)
   create_package          = false
   ignore_source_code_hash = true
   s3_existing_package     = { bucket = module.artifacts_bucket.s3_bucket_id, key = "bff/bootstrap.zip" }
@@ -62,8 +62,8 @@ This is **not** a fixed default — it's a deliberate trade-off the owner picks 
 
 Switching A↔B later is a clean, reversible change. **Lambda@Edge (og-edge) is always non-VPC** (the edge can't be in a VPC — not a choice).
 
-## Pattern B — IaC owns config, api repo ships code
-IaC provisions the Lambda with a placeholder zip; the api repo deploys code via `update-function-code`. Terraform never manages the code artifact after first apply.
+## Pattern B — IaC owns config, `apps/bff` ships code
+IaC provisions the Lambda with a placeholder zip; `apps/bff` deploys code via `update-function-code`. Terraform never manages the code artifact after first apply.
 - `create_package = false`, `ignore_source_code_hash = true`, `s3_existing_package → bff/bootstrap.zip` (a minimal `index.js` exporting `handler` returning 503, uploaded before first apply).
 - **Lifecycle:** IaC apply sets config (memory/VPC/env/IAM) — never code; api deploy `update-function-code --s3-key bff/latest.zip` — code only. The two never collide.
 - *Why:* a code change never triggers a TFC plan/apply round-trip; the module's built-in `ignore_source_code_hash` is the supported mechanism (no raw resource). Handler code via `/backend/framework-hono`; deploy via `/workflow/github-actions`.

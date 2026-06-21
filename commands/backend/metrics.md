@@ -1,4 +1,4 @@
-Implement or review metrics in <project>-api (Powertools Metrics → EMF → CloudWatch).
+Implement or review metrics in `apps/bff` (Powertools Metrics → EMF → CloudWatch).
 
 Context: $ARGUMENTS
 

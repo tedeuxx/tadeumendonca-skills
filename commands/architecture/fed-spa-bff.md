@@ -17,11 +17,11 @@ SPA ─(Cognito SDK: login + holds JWT)─► Cognito
 SPA ─Bearer JWT─► API GW (Cognito JWT authorizer) ─► its OWN BFF Lambda (Hono, 1 per SPA, routes at root)
                                                         ├ reads claims (no auth code) → RBAC/shaping
                                                         └ domain logic / microservices
-                                                             ├ DynamoDB (IAM, Gateway VPC endpoint)
+                                                             ├ DynamoDB (IAM, public AWS endpoint; VPC endpoint only when in-VPC)
                                                              ├ Redis (cache-aside)
                                                              ├ Secrets Manager (creds)
                                                              └ S3 (OG images)
-IaC (Terraform/TFC) writes all wiring to SSM  ◄─ api & fed read at deploy
+IaC (Terraform/TFC) writes all wiring to SSM  ◄─ apps/bff & apps/fed read at deploy
 ```
 
 ## Frontend (SPA, CSR — no SSR)
@@ -41,10 +41,10 @@ The SPA (`<apex-domain>`) and the BFF API (`api.<apex-domain>`) are **different 
 - **Cognito** login is **redirect-based** (full-page), not CORS — gated by the app client's callback/logout URLs (`/infrastructure/cognito`); the SDK token call is an allowed public-client flow.
 - **S3/CloudFront assets + `/og/*`** are **same-origin** (served from the SPA's own CloudFront) → no CORS; add S3 bucket CORS only if a cross-origin asset fetch ever appears.
 
-## Backend (BFF monolith, in-VPC)
+## Backend (BFF modular monolith, non-VPC by default)
 `/backend/framework-hono` (Hono) · `/backend/openapi` · `/backend/bff` · `/backend/lambda-handler` · `/backend/dynamodb` · `/backend/redis-cache` · `/backend/logging` · `/backend/metrics` · `/backend/error-handling` · `/backend/audit-middleware` · `/backend/action-types` · `/backend/secrets-management` · `/backend/environment-config` · `/backend/og-image-generator`
 
-## Infrastructure (Terraform, IaC = single source of truth)
+## Infrastructure (Terraform — app infra in `<project>-pwa/iac`, shared regional WAF in `<project>-iac`)
 - Repo/state/modules/policy → `/infrastructure/terraform` · `/workflow/terraform-cloud`
 - Network/DNS → `/infrastructure/vpc` · `/infrastructure/route53`
 - Compute/API → `/infrastructure/lambda` · `/infrastructure/api-gateway`
@@ -55,10 +55,10 @@ The SPA (`<apex-domain>`) and the BFF API (`api.<apex-domain>`) are **different 
 - Governance → `/infrastructure/kms` (encryption) · `/infrastructure/terraform` (tagging)
 
 ## Cross-repo & delivery
-Config bus (IaC → SSM → api/fed at deploy) · GitFlow + numeric SemVer (`/workflow/github-actions` · `/workflow/versioning`) · deploys (`/workflow/github-actions`) · gates (`/backend/coverage` · `/frontend/coverage` · `/workflow/sonarcloud`) · backlog/docs (`/workflow/github-actions` · `/workflow/documentation-standard`).
+Config bus (IaC → SSM → `apps/bff` + `apps/fed` at deploy) · GitFlow + numeric SemVer (`/workflow/github-actions` · `/workflow/versioning`) · deploys (`/workflow/github-actions`) · gates (`/backend/coverage` · `/frontend/coverage` · `/workflow/sonarcloud`) · backlog/docs (`/workflow/github-actions` · `/workflow/documentation-standard`).
 
 ## Defining properties
-Public + read-heavy · SEO-friendly via **edge dynamic rendering, not SSR** · **one dedicated BFF Lambda per SPA (1:1), API GW fronts only the BFF (routes at root)** · **auth external to the BFF (Cognito SDK + GW authorizer)** · IAM-scoped data (DynamoDB, no creds) · IaC as single source of truth · independent per-repo pipelines · encrypted in transit + at rest · one shared AWS account (tagged per workload).
+Public + read-heavy · SEO-friendly via **edge dynamic rendering, not SSR** · **one dedicated BFF Lambda per SPA (1:1), API GW fronts only the BFF (routes at root)** · **auth external to the BFF (Cognito SDK + GW authorizer)** · IAM-scoped data (DynamoDB, no creds) · the app + its infra live together in the `<project>-pwa` monorepo (single version), with shared regional WAF in `<project>-iac` · independent per-repo pipelines (now 2 app-relevant repos, not 4) · encrypted in transit + at rest · one shared AWS account (tagged per workload).
 
 ## When NOT this pattern
 Heavy server-rendered/interactive apps (use SSR), pure API products (no SPA/edge), or event/stream-driven workloads — those are future `architecture/*` patterns.

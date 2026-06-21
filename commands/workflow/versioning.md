@@ -2,7 +2,9 @@ Apply the semantic-versioning + tagging rules (bump-my-version) in any <project>
 
 Context: $ARGUMENTS
 
-The single source of truth for **versioning and git tags** across all four repos — identical config everywhere. Runs as the `version-develop.yml` / `version-main.yml` GitHub Actions workflows (`/workflow/github-actions` owns the branch model that triggers them).
+The single source of truth for **versioning and git tags** across the repos — identical config everywhere. Runs as the `version-develop.yml` / `version-main.yml` GitHub Actions workflows (`/workflow/github-actions` owns the branch model that triggers them).
+
+`<project>-pwa` carries **one root `VERSION`/tag for the whole monorepo** (not a per-app version) — `apps/fed`, `apps/bff`, and `iac/` ship together under that single version. `<project>-skills` (this plugin) uses the same scheme but the **release-cut model**, not deploy-to-environment: `develop` auto-patches on each push, and a deliberate release is a `develop → main` PR carrying a `semver:` label that tags `vX.Y.Z` — the version consumers pin in their marketplace `ref` (then back-merge `main → develop`).
 
 ## Scheme — purely numeric SemVer
 `MAJOR.MINOR.PATCH` only — **no `-dev` / pre-release suffix** (explicitly rejected). `VERSION` starts at `0.1.0`. Tags are `vX.Y.Z`.
@@ -42,7 +44,7 @@ Bump commits use message `bump: {current} → {new}`; **both workflows skip any 
 
 ## Conventions
 - Same scheme/threshold in all repos — never a per-repo variant.
-- The version is the contract stamp: the api's OpenAPI `info.version` == its `VERSION` (`/backend/openapi`).
+- The version is the contract stamp: the BFF's OpenAPI `info.version` (`apps/bff`) == the monorepo `VERSION` (`/backend/openapi`).
 
 ## Post-release: back-merge `main → develop`
 After a release to `main`, the version-bump commit + tag live only on `main`, so `develop`'s `VERSION` lags. **Back-merge `main` into `develop`** so the lineage reconciles and the next dev work continues from the released version (e.g. `0.2.0` → next `develop` push → `0.2.1`):

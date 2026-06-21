@@ -1,4 +1,4 @@
-Implement or review backend caching with Redis (ElastiCache) in <project>-api.
+Implement or review backend caching with Redis (ElastiCache) in `apps/bff`. Redis is VPC-only, so enabling it puts the BFF in-VPC (it is non-VPC by default).
 
 Context: $ARGUMENTS
 

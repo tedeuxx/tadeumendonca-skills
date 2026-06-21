@@ -1,4 +1,4 @@
-Define or review the audit trail in <project>-api.
+Define or review the audit trail in `apps/bff`.
 
 Context: $ARGUMENTS
 

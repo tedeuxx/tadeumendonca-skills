@@ -103,7 +103,7 @@ When/if RUM lands: a Cognito **identity pool** unauthenticated (guest) role (`/i
 The iac-runner + **api/fed OIDC deploy roles** (trust = OIDC handshake; permissions = least-privilege deploy grants) are documented in `/workflow/github-actions`. Their Terraform still lives in `iam.tf` (`iam-policy` + `iam-assumable-role-with-oidc` submodules, ARNs → SSM `/{env}/iam/github-actions-{api,fed}-role-arn`), but as **pipeline** concerns they're described there, not in this runtime catalog.
 
 ## Conventions
-- Role ARNs → SSM for app repos to assume at deploy (`/infrastructure/ssm`); app repos read `AWS_OIDC_ROLE_ARN`, never a rotatable GitHub secret.
+- Role ARNs → SSM for app deploy jobs to assume at deploy (`/infrastructure/ssm`); app deploy jobs read the env-scoped `AWS_BFF_OIDC_ROLE_ARN` / `AWS_FED_OIDC_ROLE_ARN` (environment secrets; see `/workflow/github-actions`), never a rotatable static GitHub secret.
 - Key choice + encryption requirements follow `/infrastructure/kms`; tagging via provider `default_tags` (`/infrastructure/terraform`).
 ## Pros & cons
 **Pros**

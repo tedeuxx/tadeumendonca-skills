@@ -1,4 +1,4 @@
-Implement or review HTTP error handling in <project>-api.
+Implement or review HTTP error handling in `apps/bff`.
 
 Context: $ARGUMENTS
 

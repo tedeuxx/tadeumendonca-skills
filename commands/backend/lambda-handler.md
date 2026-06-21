@@ -1,4 +1,4 @@
-Implement a domain module in the BFF (<project>-api).
+Implement a domain module in the BFF (`apps/bff`).
 
 Module: $ARGUMENTS (e.g., "posts", "articles", "notifications")
 

@@ -1,4 +1,4 @@
-Implement or review the Hono backend framework for <project>-api (the BFF).
+Implement or review the Hono backend framework for `apps/bff` (the BFF).
 
 Context: $ARGUMENTS
 

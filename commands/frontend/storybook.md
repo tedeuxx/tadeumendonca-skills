@@ -1,4 +1,4 @@
-Build the component library with Storybook in <project>-fed.
+Build the component library with Storybook in `apps/fed`.
 
 Context: $ARGUMENTS
 

@@ -1,4 +1,4 @@
-Frontend state management in <project>-fed (concept).
+Frontend state management in `apps/fed` (concept).
 
 Context: $ARGUMENTS
 

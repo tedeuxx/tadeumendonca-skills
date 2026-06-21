@@ -1,4 +1,4 @@
-Set up or review the frontend (<project>-fed) quality, test, and security gates.
+Set up or review the frontend (`apps/fed`) quality, test, and security gates.
 
 Context: $ARGUMENTS
 

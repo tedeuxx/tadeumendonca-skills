@@ -2,7 +2,7 @@ Use AWS SSM Parameter Store in <project> infrastructure (the cross-repo config b
 
 Context: $ARGUMENTS
 
-SSM Parameter Store is how IaC publishes non-sensitive infra outputs for the app repos to read at deploy time — the single source of truth, no GitHub secret to rotate. Secrets stay in Secrets Manager (`/infrastructure/secrets-manager`).
+SSM Parameter Store is how IaC publishes non-sensitive infra outputs for the app deploy jobs (`apps/bff` + `apps/fed`, in the `<project>-pwa` monorepo) to read at deploy time — the single source of truth, no GitHub secret to rotate. Secrets stay in Secrets Manager (`/infrastructure/secrets-manager`).
 
 ## Path structure & naming
 Same idea as the log-path convention (`/infrastructure/cloudwatch`): the **first levels make ownership obvious at a glance**. Shape:
@@ -12,7 +12,7 @@ Same idea as the log-path convention (`/infrastructure/cloudwatch`): the **first
 - **L2 `{component}`** — the workload area that **owns** the value: `frontend` · `api` · `auth` · `data` · `cache` · `storage` · `iam` · `events`. Names the producer/consumer at a glance.
 - **L3 `{name}`** — the specific parameter, **kebab-case**, descriptive (`cloudfront-distribution-id`, `bff-function-name`).
 
-Rules: type **`String`** only (never `SecureString` — runtime secrets live in Secrets Manager); values are ARNs / ids / endpoints / names, never sensitive material; one value per parameter; **IaC writes, app repos read**.
+Rules: type **`String`** only (never `SecureString` — runtime secrets live in Secrets Manager); values are ARNs / ids / endpoints / names, never sensitive material; one value per parameter; **IaC writes, the `apps/bff` + `apps/fed` deploy jobs read**.
 
 ## Parameters by component
 | Component | Parameters |
@@ -31,14 +31,14 @@ Rules: type **`String`** only (never `SecureString` — runtime secrets live in 
 - *(DynamoDB has no secret — access is pure IAM on the table ARNs, `/infrastructure/iam`.)*
 - Never store passwords/tokens in SSM (even SecureString) — only the **ARN** of the secret goes in SSM.
 
-## How app repos read at deploy (GitHub Actions)
+## How the app deploy jobs read at deploy (GitHub Actions)
 ```bash
 S3_BUCKET=$(aws ssm get-parameter --name /$ENV_NAME/storage/artifacts-bucket-name --query 'Parameter.Value' --output text)
 ```
-Every `aws_ssm_parameter` in IaC writes the corresponding module output; app repos only read.
+Every `aws_ssm_parameter` in IaC writes the corresponding module output; the `apps/bff` + `apps/fed` deploy jobs only read.
 
 ## Rationale
-Non-sensitive infra outputs in SSM Standard String (free); secrets in Secrets Manager. IaC is the single source of truth — app repos read current values at deploy with no GitHub secret to rotate. Access is HTTPS/TLS by default (`/infrastructure/kms`).
+Non-sensitive infra outputs in SSM Standard String (free); secrets in Secrets Manager. IaC is the single source of truth — the `apps/bff` + `apps/fed` deploy jobs read current values at deploy with no GitHub secret to rotate. Access is HTTPS/TLS by default (`/infrastructure/kms`).
 ## Pros & cons
 **Pros**
 - Free config bus; IaC is the single source of truth; no GitHub secret to rotate.

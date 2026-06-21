@@ -1,4 +1,4 @@
-Connect to and access DynamoDB in <project>-api.
+Connect to and access DynamoDB in `apps/bff`.
 
 Context: $ARGUMENTS
 
