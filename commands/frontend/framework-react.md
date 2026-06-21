@@ -3,7 +3,7 @@ Implement or review the React frontend framework for `apps/fed`.
 Context: $ARGUMENTS
 
 ## Stack: React 18 + TypeScript + Vite (CSR SPA, no SSR)
-`react-router` · `@tanstack/react-query` · `zustand` · Cloudscape (`/frontend/design-system`) · `aws-amplify` (auth) · `react-markdown`. **This skill is the only place with React/library snippets** — the other frontend skills are framework-agnostic concepts that this wires up.
+`react-router` · `@tanstack/react-query` · `zustand` · Tailwind + own components (`/frontend/design-system`) · `aws-amplify` (auth) · `react-markdown`. **This skill is the only place with React/library snippets** — the other frontend skills are framework-agnostic concepts that this wires up.
 
 ## Structure
 ```
