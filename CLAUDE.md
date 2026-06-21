@@ -91,18 +91,29 @@ it (received as `$ARGUMENTS`):
 
 ### Releasing a version
 
-Numeric SemVer, automated (`/workflow/versioning`). `develop` auto-bumps **patch** on each push and
-`plugin.json`'s `version` is bumped in lockstep. To cut a deliberate release, open a PR
-`develop → main` with the bump label:
+**Trunk-based** — this repo is a *consumed dependency* (by `-pwa` + `-iac`), not an app with
+environments, so it does **not** use GitFlow. There is one long-lived branch, **`main`**: skill
+work lands via short-lived `feature/*` / `docs/*` PRs, and `main` is always releasable. Pushing to
+`main` does **not** auto-version — the version is a deliberate, consumer-facing decision decoupled
+from integration.
 
-```bash
-gh pr create --base main --head develop --title "release: v0.3.0" --label semver:minor
-# on merge: version-main.yml bumps + tags vX.Y.Z + creates the Release. Then back-merge main→develop.
+A release is cut **on demand** from the `release` workflow (numeric SemVer, `/workflow/versioning`):
+
+```
+GitHub → Actions → release → Run workflow → choose part (major | minor | patch)
+# bumps VERSION + plugin.json, tags vX.Y.Z, pushes to main, publishes the GitHub Release.
 ```
 
-Consumers tracking `main` get it on the next `/plugin marketplace update`; pinned consumers bump
-their `ref`. **After each release, back-merge `main → develop`** so the version lineage stays in
-sync (see `/workflow/versioning`).
+What the SemVer part means **for a skills library** (the contract is the *invocation surface*):
+- **major** — breaking: a command renamed/removed, a `$ARGUMENTS` contract changed, the namespace
+  or `plugin.json` `name` restructured.
+- **minor** — additive: a new skill/command, or substantial new capability.
+- **patch** — content fix/deepening that does not change which commands exist or how they're called.
+
+Consumers tracking `main` get the latest on the next `/plugin marketplace update`; **pinned
+consumers** (recommended — the `ref` is their lockfile) bump their `ref` to the new tag deliberately.
+Because tags are only ever cut by this workflow, **every `vX.Y.Z` tag is a reviewed release** and a
+safe pin (no mid-development tags pollute the namespace).
 
 ---
 
@@ -236,23 +247,25 @@ DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella f
 
 ## Versioning
 
-Same automated semantic-versioning standard as every repo on the platform, via
-`bump-my-version`:
+Numeric SemVer via `bump-my-version`. **This repo deliberately diverges from the platform's
+app-style "auto-bump on every push" standard** — because it is a *consumed plugin*, not a deployed
+app, its version is a dependency contract, so it is bumped **only at an intentional release**, never
+on integration. (Same reasoning that makes it trunk-based: policy follows the artifact's role.)
 
 Purely **numeric SemVer** `MAJOR.MINOR.PATCH` — no `-dev` pre-release suffix.
 
-- `VERSION` — current version (starts at `0.1.0`).
+- `VERSION` — current version.
 - `.bumpversion.toml` — bump config; `parse`/`serialize` numeric only, `tag_name = v{new_version}`,
-  `message = tag_message = "bump: {current_version} → {new_version}"` (CI loop guard).
-- `.github/workflows/version-develop.yml` — on push to `develop`: `bump-my-version bump patch`
-  → `0.1.0 → 0.1.1 → …` → commit + tag.
-- `.github/workflows/version-main.yml` — on push to `main`: reads the merged PR's semver label
-  (`semver:major` | `semver:minor` (default) | `semver:patch`) → bump → `vX.Y.Z` → commit +
-  tag + GitHub Release.
+  `message = tag_message = "bump: {current_version} → {new_version}"` (CI loop guard); bumps
+  `VERSION` + `.claude-plugin/plugin.json` in lockstep.
+- `.github/workflows/release.yml` — **`workflow_dispatch` only** (Actions → release → Run workflow):
+  takes a `part` input (`major` | `minor` (default) | `patch`) → bump → `vX.Y.Z` → commit on `main`
+  → tag → GitHub Release with categorized notes. **No push trigger exists** — integration never
+  versions; only this manual run does. Every tag is therefore a reviewed, pinnable release.
 
 **Required secret:** `VERSION_BUMP_TOKEN` — a GitHub fine-grained PAT with `contents: write` +
-`workflows: write`. The workflows skip commits whose message starts with `bump:`, so the
-version-bump commit does not retrigger CI in a loop.
+`workflows: write` (used so the release push/tag can write protected `main`).
 
-**Required PR labels:** `semver:major` | `semver:minor` | `semver:patch` — set before merging
-to `main`.
+**Why no auto-bump:** a consumed artifact's tags are its consumers' lockfile. Auto-bumping on push
+inflates the number meaninglessly and pollutes the tag namespace with mid-development states that
+look pinnable but aren't. Deliberate releases keep `vX.Y.Z` ≡ "a release a consumer can trust".
