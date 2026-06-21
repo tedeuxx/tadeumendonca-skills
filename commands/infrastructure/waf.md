@@ -90,6 +90,12 @@ resource "aws_wafv2_web_acl_association" "api_gw" {       # api.tf — REST API 
 - **Optional add-ons** per surface: `AWSManagedRulesSQLiRuleSet` (SQLi — for rich API query input), `AWSManagedRulesAmazonIpReputationList`, `AWSManagedRulesAnonymousIpList`.
 Write a custom rule **only** when no managed group covers the need; tune a noisy managed rule with `override_action="count"` rather than replacing it.
 
+## Decision & trade-off
+- **The shared-vs-workload split is a COST decision.** A WAF web ACL costs ~$5/mo + ~$1/rule/mo + ~$0.60/M requests. Provisioning **one** shared REGIONAL WAF (in `<project>-iac`) and reusing it across workloads (API GW stages, Cognito hosted UIs) via the SSM config bus **avoids duplicating that cost per workload** — which is exactly why "reusable security baseline → shared repo" is the dividing line.
+- **Workload-bound WAFs live with the workload.** The CLOUDFRONT WAF is defined alongside the SPA distribution it protects (`<project>-pwa/iac`), because it is specific to that distribution, not a reusable baseline.
+- **WAF is kept despite the cost (security posture).** It is a deliberate defensible-posture investment, not cut for cost — part of what compensates for the single-account / non-VPC cost choices made elsewhere.
+- *Trade-off:* one shared REGIONAL WebACL means the REST API and Cognito hosted UI can't be tuned independently; the managed-rule + rate-limit baseline is less precise than hand-written rules (the rate limit is the backstop for novel attacks).
+
 ## Pros & cons
 **Pros**
 - AWS-maintained managed rule groups + rate limit — OWASP-ish coverage for free.

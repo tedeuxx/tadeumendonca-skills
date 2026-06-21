@@ -39,6 +39,11 @@ Beyond domain verification, a production sender needs:
 - The BFF reaches SES over the **public AWS endpoint** (non-VPC, no NAT); via NAT only if the BFF is in-VPC (there is no SES VPC endpoint here) — `/infrastructure/vpc`.
 - **Encryption:** SES API is **TLS/SSL by default** (HTTPS), and outbound mail is sent with TLS to recipient MTAs. SES holds no at-rest datastore in our usage; if a configuration-set archive / S3 export is added later it must be **KMS-encrypted** (`/infrastructure/kms`).
 
+## Decision & trade-off
+- **SES is workload-bound — the domain identity lives with the app, not in shared infra.** Sending is specific to this workload's domain, so it's owned here (like Cognito), not in the shared repo. Per-env DOMAIN identity (not one apex identity), because the two envs are independent TF workspaces that can't both own the same apex identity in one account/region without colliding — *trade-off:* two verifications instead of one.
+- **The non-VPC BFF reaches SES over the public AWS endpoint (no NAT).** Consistent with the non-VPC Lambda choice (`/infrastructure/vpc`) — there is no SES VPC endpoint in play; the path is via NAT only if the BFF is ever forced in-VPC. TLS in transit by default.
+- **No SMTP IAM user/credential** (`ses_user_enabled = false`) — the Lambda role sends via the SES API (`ses:SendEmail` scoped to the identity ARN). *Trade-off:* sending is tied to the role rather than portable SMTP creds; nothing to store or rotate.
+
 ## Pros & cons
 **Pros**
 - No SMTP credential to store/rotate — the BFF role sends via the SES API.

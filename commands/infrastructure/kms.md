@@ -50,6 +50,11 @@ Phase 1-3 use **AWS-managed keys** everywhere (DynamoDB, Redis, Secrets Manager,
 - Never disable encryption to avoid key setup — use the AWS-managed key.
 - A service needing `kms:Decrypt` adds it to its exec-role statements **only when using a CMK** (`/infrastructure/iam`); with AWS-managed keys no explicit grant is needed.
 - Tag CMKs via provider `default_tags` (`/infrastructure/terraform`).
+## Decision & trade-off
+- **AWS-managed keys everywhere by default; no CMK in Phase 1-3.** *Why:* zero key management and **no extra key cost**, sufficient for this workload. *Traded away:* the CMK-only capabilities — custom rotation schedule, CloudTrail key-usage auditing, cross-account/grant control, one shared key. Adopt a CMK only when a compliance or key-sharing requirement actually appears (a migration at that point, not free to retrofit).
+- **CloudFront-served buckets are the one at-rest exception — SSE-S3 (AES256), not KMS.** CloudFront OAC can't `kms:Decrypt` under the AWS-managed `aws/s3` key (its policy can't grant the CloudFront service principal), so SSE-KMS 403s the origin. The content is public, so AES256 is the correct stance; the KMS-preserving alternative (a CMK whose policy grants CloudFront `kms:Decrypt` scoped to the distribution `SourceArn`) is the *only* case where a CMK buys something AWS-managed keys can't.
+- **S3 Bucket Keys on the KMS buckets** cut KMS API calls (cost) — kept on by default.
+
 ## Pros & cons
 **Pros**
 - Encryption everywhere by default (at rest + TLS); one canonical policy.

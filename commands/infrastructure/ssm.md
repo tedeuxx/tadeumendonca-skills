@@ -39,6 +39,11 @@ Every `aws_ssm_parameter` in IaC writes the corresponding module output; the `ap
 
 ## Rationale
 Non-sensitive infra outputs in SSM Standard String (free); secrets in Secrets Manager. IaC is the single source of truth — the `apps/bff` + `apps/fed` deploy jobs read current values at deploy with no GitHub secret to rotate. Access is HTTPS/TLS by default (`/infrastructure/kms`).
+## Decision & trade-off
+- **SSM is the config bus between workloads — NO `terraform_remote_state`.** Cross-repo wiring (shared infra → app workloads) is an **acyclic DAG**: a producer writes a parameter, consumers read it at deploy. *Why over remote state:* it **decouples the repos** — the shared side never references app resources, so apply order is simply shared→app (destroy app→shared), and neither repo's state depends on the other's internals.
+- *Trade-off:* the coupling is **eventual / ordering-sensitive** — a consumer reads whatever value exists at deploy time, so the producer must be applied first, and a changed value needs a consumer redeploy to take effect (reads are eventually consistent).
+- **String only, never SecureString.** Values are non-sensitive ids/ARNs/endpoints/names; secrets live in Secrets Manager and only their **ARN** is published here. Keeps the bus free (Standard tier) and out of the rotation surface.
+
 ## Pros & cons
 **Pros**
 - Free config bus; IaC is the single source of truth; no GitHub secret to rotate.

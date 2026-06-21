@@ -110,6 +110,12 @@ resource "aws_ec2_managed_prefix_list" "admin" {
 ```
 Also use the **AWS-managed** prefix lists (S3 / DynamoDB) in egress rules instead of wide CIDRs.
 
+## Decision & trade-off
+- **Non-VPC by default; no `vpc.tf` at all.** The deployable set is a stateless function that reaches every dependency (DynamoDB/S3/SES/Cognito/SSM/Secrets) over **public AWS service endpoints scoped by IAM** — so there is nothing to put on a private network. A VPC is provisioned **only on demand**, when a genuinely VPC-only resource (RDS, ElastiCache/Redis, a private ALB) is introduced.
+- **The driver is a cost ↔ isolation trade-off.** The **NAT Gateway is the single largest line item** (~$33/mo/env, ~$66/mo prod one-per-AZ + $/GB) — pure overhead if nothing needs the private network. Dropping the VPC drops the NAT, the private subnets, the endpoints, the flow logs, and the lambda SG. **Traded away:** no network-layer isolation, no SG egress control, no VPC flow logs for the function.
+- **Acceptable because** access is already IAM-auth'd + TLS end to end, and the function has no inbound path either way; the weaker network posture is compensated elsewhere by the IAM role boundary (`/infrastructure/iam`, `/workflow/github-actions`), not by the network.
+- **Revisit only** when an in-VPC dependency lands — that flips Lambda to in-VPC and reintroduces the NAT-vs-Interface-endpoint sub-decision above.
+
 ## Pros & cons
 **Pros**
 - Private subnets + SG-gated cache; S3 + DynamoDB Gateway endpoints (free, off-NAT).

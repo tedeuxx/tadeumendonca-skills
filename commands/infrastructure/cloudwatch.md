@@ -37,6 +37,10 @@ Context: $ARGUMENTS
 - Never log PII or the Authorization header (`/backend/logging`).
 - Tag log groups / alarms via `default_tags` (`/infrastructure/terraform`); retention via `var.environment` conditionals (no extra variable).
 
+## Decision & trade-off
+- **EMF via Powertools, no collector.** App metrics are emitted as EMF into the Lambda log group and auto-extracted — **no ADOT collector / no AMP / no Prometheus**, and the role needs no `cloudwatch:PutMetricData`. *Trade-off:* CloudWatch metric queries are less expressive than PromQL, accepted for the zero-ops, serverless-native fit.
+- **Retention is per-env and always set (never never-expire).** 30 days staging / 90 days production via `var.environment` — a deliberate storage-cost control; default never-expire grows cost unbounded. Long-term archive (export to S3) is opt-in, only when a compliance need appears.
+
 ## Pros & cons
 **Pros**
 - Serverless-native EMF — no collector/scrape; one backend for logs + metrics.

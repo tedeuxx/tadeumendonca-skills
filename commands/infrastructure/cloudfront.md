@@ -94,6 +94,11 @@ Prefer AWS **managed** CloudFront policies — no custom policy to maintain. Wha
 ## Custom domain (standard)
 The distribution serves the **custom domain** — `aliases = [var.domain_name]` (`<apex-domain>` / `staging.<apex-domain>`). The generated `*.cloudfront.net` host is **never** the public URL. Cert via `/infrastructure/acm` (us-east-1, `sni-only`); the Route53 A-alias to the distribution is in `/infrastructure/route53`.
 
+## Decision & trade-off
+- **`PriceClass_100` (NA + EU edges only) is the cheapest tier.** *Trade-off:* no APAC/SA edge locations — higher latency for those regions, accepted for cost. Switch to `PriceClass_All` only if the audience warrants global reach.
+- **Ordered cache behaviors are FIRST-MATCH — order is load-bearing.** A broad pattern (e.g. `/assets/*` → the SPA build bucket) will **shadow** a more specific prefix that needs a different origin (e.g. `/assets/avatars/*` → an asset store). List the **specific prefix FIRST**; a misordering is a real, silent bug (the specific prefix routes to the wrong origin). When adding a new sub-prefix under an existing broad pattern, insert it before the broad one — or reserve the broad prefix for one origin and move the other to its own path.
+- **SPA routing is 403/404 → 200 `/index.html`.** *Gotcha:* because a missing path returns the SPA shell with HTTP 200, **a 200 does not prove the app actually loaded** — health checks must assert on rendered content, not just the status code.
+
 ## Pros & cons
 **Pros**
 - Global TLS edge with OAC — origin S3 stays private.
