@@ -18,16 +18,49 @@ Every pipeline assumes a dedicated AWS role via **GitHub OIDC** (`aws-actions/co
 - The **GitHub OIDC provider** itself is **pre-existing** (landing zone), referenced by `provider_url`, not created. Confused-deputy guard: OIDC trust uses `StringLike` on `token.actions.githubusercontent.com:sub`.
 
 ## Secrets & environments
-**Naming convention — ONE scheme across every repo (don't diverge per repo).** A reader must infer the
-purpose from the name; no `AWS_ROLE_ARN`-vs-`AWS_OIDC_ROLE_ARN` drift like the early single-purpose repos had.
-- **AWS OIDC role ARNs:** `AWS_<SCOPE>_OIDC_ROLE_ARN`, `SCOPE` ∈ `INFRA` (terraform runner) · `BFF` · `FED`.
-  **Env-scoped** via GitHub Environments — `staging`/`production` each hold the per-env ARN under the **same name**.
+**ONE standard across every repo — never decide per repo.** A secret has two independent axes, each
+fixed by rule: **SCOPE** (repository vs environment secret) and **NAME**. Audit a repo by listing both
+levels: `gh secret list -R <repo>` **and** `gh secret list -R <repo> --env <staging|production>`.
+
+**SCOPE — repository secret vs environment secret — decided by ONE question: does the value change per environment?**
+- **Repository secret** = the SAME value for every environment (one cross-env credential). This includes
+  the **iac runner role** — `AWS_INFRA_OIDC_ROLE_ARN` is repo-level because ONE role (`github-actions-<project>-iac`)
+  provisions *all* environments; it is **not** per-env — plus every account/org-wide tooling token:
+  `TFC_API_TOKEN`, `SONAR_TOKEN`, `CLAUDE_CODE_OAUTH_TOKEN`, `VERSION_BUMP_TOKEN`.
+- **Environment secret** (GitHub Environments `staging`/`production`, **same name in each, different value
+  per env**) = anything whose value is per-environment: the per-env deploy roles `AWS_BFF_OIDC_ROLE_ARN` /
+  `AWS_FED_OIDC_ROLE_ARN` (the role is `github-actions-{bff,fed}-<env>`), and per-env test fixtures
+  `TEST_USER_*` (staging only). **Environment scope is what makes a `production` deploy gate on its
+  required-reviewer rule** — a repo-level secret would skip that gate.
+- **Rule of thumb:** if the name would need a `-staging`/`-production` suffix to disambiguate, it's an
+  **environment** secret (and then it gets **no** suffix — the Environment supplies it). A single value
+  shared across envs is a **repository** secret.
+
+**NAME — one scheme:**
+- **AWS OIDC role ARNs:** `AWS_<SCOPE>_OIDC_ROLE_ARN`, `SCOPE` ∈ `INFRA` (iac runner, repo-level) · `BFF` ·
+  `FED` (deploy, env-level). **No legacy `AWS_ROLE_ARN`** / `AWS_OIDC_ROLE_ARN` drift.
 - **Third-party credentials:** keep the name the consuming action mandates (`SONAR_TOKEN`,
   `CLAUDE_CODE_OAUTH_TOKEN`); otherwise `<PROVIDER>_<KIND>_TOKEN` — `TFC_API_TOKEN`, `VERSION_BUMP_TOKEN`.
 - **Test fixtures:** `TEST_<SUBJECT>_<FIELD>` — `TEST_USER_USERNAME`, `TEST_USER_PASSWORD` (staging only).
-- **Choice:** a single, scope-encoded scheme so role/purpose is obvious and a monorepo with multiple deploy
-  roles (`BFF` + `FED` + `INFRA`) reads unambiguously. **Trade-off:** renaming legacy secrets is a one-time
-  migration — the consuming workflow refs + the GitHub secret store must change together.
+
+**Canonical per-repo set — every repo audits against this one list:**
+
+| Secret | Scope | iac repo | app repo (api/fed/pwa) | skills |
+|---|---|:--:|:--:|:--:|
+| `AWS_INFRA_OIDC_ROLE_ARN` | repository | ✓ | ✓ *(only if it owns app-infra, e.g. the pwa monorepo)* | — |
+| `AWS_BFF_OIDC_ROLE_ARN` | environment | — | ✓ *(bff)* | — |
+| `AWS_FED_OIDC_ROLE_ARN` | environment | — | ✓ *(fed)* | — |
+| `TFC_API_TOKEN` | repository | ✓ | ✓ *(if it owns terraform)* | — |
+| `SONAR_TOKEN` | repository | ✓ | ✓ | — |
+| `CLAUDE_CODE_OAUTH_TOKEN` | repository | ✓ | ✓ | ✓ |
+| `VERSION_BUMP_TOKEN` | repository | ✓ | ✓ | ✓ |
+| `TEST_USER_USERNAME` / `TEST_USER_PASSWORD` | environment *(staging)* | — | ✓ *(fed e2e)* | — |
+
+- **Choice:** scope-by-value-variance + a scope-encoded name, so role/purpose is obvious and a monorepo
+  carrying `INFRA` + `BFF` + `FED` reads unambiguously. **Trade-off / migration:** renaming or re-scoping a
+  legacy secret means the GitHub secret store AND the consuming workflow refs must change **together** —
+  sequence: **add** the new secret → **switch** the workflow refs in a PR (the PR's plan/CI proves the new
+  name resolves) → **merge** → **delete** the old secret. Never delete the old name before the new path is green.
 
 **Environments:** `staging` (no rules) + `production` (required reviewer) — production deploys gate on
 environment approval. Per-env role ARNs live as **environment secrets** (same name, different value per env).
