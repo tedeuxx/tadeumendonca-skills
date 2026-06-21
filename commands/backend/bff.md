@@ -51,6 +51,11 @@ Today the domain logic can live **inside** the BFF (modular monolith — fastest
 **Pros:** tailored payloads + fewer round trips; backend evolves freely; clear 1:1 ownership; auth kept out of app code; one narrow public surface.
 **Cons:** an extra hop/Lambda to operate; risk of a "god BFF" if business rules creep in (keep it orchestration + shaping; push domain rules into the services); per-SPA duplication with many frontends; tokens live in the browser (the Cognito SDK manages them — accepted trade for simpler code vs. a server-side session BFF).
 
+## Decision & trade-off
+- **A modular monolith BFF — one Hono app, route modules, one Lambda — behind a single API Gateway that fronts ONLY the BFF.** Fastest to ship; one deploy, one fault domain to operate; a module can later be carved into a microservice the BFF calls without changing the SPA contract. *Trade-off:* monolith simplicity now (one Lambda is a shared fault/resource domain for every route) vs. real service boundaries later.
+- **Auth is fully external (Cognito SDK in the SPA + GW JWT authorizer); the BFF holds NO auth code** — it only reads the verified claims. *Trade-off:* deliberately gives up the "no-tokens-in-browser" server-session BFF variant (the SDK keeps the JWT in the browser) in exchange for far simpler code — the BFF stays pure orchestration.
+- **Endpoints are shaped per screen, not per resource** (aggregate + trim → one round trip per view). *Trade-off:* a payload tailored to one consumer doesn't suit many external clients, and there's a standing "god BFF" risk — keep domain rules in the modules/services, not in the shaping layer.
+
 ## Conventions
 - Built on Hono (`/backend/framework-hono`), non-VPC by default, Pattern B; **routes at root**; OpenAPI generated from them (`/backend/openapi`) = the contract API GW imports (`/infrastructure/api-gateway`).
 - **No auth code in the BFF** — claims come from the API GW Cognito authorizer (`/infrastructure/api-gateway`, `/infrastructure/cognito`); the SPA holds the JWT via the Cognito SDK (`/frontend/authentication`).

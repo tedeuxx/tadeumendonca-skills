@@ -97,6 +97,11 @@ Cursor-native — `LastEvaluatedKey` is exactly a continuation token (no offset/
 - **og-edge (Lambda@Edge) cannot reach DynamoDB at low latency** — prerender/OG data is served by the BFF, not the edge (`/backend/og-edge-handler`).
 - A single-partition GSI (feed `gsi_pk="POST"`) is fine at this scale; shard the PK if it ever gets hot.
 
+## Decision & trade-off
+- **Access-pattern-first, from the code side: every list has a matching key or GSI — `Get`/`Query` only, never `Scan`.** The exec role grants no `dynamodb:Scan`, so a Scan doesn't just run slow, it 500s at runtime — a new query shape means a new GSI (+ backfill), decided up front. This mirrors the table/GSI design decision in `/infrastructure/dynamodb`. *Trade-off:* no ad-hoc queries/joins; modeling rigidity in exchange for predictable cost/latency that tracks the result, not the table.
+- **Per-entity repositories over a shared data layer; one module owns one entity's access.** Keeps the modular monolith clean and each entity's keys/GSIs local. *Trade-off:* no cross-entity transactional read in one call — aggregation happens in the BFF shaping layer (`/backend/bff`).
+- **Cursor pagination via the opaque base64 `LastEvaluatedKey`** — DynamoDB's continuation token IS the cursor, so there's no offset/skip and no count query. *Trade-off:* no random-access "page N" jumps; forward/continuation paging only (the contract the SPA consumes — `/frontend/pagination`).
+
 ## Pros & cons
 **Pros**
 - IAM-auth (no creds/secret/SG); client singleton reused across invocations; snake_case items, no mapping.

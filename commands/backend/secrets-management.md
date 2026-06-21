@@ -38,6 +38,11 @@ const { auth_token } = await getSecret(config.redisSecretArn);                  
 - Cache in memory for the container lifetime; never re-fetch per request. Rotation is picked up on the next cold start.
 - Naming: `<project>/{env}/{component}` (e.g. `<project>/staging/redis`). The data tier needs no secret — DynamoDB is IAM-only (`/infrastructure/dynamodb`). See `/infrastructure/elasticache`.
 
+## Decision & trade-off
+- **Pattern B for secrets: IaC owns the config (the ARN in env/SSM); code reads the value at runtime.** The secret value never sits in the env, the bundle, tfvars, or state — only the non-sensitive ARN travels there. Cross-ref the Lambda Pattern-B split (`/infrastructure/lambda`). *Trade-off:* a runtime fetch (one cold-start round trip to Secrets Manager) instead of baking the value into an env var.
+- **Fetched once per cold start, then cached in process memory** (module-level client + `Map`), never re-fetched per request. *Trade-off:* a rotation is only picked up on the next cold start — acceptable for tokens that rotate rarely; force a new deploy to roll one immediately.
+- **Only genuinely-secret values go here; the data tier has none.** DynamoDB is pure IAM (no DB credential), so non-secret config (table names, endpoints, ARNs) stays in env vars (`/backend/environment-config`). *Trade-off:* a clear two-bucket split to maintain — putting a non-secret in Secrets Manager wastes a fetch; putting a secret in env leaks it.
+
 ## Pros & cons
 **Pros**
 - Secrets never in env/code; fetched at runtime and cached in memory.

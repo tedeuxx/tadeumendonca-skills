@@ -68,6 +68,11 @@ The BFF exec role needs, on the og-images bucket:
 ## Image URL convention
 `https://api.<host>/og/{type}/{slug}.png` (the BFF route) → 302 → `https://<host>/og/{type}/{slug}.png` (CloudFront `/og/*` → S3). Deterministic: same type+slug → same URL (cache-friendly). Regenerate = overwrite the key + CloudFront invalidation.
 
+## Decision & trade-off
+- **Generate the PNG once, cache it in S3, serve it from the CDN — never regenerate per request.** The BFF route is cache-aside (HeadObject → 302 on hit; generate → Put → 302 on miss), so the expensive satori→SVG→resvg→PNG path runs only on the first scrape of a given `{type}/{slug}`. *Trade-off:* a stored object to invalidate on content change (overwrite the key + CloudFront invalidation) in exchange for ~zero per-request cost/latency thereafter.
+- **Render in-process with satori + resvg-wasm — no headless browser, and the bytes never traverse API Gateway.** The 302 hands the scraper a CloudFront `/og/*` URL so the binary rides the CDN and the API stays JSON-only. *Trade-off:* satori is flexbox-only with a fixed font set (lower fidelity than a real browser) and adds bundle/memory weight — accepted because images are cached and regenerated rarely.
+- **WASM build over the native `.node` binary** so the whole thing (incl. fonts) embeds into one esbuild bundle with no per-arch juggling. *Trade-off:* WASM renders a touch slower — irrelevant given the S3 cache.
+
 ## Pros & cons
 **Pros**
 - Dynamic OG images from code, cached in S3, served from the same CloudFront distribution; no headless browser; binaries never touch API GW.

@@ -97,6 +97,12 @@ resource "aws_ssm_parameter" "lambda_edge_og_qualified_arn" { value = module.fn_
 
 After apply, CloudFront propagation + Lambda@Edge replication take several minutes; verify with `curl -A Googlebot` once the distribution is `Deployed` (look for `x-prerendered-by: og-edge`).
 
+## Decision & trade-off
+*(The sections above carry the per-mechanism trade-offs — Host-derived base, 40 KB cap, zero-deps, IaC-owned code. This summarizes the architectural call.)*
+- **Classify the viewer at the edge and do the MINIMUM for humans.** A viewer-request Lambda@Edge does a 3-way User-Agent split: **humans pass straight through** to the SPA (CSR, untouched), **social scrapers** get a lightweight OG `<head>`, **search crawlers** get full prerendered HTML + JSON-LD. *Why at the edge:* serve bots server-rendered content **without paying for SSR on human traffic**. *Cost trade-off:* L@E runs on **every** viewer request and is pricier than regular Lambda, so the human path is a bare pass-through and real work happens only for bot UAs — the routing heuristic is the cost lever.
+- **Not cloaking — bot and human resolve to the same content** (the edge fetches the same data the SPA renders, via the BFF bot API — `/backend/prerender`). *Trade-off:* a second render path that must stay in sync with the SPA.
+- **The edge code is IaC-owned (the Pattern-B exception)** — CloudFront must reference a specific published version, so Terraform publishes the version AND repoints the distribution in one apply, rather than the `apps/bff` deploy pipeline. *Trade-off:* an edge change is a `terraform apply` with slow CloudFront/replication propagation — acceptable because it's bot/SEO-only and changes rarely.
+
 ## Pros & cons
 **Pros**
 - SEO/social crawling without SSR; runs at the edge (fast); 3-way UA routing.
