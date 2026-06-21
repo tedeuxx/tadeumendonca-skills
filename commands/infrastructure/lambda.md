@@ -78,6 +78,11 @@ Same Pattern B, but: `publish = true`, `lambda_at_edge = true`, provider `aws.us
 - **Env vars** are encrypted at rest with the **AWS-managed Lambda key** by default — kept (no CMK), because the env holds only non-secret config + **secret ARNs** (the secrets live in Secrets Manager, `/backend/secrets-management`). Set `kms_key_arn` only if a CMK is mandated (`/infrastructure/kms`).
 - In transit: everything the BFF calls is TLS (DynamoDB, AWS APIs). Non-VPC by default (`/infrastructure/vpc`); in private subnets only when an in-VPC dependency forces it.
 
+## Decision & trade-off
+- **Non-VPC by default — the function never gets a VPC unless a VPC-only dependency forces it** (`/infrastructure/vpc`). Driver is a cost ↔ isolation trade-off: **no VPC ⇒ no NAT Gateway** (the largest line item) and faster cold starts (no ENI attach); traded away is network isolation / SG egress / flow logs — acceptable for a stateless, IAM-auth'd function. Lambda@Edge is **always** non-VPC (the edge can't be in a VPC — not a choice).
+- **Pattern B is a deliberate code/config split:** Terraform owns the function CONFIG with a bootstrap placeholder + `ignore_source_code_hash`; the deploy pipeline ships the CODE via `update-function-code`. **Trade-off:** a `terraform apply` never reverts deployed code and a code change never triggers a TFC plan — the two ownership halves never collide. Cost is a one-time bootstrap-zip + the discipline of remembering IaC does not manage the artifact.
+- **Lambda@Edge is the Pattern-B exception:** the edge code IS IaC-owned (a hash change publishes a new version and atomically repoints CloudFront in one apply), because CloudFront must reference a specific published version — a separate code pipeline would fight the distribution's state.
+
 ## Pros & cons
 **Pros**
 - arm64 (Graviton) — cheaper, equal/better perf. Non-VPC by default → no NAT, faster cold starts.

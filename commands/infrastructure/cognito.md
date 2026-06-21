@@ -114,6 +114,12 @@ resource "aws_route53_record" "auth" {                       # /infrastructure/r
 - Pool/client ids → SSM for app repos; the SPA reads them at build (`/frontend/environment-config`).
 - New environment → its own pool + custom domain + its own Google OAuth client (distinct redirect host).
 
+## Decision & trade-off
+- **Social-only (federated) auth.** Lower friction, no password to store/leak; *trade-off:* a hard dependency on the IdP (Google) with no email/password fallback. MFA is delegated to the IdP (Cognito MFA is `OFF` for federated users).
+- **PLUS tier with threat protection ENFORCED is a deliberately accepted cost.** Threat protection (adaptive auth + leaked-credential checks) requires the PLUS tier (~$0.05/MAU) — chosen over the free ESSENTIALS tier, **traded for the security posture** (part of what compensates for the cost-driven single-account/non-VPC choices). *Note:* the leaked-credential check doesn't apply to federated users (no stored password); adaptive auth still does.
+- **Cognito is workload-specific** (a pool dedicated to this app) → it lives **with the app**, not in shared infra. The shared REGIONAL WAF fronts the hosted UI, read via the SSM config bus.
+- **Per-env `deletion_protection`** (ACTIVE in production, INACTIVE in staging) guards the real user pool while keeping staging freely recreatable. The **custom hosted-UI domain is stable across pool recreation**, so the Google OAuth redirect URI never has to change.
+
 ## Pros & cons
 **Pros**
 - No passwords (social-only) — nothing to leak/rotate; low signup friction; MFA delegated to Google.

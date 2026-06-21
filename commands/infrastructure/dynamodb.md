@@ -84,6 +84,11 @@ DynamoDB is a **regional service**. With the BFF non-VPC (the default), the Lamb
 ## Rationale — DynamoDB over DocumentDB (cost-driven reversal)
 DocumentDB is a fixed-cost always-on cluster (~$54/mo `db.t4g.medium`, before replicas/backup) — unviable for a personal site with low, spiky traffic. DynamoDB on-demand bills per request and **costs effectively nothing at idle**, scales to zero operationally, is IAM-auth (no creds/secret/SG), and needs no VPC instance. Trade-off: access patterns must be designed up front (no ad-hoc queries / joins); rich document querying gives way to key+GSI access. For this app's known patterns (profile read, feed list, article by-slug/by-tag) that fits cleanly.
 
+## Decision & trade-off
+- **Per-entity tables + GSIs over single-table design.** One table per domain aggregate, with a GSI per access pattern. *Why:* simpler mental model, each entity evolves and is capacity-isolated independently, and on-demand makes the extra tables free at rest. *Trade-off:* gives up single-table's cross-entity transactional reads and its at-scale efficiency — modeling complexity this workload doesn't need.
+- **On-demand (`PAY_PER_REQUEST`) over provisioned = scale-to-zero.** Bills per request, ~$0 idle, no RCU/WCU planning. *Trade-off:* per-request pricing is **costlier than provisioned at sustained high steady load** — not this traffic regime, so the trade is worth it.
+- **Access patterns are fixed at design time** (key + GSI only; no ad-hoc queries/joins, no `Scan` in hot paths). A new query shape means a new GSI (+ possible backfill). Pagination is cursor-based via the opaque base64 `LastEvaluatedKey`.
+
 ## Pros & cons
 **Pros**
 - On-demand = ~$0 idle, no capacity planning; scales automatically.

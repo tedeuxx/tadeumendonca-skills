@@ -105,6 +105,11 @@ The iac-runner + **api/fed OIDC deploy roles** (trust = OIDC handshake; permissi
 ## Conventions
 - Role ARNs → SSM for app deploy jobs to assume at deploy (`/infrastructure/ssm`); app deploy jobs read the env-scoped `AWS_BFF_OIDC_ROLE_ARN` / `AWS_FED_OIDC_ROLE_ARN` (environment secrets; see `/workflow/github-actions`), never a rotatable static GitHub secret.
 - Key choice + encryption requirements follow `/infrastructure/kms`; tagging via provider `default_tags` (`/infrastructure/terraform`).
+## Decision & trade-off
+- **The IAM role boundary substitutes for the missing account boundary.** Because all environments share one AWS account (a cost decision — `/infrastructure/terraform`), IAM is the **primary** isolation mechanism, not an optional hardening. This applies to runtime roles here AND to the deploy/CI roles in `/workflow/github-actions`.
+- **Least-privilege per-JOB roles:** each pipeline gets a minimal role (iac-runner may create/delete; bff-deploy may only update its Lambda code; fed-deploy may only sync its bucket + invalidate CloudFront), so a bug or compromise in one pipeline can't touch another's resources. Per-ENV roles restore the env isolation the single account gave up. *Trade-off:* more roles/policies to author and keep in sync as features change.
+- The full secrets/OIDC/per-env model is in `/workflow/github-actions` — **cross-referenced, not duplicated here** (this catalog is runtime identity only).
+
 ## Pros & cons
 **Pros**
 - One canonical authoring catalog — no policy JSON scattered across service skills.

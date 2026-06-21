@@ -119,6 +119,12 @@ locals { tags = { Project = "<project>", Environment = var.environment, ManagedB
 - `version-develop/main.yml`: numeric SemVer (`/workflow/github-actions`).
 
 See `/workflow/terraform-cloud`, `/infrastructure/route53`, and the per-service skills.
+## Decision & trade-off
+- **Single shared AWS account for all environments — no account-level isolation.** A cost decision: a multi-account org adds real overhead/cost not justified for a solo product. Env separation is done with the `Project`/`Environment` tags, per-env resource names (`*-staging`/`*-production`), and per-env TFC workspaces — **not** separate Organizations accounts.
+- **The IAM role boundary is the isolation that compensates.** Because there is no account boundary, **least-privilege per-job + per-env OIDC roles are the primary isolation mechanism** (a leaked staging token can't assume the prod role; the prod role is gated by the `production` Environment approval). Cross-ref `/workflow/github-actions` (the full secrets/role/OIDC model) and `/infrastructure/iam` (runtime roles) — not restated here.
+- **Validate at plan, not apply.** Every input variable carries a `type` + a `validation` block so a bad value fails at `plan` (fast, cheap) rather than mid-`apply` (partial state). *Trade-off:* a little authoring overhead per variable for a much tighter failure mode.
+- *Blast radius:* one canonical root per repo means a larger blast radius per apply (vs many small states) — accepted for the simplicity of a single, non-duplicated layout.
+
 ## Pros & cons
 **Pros**
 - Single canonical root (no per-env duplication); TFC remote state + locking.
