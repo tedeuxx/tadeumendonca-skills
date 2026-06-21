@@ -10,8 +10,36 @@ Claude reads the guide and knows exactly how to implement that piece following t
 established patterns (Hono, powertools, audit middleware, DynamoDB, snake_case, Pattern B,
 SSM config bus, GitFlow, etc.).
 
-All skills are created up front (before `v0.2.0`) and validated by the owner before each phase
-starts — none are created ad-hoc during development.
+---
+
+## Mission — this repo is a CV differentiator (read this first)
+This skills library is the owner's **public knowledge-transfer artifact**: a dense dump of his senior-engineer
+**experience + implementation preferences**, externalized in public as proof of depth (he is repositioning
+from "Architect / AWS Professional Services" to **Senior Software Engineer** at product companies — see the
+strategic context). It is NOT a thin "what this project did" doc — each skill is a **dense, scenario-covering
+architecture guide** that demonstrates judgment.
+
+**The depth bar (how every AWS-service skill should read):**
+- **The scenario space, not one config** — *when* to pick each option, as a decision tree.
+- **Decision criteria + multi-dimensional trade-offs** — cost / security / scale / latency / ops — with rough
+  numbers where they drive the call (e.g. NAT ≈ $33/mo/AZ; Interface endpoint ≈ $7/mo/AZ).
+- **The owner's opinionated default + when he deviates** (the "My take" layer) — THIS is the differentiator;
+  generic best-practice alone is not enough.
+- **The nuances that bite** — the gotchas / war stories worth materializing.
+- `commands/infrastructure/vpc.md` is the **density exemplar** — match it.
+
+**Deep-dive authoring process (done in-place here):**
+1. **Scaffold** the scenario space (Claude drafts the dense structure from sound practice + the platform repos).
+2. **Elicit the owner's layer** — ask a few sharp questions (default posture? real triggers to deviate? rule
+   of thumb? a war story?) and weave the answers into a **"My take / preference"** section.
+3. Iterate per skill until it reads like a senior engineer's knowledge transfer. Go skill by skill / by domain.
+
+**Hard principles:** **project-agnostic** — generic `<project>` / `<apex-domain>` placeholders, **NO** real
+names/domains/ARNs/ids; **English** (it's published); **additive density** (deepen; never thin out good content).
+
+**State (2026-06-21):** a thin `## Decision & trade-off` baseline has landed for `infrastructure/*` and
+`backend/*`, plus the `vpc` deep exemplar; `frontend/*` is not started yet. The **deep-dive above is the
+active workstream** — those baseline sections are scaffolding to deepen, not the goal.
 
 ---
 
