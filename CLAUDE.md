@@ -108,6 +108,17 @@ sync (see `/workflow/versioning`).
 
 ## Command reference
 
+### principles/ (4) — the drift-reducer
+
+The harness's **principles layer**: how the owner builds software, so an agent's behavior doesn't drift. Cross-cutting (applies to every repo), distinct from the per-component how-to skills. Canonical summary in the root `PRINCIPLES.md`; deep validation via the `principles-guide` subagent (`agents/`); irreversible-floor enforcement via the shipped PreToolUse guard (`hooks/`).
+
+| Command | Purpose |
+|---|---|
+| `/principles/engineering-philosophy` | The 11 principles in two tiers (non-negotiable floor + risk-calibrated judgment); the agent-led/human-residual spine |
+| `/principles/verification-and-gates` | What "done" means: the thesis, Definition of Done, the 100% E2E+API regression invariant, gates by environment |
+| `/principles/dev-loop` | End-to-end flow: roadmap intake → thin slice → local validate → staging → promote → prod; failure = revert + re-release |
+| `/principles/permissions-and-environments` | Environment = git branch; IaC pipeline-only + infra-first; staging-backed local; allow/ask/deny zones; global + per-project; the guard hook |
+
 ### architecture/ (1)
 
 | Command | Purpose |
