@@ -2,9 +2,9 @@ Apply the semantic-versioning + tagging rules (bump-my-version) in any <project>
 
 Context: $ARGUMENTS
 
-The single source of truth for **versioning and git tags** across the repos — identical config everywhere. Runs as the `version-develop.yml` / `version-main.yml` GitHub Actions workflows (`/workflow/github-actions` owns the branch model that triggers them).
+The single source of truth for **versioning and git tags** across the repos. The numeric-SemVer **scheme** is identical everywhere; the **trigger model differs by repo role** — deploy-model repos auto-bump on push (`version-develop.yml` / `version-main.yml`), the trunk-based plugin releases on demand (`release.yml`). `/workflow/github-actions` owns the branch model.
 
-`<project>-pwa` carries **one root `VERSION`/tag for the whole monorepo** (not a per-app version) — `apps/fed`, `apps/bff`, and `iac/` ship together under that single version. `<project>-skills` (this plugin) uses the same scheme but the **release-cut model**, not deploy-to-environment: `develop` auto-patches on each push, and a deliberate release is a `develop → main` PR carrying a `semver:` label that tags `vX.Y.Z` — the version consumers pin in their marketplace `ref` (then back-merge `main → develop`).
+`<project>-pwa` carries **one root `VERSION`/tag for the whole monorepo** (not a per-app version) — `apps/fed`, `apps/bff`, and `iac/` ship together under that single version, auto-bumped via GitFlow. `<project>-skills` (this plugin) uses the same numeric scheme but is **trunk-based, release-only**: no `develop`, a single `main` (feature branches → PR → `main`), and a deliberate release is cut on demand via `release.yml` (`workflow_dispatch` → major/minor/patch) that tags `vX.Y.Z` — the version consumers pin in their marketplace `ref`. A consumed artifact's tags are a consumer lockfile, so it never auto-bumps on push.
 
 ## Scheme — purely numeric SemVer
 `MAJOR.MINOR.PATCH` only — **no `-dev` / pre-release suffix** (explicitly rejected). `VERSION` starts at `0.1.0`. Tags are `vX.Y.Z`.

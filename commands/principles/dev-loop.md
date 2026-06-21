@@ -47,6 +47,7 @@ Work is **driven by the roadmap (`PLAN.md`)**, the source of what gets built nex
 - After staging deploys: **smoke + confirm health via observability**.
 - **Promote integration → release branch**: the **full E2E + API regression is a blocking required check**, plus human review, the version-bump label, and **manual approval — promotion to production always asks**. On merge: production deploy + version tag + GitHub Release. Post-deploy: smoke + observability again.
 - **Pipelines are independent per repo** (never cross-trigger). Infrastructure changes are pipeline-only: a reviewed plan on the PR, apply on merge.
+- **Merge with a real merge commit, never squash** (`gh pr merge --merge`) — each thin slice's conventional commits are the changelog and the slice-by-slice trail; squashing collapses them. See `/workflow/github-actions`.
 
 ## Failure path
 When production breaks, **revert the offending merge on the release branch and re-release** — a forward fix with a new slice — rather than a long-lived hotfix branch. The 100% regression suite is what makes a fast forward-fix safe.
