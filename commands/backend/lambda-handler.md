@@ -24,6 +24,11 @@ The single entry (`src/index.ts`) creates the app, wires the middleware, and reg
 - The domain is a **modular monolith** now; a module can later become a microservice the BFF calls — without changing the SPA (`/backend/bff`).
 - og-edge is the exception: NO Hono / VPC — it's Lambda@Edge (`/backend/og-edge-handler`).
 
+## Decision & trade-off
+- **A feature is a module that registers routes onto the one BFF app — never its own Lambda.** Keeps the modular monolith (one deploy, one cold-start budget) and lets a module graduate to a microservice later without an SPA change (`/backend/bff`). *Trade-off:* modules share the BFF Lambda's resources/limits and fault domain.
+- **The handler reads claims and orchestrates; it never authenticates and never touches `process.env` directly.** Auth is the GW authorizer's job (`/backend/bff`); non-secret config comes from the typed `config` accessor (`/backend/environment-config`) and sensitive values from Secrets Manager at runtime (`/backend/secrets-management`). *Trade-off:* a little indirection (config + secrets accessors) for one consistent, testable module shape.
+- **SDK clients are module-level singletons, reused across warm invocations — never constructed in a handler.** *Trade-off:* the client lives for the container lifetime (rotation picked up on the next cold start) in exchange for connection reuse and lower per-request latency.
+
 ## Pros & cons
 **Pros**
 - Consistent module shape (routes + audit + DynamoDB) that registers into the one app.

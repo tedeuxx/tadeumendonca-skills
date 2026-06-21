@@ -28,6 +28,10 @@ logger.error('dynamodb query failed', { error });
 - Levels via `LOG_LEVEL`: DEBUG (staging) / WARN (production) — `/backend/environment-config`.
 - `og-edge` (Lambda@Edge) has no Powertools — minimal `console` only.
 
+## Decision & trade-off
+- **Structured JSON via Powertools Logger — never `console.log`.** One toolkit owns Logger/Metrics/Tracer, JSON lines are queryable in CloudWatch Logs Insights and double as the EMF metric carrier (`/backend/metrics`). *Trade-off:* structured-logging discipline (append keys, don't string-concat) for machine-queryable logs with no separate log backend.
+- **Level per env via `LOG_LEVEL` (DEBUG staging / WARN production); never log the raw event or `Authorization` header.** *Trade-off:* less verbosity in prod (cheaper retention, fewer leaks) at the cost of needing a redeploy/log-level change to capture DEBUG in production.
+
 ## Pros & cons
 **Pros**
 - Structured JSON logs, correlation ids, per-env level; integrates with metrics/tracer.

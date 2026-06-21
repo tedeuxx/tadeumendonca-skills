@@ -27,6 +27,10 @@ const db = tracer.captureAWSv3Client(new SESv2Client({}));
 - Correlate with logs/audit via the same `request_id` (`/backend/logging`, `/backend/audit-middleware`).
 - `og-edge` (Lambda@Edge) has no Powertools — no tracing there.
 
+## Decision & trade-off
+- **Powertools Tracer over X-Ray — the native AWS tracer, no dedicated APM.** Same Powertools toolkit as Logger/Metrics, zero extra infrastructure, and it auto-instruments downstream AWS SDK calls. *Trade-off:* X-Ray is less rich than a dedicated APM and sampling can miss a trace — accepted for cost/simplicity, consistent with the EMF-not-Prometheus call (`/backend/metrics`).
+- **Annotations are indexed + low-cardinality; metadata is rich context; neither carries PII.** Only annotations are filterable in X-Ray, so identity/raw context goes in metadata. *Trade-off:* you choose at write time what's queryable vs. merely attached.
+
 ## Pros & cons
 **Pros**
 - End-to-end traces (API GW→Lambda→browser), annotations, downstream capture.

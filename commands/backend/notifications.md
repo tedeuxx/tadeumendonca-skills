@@ -39,6 +39,11 @@ A publish that notifies **N** subscribers must **not** run inline — fan-out is
 - **SES sandbox:** new accounts only send to verified addresses — production access is a one-time manual request (`/infrastructure/ses`).
 - Audit the action (`subscribers_create`, etc. — `/backend/audit-middleware`); identity from claims (`/backend/action-types`).
 
+## Decision & trade-off
+- **SES for delivery + SNS for async fan-out — a notify-N publish never runs inline.** The request publishes one domain event and returns; a subscribed Lambda fans out the emails with a DLQ for failures. *Trade-off:* delivery is eventual (failures land in the DLQ, not in the response), in exchange for a fast request and partial-failure isolation. SNS is the cheapest pub/sub for this (`/infrastructure/sns`).
+- **Scheduled digests are EventBridge-cron-driven, not a long-running worker** — the schedule fires a Lambda (pay-on-fire), so there's ~$0 idle cost. *Trade-off:* batch cadence (cron granularity) rather than real-time, which is exactly what a digest wants.
+- **Fan-out is idempotent** (dedupe by `(post_id, subscriber_id)`) so retries don't double-send. *Trade-off:* a dedupe key to maintain, for at-least-once delivery safety.
+
 ## Pros & cons
 **Pros**
 - SNS async fan-out decouples producers from consumers; SES delivers email.

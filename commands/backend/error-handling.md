@@ -39,6 +39,11 @@ if (!groups.includes('admin')) throw new UnauthorizedError();
 - Schema-validation failures map to a `400` `ValidationError` so they share the shape.
 - The central handler that catches thrown errors and writes the response is wired in `/backend/framework-hono`.
 
+## Decision & trade-off
+- **Throw typed errors; never return an inline 4xx.** One central middleware is the **single source of truth** for status code + body shape, so every endpoint answers identically and handlers stay on the happy path. *Trade-off:* discipline — every failure path must `throw` (a stray `return c.json(..., 400)` silently bypasses the contract), in exchange for one place owning status/shape.
+- **`AppError` carries `(statusCode, code, message)`; anything unrecognized → `500 internal_error`.** Unknown exceptions never leak internals (real cause logged via Powertools, generic message returned). *Trade-off:* a genuinely-expected non-2xx must be modeled as an `AppError` subclass, or it degrades to a 500.
+- **Schema-validation failures fold into the same `{ error, message }` body** (zod → `400 ValidationError`), so the SPA parses one error contract everywhere. *Trade-off:* the validation layer is adapted to the error model rather than surfacing the framework's default 400.
+
 ## Pros & cons
 **Pros**
 - Uniform error→HTTP mapping in one middleware; throw, never return 4xx — handlers stay clean.
