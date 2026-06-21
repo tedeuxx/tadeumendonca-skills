@@ -73,7 +73,7 @@ jobs:
             body=$(log | grep -iE "^($2)(\(.+\))?!?:" \
               | sed -E "s/^($2)(\([^)]*\))?!?:[[:space:]]*//I" \
               | awk -F'\t' '{print "- " $1 " (" $2 ")"}')
-            [ -n "$body" ] && printf '### %s\n%s\n\n' "$1" "$body"
+            if [ -n "$body" ]; then printf '### %s\n%s\n\n' "$1" "$body"; fi
           }
           {
             section "✨ Features" "feat|feature"
@@ -83,8 +83,8 @@ jobs:
             section "⚙️ CI & chores" "ci|chore|build|test"
             other=$(log | grep -ivE "^(feat|feature|fix|docs|refactor|ci|chore|build|test|style|perf)(\(.+\))?!?:" \
               | awk -F'\t' '{print "- " $1 " (" $2 ")"}')
-            [ -n "$other" ] && printf '### Other\n%s\n\n' "$other"
-            [ -n "$PREV" ] && echo "**Full changelog**: https://github.com/${{ github.repository }}/compare/$PREV...$NEW"
+            if [ -n "$other" ]; then printf '### Other\n%s\n\n' "$other"; fi
+            if [ -n "$PREV" ]; then echo "**Full changelog**: https://github.com/${{ github.repository }}/compare/$PREV...$NEW"; fi
           } > RELEASE_NOTES.md
           echo "Generated notes for $RANGE:"; cat RELEASE_NOTES.md
 

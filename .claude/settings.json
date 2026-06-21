@@ -49,7 +49,6 @@
       "Bash(bump-my-version:*)"
     ],
     "deny": [
-      "Bash(git tag:*)",
       "Bash(git push:*--tags*)",
       "Bash(git push:*--follow-tags*)",
       "Bash(gh workflow run release*)",
