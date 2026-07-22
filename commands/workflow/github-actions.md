@@ -1,4 +1,4 @@
-Use GitHub for <project> repos — the CI/CD capability (Actions, GitFlow + versioning, deploys, issues).
+Use GitHub for <project> repos — the CI/CD capability (Actions, branching + versioning, deploys, issues). Branching comes in **two models** — see *Branching* below; pick the repo's before configuring anything.
 
 Context: $ARGUMENTS
 
@@ -70,18 +70,22 @@ levels: `gh secret list -R <repo>` **and** `gh secret list -R <repo> --env <stag
   with read access **without** gating PRs behind prod approval — e.g. plan against the staging role, or a
   dedicated non-gated read-only role — so opening a PR never blocks on the `production` reviewer.
 
-**Environments:** `staging` (no rules) + `production` (required reviewer) — production deploys gate on
-environment approval. **Every** role ARN lives as an **environment secret** (same name, different value per env).
+**Environments:** under `gitflow-multi-env`, `staging` (no rules) + `production` (required reviewer) — production deploys gate on environment approval. Under `trunk-single-env` there is a **single** GitHub Environment and no approval gate at the environment level; the gate is the merge itself. Either way **every** role ARN lives as an **environment secret** (same name, one value per Environment), so the scoping rule below is unchanged.
 
 ## Workflow set (per repo)
 - `ci.yml` (api/fed) — **PR + push to develop/main**: lint + typecheck + tests + **SonarCloud** gate + security gates (`/backend/coverage`, `/frontend/coverage`, `/workflow/sonarcloud`). Push to develop/main sets SonarCloud's new-code baseline. iac has no `ci.yml` — its gates are `terraform-plan.yml` (checkov) + `sonar.yml` (SonarCloud IaC).
 - **Required check + trigger `paths:` filter = docs PRs BLOCKED forever (gotcha).** If a *required* status check (`build-test`, `sonar`) is gated by a trigger-level `on.pull_request.paths:` filter, a PR that touches none of those paths (a docs-only `CLAUDE.md` PR) never starts the workflow, so the required check never reports — branch protection then leaves the PR permanently `BLOCKED` (and `--admin` bypass defeats the gate). **Fix:** drop `paths:` from the `pull_request` trigger so the job ALWAYS runs (and always reports the required check), then gate the heavy steps inside the job with a `dorny/paths-filter@v3` step + `if: steps.changes.outputs.<filter> == 'true'`. Docs-only PRs run the job and finish **green** in seconds without the toolchain (free on public repos). Keep the `push` trigger's `paths:` (SonarCloud baseline only on real changes). Don't gate the whole *job* with `if:` (skipped-required-job behavior is surprising) — gate the *steps* so the job itself still reports success.
-- `deploy.yml` — develop→staging (auto), main→production (approval); iac uses `terraform-plan.yml` + `terraform-deploy.yml` (`/workflow/terraform-cloud`).
-- `version-develop.yml` / `version-main.yml` — numeric SemVer bump (below).
+- `deploy.yml` — under `gitflow-multi-env`: develop→staging (auto), main→production (approval). Under `trunk-single-env`: one deploy job on merge to `main`. iac uses `terraform-plan.yml` + `terraform-deploy.yml` (`/workflow/terraform-cloud`) under both.
+- `version-develop.yml` / `version-main.yml` — numeric SemVer bump (below); `trunk-single-env` needs only the `main` one.
 - `claude.yml` + `claude-code-review.yml` — Claude GitHub App (assistant + auto review) — `/workflow/claude-code`.
 - **`concurrency`** groups to avoid overlapping deploys/version bumps (`cancel-in-progress: false`); pin action versions (`@v4`); least-privilege `permissions:` per job (`id-token: write` only where OIDC is needed).
 
-## Branching (GitFlow)
+## Branching — pick the loop model first
+Branching follows the repo's loop model (`/principles/dev-loop`). **Determine it before configuring protection or writing a deploy workflow** — a GitFlow layout on a single-environment repo creates a `develop` branch nothing merges to, and moves the required checks off the PR that actually ships.
+
+**How to tell:** the repo's `CLAUDE.md` states it. Otherwise, count environments — **more than one → `gitflow-multi-env`; one (or none, for a consumed artifact) → `trunk-single-env`.**
+
+### `gitflow-multi-env`
 ```
 main ←── release/* ←── develop ←── feature/*
      ←── hotfix/*
@@ -91,10 +95,21 @@ main ←── release/* ←── develop ←── feature/*
 - **main**: protected (PR required); production deploy requires GitHub Environment approval + reviewer.
 - **hotfix/***: from `main`; merged to both `main` and `develop`.
 - Protection on `main` + `develop`: require PR, **0 approvals** (solo dev can't self-approve), `enforce_admins=false` so the owner and the `VERSION_BUMP_TOKEN` actor push directly; no force-push/deletion.
-- **Merge strategy: real merge commits, never squash.** Set each repo's default merge method to **merge commit** and **disable squash merging**, so MRs are not opened/merged as a squash by default; merge with `gh pr merge --merge`, never `--squash`. Squashing collapses the per-commit **conventional-commit** history that the categorized release notes are built from (`git log --no-merges`, see `/workflow/versioning`) and erases the slice-by-slice trail. (Rebase-merge is acceptable when strictly linear history is wanted; squash is not.)
-- **Where this GitFlow applies:** `<project>-iac` and `<project>-pwa` use the **deploy** model above — `develop`→staging (auto), `main`→prod (Environment approval). **`<project>-skills` (this plugin) does NOT** — it has no Environments/deploy, so `develop` is empty ceremony for it. It is **trunk-based**: a single long-lived `main` (feature branches → PR → `main`), and a deliberate release is cut on demand via `release.yml` (`workflow_dispatch`, choose major/minor/patch) which **tags `vX.Y.Z`** (the version consumers pin in their marketplace `ref`). No app/infra is deployed; the "release" is the tag itself. Why the divergence: a consumed artifact's tags are a consumer lockfile, so versioning is deliberate (release-only), never auto-bump-on-push (`/workflow/versioning`).
 
-**Versioning & tags** — numeric SemVer via bump-my-version on every push to `develop` (patch) / `main` (PR `semver:` label), with the `bump:` loop guard. All the rules live in **`/workflow/versioning`**; `version-develop.yml` / `version-main.yml` run it.
+### `trunk-single-env`
+```
+main ←── feature/*
+```
+- **feature/*** (and `fix/*`, `docs/*`, `chore/*`): cut from `main`; PR → `main` required. Short-lived.
+- **main**: the **only** long-lived branch, and the **working** branch. Protected (PR required, 0 approvals, no force-push/deletion), `enforce_admins=false` for the owner and the version-bump actor.
+- **No `develop`, no `release/*`, no `hotfix/*`.** A hotfix is just another short-lived branch off `main` — there is no second line to back-merge into.
+- **All required checks sit on the PR to `main`**: lint + typecheck + coverage + quality gate + security + the full regression. There is no downstream tier to defer any of them to, so a check moved off this PR is a check that never runs.
+- **The merge deploys**, so it is the go/no-go. Never configure auto-merge into `main`.
+- **Two variants of what "ships" means:**
+  - *Deployed app* — merge to `main` triggers the deploy, and the version bump is automatic on push (patch), tagging `vX.Y.Z` + publishing a Release.
+  - *Consumed artifact* (library/plugin) — merge to `main` publishes nothing; `main` stays always-releasable and a **deliberate release** is cut on demand via `release.yml` (`workflow_dispatch`, choose major/minor/patch), which tags `vX.Y.Z`. The tag is the irreversible act, so that is what asks. A consumer pins that tag, so its versioning must never be auto-bump-on-push (`/workflow/versioning`).
+- **Merge strategy: real merge commits, never squash.** Set each repo's default merge method to **merge commit** and **disable squash merging**, so MRs are not opened/merged as a squash by default; merge with `gh pr merge --merge`, never `--squash`. Squashing collapses the per-commit **conventional-commit** history that the categorized release notes are built from (`git log --no-merges`, see `/workflow/versioning`) and erases the slice-by-slice trail. (Rebase-merge is acceptable when strictly linear history is wanted; squash is not.)
+**Versioning & tags** — numeric SemVer via bump-my-version, with the `bump:` loop guard. Where the bump fires follows the model: under `gitflow-multi-env`, on every push to `develop` (patch) and on `main` via a PR `semver:` label (`version-develop.yml` / `version-main.yml`); under `trunk-single-env`, on every push to `main` for a deployed app (`version-main.yml`), or release-only via `workflow_dispatch` for a consumed artifact. All the rules live in **`/workflow/versioning`**.
 
 ## Deploy — iac (Terraform)
 Uses the **iac runner** OIDC role (see the pipeline-roles table above — out-of-band, broad provisioning, role-deletion gotcha). State + locking live in Terraform Cloud, execution mode **Local** — GitHub runs `plan`/`apply` (`/workflow/terraform-cloud`); the `TFC_API_TOKEN` secret authenticates to TFC.
@@ -167,7 +182,7 @@ Everything published on GitHub is in **English** — repo descriptions, READMEs,
 
 ## Pros & cons
 **Pros**
-- One capability for OIDC, secrets/environments, GitFlow, deploys, and the Issues backlog.
+- One capability for OIDC, secrets/environments, branching (both models), deploys, and the Issues backlog.
 - No long-lived AWS keys (OIDC); pipelines independent per repo.
 **Cons**
 - A large umbrella skill covering many concerns.
