@@ -1,14 +1,20 @@
 # tadeumendonca-skills
 
 Claude Code **plugin** (slash-command library) for the **tadeumendonca.io** platform — distributed
-via the **marketplace in this repo** and reused across `tadeumendonca-pwa` (the product monorepo:
-`apps/fed` + `apps/bff` + `iac/`) and `tadeumendonca-iac` (shared regional WAF only).
+via the **marketplace in this repo** and consumed by **`tadeumendonca-io`** (the static site SPA in
+`apps/fed` + its Terraform in `iac/`).
 The commands are generic, reusable implementation guides (no AWS dependency to run).
 
-Each command is a per-component guide: when the owner runs `/tadeumendonca-skills:backend/lambda-handler posts`,
+Each command is a per-component guide: when the owner runs `/tadeumendonca-skills:frontend/framework-react`,
 Claude reads the guide and knows exactly how to implement that piece following this project's
-established patterns (Hono, powertools, audit middleware, DynamoDB, snake_case, Pattern B,
-SSM config bus, GitFlow, etc.).
+established patterns (custom Tailwind design system, snake_case contracts, Terraform parametrization,
+numeric SemVer, etc.).
+
+> **The library is broader than its current consumer.** `backend/*` and several `infrastructure/*`
+> skills document a BFF-on-Lambda + DynamoDB + Cognito architecture that `tadeumendonca-io` **retired**
+> — it is now fully static. Those skills are kept **deliberately, as reference patterns**, not as a
+> description of the live platform. Never infer the consumer's architecture from them; read the
+> consumer's own `CLAUDE.md`.
 
 ---
 
@@ -50,7 +56,7 @@ projects. Commands live in `commands/`; `.claude-plugin/marketplace.json` is the
 `.claude-plugin/plugin.json` the manifest. **Nothing is published outside this git repo** — the
 marketplace is just a metadata file the consumer points at.
 
-**Consume it in a repo (`-pwa`, `-iac`)** — add the marketplace from this git + install:
+**Consume it in a repo (`tadeumendonca-io`)** — add the marketplace from this git + install:
 
 ```bash
 claude plugin marketplace add tedeuxx/tadeumendonca-skills
@@ -76,7 +82,7 @@ marketplace update`). For **local skill authoring** (test edits to this repo, un
 `claude --plugin-dir .`
 
 The skills are **generic** (`<project>` / `<apex-domain>` placeholders) — Claude substitutes the
-real values per project (in `-pwa/iac` and `-iac`, they become `var.project` / `var.apex_domain`).
+real values per project (in `tadeumendonca-io/iac`, they become `var.project` / `var.apex_domain`).
 
 ### Usage
 
@@ -91,8 +97,8 @@ it (received as `$ARGUMENTS`):
 
 ### Releasing a version
 
-**Trunk-based** — this repo is a *consumed dependency* (by `-pwa` + `-iac`), not an app with
-environments, so it does **not** use GitFlow. There is one long-lived branch, **`main`**: skill
+**Trunk-based** (`trunk-single-env`, consumed-artifact variant) — this repo is a *consumed dependency*
+(by `tadeumendonca-io`), not an app with environments, so it does **not** use GitFlow. There is one long-lived branch, **`main`**: skill
 work lands via short-lived `feature/*` / `docs/*` PRs, and `main` is always releasable. Pushing to
 `main` does **not** auto-version — the version is a deliberate, consumer-facing decision decoupled
 from integration.
@@ -126,9 +132,9 @@ The harness's **principles layer**: how the owner builds software, so an agent's
 | Command | Purpose |
 |---|---|
 | `/principles/engineering-philosophy` | The 11 principles in two tiers (non-negotiable floor + risk-calibrated judgment); the agent-led/human-residual spine |
-| `/principles/verification-and-gates` | What "done" means: the thesis, Definition of Done, the 100% E2E+API regression invariant, gates by environment |
-| `/principles/dev-loop` | End-to-end flow: roadmap intake → thin slice → local validate → staging → promote → prod; failure = revert + re-release |
-| `/principles/permissions-and-environments` | Environment = git branch; IaC pipeline-only + infra-first; staging-backed local; allow/ask/deny zones; global + per-project; the guard hook |
+| `/principles/verification-and-gates` | What "done" means: the thesis, Definition of Done, the 100% functional-regression invariant, the gate tables per loop model |
+| `/principles/dev-loop` | End-to-end flow in **two models** — `gitflow-multi-env` (staging → promote → prod) and `trunk-single-env` (PR → `main` → live); how to tell which applies; failure = revert + forward fix |
+| `/principles/permissions-and-environments` | The permission zones **per loop model**; git-reversibility tolerance test; IaC pipeline-only + infra-first; global + per-project layering; what the guard hook actually enforces (and why it stays branch-agnostic) |
 
 ### architecture/ (1)
 
@@ -214,11 +220,11 @@ One skill per AWS service / tool used — each is the canonical parametrization 
 
 ### workflow/ (7)
 
-DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella for OIDC, secrets/environments, GitFlow branching, the `apps/bff` + `apps/fed` deploy workflows, and the Issues backlog; the numeric-SemVer tagging rules are their own skill (`versioning`). Test-runner + gate skills live with their repo (`/backend/postman` + `/backend/coverage`, `/frontend/playwright` + `/frontend/coverage`); IaC checkov is in `/infrastructure/terraform`.
+DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella for OIDC, secrets/environments, branching (both loop models), the deploy workflows, and the Issues backlog; the numeric-SemVer tagging rules are their own skill (`versioning`). Test-runner + gate skills live with their repo (`/backend/postman` + `/backend/coverage`, `/frontend/playwright` + `/frontend/coverage`); IaC checkov is in `/infrastructure/terraform`.
 
 | Command | Purpose |
 |---|---|
-| `/workflow/github-actions` | GitHub/CI-CD capability: OIDC, secrets/envs, GitFlow branching, `apps/bff` + `apps/fed` deploys, Issues backlog |
+| `/workflow/github-actions` | GitHub/CI-CD capability: OIDC, secrets/envs, branching per loop model, the deploy workflows, Issues backlog |
 | `/workflow/versioning` | Semantic versioning + tags: numeric SemVer via bump-my-version, loop guard, PR labels |
 | `/workflow/terraform-cloud` | TFC remote-state backend; per-env workspaces; Local execution; **pipeline-only apply/destroy** |
 | `/workflow/sonarcloud` | SonarCloud quality gate (SAST + coverage + smells), blocks merge |
