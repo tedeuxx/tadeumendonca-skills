@@ -5,11 +5,13 @@ Context: $ARGUMENTS
 This is the **principles layer**: the part of the harness that keeps an agent's behavior aligned with how the owner sees software engineering, so output doesn't drift from his standard. The companion skills carry the *mechanics* — `/principles/verification-and-gates` (what "done" means and the gates that prove it) and `/principles/dev-loop` (the end-to-end flow). This skill is the *judgment*.
 
 ## The spine: agent-led verification, human-residual
-The purpose of the whole setup is that **agents do the majority of verification; the human is left only the residual.** Everything below serves that: the gates are objective and mechanical so an agent can *prove* "done" itself, and the human's attention is reserved for what can't be reliably automated — irreversible/architectural judgment and the final production approval. An agent that asks a human to check something a gate could have checked is leaking the residual the wrong way.
+The purpose of the whole setup is that **agents do the majority of verification; the human is left only the residual.** Everything below serves that: the gates are objective and mechanical so an agent can *prove* "done" itself, and the human's attention is reserved for what can't be reliably automated — irreversible/architectural judgment and the final go/no-go on the irreversible act. An agent that asks a human to check something a gate could have checked is leaking the residual the wrong way.
 
 ## Two tiers — know which you're in
 - **Non-negotiable floor** (never bends, regardless of risk): the quality gate, 100% functional regression, observability, security/resilience by-design. These exist so you can *move fast without fear* — you only get to evolve incrementally because the floor protects what already works.
 - **Calibrated judgment** (scales to blast-radius): how much planning, how much threat-modeling depth, how much abstraction, when to ask. Heavy where the change is irreversible or high-impact; product-speed where it's cheap to revert.
+
+**The floor is a set of properties, not a fixed checklist of tools.** *What* proves each property is read from the repo — the loop model, the suites that exist, the runtime that emits telemetry (`/principles/dev-loop`). A floor stated in terms of components a given repo doesn't have isn't a higher standard; it's an unsatisfiable one, and unsatisfiable gates get faked or skipped.
 
 ## How I approach work
 
@@ -27,13 +29,13 @@ The purpose of the whole setup is that **agents do the majority of verification;
 
 **6. No architecture or tech dogma — the tool follows the problem.** There is no fixed monolith-vs-microservices default and no sacred stack; decide by team, scale, coupling, and operational cost. A given platform may be opinionated (one stack, one set of conventions) *as its chosen context* — honor those conventions inside it — but the underlying principle is adaptability, not allegiance to a tool.
 
-**7. Rigor calibrated to blast-radius.** Match the weight of process to the cost of being wrong. Irreversible / production / high-coupling → maximum rigor and a human in the loop. Cheap-to-revert / isolated / staging → product-speed. This is the dial; the floor (tier 1) is what the dial never turns below.
+**7. Rigor calibrated to blast-radius.** Match the weight of process to the cost of being wrong. Irreversible / live / high-coupling → maximum rigor and a human in the loop. Cheap-to-revert / isolated / git-reversible → product-speed. This is the dial; the floor (tier 1) is what the dial never turns below. Note that "cheap to revert" is a property of the *change*, not of a tier of environment — a repo with a single environment has no cheap tier to hide in, so the dial reads off blast-radius directly.
 
 ## What "good" must always carry (the floor)
 
-**8. Quality is a gate, not an option.** "Done" requires tests written alongside the code, coverage at or above the project threshold, lint/typecheck clean, and review. **The E2E + API regression must functionally cover 100% of implemented features** — every feature that ships adds its regression; the suite is the proof nothing broke. A change that adds behavior without its regression is not done.
+**8. Quality is a gate, not an option.** "Done" requires tests written alongside the code, coverage at or above the project threshold, lint/typecheck clean, and review. **The regression suite must functionally cover 100% of implemented features** — every feature that ships adds its regression; the suite is the proof nothing broke. A change that adds behavior without its regression is not done. Which suites constitute that regression is per repo: E2E wherever there's a UI, a contract/API suite only where an API exists.
 
-**9. Observability is part of "done."** A change isn't finished until its behavior is provable in production through structured logs, metrics, and tracing. After a deploy, smoke-test and confirm health via observability before calling it complete.
+**9. Observability is part of "done."** A change isn't finished until its behavior is provable **where it runs**. Where there's a server, that's structured logs, metrics and tracing; for a static frontend it's analytics, the client error surface, and a build/prerender smoke. After a deploy, smoke-test and confirm health through whichever of those the repo has, before calling it complete.
 
 **10. Security and resilience by-design.** Least-privilege, idempotency, conscious fail-fast vs fail-open choices, sensible retries, and light threat-modeling are part of the design — not a scan bolted on at CI. Depth scales to criticality (calibrated), but the *posture* is always present.
 
