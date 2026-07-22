@@ -164,7 +164,7 @@ The harness's **principles layer**: how the owner builds software, so an agent's
 | `/backend/og-image-generator` | OG image: satori JSX→SVG + resvg→PNG + S3 cache |
 | `/backend/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
 | `/backend/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DynamoDB |
-| `/backend/postman` | API/contract tests (lives in `apps/bff`): Bearer JWT auth, collection run in CI |
+| `/backend/postman` | API/contract tests (reference pattern — the current consumer has no API): Bearer JWT auth, collection run in CI |
 | `/backend/coverage` | Backend quality/test/security gates (agnostic): lint, typecheck, ≥85% cov, audit, Sonar |
 
 ### frontend/ (18)
