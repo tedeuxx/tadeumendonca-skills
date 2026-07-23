@@ -127,9 +127,9 @@ safe pin (no mid-development tags pollute the namespace).
 
 ### principles/ (4) — the drift-reducer
 
-The harness's **principles layer**: how the owner builds software, so an agent's behavior doesn't drift. Cross-cutting (applies to every repo), distinct from the per-component how-to skills. Canonical summary in the root `PRINCIPLES.md`; deep validation via the `principles-guide` subagent (`agents/`); irreversible-floor enforcement via the shipped PreToolUse guard (`hooks/`).
+The harness's **principles layer**: how the owner builds software, so an agent's behavior doesn't drift. Cross-cutting (applies to every repo), distinct from the per-component how-to skills. Canonical summary in the root `PRINCIPLES.md`; deep validation via the `plan-reviewer` subagent (`agents/`); irreversible-floor enforcement via the shipped PreToolUse guard (`hooks/`).
 
-The **agentic dev-loop** (methodology ADRs `docs/adr/`, design in `docs/proposals/agentic-dev-loop.md`): a team of per-task subagents in `agents/`, materialized lazily. First built — `critical-reviewer` (reviews an MR against the Definition of Done, ADR-0003; approves+merges the safe class, escalates the boundary, ADR-0004). The full roster (frontend-react, iac-terraform-aws, planner, plan-reviewer, qa-e2e, adr-author, sonar-remediator, …) is defined in the proposal; a project enables the subset its blast-radius justifies.
+The **agentic dev-loop** (methodology ADRs `docs/adr/`, design in `docs/proposals/agentic-dev-loop.md`): a team of per-task subagents in `agents/`, materialized lazily. Built so far — the two review gates: **`plan-reviewer`** (design-time — reviews a plan/spec against the principles + the ADR library for drift, flags ADR-needs; the evolution of the former `principles-guide`) and **`critical-reviewer`** (code-time — reviews an MR against the Definition of Done, ADR-0003; approves+merges the safe class, escalates the boundary, ADR-0004). The rest of the roster (frontend-react, iac-terraform-aws, planner, qa-e2e, adr-author, sonar-remediator, …) is defined in the proposal; a project enables the subset its blast-radius justifies.
 
 | Command | Purpose |
 |---|---|
