@@ -13,7 +13,7 @@ Write (or amend) an ADR when a change crosses a **significant boundary** — obj
 - introduces a new dependency or tool-class,
 - establishes a cross-cutting pattern others will follow.
 
-Otherwise, no ADR — a routine in-pattern change declares "no ADR" and moves on. The `plan-reviewer` flags the need at design-time; the `critical-reviewer` verifies it at code-time.
+Otherwise, no ADR — a routine in-pattern change declares "no ADR" and moves on. The `plan-reviewer` flags the need at design-time; the `adr-author` writes it; the `critical-reviewer` verifies it at code-time.
 
 **Decision & trade-off:** a *light* gate (significance-triggered), not a *strong* one (ADR for every change). Trade-off: a light gate can miss a decision that only looks routine — mitigated by the two reviewers both applying the test. A strong gate would never miss one but taxes every trivial change and trains people to write empty ADRs; the light gate keeps ADRs meaningful.
 
