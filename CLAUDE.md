@@ -129,6 +129,8 @@ safe pin (no mid-development tags pollute the namespace).
 
 The harness's **principles layer**: how the owner builds software, so an agent's behavior doesn't drift. Cross-cutting (applies to every repo), distinct from the per-component how-to skills. Canonical summary in the root `PRINCIPLES.md`; deep validation via the `principles-guide` subagent (`agents/`); irreversible-floor enforcement via the shipped PreToolUse guard (`hooks/`).
 
+The **agentic dev-loop** (methodology ADRs `docs/adr/`, design in `docs/proposals/agentic-dev-loop.md`): a team of per-task subagents in `agents/`, materialized lazily. First built — `critical-reviewer` (reviews an MR against the Definition of Done, ADR-0003; approves+merges the safe class, escalates the boundary, ADR-0004). The full roster (frontend-react, iac-terraform-aws, planner, plan-reviewer, qa-e2e, adr-author, sonar-remediator, …) is defined in the proposal; a project enables the subset its blast-radius justifies.
+
 | Command | Purpose |
 |---|---|
 | `/principles/engineering-philosophy` | The 11 principles in two tiers (non-negotiable floor + risk-calibrated judgment); the agent-led/human-residual spine |
