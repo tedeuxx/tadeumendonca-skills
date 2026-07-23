@@ -5,10 +5,22 @@
 # repo inherits the same protection without re-declaring it. This is defense in
 # depth: it only blocks operations that are dangerous in ANY repo regardless of
 # its branch model (the danger is irreversibility that escapes git, not "which
-# branch"). Branch/prod-promotion boundaries (e.g. push/merge to a protected
-# branch) are repo-specific and live in each repo's .claude/settings.json `deny`
-# — that is the hard backstop. Deliberately does NOT block by branch context, so
-# it is safe for both GitFlow (main=prod) and trunk-based (main=working) repos.
+# branch"). Each repo's .claude/settings.json `deny` remains the hard backstop.
+#
+# Two classes live here that a prefix matcher provably cannot express, so leaving
+# them to settings.json was the bug, not the design:
+#   - Pushing to the trunk (rule 7). The same act wears many spellings —
+#     `git push origin main`, `git -C <path> push`, `HEAD:main`, a bare `git push`
+#     while HEAD is main. settings.json can only pattern-list them, which either
+#     misses a form or over-blocks (it over-blocked: EVERY feature-branch push via
+#     `git -C` was denied, so the agent hit a prompt for following its own
+#     multi-repo convention). Resolving HEAD is semantic and catches all forms.
+#   - Command composition (rule 8). Chains and substitutions defeat the matcher
+#     itself, so the human is interrupted for tools that ARE allowlisted. Denying
+#     with a reason turns that interruption into something the agent fixes alone.
+#
+# Still deliberately does NOT block edits or commits by branch context, so it is
+# safe for both GitFlow (main=prod) and trunk-based (main=working) repos.
 #
 # Contract: receives the PreToolUse JSON on stdin; denies by printing a
 # permissionDecision JSON and exiting 0. Fails OPEN (allows) on any parse error,
@@ -66,9 +78,67 @@ if printf '%s' "$cmd" | grep -Eq 'aws[[:space:]]+ssm[[:space:]]+put-parameter([[
   deny "Blocked: writing a SecureString parameter. Secrets are provisioned by the pipeline, not by the agent."
 fi
 
+# 5b. Secret writes via gh, in any spelling. Same prefix-matcher blind spot as rule 7:
+#     a deny on `gh secret set` does not see `gh -R <repo> secret set`, and `-R` is
+#     exactly what the multi-repo convention prescribes. Matched semantically so the
+#     allowlist can open `gh -R` without opening secret writes with it.
+if printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R|--repo)[[:space:]]+[^[:space:]]+)?[[:space:]]+secret[[:space:]]+(set|delete|remove)'; then
+  deny "Blocked: writing or deleting a repository secret. Secret values are set by the human, never by the agent."
+fi
+
 # 6. Clearly-destructive direct cloud mutations (cloud state escapes git).
 if printf '%s' "$cmd" | grep -Eq 'aws[[:space:]]+[a-z0-9-]+[[:space:]]+(delete|terminate|deregister|destroy|remove|purge)-'; then
   deny "Blocked: destructive direct cloud mutation. Cloud state changes through the running app (staging) or the pipeline, never via direct aws CLI."
+fi
+
+# Quoted spans collapsed, so an operator inside a commit message or a grep
+# pattern is never mistaken for shell composition or a refspec.
+bare="$(printf '%s' "$cmd" | sed -e "s/'[^']*'/''/g" -e 's/"[^"]*"/""/g')"
+
+# 7. Direct push to the trunk. This IS model-agnostic, contrary to the note above:
+#    under gitflow-multi-env main is production, and under trunk-single-env the push
+#    to main IS the deploy. Both want it blocked; only the reason differs. Deciding
+#    it HERE rather than in each repo's `deny` is the point — settings.json matches
+#    prefixes, so it cannot see that `git -C <path> push origin main` and
+#    `git push` while HEAD is main are the same act, and pattern-listing every form
+#    either misses one or (as happened) over-blocks every feature-branch push too.
+if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+push([[:space:]]|$)'; then
+  # Any refspec landing on the trunk: `main`, `refs/heads/main`, `HEAD:main`, `+main`.
+  if printf '%s' "$bare" | grep -Eq '[[:space:]]\+?([^[:space:]:]+:)?(refs/heads/)?(main|master)([[:space:]]|$)'; then
+    deny "Blocked: pushing to the trunk. Merging to main is the deploy and the human's go/no-go — it is never an agent action. Push your feature branch and open a PR."
+  fi
+  # --all / --mirror sweep every ref, trunk included.
+  if printf '%s' "$bare" | grep -Eq '[[:space:]](--all|--mirror)([[:space:]]|$)'; then
+    deny "Blocked: 'git push --all/--mirror' pushes every ref, the trunk included. Push one named branch instead."
+  fi
+  # A bare `git push` inherits HEAD — resolve it instead of guessing from the string.
+  dir="$(printf '%s' "$bare" | sed -nE 's/.*[[:space:]]-C[[:space:]]+([^[:space:]]+).*/\1/p')"
+  [ -z "$dir" ] && dir="."
+  # symbolic-ref, not rev-parse: it reports the checked-out branch even when HEAD is
+  # unborn (a fresh repo with no commits), where rev-parse fails and would silently
+  # skip this check. On a detached HEAD it fails too, which is correct — there is no
+  # branch to land on.
+  branch="$(git -C "$dir" symbolic-ref --short HEAD 2>/dev/null || true)"
+  case "$branch" in
+    main|master)
+      deny "Blocked: HEAD is '$branch', so this push lands on the trunk. Merging to main is the deploy and the human's go/no-go. Branch first, then push the branch." ;;
+  esac
+fi
+
+# 8. Command composition that defeats the permission matcher. The matcher reads a
+#    command PREFIX; it cannot decompose `a && b`, expand `$(...)`, or see past a
+#    `VAR=x` prefix, so an allowlisted tool still interrupts the human for approval.
+#    Denying here converts that human interruption into an instruction the agent can
+#    act on by itself — the whole point, since guidance alone did not hold. Pipes are
+#    deliberately NOT blocked: the matcher handles them.
+if printf '%s' "$bare" | grep -Eq '(\$\(|`)'; then
+  deny "Blocked: command substitution (\$(...) or backticks) forces a permission prompt even for allowlisted tools, because the matcher cannot expand it. Run the inner command as its own call and use the literal result."
+fi
+if printf '%s' "$bare" | grep -Eq '(&&|\|\||;)'; then
+  deny "Blocked: chained command (&& / || / ;). The matcher reads one command prefix, so a chain prompts the human even when every part is allowlisted. Issue one atomic command per call — use 'git -C <dir>' / 'npm --prefix <dir>' / absolute paths instead of 'cd X && ...'."
+fi
+if printf '%s' "$bare" | grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*='; then
+  deny "Blocked: env-var prefix (VAR=x cmd) hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
 fi
 
 exit 0
