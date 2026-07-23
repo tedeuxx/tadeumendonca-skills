@@ -2,39 +2,57 @@ Use Playwright for E2E tests in `apps/fed`.
 
 Context: $ARGUMENTS
 
-End-to-end tests that drive the real SPA in a browser; part of the deploy gate (`/frontend/coverage`).
+End-to-end tests that drive the real **static SPA** in a browser — the functional proof that nothing already
+working broke. Under `trunk-single-env` E2E runs on the **PR gate** (it blocks the merge, and the merge is the
+deploy), and the same specs can run as a **post-deploy smoke** against the live apex. Part of the quality gate
+(`/frontend/coverage`).
 
-## Setup (multi-environment, parametrized)
-- `playwright.config.ts`: `baseURL` from env — `PLAYWRIGHT_BASE_URL` (or an `E2E_ENV=local|staging|production` mapped to the right URL), projects (chromium + optionally webkit), `trace: 'on-first-retry'`, `retries` in CI. **One command targets local OR any AWS env.**
-- `package.json` scripts: `e2e:local` (against `vite preview`), `e2e:staging`, `e2e:production` — each sets the base URL. Run the SAME specs anywhere.
+## Setup (single environment, one command targets local or the apex)
+- `playwright.config.ts`: `baseURL` from `PLAYWRIGHT_BASE_URL`, or from `E2E_ENV` mapped to a URL — `local`
+  (a `vite preview` of the built app at `:4173`) or the **single environment served at the apex**
+  (`https://tadeumendonca.io`). `trace: 'on-first-retry'`, `retries` in CI, chromium project. The **same
+  specs run anywhere** — only the base URL changes.
+- `package.json` scripts: `e2e:local` (against `vite preview`) is the **pre-merge gate**; the apex-targeted
+  run is the **deploy smoke**. (There is one environment; any `staging`/`production` script names are aliases
+  for the same apex — a leftover, not a second tier.)
 - Tests under `e2e/*.spec.ts`; browsers via `npx playwright install --with-deps`.
 
-## STANDARD — every feature ships its E2E
-A new user-facing feature MUST add/update its Playwright spec in the same PR (the critical journey it introduces). Keep specs at journey level — don't re-test unit logic.
+## STANDARD — every user-facing feature ships its E2E
+A new user-facing feature MUST add/update its Playwright spec in the same PR (the critical journey it
+introduces). This is the 100%-of-user-visible-features regression invariant. Keep specs at **journey level** —
+don't re-test unit logic (that's the co-located Vitest/RTL suite).
 
-## Auth on social-only Cognito (Google) — can't automate Google
-Google's interactive login blocks bots, so you can't drive it in Playwright. For authenticated/admin journeys against AWS, mint a token from a **native test user** (`USER_PASSWORD_AUTH`, see `/infrastructure/cognito` + `/backend/postman`) and seed the Amplify session / `storageState` directly, OR run those journeys against a local build with a stubbed session. Public journeys (feed, post/blog, share) need no auth and run against any env as-is.
+## No auth — the surface is static
+The site has **no backend, no auth, no Cognito**: every journey is a public, unauthenticated page load. There
+is no login to automate, no token to seed, no session to stub. If an old spec or note references Cognito/Google
+login or a `storageState` token, that's the retired backend era — delete it, don't port it.
 
-## What we cover (per phase)
-- `home.spec.ts` — Phase 1: CV page renders all profile sections.
-- `feed.spec.ts` — Phase 2: feed loads + infinite scroll.
-- `auth.spec.ts` — Phase 2: Cognito SDK login (redirect → `/callback` → token via Amplify) + an authenticated call.
+## What we cover (the static journeys)
+The specs assert the real content surface — landing / CV / portfolio / blog / routing:
+- **Landing** (`/`) is the content shop window (Artigos + Portfólio), **not** the CV — the personal name lives
+  on `/cv` only.
+- **CV** (`/cv`) renders the profile (name, sections, contact links incl. the WhatsApp click-to-message link).
+- **Portfolio** (`/portfolio`) serves the full catalog with its GitHub links, reachable from the landing
+  shortlist.
+- **Content detail** — an article opens by slug, renders its markdown, and offers a share control.
+- **Routing resilience** — retired list routes (`/blog`, `/articles`) redirect to the landing; a legacy
+  `/articles/:slug` permalink still renders; an unknown path goes back to the landing, not a dead end.
 
 ## Patterns
 - **Locators by role/text** (`getByRole`, `getByText`) — avoid brittle CSS selectors.
 - **Web-first assertions** (`await expect(locator).toBeVisible()`) — no arbitrary `waitForTimeout`.
-- Test against staging or a local preview; isolate from external Cognito where possible.
+- Run against a local `vite preview` (the PR gate) or the apex (the smoke) — no external service to isolate.
 
 ## CI
-- Runs in `ci.yml` (`/workflow/github-actions`); **any failure blocks the deploy**. Upload the HTML report/trace on failure.
-
-## Conventions
-- E2E lives in `apps/fed`; `apps/bff` uses Postman/newman (`/backend/postman`) + vitest.
-- E2E asserts user-visible flows — don't re-test unit logic here.
+- Runs in **`build-test.yml`** (`/workflow/github-actions`) on the PR, via the config's `webServer` booting a
+  `vite preview` of the built app. **Any failure blocks the merge** — and the merge is the deploy, so a red
+  E2E stops the release. Upload the HTML report/trace on failure.
 
 ## Pros & cons
 **Pros**
 - Real-browser coverage of critical journeys; catches integration regressions a unit test cannot.
+- On a static site with no auth, the specs are simple and stable — pure public page loads.
+
 **Cons**
 - Slower and flakier than unit tests.
 - Selectors/specs to maintain.
