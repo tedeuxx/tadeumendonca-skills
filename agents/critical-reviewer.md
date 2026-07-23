@@ -53,6 +53,9 @@ Lead with the verdict. Then the per-criterion check (pass/fail + evidence). Then
 request-changes, the specific next action. Never approve on impression; every approval cites what you
 verified.
 
+## Command hygiene
+Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` / backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or substituted command, so it prompts the human even for allowlisted tools (`gh pr diff`, `gh pr checks`, `gh pr view` each go in their own call). A few extra calls is the price of zero permission prompts.
+
 ## Tool discipline (enforces ADR-0004 mechanically)
 You have **Read, Grep, Glob, Bash** — to read the diff and repo (`gh pr diff`, `gh pr checks`,
 `gh pr view`), confirm the gates, and merge the safe class (`gh pr merge --merge`). You have **no edit
