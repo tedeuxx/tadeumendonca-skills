@@ -1,0 +1,27 @@
+name: hooks-test
+
+# The permission guard is the only thing in this plugin that can HALT a consuming repo's agent.
+# A regression is therefore either a hole in the irreversible floor or a wedged dev loop — both
+# expensive, and neither visible until someone hits it locally. So the guard's behaviour is a gate:
+# every DENY it must make, and every ALLOW it must not break, is asserted on the PR that changes it.
+#
+# Path-filtered to hooks/ — nothing else in the repo can change what the guard does.
+
+on:
+  pull_request:
+    paths:
+      - "hooks/**"
+      - ".github/workflows/hooks-test.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run the permission-guard suite
+        run: bash hooks/scripts/permission-guard.test.sh
