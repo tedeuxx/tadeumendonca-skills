@@ -53,6 +53,11 @@ check ALLOW "diff against main"             "git diff main...HEAD"
 echo "--- rule 7: the semantic core — a bare push inherits HEAD ---"
 TMP="$(mktemp -d)"
 git init -q -b main "$TMP"
+# CI runners have no global git identity, so the fixture must carry its own or the
+# commit below fails and the repo is left with an unborn HEAD — which is exactly how
+# this suite first passed locally and failed in CI.
+git -C "$TMP" config user.email "fixture@example.com"
+git -C "$TMP" config user.name "fixture"
 git -C "$TMP" commit -q --allow-empty -m init
 check DENY  "bare push, HEAD is main"       "git -C $TMP push"
 check DENY  "push origin, HEAD is main"     "git -C $TMP push origin"
@@ -60,6 +65,14 @@ git -C "$TMP" checkout -q -b feat/thing
 check ALLOW "bare push, HEAD is a feature"  "git -C $TMP push"
 check ALLOW "push origin, HEAD a feature"   "git -C $TMP push origin"
 rm -rf "$TMP"
+
+# An unborn HEAD (init, no commits) still reports its branch via symbolic-ref. This
+# case exists because CI hit it: with rev-parse the check silently skipped and a push
+# on main read as ALLOW.
+BARE="$(mktemp -d)"
+git init -q -b main "$BARE"
+check DENY  "unborn HEAD on main"           "git -C $BARE push"
+rm -rf "$BARE"
 
 echo "--- rule 8: composition the permission matcher cannot decompose ---"
 check DENY  "cd compound"                   "cd /tmp && ls"

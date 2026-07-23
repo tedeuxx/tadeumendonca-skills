@@ -114,7 +114,11 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   # A bare `git push` inherits HEAD — resolve it instead of guessing from the string.
   dir="$(printf '%s' "$bare" | sed -nE 's/.*[[:space:]]-C[[:space:]]+([^[:space:]]+).*/\1/p')"
   [ -z "$dir" ] && dir="."
-  branch="$(git -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  # symbolic-ref, not rev-parse: it reports the checked-out branch even when HEAD is
+  # unborn (a fresh repo with no commits), where rev-parse fails and would silently
+  # skip this check. On a detached HEAD it fails too, which is correct — there is no
+  # branch to land on.
+  branch="$(git -C "$dir" symbolic-ref --short HEAD 2>/dev/null || true)"
   case "$branch" in
     main|master)
       deny "Blocked: HEAD is '$branch', so this push lands on the trunk. Merging to main is the deploy and the human's go/no-go. Branch first, then push the branch." ;;
