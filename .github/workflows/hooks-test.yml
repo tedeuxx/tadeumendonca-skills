@@ -25,3 +25,6 @@ jobs:
 
       - name: Run the permission-guard suite
         run: bash hooks/scripts/permission-guard.test.sh
+
+      - name: Run the wip-guard suite
+        run: bash hooks/scripts/wip-guard.test.sh
