@@ -78,6 +78,14 @@ if printf '%s' "$cmd" | grep -Eq 'aws[[:space:]]+ssm[[:space:]]+put-parameter([[
   deny "Blocked: writing a SecureString parameter. Secrets are provisioned by the pipeline, not by the agent."
 fi
 
+# 5b. Secret writes via gh, in any spelling. Same prefix-matcher blind spot as rule 7:
+#     a deny on `gh secret set` does not see `gh -R <repo> secret set`, and `-R` is
+#     exactly what the multi-repo convention prescribes. Matched semantically so the
+#     allowlist can open `gh -R` without opening secret writes with it.
+if printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R|--repo)[[:space:]]+[^[:space:]]+)?[[:space:]]+secret[[:space:]]+(set|delete|remove)'; then
+  deny "Blocked: writing or deleting a repository secret. Secret values are set by the human, never by the agent."
+fi
+
 # 6. Clearly-destructive direct cloud mutations (cloud state escapes git).
 if printf '%s' "$cmd" | grep -Eq 'aws[[:space:]]+[a-z0-9-]+[[:space:]]+(delete|terminate|deregister|destroy|remove|purge)-'; then
   deny "Blocked: destructive direct cloud mutation. Cloud state changes through the running app (staging) or the pipeline, never via direct aws CLI."

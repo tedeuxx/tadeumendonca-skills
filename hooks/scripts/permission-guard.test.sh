@@ -75,6 +75,13 @@ check ALLOW "npm --prefix"                  "npm --prefix apps/fed run test"
 check ALLOW "git -C plain"                  "git -C /some/repo status --short"
 check ALLOW "operator inside a quoted arg"  "git commit -m 'fix: a && b handling'"
 
+echo "--- rule 5b: gh secret writes survive the -R convention ---"
+check DENY  "secret set, plain"             "gh secret set MY_TOKEN"
+check DENY  "secret set behind -R"          "gh -R owner/repo secret set MY_TOKEN"
+check DENY  "secret set behind --repo"      "gh --repo owner/repo secret set MY_TOKEN"
+check DENY  "secret delete behind -R"       "gh -R owner/repo secret delete MY_TOKEN"
+check ALLOW "listing secrets is read-only"  "gh -R owner/repo secret list"
+
 echo "--- the pre-existing floor still holds ---"
 check DENY  "terraform apply"               "terraform apply -auto-approve"
 check DENY  "terraform destroy"             "terraform -chdir=iac destroy"
