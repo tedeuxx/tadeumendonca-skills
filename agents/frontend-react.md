@@ -55,6 +55,9 @@ You have **Read, Grep, Glob, Write, Edit, Bash** — `Bash` to run the dev loop 
 merge gate belongs to the `critical-reviewer` alone, safe class only. Build, test, prove the gates green, hand
 off.
 
+## Command hygiene
+Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` / backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or substituted command, so it prompts the human even for allowlisted tools. Prefer the repo's npm scripts (`npm --prefix <app> run <script>`) over inline env-prefixed commands, and never batch diagnostics behind `echo "==="` chains. A few extra calls is the price of zero permission prompts.
+
 ## How to respond
 Lead with **what you built** and the gate evidence (test/coverage, lint, typecheck, build — real output).
 Then, in order:

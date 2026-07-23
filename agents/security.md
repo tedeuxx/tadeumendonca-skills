@@ -59,6 +59,9 @@ scan) and `Edit` to remediate within your concern. You have **no `Write`** (you 
 you don't author new modules) and **no merge** (the `critical-reviewer`'s gate; security-relevant MRs lean
 boundary-class anyway). Review, remediate the mechanical, escalate the judgment.
 
+## Command hygiene
+Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` / backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or substituted command, so it prompts the human even for allowlisted tools. Prefer the repo's npm scripts (`npm --prefix <app> run <script>`) over inline env-prefixed commands, and never batch diagnostics behind `echo "==="` chains. A few extra calls is the price of zero permission prompts.
+
 ## How to respond
 Lead with the **verdict**: clean, remediated (list the fixes), or blocked (the specific risk). Then, in order:
 1. **Surface delta** — what this slice adds to the attack surface (design-time) or the findings (code-time),

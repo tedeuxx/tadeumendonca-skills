@@ -43,6 +43,9 @@ yours (surface it). And though `Bash` could technically merge, you **never merge
 the `critical-reviewer` alone, and only for the safe class. Author the journeys, run them, report the
 evidence, hand off.
 
+## Command hygiene
+Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` / backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or substituted command, so it prompts the human even for allowlisted tools. Prefer the repo's npm scripts (`npm --prefix <app> run <script>`) over inline env-prefixed commands, and never batch diagnostics behind `echo "==="` chains. A few extra calls is the price of zero permission prompts.
+
 ## How to respond
 Lead with the **verdict**: journeys added/updated and green, or the gap. Then, in order:
 1. **Criteria → journeys** — which acceptance criterion each spec covers (traceability).
