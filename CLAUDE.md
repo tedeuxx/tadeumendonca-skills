@@ -256,25 +256,27 @@ DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella f
 
 ## Versioning
 
-Numeric SemVer via `bump-my-version`. **This repo deliberately diverges from the platform's
-app-style "auto-bump on every push" standard** — because it is a *consumed plugin*, not a deployed
-app, its version is a dependency contract, so it is bumped **only at an intentional release**, never
-on integration. (Same reasoning that makes it trunk-based: policy follows the artifact's role.)
+Numeric SemVer via `bump-my-version`. **Every merge to `main` auto-bumps the PATCH and publishes a
+Release** — because this plugin is distributed through a marketplace, and the marketplace only serves
+*published* versions: an unreleased `main` is invisible to the installed plugin (a restart reloads the
+installed cache, not `main`). Publishing on every merge is safe because **publishing ≠ forcing adoption**
+— each consumer opts in with `/plugin update`, so a merge that never publishes is work that silently never
+ships. (Methodology **ADR-0005**, which supersedes the earlier release-only model.)
 
 Purely **numeric SemVer** `MAJOR.MINOR.PATCH` — no `-dev` pre-release suffix.
 
-- `VERSION` — current version.
-- `.bumpversion.toml` — bump config; `parse`/`serialize` numeric only, `tag_name = v{new_version}`,
-  `message = tag_message = "bump: {current_version} → {new_version}"` (CI loop guard); bumps
-  `VERSION` + `.claude-plugin/plugin.json` in lockstep.
-- `.github/workflows/release.yml` — **`workflow_dispatch` only** (Actions → release → Run workflow):
-  takes a `part` input (`major` | `minor` (default) | `patch`) → bump → `vX.Y.Z` → commit on `main`
-  → tag → GitHub Release with categorized notes. **No push trigger exists** — integration never
-  versions; only this manual run does. Every tag is therefore a reviewed, pinnable release.
+- `VERSION` — current version; `.claude-plugin/plugin.json` bumps in lockstep (the marketplace serves this).
+- `.bumpversion.toml` — bump config; numeric only, `tag_name = v{new_version}`,
+  `message = "bump: {current_version} → {new_version}"` (CI loop guard); bumps `VERSION` +
+  `.claude-plugin/plugin.json` in lockstep.
+- `.github/workflows/version-main.yml` — **push to `main`**: skips `bump:` commits, bumps **patch**, tags
+  `vX.Y.Z`, pushes, publishes a Release with categorized notes. The default, automatic path.
+- `.github/workflows/release.yml` — **`workflow_dispatch` only**, for a **deliberate minor/major** milestone
+  (`part` = major | minor | patch). Its `bump:` commit is skipped by `version-main.yml`'s loop guard.
 
 **Required secret:** `VERSION_BUMP_TOKEN` — a GitHub fine-grained PAT with `contents: write` +
-`workflows: write` (used so the release push/tag can write protected `main`).
+`workflows: write` (so the bump push/tag can write protected `main`).
 
-**Why no auto-bump:** a consumed artifact's tags are its consumers' lockfile. Auto-bumping on push
-inflates the number meaninglessly and pollutes the tag namespace with mid-development states that
-look pinnable but aren't. Deliberate releases keep `vX.Y.Z` ≡ "a release a consumer can trust".
+**Consumers pull deliberately:** `/plugin marketplace update tadeumendonca` (refresh the marketplace to the
+latest `main`) then `/plugin` → update `tadeumendonca-skills` to the new version. This is the only step the
+plugin's *installation* needs — merging publishes the version; adoption is always the consumer's call.

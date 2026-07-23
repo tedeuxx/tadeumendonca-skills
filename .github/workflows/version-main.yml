@@ -1,36 +1,28 @@
-name: release
+name: version-main
 
-# Deliberate MINOR/MAJOR release. Every merge to `main` already auto-bumps the PATCH version
-# (version-main.yml) and publishes a Release — the plugin is a marketplace artifact, so each merge
-# is a consumable version and adoption is the consumer's opt-in. Use THIS workflow only to cut a
-# deliberate minor or major (a milestone), on demand:
-#   Actions -> release -> Run workflow -> choose part (major | minor | patch).
-# It bumps VERSION + plugin.json, tags vX.Y.Z, pushes, and publishes a GitHub Release. Its `bump:`
-# commit is skipped by version-main.yml's loop guard. Uses VERSION_BUMP_TOKEN.
+# On merge to main (trunk-based): auto-bump the PATCH version, tag, and publish a GitHub Release.
+# The plugin is distributed via a marketplace, so every merge publishes a new version — publishing is
+# cheap and adoption is opt-in (each consumer chooses when to `/plugin update`). Numeric SemVer. Uses
+# VERSION_BUMP_TOKEN so the bump commit does not retrigger CI in a loop. Deliberate minor/major bumps are
+# cut on demand via release.yml (workflow_dispatch); its `bump:` commit is skipped here.
 
 on:
-  workflow_dispatch:
-    inputs:
-      part:
-        description: "Which SemVer part to bump"
-        required: true
-        type: choice
-        default: minor
-        options:
-          - major
-          - minor
-          - patch
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
 
 concurrency:
-  group: release
+  group: version-main
   cancel-in-progress: false
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    # Skip the commit that a bump (this workflow or release.yml) itself produced.
+    if: ${{ !startsWith(github.event.head_commit.message, 'bump:') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,8 +44,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Bump version
-        run: bump-my-version bump ${{ inputs.part }} --verbose
+      - name: Bump patch version
+        run: bump-my-version bump patch --verbose
 
       - name: Push commit and tags
         run: git push origin main --follow-tags

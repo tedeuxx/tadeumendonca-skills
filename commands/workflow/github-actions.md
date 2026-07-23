@@ -76,7 +76,7 @@ main ←── feature/*
 - **The merge deploys**, so it is the go/no-go. Never configure auto-merge into `main`.
 - **Two variants of what "ships" means:**
   - *Deployed app* (`-io`) — merge to `main` triggers the deploy, and the version bump is automatic on push (patch), tagging `vX.Y.Z` + publishing a Release.
-  - *Consumed artifact* (library/plugin — the skills repo) — merge to `main` publishes nothing; `main` stays always-releasable and a **deliberate release** is cut on demand via `release.yml` (`workflow_dispatch`). The tag is the irreversible act, so that is what asks.
+  - *Marketplace-distributed plugin* (the skills repo) — **every merge to `main` auto-bumps the patch and publishes a Release** (`version-main.yml`), because the marketplace only serves published versions; adoption is the consumer's opt-in (`/plugin update`), so publishing ≠ forcing. Deliberate minor/major via `release.yml`. (A *semver-pinned library*, by contrast, releases deliberately — its tag is a consumer lockfile.) See `/workflow/versioning` + methodology ADR-0005.
 - **Merge strategy: real merge commits, never squash.** Set the default merge method to **merge commit** and **disable squash merging**; merge with `gh pr merge --merge`. Squashing collapses the per-commit **conventional-commit** history the categorized release notes are built from (`git log --no-merges`, see `/workflow/versioning`). See [[merge-strategy-no-squash]].
 
 ### `gitflow-multi-env` (backend-ful reference — OFF in a static repo)
@@ -87,7 +87,7 @@ main ←── release/* ←── develop ←── feature/*
 - **feature/***: from `develop`; PR → `develop`. **develop**: default branch; protected; auto-deploy to staging on merge. **main**: protected; production deploy requires GitHub Environment approval + reviewer. **hotfix/***: from `main`; merged to both `main` and `develop`.
 - Protection on `main` + `develop`: require PR, **0 approvals**, `enforce_admins=false` so the owner and the `VERSION_BUMP_TOKEN` actor push directly; no force-push/deletion.
 
-**Versioning & tags** — numeric SemVer via bump-my-version, with the `bump:` loop guard. Under `trunk-single-env`, on every push to `main` for a deployed app (`version-main.yml`), or release-only via `workflow_dispatch` for a consumed artifact. Under `gitflow-multi-env`, on every push to `develop` (patch) and on `main` via a PR `semver:` label. All the rules live in **`/workflow/versioning`**. See [[versioning-numeric-semver]].
+**Versioning & tags** — numeric SemVer via bump-my-version, with the `bump:` loop guard. Under `trunk-single-env`, on every push to `main` (patch) for a deployed app **or a marketplace plugin** (`version-main.yml`) — deliberate minor/major via `release.yml`; a semver-pinned library releases deliberately instead. Under `gitflow-multi-env`, on every push to `develop` (patch) and on `main` via a PR `semver:` label. All the rules live in **`/workflow/versioning`**. See [[versioning-numeric-semver]].
 
 ## Deploy — iac (Terraform)
 Uses the **infra runner** OIDC role (see the roles table above — out-of-band, broad provisioning, role-deletion gotcha). State + locking live in Terraform Cloud, execution mode **Local** — GitHub runs `plan`/`apply` (`/workflow/terraform-cloud`); the `TFC_API_TOKEN` secret authenticates to TFC. The TFC **workspace name is load-bearing** — it selects the live state; a rename desync points Terraform at an empty workspace and `plan` proposes recreating everything.
