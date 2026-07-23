@@ -2,9 +2,13 @@ Apply the semantic-versioning + tagging rules (bump-my-version) in any <project>
 
 Context: $ARGUMENTS
 
-The single source of truth for **versioning and git tags** across the repos. The numeric-SemVer **scheme** is identical everywhere; the **trigger model differs by repo role** — deploy-model repos auto-bump on push (`version-develop.yml` / `version-main.yml`), the trunk-based plugin releases on demand (`release.yml`). `/workflow/github-actions` owns the branch model.
+The single source of truth for **versioning and git tags** across the repos. The numeric-SemVer **scheme** is identical everywhere; the **trigger model differs by repo role** — every repo whose `main` produces something consumable auto-bumps on merge (`version-main.yml`, or `version-develop.yml` under GitFlow), and a deliberate minor/major is cut on demand via `release.yml`. `/workflow/github-actions` owns the branch model.
 
-`<project>-pwa` carries **one root `VERSION`/tag for the whole monorepo** (not a per-app version) — `apps/fed`, `apps/bff`, and `iac/` ship together under that single version, auto-bumped via GitFlow. `<project>-skills` (this plugin) uses the same numeric scheme but is **trunk-based, release-only**: no `develop`, a single `main` (feature branches → PR → `main`), and a deliberate release is cut on demand via `release.yml` (`workflow_dispatch` → major/minor/patch) that tags `vX.Y.Z` — the version consumers pin in their marketplace `ref`. A consumed artifact's tags are a consumer lockfile, so it never auto-bumps on push.
+**A consumed artifact is not one thing — split by how it's consumed:**
+- **Marketplace-distributed plugin** (`<project>-skills`) — **auto-bumps the PATCH on every merge to `main`** (`version-main.yml`) and publishes a Release, because the marketplace only serves *published* versions and an unreleased `main` is invisible to the installed plugin. **Publishing ≠ forcing adoption:** each consumer opts in via `/plugin update`, so publishing on every merge has no downside and removes the "merged but never shipped" failure mode. Deliberate minor/major via `release.yml`. (Methodology ADR-0005.)
+- **Semver-pinned library** (an npm dependency a consumer locks) — releases **deliberately**, because its tag *is* a consumer lockfile and every tag invites a version resolution. Here `release.yml` (`workflow_dispatch`) is the trigger and pushes do not auto-bump.
+
+The static-site repo (`tadeumendonca-io`) is a **deploy-model** repo: `main` auto-bumps the patch on merge (`version-main.yml`) since the merge deploys.
 
 ## Scheme — purely numeric SemVer
 `MAJOR.MINOR.PATCH` only — **no `-dev` / pre-release suffix** (explicitly rejected). `VERSION` starts at `0.1.0`. Tags are `vX.Y.Z`.
