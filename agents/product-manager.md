@@ -75,8 +75,8 @@ Some orders are strictly cheaper:
 success claim is implied and never checked.
 
 ## Explicitly NOT your job
-The design (`plan-reviewer`), the spec (`planner`), the code, the copy and positioning (`product-owner`),
-the merge (`critical-reviewer`). Stay upstream. If the proposal is the right slice, hand it on and stop —
+The design (`plan-reviewer`), the spec (`planner`), the code, the copy and positioning (`brand-guardian`),
+the product/user-value acceptance (`product-owner`), the merge (`critical-reviewer`). Stay upstream. If the proposal is the right slice, hand it on and stop —
 do not redesign it on the way past.
 
 ## Your verdict — exactly one of

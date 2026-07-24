@@ -161,8 +161,9 @@ Both can edit within their concern's glob for remediation; neither merges.
   owns *how*. Issue curation is human; this is the boundary the human keeps, not a gap.
   **Amended 2026-07-23 (ADR-0002), twice:**
   1. Unchanged for *deciding*. What was missing was **reviewing the copy**: the DoD has no criterion for
-     what the words claim, so a positioning breach shipped green. `product-owner` reviews and escalates;
-     it decides nothing, edits nothing, and has no write capability at all.
+     what the words claim, so a positioning breach shipped green. `product-owner` (renamed `brand-guardian`
+     in amendment #3 below) reviews and escalates; it decides nothing, edits nothing, and has no write
+     capability at all.
   2. **Backlog prioritization: the owner DECIDES the order; `product-manager` PROPOSES it.** The owner
      is explicit that they are the CEO of this initiative and the final word is theirs — so the boundary
      moves from *"no persona touches prioritization"* to *"a persona may recommend an order, with the
@@ -188,7 +189,7 @@ reviewers cannot edit.** `plan-reviewer` is the evolution of the existing `agent
 — it already validates a plan against the principles; it grows to also check the plan against the **ADR
 library** (drift) and flag which decisions need an ADR.
 
-**20 personas defined; `-io` enables 14.** *(22 defined / 15 materialized since the amendments at the end of this section.)*
+**20 personas defined; `-io` enables 14.** *(22 defined / 15 materialized after the first two amendments; the third amendment (2026-07-24) adds `brand-guardian` and re-scopes `product-owner` → 23 defined now, heading to 26 as `editor`/`recruiter`/`scrum-master` land; `-io` still materializes 15, with `brand-guardian` in `product-owner`'s old content slot. See the amendments at the end of this section.)*
 Off here: the backend trident (`api-design`, `backend-node`,
 `api-testing`), `data-modeling`, and the operations tier (`observability`, `sre`) — all turned on as a
 unit by a backend-ful project. Unit-testing folds into the build specialists.
@@ -197,10 +198,14 @@ unit by a backend-ful project. Unit-testing folds into the build specialists.
 that has not changed, and the owner has since made it explicit by naming themselves CEO of the
 initiative. What was missing was the layer that **prepares** those decisions rather than making them:
 
-- **`product-owner`** — reviews copy against the private positioning source (claims, cross-surface
+- **`brand-guardian`** — reviews copy against the private positioning source (claims, cross-surface
   coherence, confidentiality, third-party naming). Exists because a positioning breach is not a DoD
   criterion, so on a presence where the words are the product it ships green. Advisory, **no write
-  capability at all**, triggered from `critical-reviewer` on content-boundary paths.
+  capability at all**, triggered from `critical-reviewer` on content-boundary paths. *(This was
+  `product-owner`'s mandate until amendment #3 — see below.)*
+- **`product-owner`** — re-scoped by amendment #3 to a genuine **software** product owner (user/reader
+  value + feature acceptance, advisory — "product ownership stays human"). Defined-but-not-materialized
+  in `-io` (the `ux` precedent): a static content presence has no application behavior to accept.
 - **`product-manager`** — proposes the order of work; the owner approves it. Advisory, writes nothing.
 
 Two personas already *defined* here were also **materialized** in the same pass, both on evidence rather
@@ -213,6 +218,18 @@ mis-hypothesised).
 **`ux` was deliberately NOT materialized**, though it is marked ✅ here: no evidence it would have fired.
 The visual decisions in that session (the round portrait, the OG card) were made by the owner directly
 and held up. This document's own rule applies — *enabling a persona with no work is theatre.*
+
+**Amended 2026-07-24 (ADR-0002 amendment #3, `#69`) — the roster reshapes.** `product-owner` was carrying
+two hats: the *name* of a generic software role, the *job* of a copy/positioning reviewer. Split cleanly:
+`product-owner` re-scoped to the software role (above); the copy mandate moved **unchanged** (checks and
+the `Read, Grep, Glob`-only / no-`Bash` capability guarantee intact) into a new **`brand-guardian`**, and
+`critical-reviewer`'s content-boundary trigger re-points to it. Three genuinely new concerns join:
+**`editor`** (long-form craft & rigor — distinct from `brand-guardian`'s claim-vs-truth), **`recruiter`**
+(external hiring efficacy: LinkedIn/ATS/hiring-manager fit — distinct from `brand-guardian`'s internal
+conformance), and **`scrum-master`** (flow/WIP hygiene — every piece of work becomes a tracked issue).
+`career-advisor` and a separate "QA funcional" were considered and **rejected as duplicates** (of
+`brand-guardian` and `qa-e2e`). Any `product-owner` mention above the amendment line names the role as it
+was *then* (the copy reviewer); the copy reviewer is now `brand-guardian`.
 
 **22 personas defined; 15 materialized in `-io`** (verified against `agents/*.md`, not asserted).
 
@@ -322,8 +339,11 @@ coverage threshold, its glob ownership). Per-machine overrides stay in `settings
 
 `tadeumendonca-io` enables (16): `frontend-react`, `iac-terraform-aws`, `devops-cicd`, `ux`, `analytics`,
 `e2e-testing`, `debugger`, `planner`, `plan-reviewer`, `adr-author`, `critical-reviewer`,
-`sonar-remediator`, `security`, `performance`, `product-owner`, `product-manager`. Off (6):
-`api-design`, `backend-node`, `api-testing`, `data-modeling`, `observability`, `sre`.
+`sonar-remediator`, `security`, `performance`, `brand-guardian`, `product-manager`. Off (7):
+`api-design`, `backend-node`, `api-testing`, `data-modeling`, `observability`, `sre`, and — since
+amendment #3 re-scoped it to a software product owner with no application behavior to accept here —
+`product-owner`. *(`editor`/`recruiter`/`scrum-master`, ratified in amendment #3, are authored in
+follow-on slices and not yet in this set.)*
 
 **Enabled ≠ materialized.** 16 enabled, **15 with a file in `agents/`** — `ux` is enabled but not
 written, held back for absence of evidence rather than absence of a surface. The gap between the two
