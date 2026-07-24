@@ -320,10 +320,15 @@ coverage threshold, its glob ownership). Per-machine overrides stay in `settings
 | the ADR template/skill + practice | the actual ADRs (`docs/adr/`) |
 | the thin-slice + plan→E2E-story practices | the actual Issues, specs, E2E journeys |
 
-`tadeumendonca-io` enables (14): `frontend-react`, `iac-terraform-aws`, `devops-cicd`, `ux`, `analytics`,
+`tadeumendonca-io` enables (16): `frontend-react`, `iac-terraform-aws`, `devops-cicd`, `ux`, `analytics`,
 `e2e-testing`, `debugger`, `planner`, `plan-reviewer`, `adr-author`, `critical-reviewer`,
-`sonar-remediator`, `security`, `performance`. Off (6): `api-design`, `backend-node`, `api-testing`,
-`data-modeling`, `observability`, `sre`.
+`sonar-remediator`, `security`, `performance`, `product-owner`, `product-manager`. Off (6):
+`api-design`, `backend-node`, `api-testing`, `data-modeling`, `observability`, `sre`.
+
+**Enabled ≠ materialized.** 16 enabled, **15 with a file in `agents/`** — `ux` is enabled but not
+written, held back for absence of evidence rather than absence of a surface. The gap between the two
+numbers is the design working as intended ("materialized lazily as work demands"), not drift; it becomes
+drift only if nobody ever states which side of it a persona is on.
 
 ## 10. Build sequence (each slice → its own ADR + Issue)
 

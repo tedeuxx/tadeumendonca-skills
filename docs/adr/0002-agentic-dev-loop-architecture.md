@@ -32,7 +32,7 @@ three properties are achievable.
 Chosen: **per-task subagent contexts**. A subagent is an *autonomous context specific to a task*, not a
 standing employee. Because a fresh context cannot remember prior decisions by construction, the ADR
 libraries (ADR-0001) are what make the isolation safe — without them, isolation is a drift machine. The
-roster (20 personas covering a common SDLC — 22 since the amendment below) is defined in the plugin; each project enables the subset its
+roster (20 personas covering a common SDLC — 22 since the two amendments below) is defined in the plugin; each project enables the subset its
 blast-radius justifies, and personas are materialized lazily as work demands. Full detail:
 `docs/proposals/agentic-dev-loop.md`.
 
@@ -99,8 +99,13 @@ left open. *"Product ownership stays human"* is not loosened; it is made precise
 layer that **prepares** a decision, and the owner keeps the layer that **makes** it.
 
 **`product-manager` — proposes the order; the owner approves it.** Withheld one revision earlier for
-lack of evidence (#65), and shipped now because the evidence arrived: in a single session the open queue
-went from 2 to 8 issues with nothing sequencing them, three of which interact. Its every verdict
+lack of evidence (#65). The evidence, stated as `gh issue list` actually returns it rather than from
+memory: in one session the consuming repo's open queue went **2 → 7** (8 filed, one closed), and the
+plugin repo **0 → 4** — eleven open items, nothing sequencing them, and several that interact.
+
+*Weakest of the three, and worth saying so:* that is evidence of the **precondition** — an unsequenced
+queue — not of a slice built in the wrong order at a cost. `analytics` and `debugger` each rest on an
+observed failure. This one rests on a growing backlog, which is a leading indicator. Its every verdict
 (PROCEED · RESEQUENCE · RESCOPE · DEFER) is a **proposal**; it writes nothing and merges nothing.
 The proposal's *"backlog prioritization stays human"* bullet is amended in place rather than worked
 around — a recommendation the owner cannot audit is worthless, and one they cannot overrule is a
@@ -108,9 +113,14 @@ decision in disguise.
 
 Two personas already **defined** in the design were also **materialized**, each on observed failure
 rather than on roster completeness:
-- **`analytics`** — the consuming repo's `CLAUDE.md` asserts Google Analytics as part of "done", and the
-  app contains **no analytics of any kind**. A DoD item had been passing for months without the thing it
-  names existing, because it is checked by whoever wrote the slice. It owns *how would we know this
+- **`analytics`** — the consuming repo's `CLAUDE.md` asserts Google Analytics as part of "done", **and so
+  does its `accepted` ADR-0023**, while the app contains **no analytics of any kind** (grep for
+  gtag/googletagmanager/plausible/umami/posthog over `src`, `index.html`, `public`, `package.json`,
+  `iac/`, `.github/`: zero hits). An accepted ADR describes a system property that does not exist, and
+  the DoD item covering it is checked by whoever wrote the slice. *(Duration, corrected: the GA claim
+  entered `CLAUDE.md` and ADR-0023 on 2026-07-22 — one day. The generic "observability is part of done"
+  line dates to 2026-06-21. An earlier draft of this amendment said "for months"; that was asserted, not
+  checked, which is the exact defect this persona exists to catch.)* It owns *how would we know this
   worked*, and it treats the cookie-vs-cookieless choice as an **owner decision it surfaces**, not one it
   presumes — on a site whose stated property is that nothing third-party loads until asked, adding a
   tracker is architecture, not config.
@@ -120,18 +130,41 @@ rather than on roster completeness:
   being tested. Its output is a **cause with evidence**, never a patch — a context committed to a fix
   stops looking for the cause the moment its fix works.
 
-**`ux` was deliberately NOT materialized**, although the design marks it enabled. No evidence it would
-have fired: the visual decisions in that session were made by the owner directly and held. Materializing
-it would have been the theatre this design warns against — *"a persona with no work costs context and
-implies coverage that isn't there"*.
+**`ux` was deliberately NOT materialized**, although the design marks it enabled. The reason is
+*absence of evidence*, and only that: no visual decision in that session was blocked, reopened, or made
+worse for want of a UX reviewer. *(An earlier draft claimed the visual decisions "held up" — one did not:
+the OG card needed a corrective slice, `e87a271`. But that was a metadata defect the `performance` and
+review lenses would own, not an information-architecture or a11y one, so it does not become UX evidence
+either.)* Materializing on a roster row rather than on work is the theatre this design warns against —
+*"a persona with no work costs context and implies coverage that isn't there"*.
+
+### `critical-reviewer` gains a second escalation duty — recorded, because it is a decision
+The same edit that gives `debugger` a trigger **expands the reviewer's mandate on every future MR in
+every consuming repo**: it may now hold a MR whose gates are **green** when it cannot say *why* they are
+green — red-then-green with no fix visible in the diff, a job that matched no files, a suite re-run until
+it passed. That is a real widening of when review blocks, and it belongs in the ADR rather than only in
+the persona file. The justification: a DoD gate is evidence only when someone can explain it, and "it
+passes now" is how a wrong model of a failure survives into `main`.
 
 ### Consequences of this amendment
 **Bad / accepted costs**
 - **Three more contexts** to spawn, on a loop whose per-invocation cost is already an accepted downside.
 - **`analytics` opens a privacy decision** that did not previously exist. Surfacing it is the point, but
   it is new surface area, and answering it wrong is publicly visible on a site that argues for restraint.
-- **None of the three has a mechanical trigger.** Same residual as `product-owner`, tracked in the
-  consumer repo — the roster keeps growing faster than the wiring that invokes it.
+- **The reviewer can now block a green MR** (above). Correct in intent, and a new way for review to stall
+  on a judgment call rather than on a failed check.
+- **Trigger asymmetry.** `debugger` has one (in `critical-reviewer`); `product-manager` and `analytics`
+  do not, though `planner` is the obvious host for the first. By this design's own line — *a mandate with
+  no trigger is a document* — two of the three ship as documents. Tracked in #68, which also records the
+  deeper problem: every trigger is an **instruction**, and chaining three of them off `critical-reviewer`
+  means the moment it does not run, three mandates silently do not run either.
+- **`Bash` contradicts the "advisory" framing at the capability level.** All three carry
+  `Read, Grep, Glob, Bash`, and a consuming repo that allowlists `gh pr merge` grants it through the
+  inherited permission surface. So *"writes nothing, merges nothing"* is **behavioural for these three**,
+  where the first amendment made it **capability** for `product-owner` by withholding `Bash` entirely.
+  The grant is functionally justified (`gh issue list` for the queue, reproduction for diagnosis), so it
+  is accepted rather than removed — but it is the weaker guarantee, and this ADR argues the opposite two
+  sections above.
 
 Roster: 21 → 22 defined; **15 materialized** (counted from `agents/*.md`, not asserted — the two numbers
 drift precisely because "defined" is a design claim and "materialized" is a file on disk).
