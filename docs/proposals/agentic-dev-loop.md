@@ -159,6 +159,12 @@ Both can edit within their concern's glob for remediation; neither merges.
 **Deliberately not a persona:**
 - **Product ownership** — *what* and *why*, and backlog prioritization, stay with the **human**. The loop
   owns *how*. Issue curation is human; this is the boundary the human keeps, not a gap.
+  **Amended 2026-07-24 (ADR-0002):** unchanged for *deciding*. What was missing was **reviewing the
+  copy**: the DoD has no criterion for what the words claim, so a positioning breach shipped green.
+  `product-owner` reviews and escalates; it decides nothing, edits nothing, and has no write capability
+  at all. Backlog prioritization stays human here — a `product-manager` persona was drafted and
+  **deliberately not shipped**, because it would contradict this bullet and the evidence behind the
+  slice was entirely about copy.
 - **unit testing** — embedded in each build specialist (TDD, co-located).
 
 **Operations** (real work only with a running backend):
@@ -173,19 +179,18 @@ reviewers cannot edit.** `plan-reviewer` is the evolution of the existing `agent
 — it already validates a plan against the principles; it grows to also check the plan against the **ADR
 library** (drift) and flag which decisions need an ADR.
 
-**20 personas defined; `-io` enables 14.** *(22 / 16 since the amendment at the end of this section.)*
+**20 personas defined; `-io` enables 14.** *(21 / 15 since the amendment at the end of this section.)*
 Off here: the backend trident (`api-design`, `backend-node`,
 `api-testing`), `data-modeling`, and the operations tier (`observability`, `sre`) — all turned on as a
 unit by a backend-ful project. Unit-testing folds into the build specialists.
 
 ~~Product ownership stays human.~~ **Amended 2026-07-24 (ADR-0002):** product *decisions* stay human —
-that has not changed. But the roster had no reviewer with a **mandate over the copy**, so on a presence
-where the words are the product, a positioning breach or an unearned claim shipped green: none of them
-is a Definition-of-Done criterion, so `critical-reviewer` catches them only by accident. Added
-**`product-owner`** (reviews copy against the private positioning source — claims, cross-surface
-coherence, confidentiality, third-party naming) and **`product-manager`** (upstream of `planner` —
-sequencing, scope, opportunity cost). **Both advisory, neither merges, neither authors**: they raise the
-decision with evidence attached and the human decides. **22 personas defined.**
+that has not changed. What was missing is a reviewer with a **mandate over the copy**: a positioning
+breach is not a Definition-of-Done criterion, so on a presence where the words are the product it ships
+green and `critical-reviewer` catches it only by accident. Added **`product-owner`** — reviews copy
+against the private positioning source (claims, cross-surface coherence, confidentiality, third-party
+naming), **advisory, no write capability at all**, triggered from `critical-reviewer` on content-boundary
+paths. **21 personas defined.**
 
 ## 5. Skills ↔ subagents (the re-evaluation)
 
