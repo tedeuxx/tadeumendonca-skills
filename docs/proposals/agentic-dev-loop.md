@@ -159,12 +159,21 @@ Both can edit within their concern's glob for remediation; neither merges.
 **Deliberately not a persona:**
 - **Product ownership** — *what* and *why*, and backlog prioritization, stay with the **human**. The loop
   owns *how*. Issue curation is human; this is the boundary the human keeps, not a gap.
-  **Amended 2026-07-24 (ADR-0002):** unchanged for *deciding*. What was missing was **reviewing the
-  copy**: the DoD has no criterion for what the words claim, so a positioning breach shipped green.
-  `product-owner` reviews and escalates; it decides nothing, edits nothing, and has no write capability
-  at all. Backlog prioritization stays human here — a `product-manager` persona was drafted and
-  **deliberately not shipped**, because it would contradict this bullet and the evidence behind the
-  slice was entirely about copy.
+  **Amended 2026-07-23 (ADR-0002), twice:**
+  1. Unchanged for *deciding*. What was missing was **reviewing the copy**: the DoD has no criterion for
+     what the words claim, so a positioning breach shipped green. `product-owner` reviews and escalates;
+     it decides nothing, edits nothing, and has no write capability at all.
+  2. **Backlog prioritization: the owner DECIDES the order; `product-manager` PROPOSES it.** The owner
+     is explicit that they are the CEO of this initiative and the final word is theirs — so the boundary
+     moves from *"no persona touches prioritization"* to *"a persona may recommend an order, with the
+     reasoning attached, and the owner approves or overrules it"*. The distinction is load-bearing in
+     both directions: a recommendation the owner cannot audit is worthless, and one they cannot overrule
+     is a decision in disguise. `product-manager` writes nothing, merges nothing, and every verdict it
+     returns (PROCEED · RESEQUENCE · RESCOPE · DEFER) is a proposal.
+
+     Evidence this was a real gap rather than org-chart completeness: in one session the open queue went
+     from 2 to 8 issues with nothing sequencing them, and three of those interact. The persona was
+     **withheld** on its first attempt for exactly the lack of that evidence (#65).
 - **unit testing** — embedded in each build specialist (TDD, co-located).
 
 **Operations** (real work only with a running backend):
@@ -179,18 +188,33 @@ reviewers cannot edit.** `plan-reviewer` is the evolution of the existing `agent
 — it already validates a plan against the principles; it grows to also check the plan against the **ADR
 library** (drift) and flag which decisions need an ADR.
 
-**20 personas defined; `-io` enables 14.** *(21 / 15 since the amendment at the end of this section.)*
+**20 personas defined; `-io` enables 14.** *(22 defined / 15 materialized since the amendments at the end of this section.)*
 Off here: the backend trident (`api-design`, `backend-node`,
 `api-testing`), `data-modeling`, and the operations tier (`observability`, `sre`) — all turned on as a
 unit by a backend-ful project. Unit-testing folds into the build specialists.
 
-~~Product ownership stays human.~~ **Amended 2026-07-24 (ADR-0002):** product *decisions* stay human —
-that has not changed. What was missing is a reviewer with a **mandate over the copy**: a positioning
-breach is not a Definition-of-Done criterion, so on a presence where the words are the product it ships
-green and `critical-reviewer` catches it only by accident. Added **`product-owner`** — reviews copy
-against the private positioning source (claims, cross-surface coherence, confidentiality, third-party
-naming), **advisory, no write capability at all**, triggered from `critical-reviewer` on content-boundary
-paths. **21 personas defined.**
+~~Product ownership stays human.~~ **Amended 2026-07-23 (ADR-0002):** product *decisions* stay human —
+that has not changed, and the owner has since made it explicit by naming themselves CEO of the
+initiative. What was missing was the layer that **prepares** those decisions rather than making them:
+
+- **`product-owner`** — reviews copy against the private positioning source (claims, cross-surface
+  coherence, confidentiality, third-party naming). Exists because a positioning breach is not a DoD
+  criterion, so on a presence where the words are the product it ships green. Advisory, **no write
+  capability at all**, triggered from `critical-reviewer` on content-boundary paths.
+- **`product-manager`** — proposes the order of work; the owner approves it. Advisory, writes nothing.
+
+Two personas already *defined* here were also **materialized** in the same pass, both on evidence rather
+than on completeness: **`analytics`** (the repo's `CLAUDE.md` asserted Google Analytics as part of "done"
+and the app contained no analytics of any kind — a DoD item passing without the thing existing) and
+**`debugger`** (two non-trivial failures in one session — a suite silently targeting the deployed
+environment, and a green E2E run against a stale build — both diagnosis problems, both initially
+mis-hypothesised).
+
+**`ux` was deliberately NOT materialized**, though it is marked ✅ here: no evidence it would have fired.
+The visual decisions in that session (the round portrait, the OG card) were made by the owner directly
+and held up. This document's own rule applies — *enabling a persona with no work is theatre.*
+
+**22 personas defined; 15 materialized in `-io`** (verified against `agents/*.md`, not asserted).
 
 ## 5. Skills ↔ subagents (the re-evaluation)
 
@@ -296,10 +320,15 @@ coverage threshold, its glob ownership). Per-machine overrides stay in `settings
 | the ADR template/skill + practice | the actual ADRs (`docs/adr/`) |
 | the thin-slice + plan→E2E-story practices | the actual Issues, specs, E2E journeys |
 
-`tadeumendonca-io` enables (14): `frontend-react`, `iac-terraform-aws`, `devops-cicd`, `ux`, `analytics`,
+`tadeumendonca-io` enables (16): `frontend-react`, `iac-terraform-aws`, `devops-cicd`, `ux`, `analytics`,
 `e2e-testing`, `debugger`, `planner`, `plan-reviewer`, `adr-author`, `critical-reviewer`,
-`sonar-remediator`, `security`, `performance`. Off (6): `api-design`, `backend-node`, `api-testing`,
-`data-modeling`, `observability`, `sre`.
+`sonar-remediator`, `security`, `performance`, `product-owner`, `product-manager`. Off (6):
+`api-design`, `backend-node`, `api-testing`, `data-modeling`, `observability`, `sre`.
+
+**Enabled ≠ materialized.** 16 enabled, **15 with a file in `agents/`** — `ux` is enabled but not
+written, held back for absence of evidence rather than absence of a surface. The gap between the two
+numbers is the design working as intended ("materialized lazily as work demands"), not drift; it becomes
+drift only if nobody ever states which side of it a persona is on.
 
 ## 10. Build sequence (each slice → its own ADR + Issue)
 
