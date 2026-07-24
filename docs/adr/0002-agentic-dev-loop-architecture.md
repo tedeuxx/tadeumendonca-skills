@@ -1,6 +1,6 @@
 # 0002. Agentic dev-loop architecture — per-task subagents, ADRs as the durable brain
 
-- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster; see the amendments below)
+- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
 - **Driven by:** [ADR-0001](./0001-adopt-madr-adrs.md), `docs/proposals/agentic-dev-loop.md`
@@ -32,7 +32,7 @@ three properties are achievable.
 Chosen: **per-task subagent contexts**. A subagent is an *autonomous context specific to a task*, not a
 standing employee. Because a fresh context cannot remember prior decisions by construction, the ADR
 libraries (ADR-0001) are what make the isolation safe — without them, isolation is a drift machine. The
-roster (20 personas covering a common SDLC — 22 since the two amendments below) is defined in the plugin; each project enables the subset its
+roster (20 personas covering a common SDLC — 22 since the two 2026-07-23 amendments below, and **26 once the third amendment is ratified**) is defined in the plugin; each project enables the subset its
 blast-radius justifies, and personas are materialized lazily as work demands. Full detail:
 `docs/proposals/agentic-dev-loop.md`.
 
@@ -168,6 +168,147 @@ passes now" is how a wrong model of a failure survives into `main`.
 
 Roster: 21 → 22 defined; **15 materialized** (counted from `agents/*.md`, not asserted — the two numbers
 drift precisely because "defined" is a design claim and "materialized" is a file on disk).
+
+## Amendment (2026-07-24, third) — the roster reshapes: `product-owner` becomes a product owner; the copy mandate becomes `brand-guardian`
+**Status: accepted (owner-ratified 2026-07-24, issue #69).** The decision is ratified; the reshape is
+**implemented in the follow-on slices sequenced below** — nothing in this amendment is materialized in
+`agents/` yet, so read it as the decided target state, not the current roster.
+
+**This amendment supersedes the scoping of `product-owner` set in the first amendment above** — it does
+not rewrite it. The first amendment stands as the record of *why the copy first got a reviewer* and
+*how its privacy guarantee was designed*; that reasoning is not reversed, it is **relocated**. What
+changes is only the **name and home** of the mandate: everything the first amendment built for
+`product-owner` (the checks, the `Read, Grep, Glob`-only capability, the escalate-never-edit design,
+the identifier-only output rule) moves **unchanged** to a new persona, and the `product-owner` name is
+freed to mean what it says.
+
+**Why reshape.** The first amendment named the copy guardian `product-owner` because that was the gap in
+front of it — but the name asserts a role the persona does not fill. A *product owner* owns
+reader/user value and feature-level acceptance from the product side; what that persona actually does is
+guard **positioning and copy coherence against a private brand source**. Two different mandates wore one
+name. On a proof-of-engineering presence the distinction was cheap to ignore (the copy *is* the product,
+so the guardian looked product-shaped); as the roster models a whole org it stops being cheap — a future
+consuming repo with a real product and a real backlog needs both roles, and cannot get them from one
+overloaded definition.
+
+### The five moves (one decision each)
+1. **Re-scope `product-owner` to a genuine software product owner.** Its mandate becomes reader/user
+   value and **feature-level acceptance from the product side** — it proposes acceptance of a slice
+   against what the product promised the user, distinct from `critical-reviewer` (which judges the diff
+   against the engineering DoD) and from `product-manager` (which judges *whether/when*, upstream of the
+   spec). It **stays advisory**: it proposes acceptance, never decides it and never merges. So *"product
+   ownership stays human, narrowed to product decisions"* — the first amendment's own reconciliation —
+   **remains true in substance**; what narrows is the noun, not the authority. On `tadeumendonca-io`
+   specifically it likely has **no work** (a static content presence — "the product is the words", so
+   product acceptance and copy conformance collapse into the same review, and that review is
+   `brand-guardian`'s). It is therefore **defined-but-not-materialized in `-io`**, exactly the `ux`
+   precedent from the second amendment — *materialize on observed work, not on a roster row.*
+2. **New persona `brand-guardian` — the extracted copy mandate, carried over intact.** It inherits the
+   positioning/coherence mandate the first amendment built, **unchanged**: the same checks (claims the
+   author has not earned, unsourced quantification, precision drift against the canonical CV,
+   cross-surface incoherence, confidentiality, third-party naming, durability), the same escalate-to-owner
+   verdict, the same never-edits-the-copy design. **Critically, it keeps the `Read, Grep, Glob`-only
+   capability with no `Bash`, `Edit` or `Write`.** That grant is the strongest thing the first amendment
+   established (ADR-0004: the boundary is a *capability*, not a promise) — the one persona that reads the
+   **private** `.brand/` source and whose output lands in **public** PRs is structurally unable to
+   publish. **This guarantee must not be weakened in the move**; the rename is the whole change, the tool
+   surface is identical. The name is `brand-guardian` deliberately: the owner **rejected
+   `brand-strategist`** because "strategist" implies *deciding* strategy, which is the owner's alone —
+   the persona **guards** conformance to a strategy it does not set.
+3. **Re-point the `critical-reviewer` content-boundary trigger from `product-owner` → `brand-guardian`.**
+   The wiring the first amendment installed — *"a diff touching content-boundary paths is **incomplete**
+   until `<persona>` has returned a verdict"* — is unchanged in shape; only the persona it names moves.
+   This is the load-bearing part of the atomic slice below: if the rename lands and this trigger still
+   points at the (now re-scoped) `product-owner`, the content gate silently points at a persona that no
+   longer holds the copy mandate, and a positioning breach ships green again — the exact failure the
+   first amendment closed, reopened.
+4. **New persona `editor` — long-form craft & rigor.** Owns article/long-form **clarity, structure,
+   explicit trade-offs, technical soundness, and reader-first prose/framing**. The seam with
+   `brand-guardian` is drawn deliberately: **`brand-guardian` owns claim-vs-truth and cross-surface
+   coherence** (does the copy match our positioning and each other?); **`editor` owns
+   clarity/structure/argument/technical-soundness** (is the piece well-made and sound on its own terms?).
+   *Reader-first framing sits with `editor`* — it is a craft property of the prose, not a positioning
+   conformance check. A sentence can be perfectly on-positioning and badly argued; that is `editor`'s
+   catch, not `brand-guardian`'s.
+5. **New persona `recruiter` — the outward market/hiring lens.** For the owner's recolocation: **LinkedIn
+   best-practice/profile score, ATS/keyword fit, the hiring-manager read, and fit to target AI-Engineer
+   roles.** The seam with `brand-guardian` is **internal-vs-external**: `brand-guardian` checks *internal
+   conformance* (does this copy match our positioning?); `recruiter` checks *external efficacy* (does that
+   positioning **win** with a hiring manager, and pass an ATS?). It is **boundary-class by construction** —
+   it targets external public surfaces, which the consuming repo's guide already treats as ask-first.
+6. **New persona `scrum-master` — process/flow discipline.** Enforces that **every piece of work becomes a
+   tracked Issue before it is called done, WIP=1 is honoured, and the board reflects reality.** It is the
+   persona against the untracked-sprawl failure mode — the sibling to `product-manager` (which sequences
+   the queue) on the *hygiene* axis rather than the *priority* axis. **Advisory, never merges.**
+
+### Considered options
+1. **Extract the copy mandate to `brand-guardian` and free `product-owner` to mean product ownership**
+   (chosen) — names match roles, the privacy-critical capability guarantee rides along untouched, and the
+   org model gains the three real gaps (`editor`, `recruiter`, `scrum-master`). *Trade-off:* four new
+   persona files, a reference sweep across the roster, and a re-scope that must be recorded as a supersede
+   rather than a silent edit (this section is that cost paid).
+2. **Keep `product-owner` as the copy guardian and add the new personas around it** — *strongest rejected
+   alternative.* It avoids the supersede and the rename churn. Rejected because it **entrenches the
+   misnomer**: the persona keeps a name asserting a role it does not fill, and the first consuming repo
+   with a genuine product backlog inherits an overloaded definition it must then split under pressure.
+   Paying the rename now, while `-io` is the only consumer and the copy guardian has no product work to
+   collide with, is strictly cheaper than paying it later.
+3. **Fold `editor` into `brand-guardian` and `recruiter` into "positioning"** — *Why not:* it recreates
+   the exact overloading this amendment exists to undo. Craft-soundness, positioning-conformance and
+   market-efficacy are three different rulers with three different sources of truth (the piece itself, the
+   private `.brand/` source, the external hiring market); one persona holding all three reviews none of
+   them well.
+
+### Rejected as duplicates — recorded so they are not re-proposed
+- **`career-advisor`** — this *is* the positioning/copy mandate now carried by `brand-guardian` (guarding
+  the owner's professional narrative against the canonical source). A separate persona would duplicate it.
+- **A separate "QA funcional"** — this *is* the existing `qa-e2e` persona, which already owns functional
+  E2E regression as the proof nothing already working broke. A second persona for it is redundant surface.
+
+### Sequencing — the implementation plan this amendment authorises
+The reshape ships as **discrete slices**, in order, each merged before the next (WIP=1):
+1. **This amendment → owner ratifies (`proposed → accepted`).** Nothing below starts until it is accepted.
+2. **ATOMIC slice, must ship together:** re-scope `product-owner` (move 1) **+** author `brand-guardian`
+   (move 2) **+** re-point the `critical-reviewer` trigger (move 3) **+** a full reference sweep (every
+   mention of the old copy-guardian scoping across `agents/*.md`, `CLAUDE.md` roster prose, and the
+   proposal). These cannot be split: any partial landing opens a content-gate gap — either a re-scoped
+   `product-owner` with the trigger still pointing at it, or a `brand-guardian` no trigger reaches.
+3. **`editor`** — separate slice.
+4. **`recruiter`** — separate slice.
+5. **`scrum-master`** — separate slice.
+
+*(The persona `agents/*.md` files and the `CLAUDE.md` roster prose are the **implementation** of moves
+1–3 and 4–6 — they are authored in the slices above, not in this ADR. This amendment is the record and
+the plan; it does not itself edit any persona definition.)*
+
+### Consequences of this amendment
+**Good**
+- Names match roles: `product-owner` means product ownership, `brand-guardian` means positioning
+  conformance. The overloaded definition is split before a consuming repo is forced to split it in a hurry.
+- The privacy-critical capability guarantee (`Read, Grep, Glob`, no `Bash`) survives the rename intact —
+  the reshape is capability-preserving by explicit constraint, not by hope.
+- The org model gains three genuine gaps: long-form craft (`editor`), external market efficacy
+  (`recruiter`), and flow hygiene (`scrum-master`) — each a ruler nothing currently holds.
+
+**Bad / accepted costs**
+- **A re-scope is a reversal, and reversals cost trust in the record.** The first amendment argued for
+  `product-owner`-as-copy-guardian; one day later this one moves it. Mitigated by superseding (not
+  rewriting) that amendment and stating the reason, but the churn is real and recorded honestly.
+- **The atomic slice is the failure surface.** Three coupled edits plus a repo-wide reference sweep must
+  land together; a missed reference leaves the content gate pointing at the wrong persona, and unlike a
+  test that gate fails **silently**. The sweep is the mitigation and it is fallible.
+- **Four more persona files** — more roster to maintain, and three of them (`editor`, `recruiter`,
+  `scrum-master`) ship as **documents without a mechanical trigger**, inheriting the trigger-asymmetry
+  debt the second amendment already booked (#68). A mandate with no trigger is a document, not a gate.
+- **`recruiter` reaches for external public surfaces**, which is new blast-radius: its lens is only useful
+  aimed at LinkedIn/ATS artefacts, and those are the least-reversible, most-public surfaces the owner has.
+  Boundary-class by construction is the containment, but the surface is real.
+
+Roster: 22 → **26 defined** once ratified (four new files: `brand-guardian`, `editor`, `recruiter`,
+`scrum-master`; `product-owner` is **re-scoped, not added**, so it does not increment the count).
+**Materialized-in-`-io` is decided in the implementation slices, not here** — `product-owner` is expected
+to stay *defined-but-not-materialized in `-io`* (the `ux` precedent), and the materialized count will be
+recounted from `agents/*.md` when each slice lands, never asserted ahead of the file.
 
 ## Consequences
 **Good**
