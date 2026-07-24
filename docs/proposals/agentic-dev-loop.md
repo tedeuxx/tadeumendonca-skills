@@ -189,7 +189,7 @@ reviewers cannot edit.** `plan-reviewer` is the evolution of the existing `agent
 — it already validates a plan against the principles; it grows to also check the plan against the **ADR
 library** (drift) and flag which decisions need an ADR.
 
-**20 personas defined; `-io` enables 14.** *(22 defined / 15 materialized after the first two amendments; the third amendment (2026-07-24) adds `brand-guardian`, `editor`, `recruiter`, `scrum-master` and re-scopes `product-owner` → **25 defined now** (`brand-guardian` + `editor` + `recruiter` landed), heading to 26 as `scrum-master` lands; `-io` materializes **17** (`brand-guardian` in `product-owner`'s old content slot, `editor` for long-form craft, `recruiter` for hiring efficacy). See the amendments at the end of this section.)*
+**20 personas defined; `-io` enables 14.** *(22 defined / 15 materialized after the first two amendments; the third amendment (2026-07-24) adds `brand-guardian`, `editor`, `recruiter`, `scrum-master` and re-scopes `product-owner` → **26 defined** (`brand-guardian` + `editor` + `recruiter` + `scrum-master` landed — the reshape is fully materialized); `-io` materializes **18** (`brand-guardian` in `product-owner`'s old content slot, `editor` for long-form craft, `recruiter` for hiring efficacy, `scrum-master` for flow/WIP hygiene). See the amendments at the end of this section.)*
 Off here: the backend trident (`api-design`, `backend-node`,
 `api-testing`), `data-modeling`, and the operations tier (`observability`, `sre`) — all turned on as a
 unit by a backend-ful project. Unit-testing folds into the build specialists.
@@ -231,7 +231,7 @@ conformance), and **`scrum-master`** (flow/WIP hygiene — every piece of work b
 `brand-guardian` and `qa-e2e`). Any `product-owner` mention above the amendment line names the role as it
 was *then* (the copy reviewer); the copy reviewer is now `brand-guardian`.
 
-**22 personas defined; 15 materialized in `-io`** (verified against `agents/*.md`, not asserted).
+**26 personas defined; 18 materialized in `-io`** (verified against `agents/*.md`, not asserted — post amendment #3, with the reshape fully landed).
 
 ## 5. Skills ↔ subagents (the re-evaluation)
 
@@ -337,15 +337,15 @@ coverage threshold, its glob ownership). Per-machine overrides stay in `settings
 | the ADR template/skill + practice | the actual ADRs (`docs/adr/`) |
 | the thin-slice + plan→E2E-story practices | the actual Issues, specs, E2E journeys |
 
-`tadeumendonca-io` enables (18): `frontend-react`, `iac-terraform-aws`, `devops-cicd`, `ux`, `analytics`,
+`tadeumendonca-io` enables (19): `frontend-react`, `iac-terraform-aws`, `devops-cicd`, `ux`, `analytics`,
 `e2e-testing`, `debugger`, `planner`, `plan-reviewer`, `adr-author`, `critical-reviewer`,
-`sonar-remediator`, `security`, `performance`, `brand-guardian`, `editor`, `recruiter`, `product-manager`. Off (7):
+`sonar-remediator`, `security`, `performance`, `brand-guardian`, `editor`, `recruiter`, `scrum-master`, `product-manager`. Off (7):
 `api-design`, `backend-node`, `api-testing`, `data-modeling`, `observability`, `sre`, and — since
 amendment #3 re-scoped it to a software product owner with no application behavior to accept here —
 `product-owner`. *(`editor` reviews the long-form; `recruiter` audits the presence for hiring efficacy
-(on-demand). `scrum-master`, ratified in amendment #3, is authored in a follow-on slice and not yet in it.)*
+(on-demand); `scrum-master` guards flow/WIP hygiene. The amendment #3 reshape is now fully materialized.)*
 
-**Enabled ≠ materialized.** 18 enabled, **17 with a file in `agents/`** — `ux` is enabled but not
+**Enabled ≠ materialized.** 19 enabled, **18 with a file in `agents/`** — `ux` is enabled but not
 written, held back for absence of evidence rather than absence of a surface. The gap between the two
 numbers is the design working as intended ("materialized lazily as work demands"), not drift; it becomes
 drift only if nobody ever states which side of it a persona is on.
