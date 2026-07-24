@@ -173,10 +173,19 @@ reviewers cannot edit.** `plan-reviewer` is the evolution of the existing `agent
 — it already validates a plan against the principles; it grows to also check the plan against the **ADR
 library** (drift) and flag which decisions need an ADR.
 
-**20 personas defined; `-io` enables 14.** Off here: the backend trident (`api-design`, `backend-node`,
+**20 personas defined; `-io` enables 14.** *(22 / 16 since the amendment at the end of this section.)*
+Off here: the backend trident (`api-design`, `backend-node`,
 `api-testing`), `data-modeling`, and the operations tier (`observability`, `sre`) — all turned on as a
-unit by a backend-ful project. Unit-testing folds into the build specialists; product ownership stays
-human.
+unit by a backend-ful project. Unit-testing folds into the build specialists.
+
+~~Product ownership stays human.~~ **Amended 2026-07-24 (ADR-0002):** product *decisions* stay human —
+that has not changed. But the roster had no reviewer with a **mandate over the copy**, so on a presence
+where the words are the product, a positioning breach or an unearned claim shipped green: none of them
+is a Definition-of-Done criterion, so `critical-reviewer` catches them only by accident. Added
+**`product-owner`** (reviews copy against the private positioning source — claims, cross-surface
+coherence, confidentiality, third-party naming) and **`product-manager`** (upstream of `planner` —
+sequencing, scope, opportunity cost). **Both advisory, neither merges, neither authors**: they raise the
+decision with evidence attached and the human decides. **22 personas defined.**
 
 ## 5. Skills ↔ subagents (the re-evaluation)
 
