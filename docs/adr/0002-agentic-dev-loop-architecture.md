@@ -1,6 +1,6 @@
 # 0002. Agentic dev-loop architecture — per-task subagents, ADRs as the durable brain
 
-- **Status:** accepted · **amended 2026-07-24** (`product-owner` joins the roster — see the amendment below)
+- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster; see the amendments below)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
 - **Driven by:** [ADR-0001](./0001-adopt-madr-adrs.md), `docs/proposals/agentic-dev-loop.md`
@@ -36,7 +36,7 @@ roster (20 personas covering a common SDLC — 22 since the amendment below) is 
 blast-radius justifies, and personas are materialized lazily as work demands. Full detail:
 `docs/proposals/agentic-dev-loop.md`.
 
-## Amendment (2026-07-24) — `product-owner`: the copy gets a reviewer
+## Amendment (2026-07-23) — `product-owner`: the copy gets a reviewer
 **Problem.** The reviewer roster has **no mandate over what the words claim**. `critical-reviewer`
 judges a diff against the Definition of Done, and a positioning breach is not a DoD criterion — so on a
 presence where the copy *is* the product, an unearned claim, a cross-surface contradiction or a
@@ -91,12 +91,50 @@ boundary should be a capability, not a promise).
 - **The private source is read by an agent.** Mitigated by the identifier-only output rule and the
   absent write tools, but not eliminated — a residual accepted deliberately.
 
-**Not shipped:** a `product-manager` persona (sequencing, scope, opportunity cost) was drafted and
-withheld. It would contradict this proposal's still-standing *"backlog prioritization stays human"*, its
-scope overlaps `planner` and `plan-reviewer` on "smallest slice", and the evidence behind this slice was
-entirely about copy. It needs its own decision and its own evidence.
-
 Roster: 20 → 21 defined.
+
+## Amendment (2026-07-23, second) — the layer that prepares the owner's decisions
+The owner named themselves **CEO of the initiative**, which settles the question the first amendment
+left open. *"Product ownership stays human"* is not loosened; it is made precise. The roster gains the
+layer that **prepares** a decision, and the owner keeps the layer that **makes** it.
+
+**`product-manager` — proposes the order; the owner approves it.** Withheld one revision earlier for
+lack of evidence (#65), and shipped now because the evidence arrived: in a single session the open queue
+went from 2 to 8 issues with nothing sequencing them, three of which interact. Its every verdict
+(PROCEED · RESEQUENCE · RESCOPE · DEFER) is a **proposal**; it writes nothing and merges nothing.
+The proposal's *"backlog prioritization stays human"* bullet is amended in place rather than worked
+around — a recommendation the owner cannot audit is worthless, and one they cannot overrule is a
+decision in disguise.
+
+Two personas already **defined** in the design were also **materialized**, each on observed failure
+rather than on roster completeness:
+- **`analytics`** — the consuming repo's `CLAUDE.md` asserts Google Analytics as part of "done", and the
+  app contains **no analytics of any kind**. A DoD item had been passing for months without the thing it
+  names existing, because it is checked by whoever wrote the slice. It owns *how would we know this
+  worked*, and it treats the cookie-vs-cookieless choice as an **owner decision it surfaces**, not one it
+  presumes — on a site whose stated property is that nothing third-party loads until asked, adding a
+  tracker is architecture, not config.
+- **`debugger`** — two non-trivial failures in one session, both mis-hypothesised first: a suite silently
+  targeting the deployed environment instead of the local build, and a green E2E run against a stale
+  `dist`. Both were diagnosis problems, and in both the first plausible hypothesis was adopted before
+  being tested. Its output is a **cause with evidence**, never a patch — a context committed to a fix
+  stops looking for the cause the moment its fix works.
+
+**`ux` was deliberately NOT materialized**, although the design marks it enabled. No evidence it would
+have fired: the visual decisions in that session were made by the owner directly and held. Materializing
+it would have been the theatre this design warns against — *"a persona with no work costs context and
+implies coverage that isn't there"*.
+
+### Consequences of this amendment
+**Bad / accepted costs**
+- **Three more contexts** to spawn, on a loop whose per-invocation cost is already an accepted downside.
+- **`analytics` opens a privacy decision** that did not previously exist. Surfacing it is the point, but
+  it is new surface area, and answering it wrong is publicly visible on a site that argues for restraint.
+- **None of the three has a mechanical trigger.** Same residual as `product-owner`, tracked in the
+  consumer repo — the roster keeps growing faster than the wiring that invokes it.
+
+Roster: 21 → 22 defined; **15 materialized** (counted from `agents/*.md`, not asserted — the two numbers
+drift precisely because "defined" is a design claim and "materialized" is a file on disk).
 
 ## Consequences
 **Good**
