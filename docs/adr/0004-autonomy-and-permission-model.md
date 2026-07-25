@@ -46,6 +46,42 @@ guard hook, unchanged). Significance always pulls a merge from the subagent (ADR
 - The safe/boundary line needs care; a mis-classified boundary MR that self-merges is the failure mode to
   guard against (significance-test discipline).
 
+## Amendment (2026-07-25) — the "only the reviewer merges" claim is now mechanically true (#77)
+
+The *Decision outcome* above claimed the classification is "mechanically enforced … a specialist *cannot*
+merge." Half of that held and half was a promise. **The reviewer-has-no-edit-tool half was real** (its
+agent definition grants no Write/Edit). **The no-merge-tool half was not:** merging goes through
+`gh pr merge`, and the consuming repo's committed `.claude/settings.json` allowlists `Bash(gh pr merge:*)`
+for the shared permission surface that **every** context inherits — the main agent and every subagent
+alike. So "only the reviewer merges" rested on the main agent *choosing* to route through the reviewer —
+instruction-following by the same context that (per #76's diagnosis) had skipped the review on several PRs
+in a row. The `critical-reviewer` flagged this while reviewing #76; #77 tracked it.
+
+**Fix — an agent-scoped merge gate in `permission-guard.sh` (rule 7b).** The harness stamps a subagent's
+tool calls with `agent_type` (`<plugin>:<subagent>`) and leaves it empty for the main agent; this field is
+set by the harness, not the prompt, so the model cannot forge it. The guard now **denies `gh pr merge`
+unless `agent_type` ends in `:critical-reviewer`.** The main agent and every other subagent are denied;
+the reviewer — the one context that *is* the merge gate — is allowed. "Did the reviewer run?" becomes a
+precondition satisfiable only by actually routing the merge through the reviewer, matching how `wip-guard`
+and the trunk-push block already work. Ships via the marketplace (`autoUpdate` on the consumer), no manual
+step.
+
+**Consequence — the merge flow changes, deliberately.** The main agent can no longer merge, even with the
+human's go. A human-approved **boundary**-class merge is now performed by **re-invoking the
+`critical-reviewer` with the human's ratification**, and it executes the merge — the human's go/no-go is
+unchanged, only its *executor* moves to the gate. The safe class was already the reviewer's to merge; this
+only closes the main agent's back door.
+
+**Accepted residual (recorded, not hidden).** The gate matches the natural command `gh pr merge` (with the
+`-R`/`--repo` convention). A raw `gh api … PUT …/merges` is **not** matched — pattern-listing every API
+form is brittle and would drift. The API back door is an accepted, named gap: the everyday path is a
+capability boundary now; a determined bypass via raw API is possible and is a smaller risk than a false
+sense of total coverage. Revisit if it is ever observed in use.
+
+This makes the *Decision outcome*'s "a specialist cannot merge" true rather than aspirational; the
+"unchanged" note on the guard hook in that section is itself now superseded — the guard gained rule 7b.
+
 ## Links
 - Driven by ADR-0002, ADR-0003 · consumed per project via committed `.claude/settings.json` · the global
-  floor + guard hook are described in the plugin's `/principles/permissions-and-environments`.
+  floor + guard hook are described in the plugin's `/principles/permissions-and-environments` · amended
+  (2026-07-25) to add the agent-scoped merge gate (rule 7b in `permission-guard.sh`), closing #77.
