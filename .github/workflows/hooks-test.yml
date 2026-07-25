@@ -28,3 +28,6 @@ jobs:
 
       - name: Run the wip-guard suite
         run: bash hooks/scripts/wip-guard.test.sh
+
+      - name: Assert every hook script is committed executable
+        run: bash hooks/scripts/hooks-executable.test.sh
