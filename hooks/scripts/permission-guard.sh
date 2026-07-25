@@ -35,6 +35,11 @@ input="$(cat 2>/dev/null || true)"
 command="$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null || true)"
 [ -z "$command" ] && exit 0
 
+# WHO is running this call. The harness stamps a subagent's tool calls with agent_type
+# (`<plugin>:<subagent>`) and leaves it empty for the main agent. The merge gate (rule 7b)
+# reads this; the model cannot forge it — it is set by the harness, not the prompt.
+agent_type="$(printf '%s' "$input" | jq -r '.agent_type // empty' 2>/dev/null || true)"
+
 deny() {
   jq -n --arg r "$1" '{
     hookSpecificOutput: {
@@ -122,6 +127,24 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   case "$branch" in
     main|master)
       deny "Blocked: HEAD is '$branch', so this push lands on the trunk. Merging to main is the deploy and the human's go/no-go. Branch first, then push the branch." ;;
+  esac
+fi
+
+# 7b. Merging a PR is the deploy — ADR-0004 makes it the critical-reviewer's act alone,
+#     and this is where that stops being a promise the main agent must remember. The
+#     harness stamps agent_type on a subagent's tool calls (`<plugin>:critical-reviewer`)
+#     and leaves it empty for the main agent, so `gh pr merge` is allowed ONLY from the
+#     reviewer; the main agent and every other subagent are denied. It turns "did the
+#     reviewer run?" into a precondition the model cannot satisfy by recall — only by
+#     actually routing the merge through the reviewer, which is the design. Matches
+#     `gh pr merge` with an optional -R/--repo before `pr` (the rule-5b convention).
+#     Recorded residual (ADR-0004): a raw `gh api ... PUT .../merges` is NOT matched —
+#     the natural command is gated; the API back door is an accepted, named gap, not a
+#     brittle attempt to pattern every form.
+if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R|--repo)[[:space:]]+[^[:space:]]+)*[[:space:]]+pr[[:space:]]+merge([[:space:]]|$)'; then
+  case "$agent_type" in
+    *:critical-reviewer) : ;;  # the reviewer IS the merge gate — allow it through
+    *) deny "Blocked: merging a PR is the deploy and the critical-reviewer's act, not the main agent's (ADR-0004). Route it through the critical-reviewer subagent — invoke it with the human's go, and it performs the merge (approve-and-merge the safe class, or after your ratification for the boundary class). agent_type='${agent_type:-<main agent>}'." ;;
   esac
 fi
 

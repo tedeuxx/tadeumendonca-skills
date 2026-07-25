@@ -30,6 +30,25 @@ check() {
   fi
 }
 
+# Like check(), but stamps an agent_type onto the payload — the field the harness sets on
+# a subagent's tool calls and leaves empty for the main agent. Only the merge gate (7b)
+# reads it. An empty agent (`''`) is the main agent.
+check_agent() {
+  want="$1"
+  agent="$2"
+  desc="$3"
+  cmd="$4"
+  out=$(jq -n --arg c "$cmd" --arg a "$agent" '{tool_input:{command:$c}, agent_type:$a}' | bash "$GUARD")
+  if printf '%s' "$out" | grep -q '"deny"'; then got=DENY; else got=ALLOW; fi
+  if [ "$got" = "$want" ]; then
+    pass=$((pass + 1))
+    printf 'ok    %-6s %s\n' "$got" "$desc"
+  else
+    fail=$((fail + 1))
+    printf 'FAIL  want=%s got=%s  %s\n      cmd: %s\n' "$want" "$got" "$desc" "$cmd"
+  fi
+}
+
 echo "--- rule 7: pushing to the trunk, in every spelling ---"
 check DENY  "explicit origin main"          "git push origin main"
 check DENY  "explicit with -C"              "git -C /some/repo push origin main"
@@ -73,6 +92,23 @@ BARE="$(mktemp -d)"
 git init -q -b main "$BARE"
 check DENY  "unborn HEAD on main"           "git -C $BARE push"
 rm -rf "$BARE"
+
+echo "--- rule 7b: merging a PR is the critical-reviewer's act alone ---"
+check       DENY  "main agent (no agent_type) cannot merge"          "gh pr merge 149 --merge"
+check_agent DENY  ""                                     "empty agent_type = main agent, denied"      "gh pr merge 149 --merge"
+check_agent ALLOW "tadeumendonca-skills:critical-reviewer" "the reviewer merges — it IS the gate"     "gh pr merge 149 --merge"
+check_agent ALLOW "tadeumendonca-skills:critical-reviewer" "the reviewer, behind --repo"              "gh --repo owner/repo pr merge 149 --merge"
+check_agent ALLOW "tadeumendonca-skills:critical-reviewer" "the reviewer, behind -R"                  "gh -R owner/repo pr merge 149 --squash"
+check_agent DENY  "tadeumendonca-skills:planner"          "a different subagent cannot merge"         "gh pr merge 149 --merge"
+check_agent DENY  "tadeumendonca-skills:frontend-react"   "a build specialist cannot merge"           "gh pr merge 149 --squash"
+check_agent DENY  "Explore"                               "a built-in subagent cannot merge either"   "gh pr merge 149 --merge"
+
+echo "--- rule 7b: only 'pr merge' is gated; the rest of the loop is untouched for everyone ---"
+check       ALLOW "main agent may open a PR"          "gh pr create --fill"
+check       ALLOW "main agent may view a PR"          "gh pr view 149"
+check       ALLOW "main agent may check CI"           "gh pr checks 149 --repo owner/repo"
+check       ALLOW "main agent may list PRs"           "gh pr list --state open"
+check       ALLOW "the word merge in a commit msg"    "git commit -m 'gh pr merge notes'"
 
 echo "--- rule 8: composition the permission matcher cannot decompose ---"
 check DENY  "cd compound"                   "cd /tmp && ls"
