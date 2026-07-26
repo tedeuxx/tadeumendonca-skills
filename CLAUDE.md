@@ -125,7 +125,7 @@ safe pin (no mid-development tags pollute the namespace).
 
 ## Command reference
 
-### principles/ (4) — the drift-reducer
+### principles/ (5) — the drift-reducer
 
 The harness's **principles layer**: how the owner builds software, so an agent's behavior doesn't drift. Cross-cutting (applies to every repo), distinct from the per-component how-to skills. Canonical summary in the root `PRINCIPLES.md`; deep validation via the `plan-reviewer` subagent (`agents/`); irreversible-floor enforcement via the shipped PreToolUse guard (`hooks/`).
 
@@ -133,6 +133,7 @@ The **agentic dev-loop** (methodology ADRs `docs/adr/`, design in `docs/proposal
 
 | Command | Purpose |
 |---|---|
+| `/principles/loop-engineering` | **Names the discipline the whole plugin runs — Loop Engineering / AI-DLC** (the owner's central identity term, with Claude Code & Kiro): the AI-native loop treated as the engineered artifact — its cadence, its gates-as-a-system, the harness itself. The other four principles skills are its parts. |
 | `/principles/engineering-philosophy` | The 11 principles in two tiers (non-negotiable floor + risk-calibrated judgment); the agent-led/human-residual spine |
 | `/principles/verification-and-gates` | What "done" means: the thesis, Definition of Done, the 100% functional-regression invariant, the gate tables per loop model |
 | `/principles/dev-loop` | End-to-end flow in **two models** — `gitflow-multi-env` (staging → promote → prod) and `trunk-single-env` (PR → `main` → live); how to tell which applies; failure = revert + forward fix |
