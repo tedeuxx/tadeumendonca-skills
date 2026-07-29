@@ -219,6 +219,8 @@ overloaded definition.
 3. **Re-point the `critical-reviewer` content-boundary trigger from `product-owner` → `brand-guardian`.**
    The wiring the first amendment installed — *"a diff touching content-boundary paths is **incomplete**
    until `<persona>` has returned a verdict"* — is unchanged in shape; only the persona it names moves.
+   *(The by-path half of that wiring is **superseded by amendment #4** below, which replaces it with a
+   fail-closed rule. The persona this item re-points to is unchanged.)*
    This is the load-bearing part of the atomic slice below: if the rename lands and this trigger still
    points at the (now re-scoped) `product-owner`, the content gate silently points at a persona that no
    longer holds the copy mandate, and a positioning breach ships green again — the exact failure the
