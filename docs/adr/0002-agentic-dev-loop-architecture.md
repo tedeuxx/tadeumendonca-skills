@@ -1,6 +1,6 @@
 # 0002. Agentic dev-loop architecture — per-task subagents, ADRs as the durable brain
 
-- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69)
+- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
 - **Driven by:** [ADR-0001](./0001-adopt-madr-adrs.md), `docs/proposals/agentic-dev-loop.md`
@@ -309,6 +309,47 @@ Roster: 22 → **26 defined** once ratified (four new files: `brand-guardian`, `
 **Materialized-in-`-io` is decided in the implementation slices, not here** — `product-owner` is expected
 to stay *defined-but-not-materialized in `-io`* (the `ux` precedent), and the materialized count will be
 recounted from `agents/*.md` when each slice lands, never asserted ahead of the file.
+
+## Amendment (2026-07-29, fourth) — the content trigger becomes a fail-closed rule, not a path list
+
+**What changes.** The `brand-guardian` trigger installed by the first amendment and re-pointed by the
+third — *"a diff touching content-boundary **paths** is incomplete until the persona returns a verdict"* —
+stops being expressed as a path set. The persona is unchanged, the mandate is unchanged, the wiring in
+`critical-reviewer` is unchanged. Only what the trigger tests changes:
+
+> If a diff changes **words or images a person will see** — on the product, in a crawler's card, or on any
+> external surface the work publishes to — the review is incomplete until `brand-guardian` returns a
+> verdict. The file they live in is irrelevant. A repo guide may enumerate today's content paths; that
+> list is an **aid, never the definition**.
+
+**Why.** A path enumeration **fails open**: anything unlisted reads as safe class and merges with no copy
+review at all. That is not a theoretical property — it failed twice in the consuming repo, and both times
+the miss was caught by accident rather than by the gate:
+
+- `-io`#233 — the portfolio-copy module sat outside the list, so edits to **published** copy classified as
+  safe class.
+- `-io`#202 — a generator constant held the hashtag set posted under the owner's own name, in a path
+  classified as build tooling. `brand-guardian` never ran, and the set the generator first emitted had
+  been **invented by the agent**, against the consuming repo's explicit *"do not write positioning copy
+  from memory."* It reached the owner only because that MR was boundary for an unrelated reason. Remove
+  that coincidence and agent-authored copy merges under the owner's byline with no copy review.
+
+The pattern is general and it grows: any generator, template or constant producing text bound for a public
+surface escapes a path test. The trigger has to be about **what the diff changes**, not **where**.
+
+**Why not a check.** `-io`#202 proposed a marker convention (a tagged export, a `copy/` module) so new
+files opt in by construction. Rejected as the primary mechanism, and the reason generalizes: a check can
+assert that every *listed* path still exists, catching a rename — it cannot catch **omission**, and
+omission is the failure that actually happens. No check knows about a file nobody thought to list, and a
+marker is just a list with extra steps: it fails in precisely the same place, when the author of the new
+generator does not know the marker exists. Enforcement therefore lives in the **phrasing**, which is why
+the rule is phrased to fail closed: when you cannot tell whether a string is reader-facing, it is.
+
+**Cost, accepted.** A rule is not mechanical, so it is applied by judgement and will sometimes over-trigger
+— `brand-guardian` invoked on a diff whose only string is a log message or a test fixture. That is the
+direction the error should point: a wasted advisory review is cheap, and a positioning breach on the
+owner's public byline is not. It also means this trigger cannot be tested, so unlike the rest of the
+loop's gates its health depends on the reviewer reading the rule rather than pattern-matching a path.
 
 ## Consequences
 **Good**
