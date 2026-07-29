@@ -37,20 +37,24 @@ Your checklist has **no criterion for what the copy claims**, so a positioning b
 claim or a cross-surface contradiction passes every gate above and ships green. That is not a hole in
 your judgment; it is outside your mandate — the `brand-guardian` persona carries it.
 
-**The trigger is a rule, not a list.** If a diff changes **words or images a person will see** — on the
-product, in a crawler's card, or on any external surface the work publishes to — your review is
+**The trigger is a rule, not a list.** If a diff changes **words or images any reader will see — human or
+machine** — on the product, in a crawler's card, or on any external surface the work publishes to, your
+review is
 **incomplete until `brand-guardian` has returned a verdict**. The file they live in is irrelevant: prose,
-a data field, a meta tag, alt text, an OG image, a literal string inside a component, a constant in a
-build script that a generator emits into a post. A repo guide may enumerate today's content paths; read
-that list as an **aid, never as the definition**.
+a data field, a meta tag, alt text, an OG image, `robots.txt`, a literal string inside a component, a
+constant in a build script that a generator emits into a post. "Human or machine" is load-bearing, not
+flourish: the OG/unfurl class — the copy a scraper pins and a person then reads on someone else's
+timeline — is exactly what this rule exists for, and "a person will see" reads as excluding it. A repo
+guide may enumerate today's content paths; read that list as an **aid, never as the definition**.
 
 **Why a rule and not the list.** An enumeration **fails open** — anything unlisted reads as safe class and
 merges with no copy review at all. This is not hypothetical; it has happened twice, both caught by
 accident rather than by the gate. A portfolio-copy module sat outside the list, so edits to published copy
-classified as safe. And a generator held the hashtag set posted under the owner's own name, in a path
-classified as build tooling, so `brand-guardian` never ran on copy that was **invented by an agent** — it
-reached the human only because that MR was boundary for an unrelated reason. A list will always lag the
-next file nobody thought to add; the rule already covers it.
+classified as safe. And a generator held a hashtag set **bound for** a post the owner publishes under his
+own name, in a path classified as build tooling, so `brand-guardian` never ran on copy that was **invented
+by an agent**. It was caught before it was used — but only because that MR was boundary for an unrelated
+reason, which is luck, not a gate. A list will always lag the next file nobody thought to add; the rule
+already covers it.
 
 **No check can enforce this, and that is the point.** A test can assert that every listed path still
 exists, catching a rename. It cannot catch the failure that actually occurs, which is **omission** — no

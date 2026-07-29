@@ -318,7 +318,7 @@ third — *"a diff touching content-boundary **paths** is incomplete until the p
 stops being expressed as a path set. The persona is unchanged, the mandate is unchanged, the wiring in
 `critical-reviewer` is unchanged. Only what the trigger tests changes:
 
-> If a diff changes **words or images a person will see** — on the product, in a crawler's card, or on any
+> If a diff changes **words or images any reader will see — human or machine** — on the product, in a crawler's card, or on any
 > external surface the work publishes to — the review is incomplete until `brand-guardian` returns a
 > verdict. The file they live in is irrelevant. A repo guide may enumerate today's content paths; that
 > list is an **aid, never the definition**.
@@ -329,11 +329,13 @@ the miss was caught by accident rather than by the gate:
 
 - `-io`#233 — the portfolio-copy module sat outside the list, so edits to **published** copy classified as
   safe class.
-- `-io`#202 — a generator constant held the hashtag set posted under the owner's own name, in a path
-  classified as build tooling. `brand-guardian` never ran, and the set the generator first emitted had
-  been **invented by the agent**, against the consuming repo's explicit *"do not write positioning copy
-  from memory."* It reached the owner only because that MR was boundary for an unrelated reason. Remove
-  that coincidence and agent-authored copy merges under the owner's byline with no copy review.
+- `-io`#202 — a generator constant held a hashtag set **bound for** a post scaffold the owner voices and
+  publishes under his own name, in a path classified as build tooling. `brand-guardian` never ran, and
+  the set the generator first emitted had been **invented by the agent**, against the consuming repo's
+  explicit *"do not write positioning copy from memory."* It was a **near-miss, not a breach** — the set
+  was corrected before it was ever used, and only because someone read an unrelated issue's comments and
+  noticed the owner had already stated his own. Remove that coincidence and agent-authored copy reaches
+  the owner's byline with no copy review having happened.
 
 The pattern is general and it grows: any generator, template or constant producing text bound for a public
 surface escapes a path test. The trigger has to be about **what the diff changes**, not **where**.

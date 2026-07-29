@@ -202,8 +202,8 @@ initiative. What was missing was the layer that **prepares** those decisions rat
   coherence, confidentiality, third-party naming). Exists because a positioning breach is not a DoD
   criterion, so on a presence where the words are the product it ships green. Advisory, **no write
   capability at all**, triggered from `critical-reviewer` by a **fail-closed rule, not a path list** — any
-  diff changing words or images a person will see, wherever the file lives, including copy bound for an
-  external surface (ADR-0002 amendment #4). *(This was
+  diff changing words or images any reader will see, human or machine, wherever the file lives, including
+  copy bound for an external surface (ADR-0002 amendment #4). *(This was
   `product-owner`'s mandate until amendment #3 — see below.)*
 - **`product-owner`** — re-scoped by amendment #3 to a genuine **software** product owner (user/reader
   value + feature acceptance, advisory — "product ownership stays human"). Defined-but-not-materialized
