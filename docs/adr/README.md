@@ -9,7 +9,7 @@ Practice and template: [`/workflow/adr`](../../commands/workflow/adr.md) · [`te
 | ADR | Title | Status |
 |---|---|---|
 | [0001](./0001-adopt-madr-adrs.md) | Adopt MADR Architecture Decision Records | accepted |
-| [0002](./0002-agentic-dev-loop-architecture.md) | Agentic dev-loop architecture (per-task subagents, ADRs-as-brain) | accepted · amended 2026-07-23 (`product-owner`; then `product-manager` · `analytics` · `debugger`) · **amended 2026-07-24** (amendment #3 — roster reshape: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master`; owner-ratified, implementation sequenced per #69) |
+| [0002](./0002-agentic-dev-loop-architecture.md) | Agentic dev-loop architecture (per-task subagents, ADRs-as-brain) | accepted · amended 2026-07-23 (`product-owner`; then `product-manager` · `analytics` · `debugger`) · **amended 2026-07-24** (amendment #3 — roster reshape: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master`; owner-ratified, implementation sequenced per #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger is a fail-closed rule, not a path list) |
 | [0003](./0003-mr-definition-of-done.md) | Merge Request Definition of Done | accepted |
 | [0004](./0004-autonomy-and-permission-model.md) | Autonomy & permission model (classes, tool-scoping) | accepted |
 | [0005](./0005-plugin-auto-versions-on-merge.md) | The plugin auto-versions on every merge; adoption is the consumer's opt-in | accepted |

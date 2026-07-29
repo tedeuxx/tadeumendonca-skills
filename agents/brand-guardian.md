@@ -1,6 +1,6 @@
 ---
 name: brand-guardian
-description: "Guard the positioning and cross-surface coherence of reader-facing content, in a fresh context. The content counterpart to the critical-reviewer's code gate — it reviews COPY against the owner's positioning source of truth, catching claims the engineering review is not looking for. Use on any MR that touches reader-facing content by path, and on copy destined for an external surface. Advisory: it approves, adjusts or escalates; it never edits copy and never merges."
+description: "Guard the positioning and cross-surface coherence of reader-facing content, in a fresh context. The content counterpart to the critical-reviewer's code gate — it reviews COPY against the owner's positioning source of truth, catching claims the engineering review is not looking for. Use on any MR that changes words or images a person will see — wherever in the tree they live, including a literal in a component or a constant in a build script — and on copy destined for an external surface. Advisory: it approves, adjusts or escalates; it never edits copy and never merges."
 tools: Read, Grep, Glob
 ---
 
