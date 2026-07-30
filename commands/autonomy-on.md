@@ -40,8 +40,9 @@ That is the timing. What follows is the exception path for what you *discover* m
 2. **Decide whether the slice can still finish end to end.** The invariant is not negotiable: a slice
    is merged or it is not started. If the remainder is genuinely independent, cut the slice down to
    that and merge it, and let the blocked part become its own issue. If it is not, **close the branch
-   and move on** — do not leave an unmergeable branch open. An open PR that cannot merge is the queue
-   forming, which is the thing this loop exists to prevent.
+   and move on**, noting on the issue what was already built so it is not rebuilt — do not leave an
+   unmergeable branch open. An open PR that cannot merge is the queue forming, which is the thing this
+   loop exists to prevent.
 3. Move to the next item, and surface the question at the next natural break rather than banking it
    to the end. A decision the owner could have answered an hour ago is latency you chose.
 
@@ -55,8 +56,9 @@ Follow `/principles/dev-loop`. Nothing here relaxes it:
   note the guard enforcing it may lag the rule (`scrum-master` carries the caveat).
 - Every gate green with real evidence, and the `critical-reviewer` on every PR. It merges the safe
   class and escalates the boundary class; a green CI is not a substitute for it.
-- `brand-guardian` on reader-facing copy, `editor` on long-form prose. **Since the owner stopped being
-  a second backstop on copy, these are the only lens on it** — an undispatched one now fails silently.
+- `brand-guardian` on reader-facing copy, `editor` on long-form prose. **Nothing enforces this
+  dispatch** — no check, job or hook — so an undispatched lens fails silently. Where the repo's guide
+  makes these the only review of copy, an undispatched one is the whole gate missing.
 - File adjacent debt as its own issue rather than folding it in.
 
 ## What autonomy does NOT extend to
