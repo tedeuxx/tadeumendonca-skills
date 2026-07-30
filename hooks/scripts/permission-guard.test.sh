@@ -110,6 +110,25 @@ check       ALLOW "main agent may check CI"           "gh pr checks 149 --repo o
 check       ALLOW "main agent may list PRs"           "gh pr list --state open"
 check       ALLOW "the word merge in a commit msg"    "git commit -m 'gh pr merge notes'"
 
+echo "--- rule 5c: only the owner opens work ---"
+check DENY  "gh issue create"                    "gh issue create --title x --body y"
+check DENY  "behind -R"                          "gh -R owner/repo issue create --title x"
+check DENY  "behind --repo"                      "gh --repo owner/repo issue create --title x"
+check DENY  "with --body-file"                   "gh issue create --title x --body-file /tmp/b.md"
+# No spelling is exempt, including a subagent's — an exemption the model can invoke is not a boundary.
+check_agent DENY "tadeumendonca-skills:critical-reviewer" "not even the reviewer files"  "gh issue create --title x"
+check_agent DENY "tadeumendonca-skills:scrum-master"      "not even the flow persona"     "gh issue create --title x"
+
+# Everything else about issues stays open, or the rule would block reading the board rather than
+# opening work. These are the partner cases: without them "DENY create" would pass for a rule that
+# blocked `gh issue` entirely.
+check ALLOW "reading an issue"        "gh issue view 173"
+check ALLOW "listing issues"          "gh issue list --state open"
+check ALLOW "commenting on an issue"  "gh issue comment 173 --body-file /tmp/c.md"
+check ALLOW "closing an issue"        "gh issue close 173"
+check ALLOW "labelling an issue"      "gh issue edit 173 --add-label product"
+check ALLOW "the words in a message"  "git commit -m 'gh issue create notes'"
+
 echo "--- rule 8: composition the permission matcher cannot decompose ---"
 check DENY  "cd compound"                   "cd /tmp && ls"
 check DENY  "&& chain"                      "git status && git diff"

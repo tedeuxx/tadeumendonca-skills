@@ -16,8 +16,8 @@ The ruler is the **Merge Request Definition of Done** (methodology ADR-0003; ful
 do not assume it.
 
 The hard gates, each to be confirmed:
-1. **Scope** — one thin vertical slice, end-to-end; no unrelated changes; adjacent debt filed as an Issue,
-   not fixed inline.
+1. **Scope** — one thin vertical slice, end-to-end; no unrelated changes; adjacent debt **reported in
+   your verdict**, not fixed inline — and **not filed as an Issue**. See below.
 2. **Traceability** — references its backlog Issue; if it implements a spec, the spec's acceptance criteria
    are covered by E2E user-story journeys.
 3. **Tests proportional to slice type** — unit/integration alongside code, coverage **≥85%**; a
