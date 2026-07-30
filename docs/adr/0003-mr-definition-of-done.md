@@ -47,9 +47,15 @@ file. Nobody decided that work should exist; the loop decided, and asked afterwa
 describing the product and started describing how hard the agents had looked at it.
 
 **Enforced rather than instructed.** `permission-guard` rule 5c denies `gh issue create` — every
-spelling, including the `gh api` route, with no `agent_type` exemption. Read, list, comment, label and
-close remain open. An exemption a model can invoke by asserting something about itself is not a
-boundary, so there is none.
+spelling of that command, with no `agent_type` exemption. Read, list, comment, label and close remain
+open. An exemption a model can invoke by asserting something about itself is not a boundary, so there
+is none.
+
+**With one named accepted gap:** the `gh api … POST …/issues` route is **not** matched, the same way
+ADR-0004's rule 7b books `gh api … PUT …/merges` for merging. It was matched twice and both matchers
+were wrong — one let a quoted URL through, the other blocked a commit message *about* the act. A stated
+gap describes the code; a matcher that keeps failing to be what its comment claims is the defect this
+amendment exists to remove.
 
 **The accepted cost, named here so it is not rediscovered:** a finding in a verdict is ephemeral where
 an Issue is not. On a merged PR the report has no reader afterwards, so some real findings will be

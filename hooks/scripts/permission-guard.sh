@@ -111,9 +111,16 @@ bare="$(printf '%s' "$cmd" | sed -e "s/'[^']*'/''/g" -e 's/"[^"]*"/""/g')"
 #     nobody had decided to do. The queue stopped describing the product and started describing how hard
 #     the agents had looked at it — and a drain that produces more than it consumes never ends.
 #
-#     NO ALLOWED SPELLING, deliberately. A flag or a phrase meaning "the owner asked for this" is a
-#     claim the model can make about itself, and an exemption the model can invoke is not a boundary.
-#     The owner opens the issue; the agent may still read, comment, label and close.
+#     NO ALLOWED SPELLING OF `gh issue create`, deliberately. A flag or a phrase meaning "the owner
+#     asked for this" is a claim the model can make about itself, and an exemption the model can invoke
+#     is not a boundary. The owner opens the issue; the agent may still read, comment, label and close.
+#
+#     THE `gh api` ROUTE IS A NAMED ACCEPTED GAP — `gh api --method POST …/issues` is NOT matched, the
+#     same way rule 7b books `gh api … PUT …/merges` for the higher-stakes act of merging. It was
+#     matched for two rounds and each version was wrong: reading the collapsed command let a quoted URL
+#     through; reading the raw command blocked `git commit -m "gh api …"`, a message ABOUT the act. The
+#     honest statement is the gap, not a matcher that keeps failing to be what the comment claims —
+#     which is precisely the defect this rule exists to remove.
 #
 #     Matched semantically for the same reason as 5b: `gh -R <repo> issue create` must not slip past a
 #     prefix that only knows `gh issue create`. And matched on `$bare`, AFTER quoted spans are collapsed —
@@ -122,21 +129,9 @@ bare="$(printf '%s' "$cmd" | sed -e "s/'[^']*'/''/g" -e 's/"[^"]*"/""/g')"
 if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]]*|--repo[[:space:]=]*)[^[:space:]]+)?[[:space:]]+issue[[:space:]]+create'; then
   deny "Blocked: only the owner opens work. Report the finding — in your verdict, in the PR, or to the human — and let them decide whether it becomes an issue. An agent that files it has already decided."
 fi
-# The API route to the same act. Rule 7b books its equivalent as an accepted gap; this one is matched
-# instead, because the comment above claims there is no allowed spelling and a claim the code does not
-# keep is the formality this whole rule exists to avoid.
-#
-# TWO THINGS THIS MATCHER GETS RIGHT THAT THE FIRST VERSION DID NOT, both found by review:
-#   - It reads $cmd, NOT $bare. Everywhere else the collapse of quoted spans is what stops a commit
-#     message being mistaken for the act; here the quotable argument IS the payload, so `gh api
-#     "repos/o/r/issues"` collapsed to `gh api ""` and walked straight through.
-#   - It requires a WRITE indicator. `/issues` alone denied `gh api repos/o/r/issues --paginate`, which
-#     is a listing — contradicting this rule's own comment, the dev-loop section and ADR-0003's
-#     ratified text, all three of which say reading stays open. Over-blocking a read is the same class
-#     of error as under-blocking a write: the artifact stops describing what the code does.
-if printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])gh[[:space:]]+api([[:space:]]|.)*/issues([[:space:]"'"'"']|$)' \
-   && printf '%s' "$cmd" | grep -Eq '(--method[[:space:]=]+POST|-X[[:space:]]*POST|(^|[[:space:]])-[fF][[:space:]]|--input[[:space:]=])'; then
-  deny "Blocked: only the owner opens work. Report the finding — in your verdict, in the PR, or to the human — and let them decide whether it becomes an issue. An agent that files it has already decided."
+# 6. Clearly-destructive direct cloud mutations (cloud state escapes git).
+if printf '%s' "$cmd" | grep -Eq 'aws[[:space:]]+[a-z0-9-]+[[:space:]]+(delete|terminate|deregister|destroy|remove|purge)-'; then
+  deny "Blocked: destructive direct cloud mutation. Cloud state changes through the running app (staging) or the pipeline, never via direct aws CLI."
 fi
 
 # 7. Direct push to the trunk. This IS model-agnostic, contrary to the note above:

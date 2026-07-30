@@ -122,15 +122,12 @@ check DENY  "--repo= attached"                   "gh --repo=owner/repo issue cre
 check DENY  "-R attached shorthand"              "gh -Rowner/repo issue create --title x"
 # The API route to the same act. Rule 7b books its equivalent as an accepted gap; this one is matched,
 # because 5c's own comment claims no spelling is allowed.
-check DENY  "via gh api"                         "gh api --method POST /repos/o/r/issues -f title=x"
-check DENY  "gh api, URL quoted"                 'gh api "repos/o/r/issues" -f title=x'
-check DENY  "gh api, -X POST"                    "gh api -X POST repos/o/r/issues -f title=x"
-check DENY  "gh api, -f alone implies POST"      "gh api repos/o/r/issues -f title=x"
-# READS MUST STAY OPEN. Without these the api matcher passes while denying a listing — which is what
-# the first version did, contradicting this rule's own comment and ADR-0003's ratified text.
+# The `gh api` route is a NAMED ACCEPTED GAP, as rule 7b books its equivalent for merges. These assert
+# the gap rather than leaving it undocumented — a residual nobody wrote down is indistinguishable from
+# one nobody noticed.
+check ALLOW "gh api POST is the booked gap"      "gh api --method POST /repos/o/r/issues -f title=x"
 check ALLOW "gh api listing issues"              "gh api repos/o/r/issues --paginate"
-check ALLOW "gh api reading one issue"           "gh api repos/o/r/issues/173"
-check ALLOW "gh api commenting"                  "gh api --method POST repos/o/r/issues/173/comments -f body=x"
+check ALLOW "a commit message about the act"     'git commit -m "gh api repos/o/r/issues -f title=x"'
 # No spelling is exempt, including a subagent's — an exemption the model can invoke is not a boundary.
 check_agent DENY "tadeumendonca-skills:critical-reviewer" "not even the reviewer files"  "gh issue create --title x"
 check_agent DENY "tadeumendonca-skills:scrum-master"      "not even the flow persona"     "gh issue create --title x"
