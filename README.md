@@ -12,6 +12,7 @@ The goal: transfer domain knowledge into repeatable, high-quality AI-assisted wo
 
 ## Capabilities (`commands/`)
 
+- `autonomy-on` — drain the `product` backlog end to end, deciding and merging the in-pattern class without asking, and batching what genuinely needs the owner
 - `architecture/` — reference patterns (the `fed-spa-bff` blueprint) tying the pieces together
 - `backend/` — Hono BFF on Lambda, DynamoDB, observability, OG/SEO, contract & test gates
 - `frontend/` — React + Vite SPA, Cognito auth, state/routing, design system, RUM, SEO
