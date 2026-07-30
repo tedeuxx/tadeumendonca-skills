@@ -18,12 +18,13 @@
 #     even with it, "I'll open the PR next" is not mechanically distinguishable from narration.
 #   - So it catches the common shape (work is parked and nothing disjoint was begun) and misses
 #     "promised X, did Y". That is a real gap, not an oversight.
-#   - IT CANNOT TELL "PARKED BECAUSE NOTHING WAS STARTED" FROM "PARKED BECAUSE THE BALL IS WITH A
-#     HUMAN." Those are the same state: an open PR of yours, on its branch, clean. So a turn that
-#     correctly hands a boundary-class slice to the owner and waits for a ratification comment gets
-#     blocked too — at exactly the moment the loop most wants the agent to yield. The block is bounded
-#     (one per turn, the loop guard sees to that) but it is a real cost, and it is stated here rather
-#     than discovered.
+#   - "PARKED BECAUSE NOTHING WAS STARTED" and "PARKED BECAUSE THE BALL IS WITH SOMEONE ELSE" look the
+#     same from here — an open PR of yours, on its branch, clean. The owner's call (2026-07-30) is to
+#     narrow rather than accept the false block: if anything has TOUCHED the PR since its head commit —
+#     a review, a comment, a bot — someone else has it, and the guard says nothing. That covers the
+#     case that mattered, a boundary slice waiting on a ratification comment.
+#     WHAT IT STILL MISSES: waiting on a SUBAGENT reviewer, which leaves no trace on the PR. There the
+#     block still fires. Stated rather than discovered.
 #   - An untracked file is enough to silence it permanently in a repo — a stray note or build artifact
 #     makes the tree dirty forever, and the guard never fires again there.
 #
@@ -77,6 +78,25 @@ on_open_pr="$(printf '%s' "$open_prs" | jq -r --arg b "$branch" 'map(select(.hea
 # worktree and dies on a held index.lock, a crashed git, or an fsmonitor problem.
 if ! dirty="$(git status --porcelain 2>/dev/null)"; then exit 0; fi
 [ -n "$dirty" ] && exit 0
+
+# HAS ANYONE ELSE TOUCHED IT? A review, a comment or a bot report since the head commit means the ball
+# is not here — waiting is then the correct thing to be doing, and interrupting it is the false block
+# this narrowing exists to remove (owner decision, 2026-07-30).
+#
+# Compared against the HEAD COMMIT's date, not the PR's: a comment from before the last push was about
+# code that no longer exists, and treating it as current would silence the guard for the rest of the
+# PR's life.
+pr_number="$(printf '%s' "$open_prs" | jq -r --arg b "$branch" 'map(select(.headRefName == $b)) | .[0].number // empty' 2>/dev/null || true)"
+if [ -n "$pr_number" ]; then
+  activity="$(gh pr view "$pr_number" --json comments,reviews,commits \
+    -q '[(.comments[]?.createdAt), (.reviews[]?.submittedAt)] as $t
+         | (.commits | last | .committedDate) as $head
+         | [$t[] | select(. > $head)] | length' 2>/dev/null || true)"
+  case "$activity" in
+    ''|0) ;;                 # nothing since the head commit, or the answer was unavailable — carry on.
+    *) exit 0 ;;             # someone else has it.
+  esac
+fi
 
 listing="$(printf '%s' "$open_prs" | jq -r '.[] | "#\(.number) \(.title)"' 2>/dev/null | tr '\n' ' ' || true)"
 

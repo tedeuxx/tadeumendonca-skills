@@ -23,10 +23,15 @@ pass=0
 fail=0
 
 # $1 = JSON that `gh pr list` prints.
+# $2 = what `gh pr view` prints for the activity count — the number of comments/reviews SINCE the head
+#      commit. Defaults to 0 (nobody else has touched it). Empty string simulates the call failing.
 stub_gh() {
   cat > "$STUBDIR/gh" <<STUB
 #!/usr/bin/env bash
-printf '%s' '$1'
+case "\$*" in
+  *"pr view"*) printf '%s' '${2-0}' ;;
+  *)           printf '%s' '$1' ;;
+esac
 STUB
   chmod +x "$STUBDIR/gh"
   PATH="$STUBDIR:$REAL_PATH"
@@ -89,6 +94,22 @@ check ALLOW "no open PR of mine" '{}'
 # not covered by the "no git" case.
 stub_gh "$PARKED"; stub_git "feat/x" "" "fail"
 check ALLOW "git status FAILS while rev-parse works — cannot observe is not clean" '{}'
+
+echo "--- the ball is with someone else: waiting is correct, so say nothing ---"
+# The owner's narrowing (2026-07-30). Without it, a turn that correctly hands a boundary slice to the
+# owner and waits for a ratification comment gets blocked — the guard interrupting exactly the yielding
+# it exists to encourage.
+stub_gh "$PARKED" "2"; stub_git "feat/x" ""
+check ALLOW "a comment or review landed since the head commit" '{}'
+
+# The partner case, or the one above passes for a guard that never blocks. Same state, nothing since
+# the head commit.
+stub_gh "$PARKED" "0"; stub_git "feat/x" ""
+check BLOCK "nothing since the head commit — the ball is still here" '{}'
+
+# An unavailable answer must not silence the guard: that would make every gh hiccup an exemption.
+stub_gh "$PARKED" ""; stub_git "feat/x" ""
+check BLOCK "the activity count is unavailable — absence of an answer is not an answer" '{}'
 
 echo "--- fail open, every way it can fail ---"
 stub_gh "$PARKED"; stub_git "" ""
