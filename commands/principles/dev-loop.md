@@ -69,7 +69,7 @@ Yes → it goes first, and the blocking relationship is stated on the issue. No 
 roadmap / PLAN.md
    │  plan-first; ask only on architecture / contract / irreversible
    ▼
-thin vertical slice (WIP = 1)  ──  adjacent mess in the path? work around + file the debt
+thin slice, no file overlap  ──  adjacent mess in the path? work around + file the debt
    │
    ▼
 develop locally  ──  security & resilience by-design
@@ -104,7 +104,7 @@ PRODUCTION + tag / Release  ──  post-deploy smoke + observability
 roadmap / PLAN.md
    │  plan-first; ask only on architecture / contract / irreversible
    ▼
-thin vertical slice (WIP = 1)  ──  adjacent mess in the path? work around + file the debt
+thin slice, no file overlap  ──  adjacent mess in the path? work around + file the debt
    │
    ▼
 develop locally  ──  security & resilience by-design

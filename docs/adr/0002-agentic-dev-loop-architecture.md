@@ -1,6 +1,6 @@
 # 0002. Agentic dev-loop architecture — per-task subagents, ADRs as the durable brain
 
-- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202)
+- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
 - **Driven by:** [ADR-0001](./0001-adopt-madr-adrs.md), `docs/proposals/agentic-dev-loop.md`
@@ -372,6 +372,59 @@ mandatory disclosure on every MR (*report `brand-guardian`'s verdict, or state p
 run*), so under-application leaves a trace in the review record and is auditable after the fact. That
 disclosure is the only instrument this rule has, which makes it load-bearing rather than a courtesy —
 a review that silently omits it removes the one way anyone could tell the gate had stopped firing.
+
+## Amendment (2026-07-30, fifth) — `product-manager` gets a trigger, and the reviewer's output gets a budget
+
+Two changes to the roster's wiring, from one session's evidence: **17 issues closed and not one from the
+owner's product queue**, which stayed frozen for four days while the agent drained defects it had found
+itself.
+
+### 1. `product-manager` gets a trigger — discharging a consequence this ADR booked about itself
+
+Amendment #2 recorded the debt in its own accepted costs: *"`product-manager` and `analytics` do not
+[have a trigger] … By this design's own line — a mandate with no trigger is a document — two of the three
+ship as documents. Tracked in #68."*
+
+The session made that concrete. `critical-reviewer` was invoked **15 times**, `brand-guardian` **7**,
+`product-manager` **zero** — while it was enabled the whole time and the order of work was decided
+ad hoc.
+
+The trigger is a **condition, not a frequency**, and it lives in `/principles/dev-loop`:
+
+> Starting a slice that is **not** the top of the stated order requires `product-manager` to have
+> returned a new order, or the session records that the order is unchanged.
+
+**#68 offered a different host** — *"give the two orphans a host — `planner` for `product-manager`"* —
+and that option is not taken. `planner` fires when a slice is already being designed, which is after the
+order has been chosen; hosting the trigger there would fire it too late to change anything. The dev-loop
+skill is read at the moment work is picked, which is the moment the trigger is about. #68 stays open for
+`analytics`, whose orphaned trigger is untouched by this.
+
+### 2. The reviewer's output gets a round budget — the same class as #2's escalation duty
+
+From the **fourth** round on one slice, `critical-reviewer`'s verdict is accompanied by a **decision
+request**: rounds consumed, what remains, and an explicit choice — push through, park, or narrow.
+
+Recorded here rather than only in the persona file, on the precedent this ADR set for a strictly smaller
+change: the `debugger` escalation duty above was recorded because it *widened when review blocks*. This
+changes **what the reviewer's output is**, which is more than that.
+
+**The counter cannot be derived by the persona it constrains**, and the first draft of this rule missed
+it: `critical-reviewer` runs in a fresh context that never watched the work, so there is no count to
+read, and reconstructing one from prior comments is precisely the diagnosis it is told to refuse. The
+orchestrator supplies the number; when it is absent the reviewer says so rather than guessing. A rule
+that would have produced a fabricated number, in the file that argues against overstating evidence, is
+the defect the rule exists to prevent.
+
+**Accepted cost:** a slice occasionally parks with a real defect unfixed. Strictly better than a queue
+parking instead — which is what the session measured.
+
+### What is NOT decided here
+
+The **WIP bound moving from a count to file overlap** ships in the same batch but is not a roster change;
+it belongs to the principles layer and to the `wip-guard` hook. It is noted because two personas —
+`plan-reviewer` and `scrum-master` — act on it, and both were updated in the same batch. The hook is
+still count-based and knowingly stricter than the rule until it lands.
 
 ## Consequences
 **Good**
