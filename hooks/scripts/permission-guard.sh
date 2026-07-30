@@ -125,7 +125,17 @@ fi
 # The API route to the same act. Rule 7b books its equivalent as an accepted gap; this one is matched
 # instead, because the comment above claims there is no allowed spelling and a claim the code does not
 # keep is the formality this whole rule exists to avoid.
-if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh[[:space:]]+api([[:space:]]+[^[:space:]]+)*[[:space:]]+[^[:space:]]*/issues([[:space:]]|$)'; then
+#
+# TWO THINGS THIS MATCHER GETS RIGHT THAT THE FIRST VERSION DID NOT, both found by review:
+#   - It reads $cmd, NOT $bare. Everywhere else the collapse of quoted spans is what stops a commit
+#     message being mistaken for the act; here the quotable argument IS the payload, so `gh api
+#     "repos/o/r/issues"` collapsed to `gh api ""` and walked straight through.
+#   - It requires a WRITE indicator. `/issues` alone denied `gh api repos/o/r/issues --paginate`, which
+#     is a listing — contradicting this rule's own comment, the dev-loop section and ADR-0003's
+#     ratified text, all three of which say reading stays open. Over-blocking a read is the same class
+#     of error as under-blocking a write: the artifact stops describing what the code does.
+if printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])gh[[:space:]]+api([[:space:]]|.)*/issues([[:space:]"'"'"']|$)' \
+   && printf '%s' "$cmd" | grep -Eq '(--method[[:space:]=]+POST|-X[[:space:]]*POST|(^|[[:space:]])-[fF][[:space:]]|--input[[:space:]=])'; then
   deny "Blocked: only the owner opens work. Report the finding — in your verdict, in the PR, or to the human — and let them decide whether it becomes an issue. An agent that files it has already decided."
 fi
 

@@ -123,6 +123,14 @@ check DENY  "-R attached shorthand"              "gh -Rowner/repo issue create -
 # The API route to the same act. Rule 7b books its equivalent as an accepted gap; this one is matched,
 # because 5c's own comment claims no spelling is allowed.
 check DENY  "via gh api"                         "gh api --method POST /repos/o/r/issues -f title=x"
+check DENY  "gh api, URL quoted"                 'gh api "repos/o/r/issues" -f title=x'
+check DENY  "gh api, -X POST"                    "gh api -X POST repos/o/r/issues -f title=x"
+check DENY  "gh api, -f alone implies POST"      "gh api repos/o/r/issues -f title=x"
+# READS MUST STAY OPEN. Without these the api matcher passes while denying a listing — which is what
+# the first version did, contradicting this rule's own comment and ADR-0003's ratified text.
+check ALLOW "gh api listing issues"              "gh api repos/o/r/issues --paginate"
+check ALLOW "gh api reading one issue"           "gh api repos/o/r/issues/173"
+check ALLOW "gh api commenting"                  "gh api --method POST repos/o/r/issues/173/comments -f body=x"
 # No spelling is exempt, including a subagent's — an exemption the model can invoke is not a boundary.
 check_agent DENY "tadeumendonca-skills:critical-reviewer" "not even the reviewer files"  "gh issue create --title x"
 check_agent DENY "tadeumendonca-skills:scrum-master"      "not even the flow persona"     "gh issue create --title x"
