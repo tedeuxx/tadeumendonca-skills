@@ -35,10 +35,12 @@ context="Open pull requests in this repo ($count):
 
 $listing
 
-The loop runs at WIP = 1: drain these before starting a new slice. For each, the
-resolution is merge it, or close it with a reason — leaving it open is neither.
-A bot's dependency PR still counts as something to drain, though it does not block
-opening a slice of your own."
+Drain these: for each, the resolution is merge it, or close it with a reason —
+leaving it open is neither. They do NOT block a new slice by count: a slice that
+touches none of their files may start now, and \`wip-guard\` denies only on file
+overlap, naming the PR and the files. What rots is a PR sitting behind one that
+edits the same lines, so the one to finish first is whichever this next slice
+would collide with. A bot's dependency PR counts as something to drain."
 
 jq -n --arg c "$context" '{
   hookSpecificOutput: {

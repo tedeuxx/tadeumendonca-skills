@@ -423,8 +423,9 @@ parking instead — which is what the session measured.
 
 The **WIP bound moving from a count to file overlap** ships in the same batch but is not a roster change;
 it belongs to the principles layer and to the `wip-guard` hook. It is noted because two personas —
-`plan-reviewer` and `scrum-master` — act on it, and both were updated in the same batch. The hook is
-still count-based and knowingly stricter than the rule until it lands.
+`plan-reviewer` and `scrum-master` — act on it, and both were updated in the same batch. *(The `wip-guard`
+hook shipped its overlap implementation immediately after, in `-skills`#88, closing the window in which it
+was knowingly stricter than the rule.)*
 
 ## Consequences
 **Good**
