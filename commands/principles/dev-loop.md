@@ -19,9 +19,40 @@ The loop has **two shapes**. They share every invariant below and differ only in
 ### Intake — where work is born
 Work is **driven by the roadmap (`PLAN.md`)**, the source of what gets built next. A tracked issue is **optional** — created only when it helps decompose the work — not a hard prerequisite for starting.
 
+### Opening a session — decisions before work
+
+**Collect the pending owner decisions across the whole queue and ask them as a batch, before choosing what to build.** One question at a time, in one sitting.
+
+Batching is the point. Asking a decision when a slice hits it produces one stall per slice; asking them up front produces one conversation and unblocks everything at once. Same questions, completely different cost to the person answering — and the owner's attention is the scarce input this whole loop is calibrated around.
+
+Then **`product-manager` states the order**, and the session works it. Not "invoke it more often" — the condition is precise:
+
+> Starting a slice that is **not** the top of the stated order requires `product-manager` to have returned a new order, or the session records that the order is unchanged.
+
+That fires exactly when the risk is real — picking work — and it produces the artifact that makes drift visible: a stated order that a later choice can be checked against.
+
+**A session with no pending decisions says so.** A step that silently did nothing must not read like a step that ran.
+
+*Why this is an invariant and not advice:* every other persona has a trigger. `critical-reviewer` runs on every MR; `brand-guardian` and `editor` hang off it; `plan-reviewer` fires on a plan. `product-manager` had none, and a mandate with no trigger is a document, not a gate — which is this loop's own sentence, about a different persona, that this rule finally applies to the one it was written next to.
+
+### What gets worked next — discovered vs requested
+
+**Work you discover only preempts work the owner asked for when it BLOCKS it.**
+
+File everything, always — a defect found in context, with the evidence in hand, is worth recording whether or not it is worked. That part is unconditional. This rule is only about **what gets built next**.
+
+The test is checkable, not a judgment call:
+
+> Does the requested work ship **wrong**, or **not at all**, without this?
+
+Yes → it goes first, and the blocking relationship is stated on the issue. No → it queues like everything else and `product-manager` orders it.
+
+*Why the rule is needed:* discovered work is cheap to justify — found in context, evidence attached, usually safe class, merges without the owner. Requested work needs decisions, designs, sometimes the owner's own words. So the loop's **autonomy gradient sorts the queue by what can flow without the human**, which is exactly backwards from what a backlog is for. That is not a lapse in judgment; it is the incentive the other rules create, and it needs a counterweight written down.
+
 ### Inner loop (per slice)
 1. **Plan-first**, then implement. Ask only on architecture / contracts / irreversible calls; decide autonomously on in-pattern implementation.
-2. **One thin vertical slice at a time** (WIP = 1), end-to-end and reviewable. Keep it surgical; file any adjacent debt instead of refactoring it inline.
+2. **One thin vertical slice at a time**, end-to-end and reviewable. Keep it surgical; file any adjacent debt instead of refactoring it inline.
+   **WIP is bounded by file OVERLAP, not by a count.** A second PR may open freely if its changed files do not intersect an open PR's; it may not if they do. The goal was never *one at a time* — it was avoiding stacked PRs that rot into conflicts, and counting is a bad proxy for that: it blocks disjoint work, which is the common case, while doing nothing about the actual risk. Pair it with the half that prevents rot: **integrate `main` before requesting review** if `main` has moved.
 3. **Develop locally**, against whatever backing services the repo actually has — see `/principles/permissions-and-environments` for what "locally" means per model.
 4. **Validate locally**: run the repo's **functional regression** and self-verify the gates (lint, typecheck, coverage). Report with the real output, never a claim.
 5. **Run `/code-review`** before opening the PR.
