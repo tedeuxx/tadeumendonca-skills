@@ -115,6 +115,14 @@ check DENY  "gh issue create"                    "gh issue create --title x --bo
 check DENY  "behind -R"                          "gh -R owner/repo issue create --title x"
 check DENY  "behind --repo"                      "gh --repo owner/repo issue create --title x"
 check DENY  "with --body-file"                   "gh issue create --title x --body-file /tmp/b.md"
+# pflag accepts an attached value in both spellings, and `gh` really parses these — verified against
+# the live CLI, not assumed. The first version of the rule required a space and both slipped past, so
+# the suite certified coverage it did not have.
+check DENY  "--repo= attached"                   "gh --repo=owner/repo issue create --title x"
+check DENY  "-R attached shorthand"              "gh -Rowner/repo issue create --title x"
+# The API route to the same act. Rule 7b books its equivalent as an accepted gap; this one is matched,
+# because 5c's own comment claims no spelling is allowed.
+check DENY  "via gh api"                         "gh api --method POST /repos/o/r/issues -f title=x"
 # No spelling is exempt, including a subagent's — an exemption the model can invoke is not a boundary.
 check_agent DENY "tadeumendonca-skills:critical-reviewer" "not even the reviewer files"  "gh issue create --title x"
 check_agent DENY "tadeumendonca-skills:scrum-master"      "not even the flow persona"     "gh issue create --title x"

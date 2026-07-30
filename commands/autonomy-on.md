@@ -59,7 +59,8 @@ Follow `/principles/dev-loop`. Nothing here relaxes it:
 - `brand-guardian` on reader-facing copy, `editor` on long-form prose. **Nothing enforces this
   dispatch** — no check, job or hook — so an undispatched lens fails silently. Where the repo's guide
   makes these the only review of copy, an undispatched one is the whole gate missing.
-- File adjacent debt as its own issue rather than folding it in.
+- Adjacent debt is **named in the report**, never filed — only the owner opens work. See
+  `/principles/dev-loop`, *Review does not open work*.
 
 ## What autonomy does NOT extend to
 

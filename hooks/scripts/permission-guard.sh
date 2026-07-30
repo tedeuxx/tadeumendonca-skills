@@ -119,7 +119,13 @@ bare="$(printf '%s' "$cmd" | sed -e "s/'[^']*'/''/g" -e 's/"[^"]*"/""/g')"
 #     prefix that only knows `gh issue create`. And matched on `$bare`, AFTER quoted spans are collapsed —
 #     the suite caught the first version denying `git commit -m 'gh issue create notes'`, which is a
 #     message about the act, not the act.
-if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R|--repo)[[:space:]]+[^[:space:]]+)?[[:space:]]+issue[[:space:]]+create'; then
+if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]]*|--repo[[:space:]=]*)[^[:space:]]+)?[[:space:]]+issue[[:space:]]+create'; then
+  deny "Blocked: only the owner opens work. Report the finding — in your verdict, in the PR, or to the human — and let them decide whether it becomes an issue. An agent that files it has already decided."
+fi
+# The API route to the same act. Rule 7b books its equivalent as an accepted gap; this one is matched
+# instead, because the comment above claims there is no allowed spelling and a claim the code does not
+# keep is the formality this whole rule exists to avoid.
+if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh[[:space:]]+api([[:space:]]+[^[:space:]]+)*[[:space:]]+[^[:space:]]*/issues([[:space:]]|$)'; then
   deny "Blocked: only the owner opens work. Report the finding — in your verdict, in the PR, or to the human — and let them decide whether it becomes an issue. An agent that files it has already decided."
 fi
 
