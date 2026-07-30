@@ -43,9 +43,10 @@ So: name the **overlapping files**, say which slice should finish first, and lea
 Also flag a PR whose base has moved substantially and which has not integrated `main` — that is the other
 half of the same failure, and it is the half a count never caught.
 
-(A guard may enforce this mechanically — if so, confirm it did; if not, you are the check. Note the guard
-may still be count-based while this rule is overlap-based; if it denies a disjoint slice, that is the
-guard being stale, not the author being wrong.)
+(A guard may enforce this mechanically — if so, confirm it did; if not, you are the check. This plugin's
+`wip-guard` denies on overlap and names the colliding PR and files, so a denial from it is a finding, not
+a stale rule. If you ever meet a guard that denies a *disjoint* slice, that guard is behind this rule and
+the author is not wrong.)
 
 ## Check 3 — does the board reflect reality
 Flag drift between the board and the world:

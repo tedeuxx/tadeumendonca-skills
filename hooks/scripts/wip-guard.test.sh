@@ -27,29 +27,43 @@ fail=0
 
 # Writes a fake `gh` that dispatches on its arguments:
 #   $1 — what `pr list` prints (the open PRs)
-#   $2 — what `pr view <n> --json files` prints (one path per line), for EVERY pr
+#   $2 — what `pr view 65 --json files` prints (one path per line)
+#   $3 — what `pr view 45` prints; defaults to $2 when omitted
+#
+# PER-PR dispatch is load-bearing, not tidiness. With one canned answer for every PR, a guard that read
+# only `.[0]` — or broke out of the loop on the first collision — passed every assertion in this file,
+# because both PRs collided identically. Giving #65 and #45 different lists is what makes the loop
+# observable at all, and it is what lets the disjoint-PR-absent assertion exist.
 stub_gh() {
   cat > "$STUBDIR/gh" <<STUB
 #!/usr/bin/env bash
 args="\$*"
 case "\$args" in
-  *"repo view"*)  printf 'main' ;;
-  *"pr view"*)    printf '%s' '$2' ;;
-  *"pr list"*)    printf '%s' '$1' ;;
-  *)              exit 0 ;;
+  *"repo view"*)   printf 'main' ;;
+  *"pr view 45"*)  printf '%s' '${3:-$2}' ;;
+  *"pr view"*)     printf '%s' '$2' ;;
+  *"pr list"*)     printf '%s' '$1' ;;
+  *)               exit 0 ;;
 esac
 STUB
   chmod +x "$STUBDIR/gh"
   PATH="$STUBDIR:$REAL_PATH"
 }
 
-# Writes a fake `git` whose `diff --name-only` prints $1 — the files THIS branch brings.
+# Writes a fake `git`:
+#   $1 — what `diff --name-only` prints (the files THIS branch brings)
+#   $2 — what `merge-base` prints; defaults to a sha
+#
+# merge-base is parameterised because its fail-open branch was previously unreachable: the stub always
+# returned a sha, so the guard exited on the empty DIFF instead and `[ -z "$merge_base" ]` was never
+# executed. That is the likeliest real failure of the four — `origin/main` not fetched in a fresh clone,
+# a detached worktree, a remote not named origin — so it is the one that most needed asserting.
 stub_git() {
   cat > "$STUBDIR/git" <<STUB
 #!/usr/bin/env bash
 args="\$*"
 case "\$args" in
-  *"merge-base"*) printf 'abc1234' ;;
+  *"merge-base"*) printf '%s' '${2-abc1234}' ;;
   *"diff"*)       printf '%s' '$1' ;;
   *)              exit 0 ;;
 esac
@@ -78,6 +92,10 @@ NONE='[]'
 
 THEIRS='docs/adr/README.md
 CLAUDE.md'
+# A second PR whose files are disjoint from both THEIRS and MINE_OVERLAPS — so a denial that names it is
+# naming a PR that does not collide.
+THEIRS_OTHER='iac/frontend.tf
+iac/variables.tf'
 MINE_DISJOINT='hooks/scripts/wip-guard.sh
 hooks/scripts/wip-guard.test.sh'
 MINE_OVERLAPS='CLAUDE.md
@@ -94,12 +112,13 @@ stub_gh "$ONE" "$THEIRS"
 stub_git "$MINE_OVERLAPS"
 check DENY  "one open PR sharing a file"     "gh pr create --title x --body y"
 check DENY  "overlap, behind --repo"         "gh --repo owner/repo pr create --title x"
-stub_gh "$TWO" "$THEIRS"
-check DENY  "two open PRs, one overlaps"     "gh pr create --fill"
+# #65 overlaps, #45 does not. This is the case that exercises the LOOP — a guard reading only the first
+# PR, or breaking on the first hit, cannot be distinguished from a correct one when both collide.
+stub_gh "$TWO" "$THEIRS" "$THEIRS_OTHER"
+stub_git "$MINE_OVERLAPS"
+check DENY  "two open PRs, only one overlaps" "gh pr create --fill"
 
 echo "--- the denial names what to look at, or the author works around it ---"
-stub_gh "$ONE" "$THEIRS"
-stub_git "$MINE_OVERLAPS"
 out=$(printf '%s' "gh pr create --title x" | jq -R '{tool_input:{command:.}}' | bash "$GUARD")
 if printf '%s' "$out" | grep -q 'CLAUDE.md'; then
   pass=$((pass + 1)); printf 'ok    %-6s %s\n' "NAMES" "the overlapping FILE is named"
@@ -110,6 +129,24 @@ if printf '%s' "$out" | grep -q '#65'; then
   pass=$((pass + 1)); printf 'ok    %-6s %s\n' "NAMES" "the colliding PR is named"
 else
   fail=$((fail + 1)); printf 'FAIL  the denial does not name the colliding PR\n'
+fi
+# The other half of naming: a PR that does NOT collide must not appear. Without this, a guard that
+# listed every open PR on any collision would pass the two assertions above and send the author to read
+# a diff that has nothing to do with the problem.
+if printf '%s' "$out" | grep -q '#45'; then
+  fail=$((fail + 1)); printf 'FAIL  the denial names #45, which does not overlap\n'
+else
+  pass=$((pass + 1)); printf 'ok    %-6s %s\n' "NAMES" "the NON-colliding PR is not named"
+fi
+
+# And the accumulator holds MORE than one entry — the reason it is a string rather than a boolean.
+stub_gh "$TWO" "$THEIRS" "$MINE_OVERLAPS"
+stub_git "$MINE_OVERLAPS"
+out=$(printf '%s' "gh pr create --title x" | jq -R '{tool_input:{command:.}}' | bash "$GUARD")
+if printf '%s' "$out" | grep -q '#65' && printf '%s' "$out" | grep -q '#45'; then
+  pass=$((pass + 1)); printf 'ok    %-6s %s\n' "NAMES" "BOTH colliding PRs are named"
+else
+  fail=$((fail + 1)); printf 'FAIL  the denial names only one of two colliding PRs\n'
 fi
 
 echo "--- an empty queue lets the slice open ---"
@@ -142,6 +179,11 @@ check ALLOW "the open PR's files unreadable" "gh pr create --title x"
 stub_gh "$ONE" "$THEIRS"
 stub_git ""
 check ALLOW "this branch's diff unreadable"  "gh pr create --title x"
+# The merge-base branch, which was previously unreachable: with a sha always returned, the guard exited
+# on the empty diff instead and this line never ran. It is the likeliest real failure of the four —
+# origin/main not fetched, a detached worktree, a remote not named origin.
+stub_git "$MINE_OVERLAPS" ""
+check ALLOW "no merge-base with the base"    "gh pr create --title x"
 # The "gh is not installed" branch is deliberately NOT tested here. Exercising it means
 # removing gh from PATH, and any PATH narrow enough to hide gh also hides bash, jq and
 # grep — the harness dies and the case "passes" for the wrong reason, which is how it
