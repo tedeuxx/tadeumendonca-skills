@@ -77,6 +77,12 @@ on a description reads as a stall.
 If there is genuinely nothing disjoint to start, say so. *"Waiting on X, nothing disjoint in the
 queue"* is honest status; silence is indistinguishable from being stuck.
 
+**The `stop-guard` hook will ask once anyway, and that is not a contradiction.** It cannot read the
+reply, so it cannot tell that ending was the sanctioned one — it sees only that a PR of yours is open,
+you are on its branch, and the tree is clean. Answer the block by naming what is genuinely blocked, and
+the re-entry ends the turn. One extra continuation is the price of a mechanism that does not depend on
+anyone remembering.
+
 ## Reporting
 
 Report **state**, not narration: how many `product` issues are open, how many merged this session,

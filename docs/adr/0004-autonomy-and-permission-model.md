@@ -63,8 +63,12 @@ set by the harness, not the prompt, so the model cannot forge it. The guard now 
 unless `agent_type` ends in `:critical-reviewer`.** The main agent and every other subagent are denied;
 the reviewer — the one context that *is* the merge gate — is allowed. "Did the reviewer run?" becomes a
 precondition satisfiable only by actually routing the merge through the reviewer, matching how `wip-guard`
-and the trunk-push block already work. Ships via the marketplace (`autoUpdate` on the consumer), no manual
-step.
+and the trunk-push block already work. Ships via the marketplace (`autoUpdate` on the consumer), ~~no
+manual step~~ — **amended 2026-07-30**: that clause is false and this ADR's own premise now depends on
+knowing it. `autoUpdate` did not carry `wip-guard`'s rewrite to a live session: the plugin was released
+as `0.4.18` and the session kept running `0.4.15` for the rest of the day, so a guard behaved by a rule
+that had already been fixed. **A fix ships to the marketplace; it reaches a session when the installed
+copy updates, and nothing said when that was overdue.** `version-lag.sh` (SessionStart) now says it.
 
 **Consequence — the merge flow changes, deliberately.** The main agent can no longer merge, even with the
 human's go. A human-approved **boundary**-class merge is now performed by **re-invoking the

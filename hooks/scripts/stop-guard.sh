@@ -18,6 +18,14 @@
 #     even with it, "I'll open the PR next" is not mechanically distinguishable from narration.
 #   - So it catches the common shape (work is parked and nothing disjoint was begun) and misses
 #     "promised X, did Y". That is a real gap, not an oversight.
+#   - IT CANNOT TELL "PARKED BECAUSE NOTHING WAS STARTED" FROM "PARKED BECAUSE THE BALL IS WITH A
+#     HUMAN." Those are the same state: an open PR of yours, on its branch, clean. So a turn that
+#     correctly hands a boundary-class slice to the owner and waits for a ratification comment gets
+#     blocked too — at exactly the moment the loop most wants the agent to yield. The block is bounded
+#     (one per turn, the loop guard sees to that) but it is a real cost, and it is stated here rather
+#     than discovered.
+#   - An untracked file is enough to silence it permanently in a repo — a stray note or build artifact
+#     makes the tree dirty forever, and the guard never fires again there.
 #
 # Contract: receives the Stop JSON on stdin. Prints a block decision and exits 0 to refuse the stop;
 # exits 0 silently to allow it. Fails OPEN on every error — no gh, no auth, no network, not a repo,
@@ -62,7 +70,12 @@ branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
 on_open_pr="$(printf '%s' "$open_prs" | jq -r --arg b "$branch" 'map(select(.headRefName == $b)) | length' 2>/dev/null || echo 0)"
 [ "$on_open_pr" = "0" ] && exit 0
 
-dirty="$(git status --porcelain 2>/dev/null || true)"
+# `|| true` here would be the bug the rest of this file is written against: a FAILING `git status`
+# produces no output, an empty `dirty` reads as "clean tree", and the guard BLOCKS on a state it could
+# not observe. That is fail-closed in a file whose contract is fail-open. `rev-parse` succeeding while
+# `status` fails is realistic rather than theoretical — `rev-parse` reads .git/HEAD, `status` walks the
+# worktree and dies on a held index.lock, a crashed git, or an fsmonitor problem.
+if ! dirty="$(git status --porcelain 2>/dev/null)"; then exit 0; fi
 [ -n "$dirty" ] && exit 0
 
 listing="$(printf '%s' "$open_prs" | jq -r '.[] | "#\(.number) \(.title)"' 2>/dev/null | tr '\n' ' ' || true)"

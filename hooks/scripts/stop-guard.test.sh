@@ -32,14 +32,16 @@ STUB
   PATH="$STUBDIR:$REAL_PATH"
 }
 
-# $1 = current branch name, $2 = `git status --porcelain` output (empty means clean).
+# $1 = current branch name, $2 = `git status --porcelain` output (empty means clean),
+# $3 = non-empty makes `status` FAIL (exit 128, no output) while `rev-parse` still succeeds. That
+# asymmetry is the realistic one: rev-parse reads .git/HEAD, status walks the worktree.
 stub_git() {
   cat > "$STUBDIR/git" <<STUB
 #!/usr/bin/env bash
 args="\$*"
 case "\$args" in
   *"rev-parse --abbrev-ref"*) printf '%s' '$1' ;;
-  *"status --porcelain"*)     printf '%s' '${2-}' ;;
+  *"status --porcelain"*)     [ -n '${3-}' ] && exit 128; printf '%s' '${2-}' ;;
   *) exit 1 ;;
 esac
 STUB
@@ -81,6 +83,12 @@ check ALLOW "on the branch but the tree is dirty — mid-work" '{}'
 
 stub_gh '[]'; stub_git "feat/x" ""
 check ALLOW "no open PR of mine" '{}'
+
+# The fail-CLOSED path the first version had: a failing `status` produced no output, empty read as
+# "clean", and the guard blocked on a state it could not observe. rev-parse still works, so this is
+# not covered by the "no git" case.
+stub_gh "$PARKED"; stub_git "feat/x" "" "fail"
+check ALLOW "git status FAILS while rev-parse works — cannot observe is not clean" '{}'
 
 echo "--- fail open, every way it can fail ---"
 stub_gh "$PARKED"; stub_git "" ""

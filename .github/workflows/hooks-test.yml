@@ -23,11 +23,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run the permission-guard suite
-        run: bash hooks/scripts/permission-guard.test.sh
-
-      - name: Run the wip-guard suite
-        run: bash hooks/scripts/wip-guard.test.sh
-
-      - name: Assert every hook script is committed executable
-        run: bash hooks/scripts/hooks-executable.test.sh
+      # DISCOVERED, not enumerated. This step listed three suites by name and two new ones landed
+      # beside it unnoticed: the job passed in 7s having run none of the new assertions, while
+      # `hooks-executable.test.sh` — which discovers from hooks.json — picked the same scripts up
+      # automatically. An enumeration FAILS OPEN, which is the argument the consuming repo's guide
+      # makes about its own boundary list, committed here in a workflow.
+      #
+      # The `::notice::` names which suites ran, because a gate that matched nothing must not read
+      # like one that passed — and with discovery, "which ones" is no longer knowable from the file.
+      - name: Run every hook suite
+        run: |
+          set -euo pipefail
+          found=0
+          for suite in hooks/scripts/*.test.sh; do
+            [ -e "$suite" ] || continue
+            found=$((found + 1))
+            echo "── $suite"
+            bash "$suite"
+          done
+          if [ "$found" -eq 0 ]; then
+            echo "::error::no hook suite matched hooks/scripts/*.test.sh — discovery is broken, not clean"
+            exit 1
+          fi
+          echo "::notice::the hook gate ran $found suite(s): $(echo hooks/scripts/*.test.sh | tr ' ' ',')" 
