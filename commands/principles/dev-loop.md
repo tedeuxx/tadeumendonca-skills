@@ -58,6 +58,10 @@ merely asking for agreement afterwards. Findings are **named** — in a verdict,
 **This is enforced, not asked.** `permission-guard` rule 5c denies `gh issue create` with no exempt
 spelling. Reading, listing, commenting, labelling and closing stay open; only opening is blocked.
 
+**With one named accepted gap:** the `gh api … POST …/issues` route is not matched, the same way
+ADR-0004's rule 7b books the equivalent for merging. It is stated rather than quietly true — a residual
+nobody wrote down is indistinguishable from one nobody noticed.
+
 **Why, measured rather than assumed.** In one session the queue grew by 19 issues net, and roughly 13
 were born inside a *review of something else* — because the reviewer's own Definition of Done said
 "adjacent debt filed as an Issue". Every finding became work nobody had decided to do. The queue stopped

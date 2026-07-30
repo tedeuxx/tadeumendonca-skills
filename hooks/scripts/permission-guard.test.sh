@@ -120,8 +120,6 @@ check DENY  "with --body-file"                   "gh issue create --title x --bo
 # the suite certified coverage it did not have.
 check DENY  "--repo= attached"                   "gh --repo=owner/repo issue create --title x"
 check DENY  "-R attached shorthand"              "gh -Rowner/repo issue create --title x"
-# The API route to the same act. Rule 7b books its equivalent as an accepted gap; this one is matched,
-# because 5c's own comment claims no spelling is allowed.
 # The `gh api` route is a NAMED ACCEPTED GAP, as rule 7b books its equivalent for merges. These assert
 # the gap rather than leaving it undocumented — a residual nobody wrote down is indistinguishable from
 # one nobody noticed.

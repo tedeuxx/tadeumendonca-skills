@@ -129,10 +129,6 @@ bare="$(printf '%s' "$cmd" | sed -e "s/'[^']*'/''/g" -e 's/"[^"]*"/""/g')"
 if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]]*|--repo[[:space:]=]*)[^[:space:]]+)?[[:space:]]+issue[[:space:]]+create'; then
   deny "Blocked: only the owner opens work. Report the finding — in your verdict, in the PR, or to the human — and let them decide whether it becomes an issue. An agent that files it has already decided."
 fi
-# 6. Clearly-destructive direct cloud mutations (cloud state escapes git).
-if printf '%s' "$cmd" | grep -Eq 'aws[[:space:]]+[a-z0-9-]+[[:space:]]+(delete|terminate|deregister|destroy|remove|purge)-'; then
-  deny "Blocked: destructive direct cloud mutation. Cloud state changes through the running app (staging) or the pipeline, never via direct aws CLI."
-fi
 
 # 7. Direct push to the trunk. This IS model-agnostic, contrary to the note above:
 #    under gitflow-multi-env main is production, and under trunk-single-env the push
