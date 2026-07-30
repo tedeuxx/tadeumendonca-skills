@@ -24,7 +24,7 @@ A fresh context only stays coherent with past decisions if it **reads them**. Be
 - Read the **principles** (`/principles/*`) and any **architecture** skills (`/architecture/*`) that bear on the slice.
 - Read the actual code paths the slice touches — plan from the codebase, not from memory.
 
-## Shape the slice — thin, vertical, WIP = 1
+## Shape the slice — thin, vertical, and disjoint from what is already open
 Frame the **smallest end-to-end increment** that delivers observable value and is reviewable on its own. One
 slice, not a phase plan. If the request is larger, name the slice you'd do *first* and list the rest as
 follow-on Issues — do not fold them in. Surgical scope: work around adjacent mess and file it as debt, don't

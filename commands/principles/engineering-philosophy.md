@@ -19,7 +19,7 @@ The purpose of the whole setup is that **agents do the majority of verification;
 
 **2. Ask before deciding — on the right things.** Stop and align on **architecture, contracts (API/schema), and anything irreversible**. *Decide autonomously* on implementation that fits the existing pattern. The line is "does this change a boundary others depend on, or something hard to undo?" → ask. Otherwise → decide and report. Never make a *solo architectural* call.
 
-**3. Thin vertical slices, one at a time.** Each increment crosses the layers and delivers reviewable value (a working slice, not a horizontal layer). **WIP = 1**: finish a slice to its Definition of Done before starting the next. Serial focus beats half-finished breadth.
+**3. Thin vertical slices, bounded by overlap.** Each increment crosses the layers and delivers reviewable value (a working slice, not a horizontal layer). **A slice may start while another is open only if they touch no file in common**; if they overlap, finish the first to its Definition of Done. Serial focus beats half-finished breadth — but serialising *disjoint* work buys nothing and stalls the queue, which is why the bound is overlap and not a count.
 
 **4. Surgical changes, tracked debt.** Keep each change focused on its slice. When adjacent mess sits in the path, **work around it and file the debt** — do *not* refactor alongside (no boy-scouting mid-feature). Debt is recorded and paid in a dedicated cycle, not smuggled into an unrelated change. Speculative refactor is not a feature.
 

@@ -32,10 +32,10 @@ Flag every decision in the plan that crosses a **significance boundary** (touche
 - **Non-negotiable floor** (never bends): quality gate, a **regression covering 100% of implemented features**, observability, security/resilience by-design — all as **properties** read from the repo (E2E where there's a UI, an API suite only where there's an API; server telemetry where there's a server, analytics + client errors + build smoke for a static frontend). Demanding a component the repo lacks is an unsatisfiable gate — flag it as a defect in the plan.
 - **Calibrated judgment** (scales to blast-radius): planning depth, threat-model depth, abstraction, when to ask.
 
-**Defaults to enforce:** plan-first, ask only on architecture/contracts/irreversible · thin vertical slices, WIP = 1 · surgical changes, file adjacent debt (no boy-scouting) · simple-but-extensible, no tech dogma · Definition of Done complete · IaC pipeline-only + infra-first · gate exactly at the irreversible act for the repo's model; never `--dangerously-skip-permissions`.
+**Defaults to enforce:** plan-first, ask only on architecture/contracts/irreversible · thin vertical slices, bounded by file overlap rather than by a count · surgical changes, file adjacent debt (no boy-scouting) · simple-but-extensible, no tech dogma · Definition of Done complete · IaC pipeline-only + infra-first · gate exactly at the irreversible act for the repo's model; never `--dangerously-skip-permissions`.
 
 ## Check 4 — is it a reviewable slice with testable acceptance criteria
-Confirm the plan is **one thin vertical slice** (WIP = 1), end-to-end, and that its **acceptance criteria are concrete and testable** — because those criteria become the E2E user stories the `qa-e2e` persona will write. Vague criteria ("make it better") are a finding: they can't become a test.
+Confirm the plan is **one thin vertical slice**, end-to-end, touching no file an already-open slice touches, and that its **acceptance criteria are concrete and testable** — because those criteria become the E2E user stories the `qa-e2e` persona will write. Vague criteria ("make it better") are a finding: they can't become a test.
 
 ## How to respond
 Lead with the **Verdict**: `approve` · `adjust` (specific, small changes, then proceed) · `stop-and-ask` (an architectural/contract/irreversible decision the human must make). Then, in order:
