@@ -160,7 +160,9 @@ stub_git "$MINE_OVERLAPS"
 check ALLOW "viewing a PR"                   "gh pr view 65"
 check ALLOW "listing PRs"                    "gh pr list --state open"
 check ALLOW "merging a PR"                   "gh pr merge 65 --merge"
-check ALLOW "creating an ISSUE, not a PR"    "gh issue create --title x"
+# ALLOW here means "wip-guard does not deny it" — permission-guard rule 5c does. Each guard answers
+# only for itself; this case exists to show wip-guard ignores anything that is not a PR create.
+check ALLOW "an ISSUE, not a PR (5c denies it elsewhere)" "gh issue create --title x"
 check ALLOW "an unrelated command"           "git status --short"
 check ALLOW "npm, nowhere near gh"           "npm --prefix apps/fed run test"
 check ALLOW "the word create in a message"   "git commit -m 'gh pr create notes'"

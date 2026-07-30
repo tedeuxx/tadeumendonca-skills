@@ -13,7 +13,7 @@ The point of this model is that **agents perform the majority of verification an
 - Lint + typecheck clean.
 - **Observability instrumented for the new behavior** — in whatever form this repo's runtime actually supports (see below).
 - Security/resilience posture applied (least-privilege, idempotency, fail-fast/open, retries).
-- **Docs/Mermaid updated**; debt (if any) filed as an issue.
+- **Docs/Mermaid updated**; debt (if any) named in the review — the owner decides whether it becomes an issue.
 - **Conventional-commit** subject (the commit log is the changelog).
 - **Validated locally.**
 

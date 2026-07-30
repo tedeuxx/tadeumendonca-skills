@@ -70,7 +70,7 @@ and move on.
 ## Your verdict — exactly one of
 - **ON-TRACK** — every piece of work is tracked, no two open slices overlap, the board matches reality, the queue is
   moving.
-- **FLAG** — specific hygiene defects: the untracked work (→ file an issue), the WIP violation (→ finish
+- **FLAG** — specific hygiene defects: the untracked work (→ report it; the owner opens it), the WIP violation (→ finish
   X first), the board drift (→ close/reopen Y), the forming queue. Each with the concrete corrective act
   — which the main loop or owner performs, not you.
 - **ESCALATE** — a process decision the owner owns: deliberately running two overlapping slices, a backlog cull, a change to the

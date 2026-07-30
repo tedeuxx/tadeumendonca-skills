@@ -49,9 +49,32 @@ Yes → it goes first, and the blocking relationship is stated on the issue. No 
 
 *Why the rule is needed:* discovered work is cheap to justify — found in context, evidence attached, usually safe class, merges without the owner. Requested work needs decisions, designs, sometimes the owner's own words. So the loop's **autonomy gradient sorts the queue by what can flow without the human**, which is exactly backwards from what a backlog is for. That is not a lapse in judgment; it is the incentive the other rules create, and it needs a counterweight written down.
 
+## Review does not open work
+
+**Only the owner opens work.** An agent that files an Issue has decided something should exist and is
+merely asking for agreement afterwards. Findings are **named** — in a verdict, in the PR, to the human
+— and the owner decides whether any of them becomes tracked work.
+
+**This is enforced, not asked.** `permission-guard` rule 5c denies `gh issue create` with no exempt
+spelling. Reading, listing, commenting, labelling and closing stay open; only opening is blocked.
+
+**With one named accepted gap:** the `gh api … POST …/issues` route is not matched, the same way
+ADR-0004's rule 7b books the equivalent for merging. It is stated rather than quietly true — a residual
+nobody wrote down is indistinguishable from one nobody noticed.
+
+**Why, measured rather than assumed.** In one session the queue grew by 19 issues net, and roughly 13
+were born inside a *review of something else* — because the reviewer's own Definition of Done said
+"adjacent debt filed as an Issue". Every finding became work nobody had decided to do. The queue stopped
+describing the product and started describing how hard the agents had looked at it, and a drain that
+produces faster than it consumes has no end state.
+
+**The accepted cost, named rather than discovered:** a finding in a verdict is ephemeral where an Issue
+is not. On a merged PR the report has no reader afterwards. That is the trade — fewer things tracked,
+and some real findings lost — and it is preferred to a queue that grows by working.
+
 ### Inner loop (per slice)
 1. **Plan-first**, then implement. Ask only on architecture / contracts / irreversible calls; decide autonomously on in-pattern implementation.
-2. **One thin vertical slice at a time**, end-to-end and reviewable. Keep it surgical; file any adjacent debt instead of refactoring it inline.
+2. **One thin vertical slice at a time**, end-to-end and reviewable. Keep it surgical; adjacent debt is **named, not refactored inline and not filed** — see *Review does not open work*.
    **WIP is bounded by file OVERLAP, not by a count.** A second PR may open freely if its changed files do not intersect an open PR's; it may not if they do. The goal was never *one at a time* — it was avoiding stacked PRs that rot into conflicts, and counting is a bad proxy for that: it blocks disjoint work, which is the common case, while doing nothing about the actual risk. Pair it with the half that prevents rot: **integrate `main` before requesting review** if `main` has moved.
 3. **Develop locally**, against whatever backing services the repo actually has — see `/principles/permissions-and-environments` for what "locally" means per model.
 4. **Validate locally**: run the repo's **functional regression** and self-verify the gates (lint, typecheck, coverage). Report with the real output, never a claim.

@@ -271,8 +271,9 @@ The objective ruler the `critical-reviewer` enforces. **Every criterion is mecha
 evidence-cited** — subjective criteria reintroduce the bias the isolated reviewer exists to remove.
 
 ### 6.1 Every MR must satisfy
-1. **Scope — thin vertical slice, end-to-end value.** One slice; no unrelated changes; adjacent debt →
-   an Issue, never fixed inline.
+1. **Scope — thin vertical slice, end-to-end value.** One slice; no unrelated changes; adjacent debt is
+   **named in the review, never filed and never fixed inline** — only the owner opens work
+   (amended 2026-07-30; see ADR-0003).
 2. **Traceability.** References its backlog **Issue**; if it implements a spec, the spec's acceptance
    criteria are covered by **E2E user-story journeys**.
 3. **Tests proportional to slice type.** Unit/integration alongside code, coverage **≥85%**. Slice that

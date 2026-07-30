@@ -100,6 +100,36 @@ fi
 # pattern is never mistaken for shell composition or a refspec.
 bare="$(printf '%s' "$cmd" | sed -e "s/'[^']*'/''/g" -e 's/"[^"]*"/""/g')"
 
+# 5c. OPENING WORK. Only the owner decides that something should exist; an agent that files it has
+#     made that decision and merely asked for agreement afterwards. Enforced here because it is the one
+#     step of that failure that is mechanically observable — "is this creating an issue" is visible in
+#     the command, where "was this asked for" never is.
+#
+#     THE FAILURE THIS COMES FROM, measured rather than imagined: in one session the queue grew by 19
+#     issues net, and roughly 13 of them were born inside a REVIEW of something else. The reviewer's own
+#     Definition of Done said "adjacent debt filed as an Issue", so every finding became tracked work
+#     nobody had decided to do. The queue stopped describing the product and started describing how hard
+#     the agents had looked at it — and a drain that produces more than it consumes never ends.
+#
+#     NO ALLOWED SPELLING OF `gh issue create`, deliberately. A flag or a phrase meaning "the owner
+#     asked for this" is a claim the model can make about itself, and an exemption the model can invoke
+#     is not a boundary. The owner opens the issue; the agent may still read, comment, label and close.
+#
+#     THE `gh api` ROUTE IS A NAMED ACCEPTED GAP — `gh api --method POST …/issues` is NOT matched, the
+#     same way rule 7b books `gh api … PUT …/merges` for the higher-stakes act of merging. It was
+#     matched for two rounds and each version was wrong: reading the collapsed command let a quoted URL
+#     through; reading the raw command blocked `git commit -m "gh api …"`, a message ABOUT the act. The
+#     honest statement is the gap, not a matcher that keeps failing to be what the comment claims —
+#     which is precisely the defect this rule exists to remove.
+#
+#     Matched semantically for the same reason as 5b: `gh -R <repo> issue create` must not slip past a
+#     prefix that only knows `gh issue create`. And matched on `$bare`, AFTER quoted spans are collapsed —
+#     the suite caught the first version denying `git commit -m 'gh issue create notes'`, which is a
+#     message about the act, not the act.
+if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]]*|--repo[[:space:]=]*)[^[:space:]]+)?[[:space:]]+issue[[:space:]]+create'; then
+  deny "Blocked: only the owner opens work. Report the finding — in your verdict, in the PR, or to the human — and let them decide whether it becomes an issue. An agent that files it has already decided."
+fi
+
 # 7. Direct push to the trunk. This IS model-agnostic, contrary to the note above:
 #    under gitflow-multi-env main is production, and under trunk-single-env the push
 #    to main IS the deploy. Both want it blocked; only the reason differs. Deciding
