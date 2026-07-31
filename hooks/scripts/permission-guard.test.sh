@@ -15,12 +15,24 @@ GUARD="$(cd "$(dirname "$0")" && pwd)/permission-guard.sh"
 pass=0
 fail=0
 
+# THREE outcomes, not two. The suite used to classify by `grep '"deny"'` and call everything else
+# ALLOW — so when rule 5c started returning `ask`, a test asserting ALLOW would have passed on it and a
+# test asserting ASK could not have been written at all. A harness that cannot see a decision cannot
+# fail for it, which is the exact defect this repo's own review standard hunts for.
+verdict() {
+  case "$1" in
+    *'"deny"'*) printf 'DENY' ;;
+    *'"ask"'*)  printf 'ASK' ;;
+    *)          printf 'ALLOW' ;;
+  esac
+}
+
 check() {
   want="$1"
   desc="$2"
   cmd="$3"
   out=$(printf '%s' "$cmd" | jq -R '{tool_input:{command:.}}' | bash "$GUARD")
-  if printf '%s' "$out" | grep -q '"deny"'; then got=DENY; else got=ALLOW; fi
+  got=$(verdict "$out")
   if [ "$got" = "$want" ]; then
     pass=$((pass + 1))
     printf 'ok    %-6s %s\n' "$got" "$desc"
@@ -31,15 +43,15 @@ check() {
 }
 
 # Like check(), but stamps an agent_type onto the payload — the field the harness sets on
-# a subagent's tool calls and leaves empty for the main agent. Only the merge gate (7b)
-# reads it. An empty agent (`''`) is the main agent.
+# a subagent's tool calls and leaves empty for the main agent. Read by the merge gate (7b)
+# and, since the 5c correction, by the issue gate. An empty agent (`''`) is the main agent.
 check_agent() {
   want="$1"
   agent="$2"
   desc="$3"
   cmd="$4"
   out=$(jq -n --arg c "$cmd" --arg a "$agent" '{tool_input:{command:$c}, agent_type:$a}' | bash "$GUARD")
-  if printf '%s' "$out" | grep -q '"deny"'; then got=DENY; else got=ALLOW; fi
+  got=$(verdict "$out")
   if [ "$got" = "$want" ]; then
     pass=$((pass + 1))
     printf 'ok    %-6s %s\n' "$got" "$desc"
@@ -110,25 +122,36 @@ check       ALLOW "main agent may check CI"           "gh pr checks 149 --repo o
 check       ALLOW "main agent may list PRs"           "gh pr list --state open"
 check       ALLOW "the word merge in a commit msg"    "git commit -m 'gh pr merge notes'"
 
-echo "--- rule 5c: only the owner opens work ---"
-check DENY  "gh issue create"                    "gh issue create --title x --body y"
-check DENY  "behind -R"                          "gh -R owner/repo issue create --title x"
-check DENY  "behind --repo"                      "gh --repo owner/repo issue create --title x"
-check DENY  "with --body-file"                   "gh issue create --title x --body-file /tmp/b.md"
+echo "--- rule 5c: the owner decides what enters the queue — asked in the main loop, denied in a subagent ---"
+# The rule used to DENY every one of these. That did not stop unaligned work; it taxed ALIGNED work,
+# and the tax landed on the owner, who had to type the command themselves for something they had just
+# asked for. What is guarded is the alignment, and only the owner can see it — so the main loop asks.
+check ASK   "gh issue create"                    "gh issue create --title x --body y"
+check ASK   "behind -R"                          "gh -R owner/repo issue create --title x"
+check ASK   "behind --repo"                      "gh --repo owner/repo issue create --title x"
+check ASK   "with --body-file"                   "gh issue create --title x --body-file /tmp/b.md"
 # pflag accepts an attached value in both spellings, and `gh` really parses these — verified against
 # the live CLI, not assumed. The first version of the rule required a space and both slipped past, so
-# the suite certified coverage it did not have.
-check DENY  "--repo= attached"                   "gh --repo=owner/repo issue create --title x"
-check DENY  "-R attached shorthand"              "gh -Rowner/repo issue create --title x"
+# the suite certified coverage it did not have. Kept as ASK cases: the matcher is what is under test
+# here, and a spelling that escapes it reaches the tool with NO prompt at all.
+check ASK   "--repo= attached"                   "gh --repo=owner/repo issue create --title x"
+check ASK   "-R attached shorthand"              "gh -Rowner/repo issue create --title x"
 # The `gh api` route is a NAMED ACCEPTED GAP, as rule 7b books its equivalent for merges. These assert
 # the gap rather than leaving it undocumented — a residual nobody wrote down is indistinguishable from
 # one nobody noticed.
 check ALLOW "gh api POST is the booked gap"      "gh api --method POST /repos/o/r/issues -f title=x"
 check ALLOW "gh api listing issues"              "gh api repos/o/r/issues --paginate"
 check ALLOW "a commit message about the act"     'git commit -m "gh api repos/o/r/issues -f title=x"'
-# No spelling is exempt, including a subagent's — an exemption the model can invoke is not a boundary.
+# A SUBAGENT STILL CANNOT FILE, and this is where the measured failure actually happened: 13 of 19
+# issues in one session were born inside a review of something else. A persona has no access to the
+# owner, so it cannot answer the question the prompt asks — it reports upward instead. `agent_type` is
+# stamped by the harness and cannot be forged by the model, so this is not a spelling it can escape.
 check_agent DENY "tadeumendonca-skills:critical-reviewer" "not even the reviewer files"  "gh issue create --title x"
 check_agent DENY "tadeumendonca-skills:scrum-master"      "not even the flow persona"     "gh issue create --title x"
+# The other side of the same split, and the case the correction exists for. Without it the suite would
+# pass with the subagent branch applied to everyone — which is the bug being fixed, not a regression
+# guard against it.
+check_agent ASK  "" "an empty agent_type is the main loop, and it asks" "gh issue create --title x"
 
 # Everything else about issues stays open, or the rule would block reading the board rather than
 # opening work. These are the partner cases: without them "DENY create" would pass for a rule that

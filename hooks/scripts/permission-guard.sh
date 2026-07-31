@@ -51,6 +51,21 @@ deny() {
   exit 0
 }
 
+# For the class where the thing that makes an act right or wrong is NOT visible in the command, and
+# the owner is the only one who can see it. `deny` would be a lie there — it says "never", when the
+# truth is "not unless the owner agrees" — and a denial the owner has to work around by typing the
+# command themselves has moved the work to them rather than protecting them from it.
+ask() {
+  jq -n --arg r "$1" '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "ask",
+      permissionDecisionReason: $r
+    }
+  }'
+  exit 0
+}
+
 # Single-line, collapsed whitespace for matching.
 cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
 
@@ -100,10 +115,36 @@ fi
 # pattern is never mistaken for shell composition or a refspec.
 bare="$(printf '%s' "$cmd" | sed -e "s/'[^']*'/''/g" -e 's/"[^"]*"/""/g')"
 
-# 5c. OPENING WORK. Only the owner decides that something should exist; an agent that files it has
-#     made that decision and merely asked for agreement afterwards. Enforced here because it is the one
-#     step of that failure that is mechanically observable — "is this creating an issue" is visible in
-#     the command, where "was this asked for" never is.
+# 5c. OPENING WORK. Only the owner decides that something should exist. What is guarded is UNALIGNED
+#     work entering the queue — NOT the act of recording work the owner already asked for.
+#
+#     THIS RULE WAS WRONG AND IS CORRECTED HERE, kept as a correction rather than a rewrite because the
+#     way it was wrong is the lesson. It denied `gh issue create` outright, on the reasoning that "was
+#     this asked for" is not mechanically observable while "is this creating an issue" is — so it
+#     guarded the observable step instead. That substitution is the defect. The owner named it twice:
+#
+#         "o problema é voce gerar demanda por si mesmo para voce trabalhar"
+#         "nao é aceitavel eu ter que abrir por conta propria a feature toda vez que alinharmos algo"
+#
+#     A blanket denial does not prevent unaligned work; it taxes ALIGNED work, and the tax falls on the
+#     owner, who then has to type the command for something they had just asked for. Guarding the
+#     observable proxy rather than the real thing is not a conservative approximation — it inverted who
+#     pays.
+#
+#     THE FIX USES A SIGNAL THAT IS BOTH OBSERVABLE AND HONEST: `agent_type`, stamped by the harness and
+#     unforgeable by the model (see rule 7b). It splits the two cases the old rule conflated.
+#
+#       - A SUBAGENT still cannot file. This is where the measured failure actually happened (below):
+#         issues born inside a review of something else, by a persona with no access to the owner and
+#         no way to know whether anyone wants the work. It reports the finding upward; that is its job.
+#       - THE MAIN AGENT ASKS. Alignment is a fact about a conversation, and the main loop is the only
+#         place that conversation exists — so it is the only place the question can be put to the one
+#         party who can answer it. One keystroke, on a prompt showing the title.
+#
+#     This answers the old comment's own objection — "an exemption the model can invoke is not a
+#     boundary" — rather than ignoring it. It is right about `deny`: a flag meaning "the owner asked for
+#     this" would be the model vouching for itself. It does not reach `ask`, because the model is not
+#     the one deciding. The owner is, per issue, before anything is created.
 #
 #     THE FAILURE THIS COMES FROM, measured rather than imagined: in one session the queue grew by 19
 #     issues net, and roughly 13 of them were born inside a REVIEW of something else. The reviewer's own
@@ -111,9 +152,10 @@ bare="$(printf '%s' "$cmd" | sed -e "s/'[^']*'/''/g" -e 's/"[^"]*"/""/g')"
 #     nobody had decided to do. The queue stopped describing the product and started describing how hard
 #     the agents had looked at it — and a drain that produces more than it consumes never ends.
 #
-#     NO ALLOWED SPELLING OF `gh issue create`, deliberately. A flag or a phrase meaning "the owner
-#     asked for this" is a claim the model can make about itself, and an exemption the model can invoke
-#     is not a boundary. The owner opens the issue; the agent may still read, comment, label and close.
+#     ~~NO ALLOWED SPELLING OF `gh issue create`, deliberately.~~ Superseded above — the objection is
+#     answered by moving the decision to the owner rather than by inventing a self-vouching flag. What
+#     survives from it: there is still no spelling the MODEL can use to exempt itself, and a subagent
+#     still has none at all.
 #
 #     THE `gh api` ROUTE IS A NAMED ACCEPTED GAP — `gh api --method POST …/issues` is NOT matched, the
 #     same way rule 7b books `gh api … PUT …/merges` for the higher-stakes act of merging. It was
@@ -127,7 +169,10 @@ bare="$(printf '%s' "$cmd" | sed -e "s/'[^']*'/''/g" -e 's/"[^"]*"/""/g')"
 #     the suite caught the first version denying `git commit -m 'gh issue create notes'`, which is a
 #     message about the act, not the act.
 if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]]*|--repo[[:space:]=]*)[^[:space:]]+)?[[:space:]]+issue[[:space:]]+create'; then
-  deny "Blocked: only the owner opens work. Report the finding — in your verdict, in the PR, or to the human — and let them decide whether it becomes an issue. An agent that files it has already decided."
+  if [ -n "$agent_type" ]; then
+    deny "Blocked: a subagent does not open work. Report the finding — in your verdict, in the PR, or upward to the main loop — and let the owner decide whether it becomes an issue. You cannot see whether anyone wants this; the main loop can ask."
+  fi
+  ask "Open this issue? The guard cannot see whether it is aligned with you — that is the whole question, and only you can answer it. Approve if this is work you asked for or agreed to; decline if the agent generated it for itself."
 fi
 
 # 7. Direct push to the trunk. This IS model-agnostic, contrary to the note above:
