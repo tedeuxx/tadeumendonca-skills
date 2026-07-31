@@ -59,8 +59,11 @@ Follow `/principles/dev-loop`. Nothing here relaxes it:
 - `brand-guardian` on reader-facing copy, `editor` on long-form prose. **Nothing enforces this
   dispatch** — no check, job or hook — so an undispatched lens fails silently. Where the repo's guide
   makes these the only review of copy, an undispatched one is the whole gate missing.
-- Adjacent debt is **named in the report**, never filed — only the owner opens work. See
-  `/principles/dev-loop`, *Review does not open work*.
+- Adjacent debt is **named in the report**, never filed *by the review* — a subagent has no way to
+  know whether anyone wants the work, and the guard denies it outright. The **main loop may open
+  issues**, and should: recording something the owner asked for is not generating demand. The guard
+  asks rather than denies there, so the owner decides per issue. See `/principles/dev-loop`,
+  *Review does not open work* — which is about reviews, not about the queue being unwritable.
 
 ## What autonomy does NOT extend to
 

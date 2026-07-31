@@ -51,12 +51,28 @@ Yes → it goes first, and the blocking relationship is stated on the issue. No 
 
 ## Review does not open work
 
-**Only the owner opens work.** An agent that files an Issue has decided something should exist and is
-merely asking for agreement afterwards. Findings are **named** — in a verdict, in the PR, to the human
-— and the owner decides whether any of them becomes tracked work.
+**Only the owner decides what enters the queue.** A REVIEW never files: an agent that turns its own
+finding into an Issue has decided something should exist and is merely asking for agreement afterwards.
+Findings are **named** — in a verdict, in the PR, to the human — and the owner decides whether any of
+them becomes tracked work.
 
-**This is enforced, not asked.** `permission-guard` rule 5c denies `gh issue create` with no exempt
-spelling. Reading, listing, commenting, labelling and closing stay open; only opening is blocked.
+**Enforced by WHO is asking, since a correction on 2026-07-31.** `permission-guard` rule 5c reads
+`agent_type`, which the harness stamps and the model cannot forge: a **subagent is denied** outright,
+and the **main loop is asked** — one prompt showing the title, which the owner approves or declines.
+Reading, listing, commenting, labelling and closing stay open everywhere.
+
+~~*This is enforced, not asked: rule 5c denies `gh issue create` with no exempt spelling.*~~ **That
+version was wrong, and the way it was wrong is worth keeping.** It reasoned that "was this asked for"
+is not mechanically observable while "is this creating an Issue" is, and guarded the observable proxy
+instead. But a blanket denial does not prevent unaligned work — it taxes **aligned** work, and the tax
+falls on the owner, who then types the command themselves for something they had just asked for. The
+owner named it: *"não é aceitável eu ter que abrir por conta própria a feature toda vez que
+alinharmos algo."* Substituting an observable proxy for the real property is not a conservative
+approximation when it inverts who pays.
+
+The old objection — *an exemption the model can invoke is not a boundary* — is answered rather than
+dropped. It is correct about `deny`: a flag meaning "the owner asked for this" would be the model
+vouching for itself. It does not reach `ask`, because the model is not the one deciding.
 
 **With one named accepted gap:** the `gh api … POST …/issues` route is not matched, the same way
 ADR-0004's rule 7b books the equivalent for merging. It is stated rather than quietly true — a residual
