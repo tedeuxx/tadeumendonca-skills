@@ -1,0 +1,36 @@
+name: docs-test
+
+# Its own workflow rather than a step in `hooks-test`, and the reason is the FILTER, not tidiness.
+#
+# `hooks-test` is path-filtered to `hooks/**` and says why: nothing outside that directory can change
+# what the permission guard does. That is true of the guard and false of this suite — what falsifies
+# an inventory count is adding a file under `commands/` or `agents/`, which `hooks/**` never matches.
+# Hanging this on that workflow would have produced a gate that runs on every change EXCEPT the one
+# it exists to catch: green on the PR that breaks it, and never red at all.
+#
+# The suite lives in `hooks/scripts/` because that is where this repo keeps its shell test suites
+# (`hooks-executable.test.sh` is likewise not a hook). One test home beats two; the gates are what
+# differ, so the gates are what split.
+
+on:
+  pull_request:
+    paths:
+      - "agents/**"
+      - "commands/**"
+      - "README.md"
+      - "CLAUDE.md"
+      - "hooks/scripts/inventory-counts.test.sh"
+      - ".github/workflows/docs-test.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  inventory-counts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Assert the published inventory counts match the repo
+        run: bash hooks/scripts/inventory-counts.test.sh
