@@ -1,6 +1,6 @@
 # 0002. Agentic dev-loop architecture — per-task subagents, ADRs as the durable brain
 
-- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget)
+- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
 - **Driven by:** [ADR-0001](./0001-adopt-madr-adrs.md), `docs/proposals/agentic-dev-loop.md`
@@ -37,6 +37,13 @@ blast-radius justifies, and personas are materialized lazily as work demands. Fu
 `docs/proposals/agentic-dev-loop.md`.
 
 ## Amendment (2026-07-23) — `product-owner`: the copy gets a reviewer
+
+> **Superseded in one clause by the 2026-08-01 amendment below.** The premise *"a positioning breach is
+> not a DoD criterion"* was true when written and is now false: the DoD has a criterion 10. The rest of
+> this amendment — the mandate, the capability guarantee, the trigger living in `critical-reviewer` —
+> stands unchanged. Kept as written rather than edited, per this library's rule: supersede, never
+> rewrite.
+
 **Problem.** The reviewer roster has **no mandate over what the words claim**. `critical-reviewer`
 judges a diff against the Definition of Done, and a positioning breach is not a DoD criterion — so on a
 presence where the copy *is* the product, an unearned claim, a cross-surface contradiction or a
@@ -426,6 +433,61 @@ it belongs to the principles layer and to the `wip-guard` hook. It is noted beca
 `plan-reviewer` and `scrum-master` — act on it, and both were updated in the same batch. *(The `wip-guard`
 hook shipped its overlap implementation immediately after, in `-skills`#88, closing the window in which it
 was knowingly stricter than the rule.)*
+
+## Amendment (2026-08-01, sixth) — a finding blocks only by naming a criterion; the DoD grows a tenth
+
+**Problem, measured rather than felt.** Sixteen review passes across four slices in one day — six on a
+README, four on a single catalog entry — while across the week the issue queue grew every day but one,
+the day the owner cleared it himself. Owner: *"precisamos tornar o trabalho do revisor mais objetivo em
+critérios claros… queria algo mais processual focado em DoDs."*
+
+**The diagnosis is not that the reviewer is too strict**, and getting that backwards would break the
+thing worth keeping. Those passes found eight **claim-level** defects that lint, tests and a green Sonar
+gate cannot catch, because none was a fault in the code — each was a true-sounding *claim about* the
+code: a hook described as the opposite of what it does; `fails open` used against the sense stamped in
+the same repo's own sources; live, production-exercised skills published as retired; a CI suite called
+"blocking" in a repo with no required status checks. What was missing was a **stopping rule** and a
+**severity contract**.
+
+### Decision
+
+1. A finding may produce `REQUEST-CHANGES` only by naming the DoD criterion it fails **and its
+   falsifier** — the command, line or file that would show the reviewer wrong. A finding naming no
+   criterion is advisory: reported, never a gate.
+2. **Criterion 10** joins §6.1 — the content lens returned a verdict and its BLOCKING findings are
+   resolved, **and** a claim the reviewer can itself falsify against a checkable source fails the
+   criterion *whatever the lens returned*. An `ESCALATE` verdict makes the slice boundary class.
+3. `brand-guardian` and `editor` classify each finding BLOCKING or ADVISORY themselves, on
+   **truth-versus-quality** rather than size. Severity is the lens's call because the lens is the only
+   party with the context; the invoking context, which had been making it, has none.
+4. Criteria 6 and 9 state what evidence satisfies them and what their `n/a` looks like.
+5. The round budget drops from four (amendment #5) to **two**; from round three the verdict states what
+   shipping as-is would cost.
+
+**This supersedes exactly one clause** of the 2026-07-23 amendment — *"a positioning breach is not a DoD
+criterion"* — and nothing else in it. That amendment's mandate, capability guarantee and trigger stand.
+
+### Two costs, named
+
+**The severity contract handles a lens that omits severities and not one that gets a severity wrong.**
+Nothing catches an under-classification, and the reviewer is told to ask rather than re-grade, which
+makes it the wrong party to catch it. Accepted deliberately: a reviewer that freely re-grades lens
+findings recreates the problem this contract ends. Bounded by criterion 10's second half, which is
+independent of any severity — a lens that under-classifies a **false claim** does not save it.
+
+**The first draft of criterion 10 made the reviewer's most valuable behaviour unblockable.** It was
+satisfied by a lens *returning a verdict* rather than by the copy being true, so a claim-level defect the
+reviewer itself found mapped to no criterion and became advisory by construction — the exact class this
+amendment opens by celebrating, and the class this ADR's own 2026-07-23 amendment records as *"found by
+`critical-reviewer` being thorough rather than by anything being responsible for them."* Caught in review
+of the change, by the reviewer reading its own diff. Recorded because the same shape will be tempting
+the next time this stopping rule is tightened.
+
+### What this does not fix
+
+*"Review does not open work"* already existed in criterion 1, verbatim, and was violated the same day
+this was written — two issues filed from review findings, closed hours later under the pre-existing
+rule. A rule not honoured is not a rule missing, and more persona text would not have changed it.
 
 ## Consequences
 **Good**
