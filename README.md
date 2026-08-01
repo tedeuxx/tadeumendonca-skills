@@ -208,18 +208,26 @@ gated, the raw API call is a named gap.)
 ## Limitation
 
 **It is calibrated to one loop, one stack and one person's judgment**, and the library is broader
-than the code it is proven against. All of `backend/` and most of `infrastructure/` describe patterns
-the consuming site *no longer runs* — it retired its backend and is now fully static. Those are
-reference patterns, and a reference pattern is the thing that rots without a build failing: read them
-as documented opinions, not as descriptions of running systems.
+than the code it is proven against. Much of `infrastructure/` and most of `backend/` describe
+patterns the consuming site *no longer runs* — it retired its backend and is now fully static. Those
+are reference patterns, and a reference pattern is the thing that rots without a build failing: read
+them as documented opinions, not as descriptions of running systems.
 
-**Here is how to tell which is which, rather than guessing per file.** Open
-[`iac/`](https://github.com/tedeuxx/tadeumendonca-io/tree/main/iac) in the consuming repo. What it
-provisions is exercised on every deploy; every other `infrastructure/` skill, and all of `backend/`,
-is reference. Today that means roughly a third of `infrastructure/` — S3, CloudFront, Route 53, ACM,
-IAM, SSM — is live, and the serverless and data-store skills are not. **The test is published rather
-than the list**, deliberately: a list here would drift the moment that repo changed, and nothing in
-this repo's CI can reach across to catch it. The rule stays true on its own.
+**How to tell which is which, rather than guessing per file — two places to look, because a skill
+can be exercised in two ways.** What
+[`iac/`](https://github.com/tedeuxx/tadeumendonca-io/tree/main/iac) provisions is exercised on every
+deploy. What
+[`apps/fed/scripts/`](https://github.com/tedeuxx/tadeumendonca-io/tree/main/apps/fed/scripts) runs is
+exercised on every build — and that second half matters, because it is where the *most* proven
+skills in this library live. Prerendering, OG-card generation and the edge URL-rewrite handler are
+`backend/` skills running in production right now, despite the site having no backend; nothing in
+`iac/` provisions them, so an infrastructure-only test would file them as reference and be wrong.
+
+Applying both today: S3, CloudFront, Route 53, ACM, IAM and SSM are live from `iac/`; prerender, the
+OG generators and the edge handler are live from the build. The serverless, data-store and API skills
+are not. **That naming is orientation, not a contract** — it will drift as the site changes, and
+nothing in this repo's CI can reach across to catch it. The two directories are the durable answer;
+check them rather than this paragraph.
 
 The narrower version of the same point: the trunk-based single-environment loop, the AWS choices and
 the React/Vite conventions are one context's answers. **Take the pattern, not the specifics.**

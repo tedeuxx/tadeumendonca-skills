@@ -143,5 +143,27 @@ for doc in "$README" "$CLAUDE" "$ROOT/PRINCIPLES.md" "$ROOT/commands/principles/
   fi
 done
 
+# THE COVERAGE ABOVE IS NOT TOTAL, and the exception is asserted rather than described so that it
+# cannot be quietly forgotten.
+#
+# The command is still at `commands/principles/loop-engineering.md`, so the PATH `/principles/loop-
+# engineering` is published in CLAUDE.md's and PRINCIPLES.md's command reference — a table cell that
+# names the practice `Harness Engineering` while pointing at a command named after the term that
+# replaced. The check above cannot see it: it greps the title-case, spaced form, and the slug does
+# not match.
+#
+# Left deliberately. That path is a public invocation surface and this repo's SemVer contract makes a
+# renamed command a MAJOR bump; shipping one under a `docs:` subject is a worse defect than the
+# mismatch. The rename belongs in its own release.
+#
+# Asserted POSITIVELY — the slug must still be there — so that the day the rename happens this goes
+# red and drags this note out with it. A known gap that fails when it closes is bookkeeping; one that
+# stays silent is exactly how the retired term survived the first propagation.
+if [ -f "$ROOT/commands/principles/loop-engineering.md" ]; then
+  ok "vocabulary — the slug exception is still in place, as recorded (see the note above)"
+else
+  bad "vocabulary — the command was renamed: retire this assertion, this note, and the four-doc list above, and confirm the MAJOR bump"
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
