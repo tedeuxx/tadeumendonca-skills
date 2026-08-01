@@ -113,10 +113,11 @@ plugin *is* the git repo; the marketplace is a metadata file the consumer points
 
 ## Prerequisites
 
-**[Claude Code](https://claude.ai/code)**, which needs a paid Claude plan (Pro or Max) or Anthropic
-API billing. This is the one cost, and it is not a small one — say so up front rather than let a
-reader discover it at step four. Plans and limits change, so check the current comparison rather
-than trusting a number written here; that is also why this section names no price.
+**[Claude Code](https://claude.ai/code)**, which needs paid access — there is no free tier. That is
+the barrier, and it belongs before step one rather than at step four. No plan list and no price
+appear here on purpose: an enumeration of the ways to have access fails open, quietly excluding
+routes that exist, and any number written here would be stale before it was wrong. The link carries
+the current answer.
 
 **`bash` and [`jq`](https://jqlang.github.io/jq/)** — the hooks are shell scripts and parse tool
 input as JSON. Both are present or one `brew`/`apt` install away on macOS and Linux.
@@ -167,7 +168,10 @@ Invoke a skill by its namespaced path, passing context as arguments:
 /tadeumendonca-skills:workflow/github-actions production
 ```
 
-Hooks and personas need no invocation — they activate on install.
+**Hooks need no invocation — they activate on install.** Personas are *available* on install and are
+generally invoked, with one exception that matters: `permission-guard` denies `gh pr merge` to every
+context except the `critical-reviewer` subagent, so the merge gate really is mechanical from the
+moment you install. The other lenses do not run themselves; something has to dispatch them.
 
 [`CLAUDE.md`](./CLAUDE.md) is the full command reference and the versioning contract.
 [`PRINCIPLES.md`](./PRINCIPLES.md) is the engineering floor the whole library encodes.

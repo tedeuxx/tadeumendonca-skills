@@ -11,6 +11,14 @@ name: docs-test
 # The suite lives in `hooks/scripts/` because that is where this repo keeps its shell test suites
 # (`hooks-executable.test.sh` is likewise not a hook). One test home beats two; the gates are what
 # differ, so the gates are what split.
+#
+# DO NOT COPY THIS SHAPE INTO `tadeumendonca-io` — a workflow-level `paths:` filter is safe HERE and a
+# bug THERE. That repo has required status checks, and a required check on a non-matching PR never
+# reports at all: it sits pending forever and the PR can never merge. Its convention is therefore to
+# run every workflow on every PR and filter INSIDE the job. This repo has no required status checks
+# (`main` protection carries review and force-push rules and no `required_status_checks`), so nothing
+# can be left pending and the cheaper filter is correct. The difference is branch protection, not
+# taste, so check it before reusing this.
 
 on:
   pull_request:

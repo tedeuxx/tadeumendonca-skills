@@ -19,7 +19,9 @@ numeric SemVer, etc.).
 ---
 
 ## Mission — this repo is a CV differentiator (read this first)
-This skills library is the owner's **public knowledge-transfer artifact**: a dense dump of his senior-engineer
+This **harness** is the owner's **public knowledge-transfer artifact** — the personas and hooks as much as
+the skills, since the reviewable loop is the differentiator and the skill library is its least distinctive
+third: a dense dump of his senior-engineer
 **experience + implementation preferences**, externalized in public as proof of depth (he is repositioning
 from "Architect / AWS Professional Services" to **Senior Software Engineer** at product companies — see the
 strategic context). It is NOT a thin "what this project did" doc — each skill is a **dense, scenario-covering

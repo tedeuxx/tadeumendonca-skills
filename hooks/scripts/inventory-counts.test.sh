@@ -12,9 +12,15 @@
 # The alternative was to publish no numbers. That was rejected: vagueness is not accuracy, it is
 # just unfalsifiable. This makes the claim cheap to keep true instead.
 #
-# WHAT IT DOES NOT COVER, said plainly so the green is not read as more than it is: it asserts the
-# numbers, never the prose around them. A README describing the wrong thing in the right quantity
-# passes this suite.
+# WHAT IT DOES NOT COVER, said plainly so the green is not read as more than it is:
+#
+#   - It asserts the numbers, never the prose around them. A README describing the wrong thing in the
+#     right quantity passes.
+#   - CLAUDE.md ALSO publishes "18 subagents" enabled and "26 defined". Those are counts of the ROSTER
+#     as ADR-0002 defines it in the consuming repo — not of this tree — so nothing here can derive
+#     them and nothing here asserts them. The per-directory skill counts are checked in both files;
+#     the persona count is checked only where it describes `agents/`. Said explicitly because "the
+#     counts are pinned" would otherwise be read as covering those two.
 #
 # Run: bash hooks/scripts/inventory-counts.test.sh
 
@@ -58,6 +64,38 @@ for dir in principles architecture backend frontend infrastructure workflow; do
 done
 
 expect_in "$README" "$total skills + autonomy-on" "commands/ total"
+
+# EVERY occurrence, not the one literal — and this is the hole the first version of this file had.
+# The README states the total twice: once as the asserted string in the diagram, and once in prose in
+# the opening paragraph ("73 skills that give implementation…"). Pinning only the first meant that
+# adding a skill went red, someone fixed the line the failure named, and the suite went GREEN with the
+# stale number still published in the surface sentence — the exact failure this file exists to
+# prevent, surviving in the most-read line of the document.
+#
+# So the rule is inverted: find every place any of these files states a count of skills or personas,
+# and require all of them to agree with the tree. A new phrasing is covered the day it is written,
+# without anyone remembering to add an assertion for it.
+INVENTORY_DOCS=("$README" "$CLAUDE" "$ROOT/.claude-plugin/plugin.json" "$ROOT/.claude-plugin/marketplace.json")
+
+check_every_occurrence() {
+  local pattern="$1" expected="$2" label="$3"
+  local bad_files=""
+  for doc in "${INVENTORY_DOCS[@]}"; do
+    while IFS= read -r found; do
+      [ -z "$found" ] && continue
+      [ "$found" = "$expected" ] && continue
+      bad_files="$bad_files $(basename "$doc"):$found"
+    done < <(grep -oE "$pattern" "$doc" 2>/dev/null | grep -oE '^[0-9]+')
+  done
+  if [ -z "$bad_files" ]; then
+    ok "$label — every stated figure across the docs is $expected"
+  else
+    bad "$label — expected $expected, found:$bad_files"
+  fi
+}
+
+check_every_occurrence '[0-9]+ (generic |markdown )?skills' "$total" "skills total, EVERY occurrence"
+check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occurrence"
 
 # The root command is named, not counted — if it is ever joined by a second one, "+ autonomy-on"
 # stops being an accurate way to describe the remainder and this fails on purpose.
