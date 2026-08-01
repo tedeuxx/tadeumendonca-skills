@@ -3,17 +3,20 @@
 > A **Claude Code harness**: the personas, permission hooks and skill library that make an agent's
 > work reviewable — so "the agent finished" and "the work is done" stop being the same claim.
 
-This is the practice the author's CV calls **AI-DLC & Harness Engineering**, packaged so it runs
-somewhere other than his own machine. Install it into a repo and Claude gains a dev-loop with gates
+Treating the development loop itself as the thing you engineer — its gates, its guardrails, its
+review — rather than just working faster inside an unchanged one. The author's CV calls that
+**AI-DLC & Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
+machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 73 skills that give implementation one set of
-conventions to follow instead of whatever the model reached for that session.
+mechanically refuses irreversible actions, and 73 skills that hand the model one set of conventions
+to follow instead of whatever it would have reached for that session.
 
-**It is not a proposal.** The loop described here builds and ships
-[tadeumendonca.io](https://tadeumendonca.io) — a live, public, deployed site with a blocking CI
-matrix, a decision library recording every load-bearing choice and what it cost, and hooks carrying
-their own test suites. Both repos are public, so none of that has to be taken on trust; the
-[worked example](#related) is one click away.
+The loop is not a proposal — it builds and ships
+[tadeumendonca.io](https://tadeumendonca.io), whose repo
+([`tadeumendonca-io`](https://github.com/tedeuxx/tadeumendonca-io)) is public alongside this one: a
+live deployed site with a blocking CI matrix, a decision library recording each load-bearing choice
+and what it cost, and hooks carrying their own test suites. **The library is wider than that one
+site proves**, which is the honest scope and is spelled out under [Limitation](#limitation).
 
 ## The problem
 
@@ -21,7 +24,7 @@ Agentic development produces plausible work fast. The bottleneck moves: it is no
 code, it is *trusting* it. And "trust" defaults to a human reading every diff, which puts the human
 back on the critical path the agent was supposed to clear.
 
-Two failures cause most of that, and neither is fixed by prompting harder.
+Three failures cause most of that, and none is fixed by prompting harder.
 
 **The agent's own report is the only evidence.** It says the tests pass. Asked whether the work is
 done, the same context that produced the code judges the code — so a missed edge case is missed
@@ -31,12 +34,20 @@ twice, confidently.
 before merging" live in a prompt, which means they hold until the context is long, the task is
 urgent, or the instruction scrolls out of the window.
 
+**Every session re-decides the same questions.** How this project names things, which library it
+already chose, why the last person rejected the obvious approach — none of that survives a new
+context, so the model answers from the average of everything it has read. The result is code that is
+individually reasonable and collectively inconsistent, and the inconsistency compounds silently.
+
 ## How it works
 
 The pattern is **agent-led verification, human-residual**: the agent proves *done* with mechanical
 gates and real evidence; the human keeps the judgment that is genuinely theirs — the irreversible
-call, the architectural one, the production go/no-go. Three mechanisms, deliberately different in
-kind, because they fail differently.
+call, the architectural one, the production go/no-go. One mechanism per failure above, in order —
+**personas** answer the self-report problem, **hooks** answer the advisory-floor problem, **skills**
+answer the re-decision problem — and they are deliberately different in kind, because a guarantee
+that is only as strong as the model's attention is not the same kind of thing as one that is a shell
+script. Each says below what it costs.
 
 ```mermaid
 flowchart TB
@@ -86,14 +97,24 @@ do the equivalent at design time, before code exists to be attached to.
 
 **Hooks are mechanical, and that is a different kind of guarantee.** `permission-guard` runs as
 `PreToolUse` on every `Bash` call and returns a deny *before* the command executes — force-push,
-`terraform apply`, `rm -rf`, secret writes. It cannot be talked out of it, because it is not
-reasoning: it is a shell script matching a command. `wip-guard` refuses to open a second pull request
-that touches files an open one already touches, which is WIP=1 enforced rather than intended.
+`terraform apply`, `rm -rf`, secret writes. A long context cannot argue it down, because it is not
+reasoning: it is a shell script matching a command.
+
+`wip-guard` refuses to open a pull request that touches files an open one already touches. **The
+bound is file overlap, not a count**, and that is a narrowing the hook made on measured evidence: it
+used to allow one open PR per repo, which blocked disjoint slices — the common case — while doing
+nothing about the actual risk, which is two PRs that will conflict on merge. Its own header records
+the measurement.
 
 - **Choice:** a hook over an instruction. An instruction degrades with context length and pressure;
-  a hook does not degrade at all. **The cost is bluntness** — a hook matches patterns, not intent, so
-  it will occasionally deny something legitimate, and the fix is to argue with a regex rather than
-  with a colleague.
+  a hook does not degrade at all. **The cost is that it errs in both directions, and only one of them
+  is loud.** It matches patterns rather than intent, so it will sometimes deny something legitimate —
+  that you find out immediately, and the fix is arguing with a regex. It also **fails open**: on a
+  parse error, a missing `gh`, or no network, it allows rather than blocks, and there are deliberate
+  uncovered paths (a raw `gh api` call reaching the same endpoint as a gated command is an accepted,
+  named gap, not an oversight). Those you do not find out about at all. They are booked in the hook
+  sources with their reasons, which is the honest form: a guardrail that tells you what it does not
+  catch is worth more than one asserting it catches everything.
 
 **Skills carry the conventions so the model does not re-invent them.** 73 markdown skills, generic by
 construction (`<project>` / `<apex-domain>` placeholders), covering the AWS services, the frontend
@@ -115,15 +136,19 @@ plugin *is* the git repo; the marketplace is a metadata file the consumer points
 
 **[Claude Code](https://claude.ai/code)**, which needs paid access — there is no free tier. That is
 the barrier, and it belongs before step one rather than at step four. No plan list and no price
-appear here on purpose: an enumeration of the ways to have access fails open, quietly excluding
-routes that exist, and any number written here would be stale before it was wrong. The link carries
-the current answer.
+appear here on purpose: an enumeration of access routes would silently exclude the ones it forgot,
+and any price written here would go stale. The link carries the current answer.
 
 **`bash` and [`jq`](https://jqlang.github.io/jq/)** — the hooks are shell scripts and parse tool
 input as JSON. Both are present or one `brew`/`apt` install away on macOS and Linux.
 
+**[`gh`](https://cli.github.com/), and this one degrades quietly.** `wip-guard` and `session-wip`
+read the open PR queue through it, and both **exit clean when it is missing** rather than erroring —
+so without `gh` you get no warning, no failure, and no WIP guard. Named here at full weight because a
+guard that silently is not running is worse than one you know you skipped.
+
 **A git repo to install it into.** The loop is about pull requests, so the value lands in a repo with
-a remote; `gh` is used by `wip-guard` and `session-wip` to read the open PR queue.
+a remote.
 
 ### What it does *not* require
 
@@ -168,10 +193,14 @@ Invoke a skill by its namespaced path, passing context as arguments:
 /tadeumendonca-skills:workflow/github-actions production
 ```
 
-**Hooks need no invocation — they activate on install.** Personas are *available* on install and are
-generally invoked, with one exception that matters: `permission-guard` denies `gh pr merge` to every
-context except the `critical-reviewer` subagent, so the merge gate really is mechanical from the
-moment you install. The other lenses do not run themselves; something has to dispatch them.
+**Hooks activate on install. Personas do not run themselves** — every one of them, the reviewer
+included, has to be dispatched by something.
+
+What the hooks buy you is the converse, and it is the stronger half: `permission-guard` denies
+`gh pr merge` to every context except the `critical-reviewer` subagent. So the reviewer will not
+start itself, but a merge **cannot happen without it** — the gate is unskippable from the moment you
+install, with no configuration. (Subject to the fail-open caveat above: the natural command is
+gated, the raw API call is a named gap.)
 
 [`CLAUDE.md`](./CLAUDE.md) is the full command reference and the versioning contract.
 [`PRINCIPLES.md`](./PRINCIPLES.md) is the engineering floor the whole library encodes.
@@ -179,11 +208,18 @@ moment you install. The other lenses do not run themselves; something has to dis
 ## Limitation
 
 **It is calibrated to one loop, one stack and one person's judgment**, and the library is broader
-than the code it is proven against. `backend/` and several `infrastructure/` skills document patterns
-its only consumer *no longer runs* — that site retired its backend and is now fully static. They are
-kept deliberately as reference patterns, but a reference pattern is exactly the thing that rots
-without a build failing, which is the failure mode the `principles/` skills warn about elsewhere in
-this repo. Read them as documented opinions, not as descriptions of running systems.
+than the code it is proven against. All of `backend/` and most of `infrastructure/` describe patterns
+the consuming site *no longer runs* — it retired its backend and is now fully static. Those are
+reference patterns, and a reference pattern is the thing that rots without a build failing: read them
+as documented opinions, not as descriptions of running systems.
+
+**Here is how to tell which is which, rather than guessing per file.** Open
+[`iac/`](https://github.com/tedeuxx/tadeumendonca-io/tree/main/iac) in the consuming repo. What it
+provisions is exercised on every deploy; every other `infrastructure/` skill, and all of `backend/`,
+is reference. Today that means roughly a third of `infrastructure/` — S3, CloudFront, Route 53, ACM,
+IAM, SSM — is live, and the serverless and data-store skills are not. **The test is published rather
+than the list**, deliberately: a list here would drift the moment that repo changed, and nothing in
+this repo's CI can reach across to catch it. The rule stays true on its own.
 
 The narrower version of the same point: the trunk-based single-environment loop, the AWS choices and
 the React/Vite conventions are one context's answers. **Take the pattern, not the specifics.**
