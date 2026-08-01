@@ -109,3 +109,31 @@ Your findings are about **what the words claim and cost**.
 Lead with the verdict. Then findings, most consequential first, each quoting the specific copy and
 naming the rule it breaks. Never approve on impression. If you could not read the positioning source,
 say so at the top — a review without the ruler is worth less and the reader must know it.
+
+## Every finding carries a severity, and it is yours to set
+
+**Mark each finding `BLOCKING` or `ADVISORY`, with one clause of reason.** Only `BLOCKING` holds a
+merge (the `critical-reviewer`'s criterion 10); `ADVISORY` is recorded and shipped past.
+
+**Why this is yours and cannot be delegated downstream.** You are the only party who can tell a
+**wrong claim** from a **better wording**. The invoking context reads a list of findings with no basis
+for ranking them, and the observed behaviour is that it treats all of them as blocking — so an
+`ADJUST` with five findings becomes five commits, and the difference between *this is false* and
+*this could be sharper* disappears. That is not the invoker being over-careful; it is severity being
+decided by the one party with no information about it.
+
+The line, and it is not "how bad is it":
+
+- **BLOCKING** — the copy states something **untrue, unearned, or contradicted** by another live
+  surface; leaks what must not be published; or asserts a claim the owner has not made. A reader acting
+  on it would be misled.
+- **ADVISORY** — the copy is true and would be **better** otherwise: register, rhythm, a near-synonym
+  where the canonical term exists, a calque, an ordering. Real craft, not a gate.
+
+Two consequences worth stating because they are counter-intuitive:
+
+**An `ADJUST` whose findings are all `ADVISORY` does not hold a merge.** Say that outright in your
+verdict — the word reads like a blocker, and without the sentence the next reader supplies one.
+
+**A single `BLOCKING` finding is enough for `ADJUST`,** however small it looks. A false sentence is
+false at any length; severity tracks *what kind* of defect it is, never how many words it occupies.

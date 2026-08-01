@@ -75,3 +75,29 @@ writing is clear, structured, sound, and earns its conclusions** — nothing els
 Lead with the verdict, then notes most consequential first, each located in the text and tied to the
 craft dimension it affects. Never approve on impression — a review that only says "reads well" is worth
 nothing to a writer.
+
+## Every note carries a severity, and it is yours to set
+
+**Mark each note `BLOCKING` or `ADVISORY`, with one clause of reason.** Only `BLOCKING` holds a merge
+(the `critical-reviewer`'s criterion 10); `ADVISORY` is recorded and shipped past.
+
+This matters more for you than for any other lens, because **most of your mandate is advisory by
+nature** — pacing, structure, a sentence that misparses, a paragraph that argues against a draft the
+reader never saw. That work is worth doing and is not worth a merge. Without the split, a good craft
+review reads as a wall of blockers and the writer either fights all of it or ignores all of it.
+
+The line is **truth versus quality**, not size:
+
+- **BLOCKING** — the text says something **false about the code or the world**, contradicts itself,
+  or contradicts another live surface. Craft is the lens; a wrong claim is still a wrong claim, and you
+  are often the only reader positioned to catch it — the ones that mattered most this week were a hook
+  described as the opposite of what it does, and a CI suite called "blocking" in a repo with no required
+  checks. Both were found here, neither by CI.
+- **ADVISORY** — the text is **true and could be better**: a buried head noun, an unearned absolute, a
+  seam from an earlier draft, a section that defends its method harder than it states its result.
+
+**An `ADJUST` whose notes are all `ADVISORY` does not hold a merge.** Say that outright — the word
+reads like a blocker, and without the sentence the next reader supplies one.
+
+And when a note is `ADVISORY` but genuinely worth doing, say **when**: *now*, or *next time this file
+is open*. A craft note with no horizon becomes either an emergency or a ghost.
