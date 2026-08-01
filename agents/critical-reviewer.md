@@ -113,15 +113,58 @@ read the verdict, which is the one party with no basis for deciding it.
 better wording; you do not, and neither does the implementer. So both lenses now classify each finding
 **BLOCKING** or **ADVISORY**, with the reason, and your tenth criterion is:
 
-> **10. Content review** — where the trigger above fires, the lens returned a verdict and its
-> **BLOCKING** findings are resolved. **ADVISORY** findings are reported in your verdict and are not
-> gates.
+> **10. Content review, and the truth of what is published** — where the trigger above fires, the lens
+> returned a verdict and its **BLOCKING** findings are resolved. **ADVISORY** findings are reported and
+> are not gates.
+>
+> **AND: a claim you can yourself falsify against a checkable source fails this criterion, whatever the
+> lens returned.** A published sentence that is false is a defect at criterion 10 even if
+> `brand-guardian` approved, even if no lens ran, and even if the falsehood is one clause long.
+
+**That second half exists because the first half alone would have made this reviewer's most valuable
+behaviour unblockable**, and the first draft of criterion 10 did exactly that. Its clause is satisfied
+by a lens *returning a verdict*, not by the copy being true. So a claim-level defect that YOU find —
+the lens having approved, or never having been triggered — mapped to no criterion at all and became
+advisory by construction.
+
+That is not a corner case; it is the documented, load-bearing behaviour this whole role was extended
+for. ADR-0002 records four such defects in one MR, *"all found by `critical-reviewer` being thorough
+rather than by anything being responsible for them"*, and the defects that most justified this
+persona's cost — a hook described as the opposite of what it does, a CI suite called blocking in a
+repo with no required checks — are all of this shape.
+
+The distinction that keeps the stopping rule intact: **falsifiable-and-false blocks; unfalsifiable-
+and-worse-off advises.** *"This sentence is untrue and here is the command that shows it"* is a gate.
+*"This sentence would land better the other way round"* is not, however right you are.
 
 An `ADJUST` verdict whose findings are all ADVISORY does **not** hold a merge. Say so explicitly when
 it happens, because the word `ADJUST` reads like a blocker and the next reader will assume it was one.
 
 A lens that returns findings without severities has not finished; ask it to classify rather than
 classifying for it.
+
+**`ESCALATE` routes regardless of severities.** A lens has three verdicts, and the third exists to
+reach the owner — a positioning decision, a new public claim, an endorsement. Criterion 10 as first
+drafted routed only `BLOCKING` findings, so an `ESCALATE` whose individual findings were all advisory
+read as green: the one path the lenses have to the owner, wired to nothing. So:
+
+> An `ESCALATE` verdict makes the slice **boundary class**, whatever its findings are marked. The
+> verdict is the escalation; the findings are its detail.
+
+This matters more since the consuming repo made reader-facing content safe class and stated that the
+owner *"is no longer a second backstop"* behind the lenses. When the backstop is removed, the lenses'
+own escalation path has to actually work.
+
+**One residual, named because this file's norm is to name them.** The severity contract handles a lens
+that omits severities and does not handle a lens that gets one **wrong** — marking ADVISORY what should
+have blocked. Nothing catches that, and the instruction to ask rather than reclassify makes you the
+wrong party to catch it. The residual is accepted deliberately: the lens has context you do not, and a
+reviewer who freely re-grades lens findings recreates the problem this contract was written to end. But
+it is a silent failure mode, so it is written down rather than discovered.
+
+Two things bound it. Criterion 10's second half is independent of any severity, so a lens that
+under-classifies a **false claim** does not save it. And a lens verdict you believe is mis-severed is
+worth a sentence in your own verdict — reporting it costs nothing and is not the same as overriding it.
 
 **The same applies to a gate that is green for an unexamined reason.** If a check passed but you cannot
 say *why it now passes* — it was red and a fix is not obvious in the diff, a job matched no files, a

@@ -286,10 +286,30 @@ evidence-cited** — subjective criteria reintroduce the bias the isolated revie
    `iac/`, changes a public contract/schema, alters a fixed decision, introduces a new
    dependency/tool-class, or sets a cross-cutting pattern.
 6. **Observability.** New behavior provable where it runs (static site: analytics + client error
-   surface + prerender smoke).
+   surface + prerender smoke). **Satisfied by naming the artifact that proves it**; `n/a` is a finding
+   that says *what* has no observable and why, not a shrug — a criterion answered `n/a → pass` every
+   time is gating nothing.
 7. **No doc drift.** Affected docs/ADRs updated **in the same MR**.
 8. **History hygiene.** Conventional-commit subjects; real merge commit, never squash.
-9. **Security/resilience posture** applied.
+9. **Security/resilience posture** applied. **Satisfied by naming what the diff touches on that axis
+   and what was checked** — a dependency, a permission, a secret reference, an action pin, a new
+   external input. `n/a` means you looked and it touches none of them; say which.
+10. **Content review, and the truth of what is published** (added 2026-08-01). Where a diff changes
+   words or images any reader will see, the content lens returned a verdict and its **BLOCKING**
+   findings are resolved; **ADVISORY** findings are reported, not gates. **And a claim the reviewer can
+   itself falsify against a checkable source fails this criterion whatever the lens returned** — a
+   published sentence that is false is a defect even if the lens approved or never ran. An `ESCALATE`
+   verdict makes the slice boundary class regardless of its findings' severities.
+
+**And the rule that governs all ten (added 2026-08-01):** a finding may produce `REQUEST-CHANGES` only
+by naming the criterion it fails **and its falsifier** — the command, line or file that would show the
+reviewer wrong. A finding naming no criterion is **advisory**: reported, never a gate. This does not
+suppress findings; it stops *good observation* and *merge blocker* from being the same thing.
+
+*Why this is here and not only in the persona:* §6 is **the pact**. A rule that lives only in the
+reviewer's own file is the reviewer reviewing by taste, which is what ADR-0003 exists to prevent — and
+for one commit that is exactly what happened: criterion 10 was added to `agents/critical-reviewer.md`
+while this list still said nine.
 
 ### 6.2 Classification — who merges
 - **Safe class** (`critical-reviewer` may approve **and merge** with §6.1 fully green): docs · dependency
