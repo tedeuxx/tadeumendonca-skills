@@ -3,14 +3,21 @@
 > A **Claude Code harness**: the personas, permission hooks and skill library that make an agent's
 > work reviewable — so "the agent finished" and "the work is done" stop being the same claim.
 
-Install it into a repo and Claude gains a dev-loop with gates in it: a reviewer that verifies a merge
-request against a Definition of Done, a hook that mechanically refuses the irreversible actions, and
-73 skills that hold implementation to one set of conventions instead of whatever the model reached
-for that session.
+This is the practice the author's CV calls **AI-DLC & Harness Engineering**, packaged so it runs
+somewhere other than his own machine. Install it into a repo and Claude gains a dev-loop with gates
+in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
+mechanically refuses irreversible actions, and 73 skills that give implementation one set of
+conventions to follow instead of whatever the model reached for that session.
+
+**It is not a proposal.** The loop described here builds and ships
+[tadeumendonca.io](https://tadeumendonca.io) — a live, public, deployed site with a blocking CI
+matrix, a decision library recording every load-bearing choice and what it cost, and hooks carrying
+their own test suites. Both repos are public, so none of that has to be taken on trust; the
+[worked example](#related) is one click away.
 
 ## The problem
 
-Agentic coding produces plausible work fast. The bottleneck moves: it is no longer *writing* the
+Agentic development produces plausible work fast. The bottleneck moves: it is no longer *writing* the
 code, it is *trusting* it. And "trust" defaults to a human reading every diff, which puts the human
 back on the critical path the agent was supposed to clear.
 
@@ -148,7 +155,8 @@ it up on trusting the folder:
 }
 ```
 
-That tracks `main`. **Pin a release** by adding `"ref": "v0.2.0"` to the marketplace `source` — every
+That tracks `main`. **Pin a release** by adding `"ref": "vX.Y.Z"` to the marketplace `source`, taking
+the tag from [the releases page](https://github.com/tedeuxx/tadeumendonca-skills/releases) — every
 `vX.Y.Z` tag is cut by the release workflow and never mid-development, so any tag is a safe pin. The
 `ref` is the lockfile.
 

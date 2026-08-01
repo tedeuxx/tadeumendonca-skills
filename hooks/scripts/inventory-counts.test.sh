@@ -72,11 +72,38 @@ fi
 # README.md:3 carried "15+ years" while the CV published "18+", computed evergreen from the career
 # start so it can never drift. A hardcoded second copy is exactly what went stale. The rule is that
 # this repo does not restate the figure — the surface that COMPUTES it owns it.
-if grep -qE '[0-9]+\+ years' "$README"; then
-  bad "career figure — README states a year count; that number is owned by the CV, which computes it"
+# Deliberately wider than the literal string that went stale. Matching only `NN+ years` would pass
+# "18 years", "two decades" and "since 2008" — three ways to restate the same figure and rot the same
+# way. The rule is that this repo does not carry the number in any form, so the assertion is written
+# against the rule rather than against the one phrasing that happened to be wrong.
+if grep -qEi '[0-9]+\+? years|[a-z]+ decades?|since (19|20)[0-9]{2}' "$README"; then
+  bad "career figure — README states a career duration; that figure is owned by the CV, which computes it"
 else
-  ok "career figure — README restates no year count, so it cannot go stale"
+  ok "career figure — README restates no career duration, in any of its forms, so it cannot go stale"
 fi
+
+# --- the practice's name ----------------------------------------------------------------------
+# THIS is the claim that actually drifted, and the reason the numbers above are not enough. The site
+# propagated `Loop Engineering` → `Harness Engineering` across five surfaces on 2026-07-31 and this
+# repo was not one of them — so for a day it was the only public surface still publishing the retired
+# term, while asserting it was the central identity term. Numbers were pinned; the vocabulary was not.
+#
+# The pattern is borrowed from the sibling repo's og-copy.test.mjs, which pins the same pair in the
+# same both-directions shape: the current term present, the retired one absent. Absence is the half
+# that matters — a doc can gain the new name and keep the old one three paragraphs down.
+for doc in "$README" "$CLAUDE" "$ROOT/PRINCIPLES.md" "$ROOT/commands/principles/loop-engineering.md"; do
+  name=$(basename "$doc")
+  if grep -qF -- 'Harness Engineering' "$doc"; then
+    ok "vocabulary — $name names the practice"
+  else
+    bad "vocabulary — $name does not name the practice; the term is fixed by the positioning record"
+  fi
+  if grep -qF -- 'Loop Engineering' "$doc"; then
+    bad "vocabulary — $name still carries the RETIRED term; supersede it, do not add alongside"
+  else
+    ok "vocabulary — $name is clear of the retired term"
+  fi
+done
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
