@@ -218,16 +218,18 @@ can be exercised in two ways.** What
 [`iac/`](https://github.com/tedeuxx/tadeumendonca-io/tree/main/iac) provisions is exercised on every
 deploy. What
 [`apps/fed/scripts/`](https://github.com/tedeuxx/tadeumendonca-io/tree/main/apps/fed/scripts) runs is
-exercised on every build — and that second half matters, because it is where the *most* proven
-skills in this library live. Prerendering, OG-card generation and the edge URL-rewrite handler are
-`backend/` skills running in production right now, despite the site having no backend; nothing in
-`iac/` provisions them, so an infrastructure-only test would file them as reference and be wrong.
+exercised on every build — and that second half matters, because an infrastructure-only test gets it
+backwards for real skills. Prerendering and OG-card generation are `backend/` skills running in
+production right now, despite the site having no backend; nothing in `iac/` provisions them.
 
-Applying both today: S3, CloudFront, Route 53, ACM, IAM and SSM are live from `iac/`; prerender, the
-OG generators and the edge handler are live from the build. The serverless, data-store and API skills
-are not. **That naming is orientation, not a contract** — it will drift as the site changes, and
-nothing in this repo's CI can reach across to catch it. The two directories are the durable answer;
-check them rather than this paragraph.
+**No further examples, and the reason is worth more than the examples were.** Three were drafted for
+this paragraph while it was being reviewed and one was wrong each time — most recently a `backend/`
+edge-handler skill named as live, when it documents a Lambda for the retired API and the thing
+actually running at the edge is a CloudFront Function that `iac/` provisions, inverting both halves
+of the claim. The test generalises; hand-picked examples of it do not, and this is a document arguing
+that its claims are checkable in thirty seconds. So the two directories are the answer — **check
+them, not this paragraph.** The serverless, data-store and API skills are the bulk of what you will
+find is reference.
 
 The narrower version of the same point: the trunk-based single-environment loop, the AWS choices and
 the React/Vite conventions are one context's answers. **Take the pattern, not the specifics.**

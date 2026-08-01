@@ -73,8 +73,15 @@ expect_in "$README" "$total skills + autonomy-on" "commands/ total"
 # prevent, surviving in the most-read line of the document.
 #
 # So the rule is inverted: find every place any of these files states a count of skills or personas,
-# and require all of them to agree with the tree. A new phrasing is covered the day it is written,
-# without anyone remembering to add an assertion for it.
+# and require all of them to agree with the tree.
+#
+# WHAT THAT BUYS, STATED EXACTLY, because the first draft of this comment claimed more. It covers new
+# LOCATIONS — a count written into any of the four documents is checked without anyone adding an
+# assertion for it, which is what closes the hole this replaced. It does NOT cover arbitrary new
+# PHRASINGS: the noun patterns below are a small allowlist, so a count written as
+# "73 curated skills" is invisible to it. The pattern is kept deliberately loose (up to two adjectives)
+# rather than pretending to be exhaustive — an enumeration that claims to be a rule is the failure
+# this file exists to prevent, and it would be embarrassing to commit it here.
 INVENTORY_DOCS=("$README" "$CLAUDE" "$ROOT/.claude-plugin/plugin.json" "$ROOT/.claude-plugin/marketplace.json")
 
 check_every_occurrence() {
@@ -94,7 +101,7 @@ check_every_occurrence() {
   fi
 }
 
-check_every_occurrence '[0-9]+ (generic |markdown )?skills' "$total" "skills total, EVERY occurrence"
+check_every_occurrence '[0-9]+ ([a-z-]+ ){0,2}skills' "$total" "skills total, EVERY occurrence"
 check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occurrence"
 
 # The root command is named, not counted — if it is ever joined by a second one, "+ autonomy-on"
@@ -131,6 +138,14 @@ fi
 # that matters — a doc can gain the new name and keep the old one three paragraphs down.
 for doc in "$README" "$CLAUDE" "$ROOT/PRINCIPLES.md" "$ROOT/commands/principles/loop-engineering.md"; do
   name=$(basename "$doc")
+  # Existence first. Without it, a renamed or deleted file makes `grep` print to stderr and return
+  # non-zero — which the "is clear of the retired term" branch reads as SUCCESS, emitting a green line
+  # asserting a property of a file that is not there. A pass for an unexamined reason, inside the
+  # suite written to remove exactly that.
+  if [ ! -f "$doc" ]; then
+    bad "vocabulary — $name does not exist; this loop is asserting against a missing file"
+    continue
+  fi
   if grep -qF -- 'Harness Engineering' "$doc"; then
     ok "vocabulary — $name names the practice"
   else
