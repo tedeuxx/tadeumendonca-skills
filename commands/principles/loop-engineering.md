@@ -1,9 +1,9 @@
-Name and practice the discipline this whole plugin exists to run: **Loop Engineering** (the owner's term for how he works; also **AI-DLC**, the AI-native Development Life Cycle). The other four `/principles/*` skills are its parts — `/principles/engineering-philosophy` is the judgment it applies, `/principles/verification-and-gates` is the gates it composes, `/principles/dev-loop` is the flow it drives, `/principles/permissions-and-environments` is the boundary it makes mechanical. This skill is the whole, named as one thing: **the AI-native development loop, treated as the engineered artifact.**
+Name and practice the discipline this whole plugin exists to run: **Harness Engineering** (the owner's term for how he works; also **AI-DLC**, the AI-native Development Life Cycle). The other four `/principles/*` skills are its parts — `/principles/engineering-philosophy` is the judgment it applies, `/principles/verification-and-gates` is the gates it composes, `/principles/dev-loop` is the flow it drives, `/principles/permissions-and-environments` is the boundary it makes mechanical. This skill is the whole, named as one thing: **the AI-native development loop, treated as the engineered artifact.**
 
 Context: $ARGUMENTS
 
-## What Loop Engineering is
-Most teams point an AI coding tool at an unchanged process and write code faster inside it. Loop Engineering inverts that: **the loop itself — how a change travels from intent to live, and every gate and guard along the way — is the thing you engineer.** The code is the output of a well-built loop, not the point. Run with **Claude Code and Kiro** as the hands, its spine is the platform spine — **agent-led verification, human-residual** (`/principles/verification-and-gates`): the agent proves "done" mechanically; the human is left only the irreversible/architectural residual.
+## What Harness Engineering is
+Most teams point an AI coding tool at an unchanged process and write code faster inside it. Harness Engineering inverts that: **the loop itself — how a change travels from intent to live, and every gate and guard along the way — is the thing you engineer.** The code is the output of a well-built loop, not the point. Run with **Claude Code and Kiro** as the hands, its spine is the platform spine — **agent-led verification, human-residual** (`/principles/verification-and-gates`): the agent proves "done" mechanically; the human is left only the irreversible/architectural residual.
 
 The honest claim it makes (and the one it does **not**): *a development loop that turns AI-native techniques into production-ready software* — **not** agents running in production at scale. The loop is the track record; overclaiming the agents is off-discipline.
 
@@ -15,11 +15,11 @@ The loop is a product with three surfaces, and this discipline owns their **desi
 3. **The harness as the artifact** — the agent fleet, the principles, and the hooks are themselves versioned, tested, and improved. A defect in the loop — an exec-bit lost on a guard so WIP enforcement silently dies; a `gh pr merge` back-door the methodology claimed was closed — is a bug in the *product*, filed and fixed like any other.
 
 ## The move that makes it a discipline, not a vibe
-Every guarantee above is **mechanical or it is not real.** "The reviewer holds the merge gate" is Loop Engineering only once a hook denies the merge to every context but the reviewer; until then it is an instruction the loop can break — and the same model that skipped a review is the one trusted to remember. The test, applied to any claimed property of the loop:
+Every guarantee above is **mechanical or it is not real.** "The reviewer holds the merge gate" is Harness Engineering only once a hook denies the merge to every context but the reviewer; until then it is an instruction the loop can break — and the same model that skipped a review is the one trusted to remember. The test, applied to any claimed property of the loop:
 
 > *If this guarantee failed right now, would something stop me — or only my memory?*
 
-If only memory, it is not engineered yet — it is an intention. This is exactly the standard the spine sets for "done" (trust the harness, not the agent's word); Loop Engineering turns that standard on the loop itself.
+If only memory, it is not engineered yet — it is an intention. This is exactly the standard the spine sets for "done" (trust the harness, not the agent's word); Harness Engineering turns that standard on the loop itself.
 
 ## When to reach for this
 - **Standing up the loop** in a new repo, or picking the loop model (`/principles/dev-loop` — the two models).
@@ -33,4 +33,4 @@ If only memory, it is not engineered yet — it is an intention. This is exactly
 - `/principles/dev-loop` — the end-to-end flow, and how to tell which of the two loop models a repo uses.
 - `/principles/permissions-and-environments` — the permission zones and the guard hook that make the deny-boundary mechanical.
 
-Loop Engineering is these four run as **one designed system**, with Claude Code and Kiro as the hands. The plugin is the artifact; this discipline is how it is built and kept honest.
+Harness Engineering is these four run as **one designed system**, with Claude Code and Kiro as the hands. The plugin is the artifact; this discipline is how it is built and kept honest.

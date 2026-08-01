@@ -1,12 +1,12 @@
 {
   "name": "tadeumendonca",
   "owner": { "name": "Luiz Tadeu Mendonça" },
-  "description": "tadeumendonca.io platform skills — reusable Claude Code commands for architecture, backend, frontend, infrastructure, and workflow.",
+  "description": "A Claude Code harness — subagent review personas, permission hooks that deny the irreversible floor, and a generic skill library.",
   "plugins": [
     {
       "name": "tadeumendonca-skills",
       "source": "./",
-      "description": "Reference skills for the tadeumendonca.io platform (generic, reusable templates)."
+      "description": "Gives Claude a dev-loop with gates in it: a reviewer that verifies a merge request against a Definition of Done, PreToolUse hooks that mechanically refuse irreversible actions, and 73 generic skills for AWS, React and CI/CD."
     }
   ]
 }
