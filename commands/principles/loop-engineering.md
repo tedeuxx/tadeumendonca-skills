@@ -7,7 +7,7 @@ Most teams point an AI coding tool at an unchanged process and write code faster
 
 The honest claim it makes (and the one it does **not**): *a development loop that turns AI-native techniques into production-ready software* — **not** agents running in production at scale. The loop is the track record; overclaiming the agents is off-discipline.
 
-## The three surfaces a Loop Engineer engineers
+## The three surfaces this discipline engineers
 The loop is a product with three surfaces, and this discipline owns their **design**, not their execution. The fleet executes (planner → plan-reviewer → the implementation specialists → critical-reviewer); `scrum-master` guards that the flow is *honest* (tracked, WIP-respected); the gates *are* the plan-time and code-time reviewers. What has no other owner is the loop **as a system**:
 
 1. **Cadence & flow** — thin vertical slices bounded by file overlap, finish-through-merge. Not "is each slice tracked" (that is `scrum-master`'s bookkeeping) but "is the loop *shaped* so work flows — is the human's residual small, and does the slice boundary fall where the human's attention is actually worth spending?" A loop that asks the human on in-pattern work is a **design defect**, not mere friction: the boundary is what the human's attention is *for*, and spending it elsewhere devalues it.

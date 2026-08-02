@@ -171,10 +171,22 @@ for doc in "$README" "$CLAUDE" "$ROOT/PRINCIPLES.md" "$ROOT/commands/principles/
   else
     ok "vocabulary — $name carries no un-prefixed form of the term"
   fi
-  if grep -qF -- 'Loop Engineering' "$doc"; then
-    bad "vocabulary — $name still carries the RETIRED term; supersede it, do not add alongside"
+  # THE STEM, NOT THE FULL TERM, and this is the third time this file has learned the same lesson in
+  # two days. The check was `grep -qF 'Loop Engineering'` and a heading in the principles skill read
+  # "The three surfaces a Loop Engineer engineers" — the ROLE noun of the retired practice, surviving
+  # four lines from the practice's own new name. `Loop Engineer engineers` does not contain
+  # `Loop Engineering`: the space falls exactly where the `i` would be, so the assertion written to
+  # catch precisely this passed green against it.
+  #
+  # Three inflections of one defect now: a term that GREW broke the presence check (substring), a term
+  # that grew broke the absence check (substring the other way), and a term that INFLECTED broke the
+  # retired check. All three were fixed-string comparisons guarding a name. Matching the stem
+  # `Loop Engineer` covers the noun, the gerund and the role in one, and costs nothing — nothing
+  # legitimate contains those two words any more.
+  if grep -qF -- 'Loop Engineer' "$doc"; then
+    bad "vocabulary — $name still carries the RETIRED term (any inflection); supersede it, do not add alongside"
   else
-    ok "vocabulary — $name is clear of the retired term"
+    ok "vocabulary — $name is clear of the retired term in every inflection"
   fi
 done
 
