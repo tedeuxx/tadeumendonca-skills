@@ -59,6 +59,36 @@ and it turns the rule above from something a persona must remember into somethin
 one nodding it through. The label makes the claim **auditable and attributable**, not proven. Stated
 because the previous section's own argument — objectivity is transferred, not created — applies here too.
 
+#### One vocabulary across every repo
+
+The first run of the assessment found the two repos carrying **incompatible taxonomies**: one used
+`product` / `content` / `reader-facing`, the other a 24-label scheme (`type:*`, `phase:*`, `priority:*`,
+`semver:*`, `status:blocked`) that was **88% dead** — four labels used, on four Issues, with 29 of 33
+Issues carrying none. Reconciled to one vocabulary (owner decision, 2026-08-02).
+
+**The test a label has to pass: something must QUERY it.** A label nobody reads is not classification,
+it is decoration that ages.
+
+| label | means | set by | queried by |
+|---|---|---|---|
+| `product` | the repo's own deliverable — for a site, the site; for a harness, the harness | the owner, at filing | `/autonomy-on`'s queue · merge class **safe** |
+| `content` | published in the owner's voice | the owner, at filing | merge class **boundary** |
+| `ready` | the three leads closed the description | the leads | `/autonomy-on` · `developer` refuses an Issue without it |
+| `blocked` | waiting on the owner, or on something outside the loop | anyone | the "what needs the owner" report |
+| `reader-facing` | the diff will change words or images a reader sees | the owner or the leads | which lens the gate dispatches — **a signal, never a gate** |
+
+**Retired:** `type:*`, `phase:*`, `priority:*`, `semver:*`, `status:blocked`. `type` and `priority`
+restate what a title and an order already say; `phase` described a roadmap that ended; `semver:*` was
+vestigial from a **different loop model** — `/workflow/versioning` documents label-driven bumps for
+`gitflow-multi-env`, and that skill stays correct for a repo using it, but a `trunk-single-env` artifact
+repo picks its part at dispatch and reads no label. `status:blocked` survives as `blocked`, renamed for
+consistency rather than dropped: *waiting on the owner* is real and is otherwise invisible.
+
+**`content` is defined in every repo even where it cannot occur.** A harness repo publishes no articles,
+so it will carry none — and defining it anyway keeps one meaning per word across the workspace, which is
+the whole point of reconciling. A vocabulary that changes per repo is two vocabularies with a shared
+prefix.
+
 **Why the formalism is not ceremony — it is what buys the gate its objectivity.** `quality-assurance`
 consolidates that *every requirement of the issue was met*, and those requirements are the leads' output.
 So the ruler the gate applies is **external to the gate**: a finding either anchors in a stated
