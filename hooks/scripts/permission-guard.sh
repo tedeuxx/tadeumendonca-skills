@@ -221,17 +221,51 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]
       *:developer) ;;
       *) deny "Blocked: a subagent does not open work. Decomposing a \`ready\` story into tasks is the one exception and it belongs to \`developer\`, the persona that executes them — a review citing a story is still a review opening work. Report the finding in your verdict and let the owner decide." ;;
     esac
-    parent="$(printf '%s' "$cmd" | sed -nE 's/.*#([0-9]+).*/\1/p' | head -1)"
+    #     THE PARENT COMES FROM A DECLARED MARKER, and this is the correction that makes the
+    #     rule mean what its comment claims. The first version took `#([0-9]+)` with a greedy
+    #     `.*`, which captures the LAST number on the line — so a body reading
+    #     `Parent: #99999 (does not exist). Unrelated context: #122` was ALLOWED, authorised by
+    #     a passing mention of an unrelated ready story. That reduced 5d to "a developer may
+    #     open anything, as long as it ends in a ready number", which is opening scope: the
+    #     exact thing the exception exists to keep denied.
+    #
+    #     So: `Parent: #N` or `Parent #N`, FIRST match, and a second different `#N` after the
+    #     marker denies. The number the guard checks is then the number a human reading the
+    #     issue will see as its parent — which is the only version of "verified" worth the word.
+    parent="$(printf '%s' "$cmd" | sed -nE 's/.*[Pp]arent[[:space:]]*:?[[:space:]]*#([0-9]+).*/\1/p')"
+    trailing="$(printf '%s' "$cmd" | sed -nE 's/.*[Pp]arent[[:space:]]*:?[[:space:]]*#[0-9]+//p' | grep -oE '#[0-9]+' | head -1 || true)"
+    if [ -n "$trailing" ] && [ "$trailing" != "#$parent" ]; then
+      parent=""
+    fi
+
+    #     THE REPO COMES FROM `$bare`, NOT `$cmd`. Same reason rule 5c matches on `$bare`: with
+    #     quoted spans still present, a greedy match takes the last `-R`-looking token ANYWHERE,
+    #     including inside `--body` — text `gh` itself will never see as a flag. That let the
+    #     issue be created in one repo while `ready` was verified in another, so a single ready
+    #     story anywhere in the account authorised opening work everywhere. Reading `$bare`
+    #     means only real flags are visible.
     if [ -n "$parent" ] && command -v gh >/dev/null 2>&1; then
-      parent_repo="$(printf '%s' "$cmd" | sed -nE 's/.*[[:space:]](-R[[:space:]]*|--repo[[:space:]=]*)([^[:space:]]+).*/\2/p')"
-      parent_labels="$(gh issue view "$parent" ${parent_repo:+-R "$parent_repo"} --json labels -q '.labels[].name' 2>/dev/null || true)"
+      parent_repo="$(printf '%s' "$bare" | sed -nE 's/.*[[:space:]](-R[[:space:]]*|--repo[[:space:]=]*)([^[:space:]]+).*/\2/p')"
+      if [ -n "$parent_repo" ]; then
+        parent_labels="$(gh issue view "$parent" -R "$parent_repo" --json labels -q '.labels[].name' 2>/dev/null || true)"
+      else
+        parent_labels="$(gh issue view "$parent" --json labels -q '.labels[].name' 2>/dev/null || true)"
+      fi
       if printf '%s\n' "$parent_labels" | grep -qx 'ready'; then
-        exit 0
+        #     A FLAG, NOT `exit 0`. The first version returned from the middle of the script —
+        #     the first allow-path this rule had ever had — and everything below it stopped
+        #     running: the trunk-push deny (7), the merge gate (7b) and the composition check
+        #     (8). `gh issue create … && git push origin main` came out with NO decision at all,
+        #     where before it was denied twice over. An exception in one rule silently became a
+        #     bypass of the whole floor. Falling through is the only safe shape here.
+        parent_ok=1
       fi
     fi
-    deny "Blocked: a subagent does not open work. The ONE exception is decomposing an approved story — a task whose body references a parent issue that exists and carries \`ready\`. That parent is verified against the tracker, not read from your command, so citing a number is not enough. Everything else: report the finding — in your verdict, in the PR, or upward to the main loop — and let the owner decide whether it becomes an issue."
+    [ -z "${parent_ok:-}" ] && deny "Blocked: a subagent does not open work. The ONE exception is decomposing an approved story: a body declaring \`Parent: #N\` where that issue exists and carries \`ready\`, in the repo this command targets. The parent is looked up, not read from your text, and a second unrelated issue number after the marker voids it. Everything else: report the finding — in your verdict, in the PR, or upward to the main loop — and let the owner decide whether it becomes an issue."
   fi
-  ask "Open this issue? The guard cannot see whether it is aligned with you — that is the whole question, and only you can answer it. Approve if this is work you asked for or agreed to; decline if the agent generated it for itself."
+  # A verified decomposition skips the ASK and FALLS THROUGH to rules 7, 7b and 8 — it does not
+  # return. Everything else still asks the owner, exactly as before.
+  [ -z "${parent_ok:-}" ] && ask "Open this issue? The guard cannot see whether it is aligned with you — that is the whole question, and only you can answer it. Approve if this is work you asked for or agreed to; decline if the agent generated it for itself."
 fi
 
 # 7. Direct push to the trunk. This IS model-agnostic, contrary to the note above:

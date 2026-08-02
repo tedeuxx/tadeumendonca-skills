@@ -174,6 +174,31 @@ check_agent DENY  "tadeumendonca-skills:security"          "security citing a re
 
 # The main loop is unaffected: it still ASKS, parent or no parent. The owner answers, as before.
 check       ASK   "main loop, with a ready parent"                                             "gh issue create --title t --body 'Parent: #122'"
+
+# THE THREE BYPASSES `security` REPRODUCED END TO END. Each was ALLOW against the first
+# implementation, with the suite fully green — which is why they are here as regressions
+# rather than as a note.
+#
+# 1 · A SECOND, UNRELATED NUMBER. The first version's `#([0-9]+)` was greedy, so it captured the
+#     LAST number on the line. A declared parent that does not exist, plus a passing mention of
+#     a real ready story, was ALLOWED — reducing the rule to "open anything, as long as it ends
+#     in a ready number", which is opening scope.
+check_agent DENY  "tadeumendonca-skills:developer" "a second number after the marker voids it"  "gh issue create --title t --body 'Parent: #99999 (gone). Context: #122'"
+# Its control: the SAME shape with only the declared parent present must still ALLOW, or the fix
+# would have closed the hole by breaking the feature.
+check_agent ALLOW "tadeumendonca-skills:developer" "the declared parent alone still allows"     "gh issue create --title t --body 'Parent: #122 — decomposing'"
+
+# 2 · A `-R` INSIDE THE BODY. `parent_repo` came from the raw command, so a greedy match took an
+#     `-R`-looking token out of `--body` — text `gh` never sees as a flag. The issue was created
+#     in one repo while `ready` was verified in another, so one ready story anywhere authorised
+#     work everywhere. Now read from `$bare`, where quoted spans are already collapsed.
+check_agent DENY  "tadeumendonca-skills:developer" "a -R hidden in the body cannot pick the repo" "gh issue create -R owner/other --title t --body 'see -R owner/skills #122'"
+
+# 3 · THE FLOOR BELOW MUST STILL RUN. The first version returned `exit 0` from the middle of the
+#     script, so rules 7, 7b and 8 never evaluated: a verified decomposition chained to a trunk
+#     push came out with NO decision, where before it was denied twice. An exception in one rule
+#     had silently become a bypass of the whole floor.
+check_agent DENY  "tadeumendonca-skills:developer" "a verified task chained to a trunk push"    "gh issue create --title t --body 'Parent: #122' && git push origin main"
 PATH="$REAL_PATH_5D"
 
 # FAILS CLOSED with no `gh` — the opposite direction from wip-guard, deliberately. That hook is
