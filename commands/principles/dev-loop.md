@@ -84,6 +84,59 @@ Yes → it goes first, and the blocking relationship is stated on the issue. No 
 
 *Why the rule is needed:* discovered work is cheap to justify — found in context, evidence attached, usually safe class, merges without the owner. Requested work needs decisions, designs, sometimes the owner's own words. So the loop's **autonomy gradient sorts the queue by what can flow without the human**, which is exactly backwards from what a backlog is for. That is not a lapse in judgment; it is the incentive the other rules create, and it needs a counterweight written down.
 
+### What "delivered" means, and the measure that keeps it honest
+
+**A slice DELIVERED when a reader can do, see or read something different.** Everything else is
+**hygiene** — comments, dead code, a test mechanism, a process rule, a README. Hygiene is not lesser
+work and it is not delivery: it is the cost of being able to deliver again.
+
+**Report product slices against hygiene slices, every session.** Measured on the day the owner raised
+it: twelve merges, **three** of which a reader could perceive; the session reported *"ten issues
+closed"*, which sounded like progress. Every one of the six hygiene slices was defensible on its own —
+which is exactly what makes this invisible from inside. Nothing was wrong and the product barely moved.
+
+**A session with zero product slices is a finding, not a status.**
+
+*Why this is a measurement and not a process:* it adds no step, blocks nothing, needs nobody's approval.
+Rules 1–3 above shape behaviour and can be argued with; a visible outcome cannot be closed without
+someone noticing. That is what makes it agile rather than ceremony.
+
+**Hygiene is picked up when it BLOCKS a product slice, or in one deliberate bounded batch** — not
+opportunistically, and not because it is what flows most easily without a human. That bias is the same
+one recorded above, and it once produced seventeen closed issues with none from the product queue.
+
+### Closing an issue is a step, with a criterion
+
+**The loop must be able to REMOVE work, or it has no terminal state.** Every review round could only
+add: findings became issues, the do-not-fold-in rule made thin slices by filing, and nothing anywhere
+said *"this is not worth tracking"*. Measured across one session: **32 issues created against 13 closed,
+net +19**, with roughly 13 of the 32 produced by reviewing something else rather than by requested
+value.
+
+Three things that multiply it are each individually **correct**, which is why the fix is not to undo
+any of them: adversarial review that actually works, the do-not-fold-in rule, and wider autonomy. **The
+fix is not "file fewer issues"** — the findings are real, and losing them is worse than tracking them.
+And not a cap: a queue that refuses entries silently drops the next one that matters.
+
+**Close an issue when any of these holds, and state which one in the closing comment:**
+
+- **Superseded** — a later decision answered it, or answered the question it was asking. Say what
+  superseded it, so the reader can check rather than trust.
+- **Implemented elsewhere** — the mechanism exists now, under another slice's name. Point at it.
+- **Its premise no longer holds** — the condition that produced it is gone. This is the one most often
+  left open, because nothing prompts anyone to re-read an old issue against the current tree.
+- **The cost of tracking exceeds the cost of rediscovering it** — a real finding, small, and cheaper to
+  find again in context than to carry. Say so plainly rather than pretending it was fixed.
+
+**A closing comment that states no criterion is not a close, it is a deletion.** The record of *why* an
+issue stopped mattering is worth as much as the record of why it was opened — same argument as
+supersede-never-rewrite in the ADR library.
+
+**This is the owner's act**, like opening one — `permission-guard` leaves closing open everywhere, and
+that asymmetry is deliberate: opening work commits the owner's future attention, closing it releases
+attention already committed. But **propose the batch and the criteria**; do not close silently and do
+not let the graveyard grow because nobody was assigned the question.
+
 ## Review does not open work
 
 **Only the owner decides what enters the queue.** A REVIEW never files: an agent that turns its own
