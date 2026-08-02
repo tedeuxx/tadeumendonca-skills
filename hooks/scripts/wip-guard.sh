@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 # wip-guard.sh — PreToolUse(Bash) guard bounding work-in-progress at the PR boundary.
 #
-# The bound is FILE OVERLAP, not a count.
+# The bound has TWO LEVELS: file overlap between slices, and a COUNT between stories.
+#
+# ~~The bound is FILE OVERLAP, not a count.~~ True of slices, and false of stories since
+# `gitflow-single-env` (#122/#123). Struck rather than deleted because the paragraph below it
+# is the measured argument for the first half and still stands — see STORY AWARENESS further
+# down for why the second half is a count. Not a change of mind about counting: a story
+# branch diverges for as long as the story lasts, and overlap measured at an instant cannot
+# see time.
 #
 # It used to count: one open PR per repo, full stop. That was a proxy for the thing
 # actually worth preventing — stacked PRs that go stale and turn their merge into a
@@ -45,9 +52,9 @@ command -v git >/dev/null 2>&1 || exit 0
 # Honour an explicit -R/--repo; otherwise let gh infer from the working directory.
 repo="$(printf '%s' "$cmd" | sed -nE 's/.*[[:space:]](-R|--repo)[[:space:]]+([^[:space:]]+).*/\2/p')"
 if [ -n "$repo" ]; then
-  open_prs="$(gh pr list -R "$repo" --state open --author @me --json number,title 2>/dev/null || true)"
+  open_prs="$(gh pr list -R "$repo" --state open --author @me --json number,title,headRefName,baseRefName 2>/dev/null || true)"
 else
-  open_prs="$(gh pr list --state open --author @me --json number,title 2>/dev/null || true)"
+  open_prs="$(gh pr list --state open --author @me --json number,title,headRefName,baseRefName 2>/dev/null || true)"
 fi
 
 # No answer means no verdict. Stay out of the way.
@@ -60,12 +67,90 @@ case "$count" in
   ''|0) exit 0 ;;
 esac
 
+# ── STORY AWARENESS (gitflow-single-env) ────────────────────────────────────────────
+#
+# Under `gitflow-single-env` a story owns a short-lived branch and its tasks open PRs
+# INTO that branch; the story branch itself then opens one PR into the trunk, and THAT
+# merge is the deploy. So this guard has to move in two opposite directions at once, and
+# that is the reason it is the riskiest change in the batch — a pair like this passes a
+# suite while gating nothing.
+#
+#   LOOSER inside a story: two task PRs touching the same file, in the same story, are
+#   normal work rather than a collision. They land in sequence on a branch that has not
+#   published yet. Blocking them would deny the exact flow the model creates.
+#
+#   TIGHTER between stories: only one story may be live. Not because two stories would
+#   necessarily collide — file overlap already answered that question, and answered it
+#   correctly in #88/#90 — but because a story branch DIVERGES FOR AS LONG AS THE STORY
+#   LASTS. Overlap measured at an instant cannot see time, and every cost of the model
+#   (six lead dispatches, a diverging branch, a ratification, an acceptance) is per story.
+#
+# Which story a PR belongs to is read off the branch pair: a task PR has `story/*` as its
+# BASE, and the story's own publish PR has `story/*` as its HEAD. Anything with neither is
+# an ordinary trunk slice and keeps the pre-existing behaviour untouched.
+story_of() { # $1 head, $2 base
+  case "$2" in story/*) printf '%s' "$2"; return ;; esac
+  case "$1" in story/*) printf '%s' "$1"; return ;; esac
+  printf ''
+}
+
+# The base this PR would target: an explicit -B/--base, else the repo default.
+default_base="$(gh repo view ${repo:+-R "$repo"} --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null || true)"
+[ -z "$default_base" ] && default_base="main"
+# ATTACHED VALUES, both spellings. `gh` accepts `--base=x` and `-Bx` exactly as it accepts
+# the spaced forms, and a space-only regex misses them — the same class `permission-guard`
+# 5b/5c were hardened for, so this is the in-repo idiom rather than a new idea.
+#
+# Missing them broke this rule in BOTH directions at once, which is why it is worth a
+# comment rather than a quiet fix:
+#   · the story COUNT failed OPEN and silently — `--base=story/other` read as no base at
+#     all, fell back to the default branch, and a second story opened unchallenged;
+#   · the same-story EXEMPTION failed CLOSED — a legitimate second task PR written with
+#     `--base=` was DENIED, wedging the primary flow this hook exists to permit, and doing
+#     it intermittently, since it depends on how the command happened to be spelled.
+#
+# `-B[[:space:]]*` cannot mis-fire on `--base`: the character before `B` would have to be a
+# space, and in `--base` it is `-` with a lowercase `b`.
+new_base="$(printf '%s' "$cmd" | sed -nE 's/.*[[:space:]](-B[[:space:]]*|--base[[:space:]=]*)([^[:space:]]+).*/\2/p')"
+[ -z "$new_base" ] && new_base="$default_base"
+new_head="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+new_story="$(story_of "$new_head" "$new_base")"
+
+# Every story already live in the open set.
+# `// ""` on both fields, deliberately: a `gh` that omits them (an older version, a shape
+# change) would otherwise make `startswith` error, jq print nothing, and this whole rule
+# vanish silently while every test still passed. Defaulting to empty makes a missing field
+# mean "not a story" — which is the safe reading, and a visible one.
+live_stories="$(printf '%s' "$open_prs" | jq -r '.[] | (if ((.baseRefName // "") | startswith("story/")) then .baseRefName elif ((.headRefName // "") | startswith("story/")) then .headRefName else empty end)' 2>/dev/null | sort -u || true)"
+
+# WIP = 1 STORY, by count. Fires only when this PR belongs to a story AND a DIFFERENT one
+# is already live — an ordinary trunk slice alongside a story is not what this bounds.
+if [ -n "$new_story" ] && [ -n "$live_stories" ]; then
+  # `-vxF`, not `-v "^…$"`: the branch name was being interpolated into a REGEX, and `.` is
+  # legal in a git ref. So a base like `story/1..thing` failed to match a live `story/12-thing`,
+  # that story vanished from the set, and a second story opened unchallenged. A bypass a
+  # crafted name can drive, and a mis-match that real names hit by accident.
+  others="$(printf '%s\n' "$live_stories" | grep -vxF "$new_story" || true)"
+  if [ -n "$others" ]; then
+    jq -n --arg r "Blocked: WIP is ONE story at a time, and $(printf '%s' "$others" | tr '\n' ' ')is already live. This is a count rather than file overlap on purpose — a story branch diverges for as long as the story lasts, and every cost of the model is per story. Finish that one through its ratification and merge, then open this. (Inside a single story, task PRs are NOT bounded by overlap — that is a different rule and it is looser, not stricter.)" '{
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        permissionDecision: "deny",
+        permissionDecisionReason: $r
+      }
+    }'
+    exit 0
+  fi
+fi
+
 # What THIS branch would bring. Compared against the merge-base with the default branch,
 # not against its tip, so commits that merely landed on the base while this branch was
 # alive are not counted as ours.
-base="$(gh repo view ${repo:+-R "$repo"} --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null || true)"
-[ -z "$base" ] && base="main"
-merge_base="$(git merge-base "origin/$base" HEAD 2>/dev/null || true)"
+#
+# Reuses `default_base` resolved above rather than asking again — the story block already
+# made this exact query, and a second identical round-trip on every `gh pr create` is cost
+# for nothing. Both reviewers flagged it.
+merge_base="$(git merge-base "origin/$default_base" HEAD 2>/dev/null || true)"
 [ -z "$merge_base" ] && exit 0
 mine="$(git diff --name-only "$merge_base" HEAD 2>/dev/null || true)"
 # A branch with no diff yet is not a conflict risk, and it is also not a PR worth
@@ -77,6 +162,21 @@ mine="$(git diff --name-only "$merge_base" HEAD 2>/dev/null || true)"
 # around rather than acts on.
 collisions=""
 for pr in $(printf '%s' "$open_prs" | jq -r '.[].number' 2>/dev/null || true); do
+  # SAME-STORY PRs ARE EXEMPT — this is the "looser" half, and skipping it here rather
+  # than filtering the list earlier is deliberate: the exemption is a property of the
+  # PAIR, not of either PR alone.
+  #
+  # Two task PRs into one story branch land in sequence on a branch that has not published
+  # yet, so an overlap between them is ordinary sequential work, not a slice going stale
+  # behind another. The conflict this guard exists to prevent is between things racing to
+  # the SAME destination, and two tasks in one story are not racing.
+  their_head="$(printf '%s' "$open_prs" | jq -r --arg n "$pr" '.[] | select(.number == ($n|tonumber)) | .headRefName' 2>/dev/null || true)"
+  their_base="$(printf '%s' "$open_prs" | jq -r --arg n "$pr" '.[] | select(.number == ($n|tonumber)) | .baseRefName' 2>/dev/null || true)"
+  their_story="$(story_of "$their_head" "$their_base")"
+  if [ -n "$new_story" ] && [ "$their_story" = "$new_story" ]; then
+    continue
+  fi
+
   theirs="$(gh pr view "$pr" ${repo:+-R "$repo"} --json files -q '.files[].path' 2>/dev/null || true)"
   # Could not read that PR's files — fail open for this PR rather than guessing at an
   # overlap we cannot see.

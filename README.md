@@ -64,7 +64,7 @@ flowchart TB
     subgraph hooks["hooks/ — PreToolUse + SessionStart"]
       direction LR
       H1["permission-guard<br/>denies the irreversible floor"]
-      H2["wip-guard<br/>denies a 2nd overlapping PR"]
+      H2["wip-guard<br/>overlap inside a story,<br/>one story at a time"]
       H3["session-wip<br/>lists the open queue"]
     end
 
@@ -110,11 +110,23 @@ gatekeeper over the same diff, with its own veto; `marketing-lead` is the lens o
 `terraform apply`, `rm -rf`, secret writes. A long context cannot argue it down, because it is not
 reasoning: it is a shell script matching a command.
 
-`wip-guard` refuses to open a pull request that touches files an open one already touches. **The
-bound is file overlap, not a count**, and that is a narrowing the hook made on measured evidence: it
-used to allow one open PR per repo, which blocked disjoint slices — the common case — while doing
-nothing about the actual risk, which is two PRs that will conflict on merge. Its own header records
-the measurement.
+`wip-guard` refuses to open a pull request that touches files an open one already touches. That
+narrowing was made on measured evidence: it used to allow one open PR per repo, which blocked
+disjoint slices — the common case — while doing nothing about the actual risk, which is two PRs that
+will conflict on merge. Its own header records the measurement.
+
+**The bound now has two levels, because a story is not a slice.** Under `gitflow-single-env` a story
+owns a short-lived branch and its tasks open PRs into it; that branch then opens one PR into the
+trunk, and *that* merge is the deploy. So:
+
+- **inside one story** the bound is *looser* than file overlap — two task PRs touching the same file
+  land in sequence on a branch that has not published, which is ordinary work rather than a collision;
+- **between stories** it is a **count**: one story branch at a time.
+
+~~*The bound is file overlap, not a count.*~~ **That sentence was true of slices and is now false of
+stories**, which is why it is struck rather than edited. The reason is not a change of mind about
+counting: a story branch **diverges for as long as the story lasts**, and overlap measured at an
+instant cannot see time. Every cost of that model is per story, so the count is what bounds them.
 
 - **Choice:** a hook over an instruction. An instruction degrades with context length and pressure;
   a hook does not degrade at all. **The cost is that it errs in both directions, and only one of them
