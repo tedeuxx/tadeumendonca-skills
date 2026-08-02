@@ -12,9 +12,24 @@ owner"* — were both wrong, and wrong in different directions.
 
 ## The queue
 
-Open issues labelled **`product`**. If the repo has no such label, say so and stop rather than
-draining every open issue — a command that silently redefines its own scope is worse than one that
-refuses.
+Open issues labelled **`product`** **and `ready`**. If the repo has no such label, say so and stop
+rather than draining every open issue — a command that silently redefines its own scope is worse than
+one that refuses.
+
+**`ready` means the three leads closed the description** (`/principles/dev-loop`, *Intake*). An Issue
+without it is in the tracker but not executable, and the right move is to say so and run the intake pass
+— not to build it and discover the missing requirement at the gate.
+
+**This command currently REFUSES to run on the harness repo, and that is a real gap rather than a
+quirk.** `tadeumendonca-skills` has no `product` label: it carries a 24-label taxonomy (`type:*`,
+`phase:*`, `priority:*`, `semver:*`, `status:blocked`) of which four labels are used, on four Issues,
+while **29 of its 33 Issues carry no label at all**. So the repo whose whole purpose is the loop cannot
+be drained by the command that drains loops — its backlog gets worked by someone reading and judging,
+which is precisely the failure the `ready` state exists to remove.
+
+Found by the first run of the state-model assessment (`/principles/loop-engineering`). Recorded here
+rather than fixed silently, because reconciling the two taxonomies is a decision about how work is
+classified and belongs to the owner.
 
 **Do not invent an order.** `product-lead` owns sequencing (ADR-0002 amendment #5): starting a
 slice that is not the top of the stated order requires that persona to have returned a new order, or

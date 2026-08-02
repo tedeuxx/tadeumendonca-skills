@@ -36,6 +36,29 @@ The chain, and each link is load-bearing:
 > **Only then is the issue executable.** `developer` does not pick up an issue whose description is not
 > closed. An issue in the tracker is not the same as an issue ready for work.
 
+#### The states, and the one artifact that was missing
+
+The chain above is **behaviour**; this is the state it implies. Derived by the assessment
+`/principles/loop-engineering` now requires before any loop change is executed — and the first run of
+that assessment found this gap **one day after the chain was merged**.
+
+| transition | who acts | artifact that records it |
+|---|---|---|
+| → **filed** | the owner, alone | the Issue exists |
+| filed → **ready** | the three leads, closing the description | **`ready` label** ← *this was missing* |
+| ready → **in progress** | `developer` | an open PR (already observable — no new state) |
+| in progress → **reviewed** | both gatekeepers | their verdicts on the PR |
+| reviewed → **closed** | `quality-assurance` (safe) · the owner (boundary) | the merge, and for boundary the owner's ratifying comment |
+
+**`ready` is the only state added, and the restraint is the point.** Four of the five transitions were
+already observable; inventing states for them would restate information that exists and give it a second
+place to be wrong. **An issue with no `ready` label is not executable** — that is the whole mechanism,
+and it turns the rule above from something a persona must remember into something anyone can query.
+
+*What it does not buy:* nothing verifies that three leads actually closed the description rather than
+one nodding it through. The label makes the claim **auditable and attributable**, not proven. Stated
+because the previous section's own argument — objectivity is transferred, not created — applies here too.
+
 **Why the formalism is not ceremony — it is what buys the gate its objectivity.** `quality-assurance`
 consolidates that *every requirement of the issue was met*, and those requirements are the leads' output.
 So the ruler the gate applies is **external to the gate**: a finding either anchors in a stated

@@ -21,6 +21,49 @@ Every guarantee above is **mechanical or it is not real.** "The reviewer holds t
 
 If only memory, it is not engineered yet — it is an intention. This is exactly the standard the spine sets for "done" (trust the harness, not the agent's word); Agent Harness Engineering turns that standard on the loop itself.
 
+## Before a loop change goes into execution — re-derive the state model
+
+**Owner rule, 2026-08-02: every time the loop is re-evaluated, redo this assessment before executing it.**
+Not once, and not only when the tracker is being touched — *every* time.
+
+Three axes, and the third is the one that gets skipped:
+
+1. **Issue TYPES** — what kinds of work exist, and what each implies for merge class.
+2. **STATES per type** — every state an item passes through, not just `open` and `closed`.
+3. **WHICH ROLE acts at each transition — and what ARTIFACT records that it happened.**
+
+The whole assessment collapses into one question, asked once per rule the change introduces:
+
+> **What observable artifact says this rule was applied?**
+>
+> If the answer is *"someone reads the item and judges"*, the rule has no state. It will be applied
+> inconsistently, and — worse — inconsistently *and silently*, because there is nothing to audit.
+
+### Why this is a rule rather than good practice
+
+It was earned, immediately, by this file's own discipline failing to catch it. On 2026-08-02 the roster
+was rebuilt and an intake chain was merged: *the owner generates demand → the three leads close the
+issue's description → only then is it executable.*
+
+**Nothing in the tracker could say whether a description had been closed.** `product-lead` had to read
+every open issue and judge each one. The rule shipped **unobservable**, one day after being written —
+and the section immediately above is about exactly that failure, one level down. *A gate that verifies
+nothing* has a sibling: **a rule that has no state.** The section's own test catches it if you think to
+apply it upward: *if this guarantee failed right now, would something stop me — or only my memory?*
+Nothing would stop anyone from building an unfinished issue.
+
+**The bias this corrects, because it is invisible from inside.** A loop change is written as
+**behaviour** — who does what, in what order — and behaviour reads as *complete* the moment the sentence
+is well-formed. The states are what make it auditable later, and they are exactly what a well-written
+behavioural rule does not force you to think about.
+
+### Keep the remedy to one bit
+
+The fix is almost never a workflow. **Do not add a state that duplicates something already observable** —
+an open PR already says "in progress", and a state that restates existing information is one more thing
+that can lie. Prefer the smallest label set that makes each rule's precondition **queryable**, and if a
+rule needs no new state, say so explicitly rather than leaving the axis unexamined.
+
 ## When to reach for this
 - **Standing up the loop** in a new repo, or picking the loop model (`/principles/dev-loop` — the two models).
 - **A gate feels like theater**, or a green does not sit right — audit whether it verifies what it claims (widen the assertion to the installed form; make the "did the reviewer run?" a precondition, not a hope).
