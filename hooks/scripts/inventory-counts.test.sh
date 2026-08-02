@@ -133,6 +133,19 @@ fi
 # repo was not one of them — so for a day it was the only public surface still publishing the retired
 # term, while asserting it was the central identity term. Numbers were pinned; the vocabulary was not.
 #
+# It moved again on 2026-08-02: `Harness Engineering` → `Agent Harness Engineering`, and this repo was
+# IN that batch, which is the check working.
+#
+# THE PRESENCE CHECK NEEDED A BOUNDARY AND THE ABSENCE CHECK NEEDS A NEGATIVE LOOKAHEAD, both because
+# the term GREW rather than changed. `grep -qF 'Harness Engineering'` is satisfied by the new value —
+# one is a substring of the other — so on the day of the rename this assertion passed against the new
+# term, against the superseded one, and against a revert. A term that gains a prefix breaks a substring
+# check in silence, which is the second time this file has learned that a green is not evidence.
+#
+# The rule is "no occurrence NOT preceded by the prefix", which needs a pattern rather than a fixed
+# string. `grep -E` with a negative lookahead is not available in POSIX ERE, so the absence is checked
+# by stripping the qualified form first and looking for what survives.
+#
 # The pattern is borrowed from the sibling repo's og-copy.test.mjs, which pins the same pair in the
 # same both-directions shape: the current term present, the retired one absent. Absence is the half
 # that matters — a doc can gain the new name and keep the old one three paragraphs down.
@@ -146,15 +159,34 @@ for doc in "$README" "$CLAUDE" "$ROOT/PRINCIPLES.md" "$ROOT/commands/principles/
     bad "vocabulary — $name does not exist; this loop is asserting against a missing file"
     continue
   fi
-  if grep -qF -- 'Harness Engineering' "$doc"; then
+  if grep -qF -- 'Agent Harness Engineering' "$doc"; then
     ok "vocabulary — $name names the practice"
   else
     bad "vocabulary — $name does not name the practice; the term is fixed by the positioning record"
   fi
-  if grep -qF -- 'Loop Engineering' "$doc"; then
-    bad "vocabulary — $name still carries the RETIRED term; supersede it, do not add alongside"
+  # Strip the QUALIFIED form, then look for what is left. Anything still matching is a bare
+  # `Harness Engineering` — the superseded value — surviving beside the current one.
+  if sed 's/Agent Harness Engineering//g' "$doc" | grep -q 'Harness Engineering'; then
+    bad "vocabulary — $name still carries the BARE term; supersede it, do not leave it alongside"
   else
-    ok "vocabulary — $name is clear of the retired term"
+    ok "vocabulary — $name carries no un-prefixed form of the term"
+  fi
+  # THE STEM, NOT THE FULL TERM, and this is the third time this file has learned the same lesson in
+  # two days. The check was `grep -qF 'Loop Engineering'` and a heading in the principles skill read
+  # "The three surfaces a Loop Engineer engineers" — the ROLE noun of the retired practice, surviving
+  # four lines from the practice's own new name. `Loop Engineer engineers` does not contain
+  # `Loop Engineering`: the space falls exactly where the `i` would be, so the assertion written to
+  # catch precisely this passed green against it.
+  #
+  # Three inflections of one defect now: a term that GREW broke the presence check (substring), a term
+  # that grew broke the absence check (substring the other way), and a term that INFLECTED broke the
+  # retired check. All three were fixed-string comparisons guarding a name. Matching the stem
+  # `Loop Engineer` covers the noun, the gerund and the role in one, and costs nothing — nothing
+  # legitimate contains those two words any more.
+  if grep -qF -- 'Loop Engineer' "$doc"; then
+    bad "vocabulary — $name still carries the RETIRED term (any inflection); supersede it, do not add alongside"
+  else
+    ok "vocabulary — $name is clear of the retired term in every inflection"
   fi
 done
 

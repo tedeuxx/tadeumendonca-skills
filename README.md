@@ -5,7 +5,7 @@
 
 Treating the development loop itself as the thing you engineer — its gates, its guardrails, its
 review — rather than just working faster inside an unchanged one. The author's CV calls that
-**AI-DLC & Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
+**AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
 mechanically refuses irreversible actions, and 73 skills that hand the model one set of conventions
@@ -240,3 +240,4 @@ the React/Vite conventions are one context's answers. **Take the pattern, not th
   consumed by, and the worked example of the loop. Its `docs/adr/` is the decision library.
 - [tadeumendonca.io/en/architecture](https://tadeumendonca.io/en/architecture) — how the two fit together.
 - [LinkedIn](https://www.linkedin.com/in/luiz-tadeu-mendonca-83a16530/) · [GitHub](https://github.com/tedeuxx)
+
