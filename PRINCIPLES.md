@@ -1,6 +1,6 @@
 # Engineering principles — the drift-reducer
 
-The canonical, concise statement of how the owner builds software. This is the **principles layer** of the `tadeumendonca-skills` plugin: the part of the harness that keeps an agent's behavior aligned with the owner's engineering judgment so output doesn't drift. It is the summary; the five `/principles/*` skills carry the full detail — **`/principles/loop-engineering`** names the discipline the whole is (**Harness Engineering / AI-DLC**, run with Claude Code & Kiro), and the other four are its parts.
+The canonical, concise statement of how the owner builds software. This is the **principles layer** of the `tadeumendonca-skills` plugin: the part of the harness that keeps an agent's behavior aligned with the owner's engineering judgment so output doesn't drift. It is the summary; the five `/principles/*` skills carry the full detail — **`/principles/loop-engineering`** names the discipline the whole is (**Agent Harness Engineering / AI-DLC**, run with Claude Code & Kiro), and the other four are its parts.
 
 > **For consumers (`<project>` repos):** see *Wiring* at the bottom — enable the plugin (the permission guard hook activates automatically) and surface this file's floor in your repo so it's always in context.
 
@@ -36,7 +36,7 @@ IaC is **pipeline-only** and **infra-first** under both. Pick the model from the
 Pre-authorize the entire inner loop (git-reversible) so the agent works without constant prompts; **deny** the irreversible boundary (`terraform apply/destroy`, direct cloud mutation, force-push, `rm -rf`, secret writes) and **gate exactly at this repo's point of no return** — the promotion PR under `gitflow-multi-env`, the merge to `main` (or the release) under `trunk-single-env`. Never `--dangerously-skip-permissions`. Permissions are a **versioned repo contract** (committed `settings.json`, not `settings.local.json`), layered **global floor + per-project**. Control comes from reversibility + mechanical gates + the deny boundary — not from interrupting you.
 
 ## Full detail
-- `/principles/loop-engineering` — **the discipline that names the whole (Harness Engineering / AI-DLC)**: the AI-native loop treated as the engineered artifact — its cadence, its gates-as-a-system, and the harness itself. The other four are its parts.
+- `/principles/loop-engineering` — **the discipline that names the whole (Agent Harness Engineering / AI-DLC)**: the AI-native loop treated as the engineered artifact — its cadence, its gates-as-a-system, and the harness itself. The other four are its parts.
 - `/principles/engineering-philosophy` — the principles and the two tiers.
 - `/principles/verification-and-gates` — the thesis, Definition of Done, the 100% regression invariant, the gate tables per loop model.
 - `/principles/dev-loop` — the end-to-end flow, and how to tell which model a repo uses.
