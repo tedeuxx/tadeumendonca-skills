@@ -20,16 +20,16 @@ one that refuses.
 without it is in the tracker but not executable, and the right move is to say so and run the intake pass
 — not to build it and discover the missing requirement at the gate.
 
-**This command currently REFUSES to run on the harness repo, and that is a real gap rather than a
-quirk.** `tadeumendonca-skills` has no `product` label: it carries a 24-label taxonomy (`type:*`,
-`phase:*`, `priority:*`, `semver:*`, `status:blocked`) of which four labels are used, on four Issues,
-while **29 of its 33 Issues carry no label at all**. So the repo whose whole purpose is the loop cannot
-be drained by the command that drains loops — its backlog gets worked by someone reading and judging,
-which is precisely the failure the `ready` state exists to remove.
+~~**This command currently REFUSES to run on the harness repo.**~~ **It did until 2026-08-02, and the
+fix landed in the same slice that found it.** The first run of the state-model assessment
+(`/principles/loop-engineering`) turned up that `tadeumendonca-skills` had no `product` label at all —
+it carried a separate 24-label taxonomy that was almost entirely unused — so the repo whose whole
+purpose is the loop could not be drained by the command that drains loops. Its backlog got worked by
+someone reading and judging, which is the failure the `ready` state exists to remove.
 
-Found by the first run of the state-model assessment (`/principles/loop-engineering`). Recorded here
-rather than fixed silently, because reconciling the two taxonomies is a decision about how work is
-classified and belongs to the owner.
+The owner reconciled both repos to one vocabulary (`/principles/dev-loop`, *One vocabulary across every
+repo*), so **this command now runs on either repo.** Kept as a correction rather than deleted, because
+the gap is the evidence for why the assessment is a standing rule.
 
 **Do not invent an order.** `product-lead` owns sequencing (ADR-0002 amendment #5): starting a
 slice that is not the top of the stated order requires that persona to have returned a new order, or
@@ -99,7 +99,14 @@ queue"* is honest status; silence is indistinguishable from being stuck.
 ## Reporting
 
 Report **state**, not narration: how many `product` issues are open, how many merged this session,
-what is blocked on the owner. A count is checkable; "making progress" is not.
+and **what is blocked on the owner — by querying the `blocked` label, not by re-reading the queue**
+(`gh issue list --label blocked`). A count is checkable; "making progress" is not, and a list derived by
+reading twelve Issues is neither reproducible nor auditable.
+
+That query is what the label is FOR, and saying so here is not decoration: the vocabulary's own test is
+that something must read a label or it is not classification. Before this, "what needs the owner" was
+assembled by judgement each time, which is how the same four items get described differently in two
+consecutive reports.
 
 **And do not report an act you have not performed.** A status report is the least gated artifact in
 the loop — no check reads it, and the human reading it cannot verify it. Every claim in one is a claim

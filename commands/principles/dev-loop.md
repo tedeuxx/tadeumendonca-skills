@@ -49,6 +49,13 @@ that assessment found this gap **one day after the chain was merged**.
 | ready → **in progress** | `developer` | an open PR (already observable — no new state) |
 | in progress → **reviewed** | both gatekeepers | their verdicts on the PR |
 | reviewed → **closed** | `quality-assurance` (safe) · the owner (boundary) | the merge, and for boundary the owner's ratifying comment |
+| **any → blocked → back** | anyone, on discovering it waits on the owner or on something outside the loop | **`blocked` label** |
+
+**`blocked` is orthogonal, not a sixth step, and saying that is part of the model rather than an excuse
+for leaving it out.** It can attach at any point and it returns the item to wherever it was — an Issue
+can be blocked before its description is closed *and* after, and a slice can discover mid-build that it
+needs the owner's words. Modelling it as a stage in the line would be false; leaving it out of the table
+entirely was also false, and that omission was caught in review of the very slice that introduced it.
 
 **`ready` is the only state added, and the restraint is the point.** Four of the five transitions were
 already observable; inventing states for them would restate information that exists and give it a second
@@ -62,9 +69,23 @@ because the previous section's own argument — objectivity is transferred, not 
 #### One vocabulary across every repo
 
 The first run of the assessment found the two repos carrying **incompatible taxonomies**: one used
-`product` / `content` / `reader-facing`, the other a 24-label scheme (`type:*`, `phase:*`, `priority:*`,
-`semver:*`, `status:blocked`) that was **88% dead** — four labels used, on four Issues, with 29 of 33
-Issues carrying none. Reconciled to one vocabulary (owner decision, 2026-08-02).
+`product` / `content` / `reader-facing`, the other a scheme (`type:*`, `phase:*`, `priority:*`,
+`semver:*`, `status:blocked`) that was almost entirely unused. Reconciled to one vocabulary (owner
+decision, 2026-08-02).
+
+**The measurement, corrected in review and stated precisely because the first version was wrong in
+three places** — it said "88% dead, four labels used, on four Issues, 29 of 33". Re-derived from the
+repository's label events, which is the only source that survives the deletion:
+
+- the repo had **34** Issues, **29** carrying no label at all;
+- of the **15** labels retired, **11 were never applied to anything**, and four were: `type:feature`,
+  `phase:1`, `semver:minor`, `semver:patch`;
+- on **Issues** only three of them ever appeared — on #4–#7, all closed in the repo's first week;
+- `semver:*` also landed on **eight merged PRs**, which the original count missed entirely.
+
+*Why the correction is recorded rather than quietly fixed:* the original figure mixed two populations,
+taking "four labels" from a PR-inclusive set and "four Issues" from an Issue-only one. That is precisely
+the shape of error this section is about — a number that reads as measured and was assembled.
 
 **The test a label has to pass: something must QUERY it.** A label nobody reads is not classification,
 it is decoration that ages.
