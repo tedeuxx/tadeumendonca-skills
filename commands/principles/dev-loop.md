@@ -36,6 +36,80 @@ The chain, and each link is load-bearing:
 > **Only then is the issue executable.** `developer` does not pick up an issue whose description is not
 > closed. An issue in the tracker is not the same as an issue ready for work.
 
+#### The states, and the one artifact that was missing
+
+The chain above is **behaviour**; this is the state it implies. Derived by the assessment
+`/principles/loop-engineering` now requires before any loop change is executed — and the first run of
+that assessment found this gap **one day after the chain was merged**.
+
+| transition | who acts | artifact that records it |
+|---|---|---|
+| → **filed** | the owner, alone | the Issue exists |
+| filed → **ready** | the three leads, closing the description | **`ready` label** ← *this was missing* |
+| ready → **in progress** | `developer` | an open PR (already observable — no new state) |
+| in progress → **reviewed** | both gatekeepers | their verdicts on the PR |
+| reviewed → **closed** | `quality-assurance` (safe) · the owner (boundary) | the merge, and for boundary the owner's ratifying comment |
+| **any → blocked → back** | anyone, on discovering it waits on the owner or on something outside the loop | **`blocked` label** |
+
+**`blocked` is orthogonal, not a sixth step, and saying that is part of the model rather than an excuse
+for leaving it out.** It can attach at any point and it returns the item to wherever it was — an Issue
+can be blocked before its description is closed *and* after, and a slice can discover mid-build that it
+needs the owner's words. Modelling it as a stage in the line would be false; leaving it out of the table
+entirely was also false, and that omission was caught in review of the very slice that introduced it.
+
+**`ready` is the only state added, and the restraint is the point.** Four of the five transitions were
+already observable; inventing states for them would restate information that exists and give it a second
+place to be wrong. **An issue with no `ready` label is not executable** — that is the whole mechanism,
+and it turns the rule above from something a persona must remember into something anyone can query.
+
+*What it does not buy:* nothing verifies that three leads actually closed the description rather than
+one nodding it through. The label makes the claim **auditable and attributable**, not proven. Stated
+because the previous section's own argument — objectivity is transferred, not created — applies here too.
+
+#### One vocabulary across every repo
+
+The first run of the assessment found the two repos carrying **incompatible taxonomies**: one used
+`product` / `content` / `reader-facing`, the other a scheme (`type:*`, `phase:*`, `priority:*`,
+`semver:*`, `status:blocked`) that was almost entirely unused. Reconciled to one vocabulary (owner
+decision, 2026-08-02).
+
+**The measurement, corrected in review and stated precisely because the first version was wrong in
+three places** — it said "88% dead, four labels used, on four Issues, 29 of 33". Re-derived from the
+repository's label events, which is the only source that survives the deletion:
+
+- the repo had **34** Issues, **29** carrying no label at all;
+- of the **15** labels retired, **11 were never applied to anything**, and four were: `type:feature`,
+  `phase:1`, `semver:minor`, `semver:patch`;
+- on **Issues** only three of them ever appeared — on #4–#7, all closed in the repo's first week;
+- `semver:*` also landed on **eight merged PRs**, which the original count missed entirely.
+
+*Why the correction is recorded rather than quietly fixed:* the original figure mixed two populations,
+taking "four labels" from a PR-inclusive set and "four Issues" from an Issue-only one. That is precisely
+the shape of error this section is about — a number that reads as measured and was assembled.
+
+**The test a label has to pass: something must QUERY it.** A label nobody reads is not classification,
+it is decoration that ages.
+
+| label | means | set by | queried by |
+|---|---|---|---|
+| `product` | the repo's own deliverable — for a site, the site; for a harness, the harness | the owner, at filing | `/autonomy-on`'s queue · merge class **safe** |
+| `content` | published in the owner's voice | the owner, at filing | merge class **boundary** |
+| `ready` | the three leads closed the description | the leads | `/autonomy-on` · `developer` refuses an Issue without it |
+| `blocked` | waiting on the owner, or on something outside the loop | anyone | the "what needs the owner" report |
+| `reader-facing` | the diff will change words or images a reader sees | the owner or the leads | which lens the gate dispatches — **a signal, never a gate** |
+
+**Retired:** `type:*`, `phase:*`, `priority:*`, `semver:*`, `status:blocked`. `type` and `priority`
+restate what a title and an order already say; `phase` described a roadmap that ended; `semver:*` was
+vestigial from a **different loop model** — `/workflow/versioning` documents label-driven bumps for
+`gitflow-multi-env`, and that skill stays correct for a repo using it, but a `trunk-single-env` artifact
+repo picks its part at dispatch and reads no label. `status:blocked` survives as `blocked`, renamed for
+consistency rather than dropped: *waiting on the owner* is real and is otherwise invisible.
+
+**`content` is defined in every repo even where it cannot occur.** A harness repo publishes no articles,
+so it will carry none — and defining it anyway keeps one meaning per word across the workspace, which is
+the whole point of reconciling. A vocabulary that changes per repo is two vocabularies with a shared
+prefix.
+
 **Why the formalism is not ceremony — it is what buys the gate its objectivity.** `quality-assurance`
 consolidates that *every requirement of the issue was met*, and those requirements are the leads' output.
 So the ruler the gate applies is **external to the gate**: a finding either anchors in a stated

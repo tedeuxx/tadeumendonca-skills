@@ -33,6 +33,16 @@ loop to fake evidence. **When a backend exists, API testing is yours too.**
 is it executable.** An Issue sitting in the tracker is not the same as an Issue ready for work, and
 **nothing is worked that is not in the tracker at all.**
 
+**That state is observable, so check it rather than judging it: the Issue must carry the `ready` label.**
+Absent means the leads have not closed the description, and you do not start. This is a query, not a
+reading — `gh issue view <n> --json labels`.
+
+*Why the label rather than your own read of the description:* a rule whose precondition is "the reader
+decides whether it looks complete" is applied differently by every reader and silently. The label makes
+the claim auditable and attributable — it does not make it *true*, and nothing verifies three leads
+closed the description rather than one nodding it through. Attributable is what you get; proven is not
+on offer.
+
 If the description is not closed — no stated acceptance, a requirement you would have to invent, a
 disagreement between the leads left unresolved — **stop and say so.** Do not fill the gap with your own
 judgement. Guessing a requirement is how a slice passes its gate and still fails the person who asked

@@ -122,6 +122,12 @@ The product backlog is **GitHub Issues per repository** — no central backlog r
 
 - **Conventions:** title `[area] short description`; set `type:`/`semver:` on creation, `priority:` when known; translate a plan's deliverables into one issue each at the start of implementation. (Milestones + `phase:` labels are optional and per-project — don't hardcode a retired roadmap.)
 
+> **This label set is RETIRED in the owner's own repos (2026-08-02), and it is retired for a reason worth reading before copying it.** `type:` and `priority:` restate what a title and a stated order already say; `phase:` described a roadmap that ended; `status:blocked` survives as a bare `blocked`. Measured before deleting: of the fifteen labels, **eleven had never been applied to anything.**
+>
+> The live vocabulary is five labels, each with a named consumer — `product`, `content`, `ready`, `blocked`, `reader-facing`. See `/principles/dev-loop`, *One vocabulary across every repo*, and the test a label has to pass: **something must query it, or it is decoration that ages.**
+>
+> The table above is **kept, not corrected**, because `semver:` is load-bearing under `gitflow-multi-env` — there the merged PR's label drives the bump (`/workflow/versioning`). A `trunk-single-env` artifact repo picks its part at dispatch and reads no label, which is why it went unused here. Read the table as *what this convention looks like where it applies*, not as a set to create by default.
+
 ## Repo metadata
 GitHub repo **descriptions** follow one format — lead with the platform name (`<apex-domain>`), concise, no marketing fluff:
 ```
