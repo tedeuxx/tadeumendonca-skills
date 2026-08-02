@@ -99,9 +99,21 @@ competing instructions.
 
 ### 2.2 · The builder
 
-**`developer`** — fullstack: application, infrastructure and pipeline, with tests written inline as it
-goes. It decides *how*, within decisions already recorded; it does not decide *what* (the owner's issue
-does) or *whether it ships* (the gate does).
+**`developer`** — fullstack: application, infrastructure, pipeline **and the automated E2E journeys**,
+with tests written inline as it goes. It decides *how*, within decisions already recorded; it does not
+decide *what* (the issue does) or *whether it ships* (the gatekeepers do).
+
+**The E2E suite is part of the deliverable, not a follow-up.** A slice that changes user-visible
+behaviour and leaves the journey for later is half-done, and does not reach a verdict — the gate
+requires a green journey for exactly that class of change. Which suites this means is per repo and never
+invented: **E2E always; an API suite only where an API exists.** Writing the API obligation into a
+backend-less repo produces a criterion answered `n/a → pass` forever, which trains the loop to fake
+evidence.
+
+**It does not start on an unfinished issue.** If the description is not closed — no stated acceptance, a
+requirement it would have to invent, an unresolved disagreement between the leads — it stops and says so
+rather than filling the gap with its own judgement. A guessed requirement is invisible afterwards,
+because the code looks just as deliberate either way.
 
 The invariants stay **per-directory**, because they are properties of the code, not of a job title:
 application stack decisions, least-privilege and pipeline-only apply for infrastructure, least-privilege
@@ -112,14 +124,34 @@ area. One builder can. That guarantee moved from *capability* to *scope discipli
 is compensated by the gate's scope criterion — a slice reaching outside what its issue mentions is a
 finding.
 
-### 2.3 · The two gatekeepers
+### 2.3 · The two gatekeepers — and the MR needs both
 
-- **`quality-assurance`** — the gate on technical delivery. Reviews the merge request against the
-  Definition of Done in a fresh context, verifies each criterion **with evidence**, classifies the change
-  as safe or boundary, and either merges the safe class or hands the boundary class up. It also
-  **diagnoses**: when a gate fails, or passes for a reason nobody can explain, it returns the *cause*.
-- **`security`** — the floor: dependencies, permissions and IAM scope, secret hygiene, supply chain. Its
-  own veto, separate from the delivery gate, because it exists to fight the builder on a different axis.
+**Every merge request is approved by both, dispatched in parallel.** Neither is conditional on what the
+diff touches.
+
+- **`quality-assurance`** — consolidates that **every requirement of the issue was met**, using the
+  Definition of Done as the *how* of proving it, in a fresh context, each criterion **with evidence**. It
+  classifies the change as safe or boundary and either merges the safe class or hands the boundary class
+  up. It also **diagnoses**: when a gate fails, or passes for a reason nobody can explain, it returns the
+  *cause*.
+- **`security`** — answers **the question the issue does not contain: can this cause a problem in
+  production?** Dependencies, permissions and IAM scope, secret hygiene, supply chain, the deploy path.
+  It holds its own veto.
+
+**The asymmetry is deliberate and worth stating, because it bounds what "objective" can mean here.** The
+delivery gate is objective — it has an external ruler. The security gate is **judgement**, because
+*"can this break production"* is not enumerable in advance; if it were, it would be a requirement and the
+delivery gate would already cover it. A loop that tries to make both objective either invents a checklist
+that misses the novel case, or quietly drops the axis.
+
+**The cost of "every MR" lands on diffs with no security surface**, and it has one specific failure mode:
+a gate answering `n/a → pass` every time is gating nothing. The mitigation is a phrasing rule, not more
+process — **`n/a` is only valid when the gate NAMES the axes it looked at and found untouched.** A
+reassurance is not a check.
+
+Both gates also verify the *artifact*, not the diff's appearance. On a build that inlines and prerenders
+repository content, a comment-only change is not automatically inert: the question is whether an edited
+line can be **emitted**, which is a different question from whether it is a comment.
 
 ### 2.4 · What was absorbed, and why that is not the same as retired
 
@@ -154,14 +186,25 @@ applied once, after the code exists, rather than twice.
 ## 3 · The flow of one slice
 
 ```
-owner files an issue                          ← the ONLY origin of work
+owner generates demand                        ← the ONLY origin of work
         │
-   [leads]  product · tech · marketing  →  ONE consolidated demand
-        │      (disagreements that survive go UP, not down)
+   [leads]  product · tech · marketing
+        │   they disagree first, then CLOSE the issue's description together
+        │   (a disagreement they cannot settle goes UP as a decision,
+        │    never DOWN as three competing briefs)
         │
-   [developer]  thin vertical slice, end to end, tests inline
+   ISSUE, description closed  ────────────────  nothing is worked that is
+        │                                       not in the tracker; an issue
+        │                                       in the tracker is not the same
+        │                                       as an issue ready for work
         │
-   [gatekeepers]  quality-assurance  +  security   (dispatched in PARALLEL)
+   [developer]  thin vertical slice, end to end
+        │       app + infrastructure + pipeline + E2E journeys
+        │       (+ API tests where an API exists)
+        │
+   [gatekeepers]  quality-assurance  ||  security     BOTH, in PARALLEL
+        │         every requirement      can this break
+        │         of the issue met?      production?
         │           + marketing-lead when the diff changes anything a reader
         │             or a crawler will see
         │
@@ -173,6 +216,25 @@ merged by the gate              owner ratifies, then merged
                           │
                 post-deploy smoke (not a gate — it cannot revert)
 ```
+
+### 3.1 · Intake formalism is what buys the gate its objectivity
+
+This is the load-bearing relationship in the whole design, and it is easy to implement half of.
+
+The delivery gate consolidates that **every requirement of the issue was met**. Those requirements are
+written by the three leads. So **the gate's ruler is external to the gate** — a finding either anchors in
+a stated requirement (or in a Definition-of-Done criterion) or it does not block. Taste has no route to
+a blocker, not because the reviewer restrains itself but because there is nothing to anchor it to.
+
+Read it in the other direction and the failure is obvious: **a vague issue leaves the gate nothing to
+anchor on**, so it falls back on impression, and impression has no stopping rule. Twenty-two findings on
+a documentation change is what an unanchored gate looks like.
+
+The work does not disappear when a loop adopts this — it moves upstream, where it is cheaper. A missed
+requirement costs a text edit at intake and a full review round at the gate.
+
+**A reimplementation that adopts the gate without the intake formalism gets the cost and not the
+benefit.**
 
 **Parallel, not serial.** Dispatching lens → fix → gate → fix serialises what has no dependency between
 its parts. The observed cost of serialising was the loop's throughput, not its round count.
@@ -189,8 +251,14 @@ more can always be found — but what the reader or the next maintainer actually
 
 ## 4 · The Definition of Done
 
-The ruler the gate applies. Every criterion is objective; each is verified with **evidence** — a
-command's real output, a line in the diff — never with "looks fine".
+**The primary ruler is the issue: every requirement the leads stated, enumerated and marked met or
+unmet, individually.** A verdict saying "implements the issue" has consolidated nothing. Where the
+description is not closed enough to enumerate, *that* is the finding — reviewing it anyway hides that
+intake failed.
+
+The Definition of Done below is the **how** of proving the two things the gate exists for: that the
+issue was delivered, and that merging will not break what is already running. Each criterion is
+verified with **evidence** — a command's real output, a line in the diff — never with "looks fine".
 
 1. **Scope** — one thin vertical slice, end-to-end, no unrelated changes. Adjacent debt is *reported*,
    not fixed inline and **not filed as new work**.
@@ -334,7 +402,12 @@ What is **essential** to the design:
 
 - three-layer separation: fresh-context review · mechanical pre-execution deny · durable decision record
 - personas justified by conflict, not by concern
+- **intake formalism paired with gate objectivity** — the leads write the requirements, the gate applies
+  them as an external ruler. Adopting either half alone gets the cost without the benefit
+- nothing worked outside the tracker; an issue is executable only once its description is closed
 - one consolidated demand reaching the builder
+- **two gatekeepers on every merge request, in parallel** — one objective against the issue, one holding
+  judgement over production risk
 - findings that name a criterion and a falsifier, with severity set at the source
 - an explicit safe/boundary classification, and ratification that is *verified* rather than relayed
 - an explicit round budget that converts "this is expensive" into a decision
@@ -349,6 +422,11 @@ What is **incidental** to the reference implementation and should be re-chosen p
 
 What is **known-weak**, stated so a reviewer does not have to discover it:
 
+- **the gate's objectivity is transferred, not created** — it holds exactly as far as the issue is
+  complete, and nothing mechanically checks that a description was actually closed by three leads rather
+  than nodded through by one
+- **the second gatekeeper's `n/a` is enforced by phrasing, not by a check** — nothing catches a security
+  verdict that names axes it did not really examine
 - one builder means directory isolation is discipline, not capability
 - the significance test is applied once, after the code exists, since the design-time reviewer was cut
 - a lens that under-classifies its own finding's severity is not caught by anything

@@ -16,8 +16,43 @@ The loop has **two shapes**. They share every invariant below and differ only in
 
 ## Invariants (both models)
 
-### Intake — where work is born
-Work is **driven by the roadmap (`PLAN.md`)**, the source of what gets built next. A tracked issue is **optional** — created only when it helps decompose the work — not a hard prerequisite for starting.
+### Intake — where work is born, and the chain it must walk
+
+**Nothing is worked that is not recorded in the issue tracker.** No exceptions, no size threshold, no
+"this is a one-liner". This **supersedes** the previous rule, which made a tracked issue *optional*,
+created only when it helped decompose the work.
+
+The chain, and each link is load-bearing:
+
+> **The owner generates demand.** They are the only origin of work — see *Review does not open work*
+> below, which is the other half of this and is untouched.
+>
+> **The three leads close the description among themselves.** `product-lead`, `tech-lead` and
+> `marketing-lead` collaborate on writing the issue: what it must deliver for the reader, what the
+> system must carry, what it must say to the market. They disagree first and reconcile second; a
+> disagreement they cannot settle goes **up** to the owner as a decision, never **down** as three
+> competing briefs.
+>
+> **Only then is the issue executable.** `developer` does not pick up an issue whose description is not
+> closed. An issue in the tracker is not the same as an issue ready for work.
+
+**Why the formalism is not ceremony — it is what buys the gate its objectivity.** `quality-assurance`
+consolidates that *every requirement of the issue was met*, and those requirements are the leads' output.
+So the ruler the gate applies is **external to the gate**: a finding either anchors in a stated
+requirement or it does not block. That is the whole answer to *"the reviewer must be objective, otherwise
+nothing closes"* — and it only works if the requirements are actually there.
+
+Read the failure in that direction and it becomes obvious: a vague issue leaves the gate nothing to
+anchor on, so it falls back on impression, and impression has no stopping rule. **Twenty-two findings on
+a documentation PR is what an unanchored gate looks like.** The work did not disappear when this rule
+moved it upstream; it got cheaper, because a missed requirement costs a text edit at intake and a review
+round at the gate.
+
+**The asymmetry, stated so the rule does not promise more than it delivers.** `security`'s axis is *not*
+in the issue and cannot be: *"can this cause a problem in production"* is not enumerable in advance — if
+it were, it would be a requirement and the delivery gate would cover it. So the loop is objective on
+delivery and **judgement-based on the floor**, which is exactly why `security` is a separate gatekeeper
+holding its own veto rather than a criterion on someone's checklist.
 
 ### Opening a session — decisions before work
 
@@ -95,6 +130,19 @@ and some real findings lost — and it is preferred to a queue that grows by wor
 3. **Develop locally**, against whatever backing services the repo actually has — see `/principles/permissions-and-environments` for what "locally" means per model.
 4. **Validate locally**: run the repo's **functional regression** and self-verify the gates (lint, typecheck, coverage). Report with the real output, never a claim.
 5. **Run `/code-review`** before opening the PR.
+6. **Both gatekeepers review every MR, dispatched in PARALLEL.** `quality-assurance` consolidates that
+   every requirement of the issue was met; `security` answers the question the issue does not contain —
+   *can this cause a problem in production?* **Neither is conditional on what the diff touches**, which
+   is a change: `security` used to fire only on diffs in its concern.
+
+   *The cost, named, because it is the failure this loop keeps meeting:* on a diff with no security
+   surface, `security` has nothing to check, and a gate answering `n/a → pass` every time is gating
+   nothing. So its `n/a` is only valid **naming the axes it looked at and found untouched** —
+   dependencies, permissions and IAM, secrets, action pins, new external inputs, the deploy path.
+   A reassurance is not a check.
+
+   *Parallel is not a detail.* Dispatching lens → fix → gate → fix serialises work with no dependency
+   between its parts, and the observed cost was the loop's throughput rather than its round count.
 
 ### Always true
 - **Pipelines are independent per repo** (never cross-trigger). Infrastructure changes are **pipeline-only**: a reviewed plan on the PR, apply on merge.
