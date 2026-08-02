@@ -191,7 +191,45 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 #     message about the act, not the act.
 if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]]*|--repo[[:space:]=]*)[^[:space:]]+)?[[:space:]]+issue[[:space:]]+create'; then
   if [ -n "$agent_type" ]; then
-    deny "Blocked: a subagent does not open work. Report the finding — in your verdict, in the PR, or upward to the main loop — and let the owner decide whether it becomes an issue. You cannot see whether anyone wants this; the main loop can ask."
+    # 5d. DECOMPOSING IS NOT OPENING (#122, gitflow-single-env). One narrow exception, and the
+    #     distinction it rests on is real rather than a convenience:
+    #
+    #       OPENING SCOPE   is creating work nobody asked for — still denied, for every subagent.
+    #       DECOMPOSING     is dividing work the owner already approved and three leads ratified.
+    #
+    #     A task under a `ready` story adds nothing: the story passed the owner and the three-lead
+    #     referendum, and the task only makes visible what was already authorised. Denying it would
+    #     tax the flow the model exists to create — the same inversion the 2026-07-31 correction
+    #     found in this very rule, where a blanket denial taxed ALIGNED work and the owner paid.
+    #
+    #     THE PARENT IS VERIFIED, NEVER READ FROM THE COMMAND. That is the whole difference between
+    #     an exception and a hole: a condition satisfied by writing the command differently is a
+    #     convention, and this file spent the day removing conventions from the floor. So the `#N`
+    #     is looked up — the story must EXIST and carry `ready`. A model that invents a parent
+    #     invents one that fails the lookup.
+    #
+    #     FAILS CLOSED. No `gh`, no network, no answer → denied, exactly as before. A subagent that
+    #     cannot prove the parent reports instead of creating blind. That is the opposite direction
+    #     from `wip-guard`, deliberately: this rule is part of the floor, and a floor that fails
+    #     open is not one.
+    #     AND IT IS THE BUILDER'S EXCEPTION, NOT EVERY SUBAGENT'S. The first version of this rule
+    #     let any subagent through on a ready parent, and the suite caught it: `quality-assurance`
+    #     and `security` citing a story would have been reviews opening work, which is the rule the
+    #     exception is supposed to preserve rather than erode. Decomposing is an act of EXECUTION,
+    #     so it belongs to the one persona that executes.
+    case "$agent_type" in
+      *:developer) ;;
+      *) deny "Blocked: a subagent does not open work. Decomposing a \`ready\` story into tasks is the one exception and it belongs to \`developer\`, the persona that executes them — a review citing a story is still a review opening work. Report the finding in your verdict and let the owner decide." ;;
+    esac
+    parent="$(printf '%s' "$cmd" | sed -nE 's/.*#([0-9]+).*/\1/p' | head -1)"
+    if [ -n "$parent" ] && command -v gh >/dev/null 2>&1; then
+      parent_repo="$(printf '%s' "$cmd" | sed -nE 's/.*[[:space:]](-R[[:space:]]*|--repo[[:space:]=]*)([^[:space:]]+).*/\2/p')"
+      parent_labels="$(gh issue view "$parent" ${parent_repo:+-R "$parent_repo"} --json labels -q '.labels[].name' 2>/dev/null || true)"
+      if printf '%s\n' "$parent_labels" | grep -qx 'ready'; then
+        exit 0
+      fi
+    fi
+    deny "Blocked: a subagent does not open work. The ONE exception is decomposing an approved story — a task whose body references a parent issue that exists and carries \`ready\`. That parent is verified against the tracker, not read from your command, so citing a number is not enough. Everything else: report the finding — in your verdict, in the PR, or upward to the main loop — and let the owner decide whether it becomes an issue."
   fi
   ask "Open this issue? The guard cannot see whether it is aligned with you — that is the whole question, and only you can answer it. Approve if this is work you asked for or agreed to; decline if the agent generated it for itself."
 fi

@@ -122,6 +122,71 @@ check       ALLOW "main agent may check CI"           "gh pr checks 149 --repo o
 check       ALLOW "main agent may list PRs"           "gh pr list --state open"
 check       ALLOW "the word merge in a commit msg"    "git commit -m 'gh pr merge notes'"
 
+echo "--- rule 5d: a subagent MAY decompose an approved story, and only that ---"
+# `gh` is stubbed on PATH so the parent lookup is hermetic — no network, no auth, no dependence
+# on what happens to exist in a real tracker. What varies per case is the canned label list,
+# which is exactly the input the rule reads.
+#
+# THIS SUITE HAD NO STUB BEFORE, and that is why the 79 pre-existing tests passed against this
+# change without exercising it at all: with no `gh` reachable the lookup fails, the labels come
+# back empty, and every case falls through to the same deny it had before. A green suite that
+# never reaches the new code is the exact defect this repo keeps finding, so the stub is what
+# makes the rule observable rather than merely present.
+GHSTUB="$(mktemp -d)"
+REAL_PATH_5D="$PATH"
+stub_gh_labels() { # $1 — what `gh issue view --json labels` prints, one label per line
+  cat > "$GHSTUB/gh" <<STUB
+#!/usr/bin/env bash
+case "\$*" in
+  *"issue view"*) printf '%s' '$1' ;;
+  *)              exit 0 ;;
+esac
+STUB
+  chmod +x "$GHSTUB/gh"
+  PATH="$GHSTUB:$REAL_PATH_5D"
+}
+
+stub_gh_labels 'product
+ready'
+check_agent ALLOW "tadeumendonca-skills:developer" "a task under a READY story"                "gh issue create --title 'task: x' --body 'Parent: #122'"
+check_agent ALLOW "tadeumendonca-skills:developer" "the parent behind -R"                      "gh -R owner/repo issue create --title t --body 'Parent: #122'"
+
+# The label is what authorises, not the reference. A parent that exists but is not ready is a
+# story whose description the three leads have not closed — building under it is the thing the
+# intake chain exists to prevent.
+stub_gh_labels 'product'
+check_agent DENY  "tadeumendonca-skills:developer" "a parent WITHOUT ready"                    "gh issue create --title t --body 'Parent: #122'"
+
+# A parent that does not resolve. `gh` printing nothing is indistinguishable from a fabricated
+# number, and both must deny — this is what makes the reference unforgeable.
+stub_gh_labels ''
+check_agent DENY  "tadeumendonca-skills:developer" "a parent that does not resolve"            "gh issue create --title t --body 'Parent: #999'"
+
+# No parent at all: unchanged from 5c. Opening scope is still denied outright.
+stub_gh_labels 'product
+ready'
+check_agent DENY  "tadeumendonca-skills:developer" "no parent referenced"                      "gh issue create --title t --body 'just work'"
+
+# The exception is about DECOMPOSING, which is an act of execution. A reviewer citing a ready
+# story is still a review opening work, and reviews do not open work.
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "a REVIEWER citing a ready parent"  "gh issue create --title t --body 'Parent: #122'"
+check_agent DENY  "tadeumendonca-skills:security"          "security citing a ready parent"    "gh issue create --title t --body 'Parent: #122'"
+
+# The main loop is unaffected: it still ASKS, parent or no parent. The owner answers, as before.
+check       ASK   "main loop, with a ready parent"                                             "gh issue create --title t --body 'Parent: #122'"
+PATH="$REAL_PATH_5D"
+
+# FAILS CLOSED with no `gh` — the opposite direction from wip-guard, deliberately. That hook is
+# loop discipline and must never wedge the loop; this one is the floor, and a floor that fails
+# open is not one. Exercised by pointing PATH at a directory holding only the harness's needs,
+# with no `gh` — and asserted, unlike wip-guard's equivalent case, because here the harness does
+# not need `gh` to run.
+NOGH="$(mktemp -d)"
+PATH="$NOGH:/usr/bin:/bin"
+check_agent DENY  "tadeumendonca-skills:developer" "no gh: cannot prove the parent"            "gh issue create --title t --body 'Parent: #122'"
+PATH="$REAL_PATH_5D"
+rm -rf "$GHSTUB" "$NOGH"
+
 echo "--- rule 5c: the owner decides what enters the queue — asked in the main loop, denied in a subagent ---"
 # The rule used to DENY every one of these. That did not stop unaligned work; it taxed ALIGNED work,
 # and the tax landed on the owner, who had to type the command themselves for something they had just
