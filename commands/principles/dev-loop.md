@@ -284,7 +284,7 @@ the sessions were not running — the reason `session-plugin-version` exists.
    **WIP is bounded by file OVERLAP, not by a count.** A second PR may open freely if its changed files do not intersect an open PR's; it may not if they do. The goal was never *one at a time* — it was avoiding stacked PRs that rot into conflicts, and counting is a bad proxy for that: it blocks disjoint work, which is the common case, while doing nothing about the actual risk. Pair it with the half that prevents rot: **integrate `main` before requesting review** if `main` has moved.
 3. **Develop locally**, against whatever backing services the repo actually has — see `/principles/permissions-and-environments` for what "locally" means per model.
 4. **Validate locally**: run the repo's **functional regression** and self-verify the gates (lint, typecheck, coverage). Report with the real output, never a claim.
-5. **Run `/code-review`** before opening the PR.
+5. **Run `/workflow/code-review`** before opening the PR — the author's own completeness pass, anticipating both gates while fixing is still free. *Namespaced deliberately:* a bare `/code-review` resolves to the external `code-review@claude-code-plugins` marketplace plugin this repo also installs, which is a different thing entirely.
 6. **Both gatekeepers review every MR, dispatched in PARALLEL.** `quality-assurance` consolidates that
    every requirement of the issue was met; `security` answers the question the issue does not contain —
    *can this cause a problem in production?* **Neither is conditional on what the diff touches**, which
@@ -319,7 +319,7 @@ develop locally  ──  security & resilience by-design
    ▼
 validate locally: run the regression  ──  self-verify gates green
    │
-   ▼  /code-review before opening the PR
+   ▼  /workflow/code-review before opening the PR
 PR → integration branch (auto-merge)  ──  staging gate: coverage + quality + security
    │  Claude App reviews the PR (advisory, non-blocking)
    ▼
@@ -354,7 +354,7 @@ develop locally  ──  security & resilience by-design
    ▼
 validate locally: run the regression  ──  self-verify gates green
    │
-   ▼  /code-review before opening the PR
+   ▼  /workflow/code-review before opening the PR
 PR → main   ── THE gate, all of it: lint + typecheck + coverage + quality + security + full regression
    │  Claude App reviews the PR (advisory, non-blocking)
    │  MERGE ASKS — this merge is the go/no-go
