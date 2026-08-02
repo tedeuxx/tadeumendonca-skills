@@ -49,8 +49,16 @@ Direct cloud mutation is denied entirely: writes to staging happen **through the
 | Zone | Contents |
 |---|---|
 | **Allow** (agent-owned, no prompt) | Edit/Write · git on feature branches (including `push` of the feature branch) · `gh pr` create/view/diff/checks · issue ops · npm/npx · the repo's test runners · node/tsx/python3 · `terraform fmt/validate/plan` · `aws` **read-only** · curl local |
-| **Ask** | **`gh pr merge` into `main`** — this is the deploy, so it is the go/no-go · the release action (tag / `workflow_dispatch`) |
+| **Ask** | the release action (tag / `workflow_dispatch`) |
 | **Deny** | direct `git push` to `main` · `terraform apply`/`destroy` · direct `aws` mutations · `--force` / `git reset --hard` · `rm -rf` · secrets writes · `--dangerously-skip-permissions` |
+
+**`gh pr merge` is deliberately NOT in the Ask row, and that is a correction (#62).** It used to sit there as *"this is the deploy, so it is the go/no-go"* — true about the merge, wrong about the mechanism, and it contradicted `quality-assurance`, which merges the safe class by its own definition.
+
+The reason it cannot be a permission rule is structural, not a preference: **whether a merge needs the human depends on the CLASS of the change, and a permission matcher reads a command string.** `gh pr merge 331 --merge` looks identical whether the diff is a typo fix or a Terraform change. A rule that prompts on all of them taxes the safe class — which is most merges — while proving nothing about the boundary class, and the tax lands on the owner, who then approves something they already asked for.
+
+So **the classification is the gate, and `quality-assurance` holds it**: it merges the safe class once both gatekeepers are green, and never merges the boundary class — infrastructure and anything threatening continuity, a change to the loop's own rules, publishing in the owner's voice, or any expansion of its own authority. When the class is unclear, it is boundary.
+
+*The named cost:* this is a persona-level guarantee, not a mechanical one — as strong as the model reading its own definition, where the Deny row is a shell script that cannot be argued with. Accepted deliberately, and it is why the **irreversible** floor stays in Deny rather than moving to the same layer.
 
 **Do not carry over from `gitflow-multi-env`:**
 - **Do not pre-authorize merges to `develop`** — the branch does not exist, so the entry silently authorizes nothing while the *real* merge goes ungated.

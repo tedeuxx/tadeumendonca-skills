@@ -210,7 +210,14 @@ LIVE (deploy on merge) + tag / Release  ──  post-deploy smoke + confirm heal
 ```
 
 - **Feature/docs branch → PR → `main`.** There is no integration branch and nothing to defer to, so **the PR carries the entire gate**: lint, typecheck, coverage, quality gate, security, and the **full regression as a blocking required check**. The Claude App reviews as advisory (non-blocking).
-- **The merge to `main` is the point of no return** — it deploys. So the merge is what **asks**: the human's go/no-go moved from a promotion step onto this merge. Auto-merging to `main` is never in-pattern here.
+- **The merge to `main` is the point of no return** — it deploys. So the merge is where the go/no-go lives: it moved from a promotion step onto this merge.
+
+  **But "the merge is the go/no-go" does NOT mean "the merge always asks a human", and this line used to say it did.** ~~*Auto-merging to `main` is never in-pattern here.*~~ That was written before ADR-0004's classified autonomy and contradicted `quality-assurance`'s own definition, which merges the safe class — so an agent reading the principles layer and an agent reading the gate reached opposite conclusions about the same act (#62). What the merge asks for is a **judgement**, and who supplies it depends on the class:
+
+  - **Safe class** — docs, dependency bumps, tests, in-pattern implementation of an already-approved spec. **`quality-assurance` merges it**, once both gatekeepers have approved. Escalating these is not caution; it is the loop failing to flow, and it spends the owner's attention where it buys nothing.
+  - **Boundary class** — infrastructure and anything threatening continuity, a change to the loop's own rules, publishing in the owner's voice. **The gate never merges these.** It approves pending the human and hands the go/no-go up.
+
+  *Significance beats in-pattern:* when the class is unclear, it is boundary. And **the gate never merges an expansion of its own authority**, whatever the diff looks like.
 - On merge: deploy + version tag + GitHub Release. Post-deploy: **smoke + confirm health**, through whatever observability the repo actually has (for a static site that is analytics + the client error surface + a build/prerender smoke, not backend telemetry).
 - **Failure path:** revert the offending merge on `main` and let the revert deploy — same forward-fix discipline, one hop instead of two.
 - **Consumed-artifact variant** (a library or plugin with no deployed environment): identical, except the merge to `main` publishes nothing by itself — the irreversible act is the **release/tag**, so that is what asks. `main` stays always-releasable.

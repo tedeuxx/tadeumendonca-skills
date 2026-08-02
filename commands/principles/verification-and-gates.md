@@ -59,9 +59,12 @@ Staging stays light so integration is fast and cheap to revert. Production layer
 | **Full regression** | **required, blocking** |
 | Human review + branch protection | required |
 | Version bump | on merge (auto-bump + tag + Release) |
-| **Merge asks** | **required — the merge deploys, so it is the go/no-go** |
+| **Both gatekeepers approve** | **required, every MR — `quality-assurance` (was every requirement of the issue met?) and `security` (can this break production?), dispatched in parallel** |
+| **Merge asks a HUMAN** | **only for the boundary class** — see below |
 
 There is no downstream tier to defer to, so **nothing is deferred**: a gate skipped on this PR is a gate that never runs. This is not a heavier model than `gitflow-multi-env` — it is the same total rigor, collapsed onto one hop.
+
+**The merge is the go/no-go; that is not the same as the merge always asking a human.** This table used to read *"Merge asks — required"*, which contradicted `quality-assurance`'s own definition and made an agent's conclusion depend on which file it happened to read (#62). The merge needs a **judgement**; who supplies it is set by the class. `quality-assurance` merges the **safe** class itself once both gatekeepers are green; it never merges the **boundary** class — infrastructure and anything threatening continuity, a change to the loop's own rules, publishing in the owner's voice — and never merges an expansion of its own authority. When the class is unclear, it is boundary.
 
 (Infrastructure repos, both models: format + validate + policy scan + a reviewed plan; apply only on merge, pipeline-only.)
 
