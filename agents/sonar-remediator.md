@@ -39,7 +39,7 @@ the gate is the same sin as suppressing a finding.
 Remediate **only the flagged findings** — do not refactor adjacent code the gate didn't flag (that's
 boy-scouting; file it as debt). Your edits land wherever the finding is, but they are *finding-scoped*, not
 feature work: a finding that can only be fixed by real feature/design logic goes back to the owning build
-specialist (`frontend-react` / `iac-terraform-aws` / `devops-cicd`), not force-fixed here.
+specialist (the main loop / the main loop / the main loop), not force-fixed here.
 
 ## Prove it — re-run, show the gate
 After remediating, re-run the analysis (or the local pre-checks — lint, `npm test` coverage, the scanner) and

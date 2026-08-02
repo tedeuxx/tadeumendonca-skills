@@ -1,6 +1,6 @@
 # 0002. Agentic dev-loop architecture — per-task subagents, ADRs as the durable brain
 
-- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two)
+- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 13: brand-guardian + editor merge into content-reviewer, and planner/plan-reviewer/the three build specialists retire) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
 - **Driven by:** [ADR-0001](./0001-adopt-madr-adrs.md), `docs/proposals/agentic-dev-loop.md`
@@ -488,6 +488,75 @@ the next time this stopping rule is tightened.
 *"Review does not open work"* already existed in criterion 1, verbatim, and was violated the same day
 this was written — two issues filed from review findings, closed hours later under the pre-existing
 rule. A rule not honoured is not a rule missing, and more persona text would not have changed it.
+
+## Amendment (2026-08-02, seventh) — the roster matched an org chart, not the failures
+
+**Problem, measured.** Nineteen personas, 1,638 lines of definition. In an intensive session the loop
+dispatched **three**. Owner: *"com certeza erramos em perfis"* — and the data agrees, but not in the
+way "some are unused" suggests.
+
+**The eight defects that actually cost time were one thing: verification that verifies nothing.** A
+hook described as the opposite of what it does. `fails open` used against the sense stamped in its own
+source. Three live skills published as retired. A published test whose stated rule returns the wrong
+answer for the skills most likely to be asked about. A CI suite called "blocking" in a repo with no
+required status checks. A substring assertion that stopped discriminating when its subject grew. A
+`grep` blind to a term's role-noun inflection. A focus-trap test that could not fail.
+
+None of those is *frontend*, *product*, *scrum* or *security*. The roster enumerated **roles**; the
+loop meets **one failure mode**.
+
+### Decision — nineteen personas to thirteen
+
+**`brand-guardian` + `editor` → `content-reviewer`.** The seam was *what the copy claims* versus *how
+well it is written*, and it did not survive contact: `brand-guardian` caught the hook mislabel and the
+"blocking gates" falsehood; `editor` caught a docblock describing a deleted branch and the unfailable
+focus-trap test. **Both spent their best findings on truth about the code** — nominally the
+`critical-reviewer`'s lane. Neither's strongest work was in its own.
+
+What made them valuable was the **fresh context**, not the mandate, and that does not need two copies
+of itself. Corroborating: the `critical-reviewer` once proposed a replacement wording that was *also*
+false — it is not more capable than the main loop, it is unbiased by authorship. So more lenses with
+different mandates buys less than the mandate suggests; the merged lens splits truth from craft
+*internally*, and its severity contract makes truth block and craft not.
+
+The capability guarantee survives untouched: both predecessors carried exactly `Read, Grep, Glob` —
+no `Bash`, no `Edit`, no `Write` — which is why they could be merged at all. The one persona that
+reads the private positioning source still cannot publish anything (ADR-0004).
+
+**`planner` and `plan-reviewer` retired.** Not idle — **structurally unnecessary here**. The owner
+writes the specs, in the Issues, in more detail than a planner would produce, and this session's
+issues carried acceptance criteria, constraints and named trade-offs. Intake happens upstream of the
+loop, done by the person closest to it.
+
+**`frontend-react`, `iac-terraform-aws`, `devops-cicd` retired.** Never dispatched, and the reason is
+structural rather than circumstantial: the main loop already holds the context, and handing it to a
+build specialist costs more than the work. What actually ran all session was *"the main loop drafts, a
+fresh subagent reviews"* — which is the valuable half of "agent-first, human-reviews", and it is the
+**reviewers** that deliver it.
+
+### The rule this leaves behind
+
+**A persona earns its place by catching a class of defect that actually occurs, not by completing an
+org chart.** Every survivor has a trigger; a mandate with no trigger is a document, not a gate — this
+ADR's own sentence, now applied to the roster that wrote it.
+
+### Costs, named
+
+- **A retired persona is a capability removed.** If a large `iac/` or pipeline slice arrives, the main
+  loop does it without a specialist's checklist. Accepted: the specialists were never dispatched on
+  the ones that already arrived, so this books a real loss that was already being taken silently.
+- **One lens sees one way.** Two lenses occasionally disagreed, and disagreement is signal. The
+  replacement for that is not a second mandate but a second *fresh read* of the same mandate on an
+  expensive slice — cheaper and better targeted, since freshness was doing the work.
+- **The reference sweep is the failure surface**, exactly as amendment #3 recorded for its own reshape:
+  a missed pointer leaves a trigger aimed at a persona that no longer exists, and unlike a test it
+  fails **silently**. Swept across `agents/`, `commands/`, both `CLAUDE.md`s and the principles skill.
+
+### What this does NOT change
+
+The `critical-reviewer`'s merge authority, criterion 10, the falsifier rule, the round budget, the
+content trigger's fail-closed phrasing, and every hook. The hooks are the part of this design that has
+worked without amendment since it shipped.
 
 ## Consequences
 **Good**

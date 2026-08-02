@@ -54,7 +54,7 @@ flowchart TB
   subgraph plugin["tadeumendonca-skills (Claude Code plugin)"]
     direction TB
 
-    subgraph personas["agents/ — 19 subagent personas"]
+    subgraph personas["agents/ — 13 subagent personas"]
       direction LR
       P1["planner<br/>plan-reviewer"]
       P2["critical-reviewer<br/>(holds the merge gate)"]

@@ -50,13 +50,13 @@ That is the timing. What follows is the exception path for what you *discover* m
 
 Follow `/principles/dev-loop`. Nothing here relaxes it:
 
-- Plan first for anything non-trivial; `plan-reviewer` before implementing a new mechanism.
+- Plan first for anything non-trivial; `critical-reviewer` before implementing a new mechanism.
 - Thin vertical slice, end to end, finished **through merge** before opening the next.
 - WIP is bounded per `/principles/dev-loop` — read it there rather than trusting a restatement, and
   note the guard enforcing it may lag the rule (`scrum-master` carries the caveat).
 - Every gate green with real evidence, and the `critical-reviewer` on every PR. It merges the safe
   class and escalates the boundary class; a green CI is not a substitute for it.
-- `brand-guardian` on reader-facing copy, `editor` on long-form prose. **Nothing enforces this
+- `content-reviewer` on reader-facing copy, `editor` on long-form prose. **Nothing enforces this
   dispatch** — no check, job or hook — so an undispatched lens fails silently. Where the repo's guide
   makes these the only review of copy, an undispatched one is the whole gate missing.
 - Adjacent debt is **named in the report**, never filed *by the review* — a subagent has no way to

@@ -33,7 +33,7 @@ That fires exactly when the risk is real — picking work — and it produces th
 
 **A session with no pending decisions says so.** A step that silently did nothing must not read like a step that ran.
 
-*Why this is an invariant and not advice:* every other persona has a trigger. `critical-reviewer` runs on every MR; `brand-guardian` and `editor` hang off it; `plan-reviewer` fires on a plan. `product-manager` had none, and a mandate with no trigger is a document, not a gate — which is this loop's own sentence, about a different persona, that this rule finally applies to the one it was written next to.
+*Why this is an invariant and not advice:* every surviving persona has a trigger. `critical-reviewer` runs on every MR and `content-reviewer` hangs off it. `product-manager` had none, and a mandate with no trigger is a document, not a gate — which is this loop's own sentence, about a different persona, that this rule finally applies to the one it was written next to.
 
 ### What gets worked next — discovered vs requested
 
