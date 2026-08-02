@@ -1,6 +1,6 @@
 # 0002. Agentic dev-loop architecture — per-task subagents, ADRs as the durable brain
 
-- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers)
+- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
 - **Driven by:** [ADR-0001](./0001-adopt-madr-adrs.md), `docs/proposals/agentic-dev-loop.md`
@@ -614,6 +614,86 @@ amendment since it shipped.
 `docs/dev-loop-design.md` describes the whole loop independently of Claude Code, for import into another
 harness. It is a **derived** document: this ADR library remains authoritative, and where the two
 disagree the ADR wins.
+
+## Amendment (2026-08-02, eighth) — the gate can only be as objective as the issue is complete
+
+**Problem.** Amendment #7 gave the roster a criterion and left the loop's *intake* untouched. Two
+failures followed from that gap, and they are the same failure seen from two ends.
+
+At the gate: the owner's standing demand is *"o reviewer não deve ser subjetivo, tem que ser objetivo —
+senão nada fecha."* But the DoD alone cannot deliver that. It says a slice must be in scope, tested and
+traceable; it does not say **what this particular slice was supposed to do**. With no external ruler the
+gate falls back on impression, and impression has no stopping rule. Observed: **twenty-two findings on a
+documentation PR** — every item real, one slice converted into fifteen.
+
+At intake: `/principles/dev-loop` said a tracked issue was **optional**, *"created only when it helps
+decompose the work"*. So the artifact the gate would have measured against was, by the loop's own rule,
+allowed not to exist.
+
+### Decision — the intake chain, and what each link buys
+
+> **The owner generates demand. The three leads close the issue's description among themselves. Only
+> then is it executable.** Nothing is worked that is not recorded in the issue tracker — no size
+> threshold, no exceptions. An issue *in* the tracker is not the same as an issue *ready for work*.
+
+This **supersedes** the optional-issue rule above. The leads do not *file* — only the owner opens work,
+which *Review does not open work* already enforced through `permission-guard` rule 5c and which is
+untouched. They write what goes in it.
+
+**The load-bearing relationship, stated once so it is not implemented by halves:** the requirements the
+leads state are the ruler `quality-assurance` applies. Its ruler therefore sits **outside** it, and a
+finding either anchors in a stated requirement (or a DoD criterion) or it does not block. *That* is the
+answer to the owner's demand — taste has no route to a blocker, not because the reviewer restrains
+itself but because there is nothing to anchor it to.
+
+**The work did not disappear; it moved upstream, where it is cheaper.** A missed requirement costs a
+text edit at intake and a full review round at the gate.
+
+### Decision — both gatekeepers approve every MR, in parallel
+
+`security` used to fire only on diffs in its concern, which meant *whether the security gate was needed*
+was judged by someone who is not the security gate. It now reviews **every** MR, dispatched in parallel
+with `quality-assurance`, and the MR needs both approvals.
+
+**The anchors differ, and the asymmetry is the reason there are two gatekeepers rather than one
+checklist:**
+
+| gate | question | kind |
+|---|---|---|
+| `quality-assurance` | was **every requirement of the issue** met? | **objective** — external ruler |
+| `security` | can this cause a problem **in production**? | **judgement** — with a veto |
+
+The second is not enumerable in advance. If it were, it would be a requirement and the first gate would
+already cover it. A loop that insists both be objective either invents a checklist that misses the novel
+case, or quietly drops the axis.
+
+### Decision — the builder delivers the E2E suite
+
+`qa-e2e` was absorbed into `developer` by amendment #7, and **absorbing a persona without absorbing its
+output is how a capability gets quietly dropped**. Stated explicitly: a slice is app + infrastructure +
+pipeline + the automated E2E journeys. Per repo and never invented — **E2E always, an API suite only
+where an API exists**; API testing becomes the builder's too if a backend appears.
+
+### Costs, named
+
+- **The objectivity is transferred, not created.** It holds exactly as far as the description is
+  complete, and **nothing mechanically verifies that a description was closed by three leads** rather
+  than nodded through by one. The failure is quiet: the gate looks objective while measuring against a
+  ruler nobody wrote.
+- **"Every MR" lands hardest on diffs with no security surface**, where the honest answer is `n/a` — and
+  a gate answering `n/a → pass` every time gates nothing. Mitigated by a phrasing rule rather than by
+  process: **`n/a` is only valid naming the axes looked at and found untouched.** Nothing catches a
+  verdict that names axes it did not really examine. Accepted, and written down rather than discovered.
+- **Two dispatches per MR instead of one**, including on trivial ones. Bounded by running them in
+  parallel; measured on the first MR under this rule, the two returned in about the time one round used
+  to take, and `security` — which the old rule would not have dispatched at all on a comment-only diff —
+  produced the finding neither the builder nor the delivery gate had.
+- **Intake gets slower before the build starts.** That is the point, and it is still a cost.
+
+### What this does NOT change
+
+The roster, the merge authority, the falsifier rule, criterion 10, the severity contract, the round
+budget, `Review does not open work`, and every hook.
 
 ## Consequences
 **Good**
