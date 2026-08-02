@@ -274,8 +274,11 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]
     #     the LAST marker while the comment claimed the first — the same comment-versus-code
     #     divergence this file keeps paying for. `awk match` returns the first occurrence, and
     #     the second-`#N` void is measured from the end of THAT match.
-    parent="$(printf '%s' "$flat" | grep -oiE 'parent[[:space:]]*:?[[:space:]]*#[0-9]+' | head -1 | grep -oE '[0-9]+$' || true)"
-    after="$(printf '%s' "$flat" | awk 'match($0, /[Pp][Aa][Rr][Ee][Nn][Tt][ ]*:?[ ]*#[0-9]+/) { print substr($0, RSTART + RLENGTH) }' || true)"
+    #     WORD-ANCHORED, because `parent` matches inside ordinary words: a body reading
+    #     `it is apparent #122 covers this` satisfied a "declared marker" requirement without
+    #     declaring anything. The marker has to be a word, not a substring.
+    parent="$(printf '%s' " $flat" | grep -oiE '[^[:alnum:]]parent[[:space:]]*:?[[:space:]]*#[0-9]+' | head -1 | grep -oE '[0-9]+$' || true)"
+    after="$(printf '%s' " $flat" | awk 'match($0, /[^A-Za-z0-9][Pp][Aa][Rr][Ee][Nn][Tt][ ]*:?[ ]*#[0-9]+/) { print substr($0, RSTART + RLENGTH) }' || true)"
     trailing="$(printf '%s' "$after" | grep -oE '#[0-9]+' | head -1 || true)"
     if [ -n "$trailing" ] && [ "$trailing" != "#$parent" ]; then
       parent=""

@@ -134,12 +134,26 @@ echo "--- rule 5d: a subagent MAY decompose an approved story, and only that ---
 # makes the rule observable rather than merely present.
 GHSTUB="$(mktemp -d)"
 REAL_PATH_5D="$PATH"
-stub_gh_labels() { # $1 — what `gh issue view --json labels` prints, one label per line
+# $1 — labels for the READY repo; $2 — which repo is ready (default: any).
+#
+# REPO-AWARE ON PURPOSE, and the earlier version's blindness is why. It printed the same labels
+# whatever arguments it got, so NO test in this suite could observe which repo the guard looked
+# up — and the case that claimed to prove `parent_repo` reads `$bare` rather than `$cmd` passed
+# with the fix reverted. It died only under the MARKER mutation, which is what made it look
+# alive. A stub that cannot distinguish the inputs cannot witness the rule.
+stub_gh_labels() {
   cat > "$GHSTUB/gh" <<STUB
 #!/usr/bin/env bash
-case "\$*" in
-  *"issue view"*) printf '%s' '$1' ;;
-  *)              exit 0 ;;
+args="\$*"
+case "\$args" in
+  *"issue view"*)
+    ready_repo='${2:-}'
+    if [ -z "\$ready_repo" ]; then printf '%s' '$1'; exit 0; fi
+    case "\$args" in
+      *"\$ready_repo"*) printf '%s' '$1' ;;
+      *)                printf '' ;;
+    esac ;;
+  *) exit 0 ;;
 esac
 STUB
   chmod +x "$GHSTUB/gh"
@@ -192,7 +206,23 @@ check_agent ALLOW "tadeumendonca-skills:developer" "the declared parent alone st
 #     `-R`-looking token out of `--body` — text `gh` never sees as a flag. The issue was created
 #     in one repo while `ready` was verified in another, so one ready story anywhere authorised
 #     work everywhere. Now read from `$bare`, where quoted spans are already collapsed.
-check_agent DENY  "tadeumendonca-skills:developer" "a -R hidden in the body cannot pick the repo" "gh issue create -R owner/other --title t --body 'see -R owner/skills #122'"
+#     THE FIRST VERSION OF THIS CASE COULD NOT FAIL, and the reviewer proved it: its body had no
+#     `Parent:` marker, so it denied for the MARKER reason whichever repo was consulted, and
+#     reverting `$bare` to `$cmd` left the suite fully green. It died under the marker mutation,
+#     which is exactly what made it look alive.
+#
+#     This one carries a real marker and a repo-aware stub, so the ONLY variable is which repo
+#     the guard looks up: `owner/skills` is ready, `owner/other` is not. Reading `$cmd` takes the
+#     smuggled `--repo owner/skills` from the body and ALLOWS; reading `$bare` sees only the real
+#     `-R owner/other` and DENIES.
+stub_gh_labels 'product
+ready' 'owner/skills'
+check_agent DENY  "tadeumendonca-skills:developer" "a -R hidden in the body cannot pick the repo" "gh issue create -R owner/other --title t --body 'Parent: #122 --repo owner/skills'"
+#     Its control: the same command aimed at the ready repo for real must ALLOW, or the case
+#     above would pass on a guard that had simply stopped consulting the tracker.
+check_agent ALLOW "tadeumendonca-skills:developer" "the real -R names the ready repo"           "gh issue create -R owner/skills --title t --body 'Parent: #122'"
+stub_gh_labels 'product
+ready'
 
 # 3 · THE FLOOR BELOW MUST STILL RUN. The first version returned `exit 0` from the middle of the
 #     script, so rules 7, 7b and 8 never evaluated: a verified decomposition chained to a trunk
@@ -221,6 +251,14 @@ rm -rf "$BODYDIR"
 #     `Parent: #99999. Parent: #122` was allowed on the ready one while the declared parent was
 #     the dead one. Same comment-versus-code divergence this file keeps paying for.
 check_agent DENY  "tadeumendonca-skills:developer" "two markers: the FIRST one decides"        "gh issue create --title t --body 'Parent: #99999. Parent: #122'"
+
+# 6 · `parent` MATCHING INSIDE A WORD. `it is apparent #122 covers this` satisfied the declared-
+#     marker requirement without declaring anything — a marker that is a substring is not a
+#     marker. Word-anchored now.
+check_agent DENY  "tadeumendonca-skills:developer" "'apparent #122' is not a declaration"      "gh issue create --title t --body 'it is apparent #122 covers this'"
+#     Control: the same number, actually declared, still allows — so the anchor did not just
+#     break the marker.
+check_agent ALLOW "tadeumendonca-skills:developer" "the same number, properly declared"        "gh issue create --title t --body 'Parent: #122 covers this'"
 PATH="$REAL_PATH_5D"
 
 # FAILS CLOSED with no `gh` — the opposite direction from wip-guard, deliberately. That hook is
