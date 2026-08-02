@@ -352,9 +352,9 @@ the sessions were not running — the reason `session-plugin-version` exists.
 
    *This paragraph exists because the sweep that should have caught its absence could not.* The rule was
    added to both persona files and to the state table, and this narration — the place an agent actually
-   reads the procedure — kept none of the old wording, so no grep of the old claim could reach it.
-   **A phrase sweep finds restatements; it cannot find omissions.** `/workflow/code-review` §3 is
-   necessary and not sufficient, for the same reason it gives about lists.
+   reads the procedure — kept none of the old wording, so no grep of the old claim could reach it. The
+   lesson lives where the reader who needs it is, in `/workflow/code-review` §3: **a phrase sweep finds
+   restatements, never omissions.**
 
 ### Always true
 - **Pipelines are independent per repo** (never cross-trigger). Infrastructure changes are **pipeline-only**: a reviewed plan on the PR, apply on merge.

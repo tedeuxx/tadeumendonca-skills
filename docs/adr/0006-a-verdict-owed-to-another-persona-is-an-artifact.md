@@ -63,21 +63,28 @@ the veto fires on **every** MR while the ratification fires only on the boundary
    HEAD's PR — which is rule 5d's four rounds and eighty deleted lines, re-run for no additional
    assurance.
 
-3. **The status quo relay.** *Why not:* it is the defect. It made a gate's own rule unverifiable, and
-   it delivered a false claim about a diff without anyone noticing until the consumer independently
-   re-derived the file list.
-
 2b. **Gate the COMMENT rather than the merge** — deny a `gh pr comment` whose body carries a marker
    naming a persona the caller is not running as. *Recorded because the first draft of this ADR never
    considered it, and both gatekeepers found the omission independently.* It is **not** equivalent to
    option 2: it would narrow the attributable set from *"anyone holding `Bash`"* — which is what it is
    today — to *"the main loop deliberately spawning `security`"*. So the routing-not-capability argument
-   does not dispose of it. *Why not, on the better reason:* this decision **mandates `--body-file`**, so
-   the marker is not in the command string at all; the hook would have to resolve a path argument and
-   read the file to find it, which is the same fragility class as rule 5d — a matcher inferring intent
-   from what the model happened to type, losing one spelling at a time. The conclusion survives; the
-   reasoning in the first draft was one option short, and an ADR whose stated job is naming its own
-   limit should name the option it did not consider.
+   does not dispose of it. *Why not:* **the marker's presence in the command string is not a property of
+   the act, it is a property of the spelling.** With `--body` the marker is in the string and a hook
+   could see it; with `--body-file` it is in a file the hook would have to resolve and read; with a
+   heredoc it is in neither in any stable form. All three are legal ways to post the same comment, and
+   nothing prevents a fourth. A matcher that catches one and misses the next is **rule 5d exactly** —
+   four rounds, three bypasses, eighty lines deleted — and the lesson recorded there was that intent is
+   not in the command string. It is not in this one either.
+
+   *This rejection replaced an earlier one that was wrong, and the correction is recorded rather than
+   swapped in silently:* the first version claimed *"this decision mandates `--body-file`"*. **It does
+   not** — the Decision outcome mandates no spelling, and both persona files offer an inline `--body`.
+   So the original reasoning was false in the direction that made 2b look weaker than it is, in a
+   record whose entire purpose is to be audited later. Both gatekeepers found it independently.
+
+3. **The status quo relay.** *Why not:* it is the defect. It made a gate's own rule unverifiable, and
+   it delivered a false claim about a diff without anyone noticing until the consumer independently
+   re-derived the file list.
 
 4. **A GitHub review approval instead of a comment.** *Why not:* GitHub refuses a review approval from
    the PR's own author, and every PR here is authored by the same token the gatekeepers run under, so
@@ -94,7 +101,11 @@ Chosen: **the comment, verified by the consumer against the current head.**
   gate merges, but the **write** serves a second purpose the read does not — without it the *delivery*
   verdict, the one carrying the DoD evidence and the merge decision, leaves no trace, which is exactly
   what observation 1 above complained about. A security-only comment closes half the observed failure.
-- `security` posts before returning, on every review including clean ones.
+- **A gatekeeper that cannot post does not proceed as though it had.** For `security` that is automatic
+  — the merging gate will not find its marker. For `quality-assurance` it is a rule, because nothing
+  reads its comment: **if it cannot post its own verdict, it does not merge**, and it says why. Without
+  that, the asymmetry reintroduces the original failure in the half nobody verifies — a merge with no
+  delivery record, silently, which is precisely what the harness monitor objected to.
 - `quality-assurance` verifies three conditions before merging — the marker is present, the verdict
   reads `APPROVED`, and **the recorded head SHA equals the PR's current `headRefOid`** — and names
   which of the three failed, with the command output, when one does.

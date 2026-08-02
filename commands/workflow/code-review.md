@@ -92,6 +92,8 @@ Measured, twice in one day, on the two slices that followed the one this file sh
 
 **A list names the class; a procedure finds the instances** — the same difference §2 turns on. This section was itself rewritten from a list after failing on its own PR, and then corrected again when the procedure searched the wrong thing. *A procedure with the wrong input is a list that also reassures you.*
 
+**And its limit, which is not a defect but is a thing to know: a phrase sweep finds RESTATEMENTS, never OMISSIONS.** A grep of the old claim cannot reach a place that should now say something and says nothing — it shares none of the words you are searching for. Measured: a rule was added to two persona files, an ADR and a state table, and the *procedural narration* an agent actually reads was missed by the sweep and found by reading. **So after the grep, ask separately: where does this repo TELL someone how to do this, and does that place now know?** This section is necessary and not sufficient, for the same reason it gives about lists.
+
 Then read each hit against these, which is where the list still earns its place:
 
 - the **README** or equivalent published description — **and any count or table it carries.** A number bumped by a test while the rows below it stay put is the shape this repo has shipped more than once;

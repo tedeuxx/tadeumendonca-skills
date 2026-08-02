@@ -115,14 +115,23 @@ head: <the headRefOid you reviewed>
 …then your review, in the order below.
 ```
 
-**A practical constraint, named because it is a trap rather than an inconvenience.** You have no
+**The practical constraint, named because it is a trap rather than an inconvenience.** You have no
 `Write` tool, so the body goes through Bash — and rule 8 of the floor denies any command containing a
-backtick, `$(`, `;` or a chain operator *outside* a quoted span. Write the body free of those, or put
-it in a single-quoted `--body` (the guard collapses quoted spans, and a shell does not expand inside
-single quotes — but then the body may contain no apostrophe). **If a verdict genuinely needs a literal
-backtick and you cannot post it, say so in your return rather than dropping the artifact silently**:
-the gate blocking for a reason unrelated to security is a finding about this rule, not about the PR.
-ADR-0006 records the tool-grant question this raises.
+backtick, `$(`, `;` or a chain operator *outside* a quoted span.
+
+> **The rule is general: the body must contain no character the chosen quoting cannot survive.** Pick
+> the quoting first, then write to it.
+
+Three workable shapes, none of them free:
+
+- **single-quoted `--body`** — the shell expands nothing, so backticks and `$` are safe; **no
+  apostrophe anywhere**, which for prose means rewriting every possessive;
+- **double-quoted `--body`** — apostrophes are fine; every backtick, `$` and `;` must be gone by hand;
+- **`--body-file`** — immune to all of it, and the one you cannot reach without a `Write` tool.
+
+**If you genuinely cannot post, say so in your return rather than dropping the artifact silently** —
+the merging gate will not find your marker and will hold, so a silent failure looks to it exactly like
+a review that never ran. ADR-0006 records the tool-grant question this raises.
 
 `quality-assurance` posts its own verdict the same way, under its own marker. You do not read its
 comment and it does not wait for you to — the verification runs in one direction, from the gate that
