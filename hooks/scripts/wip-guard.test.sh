@@ -58,12 +58,15 @@ STUB
 # returned a sha, so the guard exited on the empty DIFF instead and `[ -z "$merge_base" ]` was never
 # executed. That is the likeliest real failure of the four — `origin/main` not fetched in a fresh clone,
 # a detached worktree, a remote not named origin — so it is the one that most needed asserting.
+#   $3 — what `rev-parse --abbrev-ref HEAD` prints (the branch this PR would come FROM);
+#        defaults to a plain feature branch. Story awareness reads it, so it has to vary.
 stub_git() {
   cat > "$STUBDIR/git" <<STUB
 #!/usr/bin/env bash
 args="\$*"
 case "\$args" in
   *"merge-base"*) printf '%s' '${2-abc1234}' ;;
+  *"rev-parse"*)  printf '%s' '${3-feat/ordinary}' ;;
   *"diff"*)       printf '%s' '$1' ;;
   *)              exit 0 ;;
 esac
@@ -186,6 +189,62 @@ check ALLOW "this branch's diff unreadable"  "gh pr create --title x"
 # origin/main not fetched, a detached worktree, a remote not named origin.
 stub_git "$MINE_OVERLAPS" ""
 check ALLOW "no merge-base with the base"    "gh pr create --title x"
+echo "--- gitflow-single-env: LOOSER inside a story, TIGHTER between stories ---"
+# The two halves pull in opposite directions in one hook, which is the classic shape that
+# passes a suite while gating nothing. So each half is asserted WITH ITS CONTROL: the same
+# inputs differing only in the variable under test.
+
+# Fixtures. A task PR carries the story as its BASE; the story's publish PR carries it as
+# its HEAD. Both spellings must resolve to the same story or the rule splits in half.
+TASK_A='[{"number":65,"title":"task a","headRefName":"task/a","baseRefName":"story/12-thing"}]'
+TASK_B_LIVE='[{"number":65,"title":"task a","headRefName":"task/a","baseRefName":"story/12-thing"}]'
+STORY_PUBLISH='[{"number":70,"title":"story 12","headRefName":"story/12-thing","baseRefName":"main"}]'
+PLAIN='[{"number":65,"title":"bump","headRefName":"chore/deps","baseRefName":"main"}]'
+
+# LOOSER — the half that must not be a no-op. Same files, same story: allowed. Two tasks
+# land in sequence on a branch that has not published, so this is ordinary work.
+stub_gh "$TASK_A" "$THEIRS"
+stub_git "$MINE_OVERLAPS" abc1234 "task/b"
+check ALLOW "same story, OVERLAPPING files"   "gh pr create --base story/12-thing --title x"
+
+# Its control: identical overlap, no story anywhere → the pre-existing rule still denies.
+# Without this line the ALLOW above would also pass on a guard that stopped checking overlap
+# entirely, which is the mutation that matters.
+stub_gh "$PLAIN" "$THEIRS"
+stub_git "$MINE_OVERLAPS" abc1234 "feat/ordinary"
+check DENY  "no story, OVERLAPPING files"     "gh pr create --title x"
+
+# TIGHTER — a second story while one is live. Files are DISJOINT on purpose: under the old
+# rule this was the allowed case, so a denial here can only come from the story count.
+stub_gh "$TASK_B_LIVE" "$THEIRS"
+stub_git "$MINE_DISJOINT" abc1234 "task/c"
+check DENY  "a SECOND story, disjoint files"  "gh pr create --base story/99-other --title x"
+
+# Its control: same disjoint files, same live story, but this PR belongs to THAT story.
+stub_gh "$TASK_A" "$THEIRS_OTHER"
+stub_git "$MINE_DISJOINT" abc1234 "task/c"
+check ALLOW "same story, disjoint files"      "gh pr create --base story/12-thing --title x"
+
+# The story's own publish PR: head is the story branch, base is the trunk. It must read as
+# the SAME story as its tasks, or the story could never be published while its tasks are open.
+stub_gh "$TASK_A" "$THEIRS_OTHER"
+stub_git "$MINE_DISJOINT" abc1234 "story/12-thing"
+check ALLOW "the story's publish PR"          "gh pr create --title x"
+
+# An ordinary trunk slice alongside a live story is NOT what WIP=1-story bounds. It keeps the
+# file-overlap rule and nothing else — asserted because the natural over-implementation is to
+# deny everything while a story is live.
+stub_gh "$TASK_A" "$THEIRS_OTHER"
+stub_git "$MINE_DISJOINT" abc1234 "chore/unrelated"
+check ALLOW "trunk slice beside a live story" "gh pr create --title x"
+
+# A `gh` that omits the branch fields must make the story rule vanish WITHOUT taking the
+# overlap rule with it — the `// ""` default. Otherwise jq errors, the rule disappears
+# silently, and every test above still passes.
+stub_gh "$ONE" "$THEIRS"
+stub_git "$MINE_OVERLAPS" abc1234 "feat/ordinary"
+check DENY  "no branch fields: overlap holds" "gh pr create --title x"
+
 # The "gh is not installed" branch is deliberately NOT tested here. Exercising it means
 # removing gh from PATH, and any PATH narrow enough to hide gh also hides bash, jq and
 # grep — the harness dies and the case "passes" for the wrong reason, which is how it
