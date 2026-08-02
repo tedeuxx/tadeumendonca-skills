@@ -47,9 +47,20 @@ file. Nobody decided that work should exist; the loop decided, and asked afterwa
 describing the product and started describing how hard the agents had looked at it.
 
 **Enforced rather than instructed.** `permission-guard` rule 5c denies `gh issue create` — every
-spelling of that command, with no `agent_type` exemption. Read, list, comment, label and close remain
-open. An exemption a model can invoke by asserting something about itself is not a boundary, so there
-is none.
+spelling of that command. Read, list, comment, label and close remain open.
+
+~~With no `agent_type` exemption. An exemption a model can invoke by asserting something about itself
+is not a boundary, so there is none.~~ **Struck 2026-08-02 — both halves.** There is now exactly one
+`agent_type` exemption: `developer` may file, so it can decompose an approved story into tasks
+(rule 5d; see [ADR-0004](./0004-autonomy-and-permission-model.md)'s 2026-08-02 amendment, which is the
+decision).
+
+And the *justification* above is struck alongside the fact, because that amendment concedes it. The
+model cannot **claim** a persona it is not running as — so no exemption is invoked "by asserting
+something about itself", and that much of the sentence was always right. But the main loop **chooses**
+which persona to spawn, so it can *obtain* the exemption by delegating. These rules enforce **routing,
+not capability** — which is true of rule 7b as well, and was true before this change. Striking only the
+fact would have left the reasoning standing on a distinction the record no longer draws.
 
 **With one named accepted gap:** the `gh api … POST …/issues` route is **not** matched, the same way
 ADR-0004's rule 7b books `gh api … PUT …/merges` for merging. It was matched twice and both matchers

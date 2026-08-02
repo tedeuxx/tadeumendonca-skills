@@ -45,8 +45,11 @@
 #
 # So the accurate warning is the one above: the DIRECTIONS DIFFER BY INTENT, and this file's
 # reasoning is not transferable. What that floor should do when it cannot read its input is an
-# open question, filed rather than answered here — this comment claiming it was already answered
-# is exactly the failure it was written to prevent, found by `security` reviewing #124.
+# open question, NAMED rather than answered here — and named, not filed: the reviewer does not open
+# work, so there is no issue to point at. ("filed" stood here for one round and was false, in the
+# file whose entire diff is about a comment asserting something untrue.) A comment claiming that
+# question was already answered is exactly the failure it was written to prevent — which is how the
+# struck line above got here, found by `security` reviewing #124.
 
 set -uo pipefail
 
