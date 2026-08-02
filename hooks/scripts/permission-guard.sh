@@ -113,7 +113,28 @@ fi
 
 # Quoted spans collapsed, so an operator inside a commit message or a grep
 # pattern is never mistaken for shell composition or a refspec.
-bare="$(printf '%s' "$cmd" | sed -e "s/'[^']*'/''/g" -e 's/"[^"]*"/""/g')"
+#
+# ESCAPE-AWARE since #66, and the earlier form is worth stating because it looked correct.
+# It was `s/"[^"]*"/""/g` — "run to the next double quote" — so a body containing an ESCAPED
+# quote terminated the span early and exposed the remainder to the composition check:
+#
+#     gh issue create --body "text with \"quotes\" and `backticks`"
+#                            ^-------------------^ collapse stopped here
+#                                                    ^^^^^^^^^^^^ read as substitution → denied
+#
+# `([^"\\]|\\.)*` consumes any escaped character as one unit, so the span ends at the real
+# closing quote. Same for single quotes, kept symmetric even though POSIX shells do not honour
+# escapes inside them — the input here is a command STRING, not a parsed shell word, and a
+# rule that treats the two quote styles differently is one nobody will remember correctly.
+#
+# The issue's stated fear was that fixing a false positive here would buy a false NEGATIVE in
+# the rule protecting the matcher. Three cases pin that it does not, and all three are asserted
+# in the test suite rather than argued here:
+#   · an operator OUTSIDE quotes still survives the collapse and is still caught;
+#   · an UNBALANCED quote matches nothing, so the operator stays exposed — it fails CLOSED,
+#     which is the only safe direction for a deny-only rule;
+#   · an escaped quote INSIDE a span no longer truncates it.
+bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g')"
 
 # 5c. OPENING WORK. Only the owner decides that something should exist. What is guarded is UNALIGNED
 #     work entering the queue — NOT the act of recording work the owner already asked for.
