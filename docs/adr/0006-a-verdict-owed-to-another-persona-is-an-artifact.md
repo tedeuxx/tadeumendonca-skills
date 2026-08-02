@@ -67,6 +67,18 @@ the veto fires on **every** MR while the ratification fires only on the boundary
    it delivered a false claim about a diff without anyone noticing until the consumer independently
    re-derived the file list.
 
+2b. **Gate the COMMENT rather than the merge** — deny a `gh pr comment` whose body carries a marker
+   naming a persona the caller is not running as. *Recorded because the first draft of this ADR never
+   considered it, and both gatekeepers found the omission independently.* It is **not** equivalent to
+   option 2: it would narrow the attributable set from *"anyone holding `Bash`"* — which is what it is
+   today — to *"the main loop deliberately spawning `security`"*. So the routing-not-capability argument
+   does not dispose of it. *Why not, on the better reason:* this decision **mandates `--body-file`**, so
+   the marker is not in the command string at all; the hook would have to resolve a path argument and
+   read the file to find it, which is the same fragility class as rule 5d — a matcher inferring intent
+   from what the model happened to type, losing one spelling at a time. The conclusion survives; the
+   reasoning in the first draft was one option short, and an ADR whose stated job is naming its own
+   limit should name the option it did not consider.
+
 4. **A GitHub review approval instead of a comment.** *Why not:* GitHub refuses a review approval from
    the PR's own author, and every PR here is authored by the same token the gatekeepers run under, so
    the mechanism is unavailable rather than merely awkward. A comment carries the same information on
@@ -76,6 +88,12 @@ the veto fires on **every** MR while the ratification fires only on the boundary
 
 Chosen: **the comment, verified by the consumer against the current head.**
 
+- **Both** gatekeepers post before returning, on every review including clean ones, each under its own
+  marker. **Verification runs in one direction** — only the gate that holds the merge reads the other's,
+  and nothing reads its own. *Why both write when only one is read:* the read gates a merge and only one
+  gate merges, but the **write** serves a second purpose the read does not — without it the *delivery*
+  verdict, the one carrying the DoD evidence and the merge decision, leaves no trace, which is exactly
+  what observation 1 above complained about. A security-only comment closes half the observed failure.
 - `security` posts before returning, on every review including clean ones.
 - `quality-assurance` verifies three conditions before merging — the marker is present, the verdict
   reads `APPROVED`, and **the recorded head SHA equals the PR's current `headRefOid`** — and names
@@ -102,7 +120,22 @@ Chosen: **the comment, verified by the consumer against the current head.**
   **omission**, which is the observed failure. It does not close **impersonation**, which has not been
   observed and which no reachable mechanism in this harness closes either — option 2 above buys nothing
   against it. Overstating the guarantee would be worse than naming its limit.
-- One extra `gh pr comment` per gatekeeper per round.
+- One extra `gh pr comment` per gatekeeper per round — and the cadence is **per round**, not per PR,
+  because head-SHA equality is strict: every subsequent commit invalidates the standing verdict and the
+  gatekeeper must be re-dispatched. That multiplier is the thing most likely to get worked around, and
+  the workaround is a stale verdict waved through. Named here so it is a known price rather than a
+  discovery.
+- **Fails closed by INSTRUCTION, not mechanically**, and the distinction matters enough to state:
+  `permission-guard` cannot be reasoned past because it is a `PreToolUse` hook; this gate holds only
+  while `quality-assurance` obeys the instruction to check. It is a materially weaker fail-closed, it is
+  the same class of gap this ADR exists to narrow rather than close, and option 2 would not have fixed
+  it either. "Fails closed like the permission floor" is not a sentence to write without this qualifier.
+- **Neither gatekeeper has a `Write` tool**, so the body goes through Bash — where rule 8 of the floor
+  denies a backtick, `$(`, `;` or a chain operator outside a quoted span. A verdict needing a literal
+  backtick is denied, and the gate then blocks for a reason unrelated to review quality. Workable today
+  (both personas are instructed to author around it and one has already done so under this rule), and
+  the clean fix is a scratchpad-scoped `Write` grant — **an ADR-0004 tool-grant decision, so recorded
+  here as an open question rather than taken.**
 
 **Open question, recorded rather than settled.** `marketing-lead` has the identical hole:
 `quality-assurance` is told to confirm the copy lens returned a verdict, and cannot. It is

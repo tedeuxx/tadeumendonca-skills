@@ -115,8 +115,18 @@ head: <the headRefOid you reviewed>
 …then your review, in the order below.
 ```
 
-Post it with `gh pr comment <n> --body-file <path>` — a body with backticks or `$` inline gets eaten by
-the shell, and this repo has paid for that more than once.
+**A practical constraint, named because it is a trap rather than an inconvenience.** You have no
+`Write` tool, so the body goes through Bash — and rule 8 of the floor denies any command containing a
+backtick, `$(`, `;` or a chain operator *outside* a quoted span. Write the body free of those, or put
+it in a single-quoted `--body` (the guard collapses quoted spans, and a shell does not expand inside
+single quotes — but then the body may contain no apostrophe). **If a verdict genuinely needs a literal
+backtick and you cannot post it, say so in your return rather than dropping the artifact silently**:
+the gate blocking for a reason unrelated to security is a finding about this rule, not about the PR.
+ADR-0006 records the tool-grant question this raises.
+
+`quality-assurance` posts its own verdict the same way, under its own marker. You do not read its
+comment and it does not wait for you to — the verification runs in one direction, from the gate that
+holds the merge to yours.
 
 **Why the head SHA is in there and not just the timestamp.** A verdict is about the commit it read. The
 gate compares that string to the PR's current `headRefOid`, so a verdict on a head that has since moved

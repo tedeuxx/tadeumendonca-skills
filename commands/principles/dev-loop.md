@@ -344,6 +344,18 @@ the sessions were not running — the reason `session-plugin-version` exists.
    *Parallel is not a detail.* Dispatching lens → fix → gate → fix serialises work with no dependency
    between its parts, and the observed cost was the loop's throughput rather than its round count.
 
+   **Each gatekeeper posts its verdict to the PR before returning** — a `<!-- gatekeeper-verdict: … -->`
+   comment carrying the head SHA it read — and **`quality-assurance` verifies `security`'s before
+   merging**: marker present, verdict approving, head SHA equal to the PR's current `headRefOid`. A
+   relay from the invoking context is a notification, never the authority
+   ([ADR-0006](../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)).
+
+   *This paragraph exists because the sweep that should have caught its absence could not.* The rule was
+   added to both persona files and to the state table, and this narration — the place an agent actually
+   reads the procedure — kept none of the old wording, so no grep of the old claim could reach it.
+   **A phrase sweep finds restatements; it cannot find omissions.** `/workflow/code-review` §3 is
+   necessary and not sufficient, for the same reason it gives about lists.
+
 ### Always true
 - **Pipelines are independent per repo** (never cross-trigger). Infrastructure changes are **pipeline-only**: a reviewed plan on the PR, apply on merge.
 - **Merge with a real merge commit, never squash** (`gh pr merge --merge`) — each thin slice's conventional commits are the changelog and the slice-by-slice trail; squashing collapses them. See `/workflow/github-actions`.

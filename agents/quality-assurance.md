@@ -100,6 +100,30 @@ diff it had approved** — it named four files where the PR had one, having diff
 rather than the merge-base. Coverage happened to be a superset, so nothing was missed. Had the error
 gone the other way the relay would have read identically.
 
+**And post your own verdict the same way, before you return.** Yours is the one carrying the DoD
+evidence and the merge decision, so a PR where only `security` wrote leaves the *delivery* verdict
+invisible — which is precisely what the harness monitor complained about. Same shape, your own marker:
+
+```
+<!-- gatekeeper-verdict: quality-assurance -->
+APPROVED            ← or REQUEST-CHANGES, or APPROVE-PENDING-HUMAN
+head: <the headRefOid you reviewed>
+
+…then your verdict and the per-criterion table.
+```
+
+Post it **before** merging, so the record exists whether or not the merge follows — a verdict that only
+lands when you merge is missing on exactly the PRs where the reasoning mattered most.
+
+**A practical constraint, named because it is a trap rather than an inconvenience.** You have no
+`Write` tool, so the body goes through Bash — and rule 8 of the floor denies any command containing a
+backtick, `$(`, `;` or a chain operator, *outside* a quoted span. Write the body free of those, or put
+it in a single-quoted `--body` (the guard collapses quoted spans, and a shell does not expand inside
+single quotes — but then the body may contain no apostrophe). **If a verdict genuinely needs a literal
+backtick and you cannot post it, say so in your return rather than dropping the artifact silently**:
+the gate blocking for a reason unrelated to review quality is a finding about this rule, not about the
+PR. ADR-0006 records the tool-grant question this raises.
+
 Report both verdicts together. Where you and `security` reach the same conclusion from different
 directions, say so — independent convergence is evidence, and it is invisible unless someone states it.
 

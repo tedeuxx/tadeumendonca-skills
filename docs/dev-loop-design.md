@@ -145,9 +145,18 @@ delivery gate would already cover it. A loop that tries to make both objective e
 that misses the novel case, or quietly drops the axis.
 
 **A verdict is an artifact on the merge request, not a claim passed back through the orchestrator.**
-Each gatekeeper writes its verdict where the other can read it, carrying the commit SHA it reviewed; the
-gate that holds the merge verifies the other's before merging — present, approving, and **naming the
-current head**. A verdict on a superseded commit is a review of something else and fails the check.
+**Each** gatekeeper writes its verdict there, carrying the commit SHA it reviewed. **Verification runs
+in one direction**, and the asymmetry is deliberate rather than an omission: the gate that holds the
+merge reads the other's before merging — present, approving, and **naming the current head** — while
+nothing reads its own. A verdict on a superseded commit is a review of something else and fails the
+check.
+
+*Why both write when only one is read.* The read exists to gate a merge, and only one gate merges. The
+**write** exists for a second reason the read does not cover: without it, the delivery verdict — the one
+carrying the evidence and the merge decision — leaves no trace at all, which was the original complaint.
+An artifact nobody currently queries is still the record of what was decided and why, and it is what a
+later audit reads. Requiring the merging gate to be verified by the other would need a third party to
+hold the merge, which buys less than it costs.
 
 *Why this is a rule and not hygiene.* Without it, the rule *"do not merge until the other gate approved"*
 is checkable only by the party reporting, never by the party waiting — and a relayed verdict has already
