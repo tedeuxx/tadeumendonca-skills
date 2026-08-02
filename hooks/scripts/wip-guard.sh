@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 # wip-guard.sh — PreToolUse(Bash) guard bounding work-in-progress at the PR boundary.
 #
-# The bound is FILE OVERLAP, not a count.
+# The bound has TWO LEVELS: file overlap between slices, and a COUNT between stories.
+#
+# ~~The bound is FILE OVERLAP, not a count.~~ True of slices, and false of stories since
+# `gitflow-single-env` (#122/#123). Struck rather than deleted because the paragraph below it
+# is the measured argument for the first half and still stands — see STORY AWARENESS further
+# down for why the second half is a count. Not a change of mind about counting: a story
+# branch diverges for as long as the story lasts, and overlap measured at an instant cannot
+# see time.
 #
 # It used to count: one open PR per repo, full stop. That was a proxy for the thing
 # actually worth preventing — stacked PRs that go stale and turn their merge into a
