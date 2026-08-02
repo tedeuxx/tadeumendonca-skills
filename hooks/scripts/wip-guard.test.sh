@@ -238,9 +238,56 @@ stub_gh "$TASK_A" "$THEIRS_OTHER"
 stub_git "$MINE_DISJOINT" abc1234 "chore/unrelated"
 check ALLOW "trunk slice beside a live story" "gh pr create --title x"
 
-# A `gh` that omits the branch fields must make the story rule vanish WITHOUT taking the
-# overlap rule with it — the `// ""` default. Otherwise jq errors, the rule disappears
-# silently, and every test above still passes.
+# ATTACHED VALUES — the spelling that broke BOTH halves at once, found by `security` on the
+# first round. `gh` accepts `--base=x` and `-Bx`; the first regex required a space, so:
+#   · the story COUNT failed OPEN and silently (a second story read as no story at all);
+#   · the same-story EXEMPTION failed CLOSED, denying the primary flow, intermittently,
+#     depending only on how the command happened to be written.
+#
+# Both halves get both spellings. Asserting only the count would have left the wedging half
+# uncovered — and that is the one that hurts, because a spurious DENY on this flow violates
+# the guard's own rule that a loop-discipline check must never wedge the loop.
+stub_gh "$TASK_B_LIVE" "$THEIRS"
+stub_git "$MINE_DISJOINT" abc1234 "task/c"
+check DENY  "second story, --base= attached"  "gh pr create --base=story/99-other --title x"
+check DENY  "second story, -B attached"       "gh pr create -Bstory/99-other --title x"
+
+stub_gh "$TASK_A" "$THEIRS"
+stub_git "$MINE_OVERLAPS" abc1234 "task/b"
+check ALLOW "same story, --base= attached"    "gh pr create --base=story/12-thing --title x"
+check ALLOW "same story, -B attached"         "gh pr create -Bstory/12-thing --title x"
+
+# The live-story name was interpolated into a BRE, and `.` is legal in a git ref — so a base
+# whose regex happens to match a real story deleted it from the set and let a second story
+# through. Fixed with `grep -vxF`. Asserted with a name that is NOT the live story but whose
+# regex form matches it.
+stub_gh "$TASK_B_LIVE" "$THEIRS"
+stub_git "$MINE_DISJOINT" abc1234 "task/c"
+check DENY  "a base that only MATCHES the live story as a regex" "gh pr create --base story/1..thing --title x"
+
+# The `// ""` defaults, asserted with a fixture that can actually FALSIFY them.
+#
+# THE FIRST VERSION OF THIS TEST WAS VACUOUS and the reviewer proved it: it used a
+# non-story branch, so `new_story` was empty and the story block short-circuited BEFORE
+# `live_stories` was ever consulted. It reached the overlap path and denied for reasons
+# unrelated to the defaults — it passed with line 103 deleted outright.
+#
+# What discriminates: a MIXED open set. One PR without the branch fields, one WITH a story
+# base, and a new PR belonging to a DIFFERENT story. Correct answer is DENY. Without the
+# defaults, jq errors on the fieldless entry, `live_stories` comes back empty, and the rule
+# silently disappears → ALLOW.
+#
+# The fieldless PR is FIRST on purpose. The failure is ORDER-DEPENDENT — jq emits the story
+# before it aborts if the story sorts first — so a fixture in the other order would pass
+# either way. An intermittent silent failure in the guard that bounds WIP is worse than a
+# deterministic one, and only this ordering catches it.
+MIXED='[{"number":65,"title":"no fields"},{"number":45,"title":"task a","headRefName":"task/a","baseRefName":"story/12-thing"}]'
+stub_gh "$MIXED" "$THEIRS_OTHER"
+stub_git "$MINE_DISJOINT" abc1234 "task/c"
+check DENY  "mixed set: a fieldless PR must not blind the story rule" "gh pr create --base story/99-other --title x"
+
+# Kept, and it does assert something true — a fieldless open set must not stop the OVERLAP
+# rule working. It is simply not the case that carries the `// ""` claim.
 stub_gh "$ONE" "$THEIRS"
 stub_git "$MINE_OVERLAPS" abc1234 "feat/ordinary"
 check DENY  "no branch fields: overlap holds" "gh pr create --title x"
