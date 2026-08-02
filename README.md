@@ -54,12 +54,11 @@ flowchart TB
   subgraph plugin["tadeumendonca-skills (Claude Code plugin)"]
     direction TB
 
-    subgraph personas["agents/ — 19 subagent personas"]
+    subgraph personas["agents/ — 6 subagent personas"]
       direction LR
-      P1["planner<br/>plan-reviewer"]
-      P2["critical-reviewer<br/>(holds the merge gate)"]
-      P3["security · performance<br/>qa-e2e · debugger"]
-      P4["brand-guardian · editor<br/>product-owner · recruiter"]
+      P1["product-lead · tech-lead<br/>marketing-lead<br/>(three leads, ONE demand)"]
+      P2["developer<br/>(app · infra · pipeline)"]
+      P3["quality-assurance · security<br/>(the two gatekeepers)"]
     end
 
     subgraph hooks["hooks/ — PreToolUse + SessionStart"]
@@ -83,17 +82,28 @@ flowchart TB
   verdict --> human["the human: irreversible,<br/>architectural, go/no-go"]
 ```
 
-**Subagent personas review in a fresh context, which is the whole point.** A `critical-reviewer`
+**Subagent personas review in a fresh context, which is the whole point.** A `quality-assurance`
 spawned to judge a merge request has not read the conversation that produced it, so it has no
 authorship bias to overcome and no memory of why a shortcut felt reasonable at the time. It verifies
-each criterion against the repo and returns a verdict with citations. `security`, `performance`,
-`qa-e2e`, `brand-guardian` and `editor` are lenses over the same diff; `planner` and `plan-reviewer`
-do the equivalent at design time, before code exists to be attached to.
+each criterion against the repo and returns a verdict with citations. `security` is the second
+gatekeeper over the same diff, with its own veto; `marketing-lead` is the lens on what the copy claims.
 
-- **Choice:** a separate agent per concern, over one reviewer with a long checklist. A checklist item
-  competes for attention with every other item; an agent whose entire task is the security lens
-  spends its whole context there. **The cost is tokens** — a five-lens review is five inference
-  passes over the same diff, and on a small change that is real overhead you are choosing to pay.
+- **Choice:** a persona exists **only where conflict is wanted** — where someone should be arguing
+  against someone else — over one persona per concern. The roster was nineteen and is now six, because
+  the discarded thirteen generated no disagreement: they were handoffs, and the handoff was the reason
+  none of them was ever dispatched. A persona that is never invoked is a document.
+
+  The three leads disagree by design (reader vs system vs market) and then **consolidate one demand**;
+  the two gatekeepers exist to fight the builder, on delivery and on the floor. Everything else became a
+  competence of whoever already had the context: the builder writes its own tests and infra, the gate
+  diagnoses its own failures, the tech lead records its own decisions.
+
+  **The cost is real and is not a wash.** Three specialists could not accidentally edit each other's
+  glob; one builder can, so a capability guarantee became scope discipline, which is weaker. And a
+  merged persona's checklist is longer, so an item competes for attention with every other item — which
+  is precisely the argument the old roster was built on. The counter-evidence is that the old roster's
+  lenses spent their best findings **outside their nominal lanes**, so the specialisation they were
+  paying for was not what made them useful. The fresh context was.
 
 **Hooks are mechanical, and that is a different kind of guarantee.** `permission-guard` runs as
 `PreToolUse` on every `Bash` call and returns a deny *before* the command executes — force-push,
@@ -197,7 +207,7 @@ Invoke a skill by its namespaced path, passing context as arguments:
 included, has to be dispatched by something.
 
 What the hooks buy you is the converse, and it is the stronger half: `permission-guard` denies
-`gh pr merge` to every context except the `critical-reviewer` subagent. So the reviewer will not
+`gh pr merge` to every context except the `quality-assurance` subagent. So the reviewer will not
 start itself, but a merge **cannot happen without it** — the gate is unskippable from the moment you
 install, with no configuration. (Subject to the fail-open caveat above: the natural command is
 gated, the raw API call is a named gap.)

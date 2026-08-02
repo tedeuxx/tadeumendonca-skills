@@ -105,12 +105,12 @@ git init -q -b main "$BARE"
 check DENY  "unborn HEAD on main"           "git -C $BARE push"
 rm -rf "$BARE"
 
-echo "--- rule 7b: merging a PR is the critical-reviewer's act alone ---"
+echo "--- rule 7b: merging a PR is the quality-assurance's act alone ---"
 check       DENY  "main agent (no agent_type) cannot merge"          "gh pr merge 149 --merge"
 check_agent DENY  ""                                     "empty agent_type = main agent, denied"      "gh pr merge 149 --merge"
-check_agent ALLOW "tadeumendonca-skills:critical-reviewer" "the reviewer merges — it IS the gate"     "gh pr merge 149 --merge"
-check_agent ALLOW "tadeumendonca-skills:critical-reviewer" "the reviewer, behind --repo"              "gh --repo owner/repo pr merge 149 --merge"
-check_agent ALLOW "tadeumendonca-skills:critical-reviewer" "the reviewer, behind -R"                  "gh -R owner/repo pr merge 149 --squash"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer merges — it IS the gate"     "gh pr merge 149 --merge"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer, behind --repo"              "gh --repo owner/repo pr merge 149 --merge"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer, behind -R"                  "gh -R owner/repo pr merge 149 --squash"
 check_agent DENY  "tadeumendonca-skills:planner"          "a different subagent cannot merge"         "gh pr merge 149 --merge"
 check_agent DENY  "tadeumendonca-skills:frontend-react"   "a build specialist cannot merge"           "gh pr merge 149 --squash"
 check_agent DENY  "Explore"                               "a built-in subagent cannot merge either"   "gh pr merge 149 --merge"
@@ -146,7 +146,7 @@ check ALLOW "a commit message about the act"     'git commit -m "gh api repos/o/
 # issues in one session were born inside a review of something else. A persona has no access to the
 # owner, so it cannot answer the question the prompt asks — it reports upward instead. `agent_type` is
 # stamped by the harness and cannot be forged by the model, so this is not a spelling it can escape.
-check_agent DENY "tadeumendonca-skills:critical-reviewer" "not even the reviewer files"  "gh issue create --title x"
+check_agent DENY "tadeumendonca-skills:quality-assurance" "not even the reviewer files"  "gh issue create --title x"
 check_agent DENY "tadeumendonca-skills:scrum-master"      "not even the flow persona"     "gh issue create --title x"
 # The other side of the same split, and the case the correction exists for. Without it the suite would
 # pass with the subagent branch applied to everyone — which is the bug being fixed, not a regression

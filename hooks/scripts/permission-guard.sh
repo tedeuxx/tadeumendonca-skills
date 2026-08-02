@@ -205,9 +205,9 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   esac
 fi
 
-# 7b. Merging a PR is the deploy — ADR-0004 makes it the critical-reviewer's act alone,
+# 7b. Merging a PR is the deploy — ADR-0004 makes it the quality-assurance's act alone,
 #     and this is where that stops being a promise the main agent must remember. The
-#     harness stamps agent_type on a subagent's tool calls (`<plugin>:critical-reviewer`)
+#     harness stamps agent_type on a subagent's tool calls (`<plugin>:quality-assurance`)
 #     and leaves it empty for the main agent, so `gh pr merge` is allowed ONLY from the
 #     reviewer; the main agent and every other subagent are denied. It turns "did the
 #     reviewer run?" into a precondition the model cannot satisfy by recall — only by
@@ -218,8 +218,8 @@ fi
 #     brittle attempt to pattern every form.
 if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R|--repo)[[:space:]]+[^[:space:]]+)*[[:space:]]+pr[[:space:]]+merge([[:space:]]|$)'; then
   case "$agent_type" in
-    *:critical-reviewer) : ;;  # the reviewer IS the merge gate — allow it through
-    *) deny "Blocked: merging a PR is the deploy and the critical-reviewer's act, not the main agent's (ADR-0004). Route it through the critical-reviewer subagent — invoke it with the human's go, and it performs the merge (approve-and-merge the safe class, or after your ratification for the boundary class). agent_type='${agent_type:-<main agent>}'." ;;
+    *:quality-assurance) : ;;  # the reviewer IS the merge gate — allow it through
+    *) deny "Blocked: merging a PR is the deploy and the quality-assurance's act, not the main agent's (ADR-0004). Route it through the quality-assurance subagent — invoke it with the human's go, and it performs the merge (approve-and-merge the safe class, or after your ratification for the boundary class). agent_type='${agent_type:-<main agent>}'." ;;
   esac
 fi
 

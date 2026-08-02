@@ -9,7 +9,7 @@
 
 Turn the dev-loop into a **team of per-task subagents** orchestrated by the main loop, where each stage
 is an isolated fresh context (a *persona* wielding a specific skill/tool/model bundle). Two review gates —
-a **plan-reviewer** at design-time and a **critical-reviewer** at code-time — give autonomy on delimited
+a **plan-reviewer** at design-time and a **quality-assurance** at code-time — give autonomy on delimited
 work while the human keeps the architectural/irreversible boundary. **ADRs are the durable shared brain**
 that makes per-task isolation safe: a fresh context can't remember prior decisions, so the decisions must
 be written where it can read them. All of this lives in the plugin, reusable across projects.
@@ -43,7 +43,7 @@ reusable across projects (it lives in the plugin) · the loop is itself a proof-
 
 ### 2.1 Personas vs per-task instances
 A **subagent is a per-task autonomous context**, not a standing employee. The *persona* (e.g.
-`frontend-react`, `critical-reviewer`) is the reusable **definition** — it lives in the plugin. Each
+`frontend-react`, `quality-assurance`) is the reusable **definition** — it lives in the plugin. Each
 **invocation** is a fresh, ephemeral context that loads only what the task needs and is discarded after.
 
 That isolation is where the two wins come from:
@@ -70,11 +70,11 @@ how Claude Code subagents work: fresh context in, structured report out.
 ### 2.4 Each persona configures four axes
 `{ skills it wields · MCPs it can reach · tools it may use · model tier + effort }`. Two consequences:
 - **Tool-scoping = per-agent least-privilege**, and it enforces the DoD *mechanically* instead of by
-  good faith. The `critical-reviewer` gets read + verdict + (safe-class) merge — **but not edit**.
+  good faith. The `quality-assurance` gets read + verdict + (safe-class) merge — **but not edit**.
   Specialists get edit-within-their-glob — **but not merge**. The classification stops being a promise
   and becomes a capability boundary.
 - **Model per task = cost/latency calibration.** Strong model where judgment and risk live
-  (`plan-reviewer`, `critical-reviewer`, `planner`); cheap/fast model for mechanical work
+  (`plan-reviewer`, `quality-assurance`, `planner`); cheap/fast model for mechanical work
   (`sonar-remediator`, formatting fixes). Don't pay for a frontier model to change quotes.
 
 ## 3. The loop
@@ -87,7 +87,7 @@ flowchart TD
   PR -- approved --> S[acceptance criteria → E2E user stories<br/>persona: qa-e2e]
   S --> B[build the slice<br/>frontend-react / iac-terraform-aws / devops-cicd]
   B --> ADR[adr-author: record any significant decision]
-  ADR --> CR{critical-reviewer<br/>diff vs MR Definition of Done}
+  ADR --> CR{quality-assurance<br/>diff vs MR Definition of Done}
   CR -- request changes --> B
   CR -- safe class + green --> M[approve + MERGE → deploy]
   CR -- boundary class --> H[escalate: human go/no-go]
@@ -95,7 +95,7 @@ flowchart TD
 ```
 
 Two adversarial, fresh-context review gates at two altitudes: **plan-reviewer** (the spec, design-time)
-and **critical-reviewer** (the MR, code-time). Sonar runs comprehensive + blocking inside the build/PR
+and **quality-assurance** (the MR, code-time). Sonar runs comprehensive + blocking inside the build/PR
 gate; `sonar-remediator` captures findings and fixes them within the slice.
 
 ## 4. Subagent roster
@@ -144,7 +144,7 @@ backend-ful project.
 | `planner` | intake → spec (plan mode) | `/principles/*`, `/architecture/*` | strong | edit code | ✅ |
 | `plan-reviewer` | reviews the spec | `/principles/*`, ADR library | strong | edit · merge | ✅ |
 | `adr-author` | ADRs (MADR) | ADR practice | mid | merge | ✅ |
-| `critical-reviewer` | reviews the MR vs DoD | DoD, ADR library | strong | **edit** | ✅ |
+| `quality-assurance` | reviews the MR vs DoD | DoD, ADR library | strong | **edit** | ✅ |
 | `sonar-remediator` | Sonar findings | domain skill | cheap/fast | merge | ✅ |
 
 **Non-functional / cross-cutting** (specialized lenses at both design- and code-time):
@@ -201,7 +201,7 @@ initiative. What was missing was the layer that **prepares** those decisions rat
 - **`brand-guardian`** — reviews copy against the private positioning source (claims, cross-surface
   coherence, confidentiality, third-party naming). Exists because a positioning breach is not a DoD
   criterion, so on a presence where the words are the product it ships green. Advisory, **no write
-  capability at all**, triggered from `critical-reviewer` by a **fail-closed rule, not a path list** — any
+  capability at all**, triggered from `quality-assurance` by a **fail-closed rule, not a path list** — any
   diff changing words or images any reader will see, human or machine, wherever the file lives, including
   copy bound for an external surface (ADR-0002 amendment #4). *(This was
   `product-owner`'s mandate until amendment #3 — see below.)*
@@ -225,7 +225,7 @@ and held up. This document's own rule applies — *enabling a persona with no wo
 two hats: the *name* of a generic software role, the *job* of a copy/positioning reviewer. Split cleanly:
 `product-owner` re-scoped to the software role (above); the copy mandate moved **unchanged** (checks and
 the `Read, Grep, Glob`-only / no-`Bash` capability guarantee intact) into a new **`brand-guardian`**, and
-`critical-reviewer`'s content-boundary trigger re-points to it. Three genuinely new concerns join:
+`quality-assurance`'s content-boundary trigger re-points to it. Three genuinely new concerns join:
 **`editor`** (long-form craft & rigor — distinct from `brand-guardian`'s claim-vs-truth), **`recruiter`**
 (external hiring efficacy: LinkedIn/ATS/hiring-manager fit — distinct from `brand-guardian`'s internal
 conformance), and **`scrum-master`** (flow/WIP hygiene — every piece of work becomes a tracked issue).
@@ -267,7 +267,7 @@ persona must respect is in the ADR library its fresh context loads.
 
 ## 6. MR Definition of Done (the pact)
 
-The objective ruler the `critical-reviewer` enforces. **Every criterion is mechanically checkable or
+The objective ruler the `quality-assurance` enforces. **Every criterion is mechanically checkable or
 evidence-cited** — subjective criteria reintroduce the bias the isolated reviewer exists to remove.
 
 ### 6.1 Every MR must satisfy
@@ -308,11 +308,11 @@ suppress findings; it stops *good observation* and *merge blocker* from being th
 
 *Why this is here and not only in the persona:* §6 is **the pact**. A rule that lives only in the
 reviewer's own file is the reviewer reviewing by taste, which is what ADR-0003 exists to prevent — and
-for one commit that is exactly what happened: criterion 10 was added to `agents/critical-reviewer.md`
+for one commit that is exactly what happened: criterion 10 was added to `agents/quality-assurance.md`
 while this list still said nine.
 
 ### 6.2 Classification — who merges
-- **Safe class** (`critical-reviewer` may approve **and merge** with §6.1 fully green): docs · dependency
+- **Safe class** (`quality-assurance` may approve **and merge** with §6.1 fully green): docs · dependency
   bumps · test-only · in-pattern refactor · **in-pattern implementation of an already-approved
   spec/ADR**.
 - **Boundary class** (always escalates to the **human**): new architecture · contract/schema change ·
@@ -349,7 +349,7 @@ coverage threshold, its glob ownership). Per-machine overrides stay in `settings
   A superseded ADR is kept and linked forward, never deleted (reverted decisions become history, not
   gaps — matching the exhaustive reverse-engineering).
 - **Light gate:** an MR crossing the §6.1.5 significance test must reference an ADR. `plan-reviewer`
-  flags the need at design-time; `critical-reviewer` verifies it at code-time.
+  flags the need at design-time; `quality-assurance` verifies it at code-time.
 
 ## 9. Where it lives
 
@@ -361,7 +361,7 @@ coverage threshold, its glob ownership). Per-machine overrides stay in `settings
 | the thin-slice + plan→E2E-story practices | the actual Issues, specs, E2E journeys |
 
 `tadeumendonca-io` enables (19): `frontend-react`, `iac-terraform-aws`, `devops-cicd`, `ux`, `analytics`,
-`e2e-testing`, `debugger`, `planner`, `plan-reviewer`, `adr-author`, `critical-reviewer`,
+`e2e-testing`, `debugger`, `planner`, `plan-reviewer`, `adr-author`, `quality-assurance`,
 `sonar-remediator`, `security`, `performance`, `brand-guardian`, `editor`, `recruiter`, `scrum-master`, `product-manager`. Off (7):
 `api-design`, `backend-node`, `api-testing`, `data-modeling`, `observability`, `sre`, and — since
 amendment #3 re-scoped it to a software product owner with no application behavior to accept here —
@@ -381,7 +381,7 @@ drift only if nobody ever states which side of it a persona is on.
 4. **Autonomy & permission model** — §7, tool-scoping + classes. `[ADR-0004]`
 5. **The subagents**, one persona per slice — **materialized lazily**: a persona is *defined* in this
    proposal cheaply (a markdown entry), but *built* only as work demands it, in leverage order —
-   `critical-reviewer` first, then `plan-reviewer` (evolve `principles-guide`), then the specialists as
+   `quality-assurance` first, then `plan-reviewer` (evolve `principles-guide`), then the specialists as
    the roadmap needs them. We catalog the target team; we do not spawn 20 agents on day one.
 6. **Comprehensive Sonar** (fed + iac + workflows, blocking) + `sonar-remediator`.
 7. **Backlog ↔ Issues** sync + the plan→E2E-story wiring.
@@ -393,7 +393,7 @@ drift only if nobody ever states which side of it a persona is on.
 - **Orchestration overhead.** Many subagents cost tokens and add handoffs. Mitigation: spawn a specialist
   only when a slice genuinely spans its domain; a one-file change stays in the main loop.
 - **The reviewer is not a human.** A fresh-context reviewer removes *authorship* bias but not *model*
-  bias — plan-reviewer and critical-reviewer are the same model family as the author. It is a strong
+  bias — plan-reviewer and quality-assurance are the same model family as the author. It is a strong
   gate, not a substitute for human judgment on the boundary class. That's why boundary always escalates.
 - **Same-model review has a ceiling.** Consider raising the reviewer's model/effort above the author's,
   and/or a multi-vote refute pass for high-stakes MRs.

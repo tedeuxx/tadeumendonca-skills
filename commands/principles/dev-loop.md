@@ -25,15 +25,15 @@ Work is **driven by the roadmap (`PLAN.md`)**, the source of what gets built nex
 
 Batching is the point. Asking a decision when a slice hits it produces one stall per slice; asking them up front produces one conversation and unblocks everything at once. Same questions, completely different cost to the person answering — and the owner's attention is the scarce input this whole loop is calibrated around.
 
-Then **`product-manager` states the order**, and the session works it. Not "invoke it more often" — the condition is precise:
+Then **`product-lead` states the order**, and the session works it. Not "invoke it more often" — the condition is precise:
 
-> Starting a slice that is **not** the top of the stated order requires `product-manager` to have returned a new order, or the session records that the order is unchanged.
+> Starting a slice that is **not** the top of the stated order requires `product-lead` to have returned a new order, or the session records that the order is unchanged.
 
 That fires exactly when the risk is real — picking work — and it produces the artifact that makes drift visible: a stated order that a later choice can be checked against.
 
 **A session with no pending decisions says so.** A step that silently did nothing must not read like a step that ran.
 
-*Why this is an invariant and not advice:* every other persona has a trigger. `critical-reviewer` runs on every MR; `brand-guardian` and `editor` hang off it; `plan-reviewer` fires on a plan. `product-manager` had none, and a mandate with no trigger is a document, not a gate — which is this loop's own sentence, about a different persona, that this rule finally applies to the one it was written next to.
+*Why this is an invariant and not advice:* every surviving persona has a trigger. `quality-assurance` runs on every MR and `marketing-lead` hangs off it. Its predecessor `product-manager` had none, and a mandate with no trigger is a document, not a gate — which is this loop's own sentence, about a different persona, that this rule finally applies to the one it was written next to.
 
 ### What gets worked next — discovered vs requested
 
@@ -45,7 +45,7 @@ The test is checkable, not a judgment call:
 
 > Does the requested work ship **wrong**, or **not at all**, without this?
 
-Yes → it goes first, and the blocking relationship is stated on the issue. No → it queues like everything else and `product-manager` orders it.
+Yes → it goes first, and the blocking relationship is stated on the issue. No → it queues like everything else and `product-lead` orders it.
 
 *Why the rule is needed:* discovered work is cheap to justify — found in context, evidence attached, usually safe class, merges without the owner. Requested work needs decisions, designs, sometimes the owner's own words. So the loop's **autonomy gradient sorts the queue by what can flow without the human**, which is exactly backwards from what a backlog is for. That is not a lapse in judgment; it is the incentive the other rules create, and it needs a counterweight written down.
 

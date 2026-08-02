@@ -13,9 +13,9 @@ Write (or amend) an ADR when a change crosses a **significant boundary** — obj
 - introduces a new dependency or tool-class,
 - establishes a cross-cutting pattern others will follow.
 
-Otherwise, no ADR — a routine in-pattern change declares "no ADR" and moves on. The `plan-reviewer` flags the need at design-time; the `adr-author` writes it; the `critical-reviewer` verifies it at code-time.
+Otherwise, no ADR — a routine in-pattern change declares "no ADR" and moves on. The `quality-assurance` flags the need on the MR and verifies it got one; the `adr-author` writes it.
 
-**Decision & trade-off:** a *light* gate (significance-triggered), not a *strong* one (ADR for every change). Trade-off: a light gate can miss a decision that only looks routine — mitigated by the two reviewers both applying the test. A strong gate would never miss one but taxes every trivial change and trains people to write empty ADRs; the light gate keeps ADRs meaningful.
+**Decision & trade-off:** a *light* gate (significance-triggered), not a *strong* one (ADR for every change). Trade-off: a light gate can miss a decision that only looks routine — **and as of ADR-0002 amendment #7 this is less mitigated than it was.** The mitigation used to be *two* reviewers applying the test, at design time and at code time; `plan-reviewer` is retired, so there is one, and it sees the decision only after it is built. Accepted deliberately — the specs are written by the owner in the Issues, which is where a design-time reviewer's input was coming from anyway — but a named mitigation that halved is worth saying rather than leaving the sentence to age. A strong gate would never miss one but taxes every trivial change and trains people to write empty ADRs; the light gate keeps ADRs meaningful.
 
 ## Format — MADR
 Every ADR uses **MADR** (Markdown Any Decision Record). Copy `docs/adr/template.md`. Sections: title, status, context & problem, decision drivers, considered options, decision outcome, consequences (good and bad), links.
@@ -34,7 +34,7 @@ This skill (the template + practice) is single and lives in the plugin; both lib
 
 ## Numbering & status
 - **Numbering:** zero-padded sequential **per library** (`0001`, `0002`, …). Filename `NNNN-kebab-title.md`.
-- **Status lifecycle:** `proposed → accepted → superseded` (or `rejected`). A design starts `proposed` (e.g. reviewed by `plan-reviewer`); the human's ratification makes it `accepted`.
+- **Status lifecycle:** `proposed → accepted → superseded` (or `rejected`). A design starts `proposed`; the human's ratification makes it `accepted`.
 - **Superseding, never deleting:** a reversed decision becomes `superseded`, keeps its file, and links forward to the ADR that replaced it. Reverted decisions are **history, not gaps** — the record of *why we changed our mind* is as valuable as the current state. (This is why the exhaustive reverse-engineering of past decisions includes the retired backend era as `superseded`.)
 
 ## Authoring checklist
