@@ -107,6 +107,25 @@ around rather than follow.
 (`/workflow/code-review` is the first). Skills are weaker — nothing enforces them — and that is the
 accepted trade: what they check is judgement rather than an act.
 
+**First application, same day (#124).** The rule was applied to the slice that motivated it, and the
+owner chose the skill over the mechanism. `permission-guard` rule 5d had spent four rounds trying to
+verify from the command string that a `gh issue create` was a *decomposition* rather than invented
+scope — a `Parent: #N` marker, read from the body file since that is how this repo writes bodies,
+word-anchored so `apparent #122` did not count, first-match-not-last so a trailing number could not
+authorise it, the repo read from the collapsed command so a `-R` inside `--body` could not redirect the
+lookup, then a tracker lookup for `ready`. **Eighty lines and ten assertions, all deleted.**
+
+What replaced it: the hook decides only what it can decide mechanically — `developer` may file, every
+other subagent is denied, the main loop asks the owner — keyed on `agent_type`, which the harness
+stamps and the model cannot write. The judgement rule (*only a task under a `ready` story, referencing
+its parent, never extending it*) lives in `agents/developer.md`, and `quality-assurance` verifies it on
+the task's MR.
+
+**And the cost is real, so it is recorded here rather than only in the persona:** nothing mechanical
+now stops a `developer` from filing work nobody asked for. It surfaces as a finding at the gate instead
+of a denial at the keystroke — later, and more expensively. The floor keeps what it can prove and hands
+back what it never could.
+
 **An open question raised in review of this amendment, recorded rather than settled.** The rule is
 stated on **reversibility**; the evidence cited is about **expressibility**. They correlate in the
 examples chosen and come apart elsewhere in this repo: `inventory-counts` is a shell gate over an

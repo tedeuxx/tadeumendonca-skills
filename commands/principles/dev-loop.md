@@ -220,8 +220,8 @@ them becomes tracked work.
 
 **Enforced by WHO is asking, since a correction on 2026-07-31.** `permission-guard` rule 5c reads
 `agent_type`, which the harness stamps and the model cannot forge: a ~~**subagent is denied**
-outright~~ **subagent is denied unless it is `developer` decomposing an approved story** (rule 5d,
-since #124), and the **main loop is asked** — one prompt showing the title, which the owner approves
+outright~~ **subagent is denied unless it is `developer`** (rule 5d, since #124), and the
+**main loop is asked** — one prompt showing the title, which the owner approves
 or declines. Reading, listing, commenting, labelling and closing stay open everywhere.
 
 **The one exception, and why it does not erode the rule.** Under `gitflow-single-env` a story is
@@ -230,12 +230,27 @@ work nobody asked for — still denied for every subagent, `developer` included.
 dividing work the owner opened and the three leads ratified; the task adds nothing that was not
 already authorised.
 
-What makes it an exception rather than a hole: **the parent is verified against the tracker, never
-read from the command.** It must be declared (`Parent: #N`), it must exist, and it must carry `ready`.
-A condition satisfiable by writing the command differently would be a convention, and the first
-implementation was exactly that — two review rounds found it authorising any issue that merely
-*mentioned* a ready number, in any repo. And `quality-assurance` or `security` citing a story is still
-a review opening work: the exception is the builder's alone.
+~~What makes it an exception rather than a hole: the parent is verified against the tracker, never
+read from the command. It must be declared (`Parent: #N`), it must exist, and it must carry `ready`.~~
+**Struck 2026-08-02 (owner decision), and the strike is the substance.** For four rounds the hook tried
+to verify exactly that — the marker read from the body file, word-anchored, first-match-not-last, the
+repo read from the collapsed command so a `-R` inside `--body` could not redirect the lookup, then a
+tracker lookup for `ready`. Each fix was correct; each left the next spelling open. **Intent is not in
+the command string** (ADR-0004, amendment 2026-08-02).
+
+**So the check moved to where a judgement can be stated.** `developer` may file issues; the rule it must
+follow — *only a task under a story carrying `ready`, referencing its parent, never extending the
+story* — lives in `agents/developer.md`, and `quality-assurance` verifies it on the task's own MR.
+
+**What the floor still decides, because these are acts and not judgements:** every OTHER subagent is
+denied — `quality-assurance` or `security` citing a story is still a review opening work, and the
+exemption is keyed on `agent_type`, which the harness stamps and the model cannot write. The main loop
+still asks the owner.
+
+**The cost, stated rather than buried:** nothing mechanical now stops a `developer` from filing work
+nobody asked for. It surfaces as a finding at the gate instead of a denial at the keystroke — later,
+and more expensively. That is the accepted trade for deleting eighty lines of a matcher that was
+losing.
 
 ~~*This is enforced, not asked: rule 5c denies `gh issue create` with no exempt spelling.*~~ **That
 version was wrong, and the way it was wrong is worth keeping.** It reasoned that "was this asked for"

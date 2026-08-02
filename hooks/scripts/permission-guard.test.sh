@@ -122,155 +122,63 @@ check       ALLOW "main agent may check CI"           "gh pr checks 149 --repo o
 check       ALLOW "main agent may list PRs"           "gh pr list --state open"
 check       ALLOW "the word merge in a commit msg"    "git commit -m 'gh pr merge notes'"
 
-echo "--- rule 5d: a subagent MAY decompose an approved story, and only that ---"
-# `gh` is stubbed on PATH so the parent lookup is hermetic — no network, no auth, no dependence
-# on what happens to exist in a real tracker. What varies per case is the canned label list,
-# which is exactly the input the rule reads.
+echo "--- rule 5d: developer may file issues; the JUDGEMENT moved out of the hook ---"
+# WHAT THIS SUITE USED TO ASSERT, and why almost all of it is gone.
 #
-# THIS SUITE HAD NO STUB BEFORE, and that is why the 79 pre-existing tests passed against this
-# change without exercising it at all: with no `gh` reachable the lookup fails, the labels come
-# back empty, and every case falls through to the same deny it had before. A green suite that
-# never reaches the new code is the exact defect this repo keeps finding, so the stub is what
-# makes the rule observable rather than merely present.
-GHSTUB="$(mktemp -d)"
-REAL_PATH_5D="$PATH"
-# $1 — labels for the READY repo; $2 — which repo is ready (default: any).
+# For four rounds this block tested that the hook could tell a DECOMPOSITION from invented scope:
+# a `Parent: #N` marker read from the body or the body FILE, word-anchored so `apparent #122` did
+# not count, first-match-not-last so a trailing number could not authorise it, the repo read from
+# `$bare` so a `-R` inside `--body` could not redirect the lookup, then `gh issue view` to confirm
+# the story carried `ready`. Ten assertions, a repo-aware `gh` stub, and every one of them was a
+# real defect correctly fixed.
 #
-# REPO-AWARE ON PURPOSE, and the earlier version's blindness is why. It printed the same labels
-# whatever arguments it got, so NO test in this suite could observe which repo the guard looked
-# up — and the case that claimed to prove `parent_repo` reads `$bare` rather than `$cmd` passed
-# with the fix reverted. It died only under the MARKER mutation, which is what made it look
-# alive. A stub that cannot distinguish the inputs cannot witness the rule.
-stub_gh_labels() {
-  cat > "$GHSTUB/gh" <<STUB
-#!/usr/bin/env bash
-args="\$*"
-case "\$args" in
-  *"issue view"*)
-    ready_repo='${2:-}'
-    if [ -z "\$ready_repo" ]; then printf '%s' '$1'; exit 0; fi
-    case "\$args" in
-      *"\$ready_repo"*) printf '%s' '$1' ;;
-      *)                printf '' ;;
-    esac ;;
-  *) exit 0 ;;
-esac
-STUB
-  chmod +x "$GHSTUB/gh"
-  PATH="$GHSTUB:$REAL_PATH_5D"
-}
-
-stub_gh_labels 'product
-ready'
-check_agent ALLOW "tadeumendonca-skills:developer" "a task under a READY story"                "gh issue create --title 'task: x' --body 'Parent: #122'"
-check_agent ALLOW "tadeumendonca-skills:developer" "the parent behind -R"                      "gh -R owner/repo issue create --title t --body 'Parent: #122'"
-
-# The label is what authorises, not the reference. A parent that exists but is not ready is a
-# story whose description the three leads have not closed — building under it is the thing the
-# intake chain exists to prevent.
-stub_gh_labels 'product'
-check_agent DENY  "tadeumendonca-skills:developer" "a parent WITHOUT ready"                    "gh issue create --title t --body 'Parent: #122'"
-
-# A parent that does not resolve. `gh` printing nothing is indistinguishable from a fabricated
-# number, and both must deny — this is what makes the reference unforgeable.
-stub_gh_labels ''
-check_agent DENY  "tadeumendonca-skills:developer" "a parent that does not resolve"            "gh issue create --title t --body 'Parent: #999'"
-
-# No parent at all: unchanged from 5c. Opening scope is still denied outright.
-stub_gh_labels 'product
-ready'
-check_agent DENY  "tadeumendonca-skills:developer" "no parent referenced"                      "gh issue create --title t --body 'just work'"
-
-# The exception is about DECOMPOSING, which is an act of execution. A reviewer citing a ready
-# story is still a review opening work, and reviews do not open work.
-check_agent DENY  "tadeumendonca-skills:quality-assurance" "a REVIEWER citing a ready parent"  "gh issue create --title t --body 'Parent: #122'"
-check_agent DENY  "tadeumendonca-skills:security"          "security citing a ready parent"    "gh issue create --title t --body 'Parent: #122'"
-
-# The main loop is unaffected: it still ASKS, parent or no parent. The owner answers, as before.
-check       ASK   "main loop, with a ready parent"                                             "gh issue create --title t --body 'Parent: #122'"
-
-# THE THREE BYPASSES `security` REPRODUCED END TO END. Each was ALLOW against the first
-# implementation, with the suite fully green — which is why they are here as regressions
-# rather than as a note.
+# All of it is deleted, because the rule it tested is deleted (ADR-0004, amendment 2026-08-02):
+# intent is not in the command string, so the judgement moved to `agents/developer.md` and the
+# `quality-assurance` gate. Deleting the tests WITH the behaviour is the point — tests kept alive
+# past their rule are the most expensive kind of green.
 #
-# 1 · A SECOND, UNRELATED NUMBER. The first version's `#([0-9]+)` was greedy, so it captured the
-#     LAST number on the line. A declared parent that does not exist, plus a passing mention of
-#     a real ready story, was ALLOWED — reducing the rule to "open anything, as long as it ends
-#     in a ready number", which is opening scope.
-check_agent DENY  "tadeumendonca-skills:developer" "a second number after the marker voids it"  "gh issue create --title t --body 'Parent: #99999 (gone). Context: #122'"
-# Its control: the SAME shape with only the declared parent present must still ALLOW, or the fix
-# would have closed the hole by breaking the feature.
-check_agent ALLOW "tadeumendonca-skills:developer" "the declared parent alone still allows"     "gh issue create --title t --body 'Parent: #122 — decomposing'"
+# NO `gh` STUB ANY MORE, and that is a real simplification rather than a gap: the rule no longer
+# looks anything up, so there is nothing to stub and no network dependence to make hermetic. The
+# last case below asserts exactly that.
+check_agent ALLOW "tadeumendonca-skills:developer" "developer files a task"                    "gh issue create --title 'task: x' --body 'Parent: #122'"
+check_agent ALLOW "tadeumendonca-skills:developer" "developer, behind -R"                      "gh -R owner/repo issue create --title t --body 'Parent: #122'"
+# No marker needed now — asserted rather than left implied, because it is the BEHAVIOUR CHANGE.
+# A reader of the old suite would expect this to deny.
+check_agent ALLOW "tadeumendonca-skills:developer" "no marker: allowed now, by design"         "gh issue create --title t --body 'just work'"
+# The body-file shape, which the old rule denied for three rounds while it was the only way this
+# repo writes bodies. Kept as a case because that was the sharpest symptom of the deleted design.
+check_agent ALLOW "tadeumendonca-skills:developer" "a body written to a file"                  "gh issue create --title t --body-file /tmp/does-not-matter.md"
 
-# 2 · A `-R` INSIDE THE BODY. `parent_repo` came from the raw command, so a greedy match took an
-#     `-R`-looking token out of `--body` — text `gh` never sees as a flag. The issue was created
-#     in one repo while `ready` was verified in another, so one ready story anywhere authorised
-#     work everywhere. Now read from `$bare`, where quoted spans are already collapsed.
-#     THE FIRST VERSION OF THIS CASE COULD NOT FAIL, and the reviewer proved it: its body had no
-#     `Parent:` marker, so it denied for the MARKER reason whichever repo was consulted, and
-#     reverting `$bare` to `$cmd` left the suite fully green. It died under the marker mutation,
-#     which is exactly what made it look alive.
-#
-#     This one carries a real marker and a repo-aware stub, so the ONLY variable is which repo
-#     the guard looks up: `owner/skills` is ready, `owner/other` is not. Reading `$cmd` takes the
-#     smuggled `--repo owner/skills` from the body and ALLOWS; reading `$bare` sees only the real
-#     `-R owner/other` and DENIES.
-stub_gh_labels 'product
-ready' 'owner/skills'
-check_agent DENY  "tadeumendonca-skills:developer" "a -R hidden in the body cannot pick the repo" "gh issue create -R owner/other --title t --body 'Parent: #122 --repo owner/skills'"
-#     Its control: the same command aimed at the ready repo for real must ALLOW, or the case
-#     above would pass on a guard that had simply stopped consulting the tracker.
-check_agent ALLOW "tadeumendonca-skills:developer" "the real -R names the ready repo"           "gh issue create -R owner/skills --title t --body 'Parent: #122'"
-stub_gh_labels 'product
-ready'
+# THE EXEMPTION IS STILL THE BUILDER'S ALONE. Filing is an act of EXECUTION; a review citing a
+# story is still a review opening work, which is the failure the whole rule exists to prevent.
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "a REVIEWER still cannot file"      "gh issue create --title t --body 'Parent: #122'"
+check_agent DENY  "tadeumendonca-skills:security"          "security still cannot file"        "gh issue create --title t --body 'Parent: #122'"
+# The main loop is unaffected: it still ASKS. The owner answers, per issue, as before.
+check       ASK   "main loop still asks"                                                       "gh issue create --title t --body 'Parent: #122'"
 
-# 3 · THE FLOOR BELOW MUST STILL RUN. The first version returned `exit 0` from the middle of the
-#     script, so rules 7, 7b and 8 never evaluated: a verified decomposition chained to a trunk
-#     push came out with NO decision, where before it was denied twice. An exception in one rule
-#     had silently become a bypass of the whole floor.
-check_agent DENY  "tadeumendonca-skills:developer" "a verified task chained to a trunk push"    "gh issue create --title t --body 'Parent: #122' && git push origin main"
+# THE ONE LESSON THAT SURVIVES THE DELETION: the allow is a FLAG, not `exit 0`. An earlier version
+# returned from mid-script and everything below it stopped running — rules 7, 7b and 8. These three
+# are the regression, and they are the reason this block is not simply "allow developer":
+check_agent DENY  "tadeumendonca-skills:developer" "allow does not unreach rule 7 (trunk push)" "gh issue create --title t --body b && git push origin main"
+check_agent DENY  "tadeumendonca-skills:developer" "allow does not unreach rule 7b (merge)"     "gh issue create --title t --body b && gh pr merge 1 --merge"
+#   The third case here was `… && rm -rf /tmp/x`, and it was a TAUTOLOGY — `rm -rf` is rule 4,
+#   which runs BEFORE 5d, so it denied whether or not the fall-through worked. Found by mutating
+#   the allow back to `exit 0`: cases 7 and 7b reddened and that one did not. Replaced with rule
+#   8, which is genuinely downstream of 5d, so the assertion witnesses what it names.
+check_agent DENY  "tadeumendonca-skills:developer" "allow does not unreach rule 8 (composition)" "gh issue create --title t --body b ; echo done"
 
-# 4 · `--body-file`, which is how this repo actually writes issue bodies. A rule reading the
-#     marker from the COMMAND broke in both directions: the legitimate multi-line task was
-#     DENIED, and the pressure that created had somewhere to go — the marker in the FILENAME
-#     satisfied the guard while the created issue contained no parent reference at all.
-BODYDIR="$(mktemp -d)"
-printf 'Split the intake chain.\n\nParent: #122\n\nAcceptance:\n- something\n' > "$BODYDIR/task.md"
-printf 'Some notes with no parent at all.\n' > "$BODYDIR/notes-Parent #122.md"
-check_agent ALLOW "tadeumendonca-skills:developer" "a real body-file declaring the parent"     "gh issue create --title t --body-file $BODYDIR/task.md"
-check_agent ALLOW "tadeumendonca-skills:developer" "the same, behind -F"                       "gh issue create --title t -F $BODYDIR/task.md"
-#     The smuggle: marker in the filename, absent from the body. Must DENY — otherwise nothing
-#     in the resulting issue records what authorised it, which is the standard the rule sets.
-check_agent DENY  "tadeumendonca-skills:developer" "a marker in the FILENAME, not the body"    "gh issue create --title t --body-file '$BODYDIR/notes-Parent #122.md'"
-#     And a body file that simply has no marker denies, like any other unparented create.
-printf 'No parent here.\n' > "$BODYDIR/plain.md"
-check_agent DENY  "tadeumendonca-skills:developer" "a body-file with no marker"                "gh issue create --title t --body-file $BODYDIR/plain.md"
-rm -rf "$BODYDIR"
+# A message ABOUT the act is not the act — matched on `$bare`, after quoted spans collapse.
+check_agent ALLOW "tadeumendonca-skills:developer" "a commit message mentioning the act"        "git commit -m 'gh issue create notes'"
 
-# 5 · TWO markers. The comment says FIRST match; the previous greedy regex took the LAST, so
-#     `Parent: #99999. Parent: #122` was allowed on the ready one while the declared parent was
-#     the dead one. Same comment-versus-code divergence this file keeps paying for.
-check_agent DENY  "tadeumendonca-skills:developer" "two markers: the FIRST one decides"        "gh issue create --title t --body 'Parent: #99999. Parent: #122'"
-
-# 6 · `parent` MATCHING INSIDE A WORD. `it is apparent #122 covers this` satisfied the declared-
-#     marker requirement without declaring anything — a marker that is a substring is not a
-#     marker. Word-anchored now.
-check_agent DENY  "tadeumendonca-skills:developer" "'apparent #122' is not a declaration"      "gh issue create --title t --body 'it is apparent #122 covers this'"
-#     Control: the same number, actually declared, still allows — so the anchor did not just
-#     break the marker.
-check_agent ALLOW "tadeumendonca-skills:developer" "the same number, properly declared"        "gh issue create --title t --body 'Parent: #122 covers this'"
-PATH="$REAL_PATH_5D"
-
-# FAILS CLOSED with no `gh` — the opposite direction from wip-guard, deliberately. That hook is
-# loop discipline and must never wedge the loop; this one is the floor, and a floor that fails
-# open is not one. Exercised by pointing PATH at a directory holding only the harness's needs,
-# with no `gh` — and asserted, unlike wip-guard's equivalent case, because here the harness does
-# not need `gh` to run.
+# NO `gh` ON PATH: allowed, where the old rule denied. The direction changed because the reason
+# changed — the old deny was "cannot PROVE the parent, so fail closed", and there is no longer a
+# proof to fail. Asserted so the change is visible rather than incidental.
 NOGH="$(mktemp -d)"
+REAL_PATH_5D="$PATH"
 PATH="$NOGH:/usr/bin:/bin"
-check_agent DENY  "tadeumendonca-skills:developer" "no gh: cannot prove the parent"            "gh issue create --title t --body 'Parent: #122'"
+check_agent ALLOW "tadeumendonca-skills:developer" "no gh: nothing to look up any more"        "gh issue create --title t --body 'Parent: #122'"
 PATH="$REAL_PATH_5D"
-rm -rf "$GHSTUB" "$NOGH"
+rm -rf "$NOGH"
 
 echo "--- rule 5c: the owner decides what enters the queue — asked in the main loop, denied in a subagent ---"
 # The rule used to DENY every one of these. That did not stop unaligned work; it taxed ALIGNED work,

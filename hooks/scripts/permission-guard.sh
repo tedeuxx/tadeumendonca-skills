@@ -158,10 +158,13 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 #       - A SUBAGENT still cannot file. This is where the measured failure actually happened (below):
 #         issues born inside a review of something else, by a persona with no access to the owner and
 #         no way to know whether anyone wants the work. It reports the finding upward; that is its job.
-#         ~~Full stop.~~ **One exception since #124 — see 5d below:** `developer` may file a task under
-#         a story that already carries `ready`. That is decomposing work the owner approved and three
-#         leads ratified, not opening work; the parent is verified against the tracker rather than read
-#         from the command, and every other subagent is denied exactly as this paragraph describes.
+#         ~~Full stop.~~ **One exception since #124 — see 5d below:** `developer` may file issues,
+#         because filing tasks under an approved story is decomposing work the owner already approved,
+#         not opening work. Every other subagent is denied exactly as this paragraph describes.
+#         ~~The parent is verified against the tracker rather than read from the command.~~ **Struck
+#         2026-08-02:** it is not verified here at all any more. The hook cannot decide whether an
+#         issue is a decomposition — four rounds of trying is the evidence — so that rule moved to
+#         `agents/developer.md` and the `quality-assurance` gate. See 5d for what was deleted and why.
 #       - THE MAIN AGENT ASKS. Alignment is a fact about a conversation, and the main loop is the only
 #         place that conversation exists — so it is the only place the question can be put to the one
 #         party who can answer it. One keystroke, on a prompt showing the title.
@@ -181,11 +184,11 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 #     answered by moving the decision to the owner rather than by inventing a self-vouching flag. What
 #     survives from it: there is still no spelling the MODEL can use to exempt itself.
 #
-#     ~~And a subagent still has none at all.~~ **False since #124.** `developer` has one — but it is
-#     not a *spelling*, which is the whole point and the thing that took two rounds to get right: the
-#     exception is satisfied by a fact in the TRACKER (a parent carrying `ready`), looked up, not by
-#     anything the model can write. The first implementation was satisfiable by writing the command
-#     differently, and that made it a convention rather than a floor. See 5d.
+#     ~~And a subagent still has none at all.~~ **False since #124.** `developer` is exempt — and the
+#     exemption is keyed on `agent_type`, which the HARNESS stamps and the model cannot write. So the
+#     sentence above still holds in the form that matters: there is no *spelling* that exempts anyone.
+#     What the exemption no longer carries is a check that the issue is really a decomposition; that
+#     was attempted for four rounds and is now the persona's rule and the gate's, not the floor's.
 #
 #     THE `gh api` ROUTE IS A NAMED ACCEPTED GAP — `gh api --method POST …/issues` is NOT matched, the
 #     same way rule 7b books `gh api … PUT …/merges` for the higher-stakes act of merging. It was
@@ -226,92 +229,49 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]
     #     and `security` citing a story would have been reviews opening work, which is the rule the
     #     exception is supposed to preserve rather than erode. Decomposing is an act of EXECUTION,
     #     so it belongs to the one persona that executes.
+    #     A FLAG, NOT `exit 0` — the one lesson from those four rounds that survives the deletion,
+    #     because it was never about intent either. An earlier version returned from the middle of
+    #     the script and everything below it stopped running: the trunk-push deny (7), the merge
+    #     gate (7b) and the composition check (8). `gh issue create … && git push origin main` came
+    #     out with NO decision at all, where before it was denied twice over. An exception in one
+    #     rule silently became a bypass of the whole floor. Falling through is the only safe shape.
     case "$agent_type" in
-      *:developer) ;;
-      *) deny "Blocked: a subagent does not open work. Decomposing a \`ready\` story into tasks is the one exception and it belongs to \`developer\`, the persona that executes them — a review citing a story is still a review opening work. Report the finding in your verdict and let the owner decide." ;;
+      *:developer) developer_may=1 ;;
+      *) deny "Blocked: a subagent does not open work. Filing tasks under an approved story belongs to \`developer\`, the persona that executes them — a review citing a story is still a review opening work. Report the finding in your verdict and let the owner decide whether it becomes an issue." ;;
     esac
-    #     THE PARENT COMES FROM A DECLARED MARKER, and this is the correction that makes the
-    #     rule mean what its comment claims. The first version took `#([0-9]+)` with a greedy
-    #     `.*`, which captures the LAST number on the line — so a body reading
-    #     `Parent: #99999 (does not exist). Unrelated context: #122` was ALLOWED, authorised by
-    #     a passing mention of an unrelated ready story. That reduced 5d to "a developer may
-    #     open anything, as long as it ends in a ready number", which is opening scope: the
-    #     exact thing the exception exists to keep denied.
+    #     ~~AND THE PARENT IS VERIFIED, NEVER READ FROM THE COMMAND.~~ **Struck 2026-08-02, and the
+    #     strike is the point of the rule now.** For four rounds this branch tried to verify, in the
+    #     hook, that a `gh issue create` was a decomposition: a `Parent: #N` marker read from the
+    #     body — or from the body FILE, since that is how this repo writes bodies — word-anchored so
+    #     `apparent #122` did not count, first-match-not-last so a trailing unrelated number did not
+    #     authorise it, with the repo read from `$bare` so a `-R` inside `--body` could not point the
+    #     lookup at a different repo, then `gh issue view` to confirm the story carried `ready`.
     #
-    #     So: `Parent: #N` or `Parent #N`, FIRST match, and a second different `#N` after the
-    #     marker denies. The number the guard checks is then the number a human reading the
-    #     issue will see as its parent — which is the only version of "verified" worth the word.
-    #     THE MARKER IS READ FROM WHATEVER BECOMES THE ISSUE BODY, and on this repo that is
-    #     usually a FILE. Bodies longer than a line go through `--body-file`/`-F` by hard
-    #     convention, because a shell eats backticks and `$` out of an inline `--body` — so a
-    #     rule that reads the marker from the COMMAND breaks in both directions at once:
+    #     Every one of those was a real defect, correctly fixed, and each fix left the next spelling
+    #     open — because **intent is not in the command string**. That is now a recorded decision
+    #     (ADR-0004, amendment 2026-08-02) rather than a lesson this file kept re-learning:
     #
-    #       · a real decomposition task, whose body is multi-line markdown in a file, is DENIED —
-    #         the exception refusing the normal shape of the one act it exists to permit;
-    #       · and the pressure that creates has somewhere to go: putting `Parent: #122` in the
-    #         FILENAME satisfied a command-only reader while the created issue contained no
-    #         parent reference at all. Arbitrary scope opened, nothing in the issue recording
-    #         what authorised it.
+    #         Mechanism where the act is irreversible. Skills where the rule is a judgement.
     #
-    #     The second falsifies the standard three lines above — "the number a human reading the
-    #     issue will see as its parent". With a body file, the human sees nothing. So the marker
-    #     comes from the file when there is one, and a marker found ONLY in the command is not
-    #     accepted while a body file is present.
+    #     "Is this issue a decomposition of approved work, or is it scope somebody invented?" is a
+    #     judgement. A matcher cannot read it, and the eighty lines that tried are deleted here.
     #
-    #     Residual, named rather than fixed: reading the file is TOCTOU — the model could rewrite
-    #     it between this check and the create. The window is its own and the act is deliberate,
-    #     which puts it at the same trust level as the already-booked `gh api …/issues` gap.
-    body_file="$(printf '%s' "$bare" | sed -nE 's/.*[[:space:]](--body-file[[:space:]=]*|-F[[:space:]]*)([^[:space:]]+).*/\2/p')"
-    if [ -n "$body_file" ]; then
-      body="$(cat "$body_file" 2>/dev/null || true)"
-    else
-      body="$cmd"
-    fi
-    #     Flattened, because a file body is multi-line and the marker may be anywhere in it.
-    flat="$(printf '%s' "$body" | tr '\n\t' '  ')"
-
-    #     FIRST match, genuinely this time. The previous version used a greedy `.*`, which takes
-    #     the LAST marker while the comment claimed the first — the same comment-versus-code
-    #     divergence this file keeps paying for. `awk match` returns the first occurrence, and
-    #     the second-`#N` void is measured from the end of THAT match.
-    #     WORD-ANCHORED, because `parent` matches inside ordinary words: a body reading
-    #     `it is apparent #122 covers this` satisfied a "declared marker" requirement without
-    #     declaring anything. The marker has to be a word, not a substring.
-    parent="$(printf '%s' " $flat" | grep -oiE '[^[:alnum:]]parent[[:space:]]*:?[[:space:]]*#[0-9]+' | head -1 | grep -oE '[0-9]+$' || true)"
-    after="$(printf '%s' " $flat" | awk 'match($0, /[^A-Za-z0-9][Pp][Aa][Rr][Ee][Nn][Tt][ ]*:?[ ]*#[0-9]+/) { print substr($0, RSTART + RLENGTH) }' || true)"
-    trailing="$(printf '%s' "$after" | grep -oE '#[0-9]+' | head -1 || true)"
-    if [ -n "$trailing" ] && [ "$trailing" != "#$parent" ]; then
-      parent=""
-    fi
-
-    #     THE REPO COMES FROM `$bare`, NOT `$cmd`. Same reason rule 5c matches on `$bare`: with
-    #     quoted spans still present, a greedy match takes the last `-R`-looking token ANYWHERE,
-    #     including inside `--body` — text `gh` itself will never see as a flag. That let the
-    #     issue be created in one repo while `ready` was verified in another, so a single ready
-    #     story anywhere in the account authorised opening work everywhere. Reading `$bare`
-    #     means only real flags are visible.
-    if [ -n "$parent" ] && command -v gh >/dev/null 2>&1; then
-      parent_repo="$(printf '%s' "$bare" | sed -nE 's/.*[[:space:]](-R[[:space:]]*|--repo[[:space:]=]*)([^[:space:]]+).*/\2/p')"
-      if [ -n "$parent_repo" ]; then
-        parent_labels="$(gh issue view "$parent" -R "$parent_repo" --json labels -q '.labels[].name' 2>/dev/null || true)"
-      else
-        parent_labels="$(gh issue view "$parent" --json labels -q '.labels[].name' 2>/dev/null || true)"
-      fi
-      if printf '%s\n' "$parent_labels" | grep -qx 'ready'; then
-        #     A FLAG, NOT `exit 0`. The first version returned from the middle of the script —
-        #     the first allow-path this rule had ever had — and everything below it stopped
-        #     running: the trunk-push deny (7), the merge gate (7b) and the composition check
-        #     (8). `gh issue create … && git push origin main` came out with NO decision at all,
-        #     where before it was denied twice over. An exception in one rule silently became a
-        #     bypass of the whole floor. Falling through is the only safe shape here.
-        parent_ok=1
-      fi
-    fi
-    [ -z "${parent_ok:-}" ] && deny "Blocked: a subagent does not open work. The ONE exception is decomposing an approved story: a body declaring \`Parent: #N\` where that issue exists and carries \`ready\`, in the repo this command targets. The parent is looked up, not read from your text, and a second unrelated issue number after the marker voids it. Everything else: report the finding — in your verdict, in the PR, or upward to the main loop — and let the owner decide whether it becomes an issue."
+    #     WHAT REPLACES IT — and it is deliberately weaker. `developer` may create issues; the rule
+    #     it must follow ("only a task under a story carrying `ready`, referencing its parent") lives
+    #     in `agents/developer.md`, where a judgement rule can actually be stated, and the
+    #     `quality-assurance` gate verifies it on the task's own MR. **Nothing mechanical stops a
+    #     `developer` from opening work nobody asked for.** That is the accepted cost, stated plainly
+    #     rather than dressed up: the floor keeps what it can decide mechanically — every OTHER
+    #     subagent still denied, the owner still asked for the main loop — and hands back what it
+    #     never could.
+    #
+    #     What is NOT weakened, because it was never about intent: `terraform apply`, force-push,
+    #     `rm -rf`, secret writes, the trunk push, the merge gate. Those are acts, not judgements,
+    #     and they stay mechanical.
   fi
-  # A verified decomposition skips the ASK and FALLS THROUGH to rules 7, 7b and 8 — it does not
-  # return. Everything else still asks the owner, exactly as before.
-  [ -z "${parent_ok:-}" ] && ask "Open this issue? The guard cannot see whether it is aligned with you — that is the whole question, and only you can answer it. Approve if this is work you asked for or agreed to; decline if the agent generated it for itself."
+  # `developer` skips the ASK and FALLS THROUGH to rules 7, 7b and 8 — it does not return.
+  # Everything else still asks the owner, exactly as before.
+  [ -z "${developer_may:-}" ] && ask "Open this issue? The guard cannot see whether it is aligned with you — that is the whole question, and only you can answer it. Approve if this is work you asked for or agreed to; decline if the agent generated it for itself."
 fi
 
 # 7. Direct push to the trunk. This IS model-agnostic, contrary to the note above:
