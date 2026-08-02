@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 73 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 74 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -68,11 +68,11 @@ flowchart TB
       H3["session-wip<br/>lists the open queue"]
     end
 
-    subgraph skills["commands/ — 73 skills + autonomy-on"]
+    subgraph skills["commands/ — 74 skills + autonomy-on"]
       direction LR
       S1["principles (5)<br/>the drift-reducer"]
       S2["infrastructure (21)<br/>backend (20)<br/>frontend (18)"]
-      S3["workflow (8)<br/>architecture (1)"]
+      S3["workflow (9)<br/>architecture (1)"]
     end
   end
 
@@ -126,7 +126,7 @@ the measurement.
   sources with their reasons, which is the honest form: a guardrail that tells you what it does not
   catch is worth more than one asserting it catches everything.
 
-**Skills carry the conventions so the model does not re-invent them.** 73 markdown skills, generic by
+**Skills carry the conventions so the model does not re-invent them.** 74 markdown skills, generic by
 construction (`<project>` / `<apex-domain>` placeholders), covering the AWS services, the frontend
 stack, the CI/CD wiring and the engineering principles. Each states *the choice and its trade-off*,
 not just the rule — because a rule without its reason is one the next session will "improve".
