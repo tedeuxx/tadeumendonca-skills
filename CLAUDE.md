@@ -22,10 +22,25 @@ numeric SemVer, etc.).
 This **harness** is the owner's **public knowledge-transfer artifact** — the personas and hooks as much as
 the skills, since the reviewable loop is the differentiator and the skill library is its least distinctive
 third: a dense dump of his senior-engineer
-**experience + implementation preferences**, externalized in public as proof of depth (he is repositioning
-from "Architect / AWS Professional Services" to **Senior Software Engineer** at product companies — see the
-strategic context). It is NOT a thin "what this project did" doc — each skill is a **dense, scenario-covering
-architecture guide** that demonstrates judgment.
+**experience + implementation preferences**, externalized in public as proof of depth. It is NOT a thin
+"what this project did" doc — each skill is a **dense, scenario-covering architecture guide** that
+demonstrates judgment.
+
+**The repositioning this artifact backs:** from **Cloud Application Architect (AWS Professional
+Services)** to **AI Engineer — agentic development and AI-native automations**, anchored in SDLC and
+distributed systems. Explicitly **not** ML or data science; that is a different role and claiming it
+would be a false claim on a surface whose whole thesis is rigor.
+
+~~*to "Senior Software Engineer" at product companies*~~ — **that was wrong and had been public for a
+while** (#81), which is the part that matters: this is the section declaring the repo a
+knowledge-transfer artifact and proof of depth, so a reader who took that claim seriously read the very
+next sentence to learn what the owner is repositioning *toward*, and got a role he is not targeting.
+Not a stale line in a doc — the artifact misstating its own thesis. Struck rather than deleted, because
+anyone who read the old value deserves to find out it changed rather than to find it silently gone.
+
+The authoritative value lives in the owner's **private, gitignored** positioning source, and it is read
+there rather than written from memory. Only the *role* appears here — it is already public, on the site
+and on LinkedIn. The reasoning behind it stays in the private source and is never quoted into this repo.
 
 **The depth bar (how every AWS-service skill should read):**
 - **The scenario space, not one config** — *when* to pick each option, as a decision tree.
@@ -45,9 +60,17 @@ architecture guide** that demonstrates judgment.
 **Hard principles:** **project-agnostic** — generic `<project>` / `<apex-domain>` placeholders, **NO** real
 names/domains/ARNs/ids; **English** (it's published); **additive density** (deepen; never thin out good content).
 
-**State (2026-06-21):** a thin `## Decision & trade-off` baseline has landed for `infrastructure/*` and
-`backend/*`, plus the `vpc` deep exemplar; `frontend/*` is not started yet. The **deep-dive above is the
-active workstream** — those baseline sections are scaffolding to deepen, not the goal.
+**State (re-verified 2026-08-02, unchanged in substance since 2026-06-21):** the thin
+`## Decision & trade-off` baseline has landed for `infrastructure/*` and `backend/*`, plus the `vpc` deep
+exemplar; **`frontend/*` is still effectively unstarted — exactly one file under it carries a trade-off
+in any form** (`grep -rl trade-off commands/frontend/`, against the count published below). The
+**deep-dive above is the active workstream**; those baseline sections are scaffolding to deepen, not the
+goal.
+
+*The date was re-checked rather than re-stamped.* A `State (…)` marker whose date is refreshed without
+re-measuring is worse than a stale one: it converts an aging claim into a confidently wrong one, and the
+reader has no way to tell which happened. The measurement is written next to the claim so the next
+person can falsify it in one command instead of trusting the date.
 
 ---
 
