@@ -81,7 +81,46 @@ sense of total coverage. Revisit if it is ever observed in use.
 This makes the *Decision outcome*'s "a specialist cannot merge" true rather than aspirational; the
 "unchanged" note on the guard hook in that section is itself now superseded — the guard gained rule 7b.
 
+## Amendment (2026-08-02) — where mechanism belongs, and where it costs more than it returns (#125)
+
+This ADR has always said *what* the floor denies. It never said **which rules earn a mechanism at all**,
+and that silence had a price: the loop's default became "if a rule matters, write a hook."
+
+**The owner's rule, in their words:**
+
+> **A shell script supporting the workflow of executing tasks is an antipattern.**
+
+**The line as decided.** If the act **cannot be undone**, it needs a hook — `terraform destroy`, a
+force-push, `rm -rf`, a secret write, a push to the trunk all escape git, and no later commit undoes
+them. If it **can be fixed in the next commit**, a hook costs more than it returns. WIP discipline, who
+may open an Issue, how a story is decomposed, what "finished" means are all reversible, and all are
+rules about judgement.
+
+**The measurement behind it, not an aesthetic preference.** The slice adding one narrow exception to the
+floor took five commits, four of them corrective, and closed three separate bypasses — attached flag
+values, a number that was not the declared one, a body written to a file. Every fix was correct and
+every one left the next spelling open, because **intent is not in the command string**. That is the cost
+of putting a judgement rule in a matcher, paid in review rounds and in a guard the loop learns to work
+around rather than follow.
+
+**Consequence.** Rules about the *shape of the work* move to skills the personas read
+(`/workflow/code-review` is the first). Skills are weaker — nothing enforces them — and that is the
+accepted trade: what they check is judgement rather than an act.
+
+**An open question raised in review of this amendment, recorded rather than settled.** The rule is
+stated on **reversibility**; the evidence cited is about **expressibility**. They correlate in the
+examples chosen and come apart elsewhere in this repo: `inventory-counts` is a shell gate over an
+entirely reversible property (a stale number is fixed by the next commit) and is one of the harness's
+highest-yield mechanisms — by the rule as written it should not exist. The converse is the guard above:
+a trunk push is irreversible, yet what the guard must decide is intent, which no matcher reads. The
+variable that separates them may be **mechanical decidability** — counting files and comparing to a
+literal is decidable; "is this story finished" is not. **Not adopted**: the owner has not ruled on it,
+and the rule as written is defensible and causing no harm. Recorded so the next sweep finds the
+question rather than re-deriving it.
+
 ## Links
 - Driven by ADR-0002, ADR-0003 · consumed per project via committed `.claude/settings.json` · the global
   floor + guard hook are described in the plugin's `/principles/permissions-and-environments` · amended
-  (2026-07-25) to add the agent-scoped merge gate (rule 7b in `permission-guard.sh`), closing #77.
+  (2026-07-25) to add the agent-scoped merge gate (rule 7b in `permission-guard.sh`), closing #77 ·
+  amended (2026-08-02) to record where mechanism belongs and where a skill carries the rule instead
+  (`/workflow/code-review`), closing #125.

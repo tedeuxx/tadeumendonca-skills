@@ -266,7 +266,7 @@ One skill per AWS service / tool used — each is the canonical parametrization 
 | `/infrastructure/cloudwatch-rum` | RUM: app monitor + Cognito guest identity pool (real-user monitoring) |
 | `/infrastructure/cloudwatch-xray` | X-Ray: active tracing (API GW+Lambda), sampling rules, service map |
 
-### workflow/ (8)
+### workflow/ (9)
 
 DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella for OIDC, secrets/environments, branching (both loop models), the deploy workflows, and the Issues backlog; the numeric-SemVer tagging rules are their own skill (`versioning`). Test-runner + gate skills live with their repo (`/backend/postman` + `/backend/coverage`, `/frontend/playwright` + `/frontend/coverage`); IaC checkov is in `/infrastructure/terraform`. Architecturally-significant decisions are recorded via `adr`.
 
@@ -278,6 +278,7 @@ DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella f
 | `/workflow/terraform-cloud` | TFC remote-state backend; per-env workspaces; Local execution; **pipeline-only apply/destroy** |
 | `/workflow/sonarcloud` | SonarCloud quality gate (SAST + coverage + smells), blocks merge |
 | `/workflow/claude-code` | Claude GitHub App: `@claude` assistant + automatic PR review (advisory, non-blocking) |
+| `/workflow/code-review` | Author-side completeness pass before opening the MR: anticipates both gates, verifies the DoD with evidence |
 | `/workflow/documentation-standard` | Markdown + Mermaid only; diagram types per repo |
 | `/workflow/license` | Licensing standard: MIT `LICENSE` + manifest license field in every repo |
 

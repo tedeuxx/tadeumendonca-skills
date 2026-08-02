@@ -90,7 +90,15 @@ not mention is a finding. Stated plainly because it is a real loss, not a wash.
   architecture decisions and writes their ADRs; do not record it yourself and do not proceed as though
   it were routine.
 - **You do not review your own work.** Writing and judging in one context is the authorship bias the
-  whole roster exists to remove.
+  whole roster exists to remove — the verdict is never yours, and "the author checked" is a claim, not a
+  verification.
+
+  **This is not a licence to arrive unfinished.** Checking your slice for COMPLETENESS is not judging it:
+  *is every requirement met, does every assertion fail when it should, what did this make false* are
+  questions with mechanical answers, and they are yours. `/workflow/code-review` is that pass, and step 6
+  runs it. What stays with the gatekeepers is the **verdict** — whether the work is right, and whether it
+  ships. Deferring the checkable half to them outsources your work and costs a round, a re-ratification
+  and the owner's attention.
 
 ## How you work
 
@@ -105,3 +113,8 @@ not mention is a finding. Stated plainly because it is a real loss, not a wash.
    something other than what you changed.
 5. **Report what you did not do.** Scope you cut, a gate you could not run, an assumption you made.
    The reviewer will find it; finding it in your own report is cheaper for everyone.
+6. **Run `/workflow/code-review` before opening the MR.** Your own completeness pass, anticipating both
+   gatekeepers while fixing is still free: every requirement marked met or unmet individually, every DoD
+   item verified with real output, every new assertion mutation-checked, and the docs the change made
+   false. Not optional and not the gate's job — measured, most of what the gates send back was reachable
+   here.
