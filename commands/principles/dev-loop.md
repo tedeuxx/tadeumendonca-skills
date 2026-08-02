@@ -47,7 +47,7 @@ that assessment found this gap **one day after the chain was merged**.
 | → **filed** | the owner, alone | the Issue exists |
 | filed → **ready** | the three leads, closing the description | **`ready` label** ← *this was missing* |
 | ready → **in progress** | `developer` | an open PR (already observable — no new state) |
-| in progress → **reviewed** | both gatekeepers | their verdicts on the PR |
+| in progress → **reviewed** | both gatekeepers | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
 | reviewed → **closed** | `quality-assurance` (safe) · the owner (boundary) | the merge, and for boundary the owner's ratifying comment |
 | **any → blocked → back** | anyone, on discovering it waits on the owner or on something outside the loop | **`blocked` label** |
 
@@ -56,6 +56,15 @@ for leaving it out.** It can attach at any point and it returns the item to wher
 can be blocked before its description is closed *and* after, and a slice can discover mid-build that it
 needs the owner's words. Modelling it as a stage in the line would be false; leaving it out of the table
 entirely was also false, and that omission was caught in review of the very slice that introduced it.
+
+**The `reviewed` row was false when this table was written, and saying so is the correction.** It named
+*"their verdicts on the PR"* as the artifact while gatekeeper verdicts existed only as prose returned to
+the orchestrator — nothing reached the PR, the Issue, or anywhere durable. So the table asserted an
+artifact that did not exist, in the very column whose job is to answer *what records that this
+happened*. Since 2026-08-02 ([ADR-0006](../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md))
+the artifact is real: each gatekeeper posts a marker comment carrying the head SHA it read, and
+`quality-assurance` verifies `security`'s before merging — head SHA against the PR's current
+`headRefOid`, so a verdict on a moved head fails loudly instead of reading as approval.
 
 **`ready` is the only state added, and the restraint is the point.** Four of the five transitions were
 already observable; inventing states for them would restate information that exists and give it a second

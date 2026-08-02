@@ -144,6 +144,29 @@ delivery gate is objective — it has an external ruler. The security gate is **
 delivery gate would already cover it. A loop that tries to make both objective either invents a checklist
 that misses the novel case, or quietly drops the axis.
 
+**A verdict is an artifact on the merge request, not a claim passed back through the orchestrator.**
+Each gatekeeper writes its verdict where the other can read it, carrying the commit SHA it reviewed; the
+gate that holds the merge verifies the other's before merging — present, approving, and **naming the
+current head**. A verdict on a superseded commit is a review of something else and fails the check.
+
+*Why this is a rule and not hygiene.* Without it, the rule *"do not merge until the other gate approved"*
+is checkable only by the party reporting, never by the party waiting — and a relayed verdict has already
+reached a gate carrying a **false statement about the diff it approved**. The loop refuses relayed
+authority everywhere else; a gatekeeper's veto fires on every merge request, where the human's
+ratification fires only on the boundary class, so holding the veto to the weaker standard was backwards.
+
+*What it buys and what it does not, because the limit matters.* It closes **omission** — a merge
+proceeding on a verdict that was claimed rather than given. It does not close **impersonation**: a
+harness that identifies personas on tool calls, not on authorship, cannot prove which context wrote the
+artifact. Naming that limit is part of the design; a mechanism promising more would buy the same
+guarantee at the cost of parsing intent out of command strings, which this loop has already learned does
+not work.
+
+*And the same principle in the evidence dimension:* a gate reads the diff **from the merge request**,
+never from a local comparison against a reference it chose itself. A self-chosen reference is a relay
+about what was reviewed — it produced the false statement above, and the identical mistake in the other
+direction silently reviews a subset while reading exactly the same.
+
 **The cost of "every MR" lands on diffs with no security surface**, and it has one specific failure mode:
 a gate answering `n/a → pass` every time is gating nothing. The mitigation is a phrasing rule, not more
 process — **`n/a` is only valid when the gate NAMES the axes it looked at and found untouched.** A
