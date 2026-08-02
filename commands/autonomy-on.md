@@ -16,7 +16,7 @@ Open issues labelled **`product`**. If the repo has no such label, say so and st
 draining every open issue — a command that silently redefines its own scope is worse than one that
 refuses.
 
-**Do not invent an order.** `product-manager` owns sequencing (ADR-0002 amendment #5): starting a
+**Do not invent an order.** `product-lead` owns sequencing (ADR-0002 amendment #5): starting a
 slice that is not the top of the stated order requires that persona to have returned a new order, or
 the session to record that the order is unchanged. Invoke it at session start; do not substitute a
 heuristic here.
@@ -50,13 +50,13 @@ That is the timing. What follows is the exception path for what you *discover* m
 
 Follow `/principles/dev-loop`. Nothing here relaxes it:
 
-- Plan first for anything non-trivial; `critical-reviewer` before implementing a new mechanism.
+- Plan first for anything non-trivial; the three leads consolidate **one** demand before the build.
 - Thin vertical slice, end to end, finished **through merge** before opening the next.
 - WIP is bounded per `/principles/dev-loop` — read it there rather than trusting a restatement, and
-  note the guard enforcing it may lag the rule (`scrum-master` carries the caveat).
-- Every gate green with real evidence, and the `critical-reviewer` on every PR. It merges the safe
+  note the guard enforcing it may lag the rule (`product-lead` carries the caveat).
+- Every gate green with real evidence, and the `quality-assurance` on every PR. It merges the safe
   class and escalates the boundary class; a green CI is not a substitute for it.
-- `content-reviewer` on reader-facing copy, `editor` on long-form prose. **Nothing enforces this
+- `marketing-lead` on reader-facing copy, long-form prose included. **Nothing enforces this
   dispatch** — no check, job or hook — so an undispatched lens fails silently. Where the repo's guide
   makes these the only review of copy, an undispatched one is the whole gate missing.
 - Adjacent debt is **named in the report**, never filed *by the review* — a subagent has no way to

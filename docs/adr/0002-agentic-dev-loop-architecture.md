@@ -1,6 +1,6 @@
 # 0002. Agentic dev-loop architecture — per-task subagents, ADRs as the durable brain
 
-- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 13: brand-guardian + editor merge into content-reviewer, and planner/plan-reviewer/the three build specialists retire) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two)
+- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
 - **Driven by:** [ADR-0001](./0001-adopt-madr-adrs.md), `docs/proposals/agentic-dev-loop.md`
@@ -505,58 +505,115 @@ required status checks. A substring assertion that stopped discriminating when i
 None of those is *frontend*, *product*, *scrum* or *security*. The roster enumerated **roles**; the
 loop meets **one failure mode**.
 
-### Decision — nineteen personas to thirteen
+### The criterion, which is the owner's and replaces "one persona per concern"
 
-**`brand-guardian` + `editor` → `content-reviewer`.** The seam was *what the copy claims* versus *how
-well it is written*, and it did not survive contact: `brand-guardian` caught the hook mislabel and the
-"blocking gates" falsehood; `editor` caught a docblock describing a deleted branch and the unfailable
-focus-trap test. **Both spent their best findings on truth about the code** — nominally the
-`critical-reviewer`'s lane. Neither's strongest work was in its own.
+> **A persona exists only where conflict is wanted** — where someone should be arguing against someone
+> else. Anything generating no disagreement is a **competence**, and belongs to whoever already holds
+> the context.
 
-What made them valuable was the **fresh context**, not the mandate, and that does not need two copies
-of itself. Corroborating: the `critical-reviewer` once proposed a replacement wording that was *also*
-false — it is not more capable than the main loop, it is unbiased by authorship. So more lenses with
-different mandates buys less than the mandate suggests; the merged lens splits truth from craft
-*internally*, and its severity contract makes truth block and craft not.
+This is the whole amendment. Everything below follows from applying it.
 
-The capability guarantee survives untouched: both predecessors carried exactly `Read, Grep, Glob` —
-no `Bash`, no `Edit`, no `Write` — which is why they could be merged at all. The one persona that
-reads the private positioning source still cannot publish anything (ADR-0004).
+The old criterion was *one persona per concern*, and its cost is now measurable: splitting a concern out
+of the main context creates a **handoff decision**, and the handoff is what did not happen. The build
+specialists were never dispatched — not because no build work arrived, but because the invoking context
+already held the background and explaining it three times cost more than doing the work. **A persona
+that is never dispatched is a document.**
 
-**`planner` and `plan-reviewer` retired.** Not idle — **structurally unnecessary here**. The owner
-writes the specs, in the Issues, in more detail than a planner would produce, and this session's
-issues carried acceptance criteria, constraints and named trade-offs. Intake happens upstream of the
-loop, done by the person closest to it.
+### Decision — nineteen personas to six
 
-**`frontend-react`, `iac-terraform-aws`, `devops-cicd` retired.** Never dispatched, and the reason is
-structural rather than circumstantial: the main loop already holds the context, and handing it to a
-build specialist costs more than the work. What actually ran all session was *"the main loop drafts, a
-fresh subagent reviews"* — which is the valuable half of "agent-first, human-reviews", and it is the
-**reviewers** that deliver it.
+**Three leads that disagree, then consolidate ONE demand.** `product-lead` (reader, value, order, slice
+size — absorbing `product-manager`, `product-owner`, `scrum-master`), `tech-lead` (architecture,
+measurement, sequencing, leads the builder — absorbing `analytics` and `adr-author`), `marketing-lead`
+(positioning, voice, the owner's career and market — absorbing `brand-guardian`, `editor`, `recruiter`).
+They are separate **because reader, system and market are genuinely different optimisations**; where
+they agree the owner learns little. Three briefs downstream is how one slice becomes three rounds, so
+they reconcile first and send disagreements *up* as decisions rather than *down* as instructions.
+
+**One builder.** `developer` — app, infrastructure, pipeline, tests inline — absorbing
+`frontend-react`, `iac-terraform-aws`, `devops-cicd`, `qa-e2e`, `sonar-remediator` and `performance`.
+
+**Two gatekeepers.** `quality-assurance` (renamed from `critical-reviewer`, which named an activity
+rather than a role; absorbing `debugger`) and `security`. Both exist to fight the builder — one on
+delivery, one on the floor.
+
+**`planner` and `plan-reviewer` retired outright.** Not idle — **structurally unnecessary here**. The
+owner writes the specs, in the Issues, in more detail than a planner would produce. Intake happens
+upstream of the loop, done by the person closest to it.
+
+#### Why `brand-guardian` + `editor` merged — corrected from this amendment's first draft
+
+The first draft argued that **both lenses spent their best findings outside their nominal lanes**. That
+claim was checked and is **false**: of the four findings cited, three were inside the lane the persona
+was defined for. It is struck rather than deleted, because the correction is the point — an amendment
+about verification that verifies nothing should not itself ship an unverified rationale.
+
+**The sound evidence is the overlap, and it is in the files themselves.** `editor.md`'s own severity
+contract claimed, as its worked examples, **the same two findings** `brand-guardian.md` claimed as its
+own. Two personas independently documenting the same findings as characteristic of their mandate is not
+an anecdote about one session — it is the seam failing in the definitions, before any dispatch. The
+claim/craft split did not describe two populations of defect.
+
+The capability guarantee survives untouched: all three predecessors carried exactly `Read, Grep, Glob` —
+no `Bash`, no `Edit`, no `Write` — which is why they could be merged at all. The one persona that reads
+the private positioning source still cannot publish anything (ADR-0004).
+
+#### Why `debugger` merged into the gate, and `adr-author` into `tech-lead`
+
+Neither generated conflict, so under the criterion both are competences. Where each landed is the
+substantive part:
+
+- **`debugger` → `quality-assurance`.** The fresh-context argument that separates the gate from the
+  builder does **not** separate a debugger from the gate: authorship bias corrupts **judgement**, not
+  **investigation**. Whoever wrote the bug has no incentive to miss it, only to excuse it. And it fixes
+  the failure the owner named — *a review that returns findings without causes creates work; one that
+  returns causes grinds it down.*
+- **`adr-author` → `tech-lead`.** Whoever holds the decision writes its record. The handoff sat exactly
+  where `/workflow/adr`'s own rule says it must not — *committed in the same MR as the change it
+  justifies* — so the record routinely lagged. `tech-lead`'s write grant is scoped to `docs/adr/**`;
+  it remains advisory on code.
 
 ### The rule this leaves behind
 
-**A persona earns its place by catching a class of defect that actually occurs, not by completing an
-org chart.** Every survivor has a trigger; a mandate with no trigger is a document, not a gate — this
-ADR's own sentence, now applied to the roster that wrote it.
+**A persona earns its place by generating a disagreement someone needs to hear**, not by completing an
+org chart. This supersedes the version this amendment first shipped (*"by catching a class of defect
+that actually occurs"*), which was true and insufficient: it justified keeping any lens that ever found
+something, which is every lens.
+
+### Two standing rules the owner set above every persona's checklist
+
+1. **The loop is a machine for grinding work down, not for generating it.** Observed: twenty-two
+   findings on a documentation PR — one slice converted into fifteen while looking productive.
+   Mechanically: blocking findings get the full treatment, advisory findings one line each, and **no
+   persona opens work**.
+2. **Nothing ships half-done.** Close what can be closed, and say plainly what could not.
 
 ### Costs, named
 
-- **A retired persona is a capability removed.** If a large `iac/` or pipeline slice arrives, the main
-  loop does it without a specialist's checklist. Accepted: the specialists were never dispatched on
-  the ones that already arrived, so this books a real loss that was already being taken silently.
-- **One lens sees one way.** Two lenses occasionally disagreed, and disagreement is signal. The
-  replacement for that is not a second mandate but a second *fresh read* of the same mandate on an
-  expensive slice — cheaper and better targeted, since freshness was doing the work.
+- **An absorbed persona is a longer checklist.** An item competes for attention with every other item —
+  which is precisely the argument the nineteen-persona roster was built on, and it is not answered by
+  this amendment, only outweighed. The counter-evidence is that the specialisation was not what made the
+  lenses useful; the fresh context was.
+- **One builder means directory isolation is discipline, not capability.** Three specialists could not
+  accidentally edit each other's glob. Compensated by the gate's scope criterion, which is weaker.
+- **The significance test now runs once, after the code exists**, since `plan-reviewer` is retired.
+  Recorded in `/workflow/adr` where the test itself lives.
 - **The reference sweep is the failure surface**, exactly as amendment #3 recorded for its own reshape:
-  a missed pointer leaves a trigger aimed at a persona that no longer exists, and unlike a test it
-  fails **silently**. Swept across `agents/`, `commands/`, both `CLAUDE.md`s and the principles skill.
+  a missed pointer leaves a trigger aimed at a persona that no longer exists, and unlike a test it fails
+  **silently**. Swept across `agents/`, `commands/`, `hooks/`, both `CLAUDE.md`s, `README.md` and
+  `plugin.json`; `docs/adr/**` deliberately **not** swept, because it is the historical record and the
+  rule is supersede-never-rewrite.
 
 ### What this does NOT change
 
-The `critical-reviewer`'s merge authority, criterion 10, the falsifier rule, the round budget, the
-content trigger's fail-closed phrasing, and every hook. The hooks are the part of this design that has
-worked without amendment since it shipped.
+The gate's merge authority, criterion 10, the falsifier rule, the round budget, the content trigger's
+fail-closed phrasing, and every hook. The hooks are the part of this design that has worked without
+amendment since it shipped.
+
+### Where the design now lives, harness-agnostically
+
+`docs/dev-loop-design.md` describes the whole loop independently of Claude Code, for import into another
+harness. It is a **derived** document: this ADR library remains authoritative, and where the two
+disagree the ADR wins.
 
 ## Consequences
 **Good**

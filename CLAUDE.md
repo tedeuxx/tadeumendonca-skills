@@ -135,22 +135,23 @@ The **agentic dev-loop** (methodology ADRs `docs/adr/`, design in `docs/proposal
 
 The **agentic dev-loop** (methodology ADRs `docs/adr/`): per-task subagents in `agents/`, materialized lazily and **cut when they do not run**.
 
-**Thirteen personas, down from nineteen (2026-08-02).** The roster was modelling an org's ROLES; the failures it actually meets are one thing — *verification that verifies nothing*. See ADR-0002's sixth amendment for the measurement. What survives, by what triggers it:
+**Six personas, down from nineteen (2026-08-02).** The roster was modelling an org's ROLES, one per concern. The owner's criterion replaced that: **a persona exists only where conflict is wanted** — where someone should be arguing against someone else. Everything that generated no disagreement was a handoff, and the handoff was why it never ran. See ADR-0002's seventh amendment for the measurement.
 
-| runs on every MR | `critical-reviewer` — the DoD gate, the only persona that always runs, and the host of every other trigger |
-| reader-facing diff | `content-reviewer` — truth first, then craft. **Replaces `brand-guardian` + `editor`**, whose claim-vs-craft seam did not survive contact: each spent its best findings on truth about the code, and what made them useful was the fresh context rather than the mandate |
-| a red or unexplained gate | `debugger` (cause, never a patch) · `sonar-remediator` (fixes the finding's cause, never games the gate) |
-| a diff in its concern | `security` (deps, IAM, secrets, supply chain) · `performance` (the budget as a gate) · `qa-e2e` (the user-story journeys) |
-| a significant decision | `adr-author` (MADR, picks library and number, never merges) |
-| picking work | `product-manager` (proposes the ORDER, writes nothing) · `scrum-master` (flow and WIP hygiene) · `analytics` (how would we know it worked) |
-| on demand | `recruiter` (external hiring efficacy, not a per-MR gate) · `product-owner` (feature acceptance — defined, no work on a content site) |
+The shape, and the harness-agnostic design is in [`docs/dev-loop-design.md`](./docs/dev-loop-design.md):
 
-**Retired, and the reason is structural rather than "no work came":**
+| layer | who | why separate |
+|---|---|---|
+| **three leads** — disagree by design, then consolidate **ONE demand** | `product-lead` (reader, value, order, slice size) · `tech-lead` (architecture, measurement, sequencing; **writes the ADRs**; leads the developer) · `marketing-lead` (positioning, voice, the owner's career and market) | reader vs system vs market are genuinely different optimisations; where they agree the owner learns little |
+| **one builder** | `developer` — app, infrastructure, pipeline, tests inline | splitting it created a handoff decision, and none of the three specialists was ever dispatched |
+| **two gatekeepers** | `quality-assurance` (technical delivery, the DoD, **and the cause of any failing gate**) · `security` (the floor, with its own veto) | both exist to fight the builder — one on delivery, one on the floor |
 
-- **`planner`, `plan-reviewer`** — the owner writes the specs, in the Issues, in more detail than a planner would produce. The intake step happens upstream of the loop, done by the person closest to it.
-- **`frontend-react`, `iac-terraform-aws`, `devops-cicd`** — the build specialists. Never dispatched, because the main loop already holds the context and handing it over costs more than the work. "The agent drafts, the human reviews" was in practice "the main loop drafts, a fresh subagent reviews" — which is the valuable half, and it is the reviewers that deliver it.
+**Absorbed rather than retired**, because the competence was kept and only the handoff was cut: `debugger` → `quality-assurance` (authorship bias corrupts *judgement*, not *investigation*, so the gate is already the right context to diagnose) · `adr-author` → `tech-lead` (whoever holds the decision writes its record, in the same MR as the change) · `brand-guardian` + `editor` + `recruiter` → `marketing-lead` · `product-manager` + `product-owner` + `scrum-master` → `product-lead` · `analytics` → `tech-lead` · `frontend-react` + `iac-terraform-aws` + `devops-cicd` + `qa-e2e` + `sonar-remediator` + `performance` → `developer`.
 
-The lesson worth keeping from the cut: **a persona earns its place by catching a class of defect that actually occurs**, not by completing an org chart. Every one above has a trigger; a mandate with no trigger is a document, not a gate.
+**Retired outright:** `planner` and `plan-reviewer` — the owner writes the specs, in the Issues, in more detail than a planner would produce. The intake happens upstream of the loop, done by the person closest to it.
+
+Two rules the owner set for the loop, above every persona's own checklist: **it is a machine for grinding work down, not for generating it** (twenty-two findings on a documentation PR is one slice converted into fifteen), and **nothing ships half-done** — close what can be closed, and say plainly what could not.
+
+The lesson worth keeping: **a persona earns its place by generating a disagreement someone needs to hear**, not by completing an org chart. A mandate with no trigger is a document; a persona with no counterpart is a handoff.
 
 | Command | Purpose |
 |---|---|
