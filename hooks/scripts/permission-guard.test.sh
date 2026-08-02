@@ -177,6 +177,30 @@ check ALLOW "npm --prefix"                  "npm --prefix apps/fed run test"
 check ALLOW "git -C plain"                  "git -C /some/repo status --short"
 check ALLOW "operator inside a quoted arg"  "git commit -m 'fix: a && b handling'"
 
+# #66: the collapse used to stop at the first inner quote, exposing the rest of a body to the
+# composition check. Each of these was verified to FAIL against the pre-fix `s/"[^"]*"/""/g`.
+# Deliberately NOT `gh issue create` — which is the command #66 was hit on, but which rule 5c
+# answers ASK before rule 8 is ever reached. Asserting ALLOW there would test 5c and read as a
+# rule-8 result. `gh pr comment` carries the same quoted-body shape with no other rule on it.
+#
+# THE OPERATOR MUST SIT BETWEEN THE TWO ESCAPED QUOTES, and the first draft of these cases got
+# that wrong in a way worth recording. The old regex `s/"[^"]*"/""/g` pairs quote 1 with 2 and
+# 3 with 4, so on `"a \"b\" c"` it collapses two spans and leaves only what sits BETWEEN the
+# escaped pair bare. Put the backtick after the second escaped quote and the old regex swallows
+# it inside a pair by accident — the case then passes before AND after the fix, asserts nothing,
+# and reads like coverage. Three of the four cases here were originally written that shape.
+# Each one below was re-checked by reverting the collapse and watching it go red.
+check ALLOW "substitution between escaped quotes" 'gh pr comment 1 --body "said \"$(date)\" today"'
+check ALLOW "backticks between escaped quotes"    'gh pr comment 1 --body "said \"`date`\" today"'
+check ALLOW "operator between escaped quotes"     'gh pr comment 1 --body "both \"a && b\" hold"'
+check ALLOW "escaped quote inside singles"        "git commit -m 'it\\'s \$(fine)'"
+
+# The three cases the issue feared this fix would break. A false NEGATIVE here is far worse
+# than the false positive above, so they are asserted rather than reasoned about.
+check DENY  "operator OUTSIDE quotes still caught"    'git commit -m "msg" && npx tsc'
+check DENY  "unbalanced quote fails CLOSED"           'echo "unterminated && npx tsc'
+check DENY  "escaped-quote span then a REAL operator" 'gh pr comment 1 --body "said \"hi\"" && npx tsc'
+
 echo "--- rule 5b: gh secret writes survive the -R convention ---"
 check DENY  "secret set, plain"             "gh secret set MY_TOKEN"
 check DENY  "secret set behind -R"          "gh -R owner/repo secret set MY_TOKEN"
