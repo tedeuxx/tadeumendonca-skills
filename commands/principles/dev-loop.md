@@ -176,6 +176,34 @@ produces faster than it consumes has no end state.
 is not. On a merged PR the report has no reader afterwards. That is the trade — fewer things tracked,
 and some real findings lost — and it is preferred to a queue that grows by working.
 
+### The agent's state while a slice is blocked on someone else
+
+Everything below defines the states of a **slice** — plan, build, review, merge. It did not define the
+state of the **agent** while a slice waits on an actor it does not control, and that interval is where
+most of a session's wall-clock actually goes: two to seven minutes per reviewer round-trip, several
+times per slice.
+
+**With no defined action for that interval, the default behaviour is to report status. Reporting reads
+to the agent as delivery and to the owner as stopping** — both parties acting correctly on the same
+evidence. The owner said it three times in one session (*"você está parando"*, *"não to vendo você
+fazer nada"*), which is what makes it a loop defect rather than an attention failure: **an instruction
+that has to be repeated is a rule that should have been written.**
+
+> **On dispatching work to a reviewer — or to any actor you do not control — name and BEGIN the next
+> non-overlapping action before ending the turn.** If there is none, say so: *"waiting on X, nothing
+> disjoint in the queue"* is honest status. Silence is not, because silence is indistinguishable from
+> being stuck.
+
+Naming the next action and doing it are indistinguishable from outside, so a turn that ends on a
+description reads as a stall regardless of intent.
+
+**This rule used to collide with WIP, and the collision won.** While WIP was bounded by a *count*, the
+guard denied a second PR for a slice sharing zero files with the open one — so *"work in parallel while
+you wait"* and *"WIP = 1"* gave opposite instructions, and the blocking one had a hook behind it. The
+bound is file **overlap** now (see step 2), which is what makes this rule executable rather than
+aspirational. It stayed aspirational for a while anyway, because the fix was merged into a plugin build
+the sessions were not running — the reason `session-plugin-version` exists.
+
 ### Inner loop (per slice)
 1. **Plan-first**, then implement. Ask only on architecture / contracts / irreversible calls; decide autonomously on in-pattern implementation.
 2. **One thin vertical slice at a time**, end-to-end and reviewable. Keep it surgical; adjacent debt is **named, not refactored inline and not filed** — see *Review does not open work*.
