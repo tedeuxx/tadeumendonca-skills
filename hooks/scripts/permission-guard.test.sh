@@ -199,6 +199,28 @@ check_agent DENY  "tadeumendonca-skills:developer" "a -R hidden in the body cann
 #     push came out with NO decision, where before it was denied twice. An exception in one rule
 #     had silently become a bypass of the whole floor.
 check_agent DENY  "tadeumendonca-skills:developer" "a verified task chained to a trunk push"    "gh issue create --title t --body 'Parent: #122' && git push origin main"
+
+# 4 · `--body-file`, which is how this repo actually writes issue bodies. A rule reading the
+#     marker from the COMMAND broke in both directions: the legitimate multi-line task was
+#     DENIED, and the pressure that created had somewhere to go — the marker in the FILENAME
+#     satisfied the guard while the created issue contained no parent reference at all.
+BODYDIR="$(mktemp -d)"
+printf 'Split the intake chain.\n\nParent: #122\n\nAcceptance:\n- something\n' > "$BODYDIR/task.md"
+printf 'Some notes with no parent at all.\n' > "$BODYDIR/notes-Parent #122.md"
+check_agent ALLOW "tadeumendonca-skills:developer" "a real body-file declaring the parent"     "gh issue create --title t --body-file $BODYDIR/task.md"
+check_agent ALLOW "tadeumendonca-skills:developer" "the same, behind -F"                       "gh issue create --title t -F $BODYDIR/task.md"
+#     The smuggle: marker in the filename, absent from the body. Must DENY — otherwise nothing
+#     in the resulting issue records what authorised it, which is the standard the rule sets.
+check_agent DENY  "tadeumendonca-skills:developer" "a marker in the FILENAME, not the body"    "gh issue create --title t --body-file '$BODYDIR/notes-Parent #122.md'"
+#     And a body file that simply has no marker denies, like any other unparented create.
+printf 'No parent here.\n' > "$BODYDIR/plain.md"
+check_agent DENY  "tadeumendonca-skills:developer" "a body-file with no marker"                "gh issue create --title t --body-file $BODYDIR/plain.md"
+rm -rf "$BODYDIR"
+
+# 5 · TWO markers. The comment says FIRST match; the previous greedy regex took the LAST, so
+#     `Parent: #99999. Parent: #122` was allowed on the ready one while the declared parent was
+#     the dead one. Same comment-versus-code divergence this file keeps paying for.
+check_agent DENY  "tadeumendonca-skills:developer" "two markers: the FIRST one decides"        "gh issue create --title t --body 'Parent: #99999. Parent: #122'"
 PATH="$REAL_PATH_5D"
 
 # FAILS CLOSED with no `gh` — the opposite direction from wip-guard, deliberately. That hook is

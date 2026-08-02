@@ -241,8 +241,42 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]
     #     So: `Parent: #N` or `Parent #N`, FIRST match, and a second different `#N` after the
     #     marker denies. The number the guard checks is then the number a human reading the
     #     issue will see as its parent — which is the only version of "verified" worth the word.
-    parent="$(printf '%s' "$cmd" | sed -nE 's/.*[Pp]arent[[:space:]]*:?[[:space:]]*#([0-9]+).*/\1/p')"
-    trailing="$(printf '%s' "$cmd" | sed -nE 's/.*[Pp]arent[[:space:]]*:?[[:space:]]*#[0-9]+//p' | grep -oE '#[0-9]+' | head -1 || true)"
+    #     THE MARKER IS READ FROM WHATEVER BECOMES THE ISSUE BODY, and on this repo that is
+    #     usually a FILE. Bodies longer than a line go through `--body-file`/`-F` by hard
+    #     convention, because a shell eats backticks and `$` out of an inline `--body` — so a
+    #     rule that reads the marker from the COMMAND breaks in both directions at once:
+    #
+    #       · a real decomposition task, whose body is multi-line markdown in a file, is DENIED —
+    #         the exception refusing the normal shape of the one act it exists to permit;
+    #       · and the pressure that creates has somewhere to go: putting `Parent: #122` in the
+    #         FILENAME satisfied a command-only reader while the created issue contained no
+    #         parent reference at all. Arbitrary scope opened, nothing in the issue recording
+    #         what authorised it.
+    #
+    #     The second falsifies the standard three lines above — "the number a human reading the
+    #     issue will see as its parent". With a body file, the human sees nothing. So the marker
+    #     comes from the file when there is one, and a marker found ONLY in the command is not
+    #     accepted while a body file is present.
+    #
+    #     Residual, named rather than fixed: reading the file is TOCTOU — the model could rewrite
+    #     it between this check and the create. The window is its own and the act is deliberate,
+    #     which puts it at the same trust level as the already-booked `gh api …/issues` gap.
+    body_file="$(printf '%s' "$bare" | sed -nE 's/.*[[:space:]](--body-file[[:space:]=]*|-F[[:space:]]*)([^[:space:]]+).*/\2/p')"
+    if [ -n "$body_file" ]; then
+      body="$(cat "$body_file" 2>/dev/null || true)"
+    else
+      body="$cmd"
+    fi
+    #     Flattened, because a file body is multi-line and the marker may be anywhere in it.
+    flat="$(printf '%s' "$body" | tr '\n\t' '  ')"
+
+    #     FIRST match, genuinely this time. The previous version used a greedy `.*`, which takes
+    #     the LAST marker while the comment claimed the first — the same comment-versus-code
+    #     divergence this file keeps paying for. `awk match` returns the first occurrence, and
+    #     the second-`#N` void is measured from the end of THAT match.
+    parent="$(printf '%s' "$flat" | grep -oiE 'parent[[:space:]]*:?[[:space:]]*#[0-9]+' | head -1 | grep -oE '[0-9]+$' || true)"
+    after="$(printf '%s' "$flat" | awk 'match($0, /[Pp][Aa][Rr][Ee][Nn][Tt][ ]*:?[ ]*#[0-9]+/) { print substr($0, RSTART + RLENGTH) }' || true)"
+    trailing="$(printf '%s' "$after" | grep -oE '#[0-9]+' | head -1 || true)"
     if [ -n "$trailing" ] && [ "$trailing" != "#$parent" ]; then
       parent=""
     fi
