@@ -158,6 +158,10 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 #       - A SUBAGENT still cannot file. This is where the measured failure actually happened (below):
 #         issues born inside a review of something else, by a persona with no access to the owner and
 #         no way to know whether anyone wants the work. It reports the finding upward; that is its job.
+#         ~~Full stop.~~ **One exception since #124 — see 5d below:** `developer` may file a task under
+#         a story that already carries `ready`. That is decomposing work the owner approved and three
+#         leads ratified, not opening work; the parent is verified against the tracker rather than read
+#         from the command, and every other subagent is denied exactly as this paragraph describes.
 #       - THE MAIN AGENT ASKS. Alignment is a fact about a conversation, and the main loop is the only
 #         place that conversation exists — so it is the only place the question can be put to the one
 #         party who can answer it. One keystroke, on a prompt showing the title.
@@ -175,8 +179,13 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 #
 #     ~~NO ALLOWED SPELLING OF `gh issue create`, deliberately.~~ Superseded above — the objection is
 #     answered by moving the decision to the owner rather than by inventing a self-vouching flag. What
-#     survives from it: there is still no spelling the MODEL can use to exempt itself, and a subagent
-#     still has none at all.
+#     survives from it: there is still no spelling the MODEL can use to exempt itself.
+#
+#     ~~And a subagent still has none at all.~~ **False since #124.** `developer` has one — but it is
+#     not a *spelling*, which is the whole point and the thing that took two rounds to get right: the
+#     exception is satisfied by a fact in the TRACKER (a parent carrying `ready`), looked up, not by
+#     anything the model can write. The first implementation was satisfiable by writing the command
+#     differently, and that made it a convention rather than a floor. See 5d.
 #
 #     THE `gh api` ROUTE IS A NAMED ACCEPTED GAP — `gh api --method POST …/issues` is NOT matched, the
 #     same way rule 7b books `gh api … PUT …/merges` for the higher-stakes act of merging. It was

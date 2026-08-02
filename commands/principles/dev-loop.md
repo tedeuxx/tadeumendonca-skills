@@ -219,9 +219,23 @@ Findings are **named** — in a verdict, in the PR, to the human — and the own
 them becomes tracked work.
 
 **Enforced by WHO is asking, since a correction on 2026-07-31.** `permission-guard` rule 5c reads
-`agent_type`, which the harness stamps and the model cannot forge: a **subagent is denied** outright,
-and the **main loop is asked** — one prompt showing the title, which the owner approves or declines.
-Reading, listing, commenting, labelling and closing stay open everywhere.
+`agent_type`, which the harness stamps and the model cannot forge: a ~~**subagent is denied**
+outright~~ **subagent is denied unless it is `developer` decomposing an approved story** (rule 5d,
+since #124), and the **main loop is asked** — one prompt showing the title, which the owner approves
+or declines. Reading, listing, commenting, labelling and closing stay open everywhere.
+
+**The one exception, and why it does not erode the rule.** Under `gitflow-single-env` a story is
+broken into tasks, and `developer` is the persona that executes them. **Opening scope** is creating
+work nobody asked for — still denied for every subagent, `developer` included. **Decomposing** is
+dividing work the owner opened and the three leads ratified; the task adds nothing that was not
+already authorised.
+
+What makes it an exception rather than a hole: **the parent is verified against the tracker, never
+read from the command.** It must be declared (`Parent: #N`), it must exist, and it must carry `ready`.
+A condition satisfiable by writing the command differently would be a convention, and the first
+implementation was exactly that — two review rounds found it authorising any issue that merely
+*mentioned* a ready number, in any repo. And `quality-assurance` or `security` citing a story is still
+a review opening work: the exception is the builder's alone.
 
 ~~*This is enforced, not asked: rule 5c denies `gh issue create` with no exempt spelling.*~~ **That
 version was wrong, and the way it was wrong is worth keeping.** It reasoned that "was this asked for"

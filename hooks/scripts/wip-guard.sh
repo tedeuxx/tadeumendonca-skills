@@ -30,6 +30,15 @@
 # no git, no auth, unparseable payload, an unreadable file list — because a
 # loop-discipline check must never be the thing that wedges the loop. Every early exit
 # below is that rule applied: an answer we could not get is not a verdict.
+#
+# ⚠ `permission-guard.sh`, the other PreToolUse hook in this directory, fails CLOSED — and
+# that inversion is deliberate, not drift. This hook enforces loop DISCIPLINE, where a
+# spurious deny costs more than a missed one; that hook is the irreversible FLOOR, where a
+# missed deny is the whole failure. **Do not "fix" one to match the other.**
+#
+# The warning lives here rather than only there because the danger runs in this direction:
+# someone reading "Fails OPEN on any error" as the house style and carrying it across would
+# open the floor, and nothing in that file's error paths would look wrong to them.
 
 set -uo pipefail
 
