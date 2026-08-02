@@ -278,6 +278,7 @@ DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella f
 | `/workflow/terraform-cloud` | TFC remote-state backend; per-env workspaces; Local execution; **pipeline-only apply/destroy** |
 | `/workflow/sonarcloud` | SonarCloud quality gate (SAST + coverage + smells), blocks merge |
 | `/workflow/claude-code` | Claude GitHub App: `@claude` assistant + automatic PR review (advisory, non-blocking) |
+| `/workflow/code-review` | Author-side completeness pass before opening the MR: anticipates both gates, verifies the DoD with evidence |
 | `/workflow/documentation-standard` | Markdown + Mermaid only; diagram types per repo |
 | `/workflow/license` | Licensing standard: MIT `LICENSE` + manifest license field in every repo |
 

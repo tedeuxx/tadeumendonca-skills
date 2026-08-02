@@ -8,10 +8,10 @@ Context: $ARGUMENTS
 
 **You verify the DoD items here — you do not defer them.** The gate re-verifies independently, in a fresh context, and that independence is the point of having it. But arriving at the gate with the DoD unchecked outsources your own work to it, and every item it has to raise costs a round, a re-ratification and the owner's attention.
 
-**Why it exists, measured rather than assumed.** Two hook slices in one session took **eight review rounds** between them. Reading back what each round found, almost every finding was reachable by the author before opening:
+**Why it exists, measured rather than assumed.** Two hook slices in one session took **eight commits between them — six of those corrective, after review** (`tadeumendonca-skills` PRs #123 and #124; `gh pr view <n> --json commits` counts them). Reading back what each correction fixed, almost all of it was reachable by the author before opening:
 
 - a flag spelling (`--base=x`) whose class had **already been hardened in the same file**;
-- **seven** assertions that could not fail, every one found by mutation and none by reading;
+- **seven assertions that could not fail** — three in one guard suite where the dangerous token sat inside a quote pair by accident, a `Storage.prototype` spy that never took, a case short-circuited by an earlier guard, a defence whose test never reached it, and a regression case that denied for a different reason than the one it named. Every one found by mutation; none by reading;
 - doc drift in the second PR that was **the exact pattern the first PR had just taught**;
 - a rule that could not read a body written the way this repo writes bodies — a convention the author had followed all day.
 
@@ -19,23 +19,7 @@ None needed a fresh context. They needed a list.
 
 **A round costs a dispatch, a re-ratification and the owner's attention. This list costs minutes.**
 
-### And it exists to reduce how much of this has to be a shell script
-
-The harness has two ways to hold a rule: a **hook**, which is mechanical and cannot be argued down, and a **skill**, which is only as strong as the reading. The floor belongs to hooks — irreversible acts need a guarantee that survives a long context and a tired session.
-
-**But a hook is expensive, and it can only see a command string.** Measured on the slice that added one narrow exception to the floor: **five review rounds and three separate bypasses**, all in a regex trying to infer intent from what the model happened to type — attached flag values, a number that was not the declared one, a body written to a file. Each fix was correct and each left the next spelling open, because *intent is not in the string*.
-
-A rule about **what "finished" means** is exactly that class. No matcher can express it, and a guard that tried would be the same regex arms race one level up.
-
-So the trade this skill takes deliberately: **a checklist the author follows, instead of a mechanism the author fights.** It is weaker — nothing enforces it — and it is the right weakness here, because what it checks is judgement rather than an act. **Reserve the mechanical floor for what is irreversible; let the loop's shape be carried by skills the personas read.**
-
-**The rule, stated by the owner and worth keeping as a rule rather than a preference:**
-
-> **A shell script supporting the workflow of executing tasks is an antipattern.**
-
-The floor is not workflow. `terraform destroy`, a force-push, `rm -rf`, a secret write, a push to the trunk — those escape git and no later commit undoes them, so they earn a mechanism. **WIP discipline, who may open an Issue, how a story is decomposed, what "finished" means — every one of those is reversible by the next commit**, and every one of them is a rule about judgement, which a matcher cannot read.
-
-*The line, so it does not blur:* **if the act cannot be undone, it needs a hook. If it can be fixed in the next commit, a hook costs more than it returns** — and the cost is not hypothetical: it is review rounds spent on spellings, plus a guard the loop learns to work around rather than follow.
+*Why this skill and not a hook — the harness-design argument, and the owner's rule about where mechanism belongs — is at the end, under **Where the mechanism belongs**. The checklist comes first deliberately: a reader mid-slice is here for what to check.*
 
 ---
 
@@ -74,7 +58,7 @@ Verify these yourself. Each with **evidence** — a command's real output, a lin
 7. **No doc drift** — §3.
 8. **History hygiene** — conventional subjects; a real merge commit, never squash.
 9. **Security posture** — §7.
-10. **Content truth** — where the diff changes anything a reader or a crawler sees, the copy lens has returned a verdict and its blocking findings are resolved.
+10. **Content truth** — decide whether the diff changes anything a reader or a crawler sees, and **say which in the PR body**. That is your half: the copy lens is dispatched by the gate, so "the lens has returned" is not a thing you can verify here — but a reader-facing diff that arrives unflagged is one the gate can miss, and a literal in a component or a meta tag counts as reader-facing.
 
 ## 2 · Every assertion must be able to fail
 
@@ -93,9 +77,15 @@ Two shapes that recur, both seen more than once:
 
 ## 3 · What did this slice make false?
 
-A rule change leaves stale claims in places the diff does not touch. Check each, every time:
+A rule change leaves stale claims in places the diff does not touch.
 
-- the **README** or equivalent published description;
+> **Grep the repo for every identifier, command name, count and claim the slice changed, and read every hit.** An enumeration of places to look fails open — you check the four you remember. A grep returns the ones you forgot.
+
+This section was rewritten because it failed on its own PR. As a list, it missed three stale references to the very command it was introducing; the grep above returns all of them in one run. **A list names the class; a procedure finds the instances** — the same difference §2 turns on.
+
+Then read each hit against these, which is where the list still earns its place:
+
+- the **README** or equivalent published description — **and any count or table it carries.** A number bumped by a test while the rows below it stay put is the shape this repo has shipped more than once;
 - the **header of the file you changed** — a contract sentence at the top that the body now contradicts;
 - the **principles skills and the ADRs** that describe the behaviour;
 - **persona files**, if the change alters what a persona must produce or may do.
@@ -114,7 +104,7 @@ If the change matches command strings, paths, branch names or labels, try the fo
 - **word boundaries** — a marker matching inside another word is not a marker;
 - **case and prefix** variants of any name you anchor on.
 
-Every one of these has escaped a matcher in this repo at least once.
+Most of these have escaped a matcher in this repo at least once — the API matcher walked past a quoted URL, and the quote collapse stopped at an escaped quote. Try all five anyway; the list is short and the cost of skipping one is a review round.
 
 ## 5 · Does the repo already do this differently?
 
@@ -145,12 +135,15 @@ Name the axes you looked at and what you found, **the way `security` will**:
 - **Action pins** — a moving tag where a SHA belongs.
 - **New external inputs** — anything the code now reads that someone else writes.
 - **The deploy path** — does this merge publish, and does the artifact change?
+- **The edge function** — logic running at the CDN edge, where a mistake serves every visitor and the rollback is a deploy.
 
 > **`n/a` is only valid when you NAME the axes you checked and found untouched.** "No security impact" is a reassurance. *"`package.json` and both lockfiles are absent from the diff; no file under `iac/` or `.github/`; a secret-pattern scan over the diff returns nothing"* is a check.
 
 **Verify the ARTIFACT, not the diff's appearance.** A comment-only change is not automatically inert: on a build that inlines and prerenders repository content, the question is whether an edited line can be **emitted**, which is a different question from whether it is a comment.
 
 **And ask which direction a failure takes.** A guard that fails **open** stops protecting silently; one that fails **closed** wedges the loop loudly. Both are defects — but only one announces itself, so the silent direction is the one to check first. Trace every new error path and say where it lands.
+
+**An early return is an allow path.** If the change adds one — an `exit 0`, a `return`, a `continue` — **enumerate every rule downstream of it and prove each is still reachable.** This is not the short-circuit of §2, which is about test inputs, nor the failure direction above, which is about errors: it is a *success* path that silently unreaches code the diff never touched, so every existing test still passes and coverage does not move. Measured: one such return let two commands through with no decision at all, neither of them the case the return was written for.
 
 ## 8 · Gates, with real output
 
@@ -165,9 +158,31 @@ Run them and paste what they printed. **Never a claim.**
 
 ## The one-line version
 
-> **Would a stranger reading only the Issue agree this is finished — and is every sentence this slice adds or leaves behind true?**
+> **Would a stranger reading only the Issue agree this is finished; can every assertion you added fail; is every sentence this slice leaves behind still true; and can this break production?**
+
+Four clauses because the sections are four jobs, and the mutation pass is the one most easily skipped — by this document's own count, it found seven defects that reading found none of.
 
 If either answer needs a caveat, the caveat belongs in the PR body before the reviewer finds it.
+
+## Where the mechanism belongs
+
+The harness has two ways to hold a rule: a **hook**, which is mechanical and cannot be argued down, and a **skill**, which is only as strong as the reading. The floor belongs to hooks — irreversible acts need a guarantee that survives a long context and a tired session.
+
+**But a hook is expensive, and it can only see a command string.** Measured on the slice that added one narrow exception to the floor: **five commits, four of them corrective, and three separate bypasses** — every fix a regex trying to infer intent from what the model happened to type, across attached flag values, a number that was not the declared one, and a body written to a file. Each fix was correct and each left the next spelling open, because *intent is not in the string*.
+
+A rule about **what "finished" means** is exactly that class. No matcher can express it, and a guard that tried would be the same regex arms race one level up.
+
+So the trade this skill takes deliberately: **a checklist the author follows, instead of a mechanism the author fights.** It is weaker — nothing enforces it — and it is the right weakness here, because what it checks is judgement rather than an act.
+
+**The owner's rule for this harness, in their words — a rule here, not a claim about software in general:**
+
+> **A shell script supporting the workflow of executing tasks is an antipattern.**
+
+Read it as scoped to *this loop's* workflow layer. Plenty of shell earns its place in this repo — the gates, the counts, the tests — and none of that is what the rule is about.
+
+The floor is not workflow. `terraform destroy`, a force-push, `rm -rf`, a secret write, a push to the trunk — those escape git and no later commit undoes them, so they earn a mechanism. **WIP discipline, who may open an Issue, how a story is decomposed, what "finished" means — every one of those is reversible by the next commit**, and every one of them is a rule about judgement, which a matcher cannot read.
+
+*The line, so it does not blur:* **if the act cannot be undone, it needs a hook. If it can be fixed in the next commit, a hook costs more than it returns** — and the cost is not hypothetical: it is review rounds spent on spellings, plus a guard the loop learns to work around rather than follow.
 
 ## Decision & trade-off
 

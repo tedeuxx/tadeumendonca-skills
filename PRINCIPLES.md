@@ -25,7 +25,7 @@ The canonical, concise statement of how the owner builds software. This is the *
 11. **Living docs** — Mermaid + markdown for architecture/decisions, kept current.
 
 ## The loop — two models
-The shared spine: `roadmap/PLAN.md → thin slice (no file overlap with an open one) → develop locally → validate locally (the repo's regression) + self-verify gates → /code-review → PR`. What differs is only how the change is promoted, and **the heavy gates always sit at the point of no return**:
+The shared spine: `roadmap/PLAN.md → thin slice (no file overlap with an open one) → develop locally → validate locally (the repo's regression) + self-verify gates → /workflow/code-review → PR`. What differs is only how the change is promoted, and **the heavy gates always sit at the point of no return**:
 
 - **`gitflow-multi-env`** (more than one environment) — `PR → integration branch (staging: coverage + quality + security) → promote → release branch (full regression + review + manual approval) → production`. Environment = git branch; local is staging-backed and **necessarily partial** (real auth flow, email, and edge prove out only at staging). Failure → revert on the release branch + re-release.
 - **`trunk-single-env`** (one branch, one destination — a single deployed environment, or an artifact released deliberately) — `PR → main`, and **that PR carries the entire gate** (lint + typecheck + coverage + quality + security + full regression, all blocking) because there is no downstream tier to defer to. The **merge to `main` deploys, so the merge is the go/no-go**; `main` is the working branch, not a protected mirror. Failure → revert on `main` + re-deploy.
