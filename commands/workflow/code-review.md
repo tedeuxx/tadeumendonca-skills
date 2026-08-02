@@ -79,9 +79,18 @@ Two shapes that recur, both seen more than once:
 
 A rule change leaves stale claims in places the diff does not touch.
 
-> **Grep the repo for every identifier, command name, count and claim the slice changed, and read every hit.** An enumeration of places to look fails open — you check the four you remember. A grep returns the ones you forgot.
+> **Grep the repo for every identifier, command name, count and claim the slice made FALSE — search the words of the OLD claim, not the words you edited — and do not stop until every hit is read and dispositioned.**
 
-This section was rewritten because it failed on its own PR. As a list, it missed three stale references to the very command it was introducing; the grep above returns all of them in one run. **A list names the class; a procedure finds the instances** — the same difference §2 turns on.
+An enumeration of places to look fails open: you check the four you remember. A grep returns the ones you forgot. **But only if you grep the right thing**, and the obvious instinct is the wrong one.
+
+**Why "made false" and not "changed", which is what this line said for one day.** A stale claim survives precisely in the files the diff did **not** touch — and those files are phrased in the words of the *old, now-false* statement. The tokens you edited and the tokens that carry the claim are, in the general case, **disjoint sets**. Searching what you changed searches the one region guaranteed to be already correct, and it returns clean, which reads as *there is nothing there*. **It fails open** — the exact failure this section exists to close.
+
+Measured, twice in one day, on the two slices that followed the one this file shipped in:
+
+- the sweep ran on the term that was **edited** (`agent_type`) while the sentence reaching a sibling ADR was carried by *"no exempt spelling"* and *"denies `gh issue create`"* — neither of which appears in the diff. The gate blocked the merge on it;
+- and an earlier round returned three hits and acted on two, which satisfies *"read every hit"* literally. Hence **dispositioned**: each hit gets an outcome — a fix, or a recorded finding that it is not drift.
+
+**A list names the class; a procedure finds the instances** — the same difference §2 turns on. This section was itself rewritten from a list after failing on its own PR, and then corrected again when the procedure searched the wrong thing. *A procedure with the wrong input is a list that also reassures you.*
 
 Then read each hit against these, which is where the list still earns its place:
 
