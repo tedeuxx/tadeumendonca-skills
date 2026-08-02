@@ -219,9 +219,45 @@ Findings are **named** — in a verdict, in the PR, to the human — and the own
 them becomes tracked work.
 
 **Enforced by WHO is asking, since a correction on 2026-07-31.** `permission-guard` rule 5c reads
-`agent_type`, which the harness stamps and the model cannot forge: a **subagent is denied** outright,
-and the **main loop is asked** — one prompt showing the title, which the owner approves or declines.
-Reading, listing, commenting, labelling and closing stay open everywhere.
+`agent_type`, which the harness stamps and the model cannot forge — *cannot **claim**, precisely; it
+can still **choose** which persona to run, so this enforces routing rather than capability, see
+ADR-0004's 2026-08-02 amendment* — a ~~**subagent is denied**
+outright~~ **subagent is denied unless it is `developer`** (rule 5d, since #124), and the
+**main loop is asked** — one prompt showing the title, which the owner approves
+or declines. Reading, listing, commenting, labelling and closing stay open everywhere.
+
+**The one exception, and why it does not erode the rule.** Under `gitflow-single-env` a story is
+broken into tasks, and `developer` is the persona that executes them. **Opening scope** is creating
+work nobody asked for; **decomposing** is dividing work the owner opened and the three leads
+ratified, and the task adds nothing that was not already authorised.
+
+~~Opening scope is still denied for every subagent, `developer` included.~~ **Struck: that is the
+RULE, and since 2026-08-02 it is no longer the MECHANISM.** `developer` is exempt from the hook
+outright — a task with no parent at all is allowed by the guard. What forbids it is
+`agents/developer.md` and the gate, not a denial. The distinction below is what the persona must
+apply; it is not what the floor checks.
+
+~~What makes it an exception rather than a hole: the parent is verified against the tracker, never
+read from the command. It must be declared (`Parent: #N`), it must exist, and it must carry `ready`.~~
+**Struck 2026-08-02 (owner decision), and the strike is the substance.** For four rounds the hook tried
+to verify exactly that — the marker read from the body file, word-anchored, first-match-not-last, the
+repo read from the collapsed command so a `-R` inside `--body` could not redirect the lookup, then a
+tracker lookup for `ready`. Each fix was correct; each left the next spelling open. **Intent is not in
+the command string** (ADR-0004, amendment 2026-08-02).
+
+**So the check moved to where a judgement can be stated.** `developer` may file issues; the rule it must
+follow — *only a task under a story carrying `ready`, referencing its parent, never extending the
+story* — lives in `agents/developer.md`, and `quality-assurance` verifies it on the task's own MR.
+
+**What the floor still decides, because these are acts and not judgements:** every OTHER subagent is
+denied — `quality-assurance` or `security` citing a story is still a review opening work, and the
+exemption is keyed on `agent_type`, which the harness stamps and the model cannot write. The main loop
+still asks the owner.
+
+**The cost is three things, not one, and it is booked in ADR-0004 (amendment 2026-08-02) rather than
+restated here:** the parent is unverified, the *repo* is unverified too, and in the consuming repo a
+filed issue mentioning `@claude` starts a token-bearing run. Read it there — a second copy is a second
+thing to keep true, and this rule has already paid for that twice.
 
 ~~*This is enforced, not asked: rule 5c denies `gh issue create` with no exempt spelling.*~~ **That
 version was wrong, and the way it was wrong is worth keeping.** It reasoned that "was this asked for"

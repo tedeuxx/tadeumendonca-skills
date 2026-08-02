@@ -122,6 +122,79 @@ check       ALLOW "main agent may check CI"           "gh pr checks 149 --repo o
 check       ALLOW "main agent may list PRs"           "gh pr list --state open"
 check       ALLOW "the word merge in a commit msg"    "git commit -m 'gh pr merge notes'"
 
+echo "--- rule 5d: developer may file issues; the JUDGEMENT moved out of the hook ---"
+# WHAT THIS SUITE USED TO ASSERT, and why almost all of it is gone.
+#
+# For four rounds this block tested that the hook could tell a DECOMPOSITION from invented scope:
+# a `Parent: #N` marker read from the body or the body FILE, word-anchored so `apparent #122` did
+# not count, first-match-not-last so a trailing number could not authorise it, the repo read from
+# `$bare` so a `-R` inside `--body` could not redirect the lookup, then `gh issue view` to confirm
+# the story carried `ready`. Ten assertions, a repo-aware `gh` stub, and every one of them was a
+# real defect correctly fixed.
+#
+# All of it is deleted, because the rule it tested is deleted (ADR-0004, amendment 2026-08-02):
+# intent is not in the command string, so the judgement moved to `agents/developer.md` and the
+# `quality-assurance` gate. Deleting the tests WITH the behaviour is the point — tests kept alive
+# past their rule are the most expensive kind of green.
+#
+# NO `gh` STUB ANY MORE, and that is a real simplification rather than a gap: the rule no longer
+# looks anything up, so there is nothing to stub and no network dependence to make hermetic. The
+# last case below asserts exactly that.
+check_agent ALLOW "tadeumendonca-skills:developer" "developer files a task"                    "gh issue create --title 'task: x' --body 'Parent: #122'"
+check_agent ALLOW "tadeumendonca-skills:developer" "developer, behind -R"                      "gh -R owner/repo issue create --title t --body 'Parent: #122'"
+# No marker needed now — asserted rather than left implied, because it is the BEHAVIOUR CHANGE.
+# A reader of the old suite would expect this to deny.
+check_agent ALLOW "tadeumendonca-skills:developer" "no marker: allowed now, by design"         "gh issue create --title t --body 'just work'"
+# The body-file shape, which the old rule denied for three rounds while it was the only way this
+# repo writes bodies. Kept as a case because that was the sharpest symptom of the deleted design.
+check_agent ALLOW "tadeumendonca-skills:developer" "a body written to a file"                  "gh issue create --title t --body-file /tmp/does-not-matter.md"
+
+# THE EXEMPTION IS STILL THE BUILDER'S ALONE. Filing is an act of EXECUTION; a review citing a
+# story is still a review opening work, which is the failure the whole rule exists to prevent.
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "a REVIEWER still cannot file"      "gh issue create --title t --body 'Parent: #122'"
+check_agent DENY  "tadeumendonca-skills:security"          "security still cannot file"        "gh issue create --title t --body 'Parent: #122'"
+# The main loop is unaffected: it still ASKS. The owner answers, per issue, as before.
+check       ASK   "main loop still asks"                                                       "gh issue create --title t --body 'Parent: #122'"
+
+# THE ONE LESSON THAT SURVIVES THE DELETION: the allow is a FLAG, not `exit 0`. An earlier version
+# returned from mid-script and everything below it stopped running — rules 7, 7b and 8. These three
+# are the regression, and they are the reason this block is not simply "allow developer":
+check_agent DENY  "tadeumendonca-skills:developer" "allow does not unreach rule 7 (trunk push)" "gh issue create --title t --body b && git push origin main"
+check_agent DENY  "tadeumendonca-skills:developer" "allow does not unreach rule 7b (merge)"     "gh issue create --title t --body b && gh pr merge 1 --merge"
+#   The third case here was `… && rm -rf /tmp/x`, and it was a TAUTOLOGY — `rm -rf` is rule 4,
+#   which runs BEFORE 5d, so it denied whether or not the fall-through worked. Found by mutating
+#   the allow back to `exit 0`: cases 7 and 7b reddened and that one did not. Replaced with rule
+#   8, which is genuinely downstream of 5d, so the assertion witnesses what it names.
+check_agent DENY  "tadeumendonca-skills:developer" "allow does not unreach rule 8 (composition)" "gh issue create --title t --body b ; echo done"
+
+# A message ABOUT the act is not the act — matched on `$bare`, after quoted spans collapse.
+check_agent ALLOW "tadeumendonca-skills:developer" "a commit message mentioning the act"        "git commit -m 'gh issue create notes'"
+
+# THE FLAG IS NOT INHERITED FROM THE ENVIRONMENT. Found by `security` on this PR: `developer_may`
+# was read as `${developer_may:-}` and set only inside the `case`, so an exported variable of that
+# name made the MAIN AGENT's `gh issue create` come out with no decision at all — the owner's ASK
+# skipped by ambient state. Same shape as the `exit 0` defect this rule already memorialises.
+#
+# Exploitability was low (the hook is a child of the harness, not of any command's shell), which is
+# exactly why it is asserted rather than argued: a fail-open at the floor that depends on "you
+# probably cannot reach it" is not closed, it is unmeasured.
+out=$(jq -n --arg c "gh issue create --title t --body b" '{tool_input:{command:$c}, agent_type:""}' | developer_may=1 bash "$GUARD")
+if [ "$(verdict "$out")" = "ASK" ]; then
+  pass=$((pass + 1)); printf 'ok    %-6s %s\n' "ASK" "an inherited developer_may does not exempt the main agent"
+else
+  fail=$((fail + 1)); printf 'FAIL  want=ASK got=%s  an inherited developer_may does not exempt the main agent\n' "$(verdict "$out")"
+fi
+
+# NO `gh` ON PATH: allowed, where the old rule denied. The direction changed because the reason
+# changed — the old deny was "cannot PROVE the parent, so fail closed", and there is no longer a
+# proof to fail. Asserted so the change is visible rather than incidental.
+NOGH="$(mktemp -d)"
+REAL_PATH_5D="$PATH"
+PATH="$NOGH:/usr/bin:/bin"
+check_agent ALLOW "tadeumendonca-skills:developer" "no gh: nothing to look up any more"        "gh issue create --title t --body 'Parent: #122'"
+PATH="$REAL_PATH_5D"
+rm -rf "$NOGH"
+
 echo "--- rule 5c: the owner decides what enters the queue — asked in the main loop, denied in a subagent ---"
 # The rule used to DENY every one of these. That did not stop unaligned work; it taxed ALIGNED work,
 # and the tax landed on the owner, who had to type the command themselves for something they had just

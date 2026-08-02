@@ -74,8 +74,10 @@ Follow `/principles/dev-loop`. Nothing here relaxes it:
 - `marketing-lead` on reader-facing copy, long-form prose included. **Nothing enforces this
   dispatch** — no check, job or hook — so an undispatched lens fails silently. Where the repo's guide
   makes these the only review of copy, an undispatched one is the whole gate missing.
-- Adjacent debt is **named in the report**, never filed *by the review* — a subagent has no way to
-  know whether anyone wants the work, and the guard denies it outright. The **main loop may open
+- Adjacent debt is **named in the report**, never filed *by the review* — a review has no way to
+  know whether anyone wants the work, and the guard denies it. *(Since #124 the guard exempts
+  `developer`, so "denies every subagent" is no longer accurate — but a **review** is still denied,
+  which is the case this bullet is about.)* The **main loop may open
   issues**, and should: recording something the owner asked for is not generating demand. The guard
   asks rather than denies there, so the owner decides per issue. See `/principles/dev-loop`,
   *Review does not open work* — which is about reviews, not about the queue being unwritable.

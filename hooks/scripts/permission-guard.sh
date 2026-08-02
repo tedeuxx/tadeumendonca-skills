@@ -36,9 +36,23 @@ command="$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/nu
 [ -z "$command" ] && exit 0
 
 # WHO is running this call. The harness stamps a subagent's tool calls with agent_type
-# (`<plugin>:<subagent>`) and leaves it empty for the main agent. The merge gate (rule 7b)
-# reads this; the model cannot forge it — it is set by the harness, not the prompt.
+# (`<plugin>:<subagent>`) and leaves it empty for the main agent. The merge gate (rule 7b) and the
+# filing exemption (5d) both read it.
+#
+# THE PROPERTY IS "CANNOT CLAIM", NOT "CANNOT OBTAIN", and the difference matters enough to state:
+# `agent_type` is read from the ROOT of the payload, while the model's only contribution is
+# `.tool_input.command`, a sibling string. There is no path from a command string to a root field —
+# so no SPELLING exempts anyone. But the main loop CHOOSES which persona to spawn, so it can obtain
+# any agent_type by delegating. That is 7b's designed path (its deny message says to route through
+# the reviewer) and it is now 5d's too. These rules enforce ROUTING, not capability.
 agent_type="$(printf '%s' "$input" | jq -r '.agent_type // empty' 2>/dev/null || true)"
+
+# NEVER INHERITED FROM THE ENVIRONMENT. `developer_may` is set only by rule 5d below and read as
+# `${developer_may:-}`, so an exported variable of that name in the hook's environment would skip
+# the owner's ASK — a main-agent `gh issue create` coming out with no decision at all. That is the
+# same shape as the `exit 0` defect this file already memorialises: an outcome depending on state
+# the rule never established. Cheap to close, at the floor, so it is closed rather than reasoned about.
+developer_may=
 
 deny() {
   jq -n --arg r "$1" '{
@@ -158,6 +172,13 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 #       - A SUBAGENT still cannot file. This is where the measured failure actually happened (below):
 #         issues born inside a review of something else, by a persona with no access to the owner and
 #         no way to know whether anyone wants the work. It reports the finding upward; that is its job.
+#         ~~Full stop.~~ **One exception since #124 — see 5d below:** `developer` may file issues,
+#         because filing tasks under an approved story is decomposing work the owner already approved,
+#         not opening work. Every other subagent is denied exactly as this paragraph describes.
+#         ~~The parent is verified against the tracker rather than read from the command.~~ **Struck
+#         2026-08-02:** it is not verified here at all any more. The hook cannot decide whether an
+#         issue is a decomposition — four rounds of trying is the evidence — so that rule moved to
+#         `agents/developer.md` and the `quality-assurance` gate. See 5d for what was deleted and why.
 #       - THE MAIN AGENT ASKS. Alignment is a fact about a conversation, and the main loop is the only
 #         place that conversation exists — so it is the only place the question can be put to the one
 #         party who can answer it. One keystroke, on a prompt showing the title.
@@ -175,8 +196,13 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 #
 #     ~~NO ALLOWED SPELLING OF `gh issue create`, deliberately.~~ Superseded above — the objection is
 #     answered by moving the decision to the owner rather than by inventing a self-vouching flag. What
-#     survives from it: there is still no spelling the MODEL can use to exempt itself, and a subagent
-#     still has none at all.
+#     survives from it: there is still no spelling the MODEL can use to exempt itself.
+#
+#     ~~And a subagent still has none at all.~~ **False since #124.** `developer` is exempt — and the
+#     exemption is keyed on `agent_type`, which the HARNESS stamps and the model cannot write. So the
+#     sentence above still holds in the form that matters: there is no *spelling* that exempts anyone.
+#     What the exemption no longer carries is a check that the issue is really a decomposition; that
+#     was attempted for four rounds and is now the persona's rule and the gate's, not the floor's.
 #
 #     THE `gh api` ROUTE IS A NAMED ACCEPTED GAP — `gh api --method POST …/issues` is NOT matched, the
 #     same way rule 7b books `gh api … PUT …/merges` for the higher-stakes act of merging. It was
@@ -191,9 +217,81 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 #     message about the act, not the act.
 if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]]*|--repo[[:space:]=]*)[^[:space:]]+)?[[:space:]]+issue[[:space:]]+create'; then
   if [ -n "$agent_type" ]; then
-    deny "Blocked: a subagent does not open work. Report the finding — in your verdict, in the PR, or upward to the main loop — and let the owner decide whether it becomes an issue. You cannot see whether anyone wants this; the main loop can ask."
+    # 5d. DECOMPOSING IS NOT OPENING (#122, gitflow-single-env). One narrow exception, and the
+    #     distinction it rests on is real rather than a convenience:
+    #
+    #       OPENING SCOPE   is creating work nobody asked for — still denied, for every subagent.
+    #       DECOMPOSING     is dividing work the owner already approved and three leads ratified.
+    #
+    #     A task under a `ready` story adds nothing: the story passed the owner and the three-lead
+    #     referendum, and the task only makes visible what was already authorised. Denying it would
+    #     tax the flow the model exists to create — the same inversion the 2026-07-31 correction
+    #     found in this very rule, where a blanket denial taxed ALIGNED work and the owner paid.
+    #
+    #     ~~THE PARENT IS VERIFIED, NEVER READ FROM THE COMMAND. That is the whole difference
+    #     between an exception and a hole: a condition satisfied by writing the command differently
+    #     is a convention, and this file spent the day removing conventions from the floor. So the
+    #     `#N` is looked up — the story must EXIST and carry `ready`. A model that invents a parent
+    #     invents one that fails the lookup.~~
+    #
+    #     ~~FAILS CLOSED. No `gh`, no network, no answer → denied, exactly as before. A subagent
+    #     that cannot prove the parent reports instead of creating blind.~~
+    #
+    #     **BOTH STRUCK 2026-08-02 — nothing is looked up any more and there is no lookup to fail.**
+    #     The verification they describe is deleted; see the block below for what replaced it and
+    #     why. Struck HERE, in place, rather than only corrected further down: a claim and its
+    #     retraction twenty-five lines apart is a claim, because the reader who stops at this
+    #     paragraph never reaches the retraction. The suite is the falsifier — `no gh: nothing to
+    #     look up any more` asserts ALLOW where this text says denied.
+    #     AND IT IS THE BUILDER'S EXCEPTION, NOT EVERY SUBAGENT'S. The first version of this rule
+    #     let any subagent through on a ready parent, and the suite caught it: `quality-assurance`
+    #     and `security` citing a story would have been reviews opening work, which is the rule the
+    #     exception is supposed to preserve rather than erode. Decomposing is an act of EXECUTION,
+    #     so it belongs to the one persona that executes.
+    #     A FLAG, NOT `exit 0` — the one lesson from those four rounds that survives the deletion,
+    #     because it was never about intent either. An earlier version returned from the middle of
+    #     the script and everything below it stopped running: the trunk-push deny (7), the merge
+    #     gate (7b) and the composition check (8). `gh issue create … && git push origin main` came
+    #     out with NO decision at all, where before it was denied twice over. An exception in one
+    #     rule silently became a bypass of the whole floor. Falling through is the only safe shape.
+    case "$agent_type" in
+      *:developer) developer_may=1 ;;
+      *) deny "Blocked: a subagent does not open work. Filing tasks under an approved story belongs to \`developer\`, the persona that executes them — a review citing a story is still a review opening work. Report the finding in your verdict and let the owner decide whether it becomes an issue." ;;
+    esac
+    #     ~~AND THE PARENT IS VERIFIED, NEVER READ FROM THE COMMAND.~~ **Struck 2026-08-02, and the
+    #     strike is the point of the rule now.** For four rounds this branch tried to verify, in the
+    #     hook, that a `gh issue create` was a decomposition: a `Parent: #N` marker read from the
+    #     body — or from the body FILE, since that is how this repo writes bodies — word-anchored so
+    #     `apparent #122` did not count, first-match-not-last so a trailing unrelated number did not
+    #     authorise it, with the repo read from `$bare` so a `-R` inside `--body` could not point the
+    #     lookup at a different repo, then `gh issue view` to confirm the story carried `ready`.
+    #
+    #     Every one of those was a real defect, correctly fixed, and each fix left the next spelling
+    #     open — because **intent is not in the command string**. That is now a recorded decision
+    #     (ADR-0004, amendment 2026-08-02) rather than a lesson this file kept re-learning:
+    #
+    #         Mechanism where the act is irreversible. Skills where the rule is a judgement.
+    #
+    #     "Is this issue a decomposition of approved work, or is it scope somebody invented?" is a
+    #     judgement. A matcher cannot read it, and the eighty lines that tried are deleted here.
+    #
+    #     WHAT REPLACES IT — and it is deliberately weaker. `developer` may create issues; the rule
+    #     it must follow ("only a task under a story carrying `ready`, referencing its parent") lives
+    #     in `agents/developer.md`, where a judgement rule can actually be stated, and the
+    #     `quality-assurance` gate verifies it on the task's own MR. **Nothing mechanical stops a
+    #     `developer` from opening work nobody asked for.**
+    #
+    #     THE FULL COST IS BOOKED IN ADR-0004 (amendment 2026-08-02) AND NOT RESTATED HERE — it is
+    #     three things, not one, and a fourth copy of a paragraph is a fourth thing to keep true.
+    #     This file has now paid three times for a comment that drifted from the code beside it.
+    #
+    #     What is NOT weakened, because it was never about intent: `terraform apply`, force-push,
+    #     `rm -rf`, secret writes, the trunk push, the merge gate. Those are acts, not judgements,
+    #     and they stay mechanical.
   fi
-  ask "Open this issue? The guard cannot see whether it is aligned with you — that is the whole question, and only you can answer it. Approve if this is work you asked for or agreed to; decline if the agent generated it for itself."
+  # `developer` skips the ASK and FALLS THROUGH to rules 7, 7b and 8 — it does not return.
+  # Everything else still asks the owner, exactly as before.
+  [ -z "${developer_may:-}" ] && ask "Open this issue? The guard cannot see whether it is aligned with you — that is the whole question, and only you can answer it. Approve if this is work you asked for or agreed to; decline if the agent generated it for itself."
 fi
 
 # 7. Direct push to the trunk. This IS model-agnostic, contrary to the note above:

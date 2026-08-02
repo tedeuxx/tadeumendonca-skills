@@ -59,7 +59,9 @@ in a row. The `critical-reviewer` flagged this while reviewing #76; #77 tracked 
 
 **Fix — an agent-scoped merge gate in `permission-guard.sh` (rule 7b).** The harness stamps a subagent's
 tool calls with `agent_type` (`<plugin>:<subagent>`) and leaves it empty for the main agent; this field is
-set by the harness, not the prompt, so the model cannot forge it. The guard now **denies `gh pr merge`
+set by the harness, not the prompt, so the model cannot forge it. *(Precisely: cannot **claim** it —
+it can still **choose** which persona to spawn. See the 2026-08-02 amendment below, which corrects this
+phrasing for 7b as well as 5d; the guarantee is routing, not capability.)* The guard now **denies `gh pr merge`
 unless `agent_type` ends in `:critical-reviewer`.** The main agent and every other subagent are denied;
 the reviewer — the one context that *is* the merge gate — is allowed. "Did the reviewer run?" becomes a
 precondition satisfiable only by actually routing the merge through the reviewer, matching how `wip-guard`
@@ -106,6 +108,49 @@ around rather than follow.
 **Consequence.** Rules about the *shape of the work* move to skills the personas read
 (`/workflow/code-review` is the first). Skills are weaker — nothing enforces them — and that is the
 accepted trade: what they check is judgement rather than an act.
+
+**First application, same day (#124).** The rule was applied to the slice that motivated it, and the
+owner chose the skill over the mechanism. `permission-guard` rule 5d had spent four rounds trying to
+verify from the command string that a `gh issue create` was a *decomposition* rather than invented
+scope — a `Parent: #N` marker, read from the body file since that is how this repo writes bodies,
+word-anchored so `apparent #122` did not count, first-match-not-last so a trailing number could not
+authorise it, the repo read from the collapsed command so a `-R` inside `--body` could not redirect the
+lookup, then a tracker lookup for `ready`. **Eighty lines and ten assertions, all deleted.**
+
+What replaced it: the hook decides only what it can decide mechanically — `developer` may file, every
+other subagent is denied, the main loop asks the owner — keyed on `agent_type`, which the harness
+stamps and the model cannot write. The judgement rule (*only a task under a `ready` story, referencing
+its parent, never extending it*) lives in `agents/developer.md`, and `quality-assurance` verifies it on
+the task's MR.
+
+**And the cost is real, so it is recorded here rather than only in the persona.** Three parts, because
+the first draft of this paragraph booked only the first and `security` found the other two:
+
+- **The parent is unverified.** Nothing mechanical stops a `developer` filing work nobody asked for. It
+  surfaces as a finding at the gate instead of a denial at the keystroke — later, and more expensively.
+- **The REPO is unverified too.** The deleted lookup bound the act to one repository — the parent had to
+  carry `ready` in the repo the command targeted, so `-R someone-else/repo` failed. Nothing binds it
+  now, and the token carries full `repo` scope. A `developer` can file into any repository it reaches.
+- **And an issue can start execution.** In the consuming repo, `claude.yml` triggers on `issues:` when
+  the body or title contains `@claude` — so a filed issue whose prose merely *mentions* the agent
+  workflow starts a token-bearing run. Bounded (`contents: read`, and rules 7/7b apply inside it), and
+  accident-shaped rather than attack-shaped, but it means "issues are inert" is not one of the reasons
+  this trade is cheap.
+
+**A correction to how this ADR states the `agent_type` property, applying to rule 7b as much as 5d.**
+The claim has been *"the model cannot forge it — set by the harness, not the prompt"*. True, and it
+reads as more than it says. `agent_type` is read from the payload root while the model contributes only
+`.tool_input.command`, a sibling string, so **no spelling exempts anyone** — that half holds. But the
+main loop **chooses which persona to spawn**, so it can obtain any `agent_type` by delegating. The
+accurate property is:
+
+> **The model cannot CLAIM a persona it is not running as; it can CHOOSE which persona to run.**
+
+So these rules enforce **routing**, not capability. For 7b that was always the design — its deny message
+says to route through the reviewer, and the value is that the reviewer's instructions actually run in a
+fresh context. 5d now works the same way. What changed is only that the owner's ASK on issue creation is
+**advisory rather than enforced**: one delegation away. Recorded because the stronger phrasing would
+have been read as a guarantee it never made.
 
 **An open question raised in review of this amendment, recorded rather than settled.** The rule is
 stated on **reversibility**; the evidence cited is about **expressibility**. They correlate in the
