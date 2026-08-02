@@ -36,9 +36,23 @@ command="$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/nu
 [ -z "$command" ] && exit 0
 
 # WHO is running this call. The harness stamps a subagent's tool calls with agent_type
-# (`<plugin>:<subagent>`) and leaves it empty for the main agent. The merge gate (rule 7b)
-# reads this; the model cannot forge it — it is set by the harness, not the prompt.
+# (`<plugin>:<subagent>`) and leaves it empty for the main agent. The merge gate (rule 7b) and the
+# filing exemption (5d) both read it.
+#
+# THE PROPERTY IS "CANNOT CLAIM", NOT "CANNOT OBTAIN", and the difference matters enough to state:
+# `agent_type` is read from the ROOT of the payload, while the model's only contribution is
+# `.tool_input.command`, a sibling string. There is no path from a command string to a root field —
+# so no SPELLING exempts anyone. But the main loop CHOOSES which persona to spawn, so it can obtain
+# any agent_type by delegating. That is 7b's designed path (its deny message says to route through
+# the reviewer) and it is now 5d's too. These rules enforce ROUTING, not capability.
 agent_type="$(printf '%s' "$input" | jq -r '.agent_type // empty' 2>/dev/null || true)"
+
+# NEVER INHERITED FROM THE ENVIRONMENT. `developer_may` is set only by rule 5d below and read as
+# `${developer_may:-}`, so an exported variable of that name in the hook's environment would skip
+# the owner's ASK — a main-agent `gh issue create` coming out with no decision at all. That is the
+# same shape as the `exit 0` defect this file already memorialises: an outcome depending on state
+# the rule never established. Cheap to close, at the floor, so it is closed rather than reasoned about.
+developer_may=
 
 deny() {
   jq -n --arg r "$1" '{
@@ -214,16 +228,21 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]
     #     tax the flow the model exists to create — the same inversion the 2026-07-31 correction
     #     found in this very rule, where a blanket denial taxed ALIGNED work and the owner paid.
     #
-    #     THE PARENT IS VERIFIED, NEVER READ FROM THE COMMAND. That is the whole difference between
-    #     an exception and a hole: a condition satisfied by writing the command differently is a
-    #     convention, and this file spent the day removing conventions from the floor. So the `#N`
-    #     is looked up — the story must EXIST and carry `ready`. A model that invents a parent
-    #     invents one that fails the lookup.
+    #     ~~THE PARENT IS VERIFIED, NEVER READ FROM THE COMMAND. That is the whole difference
+    #     between an exception and a hole: a condition satisfied by writing the command differently
+    #     is a convention, and this file spent the day removing conventions from the floor. So the
+    #     `#N` is looked up — the story must EXIST and carry `ready`. A model that invents a parent
+    #     invents one that fails the lookup.~~
     #
-    #     FAILS CLOSED. No `gh`, no network, no answer → denied, exactly as before. A subagent that
-    #     cannot prove the parent reports instead of creating blind. That is the opposite direction
-    #     from `wip-guard`, deliberately: this rule is part of the floor, and a floor that fails
-    #     open is not one.
+    #     ~~FAILS CLOSED. No `gh`, no network, no answer → denied, exactly as before. A subagent
+    #     that cannot prove the parent reports instead of creating blind.~~
+    #
+    #     **BOTH STRUCK 2026-08-02 — nothing is looked up any more and there is no lookup to fail.**
+    #     The verification they describe is deleted; see the block below for what replaced it and
+    #     why. Struck HERE, in place, rather than only corrected further down: a claim and its
+    #     retraction twenty-five lines apart is a claim, because the reader who stops at this
+    #     paragraph never reaches the retraction. The suite is the falsifier — `no gh: nothing to
+    #     look up any more` asserts ALLOW where this text says denied.
     #     AND IT IS THE BUILDER'S EXCEPTION, NOT EVERY SUBAGENT'S. The first version of this rule
     #     let any subagent through on a ready parent, and the suite caught it: `quality-assurance`
     #     and `security` citing a story would have been reviews opening work, which is the rule the
@@ -260,10 +279,11 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]
     #     it must follow ("only a task under a story carrying `ready`, referencing its parent") lives
     #     in `agents/developer.md`, where a judgement rule can actually be stated, and the
     #     `quality-assurance` gate verifies it on the task's own MR. **Nothing mechanical stops a
-    #     `developer` from opening work nobody asked for.** That is the accepted cost, stated plainly
-    #     rather than dressed up: the floor keeps what it can decide mechanically — every OTHER
-    #     subagent still denied, the owner still asked for the main loop — and hands back what it
-    #     never could.
+    #     `developer` from opening work nobody asked for.**
+    #
+    #     THE FULL COST IS BOOKED IN ADR-0004 (amendment 2026-08-02) AND NOT RESTATED HERE — it is
+    #     three things, not one, and a fourth copy of a paragraph is a fourth thing to keep true.
+    #     This file has now paid three times for a comment that drifted from the code beside it.
     #
     #     What is NOT weakened, because it was never about intent: `terraform apply`, force-push,
     #     `rm -rf`, secret writes, the trunk push, the merge gate. Those are acts, not judgements,

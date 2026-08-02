@@ -170,6 +170,21 @@ check_agent DENY  "tadeumendonca-skills:developer" "allow does not unreach rule 
 # A message ABOUT the act is not the act — matched on `$bare`, after quoted spans collapse.
 check_agent ALLOW "tadeumendonca-skills:developer" "a commit message mentioning the act"        "git commit -m 'gh issue create notes'"
 
+# THE FLAG IS NOT INHERITED FROM THE ENVIRONMENT. Found by `security` on this PR: `developer_may`
+# was read as `${developer_may:-}` and set only inside the `case`, so an exported variable of that
+# name made the MAIN AGENT's `gh issue create` come out with no decision at all — the owner's ASK
+# skipped by ambient state. Same shape as the `exit 0` defect this rule already memorialises.
+#
+# Exploitability was low (the hook is a child of the harness, not of any command's shell), which is
+# exactly why it is asserted rather than argued: a fail-open at the floor that depends on "you
+# probably cannot reach it" is not closed, it is unmeasured.
+out=$(jq -n --arg c "gh issue create --title t --body b" '{tool_input:{command:$c}, agent_type:""}' | developer_may=1 bash "$GUARD")
+if [ "$(verdict "$out")" = "ASK" ]; then
+  pass=$((pass + 1)); printf 'ok    %-6s %s\n' "ASK" "an inherited developer_may does not exempt the main agent"
+else
+  fail=$((fail + 1)); printf 'FAIL  want=ASK got=%s  an inherited developer_may does not exempt the main agent\n' "$(verdict "$out")"
+fi
+
 # NO `gh` ON PATH: allowed, where the old rule denied. The direction changed because the reason
 # changed — the old deny was "cannot PROVE the parent, so fail closed", and there is no longer a
 # proof to fail. Asserted so the change is visible rather than incidental.

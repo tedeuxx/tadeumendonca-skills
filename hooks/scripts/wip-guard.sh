@@ -31,14 +31,22 @@
 # loop-discipline check must never be the thing that wedges the loop. Every early exit
 # below is that rule applied: an answer we could not get is not a verdict.
 #
-# ⚠ `permission-guard.sh`, the other PreToolUse hook in this directory, fails CLOSED — and
-# that inversion is deliberate, not drift. This hook enforces loop DISCIPLINE, where a
-# spurious deny costs more than a missed one; that hook is the irreversible FLOOR, where a
-# missed deny is the whole failure. **Do not "fix" one to match the other.**
+# ⚠ Do not carry this file's fail-open rule across to `permission-guard.sh`, the other
+# PreToolUse hook here. This hook enforces loop DISCIPLINE, where a spurious deny costs more
+# than a missed one; that hook is the irreversible FLOOR, where a missed deny is the whole
+# failure. **Do not "fix" one to match the other.**
 #
-# The warning lives here rather than only there because the danger runs in this direction:
-# someone reading "Fails OPEN on any error" as the house style and carrying it across would
-# open the floor, and nothing in that file's error paths would look wrong to them.
+# ~~That hook fails CLOSED.~~ **Struck 2026-08-02 — it does not, and asserting it here was
+# worse than saying nothing.** `permission-guard.sh` fails OPEN on an unreadable payload, by
+# design (its header says so, and `settings.json`'s deny list is the stated backstop). Measured:
+# with `jq` off PATH it emits no decision at all, so a main-agent `git push origin main` is
+# allowed. The backstop covers terraform / force-push / `rm -rf` / secrets, but NOT rules 7, 7b
+# and 8 — which exist precisely because a prefix matcher cannot express them.
+#
+# So the accurate warning is the one above: the DIRECTIONS DIFFER BY INTENT, and this file's
+# reasoning is not transferable. What that floor should do when it cannot read its input is an
+# open question, filed rather than answered here — this comment claiming it was already answered
+# is exactly the failure it was written to prevent, found by `security` reviewing #124.
 
 set -uo pipefail
 
