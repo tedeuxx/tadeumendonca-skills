@@ -6,9 +6,9 @@ argument-hint: "[repo] (defaults to the current repo)"
 Drain the product backlog of `$ARGUMENTS` (default: the current repo), one slice at a time, through
 the full dev-loop, without asking permission for anything in-pattern.
 
-**Done means: nothing is left that can be advanced without the owner.** Not "the backlog is empty" —
-that is unachievable while any item needs a human, and a terminal condition you cannot reach is not
-one. This one is checkable.
+**Done means: no open issue outranks the cost of the session continuing.** See *Stop when* below for why
+the two earlier answers — *"the backlog is empty"* and *"nothing is left that can be advanced without the
+owner"* — were both wrong, and wrong in different directions.
 
 ## The queue
 
@@ -90,8 +90,57 @@ what is blocked on the owner. A count is checkable; "making progress" is not.
 the loop — no check reads it, and the human reading it cannot verify it. Every claim in one is a claim
 someone will act on.
 
+## Report in delivery, not in issues closed
+
+**Every session report states product slices against hygiene slices.** *"Ten issues closed"* sounded
+like progress on the day it was measured; the honest ruler said **3 of 12** (#104).
+
+- **A product slice** is one where a reader can **do, see or read something different**.
+- **A hygiene slice** is everything else — comments, dead code, a test mechanism, a process rule, a
+  README. Internal correctness is not delivery, however good; it is the cost of being able to deliver
+  again.
+
+**A session with zero product slices is a finding, not a status.** Say it in those words.
+
+This is a **measurement, not a process** — it adds no step, blocks nothing and needs nobody's approval.
+That is what makes it agile rather than ceremony, and it is why it earns its place: rules can be argued
+with, an outcome that is visible cannot be closed without someone noticing.
+
+*Why the bias needs a counterweight at all:* hygiene work is cheap to justify — found in context,
+evidence attached, safe class, merges without the owner — while product work needs decisions and
+sometimes the owner's own words. The autonomy gradient therefore sorts the queue by what flows without
+a human, which is exactly backwards from what a backlog is for.
+
+**Pick up hygiene when it BLOCKS a product slice, or in one deliberate bounded batch.** Not
+opportunistically.
+
 ## Stop when
 
-- the unblocked queue is dry; or
+- **no open issue outranks the cost of continuing** — see below; or
 - a slice reveals the plan behind it was wrong — a boundary event, with what changed; or
 - the owner interrupts.
+
+### Why the terminal condition changed (#103)
+
+~~*the unblocked queue is dry*~~ **cannot be a terminal condition, and the arithmetic is one line.**
+If each slice yields on average more than one new unblocked issue, the unblocked queue never dries up
+and this command runs forever. Measured on the day it was raised: **32 issues created against 13 closed
+across both repos in one session — net +19**, with roughly 13 of the 32 produced by *reviewing something
+else* rather than by requested value.
+
+**Worse, that condition is anti-correlated with execution quality.** A sharper reviewer finds more per
+MR; more findings become more issues; the queue grows faster. The better the loop works, the less it
+terminates.
+
+It replaced *"until the backlog is empty"* (#97) on the argument that the first fails because of the
+**human** and is therefore unreachable. True, and it shipped a version that fails because of the
+**loop** — which is worse, because it looks reachable.
+
+**What makes the new condition reachable is the pruning step** (`/principles/dev-loop`, *Closing an
+issue is a step*): a loop that only ever adds has no terminal state at any threshold. With a closing
+criterion, the queue can shrink, and "no open issue outranks the cost of continuing" becomes a real
+question rather than a formality.
+
+**Named residual:** that judgement is not mechanical. It is the honest shape — the alternative is
+another arithmetic condition, and this section is what an arithmetic condition that looked reachable
+cost.
