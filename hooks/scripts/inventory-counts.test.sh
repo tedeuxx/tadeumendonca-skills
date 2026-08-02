@@ -61,6 +61,24 @@ for dir in principles architecture backend frontend infrastructure workflow; do
   total=$((total + n))
   expect_in "$README" "$dir ($n)" "commands/$dir"
   expect_in "$CLAUDE" "$dir/ ($n)" "commands/$dir"
+
+  # The HEADING is not the inventory — the TABLE UNDER IT is what a reader actually reads.
+  #
+  # This assertion exists because the gap it closes shipped. Adding a skill reddened the heading
+  # above, someone bumped "(8)" to "(9)", and the suite went green with the table below it still
+  # listing eight rows. The skill was published and undiscoverable in the one document a reader
+  # opens to find out what exists — and the file's own header already booked this hole in its own
+  # words: "It asserts the numbers, never the prose around them."
+  #
+  # Row-counted across the whole file rather than parsed per-section, deliberately: every skill
+  # appears exactly once as a table row, so a global count needs no section-boundary logic, and
+  # boundary parsing is a thing to get wrong for no gain.
+  rows=$(grep -c "^| \`/$dir/" "$CLAUDE" || true)
+  if [ "$rows" = "$n" ]; then
+    ok "commands/$dir — CLAUDE.md table lists all $n"
+  else
+    bad "commands/$dir — CLAUDE.md heading says $n, the table under it lists $rows; a skill is published and unlisted"
+  fi
 done
 
 expect_in "$README" "$total skills + autonomy-on" "commands/ total"
