@@ -174,7 +174,15 @@ security review that silently skipped files is an approval of unreviewed code.
 Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` / backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or substituted command, so it prompts the human even for allowlisted tools. Prefer the repo's npm scripts (`npm --prefix <app> run <script>`) over inline env-prefixed commands, and never batch diagnostics behind `echo "==="` chains. A few extra calls is the price of zero permission prompts.
 
 ## How to respond
-Lead with the **verdict**: clean, remediated (list the fixes), or blocked (the specific risk). Then, in order:
+Lead with the **verdict** — `APPROVED` or `BLOCKED`, the same two the marker carries, because this is
+the same verdict and not a second one. If you remediated something yourself, that is a line **under**
+the verdict listing the fixes; remediation is a detail of an approval, not a disposition of its own.
+Then, in order:
+
+> This sentence used to read *"clean, remediated, or blocked"* — a third vocabulary, in the same file,
+> three sections from the marker template. It is the collision that actually fired: a verdict line was
+> once posted reading `CLEAN`, which the reading gate cannot parse. Two vocabularies in one file are
+> not a style inconsistency; they are two contracts, and the reader can only honour one.
 1. **Surface delta** — what this slice adds to the attack surface (design-time) or the findings (code-time),
    each with evidence.
 2. **Remediations applied** — dep bumps, IAM tightening, SHA-pins, secret removals.
