@@ -14,7 +14,7 @@ Practice and template: [`/workflow/adr`](../../commands/workflow/adr.md) · [`te
 | [0004](./0004-autonomy-and-permission-model.md) | Autonomy & permission model (classes, tool-scoping) | accepted |
 | [0005](./0005-plugin-auto-versions-on-merge.md) | The plugin auto-versions on every merge; adoption is the consumer's opt-in | accepted |
 | [0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md) | A verdict one persona owes another is an artifact on the PR, not a relayed claim | accepted |
-| [0007](./0007-the-merge-precondition-is-a-floor-not-an-instruction.md) | The merge precondition is a floor, not an instruction — a hook on the decidable half (the markers): the unresolved case **asks**, a negative answer **denies**, the read is bounded, and the ratification half stays prose | proposed · qualifies under ADR-0004's **decided** rule (a merge is a push to the trunk) · reverses ADR-0006's rejected option 2 |
+| [0007](./0007-the-merge-precondition-is-a-floor-not-an-instruction.md) | The merge precondition is a floor, not an instruction — a hook on the decidable half (the markers): it **asks** only where the check could not run and no outsider could have caused that, **denies** everywhere else, the read is bounded, and the ratification half stays prose | proposed · qualifies under ADR-0004's **decided** rule (a merge is a push to the trunk) · reverses ADR-0006's rejected option 2 |
 
 New ADRs: copy `template.md` → `NNNN-kebab-title.md`, next number in sequence. Never delete a superseded
 ADR — mark it `superseded by ADR-XXXX` and link forward.
