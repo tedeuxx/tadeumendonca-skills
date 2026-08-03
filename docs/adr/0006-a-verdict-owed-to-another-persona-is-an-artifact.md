@@ -123,12 +123,13 @@ Chosen: **the comment, verified by the consumer against the current head.**
   reads its comment: **if it cannot post its own verdict, it does not merge**, and it says why. Without
   that, the asymmetry reintroduces the original failure in the half nobody verifies — a merge with no
   delivery record, silently, which is precisely what the harness monitor objected to.
-- `quality-assurance` verifies ~~three~~ **five** conditions before merging, **in order, each with
-  exactly one remedy** — the marker exists · it **parses** · the verdict approves · the head SHA equals
-  the PR's current `headRefOid` · no second marker contradicts it at that head — and reports all five
-  with their outcome, ~~which of the three failed~~ not only the one that stopped it.
-  *(Two conditions added and the remedy model replaced by the 2026-08-03 amendment; the original
-  three-condition form could not express **malformed** at all.)*
+- ~~`quality-assurance` verifies three conditions before merging … and names which of the three
+  failed.~~ **Superseded by the 2026-08-03 amendment**, which replaced this three times over — see
+  *Three conditions could not express `malformed`* below. The current rule is **gather · parse ·
+  select · judge**, each outcome named rather than numbered, and it is stated in
+  `agents/quality-assurance.md`. **No count and no enumeration is kept here**: this bullet carried a
+  three, then a five, then a five contradicting the amendment printed below it — *a count is an
+  enumeration with the items deleted, and it drifts identically.*
 - The check runs **immediately before the merge, not at review start**, so the two gates stay parallel.
 - **Both** gatekeepers derive the diff from `gh pr diff` / `gh pr view --json files`, never from a local
   `git diff` against a ref they picked. This is the same principle in the evidence dimension: a
@@ -322,7 +323,9 @@ Two overstatements in one bullet, both struck above:
 ### Impersonation: observed once, and the observation is why the word changed
 
 On `tadeumendonca-io#336` the invoking context relayed a verdict for `marketing-lead` — a lens with no
-`Bash` by design, structurally unable to post — under a `gatekeeper-verdict:` marker, **and wrote a
+`Bash` by design, structurally unable to post — first under a `gatekeeper-verdict:` marker and then
+corrected in place to a non-gating `advisory-lens:` one when `security` found that a machine consumer
+would read the prose disclaimer never and the namespace always — **and wrote a
 `head:` SHA it had invented**, holding the 7-character short form and generating the remaining 33.
 `quality-assurance` caught it by running `git cat-file -t` on the field rather than reading it, and
 merged on the comment's *substance*, which re-derives from the diff, while reporting the stamp as a

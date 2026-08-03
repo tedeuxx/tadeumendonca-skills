@@ -351,7 +351,7 @@ the sessions were not running — the reason `session-plugin-version` exists.
 
    **Each gatekeeper posts its verdict to the PR before returning** — a `<!-- gatekeeper-verdict: … -->`
    comment carrying the head SHA it read — and **`quality-assurance` verifies `security`'s before
-   merging**, against the five conditions ADR-0006 defines — **and the enumeration lives there, not
+   merging**, against the rule ADR-0006 defines — **and it lives there, not
    here.** Two restatements of it in this file had already drifted into two *different* four-of-five
    subsets, and the one that dropped **parseability** dropped the predicate that rejects a malformed
    verdict — the fail-open direction. A relay from the invoking context is a notification, never the
