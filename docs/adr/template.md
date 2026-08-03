@@ -2,7 +2,7 @@
 
 - **Status:** proposed <!-- proposed | accepted | superseded by ADR-XXXX | rejected -->
 - **Date:** YYYY-MM-DD
-- **Deciders:** <who> <!-- the human ratifies; tech-lead owns the decision and writes the record -->
+- **Deciders:** <who> <!-- the owner decides; tech-lead owns the RECORD and writes it -->
 - **Supersedes / superseded by:** <ADR link, or —>
 - **Driven by:** <Issue / spec link, or —>
 
