@@ -88,8 +88,13 @@ stale cross-references behind, and *parse · verdict · head* cannot go stale un
   inside the trust boundary*, since the writer is a subagent on the owner's token. **Portability note:**
   `OWNER` is not returned for org members, so in an org-owned repo this gathers nothing and stops
   permanently — widen it there deliberately, and read the next paragraph before you do;
-- **including minimised ones.** Minimising is how a superseded marker is retired — non-destructive and
-  inside the trust boundary — but it is **not** a reason to stop looking at one.
+- **including minimised ones** — `isMinimized: true`, a field the same payload returns. Minimising is
+  how a superseded marker is retired — non-destructive and inside the trust boundary — but it is **not**
+  a reason to stop looking at one.
+
+  *Named rather than described, because this file's own rule is that **a predicate is not a check until
+  the command that runs it returns the field it names** — and "minimised" was load-bearing three times
+  here while `isMinimized` appeared nowhere.*
 
 > **A minimised marker is retired only when a marker at the current head RECORDS its retirement** —
 > naming its node id and the verdict retired. **The record is the licence, not the minimisation.**

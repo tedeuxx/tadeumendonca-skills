@@ -140,8 +140,9 @@ dispositions, loud in the direction that matters.
 > both. The first version of this rule ignored that, and shipped a marker vocabulary contradicting the
 > file it was added to.
 
-**One live marker per head, and never edit one you have posted.** The gate expects exactly one of yours
-at the current head; two is a failure it reports rather than a tie it breaks. If you are re-dispatched
+**One live marker per head, and never edit one you have posted.** The gate expects exactly one **live**
+marker of yours at the current head — live meaning `isMinimized: false`. More than one live marker at
+that head **with conflicting verdicts** is a failure it reports rather than a tie it breaks. If you are re-dispatched
 on the **same** commit — a re-run, a question — do not post a second marker and do not rewrite the
 first: say so in your return and let the invoking context decide.
 
@@ -153,6 +154,11 @@ first: say so in your return and let the invoking context decide.
 >
 > *That clause was missing because the rule was grafted onto a file that already answered the question —
 > the exact defect this slice exists to fix, reproduced by the fix for it.*
+>
+> *And it is an exception only in the sense that it names a case, not in the sense that it licenses
+> breaking the rule above: minimised-plus-fresh is **one** live marker. The first version of this clause
+> did read as a licence, because the base rule counted markers rather than live ones — a rule and a
+> permission to violate it, sitting three lines apart.*
 
 **A body edited after posting is treated as malformed**, because an edit changes a verdict while leaving
 no new entry in the list the gate reads.
