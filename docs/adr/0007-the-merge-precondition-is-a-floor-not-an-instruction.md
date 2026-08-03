@@ -48,7 +48,9 @@ Two further variables, kept apart from that one because conflating them cost thi
 
 ## Considered options
 
-1. **A `PreToolUse` hook on `gh pr merge` that denies a merge lacking its gatekeeper markers** (chosen) — the hook reads the PR's comments and head, and denies unless both markers parse, carry a verdict literal from their persona's canonical set, and record the current `headRefOid`. *Trade-off:* a second network-dependent hook, and it forces the fail-open/fail-closed question to be answered explicitly rather than inherited.
+1. **A `PreToolUse` hook on `gh pr merge` that denies a merge lacking its gatekeeper markers** (chosen) — the hook reads the PR's comments and head, **discards every comment not authored by `OWNER`**, and then denies unless both surviving markers parse, carry a verdict literal from their persona's canonical set, and record the current `headRefOid`. *Trade-off:* a second network-dependent hook, and it forces the fail-open/fail-closed question to be answered explicitly rather than inherited.
+
+   *The author filter is stated **here**, in the option, and not only in the Decision. An earlier version described the mechanism without it and called it "the whole control" forty lines later — so an implementer building from the chosen option would have omitted the one part that keeps a stranger out. Found by `security`.*
 
 2. **Keep it prose, and add the assertion from #136** — pin each persona's marker literals to its own canonical verdict set. *Why not:* it is worth doing and it is **not this**. That assertion proves the **file says** the right thing. It cannot prove the **gate did** the right thing at merge time — a gate that reads a perfectly consistent file and merges anyway is exactly the failure mode, and #136 is blind to it. Complementary, not a substitute.
 
@@ -91,16 +93,22 @@ The **assertion**, the **settings deny** and the **status check** all leave the 
 **Fail OPEN, and this is the deliberate part.** The reflex is to say a floor fails closed, and `permission-guard.sh` is invoked as the precedent. That reasoning does not survive contact with what the two hooks actually protect:
 
 - `permission-guard.sh` denies things that are **irreversible in the world** — `terraform destroy`, a force-push, a secret write. A missed deny is unrecoverable; a spurious deny costs a retry.
-- This hook denies a merge that **has not yet been reviewed**. A missed deny produces a merge the gatekeepers would very likely have approved anyway, on a repo whose deploy is revertible. A spurious deny — no network, `gh` unauthenticated, the API slow — **wedges every merge in the loop**, which is the failure this whole architecture exists to avoid.
+- This hook denies a merge that **has not yet been reviewed**. A missed deny produces a merge the gatekeepers would very likely have approved anyway, on a repo whose **site** is revertible — the act is not, which is why the hook exists, but the content it publishes is fixed by the next merge. A spurious deny — no network, `gh` unauthenticated, the API slow — **wedges every merge in the loop**, which is the failure this whole architecture exists to avoid.
 
 **And the fail-open set has to be pinned, because the obvious phrasing defeats the incident that motivated this.** "Fails open on any error it cannot resolve" would fail open on an unparseable verdict line — and an unparseable verdict line is exactly what fired (`CLEAN`). The slogan is right and the set was wrong:
 
 | the check | outcome |
 | --- | --- |
-| **could not run** — no network, `gh` unauthenticated, timeout, API error, malformed payload | **allow.** An answer we could not get is not a verdict. |
+| **could not run** — no network, `gh` unauthenticated, timeout, API error | **allow.** An answer we could not get is not a verdict. |
 | **ran, and the answer is negative** — a marker is absent, its verdict literal is outside the persona's canonical set, or its head does not match | **deny.** This *is* a verdict, and it is the one the hook exists to enforce. |
 
 Unreadable is the second row, not the first. The distinction is *did the check reach an answer*, never *was the answer convenient*.
+
+**No cause in the first row may be selectable by anyone outside the trust boundary, and the ordering is what guarantees it.** An earlier version listed *"malformed payload"* among the causes that allow — and the payload is **PR comments on a public repository**, so a stranger who cannot pass the author filter needed only to post something the parser chokes on and the merge would sail through. That is not a residual, it is a bypass with a one-comment cost. Found by `security`.
+
+So the author filter runs **first, as a filter and not as a check**: comments that are not `OWNER`-authored are discarded before anything is parsed. A stranger's comment is then not malformed input — it is not input. What remains unparseable can only have been written inside the trust boundary, which is drift, which is what this hook is for.
+
+The general rule, worth more than the instance: **a fail-open branch reachable by an untrusted party is a control with a published bypass.** Any cause added to that first row has to be checked against it.
 
 **And the second row needs a qualifier, because otherwise this ADR relocates drift instead of removing it.** A negative is a verdict **only when its inputs were complete and current**. The instance that matters: the hook has to know each persona's canonical verdict set, and **that copy can go stale**. Then the check runs, the literal is legitimately new, the table above calls the negative a verdict — and the hook denies **every merge** until someone edits the script. That is the hook drifting, in a record whose whole subject is drift, and it flips the failure from a silent allow into a wedged loop, which is precisely the trade fail-open was chosen to avoid. Same for a truncated comment read or a degraded `authorAssociation`: inputs that are not complete do not produce verdicts.
 
@@ -125,6 +133,7 @@ What it must never do is fail open **silently**: an unresolved check prints what
 - **The impersonation residue is unchanged.** The hook reads comments written with the same token the agent holds, so a determined agent could still write both markers. ADR-0006 already records this and accepts it. **Scoped deliberately: that sentence is about the party *inside* the harness**, and this record no longer generalises it to "the adversary is not hostility" — it mandates a control against a hostile stranger in the Decision above. Against the insider the mechanism addresses drift; against the outsider it addresses forgery. Two adversaries, one hook, and the first version of this bullet named only one of them.
 - **The stranger class this ADR introduces has its own residual, and it needs a line in the ledger rather than only a paragraph in the Decision.** Because the repository is public, the author filter is what stands between a drive-by comment and a merge, and **that filter is now the whole control** — there is no second mechanism behind it. Pinned to `OWNER` alone it is as narrow as this harness can make it, and the residual is what that narrowness cannot cover: **the token the harness runs with IS the owner's**, so the filter separates outsiders from the harness, never the harness from itself. That is ADR-0006's impersonation residue arriving by a second route, and it is unchanged by this hook.
   - *The first version of this bullet booked a different residual — that the filter admitted `COLLABORATOR` — and presented it as inherited from a sibling record. Both halves were wrong: the widening was introduced here, and it has since been removed. Kept as a note because a ledger entry that misstates which risk is accepted is worse than a missing one, and this is the entry the next person auditing the control will read.*
+- **The fallback floor has a hole this hook reproduces, and the two do not cover for each other.** `permission-guard.sh` books it at line 335: *"a raw `gh api ... PUT .../merges` is NOT matched"*. This hook matches the same surface — `gh pr merge` — so one command form walks past **both** at once, and the argument above that fail-open "degrades to rule 7b" is only true for the forms 7b actually sees. Named because the natural reading of two independent mechanisms is that a gap in one is caught by the other, and here it is the same gap twice. Found by `security`.
 - **Two mechanisms now encode part of one rule** — the hook (artifacts present and current) and the persona file (what they mean). That is the split this ADR argues for, but it is still a seam, and a change to the marker shape must move both.
 
 ## Links
