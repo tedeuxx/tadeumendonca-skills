@@ -151,6 +151,13 @@ merge reads the other's before merging — present, approving, and **naming the 
 nothing reads its own. A verdict on a superseded commit is a review of something else and fails the
 check.
 
+**And a gatekeeper that cannot write its verdict does not proceed as though it had.** For the gate whose
+verdict *is* read this is automatic — the merging gate finds nothing and holds. For the gate that
+merges, it is a rule, because nothing reads its own: **if it cannot record its verdict, it does not
+merge.** Without that clause the asymmetry rebuilds the original failure in the half nobody verifies —
+a merge with no delivery record, silently. *The trade is reversibility:* a blocked merge is a stall you
+undo; an unrecorded merge, where the merge is the release, is not.
+
 *Why both write when only one is read.* The read exists to gate a merge, and only one gate merges. The
 **write** exists for a second reason the read does not cover: without it, the delivery verdict — the one
 carrying the evidence and the merge decision — leaves no trace at all, which was the original complaint.

@@ -63,30 +63,40 @@ the veto fires on **every** MR while the ratification fires only on the boundary
    HEAD's PR — which is rule 5d's four rounds and eighty deleted lines, re-run for no additional
    assurance.
 
-2b. **Gate the COMMENT rather than the merge** — deny a `gh pr comment` whose body carries a marker
+3. **Gate the COMMENT rather than the merge** — deny a `gh pr comment` whose body carries a marker
    naming a persona the caller is not running as. *Recorded because the first draft of this ADR never
    considered it, and both gatekeepers found the omission independently.* It is **not** equivalent to
    option 2: it would narrow the attributable set from *"anyone holding `Bash`"* — which is what it is
    today — to *"the main loop deliberately spawning `security`"*. So the routing-not-capability argument
-   does not dispose of it. *Why not:* **the marker's presence in the command string is not a property of
-   the act, it is a property of the spelling.** With `--body` the marker is in the string and a hook
-   could see it; with `--body-file` it is in a file the hook would have to resolve and read; with a
-   heredoc it is in neither in any stable form. All three are legal ways to post the same comment, and
-   nothing prevents a fourth. A matcher that catches one and misses the next is **rule 5d exactly** —
-   four rounds, three bypasses, eighty lines deleted — and the lesson recorded there was that intent is
-   not in the command string. It is not in this one either.
+   does not dispose of it. *Why not — three reasons, none of them about spelling:*
 
-   *This rejection replaced an earlier one that was wrong, and the correction is recorded rather than
-   swapped in silently:* the first version claimed *"this decision mandates `--body-file`"*. **It does
-   not** — the Decision outcome mandates no spelling, and both persona files offer an inline `--body`.
-   So the original reasoning was false in the direction that made 2b look weaker than it is, in a
-   record whose entire purpose is to be audited later. Both gatekeepers found it independently.
+   - **It does not touch the failure that was observed.** #127 was **omission**: no verdict existed at
+     all. A hook that refuses a forged marker never fires when there is nothing to forge. This option
+     defends a threat this record has not seen, at a cost this record has measured.
+   - **ADR-0004 puts mechanism where the act is irreversible.** A comment is reversible by the next
+     comment. That line was drawn on this repo's own evidence and it excludes this.
+   - **A partial mechanism is worse than a named gap**, and this ADR argues that elsewhere. Covering
+     one spelling converts *"attributable to anyone holding `Bash`"* — a residual stated and known —
+     into *"attributable to `security`"*, which would be believed and false.
 
-3. **The status quo relay.** *Why not:* it is the defect. It made a gate's own rule unverifiable, and
+   *Two earlier rejections of this same option were wrong, and both are recorded rather than swapped in
+   silently, because the pattern is the finding.* The first claimed *"this decision mandates
+   `--body-file`"* — it does not, and grep falsified it. The second argued that the marker's presence in
+   the command string is a property of the spelling, so a hook would chase spellings forever; **that is
+   also refuted, by this repo's own history**: rule 5d *did* resolve and read a `--body-file`, and the
+   hook receives the whole command string with newlines collapsed, so a heredoc body is inside it too.
+   *"Nothing prevents a fourth spelling"* proves too much — it is equally true of rules 5b, 7, 7b and 8,
+   all of which are kept, each with a **named** accepted gap.
+
+   **Twice, this option was rejected on a reason stated stronger than the fact supported.** The
+   conclusion survived both times, which is exactly what makes it worth recording: a right answer
+   defended by a wrong argument reads as settled and audits as false.
+
+4. **The status quo relay.** *Why not:* it is the defect. It made a gate's own rule unverifiable, and
    it delivered a false claim about a diff without anyone noticing until the consumer independently
    re-derived the file list.
 
-4. **A GitHub review approval instead of a comment.** *Why not:* GitHub refuses a review approval from
+5. **A GitHub review approval instead of a comment.** *Why not:* GitHub refuses a review approval from
    the PR's own author, and every PR here is authored by the same token the gatekeepers run under, so
    the mechanism is unavailable rather than merely awkward. A comment carries the same information on
    the same surface with the same verification path already proven by ADR-0003.
@@ -141,12 +151,22 @@ Chosen: **the comment, verified by the consumer against the current head.**
   while `quality-assurance` obeys the instruction to check. It is a materially weaker fail-closed, it is
   the same class of gap this ADR exists to narrow rather than close, and option 2 would not have fixed
   it either. "Fails closed like the permission floor" is not a sentence to write without this qualifier.
-- **Neither gatekeeper has a `Write` tool**, so the body goes through Bash — where rule 8 of the floor
-  denies a backtick, `$(`, `;` or a chain operator outside a quoted span. A verdict needing a literal
-  backtick is denied, and the gate then blocks for a reason unrelated to review quality. Workable today
-  (both personas are instructed to author around it and one has already done so under this rule), and
-  the clean fix is a scratchpad-scoped `Write` grant — **an ADR-0004 tool-grant decision, so recorded
-  here as an open question rather than taken.**
+- **Neither gatekeeper has a `Write` tool**, so the body goes through Bash and must survive the floor's
+  composition rule. *The mechanics live in the persona files and are not restated here* — a third copy
+  is a third thing to keep true. What belongs in the record is the **cost**, and it is larger than an
+  inconvenience:
+
+  **The failure correlates with the reviews that matter most.** What makes posting fail is the
+  characters in the body; what determines those is how much the review found. A dense verdict citing
+  paths, flags and shell fragments is exactly the one that jams. So the tax is heaviest on the
+  substantive reviews, and the pressure it creates — trim the verdict until it posts — produces a
+  thinned verdict that is **indistinguishable from a careful one** to every checker in this loop.
+
+  That does not argue against the decision: under the rejected alternative the same bias yields a
+  *missing* record on the most substantive reviews, which is strictly worse. It argues that the
+  scratchpad-scoped `Write` grant is **not cleanup — it is what decides whether this rule is livable.**
+  Still an ADR-0004 tool-grant decision and therefore the owner's, so recorded here as an open question
+  rather than taken, but recorded as load-bearing rather than cosmetic.
 
 **Open question, recorded rather than settled.** `marketing-lead` has the identical hole:
 `quality-assurance` is told to confirm the copy lens returned a verdict, and cannot. It is
