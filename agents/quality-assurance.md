@@ -77,7 +77,11 @@ gh pr view <n> --json comments,headRefOid
 Three conditions, all of them, or you do not merge:
 
 1. a comment whose first line is `<!-- gatekeeper-verdict: security -->`;
-2. its verdict line reads `APPROVED` — not `BLOCKED`, not `ADVISORY-ONLY`;
+2. its verdict line reads exactly `APPROVED`. Anything else — `BLOCKED`, or any literal at all — is not
+   an approval. **Do not enumerate the alternatives here:** `security`'s verdict set is defined in
+   `agents/security.md` and that file is its only source. A list copied into this one drifts from it
+   silently, which is how a literal (`ADVISORY-ONLY`) that the persona file never defined came to be
+   checked for here;
 3. **the head SHA it records equals the PR's current `headRefOid`.** A verdict is about the commit it
    read. A verdict that names an older head reviewed something else.
 
@@ -106,11 +110,16 @@ invisible — which is precisely what the harness monitor complained about. Same
 
 ```
 <!-- gatekeeper-verdict: quality-assurance -->
-APPROVED            ← or REQUEST-CHANGES, or APPROVE-PENDING-HUMAN
+APPROVE-AND-MERGE   ← or APPROVE-PENDING-HUMAN, or REQUEST-CHANGES
 head: <the headRefOid you reviewed>
 
 …then your verdict and the per-criterion table.
 ```
+
+> **The verdict line is a projection of your own verdict set** — the one under *Your verdict — exactly
+> one of*. It introduces no literal that set does not contain, and a change to either changes both.
+> This template read `APPROVED` while that set says `APPROVE-AND-MERGE`, so the file offered a literal
+> it never defined — the same defect this MR fixes in `security.md`, sitting in the file fixing it.
 
 Post it **before** merging, so the record exists whether or not the merge follows — a verdict that only
 lands when you merge is missing on exactly the PRs where the reasoning mattered most.
