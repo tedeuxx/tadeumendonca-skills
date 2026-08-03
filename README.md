@@ -66,6 +66,7 @@ flowchart TB
       H1["permission-guard<br/>denies the irreversible floor"]
       H2["wip-guard<br/>overlap inside a story,<br/>one story at a time"]
       H3["session-wip<br/>lists the open queue"]
+      H4["session-plugin-version<br/>installed build vs source:<br/>says when merged work<br/>is not what is running"]
     end
 
     subgraph skills["commands/ — 74 skills + autonomy-on"]

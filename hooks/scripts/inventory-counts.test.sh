@@ -131,6 +131,45 @@ else
   bad "commands/ root — $root_cmds un-namespaced commands; the docs say '+ autonomy-on' as if there were one"
 fi
 
+# --- hooks ------------------------------------------------------------------------------------
+# THE HOOKS WERE THE ONE INVENTORY NOBODY PINNED, and it cost a false claim on a public page. The
+# README's diagram drew three hooks — `permission-guard`, `wip-guard`, `session-wip` — while
+# `hooks/hooks.json` had registered four since `session-plugin-version` shipped. Personas and skills
+# were guarded here; hooks were guarded nowhere, and the workflow's trigger filter did not even name
+# `hooks/**`, so adding a hook could not start the suite that would have caught it. The stale three
+# then propagated: issue #318 in the sibling repo specified "3 hooks" because its author read this
+# README, and `/architecture` was about to publish that number one click from this document.
+#
+# TWO ASSERTIONS, NOT ONE, because the count alone is the weaker half. A renamed hook keeps the count
+# and falsifies the diagram just as completely, so the names are checked too — the same reason the
+# per-directory skill counts grew a table-row assertion above.
+#
+# The diagram is counted by its NODE DECLARATIONS (`H<n>["…"]`), which is what a reader sees as a box.
+# That prefix is used nowhere else in the README, so the count needs no subgraph-boundary parsing —
+# the same trade the skill-row count makes, for the same reason: boundary parsing is a thing to get
+# wrong for no gain.
+HOOKS_JSON="$ROOT/hooks/hooks.json"
+if [ ! -f "$HOOKS_JSON" ]; then
+  bad "hooks/ — hooks.json does not exist; this assertion is checking nothing"
+else
+  registered=$(grep -cE '^[[:space:]]*"command"[[:space:]]*:' "$HOOKS_JSON")
+  drawn=$(grep -cE '^[[:space:]]*H[0-9]+\["' "$README")
+  if [ "$registered" = "$drawn" ]; then
+    ok "hooks/ — hooks.json registers $registered and the README diagram draws $drawn"
+  else
+    bad "hooks/ — hooks.json registers $registered hook(s), the README diagram draws $drawn; the diagram is publishing a number the repo refutes"
+  fi
+
+  while IFS= read -r hook_name; do
+    [ -z "$hook_name" ] && continue
+    if grep -qF -- "$hook_name" "$README"; then
+      ok "hooks/ — README names '$hook_name'"
+    else
+      bad "hooks/ — '$hook_name' is registered in hooks.json and appears nowhere in README.md"
+    fi
+  done < <(sed -nE 's#.*/hooks/scripts/([A-Za-z0-9._-]+)\.sh.*#\1#p' "$HOOKS_JSON")
+fi
+
 # --- the career figure, which is why this file exists at all ----------------------------------
 # README.md:3 carried "15+ years" while the CV published "18+", computed evergreen from the career
 # start so it can never drift. A hardcoded second copy is exactly what went stale. The rule is that

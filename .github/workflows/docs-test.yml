@@ -27,7 +27,12 @@ on:
       - "commands/**"
       - "README.md"
       - "CLAUDE.md"
-      - "hooks/scripts/inventory-counts.test.sh"
+      # `hooks/**`, not just this suite's own file. The suite now asserts the hook inventory too, so
+      # registering a hook falsifies the README exactly the way adding a skill does — and until this
+      # line existed, adding one could not START the gate that would have caught it. That is how the
+      # diagram published three hooks against a `hooks.json` registering four. It supersedes the
+      # narrower `hooks/scripts/inventory-counts.test.sh` entry that used to sit here.
+      - "hooks/**"
       - ".github/workflows/docs-test.yml"
 
 permissions:
