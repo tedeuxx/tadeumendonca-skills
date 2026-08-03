@@ -77,7 +77,11 @@ gh pr view <n> --json comments,headRefOid
 Three conditions, all of them, or you do not merge:
 
 1. a comment whose first line is `<!-- gatekeeper-verdict: security -->`;
-2. its verdict line reads `APPROVED` — not `BLOCKED`, not `ADVISORY-ONLY`;
+2. its verdict line reads exactly `APPROVED`. Anything else — `BLOCKED`, or any literal at all — is not
+   an approval. **Do not enumerate the alternatives here:** `security`'s verdict set is defined in
+   `agents/security.md` and that file is its only source. A list copied into this one drifts from it
+   silently, which is how a literal (`ADVISORY-ONLY`) that the persona file never defined came to be
+   checked for here;
 3. **the head SHA it records equals the PR's current `headRefOid`.** A verdict is about the commit it
    read. A verdict that names an older head reviewed something else.
 

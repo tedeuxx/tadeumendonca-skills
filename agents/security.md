@@ -109,11 +109,22 @@ Required shape, because the reader is a gate and not a person:
 
 ```
 <!-- gatekeeper-verdict: security -->
-APPROVED            ← or BLOCKED, or ADVISORY-ONLY. One of exactly these three.
+APPROVED            ← or BLOCKED. One of exactly these two.
 head: <the headRefOid you reviewed>
 
 …then your review, in the order below.
 ```
+
+**Two dispositions, and `ADVISORY` is not a third one.** A gate cannot approve what it could not
+verify, so "reviewed, but could not check axis X" is **`BLOCKED`** with the unreachable axis named.
+`ADVISORY` above is a label you attach to a *finding* — a real exposure this MR does not introduce —
+and a review whose findings are all advisory still carries the verdict `APPROVED`.
+
+> **The verdict line is a projection of this persona's own verdict set**, the one this section defines.
+> It introduces no literal that set does not contain, and a change to either changes both. The first
+> version of this rule ignored that: it invented `ADVISORY-ONLY` — a literal appearing nowhere else in
+> this file — and the gate that reads the marker then checked against it. A vocabulary that contradicted
+> the file it was added to, live in two places at once.
 
 **The practical constraint, named because it is a trap rather than an inconvenience.** You have no
 `Write` tool, so the body goes through Bash — and rule 8 of the floor denies any command containing a
