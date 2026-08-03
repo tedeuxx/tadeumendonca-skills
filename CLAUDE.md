@@ -152,7 +152,7 @@ safe pin (no mid-development tags pollute the namespace).
 
 ### principles/ (5) — the drift-reducer
 
-The harness's **principles layer**: how the owner builds software, so an agent's behavior doesn't drift. Cross-cutting (applies to every repo), distinct from the per-component how-to skills. Canonical summary in the root `PRINCIPLES.md`; deep validation via the `plan-reviewer` subagent (`agents/`); irreversible-floor enforcement via the shipped PreToolUse guard (`hooks/`).
+The harness's **principles layer**: how the owner builds software, so an agent's behavior doesn't drift. Cross-cutting (applies to every repo), distinct from the per-component how-to skills. Canonical summary in the root `PRINCIPLES.md`; deep validation via the `quality-assurance` subagent (`agents/`), which reviews **after** the change is built — `plan-reviewer` named here until 2026-08-03 was retired outright and invoking it fails; irreversible-floor enforcement via the shipped PreToolUse guard (`hooks/`).
 
 The **agentic dev-loop** (methodology ADRs `docs/adr/`, design in `docs/proposals/agentic-dev-loop.md`): a team of per-task subagents in `agents/`, materialized lazily.
 
