@@ -68,9 +68,7 @@ rule needs no new state, say so explicitly rather than leaving the axis unexamin
 - **Standing up the loop** in a new repo, or picking the loop model (`/principles/dev-loop` — the two models).
 - **A gate feels like theater**, or a green does not sit right — audit whether it verifies what it claims (widen the assertion to the installed form; make the "did the reviewer run?" a precondition, not a hope).
 - **The human is asked too often**, or WIP is piling — the loop's *shape* needs tuning, not more discipline from the people in it.
-- **Validating a loop/gate change** — pair it with `quality-assurance` (code-time). This skill is the *why*; it is the *check*.
-
-  *There is no design-time counterpart, and that is a decision rather than a gap.* This line used to name `plan-reviewer` beside it. That persona was **retired outright** — the owner writes the specs in the Issues, in more detail than a planner would produce, so the intake happens upstream of the loop. Invoking the name today simply fails. The cost is booked in `/workflow/adr`: the significance test now has one reviewer applying it instead of two, and that one sees the decision only after it is built.
+- **Validating a loop/gate change** — pair it with `tech-lead` (design-time, against the principles and the ADR library) and `quality-assurance` (code-time, against the Definition of Done). This skill is the *why*; they are the *checks*. This line named `plan-reviewer` for the design-time half until 2026-08-03; that persona was retired outright and invoking it fails, but the review it did was **absorbed rather than dropped** — `tech-lead` owns the decision, writes its record, and flags significance at intake.
 
 ## The parts
 - `/principles/engineering-philosophy` — the judgment the loop applies (the principles, the two tiers).

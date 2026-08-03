@@ -13,7 +13,7 @@ Write (or amend) an ADR when a change crosses a **significant boundary** — obj
 - introduces a new dependency or tool-class,
 - establishes a cross-cutting pattern others will follow.
 
-Otherwise, no ADR — a routine in-pattern change declares "no ADR" and moves on. The `quality-assurance` flags the need on the MR and verifies it got one; the `adr-author` writes it.
+Otherwise, no ADR — a routine in-pattern change declares "no ADR" and moves on. `tech-lead` flags the need at intake and **writes the record**; `quality-assurance` verifies on the MR that a significance-crossing change references one. (`adr-author` named here until 2026-08-03 was absorbed into `tech-lead` — whoever holds the decision writes it, in the same MR as the change.)
 
 **Decision & trade-off:** a *light* gate (significance-triggered), not a *strong* one (ADR for every change). Trade-off: a light gate can miss a decision that only looks routine — **and as of ADR-0002 amendment #7 this is less mitigated than it was.** The mitigation used to be *two* reviewers applying the test, at design time and at code time; `plan-reviewer` is retired, so there is one, and it sees the decision only after it is built. Accepted deliberately — the specs are written by the owner in the Issues, which is where a design-time reviewer's input was coming from anyway — but a named mitigation that halved is worth saying rather than leaving the sentence to age. A strong gate would never miss one but taxes every trivial change and trains people to write empty ADRs; the light gate keeps ADRs meaningful.
 
