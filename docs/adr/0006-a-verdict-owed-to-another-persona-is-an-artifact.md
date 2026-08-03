@@ -68,29 +68,36 @@ the veto fires on **every** MR while the ratification fires only on the boundary
    considered it, and both gatekeepers found the omission independently.* It is **not** equivalent to
    option 2: it would narrow the attributable set from *"anyone holding `Bash`"* — which is what it is
    today — to *"the main loop deliberately spawning `security`"*. So the routing-not-capability argument
-   does not dispose of it. *Why not — three reasons, none of them about spelling:*
+   does not dispose of it.
 
-   - **It does not touch the failure that was observed.** #127 was **omission**: no verdict existed at
-     all. A hook that refuses a forged marker never fires when there is nothing to forge. This option
-     defends a threat this record has not seen, at a cost this record has measured.
-   - **ADR-0004 puts mechanism where the act is irreversible.** A comment is reversible by the next
-     comment. That line was drawn on this repo's own evidence and it excludes this.
-   - **A partial mechanism is worse than a named gap**, and this ADR argues that elsewhere. Covering
-     one spelling converts *"attributable to anyone holding `Bash`"* — a residual stated and known —
-     into *"attributable to `security`"*, which would be believed and false.
+   ***Why not — one reason, and it is enough.*** **It does not touch the failure that was observed.**
+   #127 was **omission**: no verdict existed at all. A hook that refuses a forged marker never fires
+   when there is nothing to forge. So this option defends a threat this record has not seen, while
+   leaving the one it has seen exactly where it was.
 
-   *Two earlier rejections of this same option were wrong, and both are recorded rather than swapped in
-   silently, because the pattern is the finding.* The first claimed *"this decision mandates
-   `--body-file`"* — it does not, and grep falsified it. The second argued that the marker's presence in
-   the command string is a property of the spelling, so a hook would chase spellings forever; **that is
-   also refuted, by this repo's own history**: rule 5d *did* resolve and read a `--body-file`, and the
-   hook receives the whole command string with newlines collapsed, so a heredoc body is inside it too.
-   *"Nothing prevents a fourth spelling"* proves too much — it is equally true of rules 5b, 7, 7b and 8,
-   all of which are kept, each with a **named** accepted gap.
+   **What this rejection deliberately does NOT claim.** It does not claim the option is infeasible —
+   a hook could read the marker, and rule 5d proves it, because that rule *did* resolve and read a
+   `--body-file`. It does not claim the reversibility line in ADR-0004 excludes it: **that line is an
+   open question in ADR-0004's own final amendment**, which names `inventory-counts` as a fully
+   reversible, high-yield mechanism the rule as written would forbid, and proposes **mechanical
+   decidability** as the likely real variable — under which a literal marker compared to `agent_type`
+   is decidable and would *not* be excluded. **Revisit this option if that question is ever settled.**
 
-   **Twice, this option was rejected on a reason stated stronger than the fact supported.** The
-   conclusion survived both times, which is exactly what makes it worth recording: a right answer
-   defended by a wrong argument reads as settled and audits as false.
+   *Three earlier versions of this rejection were wrong, and they are recorded rather than swapped in
+   silently, because the pattern is the finding rather than any one of them.* The first claimed the
+   decision mandates `--body-file` — grep falsified it. The second argued the marker's presence in the
+   command string is a property of the spelling — refuted by 5d above, and *"nothing prevents a fourth
+   spelling"* proves too much, being equally true of rules 5b, 7, 7b and 8, all kept with **named**
+   gaps. The third invoked *"a partial mechanism is worse than a named gap"* — which **does not
+   discriminate**, since the option chosen here is partial in the identical way, closing omission and
+   not impersonation. That argument silently upgraded this ADR's actual rule, *do not overstate a
+   guarantee*, into *do not build a partial mechanism*, then applied the upgraded form to the option it
+   rejected and the original form to the option it chose.
+
+   **Four times, this option was rejected on a reason stronger than the facts supported — and each
+   version was longer than the last.** The conclusion survived every time, which is what makes it worth
+   recording: a right answer defended by a wrong argument reads as settled and audits as false. The
+   correction that finally held was **deleting reasons, not adding them.**
 
 4. **The status quo relay.** *Why not:* it is the defect. It made a gate's own rule unverifiable, and
    it delivered a false claim about a diff without anyone noticing until the consumer independently
@@ -165,8 +172,19 @@ Chosen: **the comment, verified by the consumer against the current head.**
   That does not argue against the decision: under the rejected alternative the same bias yields a
   *missing* record on the most substantive reviews, which is strictly worse. It argues that the
   scratchpad-scoped `Write` grant is **not cleanup — it is what decides whether this rule is livable.**
-  Still an ADR-0004 tool-grant decision and therefore the owner's, so recorded here as an open question
-  rather than taken, but recorded as load-bearing rather than cosmetic.
+  Still an ADR-0004 tool-grant decision and therefore the owner's — and a *capability* grant, so a
+  boundary decision in its own right rather than a consequence of merging this — so recorded here as an
+  open question, but recorded as load-bearing rather than cosmetic.
+
+  **Observed on this ADR's own MR, which is why it is stated this strongly.** A gatekeeper's verdict was
+  refused twice by the floor: once for quoting the very hook line that proved one of its refutations,
+  once because its prose used semicolons. It posted only after deleting the quoted evidence and
+  rewriting the argument's punctuation. The prediction and its confirmation are in the same review.
+
+  **And nothing detects the thinning.** No party in this loop holds both the verdict a gate *returned*
+  and the verdict it *posted* — the orchestrator sees the return, a later reader sees the comment, and
+  no check compares them. The detector would be trivial and there is nowhere to put it. Recorded as a
+  known blind spot rather than left to be rediscovered.
 
 **Open question, recorded rather than settled.** `marketing-lead` has the identical hole:
 `quality-assurance` is told to confirm the copy lens returned a verdict, and cannot. It is
