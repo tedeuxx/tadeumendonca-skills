@@ -109,11 +109,17 @@ Required shape, because the reader is a gate and not a person:
 
 ```
 <!-- gatekeeper-verdict: security -->
-APPROVED            ← or BLOCKED. Exactly these two.
-head: <the headRefOid you reviewed>
+APPROVED
+head: 0123456789abcdef0123456789abcdef01234567
 
 …then your review, in the order below.
 ```
+
+**Line 2 is `APPROVED` or `BLOCKED` and nothing else — no annotation, no parenthetical, no trailing
+note.** Line 3 is `head: ` followed by the **full 40-character** SHA, resolved rather than padded from a
+short form. *The gate parses these two lines before it reads anything else, so a gloss on either is a
+hard reject* — which the first version of this block managed to be, by carrying its own explanatory
+arrow on the line a writer copies.
 
 **Two dispositions, and the missing third is a deleted defect rather than an omission.** The marker
 used to offer `ADVISORY-ONLY`, and it was a live merge blocker: `quality-assurance` treats every line

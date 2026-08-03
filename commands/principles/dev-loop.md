@@ -63,8 +63,9 @@ the orchestrator — nothing reached the PR, the Issue, or anywhere durable. So 
 artifact that did not exist, in the very column whose job is to answer *what records that this
 happened*. Since 2026-08-02 ([ADR-0006](../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md))
 the artifact is real: each gatekeeper posts a marker comment carrying the head SHA it read, and
-`quality-assurance` verifies `security`'s before merging — the marker parses, the verdict approves, the
-head SHA equals the PR's current `headRefOid`, and no second marker contradicts it at that head. A
+`quality-assurance` verifies `security`'s before merging, against the conditions
+[ADR-0006](../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md) defines — **not
+re-enumerated here**, because two restatements in this file had already drifted apart. A
 verdict on a moved head is rejected rather than read as approval. *(Not "fails loudly": the SHA is
 self-reported by the writer, so the check catches an honestly stale verdict and not a dishonestly
 current one — [ADR-0006](../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s
@@ -350,10 +351,11 @@ the sessions were not running — the reason `session-plugin-version` exists.
 
    **Each gatekeeper posts its verdict to the PR before returning** — a `<!-- gatekeeper-verdict: … -->`
    comment carrying the head SHA it read — and **`quality-assurance` verifies `security`'s before
-   merging**: marker present, verdict approving, head SHA equal to the PR's current `headRefOid`, **and
-   no second marker from that persona naming the same head with a conflicting verdict**. A relay from
-   the invoking context is a notification, never the authority
-   ([ADR-0006](../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)).
+   merging**, against the five conditions ADR-0006 defines — **and the enumeration lives there, not
+   here.** Two restatements of it in this file had already drifted into two *different* four-of-five
+   subsets, and the one that dropped **parseability** dropped the predicate that rejects a malformed
+   verdict — the fail-open direction. A relay from the invoking context is a notification, never the
+   authority ([ADR-0006](../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)).
 
    *This paragraph exists because the sweep that should have caught its absence could not.* The rule was
    added to both persona files and to the state table, and this narration — the place an agent actually

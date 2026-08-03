@@ -214,9 +214,15 @@ from that persona's own verdict set** — its only other appearance in that file
 `REQUEST-CHANGES`.
 
 Both personas wrote the vocabulary their own file already used — **which is correct behaviour** — and
-both produced markers a strict reader rejects. Observed: a verdict line reading `CLEAN` on
-`tadeumendonca-io#336` and `tadeumendonca-skills#129`, and one reading `APPROVE-AND-MERGE` on
-`tadeumendonca-io#336`.
+both produced markers a strict reader rejects. Observed on `tadeumendonca-io#336`: verdict lines reading
+`CLEAN` and `APPROVE-AND-MERGE`, neither in the set its own marker required. On
+`tadeumendonca-skills#129`: `ADVISORY-ONLY`, a marker whose line 2 was prose rather than a literal, and
+a `head:` field carrying a 7-character short form.
+
+*(An earlier version of this sentence attributed `CLEAN` to both PRs. It appears on `#336` only —
+mis-cited in the same sentence, and in the same way, as the `APPROVE-AND-MERGE` attribution corrected
+one round earlier. Recorded rather than quietly fixed: a decision record that mis-states its own
+evidence is the defect it exists to prevent.)*
 
 **The collision fired only on the approving branch, which is why it survived so long.**
 `REQUEST-CHANGES` and `APPROVE-PENDING-HUMAN` are in both sets, so every blocking round produced a
@@ -264,11 +270,41 @@ satisfies both**, which is the normal state of every block-then-fix round. The p
 exact inverse of the one owed.
 
 The lesson is more general than this rule: **a predicate that is not checked cannot be recovered from a
-combination of the ones that are.** Parseability is now its own condition, checked before the verdict is
-read, and the model is five conditions **in order, each with exactly one remedy** rather than a mapping
-from combinations. Condition 1 failing — no marker at all — is also given its own remedy, because
-*never dispatched* and *dispatched but could not post* have different owners and the gate cannot tell
-them apart on its own.
+combination of the ones that are.** Parseability is now its own check, evaluated before the verdict is
+read. *Never dispatched* and *dispatched but could not post* are given their own outcome, because they
+have different owners and the gate cannot distinguish them alone — it must require the invoking context
+to say which.
+
+**And the second version was wrong too, in a way worth recording because it is the same shape one level
+up.** It made the contradiction a *fifth condition* after the others, under a stop-at-first-failure
+rule — which made it **unreachable in the only case it exists for**: a `BLOCKED` selected alongside an
+`APPROVED` at the same head stops at the verdict check, and the contradiction is never reported,
+resolved by reading order. **A condition placed after checks that can short-circuit past it is not a
+condition.**
+
+The model is now **selection first, then three ordered checks.** Selection collects every marker for
+that persona, resolves *absent* and *contradictory* where both are reachable, and hands the most recent
+marker to checks that parse it, read its verdict, and compare its head. That the gate must **select at
+all** was itself unstated: the persona file said *"that comment"*, singular, while this same amendment
+establishes that markers accumulate per round — a PR mid-slice routinely carries six.
+
+*One limit named rather than closed:* nothing asks whether the recorded SHA **names a real commit**. A
+fabricated 40-hex parses and fails the head check as *stale*, prescribing a re-dispatch where the remedy
+owed is a re-post with a resolved SHA. `git cat-file -t` closes it. Recorded as known — this record
+contains an instance of exactly that fabrication.
+
+### The producer side is still instruction-only, and that residual is now named
+
+The projection rule and the parse check between them remove the *cause* of the malformations seen so far
+and give the consumer a way to detect one. **Neither prevents a producer from emitting an unreadable
+marker.** The shape is instruction on the writing side and always will be — nothing runs between a
+persona deciding what to type and the comment landing.
+
+The original residual booked only the **consumer** possibly not checking. The producer half was
+unbooked, and it is the half that actually failed: three malformations in the mechanism's first two
+days, on the third and later uses, **by the two personas whose own files define the shape.** What
+changed is that a malformed marker now **holds the merge and says so** rather than being misdiagnosed;
+what did not change is that it can be written.
 
 ### What *"a stale verdict fails loudly"* actually delivers
 
@@ -305,9 +341,18 @@ gate, because a gate is defined by the artifact it leaves.*
 
 ### Swept and dispositioned rather than skipped
 
-`commands/principles/dev-loop.md:349` and this ADR's own line 52 restate the contract as *"verdict
-approving"* and *"a verdict line"* — **vocabulary-agnostic, so both survive unchanged.** Recorded here
-because a sweep that finds nothing and says nothing is indistinguishable from one that never ran.
+This ADR's own *Considered options* restates the contract as *"a verdict line"* — vocabulary-agnostic,
+so it survives unchanged. Recorded because a sweep that finds nothing and says nothing is
+indistinguishable from one that never ran.
+
+**`commands/principles/dev-loop.md` did NOT survive unchanged, and an earlier version of this paragraph
+said it did** — while the same diff was editing it. It carried the contract in **two** places that had
+already drifted into two *different* four-of-five subsets, and the one that dropped **parseability**
+dropped the predicate that rejects a malformed verdict: the fail-open direction. **Both now point here
+rather than re-enumerating**, because the enumeration is the thing that drifts.
+
+*Line-number citations are deliberately absent from this paragraph.* The earlier version carried them
+and they were stale within one round.
 
 ## Links
 - Makes [ADR-0003](./0003-mr-definition-of-done.md)'s two-gatekeeper requirement checkable rather than

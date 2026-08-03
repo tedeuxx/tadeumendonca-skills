@@ -74,29 +74,49 @@ holding the merge for it. If it returns blocking findings, that is another round
 gh pr view <n> --json comments,headRefOid
 ```
 
-**Five conditions, in this order, and each one has exactly one remedy.** Check them in order and stop at
-the first that fails — the order is what makes the remedy unambiguous.
+**Markers accumulate — the cadence is per round — so you SELECT before you check.** A PR mid-slice
+routinely carries half a dozen `security` markers. Selection is a step, not a condition, and putting it
+first is what makes the checks below mean anything.
 
-| # | condition | fails → | remedy, and whose |
+**Step 0 — select, and resolve a contradiction here rather than downstream.**
+
+1. Collect **every** comment whose first line is `<!-- gatekeeper-verdict: security -->`.
+2. **None → STOP.** You cannot tell *never dispatched* from *dispatched and could not post*: **ask the
+   invoking context which, and require it to say so in its return.** Different owners, different fixes.
+3. Among those recording the **current** `headRefOid`, if two carry **conflicting** verdicts → **STOP,
+   contradictory.** Neither is authoritative until one is withdrawn.
+4. Otherwise **take the most recent**, and check it below.
+
+*Why the contradiction is resolved during selection and not as a later condition:* it was a fifth
+condition in the first version of this rule, and **stop-at-first-failure made it unreachable in the
+only case it exists for.** A `BLOCKED` selected alongside an `APPROVED` at the same head stops at the
+verdict check and the contradiction is never reported — resolved by reading order, which is precisely
+what it was written to prevent. A condition placed after the checks that can short-circuit past it is
+not a condition.
+
+**Then three checks on the selected marker, in order. Stop at the first failure — the order is what
+makes the remedy unambiguous.**
+
+| # | check | fails → | remedy |
 |---|---|---|---|
-| 1 | a comment whose first line is `<!-- gatekeeper-verdict: security -->` exists | **absent** | you cannot tell *never dispatched* from *dispatched and could not post* — **ask the invoking context which, and require it to say so in its return.** Different owners, different fixes |
-| 2 | that comment **parses**: line 2 is exactly one of the persona's literals, line 3 is exactly `head: ` + 40 hex | **malformed** | **re-post, not re-review.** The judgement may be sound and unreadable |
-| 3 | the verdict literal is `APPROVED` | **blocked** | fix what it found, then **re-dispatch** |
-| 4 | the recorded head SHA equals the PR's current `headRefOid` | **stale** | **re-dispatch** on the current head |
-| 5 | no second `security` marker names this same head with a conflicting verdict | **contradictory** | neither is authoritative until one is withdrawn |
+| 1 | it **parses**: line 2 is exactly one of that persona's literals, line 3 is exactly `head: ` + 40 hex | **malformed** | **re-post, not re-review** — the judgement may be sound and unreadable. Only a re-dispatched `security` can post it, so the request goes to the invoking context |
+| 2 | the verdict literal is `APPROVED` | **blocked** | fix what it found, then **re-dispatch** |
+| 3 | the recorded head SHA equals the PR's current `headRefOid` | **stale** | **re-dispatch** on the current head |
 
-**Parseability is its own condition, and the first version of this rule got that wrong.** It tried to
-infer *malformed* from *"the verdict is not `APPROVED`"* **and** *"the head does not match"* together —
-which is **also the signature of a well-formed `BLOCKED` on a superseded head**, i.e. the normal state
-of every block-then-fix round. The inferred remedy was the exact inverse of the one owed. A predicate
-that is not checked cannot be recovered from a combination of the ones that are.
+**Parseability is its own check, and the first version of this rule got that wrong too.** It inferred
+*malformed* from *"the verdict is not `APPROVED`"* **and** *"the head does not match"* together — which
+is **also the signature of a well-formed `BLOCKED` on a superseded head**, the normal state of every
+block-then-fix round. The inferred remedy was the exact inverse of the one owed. **A predicate that is
+not checked cannot be recovered from a combination of the ones that are.**
 
-*Condition 5 is not hypothetical.* The cadence is **per round**, so markers accumulate on a PR — and a
-re-review at an **unchanged** head, which a documentation fix or a re-run produces, is exactly how two
-verdicts come to name the same commit.
+*A named limit, because the check cannot see it:* nothing here asks whether the recorded SHA **names a
+real commit**. A fabricated 40-hex parses and then fails check 3 as *stale*, which prescribes
+re-dispatch when the remedy owed is a re-post with a resolved SHA. `git cat-file -t` closes it and is
+not required here — recorded as known rather than discovered, since this ADR's own record contains an
+instance.
 
-**Report all five with their outcome, not only the one that failed**, and paste the output that shows
-it. A reader who sees `REQUEST-CHANGES` and one condition cannot tell what is owed or by whom.
+**Report the selection outcome and all three checks, not only the one that stopped you**, and paste the
+output. A reader who sees `REQUEST-CHANGES` and one line cannot tell what is owed or by whom.
 
 **And when any of the five fires, post your own marker before returning** — `REQUEST-CHANGES`, the
 numbered condition, and the output. You already must post and must not merge; what this adds is that
@@ -126,11 +146,17 @@ invisible — which is precisely what the harness monitor complained about. Same
 
 ```
 <!-- gatekeeper-verdict: quality-assurance -->
-APPROVE-AND-MERGE   ← or APPROVE-PENDING-HUMAN, or REQUEST-CHANGES
-head: <the headRefOid you reviewed>
+APPROVE-AND-MERGE
+head: 0123456789abcdef0123456789abcdef01234567
 
 …then your verdict and the per-criterion table.
 ```
+
+**Line 2 is one of `APPROVE-AND-MERGE` / `APPROVE-PENDING-HUMAN` / `REQUEST-CHANGES` and nothing else** —
+no annotation, no parenthetical, no trailing note. Line 3 is `head: ` followed by the **full
+40-character** SHA, resolved rather than padded. *You apply exactly this parse to `security`'s marker in
+condition 2, so a gloss on either line is a hard reject* — which the first version of this block managed
+to be, by carrying its own explanatory arrow on the line a writer copies.
 
 > **The verdict line is a projection of your own canonical verdict set** — the three under *Your
 > verdict — exactly one of*, verbatim. It introduces no literal that set does not contain, and a change
