@@ -144,6 +144,45 @@ delivery gate is objective — it has an external ruler. The security gate is **
 delivery gate would already cover it. A loop that tries to make both objective either invents a checklist
 that misses the novel case, or quietly drops the axis.
 
+**A verdict is an artifact on the merge request, not a claim passed back through the orchestrator.**
+**Each** gatekeeper writes its verdict there, carrying the commit SHA it reviewed. **Verification runs
+in one direction**, and the asymmetry is deliberate rather than an omission: the gate that holds the
+merge reads the other's before merging — present, approving, and **naming the current head** — while
+nothing reads its own. A verdict on a superseded commit is a review of something else and fails the
+check.
+
+**And a gatekeeper that cannot write its verdict does not proceed as though it had.** For the gate whose
+verdict *is* read this is automatic — the merging gate finds nothing and holds. For the gate that
+merges, it is a rule, because nothing reads its own: **if it cannot record its verdict, it does not
+merge.** Without that clause the asymmetry rebuilds the original failure in the half nobody verifies —
+a merge with no delivery record, silently. *The trade is reversibility:* a blocked merge is a stall you
+undo; an unrecorded merge, where the merge is the release, is not.
+
+*Why both write when only one is read.* The read exists to gate a merge, and only one gate merges. The
+**write** exists for a second reason the read does not cover: without it, the delivery verdict — the one
+carrying the evidence and the merge decision — leaves no trace at all, which was the original complaint.
+An artifact nobody currently queries is still the record of what was decided and why, and it is what a
+later audit reads. Requiring the merging gate to be verified by the other would need a third party to
+hold the merge, which buys less than it costs.
+
+*Why this is a rule and not hygiene.* Without it, the rule *"do not merge until the other gate approved"*
+is checkable only by the party reporting, never by the party waiting — and a relayed verdict has already
+reached a gate carrying a **false statement about the diff it approved**. The loop refuses relayed
+authority everywhere else; a gatekeeper's veto fires on every merge request, where the human's
+ratification fires only on the boundary class, so holding the veto to the weaker standard was backwards.
+
+*What it buys and what it does not, because the limit matters.* It closes **omission** — a merge
+proceeding on a verdict that was claimed rather than given. It does not close **impersonation**: a
+harness that identifies personas on tool calls, not on authorship, cannot prove which context wrote the
+artifact. Naming that limit is part of the design; a mechanism promising more would buy the same
+guarantee at the cost of parsing intent out of command strings, which this loop has already learned does
+not work.
+
+*And the same principle in the evidence dimension:* a gate reads the diff **from the merge request**,
+never from a local comparison against a reference it chose itself. A self-chosen reference is a relay
+about what was reviewed — it produced the false statement above, and the identical mistake in the other
+direction silently reviews a subset while reading exactly the same.
+
 **The cost of "every MR" lands on diffs with no security surface**, and it has one specific failure mode:
 a gate answering `n/a → pass` every time is gating nothing. The mitigation is a phrasing rule, not more
 process — **`n/a` is only valid when the gate NAMES the axes it looked at and found untouched.** A

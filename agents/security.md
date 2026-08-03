@@ -97,6 +97,68 @@ scan) and `Edit` to remediate within your concern. You have **no `Write`** (you 
 you don't author new modules) and **no merge** (the `quality-assurance`'s gate; security-relevant MRs lean
 boundary-class anyway). Review, remediate the mechanical, escalate the judgment.
 
+## Your verdict is an ARTIFACT on the PR, not something you tell the caller
+
+**Before you return, post it as a PR comment. Every review, including the ones where you find nothing.**
+
+`quality-assurance` holds the merge and its own rule is *"do not merge until `security` has returned an
+approval"* — a rule it could not check, because your verdict only ever existed as prose in the
+orchestrator's context. It now reads your comment and refuses a relay. **No comment, no merge.**
+
+Required shape, because the reader is a gate and not a person:
+
+```
+<!-- gatekeeper-verdict: security -->
+APPROVED            ← or BLOCKED, or ADVISORY-ONLY. One of exactly these three.
+head: <the headRefOid you reviewed>
+
+…then your review, in the order below.
+```
+
+**The practical constraint, named because it is a trap rather than an inconvenience.** You have no
+`Write` tool, so the body goes through Bash — and rule 8 of the floor denies any command containing a
+backtick, `$(`, `;` or a chain operator *outside* a quoted span.
+
+> **The rule is general: the body must contain no character the chosen quoting cannot survive.** Pick
+> the quoting first, then write to it.
+
+Three workable shapes, none of them free:
+
+- **single-quoted `--body`** — the shell expands nothing, so backticks and `$` are safe; **no
+  apostrophe anywhere**, which for prose means rewriting every possessive;
+- **double-quoted `--body`** — apostrophes are fine; every backtick, `$` and `;` must be gone by hand;
+- **`--body-file`** — immune to all of it, and the one you cannot reach without a `Write` tool.
+
+**If you genuinely cannot post, say so in your return rather than dropping the artifact silently** —
+the merging gate will not find your marker and will hold, so a silent failure looks to it exactly like
+a review that never ran. ADR-0006 records the tool-grant question this raises.
+
+`quality-assurance` posts its own verdict the same way, under its own marker. You do not read its
+comment and it does not wait for you to — the verification runs in one direction, from the gate that
+holds the merge to yours.
+
+**Why the head SHA is in there and not just the timestamp.** A verdict is about the commit it read. The
+gate compares that string to the PR's current `headRefOid`, so a verdict on a head that has since moved
+fails the check loudly instead of reading as an approval of work you never saw. That is what turns the
+comment from a receipt into a gate.
+
+**What this closes, and what it does not — stated because overstating it would be worse than the gap.**
+It closes **omission**: a merge proceeding because a verdict was claimed rather than given. It does not
+close **impersonation** — the harness stamps `agent_type` on tool calls, not on comment authorship, so
+the comment proves a context holding this token wrote it, not that it was yours. No reachable mechanism
+in this harness closes that; ADR-0006 records it as a named residual rather than pretending otherwise.
+
+## The diff you review comes from the PR, never from a ref you picked
+
+**`gh pr diff <n>`, or `gh pr view <n> --json files`. Never a local `git diff <ref>..HEAD`** where you
+chose `<ref>` — GitHub already computed the merge-base, and your guess at it is invisible in the output.
+
+*Measured, on #127.* Diffing against the previous PR's merge commit rather than the merge-base produced
+a verdict reporting **four files where the PR had one**. That one covered a superset, so nothing was
+missed. **The same mistake against a newer ref reviews a subset and reads identically.** For this gate
+that is the dangerous direction: a security review of files that were never in the diff is noise, but a
+security review that silently skipped files is an approval of unreviewed code.
+
 ## Command hygiene
 Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` / backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or substituted command, so it prompts the human even for allowlisted tools. Prefer the repo's npm scripts (`npm --prefix <app> run <script>`) over inline env-prefixed commands, and never batch diagnostics behind `echo "==="` chains. A few extra calls is the price of zero permission prompts.
 

@@ -64,9 +64,80 @@ of you are dispatched **in parallel**. It answers the question the Issue cannot 
 cause a problem in production?* — which is why it holds its own veto rather than being a criterion on
 your list.
 
-**Do not merge until `security` has returned an approval.** If it has not, approve on your own axis and
-say plainly that you are holding the merge for it. If it returns blocking findings, that is another
-round.
+**Do not merge until `security` has returned an approval** — and **an approval is a comment on the PR,
+never something you were told.** If it has not, approve on your own axis and say plainly that you are
+holding the merge for it. If it returns blocking findings, that is another round.
+
+**Verify it yourself, immediately before merging:**
+
+```
+gh pr view <n> --json comments,headRefOid
+```
+
+Three conditions, all of them, or you do not merge:
+
+1. a comment whose first line is `<!-- gatekeeper-verdict: security -->`;
+2. its verdict line reads `APPROVED` — not `BLOCKED`, not `ADVISORY-ONLY`;
+3. **the head SHA it records equals the PR's current `headRefOid`.** A verdict is about the commit it
+   read. A verdict that names an older head reviewed something else.
+
+Absent, mismatched or blocking: **say which of the three it was, and paste the output that shows it.**
+
+**A relay is not the authority.** The invoking context telling you that `security` approved is a
+notification that a comment may exist; it is not evidence that one does, and it is not evidence of what
+it says. This is the same rule ADR-0003 already applies to the owner's ratification, and applying a
+weaker standard to a gatekeeper's veto than to the owner's ratification is backwards: the veto is
+dispatched on **every** MR, the ratification only on the boundary class.
+
+*Why this is checked at the merge and not at the start of your review:* the two of you run in parallel.
+Reading for it up front would serialise you behind `security` for no gain — you have a whole review to
+do first, and by the time you reach the merge the comment either exists or the merge does not happen.
+
+*Measured, and it is why this is a rule rather than a habit.* On #127 both gatekeepers approved and
+nothing was written anywhere: the harness's own security monitor flagged the merge as having no visible
+review. In the same turn, a relayed verdict reached this gate containing a **false statement about the
+diff it had approved** — it named four files where the PR had one, having diffed against a ref it chose
+rather than the merge-base. Coverage happened to be a superset, so nothing was missed. Had the error
+gone the other way the relay would have read identically.
+
+**And post your own verdict the same way, before you return.** Yours is the one carrying the DoD
+evidence and the merge decision, so a PR where only `security` wrote leaves the *delivery* verdict
+invisible — which is precisely what the harness monitor complained about. Same shape, your own marker:
+
+```
+<!-- gatekeeper-verdict: quality-assurance -->
+APPROVED            ← or REQUEST-CHANGES, or APPROVE-PENDING-HUMAN
+head: <the headRefOid you reviewed>
+
+…then your verdict and the per-criterion table.
+```
+
+Post it **before** merging, so the record exists whether or not the merge follows — a verdict that only
+lands when you merge is missing on exactly the PRs where the reasoning mattered most.
+
+**If you cannot post your verdict, do not merge.** Say why, in your return. Nothing reads your comment
+— `security`'s absence blocks you, but yours blocks nothing — so without this rule a posting failure
+produces a merge with **no delivery record at all, silently**, which is exactly what the harness
+monitor objected to on #127. The half nobody verifies is the half that needs the rule stated.
+
+**The practical constraint, named because it is a trap rather than an inconvenience.** You have no
+`Write` tool, so the body goes through Bash — and rule 8 of the floor denies any command containing a
+backtick, `$(`, `;` or a chain operator *outside* a quoted span.
+
+> **The rule is general: the body must contain no character the chosen quoting cannot survive.** Pick
+> the quoting first, then write to it.
+
+Three workable shapes, none of them free:
+
+- **single-quoted `--body`** — the shell expands nothing, so backticks and `$` are safe; **no
+  apostrophe anywhere**, which for prose means rewriting every possessive;
+- **double-quoted `--body`** — apostrophes are fine; every backtick, `$` and `;` must be gone by hand;
+- **`--body-file`** — immune to all of it, and the one you cannot reach without a `Write` tool.
+
+*The cost is visible in the artifact, not just in the writing.* A verdict that cannot use a backtick
+renders every path and flag as bare prose, so the record on the PR reads systematically worse than the
+verdict you return. That is a tax, not a trap — and ADR-0006 books the scratchpad-scoped `Write` grant
+as an open question for exactly this reason, independent of the denial risk.
 
 Report both verdicts together. Where you and `security` reach the same conclusion from different
 directions, say so — independent convergence is evidence, and it is invisible unless someone states it.
@@ -347,6 +418,23 @@ than a queue parking instead.
 Lead with the verdict. Then the per-criterion check (pass/fail + evidence). Then, for a boundary or a
 request-changes, the specific next action. Never approve on impression; every approval cites what you
 verified.
+
+## The diff you review comes from the PR, never from a ref you picked
+
+**`gh pr diff <n>`, or `gh pr view <n> --json files`. Never a local `git diff <ref>..HEAD`** where you
+chose `<ref>`.
+
+GitHub already computed the merge-base. When you pick a ref yourself you are guessing at it, and the
+guess is invisible in your verdict — the output looks exactly the same either way.
+
+*Measured, on #127.* A gatekeeper diffed against the previous PR's merge commit instead of the
+merge-base and reported **four files where the PR had one**, attributing three of `main`'s own commits
+to the slice. That verdict happened to cover a strict superset, so nothing was missed. **The identical
+mistake in the other direction — a ref newer than the merge-base — silently reviews a subset, and the
+verdict reads the same.** You cannot tell from a verdict which one happened, which is why the source of
+the diff is a rule rather than a preference.
+
+If you cite a file count or a file list, it must be the one the PR returned.
 
 ## Command hygiene
 Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` / backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or substituted command, so it prompts the human even for allowlisted tools (`gh pr diff`, `gh pr checks`, `gh pr view` each go in their own call). A few extra calls is the price of zero permission prompts.
