@@ -74,14 +74,35 @@ holding the merge for it. If it returns blocking findings, that is another round
 gh pr view <n> --json comments,headRefOid
 ```
 
-Three conditions, all of them, or you do not merge:
+Four conditions, all of them, or you do not merge:
 
 1. a comment whose first line is `<!-- gatekeeper-verdict: security -->`;
-2. its verdict line reads `APPROVED` — not `BLOCKED`, not `ADVISORY-ONLY`;
+2. its verdict line reads `APPROVED` — the only alternative is `BLOCKED`;
 3. **the head SHA it records equals the PR's current `headRefOid`.** A verdict is about the commit it
-   read. A verdict that names an older head reviewed something else.
+   read. A verdict that names an older head reviewed something else;
+4. **no second `security` marker records this same head with a conflicting verdict.** Read the **most
+   recent** marker for that persona; a contradictory pair at one head is a failure, not a tie you break
+   by reading order.
 
-Absent, mismatched or blocking: **say which of the three it was, and paste the output that shows it.**
+*Condition 4 is not hypothetical.* The cadence is **per round**, so markers accumulate on a PR — and a
+re-review at an **unchanged** head, which a documentation fix or a re-run produces, is exactly how two
+verdicts come to name the same commit.
+
+**Report the full four-line breakdown, not only the failure**, because the failing *combination*
+selects the remedy and its owner:
+
+- **3 alone → stale.** The verdict is well-formed and reviewed an older commit: re-dispatch `security`.
+- **2 and 3 together → malformed.** The comment cannot be parsed, so nothing was read from it:
+  ask for a re-post, **not** a re-review.
+- **4 → contradictory.** Two verdicts at one head: neither is authoritative until one is withdrawn.
+
+Naming one condition leaves the reader unable to tell which action is owed, or by whom. Paste the
+output that shows it.
+
+**And when any of the four fires, post your own marker before returning** — `REQUEST-CHANGES`, the
+numbered condition, and the output. You already must post and must not merge; what this adds is that
+the *reason for the hold* becomes durable. A rejection visible only in your return lives in the one
+medium this whole mechanism was written to stop trusting.
 
 **A relay is not the authority.** The invoking context telling you that `security` approved is a
 notification that a comment may exist; it is not evidence that one does, and it is not evidence of what
@@ -106,11 +127,21 @@ invisible — which is precisely what the harness monitor complained about. Same
 
 ```
 <!-- gatekeeper-verdict: quality-assurance -->
-APPROVED            ← or REQUEST-CHANGES, or APPROVE-PENDING-HUMAN
+APPROVE-AND-MERGE   ← or APPROVE-PENDING-HUMAN, or REQUEST-CHANGES
 head: <the headRefOid you reviewed>
 
 …then your verdict and the per-criterion table.
 ```
+
+> **The verdict line is a projection of your own canonical verdict set** — the three under *Your
+> verdict — exactly one of*, verbatim. It introduces no literal that set does not contain, and a change
+> to either changes both. The first version of this marker offered `APPROVED`, **a word that appears
+> nowhere else in this file**, so every real verdict you wrote failed the check a strict reader would
+> apply to it.
+
+**No context posts this marker on your behalf**, and you post none on anyone else's. A verdict a
+persona could not post did not happen: the invoking context says so in its return, and you record that
+the lens did not post. A relay is a notification, never the authority.
 
 Post it **before** merging, so the record exists whether or not the merge follows — a verdict that only
 lands when you merge is missing on exactly the PRs where the reasoning mattered most.

@@ -136,8 +136,10 @@ Chosen: **the comment, verified by the consumer against the current head.**
 **Good**
 - `quality-assurance`'s merge precondition becomes a query rather than a matter of trust, satisfiable
   only by the other gate having actually run and written something.
-- A stale verdict fails **loudly**. The head-SHA comparison is an exact string match, not a
-  clock-ordering argument.
+- ~~A stale verdict fails **loudly**. The head-SHA comparison is an exact string match, not a
+  clock-ordering argument.~~ **Overstated twice; corrected in the 2026-08-03 amendment below.** The
+  comparison discriminates on **form**, and staleness is only inferable from it when the artifact is
+  well-formed; the SHA is **self-reported by the writer**; and *"loudly"* names no audience.
 - The transition finally has the artifact its own state table always claimed.
 - It leaves a record a future sweep can audit. Today's loop produces none at all.
 
@@ -145,9 +147,11 @@ Chosen: **the comment, verified by the consumer against the current head.**
 - **The residual, named rather than papered over:** the harness stamps `agent_type` on tool calls, not
   on comment authorship. A verified comment proves the verdict exists, is attributable to this token,
   and matches the current head — **not** that `security`'s context authored it. This closes
-  **omission**, which is the observed failure. It does not close **impersonation**, which has not been
-  observed and which no reachable mechanism in this harness closes either — option 2 above buys nothing
-  against it. Overstating the guarantee would be worse than naming its limit.
+  **omission**, which is the observed failure. It does not close **impersonation**, ~~which has not been
+  observed and~~ which no reachable mechanism in this harness closes either — option 2 above buys nothing
+  against it. Overstating the guarantee would be worse than naming its limit. *(**Observed once**, the
+  day after this ADR merged — see the 2026-08-03 amendment. The observation changes no decision; it
+  removes the word that made the residual sound theoretical.)*
 - One extra `gh pr comment` per gatekeeper per round — and the cadence is **per round**, not per PR,
   because head-SHA equality is strict: every subsequent commit invalidates the standing verdict and the
   gatekeeper must be re-dispatched. That multiplier is the thing most likely to get worked around, and
@@ -191,6 +195,91 @@ Chosen: **the comment, verified by the consumer against the current head.**
 **deliberately out of scope** — that persona is granted `Read, Grep, Glob` and **no `Bash`**, and the
 scoping is intentional because it never writes, the voice being the owner's. Covering it means trading
 a deliberate tool grant against verifiability, which is an ADR-0004 decision and the owner's to make.
+
+## Amendment (2026-08-03) — the mechanism rejected its own valid verdicts (#130)
+
+This ADR ran live on two PRs the day it merged. **Every defect below was observed, not predicted**, and
+the first one is a merge blocker rather than a naming problem.
+
+### The contract was specified in three places and reconciled with none of them
+
+`agents/security.md` required its marker to read `APPROVED` / `BLOCKED` / `ADVISORY-ONLY`, while **the
+same file's own *How to respond* section**, which predated the marker, said *"lead with the verdict:
+clean, remediated, or blocked"*. `agents/quality-assurance.md` required `APPROVED`, **a literal that
+appears nowhere else in that file**, whose canonical set is `APPROVE-AND-MERGE` /
+`APPROVE-PENDING-HUMAN` / `REQUEST-CHANGES`.
+
+Both personas wrote the vocabulary their own file already used — **which is correct behaviour** — and
+both produced markers a strict reader rejects. Observed: verdict lines reading `CLEAN` and
+`APPROVE-AND-MERGE`, on `tadeumendonca-io#336` and `tadeumendonca-skills#129`.
+
+**The defect is this ADR's, not the personas'.** A rule was grafted onto two files that already answered
+the same question, and the graft was never reconciled with what was there. The rule that prevents the
+next one, now in both files: *the marker's verdict line is a **projection of the persona's own canonical
+set** and introduces no literal that set does not contain.*
+
+### `ADVISORY-ONLY` was a gate that blocked on the most common outcome
+
+It was a **verdict**, and `quality-assurance` holds on any line that is not an approval — while
+`agents/security.md` defines ADVISORY as exactly the class that must **not** gate, being exposure the MR
+did not introduce. So a review finding only pre-existing advisory items blocked the merge *by obeying
+its own instruction*. **A severity axis and a disposition axis were collapsed into one line, and the
+collapse defaulted to blocking.**
+
+`security` now has two dispositions, `APPROVED` and `BLOCKED`; advisory findings ride inside an
+approval, marked per finding — the model `marketing-lead` and `quality-assurance` were already using.
+*Rejected: a third verdict for "reviewed but could not check axis X". A gate cannot approve what it
+could not verify; that outcome is `BLOCKED` with the unreachable axis named.*
+
+### A fourth failure condition nobody had enumerated
+
+**Two markers from the same gatekeeper naming the same head with conflicting verdicts.** Not
+hypothetical: the cadence is per round, so markers accumulate, and a re-review at an **unchanged** head
+— a documentation fix, a re-run — produces exactly that pair. The gate reads the most recent and treats
+a contradiction at one head as a failure rather than a tie broken by reading order.
+
+And the report must carry **all four conditions**, because the failing *combination* selects the remedy:
+`3` alone is **stale** (re-dispatch); `2`+`3` is **malformed** (re-post, no re-review); `4` is
+**contradictory**. Naming one condition leaves the reader unable to tell which action is owed, or by whom.
+
+### What *"a stale verdict fails loudly"* actually delivers
+
+Two overstatements in one bullet, both struck above:
+
+- **The head SHA is self-reported by the writer.** The check compares a claim against the live head, so
+  it detects a verdict that is *honestly stale* and not one that is *dishonestly current* — any context
+  that can read `headRefOid` can write it.
+- **"Loudly" names no audience.** The failure was loud in the gate's **return** — the orchestrator's
+  context, the exact medium this ADR declared untrustworthy — and **silent on the PR**, the durable
+  surface it was written to reach. A later reader could not distinguish a verdict that was rejected from
+  one that was never posted. **Fixed:** the gate now posts its own marker naming the failed condition
+  before returning. The self-reporting half is a residual, not a fix.
+
+### Impersonation: observed once, and the observation is why the word changed
+
+On `tadeumendonca-io#336` the invoking context relayed a verdict for `marketing-lead` — a lens with no
+`Bash` by design, structurally unable to post — under a `gatekeeper-verdict:` marker, **and wrote a
+`head:` SHA it had invented**, holding the 7-character short form and generating the remaining 33.
+`quality-assurance` caught it by running `git cat-file -t` on the field rather than reading it, and
+merged on the comment's *substance*, which re-derives from the diff, while reporting the stamp as a
+channel defect.
+
+Benign, self-disclosed, and corrected in place — which is exactly what makes it **evidence** rather than
+an incident. It also demonstrates the first bullet above: the field a checker trusts is the field a
+writer supplies.
+
+**And no relay rule was written, deliberately.** A rule governing *how* a relay is performed legitimises
+the path this record exists to close, and would apply first to the persona the ADR explicitly deferred
+to an owner tool-grant decision — deciding an open question sideways. Instead, one sentence in both
+persona files: **no context posts a marker on behalf of a persona; a verdict a persona could not post
+did not happen.** `security`'s ruling stands as the axis: *a lens that cannot post is advice, not a
+gate, because a gate is defined by the artifact it leaves.*
+
+### Swept and dispositioned rather than skipped
+
+`commands/principles/dev-loop.md:349` and this ADR's own line 52 restate the contract as *"verdict
+approving"* and *"a verdict line"* — **vocabulary-agnostic, so both survive unchanged.** Recorded here
+because a sweep that finds nothing and says nothing is indistinguishable from one that never ran.
 
 ## Links
 - Makes [ADR-0003](./0003-mr-definition-of-done.md)'s two-gatekeeper requirement checkable rather than
