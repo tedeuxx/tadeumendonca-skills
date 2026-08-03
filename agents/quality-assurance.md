@@ -74,32 +74,31 @@ holding the merge for it. If it returns blocking findings, that is another round
 gh pr view <n> --json comments,headRefOid
 ```
 
-Four conditions, all of them, or you do not merge:
+**Five conditions, in this order, and each one has exactly one remedy.** Check them in order and stop at
+the first that fails — the order is what makes the remedy unambiguous.
 
-1. a comment whose first line is `<!-- gatekeeper-verdict: security -->`;
-2. its verdict line reads `APPROVED` — the only alternative is `BLOCKED`;
-3. **the head SHA it records equals the PR's current `headRefOid`.** A verdict is about the commit it
-   read. A verdict that names an older head reviewed something else;
-4. **no second `security` marker records this same head with a conflicting verdict.** Read the **most
-   recent** marker for that persona; a contradictory pair at one head is a failure, not a tie you break
-   by reading order.
+| # | condition | fails → | remedy, and whose |
+|---|---|---|---|
+| 1 | a comment whose first line is `<!-- gatekeeper-verdict: security -->` exists | **absent** | you cannot tell *never dispatched* from *dispatched and could not post* — **ask the invoking context which, and require it to say so in its return.** Different owners, different fixes |
+| 2 | that comment **parses**: line 2 is exactly one of the persona's literals, line 3 is exactly `head: ` + 40 hex | **malformed** | **re-post, not re-review.** The judgement may be sound and unreadable |
+| 3 | the verdict literal is `APPROVED` | **blocked** | fix what it found, then **re-dispatch** |
+| 4 | the recorded head SHA equals the PR's current `headRefOid` | **stale** | **re-dispatch** on the current head |
+| 5 | no second `security` marker names this same head with a conflicting verdict | **contradictory** | neither is authoritative until one is withdrawn |
 
-*Condition 4 is not hypothetical.* The cadence is **per round**, so markers accumulate on a PR — and a
+**Parseability is its own condition, and the first version of this rule got that wrong.** It tried to
+infer *malformed* from *"the verdict is not `APPROVED`"* **and** *"the head does not match"* together —
+which is **also the signature of a well-formed `BLOCKED` on a superseded head**, i.e. the normal state
+of every block-then-fix round. The inferred remedy was the exact inverse of the one owed. A predicate
+that is not checked cannot be recovered from a combination of the ones that are.
+
+*Condition 5 is not hypothetical.* The cadence is **per round**, so markers accumulate on a PR — and a
 re-review at an **unchanged** head, which a documentation fix or a re-run produces, is exactly how two
 verdicts come to name the same commit.
 
-**Report the full four-line breakdown, not only the failure**, because the failing *combination*
-selects the remedy and its owner:
+**Report all five with their outcome, not only the one that failed**, and paste the output that shows
+it. A reader who sees `REQUEST-CHANGES` and one condition cannot tell what is owed or by whom.
 
-- **3 alone → stale.** The verdict is well-formed and reviewed an older commit: re-dispatch `security`.
-- **2 and 3 together → malformed.** The comment cannot be parsed, so nothing was read from it:
-  ask for a re-post, **not** a re-review.
-- **4 → contradictory.** Two verdicts at one head: neither is authoritative until one is withdrawn.
-
-Naming one condition leaves the reader unable to tell which action is owed, or by whom. Paste the
-output that shows it.
-
-**And when any of the four fires, post your own marker before returning** — `REQUEST-CHANGES`, the
+**And when any of the five fires, post your own marker before returning** — `REQUEST-CHANGES`, the
 numbered condition, and the output. You already must post and must not merge; what this adds is that
 the *reason for the hold* becomes durable. A rejection visible only in your return lives in the one
 medium this whole mechanism was written to stop trusting.
@@ -136,8 +135,11 @@ head: <the headRefOid you reviewed>
 > **The verdict line is a projection of your own canonical verdict set** — the three under *Your
 > verdict — exactly one of*, verbatim. It introduces no literal that set does not contain, and a change
 > to either changes both. The first version of this marker offered `APPROVED`, **a word that appears
-> nowhere else in this file**, so every real verdict you wrote failed the check a strict reader would
-> apply to it.
+> nowhere in this persona's own verdict set** — its only other appearance in this file is condition 3
+> above, where you *read* `security`'s literal. So the marker told you to write a word you never use,
+> and the collision fired **only on the approving branch**: `REQUEST-CHANGES` and
+> `APPROVE-PENDING-HUMAN` were in both sets, so every blocking round looked clean while the one that
+> merges was the one that could not be written correctly.
 
 **No context posts this marker on your behalf**, and you post none on anyone else's. A verdict a
 persona could not post did not happen: the invoking context says so in its return, and you record that

@@ -123,9 +123,12 @@ Chosen: **the comment, verified by the consumer against the current head.**
   reads its comment: **if it cannot post its own verdict, it does not merge**, and it says why. Without
   that, the asymmetry reintroduces the original failure in the half nobody verifies — a merge with no
   delivery record, silently, which is precisely what the harness monitor objected to.
-- `quality-assurance` verifies three conditions before merging — the marker is present, the verdict
-  reads `APPROVED`, and **the recorded head SHA equals the PR's current `headRefOid`** — and names
-  which of the three failed, with the command output, when one does.
+- `quality-assurance` verifies ~~three~~ **five** conditions before merging, **in order, each with
+  exactly one remedy** — the marker exists · it **parses** · the verdict approves · the head SHA equals
+  the PR's current `headRefOid` · no second marker contradicts it at that head — and reports all five
+  with their outcome, ~~which of the three failed~~ not only the one that stopped it.
+  *(Two conditions added and the remedy model replaced by the 2026-08-03 amendment; the original
+  three-condition form could not express **malformed** at all.)*
 - The check runs **immediately before the merge, not at review start**, so the two gates stay parallel.
 - **Both** gatekeepers derive the diff from `gh pr diff` / `gh pr view --json files`, never from a local
   `git diff` against a ref they picked. This is the same principle in the evidence dimension: a
@@ -205,13 +208,25 @@ the first one is a merge blocker rather than a naming problem.
 
 `agents/security.md` required its marker to read `APPROVED` / `BLOCKED` / `ADVISORY-ONLY`, while **the
 same file's own *How to respond* section**, which predated the marker, said *"lead with the verdict:
-clean, remediated, or blocked"*. `agents/quality-assurance.md` required `APPROVED`, **a literal that
-appears nowhere else in that file**, whose canonical set is `APPROVE-AND-MERGE` /
-`APPROVE-PENDING-HUMAN` / `REQUEST-CHANGES`.
+clean, remediated, or blocked"*. `agents/quality-assurance.md` required `APPROVED`, **a literal absent
+from that persona's own verdict set** — its only other appearance in that file is the condition where it
+*reads* `security`'s literal — whose canonical set is `APPROVE-AND-MERGE` / `APPROVE-PENDING-HUMAN` /
+`REQUEST-CHANGES`.
 
 Both personas wrote the vocabulary their own file already used — **which is correct behaviour** — and
-both produced markers a strict reader rejects. Observed: verdict lines reading `CLEAN` and
-`APPROVE-AND-MERGE`, on `tadeumendonca-io#336` and `tadeumendonca-skills#129`.
+both produced markers a strict reader rejects. Observed: a verdict line reading `CLEAN` on
+`tadeumendonca-io#336` and `tadeumendonca-skills#129`, and one reading `APPROVE-AND-MERGE` on
+`tadeumendonca-io#336`.
+
+**The collision fired only on the approving branch, which is why it survived so long.**
+`REQUEST-CHANGES` and `APPROVE-PENDING-HUMAN` are in both sets, so every blocking round produced a
+conforming marker and looked clean. The one slot that could not be written correctly was **the one that
+merges**.
+
+**And it was not latent.** On `tadeumendonca-skills#129` at head `5d678b39…`, `security` posted
+`ADVISORY-ONLY` and this gate answered `APPROVE-PENDING-HUMAN` — **it did not hold.** So the observed
+failure is worse than the one first recorded here: not merely a rule that would have blocked wrongly,
+but a gate that read a non-approval and proceeded anyway.
 
 **The defect is this ADR's, not the personas'.** A rule was grafted onto two files that already answered
 the same question, and the graft was never reconciled with what was there. The rule that prevents the
@@ -231,16 +246,29 @@ approval, marked per finding — the model `marketing-lead` and `quality-assuran
 *Rejected: a third verdict for "reviewed but could not check axis X". A gate cannot approve what it
 could not verify; that outcome is `BLOCKED` with the unreachable axis named.*
 
-### A fourth failure condition nobody had enumerated
+### Three conditions could not express *malformed*, and a combination cannot recover it
 
-**Two markers from the same gatekeeper naming the same head with conflicting verdicts.** Not
-hypothetical: the cadence is per round, so markers accumulate, and a re-review at an **unchanged** head
-— a documentation fix, a re-run — produces exactly that pair. The gate reads the most recent and treats
-a contradiction at one head as a failure rather than a tie broken by reading order.
+The original check had three predicates and reported *"which of the three failed"*. Two conditions were
+missing, and the second is the one that matters:
 
-And the report must carry **all four conditions**, because the failing *combination* selects the remedy:
-`3` alone is **stale** (re-dispatch); `2`+`3` is **malformed** (re-post, no re-review); `4` is
-**contradictory**. Naming one condition leaves the reader unable to tell which action is owed, or by whom.
+- **Two markers from the same gatekeeper naming the same head with conflicting verdicts.** Not
+  hypothetical: the cadence is per round, so markers accumulate, and a re-review at an **unchanged**
+  head — a documentation fix, a re-run — produces exactly that pair. The gate reads the most recent and
+  treats a contradiction at one head as a failure rather than a tie broken by reading order.
+- **Whether the comment PARSES AT ALL.**
+
+**The first attempt at this amendment tried to infer *malformed* from a combination** — *"the verdict is
+not `APPROVED`"* together with *"the head does not match"* — and prescribed *re-post, not re-review*.
+That is wrong, and wrong in the costly direction: **a well-formed `BLOCKED` on a superseded head
+satisfies both**, which is the normal state of every block-then-fix round. The prescribed remedy was the
+exact inverse of the one owed.
+
+The lesson is more general than this rule: **a predicate that is not checked cannot be recovered from a
+combination of the ones that are.** Parseability is now its own condition, checked before the verdict is
+read, and the model is five conditions **in order, each with exactly one remedy** rather than a mapping
+from combinations. Condition 1 failing — no marker at all — is also given its own remedy, because
+*never dispatched* and *dispatched but could not post* have different owners and the gate cannot tell
+them apart on its own.
 
 ### What *"a stale verdict fails loudly"* actually delivers
 
