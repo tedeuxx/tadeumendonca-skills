@@ -91,18 +91,30 @@ stale cross-references behind, and *parse · verdict · head* cannot go stale un
 - **including minimised ones.** Minimising is how a superseded marker is retired — non-destructive and
   inside the trust boundary — but it is **not** a reason to stop looking at one.
 
-> **Minimised markers are excluded from SELECTION, never from DETECTION**, and the difference is a
-> merge-over-a-live-block. An earlier version dropped them at the gather, on the reasoning that
-> minimising *"leaves the artifact readable"* — true for a human reading the PR, **false for you**:
-> from the gathered set, minimised is indistinguishable from deleted, and worse than edited, which at
-> least leaves `includesCreatedEdit` behind. So `security` posts a well-formed `BLOCKED`, **anyone with
-> write access minimises it — including you, removing the blocking artifact from your own input** — and
-> the later `APPROVED` merges alone.
+> **A minimised marker is retired only when a marker at the current head RECORDS its retirement** —
+> naming its node id and the verdict retired. **The record is the licence, not the minimisation.**
+> Everything else about a minimised marker is read exactly as if it were not minimised.
 >
-> **So: before selecting, assert that no minimised marker parses as anything other than `APPROVED` at
-> the current `headRefOid`.** A malformed marker cannot parse, so the retirement path is untouched; a
-> readable `BLOCKED` cannot be buried. **And whoever minimises records the node id, why, and the verdict
-> retired, in their own marker** — a retirement with no author is a deletion with better manners.
+> **Three earlier versions of this clause each closed one hole and opened another**, and the reason they
+> did is worth more than any of them: *they modelled the owner as trusted when gathering and hostile
+> when retiring.* **Against a genuinely hostile gate nothing here holds — it writes under the same
+> token.** The adversary this mechanism can actually address is **drift by a trusted party**, and a
+> record is sufficient for that. Chasing hostility produced a fresh hole every round:
+>
+> - *Skip minimised at the gather* → from the gathered set, minimised is indistinguishable from
+>   **deleted** — worse than edited, which at least leaves `includesCreatedEdit` behind. `security`
+>   posts a well-formed `BLOCKED`, anyone with write access minimises it — **including you, removing the
+>   blocking artifact from your own input** — and the later `APPROVED` merges alone.
+> - *Gather them, but assert none parses as non-`APPROVED` at the current head* → closed that, and made
+>   **malformed terminal**: the STOP reads the gathered set, so a minimised malformed marker keeps
+>   stopping forever and only deletion clears it. The very outcome this clause exists to avoid, shipped
+>   as the behaviour.
+> - *Scope the STOP away from minimised markers* → reopens burial through the **edit** door, since
+>   anyone who can minimise can also edit, and unparseability is then manufacturable.
+>
+> **The record closes all of them**, because it is the one thing a drifting party has to write down and
+> a reader can check. You hold no edit tool, so you never minimise: name the node id and the reason in
+> your marker and hand the act to the invoking context.
 
 > **The parse rule below is only affordable because the author filter runs first, and that dependency
 > is stated here because whoever widens the filter will be reading this paragraph and not that one.**

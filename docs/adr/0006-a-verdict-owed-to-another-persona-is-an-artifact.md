@@ -300,12 +300,32 @@ was settled.** Three shapes are recorded as superseded, because the pattern is t
    narrowing restored the defect it was meant to retire.
 
 **What actually shipped keeps the strict parse and gains a retirement path**, which is what shape 3 was
-really reaching for. The gate gathers **owner-authored, non-minimised** markers, parses **all** of them,
-and only then selects on the current head. *Malformed* was terminal until this amendment — a re-post
-appends rather than replaces, an edit sets the edit flag and is malformed again, and only deletion
-clears it, destroying the artifact. **Minimising is the exit**: non-destructive, inside the trust
-boundary, and selection skips it. Measured cost of not having it: #129 carries markers that
-fail this parse and would have been un-mergeable in perpetuity, having already merged.
+really reaching for. The gate gathers **owner-authored** markers — minimised ones included — parses
+**all** of them,
+and only then selects on the current head. *Malformed* was terminal without a retirement path — a
+re-post appends rather than replaces, an edit sets the edit flag and is malformed again, and only
+deletion clears it, destroying the artifact. Measured cost: #129 carries markers that fail this parse
+and would have been un-mergeable in perpetuity, having already merged.
+
+**The retirement clause itself took three attempts, and why they failed is worth more than any of
+them.** *Skip minimised at the gather* made minimised indistinguishable from **deleted**, so a readable
+`BLOCKED` could be buried by anyone with write access — **including the merging gate, removing the
+blocking artifact from its own input.** *Assert that none parses as non-`APPROVED`* closed that and made
+malformed **terminal**, because the stop reads the gathered set: a minimised malformed marker keeps
+stopping forever, and only deletion clears it — the exact outcome the clause exists to avoid, shipped as
+the behaviour. *Scope the stop away from minimised markers* reopens burial through the **edit** door,
+since anyone who can minimise can also edit and manufacture unparseability.
+
+**All three failed for one reason: each modelled the owner as trusted when gathering and hostile when
+retiring.** Against a genuinely hostile gate nothing here holds — it writes under the same token, which
+is the impersonation residual already booked below. **The adversary this mechanism can address is drift
+by a trusted party**, and for that a *record* suffices:
+
+> **A minimised marker is retired only when a marker at the current head names its node id and the
+> verdict retired. The record is the licence, not the minimisation.**
+
+That is the one thing a drifting party must write down and a reader can check — and it is why chasing
+hostility produced a fresh hole every round.
 
 **And the strict parse is only affordable because the author filter runs first** — post-filter, only
 parties already trusted to merge can create a blocking artifact, so it is a chore rather than a denial
