@@ -74,68 +74,76 @@ holding the merge for it. If it returns blocking findings, that is another round
 gh pr view <n> --json comments,headRefOid
 ```
 
-**Markers accumulate — the cadence is per round — so a PR mid-slice routinely carries half a dozen.
-PARSE the whole set, then select from it, then judge.** The outcomes below are named rather than
-numbered, deliberately: three renumberings of this rule left stale cross-references behind, and
-*parse · verdict · head* cannot go stale under a reorder.
+**Markers accumulate — the cadence is per round — so a PR mid-slice carries several. GATHER, PARSE THE
+WHOLE SET, then select from it.** The outcomes are named rather than numbered: three renumberings left
+stale cross-references behind, and *parse · verdict · head* cannot go stale under a reorder.
 
-**Gather.** Every comment whose first line is `<!-- gatekeeper-verdict: security -->`, **authored by
-the repository owner** — `gh pr view <n> --json comments,headRefOid` carries `author` and
-`authorAssociation` on each. This repo is public and anyone may comment; a marker from an arbitrary
-account is not a gatekeeper verdict. ADR-0003 already applies exactly this filter to the owner's
-ratification from the same payload.
+**Gather**, from `gh pr view <n> --json comments,headRefOid`:
 
-**None → STOP.** You cannot tell *never dispatched* from *dispatched and could not post*: ask the
-invoking context which, and require it to say so in its return. Different owners, different fixes.
+- every comment whose first line is `<!-- gatekeeper-verdict: security -->`;
+- **whose `authorAssociation` is `OWNER`** — that field is the test, and `author.login` is corroboration
+  only. GitHub computes the association and it is repo-relative; a login is a mutable identifier, which
+  is the rename failure the OIDC subject already ate. *This differs from ADR-0003's ratification filter
+  on purpose:* there the question is *did that specific human ratify*, here it is *was this written from
+  inside the trust boundary*, since the writer is a subagent on the owner's token. **Portability note:**
+  `OWNER` is not returned for org members, so in an org-owned repo this gathers nothing and stops
+  permanently — widen it there deliberately, and read the next paragraph before you do;
+- **skipping any comment with `isMinimized: true`.** Minimising is how a superseded marker is retired:
+  non-destructive, inside the trust boundary, and it leaves the artifact readable.
 
-**PARSE every one before selecting.** A marker parses when line 2 is **exactly** one of that persona's
-literals and line 3 is **exactly** `head: ` + 40 hex, and when the comment carries **no `lastEditedAt`**
-— a body rewritten after posting is not the verdict that was given, and an edit leaves no new entry in
-the list you are reading.
+> **The parse rule below is only affordable because the author filter runs first, and that dependency
+> is stated here because whoever widens the filter will be reading this paragraph and not that one.**
+> Post-filter, only parties already trusted to merge can create a blocking artifact — a chore, not a
+> denial of service. **Widen the filter to a bot, a CI token or any collaborator and "any unparseable
+> marker blocks" silently becomes "any stranger wedges any PR."**
 
-> **Any marker that does not parse → STOP, malformed → re-post, not re-review.** The judgement may be
-> sound and unreadable, so only a re-dispatched `security` can replace it; the request goes to the
-> invoking context.
+**Parse every gathered marker.** It parses when line 2 is **exactly** one of that persona's literals,
+line 3 is **exactly** `head: ` + 40 hex, and **`includesCreatedEdit` is `false`** — a body rewritten
+after posting is not the verdict that was given, and an edit adds no new entry to the list you read.
+
+> **Any gathered marker that does not parse → STOP, malformed → re-post, not re-review.** The judgement
+> may be sound and unreadable. **Minimise the malformed one** so the next gather skips it, then
+> re-dispatch — that is the exit, and without it *malformed* is terminal: a re-post appends rather than
+> replaces, editing sets the edit flag and is malformed again, and only deletion clears it, destroying
+> the artifact this whole mechanism exists to preserve.
 >
-> **This is why parsing precedes selection, and the reason is a fail-open bug that shipped in the
-> previous version of this rule.** Selection used to match the current head *on unparsed markers*, so a
-> malformed one could not enter the conflict set — and a `BLOCKED` with an unreadable head at the
-> current commit, followed by a well-formed `APPROVED` at the same commit, produced **no contradiction,
-> a most-recent approval, and a merge over a live block.** Not hypothetical: #129 carried one marker
-> with no `head:` line at all and another with a 7-character head. **You cannot select from a set you
-> cannot read.**
+> **Do not narrow this to "unparseable markers at the current head".** It was tried, and it fails open
+> for a reason worth keeping: excluding a marker as *not current* means reading the head line you just
+> declared unreadable. A `BLOCKED` too broken to parse plus a later well-formed `APPROVED` at the same
+> commit then yields exactly one readable verdict, and the gate merges over a live block — the round-3
+> defect, restored. **You cannot select from a set you cannot read.**
 
-**Then select, on the parsed set.** Among markers naming the **current** `headRefOid`, if two carry
-**conflicting** verdicts → **STOP, contradictory**; neither is authoritative until one is withdrawn.
-Otherwise take the **most recently created** one — order by `createdAt`, not by list position.
+**Then select, on the parsed set.** Among markers naming the **current** `headRefOid`: **more than one
+with conflicting verdicts → STOP, contradictory**; neither is authoritative until one is minimised.
+Otherwise take the **most recently created** — order by `createdAt`, never by list position.
 
 *Contradiction is resolved here rather than after the judgements, and that placement is what licenses
-the recency rule.* Recency only ever decides where it cannot do harm: two verdicts that agree, or one
-that supersedes a genuinely older commit. The moment two disagree at one head, recency never runs. An
-earlier version made this a fifth condition *after* the judgements, under stop-at-first-failure, which
-made it **unreachable in the only case it exists for**.
+the recency rule.* Recency only ever decides where it cannot do harm — two verdicts that agree, or one
+superseding a genuinely older commit. The moment two disagree at one head, recency never runs. An
+earlier version made this a condition *after* the judgements, under stop-at-first-failure, which made it
+**unreachable in the only case it exists for**.
 
-**Then judge the selected marker, in this order, and stop at the first failure.**
+**Then judge, and stop at the first failure.**
 
 | outcome | when | remedy |
 |---|---|---|
 | **blocked** | the verdict literal is not `APPROVED` | fix what it found, then **re-dispatch** |
-| **stale** | the recorded head SHA is not the PR's current `headRefOid` | **re-dispatch** on the current head |
+| **stale** | no parsed marker names the current `headRefOid` | **re-dispatch** on the current head |
 
-**Parseability is judged separately and first, and an early version got that wrong too.** It inferred
+**Parseability is judged before the verdict is read, and an early version got that wrong.** It inferred
 *malformed* from *"the verdict is not `APPROVED`"* **and** *"the head does not match"* together — which
 is **also the signature of a well-formed `BLOCKED` on a superseded head**, the normal state of every
 block-then-fix round. The inferred remedy was the exact inverse of the one owed. **A predicate that is
 not checked cannot be recovered from a combination of the ones that are.**
 
 *One limit named rather than closed:* nothing here asks whether the recorded SHA **names a real
-commit**. A fabricated 40-hex parses, and then reads as *stale* — prescribing a re-dispatch when the
-remedy owed is a re-post with a resolved SHA. `git cat-file -t` closes it; it is not required here, and
-it is recorded as known rather than discovered because this mechanism's own record contains an instance.
+commit**. A fabricated 40-hex parses and matches nothing, so it reads as *stale* rather than as the
+forgery it is. `git cat-file -t` closes it; it is not required here, and it is recorded as known rather
+than discovered because this mechanism's own record contains an instance.
 
-**Report every outcome you evaluated, not only the one that stopped you** — gathered, parsed, selected,
-judged — and paste the output. Stopping early is about *what you check*; it is not licence to report
-one line. A reader who sees `REQUEST-CHANGES` and nothing else cannot tell what is owed or by whom.
+**Report what you found and what you judged, not only the step that stopped you**, and paste the
+output. Stopping early is about *what you check*; it is not licence to report one line. A reader who
+sees `REQUEST-CHANGES` and nothing else cannot tell what is owed or by whom.
 
 **And whenever any of them stops you, post your own marker before returning** — `REQUEST-CHANGES`, the
 named outcome, and the output. You already must post and must not merge; what this adds is that the

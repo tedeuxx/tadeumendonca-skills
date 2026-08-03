@@ -140,6 +140,13 @@ dispositions, loud in the direction that matters.
 > both. The first version of this rule ignored that, and shipped a marker vocabulary contradicting the
 > file it was added to.
 
+**One marker per head, and never edit one you have posted.** The gate scopes to the PR's current head
+and expects to find exactly one marker of yours there; two is a failure it reports rather than a tie it
+breaks. If you are re-dispatched on the **same** commit — a re-run, a question — do not post a second
+marker and do not rewrite the first: say so in your return and let the invoking context decide. **A
+body edited after posting is treated as malformed**, because an edit changes a verdict while leaving no
+new entry in the list the gate reads.
+
 **No context posts this marker on your behalf.** A verdict you could not post did not happen: the
 invoking context says so in its return, and the merging gate records that you did not post. A relay is
 a notification, never the authority.

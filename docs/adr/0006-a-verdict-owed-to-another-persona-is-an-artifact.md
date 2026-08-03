@@ -283,16 +283,73 @@ rule — which made it **unreachable in the only case it exists for**: a `BLOCKE
 resolved by reading order. **A condition placed after checks that can short-circuit past it is not a
 condition.**
 
-The model is now **selection first, then three ordered checks.** Selection collects every marker for
-that persona, resolves *absent* and *contradictory* where both are reachable, and hands the most recent
-marker to checks that parse it, read its verdict, and compare its head. That the gate must **select at
-all** was itself unstated: the persona file said *"that comment"*, singular, while this same amendment
-establishes that markers accumulate per round — a PR mid-slice routinely carries six.
+**The rule was rewritten four times, and the two gatekeepers disagreed on the fourth — which is how it
+was settled.** Three shapes are recorded as superseded, because the pattern is the finding:
+
+1. ***Combination inference.*** *Malformed* was read off *"not `APPROVED`"* **and** *"head does not
+   match"* together — which is also the signature of a well-formed `BLOCKED` on a superseded head, the
+   normal state of every block-then-fix round. **A predicate that is not checked cannot be recovered
+   from a combination of the ones that are.**
+2. ***Selection, then ordered checks.*** Put the contradiction check *after* checks that stop at the
+   first failure, making it **unreachable in the only case it exists for**.
+3. ***Scope everything to the current head.*** Proposed by `quality-assurance` on the sound observation
+   that four defects in a row had all lived in gather/select machinery and none in `parse` or `head`.
+   **`security` blocked it, and was right:** excluding a marker as *not current* means reading the head
+   line you just declared unreadable, so a `BLOCKED` too broken to parse plus a later well-formed
+   `APPROVED` at the same commit yields one readable verdict and a merge over a live block. The
+   narrowing restored the defect it was meant to retire.
+
+**What actually shipped keeps the strict parse and gains a retirement path**, which is what shape 3 was
+really reaching for. The gate gathers **owner-authored, non-minimised** markers, parses **all** of them,
+and only then selects on the current head. *Malformed* was terminal until this amendment — a re-post
+appends rather than replaces, an edit sets the edit flag and is malformed again, and only deletion
+clears it, destroying the artifact. **Minimising is the exit**: non-destructive, inside the trust
+boundary, and the gathered set skips it. Measured cost of not having it: #129 carries two markers that
+fail this parse and would have been un-mergeable in perpetuity, having already merged.
+
+**And the strict parse is only affordable because the author filter runs first** — post-filter, only
+parties already trusted to merge can create a blocking artifact, so it is a chore rather than a denial
+of service. That dependency is stated **in the filter's own paragraph**, because whoever widens the
+filter will be reading that and not the parse rule below it.
+
+That the gate must **select at all** was itself unstated: the persona file said *"that comment"*,
+singular, while this same amendment establishes that markers accumulate per round.
 
 *One limit named rather than closed:* nothing asks whether the recorded SHA **names a real commit**. A
 fabricated 40-hex parses and fails the head check as *stale*, prescribing a re-dispatch where the remedy
 owed is a re-post with a resolved SHA. `git cat-file -t` closes it. Recorded as known — this record
 contains an instance of exactly that fabrication.
+
+### Two things the gate must not trust, booked because the read widened to find them
+
+**Authorship.** These repos are public and anyone may comment. The gate reads markers by pattern, so
+until this amendment it would have collected one left by an arbitrary account. It now filters on
+**`authorAssociation == OWNER`** — that field is the test and `author.login` is corroboration only,
+because GitHub computes the association and it is repo-relative, while a login is mutable, which is the
+rename failure the immutable OIDC subject already ate.
+
+*This differs from ADR-0003's ratification filter deliberately.* There the question is *did that
+specific human ratify*; here it is *was this written from inside the trust boundary*, since the writer
+is a subagent on the owner's token. **Portability, named because this file ships to other repos:**
+`OWNER` is not returned for org members, so in an org-owned repo the gather returns nothing and stops
+permanently — widening it there is a deliberate act, and it is coupled to the parse rule above.
+
+**Edits.** A comment body can be rewritten after posting while keeping its `createdAt` and its position
+in the list: `BLOCKED` at the current head, edited in place to `APPROVED`, no new artifact anywhere the
+gate looks. Distinct from the *self-reported SHA* residual below — there a writer mis-states its own
+commit; here a verdict already given is silently replaced. Closed by requiring `includesCreatedEdit` to
+be false.
+
+*That predicate was written once against `lastEditedAt` and it did not exist in the prescribed command.*
+`gh pr view --json comments` does not return that field; `jq` yields `null` for an absent key, so
+*"carries no `lastEditedAt`"* was **true of every comment, edited or not** — the hole written as closed
+and left open. The field is real only through the GraphQL API. **A predicate is not a check until the
+command that runs it returns the field it names.**
+
+The working field, `includesCreatedEdit`, was **verified to flip rather than assumed to**: it reads
+`true` on a comment edited earlier the same day and `false` on every unedited one in the same payload.
+`security` had declined to recommend it precisely because it could not confirm that without editing a
+live comment — the right caution, and the check was available from an edit already made.
 
 ### The producer side is still instruction-only, and that residual is now named
 
