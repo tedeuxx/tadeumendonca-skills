@@ -123,9 +123,11 @@ This is what keeps *"a stranger may never cost it a merge"* true rather than asp
 
 | the check | outcome |
 | --- | --- |
-| **could not run, and no outsider could have caused it** — no network, `gh` unauthenticated, API error | **ask.** An answer we could not get is not a verdict, and it is not a licence either. |
+| **could not run, and no outsider could have caused it** — no network, `gh` unauthenticated, credentials rejected | **ask.** An answer we could not get is not a verdict, and it is not a licence either. |
 | **ran, and the answer is negative** — a marker is absent, its verdict literal is outside the persona's canonical set, or its head does not match | **deny.** This *is* a verdict, and it is the one the hook exists to enforce. |
-| **could not run, and an outsider could have caused it** — the deadline fired, the response came back short, `authorAssociation` came back degraded | **deny.** Ask is the owner's attention, and attention a stranger can summon on demand is a resource this loop rations. |
+| **could not run, and an outsider could have caused it** — the deadline fired, the response came back short, `authorAssociation` came back degraded, **the API returned an error** | **deny.** Ask is the owner's attention, and attention a stranger can summon on demand is a resource this loop rations. |
+
+*"API error" was in the ask row for three versions. A 5xx **is** an API error, and a secondary rate limit is reachable by the same comment volume the bounded read and the deadline exist to close — so the table put a stranger-adjacent cause on the non-deny branch while the prose below it called that branch forbidden. One row over from the `timeout` case this record already books, and found by the same whole-file method. What remains in the ask row is only what an outsider provably cannot reach: the network being down, and this machine's own credentials.*
 
 **Two questions, asked in order.** First: *did the check reach an answer?* If it did, the answer decides — **affirmative allows, negative denies** — and the affirmative is the only path **through this check** to an allow. *Not the only path to a merge: the accepted costs name two that bypass the check entirely, a hook killed before it speaks and the raw REST merge form neither this hook nor rule 7b matches. An earlier version of this sentence claimed the wider thing, which is the unearned completeness this record names as its own recurring failure — recurring inside the fix for it.* If it did not, the second question decides: *could someone outside the trust boundary have caused this?* Proven not, **ask**. Otherwise — including **cannot be shown either way** — **deny**.
 
@@ -161,7 +163,7 @@ The implementation therefore **reads the canonical set from the persona file at 
 
 **Good**
 - The precondition holds even when the gate misreads its own file — which is the observed failure, not a theoretical one.
-- The three drifts above become unable to produce a bad merge. A marker whose verdict line is unparseable stops the merge instead of being interpreted.
+- The three drifts above stop producing a bad merge **through this check** — a marker whose verdict line is unparseable stops the merge instead of being interpreted. *Not "unable to produce" one: the accepted costs below name two paths that bypass the check entirely, and a drifted marker inside one of those windows still merges. The stronger claim is the record's own recurring failure, appearing in Consequences — which is exactly where the previous sweep is recorded as stopping short.*
 - The rule gains a single mechanical definition. Today it exists as prose in one persona file and is *described* in another, and those two can disagree without either being wrong.
 
 **Bad / accepted costs**
