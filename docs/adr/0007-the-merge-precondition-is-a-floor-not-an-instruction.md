@@ -104,7 +104,7 @@ The **assertion**, the **settings deny** and the **status check** all leave the 
 
 Unreadable is the second row, not the first. The distinction is *did the check reach an answer*, never *was the answer convenient*.
 
-**No cause in the first row may be selectable by anyone outside the trust boundary, and the ordering is what guarantees it.** An earlier version listed *"malformed payload"* among the causes that allow — and the payload is **PR comments on a public repository**, so a stranger who cannot pass the author filter needed only to post something the parser chokes on and the merge would sail through. That is not a residual, it is a bypass with a one-comment cost. Found by `security`.
+**No cause in the first row may be selectable by anyone outside the trust boundary.** The ordering below removes **the instance that was there**; it does not by itself establish the class, because a stranger can also act on the **read** — which happens upstream of any filter, and is why the next rule exists. An earlier version listed *"malformed payload"* among the causes that allow — and the payload is **PR comments on a public repository**, so a stranger who cannot pass the author filter needed only to post something the parser chokes on and the merge would sail through. That is not a residual, it is a bypass with a one-comment cost. Found by `security`.
 
 So the author filter runs **first, as a filter and not as a check**: comments that are not `OWNER`-authored are discarded before anything is parsed. A stranger's comment is then not malformed input — it is not input. What remains unparseable can only have been written inside the trust boundary, which is drift, which is what this hook is for.
 
