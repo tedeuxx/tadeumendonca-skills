@@ -1,7 +1,7 @@
 {
   "name": "tadeumendonca-skills",
   "description": "A Claude Code harness: 6 subagent personas — three leads that disagree by design (product, tech, marketing) and consolidate one demand, one fullstack developer, and two gatekeepers (a quality-assurance that holds the merge gate, and security) — PreToolUse hooks that mechanically deny the irreversible floor (force-push, terraform apply, rm -rf, secret writes), and 74 generic skills for AWS infrastructure, React/Vite frontends and CI/CD (<project>/<apex-domain> placeholders).",
-  "version": "0.4.39",
+  "version": "0.4.40",
   "author": {
     "name": "Luiz Tadeu Mendon\u00e7a"
   },
