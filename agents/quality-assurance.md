@@ -88,8 +88,21 @@ stale cross-references behind, and *parse · verdict · head* cannot go stale un
   inside the trust boundary*, since the writer is a subagent on the owner's token. **Portability note:**
   `OWNER` is not returned for org members, so in an org-owned repo this gathers nothing and stops
   permanently — widen it there deliberately, and read the next paragraph before you do;
-- **skipping any comment with `isMinimized: true`.** Minimising is how a superseded marker is retired:
-  non-destructive, inside the trust boundary, and it leaves the artifact readable.
+- **including minimised ones.** Minimising is how a superseded marker is retired — non-destructive and
+  inside the trust boundary — but it is **not** a reason to stop looking at one.
+
+> **Minimised markers are excluded from SELECTION, never from DETECTION**, and the difference is a
+> merge-over-a-live-block. An earlier version dropped them at the gather, on the reasoning that
+> minimising *"leaves the artifact readable"* — true for a human reading the PR, **false for you**:
+> from the gathered set, minimised is indistinguishable from deleted, and worse than edited, which at
+> least leaves `includesCreatedEdit` behind. So `security` posts a well-formed `BLOCKED`, **anyone with
+> write access minimises it — including you, removing the blocking artifact from your own input** — and
+> the later `APPROVED` merges alone.
+>
+> **So: before selecting, assert that no minimised marker parses as anything other than `APPROVED` at
+> the current `headRefOid`.** A malformed marker cannot parse, so the retirement path is untouched; a
+> readable `BLOCKED` cannot be buried. **And whoever minimises records the node id, why, and the verdict
+> retired, in their own marker** — a retirement with no author is a deletion with better manners.
 
 > **The parse rule below is only affordable because the author filter runs first, and that dependency
 > is stated here because whoever widens the filter will be reading this paragraph and not that one.**
@@ -97,15 +110,35 @@ stale cross-references behind, and *parse · verdict · head* cannot go stale un
 > denial of service. **Widen the filter to a bot, a CI token or any collaborator and "any unparseable
 > marker blocks" silently becomes "any stranger wedges any PR."**
 
-**Parse every gathered marker.** It parses when line 2 is **exactly** one of that persona's literals,
-line 3 is **exactly** `head: ` + 40 hex, and **`includesCreatedEdit` is `false`** — a body rewritten
-after posting is not the verdict that was given, and an edit adds no new entry to the list you read.
+**Parse every gathered marker.** It parses when line 2 is **exactly `APPROVED` or exactly `BLOCKED`** —
+`security`'s whole verdict set, and `agents/security.md` is its source — line 3 is **exactly** `head: `
++ 40 hex, and **`includesCreatedEdit` is `false`**, since a body rewritten after posting is not the
+verdict that was given and an edit adds no new entry to the list you read.
+
+> **The set is written out here rather than left as "that persona's literals", and the omission was a
+> live defect.** A marker reading `CLEAN` — real, on `tadeumendonca-io#336`, cited by ADR-0006 itself —
+> parses under a rule that does not name the set, reaches the judge table, and is read as **blocked →
+> fix what it found**. The remedy owed is **malformed → re-post, no re-review**: different owner,
+> opposite action. That is verbatim the failure the first design made, arriving through the parse step
+> instead of through a combination.
 
 > **Any gathered marker that does not parse → STOP, malformed → re-post, not re-review.** The judgement
-> may be sound and unreadable. **Minimise the malformed one** so the next gather skips it, then
+> may be sound and unreadable. **Minimise the malformed one** so it drops out of *selection*, then
 > re-dispatch — that is the exit, and without it *malformed* is terminal: a re-post appends rather than
 > replaces, editing sets the edit flag and is malformed again, and only deletion clears it, destroying
 > the artifact this whole mechanism exists to preserve.
+>
+> **The command, because a remedy is not an exit until the command that performs it is named** — and
+> `gh` has no `minimize`; its `--edit-last` is still malformed and its `--delete-last` destroys the
+> artifact, which are the two failure modes the sentence above names:
+>
+> ```
+> gh api graphql -f query='mutation($id:ID!){minimizeComment(input:{subjectId:$id,classifier:OUTDATED}){clientMutationId}}' -f id=<node id>
+> ```
+>
+> The node id is the `.id` the gather already returned, in `IC_kwDO…` form. **You hold no edit tool, so
+> this is not yours to run** — name the id and the reason in your marker and hand it to the invoking
+> context, which is also where the re-dispatch comes from.
 >
 > **Do not narrow this to "unparseable markers at the current head".** It was tried, and it fails open
 > for a reason worth keeping: excluding a marker as *not current* means reading the head line you just

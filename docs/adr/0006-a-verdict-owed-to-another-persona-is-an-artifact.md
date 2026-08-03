@@ -304,7 +304,7 @@ really reaching for. The gate gathers **owner-authored, non-minimised** markers,
 and only then selects on the current head. *Malformed* was terminal until this amendment — a re-post
 appends rather than replaces, an edit sets the edit flag and is malformed again, and only deletion
 clears it, destroying the artifact. **Minimising is the exit**: non-destructive, inside the trust
-boundary, and the gathered set skips it. Measured cost of not having it: #129 carries two markers that
+boundary, and selection skips it. Measured cost of not having it: #129 carries markers that
 fail this parse and would have been un-mergeable in perpetuity, having already merged.
 
 **And the strict parse is only affordable because the author filter runs first** — post-filter, only

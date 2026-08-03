@@ -140,12 +140,22 @@ dispositions, loud in the direction that matters.
 > both. The first version of this rule ignored that, and shipped a marker vocabulary contradicting the
 > file it was added to.
 
-**One marker per head, and never edit one you have posted.** The gate scopes to the PR's current head
-and expects to find exactly one marker of yours there; two is a failure it reports rather than a tie it
-breaks. If you are re-dispatched on the **same** commit — a re-run, a question — do not post a second
-marker and do not rewrite the first: say so in your return and let the invoking context decide. **A
-body edited after posting is treated as malformed**, because an edit changes a verdict while leaving no
-new entry in the list the gate reads.
+**One live marker per head, and never edit one you have posted.** The gate expects exactly one of yours
+at the current head; two is a failure it reports rather than a tie it breaks. If you are re-dispatched
+on the **same** commit — a re-run, a question — do not post a second marker and do not rewrite the
+first: say so in your return and let the invoking context decide.
+
+> **The one exception, and it exists because without it the malformed path has no exit:** if your prior
+> marker at this head has been **minimised**, post a fresh one. Minimising is how an unreadable verdict
+> is retired, and retiring it does not move the head — so without this clause the remedy *"minimise,
+> then re-dispatch"* terminates in the invoking context's return, which is the medium this whole
+> mechanism exists to distrust.
+>
+> *That clause was missing because the rule was grafted onto a file that already answered the question —
+> the exact defect this slice exists to fix, reproduced by the fix for it.*
+
+**A body edited after posting is treated as malformed**, because an edit changes a verdict while leaving
+no new entry in the list the gate reads.
 
 **No context posts this marker on your behalf.** A verdict you could not post did not happen: the
 invoking context says so in its return, and the merging gate records that you did not post. A relay is
