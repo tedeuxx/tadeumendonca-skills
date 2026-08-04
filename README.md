@@ -146,29 +146,22 @@ instant cannot see time. Every cost of that model is per story, so the count is 
   a hook does not degrade at all. **The cost is that it errs in both directions, and only one of them
   is loud.** It matches patterns rather than intent, so it will sometimes deny something legitimate —
   that you find out immediately, and the fix is arguing with a regex. It also **fails open**: on a
-  parse error, a missing `gh`, or no network, it allows rather than blocks, and **any path it does not
-  cover is a path nothing covers** — the fail-open direction is silent by construction. Those you do not
-  find out about at all. Whatever remains uncovered is booked in the hook sources with its reasons,
-  which is the honest form: a guardrail that tells you what it does not catch is worth more than one
-  asserting it catches everything.
+  parse error, a missing `jq`, or no network, it allows rather than blocks — and that direction is
+  silent by construction, so you do not find out at all.
 
-  *This sentence used to give `gh api` as its standing example of an uncovered path, in the present
-  tense, in a commit that also added the rule closing it.* The example was corrected rather than the
-  claim: the claim is still true, and the danger it describes is exactly what let the example go stale
-  unnoticed.
+  **What a hook failure costs depends on which layer holds the control.** Where a control's direct
+  spelling is also in the floor's `deny`, that spelling still holds — the two layers overlap on
+  purpose. Where it lives only here — the semantic and wrapped forms, plus everything born in the hook,
+  of which the sharpest is the merge gate — a hook failure is an open door rather than a degraded floor.
+  Whatever remains uncovered is booked in the hook sources with its reasons, which is the honest form: a
+  guardrail that tells you what it does not catch is worth more than one asserting it catches everything.
 
-  **On that example specifically, because it is the one that moved — twice, in one day.** `gh api` was
-  booked as an accepted, permanent gap until 2026-08-04. A permission audit found the route was never
-  denied at all, merely unlisted, with one `Bash(gh *)` wildcard erasing even that, and added a blanket
-  `Bash(gh api:*)` to the floor for an unrelated reason — discharging a residual booked as permanent, as
-  a side effect. That deny was then found **too broad**: it removed the READ path, which this repo's own
-  loop uses. So it was re-expressed in the hook, which can tell the two apart — **`gh api` that writes is
-  denied; `gh api` that reads is not** — and removed from the floor. The settings layer provably cannot
-  make that call: `-f`/`-F` turn the request into a POST with no `--method` flag to match on.
-
-  Two things worth keeping from that. **Say which layer closes a route whenever you say it is closed** —
-  "closed" on its own is how a reader concludes the matcher covers something it does not. And **a
-  residual booked "permanent" is a statement about the layer that booked it, not about the system.**
+  *The standing example here used to be `gh api`, named as a permanent gap in the present tense by the
+  commit that closed it; it moved between layers twice in one day, and the hook source and ADR-0008
+  carry that story.* Two rules survive it, and they are the part that transfers to the next residual:
+  **say which layer closes a route whenever you say it is closed** — "closed" on its own is how a reader
+  concludes the matcher covers something it does not — and **a residual booked "permanent" is a
+  statement about the layer that booked it, not about the system.**
 
 **Skills carry the conventions so the model does not re-invent them.** 74 markdown skills, generic by
 construction (`<project>` / `<apex-domain>` placeholders), covering the AWS services, the frontend

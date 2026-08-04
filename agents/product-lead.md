@@ -36,7 +36,7 @@ tools: Read, Grep, Glob, Bash
   nothing from `.brand/` that the reference-by-pointer rule below would keep out of a public comment.
 
   WHAT IS STILL ONLY AN INSTRUCTION: everything except those three subcommands. `Bash` can reach a
-  public surface by other routes (`gh pr edit`, `gh api`, a push) and rule 5e does not pretend
+  public surface by other routes (`gh pr edit`, `gh pr create`, a push) and rule 5e does not pretend
   otherwise — it closes the three the persona would actually reach for. The reference-by-pointer
   discipline below is still the rule for the rest.
 -->
