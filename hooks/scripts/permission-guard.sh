@@ -50,19 +50,26 @@
 #      Pattern-listing these either misses a form or over-blocks — it over-blocked, denying EVERY
 #      feature-branch push via `git -C`, so the agent hit a prompt for following its own convention.
 #   4. SHADOWED BY AN ALLOW. This is the one that is invisible until measured, and the one that produced
-#      most of the current set. `Bash(gh -R:*)` and `Bash(git -C:*)` are in `allow` because the
-#      workspace's multi-repo convention prescribes them — and a prefix `deny` on `gh repo delete`
-#      cannot see `gh -R owner/repo repo delete`. An allow entry does not weaken one deny; it weakens
-#      every deny for the same tool, at once, silently.
+#      most of the current set. A prefix `deny` on `gh repo delete` cannot see
+#      `gh -R owner/repo repo delete`, so a broad allow on the tool re-opens every deny for that tool
+#      at once, silently. **An allow entry does not weaken one deny; it weakens all of them together.**
+#
+#      THE WORKED EXAMPLE IS `Bash(gh -R:*)`, WHICH IS NO LONGER IN `allow` — it was removed once the
+#      shadowing was measured, and it turned out to cost nothing, because `gh <subcommand> --repo <o/r>`
+#      puts the flag AFTER the subcommand and so still matches the per-subcommand entries. Read that as
+#      the lesson rather than as a fact about today's floor: **the reason a control belongs here is the
+#      SHAPE — a broad allow on a tool whose deny entries are per-subcommand — not any particular
+#      entry.** `Bash(git -C:*)` is still in `allow` and is the live instance of that shape.
 #
 # THE SIZE OF THE SET, DESCRIBED RATHER THAN LISTED — deliberately, and the trade is real either way.
 # An enumeration here would be exact today and wrong at the next migration, and this file has now paid
 # three times for a comment that drifted from the code beside it. What does not go stale is the
 # DERIVATION, so that is what is recorded: **read `.claude/settings.json`'s `deny` list, and for each
 # entry ask whether one of the four reasons above applies to it. Every entry where the answer is yes is
-# an entry whose real enforcement is here.** As of 2026-08-04 that was twelve of them — the whole `gh`
-# surface (shadowed by `gh -R`/`--repo`), plus `git clean -f` and `git push --tags` (shadowed by
-# `git -C`) — and the count only moves in one direction. Do not trust that number; re-derive it.
+# an entry whose real enforcement is here.** Do not expect a count here: one was written, and by the
+# end of the same day the floor had moved three times under it. Re-derive it against the floor you
+# actually have — `inventory-counts.test.sh` asserts that no tracked file claims an allow entry the
+# floor does not contain, which is the mechanical half of the same discipline.
 #
 # THE DERIVATION FINDS ONLY THE CONTROLS THAT MIGRATED, AND THAT IS NOT ALL OF THEM. Reading the
 # `deny` list can only find rules that HAVE a floor entry. Several controls were BORN here and never
@@ -313,13 +320,20 @@ done
 bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g')"
 
 # ── ONE SPELLING OF "AN OPTIONAL -R/--repo BEFORE THE SUBCOMMAND" ────────────────────────────────
-# `gh -R <repo> <subcommand>` is this workspace's PRESCRIBED multi-repo convention, and the allowlist
-# opens `Bash(gh -R:*)` / `Bash(gh --repo:*)` for exactly that reason. The consequence, measured on
-# 2026-08-04 and not noticed when those two entries were promoted into the floor that morning: the
-# settings matcher reads a command PREFIX, so `Bash(gh repo delete:*)` cannot see
-# `gh -R owner/repo repo delete`, and for EVERY `gh` deny entry the `-R` spelling moved from *prompts
-# the human* to *runs silently*. The allow entry did not weaken one rule; it weakened the whole `gh`
-# half of the floor at once.
+# `gh -R <repo> <subcommand>` is this workspace's PRESCRIBED multi-repo convention, so the flag can
+# appear before the subcommand in any command this hook sees, and every `gh` rule has to expect it.
+#
+# THE HISTORY IS KEPT BECAUSE IT IS THE REASON THE VARIABLE EXISTS, and it is history: for part of one
+# day the floor carried `Bash(gh -R:*)` / `Bash(gh --repo:*)` in `allow`. The settings matcher reads a
+# command PREFIX, so `Bash(gh repo delete:*)` could not see `gh -R owner/repo repo delete`, and for
+# EVERY `gh` deny entry the `-R` spelling moved from *prompts the human* to *runs silently* — one allow
+# entry weakening the whole `gh` half of the floor at once. **Both entries were removed the same day**,
+# and removing them cost nothing: `gh <subcommand> --repo <o/r>` puts the flag after the subcommand and
+# still matches the per-subcommand entries.
+#
+# THE RULE-LEVEL NEED SURVIVES THE FLOOR CHANGE, WHICH IS WHY NOTHING HERE IS DELETED. The hook must
+# still match the `-R` form, because the convention still produces it and because the floor is not the
+# only reader — a command the floor never sees still reaches these rules.
 #
 # THE FIX IS THIS VARIABLE, USED EVERYWHERE, and the reason it is one variable is the second half of
 # the same finding: three rules had each grown their OWN copy, two of them space-only, so
@@ -423,12 +437,25 @@ fi
 #     Each of these is in the settings `deny` list, and for each one the `-R` spelling was ALLOW —
 #     `gh -R owner/repo repo delete --yes` returned no decision from any layer. `repo delete`,
 #     `release delete` and `workflow run` had no hook rule at all, so the floor's prefix entry was the
-#     only thing between the agent and the act, and `Bash(gh -R:*)` walked around it.
+#     only thing between the agent and the act, and the then-live `Bash(gh -R:*)` walked around it.
 #
-#     WHY A HOOK RULE RATHER THAN NARROWING THE ALLOW: removing `Bash(gh -R:*)` would break the
+#     ~~WHY A HOOK RULE RATHER THAN NARROWING THE ALLOW: removing `Bash(gh -R:*)` would break the
 #     workspace's own prescribed multi-repo convention and push every legitimate cross-repo read to a
-#     human prompt. The floor cannot express "the -R form of this subcommand" — that is the same
-#     argument that moved `gh api` (5f) and the `bash -c` payload (the unwrap at the top).
+#     human prompt.~~ **STRUCK — THE PREMISE WAS FALSE, and it was the load-bearing half of the
+#     argument.** The entry WAS removed, later the same day, and nothing was pushed to a prompt:
+#     `gh <subcommand> --repo <o/r>` puts the flag AFTER the subcommand, so it still matches the
+#     per-subcommand allow entries. The "convention would break" claim was never measured; it was
+#     inferred from the flag's existence.
+#
+#     Struck rather than deleted because of what it would have cost the next reader: a comment
+#     asserting that an entry this repo has already removed MUST exist is not stale documentation, it
+#     is an instruction to re-introduce the defect.
+#
+#     WHAT SURVIVES, AND IT IS WHY THESE RULES STAY: the floor cannot express "the `-R` form of this
+#     subcommand" at all. Removing the broad allow closed the shadowing, but the moment any broad
+#     allow on `gh` returns — or a command reaches this hook that the floor never sees — the
+#     per-subcommand deny is again blind to the flag. The hook rule is what does not depend on that.
+#     Same argument that moved `gh api` (5f) and the `bash -c` payload (the unwrap at the top).
 #
 #     GROUPED BY WHAT THEY DO, because the deny messages differ:
 #       repo delete/archive/rename — destroys or renames the repository itself. A rename also breaks

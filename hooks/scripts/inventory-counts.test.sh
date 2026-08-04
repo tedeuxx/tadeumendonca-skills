@@ -508,5 +508,90 @@ else
   fi
 fi
 
+# --- no tracked file may CLAIM an allow entry the floor does not contain ----------------------
+#
+# THE DEFECT THIS COMES FROM: three consecutive commits removed allow entries and left ten sites across
+# a hook header, two suites and two ADRs asserting those entries are present — in the present tense,
+# framed as measurement. One of them told the next maintainer that an entry the same PR had deleted
+# MUST exist, which is not stale documentation but an instruction to re-introduce the defect.
+#
+# THE CAUSE IS STRUCTURAL, NOT CARELESSNESS: each removal commit was scoped to the file it removed from
+# plus the adjacent narrative, and none re-grepped the entry name across the tree. The floor is one
+# file; its justification is spread across five. Nothing connected them, so this does.
+#
+# ── WHAT THIS CHECK IS, STATED BEFORE IT RUNS, BECAUSE IT IS WEAKER THAN IT LOOKS ────────────────
+# THE STRONG FORM — *"no tracked file asserts an allow entry the floor does not contain"* — IS NOT
+# RELIABLY EXPRESSIBLE HERE, and pretending otherwise would make this the fifth instance of the defect
+# it exists to catch. The blocker is not finding the entry names; `Bash(...)` tokens are exact and the
+# floor is machine-readable. It is that **distinguishing an ASSERTION from a NARRATION is a reading of
+# prose, not a pattern.** These two lines differ only in a verb:
+#
+#     `Bash(gh -R:*)` is in `allow` because the convention prescribes it   [example] ← must fire
+#     for one day the floor carried `Bash(gh -R:*)` in `allow`             [example] ← must not
+#
+# `[example]` IS AN OPT-OUT MARKER, and it exists because the two lines above tripped this check the
+# first time it ran — an illustration of the bad phrasing is not the bad phrasing. The trade is worth
+# naming: an opt-out token can silence a REAL claim, so it is deliberately ugly, and a diff adding one
+# to a sentence that is not an illustration should be questioned in review. That is the same bargain as
+# any lint-disable comment, and the same answer — visible beats silent.
+#
+# SO IT IS A TRIPWIRE FOR ONE PHRASING, NOT A PROOF, and it is deliberately biased toward MISSING a
+# stale claim rather than firing on a correct one. A check that cries wolf on accurate prose trains
+# people to ignore it, and an ignored check is worse than an absent one — it also looks like coverage.
+# It fires only on a short list of present-tense presence phrases, and only when no past-tense or
+# negation marker appears on the same line.
+#
+# WHAT IT THEREFORE DOES NOT CATCH, so nobody reads a green here as more than it is: a stale claim
+# phrased any other way ("the allowlist opens X", "X is granted", a claim spanning two lines), and any
+# claim in a file this loop does not scan. The durable fix is the one the hook header already applies —
+# write the DERIVATION, not the entry name — and this check exists because that discipline failed ten
+# times in three commits, not because it is the wrong discipline.
+FLOOR_CLAIM_FILES=$(find "$ROOT/hooks" "$ROOT/agents" "$ROOT/commands" -type f \( -name '*.sh' -o -name '*.md' \) 2>/dev/null)
+FLOOR_CLAIM_FILES="$FLOOR_CLAIM_FILES
+$ROOT/README.md
+$ROOT/CLAUDE.md
+$ROOT/PRINCIPLES.md"
+
+if ! command -v jq >/dev/null 2>&1 || [ ! -r "$SETTINGS" ]; then
+  bad "floor claims — floor unreadable (jq or $SETTINGS); this assertion did NOT run"
+else
+  floor_allow="$(jq -r '.permissions.allow[]?' "$SETTINGS" 2>/dev/null)"
+  if [ -z "$floor_allow" ]; then
+    bad "floor claims — allow list parsed as EMPTY; every check below would pass vacuously"
+  else
+    # Present-tense presence phrases. Narrow on purpose — see the note above.
+    claim_re='(is|are|sits|sitting) in `allow`|(is|are) in the allowlist|with `Bash\([^)]*\)` in `allow`'
+    # Past tense / negation / struck text on the same line means it is NARRATING, not asserting.
+    narr_re='~~|no longer|never|was |were |had |has been|carried|sat |until |former|removed|STRUCK|struck|\[example\]'
+    stale_claims=""
+    checked=0
+    while IFS= read -r file; do
+      [ -z "$file" ] && continue
+      [ -r "$file" ] || continue
+      while IFS= read -r line; do
+        [ -z "$line" ] && continue
+        printf '%s' "$line" | grep -Eq "$narr_re" && continue
+        checked=$((checked + 1))
+        # Every `Bash(...)` token named on an asserting line must be in the floor's allow list.
+        while IFS= read -r tok; do
+          [ -z "$tok" ] && continue
+          if ! printf '%s\n' "$floor_allow" | grep -qxF -- "$tok"; then
+            stale_claims="$stale_claims
+    ${file#"$ROOT"/}: $tok — claimed present, absent from the floor"
+          fi
+        done <<< "$(printf '%s' "$line" | grep -oE 'Bash\([^)]*\)' || true)"
+      done <<< "$(grep -nE "$claim_re" "$file" 2>/dev/null | sed 's/^[0-9]*://' || true)"
+    done <<< "$FLOOR_CLAIM_FILES"
+
+    if [ -z "$stale_claims" ]; then
+      ok "floor claims — no present-tense claim names an allow entry the floor lacks ($checked asserting lines checked)"
+    else
+      bad "floor claims — a tracked file says an entry is in \`allow\` and the floor does not contain it:$stale_claims
+      Either the floor changed and the prose did not, or the prose names an entry that never existed.
+      If the sentence is NARRATING a removal, say so on the same line (\"was\", \"no longer\", \"~~struck~~\") — that is what tells this check it is history."
+    fi
+  fi
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

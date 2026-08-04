@@ -366,10 +366,45 @@ the slice starts from it.
 
 ## Amendment (2026-08-04, second) — what the deny list actually stops, and what it does not
 
-**Decision: the owner, 2026-08-04.** `Bash(bash:*)` and `Bash(sh:*)` **stay** in the committed floor.
+~~**Decision: the owner, 2026-08-04.** `Bash(bash:*)` and `Bash(sh:*)` **stay** in the committed floor.
 The cost recorded below is **accepted in his name**, having been put to him with the counter-argument
 intact. *This record does not re-propose narrowing the grant, and a later reader should not read it as
-building that case.*
+building that case.*~~
+
+> ### Superseded 2026-08-04, later the same day — the owner reversed this decision, and the reversal is the reason it is worth reading
+>
+> **Decision: the owner, 2026-08-04 (`14d7b43`, `786437c`).** `Bash(bash:*)`, `Bash(sh:*)` and
+> `Bash(xargs:*)` came **out** of the committed floor, and `Bash(perl:*)` / `Bash(ruby:*)` followed. At
+> `cb9a2f3` none of the five is in `allow`; a wrapped payload reaches the human as an **ASK**. Checkable:
+> `jq -r '.permissions.allow[]' .claude/settings.json`.
+>
+> **What changed between the two decisions was evidence, not preference — and this is the transferable
+> half.** The reasoning struck above is *"narrowing does not close the hole, because `node`, `python3`,
+> `perl` and `ruby` are already granted and reach the same acts"*. That premise was correct and is still
+> correct. What it did not weigh is that the two grants are **not equally reachable by the matcher this
+> loop actually runs**: the `bash -c` form is what a wrapped payload is *spelled* as by default, and by
+> the time this was reversed the guard's unwrap regex had been patched three times for it —
+> `$'…'` delimiters, escape decoding, option runs before `-c` — with `$'r'"m -rf /x"` (**plain string
+> concatenation, no escapes at all**) still reaching ALLOW. The choice was never *narrow the grant* versus
+> *accept non-containment*; it was **patch a matcher a fourth time** versus **remove the class from the
+> floor**, and the first buys one spelling while the second buys the class.
+>
+> **`xargs` went with them for a reason that is a property of the floor rather than of `xargs`:** allow
+> entries are prefixes, so `xargs -I{} bash -c '…'` matches on `xargs` and the `bash` question is never
+> reached. An allow entry is only as narrow as the *first word* of every command that can carry a payload.
+>
+> **The accepted cost, stated so this is a trade rather than a tightening:** an agent-written scratchpad
+> script is now an ASK. That is deliberate — a script under `git-reps` is committed and reviewable, while
+> a scratchpad script was written minutes earlier by the thing about to run it, which is precisely the
+> shape a wrapped payload takes. `bash` is re-opened by explicit path for the five committed test scripts.
+>
+> **The instruction in the struck paragraph is withdrawn with it.** *"This record does not re-propose
+> narrowing the grant, and a later reader should not read it as building that case"* was correct guidance
+> for the decision it accompanied and would now steer a reader away from the decision the owner actually
+> holds. **Non-containment is still accepted** (`node -e`, `python3 -c` remain granted and
+> `permission-guard.sh` deliberately does not chase them) — so what was narrowed is which spellings are
+> free, not what the perimeter contains. The architecture is [ADR-0008](./0008-which-layer-carries-a-control.md);
+> its second 2026-08-04 amendment carries the measurement.
 
 **What raised it.** The batch that committed this floor ratified the principle *a control expressed as
 absence is not a control* — and in the same diff allowlisted `Bash(bash:*)` / `Bash(sh:*)` alongside the
@@ -394,8 +429,12 @@ property this record was implying and does not have.**
    because trunk-push spellings and command composition *provably cannot* be expressed by a prefix
    matcher.
 3. **Neither is a sandbox, and the perimeter model does not claim one.** Inside the perimeter,
-   arbitrary code execution is granted **deliberately** — `node`, `python3`, `perl`, `ruby`, `bash`,
-   `sh`. The controls exist for the **irreversible/public boundary** and for **process integrity**, not
+   arbitrary code execution is granted **deliberately** — ~~`node`, `python3`, `perl`, `ruby`, `bash`,
+   `sh`~~ **`node` and `python3` as of `cb9a2f3`; `perl`, `ruby`, `bash` and `sh` came out of `allow`
+   the same day and are now an ASK — see the superseded decision above. The bullet's claim is
+   unaffected: `node -e` and `python3 -c` reach every act the others did, which is exactly why removing
+   the others is not containment.** The controls exist for the **irreversible/public boundary** and for
+   **process integrity**, not
    for containment. That is the design; what follows is the price.
 
 ### The specific consequence, named rather than implied
@@ -458,7 +497,10 @@ correcting the hook's header comment is a `hooks/` change and not this record's 
 > **Superseded 2026-08-04 — it is no longer a property, it is a decision.** This passage observed the
 > inversion for one class of command and declined to act on it. Within the same day it recurred twice
 > more, for reasons unconnected to each other and to this one (`gh api`'s read/write split; the
-> `Bash(gh -R:*)` and `Bash(git -C:*)` allow entries shadowing fourteen deny entries), at which point
+> `Bash(gh -R:*)` and `Bash(git -C:*)` allow entries shadowing fourteen deny entries **— the floor as it
+> stood when the decision was taken; `Bash(gh -R:*)` was withdrawn at `cb9a2f3` and only the `git -C`
+> half of that shadowing survives, which changes the instance count and none of the reasoning**), at
+> which point
 > the owner decided the architecture rather than letting a third instance be recorded as a fourth
 > property. **The hook is the authoritative layer; the settings `deny` list is the floor for the direct
 > form; the authoritative layer fails open and that cost is accepted in the owner's name.** The record
@@ -505,4 +547,9 @@ a bug and works around it, which is the failure mode this record exists to preve
   check that sampled one rule and generalised), and its *"recorded as a known property, not scheduled as
   a fix"* disposition because the owner has since decided the architecture · appended (2026-08-04) to
   bound the two-surface formula: it computes **capability**, and `security`'s `.brand/` boundary is in
-  neither surface.
+  neither surface · **the second 2026-08-04 amendment's opening decision — *"`Bash(bash:*)` and
+  `Bash(sh:*)` stay in the committed floor"* — is superseded in place later the same day (`14d7b43`,
+  `786437c`): the owner took the interpreter class out of `allow` once plain string concatenation
+  (`$'r'"m -rf /x"`, no escapes) showed that a fourth patch to the unwrap regex buys a spelling and not
+  the class. Non-containment stays accepted and `node`/`python3` stay granted; the measurement is in
+  [ADR-0008](./0008-which-layer-carries-a-control.md)'s second 2026-08-04 amendment.**

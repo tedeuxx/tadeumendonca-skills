@@ -20,25 +20,43 @@ being true three separate times in one day — none of the three being a decisio
 architecture.**
 
 1. **`bash -c '…'`.** The settings matcher reads a command *prefix*. The prefix of `bash -c 'rm -rf /x'`
-   is `bash`, and ~~`Bash(bash:*)` is in `allow`~~ **`Bash(bash:*)` is in `allow` — an entry this same
-   batch added; see the 2026-08-04 amendment, which corrects the tense throughout this section**. So
-   **every** prefix-matched `deny` entry is unreachable in wrapped form, for every command in the floor.
+   is `bash`, and ~~`Bash(bash:*)` is in `allow`~~ ~~**`Bash(bash:*)` is in `allow` — an entry this same
+   batch added; see the 2026-08-04 amendment, which corrects the tense throughout this section**~~
+   **`Bash(bash:*)` was in `allow` from `4842ecd` to `994c8a1` and came back out at `14d7b43`; at
+   `cb9a2f3` no interpreter wrapper is allow-listed at all. See the *second* 2026-08-04 amendment.** So
+   **every** prefix-matched `deny` entry is unreachable in wrapped form **for as long as any wrapper is
+   allow-listed** — which is a property of the matcher rather than of the entry, and is why this routing
+   reason outlives the entry that first demonstrated it.
 2. **`gh api`'s read/write split.** `-f`/`-F` switch the request to POST with no `--method` present, so no
    prefix separates a read from a write. The blanket `Bash(gh api:*)` deny added that morning removed
    reads the loop itself performs, and the control moved to the hook (rule 5f).
 3. **Allow entries shadowing deny entries.** ~~`Bash(gh -R:*)` and `Bash(gh --repo:*)` exist because~~
-   **`Bash(gh -R:*)` and `Bash(gh --repo:*)` were added to `allow` by this batch, because**
-   `gh -R <repo> <subcommand>` is this workspace's prescribed multi-repo convention. A prefix deny on
+   ~~**`Bash(gh -R:*)` and `Bash(gh --repo:*)` were added to `allow` by this batch, because**~~
+   **`Bash(gh -R:*)` and `Bash(gh --repo:*)` were added to `allow` by this batch at `4842ecd` and
+   removed again at `cb9a2f3`, because** `gh -R <repo> <subcommand>` **was** this workspace's prescribed
+   multi-repo convention. A prefix deny on
    `gh repo delete` cannot see `gh -R owner/repo repo delete`. `Bash(git -C:*)` does the same to the
-   `git` half.
+   `git` half — **and `Bash(git -C:*)` is still in `allow` at `cb9a2f3`, so this reason has a live
+   instance in the floor as it stands, not only a historical one.** The convention moved rather than the
+   reason: the repo flag now goes **after** the subcommand (`gh pr view --repo <o/r>`), which matches the
+   per-subcommand entries instead of fronting them. See the second 2026-08-04 amendment.
 
-**Counted against the committed floor rather than asserted:** ten `gh` deny entries are shadowed by the
-two `-R`/`--repo` allow entries (`workflow run`, `release create`, `release delete`, `repo delete`,
+**Counted against the committed floor rather than asserted:** ten `gh` deny entries **were** shadowed by
+the two `-R`/`--repo` allow entries (`workflow run`, `release create`, `release delete`, `repo delete`,
 `repo archive`, `repo rename`, `pr merge --squash`, `pr merge -s squash`, `secret set`, `secret delete`),
 and four `git` entries covering two acts are shadowed by `Bash(git -C:*)` (`clean -f`, `clean -fd`,
 `push --tags`, `push --follow-tags`). **`permission-guard.sh`'s header gives this as *twelve*; it counts
 the two `git` pairs as the two acts they are, this section counts the four literal entries. Neither is
 wrong and both are the wrong thing to check against** — see *record the derivation, not the count* below.
+
+> **Re-derived at `cb9a2f3`, and this paragraph is now its own worked example.** The two `gh` allow
+> entries came out at `cb9a2f3`, so **the ten `gh` denies are no longer shadowed** and the shadowed set
+> is the `git` half alone. The count above is stale; **the derivation beside it is what let a reader see
+> that in one command** (`jq -r '.permissions.allow[]' .claude/settings.json`, checked against the deny
+> list), which is the entire claim of *record the derivation, not the count*. The number moved **down**
+> here, against that section's *"the count only moves in one direction"* — a prediction about migrations,
+> not about an allow entry being withdrawn.
+
 The trunk-push denies are shadowed the same way, and the one
 `-C`-form deny that exists (`Bash(git -C /Users/tadeumen/git-reps/tadeumendonca-skills push:*)`) is
 hardcoded to one of the two repos in the workspace — the consuming repo's own floor has no equivalent
@@ -109,7 +127,13 @@ cannot drift into two different rules:
    cannot decompose the rest.
 3. **Semantic** — the act is not in the string. `git push` lands on the trunk or not depending on the
    checked-out branch; `gh api` reads or writes depending on whether `-f` is present.
-4. **Shadowed by an `allow`** — `Bash(gh -R:*)`, `Bash(git -C:*)`. The general form is the one worth
+4. **Shadowed by an `allow`** — `Bash(gh -R:*)`, `Bash(git -C:*)`. **[At `cb9a2f3` only `Bash(git -C:*)`
+   is still in `allow`; `Bash(gh -R:*)` is kept here as the worked example that produced the rule, not as
+   a claim about the current floor. The routing reason is about a **shape** — a broad allow on a tool
+   whose deny entries are per-subcommand — and the shape has a live instance either way.
+   `permission-guard.sh`'s header carries the same two examples and is corrected the same way in the same
+   branch; this sentence is required to be identical in both places, so correcting one alone is itself
+   the drift this clause exists to prevent.]** The general form is the one worth
    quoting, because it is the reason this class is systematically underestimated:
 
    > **An `allow` entry does not weaken one `deny`; it weakens every `deny` for the same tool, at once,
@@ -164,9 +188,16 @@ in any spelling. There was no version of the floor that held them.
 - **Neither layer is a sandbox, and the perimeter model does not claim one.** Arbitrary code execution is
   granted deliberately inside the perimeter (`node`, `python3`, `perl`, `ruby`, `bash`, `sh`). These
   controls exist for the irreversible/public boundary and for process integrity, never for containment.
-  **This bullet's judgement stands; its tense does not. Four of
+  ~~**This bullet's judgement stands; its tense does not. Four of
   those six entries, plus `xargs`, enter the committed floor in the same diff that records this ADR — see
-  the 2026-08-04 amendment for what was measured and in which direction the perimeter moved.**
+  the 2026-08-04 amendment for what was measured and in which direction the perimeter moved.**~~
+  **Corrected again at `cb9a2f3`, and this is the second correction to the same four words. Of the six
+  interpreters listed, only `node` and `python3` are in `allow` at that head; `perl`, `ruby`, `bash` and
+  `sh` reach the human as an ASK. The judgement is unchanged and the reason is the sharper half — the
+  perimeter is still non-containment, because `node -e` and `python3 -c` reach every act `bash -c` did
+  and `permission-guard.sh` deliberately does not chase them (its own header books `python3 -c`,
+  `perl -e`, `ruby -e`, `node -e` and `eval` as NOT COVERED, DELIBERATELY). What changed is which
+  spellings cost an ASK, not what the perimeter contains. See the second 2026-08-04 amendment.**
 
 ### The accepted cost that makes this architecture degrade quietly — *the retained floor entry*
 
@@ -264,21 +295,37 @@ as written, and `security`'s review confirmed the third of them member by member
 migrated-and-bounded set, so *"the set the floor does not bound contains the merge gate"* is true as
 written). What is corrected is a **tense** and a **word**.
 
-### 1 · The perimeter is not inherited — this diff moved it, and outward
+### 1 · ~~The perimeter is not inherited — this diff moved it, and outward~~ The perimeter is not inherited — this diff moved it, out and then back
+
+> **The direction claim is superseded by the second 2026-08-04 amendment.** *"Outward"* was true of the
+> head it was written at (`994c8a1`) and of every head before it; three later commits in the same batch
+> (`14d7b43`, `786437c`, `cb9a2f3`) withdrew all seven entries, and at `cb9a2f3` the committed floor is
+> **identical to `main` on every one of them**. The half that is corrected is the **direction**. The half
+> that stands, and is the reason this amendment was worth writing, is that **the perimeter was moved by
+> this batch rather than inherited from it** — which is exactly as true of a batch that moved it out and
+> back as of one that only moved it out, and is the fact a reader weighing the trade needs.
 
 The body above prices the interpreter class as deliberate non-containment and presents that as the
 condition the decision was taken inside. **It is partly the condition this batch created.** Measured
 against `git diff f316015..ce2deea -- .claude/settings.json` rather than asserted:
 
-| entry | committed floor before | the gitignored local overlay | after this batch |
+| entry | committed floor before | the gitignored local overlay | after this batch — ~~as written at `994c8a1`~~ re-measured at `cb9a2f3` |
 |---|---|---|---|
-| `Bash(bash:*)` | absent | **absent** — only six *literal* `bash <file>` invocations | **in `allow`** |
-| `Bash(sh:*)` | absent | absent (only `Bash(shellcheck *)`) | **in `allow`** |
-| `Bash(xargs:*)` | absent | absent (only `Bash(xargs -n1 basename)`) | **in `allow`** |
-| `Bash(perl:*)` | absent | `Bash(perl *)` | in `allow` |
-| `Bash(ruby:*)` | absent | `Bash(ruby *)` | in `allow` |
+| `Bash(bash:*)` | absent | **absent** — only six *literal* `bash <file>` invocations | ~~**in `allow`**~~ **absent** — in at `4842ecd`, out at `14d7b43`; five *literal* `bash <test-script>` entries remain |
+| `Bash(sh:*)` | absent | absent (only `Bash(shellcheck *)`) | ~~**in `allow`**~~ **absent** — in at `4842ecd`, out at `14d7b43` |
+| `Bash(xargs:*)` | absent | absent (only `Bash(xargs -n1 basename)`) | ~~**in `allow`**~~ **absent** — in at `4842ecd`, out at `14d7b43` |
+| `Bash(perl:*)` | absent | `Bash(perl *)` | ~~in `allow`~~ **absent** — in at `4842ecd`, out at `786437c` |
+| `Bash(ruby:*)` | absent | `Bash(ruby *)` | ~~in `allow`~~ **absent** — in at `4842ecd`, out at `786437c` |
 | `Bash(node:*)`, `Bash(python3:*)` | present | absent | present |
-| `Bash(gh -R:*)`, `Bash(gh --repo:*)` | **absent** | `Bash(gh *)` | **in `allow`** |
+| `Bash(gh -R:*)`, `Bash(gh --repo:*)` | **absent** | `Bash(gh *)` | ~~**in `allow`**~~ **absent** — in at `4842ecd`, out at `cb9a2f3` |
+
+**Why the fourth column is corrected in place while the heading above it is struck.** The first three
+columns are dated measurements of states that existed, so they are history and are untouched. The fourth
+is not a measurement of any past state — its subject is *"after this batch"*, and the batch has not
+landed, so there is no earlier world it is an honest record of. Striking it and appending a replacement
+would enter a state into the record that nothing ever occupied. The heading is different: it is a
+**thesis** that was true at a committed head and that a reader auditing this amendment must be able to
+see, so it is struck and followed rather than rewritten.
 
 Two different movements, and collapsing them is what produced the wrong framing:
 
@@ -303,9 +350,22 @@ table's middle column is the part that can no longer be re-derived.
 fail-open cost read differently when the perimeter under discussion is one the same author had just made
 larger. A reader deciding whether to accept the same trade — and this record exists to make that decision
 re-derivable — needs to know the perimeter **moved, and in which direction**, because "we already lived
-here" and "we moved here in this diff" carry different burdens of proof. The judgement is unchanged: the
+here" and "we moved here in this diff" carry different burdens of proof. ~~The judgement is unchanged: the
 interpreter class stays in `allow`, non-containment stays accepted, and `security` called that the right
-call recorded in the right place. Only the claim about *when it became true* is corrected.
+call recorded in the right place. Only the claim about *when it became true* is corrected.~~
+
+> **Superseded 2026-08-04 (second amendment) — the owner reversed the judgement this paragraph reports
+> as unchanged.** At `14d7b43` he took `Bash(bash:*)`, `Bash(sh:*)` and `Bash(xargs:*)` out of the floor,
+> and at `786437c` `Bash(perl:*)` and `Bash(ruby:*)` followed; **the interpreter class does not stay in
+> `allow`.** The evidence that decided it is worth carrying, because it is the argument this record's own
+> *Considered options* item 3 makes and the one a future reader will re-open: the matcher had been
+> patched three times for wrapped spellings, and `$'r'"m -rf /x"` — **plain concatenation, no escape
+> decoding at all** — still reached ALLOW. No fourth patch reaches that. So the class came out of the
+> allow list instead of the spelling coming into the matcher.
+>
+> **Non-containment stays accepted, and that half is untouched** — `node -e` and `python3 -c` remain
+> allow-listed and reach the same acts. What changed is that the *cheap default* wrapper now costs an
+> ASK, which is a different property from containment and should not be read as one.
 
 ### 2 · *Closed* is not a word a pattern-over-a-grammar control may use about itself
 
@@ -381,6 +441,84 @@ finitely many values a rule can list, so *"every non-`developer` persona is deni
 about a set, not a sample of one. The test is whether the adversary picks from a set the author wrote or
 from a grammar.
 
+## Amendment (2026-08-04, second) — a floor entry's name is not the entry; the record that justifies it is spread across files no removal commit opens
+
+Raised by `quality-assurance` blocking PR #145 at `cb9a2f3`. **The routing decision, the fail-open
+acceptance and the retained-floor-entry cost are again untouched** — what is corrected is that this
+record and ADR-0004 asserted, in the present tense and framed as measurement, a floor that three later
+commits in the same batch had already taken apart.
+
+### The measurement, so it is checkable rather than reported
+
+At `cb9a2f3`, `jq -r '.permissions.allow[]' .claude/settings.json` contains **none** of `Bash(bash:*)`,
+`Bash(sh:*)`, `Bash(xargs:*)`, `Bash(perl:*)`, `Bash(ruby:*)`, `Bash(gh -R:*)`, `Bash(gh --repo:*)`.
+**On all seven the committed floor is identical to `main`.** Removed by `14d7b43` (`bash`, `sh`,
+`xargs`), `786437c` (`perl`, `ruby`) and `cb9a2f3` (the two `gh` flag prefixes). `Bash(chmod:*)` took the
+same route in and out (`4842ecd` → `fe0143c`), with its `Bash(chmod -x:*)` deny added and withdrawn
+alongside it; it is named here because it is an eighth instance of the pattern and it appears in no
+narrative at all, which is the quieter half of the same defect.
+
+The corrections are applied at the sites above, and each says which convention it took and why. The
+short form: **a dated measurement of a state that existed is history and is left alone; a thesis or a
+decision that was true at a committed head is struck and followed; a forward claim about a batch that
+has not landed is corrected in place**, because there is no past world it is an honest record of and a
+strike would enter into the library a state nothing ever occupied.
+
+### The rule this earns — *the entry is one file, the record of it is five*
+
+The cause was established by toggling rather than inferred. `git show --stat cb9a2f3` is three files;
+`git log 8f48a4f..cb9a2f3 -- docs/adr/0008-which-layer-carries-a-control.md docs/adr/0004-autonomy-and-permission-model.md hooks/scripts/permission-guard.sh`
+stops at `786437c`. **Each removal commit was scoped to the file it removed from plus the narrative
+adjacent to it, and no commit re-grepped the entry's name across the tree.** The drift sits exactly, and
+only, at the sites those commits did not open.
+
+> **Removing or adding a floor entry is a change to at least five artifacts, and the name of the entry is
+> the only thing that finds them all.** The entry lives in `.claude/settings.json`; its justification
+> lives in this record, in ADR-0004, in `permission-guard.sh`'s header, in the ADR index, and in the
+> assertions in `inventory-counts.test.sh` and `permission-guard.test.sh`. **Grep the literal entry
+> string across the tree before the commit, not the directory you are editing.**
+
+This belongs to ADR-0008 rather than to a new record because it is **this decision's own architecture
+restated as an obligation**: the reason the justification is spread across five artifacts is that the
+floor holds only the direct form while the hook and the ADRs carry everything else. A layering that
+divides a control across layers divides its record across files by the same cut.
+
+**`developer` is adding the mechanical half** in this branch — an assertion in `inventory-counts.test.sh`
+that no tracked file asserts an allow entry the floor does not contain. The rule above is what makes that
+assertion legible when it goes red: it fails on the *narrative*, and the fix is almost never to change the
+floor back.
+
+**What the mechanical half cannot reach, stated so it is a known bound rather than an oversight.** It
+matches a literal entry string, so it finds `Bash(bash:*)` in prose and does not find *"the interpreter
+class stays in `allow`"*, which asserts the same thing with no entry name in it — and that sentence is one
+of the sites corrected above. The class of claim is a paraphrase; the check is a string match. It closes
+the spelling, not the class, which is this record's own amendment #2 applied to the remedy for its own
+amendment #1.
+
+### Two residuals corrected, both measured, and both strengthening the decision not to fix them here
+
+**1 · The `Edit(.claude/**)` remedy named in `cb9a2f3`'s message does not exist.** That message records
+the fix as *"the absolute form mirrored in both repos"*. Measured since: **a repo's `settings.json` is not
+loaded at all in a session rooted elsewhere.** The evidence is this repo's unique deny — a
+`git -C <skills> push` to a nonexistent remote **reached git and failed there**, which a floor deny would
+have pre-empted. So the deny was never *consulted*, not merely unmatched, and mirroring the glob into both
+files would not change that: the deny can only fire from the session root's own file. The recorded
+migration target — *"belongs in the hook"* — names a layer with **no `PreToolUse` on `Edit`/`Write`** at
+all; the guard is registered on `Bash`.
+
+Both corrections point the same way, and it is the opposite of the direction a remedy points: the control
+is void **by scope**, on a tool **no hook can see**, so there is no cheap fix being deferred. Not
+attempting one in this PR is the right call for a stronger reason than the one recorded when it was made.
+
+**2 · `gh <subcommand> --repo <o/r>` matches the existing per-subcommand entries** — verified live three
+times, with a `gh api` denial in the same session proving the deny layer was live at the time. That is
+why withdrawing `Bash(gh -R:*)` and `Bash(gh --repo:*)` at `cb9a2f3` cost nothing: the convention moves
+the flag after the subcommand and the twenty-five careful per-subcommand entries do the work they were
+written for, instead of sitting behind a flag prefix that fronts the whole `gh` grammar. **Routing
+reason 4 is not weakened by this — it is satisfied.** The shadowing was removed by deleting the shadow,
+which is the remedy this record prefers wherever it is available, and `Bash(git -C:*)` shows where it is
+not: no convention change removes it, because `-C` *is* how the multi-repo loop addresses the other repo.
+
 ## Links
 - Supersedes the layering claim in [ADR-0004](./0004-autonomy-and-permission-model.md)'s second
   2026-08-04 amendment (both the *"the hook, not the floor, stops them"* sentence, superseded in place
@@ -396,3 +534,10 @@ from a grammar.
   (82 `allow` entries, no `deny` block — corroborated by `4842ecd`'s commit message); and the ALLOW table
   from piping payloads at `git show ce2deea:hooks/scripts/permission-guard.sh`, run against the committed
   script rather than the working tree, since `developer`'s fix was already unstaged there.
+- **Second amendment evidence (2026-08-04):** `jq -r '.permissions.allow[]' .claude/settings.json` at
+  `cb9a2f3` for the seven absences; `git log -p 4842ecd~1..cb9a2f3 -- .claude/settings.json` for which
+  commit removed which entry; `git show --stat cb9a2f3` and
+  `git log 8f48a4f..cb9a2f3 -- docs/adr/0008-… docs/adr/0004-… hooks/scripts/permission-guard.sh` for the
+  scope of the removal commits; `14d7b43`'s message for the `$'r'"m -rf /x"` probe that decided the
+  reversal; `git show cb9a2f3:hooks/scripts/permission-guard.sh` for the header's own *NOT COVERED,
+  DELIBERATELY* list of the interpreters that remain allow-listed.
