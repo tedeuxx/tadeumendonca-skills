@@ -122,13 +122,23 @@ check_every_occurrence() {
 check_every_occurrence '[0-9]+ ([a-z-]+ ){0,2}skills' "$total" "skills total, EVERY occurrence"
 check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occurrence"
 
-# The root command is named, not counted — if it is ever joined by a second one, "+ autonomy-on"
-# stops being an accurate way to describe the remainder and this fails on purpose.
+# The root commands are named, not counted — if they are ever joined by an unannounced third, the
+# docs' enumeration stops describing the remainder and this fails on purpose.
+#
+# The expected value moved 1 → 2 on 2026-08-04, when `commands/new-issue.md` shipped as a deliberate
+# second root-level ACTION command (autonomy-on turns the loop on; new-issue captures a request as an
+# Issue — both are things the owner invokes directly, neither belongs under a namespace).
+#
+# THE ASSERTION IS NOT WEAKER FOR HAVING BEEN BUMPED, and that is the whole reason it is a pinned
+# literal rather than a `-ge`. It exists to catch the ACCIDENTAL root command — a skill dropped one
+# directory too high, where nothing in the docs enumerates it and no reader ever finds it. A
+# deliberate addition costs one line here and gets the docs updated in the same commit; an accidental
+# one goes red. A `-ge 1` would have caught neither.
 root_cmds=$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
-if [ "$root_cmds" -eq 1 ]; then
-  ok "commands/ root — exactly one un-namespaced command, so '+ autonomy-on' still describes it"
+if [ "$root_cmds" -eq 2 ]; then
+  ok "commands/ root — exactly two un-namespaced commands (autonomy-on, new-issue), as the docs enumerate"
 else
-  bad "commands/ root — $root_cmds un-namespaced commands; the docs say '+ autonomy-on' as if there were one"
+  bad "commands/ root — $root_cmds un-namespaced commands; the docs enumerate two (autonomy-on, new-issue)"
 fi
 
 # --- hooks ------------------------------------------------------------------------------------
@@ -267,6 +277,73 @@ if [ -f "$ROOT/commands/principles/loop-engineering.md" ]; then
   ok "vocabulary — the slug exception is still in place, as recorded (see the note above)"
 else
   bad "vocabulary — the command was renamed: retire this assertion, this note, and the four-doc list above, and confirm the MAJOR bump"
+fi
+
+# --- the roster's SHAPE, written as an English word inside an instruction -----------------------
+# THE SECOND SURFACE OF A ROSTER CHANGE, and the numbers above cannot see it. When `marketing-lead`
+# merged into `product-lead` on 2026-08-04, the sweep that propagated it was driven by the token
+# `marketing-lead` — which it cleaned completely. Ten present-tense "three leads" statements survived
+# in files that sweep never opened, because the roster states its shape twice: once as a NAME, and
+# once as a COUNT in prose. The count is the half nothing pinned.
+#
+# The counts above are all `<digit> <noun>` in four documents. This one is a word, in a sentence, in
+# an agent file — a persona that reads "the three leads close the description" acts on three.
+#
+# EXPECTED VALUE IS DERIVED, never written here: `agents/*-lead.md`. A merge that removes a lead file
+# reddens this in the same commit, which is the property the whole file is built on.
+lead_files=$(find "$ROOT/agents" -maxdepth 1 -name '*-lead.md' -type f | wc -l | tr -d ' ')
+case "$lead_files" in
+  1) lead_word=one ;;   2) lead_word=two ;;   3) lead_word=three ;;
+  4) lead_word=four ;;  5) lead_word=five ;;  6) lead_word=six ;;
+  7) lead_word=seven ;; 8) lead_word=eight ;; 9) lead_word=nine ;;
+  *) lead_word="$lead_files" ;;
+esac
+
+# SCOPE IS INSTRUCTIONS, NOT RECORDS, and that cut is the whole reason this is not a cry-wolf regex.
+# `agents/**` and `commands/**` are read by an agent as current fact, and `hooks/scripts/*.sh`
+# comments state the rule the code beside them enforces — all three must be TRUE. `docs/**` is
+# excluded on purpose: it narrates how the roster got here, and a check that reddens on "the roster
+# was three leads until 2026-08-04" would force a record to be falsified to go green, which is worse
+# than the gap it closes. `*.test.sh` is excluded because a suite's fixtures are deliberately wrong
+# strings — including this file, whose own comments describe the phrasing it hunts.
+lead_scan_files=$(
+  find "$ROOT/agents" "$ROOT/commands" -name '*.md' -type f
+  find "$ROOT/hooks/scripts" -name '*.sh' -type f ! -name '*.test.sh'
+)
+
+# WHAT IT MATCHES, AND WHAT IT DELIBERATELY DOES NOT — said exactly, because the failure this file
+# keeps re-learning is a pattern claiming more than it covers.
+#
+# It matches a count ADJACENT to the noun: `three leads`, `three-lead referendum`, `4 leads`. That
+# adjacency is the phrasing that goes stale silently, and it is the one all ten survivors used.
+#
+# It starts at TWO. `one lead` is ordinary English for a single lead — `agents/quality-assurance.md`
+# says "one half of one lead" about the copy lens — and flagging it would be the cry-wolf failure on
+# the first run. The cost is real and is stated rather than hidden: if the roster ever became one
+# lead, a surviving `one lead` would not be caught by this. Every wrong count ABOVE one still is,
+# which is the direction that has actually happened twice.
+#
+# It cannot see a count stated any other way — "the leads numbered three", "both leads", a sentence
+# naming each lead and omitting none. Those are out of reach of a pattern, and pretending otherwise
+# is how an enumeration gets mistaken for a rule. The fix for the phrasings this misses is the
+# durable one anyway: instructions say "the leads" and carry no count at all.
+stale_leads=""
+while IFS= read -r hit; do
+  [ -z "$hit" ] && continue
+  tok=$(printf '%s' "$hit" | sed -E 's/^.*:([A-Za-z0-9]+)[- ]leads?$/\1/' | tr '[:upper:]' '[:lower:]')
+  [ "$tok" = "$lead_word" ] && continue
+  [ "$tok" = "$lead_files" ] && continue
+  stale_leads="$stale_leads
+    ${hit#"$ROOT"/}"
+done < <(
+  # shellcheck disable=SC2086
+  grep -oniE '(two|three|four|five|six|seven|eight|nine|[2-9]|[0-9]{2,})[- ]leads?' $lead_scan_files 2>/dev/null
+)
+
+if [ -z "$stale_leads" ]; then
+  ok "roster shape — every stated lead count in agents/, commands/ and the hook scripts is $lead_word"
+else
+  bad "roster shape — the roster has $lead_files leads ($lead_word); these state another count:$stale_leads"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"

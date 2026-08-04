@@ -37,7 +37,7 @@ A thin slice owes **all of its artifacts, not just its code**: the application c
 
 ### The story, when this task closes it
 
-If this is the **last** task under its story, the story's completeness is now the question — and the three leads are about to ask it. Before opening:
+If this is the **last** task under its story, the story's completeness is now the question — and the leads are about to ask it. Before opening:
 
 - **every task under the story is implemented and merged**, not merely opened;
 - the story delivers what its description promised, read against the intake ratification rather than against your memory of it;

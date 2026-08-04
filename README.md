@@ -54,9 +54,9 @@ flowchart TB
   subgraph plugin["tadeumendonca-skills (Claude Code plugin)"]
     direction TB
 
-    subgraph personas["agents/ — 6 subagent personas"]
+    subgraph personas["agents/ — 5 subagent personas"]
       direction LR
-      P1["product-lead · tech-lead<br/>marketing-lead<br/>(three leads, ONE demand)"]
+      P1["product-lead · tech-lead<br/>(two leads, ONE demand;<br/>product-lead also holds the copy lens)"]
       P2["developer<br/>(app · infra · pipeline)"]
       P3["quality-assurance · security<br/>(the two gatekeepers)"]
     end
@@ -69,7 +69,7 @@ flowchart TB
       H4["session-plugin-version<br/>installed build vs source:<br/>says when merged work<br/>is not what is running"]
     end
 
-    subgraph skills["commands/ — 74 skills + autonomy-on"]
+    subgraph skills["commands/ — 74 skills + autonomy-on + new-issue"]
       direction LR
       S1["principles (5)<br/>the drift-reducer"]
       S2["infrastructure (21)<br/>backend (20)<br/>frontend (18)"]
@@ -87,20 +87,33 @@ flowchart TB
 spawned to judge a merge request has not read the conversation that produced it, so it has no
 authorship bias to overcome and no memory of why a shortcut felt reasonable at the time. It verifies
 each criterion against the repo and returns a verdict with citations. `security` is the second
-gatekeeper over the same diff, with its own veto; `marketing-lead` is the lens on what the copy claims.
+gatekeeper over the same diff, with its own veto; the lens on what the copy claims lives inside
+`product-lead`, and **its findings on the truth of a published claim block the merge** — everything else
+it returns is advisory.
 
 - **Choice:** a persona exists **only where conflict is wanted** — where someone should be arguing
-  against someone else — over one persona per concern. The roster was nineteen and is now six, because
-  the discarded thirteen generated no disagreement: they were handoffs, and the handoff was the reason
-  none of them was ever dispatched. A persona that is never invoked is a document.
+  against someone else — over one persona per concern. The roster was nineteen, then six, and is now
+  five, because the discarded personas generated no disagreement: they were handoffs, and the handoff
+  was the reason none of them was ever dispatched. A persona that is never invoked is a document.
 
-  The three leads disagree by design (reader vs system vs market) and then **consolidate one demand**;
+  The two leads disagree by design (product-and-market vs system) and then **consolidate one demand**;
   the two gatekeepers exist to fight the builder, on delivery and on the floor. Everything else became a
   competence of whoever already had the context: the builder writes its own tests and infra, the gate
   diagnoses its own failures, the tech lead records its own decisions.
 
+  **The last merge was for a different reason, and it is worth separating.** `marketing-lead` folded into
+  `product-lead` on 2026-08-04 not because it generated no conflict, but because **the product and the
+  presence are one object** — the site *is* the owner's professional presence — and two leads over one
+  object produce two outputs to reconcile at review time. What was carried across explicitly is the part
+  a merge could have dropped: the copy lens's **blocking veto on published claims**. Truth blocks, craft
+  advises, and the merged persona returns the two classes separately and labelled.
+
   **The cost is real and is not a wash.** Three specialists could not accidentally edit each other's
-  glob; one builder can, so a capability guarantee became scope discipline, which is weaker. And a
+  glob; one builder can, so a capability guarantee became scope discipline, which is weaker. The copy
+  lens paid the same kind of price: it declared no `Bash` deliberately, being the one persona that reads
+  the private positioning directory while its output lands in public PR comments, and the merged persona
+  inherits `product-lead`'s `Bash` — so that boundary is now an instruction rather than a capability.
+  Its own file records this where a maintainer will meet it. And a
   merged persona's checklist is longer, so an item competes for attention with every other item — which
   is precisely the argument the old roster was built on. The counter-evidence is that the old roster's
   lenses spent their best findings **outside their nominal lanes**, so the specialisation they were

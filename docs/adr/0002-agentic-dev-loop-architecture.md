@@ -1,6 +1,6 @@
 # 0002. Agentic dev-loop architecture — per-task subagents, ADRs as the durable brain
 
-- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite)
+- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite) · **amended 2026-08-04** (amendment #9 — `marketing-lead` merges into `product-lead`; the roster drops 6 → 5; the blocking-truth clause is carried across explicitly, and the capability floor that backed it is not)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
 - **Driven by:** [ADR-0001](./0001-adopt-madr-adrs.md), `docs/proposals/agentic-dev-loop.md`
@@ -694,6 +694,322 @@ where an API exists**; API testing becomes the builder's too if a backend appear
 
 The roster, the merge authority, the falsifier rule, criterion 10, the severity contract, the round
 budget, `Review does not open work`, and every hook.
+
+## Amendment (2026-08-04, ninth) — `marketing-lead` merges into `product-lead`; the roster is five
+
+**Decision, and it is the owner's.** Dated 2026-08-04. `marketing-lead` is merged into `product-lead`.
+The roster goes from six personas to five.
+
+His reasoning, in his words: *"o produto é o site e a minha presença profissional"* — the product and
+the professional presence are **one object**, so one lead owns both. And a second reason, about the
+loop rather than the product: fewer lead profiles means fewer outputs that have to be reconciled at
+review time. Amendment #8 made the three leads close an Issue's description *among themselves*; every
+lead added to that reconciliation is a round before any code exists.
+
+This is amendment #7's operation applied one level further — that amendment merged `brand-guardian` +
+`editor` into `marketing-lead`; this one merges the result into `product-lead`. It is therefore an
+amendment on the same criterion, not a new record.
+
+### The clause that is the load-bearing part of this amendment
+
+The two personas were **not symmetric in authority**, and a naive merge would have silently demoted the
+stronger one.
+
+| persona | authority as it stood |
+| --- | --- |
+| `marketing-lead` | splits **truth** (BLOCKING) from **craft** (ADVISORY). A false published claim is a gate. Granted by amendment #6 item 3 — which names `brand-guardian` and `editor`, not `marketing-lead`; it reached this persona through amendment #7's merge of those two. Cite the pair, not one hop. |
+| `product-lead` | purely advisory — *"it proposes, the owner decides; it writes nothing and never merges."* |
+
+Merging into the advisory persona and saying nothing further would convert *"a published claim that is
+false blocks the merge"* into *"a published claim that is false is worth mentioning."* That is not a
+simplification of the roster, it is a repeal of a gate, and it would have happened as a side effect of
+a decision that was not about gates at all.
+
+**The owner chose: merge, and carry the blocking clause across explicitly.** Operative form, written
+so a reviewer can apply it without knowing which persona produced the finding:
+
+> **A finding is BLOCKING when it asserts that something published is false** — a claim the author has
+> not earned, a quantification with no source, a statement contradicted by the code, the file it links
+> to, or another surface. It blocks by naming the falsifier (amendment #6's rule is unchanged: a
+> command, line or file that would show the finding wrong).
+>
+> **Every other finding this lens produces is ADVISORY** — voice, framing, structure, ordering,
+> word choice, market efficacy, positioning preference. Reported, never a gate.
+>
+> **Which persona produced the finding does not enter this test.** The severity follows from what the
+> finding asserts, not from who holds the mandate.
+
+The last line is the one that had to be written down. Under six personas, severity correlated with
+provenance closely enough that nobody had to state the rule — the copy lens blocked, the product lens
+advised. Under five, provenance carries no information and the test has to stand on its own.
+
+#### The role-not-name practice — corrected from this amendment's first draft
+
+The first draft asserted that `quality-assurance`'s **criterion 10** *"is phrased against the content
+lens rather than against a persona name, so it survives this merge without edit."* That claim is
+**false, and refuted by this amendment's own diff.** Criterion 10's second half reads *"even if
+`product-lead` approved"* — a persona name — and this slice edited it from `marketing-lead`. The
+illustration was drawn from the criterion's **design intent** rather than from its **text**, which is
+the one substitution this library treats as a defect rather than a slip.
+
+**The mechanism, because it will recur otherwise.** Amendment #6 item 3 introduces criterion 10 with
+the words *"the content lens returned a verdict"* — that is this ADR's **summary** of the criterion.
+The criterion itself lives in `agents/quality-assurance.md`, and the two are not the same string. The
+first draft quoted the summary and reported it as the text. **An ADR is not a source for what an agent
+file says; it is a source for what was decided.** Reading the second where it lives is one `grep`;
+the draft did not run it.
+
+Struck rather than deleted: an amendment arguing that names age badly, and citing as its proof a
+sentence it was at that moment renaming, is worth keeping visible.
+
+**The practice it illustrated is sound and is not retracted:** *a criterion that names a role outlives
+a roster; one that names a persona is a reference sweep waiting to happen.* What was wrong is the
+example, not the rule.
+
+**The repo does implement it — nine times, and the check is one command.** DoD criteria **1–9**
+(`agents/quality-assurance.md`) name no persona; `git diff 720e0ec..HEAD -- agents/quality-assurance.md`
+touches no hunk in that range, so all nine crossed a roster change untouched. Criterion 10 is the
+**single counter-example** in the file, and this slice paid exactly the cost the practice predicts.
+
+**The refinement the finding forces, because not every mention is avoidable.** Two kinds of sentence
+were being treated as one:
+
+| kind | may it name a persona | why |
+| --- | --- | --- |
+| an **acceptance condition** — what must be true for the criterion to pass | **no**, and criterion 10 violates this avoidably | *"even if the lens approved"* says the same thing and does not age |
+| a **dispatch instruction** — who the reviewer must invoke | **yes, unavoidably** | a dispatch target that names no persona is not dispatchable |
+
+So the trigger's *"incomplete until `product-lead` has returned a copy verdict"* is a name the file
+**cannot** shed, and it will be swept on every roster change by construction. That is a known,
+bounded cost, not a defect. Criterion 10's is neither, and making its text consistent is
+`developer`'s to carry in this slice — this record states only what is true of it today.
+
+### Evidence — why the clause was non-negotiable rather than cautious
+
+On 2026-08-03 the copy lens blocked four merge requests. **None of the four findings was a product
+judgement, and none was a matter of taste.** Each was a false statement about a checkable thing:
+
+- **#344** — the page asserted that *no mechanism enforces the reviewer's dispatch*.
+  `permission-guard.sh` rule 7b (`hooks/scripts/permission-guard.sh:327`) is a `PreToolUse` deny that
+  refuses `gh pr merge` from every `agent_type` except `quality-assurance`. The claim was **false**, and
+  it was in the **specification written by the main agent** — so the party best placed to notice was
+  the party that wrote it.
+- **#347** — a diff with **zero copy in it**: two code comments describing behaviour the code does not
+  have (an accent treatment the nav never used; *"five links"* where `NAV` has six). The lens whose
+  trigger is *"words a reader will see"* earned its keep on a diff containing none.
+- **#348** — the PT string made a **different claim** than the EN: `com que` attached to the wrong
+  noun, dropping the one thing the key existed to name. Two locales, one of them false.
+- **#348** — `app.yml` still said *"the ONE job that reads another repository"* after the same sentence
+  had been superseded **one file over in the same PR**.
+
+Four blocks in one day, all of the same kind: *the text asserts something the repository refutes*. That
+class is what the clause protects. Demote it to advice and all four ship.
+
+### The counter-evidence, recorded because it is the strongest argument against this merge
+
+On **#166** the two leads reached the **same conclusion** — *do not build what the issue describes* — by
+**unrelated** reasoning. `product-lead` argued from inventory and the absence of any measurement path;
+the copy lens argued that the selection rule itself was the defect. Same verdict, two routes, neither
+derivable from the other.
+
+That is precisely what the roster criterion says a second persona is *for*: not a second opinion, a
+second **route**. Under one persona, #166 produces one of those arguments and the owner never learns
+there were two — and it is not knowable in advance which one survives. Recorded here rather than
+argued past, because a record that only makes the case for its own decision is the kind this library
+keeps having to amend.
+
+### Tested against the roster rule — and the answer is not one-sided
+
+> **A persona exists only where conflict is wanted** (amendment #7).
+
+**Was the conflict between product judgement and copy truth wanted?** Honestly: *sometimes*, and #166
+is the instance. The two lenses do produce different arguments, and the owner does occasionally learn
+something from the pair that neither would have supplied alone.
+
+**Why the owner judged it is not enough.** The criterion is not *does conflict ever occur* — that
+standard keeps every lens that ever disagreed, which amendment #7 already struck as *"true and
+insufficient."* It is whether the conflict is **structural**: whether the two personas optimise for
+genuinely different things such that their disagreement is *information*.
+
+Here they do not. Amendment #7's own justification for merging `brand-guardian` + `editor` was that
+**the seam had already failed in the definitions** — each file claimed the other's findings as
+characteristic of its own mandate. **The same failure is present at this seam and it was checkable
+before this slice removed one of the two files** — in the persona descriptions at `227c4a8`, the
+commit this amendment was cut from (`git show 227c4a8:agents/marketing-lead.md`, and the same for
+`product-lead.md`; the ref is pinned because this slice deletes the first file):
+
+- `agents/marketing-lead.md` — *"Absorbs the former brand-guardian, editor and **recruiter** personas."*
+- `agents/product-lead.md` — *"Absorbs the former product-manager, product-owner, analytics,
+  scrum-master and **recruiter** personas."*
+
+**Both claim `recruiter`.** Not a dispatch anecdote and not a judgement about one session — the
+overlap was written into the definitions, on the trunk, before any invocation. Two personas
+independently claiming the same absorbed mandate is definitional overlap at the seam being merged,
+which is the class of evidence amendment #7 acted on — and it had recurred one level up without
+anyone noticing.
+
+**It is not the identical evidence, and the difference is worth one sentence.** Amendment #7's
+overlap was **behavioural**: `editor.md` and `brand-guardian.md` claimed the same *findings* as
+characteristic of their mandates, which is direct evidence the two lenses produce one output. This
+one is **provenance**: two files claiming the same *inherited* mandate, which is evidence that
+whoever wrote the descriptions could not hold the two apart. Weaker as a prediction about outputs,
+stronger as a fact about the record — it is on the trunk and dated, where a session's dispatches are
+neither.
+
+#### The same quoted line double-claims `analytics` — and it is a DIFFERENT failure
+
+Added 2026-08-04, after `developer` read the quote above more carefully than the draft that cited it.
+The `product-lead` string quoted at `227c4a8` names **two** retired personas it did not hold. The
+second is `analytics`, and every other record assigns it to `tech-lead`: this ADR's own roster
+decision (§526, *"`tech-lead` … absorbing `analytics` and `adr-author`"*), `CLAUDE.md`
+(*"`analytics` → `tech-lead`"*), `docs/dev-loop-design.md` (the measurement plan listed under
+`tech-lead`), and the retired file itself — `git show 0563d47^:agents/analytics.md` describes
+*"audits that the instrumentation exists and matches the plan"*, which is `agents/tech-lead.md`'s
+duty 3 almost verbatim. `marketing-lead`'s description did **not** claim `analytics`.
+
+**The tempting reading is that this makes the merge's case twice as strong. It does not, and taking
+it that way would invert the amendment's conclusion.** The two instances differ in the one property
+that makes overlap seam evidence at all — *who else claims it*:
+
+| instance | shape | what it is evidence of |
+| --- | --- | --- |
+| `recruiter` | **both** merging personas claim it | the `product-lead` ↔ `marketing-lead` seam failing in the definitions. Merging the two **removes** it. |
+| `analytics` | **one** persona claims what the roster assigns to a **third** | descriptions drifting from the record. Merging these two does **nothing** to it. |
+
+`analytics` is an over-claim against `product-lead` ↔ **`tech-lead`** — the seam this amendment
+explicitly declines to merge, two sections below, on the grounds that those two optimise for
+genuinely different things. Read as seam evidence it would argue for merging `product-lead` into
+`tech-lead`, which is the opposite of what this record decides. So it is filed as a **third failure
+mode**, not as more of the second:
+
+> **Unreconciled absorption drift.** A persona's description accumulates claims that no one checks
+> against the roster table. It needs no seam and no second persona; it is a record-consistency defect,
+> and its remedy is a reconciliation pass, not a merge.
+
+**It is the more general of the three, which is why it is worth the space.** It had a second symptom
+in the same string, at behaviour level rather than name level: `product-lead` also claimed *"how we
+would know it worked"* — `agents/tech-lead.md`'s duty-3 heading, word for word. So the drift had
+reached both the inherited name and the mandate behind it, and neither was caught by anything. That
+this ADR's own evidence passage quoted the line and saw only the instance it was looking for is the
+same defect one level up, and is why it is recorded here rather than fixed silently.
+
+**Fixed in this slice, and the fix is `developer`'s ruling, not this record's:** `tech-lead` keeps
+measurement, `agents/product-lead.md:3` drops both over-claims and now points at the holder
+(*"MEASUREMENT is tech-lead's, which absorbed `analytics`"*), and `agents/tech-lead.md` needed no edit
+because the ruling made its existing text correct. **The quote at `227c4a8` stands unchanged** — it is
+pinned to a commit, it is history, and it is what the evidence rests on.
+
+Against that, #166's two-routes argument is real but **weaker than it looks**: the routes were
+different, the conclusion was not. What the owner would have lost is a second *justification* for a
+decision he was going to make either way. That is worth something and it is not worth a persona.
+
+**So: the conflict was wanted, was found not to be structural, and is booked as a real loss below
+rather than argued away.**
+
+### Costs, named
+
+**1 · The capability floor is gone, and this is the largest cost of the merge.**
+
+`marketing-lead` declares `tools: Read, Grep, Glob` — **no `Bash`**, deliberately, because the voice is
+the owner's and the persona never edits. That grant is not decoration. It is the through-line of this
+ADR from its very first amendment: *"the boundary should be a capability, not a promise"* (ADR-0004),
+restated when the mandate moved to `brand-guardian` (*"this guarantee must not be weakened in the
+move"*), and restated again when amendment #7 merged three lenses (*"all three predecessors carried
+exactly `Read, Grep, Glob` … which is why they could be merged at all"*).
+
+`product-lead` declares `tools: Read, Grep, Glob, Bash`. **The merged persona inherits `Bash`.**
+
+So the one persona that reads the private positioning source, and whose findings land in **public**
+PRs, is now capable of publishing. Nothing about the identifier-only output rule changes; what changes
+is that the rule is now **an instruction rather than a capability**. In a consuming repo that
+allowlists `gh pr comment` or `gh pr merge`, that capability is live through the inherited permission
+surface.
+
+This is **not neutral and is not presented as such.** Amendment #2 already booked exactly this
+downgrade for the three personas it materialised — *"`Bash` contradicts the 'advisory' framing at the
+capability level … it is the weaker guarantee, and this ADR argues the opposite two sections above."*
+That entry now applies to the copy mandate too, which is the one place this record had held the line
+for four consecutive amendments.
+
+**Accepted, not solved.** The alternative — merging into the *tool-poorer* persona, i.e. stripping
+`Bash` from `product-lead` — was available and is rejected on function: `product-lead` needs `Bash` for
+`gh issue list` to read the queue it sequences, which is the mandate amendment #5 gave it a trigger
+for. Removing it would silently retire that trigger to fix a guarantee that was already behavioural
+for the product half. **The residual is real and this is the record of choosing it.** Re-tightening it
+is an ADR-0004 tool-grant decision and remains the owner's.
+
+**2 · One persona now produces both severities, so the split moved from structure to format.**
+
+Two personas made the blocking/advisory split **structural**: a finding's provenance was most of its
+severity, and a reader could tell the halves apart by which verdict they arrived in. One persona makes
+it a **discipline of the report**.
+
+The report must therefore do what the roster no longer does for it:
+
+> The verdict **separates BLOCKING from ADVISORY into distinct, labelled sections**, and never
+> interleaves them. Each BLOCKING item names its falsifier. If there are no blocking findings, the
+> report **says so explicitly** rather than leaving the section absent — an omitted section and an
+> empty one must not read alike.
+
+The known gap, stated so it is not rediscovered: amendment #6 already recorded that the severity
+contract *"handles a lens that omits severities and not one that gets a severity wrong"*, and that
+nothing catches an under-classification. **That gap widens here.** Under two personas an
+under-classified truth finding still arrived from the lens whose whole mandate was truth, which was
+itself a signal. Under one, a truth finding filed in the advisory section is indistinguishable from a
+craft finding. The residual backstop is criterion 10's second half — a claim the reviewer can itself
+falsify fails the criterion *whatever the lens returned* — which is independent of severity and is
+now carrying more weight than it was designed for.
+
+**3 · One fewer route to a conclusion**, per #166 above. Not restated.
+
+### What is NOT merged
+
+**`tech-lead` stays separate, and the designed conflict is `product-lead` ↔ `tech-lead`.** That seam is
+the one amendment #7 called genuinely different optimisations, and this amendment does not touch it:
+`product-lead` argues from what the reader and the market need, `tech-lead` from what the system can
+carry and what each choice costs later. Those are different rulers with different sources of truth, and
+neither can be derived from the other — which is the test this amendment just applied to the copy seam
+and found the copy seam failing.
+
+**Stated because the evidence above touches this seam and must not be read as arguing against it:**
+`product-lead`'s description had over-claimed `analytics` and the measurement duty, both `tech-lead`'s.
+That is absorption drift in a **string**, not the two rulers collapsing — the mandates were never in
+dispute, every other record assigned them correctly, and the fix was to correct the description. This
+seam is kept, and it is kept having just been looked at rather than assumed.
+
+**The two gatekeepers are untouched.** `quality-assurance` and `security` both still review every MR in
+parallel, and both approvals are still required (amendment #8).
+
+**Unchanged in full:** the merge authority, the falsifier rule, DoD criteria **1–9**, the round budget,
+*Review does not open work*, and every hook. (`agents/tech-lead.md` is edited, but only where it
+**counted** the leads — *three* → *two*; the seam's description is verbatim.)
+
+**Changed in text, unchanged in substance — stated separately, because the first draft of this
+amendment listed both in the line above and was wrong twice:**
+
+- **Criterion 10** — its *obligation* is unchanged; its *text* was edited here, in two places: the
+  persona named in its second half (`marketing-lead` → `product-lead`), and the new sentence requiring
+  the two severities to arrive as separately labelled classes. See the correction above.
+- **The content trigger's fail-closed phrasing** — amendment #4's rule is that the trigger tests *what
+  a diff changes*, never *who reviews it*, and **that half is verbatim**: *"If a diff changes words or
+  images any reader will see — human or machine."* But the sentence does not end there. Its
+  consequence clause — *"your review is incomplete until `product-lead` has returned a copy verdict"* —
+  names a persona and was edited in this slice. So the trigger survives a roster change **in its
+  condition, not in its consequence**; *"by construction"* was true of the part amendment #4 was
+  arguing about and false of the sentence as a whole.
+
+Both errors have the same cause and it is worth naming once: the record was describing **what these
+rules are for** and reporting it as **what they say**. Where an amendment claims a text is untouched,
+the claim is about bytes, and `git diff` settles it.
+
+### One consequence outside this record
+
+ADR-0006's closing **open question** — *"`marketing-lead` has the identical hole … that persona is
+granted `Read, Grep, Glob` and **no `Bash`** … covering it means trading a deliberate tool grant
+against verifiability"* — is **falsified by this amendment**, because the trade it describes as
+unmade has now been made. Amended there, in that record, rather than settled here.
+
+Roster: **6 → 5** — `product-lead`, `tech-lead`, `developer`, `quality-assurance`, `security`.
 
 ## Consequences
 **Good**

@@ -221,9 +221,9 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]
     #     distinction it rests on is real rather than a convenience:
     #
     #       OPENING SCOPE   is creating work nobody asked for — still denied, for every subagent.
-    #       DECOMPOSING     is dividing work the owner already approved and three leads ratified.
+    #       DECOMPOSING     is dividing work the owner already approved and the leads ratified.
     #
-    #     A task under a `ready` story adds nothing: the story passed the owner and the three-lead
+    #     A task under a `ready` story adds nothing: the story passed the owner and the leads'
     #     referendum, and the task only makes visible what was already authorised. Denying it would
     #     tax the flow the model exists to create — the same inversion the 2026-07-31 correction
     #     found in this very rule, where a blanket denial taxed ALIGNED work and the owner paid.

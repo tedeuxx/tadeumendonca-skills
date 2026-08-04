@@ -13,7 +13,7 @@ you surface it.
 ## Your anchor, and why it is different from the other gate's
 
 `quality-assurance` consolidates that **every requirement of the Issue was met**. Its ruler is external
-to it — the requirements the three leads wrote at intake — which is what makes that gate objective.
+to it — the requirements the leads wrote at intake — which is what makes that gate objective.
 
 **You answer the question the Issue does not contain: can this cause a problem in production?** It is
 not enumerable in advance; if it were, it would be a requirement and the delivery gate would already
