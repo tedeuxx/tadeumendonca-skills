@@ -362,6 +362,29 @@ fi
 # THE SUITE THAT DEPENDS ON THIS CANNOT MAKE THE CHECK ITSELF. `permission-guard.test.sh` classifies
 # the GUARD's stdout and never reads `settings.json` — by design, since it tests the hook. So the
 # assertion belongs where repo-file content is already asserted, which is this file.
+# WHAT THIS BLOCK CHECKS, AND THE FILE IT CANNOT SEE. It reads the COMMITTED floor. The EFFECTIVE
+# floor of a running session is the committed file merged with `.claude/settings.local.json` — which is
+# gitignored, per-machine, and re-created by a single "allow always" click. That file is not a
+# hypothetical here: it is the one the audit that produced this whole block found governing every
+# session, with 82 `allow` entries and no `deny` block at all. So state the scope precisely rather than
+# saying "the floor":
+#
+#   · ASSERTIONS 1 AND 3 ARE SCOPED TO THE COMMITTED FILE AND CANNOT BE OTHERWISE. Both check for the
+#     ABSENCE of an `allow` entry, and `allow` is exactly the direction a local overlay can move. Someone
+#     clicks "allow always" on `perl -e …`, `Bash(perl:*)` lands in `settings.local.json`, the gap
+#     re-opens, and this suite stays green — because it is reading the other file. Nothing in CI can
+#     close that: CI has no such file to read, and a suite that demanded one would fail on every machine
+#     that does not have it.
+#   · WHAT ACTUALLY SURVIVES THE CLICK IS `deny`, NOT AN ASSERTION. In the settings merge, deny from any
+#     layer wins, so a prohibition written into the committed `deny` block holds against any later local
+#     `allow`. That is why this PR moved prohibitions out of "absence" and into `deny`, and it is the
+#     remedy for this residual wherever the class can be denied outright. The interpreters here CANNOT
+#     be: `Bash(bash:*)` in `deny` is a prefix match, so it would also refuse the five exact
+#     `bash <test-script>` entries above. Hence an assertion, hence this note about its limit.
+#
+# The honest reading of a green result below is therefore: "the committed floor does not carry these
+# entries", not "this machine's session does not". To check the latter, read
+# `.claude/settings.local.json` by hand; this suite cannot check it for you.
 SETTINGS="$ROOT/.claude/settings.json"
 
 # FAIL LOUDLY IF THE INPUT CANNOT BE READ. An absence check that cannot see the file passes

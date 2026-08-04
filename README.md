@@ -153,8 +153,14 @@ instant cannot see time. Every cost of that model is per story, so the count is 
   spelling is also in the floor's `deny`, that spelling still holds — the two layers overlap on
   purpose. Where it lives only here — the semantic and wrapped forms, plus everything born in the hook,
   of which the sharpest is the merge gate — a hook failure is an open door rather than a degraded floor.
-  Whatever remains uncovered is booked in the hook sources with its reasons, which is the honest form: a
-  guardrail that tells you what it does not catch is worth more than one asserting it catches everything.
+  Every residual **known** to us is booked in the hook sources with its reasons, which is the honest form:
+  a guardrail that tells you what it does not catch is worth more than one asserting it catches everything.
+  **That is deliberately not "everything uncovered is booked."** The hook matches a caller-controlled
+  string against a grammar nobody here owns — `gh` grows subcommands with every release — so the booked
+  list is a sample of the uncovered set, never an enumeration of it. ADR-0008 is the same rule one level
+  down: these spellings, measured this way, on this date, and never *closed*. Measured on 2026-08-04, in
+  the PR that wrote this paragraph: a single repo-flag wildcard in the floor put four writing `gh`
+  subcommands past every layer, and not one of them was booked anywhere.
 
   *The standing example here used to be `gh api`, named as a permanent gap in the present tense by the
   commit that closed it; it moved between layers twice in one day, and the hook source and ADR-0008

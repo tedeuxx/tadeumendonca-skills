@@ -63,8 +63,6 @@
       "Bash(gh repo view:*)",
       "Bash(gh browse:*)",
       "Bash(gh auth status:*)",
-      "Bash(gh -R:*)",
-      "Bash(gh --repo:*)",
       "Bash(bash /Users/tadeumen/git-reps/tadeumendonca-skills/hooks/scripts/permission-guard.test.sh)",
       "Bash(bash /Users/tadeumen/git-reps/tadeumendonca-skills/hooks/scripts/wip-guard.test.sh)",
       "Bash(bash /Users/tadeumen/git-reps/tadeumendonca-skills/hooks/scripts/inventory-counts.test.sh)",
