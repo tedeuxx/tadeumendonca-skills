@@ -382,8 +382,13 @@ else
     #     message, and made a trunk push an ASK on trunk and a silent ALLOW here. Matched by
     #     interpreter NAME, not by the exact string `Bash(perl:*)`, so a respelling with a path or a
     #     different wildcard is caught too.
+    #
+    #     THE PREFIX GROUP IS THE SAME BOUNDARY `permission-guard.sh` USES — `(^|[[:space:]]|/)` before
+    #     the interpreter name. Without it this anchored on `Bash(` and `Bash(/usr/bin/perl:*)` passed:
+    #     measured green with that entry in `allow`. The two layers now agree on what "an interpreter"
+    #     looks like, which is the point — a boundary that differs between them is a gap by definition.
     for interp in perl ruby; do
-      hit="$(printf '%s\n' "$allow_entries" | grep -E "^Bash\($interp([[:space:]]|:)" || true)"
+      hit="$(printf '%s\n' "$allow_entries" | grep -E "^Bash\(([^)]*[/[:space:]])?$interp([[:space:]]|:)" || true)"
       if [ -z "$hit" ]; then
         ok "permission floor — no '$interp' entry in allow"
       else
@@ -432,12 +437,43 @@ else
     #     form had only one `:` to spend and did not match, while every PATH form did. It would have
     #     passed green on the most dangerous entry expressible. Reading it did not find that; an
     #     accept/refuse table of seventeen spellings did, which is the same lesson as the rest of this
-    #     batch and is why the table is kept as a comment rather than discarded after use:
+    #     batch and is why the table is kept as a comment rather than discarded after use.
     #
-    #       FLAG  Bash(bash:*)   Bash(sh:*)   Bash(zsh:*)   Bash(bash <path>/:*)   Bash(bash <path>:*)
-    #       pass  Bash(bash <path>/x.test.sh)   Bash(shellcheck:*)   Bash(shasum:*)   Bash(node:*)
+    #     THE SECOND VERSION MISSED THE PATH-SPELLED FORMS, and it was found the same way — by a
+    #     DIFFERENT author writing a DIFFERENT table, which is the part worth keeping. A table written
+    #     by whoever wrote the regex samples the spellings that author already had in mind; the first
+    #     miss and this one were both invisible to reading and both fell out of an independent set.
+    #     The entry anchored the interpreter name to `Bash(`, so the bare and argument forms were
+    #     caught while every form naming the interpreter BY PATH walked through. Measured: the suite
+    #     reported 49/0 and "no shell-interpreter allow entry ends in a wildcard" with all three of
+    #     `Bash(/bin/bash:*)`, `Bash(/usr/bin/env bash:*)` and `Bash(/usr/bin/perl:*)` in `allow`.
+    #     `/bin/bash /any/script.sh` is the same unbounded grant as `Bash(bash:*)`, one respelling out.
+    #
+    #     THE FIX IS TO BORROW THE GUARD'S OWN BOUNDARY rather than invent a third one. The unwrap in
+    #     `permission-guard.sh` already answers "is this token an interpreter" with `(^|[[:space:]]|/)`
+    #     before the name — which is why `/bin/bash -c` unwraps and `npm run finish -c x` does not. The
+    #     optional `([^)]*[/[:space:]])?` here is that same boundary: an interpreter is at the start, or
+    #     after a slash, or after whitespace. `Bash(shellcheck:*)`, `Bash(shasum:*)` and `Bash(zshdb:*)`
+    #     still pass, because a longer TOOL NAME has neither in front of its `sh`.
+    #
+    #     Table, second author, 39 spellings, all measured before the pattern was trusted:
+    #
+    #       FLAG  Bash(bash:*)  Bash(sh:*)  Bash(zsh:*)  Bash(ksh:*)  Bash(dash:*)
+    #             Bash(bash <path>/:*)  Bash(bash <path>:*)  Bash(bash -c:*)  Bash(bash  <path>:*)
+    #             Bash(/bin/bash:*)  Bash(/bin/sh:*)  Bash(./bash:*)  Bash(../../bin/zsh:*)
+    #             Bash(/usr/bin/env bash:*)  Bash(env bash:*)  Bash(command bash:*)  Bash(exec bash:*)
+    #             Bash(/bin/bash -c:*)  Bash(/opt/homebrew/bin/bash -lc:*)
+    #       pass  Bash(shellcheck:*)  Bash(shasum:*)  Bash(shuf:*)  Bash(sha256sum:*)  Bash(bashate:*)
+    #             Bash(basher:*)  Bash(dashboard:*)  Bash(zshdb:*)  Bash(kshrc-lint:*)  Bash(node:*)
+    #             Bash(python3:*)  Bash(bump-my-version:*)  Bash(npm run finish:*)  Bash(npm run lint:*)
+    #             Bash(git show:*)  Bash(git stash:*)  Bash(git push:*)  Bash(gh pr view:*)
+    #             Bash(bash <path>/x.test.sh)
+    #
+    #     The four `git`/`npm` entries are in the pass set on purpose: `show`, `stash`, `finish` and
+    #     `lint` all contain a shell name as a SUBSTRING, and a prefix group that ended in anything but
+    #     a slash or whitespace would flag every one of them.
     wildcard_shells="$(printf '%s\n' "$allow_entries" \
-      | grep -E "^Bash\((bash|sh|zsh|ksh|dash)([[:space:]][^)]*)?:\*\)$" || true)"
+      | grep -E "^Bash\(([^)]*[/[:space:]])?(bash|sh|zsh|ksh|dash)([[:space:]][^)]*)?:\*\)$" || true)"
     if [ -z "$wildcard_shells" ]; then
       ok "permission floor — no shell-interpreter allow entry ends in a wildcard"
     else

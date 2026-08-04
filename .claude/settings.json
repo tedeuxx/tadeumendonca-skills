@@ -109,7 +109,6 @@
       "Bash(mv:*)",
       "Bash(rsync:*)",
       "Bash(tar:*)",
-      "Bash(chmod:*)",
       "Bash(lsof:*)",
       "Bash(ps:*)",
       "Bash(kill:*)",
@@ -120,7 +119,6 @@
       "WebFetch(domain:docs.claude.com)"
     ],
     "deny": [
-      "Bash(chmod -x:*)",
       "Edit(.claude/**)",
       "Write(.claude/**)",
       "Bash(git push origin main)",
