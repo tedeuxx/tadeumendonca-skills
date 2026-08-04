@@ -281,9 +281,18 @@ The old objection — *an exemption the model can invoke is not a boundary* — 
 dropped. It is correct about `deny`: a flag meaning "the owner asked for this" would be the model
 vouching for itself. It does not reach `ask`, because the model is not the one deciding.
 
-**With one named accepted gap:** the `gh api … POST …/issues` route is not matched, the same way
-ADR-0004's rule 7b books the equivalent for merging. It is stated rather than quietly true — a residual
-nobody wrote down is indistinguishable from one nobody noticed.
+**With one named gap, accepted until 2026-08-04 and now closed:** the `gh api … POST …/issues` route —
+and ADR-0004's equivalent for merging — is closed by the hook's **rule 5f**, which denies a `gh api`
+call carrying a write indicator (`--method POST/PUT/PATCH/DELETE`, `-X`, `-f`/`-F`/`--field`/
+`--raw-field`, `--input`) and leaves a bare read untouched. The issue-creating matcher itself is
+unchanged and still does not parse endpoints; 5f asks only whether the call **writes**, which is visible
+in the flags where intent is not.
+
+It briefly lived in the floor's `deny` as a blanket `Bash(gh api:*)` and that was too broad — it took
+the read path with it. Two things to carry: **say which layer closes a route whenever you say it is
+closed**, because "closed" on its own is how the next reader trusts the hook on a path it does not
+cover; and state residuals rather than leaving them quietly true — a residual nobody wrote down is
+indistinguishable from one nobody noticed, and so is a discharged one nobody struck.
 
 **Why, measured rather than assumed.** In one session the queue grew by 19 issues net, and roughly 13
 were born inside a *review of something else* — because the reviewer's own Definition of Done said

@@ -40,6 +40,25 @@ on:
       # the suite caught it only because the same PR also changed `agents/` and `README.md`. Remove
       # those two coincidences and it ships. Identical in shape to the `hooks/**` note above.
       - ".claude-plugin/**"
+      # `docs/**`, for the third time and the same reason. The suite's floor-claim assertion scans
+      # every tracked `.md`/`.sh`, and that now includes `docs/adr/**` — which is the ONLY layer the
+      # stale-claim defect was actually left in (the hook header had already been re-tensed; the ADRs
+      # had not). Without this line, a PR that edits only an ADR could reintroduce the exact defect
+      # and never start the gate asserting against it: green on the PR that breaks it, and never red
+      # at all — the failure this file's own header warns about twice.
+      - "docs/**"
+      # `PRINCIPLES.md`, for the FOURTH time and the same reason — and this entry is the last one that
+      # should ever be added by measurement. The suite scans every tracked `.md`/`.sh`; this file is
+      # tracked, was in the scan set, and was not in this filter, so a PR editing only it could
+      # introduce a stale floor claim and never start the gate. Latent when found (the file carries no
+      # floor claim today), which is exactly why it survived three previous sweeps of this list.
+      #
+      # THE CAUSE, NOW FIXED IN THE SUITE RATHER THAN HERE: the scan set was derived and this filter
+      # was extended by whichever miss someone happened to measure, and **nobody diffed the two sets
+      # against each other**. `inventory-counts.test.sh` now asserts that every file it scans is a file
+      # this filter can start on. A fifth occurrence goes red in CI instead of being noticed by a
+      # reviewer — which is what the first four depended on.
+      - "PRINCIPLES.md"
       - ".github/workflows/docs-test.yml"
 
 permissions:

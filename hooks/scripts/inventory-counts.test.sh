@@ -346,5 +346,340 @@ else
   bad "roster shape — the roster has $lead_files leads ($lead_word); these state another count:$stale_leads"
 fi
 
+# --- the permission floor's interpreter surface ------------------------------------------------
+#
+# WHY THIS IS HERE RATHER THAN IN A COMMENT. `permission-guard.test.sh` carries a carefully-written
+# note explaining that its silence assertions depend on the floor — "no allow entry remains that would
+# shadow the act". That note is correct, states its own limit, and points at the file. It is also an
+# UNCHECKED CLAIM ABOUT A FILE NO SUITE READS: true today, false the moment someone re-adds
+# `Bash(bash:*)`, and nothing would say so.
+#
+# THREE STALENESS EVENTS FIRED INSIDE THE PR THAT ADDED THAT NOTE — a doc count, a derived count in a
+# box whose purpose was preventing a misreading, and a floor edit that inverted a section's meaning
+# with no assertion going red. A fourth carefully-written comment is not the remedy for the first
+# three. This block is the remedy: the claim becomes checkable, and the comment stays.
+#
+# THE SUITE THAT DEPENDS ON THIS CANNOT MAKE THE CHECK ITSELF. `permission-guard.test.sh` classifies
+# the GUARD's stdout and never reads `settings.json` — by design, since it tests the hook. So the
+# assertion belongs where repo-file content is already asserted, which is this file.
+# WHAT THIS BLOCK CHECKS, AND THE FILE IT CANNOT SEE. It reads the COMMITTED floor. The EFFECTIVE
+# floor of a running session is the committed file merged with `.claude/settings.local.json` — which is
+# gitignored, per-machine, and re-created by a single "allow always" click. That file is not a
+# hypothetical here: it is the one the audit that produced this whole block found governing every
+# session, with 82 `allow` entries and no `deny` block at all. So state the scope precisely rather than
+# saying "the floor":
+#
+#   · ASSERTIONS 1 AND 3 ARE SCOPED TO THE COMMITTED FILE AND CANNOT BE OTHERWISE. Both check for the
+#     ABSENCE of an `allow` entry, and `allow` is exactly the direction a local overlay can move. Someone
+#     clicks "allow always" on `perl -e …`, `Bash(perl:*)` lands in `settings.local.json`, the gap
+#     re-opens, and this suite stays green — because it is reading the other file. Nothing in CI can
+#     close that: CI has no such file to read, and a suite that demanded one would fail on every machine
+#     that does not have it.
+#   · WHAT ACTUALLY SURVIVES THE CLICK IS `deny`, NOT AN ASSERTION. In the settings merge, deny from any
+#     layer wins, so a prohibition written into the committed `deny` block holds against any later local
+#     `allow`. That is why this PR moved prohibitions out of "absence" and into `deny`, and it is the
+#     remedy for this residual wherever the class can be denied outright. The interpreters here CANNOT
+#     be: `Bash(bash:*)` in `deny` is a prefix match, so it would also refuse the five exact
+#     `bash <test-script>` entries above. Hence an assertion, hence this note about its limit.
+#
+# The honest reading of a green result below is therefore: "the committed floor does not carry these
+# entries", not "this machine's session does not". To check the latter, read
+# `.claude/settings.local.json` by hand; this suite cannot check it for you.
+SETTINGS="$ROOT/.claude/settings.json"
+
+# FAIL LOUDLY IF THE INPUT CANNOT BE READ. An absence check that cannot see the file passes
+# vacuously — it would report "no perl entry" on an unreadable floor, which is the exact class of
+# green-for-the-wrong-reason this block exists to stop.
+if ! command -v jq >/dev/null 2>&1; then
+  bad "permission floor — jq unavailable, so the floor could not be read; these assertions did NOT run"
+elif [ ! -r "$SETTINGS" ]; then
+  bad "permission floor — $SETTINGS unreadable; these assertions did NOT run"
+else
+  allow_entries="$(jq -r '.permissions.allow[]?' "$SETTINGS" 2>/dev/null)"
+  if [ -z "$allow_entries" ]; then
+    bad "permission floor — the allow list parsed as EMPTY; every check below would pass vacuously"
+  else
+    ok "permission floor — allow list readable ($(printf '%s\n' "$allow_entries" | wc -l | tr -d ' ') entries)"
+
+    # 1 — perl and ruby must NOT be in `allow`. They were added without being named in any commit
+    #     message, and made a trunk push an ASK on trunk and a silent ALLOW here. Matched by
+    #     interpreter NAME, not by the exact string `Bash(perl:*)`, so a respelling with a path or a
+    #     different wildcard is caught too.
+    #
+    #     THE PREFIX GROUP IS THE SAME BOUNDARY `permission-guard.sh` USES — `(^|[[:space:]]|/)` before
+    #     the interpreter name. Without it this anchored on `Bash(` and `Bash(/usr/bin/perl:*)` passed:
+    #     measured green with that entry in `allow`. The two layers now agree on what "an interpreter"
+    #     looks like, which is the point — a boundary that differs between them is a gap by definition.
+    for interp in perl ruby; do
+      hit="$(printf '%s\n' "$allow_entries" | grep -E "^Bash\(([^)]*[/[:space:]])?$interp([[:space:]]|:)" || true)"
+      if [ -z "$hit" ]; then
+        ok "permission floor — no '$interp' entry in allow"
+      else
+        bad "permission floor — '$interp' is back in allow: $hit — a payload in that interpreter reaches any act with no decision from the hook (it does not parse other languages) and none from the floor"
+      fi
+    done
+
+    # 2 — python3 and node must BE in `allow`. ADR-0008 prices these as accepted non-containment, and
+    #     `permission-guard.test.sh` asserts their silence as a PRICED gap rather than a hole. If they
+    #     were removed, that section would be describing a floor that no longer exists — and an
+    #     absence-only check would go green on it, which is a different floor than the one recorded.
+    for interp in python3 node; do
+      hit="$(printf '%s\n' "$allow_entries" | grep -E "^Bash\($interp([[:space:]]|:)" || true)"
+      if [ -n "$hit" ]; then
+        ok "permission floor — '$interp' present in allow, as ADR-0008 prices it"
+      else
+        bad "permission floor — '$interp' is NO LONGER in allow; ADR-0008 and permission-guard.test.sh both describe it as a priced, accepted gap. Update those records or restore the entry — do not leave them describing a floor that is gone"
+      fi
+    done
+
+    # 3 — NO SHELL-INTERPRETER ENTRY MAY END IN A WILDCARD. This is the one that would have caught the
+    #     round-4 defect, and the choice of shape is deliberate:
+    #
+    #       REJECTED: forbid `Bash(bash <path>/:*)`, the exact shape that failed. It is a SPELLING.
+    #         `Bash(bash /Users/…/scripts:*)` — no trailing slash — has the identical hole and would
+    #         pass. This batch's entire subject is spelling-shaped rules being respelled, four times
+    #         over (rule 4's flag set, 5b's `-R`, 5f's attached value, the unwrap's `$'…'`).
+    #       CHOSEN: forbid a trailing wildcard on ANY shell interpreter. That is the PROPERTY. A `:*`
+    #         permits an unbounded suffix; `permission-guard.sh` deliberately declines to look inside
+    #         `bash script.sh`; so the suffix is arbitrary code. Measured at round 4: a path prefix is
+    #         a STRING prefix, and `…/hooks/scripts/../../../../private/tmp/x.sh` carries it while
+    #         reaching any script on disk. The prefix bounded the characters, not the directory.
+    #
+    #     The cost, stated because it is real: this forecloses a wildcard bash entry someone may one
+    #     day legitimately want. That is the intent — the five exact-match entries prove the wildcard
+    #     is not needed for the actual use case, and a future need should arrive as a deliberate
+    #     change to THIS assertion, reviewed, rather than as a quiet line in the floor.
+    #
+    #     `sh|zsh|ksh|dash` are covered though none is in allow today: re-adding one with a wildcard is
+    #     precisely the respelling this shape exists to refuse. The optional `[[:space:]][^)]*` is what
+    #     keeps `Bash(shellcheck:*)` and `Bash(shasum:*)` from matching on `sh` — an argument run must
+    #     start with whitespace, so a longer TOOL NAME never qualifies.
+    #
+    #     THE FIRST VERSION OF THIS PATTERN MISSED `Bash(bash:*)` — the single entry this whole batch
+    #     removed. It required `([[:space:]]|:)` after the interpreter and then `.*:\*\)`, so the bare
+    #     form had only one `:` to spend and did not match, while every PATH form did. It would have
+    #     passed green on the most dangerous entry expressible. Reading it did not find that; an
+    #     accept/refuse table of seventeen spellings did, which is the same lesson as the rest of this
+    #     batch and is why the table is kept as a comment rather than discarded after use.
+    #
+    #     THE SECOND VERSION MISSED THE PATH-SPELLED FORMS, and it was found the same way — by a
+    #     DIFFERENT author writing a DIFFERENT table, which is the part worth keeping. A table written
+    #     by whoever wrote the regex samples the spellings that author already had in mind; the first
+    #     miss and this one were both invisible to reading and both fell out of an independent set.
+    #     The entry anchored the interpreter name to `Bash(`, so the bare and argument forms were
+    #     caught while every form naming the interpreter BY PATH walked through. Measured: the suite
+    #     reported 49/0 and "no shell-interpreter allow entry ends in a wildcard" with all three of
+    #     `Bash(/bin/bash:*)`, `Bash(/usr/bin/env bash:*)` and `Bash(/usr/bin/perl:*)` in `allow`.
+    #     `/bin/bash /any/script.sh` is the same unbounded grant as `Bash(bash:*)`, one respelling out.
+    #
+    #     THE FIX IS TO BORROW THE GUARD'S OWN BOUNDARY rather than invent a third one. The unwrap in
+    #     `permission-guard.sh` already answers "is this token an interpreter" with `(^|[[:space:]]|/)`
+    #     before the name — which is why `/bin/bash -c` unwraps and `npm run finish -c x` does not. The
+    #     optional `([^)]*[/[:space:]])?` here is that same boundary: an interpreter is at the start, or
+    #     after a slash, or after whitespace. `Bash(shellcheck:*)`, `Bash(shasum:*)` and `Bash(zshdb:*)`
+    #     still pass, because a longer TOOL NAME has neither in front of its `sh`.
+    #
+    #     Table, second author, 39 spellings, all measured before the pattern was trusted:
+    #
+    #       FLAG  Bash(bash:*)  Bash(sh:*)  Bash(zsh:*)  Bash(ksh:*)  Bash(dash:*)
+    #             Bash(bash <path>/:*)  Bash(bash <path>:*)  Bash(bash -c:*)  Bash(bash  <path>:*)
+    #             Bash(/bin/bash:*)  Bash(/bin/sh:*)  Bash(./bash:*)  Bash(../../bin/zsh:*)
+    #             Bash(/usr/bin/env bash:*)  Bash(env bash:*)  Bash(command bash:*)  Bash(exec bash:*)
+    #             Bash(/bin/bash -c:*)  Bash(/opt/homebrew/bin/bash -lc:*)
+    #       pass  Bash(shellcheck:*)  Bash(shasum:*)  Bash(shuf:*)  Bash(sha256sum:*)  Bash(bashate:*)
+    #             Bash(basher:*)  Bash(dashboard:*)  Bash(zshdb:*)  Bash(kshrc-lint:*)  Bash(node:*)
+    #             Bash(python3:*)  Bash(bump-my-version:*)  Bash(npm run finish:*)  Bash(npm run lint:*)
+    #             Bash(git show:*)  Bash(git stash:*)  Bash(git push:*)  Bash(gh pr view:*)
+    #             Bash(bash <path>/x.test.sh)
+    #
+    #     The four `git`/`npm` entries are in the pass set on purpose: `show`, `stash`, `finish` and
+    #     `lint` all contain a shell name as a SUBSTRING, and a prefix group that ended in anything but
+    #     a slash or whitespace would flag every one of them.
+    wildcard_shells="$(printf '%s\n' "$allow_entries" \
+      | grep -E "^Bash\(([^)]*[/[:space:]])?(bash|sh|zsh|ksh|dash)([[:space:]][^)]*)?:\*\)$" || true)"
+    if [ -z "$wildcard_shells" ]; then
+      ok "permission floor — no shell-interpreter allow entry ends in a wildcard"
+    else
+      bad "permission floor — a shell-interpreter entry ends in ':*', which permits an unbounded suffix: $wildcard_shells
+      A path prefix is a STRING prefix, not a directory scope: '<allowed-prefix>/../../../tmp/x.sh' carries it.
+      permission-guard.sh does not look inside a script file, so that suffix is arbitrary code with no decision from any layer.
+      Use exact-match entries (no trailing ':*'), one per script."
+    fi
+  fi
+fi
+
+# --- no tracked file may CLAIM an allow entry the floor does not contain ----------------------
+#
+# THE DEFECT THIS COMES FROM: three consecutive commits removed allow entries and left ten sites across
+# a hook header, two suites and two ADRs asserting those entries are present — in the present tense,
+# framed as measurement. One of them told the next maintainer that an entry the same PR had deleted
+# MUST exist, which is not stale documentation but an instruction to re-introduce the defect.
+#
+# THE CAUSE IS STRUCTURAL, NOT CARELESSNESS: each removal commit was scoped to the file it removed from
+# plus the adjacent narrative, and none re-grepped the entry name across the tree. The floor is one
+# file; its justification is spread across five. Nothing connected them, so this does.
+#
+# ── WHAT THIS CHECK IS, STATED BEFORE IT RUNS, BECAUSE IT IS WEAKER THAN IT LOOKS ────────────────
+# THE STRONG FORM — *"no tracked file asserts an allow entry the floor does not contain"* — IS NOT
+# RELIABLY EXPRESSIBLE HERE, and pretending otherwise would make this the fifth instance of the defect
+# it exists to catch. The blocker is not finding the entry names; `Bash(...)` tokens are exact and the
+# floor is machine-readable. It is that **distinguishing an ASSERTION from a NARRATION is a reading of
+# prose, not a pattern.** These two lines differ only in a verb:
+#
+#     `Bash(gh -R:*)` is in `allow` because the convention prescribes it   [example] ← must fire
+#     for one day the floor carried `Bash(gh -R:*)` in `allow`             [example] ← must not
+#
+# `[example]` IS AN OPT-OUT MARKER, and it exists because the two lines above tripped this check the
+# first time it ran — an illustration of the bad phrasing is not the bad phrasing. The trade is worth
+# naming: an opt-out token can silence a REAL claim, so it is deliberately ugly, and a diff adding one
+# to a sentence that is not an illustration should be questioned in review. That is the same bargain as
+# any lint-disable comment, and the same answer — visible beats silent.
+#
+# SO IT IS A TRIPWIRE FOR ONE PHRASING, NOT A PROOF, and it is deliberately biased toward MISSING a
+# stale claim rather than firing on a correct one. A check that cries wolf on accurate prose trains
+# people to ignore it, and an ignored check is worse than an absent one — it also looks like coverage.
+# It fires only on a short list of present-tense presence phrases, and only when no past-tense or
+# negation marker appears on the same line.
+#
+# WHAT IT THEREFORE DOES NOT CATCH, so nobody reads a green here as more than it is: a stale claim
+# phrased any other way ("the allowlist opens X", "X is granted", a claim spanning two lines). The
+# durable fix is the one the hook header already applies — write the DERIVATION, not the entry name —
+# and this check exists because that discipline failed ten times in three commits, not because it is
+# the wrong discipline.
+#
+# THE BOUND IS PHRASING ONLY, AND THAT IS A CORRECTION. The first version of this list also hedged
+# "any claim in a file this loop does not scan", which read as a caveat and was in fact a hole: the
+# scan set omitted `docs/`, and `docs/adr/` is the ONLY layer the defect was left in — the commit that
+# found it records that the hook header had already been re-tensed and "only the ADR layer was left
+# behind". Measured, same line, same head: `Bash(perl:*) is in allow` FIRES in `agents/` and passes
+# GREEN in `docs/adr/0008`. So the check covered every layer that had self-corrected and none of the
+# one that had drifted. `docs/` is now in the set below, and adding it cost no prose churn — the sweep
+# had already made the ADR layer honest, so the suite stayed green. A generic "files it does not scan"
+# is a reassurance; an enumerated scan set is a bound.
+#
+# (An earlier edition of this paragraph reported the asserting-line count as "4 → 6". The suite prints
+# the number it actually found, on every run, which is the only form that cannot go stale — a derived
+# count in prose, inside the block built to catch stale derived counts, is this batch's signature
+# defect and it landed here too.)
+#
+# ── THE SET IS DERIVED FROM `git ls-files`, NOT FROM A LIST OF ROOTS ─────────────────────────────
+# It used to be `find` over four fixed directories plus three named files, with a COMMENT recording
+# that `git ls-files` minus those paths returned nothing. Three ways that narrowed; this closes two of
+# them permanently:
+#
+#   DIRECTORY — the only thing that would have noticed a fifth root was that comment. A comment is the
+#     instrument this batch has ruled insufficient four times over: it cannot fail.
+#   TRACKED-vs-PRESENT — `find` walked the FILESYSTEM while the comment verified against GIT. They
+#     diverge on any tracked file `find` never reaches, and on anything untracked that it does.
+#   EXTENSION — `*.md`/`*.sh` remains a bounded CHOICE, and it stays one. It is now visible in the
+#     command below rather than asserted in prose. A `Bash(...)` token can appear in a `.yml`
+#     (`.github/workflows/claude.yml` carries one today — shape demonstrated, no live stale claim), so
+#     widening is a real option; it is not taken here because every layer that has actually drifted is
+#     prose, and each added extension widens the cry-wolf surface this check is deliberately narrow on.
+#
+# Deriving from `git ls-files` makes the first two TAUTOLOGICAL — the set IS the tracked set, so there
+# is nothing left for a comment to verify. `-z` with `read -d ''` because a tracked path may contain
+# whitespace; `find` was safe on that by luck of this repo's filenames, not by construction.
+FLOOR_CLAIM_FILES=""
+while IFS= read -r -d '' rel; do
+  FLOOR_CLAIM_FILES="$FLOOR_CLAIM_FILES
+$ROOT/$rel"
+done < <(git -C "$ROOT" ls-files -z -- '*.md' '*.sh' 2>/dev/null)
+
+if ! command -v jq >/dev/null 2>&1 || [ ! -r "$SETTINGS" ]; then
+  bad "floor claims — floor unreadable (jq or $SETTINGS); this assertion did NOT run"
+else
+  floor_allow="$(jq -r '.permissions.allow[]?' "$SETTINGS" 2>/dev/null)"
+  if [ -z "$floor_allow" ]; then
+    bad "floor claims — allow list parsed as EMPTY; every check below would pass vacuously"
+  else
+    # Present-tense presence phrases. Narrow on purpose — see the note above.
+    claim_re='(is|are|sits|sitting) in `allow`|(is|are) in the allowlist|with `Bash\([^)]*\)` in `allow`'
+    # Past tense / negation / struck text on the same line means it is NARRATING, not asserting.
+    narr_re='~~|no longer|never|was |were |had |has been|carried|sat |until |former|removed|STRUCK|struck|\[example\]'
+    stale_claims=""
+    checked=0
+    while IFS= read -r file; do
+      [ -z "$file" ] && continue
+      [ -r "$file" ] || continue
+      while IFS= read -r line; do
+        [ -z "$line" ] && continue
+        printf '%s' "$line" | grep -Eq "$narr_re" && continue
+        checked=$((checked + 1))
+        # Every `Bash(...)` token named on an asserting line must be in the floor's allow list.
+        while IFS= read -r tok; do
+          [ -z "$tok" ] && continue
+          if ! printf '%s\n' "$floor_allow" | grep -qxF -- "$tok"; then
+            stale_claims="$stale_claims
+    ${file#"$ROOT"/}: $tok — claimed present, absent from the floor"
+          fi
+        done <<< "$(printf '%s' "$line" | grep -oE 'Bash\([^)]*\)' || true)"
+      done <<< "$(grep -nE "$claim_re" "$file" 2>/dev/null | sed 's/^[0-9]*://' || true)"
+    done <<< "$FLOOR_CLAIM_FILES"
+
+    if [ -z "$stale_claims" ]; then
+      ok "floor claims — no present-tense claim names an allow entry the floor lacks ($checked asserting lines checked)"
+    else
+      bad "floor claims — a tracked file says an entry is in \`allow\` and the floor does not contain it:$stale_claims
+      Either the floor changed and the prose did not, or the prose names an entry that never existed.
+      If the sentence is NARRATING a removal, say so on the same line (\"was\", \"no longer\", \"~~struck~~\") — that is what tells this check it is history."
+    fi
+  fi
+fi
+
+# --- every file this suite SCANS must be a file the workflow can START on -----------------------
+#
+# THE REGRESSION TEST FOR THE CAUSE, NOT FOR THE INSTANCE. Four times now, a path has been added to
+# `docs-test.yml`'s `paths:` filter after someone measured a specific miss — `hooks/**`,
+# `.claude-plugin/**`, `docs/**`, and `PRINCIPLES.md`. Each fix was correct and none of them prevented
+# the next, because the two sets were maintained independently: **the scan set was derived, the filter
+# was extended by whichever miss got measured, and nobody diffed one against the other.**
+#
+# A file in the scan set but not the filter is the worst shape a gate has: the PR that introduces the
+# defect is exactly the PR that cannot start the gate. Green on the way in, and never red afterwards.
+#
+# THIS IS A ONE-DIRECTION CHECK, DELIBERATELY. Filter ⊅ scan set is a hole; filter ⊃ scan set is only
+# a workflow that sometimes runs with nothing to say, which costs a minute of CI and no correctness.
+# Asserting equality would make `.github/workflows/docs-test.yml` — which the filter lists so the gate
+# re-runs when the filter itself changes — a failure, and that entry is correct.
+WORKFLOW="$ROOT/.github/workflows/docs-test.yml"
+if [ ! -r "$WORKFLOW" ]; then
+  bad "gate coverage — $WORKFLOW unreadable; this assertion did NOT run"
+elif [ -z "${FLOOR_CLAIM_FILES//[[:space:]]/}" ]; then
+  bad "gate coverage — the scan set is EMPTY; this assertion would pass vacuously"
+else
+  # The globs, read from the workflow rather than restated here — restating them is the very
+  # duplication that produced the drift.
+  filter_globs="$(sed -n '/^  *paths:/,/^[^ #]/p' "$WORKFLOW" | sed -nE 's/^ *- "(.*)"$/\1/p')"
+  if [ -z "$filter_globs" ]; then
+    bad "gate coverage — no paths: globs parsed from docs-test.yml; the file changed shape and this assertion did NOT run"
+  else
+    uncovered=""
+    while IFS= read -r file; do
+      [ -z "$file" ] && continue
+      rel="${file#"$ROOT"/}"
+      matched=""
+      while IFS= read -r glob; do
+        [ -z "$glob" ] && continue
+        case "$glob" in
+          */\*\*) [ "${rel#"${glob%\*\*}"}" != "$rel" ] && matched=yes ;;
+          *)      [ "$rel" = "$glob" ] && matched=yes ;;
+        esac
+        [ -n "$matched" ] && break
+      done <<< "$filter_globs"
+      [ -z "$matched" ] && uncovered="$uncovered
+    $rel"
+    done <<< "$FLOOR_CLAIM_FILES"
+
+    if [ -z "$uncovered" ]; then
+      ok "gate coverage — every file the floor-claim scan reads is matched by docs-test.yml's paths: filter"
+    else
+      bad "gate coverage — these files are SCANNED by this suite but cannot START its workflow:$uncovered
+      A PR touching only such a file can introduce the defect this suite exists to catch and never run it.
+      Add the path to .github/workflows/docs-test.yml's paths: filter — do not narrow the scan set to match."
+    fi
+  fi
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

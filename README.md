@@ -146,11 +146,28 @@ instant cannot see time. Every cost of that model is per story, so the count is 
   a hook does not degrade at all. **The cost is that it errs in both directions, and only one of them
   is loud.** It matches patterns rather than intent, so it will sometimes deny something legitimate —
   that you find out immediately, and the fix is arguing with a regex. It also **fails open**: on a
-  parse error, a missing `gh`, or no network, it allows rather than blocks, and there are deliberate
-  uncovered paths (a raw `gh api` call reaching the same endpoint as a gated command is an accepted,
-  named gap, not an oversight). Those you do not find out about at all. They are booked in the hook
-  sources with their reasons, which is the honest form: a guardrail that tells you what it does not
-  catch is worth more than one asserting it catches everything.
+  parse error, a missing `jq`, or no network, it allows rather than blocks — and that direction is
+  silent by construction, so you do not find out at all.
+
+  **What a hook failure costs depends on which layer holds the control.** Where a control's direct
+  spelling is also in the floor's `deny`, that spelling still holds — the two layers overlap on
+  purpose. Where it lives only here — the semantic and wrapped forms, plus everything born in the hook,
+  of which the sharpest is the merge gate — a hook failure is an open door rather than a degraded floor.
+  Every residual **known** to us is booked in the hook sources with its reasons, which is the honest form:
+  a guardrail that tells you what it does not catch is worth more than one asserting it catches everything.
+  **That is deliberately not "everything uncovered is booked."** The hook matches a caller-controlled
+  string against a grammar nobody here owns — `gh` grows subcommands with every release — so the booked
+  list is a sample of the uncovered set, never an enumeration of it. ADR-0008 is the same rule one level
+  down: these spellings, measured this way, on this date, and never *closed*. Measured on 2026-08-04, in
+  the PR that wrote this paragraph: a single repo-flag wildcard in the floor put four writing `gh`
+  subcommands past every layer, and not one of them was booked anywhere.
+
+  *The standing example here used to be `gh api`, named as a permanent gap in the present tense by the
+  commit that closed it; it moved between layers twice in one day, and the hook source and ADR-0008
+  carry that story.* Two rules survive it, and they are the part that transfers to the next residual:
+  **say which layer closes a route whenever you say it is closed** — "closed" on its own is how a reader
+  concludes the matcher covers something it does not — and **a residual booked "permanent" is a
+  statement about the layer that booked it, not about the system.**
 
 **Skills carry the conventions so the model does not re-invent them.** 74 markdown skills, generic by
 construction (`<project>` / `<apex-domain>` placeholders), covering the AWS services, the frontend

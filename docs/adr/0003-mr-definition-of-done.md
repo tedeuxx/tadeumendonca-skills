@@ -46,8 +46,18 @@ were born inside a *review of something else*, each one a finding that gate 1 to
 file. Nobody decided that work should exist; the loop decided, and asked afterwards. The queue stopped
 describing the product and started describing how hard the agents had looked at it.
 
-**Enforced rather than instructed.** `permission-guard` rule 5c denies `gh issue create` — every
-spelling of that command. Read, list, comment, label and close remain open.
+~~**Enforced rather than instructed.** `permission-guard` rule 5c denies `gh issue create` — every
+spelling of that command.~~ Read, list, comment, label and close remain open — that half never changed.
+
+**Struck 2026-08-03, and it had been drifting for two corrections before that.** The blanket deny
+became an ASK for the main agent (2026-07-31, because a blanket denial taxed *aligned* work and the
+owner paid), then `developer` was exempted (#124), and now **the main agent is not asked either** —
+[ADR-0004](./0004-autonomy-and-permission-model.md)'s 2026-08-03 amendment is the decision and states
+the asymmetry: a subagent's filing is invisible, the main agent's happens in front of the owner. What
+survives of "enforced rather than instructed" is narrower and worth naming precisely: **every subagent
+except `developer` is denied**, which is where this ADR's own measured failure — findings filed from
+inside a review of something else — actually occurred. For the main agent the rule is now instructed,
+not enforced.
 
 ~~With no `agent_type` exemption. An exemption a model can invoke by asserting something about itself
 is not a boundary, so there is none.~~ **Struck 2026-08-02 — both halves.** There is now exactly one
