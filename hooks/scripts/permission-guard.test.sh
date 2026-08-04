@@ -609,6 +609,55 @@ check ALLOW "options, benign payload"       "bash --norc -c 'npm test'"
 check ALLOW "ANSI-C, benign payload"        "bash -o posix -c \$'ls -la'"
 check ALLOW "unquoted single-word payload"  "bash -c git"
 
+echo "--- ANSI-C escape decoding is NOT covered, and these are the witnesses ---"
+# The patch that added `$'…'` support taught the quote-strip the DELIMITER. Bash also DECODES ESCAPES
+# inside `$'…'`, and nothing in this hook decodes anything — so a payload spelled with `\x6d` instead
+# of `m` is the same command to bash and a different string to every rule here. Measured, two
+# characters apart, and the second row executes exactly like the first:
+#
+#     bash -c $'gh pr merge 145 --merge'     -> DENY   (7b fires)
+#     bash -c $'gh pr \x6derge 145 --merge'  -> silent (no decision, from any layer)
+#
+# ┌─ READ THIS BEFORE TRUSTING THE FOUR CASES BELOW ───────────────────────────────────────────────┐
+# │ A WITNESS THAT ASSERTS SILENCE IS THE WEAKEST ASSERTION IN THIS FILE. It passes if the rule     │
+# │ works, and it passes just as green if you DELETE the rule it is filed under. It cannot fail for │
+# │ the reason a normal case fails, so it proves nothing about coverage.                            │
+# │                                                                                                 │
+# │ It is a TRIPWIRE, not a proof: it exists so that a future widening of the unwrap — one that      │
+# │ starts matching these — shows up as a test someone has to look at, instead of as a silent        │
+# │ behaviour change. That distinction is the whole subject of ADR-0008, and it is written here      │
+# │ rather than there because here is where someone reads the case.                                 │
+# └─────────────────────────────────────────────────────────────────────────────────────────────────┘
+#
+# WHY `ALLOW` AND NOT `DENY`: nothing denies these. After the owner's floor change (`Bash(bash:*)`,
+# `Bash(sh:*)`, `Bash(xargs:*)` removed from `allow`) they reach the human as an ASK — and it is the
+# guard emitting NO DECISION that produces that ASK. So the correct assertion is that the hook stays
+# silent, and the silence is now correct rather than dangerous: the floor no longer has an allow entry
+# for the interpreter to shadow the act with. Asserting DENY here would assert a mechanism that does
+# not exist and would go red the moment someone read it as coverage.
+check ALLOW "hex escape hides the MERGE GATE"  "bash -c \$'gh pr \\x6derge 145 --merge'"
+check ALLOW "hex escape hides rm -rf"          "bash -c \$'r\\x6d -rf /x'"
+check ALLOW "hex escape hides the trunk push"  "bash -c \$'git push origin \\x6dain'"
+# `\x6d` is not the last spelling, which is the whole reason the class came out of the floor rather
+# than out of the regex. Octal and plain concatenation need no escape decoding at all.
+check ALLOW "octal escape, same class"         "bash -c \$'gh pr \\155erge 145 --merge'"
+check ALLOW "concatenation, no escapes at all" "bash -c \$'r'\"m -rf /x\""
+# THE CONTROLS, and they are what keep the five above from being vacuous: the same commands WITHOUT
+# the escape still deny. If these ever go quiet, the unwrap has regressed and the cases above would
+# not have told you.
+#
+# THE WEAKNESS ABOVE IS MEASURED, NOT ASSERTED. Reverting the ANSI-C fix — and, separately, disabling
+# the unwrap entirely — reddens these controls and leaves **all five silence witnesses green**. That is
+# the box's claim, demonstrated: the witnesses cannot fail for the reason a normal case fails.
+#
+# `rm -rf` IS NOT WITNESSING THE UNWRAP, and is kept anyway. It stays green under both mutations
+# because rule 4 matches `$cmd` RAW — the very asymmetry the unwrap was built to remove. It is a
+# control on rule 4, not on the unwrap, and reading it as the latter is the mistake that let the
+# original `bash -c` blindness be reported as covered.
+check DENY  "control: the merge gate, unescaped"  "bash -c \$'gh pr merge 145 --merge'"
+check DENY  "control: rm -rf (rule 4, raw \$cmd)"  "bash -c \$'rm -rf /x'"
+check DENY  "control: the trunk push, unescaped"  "bash -c \$'git push origin main'"
+
 echo "--- the interpreter perimeter is an ACCEPTED gap, priced in ADR-0008 ---"
 # These ALLOW, deliberately. `python3 -c`, `perl -e`, `ruby -e`, `node -e` and `eval` can all reach the
 # same acts, and the unwrap does not chase them: a regex cannot parse four more languages, and pretending

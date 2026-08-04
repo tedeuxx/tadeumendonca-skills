@@ -191,17 +191,41 @@ cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
 #
 #   COVERED, and each spelling is asserted in the suite rather than claimed here: `bash`/`sh`/`zsh`/
 #     `ksh`/`dash`, an absolute interpreter path, `-c`/`-lc` clusters, an option run before `-c`
-#     (`--norc`, `--login`, `-i`, `-o posix`), `'…'` / `"…"` / `$'…'` / `$"…"` payload quoting, and
-#     three levels of nesting.
+#     (`--norc`, `--login`, `-i`, `-o posix`), `'…'` and `"…"` payload quoting, and three levels of
+#     nesting.
+#
+#     ~~`$'…'` / `$"…"` payload quoting~~ — **REMOVED FROM THIS LIST 2026-08-04, THE DAY IT WAS ADDED.**
+#     What the patch taught the strip is the ANSI-C **delimiter**. What makes ANSI-C quoting different
+#     from single quoting is that **bash DECODES ESCAPES inside it**, and nothing here decodes anything.
+#     Two characters separate a denial from an allow, and both rows execute identically:
+#
+#         bash -c $'gh pr merge 145 --merge'      → DENY   (7b fires)
+#         bash -c $'gh pr \x6derge 145 --merge'   → ALLOW  (no decision, from any layer)
+#
+#     Listing the class when the fix covered one member is **the fourth time in this batch a record
+#     over-claimed its own coverage** — and it shipped inside the commit that added ADR-0008, which
+#     exists to stop precisely this. The lesson is not "add `\xNN` to the regex": `\155`, `\e`, `\cX`
+#     and plain concatenation (`$'r'"m -rf /x"`, no escapes at all) are all still there, and each patch
+#     to a thrice-patched matcher buys one spelling. Where it now sits is the honest bucket:
 #   NOT COVERED, DELIBERATELY: the other interpreters. `python3 -c`, `perl -e`, `ruby -e`, `node -e`
 #     and `eval` reach the same acts and are NOT chased — a regex cannot parse four more languages,
 #     and pretending to would be the "mechanism the file claims and does not run" defect. ADR-0008
 #     prices this as accepted non-containment; the suite asserts they ALLOW, so the gap is visible
 #     rather than merely absent.
-#   NOT PROVABLE EITHER WAY: everything nobody has tried. **A regex over a shell grammar is not
-#     provably complete**, so the honest claim is always *these spellings, measured* — never *the
-#     class*. If you extend this, add the spelling to the suite and re-measure; do not upgrade the
-#     adjective.
+#   NOT PROVABLE EITHER WAY: everything nobody has tried — and, named explicitly because it was once
+#     in the COVERED list above, **ANSI-C `$'…'` payloads. The DELIMITER is handled; ESCAPE DECODING is
+#     not, and no regex over ANSI-C quoting can claim otherwise** — the notation is a small language
+#     with hex, octal, control and escape forms, and matching it would mean implementing bash's decoder
+#     in a `sed` expression. The suite carries `\x6d` witnesses against the merge gate and the
+#     recursive-force delete, asserting SILENCE rather than denial; read the comment there for why a
+#     silence assertion is the weakest thing in that file.
+#
+#     **A regex over a shell grammar is not provably complete**, so the honest claim is always *these
+#     spellings, measured* — never *the class*. If you extend this, add the spelling to the suite and
+#     re-measure; do not upgrade the adjective. And prefer removing the class from the FLOOR over
+#     extending this regex: that is what actually happened here (`Bash(bash:*)`, `Bash(sh:*)` and
+#     `Bash(xargs:*)` came out of `allow`), and it is ADR-0008's argument applied to this rule — a
+#     matcher patched a fourth time closes a spelling; removing the allow entry closes the class.
 #
 # APPENDED, NOT SUBSTITUTED. The payload is added to `cmd`, so the OUTER command survives matching too:
 # `FOO=x bash -c '…'` must still trip rule 8's env-var prefix, and substituting would have thrown that
