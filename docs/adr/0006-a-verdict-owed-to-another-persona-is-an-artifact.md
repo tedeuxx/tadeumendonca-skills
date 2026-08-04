@@ -1,6 +1,6 @@
 # 0006. A verdict one persona owes another is an artifact on the PR, not a relayed claim
 
-- **Status:** accepted
+- **Status:** accepted · **amended 2026-08-04** (the open question's premise is falsified — `marketing-lead` no longer exists and the copy lens now holds `Bash`; the decision itself is unchanged)
 - **Date:** 2026-08-02
 - **Deciders:** the owner
 - **Driven by:** [ADR-0003](./0003-mr-definition-of-done.md), [ADR-0004](./0004-autonomy-and-permission-model.md)
@@ -191,6 +191,59 @@ Chosen: **the comment, verified by the consumer against the current head.**
 **deliberately out of scope** — that persona is granted `Read, Grep, Glob` and **no `Bash`**, and the
 scoping is intentional because it never writes, the voice being the owner's. Covering it means trading
 a deliberate tool grant against verifiability, which is an ADR-0004 decision and the owner's to make.
+
+## Amendment (2026-08-04) — the open question's premise is gone; the question is not
+
+**What changed outside this record.** [ADR-0002](./0002-agentic-dev-loop-architecture.md)'s ninth
+amendment merged `marketing-lead` into `product-lead`. The persona named in the open question above no
+longer exists, and the copy mandate now lives in a persona declaring
+`tools: Read, Grep, Glob, Bash`.
+
+**The decision this ADR records is untouched.** The marker comment, the three conditions
+`quality-assurance` verifies before merging, the head-SHA equality, the one-directional read, the
+`gh pr diff` rule — none of them names a lead persona, and none of them changes. This amendment
+touches the **open question only**.
+
+**What is falsified, precisely.** The open question rested on two premises and both are now false:
+
+1. *"that persona is granted `Read, Grep, Glob` and **no `Bash`**"* — it is granted `Bash`.
+2. *"covering it means **trading** a deliberate tool grant against verifiability, which is an ADR-0004
+   decision and the owner's to make"* — **the trade has been made.** Not as a verifiability decision;
+   as a **side effect** of a roster merge decided on entirely different grounds. The record should say
+   that plainly: the capability the open question treated as the price of closing the hole was spent
+   without the hole being closed.
+
+**What survives, and it is the whole substance.** The hole itself is unchanged: `quality-assurance` is
+told to confirm the copy lens returned a verdict and **still cannot check that it did**. What was a
+capability constraint is now merely the absence of an instruction — the copy lens does not post a
+marker because nothing tells it to, not because it cannot.
+
+**And the question is now cheaper, not settled.** ADR-0002's amendment #9 books the `Bash` inheritance
+as a **cost it accepted**, not as an enablement it wanted. Reading it as a licence would let this
+record convert someone else's accepted downside into a justification — which is exactly the shape
+this ADR's own rejected option 3 was found to keep doing across four rewrites. So:
+
+> **Recorded as reachable, not as decided.** A third marker — `product-lead` posting its copy verdict
+> the way both gatekeepers do — is now mechanically possible where it previously was not. Whether it
+> *should* exist is a separate decision, and it is not made here.
+
+Two things the deciding record would have to weigh, stated so the next reader starts from them rather
+than rediscovering them:
+
+- **The multiplier.** This ADR already books the marker cadence as **per round, not per PR**, and names
+  it *"the thing most likely to get worked around."* A third marker on every reader-facing MR
+  compounds that on the MRs that already carry the most review.
+- **Privacy is the reason the grant was withheld in the first place.** ADR-0002's first amendment made
+  the copy lens write-incapable because it reads a **private, gitignored** source while its findings
+  land in **public** PRs. Instructing it to post to a public PR points it at exactly that seam. The
+  identifier-only output rule (`positioning.md §X, bullet N`) is the containment, and it is now an
+  instruction with no capability behind it.
+
+**A narrower observation, and it cuts the other way.** [ADR-0007](./0007-the-merge-precondition-is-a-floor-not-an-instruction.md)'s
+hook reads *each persona's canonical verdict set from the persona file at runtime* — for
+`quality-assurance` and `security` only. It has no dependency on the lead roster, so the roster merge
+does not touch it. But it is the reason a third marker would be more than documentation: the mechanism
+that would enforce one already exists and is shaped to be extended.
 
 ## Links
 - Makes [ADR-0003](./0003-mr-definition-of-done.md)'s two-gatekeeper requirement checkable rather than

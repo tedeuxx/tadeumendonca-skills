@@ -27,11 +27,11 @@ The chain, and each link is load-bearing:
 > **The owner generates demand.** They are the only origin of work — see *Review does not open work*
 > below, which is the other half of this and is untouched.
 >
-> **The three leads close the description among themselves.** `product-lead`, `tech-lead` and
-> `marketing-lead` collaborate on writing the issue: what it must deliver for the reader, what the
-> system must carry, what it must say to the market. They disagree first and reconcile second; a
-> disagreement they cannot settle goes **up** to the owner as a decision, never **down** as three
-> competing briefs.
+> **The leads close the description among themselves.** `product-lead` and `tech-lead` collaborate on
+> writing the issue: what it must deliver for the reader, **what it must say to the market** (that half
+> is `product-lead`'s since `marketing-lead` merged into it on 2026-08-04), and what the system must
+> carry. They disagree first and reconcile second; a disagreement they cannot settle goes **up** to the
+> owner as a decision, never **down** as competing briefs.
 >
 > **Only then is the issue executable.** `developer` does not pick up an issue whose description is not
 > closed. An issue in the tracker is not the same as an issue ready for work.
@@ -45,7 +45,7 @@ that assessment found this gap **one day after the chain was merged**.
 | transition | who acts | artifact that records it |
 |---|---|---|
 | → **filed** | the owner, alone | the Issue exists |
-| filed → **ready** | the three leads, closing the description | **`ready` label** ← *this was missing* |
+| filed → **ready** | the leads, closing the description | **`ready` label** ← *this was missing* |
 | ready → **in progress** | `developer` | an open PR (already observable — no new state) |
 | in progress → **reviewed** | both gatekeepers | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
 | reviewed → **closed** | `quality-assurance` (safe) · the owner (boundary) | the merge, and for boundary the owner's ratifying comment |
@@ -71,7 +71,7 @@ already observable; inventing states for them would restate information that exi
 place to be wrong. **An issue with no `ready` label is not executable** — that is the whole mechanism,
 and it turns the rule above from something a persona must remember into something anyone can query.
 
-*What it does not buy:* nothing verifies that three leads actually closed the description rather than
+*What it does not buy:* nothing verifies that the leads actually closed the description rather than
 one nodding it through. The label makes the claim **auditable and attributable**, not proven. Stated
 because the previous section's own argument — objectivity is transferred, not created — applies here too.
 
@@ -103,7 +103,7 @@ it is decoration that ages.
 |---|---|---|---|
 | `product` | the repo's own deliverable — for a site, the site; for a harness, the harness | the owner, at filing | `/autonomy-on`'s queue · merge class **safe** |
 | `content` | published in the owner's voice | the owner, at filing | merge class **boundary** |
-| `ready` | the three leads closed the description | the leads | `/autonomy-on` · `developer` refuses an Issue without it |
+| `ready` | the leads closed the description | the leads | `/autonomy-on` · `developer` refuses an Issue without it |
 | `blocked` | waiting on the owner, or on something outside the loop | anyone | the "what needs the owner" report |
 | `reader-facing` | the diff will change words or images a reader sees | the owner or the leads | which lens the gate dispatches — **a signal, never a gate** |
 
@@ -151,7 +151,7 @@ That fires exactly when the risk is real — picking work — and it produces th
 
 **A session with no pending decisions says so.** A step that silently did nothing must not read like a step that ran.
 
-*Why this is an invariant and not advice:* every surviving persona has a trigger. `quality-assurance` runs on every MR and `marketing-lead` hangs off it. Its predecessor `product-manager` had none, and a mandate with no trigger is a document, not a gate — which is this loop's own sentence, about a different persona, that this rule finally applies to the one it was written next to.
+*Why this is an invariant and not advice:* every surviving persona has a trigger. `quality-assurance` runs on every MR and the copy lens — `product-lead`'s market half since 2026-08-04, `marketing-lead`'s before that — hangs off it. Its predecessor `product-manager` had none, and a mandate with no trigger is a document, not a gate — which is this loop's own sentence, about a different persona, that this rule finally applies to the one it was written next to.
 
 ### What gets worked next — discovered vs requested
 
@@ -237,7 +237,7 @@ or declines. Reading, listing, commenting, labelling and closing stay open every
 
 **The one exception, and why it does not erode the rule.** Under `gitflow-single-env` a story is
 broken into tasks, and `developer` is the persona that executes them. **Opening scope** is creating
-work nobody asked for; **decomposing** is dividing work the owner opened and the three leads
+work nobody asked for; **decomposing** is dividing work the owner opened and the leads
 ratified, and the task adds nothing that was not already authorised.
 
 ~~Opening scope is still denied for every subagent, `developer` included.~~ **Struck: that is the

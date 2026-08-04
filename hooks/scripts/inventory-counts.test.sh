@@ -122,13 +122,23 @@ check_every_occurrence() {
 check_every_occurrence '[0-9]+ ([a-z-]+ ){0,2}skills' "$total" "skills total, EVERY occurrence"
 check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occurrence"
 
-# The root command is named, not counted — if it is ever joined by a second one, "+ autonomy-on"
-# stops being an accurate way to describe the remainder and this fails on purpose.
+# The root commands are named, not counted — if they are ever joined by an unannounced third, the
+# docs' enumeration stops describing the remainder and this fails on purpose.
+#
+# The expected value moved 1 → 2 on 2026-08-04, when `commands/new-issue.md` shipped as a deliberate
+# second root-level ACTION command (autonomy-on turns the loop on; new-issue captures a request as an
+# Issue — both are things the owner invokes directly, neither belongs under a namespace).
+#
+# THE ASSERTION IS NOT WEAKER FOR HAVING BEEN BUMPED, and that is the whole reason it is a pinned
+# literal rather than a `-ge`. It exists to catch the ACCIDENTAL root command — a skill dropped one
+# directory too high, where nothing in the docs enumerates it and no reader ever finds it. A
+# deliberate addition costs one line here and gets the docs updated in the same commit; an accidental
+# one goes red. A `-ge 1` would have caught neither.
 root_cmds=$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
-if [ "$root_cmds" -eq 1 ]; then
-  ok "commands/ root — exactly one un-namespaced command, so '+ autonomy-on' still describes it"
+if [ "$root_cmds" -eq 2 ]; then
+  ok "commands/ root — exactly two un-namespaced commands (autonomy-on, new-issue), as the docs enumerate"
 else
-  bad "commands/ root — $root_cmds un-namespaced commands; the docs say '+ autonomy-on' as if there were one"
+  bad "commands/ root — $root_cmds un-namespaced commands; the docs enumerate two (autonomy-on, new-issue)"
 fi
 
 # --- hooks ------------------------------------------------------------------------------------

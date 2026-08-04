@@ -16,7 +16,7 @@ Open issues labelled **`product`** **and `ready`**. If the repo has no such labe
 rather than draining every open issue — a command that silently redefines its own scope is worse than
 one that refuses.
 
-**`ready` means the three leads closed the description** (`/principles/dev-loop`, *Intake*). An Issue
+**`ready` means the leads closed the description** (`/principles/dev-loop`, *Intake*). An Issue
 without it is in the tracker but not executable, and the right move is to say so and run the intake pass
 — not to build it and discover the missing requirement at the gate.
 
@@ -65,15 +65,16 @@ That is the timing. What follows is the exception path for what you *discover* m
 
 Follow `/principles/dev-loop`. Nothing here relaxes it:
 
-- Plan first for anything non-trivial; the three leads consolidate **one** demand before the build.
+- Plan first for anything non-trivial; the two leads consolidate **one** demand before the build.
 - Thin vertical slice, end to end, finished **through merge** before opening the next.
 - WIP is bounded per `/principles/dev-loop` — read it there rather than trusting a restatement, and
   note the guard enforcing it may lag the rule (`product-lead` carries the caveat).
 - Every gate green with real evidence, and the `quality-assurance` on every PR. It merges the safe
   class and escalates the boundary class; a green CI is not a substitute for it.
-- `marketing-lead` on reader-facing copy, long-form prose included. **Nothing enforces this
+- `product-lead` on reader-facing copy, long-form prose included — it holds the copy lens since
+  `marketing-lead` merged into it (2026-08-04), and its **truth findings block**. **Nothing enforces this
   dispatch** — no check, job or hook — so an undispatched lens fails silently. Where the repo's guide
-  makes these the only review of copy, an undispatched one is the whole gate missing.
+  makes this the only review of copy, an undispatched one is the whole gate missing.
 - Adjacent debt is **named in the report**, never filed *by the review* — a review has no way to
   know whether anyone wants the work, and the guard denies it. *(Since #124 the guard exempts
   `developer`, so "denies every subagent" is no longer accurate — but a **review** is still denied,

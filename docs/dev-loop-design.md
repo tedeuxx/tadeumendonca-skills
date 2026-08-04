@@ -43,7 +43,7 @@ prompt-level instruction as an enforcement.
 
 ---
 
-## 2 · The roster — six personas, and the rule that produced them
+## 2 · The roster — five personas, and the rule that produced them
 
 The roster was nineteen. It modelled an organisation: one persona per concern, each with a mandate. In
 practice most were never invoked, because **splitting a concern out of the main context creates a
@@ -56,16 +56,24 @@ The governing rule now is one line:
 > else. Anything that generates no disagreement is a competence, and belongs to whoever already holds
 > the context.
 
+**A second rule joined it on 2026-08-04, and it is not the same rule.** `marketing-lead` merged into
+`product-lead` even though it *did* generate conflict — because **the conflict was internal to one
+object**. The product is the site and the site is the owner's professional presence; two leads over one
+object produce two verdicts to reconcile at review time, and the reconciliation was the owner's to make
+in either arrangement. So: *a persona exists only where conflict is wanted **between two objects***. See
+§2.4's superseding note for what the merge had to carry across explicitly.
+
 ```
                         OWNER  (CEO)
               decides · ratifies the boundary · the only one who opens work
                              │
         ┌────────────────────┼────────────────────┐
-   product-lead    ⇄    tech-lead    ⇄    marketing-lead
-   reader, value,       architecture,      positioning, voice,
-   order, slice size    measurement,       career, market
-                        sequencing,
-                        writes the ADRs
+   product-lead              ⇄              tech-lead
+   reader, value,                           architecture,
+   order, slice size,                       measurement,
+   positioning, voice,                      sequencing,
+   career, market                           writes the ADRs
+   (truth findings BLOCK)
         └────────────────────┼────────────────────┘
                     ONE consolidated demand
                              │
@@ -79,21 +87,27 @@ The governing rule now is one line:
         of any failing gate
 ```
 
-### 2.1 · The three leads
+### 2.1 · The two leads
 
 They sit at the same altitude, below the owner, and **they are meant to disagree**:
 
 - **`product-lead`** — what to build next and at what opportunity cost; whether a slice delivers what it
   promised the reader; whether the flow is honest (tracked work, WIP respected, board matching reality);
-  whether the slice is the right *size*.
+  whether the slice is the right *size*. **And, since 2026-08-04, the market half**: positioning, voice,
+  cross-surface coherence, and the owner's career — does the presence say the right thing, and does that
+  thing win with the people who hire.
 - **`tech-lead`** — architecture direction and what a choice costs in six months; feasibility and
   sequencing from the system's side; the measurement plan, starting with *whether the instrumentation a
   guide claims actually exists*; leads the builder. **Writes the Architecture Decision Records** for the
   decisions it holds.
-- **`marketing-lead`** — positioning, voice, cross-surface coherence, and the owner's career: does the
-  presence say the right thing, and does that thing win with the people who hire.
 
-**They consolidate ONE demand before the build.** Three briefs is how one slice becomes three rounds.
+**`product-lead` is the only lead that can block.** Everything it returns is advisory — order, scope,
+craft, market fit — with one exception: **a published claim that does not survive being checked is
+BLOCKING**, and `quality-assurance`'s criterion 10 holds the merge on it. Because there is no longer a
+second persona whose identity carried that signal, the persona must return **BLOCKING and ADVISORY as
+two separately labelled classes**; a verdict without the split cannot be applied.
+
+**They consolidate ONE demand before the build.** Two briefs is how one slice becomes two rounds.
 Where they cannot reconcile, the disagreement goes to the owner *as a decision*, not downstream as
 competing instructions.
 
@@ -204,6 +218,31 @@ The competence was kept; only the handoff was cut.
 | product manager · product owner · scrum master | `product-lead` | scope, sequence and flow-honesty are one decision seen from three ends |
 | the build specialists (frontend, infrastructure, CI, E2E, static-analysis remediation, performance) | `developer` | never dispatched: the invoking context already held the background, and explaining it three times cost more than doing the work |
 
+**Appended 2026-08-04 — `marketing-lead` → `product-lead`.** The row above stays exactly as written: the
+brand guardian, the editor and the recruiter *were* absorbed into `marketing-lead`, and that record is
+true of the day it was made. What happened next is that `marketing-lead` itself was absorbed, so all
+three now live in `product-lead`.
+
+**The argument is a different one and must not be read as the row above.** Those three were merged
+because they generated no disagreement worth a separate dispatch. `marketing-lead` did generate
+disagreement — it just generated it *about the same object*. The owner's decision: the product is the
+site and the site is his professional presence, one object, one lead; and fewer lead profiles means fewer
+agent outputs to reconcile at review time.
+
+**Two things the merge had to carry across explicitly, because a merge is where a capability gets quietly
+dropped:**
+
+1. **The blocking veto survived.** `product-lead` was purely advisory. The merged persona is advisory on
+   order, scope and craft and **blocking on the truth of anything published** — ratified as a condition
+   of the merge, not inferred from it. The report format (two labelled classes) exists because the split
+   used to be structural and now is not.
+2. **A capability boundary was lost, and it is a real cost.** `marketing-lead` declared `Read, Grep,
+   Glob` — no `Bash` — deliberately: it was the one persona reading the private positioning directory
+   while its output lands in comments on public repos, so the boundary was a capability rather than a
+   promise. `product-lead` carries `Bash` to read the live queue, and the merged persona inherits it.
+   That boundary is now an instruction. Its own file records this at the top, where a maintainer meets
+   it before trusting any "it cannot write" claim.
+
 **Retired outright:** the planner and the plan-reviewer. The owner writes the specs, in the issues, in
 more detail than a planner would produce — the intake step happens upstream of the loop, done by the
 person closest to it. *Named cost:* the significance test for "does this decision need a record" is now
@@ -227,10 +266,10 @@ applied once, after the code exists, rather than twice.
 ```
 owner generates demand                        ← the ONLY origin of work
         │
-   [leads]  product · tech · marketing
+   [leads]  product (incl. market/voice) · tech
         │   they disagree first, then CLOSE the issue's description together
         │   (a disagreement they cannot settle goes UP as a decision,
-        │    never DOWN as three competing briefs)
+        │    never DOWN as competing briefs)
         │
    ISSUE, description closed  ────────────────  nothing is worked that is
         │                                       not in the tracker; an issue
@@ -244,8 +283,8 @@ owner generates demand                        ← the ONLY origin of work
    [gatekeepers]  quality-assurance  ||  security     BOTH, in PARALLEL
         │         every requirement      can this break
         │         of the issue met?      production?
-        │           + marketing-lead when the diff changes anything a reader
-        │             or a crawler will see
+        │           + product-lead's COPY LENS when the diff changes anything
+        │             a reader or a crawler will see (its truth findings BLOCK)
         │
    ┌────┴─────────────────────────────┐
 safe class                      boundary class

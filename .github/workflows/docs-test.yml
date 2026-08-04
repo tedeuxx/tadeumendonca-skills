@@ -33,6 +33,13 @@ on:
       # diagram published three hooks against a `hooks.json` registering four. It supersedes the
       # narrower `hooks/scripts/inventory-counts.test.sh` entry that used to sit here.
       - "hooks/**"
+      # `.claude-plugin/**` for the same reason, found the same way. `inventory-counts.test.sh` reads
+      # `plugin.json` and `marketplace.json` in its INVENTORY_DOCS list — so a count is asserted there
+      # while an edit that touches only those files could not START the gate asserting it. Exposed on
+      # 2026-08-04: the persona merge 6 → 5 left `plugin.json` publishing "6 subagent personas", and
+      # the suite caught it only because the same PR also changed `agents/` and `README.md`. Remove
+      # those two coincidences and it ships. Identical in shape to the `hooks/**` note above.
+      - ".claude-plugin/**"
       - ".github/workflows/docs-test.yml"
 
 permissions:
