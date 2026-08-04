@@ -1,31 +1,83 @@
 #!/usr/bin/env bash
 # permission-guard.sh — PreToolUse(Bash) guard shipped by tadeumendonca-skills.
 #
-# Enforces the model-agnostic, IRREVERSIBLE "floor" centrally, so every consuming
-# repo inherits the same protection without re-declaring it. This is defense in
-# depth: it only blocks operations that are dangerous in ANY repo regardless of
-# its branch model (the danger is irreversibility that escapes git, not "which
-# branch"). Each repo's .claude/settings.json `deny` remains the hard backstop.
+# Enforces the model-agnostic, IRREVERSIBLE floor centrally, so every consuming repo inherits the same
+# protection without re-declaring it. It blocks only what is dangerous in ANY repo regardless of branch
+# model — the danger is irreversibility that escapes git, not "which branch" — and it deliberately does
+# NOT block edits or commits by branch context, so it is safe for both GitFlow (main=prod) and
+# trunk-based (main=working) repos.
 #
-# Two classes live here that a prefix matcher provably cannot express, so leaving
-# them to settings.json was the bug, not the design:
-#   - Pushing to the trunk (rule 7). The same act wears many spellings —
-#     `git push origin main`, `git -C <path> push`, `HEAD:main`, a bare `git push`
-#     while HEAD is main. settings.json can only pattern-list them, which either
-#     misses a form or over-blocks (it over-blocked: EVERY feature-branch push via
-#     `git -C` was denied, so the agent hit a prompt for following its own
-#     multi-repo convention). Resolving HEAD is semantic and catches all forms.
-#   - Command composition (rule 8). Chains and substitutions defeat the matcher
-#     itself, so the human is interrupted for tools that ARE allowlisted. Denying
-#     with a reason turns that interruption into something the agent fixes alone.
+# ┌─ WHICH LAYER OWNS A CONTROL ───────────────────────────────────────────────────────────────────┐
+# │  settings.json `deny`  — THE DIRECT FORM. A literal command prefix, as a human would type it.   │
+# │  THIS HOOK            — EVERYTHING ELSE, and it is the AUTHORITATIVE layer.                     │
+# └────────────────────────────────────────────────────────────────────────────────────────────────┘
 #
-# Still deliberately does NOT block edits or commits by branch context, so it is
-# safe for both GitFlow (main=prod) and trunk-based (main=working) repos.
+# ~~This is defense in depth … each repo's .claude/settings.json `deny` remains the hard backstop.~~
+# **STRUCK 2026-08-04 (owner). It is backwards, and had been for some time before anyone measured it.**
+# The hook was described as a supplement to an authoritative floor. It is the reverse: the floor holds
+# the direct spelling, and for a growing set of controls EVERY OTHER SPELLING is held only here.
 #
-# Contract: receives the PreToolUse JSON on stdin; denies by printing a
-# permissionDecision JSON and exiting 0. Fails OPEN (allows) on any parse error,
-# because settings.json `deny` is the authoritative backstop and we never want to
-# wedge the agent on a malformed payload.
+# FOUR REASONS A CONTROL CANNOT LIVE IN THE FLOOR. A reader deciding where to put the next rule should
+# be able to decide from this list alone — if any of these is true, the rule belongs here:
+#
+#   1. WRAPPED. `bash -c '<payload>'` hides the whole command from a prefix matcher. Closed by the
+#      unwrap step below, which re-points matching at the payload for every rule at once.
+#   2. COMPOSED. `a && b`, `$(…)`, a `VAR=x` prefix — the matcher cannot decompose them, so it prompts
+#      the human for tools that ARE allowlisted (rule 8). Denying with a reason turns an interruption
+#      into something the agent fixes alone.
+#   3. SEMANTIC. The act is not in the string. `git push` lands on the trunk depending on the CHECKED-OUT
+#      BRANCH (rule 7); `gh api` is a read or a write depending on whether `-f` is present (rule 5f).
+#      Pattern-listing these either misses a form or over-blocks — it over-blocked, denying EVERY
+#      feature-branch push via `git -C`, so the agent hit a prompt for following its own convention.
+#   4. SHADOWED BY AN ALLOW. This is the one that is invisible until measured, and the one that produced
+#      most of the current set. `Bash(gh -R:*)` and `Bash(git -C:*)` are in `allow` because the
+#      workspace's multi-repo convention prescribes them — and a prefix `deny` on `gh repo delete`
+#      cannot see `gh -R owner/repo repo delete`. An allow entry does not weaken one deny; it weakens
+#      every deny for the same tool, at once, silently.
+#
+# THE SIZE OF THE SET, DESCRIBED RATHER THAN LISTED — deliberately, and the trade is real either way.
+# An enumeration here would be exact today and wrong at the next migration, and this file has now paid
+# three times for a comment that drifted from the code beside it. What does not go stale is the
+# DERIVATION, so that is what is recorded: **read `.claude/settings.json`'s `deny` list, and for each
+# entry ask whether one of the four reasons above applies to it. Every entry where the answer is yes is
+# an entry whose real enforcement is here.** As of 2026-08-04 that was twelve of them — the whole `gh`
+# surface (shadowed by `gh -R`/`--repo`), plus `git clean -f` and `git push --tags` (shadowed by
+# `git -C`) — and the count only moves in one direction. Do not trust that number; re-derive it.
+#
+# THE DERIVATION FINDS ONLY THE CONTROLS THAT MIGRATED, AND THAT IS NOT ALL OF THEM. Reading the
+# `deny` list can only find rules that HAVE a floor entry. Several controls were BORN here and never
+# had a direct spelling at all — the merge gate (7b), composition (8), `gh api` writes (5f), the
+# persona-keyed rules (5c/5d/5e), and rule 7's bare-`git push`-while-HEAD-is-main branch. For those
+# there is no floor entry to retain and nothing behind this file. **The set the floor does not bound
+# contains the merge gate**, which is the sharpest way to hold the point. See ADR-0008.
+#
+# ── THE FAIL-OPEN CONTRACT, AND WHY IT SURVIVED THE INVERSION ────────────────────────────────────
+# Contract: receives the PreToolUse JSON on stdin; denies by printing a permissionDecision JSON and
+# exiting 0. **Fails OPEN (allows) on any parse error, a missing `jq`, or no network.**
+#
+# ~~because settings.json `deny` is the authoritative backstop~~ — **that justification is GONE.** It was
+# the reason failing open was nearly free, and it stopped being true when the semantic cases migrated
+# here. The reason it still fails open is now a different and weaker one, accepted with the cost named:
+#
+#   FAIL-CLOSED WEDGES THE AGENT, WITH NO REPAIR ROUTE THAT DOES NOT GO THROUGH THE HUMAN. This is not
+#   hypothetical — `wip-guard.sh` records the measured case: with `jq` off `PATH` the guard emitted no
+#   decision at all. A guard that denies everything when its own dependency is missing cannot be fixed
+#   by the agent, because fixing it requires running commands.
+#
+# **THE COST IS NOW LARGER THAN IT WAS, AND IT GROWS.** The layer that fails open is the layer carrying
+# the semantic cases — so a hook failure is not a degraded floor, it is an OPEN DOOR for every control
+# in the derived set above. That is the accepted trade, not an oversight. The two alternatives were put
+# to the owner and declined: fail-closed (above), and pattern-listing the spellings back into the floor
+# — killed by measurement, since ~150 probes found nine spellings nobody had listed, across rules that
+# had already been swept. That is precisely the pattern-list this hook exists to replace.
+#
+# ── THE STANDING RULE FOR THE NEXT RULE ──────────────────────────────────────────────────────────
+# **A control a prefix matcher cannot express belongs here by construction — and every such migration
+# removes one more thing the fail-open cost is bounded by.** Both halves are the rule. Migrate when one
+# of the four reasons applies; when it does, keep the direct form in the floor as well, so the cheap
+# spelling still has a check that cannot fail open. Do not migrate a control that a prefix CAN express.
+#
+# ADR-0004 holds the full decision and its supersessions; this is the short operative form.
 
 set -euo pipefail
 

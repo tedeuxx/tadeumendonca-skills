@@ -12,6 +12,22 @@
 # mode, which the marketplace tarball preserves), and a local `chmod +x` that was never committed
 # would mask it.
 #
+# ── SCOPE, STATED BECAUSE THE SUMMARY LINE WAS MISREAD (2026-08-04) ──────────────────────────────
+# The set under test is DERIVED from hooks.json — every script referenced as a `command` — not a
+# hardcoded list, so it grows automatically when a hook is added. It is therefore SMALLER than the
+# number of `.sh` files in this directory, and that is correct rather than a gap:
+#
+#   IN SCOPE      the scripts the HARNESS invokes by bare path. They need the exec bit or they die at
+#                 runtime with "Permission denied".
+#   OUT OF SCOPE  the `*.test.sh` suites. Nothing invokes them by bare path — CI and humans run them as
+#                 `bash <path>`, which ignores the bit entirely. Requiring it would assert a property
+#                 no caller depends on, and three of the five carry it only by accident of creation.
+#
+# A review read the old summary — a bare "4 executable, 0 not" — as one short of the scripts present,
+# which was a reasonable reading of a number with no scope attached. The fix is at the summary line:
+# it now names its own denominator and where the denominator came from. A count that cannot be
+# misread beats a comment explaining that it was misread.
+#
 # Run: bash hooks/scripts/hooks-executable.test.sh
 
 set -uo pipefail
@@ -47,5 +63,8 @@ while IFS= read -r rel; do
   fi
 done <<< "$scripts"
 
-printf '\n%s executable, %s not\n' "$pass" "$fail"
+total=$((pass + fail))
+printf '\n%s of %s hook scripts referenced by hooks.json are committed executable, %s not\n' \
+  "$pass" "$total" "$fail"
+printf '(test suites are out of scope by design — nothing invokes them by bare path; see the header)\n'
 [ "$fail" -eq 0 ]

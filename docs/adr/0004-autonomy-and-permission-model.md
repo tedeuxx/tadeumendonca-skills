@@ -243,6 +243,33 @@ exactly one expression: the `tools:` frontmatter. **It now has two.** `permissio
 > **A persona's effective capability is the frontmatter grant MINUS the `agent_type`-keyed denials in the
 > floor.** Reading either surface alone overstates it in one direction or understates it in the other.
 
+> **Appended 2026-08-04 — the formula computes CAPABILITY, and `security` is the persona where that stops
+> being the same question as *what is it allowed to do*.**
+>
+> The ruling asked for was whether this section owes `agents/security.md` a line, given that the same
+> batch gave it `Write`, a mandate to post its verdict publicly, and a `.brand/` prohibition it had never
+> had. **It does — but not the line it looks like it owes.** An enumeration of `security`'s grant belongs
+> in the persona file for exactly the reason stated two paragraphs above, and repeating it here would
+> re-acquire the obligation this record was burned by twice. What is owed is a **bound on the formula
+> itself**, which is this record's and nobody else's:
+>
+> > The formula reads *frontmatter grant MINUS the `agent_type`-keyed denials*. Both terms are
+> > **capabilities**. A persona's real boundary may be in **neither** — and `security`'s is: it reads
+> > `.brand/` and posts to a public repo on every MR, and the only thing between those two facts is a
+> > paragraph in its own instructions.
+>
+> So the formula's output is **what a persona CAN do, never what it MAY do**, and reading it as the latter
+> understates the exposure by exactly the set of prose-only boundaries. `security` is the first persona
+> where that gap is load-bearing and deliberately left open: unlike `product-lead`, which rule 5e closes
+> off from publishing entirely, `security`'s verdict **must** reach the PR, so no capability boundary is
+> available without destroying the artifact ADR-0006 requires. **Where `product-lead` has a capability
+> boundary, `security` has a paragraph** — and a paragraph is only as strong as the attention it gets.
+> That asymmetry is the accepted cost, and it is recorded here rather than only in the persona because
+> this is the record whose stated property would otherwise be read as covering it.
+>
+> The count in this section is unaffected: the `agent_type`-keyed denials remain **three** (5d, 5e, 7b).
+> `security` adds no fourth surface — it demonstrates that two surfaces do not span the space.
+
 This is what makes the 2026-08-04 mechanism worth recording where 0002's grant was not. ADR-0002 booked
 the loosening as *"the rule is now an instruction rather than a capability"* — the exact downgrade this
 record's own driver forbids (*"a capability, not a rule an agent can ignore"*). **The second surface
@@ -374,12 +401,45 @@ property this record was implying and does not have.**
 ### The specific consequence, named rather than implied
 
 **`bash -c '…'` renders every prefix-matched `deny` in the committed floor unreachable.** Concretely
-that includes the four `rm` spellings this same batch adds, `gh api`, and the trunk-push denies. In
-wrapped form it is **the hook, not the floor**, that stops them.
+that includes the four `rm` spellings this same batch adds, `gh api`, and the trunk-push denies. ~~In
+wrapped form it is **the hook, not the floor**, that stops them.~~
 
-**Verified empirically, not reasoned:** piping `bash -c 'rm -rf /tmp/x'` at the guard returns
+~~**Verified empirically, not reasoned:** piping `bash -c 'rm -rf /tmp/x'` at the guard returns
 `Blocked: 'rm -rf' is irreversible`. The hook matches; the settings `deny` does not, because the prefix
-is `bash`.
+is `bash`.~~
+
+> ### Superseded 2026-08-04 — the struck sentence was FALSE WHEN WRITTEN, and the owner ratified against it
+>
+> **What it asserted:** that for wrapped commands the hook is the layer that stops them — stated of the
+> `rm` spellings, `gh api` and *the trunk-push denies* alike, and offered as *verified empirically*.
+>
+> **What was true.** Only the `rm` case. `permission-guard.sh` matches most rules on `$bare`, which
+> collapses quoted spans — correct for its own purpose and exactly wrong for a `-c` payload, since that
+> payload is a command that happens to be quoted rather than a string that happens to look like one.
+> Rule 4 (`rm`) matches `$cmd`, the raw string, and was **the only rule in the file that saw a wrapped
+> form**. `security` measured the rest against the tree as this amendment was ratified:
+> `bash -c 'git push origin main'`, `bash -c 'gh pr merge …'`, `bash -c 'gh issue create …'`,
+> `bash -c 'gh pr comment …'` and a wrapped `gh api` write **all reached ALLOW with no decision from any
+> layer** — the merge gate among them. So the sentence was not merely imprecise: for the trunk-push
+> denies it names, *neither* layer stopped them.
+>
+> **What made it true.** Commit `745d949` unwraps `-c` payloads **once, above every rule**, appending the
+> payload to `cmd` so the outer command still trips the composition check. Re-measured after the fix:
+> `bash -c 'gh pr merge 145 --merge'` from the main agent returns rule 7b's deny; against the pre-fix
+> tree (`4842ecd`) the identical payload returns nothing at all. Both probes were run to write this
+> paragraph rather than reasoned from the diff.
+>
+> **The method error, which is the transferable half and the reason this is superseded in place rather
+> than quietly amended.** The empirical check behind *"verified empirically, not reasoned"* sampled
+> **one** rule and generalised to the file. It sampled the single rule that does not use the shared
+> matching surface — so the sample was not merely small, it was the one member of the population that
+> could not represent it. **An empirical claim about a rule SET is checked per rule, or it is stated as
+> covering the rules it tested.** The claim's confident phrasing is what carried it past two
+> gatekeepers and into a record the owner ratified.
+>
+> The layering conclusion this passage was reaching for is now decided rather than observed — see
+> [ADR-0008](./0008-which-layer-carries-a-control.md), which makes the hook the authoritative layer by
+> decision and books the fail-open cost the section below describes.
 
 ### The load-bearing sentence: the layering is inverted from what the hook claims
 
@@ -392,8 +452,18 @@ backstop and we never want to wedge the agent on a malformed payload."*
 > error, justified by a backstop that, for exactly those forms, is not behind it.
 
 So the two layers are not defence in depth for the wrapped case: they are one layer that fails open,
-and a second that never sees the command. **Recorded as a known property, not scheduled as a fix** —
-correcting the hook's header comment is a `hooks/` change and not this record's to make.
+and a second that never sees the command. ~~**Recorded as a known property, not scheduled as a fix** —
+correcting the hook's header comment is a `hooks/` change and not this record's to make.~~
+
+> **Superseded 2026-08-04 — it is no longer a property, it is a decision.** This passage observed the
+> inversion for one class of command and declined to act on it. Within the same day it recurred twice
+> more, for reasons unconnected to each other and to this one (`gh api`'s read/write split; the
+> `Bash(gh -R:*)` and `Bash(git -C:*)` allow entries shadowing fourteen deny entries), at which point
+> the owner decided the architecture rather than letting a third instance be recorded as a fourth
+> property. **The hook is the authoritative layer; the settings `deny` list is the floor for the direct
+> form; the authoritative layer fails open and that cost is accepted in the owner's name.** The record
+> is [ADR-0008](./0008-which-layer-carries-a-control.md), which also carries the two rejected options
+> and the standing rule for the next control. This section stands as the observation that led to it.
 
 ### Why decision 1's principle survives this
 
@@ -429,4 +499,10 @@ a bug and works around it, which is the failure mode this record exists to preve
   backstop"* claim is inverted for wrapped commands (owner-accepted cost) · appended (2026-08-04) to
   record that rule 5e's orphaned consequence is closed by
   [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s decided relay, and the
-  obligation a persona-keyed publication deny carries from now on.
+  obligation a persona-keyed publication deny carries from now on · **the layering half of the second
+  2026-08-04 amendment is superseded by [ADR-0008](./0008-which-layer-carries-a-control.md)** — its
+  *"the hook, not the floor, stops them"* sentence because it was **false when written** (an empirical
+  check that sampled one rule and generalised), and its *"recorded as a known property, not scheduled as
+  a fix"* disposition because the owner has since decided the architecture · appended (2026-08-04) to
+  bound the two-surface formula: it computes **capability**, and `security`'s `.brand/` boundary is in
+  neither surface.

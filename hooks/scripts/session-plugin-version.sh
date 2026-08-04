@@ -36,6 +36,78 @@ set -uo pipefail
 MARKETPLACE="$HOME/.claude/plugins/marketplaces/tadeumendonca/.claude-plugin/plugin.json"
 SOURCE="${CLAUDE_PROJECT_DIR:-.}/.claude-plugin/plugin.json"
 
+# ── DEPENDENCY PROBE: is the permission guard able to speak at all? ──────────────────────────────
+#
+# THE FAILURE BEING OBSERVED IS NOT THAT THE GUARD FAILS OPEN. That is a decision, taken with the
+# cost in front of the owner: failing CLOSED on a missing `jq` wedges the agent with no repair route,
+# because repairing it requires running commands. What was never decided is that the failure is
+# SILENT — and separating those two is what makes this fixable without reopening the rejected option.
+# Removing the silence does not make the guard fail closed. It makes an accepted cost observable.
+#
+# THE EVIDENCE THAT SILENCE IS THE DANGEROUS HALF IS ALREADY IN THIS REPO: `wip-guard.sh` records
+# losing three rules to exactly this, with `jq` off `PATH`, and nobody noticed.
+#
+# WHY IT LIVES HERE: this hook already runs at every session start and already never blocks. A probe
+# is observation, not enforcement, so it belongs in the observing hook rather than in the guard —
+# the guard cannot report its own inability to report.
+#
+# THE PROBE MUST NOT NEED WHAT IT PROBES. `command -v` is a shell builtin: no `jq`, no subprocess,
+# no dependency. A dependency check that depends on the thing it checks is the same defect one level
+# up, and this file already had the pattern right in `read_version`.
+guard_notice=""
+if ! command -v jq >/dev/null 2>&1; then
+  guard_notice="PERMISSION GUARD IS INERT THIS SESSION — \`jq\` is not on PATH.
+
+\`permission-guard.sh\` builds its deny payload with \`jq\`, so without it the hook emits NOTHING and
+the harness reads that as 'no decision'. It does not fail closed; it fails SILENTLY OPEN.
+
+Verified rather than inferred: with \`jq\` stubbed to exit 127, \`gh pr merge <n> --merge\` produces no
+output at all — and \`Bash(gh pr merge:*)\` is in the allowlist, so the MERGE GATE is open with no
+decision from any layer.
+
+WHAT IS LOST — derived, not listed, because a list of rule numbers goes stale and this does not:
+  - EVERY rule in permission-guard.sh is inert. Read that file: whatever it denies, it does not deny
+    this session.
+  - settings.json \`deny\` still holds, but ONLY for the DIRECT spelling it lists. Anything wrapped in
+    \`bash -c\`, composed with && or \$( ), semantic (which branch HEAD is on; whether a \`gh api\` call
+    writes), or shadowed by an allow entry (\`gh -R:*\`, \`git -C:*\`) has no check in any layer.
+  - Controls BORN in the hook never had a direct spelling in the floor to fall back to, so for those
+    the loss is total rather than degraded. The merge gate is one of them.
+
+WHAT TO DO: install \`jq\` and restart the session. Until then treat every irreversible act as
+unguarded — merging, pushing to the trunk, \`terraform apply\`, \`rm -rf\`, secret writes — and verify
+by READING the rule rather than by expecting a denial that cannot arrive."
+fi
+
+# Print a SessionStart payload. Extracted so the dependency notice can be emitted from the early
+# returns below — without it, a session whose versions happen to MATCH would exit before saying that
+# the guard is dead, which is the case where the notice matters just as much.
+emit() {
+  if command -v jq >/dev/null 2>&1; then
+    jq -n --arg c "$1" '{
+      hookSpecificOutput: {
+        hookEventName: "SessionStart",
+        additionalContext: $c
+      }
+    }'
+  else
+    # No jq: emit the same shape with the payload escaped by hand. A machine without jq must still
+    # get the notice — this hook exists precisely for the case where tooling is not what someone
+    # assumed it was, and that is now doubly true: the dependency notice above is BY DEFINITION
+    # emitted only on machines without jq, so this branch is the one that carries it.
+    escaped="$(printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g' | awk 'BEGIN{ORS="\\n"}{print}')"
+    printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$escaped"
+  fi
+}
+
+# Every early return goes through here, so the dependency notice survives paths that have nothing to
+# say about versions. `exit 0` unconditionally: this hook has never blocked a session and must not
+# start now — the entire point is that this is observation, not enforcement.
+finish() {
+  [ -n "$guard_notice" ] && emit "$guard_notice"
+  exit 0
+}
+
 # Read the version out of a plugin manifest. jq if present, sed otherwise — this hook must
 # not acquire a dependency the machines it runs on might lack.
 read_version() {
@@ -48,7 +120,7 @@ read_version() {
 }
 
 installed="$(read_version "$MARKETPLACE" || true)"
-[ -z "$installed" ] && exit 0
+[ -z "$installed" ] && finish
 
 # What to compare against depends on where the session opened, and getting this wrong makes
 # the hook silent exactly where it matters most.
@@ -64,16 +136,16 @@ installed="$(read_version "$MARKETPLACE" || true)"
 reference="$(read_version "$SOURCE" || true)"
 reference_label="source (this repo)"
 if [ -z "$reference" ]; then
-  command -v gh >/dev/null 2>&1 || exit 0
+  command -v gh >/dev/null 2>&1 || finish
   reference="$(gh api repos/tedeuxx/tadeumendonca-skills/releases/latest --jq '.tag_name' 2>/dev/null || true)"
   reference="${reference#v}"
   reference_label="latest release"
 fi
-[ -z "$reference" ] && exit 0
+[ -z "$reference" ] && finish
 
 source_version="$reference"
 
-[ "$installed" = "$source_version" ] && exit 0
+[ "$installed" = "$source_version" ] && finish
 
 # Which way the drift runs decides what the session should do about it, so say it rather
 # than reporting two numbers and leaving the reader to work it out. A source AHEAD of the
@@ -105,18 +177,14 @@ $action
 This is issue #93: the repo's gates verify the plugin's SOURCE, and nothing verifies that
 the plugin a session RUNS is the one that was verified. This notice is that verification."
 
-if command -v jq >/dev/null 2>&1; then
-  jq -n --arg c "$context" '{
-    hookSpecificOutput: {
-      hookEventName: "SessionStart",
-      additionalContext: $c
-    }
-  }'
-else
-  # No jq: emit the same shape with the payload escaped by hand. A machine without jq must
-  # still get the notice — this hook exists precisely for the case where tooling is not
-  # what someone assumed it was.
-  escaped="$(printf '%s' "$context" | sed 's/\\/\\\\/g; s/"/\\"/g' | awk 'BEGIN{ORS="\\n"}{print}')"
-  printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$escaped"
-fi
+# Both findings in ONE payload when both apply — two SessionStart objects on stdout is not a shape
+# the harness reads, and the dependency notice goes FIRST because it is the more consequential of
+# the two: a stale build runs the wrong rules, a dead guard runs none.
+[ -n "$guard_notice" ] && context="$guard_notice
+
+────────────────────────────────────────────────────────────────────────────────
+
+$context"
+
+emit "$context"
 exit 0
