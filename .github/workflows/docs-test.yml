@@ -40,6 +40,13 @@ on:
       # the suite caught it only because the same PR also changed `agents/` and `README.md`. Remove
       # those two coincidences and it ships. Identical in shape to the `hooks/**` note above.
       - ".claude-plugin/**"
+      # `docs/**`, for the third time and the same reason. The suite's floor-claim assertion scans
+      # every tracked `.md`/`.sh`, and that now includes `docs/adr/**` — which is the ONLY layer the
+      # stale-claim defect was actually left in (the hook header had already been re-tensed; the ADRs
+      # had not). Without this line, a PR that edits only an ADR could reintroduce the exact defect
+      # and never start the gate asserting against it: green on the PR that breaks it, and never red
+      # at all — the failure this file's own header warns about twice.
+      - "docs/**"
       - ".github/workflows/docs-test.yml"
 
 permissions:

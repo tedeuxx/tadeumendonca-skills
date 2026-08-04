@@ -375,8 +375,18 @@ building that case.*~~
 >
 > **Decision: the owner, 2026-08-04 (`14d7b43`, `786437c`).** `Bash(bash:*)`, `Bash(sh:*)` and
 > `Bash(xargs:*)` came **out** of the committed floor, and `Bash(perl:*)` / `Bash(ruby:*)` followed. At
-> `cb9a2f3` none of the five is in `allow`; a wrapped payload reaches the human as an **ASK**. Checkable:
-> `jq -r '.permissions.allow[]' .claude/settings.json`.
+> `cb9a2f3` none of the five is in `allow`; a payload wrapped **in one of those five** reaches the human
+> as an **ASK**. Checkable: `jq -r '.permissions.allow[]' .claude/settings.json`.
+>
+> **The five words in bold are a correction, made 2026-08-04 by `security` while reviewing this batch,
+> and the scope they add is the whole point of the paragraph below.** The sentence read *"a wrapped
+> payload reaches the human as an ASK"*, without qualification — which the very next paragraph
+> contradicts by reaffirming that `node` and `python3` are still granted and *"reach the same acts"*.
+> Measured at `f797cc6`: `node -e …` and `python3 -c …` draw no decision from any layer and are
+> allow-listed, so a payload wrapped in **those** reaches ALLOW, not ASK. Unqualified, the sentence
+> claimed the class was closed; what actually closed is its **default spelling**, which is exactly the
+> distinction the rest of this amendment is at pains to draw. Same correction as ADR-0008's third
+> 2026-08-04 amendment, in the other record, found the same way.
 >
 > **What changed between the two decisions was evidence, not preference — and this is the transferable
 > half.** The reasoning struck above is *"narrowing does not close the hole, because `node`, `python3`,

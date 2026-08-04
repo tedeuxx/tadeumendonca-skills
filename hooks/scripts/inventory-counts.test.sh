@@ -542,11 +542,23 @@ fi
 # negation marker appears on the same line.
 #
 # WHAT IT THEREFORE DOES NOT CATCH, so nobody reads a green here as more than it is: a stale claim
-# phrased any other way ("the allowlist opens X", "X is granted", a claim spanning two lines), and any
-# claim in a file this loop does not scan. The durable fix is the one the hook header already applies —
-# write the DERIVATION, not the entry name — and this check exists because that discipline failed ten
-# times in three commits, not because it is the wrong discipline.
-FLOOR_CLAIM_FILES=$(find "$ROOT/hooks" "$ROOT/agents" "$ROOT/commands" -type f \( -name '*.sh' -o -name '*.md' \) 2>/dev/null)
+# phrased any other way ("the allowlist opens X", "X is granted", a claim spanning two lines). The
+# durable fix is the one the hook header already applies — write the DERIVATION, not the entry name —
+# and this check exists because that discipline failed ten times in three commits, not because it is
+# the wrong discipline.
+#
+# THE BOUND IS PHRASING ONLY, AND THAT IS A CORRECTION. The first version of this list also hedged
+# "any claim in a file this loop does not scan", which read as a caveat and was in fact a hole: the
+# scan set omitted `docs/`, and `docs/adr/` is the ONLY layer the defect was left in — the commit that
+# found it records that the hook header had already been re-tensed and "only the ADR layer was left
+# behind". Measured, same line, same head: `Bash(perl:*) is in allow` FIRES in `agents/` and passes
+# GREEN in `docs/adr/0008`. So the check covered every layer that had self-corrected and none of the
+# one that had drifted. `docs/` is now in the set below, which makes it every tracked `.md`/`.sh` in
+# the repo (verified: `git ls-files` with the scanned paths excluded returns nothing), and adding it
+# cost no prose churn — the sweep had already made the ADR layer honest, so the count went 4 → 6
+# asserting lines with the suite still green. A generic "files it does not scan" is a reassurance;
+# an enumerated scan set is a bound.
+FLOOR_CLAIM_FILES=$(find "$ROOT/hooks" "$ROOT/agents" "$ROOT/commands" "$ROOT/docs" -type f \( -name '*.sh' -o -name '*.md' \) 2>/dev/null)
 FLOOR_CLAIM_FILES="$FLOOR_CLAIM_FILES
 $ROOT/README.md
 $ROOT/CLAUDE.md

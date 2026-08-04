@@ -23,10 +23,24 @@ architecture.**
    is `bash`, and ~~`Bash(bash:*)` is in `allow`~~ ~~**`Bash(bash:*)` is in `allow` — an entry this same
    batch added; see the 2026-08-04 amendment, which corrects the tense throughout this section**~~
    **`Bash(bash:*)` was in `allow` from `4842ecd` to `994c8a1` and came back out at `14d7b43`; at
-   `cb9a2f3` no interpreter wrapper is allow-listed at all. See the *second* 2026-08-04 amendment.** So
+   `cb9a2f3` ~~no interpreter wrapper is allow-listed at all~~ — see the *second* 2026-08-04 amendment
+   for the removals, and the **third** for that clause, which was false at the head it names.** So
    **every** prefix-matched `deny` entry is unreachable in wrapped form **for as long as any wrapper is
    allow-listed** — which is a property of the matcher rather than of the entry, and is why this routing
    reason outlives the entry that first demonstrated it.
+
+   > **Corrected 2026-08-04, third — and the correction makes this reason stronger, not weaker.**
+   > *"No interpreter wrapper is allow-listed at all"* is contradicted by this same record 170 lines
+   > down (*"of the six interpreters listed, only `node` and `python3` are in `allow` at that head"*)
+   > and by `permission-guard.sh`'s own header, which books `node -e` and `python3 -c` as **NOT
+   > COVERED, DELIBERATELY**. Measured at `f797cc6`, piping each into the guard: `node -e …` and
+   > `python3 -c …` both draw **no decision from any layer**, and both are allow-listed, so they run.
+   > What came out at `14d7b43`/`786437c` is the **shell** wrapper class; the interpreter wrapper class
+   > is **not empty**, by design. The clause therefore read as though the wrapped-form hole had closed
+   > at this head. It has not, and the condition in the sentence it introduces — *"for as long as any
+   > wrapper is allow-listed"* — **is still satisfied at `f797cc6`**. Like routing reason 3, reason 1
+   > has a **live** instance in the floor as it stands and not only a historical one. The accepted
+   > non-containment is unchanged; only a sentence that erred toward reassurance is.
 2. **`gh api`'s read/write split.** `-f`/`-F` switch the request to POST with no `--method` present, so no
    prefix separates a read from a write. The blanket `Bash(gh api:*)` deny added that morning removed
    reads the loop itself performs, and the control moved to the hook (rule 5f).
