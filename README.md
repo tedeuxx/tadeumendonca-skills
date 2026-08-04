@@ -54,11 +54,12 @@ flowchart TB
   subgraph plugin["tadeumendonca-skills (Claude Code plugin)"]
     direction TB
 
-    subgraph personas["agents/ — 5 subagent personas"]
+    subgraph personas["agents/ — 6 subagent personas"]
       direction LR
       P1["product-lead · tech-lead<br/>(two leads, ONE demand;<br/>product-lead also holds the copy lens)"]
       P2["developer<br/>(app · infra · pipeline)"]
       P3["quality-assurance · security<br/>(the two gatekeepers)"]
+      P4["harness-reviewer<br/>(the owner's pair on the harness;<br/>runs BEFORE the build, gates nothing)"]
     end
 
     subgraph hooks["hooks/ — PreToolUse + SessionStart"]
