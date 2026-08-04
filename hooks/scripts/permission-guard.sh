@@ -20,8 +20,28 @@
 # FOUR REASONS A CONTROL CANNOT LIVE IN THE FLOOR. A reader deciding where to put the next rule should
 # be able to decide from this list alone — if any of these is true, the rule belongs here:
 #
-#   1. WRAPPED. `bash -c '<payload>'` hides the whole command from a prefix matcher. Closed by the
-#      unwrap step below, which re-points matching at the payload for every rule at once.
+#   1. WRAPPED. `bash -c '<payload>'` hides the whole command from a prefix matcher. The unwrap step
+#      below re-points matching at the payload for every rule at once — **BEST-EFFORT, and the word is
+#      load-bearing.** It covers the spellings listed in the suite and measured there; it does not
+#      close the class, and it cannot.
+#
+#      ~~Closed by the unwrap step below~~ — **struck 2026-08-04, one commit after it was written, and
+#      the strike is worth more than the sentence was.** Nine spellings still reached ALLOW when that
+#      claim was made, the merge gate among them (`bash -c $'gh pr merge 145 --merge'` — ANSI-C quoting
+#      the strip did not know, and an option run before `-c`). Both are fixed below. That is not the
+#      point.
+#
+#      THE POINT IS THAT "CLOSED" WAS THE WRONG SHAPE OF CLAIM, and no amount of patching makes it the
+#      right one: **a regex over a shell grammar is not provably complete.** The honest form is *which
+#      spellings are covered, and how that was measured* — which is why the assertions live in the
+#      suite, where they can be re-run, rather than in an adjective here. Whatever this file says about
+#      its own coverage is true only of the spellings someone thought to try.
+#
+#      THAT MATTERS BEYOND THIS ONE RULE, and it is why the correction is here rather than only in the
+#      commit: this batch shipped a record over-claiming its own coverage three times — an ADR quoting
+#      its own summary as the criterion's text, an amendment denying a distinction the same PR created,
+#      and this. A gap is a gap; a record asserting the gap is closed is what stops anyone looking.
+#      **When you fix something here, state the measurement, not the conclusion.**
 #   2. COMPOSED. `a && b`, `$(…)`, a `VAR=x` prefix — the matcher cannot decompose them, so it prompts
 #      the human for tools that ARE allowlisted (rule 8). Denying with a reason turns an interruption
 #      into something the agent fixes alone.
@@ -162,8 +182,26 @@ cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
 # reported as covered; one rule was, and it was the one rule that does not use the shared surface.
 #
 # THE FIX IS AT THE SOURCE, NOT PER-RULE. Unwrap here, once, and every rule downstream sees the payload
-# as though it had been typed directly. Fixing it rule-by-rule would mean each future rule has to
+# as a command rather than as a quoted string. Fixing it rule-by-rule would mean each future rule has to
 # remember — which is the property this file keeps proving it does not have.
+#
+# ── WHAT THIS COVERS, AND WHAT IT CANNOT ─────────────────────────────────────────────────────────
+# BEST-EFFORT, NOT COMPLETE, and stated here because the first edition of this block said "closed" and
+# was wrong within a day — nine spellings still reached ALLOW, the MERGE GATE among them.
+#
+#   COVERED, and each spelling is asserted in the suite rather than claimed here: `bash`/`sh`/`zsh`/
+#     `ksh`/`dash`, an absolute interpreter path, `-c`/`-lc` clusters, an option run before `-c`
+#     (`--norc`, `--login`, `-i`, `-o posix`), `'…'` / `"…"` / `$'…'` / `$"…"` payload quoting, and
+#     three levels of nesting.
+#   NOT COVERED, DELIBERATELY: the other interpreters. `python3 -c`, `perl -e`, `ruby -e`, `node -e`
+#     and `eval` reach the same acts and are NOT chased — a regex cannot parse four more languages,
+#     and pretending to would be the "mechanism the file claims and does not run" defect. ADR-0008
+#     prices this as accepted non-containment; the suite asserts they ALLOW, so the gap is visible
+#     rather than merely absent.
+#   NOT PROVABLE EITHER WAY: everything nobody has tried. **A regex over a shell grammar is not
+#     provably complete**, so the honest claim is always *these spellings, measured* — never *the
+#     class*. If you extend this, add the spelling to the suite and re-measure; do not upgrade the
+#     adjective.
 #
 # APPENDED, NOT SUBSTITUTED. The payload is added to `cmd`, so the OUTER command survives matching too:
 # `FOO=x bash -c '…'` must still trip rule 8's env-var prefix, and substituting would have thrown that
@@ -187,11 +225,26 @@ for _ in 1 2 3; do
   esac
   # Delimiter is `#`, NOT `|` — the pattern is full of alternation and a `|` delimiter silently cuts it
   # into fragments that still compile. It matched nothing and looked fine.
-  unwrap_payload="$(printf '%s' "$unwrap_scan" | sed -E 's#^.*(^|[[:space:]]|/)(bash|sh|zsh|ksh|dash)[[:space:]]+-[A-Za-z]*c[A-Za-z]*[[:space:]]+##')"
+  #
+  # THE OPTION RUN between the shell name and `-c` — `bash --norc -c`, `--login`, `-i`, `-o posix`.
+  # Requiring `-c` to be the FIRST token after the shell name is a guess about how the caller writes
+  # the wrapper, and this file has rejected that guess three times already (rule 4's flag set, 5b's
+  # `-R`, 5f's attached value). The optional trailing `[A-Za-z][A-Za-z0-9_-]*` is the OPTION'S OWN
+  # ARGUMENT, which is what `-o posix` needs.
+  unwrap_payload="$(printf '%s' "$unwrap_scan" | sed -E 's#^.*(^|[[:space:]]|/)(bash|sh|zsh|ksh|dash)([[:space:]]+--?[A-Za-z][A-Za-z-]*([[:space:]]+[A-Za-z][A-Za-z0-9_-]*)?)*[[:space:]]+-[A-Za-z]*c[A-Za-z]*[[:space:]]+##')"
   [ "$unwrap_payload" = "$unwrap_scan" ] && break
   # Strip ONE layer of surrounding quotes — that layer is the wrapper's, so removing it is what turns
   # the payload back into a command. Inner quoting is left alone for `$bare` to collapse as usual.
-  unwrap_payload="$(printf '%s' "$unwrap_payload" | sed -E "s/^'(.*)'\$/\\1/; s/^\"(.*)\"\$/\\1/")"
+  #
+  # THE LEADING `$` IS STRIPPED FIRST, for ANSI-C `$'…'` and locale `$"…"` quoting. Without it the
+  # quote-strip did not match at all, so the payload kept its quotes, `$bare` collapsed the whole span,
+  # and every `$bare` rule saw nothing — INCLUDING THE MERGE GATE. `bash -c $'gh pr merge 145 --merge'`
+  # reached ALLOW with no decision from any layer.
+  #
+  # The tell that it was the same defect rather than a new one: under `$'…'`, `rm -rf` and
+  # `terraform apply` still denied — because rules 4 and 2 read `$cmd` RAW. That is exactly the
+  # asymmetry the unwrap was written to remove, relocated one spelling further out rather than removed.
+  unwrap_payload="$(printf '%s' "$unwrap_payload" | sed -E -e 's/^\$//' -e "s/^'(.*)'\$/\\1/; s/^\"(.*)\"\$/\\1/")"
   [ -z "$unwrap_payload" ] && break
   cmd="$cmd $unwrap_payload"
   unwrap_scan="$unwrap_payload"

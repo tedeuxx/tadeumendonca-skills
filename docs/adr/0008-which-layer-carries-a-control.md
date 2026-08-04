@@ -20,12 +20,14 @@ being true three separate times in one day — none of the three being a decisio
 architecture.**
 
 1. **`bash -c '…'`.** The settings matcher reads a command *prefix*. The prefix of `bash -c 'rm -rf /x'`
-   is `bash`, and `Bash(bash:*)` is in `allow`. So **every** prefix-matched `deny` entry is unreachable in
-   wrapped form, for every command in the floor.
+   is `bash`, and ~~`Bash(bash:*)` is in `allow`~~ **`Bash(bash:*)` is in `allow` — an entry this same
+   batch added; see the 2026-08-04 amendment, which corrects the tense throughout this section**. So
+   **every** prefix-matched `deny` entry is unreachable in wrapped form, for every command in the floor.
 2. **`gh api`'s read/write split.** `-f`/`-F` switch the request to POST with no `--method` present, so no
    prefix separates a read from a write. The blanket `Bash(gh api:*)` deny added that morning removed
    reads the loop itself performs, and the control moved to the hook (rule 5f).
-3. **Allow entries shadowing deny entries.** `Bash(gh -R:*)` and `Bash(gh --repo:*)` exist because
+3. **Allow entries shadowing deny entries.** ~~`Bash(gh -R:*)` and `Bash(gh --repo:*)` exist because~~
+   **`Bash(gh -R:*)` and `Bash(gh --repo:*)` were added to `allow` by this batch, because**
    `gh -R <repo> <subcommand>` is this workspace's prescribed multi-repo convention. A prefix deny on
    `gh repo delete` cannot see `gh -R owner/repo repo delete`. `Bash(git -C:*)` does the same to the
    `git` half.
@@ -162,6 +164,9 @@ in any spelling. There was no version of the floor that held them.
 - **Neither layer is a sandbox, and the perimeter model does not claim one.** Arbitrary code execution is
   granted deliberately inside the perimeter (`node`, `python3`, `perl`, `ruby`, `bash`, `sh`). These
   controls exist for the irreversible/public boundary and for process integrity, never for containment.
+  **This bullet's judgement stands; its tense does not. Four of
+  those six entries, plus `xargs`, enter the committed floor in the same diff that records this ADR — see
+  the 2026-08-04 amendment for what was measured and in which direction the perimeter moved.**
 
 ### The accepted cost that makes this architecture degrade quietly — *the retained floor entry*
 
@@ -250,6 +255,132 @@ expressibility throughout** — it is the axis on which floor-vs-hook actually d
 answer to 0004's question; it is a second data point for it, on a different pair of layers. Noted so the
 sweep that eventually settles it starts from both.
 
+## Amendment (2026-08-04) — the perimeter this record prices is one this batch widened, and no control of this shape may be recorded as *closed*
+
+Two corrections, both raised by `security` reviewing this batch at `ce2deea` (PR #145). **Neither touches
+the routing decision, the fail-open acceptance, or the retained-floor-entry cost** — those are re-affirmed
+as written, and `security`'s review confirmed the third of them member by member (the born-in-hook set
+7b, 8, 5f, 5c/5d/5e and rule 7's bare-push branch have no floor entry; 5g and 4b correctly sit in the
+migrated-and-bounded set, so *"the set the floor does not bound contains the merge gate"* is true as
+written). What is corrected is a **tense** and a **word**.
+
+### 1 · The perimeter is not inherited — this diff moved it, and outward
+
+The body above prices the interpreter class as deliberate non-containment and presents that as the
+condition the decision was taken inside. **It is partly the condition this batch created.** Measured
+against `git diff f316015..ce2deea -- .claude/settings.json` rather than asserted:
+
+| entry | committed floor before | the gitignored local overlay | after this batch |
+|---|---|---|---|
+| `Bash(bash:*)` | absent | **absent** — only six *literal* `bash <file>` invocations | **in `allow`** |
+| `Bash(sh:*)` | absent | absent (only `Bash(shellcheck *)`) | **in `allow`** |
+| `Bash(xargs:*)` | absent | absent (only `Bash(xargs -n1 basename)`) | **in `allow`** |
+| `Bash(perl:*)` | absent | `Bash(perl *)` | in `allow` |
+| `Bash(ruby:*)` | absent | `Bash(ruby *)` | in `allow` |
+| `Bash(node:*)`, `Bash(python3:*)` | present | absent | present |
+| `Bash(gh -R:*)`, `Bash(gh --repo:*)` | **absent** | `Bash(gh *)` | **in `allow`** |
+
+Two different movements, and collapsing them is what produced the wrong framing:
+
+- **`perl` and `ruby` were already inside the effective perimeter** — the overlay granted them by
+  wildcard. For those, this batch widened the **recorded** floor and left the **effective** one where it
+  was, which is the batch's stated purpose (*"a control expressed as absence is not a control"*).
+- **`bash`, `sh` and `xargs` are new to both.** The overlay listed specific `bash <script>` invocations,
+  never the `-c` form as a class. **So the mechanism *Context* item 1 describes — a `bash` wrapper making
+  every prefix-matched `deny` unreachable — is a hole this diff opened in the committed floor**, not one
+  it inherited. Before it, `bash -c 'rm -rf /x'` matched no `allow` entry and would have reached the human
+  as an ASK. (Under the overlay it reached ALLOW anyway, via `Bash(rm *)` and no `deny` block at all —
+  which is why the *net* session-to-session change is not a simple widening. It is a widening of the
+  reviewed floor and a large narrowing of the unreviewed one.)
+
+**Method, so the next reader can re-derive rather than trust:** the overlay was truncated by `4842ecd` and
+is gitignored, so it is not in git; the copy measured above is the pre-truncation backup taken during that
+same session (`scratchpad/settings.local.backup.json`, 82 `allow` entries, **no `deny` block**, matching
+`4842ecd`'s commit message). If that file is gone, the commit message is the surviving record and the
+table's middle column is the part that can no longer be re-derived.
+
+**Why this is worth an amendment rather than a footnote.** The *Decision drivers* and the accepted
+fail-open cost read differently when the perimeter under discussion is one the same author had just made
+larger. A reader deciding whether to accept the same trade — and this record exists to make that decision
+re-derivable — needs to know the perimeter **moved, and in which direction**, because "we already lived
+here" and "we moved here in this diff" carry different burdens of proof. The judgement is unchanged: the
+interpreter class stays in `allow`, non-containment stays accepted, and `security` called that the right
+call recorded in the right place. Only the claim about *when it became true* is corrected.
+
+### 2 · *Closed* is not a word a pattern-over-a-grammar control may use about itself
+
+The generalisation the third occurrence earns.
+
+**The three, in order, all inside this one batch.** Each is the same move: measure some spellings, report
+the class.
+
+1. `4842ecd` — the floor's `rm` deny was understood to cover recursive-force deletion. Measured:
+   `rm -rf /x` denied while `rm -r -f /x`, `rm -f -r /x` and `rm -fR /x` reached ALLOW. *(Recorded in
+   that commit's message; not re-measured here.)*
+2. `745d949` — the wrapped form was reported as covered on a probe that **sampled `rm` and generalised**.
+   Rule 4 matches the raw string and was the only rule that caught it; every `$bare` rule was blind.
+   *(Recorded in `permission-guard.sh`'s own header; not re-measured here.)*
+3. `ce2deea` — the unwrap step's header says the wrapped class is *"Closed by the unwrap step below"*.
+   **Re-measured here, against the committed script at `ce2deea`, by piping payloads at it directly:**
+
+   | spelling | decision at `ce2deea` |
+   |---|---|
+   | `gh pr merge 145 --merge` | `deny` |
+   | `bash -c 'gh pr merge 145 --merge'` | `deny` |
+   | `bash -c $'gh pr merge 145 --merge'` | **no decision → ALLOW** |
+   | `bash --norc -c '…'` / `--login` / `-i` / `-o posix` | **no decision → ALLOW** |
+   | `echo x \| xargs -I{} bash --norc -c '…'` | **no decision → ALLOW** |
+   | `bash --norc -c 'git push origin main'` | **no decision → ALLOW** |
+   | `bash -c $'git push origin main'` | **no decision → ALLOW** |
+
+   Two causes, both visible in the committed text: the quote-strip
+   (`s/^'(.*)'$/\1/; s/^"(.*)"$/\1/`) does not know ANSI-C `$'…'`, and the unwrap regex requires `-c` to
+   be the **first token after the shell name** (`(bash|sh|zsh|ksh|dash)[[:space:]]+-[A-Za-z]*c[A-Za-z]*`),
+   with no alternation for an option run. The two-line fix is `developer`'s and lands in this same branch;
+   **it is not what this amendment records.**
+
+**The decision.** Stated as a rule about the *record*, because that is this library's jurisdiction and
+because the hook's header can only say it about itself:
+
+> **A control implemented as a pattern over a grammar may be recorded as *"these spellings, measured this
+> way, on this date"* — never as *"closed"*.** The class it must cover is every string the grammar admits;
+> the evidence available is always a finite sample. *Closed* asserts the first and is only ever backed by
+> the second, so it is **not a claim the author is in a position to make**, however careful the sweep.
+
+This is the same defect as *record the derivation, not the count*, one level up: a count in prose is a
+claim no mechanism keeps true, and **a coverage verdict in prose is a claim no mechanism could have
+established in the first place**. The remedy is identical in shape — publish the derivation (which
+spellings, by what probe, on what date) so the next reader can extend it, rather than a verdict they can
+only trust or discard.
+
+It binds this record too. *Considered options* item 3 rejects enumeration on the ground that
+*"enumeration does not converge"* — which is the same fact stated about the floor. **It applies equally to
+the hook**, and the hook is now the authoritative layer, so the non-convergence is not a property of the
+layer that lost the argument. It is a property of the technique both layers use.
+
+**What it costs, stated rather than absorbed.** This is the half that makes it a trade rather than a
+tidying:
+
+- **Every such record gets longer and less quotable.** *"The wrapped class is closed"* is one clause a
+  reviewer can carry in their head; the table above is not. A record nobody quotes is a record nobody
+  applies, and this library has already lost a header sentence to exactly that (the *"hard backstop"*
+  claim, wrong for months, in a file everyone had read).
+- **The reader must check a measurement instead of reading a verdict**, which moves work from the author
+  to every future reader and makes the record's usefulness depend on the sample still being current. A
+  probe list dated 2026-08-04 says nothing about the rule as amended in October.
+- **It removes the stopping rule.** *Closed* is what tells a sweep when to stop probing; *"these
+  spellings"* never does. The stopping point moves back to judgement — which is the thing the formalism
+  was bought to replace. **No remedy is proposed for this**, and it is the strongest argument against the
+  rule. What holds it is that the alternative has now been measured wrong three times in one day, and a
+  stopping rule that stops early is worse than none, because it stops **and** reports coverage.
+
+**The narrow scope, so this does not become a ban on plain sentences.** It applies to controls that match
+a **pattern against a caller-controlled string** — the settings prefix matcher and the hook's regexes.
+A control over a **closed, enumerable** domain may still be recorded as closed: `agent_type` keys take
+finitely many values a rule can list, so *"every non-`developer` persona is denied"* is a provable claim
+about a set, not a sample of one. The test is whether the adversary picks from a set the author wrote or
+from a grammar.
+
 ## Links
 - Supersedes the layering claim in [ADR-0004](./0004-autonomy-and-permission-model.md)'s second
   2026-08-04 amendment (both the *"the hook, not the floor, stops them"* sentence, superseded in place
@@ -260,3 +391,8 @@ sweep that eventually settles it starts from both.
   five decisions), `745d949` (the `-c` unwrap and the attach-tolerance sweep; 245 assertions) ·
   `hooks/scripts/permission-guard.sh`, `hooks/scripts/wip-guard.sh` (the recorded real fail-open with
   `jq` off `PATH`).
+- **Amendment evidence (2026-08-04):** `git diff f316015..ce2deea -- .claude/settings.json` for the
+  perimeter table's first and last columns; the pre-truncation overlay backup for its middle column
+  (82 `allow` entries, no `deny` block — corroborated by `4842ecd`'s commit message); and the ALLOW table
+  from piping payloads at `git show ce2deea:hooks/scripts/permission-guard.sh`, run against the committed
+  script rather than the working tree, since `developer`'s fix was already unstaged there.

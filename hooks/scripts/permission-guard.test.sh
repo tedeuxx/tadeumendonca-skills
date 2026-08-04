@@ -566,7 +566,61 @@ check DENY "zsh"                            "zsh -c 'git push origin main'"
 check DENY "-lc flag cluster"               "bash -lc 'git push origin main'"
 check DENY "nested wrappers"                'bash -c "bash -c '"'"'git push origin main'"'"'"'
 
+echo "--- the unwrap: ANSI-C \$'…' quoting (cause A) ---"
+# Found by `security` against the real hook at ce2deea, each verified to EXECUTE rather than inferred.
+# The quote-strip only knew `'…'` and `"…"`, so a `$'…'` payload kept its quotes, `$bare` collapsed the
+# whole span, and every $bare rule saw nothing — INCLUDING THE MERGE GATE.
+check DENY "the MERGE GATE via ANSI-C quoting" "bash -c \$'gh pr merge 145 --merge'"
+check DENY "trunk push via ANSI-C quoting"     "bash -c \$'git push origin main'"
+check DENY "sh, ANSI-C quoting"                "sh -c \$'git push origin main'"
+check DENY "secret set via ANSI-C quoting"     "bash -c \$'gh secret set TOKEN'"
+check DENY "repo delete via ANSI-C quoting"    "bash -c \$'gh repo delete o/r --yes'"
+check DENY "locale \$\"…\" quoting too"          "bash -c \$\"git push origin main\""
+# THE TELL THAT IT WAS THE SAME DEFECT, NOT A NEW ONE: these two denied throughout, because rules 4
+# and 2 read $cmd RAW. The unwrap existed to remove exactly that asymmetry between the raw-string
+# rules and the $bare rules; under $'…' it was relocated rather than removed.
+check DENY "rm -rf denied even before the fix"     "bash -c \$'rm -rf /some/path'"
+check DENY "terraform denied even before the fix"  "bash -c \$'terraform apply -auto-approve'"
+
+echo "--- the unwrap: an option run before -c (cause B) ---"
+# Requiring `-c` to be the FIRST token after the shell name is a guess about how the caller writes the
+# wrapper. This file has rejected that same guess three times (rule 4's flag set, 5b's -R, 5f's
+# attached value) and made it a fourth time here.
+check DENY "--norc before -c"        "bash --norc -c 'git push origin main'"
+check DENY "--login before -c"       "bash --login -c 'git push origin main'"
+check DENY "-i before -c"            "bash -i -c 'git push origin main'"
+check DENY "-o posix (option + arg)" "bash -o posix -c 'git push origin main'"
+check DENY "-x before -c"            "sh -x -c 'git push origin main'"
+check DENY "two options before -c"   "bash --login -i -c \$'git push origin main'"
+# xargs was reported as a tenth spelling; measured, the plain-quoted form already denied — it is
+# cause A, not a separate cause. Both are kept: the one that always worked is the control.
+check DENY "xargs, plain quotes"     "xargs -I{} bash -c 'git push origin main'"
+check DENY "xargs, ANSI-C quotes"    "xargs -I{} bash -c \$'git push origin main'"
+
 echo "--- the unwrap must not become collateral: running a FILE is not a wrapper ---"
+# The option run must not turn a SCRIPT invocation into a wrapper. A script's own `-c` argument is an
+# argument to the script, not a shell payload — bash never evaluates it as a command.
+check ALLOW "a script with its own -c"      "bash script.sh -c x"
+check ALLOW "a script with options and -c"  "bash ./deploy.sh --dry-run -c prod"
+check ALLOW "an absolute script, -c arg"    "bash /path/to/run.sh -c 'git push origin main'"
+# And a real wrapper around a BENIGN payload must still be allowed, or the fix is just a wider deny.
+check ALLOW "wrapper, benign payload"       "bash -c 'git status --short'"
+check ALLOW "options, benign payload"       "bash --norc -c 'npm test'"
+check ALLOW "ANSI-C, benign payload"        "bash -o posix -c \$'ls -la'"
+check ALLOW "unquoted single-word payload"  "bash -c git"
+
+echo "--- the interpreter perimeter is an ACCEPTED gap, priced in ADR-0008 ---"
+# These ALLOW, deliberately. `python3 -c`, `perl -e`, `ruby -e`, `node -e` and `eval` can all reach the
+# same acts, and the unwrap does not chase them: a regex cannot parse four more languages, and pretending
+# to would be the "mechanism the file claims and does not run" defect.
+#
+# THEY ARE ASSERTED RATHER THAN LEFT UNTESTED because an accepted gap that nobody wrote down is
+# indistinguishable from one nobody noticed — and because if a future widening of the unwrap DOES start
+# catching them, that is a behaviour change someone should have to look at deliberately, not discover.
+check ALLOW "python3 -c is the priced gap"  "python3 -c 'import os; os.system(\"git push origin main\")'"
+check ALLOW "perl -e is the priced gap"     "perl -e 'system(\"git push origin main\")'"
+check ALLOW "ruby -e is the priced gap"     "ruby -e 'system(\"git push origin main\")'"
+check ALLOW "node -e is the priced gap"     "node -e 'require(\"child_process\").execSync(\"git push origin main\")'"
 # `bash script.sh` has no -c and must be untouched — this suite is itself run that way.
 check ALLOW "running a script file"         "bash hooks/scripts/permission-guard.test.sh"
 check ALLOW "an absolute script path"       "bash /some/path/script.sh"
