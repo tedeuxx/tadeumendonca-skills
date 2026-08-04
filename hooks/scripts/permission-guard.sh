@@ -223,9 +223,18 @@ cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
 #     **A regex over a shell grammar is not provably complete**, so the honest claim is always *these
 #     spellings, measured* — never *the class*. If you extend this, add the spelling to the suite and
 #     re-measure; do not upgrade the adjective. And prefer removing the class from the FLOOR over
-#     extending this regex: that is what actually happened here (`Bash(bash:*)`, `Bash(sh:*)` and
-#     `Bash(xargs:*)` came out of `allow`), and it is ADR-0008's argument applied to this rule — a
-#     matcher patched a fourth time closes a spelling; removing the allow entry closes the class.
+#     extending this regex — ADR-0008's argument applied to this rule: a matcher patched a fourth time
+#     closes a spelling; removing the allow entry closes the class. That is what actually happened
+#     here: the interpreter entries that made a wrapped payload reachable came out of `allow`.
+#
+#     THE CURRENT LIST IS NOT REPEATED HERE, DELIBERATELY — an earlier edition of this line named three
+#     entries and was incomplete within hours, when a second floor edit narrowed a fourth. **Read
+#     `.claude/settings.json` for what is allowed today.** Two things about that edit are worth
+#     carrying, because they are properties of the design rather than of the list: an `allow` on
+#     `bash <dir>/` is only safe where the agent cannot WRITE into <dir> — rule 5's `bash script.sh`
+#     exemption means the wrapper class otherwise just moves from the `-c` payload to a file path; and
+#     an interpreter entry added without being named in a commit message is how `perl`/`ruby` became
+#     silent ALLOWs here while remaining ASKs on trunk.
 #
 # APPENDED, NOT SUBSTITUTED. The payload is added to `cmd`, so the OUTER command survives matching too:
 # `FOO=x bash -c '…'` must still trip rule 8's env-var prefix, and substituting would have thrown that

@@ -19,6 +19,22 @@ fail=0
 # ALLOW — so when rule 5c started returning `ask`, a test asserting ALLOW would have passed on it and a
 # test asserting ASK could not have been written at all. A harness that cannot see a decision cannot
 # fail for it, which is the exact defect this repo's own review standard hunts for.
+# ── WHAT `ALLOW` MEANS HERE, AND WHAT IT DOES NOT ────────────────────────────────────────────────
+# `ALLOW` IS "THE HOOK EMITTED NO DECISION". It is NOT "the command runs". This harness pipes a
+# command into the guard and classifies the GUARD'S OWN stdout; nothing in this file reads
+# `.claude/settings.json`, so the effective outcome — run, prompt, or refuse — is decided by a layer
+# the suite cannot see.
+#
+# THAT DISTINCTION HAS ALREADY GONE STALE ONCE, WHICH IS WHY IT IS WRITTEN HERE. A section below
+# described `perl -e` as "an accepted gap that reaches ALLOW". The assertion was correct and stayed
+# green; the PROSE was describing the floor as it stood that morning, and by the afternoon `perl` had
+# been removed from `allow`, so the same silent hook produced an ASK instead. **A test asserting hook
+# silence cannot notice a floor change** — nothing goes red, because nothing about the hook moved.
+#
+# SO: when a comment here explains the CONSEQUENCE of silence, it is making a claim about a file this
+# suite does not test, and that claim has to be re-checked whenever the floor moves. Prefer stating
+# the DERIVATION ("no allow entry remains that would shadow the act") over the enumeration ("`bash:*`
+# and `sh:*` were removed") — the derivation survives the next floor edit and the list does not.
 verdict() {
   case "$1" in
     *'"deny"'*) printf 'DENY' ;;
@@ -618,7 +634,7 @@ echo "--- ANSI-C escape decoding is NOT covered, and these are the witnesses ---
 #     bash -c $'gh pr merge 145 --merge'     -> DENY   (7b fires)
 #     bash -c $'gh pr \x6derge 145 --merge'  -> silent (no decision, from any layer)
 #
-# ┌─ READ THIS BEFORE TRUSTING THE FOUR CASES BELOW ───────────────────────────────────────────────┐
+# ┌─ READ THIS BEFORE TRUSTING THE FIVE SILENCE CASES BELOW ───────────────────────────────────────┐
 # │ A WITNESS THAT ASSERTS SILENCE IS THE WEAKEST ASSERTION IN THIS FILE. It passes if the rule     │
 # │ works, and it passes just as green if you DELETE the rule it is filed under. It cannot fail for │
 # │ the reason a normal case fails, so it proves nothing about coverage.                            │
@@ -629,12 +645,21 @@ echo "--- ANSI-C escape decoding is NOT covered, and these are the witnesses ---
 # │ rather than there because here is where someone reads the case.                                 │
 # └─────────────────────────────────────────────────────────────────────────────────────────────────┘
 #
-# WHY `ALLOW` AND NOT `DENY`: nothing denies these. After the owner's floor change (`Bash(bash:*)`,
-# `Bash(sh:*)`, `Bash(xargs:*)` removed from `allow`) they reach the human as an ASK — and it is the
-# guard emitting NO DECISION that produces that ASK. So the correct assertion is that the hook stays
-# silent, and the silence is now correct rather than dangerous: the floor no longer has an allow entry
-# for the interpreter to shadow the act with. Asserting DENY here would assert a mechanism that does
-# not exist and would go red the moment someone read it as coverage.
+# WHY `ALLOW` AND NOT `DENY`: nothing denies these, so DENY would assert a mechanism that does not
+# exist. `ALLOW` here means the hook is SILENT (see the note above `verdict()`), and silence is what
+# produces an ASK from the permission matcher.
+#
+# WHAT MAKES THAT SILENCE CORRECT, stated as the DERIVATION rather than as a list of entry names:
+# **no allow entry remains that would shadow the act.** That sentence stays true through the next
+# floor edit; an enumeration does not, and the enumeration that stood here — `Bash(bash:*)`,
+# `Bash(sh:*)`, `Bash(xargs:*)` — was already incomplete within hours, because a SECOND floor edit
+# narrowed the surviving `bash` entry to a single directory after both gatekeepers found that a
+# `git-reps/`-wide prefix let an agent WRITE a script into the tree and run it — moving the wrapper
+# class from the `-c` payload to a file path rather than removing it.
+#
+# TO RE-CHECK THIS CLAIM, do not read this comment: read `.claude/settings.json` and confirm no
+# `allow` entry matches the interpreter you are looking at. This suite cannot check it for you — it
+# never reads that file.
 check ALLOW "hex escape hides the MERGE GATE"  "bash -c \$'gh pr \\x6derge 145 --merge'"
 check ALLOW "hex escape hides rm -rf"          "bash -c \$'r\\x6d -rf /x'"
 check ALLOW "hex escape hides the trunk push"  "bash -c \$'git push origin \\x6dain'"
@@ -658,19 +683,50 @@ check DENY  "control: the merge gate, unescaped"  "bash -c \$'gh pr merge 145 --
 check DENY  "control: rm -rf (rule 4, raw \$cmd)"  "bash -c \$'rm -rf /x'"
 check DENY  "control: the trunk push, unescaped"  "bash -c \$'git push origin main'"
 
+# THE HEADING BELOW WAS SPLIT IN TWO on 2026-08-04, and the reason is the subject of this whole batch.
+# One section used to cover four interpreters as "an accepted gap that reaches ALLOW". The HOOK treats
+# all four identically — it is silent for every one — but the FLOOR no longer does, so the sentence
+# describing the consequence was true of two of them and false of the other two. **Two different things
+# were wearing one heading**, which is exactly what ADR-0008 says a record must not do. The assertions
+# never moved; only the prose was wrong, and nothing could have gone red to say so.
+
 echo "--- the interpreter perimeter is an ACCEPTED gap, priced in ADR-0008 ---"
-# These ALLOW, deliberately. `python3 -c`, `perl -e`, `ruby -e`, `node -e` and `eval` can all reach the
-# same acts, and the unwrap does not chase them: a regex cannot parse four more languages, and pretending
-# to would be the "mechanism the file claims and does not run" defect.
+# `python3` and `node` are in the floor's `allow` — pre-existing on `main`, weighed, and priced by
+# ADR-0008 as accepted non-containment. So for these two the hook's silence really does mean the
+# command runs, and that is the decision rather than an oversight: the unwrap does not chase them
+# because a regex cannot parse two more languages, and pretending to would be the "mechanism the file
+# claims and does not run" defect.
 #
-# THEY ARE ASSERTED RATHER THAN LEFT UNTESTED because an accepted gap that nobody wrote down is
-# indistinguishable from one nobody noticed — and because if a future widening of the unwrap DOES start
-# catching them, that is a behaviour change someone should have to look at deliberately, not discover.
+# ASSERTED RATHER THAN LEFT UNTESTED because an accepted gap nobody wrote down is indistinguishable
+# from one nobody noticed — and if a future widening of the unwrap DOES start catching them, that is a
+# behaviour change someone should have to look at deliberately rather than discover.
 check ALLOW "python3 -c is the priced gap"  "python3 -c 'import os; os.system(\"git push origin main\")'"
-check ALLOW "perl -e is the priced gap"     "perl -e 'system(\"git push origin main\")'"
-check ALLOW "ruby -e is the priced gap"     "ruby -e 'system(\"git push origin main\")'"
 check ALLOW "node -e is the priced gap"     "node -e 'require(\"child_process\").execSync(\"git push origin main\")'"
-# `bash script.sh` has no -c and must be untouched — this suite is itself run that way.
+
+echo "--- perl / ruby / eval: the hook is silent, but the floor now ASKS ---"
+# SAME HOOK BEHAVIOUR, DIFFERENT CONSEQUENCE — which is why they are no longer filed above.
+# `Bash(perl:*)` and `Bash(ruby:*)` were removed from `allow` on 2026-08-04, having been measured as
+# NEW against `main` and unmentioned in any commit message: a `perl -e` carrying a trunk push was an
+# ASK on trunk and a silent ALLOW here. `eval` was never in `allow` at all.
+#
+# So these three are NOT a priced gap. They are hook-silent and floor-asked, and the assertion below
+# says only the first half — it is `ALLOW` because the HOOK emits nothing, not because the command
+# runs. If someone later adds `Bash(perl:*)` back, every case here stays green while the consequence
+# inverts; that is the limit of this suite, stated where the cases are.
+check ALLOW "perl -e: hook silent, floor asks"  "perl -e 'system(\"git push origin main\")'"
+check ALLOW "ruby -e: hook silent, floor asks"  "ruby -e 'system(\"git push origin main\")'"
+check ALLOW "eval: hook silent, floor asks"     "eval 'git push origin main'"
+
+echo "--- running a FILE is not a wrapper, and that is now load-bearing for the floor ---"
+# `bash script.sh` has no `-c`, so the unwrap does not fire and the hook stays silent — by design, and
+# this suite is itself run that way.
+#
+# WHY THAT DESIGN CHOICE NOW CONSTRAINS THE FLOOR: because the hook declines to look inside a script
+# file, an `allow` entry of the form `Bash(bash <dir>/:*)` is only safe where the agent cannot WRITE
+# into <dir>. A first floor edit allowed `bash /Users/…/git-reps/:*`, where `Write` is permitted — so
+# an agent could author a script and run it, moving the wrapper class from the `-c` payload to a file
+# path. Both gatekeepers found it independently; the entry was narrowed to the hook-scripts directory.
+# The cases below assert the hook half (silence); the floor half is not visible to this suite.
 check ALLOW "running a script file"         "bash hooks/scripts/permission-guard.test.sh"
 check ALLOW "an absolute script path"       "bash /some/path/script.sh"
 check ALLOW "bash --version"                "bash --version"
