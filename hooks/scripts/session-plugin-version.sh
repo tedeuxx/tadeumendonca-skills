@@ -70,7 +70,7 @@ WHAT IS LOST — derived, not listed, because a list of rule numbers goes stale 
     this session.
   - settings.json \`deny\` still holds, but ONLY for the DIRECT spelling it lists. Anything wrapped in
     \`bash -c\`, composed with && or \$( ), semantic (which branch HEAD is on; whether a \`gh api\` call
-    writes), or shadowed by an allow entry (\`gh -R:*\`, \`git -C:*\`) has no check in any layer.
+    writes), or shadowed by a broad allow entry on the same tool (\`git -C:*\`) has no check in any layer.
   - Controls BORN in the hook never had a direct spelling in the floor to fall back to, so for those
     the loss is total rather than degraded. The merge gate is one of them.
 

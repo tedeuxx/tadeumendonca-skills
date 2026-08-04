@@ -553,16 +553,38 @@ fi
 # found it records that the hook header had already been re-tensed and "only the ADR layer was left
 # behind". Measured, same line, same head: `Bash(perl:*) is in allow` FIRES in `agents/` and passes
 # GREEN in `docs/adr/0008`. So the check covered every layer that had self-corrected and none of the
-# one that had drifted. `docs/` is now in the set below, which makes it every tracked `.md`/`.sh` in
-# the repo (verified: `git ls-files` with the scanned paths excluded returns nothing), and adding it
-# cost no prose churn — the sweep had already made the ADR layer honest, so the count went 4 → 6
-# asserting lines with the suite still green. A generic "files it does not scan" is a reassurance;
-# an enumerated scan set is a bound.
-FLOOR_CLAIM_FILES=$(find "$ROOT/hooks" "$ROOT/agents" "$ROOT/commands" "$ROOT/docs" -type f \( -name '*.sh' -o -name '*.md' \) 2>/dev/null)
-FLOOR_CLAIM_FILES="$FLOOR_CLAIM_FILES
-$ROOT/README.md
-$ROOT/CLAUDE.md
-$ROOT/PRINCIPLES.md"
+# one that had drifted. `docs/` is now in the set below, and adding it cost no prose churn — the sweep
+# had already made the ADR layer honest, so the suite stayed green. A generic "files it does not scan"
+# is a reassurance; an enumerated scan set is a bound.
+#
+# (An earlier edition of this paragraph reported the asserting-line count as "4 → 6". The suite prints
+# the number it actually found, on every run, which is the only form that cannot go stale — a derived
+# count in prose, inside the block built to catch stale derived counts, is this batch's signature
+# defect and it landed here too.)
+#
+# ── THE SET IS DERIVED FROM `git ls-files`, NOT FROM A LIST OF ROOTS ─────────────────────────────
+# It used to be `find` over four fixed directories plus three named files, with a COMMENT recording
+# that `git ls-files` minus those paths returned nothing. Three ways that narrowed; this closes two of
+# them permanently:
+#
+#   DIRECTORY — the only thing that would have noticed a fifth root was that comment. A comment is the
+#     instrument this batch has ruled insufficient four times over: it cannot fail.
+#   TRACKED-vs-PRESENT — `find` walked the FILESYSTEM while the comment verified against GIT. They
+#     diverge on any tracked file `find` never reaches, and on anything untracked that it does.
+#   EXTENSION — `*.md`/`*.sh` remains a bounded CHOICE, and it stays one. It is now visible in the
+#     command below rather than asserted in prose. A `Bash(...)` token can appear in a `.yml`
+#     (`.github/workflows/claude.yml` carries one today — shape demonstrated, no live stale claim), so
+#     widening is a real option; it is not taken here because every layer that has actually drifted is
+#     prose, and each added extension widens the cry-wolf surface this check is deliberately narrow on.
+#
+# Deriving from `git ls-files` makes the first two TAUTOLOGICAL — the set IS the tracked set, so there
+# is nothing left for a comment to verify. `-z` with `read -d ''` because a tracked path may contain
+# whitespace; `find` was safe on that by luck of this repo's filenames, not by construction.
+FLOOR_CLAIM_FILES=""
+while IFS= read -r -d '' rel; do
+  FLOOR_CLAIM_FILES="$FLOOR_CLAIM_FILES
+$ROOT/$rel"
+done < <(git -C "$ROOT" ls-files -z -- '*.md' '*.sh' 2>/dev/null)
 
 if ! command -v jq >/dev/null 2>&1 || [ ! -r "$SETTINGS" ]; then
   bad "floor claims — floor unreadable (jq or $SETTINGS); this assertion did NOT run"
@@ -601,6 +623,60 @@ else
       bad "floor claims — a tracked file says an entry is in \`allow\` and the floor does not contain it:$stale_claims
       Either the floor changed and the prose did not, or the prose names an entry that never existed.
       If the sentence is NARRATING a removal, say so on the same line (\"was\", \"no longer\", \"~~struck~~\") — that is what tells this check it is history."
+    fi
+  fi
+fi
+
+# --- every file this suite SCANS must be a file the workflow can START on -----------------------
+#
+# THE REGRESSION TEST FOR THE CAUSE, NOT FOR THE INSTANCE. Four times now, a path has been added to
+# `docs-test.yml`'s `paths:` filter after someone measured a specific miss — `hooks/**`,
+# `.claude-plugin/**`, `docs/**`, and `PRINCIPLES.md`. Each fix was correct and none of them prevented
+# the next, because the two sets were maintained independently: **the scan set was derived, the filter
+# was extended by whichever miss got measured, and nobody diffed one against the other.**
+#
+# A file in the scan set but not the filter is the worst shape a gate has: the PR that introduces the
+# defect is exactly the PR that cannot start the gate. Green on the way in, and never red afterwards.
+#
+# THIS IS A ONE-DIRECTION CHECK, DELIBERATELY. Filter ⊅ scan set is a hole; filter ⊃ scan set is only
+# a workflow that sometimes runs with nothing to say, which costs a minute of CI and no correctness.
+# Asserting equality would make `.github/workflows/docs-test.yml` — which the filter lists so the gate
+# re-runs when the filter itself changes — a failure, and that entry is correct.
+WORKFLOW="$ROOT/.github/workflows/docs-test.yml"
+if [ ! -r "$WORKFLOW" ]; then
+  bad "gate coverage — $WORKFLOW unreadable; this assertion did NOT run"
+elif [ -z "${FLOOR_CLAIM_FILES//[[:space:]]/}" ]; then
+  bad "gate coverage — the scan set is EMPTY; this assertion would pass vacuously"
+else
+  # The globs, read from the workflow rather than restated here — restating them is the very
+  # duplication that produced the drift.
+  filter_globs="$(sed -n '/^  *paths:/,/^[^ #]/p' "$WORKFLOW" | sed -nE 's/^ *- "(.*)"$/\1/p')"
+  if [ -z "$filter_globs" ]; then
+    bad "gate coverage — no paths: globs parsed from docs-test.yml; the file changed shape and this assertion did NOT run"
+  else
+    uncovered=""
+    while IFS= read -r file; do
+      [ -z "$file" ] && continue
+      rel="${file#"$ROOT"/}"
+      matched=""
+      while IFS= read -r glob; do
+        [ -z "$glob" ] && continue
+        case "$glob" in
+          */\*\*) [ "${rel#"${glob%\*\*}"}" != "$rel" ] && matched=yes ;;
+          *)      [ "$rel" = "$glob" ] && matched=yes ;;
+        esac
+        [ -n "$matched" ] && break
+      done <<< "$filter_globs"
+      [ -z "$matched" ] && uncovered="$uncovered
+    $rel"
+    done <<< "$FLOOR_CLAIM_FILES"
+
+    if [ -z "$uncovered" ]; then
+      ok "gate coverage — every file the floor-claim scan reads is matched by docs-test.yml's paths: filter"
+    else
+      bad "gate coverage — these files are SCANNED by this suite but cannot START its workflow:$uncovered
+      A PR touching only such a file can introduce the defect this suite exists to catch and never run it.
+      Add the path to .github/workflows/docs-test.yml's paths: filter — do not narrow the scan set to match."
     fi
   fi
 fi

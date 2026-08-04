@@ -494,8 +494,10 @@ check DENY  "secret delete, -R= attached"   "gh -R=owner/repo secret delete MY_T
 check ALLOW "a message about the act"       "git commit -m 'gh secret set MY_TOKEN'"
 
 echo "--- rule 5g: the gh subcommands the floor denies and the hook could not see ---"
-# `Bash(gh -R:*)` in `allow` moved the -R spelling of EVERY gh deny entry from "prompts the human" to
-# "runs silently". `gh -R owner/repo repo delete --yes` returned no decision from any layer at all.
+# For part of one day, `Bash(gh -R:*)` in `allow` moved the -R spelling of EVERY gh deny entry from
+# "prompts the human" to "runs silently" — the entry was removed the same day, and these rules are what
+# hold if any broad `gh` allow returns. `gh -R owner/repo repo delete --yes` returned no decision from
+# any layer at all.
 check DENY  "repo delete"                   "gh repo delete owner/repo --yes"
 check DENY  "repo delete behind -R"         "gh -R owner/repo repo delete --yes"
 check DENY  "repo delete, -R attached"      "gh -Rowner/repo repo delete --yes"
