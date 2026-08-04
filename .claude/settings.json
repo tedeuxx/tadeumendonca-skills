@@ -65,7 +65,11 @@
       "Bash(gh auth status:*)",
       "Bash(gh -R:*)",
       "Bash(gh --repo:*)",
-      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca-skills/hooks/scripts/:*)",
+      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca-skills/hooks/scripts/permission-guard.test.sh)",
+      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca-skills/hooks/scripts/wip-guard.test.sh)",
+      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca-skills/hooks/scripts/inventory-counts.test.sh)",
+      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca-skills/hooks/scripts/session-plugin-version.test.sh)",
+      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca-skills/hooks/scripts/hooks-executable.test.sh)",
       "Bash(shellcheck:*)",
       "Bash(actionlint:*)",
       "Bash(npm:*)",
@@ -116,6 +120,7 @@
       "WebFetch(domain:docs.claude.com)"
     ],
     "deny": [
+      "Bash(chmod -x:*)",
       "Edit(.claude/**)",
       "Write(.claude/**)",
       "Bash(git push origin main)",

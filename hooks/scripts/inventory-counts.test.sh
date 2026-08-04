@@ -346,5 +346,108 @@ else
   bad "roster shape — the roster has $lead_files leads ($lead_word); these state another count:$stale_leads"
 fi
 
+# --- the permission floor's interpreter surface ------------------------------------------------
+#
+# WHY THIS IS HERE RATHER THAN IN A COMMENT. `permission-guard.test.sh` carries a carefully-written
+# note explaining that its silence assertions depend on the floor — "no allow entry remains that would
+# shadow the act". That note is correct, states its own limit, and points at the file. It is also an
+# UNCHECKED CLAIM ABOUT A FILE NO SUITE READS: true today, false the moment someone re-adds
+# `Bash(bash:*)`, and nothing would say so.
+#
+# THREE STALENESS EVENTS FIRED INSIDE THE PR THAT ADDED THAT NOTE — a doc count, a derived count in a
+# box whose purpose was preventing a misreading, and a floor edit that inverted a section's meaning
+# with no assertion going red. A fourth carefully-written comment is not the remedy for the first
+# three. This block is the remedy: the claim becomes checkable, and the comment stays.
+#
+# THE SUITE THAT DEPENDS ON THIS CANNOT MAKE THE CHECK ITSELF. `permission-guard.test.sh` classifies
+# the GUARD's stdout and never reads `settings.json` — by design, since it tests the hook. So the
+# assertion belongs where repo-file content is already asserted, which is this file.
+SETTINGS="$ROOT/.claude/settings.json"
+
+# FAIL LOUDLY IF THE INPUT CANNOT BE READ. An absence check that cannot see the file passes
+# vacuously — it would report "no perl entry" on an unreadable floor, which is the exact class of
+# green-for-the-wrong-reason this block exists to stop.
+if ! command -v jq >/dev/null 2>&1; then
+  bad "permission floor — jq unavailable, so the floor could not be read; these assertions did NOT run"
+elif [ ! -r "$SETTINGS" ]; then
+  bad "permission floor — $SETTINGS unreadable; these assertions did NOT run"
+else
+  allow_entries="$(jq -r '.permissions.allow[]?' "$SETTINGS" 2>/dev/null)"
+  if [ -z "$allow_entries" ]; then
+    bad "permission floor — the allow list parsed as EMPTY; every check below would pass vacuously"
+  else
+    ok "permission floor — allow list readable ($(printf '%s\n' "$allow_entries" | wc -l | tr -d ' ') entries)"
+
+    # 1 — perl and ruby must NOT be in `allow`. They were added without being named in any commit
+    #     message, and made a trunk push an ASK on trunk and a silent ALLOW here. Matched by
+    #     interpreter NAME, not by the exact string `Bash(perl:*)`, so a respelling with a path or a
+    #     different wildcard is caught too.
+    for interp in perl ruby; do
+      hit="$(printf '%s\n' "$allow_entries" | grep -E "^Bash\($interp([[:space:]]|:)" || true)"
+      if [ -z "$hit" ]; then
+        ok "permission floor — no '$interp' entry in allow"
+      else
+        bad "permission floor — '$interp' is back in allow: $hit — a payload in that interpreter reaches any act with no decision from the hook (it does not parse other languages) and none from the floor"
+      fi
+    done
+
+    # 2 — python3 and node must BE in `allow`. ADR-0008 prices these as accepted non-containment, and
+    #     `permission-guard.test.sh` asserts their silence as a PRICED gap rather than a hole. If they
+    #     were removed, that section would be describing a floor that no longer exists — and an
+    #     absence-only check would go green on it, which is a different floor than the one recorded.
+    for interp in python3 node; do
+      hit="$(printf '%s\n' "$allow_entries" | grep -E "^Bash\($interp([[:space:]]|:)" || true)"
+      if [ -n "$hit" ]; then
+        ok "permission floor — '$interp' present in allow, as ADR-0008 prices it"
+      else
+        bad "permission floor — '$interp' is NO LONGER in allow; ADR-0008 and permission-guard.test.sh both describe it as a priced, accepted gap. Update those records or restore the entry — do not leave them describing a floor that is gone"
+      fi
+    done
+
+    # 3 — NO SHELL-INTERPRETER ENTRY MAY END IN A WILDCARD. This is the one that would have caught the
+    #     round-4 defect, and the choice of shape is deliberate:
+    #
+    #       REJECTED: forbid `Bash(bash <path>/:*)`, the exact shape that failed. It is a SPELLING.
+    #         `Bash(bash /Users/…/scripts:*)` — no trailing slash — has the identical hole and would
+    #         pass. This batch's entire subject is spelling-shaped rules being respelled, four times
+    #         over (rule 4's flag set, 5b's `-R`, 5f's attached value, the unwrap's `$'…'`).
+    #       CHOSEN: forbid a trailing wildcard on ANY shell interpreter. That is the PROPERTY. A `:*`
+    #         permits an unbounded suffix; `permission-guard.sh` deliberately declines to look inside
+    #         `bash script.sh`; so the suffix is arbitrary code. Measured at round 4: a path prefix is
+    #         a STRING prefix, and `…/hooks/scripts/../../../../private/tmp/x.sh` carries it while
+    #         reaching any script on disk. The prefix bounded the characters, not the directory.
+    #
+    #     The cost, stated because it is real: this forecloses a wildcard bash entry someone may one
+    #     day legitimately want. That is the intent — the five exact-match entries prove the wildcard
+    #     is not needed for the actual use case, and a future need should arrive as a deliberate
+    #     change to THIS assertion, reviewed, rather than as a quiet line in the floor.
+    #
+    #     `sh|zsh|ksh|dash` are covered though none is in allow today: re-adding one with a wildcard is
+    #     precisely the respelling this shape exists to refuse. The optional `[[:space:]][^)]*` is what
+    #     keeps `Bash(shellcheck:*)` and `Bash(shasum:*)` from matching on `sh` — an argument run must
+    #     start with whitespace, so a longer TOOL NAME never qualifies.
+    #
+    #     THE FIRST VERSION OF THIS PATTERN MISSED `Bash(bash:*)` — the single entry this whole batch
+    #     removed. It required `([[:space:]]|:)` after the interpreter and then `.*:\*\)`, so the bare
+    #     form had only one `:` to spend and did not match, while every PATH form did. It would have
+    #     passed green on the most dangerous entry expressible. Reading it did not find that; an
+    #     accept/refuse table of seventeen spellings did, which is the same lesson as the rest of this
+    #     batch and is why the table is kept as a comment rather than discarded after use:
+    #
+    #       FLAG  Bash(bash:*)   Bash(sh:*)   Bash(zsh:*)   Bash(bash <path>/:*)   Bash(bash <path>:*)
+    #       pass  Bash(bash <path>/x.test.sh)   Bash(shellcheck:*)   Bash(shasum:*)   Bash(node:*)
+    wildcard_shells="$(printf '%s\n' "$allow_entries" \
+      | grep -E "^Bash\((bash|sh|zsh|ksh|dash)([[:space:]][^)]*)?:\*\)$" || true)"
+    if [ -z "$wildcard_shells" ]; then
+      ok "permission floor — no shell-interpreter allow entry ends in a wildcard"
+    else
+      bad "permission floor — a shell-interpreter entry ends in ':*', which permits an unbounded suffix: $wildcard_shells
+      A path prefix is a STRING prefix, not a directory scope: '<allowed-prefix>/../../../tmp/x.sh' carries it.
+      permission-guard.sh does not look inside a script file, so that suffix is arbitrary code with no decision from any layer.
+      Use exact-match entries (no trailing ':*'), one per script."
+    fi
+  fi
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
