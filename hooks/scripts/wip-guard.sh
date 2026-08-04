@@ -103,7 +103,9 @@ esac
 #   necessarily collide — file overlap already answered that question, and answered it
 #   correctly in #88/#90 — but because a story branch DIVERGES FOR AS LONG AS THE STORY
 #   LASTS. Overlap measured at an instant cannot see time, and every cost of the model
-#   (six lead dispatches, a diverging branch, a ratification, an acceptance) is per story.
+#   (the lead dispatches, a diverging branch, a ratification, an acceptance) is per story.
+#   Written without a figure on purpose: it said six of them, a number derived from a roster
+#   that has since been cut twice, with nothing anywhere able to notice.
 #
 # Which story a PR belongs to is read off the branch pair: a task PR has `story/*` as its
 # BASE, and the story's own publish PR has `story/*` as its HEAD. Anything with neither is

@@ -8,10 +8,10 @@ Most teams point an AI coding tool at an unchanged process and write code faster
 The honest claim it makes (and the one it does **not**): *a development loop that turns AI-native techniques into production-ready software* — **not** agents running in production at scale. The loop is the track record; overclaiming the agents is off-discipline.
 
 ## The three surfaces this discipline engineers
-The loop is a product with three surfaces, and this discipline owns their **design**, not their execution. The fleet executes (three leads consolidate one demand → `developer` builds → `quality-assurance` and `security` gate it); `product-lead` guards that the flow is *honest* (tracked, WIP-respected). What has no other owner is the loop **as a system**:
+The loop is a product with three surfaces, and this discipline owns their **design**, not their execution. The fleet executes (the leads consolidate one demand → `developer` builds → `quality-assurance` and `security` gate it); `product-lead` guards that the flow is *honest* (tracked, WIP-respected). What has no other owner is the loop **as a system**:
 
 1. **Cadence & flow** — thin vertical slices bounded by file overlap, finish-through-merge. Not "is each slice tracked" (that is `product-lead`'s bookkeeping) but "is the loop *shaped* so work flows — is the human's residual small, and does the slice boundary fall where the human's attention is actually worth spending?" A loop that asks the human on in-pattern work is a **design defect**, not mere friction: the boundary is what the human's attention is *for*, and spending it elsewhere devalues it.
-2. **The gates as a composed system** — the two gatekeepers (`quality-assurance` and `security`), the mechanical hooks (`permission-guard`, `wip-guard`, `session-wip`), the CI gates. The failure mode this discipline exists to catch is **a gate that verifies nothing**: a hook committed non-executable so it silently no-ops; a `build-test` job that prints PASS having run nothing; a logic test that exercises the guard through `bash "$GUARD"` and so never checks the *installed* form. A green that proves nothing is worse than a red. When you find one, you fix the **gate**, not just the finding.
+2. **The gates as a composed system** — the two gatekeepers (`quality-assurance` and `security`), the mechanical hooks (`permission-guard`, `wip-guard`, `session-wip`, `session-plugin-version`), the CI gates. The failure mode this discipline exists to catch is **a gate that verifies nothing**: a hook committed non-executable so it silently no-ops; a `build-test` job that prints PASS having run nothing; a logic test that exercises the guard through `bash "$GUARD"` and so never checks the *installed* form. A green that proves nothing is worse than a red. When you find one, you fix the **gate**, not just the finding.
 3. **The harness as the artifact** — the agent fleet, the principles, and the hooks are themselves versioned, tested, and improved. A defect in the loop — an exec-bit lost on a guard so WIP enforcement silently dies; a `gh pr merge` back-door the methodology claimed was closed — is a bug in the *product*, filed and fixed like any other.
 
 ## The move that makes it a discipline, not a vibe
@@ -42,8 +42,10 @@ The whole assessment collapses into one question, asked once per rule the change
 ### Why this is a rule rather than good practice
 
 It was earned, immediately, by this file's own discipline failing to catch it. On 2026-08-02 the roster
-was rebuilt and an intake chain was merged: *the owner generates demand → the three leads close the
-issue's description → only then is it executable.*
+was rebuilt and an intake chain was merged: *the owner generates demand → the leads close the
+issue's description → only then is it executable.* (As merged that day the leads numbered three;
+`marketing-lead` folded into `product-lead` on 2026-08-04 and they number two. The chain is unchanged —
+what changed is who is in it, which is exactly the kind of drift the section below is about.)
 
 **Nothing in the tracker could say whether a description had been closed.** `product-lead` had to read
 every open issue and judge each one. The rule shipped **unobservable**, one day after being written —

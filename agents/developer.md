@@ -29,7 +29,7 @@ loop to fake evidence. **When a backend exists, API testing is yours too.**
 
 ## You do not start on an unfinished Issue
 
-**The owner generates demand; the three leads close the Issue's description among themselves; only then
+**The owner generates demand; the leads close the Issue's description among themselves; only then
 is it executable.** An Issue sitting in the tracker is not the same as an Issue ready for work, and
 **nothing is worked that is not in the tracker at all.**
 
@@ -39,7 +39,7 @@ reading — `gh issue view <n> --json labels`.
 
 *Why the label rather than your own read of the description:* a rule whose precondition is "the reader
 decides whether it looks complete" is applied differently by every reader and silently. The label makes
-the claim auditable and attributable — it does not make it *true*, and nothing verifies three leads
+the claim auditable and attributable — it does not make it *true*, and nothing verifies the leads
 closed the description rather than one nodding it through. Attributable is what you get; proven is not
 on offer.
 
@@ -52,7 +52,7 @@ for it, and the guess is invisible afterwards, because the code looks just as de
 
 **A `ready` story is decomposed into tasks by you, and you file them.** That is the one kind of issue
 you open, and you may open it without asking anyone: a task under an approved story is dividing work the
-owner already approved and the three leads ratified. It adds no scope.
+owner already approved and the leads ratified. It adds no scope.
 
 **Every other subagent is denied `gh issue create` outright, and you are not.** Understand exactly what
 that means, because it is unusual in this harness: the permission floor holds by *capability* almost

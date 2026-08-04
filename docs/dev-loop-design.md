@@ -11,7 +11,9 @@
 > The reference implementation is this repository, a Claude Code plugin. The loop it drives ships a
 > public static site (`tadeumendonca.io`) plus this harness itself.
 >
-> **Status:** current as of 2026-08-02, after the roster was cut from nineteen personas to six.
+> **Status:** current as of 2026-08-04. The roster was cut from nineteen personas to six on
+> 2026-08-02 and to five on 2026-08-04, when `marketing-lead` merged into `product-lead` — §2 is
+> written against the current five, and the superseded shapes are recorded there rather than here.
 > The decision records behind it are in `docs/adr/` of this repo (methodology) and of the consuming
 > repo (product). Where this document and an ADR disagree, the ADR is authoritative — it is the record;
 > this is the map.
@@ -300,7 +302,7 @@ merged by the gate              owner ratifies, then merged
 This is the load-bearing relationship in the whole design, and it is easy to implement half of.
 
 The delivery gate consolidates that **every requirement of the issue was met**. Those requirements are
-written by the three leads. So **the gate's ruler is external to the gate** — a finding either anchors in
+written by the leads. So **the gate's ruler is external to the gate** — a finding either anchors in
 a stated requirement (or in a Definition-of-Done criterion) or it does not block. Taste has no route to
 a blocker, not because the reviewer restrains itself but because there is nothing to anchor it to.
 
@@ -501,7 +503,7 @@ What is **incidental** to the reference implementation and should be re-chosen p
 What is **known-weak**, stated so a reviewer does not have to discover it:
 
 - **the gate's objectivity is transferred, not created** — it holds exactly as far as the issue is
-  complete, and nothing mechanically checks that a description was actually closed by three leads rather
+  complete, and nothing mechanically checks that a description was actually closed by the leads rather
   than nodded through by one
 - **the second gatekeeper's `n/a` is enforced by phrasing, not by a check** — nothing catches a security
   verdict that names axes it did not really examine

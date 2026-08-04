@@ -271,8 +271,16 @@ signal. Your tenth criterion is:
 > are not gates.
 >
 > **AND: a claim you can yourself falsify against a checkable source fails this criterion, whatever the
-> lens returned.** A published sentence that is false is a defect at criterion 10 even if
-> `product-lead` approved, even if no lens ran, and even if the falsehood is one clause long.
+> lens returned.** A published sentence that is false is a defect at criterion 10 even if the lens
+> approved, even if no lens ran, and even if the falsehood is one clause long.
+
+**The criterion names the LENS and never the persona holding it, deliberately.** That half carried a
+persona name in every edition it has had — `brand-guardian`, then `marketing-lead` on 2026-08-02, then
+`product-lead` on 2026-08-04 (`git log -S` on the clause shows all three). Three roster changes, three
+re-edits of a criterion whose meaning never changed, and the failure mode is not that the edit is
+expensive but that it is *missed*: a gate whose text points at a persona that no longer exists. Which
+lens it is belongs in the trigger section above, stated once. If a future edit genuinely cannot avoid a
+name here, say why in this paragraph rather than letting the name stand unexplained.
 
 **That second half exists because the first half alone would have made this reviewer's most valuable
 behaviour unblockable**, and the first draft of criterion 10 did exactly that. Its clause is satisfied
