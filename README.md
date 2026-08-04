@@ -146,11 +146,16 @@ instant cannot see time. Every cost of that model is per story, so the count is 
   a hook does not degrade at all. **The cost is that it errs in both directions, and only one of them
   is loud.** It matches patterns rather than intent, so it will sometimes deny something legitimate —
   that you find out immediately, and the fix is arguing with a regex. It also **fails open**: on a
-  parse error, a missing `gh`, or no network, it allows rather than blocks, and there are deliberate
-  uncovered paths — the hook matches `gh issue create` and `gh pr merge`, not the raw `gh api` call
-  reaching the same endpoint. Those you do not find out about at all. They are booked in the hook
-  sources with their reasons, which is the honest form: a guardrail that tells you what it does not
-  catch is worth more than one asserting it catches everything.
+  parse error, a missing `gh`, or no network, it allows rather than blocks, and **any path it does not
+  cover is a path nothing covers** — the fail-open direction is silent by construction. Those you do not
+  find out about at all. Whatever remains uncovered is booked in the hook sources with its reasons,
+  which is the honest form: a guardrail that tells you what it does not catch is worth more than one
+  asserting it catches everything.
+
+  *This sentence used to give `gh api` as its standing example of an uncovered path, in the present
+  tense, in a commit that also added the rule closing it.* The example was corrected rather than the
+  claim: the claim is still true, and the danger it describes is exactly what let the example go stale
+  unnoticed.
 
   **On that example specifically, because it is the one that moved — twice, in one day.** `gh api` was
   booked as an accepted, permanent gap until 2026-08-04. A permission audit found the route was never

@@ -93,6 +93,15 @@ it says. This is the same rule ADR-0003 already applies to the owner's ratificat
 weaker standard to a gatekeeper's veto than to the owner's ratification is backwards: the veto is
 dispatched on **every** MR, the ratification only on the boundary class.
 
+> **This does not conflict with the relay you are required to perform** under criterion 10, ~200 lines
+> below, and the two are worth reading together because they point in opposite directions and are both
+> right. **A relay cannot establish AUTHORITY — it can carry a RECORD.** Here you are being told a
+> verdict exists and must verify the artifact yourself, because what is at stake is whether a gate ran.
+> There you are carrying `product-lead`'s text onto the PR verbatim under your own marker, because what
+> is at stake is whether a finding is on the record — and nothing about your act makes that finding more
+> or less authoritative than the lens made it. ADR-0006 holds the full argument; the one-line form is
+> that the limit is on **authority**, not on **transport**.
+
 *Why this is checked at the merge and not at the start of your review:* the two of you run in parallel.
 Reading for it up front would serialise you behind `security` for no gain — you have a whole review to
 do first, and by the time you reach the merge the comment either exists or the merge does not happen.
@@ -131,12 +140,29 @@ monitor objected to on #127. The half nobody verifies is the half that needs the
 
 ### How the body is composed: `--body-file`, always, with no per-case judgement
 
-**Write the verdict to a file in the scratchpad and post it with `gh pr comment <n> --body-file
-<path>`.** That is the only shape. Not a preference between three — the other two are gone.
+**Get the verdict into a file in the scratchpad, then post it with `gh pr comment <n> --body-file
+<path>`.** The `--body-file` half is the rule and has no exceptions. **How the file gets written is not
+part of the rule** — `Write` is the direct route; `printf '%s' … > <path>` and an `Edit` onto a stub file
+are equally valid, and you use whichever the session allows.
 
-> **`--body` is not a fallback.** If the file cannot be written, the verdict cannot be posted, and that
-> is a posting failure to be reported as one (below) — not a prompt to start deleting characters until
-> the command survives the shell.
+> **`--body` is not a fallback.** If the file cannot be written by ANY route, the verdict cannot be
+> posted, and that is a posting failure to be reported as one (below) — not a prompt to start deleting
+> characters until the command survives the shell.
+
+**Naming three routes instead of one is deliberate, and it is a lesson about tool grants generally.**
+This section first said `Write` and only `Write`. But **a tool grant added in an MR is not live for the
+persona reviewing that MR** — the plugin the session loaded is the one from before the change — so both
+gatekeepers hit a rule that named a tool they did not have, and one of them read it as unsatisfiable.
+Through the whole adoption lag that reads as *criterion 10 UNVERIFIED*, on every PR, for a reason that
+is purely an artifact of when the plugin was loaded.
+
+The Bash routes are not merely a stopgap, either: **the verdict body is itself an unquotable command.**
+Measured on this batch — a heredoc body was denied twice, once by rule 3 because the prose *quoted* a
+`git push -f` string and once by rule 8 because it contained markdown backticks. The guard cannot tell
+prose about a command from the command. So `printf > file` is not always enough, and routing the text
+through `Edit` onto a stub file is the route that survives when the body's own content is the problem.
+**Composing a verdict is a real engineering task with real constraints; treat a blocked write as
+something to route around, not as permission to shorten the verdict.**
 
 *Why this is a rule and not advice.* Rule 8 of the floor denies any command containing a backtick,
 `$(`, `;` or a chain operator outside a quoted span, so an inline `--body` forces a choice of quoting

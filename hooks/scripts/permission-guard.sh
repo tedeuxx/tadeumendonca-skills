@@ -91,6 +91,109 @@ deny() {
 # Single-line, collapsed whitespace for matching.
 cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
 
+# ── `-c` PAYLOAD UNWRAPPING ──────────────────────────────────────────────────────────────────────
+# A `bash -c '<payload>'` wrapper made EVERY `$bare` rule blind, and the blindness was invisible in
+# exactly the way that matters: measured 2026-08-04, all of these came out ALLOW, with no decision from
+# any layer — not this hook, not the settings `deny`:
+#
+#     bash -c 'git push origin main'    → rule 7   (the trunk push)
+#     bash -c 'gh pr merge 145'         → rule 7b  (the MERGE GATE)
+#     bash -c 'gh issue create …'       → rule 5c/5d
+#     bash -c 'gh pr comment …'         → rule 5e
+#     bash -c 'gh api … -f title=x'     → rule 5f
+#
+# WHY IT HIT EVERY RULE EXCEPT ONE, because the pattern is the lesson: `$bare` COLLAPSES quoted spans,
+# which is right for its own purpose (an operator inside a commit message is not composition) and is
+# precisely wrong here — the payload of `-c` is a COMMAND that happens to be quoted, not a string that
+# happens to look like one. Rule 4 (`rm`) matches `$cmd`, the raw string, and is the only rule that
+# caught the wrapped form. An empirical check that sampled `rm` and generalised is how this was
+# reported as covered; one rule was, and it was the one rule that does not use the shared surface.
+#
+# THE FIX IS AT THE SOURCE, NOT PER-RULE. Unwrap here, once, and every rule downstream sees the payload
+# as though it had been typed directly. Fixing it rule-by-rule would mean each future rule has to
+# remember — which is the property this file keeps proving it does not have.
+#
+# APPENDED, NOT SUBSTITUTED. The payload is added to `cmd`, so the OUTER command survives matching too:
+# `FOO=x bash -c '…'` must still trip rule 8's env-var prefix, and substituting would have thrown that
+# half away. Both surfaces are matched, which is strictly more than before and never less.
+#
+# THE WORD BOUNDARY IS LOAD-BEARING: `(^|[[:space:]]|/)` before the shell name, so `npm run finish -c x`
+# does not unwrap on the `sh` inside `finish`, while `/bin/bash -c` and `/usr/bin/env sh -c` do. Without
+# it the rule would rewrite ordinary commands into fragments and match rules against noise.
+#
+# `bash script.sh` IS UNTOUCHED — no `-c`, no unwrap, no collateral. Only the `-c` form is a wrapper
+# around a command string; running a FILE is not, and the test suite pins that (it is itself run as
+# `bash hooks/scripts/permission-guard.test.sh`).
+#
+# THREE PASSES, for `bash -c "bash -c '…'"`. Bounded rather than `while`, because a hook that can loop
+# on adversarial input is a wedged agent; three is past any real nesting and terminates unconditionally.
+unwrap_scan="$cmd"
+for _ in 1 2 3; do
+  case "$unwrap_scan" in
+    *-*c*) ;;
+    *) break ;;
+  esac
+  # Delimiter is `#`, NOT `|` — the pattern is full of alternation and a `|` delimiter silently cuts it
+  # into fragments that still compile. It matched nothing and looked fine.
+  unwrap_payload="$(printf '%s' "$unwrap_scan" | sed -E 's#^.*(^|[[:space:]]|/)(bash|sh|zsh|ksh|dash)[[:space:]]+-[A-Za-z]*c[A-Za-z]*[[:space:]]+##')"
+  [ "$unwrap_payload" = "$unwrap_scan" ] && break
+  # Strip ONE layer of surrounding quotes — that layer is the wrapper's, so removing it is what turns
+  # the payload back into a command. Inner quoting is left alone for `$bare` to collapse as usual.
+  unwrap_payload="$(printf '%s' "$unwrap_payload" | sed -E "s/^'(.*)'\$/\\1/; s/^\"(.*)\"\$/\\1/")"
+  [ -z "$unwrap_payload" ] && break
+  cmd="$cmd $unwrap_payload"
+  unwrap_scan="$unwrap_payload"
+done
+
+# ~~Quoted spans collapsed~~ **MOVED UP, to just after `cmd`, on 2026-08-04.** The computation and this
+# whole explanation now live beside `cmd` — see there. It sat here, in the middle of the rule list, for
+# one reason that was never a decision: it was written when only rules 7 and 8 needed it. Rule 5b was
+# above it and therefore matched `$cmd`, which is why `git commit -m "gh secret set X"` — a message
+# ABOUT the act — was denied as the act. A normalisation every rule should share does not belong
+# halfway down the rules that share it.
+#
+# ESCAPE-AWARE since #66, and the earlier form is worth stating because it looked correct.
+# It was `s/"[^"]*"/""/g` — "run to the next double quote" — so a body containing an ESCAPED
+# quote terminated the span early and exposed the remainder to the composition check:
+#
+#     gh issue create --body "text with \"quotes\" and `backticks`"
+#                            ^-------------------^ collapse stopped here
+#                                                    ^^^^^^^^^^^^ read as substitution → denied
+#
+# `([^"\\]|\\.)*` consumes any escaped character as one unit, so the span ends at the real
+# closing quote. Same for single quotes, kept symmetric even though POSIX shells do not honour
+# escapes inside them — the input here is a command STRING, not a parsed shell word, and a
+# rule that treats the two quote styles differently is one nobody will remember correctly.
+#
+# The issue's stated fear was that fixing a false positive here would buy a false NEGATIVE in
+# the rule protecting the matcher. Three cases pin that it does not, and all three are asserted
+# in the test suite rather than argued here:
+#   · an operator OUTSIDE quotes still survives the collapse and is still caught;
+#   · an UNBALANCED quote matches nothing, so the operator stays exposed — it fails CLOSED,
+#     which is the only safe direction for a deny-only rule;
+#   · an escaped quote INSIDE a span no longer truncates it.
+bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g')"
+
+# ── ONE SPELLING OF "AN OPTIONAL -R/--repo BEFORE THE SUBCOMMAND" ────────────────────────────────
+# `gh -R <repo> <subcommand>` is this workspace's PRESCRIBED multi-repo convention, and the allowlist
+# opens `Bash(gh -R:*)` / `Bash(gh --repo:*)` for exactly that reason. The consequence, measured on
+# 2026-08-04 and not noticed when those two entries were promoted into the floor that morning: the
+# settings matcher reads a command PREFIX, so `Bash(gh repo delete:*)` cannot see
+# `gh -R owner/repo repo delete`, and for EVERY `gh` deny entry the `-R` spelling moved from *prompts
+# the human* to *runs silently*. The allow entry did not weaken one rule; it weakened the whole `gh`
+# half of the floor at once.
+#
+# THE FIX IS THIS VARIABLE, USED EVERYWHERE, and the reason it is one variable is the second half of
+# the same finding: three rules had each grown their OWN copy, two of them space-only, so
+# `gh -Ro/r pr merge` and `gh --repo=o/r secret set X` walked past the MERGE GATE and the SECRET-WRITE
+# rule while the spaced form was denied. A floor that depends on how the caller punctuated is not a
+# floor — rule 4 learned that with `rm -fR`, and it had to be learned twice more here.
+#
+# Tolerates all four spellings pflag accepts: `-R o/r`, `-Ro/r`, `--repo o/r`, `--repo=o/r` (and
+# `-R=o/r`, which pflag also takes). Any rule matching a `gh` subcommand MUST interpolate this rather
+# than write its own.
+gh_repo_flag='([[:space:]]+(-R[[:space:]=]*|--repo[[:space:]=]*)[^[:space:]]+)?'
+
 # 1. Never bypass the permission system.
 case "$cmd" in
   *--dangerously-skip-permissions*)
@@ -138,6 +241,20 @@ if printf '%s' "$cmd" | grep -Eq "(^|[^[:alnum:]_])rm${rm_flag}(${rm_both}|${rm_
   deny "Blocked: recursive force delete ('rm -rf', in any spelling) is irreversible and escapes git. Remove specific tracked paths instead."
 fi
 
+# 4b. `git clean` WITH FORCE — the same act as rule 4, spelled through git, and it deletes UNTRACKED
+#     files, which are by definition the ones git cannot give back. `git clean -f` and `-fd` are both
+#     in the floor's `deny`, and neither was matched here — so `git -C /path clean -fd`, with
+#     `Bash(git -C:*)` sitting in `allow`, ran with no decision from any layer. Same bypass shape as
+#     the `gh -R` finding, in the half of the allowlist nobody was looking at.
+#
+#     Matched on `$bare` and tolerant of the leading `-C`/`-c`/`--git-dir`/`--work-tree` options, the
+#     way rule 7 is, because that is precisely how the bypass was spelled. `-x`/`-X`/`-d` combine with
+#     `-f` in any order or cluster, so the force flag is matched as a SET member the way rule 4 does,
+#     rather than as a fixed token.
+if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+clean([[:space:]]+(--[[:alpha:]][[:alpha:]-]*|-[[:alnum:]]+))*[[:space:]]*(--force|-[[:alnum:]]*f[[:alnum:]]*)([[:space:]]|$)'; then
+  deny "Blocked: 'git clean -f' deletes UNTRACKED files — the one class git cannot restore, so it is as irreversible as 'rm -rf'. Remove the specific paths you mean, or use 'git clean -n' to see what it would take."
+fi
+
 # 5. Secret writes (sensitive, escape git).
 if printf '%s' "$cmd" | grep -Eq 'aws[[:space:]]+secretsmanager[[:space:]]+(put-secret-value|create-secret|update-secret|delete-secret|restore-secret)'; then
   deny "Blocked: writing secrets via CLI. Secrets are provisioned by the pipeline, not by the agent."
@@ -150,8 +267,55 @@ fi
 #     a deny on `gh secret set` does not see `gh -R <repo> secret set`, and `-R` is
 #     exactly what the multi-repo convention prescribes. Matched semantically so the
 #     allowlist can open `gh -R` without opening secret writes with it.
-if printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R|--repo)[[:space:]]+[^[:space:]]+)?[[:space:]]+secret[[:space:]]+(set|delete|remove)'; then
+#
+#     TWO CORRECTIONS, 2026-08-04, both measured rather than reasoned:
+#       · IT KEPT ITS OWN SPACE-ONLY COPY of the `-R` pattern, so `gh --repo=o/r secret set X` and
+#         `gh -Ro/r secret set X` came out ALLOW while the spaced form was denied. It now uses the
+#         shared `gh_repo_flag`. A rule whose comment says "in any spelling" and means "in two of the
+#         four" is worse than one that claims nothing.
+#       · IT MATCHED `$cmd`, NOT `$bare`, because it was written above where `$bare` used to be
+#         computed. So `git commit -m "gh secret set X"` — a message ABOUT the act — was denied as the
+#         act, the same false positive `$bare` exists to prevent and that 5c/5e/5f each avoid.
+if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+secret[[:space:]]+(set|delete|remove)"; then
   deny "Blocked: writing or deleting a repository secret. Secret values are set by the human, never by the agent."
+fi
+
+# 5g. THE `gh` SUBCOMMANDS THE FLOOR DENIES AND THE HOOK COULD NOT SEE (2026-08-04).
+#
+#     Each of these is in the settings `deny` list, and for each one the `-R` spelling was ALLOW —
+#     `gh -R owner/repo repo delete --yes` returned no decision from any layer. `repo delete`,
+#     `release delete` and `workflow run` had no hook rule at all, so the floor's prefix entry was the
+#     only thing between the agent and the act, and `Bash(gh -R:*)` walked around it.
+#
+#     WHY A HOOK RULE RATHER THAN NARROWING THE ALLOW: removing `Bash(gh -R:*)` would break the
+#     workspace's own prescribed multi-repo convention and push every legitimate cross-repo read to a
+#     human prompt. The floor cannot express "the -R form of this subcommand" — that is the same
+#     argument that moved `gh api` (5f) and the `bash -c` payload (the unwrap at the top).
+#
+#     GROUPED BY WHAT THEY DO, because the deny messages differ:
+#       repo delete/archive/rename — destroys or renames the repository itself. A rename also breaks
+#         every OIDC trust pinned to the immutable subject, which is a documented outage in this
+#         workspace, not a hypothetical.
+#       release create/delete — publishes or unpublishes a public artifact. The `deploy` workflow's
+#         `release` job owns this; a hand-made release desynchronises the tag, the VERSION file and
+#         the published notes.
+#       workflow run — dispatches CI, which is the one thing in this repo that holds AWS credentials.
+#
+#     NOT COVERED HERE, and named rather than omitted silently:
+#       `claude mcp` — denied in the floor, no hook rule, and it needs none: there is no `-R`-style
+#         flag convention between `claude` and `mcp`, and no allow entry shadows it, so the prefix
+#         matcher sees every spelling it can be written in. The hook adds nothing.
+#       `claude --dangerously-skip-permissions` — already rule 1, which matches the flag anywhere in
+#         the string.
+#       `gh pr merge --squash` — belongs with the merge gate, so it is enforced in 7b rather than here.
+if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+repo[[:space:]]+(delete|archive|rename)([[:space:]]|\$)"; then
+  deny "Blocked: 'gh repo delete/archive/rename' changes or destroys the repository itself, and it escapes git entirely. A rename also breaks every AWS OIDC trust pinned to the immutable subject (repo:<org>@<id>/<repo>@<id>:*). This is the human's act, on the GitHub UI, never the agent's."
+fi
+if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+release[[:space:]]+(create|delete)([[:space:]]|\$)"; then
+  deny "Blocked: creating or deleting a Release publishes or unpublishes a public artifact. The deploy workflow's 'release' job owns this — it bumps VERSION, tags and publishes in one pass, and a hand-made release desynchronises the three. Use 'gh release view/list' to inspect."
+fi
+if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+workflow[[:space:]]+run([[:space:]]|\$)"; then
+  deny "Blocked: 'gh workflow run' dispatches CI, which is the only place in this workspace holding AWS credentials — it can reach 'terraform apply' without the merge that is supposed to authorise it. Push the branch and let the PR gates run, or ask the human to dispatch. 'gh workflow list/view' and 'gh run view/list/watch' stay open."
 fi
 
 # 6. Clearly-destructive direct cloud mutations (cloud state escapes git).
@@ -159,30 +323,6 @@ if printf '%s' "$cmd" | grep -Eq 'aws[[:space:]]+[a-z0-9-]+[[:space:]]+(delete|t
   deny "Blocked: destructive direct cloud mutation. Cloud state changes through the running app (staging) or the pipeline, never via direct aws CLI."
 fi
 
-# Quoted spans collapsed, so an operator inside a commit message or a grep
-# pattern is never mistaken for shell composition or a refspec.
-#
-# ESCAPE-AWARE since #66, and the earlier form is worth stating because it looked correct.
-# It was `s/"[^"]*"/""/g` — "run to the next double quote" — so a body containing an ESCAPED
-# quote terminated the span early and exposed the remainder to the composition check:
-#
-#     gh issue create --body "text with \"quotes\" and `backticks`"
-#                            ^-------------------^ collapse stopped here
-#                                                    ^^^^^^^^^^^^ read as substitution → denied
-#
-# `([^"\\]|\\.)*` consumes any escaped character as one unit, so the span ends at the real
-# closing quote. Same for single quotes, kept symmetric even though POSIX shells do not honour
-# escapes inside them — the input here is a command STRING, not a parsed shell word, and a
-# rule that treats the two quote styles differently is one nobody will remember correctly.
-#
-# The issue's stated fear was that fixing a false positive here would buy a false NEGATIVE in
-# the rule protecting the matcher. Three cases pin that it does not, and all three are asserted
-# in the test suite rather than argued here:
-#   · an operator OUTSIDE quotes still survives the collapse and is still caught;
-#   · an UNBALANCED quote matches nothing, so the operator stays exposed — it fails CLOSED,
-#     which is the only safe direction for a deny-only rule;
-#   · an escaped quote INSIDE a span no longer truncates it.
-bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g')"
 
 # 5f. `gh api` THAT WRITES (owner, 2026-08-04). The back door that rules 5c and 7b each booked as a
 #     permanently accepted gap, closed here — in the layer that can tell a read from a write.
@@ -239,13 +379,18 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 #     Matched on `$bare`, so `git commit -m "gh api -f title=x"` — a message ABOUT the act — is not the
 #     act. That trap has now caught a version of THREE different rules in this file (5c's, 5e's, and it
 #     would have caught this one), which is why it is convention rather than case-by-case care.
-#     `gh_repo_flag` is DEFINED HERE, above its first use, and shared with 5e. It was 5e's local until
-#     5f was placed in front of it, at which point 5e's definition sat below this line and `set -u`
-#     would have expanded an unset variable into the pattern — a matcher that silently matches less,
-#     which is the worst failure a deny rule has. Shared constants belong above the first rule that
-#     reads them, not beside whichever rule happened to be written first.
-gh_repo_flag='([[:space:]]+(-R[[:space:]]*|--repo[[:space:]=]*)[^[:space:]]+)?'
-gh_api_write='(--method|-X)[[:space:]=]*(POST|PUT|PATCH|DELETE)|(-f|-F|--field|--raw-field|--input)([[:space:]=]|$)'
+#     `gh_repo_flag` and `$bare` are both defined at the top of the file now — see the normalisation
+#     block beside `cmd`. They were local to whichever rule first needed them, which is how the file
+#     ended up with THREE spellings of "an optional -R before the subcommand", two of them space-only.
+#
+#     `gh_api_write` — THE ATTACHED VALUE, fixed 2026-08-04 after `security` measured `-ftitle=x` as
+#     ALLOW. The alternation required space/`=`/EOL after `-f`, and pflag also accepts the value
+#     ATTACHED, so `-ftitle=x`, `-Ftitle=x` and `-fmerge_method=merge` all walked past — **the audit
+#     route respelled**, at a moment when this rule was the only layer left holding it. The short forms
+#     now carry NO trailing anchor: inside a `gh api` command every token beginning `-f`/`-F` is a field
+#     flag (pflag has no other `-f*` short flag there), so the anchor bought nothing and cost the fix.
+#     The long forms keep `([[:space:]=]|$)`, which is what stops `--fieldwork` matching `--field`.
+gh_api_write='(--method|-X)[[:space:]=]*(POST|PUT|PATCH|DELETE)|(-f|-F)|(--field|--raw-field|--input)([[:space:]=]|$)'
 if printf '%s' "$bare" | grep -Eqi "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+api([[:space:]]+[^[:space:]]+)*[[:space:]]+(${gh_api_write})"; then
   deny "Blocked: this \`gh api\` call WRITES (it carries --method POST/PUT/PATCH/DELETE, -X, -f/-F/--field/--raw-field, or --input; note that -f and -F make the request a POST on their own). The raw API is the back door around the rules that own these acts — opening an issue (5c/5d) and merging a PR (7b) — so a write here is the one spelling those gates cannot see. Use the gh subcommand for the act instead, so the rule that owns it applies: \`gh issue create\`, \`gh pr merge\`, \`gh pr comment\`. READING through \`gh api\` is untouched — drop the field flags and pass query parameters in the endpoint (\`gh api 'repos/o/r/issues?state=open'\`)."
 fi
@@ -560,6 +705,14 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   if printf '%s' "$bare" | grep -Eq '[[:space:]](--all|--mirror)([[:space:]]|$)'; then
     deny "Blocked: 'git push --all/--mirror' pushes every ref, the trunk included. Push one named branch instead."
   fi
+  # --tags / --follow-tags PUBLISH. Both are in the floor's `deny` and neither was matched here, so
+  # `git -C <path> push --tags` — with `Bash(git -C:*)` in `allow` — ran with no decision from any
+  # layer, the same bypass shape as the `gh -R` finding. A tag in this workspace is not a label: the
+  # deploy's `release` job creates it, and pushing one by hand publishes a Release and desynchronises
+  # it from VERSION.
+  if printf '%s' "$bare" | grep -Eq '[[:space:]](--tags|--follow-tags)([[:space:]]|$)'; then
+    deny "Blocked: pushing tags publishes a Release. The deploy workflow's 'release' job owns tagging — it bumps VERSION, tags and publishes in one pass, and a hand-pushed tag desynchronises the three. Push the branch alone."
+  fi
   # A bare `git push` inherits HEAD — resolve it instead of guessing from the string.
   dir="$(printf '%s' "$bare" | sed -nE 's/.*[[:space:]]-C[[:space:]]+([^[:space:]]+).*/\1/p')"
   [ -z "$dir" ] && dir="."
@@ -581,7 +734,14 @@ fi
 #     reviewer; the main agent and every other subagent are denied. It turns "did the
 #     reviewer run?" into a precondition the model cannot satisfy by recall — only by
 #     actually routing the merge through the reviewer, which is the design. Matches
-#     `gh pr merge` with an optional -R/--repo before `pr` (the rule-5b convention).
+#     `gh pr merge` with an optional -R/--repo before `pr` — the SHARED `gh_repo_flag`
+#     since 2026-08-04. It carried its own space-only copy until then, so
+#     `gh -Ro/r pr merge 1` and `gh --repo=o/r pr merge 1` came out ALLOW from ANY caller
+#     while the spaced form was denied. **The merge gate depended on punctuation**, which
+#     also falsified the claim — added in the same diff — that this rule makes "only the
+#     reviewer merges" mechanically true. It does now; it did not then. The comment above
+#     citing "the rule-5b convention" as a precedent for closing spelling gaps was itself
+#     false at the time: 5b had the same defect, in the same shape, and was fixed with it.
 #     ~~Recorded residual (ADR-0004): a raw `gh api ... PUT .../merges` is NOT matched —
 #     the natural command is gated; the API back door is an accepted, named gap~~ —
 #     **closed 2026-08-04 by RULE 5f, in this file.** THIS matcher is unchanged and still
@@ -589,7 +749,15 @@ fi
 #     (`--method PUT`, `-X`, `-f`/`-F`, `--input`) rather than by parsing the endpoint.
 #     The suite covers the merge spelling specifically. It briefly lived in the floor's
 #     `deny` instead — see rule 5c's comment for why that was too broad and moved here.
-if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R|--repo)[[:space:]]+[^[:space:]]+)*[[:space:]]+pr[[:space:]]+merge([[:space:]]|$)'; then
+if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+pr[[:space:]]+merge([[:space:]]|\$)"; then
+  # SQUASH IS DENIED TO EVERYONE, THE REVIEWER INCLUDED, and it is checked BEFORE the persona case so
+  # the exemption cannot carry it. The floor denies `gh pr merge --squash`; `Bash(gh -R:*)` walked
+  # around that entry like every other, and the reviewer — the one caller 7b lets through — is exactly
+  # who would run it. The standing rule is a real merge commit, never a squash: per-commit history is
+  # the record of how a change was reached, and squashing discards it irreversibly on the trunk.
+  if printf '%s' "$bare" | grep -Eq '[[:space:]](--squash|-s[[:space:]=]*squash)([[:space:]]|$)'; then
+    deny "Blocked: never squash-merge. Use a real merge commit ('gh pr merge --merge') — per-commit history is the record of how the change was reached, and a squash discards it irreversibly once it is on the trunk."
+  fi
   case "$agent_type" in
     *:quality-assurance) : ;;  # the reviewer IS the merge gate — allow it through
     *) deny "Blocked: merging a PR is the deploy and the quality-assurance's act, not the main agent's (ADR-0004). Route it through the quality-assurance subagent — invoke it with the human's go, and it performs the merge (approve-and-merge the safe class, or after your ratification for the boundary class). agent_type='${agent_type:-<main agent>}'." ;;

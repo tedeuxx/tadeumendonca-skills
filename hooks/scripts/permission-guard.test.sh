@@ -323,6 +323,17 @@ check DENY  "--field= attached"          "gh api repos/o/r/issues --field=title=
 check DENY  "--input reads a body file"  "gh api repos/o/r/issues --input /tmp/body.json"
 check DENY  "the merge back door (7b)"   "gh api --method PUT repos/o/r/pulls/149/merge"
 check DENY  "gh api behind -R"           "gh -R owner/repo api repos/o/r/issues -f title=x"
+# THE ATTACHED FIELD VALUE, measured ALLOW on 2026-08-04 — the audit route respelled, at a moment when
+# 5f was the ONLY layer holding it (the floor's blanket `Bash(gh api:*)` had just been removed in the
+# same diff). pflag takes the value attached, and the alternation required space/=/EOL after `-f`.
+check DENY  "-f value attached"          "gh api repos/o/r/issues -ftitle=x"
+check DENY  "-F value attached"          "gh api repos/o/r/issues -Ftitle=x"
+check DENY  "attached, merge back door"  "gh api repos/o/r/pulls/1/merge -fmerge_method=merge"
+check DENY  "-X= attached value"         "gh api -X=POST repos/o/r/issues"
+check DENY  "--input= attached"          "gh api repos/o/r/issues --input=/tmp/b.json"
+check DENY  "graphql mutation via -f"    "gh api graphql -f query=mutation"
+# The long forms keep their trailing anchor, which is what stops a longer flag name matching.
+check ALLOW "--fieldwork is not --field" "gh api repos/o/r/issues --fieldwork x"
 
 echo "--- rule 5f: READING through gh api must survive, or the rule has broken the loop ---"
 # This is the half the blanket floor deny got wrong. Each of these is a real call this repo makes.
@@ -401,7 +412,12 @@ echo "--- rule 5e: allowing must remain FALLING THROUGH, not exiting ---"
 # unreach rules 7 (trunk push), 7b (merge) and 8 (composition) — the composed command would come out
 # with NO decision at all, where it is currently denied. All three rules below run strictly AFTER 5e,
 # so each verdict genuinely witnesses the fall-through rather than an earlier rule.
-# Verified by mutation: `*) exit 0 ;;` added to 5e's case reddened exactly these five.
+# Verified by mutation: `*) exit 0 ;;` added to 5e's case reddened **20 cases** — these five plus the
+# whole 5c/5d block and rule 8's `gh pr comment … && npx tsc`, because 5e runs before them and the exit
+# swallowed those too. The first edition of this line said "exactly these five", which was the number
+# the author expected rather than the number the mutation produced; re-running it is what corrected it.
+# The point survives and is stronger: the blast radius of an early return here is four times what the
+# rule itself covers.
 check_agent DENY "" "allow does not unreach rule 7 (trunk push)"  "gh pr comment 1 --body b && git push origin main"
 check_agent DENY "" "allow does not unreach rule 7b (merge)"      "gh pr comment 1 --body b && gh pr merge 1 --merge"
 check_agent DENY "" "allow does not unreach rule 8 (composition)" "gh pr comment 1 --body b ; echo done"
@@ -452,6 +468,126 @@ check DENY  "secret set behind -R"          "gh -R owner/repo secret set MY_TOKE
 check DENY  "secret set behind --repo"      "gh --repo owner/repo secret set MY_TOKEN"
 check DENY  "secret delete behind -R"       "gh -R owner/repo secret delete MY_TOKEN"
 check ALLOW "listing secrets is read-only"  "gh -R owner/repo secret list"
+# THE ATTACHED SPELLINGS, measured ALLOW before 2026-08-04. 5b kept its own space-only copy of the -R
+# pattern while `Bash(gh -R:*)` sat in the allowlist, so these three were a silent secret write.
+check DENY  "secret set, -R attached"       "gh -Rowner/repo secret set MY_TOKEN"
+check DENY  "secret set, --repo= attached"  "gh --repo=owner/repo secret set MY_TOKEN"
+check DENY  "secret delete, -R= attached"   "gh -R=owner/repo secret delete MY_TOKEN"
+# 5b matched $cmd until the normalisation block moved above it, so a message ABOUT the act was denied
+# as the act. This is the case that was red before that move.
+check ALLOW "a message about the act"       "git commit -m 'gh secret set MY_TOKEN'"
+
+echo "--- rule 5g: the gh subcommands the floor denies and the hook could not see ---"
+# `Bash(gh -R:*)` in `allow` moved the -R spelling of EVERY gh deny entry from "prompts the human" to
+# "runs silently". `gh -R owner/repo repo delete --yes` returned no decision from any layer at all.
+check DENY  "repo delete"                   "gh repo delete owner/repo --yes"
+check DENY  "repo delete behind -R"         "gh -R owner/repo repo delete --yes"
+check DENY  "repo delete, -R attached"      "gh -Rowner/repo repo delete --yes"
+check DENY  "repo delete, --repo= attached" "gh --repo=owner/repo repo delete --yes"
+check DENY  "repo archive"                  "gh repo archive owner/repo"
+check DENY  "repo rename breaks OIDC trust" "gh repo rename newname"
+check DENY  "release create publishes"      "gh release create v1.2.3"
+check DENY  "release delete behind -R"      "gh -R owner/repo release delete v1.2.3"
+check DENY  "workflow run dispatches CI"    "gh workflow run deploy.yml"
+check DENY  "workflow run behind -R"        "gh -R owner/repo workflow run deploy.yml"
+check DENY  "workflow run, --repo="         "gh --repo=owner/repo workflow run deploy.yml"
+
+echo "--- rule 5g: must not over-block — the read half of each pair ---"
+# Without these, "DENY repo delete" would pass for a rule that blocked `gh repo` entirely. Each of
+# these is in the allowlist and is a call the loop actually makes.
+check ALLOW "repo view"                     "gh repo view owner/repo"
+check ALLOW "release view"                  "gh release view v1.2.3"
+check ALLOW "release list"                  "gh release list"
+check ALLOW "workflow list"                 "gh workflow list"
+check ALLOW "workflow view"                 "gh workflow view deploy.yml"
+check ALLOW "run list"                      "gh run list --limit 5"
+check ALLOW "a message about the act"       "git commit -m 'gh repo delete notes'"
+
+echo "--- rule 4b: git clean -f deletes what git cannot give back ---"
+# Same bypass shape as the gh finding, in the other half of the allowlist: `Bash(git -C:*)` is allowed,
+# and the floor's `git clean -f` deny is a prefix, so `git -C /path clean -fd` had no decision at all.
+check DENY  "clean -f"                      "git clean -f"
+check DENY  "clean -fd"                     "git clean -fd"
+check DENY  "clean behind -C"               "git -C /some/repo clean -fd"
+check DENY  "clean, flags split"            "git clean -d -f"
+check DENY  "clean, fused -xdf"             "git clean -xdf"
+check DENY  "clean --force long form"       "git clean --force -d"
+check ALLOW "dry run is the safe form"      "git clean -n"
+check ALLOW "--dry-run long form"           "git clean --dry-run"
+check ALLOW "a message about the act"       "git commit -m 'git clean -fd notes'"
+
+echo "--- rule 7: pushing tags publishes a Release ---"
+# Both --tags and --follow-tags are in the floor's deny and neither was matched here.
+check DENY  "push --tags"                   "git push --tags"
+check DENY  "push --tags behind -C"         "git -C /some/repo push --tags origin"
+check DENY  "push --follow-tags"            "git push --follow-tags origin feat/x"
+check ALLOW "a plain feature push"          "git push origin feat/x"
+
+echo "--- rule 7b: squash is denied to EVERYONE, the reviewer included ---"
+# The floor denies `gh pr merge --squash`; `Bash(gh -R:*)` walked around that entry, and the reviewer is
+# the one caller 7b lets through — so the check sits BEFORE the persona case, or the exemption carries
+# it. The standing rule is a real merge commit, never a squash.
+check_agent DENY "tadeumendonca-skills:quality-assurance" "the reviewer cannot squash"        "gh pr merge 1 --squash"
+check_agent DENY "tadeumendonca-skills:quality-assurance" "the reviewer cannot squash via -R" "gh -Ro/r pr merge 1 --squash"
+check_agent DENY "tadeumendonca-skills:quality-assurance" "the -s squash spelling too"        "gh pr merge 1 -s squash"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "a real merge commit is the way"   "gh pr merge 1 --merge"
+
+echo "--- rule 7b: the merge gate no longer depends on punctuation ---"
+# Measured ALLOW before 2026-08-04, from ANY caller: 7b kept its own space-only -R copy. This is the
+# gate the whole loop's authority rests on, and it was open to a caller who omitted a space.
+check_agent DENY "" "main agent, -R attached"      "gh -Ro/r pr merge 1 --merge"
+check_agent DENY "" "main agent, --repo= attached" "gh --repo=o/r pr merge 1 --merge"
+check_agent DENY "" "main agent, -R= attached"     "gh -R=o/r pr merge 1 --merge"
+check_agent DENY "tadeumendonca-skills:developer" "the author, -R attached"      "gh -Ro/r pr merge 1 --merge"
+check_agent DENY "tadeumendonca-skills:developer" "the author, --repo= attached" "gh --repo=o/r pr merge 1 --merge"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "reviewer, -R attached"      "gh -Ro/r pr merge 1 --merge"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "reviewer, --repo= attached" "gh --repo=o/r pr merge 1 --merge"
+
+echo "--- the -c payload unwrap: a wrapper is not a bypass ---"
+# EVERY $bare rule was blind to `bash -c '<payload>'`, because $bare collapses quoted spans and the
+# payload of -c is a COMMAND that happens to be quoted. Rule 4 (rm) matches $cmd and was the only rule
+# that caught it — which is why an empirical check that sampled `rm` reported the whole class covered.
+# All five of these were measured ALLOW, with no decision from the hook OR the settings deny.
+check       DENY "wrapped trunk push (rule 7)"   "bash -c 'git push origin main'"
+check       DENY "wrapped merge (rule 7b)"       "bash -c 'gh pr merge 145'"
+check_agent DENY "tadeumendonca-skills:security" "wrapped issue create (5c)" "bash -c 'gh issue create --title x'"
+check_agent DENY "tadeumendonca-skills:product-lead" "wrapped pr comment (5e)" "bash -c 'gh pr comment 1 --body b'"
+check       DENY "wrapped gh api write (5f)"     "bash -c 'gh api repos/o/r/issues -f title=x'"
+# The rest of the floor through the same wrapper.
+check DENY "wrapped terraform apply"        "bash -c 'terraform apply -auto-approve'"
+check DENY "wrapped rm -rf"                 "bash -c 'rm -rf /some/path'"
+check DENY "wrapped secret set"             "bash -c 'gh secret set MY_TOKEN'"
+check DENY "wrapped repo delete"            "bash -c 'gh repo delete owner/repo --yes'"
+# Spellings: double quotes, other shells, an absolute path, a combined flag cluster, and nesting.
+check DENY "double-quoted payload"          'bash -c "git push origin main"'
+check DENY "sh instead of bash"             "sh -c 'git push origin main'"
+check DENY "an absolute interpreter path"   "/bin/bash -c 'git push origin main'"
+check DENY "zsh"                            "zsh -c 'git push origin main'"
+check DENY "-lc flag cluster"               "bash -lc 'git push origin main'"
+check DENY "nested wrappers"                'bash -c "bash -c '"'"'git push origin main'"'"'"'
+
+echo "--- the unwrap must not become collateral: running a FILE is not a wrapper ---"
+# `bash script.sh` has no -c and must be untouched — this suite is itself run that way.
+check ALLOW "running a script file"         "bash hooks/scripts/permission-guard.test.sh"
+check ALLOW "an absolute script path"       "bash /some/path/script.sh"
+check ALLOW "bash --version"                "bash --version"
+check ALLOW "node running a file"           "node scripts/build.mjs"
+# THE WORD BOUNDARY: without `(^|[[:space:]]|/)` before the shell name, `.*sh[[:space:]]+-c` matches the
+# `sh` inside `finish` and appends whatever follows as though it were a payload. The failure is a false
+# POSITIVE — an ordinary command denied for a fragment it never ran.
+#
+# THE FIRST TWO CASES DO NOT WITNESS THAT, and saying so is the point: the fragment they append (`x`,
+# nothing) is harmless, so they pass with or without the boundary. Mutation caught them claiming a
+# coverage they did not have.
+#
+# THE THIRD IS THE WITNESS, AND CONSTRUCTING IT TOOK TWO TRIES — the first attempt passed the payload
+# UNQUOTED, which rule 7 denies straight from the raw string whether or not anything unwrapped. The
+# assertion has to isolate the unwrap: the payload is QUOTED, so `$bare` collapses it and no rule sees
+# it — unless the unwrap wrongly strips those quotes and appends the contents bare. That is precisely
+# the false positive the boundary prevents, and it reddens when the boundary is removed.
+check ALLOW "a word merely ENDING in sh"     "npm run finish -c x"
+check ALLOW "another -c that is not a shell" "docker run -c 512 img"
+check ALLOW "boundary: quoted arg stays inert" "npm run finish -c 'git push origin main'"
 
 echo "--- the pre-existing floor still holds ---"
 check DENY  "terraform apply"               "terraform apply -auto-approve"
