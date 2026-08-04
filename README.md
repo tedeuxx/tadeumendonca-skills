@@ -147,10 +147,23 @@ instant cannot see time. Every cost of that model is per story, so the count is 
   is loud.** It matches patterns rather than intent, so it will sometimes deny something legitimate —
   that you find out immediately, and the fix is arguing with a regex. It also **fails open**: on a
   parse error, a missing `gh`, or no network, it allows rather than blocks, and there are deliberate
-  uncovered paths (a raw `gh api` call reaching the same endpoint as a gated command is an accepted,
-  named gap, not an oversight). Those you do not find out about at all. They are booked in the hook
+  uncovered paths — the hook matches `gh issue create` and `gh pr merge`, not the raw `gh api` call
+  reaching the same endpoint. Those you do not find out about at all. They are booked in the hook
   sources with their reasons, which is the honest form: a guardrail that tells you what it does not
   catch is worth more than one asserting it catches everything.
+
+  **On that example specifically, because it is the one that moved — twice, in one day.** `gh api` was
+  booked as an accepted, permanent gap until 2026-08-04. A permission audit found the route was never
+  denied at all, merely unlisted, with one `Bash(gh *)` wildcard erasing even that, and added a blanket
+  `Bash(gh api:*)` to the floor for an unrelated reason — discharging a residual booked as permanent, as
+  a side effect. That deny was then found **too broad**: it removed the READ path, which this repo's own
+  loop uses. So it was re-expressed in the hook, which can tell the two apart — **`gh api` that writes is
+  denied; `gh api` that reads is not** — and removed from the floor. The settings layer provably cannot
+  make that call: `-f`/`-F` turn the request into a POST with no `--method` flag to match on.
+
+  Two things worth keeping from that. **Say which layer closes a route whenever you say it is closed** —
+  "closed" on its own is how a reader concludes the matcher covers something it does not. And **a
+  residual booked "permanent" is a statement about the layer that booked it, not about the system.**
 
 **Skills carry the conventions so the model does not re-invent them.** 74 markdown skills, generic by
 construction (`<project>` / `<apex-domain>` placeholders), covering the AWS services, the frontend

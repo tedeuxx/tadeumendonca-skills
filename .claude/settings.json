@@ -1,20 +1,9 @@
 {
-  "extraKnownMarketplaces": {
-    "tadeumendonca": {
-      "source": { "source": "github", "repo": "tedeuxx/tadeumendonca-skills" }
-    }
-  },
-  "enabledPlugins": {
-    "tadeumendonca-skills@tadeumendonca": true
-  },
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
-    "additionalDirectories": [
-      "/Users/tadeumen/git-reps/tadeumendonca-io"
-    ],
     "allow": [
       "Edit",
       "Write",
-
       "Bash(git status:*)",
       "Bash(git log:*)",
       "Bash(git diff:*)",
@@ -45,8 +34,8 @@
       "Bash(git blame:*)",
       "Bash(git describe:*)",
       "Bash(git cherry-pick:*)",
+      "Bash(git worktree:*)",
       "Bash(git -C:*)",
-
       "Bash(gh pr create:*)",
       "Bash(gh pr view:*)",
       "Bash(gh pr diff:*)",
@@ -66,21 +55,28 @@
       "Bash(gh run view:*)",
       "Bash(gh run list:*)",
       "Bash(gh run watch:*)",
+      "Bash(gh workflow list:*)",
+      "Bash(gh workflow view:*)",
       "Bash(gh release view:*)",
       "Bash(gh release list:*)",
       "Bash(gh secret list:*)",
       "Bash(gh repo view:*)",
       "Bash(gh browse:*)",
       "Bash(gh auth status:*)",
-
+      "Bash(gh -R:*)",
+      "Bash(gh --repo:*)",
+      "Bash(bash:*)",
+      "Bash(sh:*)",
+      "Bash(shellcheck:*)",
+      "Bash(actionlint:*)",
       "Bash(npm:*)",
       "Bash(npx:*)",
       "Bash(node:*)",
       "Bash(python3:*)",
-      "Bash(actionlint:*)",
+      "Bash(perl:*)",
+      "Bash(ruby:*)",
       "Bash(jq:*)",
       "Bash(bump-my-version:*)",
-
       "Bash(cat:*)",
       "Bash(ls:*)",
       "Bash(grep:*)",
@@ -91,13 +87,16 @@
       "Bash(wc:*)",
       "Bash(sort:*)",
       "Bash(uniq:*)",
+      "Bash(xargs:*)",
       "Bash(tr:*)",
       "Bash(cut:*)",
       "Bash(sed:*)",
       "Bash(awk:*)",
       "Bash(echo:*)",
       "Bash(printf:*)",
+      "Bash(tee:*)",
       "Bash(diff:*)",
+      "Bash(date:*)",
       "Bash(command:*)",
       "Bash(which:*)",
       "Bash(basename:*)",
@@ -107,9 +106,22 @@
       "Bash(mkdir:*)",
       "Bash(touch:*)",
       "Bash(cp:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(rsync:*)",
+      "Bash(tar:*)",
+      "Bash(chmod:*)",
+      "Bash(lsof:*)",
+      "Bash(ps:*)",
+      "Bash(kill:*)",
+      "Bash(pkill:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.githubstatus.com)",
+      "WebFetch(domain:docs.claude.com)"
     ],
     "deny": [
+      "Edit(.claude/**)",
+      "Write(.claude/**)",
       "Bash(git push origin main)",
       "Bash(git push origin main:*)",
       "Bash(git push origin HEAD:main:*)",
@@ -122,17 +134,38 @@
       "Bash(git reset --hard:*)",
       "Bash(git clean -f:*)",
       "Bash(git clean -fd:*)",
-
+      "Bash(gh workflow run:*)",
       "Bash(gh release create:*)",
       "Bash(gh release delete:*)",
-      "Bash(gh workflow run:*)",
+      "Bash(gh repo delete:*)",
+      "Bash(gh repo archive:*)",
+      "Bash(gh repo rename:*)",
+      "Bash(gh pr merge --squash:*)",
+      "Bash(gh pr merge -s squash:*)",
       "Bash(gh secret set:*)",
       "Bash(gh secret delete:*)",
-
+      "Bash(claude mcp:*)",
+      "Bash(claude --dangerously-skip-permissions:*)",
       "Bash(rm -rf:*)",
       "Bash(rm -fr:*)",
-
-      "Bash(claude --dangerously-skip-permissions:*)"
+      "Bash(rm -Rf:*)",
+      "Bash(rm -fR:*)",
+      "Bash(rm -r -f:*)",
+      "Bash(rm -f -r:*)"
+    ],
+    "additionalDirectories": [
+      "/Users/tadeumen/git-reps/tadeumendonca-io"
     ]
+  },
+  "extraKnownMarketplaces": {
+    "tadeumendonca": {
+      "source": {
+        "source": "github",
+        "repo": "tedeuxx/tadeumendonca-skills"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "tadeumendonca-skills@tadeumendonca": true
   }
 }

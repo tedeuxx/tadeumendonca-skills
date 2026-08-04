@@ -47,12 +47,22 @@ command="$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/nu
 # the reviewer) and it is now 5d's too. These rules enforce ROUTING, not capability.
 agent_type="$(printf '%s' "$input" | jq -r '.agent_type // empty' 2>/dev/null || true)"
 
-# NEVER INHERITED FROM THE ENVIRONMENT. `developer_may` is set only by rule 5d below and read as
+# ~~NEVER INHERITED FROM THE ENVIRONMENT. `developer_may` is set only by rule 5d below and read as
 # `${developer_may:-}`, so an exported variable of that name in the hook's environment would skip
 # the owner's ASK — a main-agent `gh issue create` coming out with no decision at all. That is the
 # same shape as the `exit 0` defect this file already memorialises: an outcome depending on state
-# the rule never established. Cheap to close, at the floor, so it is closed rather than reasoned about.
-developer_may=
+# the rule never established. Cheap to close, at the floor, so it is closed rather than reasoned about.~~
+#
+# **THE VARIABLE IS DELETED, 2026-08-03, and the defence with it — because what it defended is gone.**
+# `developer_may` existed to carry ONE bit from rule 5d's `case` down to 5d's `ask`: "this caller is
+# exempt from the prompt". There is no prompt any more (see 5d), so the flag gated nothing and the
+# environment defence guarded nothing. Keeping a hardening line whose subject no longer exists is the
+# same defect as a comment that outlived its code — it reads as protection and protects nothing.
+#
+# What SURVIVES the deletion is the property, and it now rests on `agent_type` alone: that variable is
+# ASSIGNED unconditionally from the payload (`agent_type="$(… jq …)"`, not `${agent_type:-$(…)}`), so
+# ambient state cannot claim a persona either. That is the assertion the suite still carries, in place
+# of the `developer_may` probe — it can still fail, where a probe for a deleted variable could not.
 
 deny() {
   jq -n --arg r "$1" '{
@@ -65,20 +75,18 @@ deny() {
   exit 0
 }
 
-# For the class where the thing that makes an act right or wrong is NOT visible in the command, and
+# ~~For the class where the thing that makes an act right or wrong is NOT visible in the command, and
 # the owner is the only one who can see it. `deny` would be a lie there — it says "never", when the
 # truth is "not unless the owner agrees" — and a denial the owner has to work around by typing the
-# command themselves has moved the work to them rather than protecting them from it.
-ask() {
-  jq -n --arg r "$1" '{
-    hookSpecificOutput: {
-      hookEventName: "PreToolUse",
-      permissionDecision: "ask",
-      permissionDecisionReason: $r
-    }
-  }'
-  exit 0
-}
+# command themselves has moved the work to them rather than protecting them from it.~~
+#
+# **THE `ask()` HELPER IS DELETED, 2026-08-03.** It had exactly one call site — rule 5d's prompt on a
+# main-agent `gh issue create` — and that call is gone (see 5d for the reasoning). The paragraph above
+# is kept struck rather than removed because its ARGUMENT is still correct and is what a future rule
+# would re-derive: there is a real class of act whose rightness the command cannot show. What changed
+# is that `gh issue create` from the MAIN AGENT turned out not to be in it, since the owner is already
+# watching that call happen. A future rule that genuinely is in that class re-adds these ten lines
+# deliberately; leaving a helper nothing calls would be a mechanism the file claims and does not run.
 
 # Single-line, collapsed whitespace for matching.
 cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
@@ -100,8 +108,34 @@ if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*(push([[:space:]].*)?([[:space
 fi
 
 # 4. Recursive force delete (escapes git).
-if printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])rm[[:space:]]+(-[[:alnum:]]*r[[:alnum:]]*f|-[[:alnum:]]*f[[:alnum:]]*r)([[:space:]]|$|/)'; then
-  deny "Blocked: 'rm -rf' is irreversible and escapes git. Remove specific tracked paths instead."
+#
+#    THE FLAGS ARE A SET, NOT A TOKEN, and the earlier pattern got that wrong. It required the
+#    recursive and force letters to be COMBINED in one lowercase cluster
+#    (`-[[:alnum:]]*r[[:alnum:]]*f` or its mirror), so, measured: `rm -rf /x` was denied while
+#    `rm -r -f /x`, `rm -f -r /x` and `rm -fR /x` all came through ALLOW. Three spellings of the
+#    same irreversible act, one of which (`-fR`) is what a shell-completion or a copied macOS
+#    incantation actually produces. A floor that depends on how the caller happened to punctuate is
+#    not a floor.
+#
+#    So the rule is written as what it means: `rm`, followed by a run of flag tokens whose UNION
+#    contains a recursive flag and a force flag — split across tokens or fused into one, upper or
+#    lower case, short or long. Three branches, because "both letters in one cluster" cannot be
+#    expressed by the two-distinct-tokens form and vice versa.
+#
+#    Each token alternative is anchored on the whitespace before its leading dash, deliberately.
+#    Without that anchor `--force` matches the recursive pattern from its SECOND dash (`-force`
+#    contains an `r`), and `rm --force x` would deny as though it were recursive — a false positive
+#    inside the fix for a false negative.
+#
+#    Defence in depth, not the only control: the static `deny` lists in all three settings layers
+#    now spell these four forms out. The hook and the floor should agree, and this is the half that
+#    reads the command semantically rather than by prefix.
+rm_flag='([[:space:]]+(--[[:alpha:]][[:alpha:]-]*|-[[:alnum:]]+))*'
+rm_rec='[[:space:]]+(--recursive|-[[:alnum:]]*[rR][[:alnum:]]*)'
+rm_force='[[:space:]]+(--force|-[[:alnum:]]*[fF][[:alnum:]]*)'
+rm_both='[[:space:]]+-[[:alnum:]]*([rR][[:alnum:]]*[fF]|[fF][[:alnum:]]*[rR])[[:alnum:]]*'
+if printf '%s' "$cmd" | grep -Eq "(^|[^[:alnum:]_])rm${rm_flag}(${rm_both}|${rm_rec}${rm_flag}${rm_force}|${rm_force}${rm_flag}${rm_rec})([[:space:]]|\$|/)"; then
+  deny "Blocked: recursive force delete ('rm -rf', in any spelling) is irreversible and escapes git. Remove specific tracked paths instead."
 fi
 
 # 5. Secret writes (sensitive, escape git).
@@ -150,6 +184,151 @@ fi
 #   · an escaped quote INSIDE a span no longer truncates it.
 bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g')"
 
+# 5f. `gh api` THAT WRITES (owner, 2026-08-04). The back door that rules 5c and 7b each booked as a
+#     permanently accepted gap, closed here — in the layer that can tell a read from a write.
+#
+#     NUMBERED 5f, PLACED FIRST AMONG THE `gh` RULES, same convention as 5e below: the NUMBER is
+#     lineage, the POSITION is deliberate. It runs before 5c and 7b because it is the route BOTH of
+#     them book as their residual, so a reader arriving at either residual paragraph has already passed
+#     the rule that closes it. Nothing here depends on the order — 5f matches `gh api`, which no other
+#     rule matches at all — but a reader's understanding does.
+#
+#     WHY IT IS HERE AND NOT IN THE FLOOR'S `deny`, WHICH IS WHERE IT LIVED FOR AN HOUR. The permission
+#     audit added a blanket `Bash(gh api:*)` deny after finding the route was never denied at all,
+#     merely unlisted, with one `Bash(gh *)` wildcard erasing even that. That deny was too broad: it
+#     removed READ access to everything the `gh` subcommands do not expose, and this repo's own loop
+#     uses that (`session-plugin-version.sh` reads the latest release through it; a reviewer verifying
+#     a ratification reads comment metadata). The first symptom was already in the batch — a falsifier
+#     example in `quality-assurance.md` had to be rewritten because it "named a command the loop cannot
+#     execute". That was treated as a citation fix; it was the deny being too wide.
+#
+#     THE NARROWING THAT DOES NOT WORK, recorded so nobody proposes it again: denying only
+#     `--method POST|PUT|PATCH|DELETE`. **`-f`/`-F` implicitly switch the request to POST**, so
+#     `gh api repos/:owner/:repo/issues -f title=x` is a write with no `--method` anywhere — and that
+#     is EXACTLY the command the audit found, creating an issue around the owner-opens-work rule. A
+#     prefix matcher in settings.json cannot separate read from write here, which is the same reason
+#     rules 7 and 8 exist at all. So the rule goes where the distinction is expressible.
+#
+#     `-X` IS MATCHED THOUGH THE BRIEF LISTED ONLY `--method`. It is `--method`'s real short form
+#     (`gh api -X PATCH …`), and a rule that closes the long spelling while leaving the short one open
+#     is the "which spelling did you happen to use" floor this file has already rejected twice (rule 4's
+#     flag set, 5b's `-R`). Attached forms too: `--method=POST`, `-XPOST`.
+#
+#     THE COST THE OWNER ACCEPTED, AND IT IS THE WHOLE TRADE — stated here because it is the kind of
+#     thing that becomes invisible the moment it works: this moves the control from the layer that
+#     CANNOT fail open to the layer that CAN. This hook fails open by design — a parse error, a missing
+#     `jq`, a malformed payload and it allows — and its own header says the static `deny` list is the
+#     authoritative backstop. **For `gh api` that sentence is now false**: there is no static backstop
+#     behind this rule, so a hook failure is an open door, not a degraded one.
+#
+#     SECOND INSTANCE OF THE SAME INVERSION, WHICH MAKES IT A PATTERN RATHER THAN AN EXCEPTION.
+#     `tech-lead` recorded the same shape for `bash -c`. Both moved from a matcher that could not
+#     express the rule to a hook that can, and both paid the same price. Two is enough to say what the
+#     pattern costs: every rule that migrates here for expressiveness removes one more thing the
+#     fail-open header's promise still covers. The header should eventually stop claiming it in
+#     general, and that is a record change, not a hook change.
+#
+#     Case-insensitive (`-i`) so `--method post` and `-X Post` are caught. The only side effect is that
+#     `GH API` would match, which is not a real command and is harmless to deny.
+#
+#     KNOWN, ACCEPTED OVER-BLOCK: `gh api -X GET -F per_page=100` is a read carrying a field flag, and
+#     it is denied. It is denied in the safe direction, the query-string form (`?per_page=100`) is right
+#     there, and the deny message names it — a rule that tried to model gh's own read/write inference
+#     would be back to guessing intent from a string.
+#
+#     Matched on `$bare`, so `git commit -m "gh api -f title=x"` — a message ABOUT the act — is not the
+#     act. That trap has now caught a version of THREE different rules in this file (5c's, 5e's, and it
+#     would have caught this one), which is why it is convention rather than case-by-case care.
+#     `gh_repo_flag` is DEFINED HERE, above its first use, and shared with 5e. It was 5e's local until
+#     5f was placed in front of it, at which point 5e's definition sat below this line and `set -u`
+#     would have expanded an unset variable into the pattern — a matcher that silently matches less,
+#     which is the worst failure a deny rule has. Shared constants belong above the first rule that
+#     reads them, not beside whichever rule happened to be written first.
+gh_repo_flag='([[:space:]]+(-R[[:space:]]*|--repo[[:space:]=]*)[^[:space:]]+)?'
+gh_api_write='(--method|-X)[[:space:]=]*(POST|PUT|PATCH|DELETE)|(-f|-F|--field|--raw-field|--input)([[:space:]=]|$)'
+if printf '%s' "$bare" | grep -Eqi "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+api([[:space:]]+[^[:space:]]+)*[[:space:]]+(${gh_api_write})"; then
+  deny "Blocked: this \`gh api\` call WRITES (it carries --method POST/PUT/PATCH/DELETE, -X, -f/-F/--field/--raw-field, or --input; note that -f and -F make the request a POST on their own). The raw API is the back door around the rules that own these acts — opening an issue (5c/5d) and merging a PR (7b) — so a write here is the one spelling those gates cannot see. Use the gh subcommand for the act instead, so the rule that owns it applies: \`gh issue create\`, \`gh pr merge\`, \`gh pr comment\`. READING through \`gh api\` is untouched — drop the field flags and pass query parameters in the endpoint (\`gh api 'repos/o/r/issues?state=open'\`)."
+fi
+
+# 5e. THE COPY LENS DOES NOT WRITE TO A PUBLIC SURFACE (owner, 2026-08-04).
+#
+#     NUMBERED 5e, PLACED BEFORE 5c, and the order is deliberate rather than sloppy. `gh issue create`
+#     is matched by BOTH this rule and 5c/5d; whichever runs first is the one whose reason the caller
+#     reads. 5d would deny `product-lead` already — "a subagent does not open work" — which is true and
+#     is not the reason that matters here. If this rule sat after 5c it would name a subcommand it can
+#     never reach, and a rule that claims a case it does not decide is the "mechanism the file claims
+#     and does not run" defect recorded further down. So it runs first, and all three subcommands it
+#     names are genuinely its own.
+#
+#     WHAT THIS REPLACES, because the remedy it replaces was the one already written down. The roster
+#     merge folded `marketing-lead` into `product-lead`. `marketing-lead` declared `tools: Read, Grep,
+#     Glob` — no `Bash`, deliberately: it was the one persona reading `.brand/` (private, gitignored
+#     positioning material) while its output routinely lands in a comment on a PUBLIC repo, so the
+#     boundary was a CAPABILITY, not a promise. The merged persona inherits `Bash`, so that capability
+#     became an instruction — and an instruction is only as strong as the model's attention.
+#
+#     ADR-0002 names the remedy as "split the tool grant", i.e. un-merge the persona the owner had just
+#     merged, at the cost of the second agent output the merge existed to remove. `security` escalated
+#     that this OVER-PRICES the fix and the owner accepted the cheaper one: this file ALREADY keys two
+#     denials on `agent_type` (5d, 7b) — a harness-stamped signal the model cannot write — so the
+#     boundary can be restored here, at the floor, without touching the roster. It costs the persona
+#     nothing it declares it needs: its own body says it "writes nothing — no issue, no commit, no
+#     comment, no edit to any file", and `gh pr list` / `gh issue list` / `gh pr view` are untouched,
+#     which is what its `Bash` grant is actually for.
+#
+#     PRE-EMPTIVE, NOT POST-LEAK, and that is the whole reason it is mechanical rather than reviewed:
+#     a paraphrase of the positioning layer in a public comment is NOT revertible by deleting the
+#     comment. Deletion removes the artifact, not the disclosure — the same irreversibility class as
+#     an OG card an unfurl has already pinned. `quality-assurance` reviewing the persona's output
+#     afterwards cannot unpublish it.
+#
+#     WHERE THE FINDING GOES: `quality-assurance` quotes the verdict onto the PR, VERBATIM, under its
+#     own marker, and its criterion 10 is not satisfied until that text is there. That is a decided
+#     mechanism (owner, 2026-08-04, ADR-0006), so the message says it plainly — a denial that only
+#     refuses teaches the model to route around it.
+#
+#     THE SEQUENCE IS RECORDED BECAUSE IT IS INSTRUCTIVE, NOT BECAUSE THE FILE NEEDS THE HISTORY. It
+#     ran in three moves inside one day, and the final state alone teaches none of it:
+#
+#       1. THE CITATION WAS FALSE WHEN WRITTEN. This message originally said the finding reaches the PR
+#          "— the mechanism ADR-0006 already names, not one invented here." ADR-0006 named no such
+#          mechanism: it named two gatekeepers posting their OWN verdicts under their OWN markers, one
+#          verifying the other. A gate quoting a THIRD party's verdict is the RELAY shape, which that
+#          record exists to refuse and which its amendment introduced as an explicitly UNDECIDED,
+#          weaker option. So the rule booked an existing guarantee against an open question — and it
+#          landed on the one reader who cannot check it, the persona being denied.
+#       2. `tech-lead` CAUGHT IT AND THE MESSAGE WAS CORRECTED TO CLAIM LESS — that publishing was a
+#          consequence of this deny rather than a guarantee, and that nothing assured it. That was the
+#          right fix for the state of the record at the time, and it was right for about an hour.
+#       3. THE OWNER THEN DECIDED TO MAKE THE ORIGINAL CLAIM TRUE. Forced by two things, both measured:
+#          under 5e the copy lens that found the ADR-0043 falsehood on `-io`#349 would have had no way
+#          to post it; and the alternative — the invoking context remembering to ask the lens to post —
+#          failed five times out of five in a single session, criterion 10 unverified each time.
+#
+#     WHAT THE SEQUENCE TEACHES, and it is why all three moves are kept rather than the last one:
+#     **a record is a source for what was DECIDED, not for what something else DOES — and decisions
+#     move.** Both halves matter. Move 1 is the first error: citing a record for a mechanism it did not
+#     contain. Move 3 is the half a reader would otherwise mislearn — the fix for a false citation is
+#     never "wait for the claim to come true", it is to claim less until someone with the authority
+#     decides. The wording was wrong; the deference was right.
+#
+#     Matched on `$bare`, AFTER quoted spans are collapsed — 5c's suite caught a version denying
+#     `git commit -m 'gh issue create notes'`, a message ABOUT the act rather than the act. And the
+#     optional `-R`/`--repo` (spaced, attached, or `=`) before the subcommand is the rule-5b convention:
+#     a prefix that only knows `gh pr comment` does not see `gh -R owner/repo pr comment`.
+#
+#     FALLS THROUGH FOR EVERYONE ELSE — no `exit 0`, no `return`. The most expensive lesson in this file
+#     is 5d's: an early return from mid-script unreached rules 7 (trunk push), 7b (merge) and 8
+#     (composition), so a composed command came out with NO decision at all. `deny` is terminal by
+#     design and that is correct; an ALLOW here must never be.
+# `gh_repo_flag` is defined above rule 5f, which is the first rule that reads it — see the note there.
+if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+(pr[[:space:]]+comment|issue[[:space:]]+(comment|create))([[:space:]]|\$)"; then
+  case "$agent_type" in
+    *:product-lead)
+      deny "Blocked: \`product-lead\` writes nothing to a public surface. It reads the private positioning layer (\`.brand/\`) and \`gh pr comment\`/\`gh issue comment\`/\`gh issue create\` publish to a public repo — a paraphrase of that material in a comment is not revertible by deleting the comment. This restores the capability boundary the merged-away \`marketing-lead\` had (no Bash at all); reading the queue (\`gh pr list\`, \`gh issue list\`, \`gh pr view\`) is untouched. Return the finding in your verdict — it still reaches the PR: \`quality-assurance\` quotes your verdict there VERBATIM under its own marker, and its criterion 10 is not satisfied until that text is on the PR (owner decision 2026-08-04, recorded in ADR-0006). Say in your return that the finding needs to reach the PR, and write it so it can be quoted as it stands. agent_type='${agent_type}'." ;;
+  esac
+fi
+
 # 5c. OPENING WORK. Only the owner decides that something should exist. What is guarded is UNALIGNED
 #     work entering the queue — NOT the act of recording work the owner already asked for.
 #
@@ -179,14 +358,45 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 #         2026-08-02:** it is not verified here at all any more. The hook cannot decide whether an
 #         issue is a decomposition — four rounds of trying is the evidence — so that rule moved to
 #         `agents/developer.md` and the `quality-assurance` gate. See 5d for what was deleted and why.
-#       - THE MAIN AGENT ASKS. Alignment is a fact about a conversation, and the main loop is the only
+#       - ~~THE MAIN AGENT ASKS. Alignment is a fact about a conversation, and the main loop is the only
 #         place that conversation exists — so it is the only place the question can be put to the one
-#         party who can answer it. One keystroke, on a prompt showing the title.
+#         party who can answer it. One keystroke, on a prompt showing the title.~~ **STRUCK 2026-08-03 —
+#         THE MAIN AGENT NOW FALLS THROUGH, exactly as `developer` does.** The paragraph is right that
+#         the conversation is where alignment lives and wrong about what follows from it: BECAUSE the
+#         conversation is right there, the owner is already watching the call and does not need to be
+#         asked about it. See the asymmetry below, which is the whole reason for the change.
 #
-#     This answers the old comment's own objection — "an exemption the model can invoke is not a
+#     ~~This answers the old comment's own objection — "an exemption the model can invoke is not a
 #     boundary" — rather than ignoring it. It is right about `deny`: a flag meaning "the owner asked for
 #     this" would be the model vouching for itself. It does not reach `ask`, because the model is not
-#     the one deciding. The owner is, per issue, before anything is created.
+#     the one deciding. The owner is, per issue, before anything is created.~~ **Struck with the
+#     paragraph it defends.** Nothing is put to the owner here any more; what remains against a main
+#     agent opening unaligned work is a behavioural rule in its instructions, and that cost is booked
+#     below and in ADR-0004 rather than left to be discovered.
+#
+#     THE ASYMMETRY THAT DECIDES IT (owner, 2026-08-03), and it is a property of the CALLER, not of the
+#     command — which is why no matcher was needed to find it:
+#
+#       A SUBAGENT'S `gh issue create` IS INVISIBLE.  It runs unattended, in a context the owner is not
+#         reading, and reaches them only if the agent chooses to report it. Nothing outside the hook
+#         observes it. That is why the deny below is untouched.
+#       THE MAIN AGENT'S IS VISIBLE BY CONSTRUCTION.  The owner is IN the conversation, watching the
+#         tool call happen, and can interrupt it. The act is already observed before the hook speaks.
+#
+#     So the prompt was charging a click to the one case that was already observable, while the case
+#     that genuinely is not observable — every non-`developer` subagent — was and remains denied
+#     outright. THIS FILE HAS NOW MADE THAT INVERSION TWICE. The 2026-07-31 correction below found a
+#     blanket denial that "taxed ALIGNED work and the owner paid"; this is the same inversion one caller
+#     further out, measured the same way — the owner hit the prompt twice in one evening filing two
+#     issues he had just asked for in that same conversation.
+#
+#     THE COST, BOOKED NOT BURIED: nothing mechanical now stops the MAIN AGENT from opening work nobody
+#     asked for. The measured failure this guarded against was 32 issues created against 13 closed in
+#     one session across both repos, roughly 13 of the 32 generated by REVIEWING something else. What
+#     remains against it is (a) the subagent deny below, which is exactly the review-generated case, and
+#     (b) a behavioural rule in the main agent's instructions. That is the shape ADR-0004's 2026-08-02
+#     amendment already chose for `developer` — *mechanism where the act is irreversible, skills where
+#     the rule is a judgement* — and opening an issue is reversible by closing it.
 #
 #     THE FAILURE THIS COMES FROM, measured rather than imagined: in one session the queue grew by 19
 #     issues net, and roughly 13 of them were born inside a REVIEW of something else. The reviewer's own
@@ -204,12 +414,38 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 #     What the exemption no longer carries is a check that the issue is really a decomposition; that
 #     was attempted for four rounds and is now the persona's rule and the gate's, not the floor's.
 #
-#     THE `gh api` ROUTE IS A NAMED ACCEPTED GAP — `gh api --method POST …/issues` is NOT matched, the
-#     same way rule 7b books `gh api … PUT …/merges` for the higher-stakes act of merging. It was
-#     matched for two rounds and each version was wrong: reading the collapsed command let a quoted URL
-#     through; reading the raw command blocked `git commit -m "gh api …"`, a message ABOUT the act. The
-#     honest statement is the gap, not a matcher that keeps failing to be what the comment claims —
-#     which is precisely the defect this rule exists to remove.
+#     ~~THE `gh api` ROUTE IS A NAMED ACCEPTED GAP~~ — **CLOSED 2026-08-04 BY RULE 5f, IN THIS FILE.**
+#     `gh api` carrying a write indicator is denied; a bare `gh api <endpoint>` read is not. The suite
+#     asserts both halves.
+#
+#     THE ROUTE TO THAT ANSWER IS RECORDED BECAUSE IT MOVED TWICE IN ONE DAY, and the intermediate
+#     state is the instructive one:
+#
+#       1. The permission audit found `gh api` was never denied at all — merely unlisted, and one
+#          `Bash(gh *)` wildcard erased even that. It added a blanket `Bash(gh api:*)` to the floor's
+#          `deny`, for reasons unrelated to this rule, and thereby DISCHARGED A RESIDUAL ADR-0004 HAD
+#          BOOKED AS PERMANENTLY ACCEPTED, as a side effect.
+#       2. That deny was TOO BROAD. It took the READ path with it — everything the `gh` subcommands do
+#          not expose, which this repo's own loop uses — and the first symptom was already inside the
+#          same batch: a falsifier example in `quality-assurance.md` had to be rewritten because it
+#          "named a command the loop cannot execute". That read as a citation fix and was a symptom.
+#       3. So it was re-expressed HERE, in the layer that can tell a read from a write, and removed
+#          from the floor. See rule 5f for why a prefix matcher provably cannot make that distinction
+#          (`-f`/`-F` imply POST with no `--method` present) and for the cost the owner accepted.
+#
+#     BOTH GENERALISATIONS SURVIVE THE MOVE — only the layer changed. A residual booked "permanent" is
+#     a statement about the layer that booked it, not about the system. And a gap can stop being real
+#     without anyone editing the file that describes it, which is why these comments are corrected
+#     rather than left to age — this passage has now been corrected TWICE in one day, once when the
+#     floor closed the route and once when the hook took it over.
+#
+#     WHAT REMAINS TRUE, AND IS WHY 5f IS A SEPARATE RULE RATHER THAN A WIDENING OF THIS ONE: matching
+#     `gh api` *as an issue-creating command* was attempted here for two rounds and each version was
+#     wrong — reading the collapsed command let a quoted URL through; reading the raw command blocked
+#     `git commit -m "gh api …"`, a message ABOUT the act. 5f does not repeat that attempt. It does not
+#     ask WHICH endpoint is being called or what the call means; it asks only whether the command
+#     WRITES, which is visible in the flags. That is the difference between a rule that can be right
+#     and one that keeps failing to be what its comment claims.
 #
 #     Matched semantically for the same reason as 5b: `gh -R <repo> issue create` must not slip past a
 #     prefix that only knows `gh issue create`. And matched on `$bare`, AFTER quoted spans are collapsed —
@@ -248,14 +484,17 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]
     #     and `security` citing a story would have been reviews opening work, which is the rule the
     #     exception is supposed to preserve rather than erode. Decomposing is an act of EXECUTION,
     #     so it belongs to the one persona that executes.
-    #     A FLAG, NOT `exit 0` — the one lesson from those four rounds that survives the deletion,
+    #     ~~A FLAG~~, NOT `exit 0` — the one lesson from those four rounds that survives the deletion,
+    #     and it outlived the flag itself: `developer_may` is gone (2026-08-03, with the ASK it fed),
+    #     so the exempt branch is now a literal no-op that continues. The lesson is the CONTINUING,
+    #     never the flag —
     #     because it was never about intent either. An earlier version returned from the middle of
     #     the script and everything below it stopped running: the trunk-push deny (7), the merge
     #     gate (7b) and the composition check (8). `gh issue create … && git push origin main` came
     #     out with NO decision at all, where before it was denied twice over. An exception in one
     #     rule silently became a bypass of the whole floor. Falling through is the only safe shape.
     case "$agent_type" in
-      *:developer) developer_may=1 ;;
+      *:developer) : ;;  # a no-op that CONTINUES to rules 7, 7b and 8 — see the `NOT exit 0` note above
       *) deny "Blocked: a subagent does not open work. Filing tasks under an approved story belongs to \`developer\`, the persona that executes them — a review citing a story is still a review opening work. Report the finding in your verdict and let the owner decide whether it becomes an issue." ;;
     esac
     #     ~~AND THE PARENT IS VERIFIED, NEVER READ FROM THE COMMAND.~~ **Struck 2026-08-02, and the
@@ -289,9 +528,20 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]
     #     `rm -rf`, secret writes, the trunk push, the merge gate. Those are acts, not judgements,
     #     and they stay mechanical.
   fi
-  # `developer` skips the ASK and FALLS THROUGH to rules 7, 7b and 8 — it does not return.
-  # Everything else still asks the owner, exactly as before.
-  [ -z "${developer_may:-}" ] && ask "Open this issue? The guard cannot see whether it is aligned with you — that is the whole question, and only you can answer it. Approve if this is work you asked for or agreed to; decline if the agent generated it for itself."
+  # ~~`developer` skips the ASK and FALLS THROUGH to rules 7, 7b and 8 — it does not return.
+  # Everything else still asks the owner, exactly as before.~~
+  #
+  # **THERE IS NO ASK HERE ANY MORE (2026-08-03).** `developer` and the main agent both reach this
+  # point and both continue; only a non-`developer` subagent leaves this block, and it leaves via
+  # `deny` above. The `[ -z "${developer_may:-}" ] && ask …` line that stood here is deleted rather
+  # than left guarded-off: after the change nothing could satisfy it, and a branch that can never fire
+  # is a claim about behaviour the file does not have.
+  #
+  # THE INVARIANT THAT MATTERS IS UNCHANGED AND IS THE POINT OF THE WHOLE BLOCK: falling through must
+  # remain FALLING THROUGH. No `exit 0`, no `return`, no early ALLOW. An earlier version returned from
+  # mid-script and rules 7 (trunk push), 7b (merge) and 8 (composition) simply stopped running, so
+  # `gh issue create … && git push origin main` came out with NO decision at all. The suite asserts
+  # that for `developer` AND, since this change, for the main agent — six cases, not three.
 fi
 
 # 7. Direct push to the trunk. This IS model-agnostic, contrary to the note above:
@@ -332,9 +582,13 @@ fi
 #     reviewer run?" into a precondition the model cannot satisfy by recall — only by
 #     actually routing the merge through the reviewer, which is the design. Matches
 #     `gh pr merge` with an optional -R/--repo before `pr` (the rule-5b convention).
-#     Recorded residual (ADR-0004): a raw `gh api ... PUT .../merges` is NOT matched —
-#     the natural command is gated; the API back door is an accepted, named gap, not a
-#     brittle attempt to pattern every form.
+#     ~~Recorded residual (ADR-0004): a raw `gh api ... PUT .../merges` is NOT matched —
+#     the natural command is gated; the API back door is an accepted, named gap~~ —
+#     **closed 2026-08-04 by RULE 5f, in this file.** THIS matcher is unchanged and still
+#     does not see `gh api`; 5f denies it separately, by detecting that the call WRITES
+#     (`--method PUT`, `-X`, `-f`/`-F`, `--input`) rather than by parsing the endpoint.
+#     The suite covers the merge spelling specifically. It briefly lived in the floor's
+#     `deny` instead — see rule 5c's comment for why that was too broad and moved here.
 if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R|--repo)[[:space:]]+[^[:space:]]+)*[[:space:]]+pr[[:space:]]+merge([[:space:]]|$)'; then
   case "$agent_type" in
     *:quality-assurance) : ;;  # the reviewer IS the merge gate — allow it through

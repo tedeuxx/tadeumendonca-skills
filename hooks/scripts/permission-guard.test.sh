@@ -110,9 +110,15 @@ check       DENY  "main agent (no agent_type) cannot merge"          "gh pr merg
 check_agent DENY  ""                                     "empty agent_type = main agent, denied"      "gh pr merge 149 --merge"
 check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer merges — it IS the gate"     "gh pr merge 149 --merge"
 check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer, behind --repo"              "gh --repo owner/repo pr merge 149 --merge"
-check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer, behind -R"                  "gh -R owner/repo pr merge 149 --squash"
-check_agent DENY  "tadeumendonca-skills:planner"          "a different subagent cannot merge"         "gh pr merge 149 --merge"
-check_agent DENY  "tadeumendonca-skills:frontend-react"   "a build specialist cannot merge"           "gh pr merge 149 --squash"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer, behind -R"                  "gh -R owner/repo pr merge 149 --merge"
+# NOT `--squash`, in either of the two cases that used to spell it that way. The floor denies
+# `Bash(gh pr merge --squash:*)` and the owner's standing rule is never to squash, so a case asserting
+# ALLOW on that spelling certified something the loop forbids — it read as coverage of a capability
+# nobody has. Only the flag changed; each case still proves what it always did (the `-R` form reaching
+# 7b, and a non-reviewer being denied).
+check_agent DENY  "tadeumendonca-skills:tech-lead"        "the OTHER lead cannot merge"               "gh pr merge 149 --merge"
+# The nearest miss worth pinning: the persona that WROTE the PR is the one with a motive to merge it.
+check_agent DENY  "tadeumendonca-skills:developer"        "the author of the PR cannot merge it"      "gh pr merge 149 --merge"
 check_agent DENY  "Explore"                               "a built-in subagent cannot merge either"   "gh pr merge 149 --merge"
 
 echo "--- rule 7b: only 'pr merge' is gated; the rest of the loop is untouched for everyone ---"
@@ -153,8 +159,13 @@ check_agent ALLOW "tadeumendonca-skills:developer" "a body written to a file"   
 # story is still a review opening work, which is the failure the whole rule exists to prevent.
 check_agent DENY  "tadeumendonca-skills:quality-assurance" "a REVIEWER still cannot file"      "gh issue create --title t --body 'Parent: #122'"
 check_agent DENY  "tadeumendonca-skills:security"          "security still cannot file"        "gh issue create --title t --body 'Parent: #122'"
-# The main loop is unaffected: it still ASKS. The owner answers, per issue, as before.
-check       ASK   "main loop still asks"                                                       "gh issue create --title t --body 'Parent: #122'"
+# ~~The main loop is unaffected: it still ASKS. The owner answers, per issue, as before.~~
+# **CHANGED 2026-08-03 — the main loop falls through too.** A subagent's `gh issue create` is invisible
+# (unattended, reported only if the agent chooses to); the main agent's is visible by construction —
+# the owner is in the conversation watching the call and can interrupt. The prompt was charging a click
+# to the one case that was already observed. Asserted here rather than only in the block below because
+# this line is where the old suite said the opposite.
+check       ALLOW "main loop no longer asks"                                                   "gh issue create --title t --body 'Parent: #122'"
 
 # THE ONE LESSON THAT SURVIVES THE DELETION: the allow is a FLAG, not `exit 0`. An earlier version
 # returned from mid-script and everything below it stopped running — rules 7, 7b and 8. These three
@@ -167,22 +178,43 @@ check_agent DENY  "tadeumendonca-skills:developer" "allow does not unreach rule 
 #   8, which is genuinely downstream of 5d, so the assertion witnesses what it names.
 check_agent DENY  "tadeumendonca-skills:developer" "allow does not unreach rule 8 (composition)" "gh issue create --title t --body b ; echo done"
 
+# THE SAME THREE FOR THE MAIN AGENT, added 2026-08-03 with the change that made them necessary. The
+# main agent now takes the same fall-through path `developer` does, so it inherits the same failure
+# mode: an `exit 0` or a `return` where the ASK used to be would unreach rules 7, 7b and 8 for the
+# MOST common caller in the loop, and the developer-only trio above would still pass green. Six cases,
+# not three, is the whole reason this change is safe to make.
+check_agent DENY  "" "main agent: allow does not unreach rule 7 (trunk push)"  "gh issue create --title t --body b && git push origin main"
+check_agent DENY  "" "main agent: allow does not unreach rule 7b (merge)"      "gh issue create --title t --body b && gh pr merge 1 --merge"
+check_agent DENY  "" "main agent: allow does not unreach rule 8 (composition)" "gh issue create --title t --body b ; echo done"
+
 # A message ABOUT the act is not the act — matched on `$bare`, after quoted spans collapse.
 check_agent ALLOW "tadeumendonca-skills:developer" "a commit message mentioning the act"        "git commit -m 'gh issue create notes'"
 
-# THE FLAG IS NOT INHERITED FROM THE ENVIRONMENT. Found by `security` on this PR: `developer_may`
+# ~~THE FLAG IS NOT INHERITED FROM THE ENVIRONMENT. Found by `security` on this PR: `developer_may`
 # was read as `${developer_may:-}` and set only inside the `case`, so an exported variable of that
 # name made the MAIN AGENT's `gh issue create` come out with no decision at all — the owner's ASK
-# skipped by ambient state. Same shape as the `exit 0` defect this rule already memorialises.
+# skipped by ambient state. Same shape as the `exit 0` defect this rule already memorialises.~~
 #
-# Exploitability was low (the hook is a child of the harness, not of any command's shell), which is
-# exactly why it is asserted rather than argued: a fail-open at the floor that depends on "you
-# probably cannot reach it" is not closed, it is unmeasured.
-out=$(jq -n --arg c "gh issue create --title t --body b" '{tool_input:{command:$c}, agent_type:""}' | developer_may=1 bash "$GUARD")
-if [ "$(verdict "$out")" = "ASK" ]; then
-  pass=$((pass + 1)); printf 'ok    %-6s %s\n' "ASK" "an inherited developer_may does not exempt the main agent"
+# **THAT PROBE IS DELETED 2026-08-03, AND THIS IS WHAT IS SAID IN ITS PLACE.** `developer_may` no
+# longer exists: it carried one bit from the `case` to the ASK, and there is no ASK. A test whose
+# subject is a deleted variable cannot fail — `developer_may=1 bash guard` would now read ALLOW for
+# the reason the test was checking AND for the reason it was not, which is a green that means nothing.
+# Deleted with its rule, exactly as the ten `Parent: #N` assertions above were.
+#
+# WHAT SURVIVES IS THE PROPERTY, and it moves to the variable that still gates something. `agent_type`
+# decides who is denied here (and who may merge, in 7b), and it is ASSIGNED unconditionally from the
+# payload — not `${agent_type:-$(jq …)}`. So an exported `agent_type` cannot claim a persona. This
+# assertion CAN still fail: rewrite that assignment to fall back to the environment and the case below
+# flips DENY → ALLOW, which is a reviewer opening work with no decision at all.
+#
+# Exploitability is low, the same way it was for `developer_may` (the hook is a child of the harness,
+# not of any command's shell), and that is exactly why it is asserted rather than argued: a fail-open
+# at the floor that depends on "you probably cannot reach it" is not closed, it is unmeasured.
+out=$(jq -n --arg c "gh issue create --title t --body b" '{tool_input:{command:$c}, agent_type:"tadeumendonca-skills:security"}' | agent_type="tadeumendonca-skills:developer" bash "$GUARD")
+if [ "$(verdict "$out")" = "DENY" ]; then
+  pass=$((pass + 1)); printf 'ok    %-6s %s\n' "DENY" "an inherited agent_type does not claim a persona (payload wins)"
 else
-  fail=$((fail + 1)); printf 'FAIL  want=ASK got=%s  an inherited developer_may does not exempt the main agent\n' "$(verdict "$out")"
+  fail=$((fail + 1)); printf 'FAIL  want=DENY got=%s  an inherited agent_type does not claim a persona (payload wins)\n' "$(verdict "$out")"
 fi
 
 # NO `gh` ON PATH: allowed, where the old rule denied. The direction changed because the reason
@@ -195,24 +227,38 @@ check_agent ALLOW "tadeumendonca-skills:developer" "no gh: nothing to look up an
 PATH="$REAL_PATH_5D"
 rm -rf "$NOGH"
 
-echo "--- rule 5c: the owner decides what enters the queue — asked in the main loop, denied in a subagent ---"
+echo "--- rule 5c: the owner decides what enters the queue — denied in a subagent, unblocked in the main loop ---"
+# TWO CORRECTIONS, ONE INVERSION, RECORDED IN ORDER because the second only makes sense after the first.
 # The rule used to DENY every one of these. That did not stop unaligned work; it taxed ALIGNED work,
 # and the tax landed on the owner, who had to type the command themselves for something they had just
-# asked for. What is guarded is the alignment, and only the owner can see it — so the main loop asks.
-check ASK   "gh issue create"                    "gh issue create --title x --body y"
-check ASK   "behind -R"                          "gh -R owner/repo issue create --title x"
-check ASK   "behind --repo"                      "gh --repo owner/repo issue create --title x"
-check ASK   "with --body-file"                   "gh issue create --title x --body-file /tmp/b.md"
-# pflag accepts an attached value in both spellings, and `gh` really parses these — verified against
+# asked for. ~~What is guarded is the alignment, and only the owner can see it — so the main loop asks.~~
+# **The ASK went the same way 2026-08-03, for the same reason one caller further out:** the owner hit
+# the prompt twice in one evening filing two issues he had just asked for in that conversation. A
+# subagent's create is invisible and stays denied; the main agent's is visible by construction — the
+# owner is watching the call and can interrupt it — so the prompt was a click charged to the observed
+# case while the unobserved one was already covered by the deny below.
+check ALLOW "gh issue create"                    "gh issue create --title x --body y"
+check ALLOW "behind -R"                          "gh -R owner/repo issue create --title x"
+check ALLOW "behind --repo"                      "gh --repo owner/repo issue create --title x"
+check ALLOW "with --body-file"                   "gh issue create --title x --body-file /tmp/b.md"
+# ~~pflag accepts an attached value in both spellings, and `gh` really parses these — verified against
 # the live CLI, not assumed. The first version of the rule required a space and both slipped past, so
 # the suite certified coverage it did not have. Kept as ASK cases: the matcher is what is under test
-# here, and a spelling that escapes it reaches the tool with NO prompt at all.
-check ASK   "--repo= attached"                   "gh --repo=owner/repo issue create --title x"
-check ASK   "-R attached shorthand"              "gh -Rowner/repo issue create --title x"
-# The `gh api` route is a NAMED ACCEPTED GAP, as rule 7b books its equivalent for merges. These assert
-# the gap rather than leaving it undocumented — a residual nobody wrote down is indistinguishable from
-# one nobody noticed.
-check ALLOW "gh api POST is the booked gap"      "gh api --method POST /repos/o/r/issues -f title=x"
+# here, and a spelling that escapes it reaches the tool with NO prompt at all.~~
+#
+# **THESE TWO ARE NOW WEAK CASES AND THE SUITE SHOULD SAY SO RATHER THAN LOOK COVERED.** With the main
+# agent falling through, a spelling the matcher MISSES and a spelling it MATCHES both read ALLOW here,
+# so these no longer test the matcher — they can only fail if some future rule denies them. Kept
+# because the matcher is still load-bearing for the subagent branch, and that is where the attached-
+# value spellings are now actually exercised: see the `-R`/`--repo=` DENY cases a few lines below.
+check ALLOW "--repo= attached"                   "gh --repo=owner/repo issue create --title x"
+check ALLOW "-R attached shorthand"              "gh -Rowner/repo issue create --title x"
+# ~~The `gh api` route is a NAMED ACCEPTED GAP~~ — **closed by rule 5f since 2026-08-04, and the first
+# line below flipped from ALLOW to DENY with it.** The gap was real for as long as this rule was the
+# only thing looking; what changed is that a rule which CAN tell a read from a write now runs first.
+# The second and third cases are unchanged and are what keeps 5f honest here: reading is still open,
+# and a commit message about the act is still not the act.
+check DENY  "gh api POST is closed by 5f now"    "gh api --method POST /repos/o/r/issues -f title=x"
 check ALLOW "gh api listing issues"              "gh api repos/o/r/issues --paginate"
 check ALLOW "a commit message about the act"     'git commit -m "gh api repos/o/r/issues -f title=x"'
 # A SUBAGENT STILL CANNOT FILE, and this is where the measured failure actually happened: 13 of 19
@@ -220,11 +266,25 @@ check ALLOW "a commit message about the act"     'git commit -m "gh api repos/o/
 # owner, so it cannot answer the question the prompt asks — it reports upward instead. `agent_type` is
 # stamped by the harness and cannot be forged by the model, so this is not a spelling it can escape.
 check_agent DENY "tadeumendonca-skills:quality-assurance" "not even the reviewer files"  "gh issue create --title x"
-check_agent DENY "tadeumendonca-skills:scrum-master"      "not even the flow persona"     "gh issue create --title x"
-# The other side of the same split, and the case the correction exists for. Without it the suite would
-# pass with the subagent branch applied to everyone — which is the bug being fixed, not a regression
-# guard against it.
-check_agent ASK  "" "an empty agent_type is the main loop, and it asks" "gh issue create --title x"
+# `tech-lead` and NOT `product-lead`, deliberately, though the latter absorbed the old `scrum-master`
+# this case used to name. Rule 5e denies `product-lead` on `gh issue create` BEFORE 5c is reached, so
+# the case would still read DENY with 5c/5d entirely broken — it would stop witnessing the rule it is
+# filed under. `tech-lead` has no 5e rule and no 5d exemption, so its verdict comes from 5c alone.
+check_agent DENY "tadeumendonca-skills:tech-lead"         "not even the other lead"       "gh issue create --title x"
+# THE MATCHER'S ONLY REMAINING TEETH ARE HERE, so the spellings are exercised HERE. pflag accepts an
+# attached value in both forms and `gh` really parses them — verified against the live CLI, not
+# assumed; the first version of the rule required a space and both slipped past, certifying coverage
+# it did not have. Since 2026-08-03 the main-agent cases above cannot catch that regression (they read
+# ALLOW either way), so these two carry it: a matcher that misses the attached form lets a REVIEWER
+# open work with no decision at all.
+check_agent DENY "tadeumendonca-skills:quality-assurance" "subagent, --repo= attached"    "gh --repo=owner/repo issue create --title x"
+check_agent DENY "tadeumendonca-skills:quality-assurance" "subagent, -R attached"         "gh -Rowner/repo issue create --title x"
+check_agent DENY "tadeumendonca-skills:quality-assurance" "subagent, --body-file"         "gh issue create --title x --body-file /tmp/b.md"
+# The other side of the same split. ~~an empty agent_type is the main loop, and it asks~~ — **it now
+# falls through (2026-08-03).** The case is kept and inverted rather than deleted: it is what fails if
+# someone applies the subagent branch to everyone, which was the original bug this line guarded, and
+# it is equally what fails if someone reverts the main agent to ASK without touching this file.
+check_agent ALLOW "" "an empty agent_type is the main loop, and it is no longer asked" "gh issue create --title x"
 
 # Everything else about issues stays open, or the rule would block reading the board rather than
 # opening work. These are the partner cases: without them "DENY create" would pass for a rule that
@@ -235,6 +295,118 @@ check ALLOW "commenting on an issue"  "gh issue comment 173 --body-file /tmp/c.m
 check ALLOW "closing an issue"        "gh issue close 173"
 check ALLOW "labelling an issue"      "gh issue edit 173 --add-label product"
 check ALLOW "the words in a message"  "git commit -m 'gh issue create notes'"
+
+echo "--- rule 5f: gh api that WRITES is closed; gh api that READS is not ---"
+# The route rules 5c and 7b each booked as a permanently accepted gap. It lived in the floor's `deny`
+# as a blanket `Bash(gh api:*)` for about an hour; that was too broad — it took the READ path with it,
+# which this repo's own loop uses — so it moved here, to the layer that can tell the two apart.
+check DENY  "--method POST"              "gh api --method POST repos/o/r/issues -f title=x"
+check DENY  "--method PUT"               "gh api --method PUT repos/o/r/pulls/1/merge"
+check DENY  "--method PATCH"             "gh api --method PATCH repos/o/r/issues/1"
+check DENY  "--method DELETE"            "gh api --method DELETE repos/o/r/issues/1/labels/bug"
+check DENY  "--method= attached"         "gh api --method=POST repos/o/r/issues"
+check DENY  "lowercase method value"     "gh api --method post repos/o/r/issues"
+# `-X` is --method's real short form. It was NOT in the brief that specified this rule; a rule closing
+# the long spelling and leaving the short one open is the "which spelling did you happen to use" floor
+# this file has rejected twice already (rule 4's flag set, 5b's -R).
+check DENY  "-X spaced"                  "gh api -X POST repos/o/r/issues"
+check DENY  "-X attached"                "gh api -XPOST repos/o/r/issues"
+check DENY  "-X mixed case value"        "gh api -X Delete repos/o/r/issues/1/labels/bug"
+# THE CASE THE WHOLE RULE EXISTS FOR, and the reason the settings-layer prefix could never do this:
+# `-f`/`-F` switch the request to POST on their own, so this is a WRITE with no --method anywhere. It
+# is the exact command the audit found — creating an issue around the owner-opens-work rule.
+check DENY  "-f implies POST, no method" "gh api repos/o/r/issues -f title=x -f body=y"
+check DENY  "-F implies POST, no method" "gh api repos/o/r/issues -F title=x"
+check DENY  "--raw-field long form"      "gh api repos/o/r/issues --raw-field title=x"
+check DENY  "--field long form"          "gh api repos/o/r/issues --field title=x"
+check DENY  "--field= attached"          "gh api repos/o/r/issues --field=title=x"
+check DENY  "--input reads a body file"  "gh api repos/o/r/issues --input /tmp/body.json"
+check DENY  "the merge back door (7b)"   "gh api --method PUT repos/o/r/pulls/149/merge"
+check DENY  "gh api behind -R"           "gh -R owner/repo api repos/o/r/issues -f title=x"
+
+echo "--- rule 5f: READING through gh api must survive, or the rule has broken the loop ---"
+# This is the half the blanket floor deny got wrong. Each of these is a real call this repo makes.
+check ALLOW "plain read"                 "gh api repos/o/r/releases/latest"
+check ALLOW "read with --jq"             "gh api repos/o/r/releases/latest --jq '.tag_name'"
+check ALLOW "read with --paginate"       "gh api repos/o/r/issues --paginate"
+check ALLOW "query params, not fields"   "gh api 'repos/o/r/issues?state=open&per_page=100'"
+check ALLOW "explicit GET"               "gh api --method GET repos/o/r/issues"
+check ALLOW "-X GET"                     "gh api -X GET repos/o/r/issues"
+check ALLOW "a REST path containing -f"  "gh api repos/o/r/contents/src/-f-config.json"
+# $bare: a message ABOUT the act is not the act. This trap has now caught a version of three different
+# rules in this file, which is why it is convention rather than case-by-case care.
+check ALLOW "commit message about it"    "git commit -m 'gh api repos/o/r/issues -f title=x'"
+check ALLOW "a grep for the pattern"     "grep -rn 'gh api -f' docs"
+# 5f has no allow BRANCH — it either denies or falls past the `if` — but the file's most expensive
+# lesson is that someone eventually adds an early return to a rule that did not have one. Rules 7 and 8
+# run strictly after 5f, so a read reaching them is what proves the fall-through is intact.
+check DENY  "read does not unreach rule 7" "gh api repos/o/r/releases/latest && git push origin main"
+check DENY  "read does not unreach rule 8" "gh api repos/o/r/releases/latest ; echo done"
+
+echo "--- rule 5e: product-lead does not write to a public surface ---"
+# The roster merge folded `marketing-lead` (tools: Read, Grep, Glob — no Bash, deliberately) into
+# `product-lead`, which carries Bash. The persona that reads the PRIVATE `.brand/` layer can now run
+# `gh`, and its output lands in PUBLIC comments. These are the cases that hold the capability boundary
+# the merge dissolved. A DENY here is not about scope — it is that deleting a comment does not undo a
+# disclosure.
+check_agent DENY "tadeumendonca-skills:product-lead" "pr comment"                  "gh pr comment 149 --body 'positioning says x'"
+check_agent DENY "tadeumendonca-skills:product-lead" "issue comment"               "gh issue comment 149 --body 'positioning says x'"
+check_agent DENY "tadeumendonca-skills:product-lead" "issue create"                "gh issue create --title x --body y"
+check_agent DENY "tadeumendonca-skills:product-lead" "pr comment, --body-file"     "gh pr comment 149 --body-file /tmp/c.md"
+# The spellings. `gh` really parses all four of these; the matcher must too, or the boundary is a
+# convention about punctuation. Same pflag shape rule 5b/5c use, exercised again here because a rule
+# is only as wide as its own pattern.
+check_agent DENY "tadeumendonca-skills:product-lead" "pr comment behind -R"        "gh -R owner/repo pr comment 149 --body b"
+check_agent DENY "tadeumendonca-skills:product-lead" "pr comment behind --repo"    "gh --repo owner/repo pr comment 149 --body b"
+check_agent DENY "tadeumendonca-skills:product-lead" "pr comment, --repo= attached" "gh --repo=owner/repo pr comment 149 --body b"
+check_agent DENY "tadeumendonca-skills:product-lead" "pr comment, -R attached"     "gh -Rowner/repo pr comment 149 --body b"
+check_agent DENY "tadeumendonca-skills:product-lead" "issue comment behind -R"     "gh -R owner/repo issue comment 149 --body b"
+check_agent DENY "tadeumendonca-skills:product-lead" "issue create behind --repo"  "gh --repo owner/repo issue create --title x"
+# The glob is `*:product-lead`, so it does not depend on which plugin name the harness prefixes.
+check_agent DENY "otherplugin:product-lead"          "any plugin prefix"           "gh pr comment 149 --body b"
+
+echo "--- rule 5e: it must not cost the persona what it actually needs ---"
+# `product-lead` has Bash to READ the live queue — ordering work means seeing the board. A rule that
+# took that away would break the persona to protect it. Without these, "DENY comment" would pass for a
+# rule that blocked `gh` outright.
+check_agent ALLOW "tadeumendonca-skills:product-lead" "listing PRs"                "gh pr list --state open"
+check_agent ALLOW "tadeumendonca-skills:product-lead" "listing issues"             "gh issue list --label product"
+check_agent ALLOW "tadeumendonca-skills:product-lead" "viewing a PR"               "gh pr view 149 --json labels"
+check_agent ALLOW "tadeumendonca-skills:product-lead" "viewing an issue"           "gh issue view 173"
+check_agent ALLOW "tadeumendonca-skills:product-lead" "reading a PR's comments"    "gh pr view 149 --json comments"
+# Matched on $bare, after quoted spans collapse — 5c's suite caught a version of ITS rule denying a
+# commit message ABOUT the act. Same trap, asserted rather than assumed.
+check_agent ALLOW "tadeumendonca-skills:product-lead" "a message mentioning the act" "git commit -m 'gh pr comment notes'"
+
+echo "--- rule 5e: the gatekeeper protocol must keep running ---"
+# Both gatekeepers comment their verdict on every MR. A rule that matched by SUBCOMMAND rather than by
+# agent would take out the protocol this whole loop runs on, and would do it silently — the verdicts
+# would simply stop arriving. These are the cases that fail if 5e is ever widened past its one persona.
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer comments its verdict" "gh pr comment 149 --body-file /tmp/verdict.md"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer comments on an issue" "gh issue comment 173 --body b"
+check_agent ALLOW "tadeumendonca-skills:security"          "security comments its verdict"     "gh pr comment 149 --body-file /tmp/verdict.md"
+check_agent ALLOW "tadeumendonca-skills:security"          "security comments on an issue"     "gh issue comment 173 --body b"
+check_agent ALLOW "tadeumendonca-skills:developer"         "the builder comments on its own PR" "gh pr comment 149 --body b"
+check_agent ALLOW "tadeumendonca-skills:tech-lead"         "the other lead still comments"     "gh pr comment 149 --body b"
+# The main agent is an EMPTY agent_type, and the ASK removal in this same tree means it now falls
+# through 5c as well. 5e must not re-block what that change deliberately opened.
+check_agent ALLOW "" "main agent comments on a PR"    "gh pr comment 149 --body b"
+check_agent ALLOW "" "main agent comments on issue"   "gh issue comment 173 --body b"
+check_agent ALLOW "" "main agent still files issues"  "gh issue create --title x --body y"
+# And 5d's exemption is unchanged — 5e runs BEFORE 5c, so a bug here would have eaten it.
+check_agent ALLOW "tadeumendonca-skills:developer" "developer keeps its 5d exemption" "gh issue create --title 'task: x' --body 'Parent: #122'"
+
+echo "--- rule 5e: allowing must remain FALLING THROUGH, not exiting ---"
+# The most expensive lesson in the guard, re-paid here. An early `exit 0` on the allow path of 5e would
+# unreach rules 7 (trunk push), 7b (merge) and 8 (composition) — the composed command would come out
+# with NO decision at all, where it is currently denied. All three rules below run strictly AFTER 5e,
+# so each verdict genuinely witnesses the fall-through rather than an earlier rule.
+# Verified by mutation: `*) exit 0 ;;` added to 5e's case reddened exactly these five.
+check_agent DENY "" "allow does not unreach rule 7 (trunk push)"  "gh pr comment 1 --body b && git push origin main"
+check_agent DENY "" "allow does not unreach rule 7b (merge)"      "gh pr comment 1 --body b && gh pr merge 1 --merge"
+check_agent DENY "" "allow does not unreach rule 8 (composition)" "gh pr comment 1 --body b ; echo done"
+check_agent DENY "tadeumendonca-skills:quality-assurance" "reviewer: still reaches rule 7"  "gh pr comment 1 --body b && git push origin main"
+check_agent DENY "tadeumendonca-skills:security"          "security: still reaches rule 8"  "gh issue comment 1 --body b ; echo done"
 
 echo "--- rule 8: composition the permission matcher cannot decompose ---"
 check DENY  "cd compound"                   "cd /tmp && ls"
@@ -289,6 +461,25 @@ check DENY  "reset --hard"                  "git reset --hard HEAD~1"
 check DENY  "rm -rf"                        "rm -rf build"
 check DENY  "skip-permissions bypass"       "claude --dangerously-skip-permissions"
 check ALLOW "terraform plan"                "terraform -chdir=iac plan"
+
+echo "--- rule 4: the flags are a SET, however they are split or cased ---"
+# The first four were measured ALLOW against the previous pattern, which required both letters in one
+# lowercase cluster. Same act, different punctuation, opposite verdict.
+check DENY  "split, -r then -f"             "rm -r -f /some/path"
+check DENY  "split, -f then -r"             "rm -f -r /some/path"
+check DENY  "fused, mixed case -fR"         "rm -fR /some/path"
+check DENY  "fused, mixed case -Rf"         "rm -Rf /some/path"
+check DENY  "split with a flag between"     "rm -r -v -f /some/path"
+check DENY  "long forms"                    "rm --recursive --force /some/path"
+check DENY  "long force, short recursive"   "rm -R --force /some/path"
+
+echo "--- rule 4: must not over-block — one flag alone is not the floor's concern ---"
+# The ALLOW half is what keeps the fix honest: widening a deny until everything matches is not a fix.
+check ALLOW "recursive without force"       "rm -r /some/path"
+check ALLOW "force without recursive"       "rm -f /some/path"
+check ALLOW "--force alone"                 "rm --force /some/path"
+check ALLOW "plain rm"                      "rm /some/path"
+check ALLOW "a word merely ENDING in rm"    "npm run confirm -r -f"
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

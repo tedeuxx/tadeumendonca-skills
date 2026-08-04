@@ -467,6 +467,23 @@ the same repo's own sources; live, production-exercised skills published as reti
 **This supersedes exactly one clause** of the 2026-07-23 amendment — *"a positioning breach is not a DoD
 criterion"* — and nothing else in it. That amendment's mandate, capability guarantee and trigger stand.
 
+> **Appended 2026-08-04 — item 2's first half is superseded, and amendment #9 predicted this exact
+> paragraph.** Criterion 10 no longer passes on *"the content lens returned a verdict"*. The owner
+> decided that a gate **must** relay the copy verdict, so the criterion now reads **returned AND its
+> text is on the PR** — a return into the orchestrator's context, where it dies, satisfies nothing.
+> The decision, its scope, its accepted cost and the measurement behind it are in
+> [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s third 2026-08-04 amendment;
+> the criterion's operative text is in `agents/quality-assurance.md`, which is where it lives and which
+> is the only place to read it. **Item 2's second half is untouched** — a claim the reviewer can itself
+> falsify still fails the criterion whatever the lens returned, and it is the residual that carries the
+> most weight when a relay is thin.
+>
+> **Why this note exists at all is amendment #9's finding, instantiated one amendment later.** That
+> amendment established that this ADR's rendering of criterion 10 is a **summary**, not the text, and
+> that reading the summary as the text is a defect this library treats seriously. A summary that is not
+> marked stale when the text moves is the same defect with a delay, so it is marked here rather than
+> corrected in place — supersede, never rewrite.
+
 ### Two costs, named
 
 **The severity contract handles a lens that omits severities and not one that gets a severity wrong.**
@@ -937,6 +954,54 @@ for four consecutive amendments.
 for. Removing it would silently retire that trigger to fix a guarantee that was already behavioural
 for the product half. **The residual is real and this is the record of choosing it.** Re-tightening it
 is an ADR-0004 tool-grant decision and remains the owner's.
+
+> **Appended 2026-08-04 — the cost is closed, and by a cheaper instrument than the one named above.**
+> The paragraph above pre-commits the remedy to a **tool grant**: either strip `Bash` (rejected on
+> function) or leave the guarantee behavioural (chosen). **Both branches of that choice were about the
+> `tools:` frontmatter, and the frontmatter was never the only surface.** The owner's decision, taken
+> today: `permission-guard` gains **rule 5e**, an `agent_type`-keyed **deny on `gh pr comment`,
+> `gh issue comment` and `gh issue create`** for `*:product-lead`. The persona keeps `Bash` — so
+> `gh pr list` / `gh issue list` / `gh pr view` and the amendment #5 trigger they feed are untouched —
+> and loses the ability to publish. **The two things this amendment treated as one dial turn out to be
+> two**, and separating them costs nothing the record wanted to keep.
+>
+> **The remedy this amendment named is therefore superseded by rule 5e, not satisfied by it.**
+> *"Splitting the tool grant"* — un-merging the persona the owner had just merged, at the cost of the
+> second agent output the merge existed to remove — was the only alternative this record could see. It
+> is not the one that ran, and it is now **struck as the standing remedy**. The paragraph above stands
+> as written because its **rejection of stripping `Bash` is still correct** — that would still retire
+> the queue trigger. What is falsified is its implied premise that the alternatives were exhausted, and
+> what is superseded is the remedy it left on the table for a future reader to execute.
+>
+> **How it was found, because that is the transferable part.** `security` proposed it, and the route
+> was not analysis of the persona — it was noticing that **`permission-guard` already keyed two denials
+> on `agent_type`** (rule 5d, the subagent filing deny; rule 7b, the merge gate). A mechanism that
+> already exists twice in a file is cheap to extend a third time, and expensive only to invent. The
+> generalisable rule: **before pricing a remedy, read what the enforcement surface already does** — this
+> amendment priced a capability change without checking whether a routing surface could carry it.
+>
+> **Pre-emptive rather than post-leak, on `security`'s argument and it is the load-bearing one.** The
+> usual case for waiting — catch it at the gate, revert if it happens — does not apply, because the
+> harm is not reverted by reverting the artifact: *a paraphrase of the positioning layer in a public
+> comment is not undone by deleting the comment.* The seam this deny protects is the one place in the
+> loop where the reversibility argument that governs everything else (ADR-0004: *mechanism where the act
+> is irreversible*) points **toward** mechanism rather than away from it.
+>
+> **What is NOT claimed, in the terms ADR-0006 forced on this repo's records.** This is **routing at
+> best, and here not even that** — it is a capability narrowing on one `agent_type`, and the main loop
+> can still obtain the positioning content by reading `.brand/` itself and posting under no
+> `agent_type` at all. It closes the **persona-shaped leak**, which is the one this amendment created.
+> It does not make the private layer unpublishable, and nothing in this repo does.
+
+**1b · A consequence outside both repos, recorded because nothing mechanical will catch it.**
+
+The public `/architecture` page on `tadeumendonca-io` describes `product-lead` as the persona with **no
+hook keyed to it**. `security` flagged the coupling before that page shipped. The obligation this
+creates on the io side — what is actually falsified, what merely misleads, and why the existing
+inventory check does not fire — is written up in
+[ADR-0004](./0004-autonomy-and-permission-model.md)'s 2026-08-04 amendment, with the mechanism that
+causes it. **It is not fixed by this slice**: the page is a different repository, and this record is
+where the debt is booked, not paid.
 
 **2 · One persona now produces both severities, so the split moved from structure to format.**
 

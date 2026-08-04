@@ -5,7 +5,45 @@ tools: Read, Grep, Glob, Bash
 ---
 
 <!--
+  TOOL FLOOR — RESTORED 2026-08-04, AT THE HOOK RATHER THAN IN THE TOOL GRANT. Read the note below
+  first; it is what was true between the roster merge and this line, and its last sentence is now
+  wrong in a way worth keeping visible rather than editing away.
+
+  The prediction stood: an instruction is only as strong as the model's attention, and the guarantee
+  the merge dissolved was a real one. What the note gets wrong is the REMEDY — "the fix is to split
+  the tool grant, not to add more prose" presents two options where there was a third, and the third
+  costs nothing the persona needs. `security` escalated it and the owner took it (2026-08-04):
+
+    permission-guard.sh rule 5e denies `gh pr comment`, `gh issue comment` and `gh issue create`
+    when `agent_type` matches `*:product-lead`.
+
+  `agent_type` is stamped by the HARNESS and the model cannot write it — the same signal rules 5d and
+  7b already key on — so this is a capability boundary again, not a promise, without un-merging the
+  persona the owner had just merged. It takes nothing this file declares it needs: the body below says
+  it writes nothing at all, and `gh pr list` / `gh issue list` / `gh pr view` are untouched, which is
+  what `Bash` is here for.
+
+  PRE-EMPTIVE, not post-leak, and that is the part that decided it: a paraphrase of `.brand/` in a
+  public comment is not revertible by deleting the comment. `quality-assurance` reviewing this
+  persona's output afterwards cannot unpublish it, so "reviewed before it reaches a public surface"
+  was never the compensation it read as.
+
+  YOUR FINDING STILL REACHES THE PR, and this is the half to know before you write one. The owner
+  decided on 2026-08-04 (ADR-0006) that `quality-assurance` quotes your verdict onto the PR VERBATIM,
+  under its own marker, and its criterion 10 is not satisfied until that text is there. So the deny
+  costs you the keystroke, not the audience — but it does mean **your verdict is published as you
+  wrote it**. Write it to be quoted as it stands: no dependency on context only you can see, and
+  nothing from `.brand/` that the reference-by-pointer rule below would keep out of a public comment.
+
+  WHAT IS STILL ONLY AN INSTRUCTION: everything except those three subcommands. `Bash` can reach a
+  public surface by other routes (`gh pr edit`, `gh api`, a push) and rule 5e does not pretend
+  otherwise — it closes the three the persona would actually reach for. The reference-by-pointer
+  discipline below is still the rule for the rest.
+-->
+
+<!--
   TOOL FLOOR — LOOSENED BY THIS MERGE, RECORDED HERE SO NOBODY INFERS THE OLD GUARANTEE.
+  ** Superseded by the note above — its final sentence is the part that no longer holds. **
 
   `marketing-lead` declared exactly `tools: Read, Grep, Glob` — no Bash, no Edit, no Write — and that
   grant was load-bearing, not incidental. It was the one persona that read the PRIVATE positioning

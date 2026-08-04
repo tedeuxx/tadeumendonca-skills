@@ -1,6 +1,13 @@
 # 0006. A verdict one persona owes another is an artifact on the PR, not a relayed claim
 
-- **Status:** accepted · **amended 2026-08-04** (the open question's premise is falsified — `marketing-lead` no longer exists and the copy lens now holds `Bash`; the decision itself is unchanged)
+- **Status:** accepted · **amended 2026-08-03** (both gatekeepers granted `Write`; the load-bearing
+  `--body-file` question inside *Consequences* is closed) · **amended 2026-08-04** (the closing open
+  question's premise is falsified — `marketing-lead` no longer exists and the copy lens now holds
+  `Bash`) · **amended 2026-08-04, second** (a mechanism now stands behind the copy lens's
+  identifier-only rule) · **amended 2026-08-04, third** (**the closing open question is CLOSED** — a
+  gate may relay another persona's verdict, and for the copy lens it must; criterion 10 upgrades from
+  *returned* to *returned and quoted*). **The decision itself is unchanged by all four** — the relay is
+  an addition alongside the two first-party markers, never a substitute for either.
 - **Date:** 2026-08-02
 - **Deciders:** the owner
 - **Driven by:** [ADR-0003](./0003-mr-definition-of-done.md), [ADR-0004](./0004-autonomy-and-permission-model.md)
@@ -192,7 +199,69 @@ Chosen: **the comment, verified by the consumer against the current head.**
 scoping is intentional because it never writes, the voice being the owner's. Covering it means trading
 a deliberate tool grant against verifiability, which is an ADR-0004 decision and the owner's to make.
 
-## Amendment (2026-08-04) — the open question's premise is gone; the question is not
+---
+
+**Two open questions, one shape — read the amendments below in order.** This record leaves *two* holes,
+and a 3-way replay of the batch that closes them presented them as competing edits to the same file.
+They are not competing; they are consecutive, and the shape they share is the reason to say so before
+either amendment speaks:
+
+> **Both holes were priced in the same currency — a tool grant — and this ADR routed both to the same
+> decider, the owner, under [ADR-0004](./0004-autonomy-and-permission-model.md).** The *Consequences*
+> hole is the gatekeepers' missing `Write`; the *Open question* hole is the copy lens's withheld `Bash`.
+
+What happened to them, in the order it happened, is the point:
+
+1. **2026-08-03 — the `Write` was granted.** The hole this ADR called *"what decides whether this rule
+   is livable"* is closed, on measured evidence rather than on the argument that predicted it.
+2. **2026-08-04 — the `Bash` was spent without buying anything.** A roster merge decided on unrelated
+   grounds handed the copy lens the exact capability this ADR had named as the price of closing its
+   second hole — and the hole stayed open, because nobody was closing it.
+3. **2026-08-04, later the same day — the second hole is closed, and not with a tool grant at all.**
+   Rule 5e took the spent capability back on the publishing subcommands, and the owner then decided
+   the **relay** (third amendment below). So the hole this record priced in a currency it did not
+   control was paid in one it did: **an instruction in a persona file.** Which is the sharper form of
+   the contrast above — the tool grant was never the only price, and pre-committing the remedy to one
+   is what kept the question open for two days.
+
+**That contrast is the finding, and neither amendment carries it alone.** One tool-grant question was
+put and answered; the other was answered by accident, in the wrong direction, by a record that was not
+asking it. A capability spent as a side effect buys nothing, because nothing was bought *with* it.
+
+---
+
+## Amendment — 2026-08-03: the open `Write` question is closed, and both gatekeepers hold the grant
+
+The consequence above says *"Neither gatekeeper has a `Write` tool"* and books a scratchpad-scoped grant
+as an open question that is **"what decides whether this rule is livable."** That question was put and
+answered: **`quality-assurance` and `security` are both granted `Write`, scoped to composing the verdict
+body in the scratchpad.** The consequence's text stands as written — it records what was true when it
+was written, and its prediction is the reason this amendment exists.
+
+**What decided it was the confirmation, not the argument.** The consequence predicted that the tax falls
+hardest on the densest verdicts and that the thinning is undetectable. Measured since: a ~60-line verdict
+posted with **every backtick hand-stripped**, so paths, command names and job names rendered as bare
+prose in the artifact the merge gate reads. Under `--body` an unstripped backtick does not error — the
+shell **deletes the span** — so the failure mode is not a refusal the agent notices but a silent
+subtraction from the record.
+
+**The rule that replaces the three-way choice:** `--body-file` from the scratchpad, always, no per-case
+judgement about quoting. The mechanics stay in the persona files, as before; what is recorded here is
+that the choice itself is gone, because a per-case judgement was the mechanism of the failure.
+
+**What is NOT closed.** The blind spot recorded above — nobody holds both the verdict a gate *returned*
+and the verdict it *posted* — is untouched by this grant. What the personas add against it is an
+instruction, not a detector: **a verdict that had to be shortened or stripped to post is a posting
+failure and is reported as one.** That is the same weaker fail-closed this ADR already books, and it is
+named again rather than allowed to read as fixed.
+
+**And the grant is a capability, so it widens the surface.** `quality-assurance`'s contract sentence
+said *"it never edits code"*, which a `Write` tool makes mechanically untrue; the description now states
+the grant and its single purpose, and a `Write` to any repo path is a defect in the review. That is a
+scope rule, not a wall — nothing mechanical confines either gatekeeper's `Write` to the scratchpad.
+Booked here as a real cost of closing the question, in the same terms this ADR uses for its others.
+
+## Amendment (2026-08-04) — the closing open question's premise is gone; the question is not
 
 **What changed outside this record.** [ADR-0002](./0002-agentic-dev-loop-architecture.md)'s ninth
 amendment merged `marketing-lead` into `product-lead`. The persona named in the open question above no
@@ -244,6 +313,257 @@ hook reads *each persona's canonical verdict set from the persona file at runtim
 `quality-assurance` and `security` only. It has no dependency on the lead roster, so the roster merge
 does not touch it. But it is the reason a third marker would be more than documentation: the mechanism
 that would enforce one already exists and is shaped to be extended.
+
+## Amendment (2026-08-04, second) — the containment gets a mechanism, and it narrows this question
+
+The amendment above ends on the sharper of its two warnings: the copy lens's **identifier-only output
+rule** — cite `positioning.md §X, bullet N`, never the line — *"is now an instruction with no capability
+behind it."* **It has one.** `permission-guard` gains **rule 5e**, an `agent_type`-keyed deny on
+`gh pr comment` / `gh issue comment` / `gh issue create` for `*:product-lead`, so the persona that reads
+the private, gitignored positioning source cannot itself publish to a public PR. The decision and its cost are recorded in
+[ADR-0002](./0002-agentic-dev-loop-architecture.md)'s amendment #9, where the loosening was booked; the
+mechanism class is recorded in [ADR-0004](./0004-autonomy-and-permission-model.md). It is noted here
+because it **moves this record's open question**, in both directions.
+
+- **Against the third marker.** It requires the copy lens to *post*, and posting is now exactly what the
+  floor refuses it. The option is no longer *"mechanically possible where it previously was not"* — it
+  became possible on 2026-08-04 and was closed again the same day. Reviving it costs a **carve-out in
+  the deny**, not merely an instruction, which is a materially larger ask than the amendment above
+  assumed when it wrote *"recorded as reachable."*
+- **For it.** The privacy objection — the second of the two things the deciding record must weigh — is
+  the one that just got cheaper, because the leak path it feared is now closed by construction rather
+  than by the lens's own discipline. **The multiplier objection is untouched**, and it was always the
+  stronger of the two.
+
+**And it points at a shape this record kept not considering.** If the copy verdict must become
+checkable, the form that survives the deny is **the merging gate posting the copy verdict it received**,
+not the lens posting its own. That is *weaker* — it is a relay, which is the thing this entire ADR
+exists to refuse — and it is named here so the next reader weighs it against the carve-out rather than
+discovering it as the only remaining option under time pressure.
+
+**A citation to this record that this record does not support, flagged rather than quietly honoured.**
+Rule 5e's deny message and its comment both tell the caller that the finding still reaches the PR
+because *"`quality-assurance` quotes it onto the PR (ADR-0006)"* — described in the comment as *"the
+mechanism ADR-0006 already names, not one invented here."* **This ADR names no such mechanism.** What it
+names is two gatekeepers posting their **own** verdicts under their **own** markers, and one gate
+verifying the other's. A gate quoting a *third* party's verdict is the relay shape — which this record
+exists to refuse, and which the paragraph above introduces as an *undecided option*, explicitly weaker.
+
+The rule's **behaviour** is right and nothing here argues against it: the finding should reach the PR,
+and with 5e in force `quality-assurance` is the only party that can carry it. What is wrong is the
+**citation** — it books an existing guarantee where there is an unmade decision, which is precisely the
+defect this ADR catalogues four times over in its own option 3. Two ways to settle it, neither taken
+here because the choice is the owner's:
+
+1. **Decide the relay**, and record it in this ADR as the third marker's cheaper substitute — at which
+   point the citation becomes true.
+2. **Correct the citation** in `hooks/scripts/permission-guard.sh` to say the finding is returned to the
+   invoking context and that publishing it is *not* mechanically guaranteed.
+
+Until one of those happens, **the deny message overstates what happens to a `product-lead` finding**,
+and it overstates it to the one reader — the persona being denied — who cannot check it.
+
+**One caution, because this record has a documented habit of exactly this error.** Option 3 above was
+rejected four times on reasons stronger than the facts supported. The symmetric error is available here:
+it would be convenient to read the new deny as *settling* the third-marker question in the negative. **It
+does not settle it. It prices it.** A capability the owner can grant is not a decision the owner made.
+
+## Amendment (2026-08-04, third) — the open question is closed: a gate MAY relay, and for the copy lens it MUST
+
+**Decision: the owner, 2026-08-04.** The amendment above lists two ways to settle the citation that
+rule 5e books against this record. **The first was taken.** The relay is decided:
+
+> **A gate may quote another persona's verdict onto the PR under its own marker. For the copy lens it
+> is not optional: `quality-assurance` quotes the copy verdict verbatim into its own verdict comment,
+> and criterion 10 is no longer satisfied by *"the lens returned a verdict"* but by *"the lens returned
+> a verdict and its text is on the PR."***
+
+### 1 · Scope — where "may" ends and "must" begins, stated because it is a real fork
+
+The permission is **general**: nothing in this record forbids a gate from carrying a third party's
+findings, and quoting one has always been better than dropping it.
+
+The **obligation** is not general in the sense of *"applies to every persona"*, and it is not specific
+in the sense of *"applies to `product-lead` by name"* either. Both readings are wrong and each fails in
+its own direction — the first conscripts gates into relaying verdicts nothing waits on, the second
+leaves the next 5e-shaped rule to rediscover this whole question. The obligation attaches to the
+**condition**, and the condition is two facts, both checkable:
+
+> **A gate MUST relay a persona's verdict when (a) one of that gate's own criteria is unsatisfied
+> without it, and (b) the floor denies that persona every route to publish it itself.** Today exactly
+> one pair meets both: `quality-assurance` / `product-lead`, criterion 10, rule 5e.
+
+**And the obligation is created by the deny, so it is booked on the deny.** Whoever adds a
+persona-keyed publication denial to `permission-guard` acquires, in the same MR, the duty to name which
+gate relays that persona's output and under which criterion — or to state that nothing waits on it.
+Without that, "general" is a promise with no trigger, and this library's recurring defect is precisely
+a rule whose state nothing records. The general form buys nothing today, because it currently describes
+one pair; what it buys is that **the next 5e is told what it owes before it ships**, which is exactly
+what the last one was not.
+
+**What the permission does NOT reach, and this exclusion is load-bearing.** *May relay* must never be
+read as loosening this ADR's core decision. The relayed copy verdict **authorises nothing**. It is
+transport for findings the gate must then apply. Two things stay first-party only and are unchanged:
+
+- **`security`'s approval.** The merge precondition is satisfied by `security`'s own marker at the
+  current head, verified with `gh pr view`. A relay of it remains exactly what this record was written
+  to refuse.
+- **The owner's ratification** ([ADR-0003](./0003-mr-definition-of-done.md)'s 2026-07-29 amendment). *A
+  relay is a notification, never the authority* stands verbatim.
+
+The discriminator is **authority versus record**. A verdict that *permits an act* must be first-party,
+because the party that benefits from the permission must not be the party that reports it. A verdict
+that *supplies findings a gate then judges* is a record, and a record can be carried — provided the
+carrying is visible, which is the whole of §2.
+
+### 2 · The cost, which is this record's own objection turned on itself
+
+**A relayed verdict passes through a party with an interest in the outcome. `quality-assurance` merges.**
+It is being asked to carry findings that could hold its own merge, which is the structure this ADR
+spent four rejections refusing to hand-wave. It is not neutral and is booked as an accepted cost, with
+one named mitigation:
+
+> **Verbatim, and under the relayer's own marker.** The words are the lens's; the marker is
+> `quality-assurance`'s. It is visibly the carrier and not the author, so **a false or shaded relay is
+> attributable to it and is itself a review defect.** Never paraphrase, never re-classify a severity in
+> transit, never decide which findings were worth quoting; disagreement goes in the gate's own text
+> *below* the quote, where a reader sees both.
+
+Attribution is genuinely weaker than a first-party artifact and this record does not pretend otherwise.
+What it buys is that the failure has an owner. What it does not buy:
+
+- **The blind spot widens rather than appears.** This ADR already books that *"no party holds both the
+  verdict a gate returned and the verdict it posted"* — for the gatekeepers' own verdicts. It now
+  covers a **third party's** verdict too, where the gap is one step larger: with a self-posted verdict
+  the shortening is at least done by its author. Selective quoting is invisible afterwards, because a
+  quote of three findings looks precisely like a verdict that had three. **The detector would still be
+  trivial and there is still nowhere to put it.**
+- **The mitigation against selective quoting is a rule about length, not a check.** Quote in full,
+  always; fold in `<details>` if long; split into part 1/2 under the same marker if GitHub's limit is
+  reached. Folding is presentation, truncation is loss. The `Write` grant from the 2026-08-03 amendment
+  is what makes "in full, always" livable — a 200-line quote composed in the scratchpad and posted with
+  `--body-file` costs exactly what a 5-line one does. **That grant was booked as *"what decides whether
+  this rule is livable"*; it now decides whether a second rule is, and it was already paid for.**
+
+### 3 · The multiplier objection — it SURVIVES, and it is now the decisive one
+
+The amendment above named two objections to reviving the third marker and said the multiplier *"was
+always the stronger of the two."* Ruling, because it was asked for explicitly:
+
+> **The decided relay does not dispose of the multiplier. It routes around it — and in doing so makes
+> it the standing reason not to give the copy lens its own marker.**
+
+The relay adds **zero comments**. The quote rides inside the verdict comment `quality-assurance`
+already posts unconditionally on every review including clean ones. So the per-round cadence this
+record calls *"the thing most likely to get worked around"* is not compounded on the reader-facing MRs
+that already carry the most review — which is the entire cost the third marker would have imposed.
+
+That inverts the standing balance, and the balance is now worth stating in one place so the next reader
+does not re-derive it:
+
+| | third marker (carve-out in 5e) | decided relay (chosen) |
+|---|---|---|
+| **Privacy** | closed by construction *only if* the carve-out is narrower than 5e | closed by 5e, untouched |
+| **Multiplier** | one more comment per round on the most-reviewed MRs | **none** |
+| **Attribution** | first-party — the strong form | carrier-attributed, verbatim |
+| **Cost to build** | a carve-out in the floor + persona instruction | an instruction in one persona file |
+
+**So the third-marker question is not settled — it is now dominated on three of four axes and loses only
+on the one this record cares most about.** It stays open on exactly that ground: **if a shaded or
+selective relay is ever observed, attribution is the axis that failed and the third marker is the
+remedy, and its price is the multiplier.** That is the trigger to revisit, written down so the revisit
+is not an invention.
+
+### 4 · The mechanism — criterion 10, from *returned* to *returned and quoted*
+
+The upgrade belongs in this record because it is where the relay becomes checkable rather than
+encouraged:
+
+> **Criterion 10 is satisfied when the lens returned a verdict AND its text is on the PR.** A dispatch
+> does not satisfy it. A return into the orchestrator's context does not satisfy it. If
+> `quality-assurance` cannot post at all, criterion 10 is **UNVERIFIED** — not passed, not skipped — and
+> it says so, reporting what the lens returned in its own return text so the finding is not lost with
+> the artifact.
+
+This is the same shape the decision outcome already sets for the gatekeepers' own verdicts: *a
+gatekeeper that cannot post does not proceed as though it had.* Implementation lives in
+`agents/quality-assurance.md`, written by `developer` in the same MR as this amendment; the mechanics
+are **not** restated there and here in full, per this record's existing rule that a third copy is a
+third thing to keep true.
+
+**The floor does not enforce it, and that is unchanged rather than newly conceded.**
+[ADR-0007](./0007-the-merge-precondition-is-a-floor-not-an-instruction.md)'s hook reads the two
+gatekeepers' markers and their head SHAs; it cannot tell a `quality-assurance` comment that quotes a
+copy verdict from one that does not. The relay therefore fails closed **by instruction**, exactly like
+the rest of criterion 10 and like the *"cannot post, does not merge"* rule above it. Stated so nobody
+reads a decided relay as a mechanised one.
+
+### 5 · The evidence — the measured failure rate of the alternative
+
+The alternative to a decided relay is *the invoking context asks the lens to post*. That is not a
+hypothetical baseline; it ran, and its rate is on the PRs.
+
+**In one session the main agent dispatched a copy lens and omitted to have its verdict posted five
+times, and `quality-assurance` recorded criterion 10 unverified every time.** Checkable — the trail is
+`gh pr view <n> -R tedeuxx/tadeumendonca-io --json comments` on `-io` **#337, #338, #343, #344, #348,
+#349**, grepping `criterion 10`. Two notes on the counting, because a measurement quoted loosely is the
+defect this library keeps finding:
+
+- **The recordings outnumber the occasions.** #348 alone records it four times across rounds, ending
+  *"recorded unverified a fourth time, and it is the truth."* The *five* counts distinct occasions, not
+  distinct sentences; the sentence count is higher and the honest reading is that the sentence count
+  being higher makes the case stronger, not weaker.
+- **#338 is the harder one, and it is included deliberately:** there the lens was not dispatched at all
+  (*"the trigger fires and it has NOT been dispatched"*). Omission at the dispatch step and omission at
+  the posting step are different failures with the same outcome — no verdict in the record — and the
+  relay only fixes the second. **The trigger rule is what covers the first, and this amendment does not
+  touch it.**
+
+**And the finding that forced the decision is the one that would have been lost.** `security` traced
+rule 5e's consequence: the copy lens that found the ADR-0043 falsehood on `-io`#349 — an amendment
+claiming `/architecture` did not draw a distinction the same PR made it draw — would, under 5e, have
+had **no way to post it**. The lens's highest-value finding, on the class the lens exists for, reaching
+the PR only if a step measured at four-omissions-in-five happened to run.
+
+> **A step forgotten four times in five is not a step. The choice was never *the relay* versus *the main
+> agent carries it*; it was the relay versus the finding not arriving.**
+
+### 6 · The correction loop, recorded because both states were right in turn
+
+This record's habit is to keep the wrong version rather than swap it out, and the sequence here is
+unusually clean:
+
+1. Rule 5e's **first** deny message told the denied persona that the finding still reaches the PR
+   because *"`quality-assurance` quotes it onto the PR (ADR-0006)"*, calling it *"the mechanism ADR-0006
+   already names, not one invented here."*
+2. The amendment above found the citation false: this record named no such mechanism, and the citation
+   **booked an existing guarantee where there was an unmade decision** — its own option 3's documented
+   defect, committed by a rule citing it.
+3. `developer` corrected the message to state that publishing was **not** mechanically assured.
+4. **The owner has now made the original claim true.**
+
+**The correction was right when it was made and is not retroactively wrong.** Between (1) and (4) the
+message would have promised a guarantee nobody had decided, to the one reader — the persona being
+denied — who could not check it. The record shows both states because *"the citation was false, then a
+decision made it true"* is a different and more useful fact than *"the first version was right all
+along."* The deny message returns to substantially its first claim, and it may now do so **citing this
+amendment**, which is a decision, rather than this record's silence, which was not one.
+
+### 7 · The field had already ruled, on the same reasoning, before the record did
+
+Worth surfacing rather than leaving in a PR thread: on `-io`#337, `quality-assurance` ruled on its own
+authority that a relayed copy verdict satisfied criterion 10 — *"the lens has Read/Grep/Glob and
+structurally cannot post, so a relay is the only transport that exists; requiring self-posting would
+make the criterion unsatisfiable"* — and correctly scoped the *"a relay is not the authority"* rule to
+the `security` veto and the owner's ratification, both of which **can** post.
+
+That is the same discriminator §1 arrives at, reached independently under time pressure. It is
+recorded for two reasons and the second is the uncomfortable one: it is evidence the distinction is
+natural rather than invented here, **and** it is an instance of a gate resolving an open question in
+this library by itself, in a PR comment, where no sweep would find it. The decision above makes that
+ruling correct by decision instead of by improvisation, and upgrades it — #337's relay was a
+disclosed paraphrase; a relay is now **verbatim, under the relayer's marker**, which is the half that
+makes it attributable.
 
 ## Links
 - Makes [ADR-0003](./0003-mr-definition-of-done.md)'s two-gatekeeper requirement checkable rather than
