@@ -117,6 +117,47 @@ expect 'marker + matching head is reviewed' absent  "$NEEDLE"
 expect 'and it is still listed'             present '#150'
 rm -rf "$root"
 
+echo '--- THE VERDICT IS REPORTED, not merely its existence ---'
+# The defect this section exists for, measured on -io#357: a PR sitting at REQUEST-CHANGES
+# rendered identically to an approved one, because the check asked "is there a marker at this
+# head" and stopped. The listing's whole job is to say which PRs still need something.
+for v in REQUEST-CHANGES APPROVE-PENDING-HUMAN; do
+  setup
+  add_pr 150 'chore: prune an inert deny rule' tedeuxx
+  build_list
+  add_pr_view 150 'abc123' "$MARKER
+$v
+head: abc123"
+  expect "$v is named on the line"        present "quality-assurance returned $v on the current head"
+  expect "$v is NOT read as unreviewed"   absent  "$NEEDLE"
+  rm -rf "$root"
+done
+
+# The partner half: the one verdict that means "done" must stay silent, or every reviewed PR
+# carries a line and the signal dies of noise.
+setup
+add_pr 150 'chore: prune an inert deny rule' tedeuxx
+build_list
+add_pr_view 150 'abc123' "$MARKER
+APPROVE-AND-MERGE
+head: abc123"
+expect 'APPROVE-AND-MERGE renders silently' absent 'quality-assurance returned'
+rm -rf "$root"
+
+# VERDICT DRIFT — a literal the gate's own persona does not define. Reporting it is the point:
+# this is the failure ADR-0007 was opened for, and rendering it as "fine" hides the one thing
+# that check exists to see. `APPROVED` is the real historical example — the marker template
+# carried it while the verdict set said APPROVE-AND-MERGE.
+setup
+add_pr 150 'chore: prune an inert deny rule' tedeuxx
+build_list
+add_pr_view 150 'abc123' "$MARKER
+APPROVED
+head: abc123"
+expect 'an unrecognised literal is reported' present 'UNRECOGNISED verdict on the current head: APPROVED'
+expect 'and is not silently treated as approval' absent 'quality-assurance returned'
+rm -rf "$root"
+
 echo '--- STALENESS: a verdict on a superseded head is not a verdict on this code ---'
 # The case a naive "does a verdict comment exist" check gets wrong. The gate reviewed
 # `old999`; the branch has moved to `abc123` since, so nothing has reviewed what is there now.

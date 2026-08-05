@@ -56,21 +56,49 @@ MARKER='<!-- gatekeeper-verdict: quality-assurance -->'
 # already rides in the same payload, so this costs no extra call. It bounds who can SUPPRESS
 # the mark; it cannot prove who wrote a conforming comment, because every context holding the
 # owner's token reports OWNER (ADR-0006's impersonation residual, unchanged by this).
+#
+# IT REPORTS THE VERDICT, NOT WHETHER ONE EXISTS, and that is the whole of this revision.
+# The boolean version rendered a BLOCKED PR identically to an approved one — measured on
+# `-io`#357, which sat at REQUEST-CHANGES while this listing said nothing about it. The queue
+# listing exists to answer "which of these still needs something", and on the one PR where
+# the answer was "yes, one dispatch" it was silent. A control that removes itself exactly
+# when it is needed is worse than no control, because the reader has learnt to trust it.
+#
+# Reading the literal is expressible where reading prose would not be: the verdict set is a
+# CLOSED ENUMERATION of three, defined in `agents/quality-assurance.md` under *Your verdict —
+# exactly one of*, and the marker template is a projection of that same set. ADR-0008's
+# amendment #2 draws exactly this line — a control over a closed set the author wrote may be
+# recorded as closed; one over a caller-controlled grammar may not.
+#
+# An UNRECOGNISED literal is reported rather than passed over. That is verdict drift — a gate
+# posting a word its own persona does not define — and it is the failure ADR-0007 was opened
+# for. Rendering it as "fine" would hide the one thing that check exists to see.
 verdict_suffix() {
   pr_json="$(gh pr view "$1" --json headRefOid,comments 2>/dev/null || true)"
   [ -z "$pr_json" ] && return 0
-  matches="$(printf '%s' "$pr_json" | jq -r --arg m "$MARKER" '
+  # Empty output means the read failed or the head is unknown — NOT "no verdict". The two are
+  # different and only one is a finding; `none` is the explicit no-verdict value.
+  verdict="$(printf '%s' "$pr_json" | jq -r --arg m "$MARKER" '
+    def literal($lines; $m):
+      ($lines | index($m)) as $i
+      | if $i == null then "" else ($lines[$i + 1] // "" | gsub("^\\s+|\\s+$"; "")) end;
     (.headRefOid // "") as $h
-    | if $h == "" then "unknown"
+    | if $h == "" then ""
       else [ .comments[]?
              | select((.authorAssociation // "") as $a
                       | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
              | .body // ""
-             | select(contains($m)) | select(contains($h)) ]
-           | length | tostring
+             | select(contains($m)) | select(contains($h))
+             | literal(split("\n"); $m) ]
+           | if length == 0 then "none" else .[0] end
       end' 2>/dev/null || true)"
-  case "$matches" in
-    0) printf '%s' ' — NO quality-assurance verdict on the current head' ;;
+  case "$verdict" in
+    '') : ;;                                   # unavailable — say nothing, per the contract above
+    none) printf '%s' ' — NO quality-assurance verdict on the current head' ;;
+    APPROVE-AND-MERGE) : ;;                    # reviewed and clear; the listing has nothing to add
+    APPROVE-PENDING-HUMAN|REQUEST-CHANGES)
+      printf '%s' " — quality-assurance returned ${verdict} on the current head" ;;
+    *) printf '%s' " — quality-assurance posted an UNRECOGNISED verdict on the current head: ${verdict}" ;;
   esac
 }
 
@@ -99,9 +127,16 @@ $listing
 A line marked NO quality-assurance verdict has not been through the merge gate on its
 current head — either it was never dispatched, or the verdict it has is stale because the
 branch moved since. Dispatch the gate before merging; that is the rule, and this line
-exists because nothing else in the loop can tell you it was skipped. An UNMARKED line is
-not proof of review: the annotation is omitted whenever the read failed, so absence means
-reviewed OR unknown.
+exists because nothing else in the loop can tell you it was skipped.
+
+A line naming a verdict — REQUEST-CHANGES or APPROVE-PENDING-HUMAN — HAS been through the
+gate and is not done: the first needs changes and a re-review, the second needs the owner.
+Only APPROVE-AND-MERGE renders silently, so an unannotated line means reviewed and clear.
+A line reporting an UNRECOGNISED verdict means the gate posted a literal its own persona
+does not define, which is a defect in the gate rather than in the PR.
+
+An UNMARKED line is still not proof of review: the annotation is omitted whenever the read
+failed, so absence means reviewed-and-clear OR unknown.
 
 Drain these: for each, the resolution is merge it, or close it with a reason —
 leaving it open is neither. They do NOT block a new slice by count: a slice that
