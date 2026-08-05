@@ -1017,6 +1017,34 @@ else
   if [ -z "$filter_globs" ]; then
     bad "gate coverage — no paths: globs parsed from docs-test.yml; the file changed shape and this assertion did NOT run"
   else
+    # THE SCAN SET IS NOT `FLOOR_CLAIM_FILES` ALONE, and believing it was is how this assertion sat
+    # green with a hole in it. `FLOOR_CLAIM_FILES` is `git ls-files -- '*.md' '*.sh'`, so EVERY source
+    # this suite reads that is not markdown or shell was invisible to the check meant to cover it.
+    #
+    # That produced the FIFTH occurrence of the miss this check exists to prevent, and the first one
+    # invisible to the instrument built for it: a PR changing only `.claude/settings.json` could not
+    # start the workflow whose suite asserts against `.claude/settings.json`. Measured on
+    # tedeuxx/tadeumendonca-skills#150, which changed exactly that file and started no gate.
+    #
+    # THE UNION IS BUILT FROM THE VARIABLES, NOT FROM MEMORY, and that is the whole correction. The
+    # first attempt at this fix added `$SETTINGS` alone and its comment called the enumeration
+    # complete — 2 of 6 — inside the file whose stated lesson is that incomplete self-enumeration is
+    # the defect. The reviewer found the other four with `grep -n 'ROOT/'`, which is the method that
+    # should have produced this list in the first place. All six are already in scope here; none was
+    # omitted for being hard to reach.
+    #
+    # NOT CLAIMED COMPLETE. If a seventh source is added above and not added here, this check goes
+    # quietly back to covering a subset, and nothing in this file will say so. A self-grep asserting
+    # every `"$ROOT/…"` literal is a member was considered and deliberately not built: extracting
+    # paths from shell text is heuristic — it would flag directory operands and interpolated paths
+    # like `$ROOT/commands/$r_fam/…` — and a check wrong more often than right is one the loop
+    # learns to silence, which is the failure this repo has already rejected once.
+    scanned_files="$FLOOR_CLAIM_FILES
+$SETTINGS
+$HOOKS_JSON
+$WORKFLOW
+$(printf '%s\n' "${INVENTORY_DOCS[@]}")"
+
     uncovered=""
     while IFS= read -r file; do
       [ -z "$file" ] && continue
@@ -1032,7 +1060,7 @@ else
       done <<< "$filter_globs"
       [ -z "$matched" ] && uncovered="$uncovered
     $rel"
-    done <<< "$FLOOR_CLAIM_FILES"
+    done <<< "$scanned_files"
 
     if [ -z "$uncovered" ]; then
       ok "gate coverage — every file the floor-claim scan reads is matched by docs-test.yml's paths: filter"

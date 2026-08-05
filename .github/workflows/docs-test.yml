@@ -56,6 +56,17 @@ on:
       # THAT IS NOW ASSERTED RATHER THAN SWEPT. `inventory-counts.test.sh` checks that every file it
       # scans is a file this filter can start on, so a fifth occurrence goes red in CI instead of
       # waiting to be noticed by a reviewer — which is what the first four depended on.
+      # `.claude/**` is the FIFTH occurrence, and the first one the check above could not see. The
+      # suite reads `.claude/settings.json` — the floor-claims assertion parses its `allow` list —
+      # but the gate-coverage check derived its input from `FLOOR_CLAIM_FILES`, which is
+      # `git ls-files -- '*.md' '*.sh'`. A `.json` file was never in that set, so the instrument
+      # written after four misses passed green on the fifth. Measured on #150, which changed exactly
+      # this file and started no gate. The check now reads the union of ALL SIX sources the suite
+      # opens — not "both", which is what this comment said until the reviewer counted them: the
+      # first fix unioned two, and its own prose called that complete. The correction is that the
+      # union is built from the variables rather than from memory. It goes red here now rather than
+      # waiting for a reviewer, which is what all five previous occurrences depended on.
+      - ".claude/**"
       - ".github/workflows/docs-test.yml"
 
 permissions:
