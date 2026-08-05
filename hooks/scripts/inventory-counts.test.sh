@@ -1018,21 +1018,32 @@ else
     bad "gate coverage — no paths: globs parsed from docs-test.yml; the file changed shape and this assertion did NOT run"
   else
     # THE SCAN SET IS NOT `FLOOR_CLAIM_FILES` ALONE, and believing it was is how this assertion sat
-    # green with a hole one variable away. The suite ALSO reads `$SETTINGS` — the floor-claims block
-    # parses its `allow` list, and five assertions rest on it — but it is `.json`, and the scan set
-    # comes from `git ls-files -- '*.md' '*.sh'`, so it was never a member.
+    # green with a hole in it. `FLOOR_CLAIM_FILES` is `git ls-files -- '*.md' '*.sh'`, so EVERY source
+    # this suite reads that is not markdown or shell was invisible to the check meant to cover it.
     #
-    # That made this the FIFTH occurrence of the miss this very check was written to prevent, and the
-    # first one invisible to the instrument built for it: a PR changing only `.claude/settings.json`
-    # could not start the workflow whose suite asserts against `.claude/settings.json`. Measured on
-    # tedeuxx/tadeumendonca-skills#150, which changed exactly that file and ran no gate.
+    # That produced the FIFTH occurrence of the miss this check exists to prevent, and the first one
+    # invisible to the instrument built for it: a PR changing only `.claude/settings.json` could not
+    # start the workflow whose suite asserts against `.claude/settings.json`. Measured on
+    # tedeuxx/tadeumendonca-skills#150, which changed exactly that file and started no gate.
     #
-    # The lesson is in the shape rather than the file: the check derived its input from ONE of the
-    # suite's two sources because that source was the one in a convenient variable. A gate that
-    # enumerates its own inputs has to enumerate all of them, and nothing here can prove it did —
-    # which is why the union is built once, named, and used by both readers below.
+    # THE UNION IS BUILT FROM THE VARIABLES, NOT FROM MEMORY, and that is the whole correction. The
+    # first attempt at this fix added `$SETTINGS` alone and its comment called the enumeration
+    # complete — 2 of 6 — inside the file whose stated lesson is that incomplete self-enumeration is
+    # the defect. The reviewer found the other four with `grep -n 'ROOT/'`, which is the method that
+    # should have produced this list in the first place. All six are already in scope here; none was
+    # omitted for being hard to reach.
+    #
+    # NOT CLAIMED COMPLETE. If a seventh source is added above and not added here, this check goes
+    # quietly back to covering a subset, and nothing in this file will say so. A self-grep asserting
+    # every `"$ROOT/…"` literal is a member was considered and deliberately not built: extracting
+    # paths from shell text is heuristic — it would flag directory operands and interpolated paths
+    # like `$ROOT/commands/$r_fam/…` — and a check wrong more often than right is one the loop
+    # learns to silence, which is the failure this repo has already rejected once.
     scanned_files="$FLOOR_CLAIM_FILES
-$SETTINGS"
+$SETTINGS
+$HOOKS_JSON
+$WORKFLOW
+$(printf '%s\n' "${INVENTORY_DOCS[@]}")"
 
     uncovered=""
     while IFS= read -r file; do
