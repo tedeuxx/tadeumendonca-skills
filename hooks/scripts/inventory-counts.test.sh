@@ -55,8 +55,14 @@ expect_in "$README" "$agents subagent personas" "agents/"
 # --- skills, per directory and in total ------------------------------------------------------
 # The root-level commands (autonomy-on.md) are counted SEPARATELY from the namespaced skills,
 # because that is how both documents present them: "<N> skills + autonomy-on".
+# THE FAMILY LIST IS DERIVED, NOT ENUMERATED. It used to be a literal list here, and when a family was
+# emptied and its directory removed, this loop kept asserting `<name> (0)` against two documents that
+# had correctly stopped mentioning it — a red suite reporting the docs were wrong when the suite was.
+# An enumeration inside the file written to catch stale enumerations; deriving it also means a NEW
+# family is asserted from the moment it exists rather than from whenever someone remembers this line.
 total=0
-for dir in principles architecture backend frontend infrastructure workflow; do
+for path in "$ROOT"/commands/*/; do
+  dir=$(basename "$path")
   n=$(find "$ROOT/commands/$dir" -name '*.md' -type f | wc -l | tr -d ' ')
   total=$((total + n))
   expect_in "$README" "$dir ($n)" "commands/$dir"
@@ -216,7 +222,10 @@ fi
 # The pattern is borrowed from the sibling repo's og-copy.test.mjs, which pins the same pair in the
 # same both-directions shape: the current term present, the retired one absent. Absence is the half
 # that matters — a doc can gain the new name and keep the old one three paragraphs down.
-for doc in "$README" "$CLAUDE" "$ROOT/PRINCIPLES.md" "$ROOT/commands/principles/loop-engineering.md"; do
+# `PRINCIPLES.md` was in this list until it was folded into the README — a floor behind a click is a
+# floor nobody reads. Removed here rather than left to fail: the existence guard below would have
+# reported it, which is correct behaviour and the wrong signal, since the file is gone on purpose.
+for doc in "$README" "$CLAUDE" "$ROOT/commands/principles/loop-engineering.md"; do
   name=$(basename "$doc")
   # Existence first. Without it, a renamed or deleted file makes `grep` print to stderr and return
   # non-zero — which the "is clear of the retired term" branch reads as SUCCESS, emitting a green line

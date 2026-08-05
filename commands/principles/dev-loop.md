@@ -47,7 +47,7 @@ that assessment found this gap **one day after the chain was merged**.
 | → **filed** | the owner, alone | the Issue exists |
 | filed → **ready** | the leads, closing the description | **`ready` label** ← *this was missing* |
 | ready → **in progress** | `developer` | an open PR (already observable — no new state) |
-| in progress → **reviewed** | both gatekeepers | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
+| in progress → **reviewed** | `quality-assurance` | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
 | reviewed → **closed** | `quality-assurance` (safe) · the owner (boundary) | the merge, and for boundary the owner's ratifying comment |
 | **any → blocked → back** | anyone, on discovering it waits on the owner or on something outside the loop | **`blocked` label** |
 
@@ -62,9 +62,17 @@ entirely was also false, and that omission was caught in review of the very slic
 the orchestrator — nothing reached the PR, the Issue, or anywhere durable. So the table asserted an
 artifact that did not exist, in the very column whose job is to answer *what records that this
 happened*. Since 2026-08-02 ([ADR-0006](../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md))
-the artifact is real: each gatekeeper posts a marker comment carrying the head SHA it read, and
-`quality-assurance` verifies `security`'s before merging — head SHA against the PR's current
-`headRefOid`, so a verdict on a moved head fails loudly instead of reading as approval.
+the artifact is real: the gatekeeper posts a marker comment carrying the head SHA it read, so a verdict
+on a moved head fails loudly instead of reading as approval.
+
+**One half of that mechanism was load-bearing and is now gone, which is worth stating rather than
+quietly dropping.** Until 2026-08-04 there were two gatekeepers, and `quality-assurance` **verified
+`security`'s comment before merging** — a gate reading another gate's artifact, which is the only place
+in this loop where a verdict was mechanically checked by someone other than its author. `security` was
+absorbed into `quality-assurance`, so the remaining verdict is checked by nobody: the rule that it must
+be posted before the merge is now **self-enforced**, and its file says so in those words. The artifact
+still closes *omission* — a merge claimed to have been reviewed when nothing was written. It no longer
+has a second party confirming it.
 
 **`ready` is the only state added, and the restraint is the point.** Four of the five transitions were
 already observable; inventing states for them would restate information that exists and give it a second
@@ -131,11 +139,18 @@ a documentation PR is what an unanchored gate looks like.** The work did not dis
 moved it upstream; it got cheaper, because a missed requirement costs a text edit at intake and a review
 round at the gate.
 
-**The asymmetry, stated so the rule does not promise more than it delivers.** `security`'s axis is *not*
-in the issue and cannot be: *"can this cause a problem in production"* is not enumerable in advance — if
-it were, it would be a requirement and the delivery gate would cover it. So the loop is objective on
-delivery and **judgement-based on the floor**, which is exactly why `security` is a separate gatekeeper
-holding its own veto rather than a criterion on someone's checklist.
+**The asymmetry, stated so the rule does not promise more than it delivers.** The gate's *second* axis
+is *not* in the issue and cannot be: *"can this cause a problem in production"* is not enumerable in
+advance — if it were, it would be a requirement and the delivery axis would already cover it. So the
+loop is objective on delivery and **judgement-based on the floor**, and the two rulers are different in
+kind.
+
+**Until 2026-08-04 that asymmetry was carried by a separate persona** — `security`, holding its own veto
+precisely because its axis could not be a criterion on someone else's checklist. The owner merged it
+into `quality-assurance` for fewer profiles reconciling a result on the same MR. **The asymmetry did not
+merge away with the persona**: one gate now applies two rulers, which is why its file requires every
+finding to be labelled with the lens it came from. A finding whose ruler is unstated is a finding the
+reader cannot check.
 
 ### Opening a session — decisions before work
 
@@ -259,7 +274,7 @@ follow — *only a task under a story carrying `ready`, referencing its parent, 
 story* — lives in `agents/developer.md`, and `quality-assurance` verifies it on the task's own MR.
 
 **What the floor still decides, because these are acts and not judgements:** every OTHER subagent is
-denied — `quality-assurance` or `security` citing a story is still a review opening work, and the
+denied — `quality-assurance` citing a story is still a review opening work, and the
 exemption is keyed on `agent_type`, which the harness stamps and the model cannot write. The main loop
 still asks the owner.
 
@@ -338,26 +353,31 @@ the sessions were not running — the reason `session-plugin-version` exists.
    **WIP is bounded by file OVERLAP, not by a count.** A second PR may open freely if its changed files do not intersect an open PR's; it may not if they do. The goal was never *one at a time* — it was avoiding stacked PRs that rot into conflicts, and counting is a bad proxy for that: it blocks disjoint work, which is the common case, while doing nothing about the actual risk. Pair it with the half that prevents rot: **integrate `main` before requesting review** if `main` has moved.
 3. **Develop locally**, against whatever backing services the repo actually has — see `/principles/permissions-and-environments` for what "locally" means per model.
 4. **Validate locally**: run the repo's **functional regression** and self-verify the gates (lint, typecheck, coverage). Report with the real output, never a claim.
-5. **Run `/workflow/code-review`** before opening the PR — the author's own completeness pass, anticipating both gates while fixing is still free. *Namespaced deliberately:* a bare `/code-review` resolves to the external `code-review@claude-code-plugins` marketplace plugin this repo also installs, which is a different thing entirely.
-6. **Both gatekeepers review every MR, dispatched in PARALLEL.** `quality-assurance` consolidates that
-   every requirement of the issue was met; `security` answers the question the issue does not contain —
-   *can this cause a problem in production?* **Neither is conditional on what the diff touches**, which
-   is a change: `security` used to fire only on diffs in its concern.
+5. **Run `/workflow/code-review`** before opening the PR — the author's own completeness pass, anticipating both of the gate's lenses while fixing is still free. *Namespaced deliberately:* a bare `/code-review` resolves to the external `code-review@claude-code-plugins` marketplace plugin this repo also installs, which is a different thing entirely.
+6. **`quality-assurance` reviews every MR, holding TWO lenses in one pass.** It consolidates that every
+   requirement of the issue was met, **and** it answers the question the issue does not contain — *can
+   this cause a problem in production?* **Neither lens is conditional on what the diff touches.**
+
+   **This was two personas until 2026-08-04.** `security` was the second gatekeeper, dispatched in
+   parallel; the owner merged it in for fewer profiles reconciling a result on the same MR. The mandate
+   is unchanged and the dispatch is halved. What the single gate must now do deliberately — hold both
+   lenses, label every finding with the one it came from, and run both *instruments* (measuring a
+   mechanism by executing payloads against it, and re-deriving a stated claim against the artifact) — is
+   written into `agents/quality-assurance.md` with the four costs it is compensating for.
 
    *The cost, named, because it is the failure this loop keeps meeting:* on a diff with no security
-   surface, `security` has nothing to check, and a gate answering `n/a → pass` every time is gating
-   nothing. So its `n/a` is only valid **naming the axes it looked at and found untouched** —
+   surface the production lens has nothing to check, and a lens answering `n/a → pass` every time is
+   gating nothing. So its `n/a` is only valid **naming the axes it looked at and found untouched** —
    dependencies, permissions and IAM, secrets, action pins, new external inputs, the deploy path.
    A reassurance is not a check.
 
-   *Parallel is not a detail.* Dispatching lens → fix → gate → fix serialises work with no dependency
-   between its parts, and the observed cost was the loop's throughput rather than its round count.
-
-   **Each gatekeeper posts its verdict to the PR before returning** — a `<!-- gatekeeper-verdict: … -->`
-   comment carrying the head SHA it read — and **`quality-assurance` verifies `security`'s before
-   merging**: marker present, verdict approving, head SHA equal to the PR's current `headRefOid`. A
-   relay from the invoking context is a notification, never the authority
+   **The gatekeeper posts its verdict to the PR before returning** — a `<!-- gatekeeper-verdict: … -->`
+   comment carrying the head SHA it read, so a verdict on a moved head fails loudly instead of reading
+   as approval. A relay from the invoking context is a notification, never the authority
    ([ADR-0006](../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)).
+   ~~`quality-assurance` verifies `security`'s before merging.~~ **Struck 2026-08-04**: there is no
+   second verdict to verify, so the posting rule is self-enforced — see the `reviewed` row above for
+   what that costs.
 
    *This paragraph exists because the sweep that should have caught its absence could not.* The rule was
    added to both persona files and to the state table, and this narration — the place an agent actually
@@ -435,7 +455,7 @@ LIVE (deploy on merge) + tag / Release  ──  post-deploy smoke + confirm heal
 
   **But "the merge is the go/no-go" does NOT mean "the merge always asks a human", and this line used to say it did.** ~~*Auto-merging to `main` is never in-pattern here.*~~ That was written before ADR-0004's classified autonomy and contradicted `quality-assurance`'s own definition, which merges the safe class — so an agent reading the principles layer and an agent reading the gate reached opposite conclusions about the same act (#62). What the merge asks for is a **judgement**, and who supplies it depends on the class:
 
-  - **Safe class** — docs, dependency bumps, tests, in-pattern implementation of an already-approved spec. **`quality-assurance` merges it**, once both gatekeepers have approved. Escalating these is not caution; it is the loop failing to flow, and it spends the owner's attention where it buys nothing.
+  - **Safe class** — docs, dependency bumps, tests, in-pattern implementation of an already-approved spec. **`quality-assurance` merges it**, once both of its lenses are green. Escalating these is not caution; it is the loop failing to flow, and it spends the owner's attention where it buys nothing.
   - **Boundary class** — infrastructure and anything threatening continuity, a change to the loop's own rules, publishing in the owner's voice. **The gate never merges these.** It approves pending the human and hands the go/no-go up.
 
   *Significance beats in-pattern:* when the class is unclear, it is boundary. And **the gate never merges an expansion of its own authority**, whatever the diff looks like.

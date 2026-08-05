@@ -174,7 +174,13 @@ check_agent ALLOW "tadeumendonca-skills:developer" "a body written to a file"   
 # THE EXEMPTION IS STILL THE BUILDER'S ALONE. Filing is an act of EXECUTION; a review citing a
 # story is still a review opening work, which is the failure the whole rule exists to prevent.
 check_agent DENY  "tadeumendonca-skills:quality-assurance" "a REVIEWER still cannot file"      "gh issue create --title t --body 'Parent: #122'"
-check_agent DENY  "tadeumendonca-skills:security"          "security still cannot file"        "gh issue create --title t --body 'Parent: #122'"
+# `security` stood here until 2026-08-04 and was absorbed into `quality-assurance`. A case whose
+# agent_type names a persona that does not exist still PASSES — 5c denies every non-`developer`
+# subagent, including a nonexistent one — which is exactly the shape this suite refuses elsewhere: an
+# assertion that cannot distinguish the rule holding from the subject being gone. Re-pointed at a
+# persona that exists, and deliberately at a NON-gate one, so the "not only reviewers" half is still
+# covered now that there is a single reviewer.
+check_agent DENY  "tadeumendonca-skills:harness-reviewer"  "an advisory lens cannot file"      "gh issue create --title t --body 'Parent: #122'"
 # ~~The main loop is unaffected: it still ASKS. The owner answers, per issue, as before.~~
 # **CHANGED 2026-08-03 — the main loop falls through too.** A subagent's `gh issue create` is invisible
 # (unattended, reported only if the agent chooses to); the main agent's is visible by construction —
@@ -226,7 +232,7 @@ check_agent ALLOW "tadeumendonca-skills:developer" "a commit message mentioning 
 # Exploitability is low, the same way it was for `developer_may` (the hook is a child of the harness,
 # not of any command's shell), and that is exactly why it is asserted rather than argued: a fail-open
 # at the floor that depends on "you probably cannot reach it" is not closed, it is unmeasured.
-out=$(jq -n --arg c "gh issue create --title t --body b" '{tool_input:{command:$c}, agent_type:"tadeumendonca-skills:security"}' | agent_type="tadeumendonca-skills:developer" bash "$GUARD")
+out=$(jq -n --arg c "gh issue create --title t --body b" '{tool_input:{command:$c}, agent_type:"tadeumendonca-skills:harness-reviewer"}' | agent_type="tadeumendonca-skills:developer" bash "$GUARD")
 if [ "$(verdict "$out")" = "DENY" ]; then
   pass=$((pass + 1)); printf 'ok    %-6s %s\n' "DENY" "an inherited agent_type does not claim a persona (payload wins)"
 else
@@ -406,13 +412,19 @@ check_agent ALLOW "tadeumendonca-skills:product-lead" "reading a PR's comments" 
 check_agent ALLOW "tadeumendonca-skills:product-lead" "a message mentioning the act" "git commit -m 'gh pr comment notes'"
 
 echo "--- rule 5e: the gatekeeper protocol must keep running ---"
-# Both gatekeepers comment their verdict on every MR. A rule that matched by SUBCOMMAND rather than by
+# The gatekeeper comments its verdict on every MR. A rule that matched by SUBCOMMAND rather than by
 # agent would take out the protocol this whole loop runs on, and would do it silently — the verdicts
 # would simply stop arriving. These are the cases that fail if 5e is ever widened past its one persona.
+#
+# THE SECOND GATEKEEPER'S CASES ARE NOT DELETED, THEY ARE RE-POINTED. `security` was absorbed into
+# `quality-assurance` on 2026-08-04, and the property those two lines held was never about that
+# persona: it is that 5e denies `product-lead` and NOBODY ELSE. Dropping them would leave the
+# reviewer as the only non-denied persona under test, so a widening of 5e to "every subagent but the
+# builder" would pass. `harness-reviewer` keeps that half alive.
 check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer comments its verdict" "gh pr comment 149 --body-file /tmp/verdict.md"
 check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer comments on an issue" "gh issue comment 173 --body b"
-check_agent ALLOW "tadeumendonca-skills:security"          "security comments its verdict"     "gh pr comment 149 --body-file /tmp/verdict.md"
-check_agent ALLOW "tadeumendonca-skills:security"          "security comments on an issue"     "gh issue comment 173 --body b"
+check_agent ALLOW "tadeumendonca-skills:harness-reviewer"  "the harness lens comments too"     "gh pr comment 149 --body-file /tmp/verdict.md"
+check_agent ALLOW "tadeumendonca-skills:harness-reviewer"  "the harness lens comments on an issue" "gh issue comment 173 --body b"
 check_agent ALLOW "tadeumendonca-skills:developer"         "the builder comments on its own PR" "gh pr comment 149 --body b"
 check_agent ALLOW "tadeumendonca-skills:tech-lead"         "the other lead still comments"     "gh pr comment 149 --body b"
 # The main agent is an EMPTY agent_type, and the ASK removal in this same tree means it now falls
@@ -438,7 +450,7 @@ check_agent DENY "" "allow does not unreach rule 7 (trunk push)"  "gh pr comment
 check_agent DENY "" "allow does not unreach rule 7b (merge)"      "gh pr comment 1 --body b && gh pr merge 1 --merge"
 check_agent DENY "" "allow does not unreach rule 8 (composition)" "gh pr comment 1 --body b ; echo done"
 check_agent DENY "tadeumendonca-skills:quality-assurance" "reviewer: still reaches rule 7"  "gh pr comment 1 --body b && git push origin main"
-check_agent DENY "tadeumendonca-skills:security"          "security: still reaches rule 8"  "gh issue comment 1 --body b ; echo done"
+check_agent DENY "tadeumendonca-skills:harness-reviewer"  "harness lens: still reaches rule 8" "gh issue comment 1 --body b ; echo done"
 
 echo "--- rule 8: composition the permission matcher cannot decompose ---"
 check DENY  "cd compound"                   "cd /tmp && ls"
@@ -568,7 +580,7 @@ echo "--- the -c payload unwrap: a wrapper is not a bypass ---"
 # All five of these were measured ALLOW, with no decision from the hook OR the settings deny.
 check       DENY "wrapped trunk push (rule 7)"   "bash -c 'git push origin main'"
 check       DENY "wrapped merge (rule 7b)"       "bash -c 'gh pr merge 145'"
-check_agent DENY "tadeumendonca-skills:security" "wrapped issue create (5c)" "bash -c 'gh issue create --title x'"
+check_agent DENY "tadeumendonca-skills:harness-reviewer" "wrapped issue create (5c)" "bash -c 'gh issue create --title x'"
 check_agent DENY "tadeumendonca-skills:product-lead" "wrapped pr comment (5e)" "bash -c 'gh pr comment 1 --body b'"
 check       DENY "wrapped gh api write (5f)"     "bash -c 'gh api repos/o/r/issues -f title=x'"
 # The rest of the floor through the same wrapper.
