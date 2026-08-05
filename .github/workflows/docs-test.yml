@@ -67,6 +67,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # FULL HISTORY, AND THE SUITE FAILS WITHOUT IT. The roster-membership assertions derive the
+          # set of RETIRED personas from `git log --diff-filter=D -- 'agents/*.md'` — the names that
+          # once had a file and no longer do. `actions/checkout` defaults to `fetch-depth: 1`, on which
+          # that command returns NOTHING, and an absence check over an empty set of names passes
+          # vacuously: green in CI, red on a maintainer's machine, for a reason nothing prints.
+          #
+          # The suite asserts the set is non-empty rather than trusting this line, so removing it goes
+          # red instead of quiet. Both halves are needed — this makes it work, that makes the failure
+          # legible.
+          fetch-depth: 0
 
       - name: Assert the published inventory counts match the repo
         run: bash hooks/scripts/inventory-counts.test.sh

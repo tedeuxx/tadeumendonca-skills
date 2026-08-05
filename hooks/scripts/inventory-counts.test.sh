@@ -15,7 +15,11 @@
 # WHAT IT DOES NOT COVER, said plainly so the green is not read as more than it is:
 #
 #   - It asserts the numbers, never the prose around them. A README describing the wrong thing in the
-#     right quantity passes.
+#     right quantity passes. NARROWED 2026-08-04 and only for the roster: `security` was swapped for
+#     `harness-reviewer` in one slice, the count held at five, and every assertion in this file stayed
+#     green through it. The "roster's MEMBERSHIP" block below now checks WHICH personas are named, not
+#     just how many exist. It is the only inventory here with that property — the skill and hook
+#     inventories are still counts plus a name list, and nothing checks membership of a family.
 #   - CLAUDE.md ALSO publishes "18 subagents" enabled and "26 defined". Those are counts of the ROSTER
 #     as ADR-0002 defines it in the consuming repo — not of this tree — so nothing here can derive
 #     them and nothing here asserts them. The per-directory skill counts are checked in both files;
@@ -633,6 +637,182 @@ else
       Either the floor changed and the prose did not, or the prose names an entry that never existed.
       If the sentence is NARRATING a removal, say so on the same line (\"was\", \"no longer\", \"~~struck~~\") — that is what tells this check it is history."
     fi
+  fi
+fi
+
+# --- the roster's MEMBERSHIP, not its cardinality ----------------------------------------------
+#
+# THE DEFECT: `security` was deleted from `agents/` and `harness-reviewer` was added in the same slice.
+# The roster count held at five. Every assertion above it — `"$agents subagent personas"`, the EVERY-
+# occurrence sweep, the lead-count word, the gate-coverage diff — stayed green through a change that
+# **swapped one persona for another**, and `docs/adr/0002` was left enumerating a roster that no longer
+# exists, including the sentence *"both approvals are still required"*: a record describing a control as
+# STRONGER than it is, which is the direction that fails open.
+#
+# A COUNT IS NOT AN IDENTITY. Every check above is cardinality — a number of files, a number of rows, a
+# number spelled as an English word. Cardinality is invariant under substitution, and substitution is the
+# roster change this repo actually keeps making: six merges and two outright retirements in three weeks,
+# every one of them a name changing rather than a total.
+#
+# ── THE SETS ARE DERIVED. BOTH OF THEM. ─────────────────────────────────────────────────────────
+# LIVE is `agents/*.md`, as everywhere else in this file. RETIRED is `git log --diff-filter=D` over the
+# same glob, minus LIVE — every name that once had a persona file and no longer does. Neither is written
+# here, for the reason the family loop above records: an enumeration inside the file written to catch
+# stale enumerations is this suite's signature defect, and it has now been paid for twice.
+#
+# THE COST OF DERIVING RETIRED FROM HISTORY IS A CLONE DEPTH, and it is asserted rather than assumed.
+# On `fetch-depth: 1` the log returns nothing, RETIRED is empty, and an absence check over an empty set
+# of names is green for no reason at all. `docs-test.yml` sets `fetch-depth: 0` and the guard below
+# fails loudly if it is ever removed.
+roster_live=$(find "$ROOT/agents" -maxdepth 1 -name '*.md' -type f -exec basename {} .md \; | sort -u)
+roster_n=$(printf '%s\n' "$roster_live" | grep -c . || true)
+roster_deleted=$(git -C "$ROOT" log --diff-filter=D --name-only --pretty=format: -- 'agents/*.md' 2>/dev/null \
+  | sed -nE 's#^agents/([A-Za-z0-9._-]+)\.md$#\1#p' | sort -u | grep -v '^$' || true)
+roster_retired=$(comm -23 <(printf '%s\n' "$roster_deleted" | grep -v '^$' || true) <(printf '%s\n' "$roster_live"))
+
+roster_live_alt=$(printf '%s\n' "$roster_live" | paste -sd'|' - | tr -d ' ')
+roster_retired_alt=$(printf '%s\n' "$roster_retired" | grep -v '^$' | paste -sd'|' - | tr -d ' ')
+
+if [ "$roster_n" -lt 2 ]; then
+  bad "roster membership — only $roster_n persona file(s) found under agents/; the assertions below would be trivial"
+elif [ -z "$roster_retired_alt" ]; then
+  bad "roster membership — NO retired persona could be derived from git history. On a shallow clone \`git log --diff-filter=D\` returns nothing and every absence check below passes vacuously. Restore \`fetch-depth: 0\` on the checkout in .github/workflows/docs-test.yml"
+else
+  ok "roster membership — $roster_n live personas, $(printf '%s\n' "$roster_retired" | grep -c . || true) retired, both derived"
+
+  # SCAN SET: the tracked-file set already derived for the floor-claim scan, minus `*.test.sh`.
+  #
+  # REUSED RATHER THAN DERIVED AGAIN, deliberately: `gate coverage` below asserts that every file in
+  # FLOOR_CLAIM_FILES is matched by `docs-test.yml`'s `paths:` filter, and a SUBSET of a covered set is
+  # covered. Deriving a second set here would have re-opened exactly the hole that assertion exists to
+  # close — two independently-maintained sets, one filter, and nobody diffing them.
+  #
+  # `*.test.sh` is excluded for the reason the lead-count scan gives: a suite's fixtures are deliberately
+  # wrong strings. `permission-guard.test.sh` names retired personas as case attribution, and this file's
+  # own comments name them as the defect they describe.
+  #
+  # `docs/**` IS IN. That is the change. The lead-count scan above excludes it on the ground that a record
+  # narrates history — and that ground is real, which is why the line filter below exists rather than a
+  # blanket exclusion. Excluding `docs/` here would have excluded the only layer the defect landed in.
+  roster_scan_files=$(printf '%s\n' "$FLOOR_CLAIM_FILES" | grep -v '\.test\.sh$' | grep -v '^$' || true)
+
+  # ── WHAT MAKES A LINE OR A FILE "ENUMERATE THE ROSTER" ────────────────────────────────────────
+  # A backticked name is how this repo writes a persona reference, everywhere, without exception. So the
+  # unit is `` `name` `` and not the bare word — which also keeps `per-route \`security\`` in the API
+  # Gateway skill (an OpenAPI keyword) from being read as the retired gatekeeper, and keeps the ordinary
+  # English words `developer` and `performance` out of it entirely.
+  #
+  # THE THRESHOLD IS N−1, DERIVED FROM THE ROSTER SIZE. A file or line naming all but one of the live
+  # personas is enumerating the roster; nothing else in this tree does that by accident. Measured on the
+  # current head: it selects the four documents that publish the roster and no others, and at line level
+  # it selects the ADR's roster lines and no prose.
+  #
+  # WHY NOT "NAMES TWO OR MORE": measured, that fires on ~60 lines of ordinary prose — "`security`
+  # discovered that `Edit(.claude/**)`", "`marketing-lead` merged into `product-lead`" — most of them
+  # correct attributions of a past finding to the persona that made it. A check that cries wolf on
+  # accurate prose trains people to ignore it, and an ignored check also looks like coverage.
+  roster_threshold=$((roster_n - 1))
+
+  # ── ASSERTION 1: a document that PUBLISHES THE COUNT must name every member ───────────────────
+  # This is the weaker direction and it is stated as such. It catches an ADDED persona that a roster
+  # document was never updated for. It would NOT have caught the defect above — `docs/adr/0002` gained
+  # no wrong name, it kept an old one — which is why assertion 2 exists and is the point of this block.
+  #
+  # THE SELECTION RULE IS DEFINITIONAL, NOT A HEURISTIC, and the first draft got this wrong in a way
+  # worth recording. It selected "any file naming N−1 or more live personas", on the theory that a
+  # document naming most of the roster is enumerating it. Measured, that selected seven files including
+  # `hooks/scripts/permission-guard.sh` — which names four personas because it maps them to permission
+  # rules, not because it publishes a roster. A selection rule that pulls in a file with no roster to
+  # publish makes the assertion arbitrary, and an arbitrary red is the cry-wolf failure one step earlier
+  # than a false positive.
+  #
+  # The rule used instead is the one this whole block is named after: **a document that publishes the
+  # CARDINALITY has taken on the MEMBERSHIP.** Selection is therefore the same claim the EVERY-occurrence
+  # sweep above already pins — `<N> subagent personas` — read out of the file rather than listed here.
+  #
+  # WHAT THAT LEAVES UNCHECKED, said plainly. `plugin.json` and `marketplace.json` publish the count too
+  # and are NOT selected: they are not in the md/sh scan set, and they state the roster as prose
+  # ("one fullstack developer", "a harness-reviewer") rather than in the backticked form this pattern
+  # reads. Their count is asserted above; their membership is not asserted anywhere. Matching bare words
+  # there would make `developer` — an ordinary English noun — pass on any sentence at all, which is a
+  # green for the wrong reason rather than coverage.
+  roster_publishers=$(printf '%s\n' "$roster_scan_files" | while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    grep -qE '[0-9]+ subagent personas' "$f" 2>/dev/null && printf '%s\n' "$f"
+  done)
+
+  if [ -z "${roster_publishers//[[:space:]]/}" ]; then
+    bad "roster membership — no tracked document publishes a '<N> subagent personas' count; assertion 1 selected nothing and did NOT run"
+  else
+    roster_incomplete=""
+    while IFS= read -r file; do
+      [ -z "$file" ] && continue
+      named=$(grep -ohE "\`($roster_live_alt)\`" "$file" 2>/dev/null | tr -d '`' | sort -u)
+      missing=$(comm -23 <(printf '%s\n' "$roster_live") <(printf '%s\n' "$named" | grep -v '^$') | tr '\n' ' ')
+      [ -z "${missing// /}" ] && continue
+      roster_incomplete="$roster_incomplete
+    ${file#"$ROOT"/}: publishes the count, never names: ${missing% }"
+    done <<< "$roster_publishers"
+
+    if [ -z "$roster_incomplete" ]; then
+      ok "roster membership — every document publishing the persona count names all $roster_n of them"
+    else
+      bad "roster membership — a document states how many personas there are and does not name them all:$roster_incomplete
+      The count is invariant under a swap; the membership is not. Publishing the number is taking on the list."
+    fi
+  fi
+
+  # ── ASSERTION 2: a roster-enumerating LINE must not name a persona that has no file ───────────
+  # THE DIRECTION THAT ACTUALLY CAUGHT NOTHING. Renaming a persona file — the exact change that shipped
+  # clean — leaves the old name standing in every document that lists the roster, and no count moves.
+  #
+  # ── THE TRAP, AND THE BOUND, STATED BEFORE THE CHECK RUNS ────────────────────────────────────
+  # A RECORD IS ALLOWED TO NAME A RETIRED PERSONA. ADRs here are supersede-never-rewrite: `~~\`security\`
+  # reviews every MR~~` is CORRECT prose and must not fire. Distinguishing a live claim from a struck one
+  # is a reading of prose, and the honest answer is that this cannot do it in general. Measured on the
+  # current head: ~400 backticked mentions of retired personas exist in this tree, 135 of them in `docs/`
+  # survive every past-tense and negation marker I could write, and nearly all 135 are correct.
+  #
+  # SO THIS IS THE WEAKER CHECK, AND HERE IS ITS BOUND, PRECISELY:
+  #
+  #   IT FIRES ONLY ON A LINE THAT NAMES N−1 OR MORE LIVE PERSONAS. That is the shape of an enumeration
+  #     of the CURRENT roster, and a retired name inside one is stale by construction — history is
+  #     narrated one or two personas at a time, never as "the roster is A, B, C, D and <retired>".
+  #     It therefore MISSES a stale claim about one persona ("`security` still reviews every MR", alone
+  #     on its line). That miss is deliberate: catching it costs the 135 false positives above.
+  #
+  #   IT DEPENDS ON THIS REPO'S STRIKE CONVENTION for the lines it does select. `~~…~~` and the
+  #     past-tense markers below are what tell it a roster enumeration is history. A superseded roster
+  #     narrated in plain present tense with no marker WILL fire — and that is the one direction where
+  #     firing on correct prose is acceptable, because the remedy is to strike the line, which the
+  #     records here already do everywhere the convention was followed.
+  #
+  # The durable fix for what this misses is the one the file keeps arriving at: a document that states
+  # the roster by pointing at `agents/` rather than by listing it cannot go stale at all.
+  roster_narr_re='~~|no longer|never|was |were |had |has been|have been|until |former|retire|absorb|supersed|struck|STRUCK|used to|replaced|\[example\]'
+  roster_stale=""
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    [ -r "$file" ] || continue
+    while IFS= read -r numbered; do
+      [ -z "$numbered" ] && continue
+      lineno="${numbered%%:*}"
+      text="${numbered#*:}"
+      printf '%s' "$text" | grep -Eq "$roster_narr_re" && continue
+      n_live_here=$(printf '%s' "$text" | grep -ohE "\`($roster_live_alt)\`" | sort -u | grep -c . || true)
+      [ "$n_live_here" -lt "$roster_threshold" ] && continue
+      dead=$(printf '%s' "$text" | grep -ohE "\`($roster_retired_alt)\`" | sort -u | tr -d '`' | tr '\n' ' ')
+      roster_stale="$roster_stale
+    ${file#"$ROOT"/}:$lineno names ${dead% } beside $n_live_here live personas"
+    done <<< "$(grep -nE "\`($roster_retired_alt)\`" "$file" 2>/dev/null || true)"
+  done <<< "$roster_scan_files"
+
+  if [ -z "$roster_stale" ]; then
+    ok "roster membership — no line enumerating the roster names a persona without a file in agents/"
+  else
+    bad "roster membership — these lines list the CURRENT roster and include a persona that has no file:$roster_stale
+      A persona was renamed or removed and this enumeration was not. The count did not move, so nothing else here could see it.
+      If the line is NARRATING a superseded roster, strike it (\`~~…~~\`) or mark the tense — that is what tells this check it is history, and this repo's records already do it everywhere the convention was followed."
   fi
 fi
 

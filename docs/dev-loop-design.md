@@ -52,41 +52,68 @@ practice most were never invoked, because **splitting a concern out of the main 
 handoff decision, and the handoff costs more than the work**. A persona that is never dispatched is a
 document.
 
-The governing rule now is one line:
+The governing rule was one line:
 
-> **A persona exists only where conflict is wanted** — where someone should be arguing against someone
+> ~~**A persona exists only where conflict is wanted** — where someone should be arguing against someone
 > else. Anything that generates no disagreement is a competence, and belongs to whoever already holds
-> the context.
+> the context.~~
 
-**A second rule joined it on 2026-08-04, and it is not the same rule.** `marketing-lead` merged into
-`product-lead` even though it *did* generate conflict — because **the conflict was internal to one
-object**. The product is the site and the site is the owner's professional presence; two leads over one
-object produce two verdicts to reconcile at review time, and the reconciliation was the owner's to make
-in either arrangement. So: *a persona exists only where conflict is wanted **between two objects***. See
-§2.4's superseding note for what the merge had to carry across explicitly.
+**Struck 2026-08-04: it survives as the first of four reasons, not as the only one.** It could not
+explain either move made that day — `harness-reviewer` argues with the *owner* rather than with another
+persona, and `security` generated real disagreement and was merged anyway. The rule now:
+
+> **A persona exists for one of four reasons:** disagreement is wanted · a fresh context is wanted ·
+> **the context window is the constraint** · the capability should be smaller. A persona that satisfies
+> none of the four is a handoff, and **a persona that is never invoked is a document.**
+
+And the rule that decides where one may be **added**, which is the operative half:
+
+> **Reconciliation cost is paid WITHIN a tier, not across tiers.** Two roles judging the same thing at
+> the same moment produce two verdicts someone has to weigh; across tiers, each hands the next a
+> finished artifact rather than an opinion. So a **second** persona in one tier needs a reason the
+> others do not.
+
+**A refinement joined the first reason on 2026-08-04, and it is not the same rule.** `marketing-lead`
+merged into `product-lead` even though it *did* generate conflict — because **the conflict was internal
+to one object**. The product is the site and the site is the owner's professional presence; two leads
+over one object produce two verdicts to reconcile at review time, and the reconciliation was the
+owner's to make in either arrangement. So, *within reason one*: conflict is wanted **between two
+objects**. See §2.4's superseding note for what the merge had to carry across explicitly.
+
+Read together, the four reasons and the per-tier rule settle the roster without special pleading. Tier
+3 held two personas and paid the reconciliation cost on every merge request — which is why it now holds
+one. Tier 1's second persona is justified because product-versus-system disagreement *is* the point, and
+its **third** pays nothing, because it never runs on the same work as the other two.
 
 ```
-                        OWNER  (CEO)
+                        OWNER  (CEO, and harness engineer)
               decides · ratifies the boundary · the only one who opens work
                              │
-        ┌────────────────────┼────────────────────┐
-   product-lead              ⇄              tech-lead
-   reader, value,                           architecture,
-   order, slice size,                       measurement,
-   positioning, voice,                      sequencing,
-   career, market                           writes the ADRs
-   (truth findings BLOCK)
-        └────────────────────┼────────────────────┘
-                    ONE consolidated demand
+        ┌────────────────────┼────────────────────┐         ┌─────────────────┐
+   product-lead              ⇄              tech-lead       │ harness-reviewer│
+   reader, value,                           architecture,   │ the machinery:  │
+   order, slice size,                       measurement,    │ hooks, settings,│
+   positioning, voice,                      sequencing,     │ briefs, plugin  │
+   career, market                           writes the ADRs │ ADVISORY · gates│
+   (truth findings BLOCK)                                   │ nothing · runs  │
+        └────────────────────┼────────────────────┘         │ BEFORE the build│
+                    ONE consolidated demand                 └─────────────────┘
+                             │                          the owner's pair on a
+                        developer                       harness proposal, not
+              app · infrastructure · pipeline ·         part of a story's intake
+                        tests inline
                              │
-                        developer
-              app · infrastructure · pipeline · tests inline
-                             │
-                  ─── GATEKEEPERS ───
-        quality-assurance              security
-        technical delivery,            the floor;
-        the DoD, and the CAUSE         its own veto
-        of any failing gate
+                  ─── THE GATEKEEPER ───
+                     quality-assurance
+             TWO lenses in ONE pass, every finding
+             labelled with the lens it came from:
+               delivery — the DoD, the Issue's
+                 requirements, and the CAUSE
+                 of any failing gate
+               production — can this break prod?
+                 dependencies, IAM, secrets,
+                 supply chain, the deploy path
+                     · holds the merge ·
 ```
 
 ### 2.1 · The two leads
@@ -113,11 +140,45 @@ two separately labelled classes**; a verdict without the split cannot be applied
 Where they cannot reconcile, the disagreement goes to the owner *as a decision*, not downstream as
 competing instructions.
 
+### 2.1b · The harness reviewer — tier 1, and its peer is the owner
+
+**`harness-reviewer`** is the only persona whose counterpart is not another agent. The owner is the CEO
+of this initiative **and acts as its harness engineer**; this is their pair in the second role, and only
+there. It is dispatched on a proposal about the **machinery** — hooks, settings and permissions, agent
+briefs, skills, commands, the plugin, MCP — and returns the scenarios that proposal does not cover,
+**before anything is built**.
+
+**It gates nothing.** It does not review merge requests, does not merge, does not open work. It sits in
+tier 1 because a harness proposal is closed the same way a story is: upstream of the build.
+
+**It exists because second-order effects of a configuration change are invisible from inside the
+change.** Measured over one day, all four found **by accident, after implementation**: merging two
+personas left a third running an installed brief that predated the merge; a deny written for `Edit` and
+`Write` has no hook layer at all, because the pre-execution hook is registered on the shell matcher
+only; a project-relative glob in a two-repo workspace does not reach the other repo; and a repo's
+settings are not *loaded* in a session rooted elsewhere, so twelve denies were inert the moment they
+were committed. None of those is a bug. Each is how the harness works.
+
+**Its standing rule is what decides whether it is worth dispatching:**
+
+> **Every scenario ships with how to verify it, or is labelled a hypothesis — in those words.**
+
+A persona that speculates about a harness produces twenty plausible failure modes and no way to sort
+them, which costs more attention than it saves. The four above were not imaginative; they were
+mechanical facts somebody could have measured in seconds.
+
+**Its standing question is the one nobody owned:** *which layer can actually carry this control, and can
+that layer hold it?*
+
+*Stated cost:* nothing enforces a dispatch anywhere in this loop, and this persona runs where no gate
+exists at all. An undispatched lens is indistinguishable from a clean one; this one has no mechanical
+backstop whatsoever, and is worth exactly as much as the habit of invoking it.
+
 ### 2.2 · The builder
 
 **`developer`** — fullstack: application, infrastructure, pipeline **and the automated E2E journeys**,
 with tests written inline as it goes. It decides *how*, within decisions already recorded; it does not
-decide *what* (the issue does) or *whether it ships* (the gatekeepers do).
+decide *what* (the issue does) or *whether it ships* (the gate does).
 
 **The E2E suite is part of the deliverable, not a follow-up.** A slice that changes user-visible
 behaviour and leaves the journey for later is half-done, and does not reach a verdict — the gate
@@ -140,71 +201,87 @@ area. One builder can. That guarantee moved from *capability* to *scope discipli
 is compensated by the gate's scope criterion — a slice reaching outside what its issue mentions is a
 finding.
 
-### 2.3 · The two gatekeepers — and the MR needs both
+### 2.3 · The gatekeeper — one gate, two lenses, one pass
 
-**Every merge request is approved by both, dispatched in parallel.** Neither is conditional on what the
-diff touches.
+**Every merge request is reviewed by `quality-assurance`, and it holds two mandates at once.** Neither
+is conditional on what the diff touches.
 
-- **`quality-assurance`** — consolidates that **every requirement of the issue was met**, using the
-  Definition of Done as the *how* of proving it, in a fresh context, each criterion **with evidence**. It
-  classifies the change as safe or boundary and either merges the safe class or hands the boundary class
-  up. It also **diagnoses**: when a gate fails, or passes for a reason nobody can explain, it returns the
-  *cause*.
-- **`security`** — answers **the question the issue does not contain: can this cause a problem in
-  production?** Dependencies, permissions and IAM scope, secret hygiene, supply chain, the deploy path.
-  It holds its own veto.
+> **Delivery lens** — *was every requirement of the Issue met?* Its ruler is **external to the gate**:
+> the requirements the leads wrote. It uses the Definition of Done as the *how* of proving it, in a
+> fresh context, each criterion **with evidence**. It classifies the change as safe or boundary and
+> either merges the safe class or hands the boundary class up. It also **diagnoses**: when a gate fails,
+> or passes for a reason nobody can explain, it returns the *cause*.
+>
+> **Production lens** — *can this cause a problem in production?* Dependencies, permissions and IAM
+> scope, secret hygiene, supply chain, the deploy path. It is **not enumerable in advance**; if it were,
+> it would be a requirement and the delivery lens would already cover it.
 
-**The asymmetry is deliberate and worth stating, because it bounds what "objective" can mean here.** The
-delivery gate is objective — it has an external ruler. The security gate is **judgement**, because
-*"can this break production"* is not enumerable in advance; if it were, it would be a requirement and the
-delivery gate would already cover it. A loop that tries to make both objective either invents a checklist
-that misses the novel case, or quietly drops the axis.
+**Every finding is labelled with the lens it came from.** That is a rule, not decoration: the two lenses
+grade **different objects** against **different rulers** — one objective, one judgement — and a finding
+whose ruler is unstated is a finding the reader cannot check.
 
-**A verdict is an artifact on the merge request, not a claim passed back through the orchestrator.**
-**Each** gatekeeper writes its verdict there, carrying the commit SHA it reviewed. **Verification runs
-in one direction**, and the asymmetry is deliberate rather than an omission: the gate that holds the
-merge reads the other's before merging — present, approving, and **naming the current head** — while
-nothing reads its own. A verdict on a superseded commit is a review of something else and fails the
-check.
+**The asymmetry is deliberate and bounds what "objective" can mean here.** A loop that tries to make
+both axes objective either invents a checklist that misses the novel case, or quietly drops the axis.
 
-**And a gatekeeper that cannot write its verdict does not proceed as though it had.** For the gate whose
-verdict *is* read this is automatic — the merging gate finds nothing and holds. For the gate that
-merges, it is a rule, because nothing reads its own: **if it cannot record its verdict, it does not
-merge.** Without that clause the asymmetry rebuilds the original failure in the half nobody verifies —
-a merge with no delivery record, silently. *The trade is reversibility:* a blocked merge is a stall you
-undo; an unrecorded merge, where the merge is the release, is not.
+**This was two personas until 2026-08-04, and the merge is worth stating rather than assuming.** A
+separate `security` gatekeeper was dispatched in parallel and held its own veto, precisely because its
+axis could not be a criterion on someone else's checklist. The owner merged it into `quality-assurance`
+— after the objection was raised, and reaffirmed after it — for one reason: **fewer profiles reconciling
+one result on the same merge request.** *The asymmetry did not merge away with the persona*; it became
+two rulers in one gate, which is what the labelling rule exists to keep visible.
 
-*Why both write when only one is read.* The read exists to gate a merge, and only one gate merges. The
-**write** exists for a second reason the read does not cover: without it, the delivery verdict — the one
-carrying the evidence and the merge decision — leaves no trace at all, which was the original complaint.
-An artifact nobody currently queries is still the record of what was decided and why, and it is what a
-later audit reads. Requiring the merging gate to be verified by the other would need a third party to
-hold the merge, which buys less than it costs.
+**Four costs, none of them hypothetical:**
 
-*Why this is a rule and not hygiene.* Without it, the rule *"do not merge until the other gate approved"*
-is checkable only by the party reporting, never by the party waiting — and a relayed verdict has already
-reached a gate carrying a **false statement about the diff it approved**. The loop refuses relayed
-authority everywhere else; a gatekeeper's veto fires on every merge request, where the human's
-ratification fires only on the boundary class, so holding the veto to the weaker standard was backwards.
+1. **The two gates disagreed on severity and both were right.** On one finding, one graded the
+   **exposure** and called it advisory; the other graded the **record** and blocked. Different objects,
+   both correct. One persona cannot produce that disagreement — it produces one severity — so what used
+   to be information is now a single reader's judgement call.
+2. **They found by different instruments**, and neither would have found the other's. The single gate
+   must run **both**: measuring a mechanism by executing payloads against it, *and* re-deriving a stated
+   claim against the artifact.
+3. **Nobody now observes the gate that signs the merge** — the structural cost, and the largest.
+4. **Which is why the merged gate does not hold an editing capability.** The security persona could
+   remediate inside its own concern precisely **because it could not merge**. A gate that both edits and
+   merges reviews its own remediation. So the gate **prescribes** the fix and does not apply it; its
+   writing grant exists for one purpose, composing its verdict body in a scratchpad, and a write to any
+   repository path is a defect in the review.
 
-*What it buys and what it does not, because the limit matters.* It closes **omission** — a merge
-proceeding on a verdict that was claimed rather than given. It does not close **impersonation**: a
-harness that identifies personas on tool calls, not on authorship, cannot prove which context wrote the
-artifact. Naming that limit is part of the design; a mechanism promising more would buy the same
-guarantee at the cost of parsing intent out of command strings, which this loop has already learned does
-not work.
+**A verdict is an artifact on the merge request, not a claim passed back through the orchestrator.** The
+gate posts its verdict there carrying the commit SHA it reviewed, so a verdict on a superseded head
+fails loudly instead of reading as approval.
 
-*And the same principle in the evidence dimension:* a gate reads the diff **from the merge request**,
+**And a gatekeeper that cannot write its verdict does not proceed as though it had.** With one gate this
+is a **rule with no mechanical support**, and it is now carrying weight it was not designed for:
+**if it cannot record its verdict, it does not merge.** Without that clause a merge happens with no
+delivery record, silently. *The trade is reversibility:* a blocked merge is a stall you undo; an
+unrecorded merge, where the merge is the release, is not.
+
+> **What was lost when the second gate went, stated plainly rather than dropped.** Until 2026-08-04
+> **`quality-assurance` verified the other gate's comment before merging** — marker present, verdict
+> approving, head SHA equal to the current head. That was **the only place in this loop where a verdict
+> was mechanically checked by a party other than its author.** It has no subject now. The remaining
+> verdict is **self-enforced**.
+>
+> The artifact still closes **omission** — a merge proceeding on a review that was claimed rather than
+> given leaves no comment, and a harness monitor once flagged exactly that. It no longer buys
+> **confirmation**, and *"verified"* should not be written of the remaining gate.
+
+*What the artifact buys and what it does not.* It does not close **impersonation**: a harness that
+identifies personas on tool calls, not on authorship, cannot prove which context wrote the artifact.
+Naming that limit is part of the design; a mechanism promising more would buy the same guarantee at the
+cost of parsing intent out of command strings, which this loop has already learned does not work.
+
+*And the same principle in the evidence dimension:* the gate reads the diff **from the merge request**,
 never from a local comparison against a reference it chose itself. A self-chosen reference is a relay
-about what was reviewed — it produced the false statement above, and the identical mistake in the other
-direction silently reviews a subset while reading exactly the same.
+about what was reviewed — it has produced a false statement about the diff being approved, and the
+identical mistake in the other direction silently reviews a subset while reading exactly the same.
 
-**The cost of "every MR" lands on diffs with no security surface**, and it has one specific failure mode:
-a gate answering `n/a → pass` every time is gating nothing. The mitigation is a phrasing rule, not more
-process — **`n/a` is only valid when the gate NAMES the axes it looked at and found untouched.** A
-reassurance is not a check.
+**The cost of "every MR" lands on the production lens, on diffs with no security surface**, and it has
+one specific failure mode: a lens answering `n/a → pass` every time is gating nothing. The mitigation is
+a phrasing rule, not more process — **`n/a` is only valid when the lens NAMES the axes it looked at and
+found untouched.** A reassurance is not a check.
 
-Both gates also verify the *artifact*, not the diff's appearance. On a build that inlines and prerenders
+**Both lenses verify the *artifact*, not the diff's appearance.** On a build that inlines and prerenders
 repository content, a comment-only change is not automatically inert: the question is whether an edited
 line can be **emitted**, which is a different question from whether it is a comment.
 
@@ -245,6 +322,13 @@ dropped:**
    That boundary is now an instruction. Its own file records this at the top, where a maintainer meets
    it before trusting any "it cannot write" claim.
 
+**Appended 2026-08-04, second — the second gatekeeper → `quality-assurance`.** The security persona was
+absorbed into the delivery gate. **The argument is neither of the two above.** It was not merged for
+lack of conflict — it produced conflict, and the disagreement it produced was correct information. It
+was merged because **reconciliation cost is paid within a tier**, and tier 3 was paying it on every
+single merge request. The four costs are in §2.3, and the third of them is the one to read first:
+what the merge removed was the loop's only gate-reads-gate check.
+
 **Retired outright:** the planner and the plan-reviewer. The owner writes the specs, in the issues, in
 more detail than a planner would produce — the intake step happens upstream of the loop, done by the
 person closest to it. *Named cost:* the significance test for "does this decision need a record" is now
@@ -282,11 +366,13 @@ owner generates demand                        ← the ONLY origin of work
         │       app + infrastructure + pipeline + E2E journeys
         │       (+ API tests where an API exists)
         │
-   [gatekeepers]  quality-assurance  ||  security     BOTH, in PARALLEL
-        │         every requirement      can this break
-        │         of the issue met?      production?
-        │           + product-lead's COPY LENS when the diff changes anything
-        │             a reader or a crawler will see (its truth findings BLOCK)
+   [the gate]  quality-assurance          ONE pass, TWO lenses,
+        │      delivery: every requirement of the issue met?
+        │      production: can this break production?
+        │      every finding labelled with the lens it came from
+        │        + product-lead's COPY LENS when the diff changes anything
+        │          a reader or a crawler will see (its truth findings BLOCK;
+        │          the gate quotes that verdict VERBATIM under its own marker)
         │
    ┌────┴─────────────────────────────┐
 safe class                      boundary class
@@ -481,13 +567,19 @@ means the thing is broken and a person must act.
 What is **essential** to the design:
 
 - three-layer separation: fresh-context review · mechanical pre-execution deny · durable decision record
-- personas justified by conflict, not by concern
+- personas justified by one of four reasons — conflict wanted, a fresh context wanted, the context
+  window being the constraint, a capability that should be smaller — never by concern; and
+  reconciliation cost paid *within* a tier, so a second persona in one tier needs a reason the others
+  do not
 - **intake formalism paired with gate objectivity** — the leads write the requirements, the gate applies
   them as an external ruler. Adopting either half alone gets the cost without the benefit
 - nothing worked outside the tracker; an issue is executable only once its description is closed
 - one consolidated demand reaching the builder
-- **two gatekeepers on every merge request, in parallel** — one objective against the issue, one holding
-  judgement over production risk
+- **both gate axes on every merge request** — one objective against the issue, one holding judgement
+  over production risk. *Whether they are two personas or two lenses in one is incidental* (this
+  implementation moved from the first to the second on 2026-08-04, for reconciliation cost); **that both
+  axes fire on every merge request, unconditioned by what the diff touches, is essential.** If they are
+  merged, every finding must name its lens — a finding whose ruler is unstated cannot be checked
 - findings that name a criterion and a falsifier, with severity set at the source
 - an explicit safe/boundary classification, and ratification that is *verified* rather than relayed
 - an explicit round budget that converts "this is expensive" into a decision
@@ -505,8 +597,16 @@ What is **known-weak**, stated so a reviewer does not have to discover it:
 - **the gate's objectivity is transferred, not created** — it holds exactly as far as the issue is
   complete, and nothing mechanically checks that a description was actually closed by the leads rather
   than nodded through by one
-- **the second gatekeeper's `n/a` is enforced by phrasing, not by a check** — nothing catches a security
-  verdict that names axes it did not really examine
+- **the production lens's `n/a` is enforced by phrasing, not by a check** — nothing catches a verdict
+  that names axes it did not really examine
+- **the gate's own verdict is read by nobody.** Until 2026-08-04 a second gatekeeper's verdict was
+  mechanically verified by the one holding the merge; that was the only verdict in this loop checked by
+  a party other than its author, and it has no subject now. The posting rule is self-enforced, and the
+  artifact closes omission without buying confirmation
+- **a roster assertion written as a COUNT cannot see a substitution.** Swapping one persona for another
+  holds the count constant, so every count-based check stays green through exactly the change it exists
+  to catch — silently, which is worse than absent, because a green check is read as evidence. Assert
+  **membership**
 - one builder means directory isolation is discipline, not capability
 - the significance test is applied once, after the code exists, since the design-time reviewer was cut
 - a lens that under-classifies its own finding's severity is not caught by anything

@@ -1,6 +1,11 @@
 # 0007. The merge precondition is a floor, not an instruction
 
-- **Status:** proposed
+- **Status:** proposed · **amended 2026-08-04** (the precondition is **one** marker, not two — `security`
+  is absorbed into `quality-assurance` per [ADR-0002](./0002-agentic-dev-loop-architecture.md) amendment
+  #10. Status is **unchanged**: the hook is unimplemented, so nothing running is affected. The decision,
+  the author filter and the whole outcome table stand; the argument for the hook gets **stronger**,
+  because the one surviving marker is the merging gate's own and ADR-0006's fourth amendment has just
+  recorded it as self-enforced)
 - **Date:** 2026-08-03
 - **Deciders:** owner (ratifies) · `quality-assurance` and `security` (both subject to it)
 - **Supersedes / superseded by:** **reverses [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s rejected option 2** (gating `gh pr merge` on the marker's existence), answering that rejection on its own terms
@@ -148,6 +153,70 @@ The page bounds **count, not bytes** — a stranger cannot choose how many comme
 - [ADR-0004](./0004-autonomy-and-permission-model.md) — the permission floor and `permission-guard.sh`, whose decided rule places a push to the trunk behind a hook. *That record's contract header reads "Fails OPEN (allows) on any parse error" — it has no fail-closed rule, and the claim that it did was struck from `wip-guard.sh` on 2026-08-02 with a measured falsifier.*
 - #136 — pinning marker literals to each persona's canonical set. Load-bearing for the hook slice rather than merely adjacent.
 - #134 — the marker's retirement mechanism, unsolved; a hook reading markers depends on that question having an answer.
+
+## Amendment (2026-08-04) — the precondition is ONE marker, not two, and the decision survives the change
+
+**Status is still `proposed` and this amendment does not advance it.** The hook is **unimplemented** —
+`grep gatekeeper-verdict hooks/` returns nothing — so **nothing in the running system is wrong today**.
+What would have been wrong is the slice that implemented this record as written: it enumerates *both
+markers*, and one of the two personas no longer exists.
+
+**Cause:** [ADR-0002](./0002-agentic-dev-loop-architecture.md)'s amendment #10 — `security` is absorbed
+into `quality-assurance`, which now holds delivery and production as **two lenses in one pass**.
+
+### What changes: the count, and only the count
+
+> Every *"both markers"* in this record reads **the marker**. The chosen option becomes: the hook reads
+> the PR's comments and head, discards every comment not authored by `OWNER`, and **denies unless
+> `quality-assurance`'s marker parses, carries a verdict literal from that persona's canonical set, and
+> records the current `headRefOid`.**
+
+Nothing else in the decision moves, and each part is checked here rather than assumed:
+
+- **The author filter** (`author.login` + `authorAssociation: OWNER`) — unchanged. It defends against an
+  outsider on a public repo, which has nothing to do with how many gates exist.
+- **The outcome table** — unchanged in all four rows. A missing tool still **denies** before either
+  question; an answered-negative still **denies**; unanswerable-and-outsider-proof still **asks**;
+  everything else still **denies**.
+- **The ordering conjunction, the bounded read, the deadline, the emitter constraint** — all unchanged.
+  *"A control cannot depend on the thing whose failure it exists to report"* is not a statement about
+  the roster.
+- **The scope** — the ratification half still stays prose, for the reason given: safe-versus-boundary is
+  a judgement the hook cannot derive.
+- **Rule 7b remains the fallback floor**, and the *"degrades to today's posture"* argument is unaffected.
+
+### What changes in KIND, and it is why this needed an amendment rather than a search-and-replace
+
+**The hook is now checking the merging gate's own marker, and only that.** Before, one of the two
+markers it read was written by a party that does **not** merge — so at least one input to the
+precondition came from outside the party the precondition binds.
+
+That property is gone, and it makes this record's central argument **stronger, not weaker**, which is
+the non-obvious part and the reason it is written down:
+
+> The decision was always justified by **drift**, not impersonation — *"against a party doing its honest
+> best with a wrong rule, a hook buys exactly what the artifact does not: **it is not reading the
+> rule**."* [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s fourth amendment
+> records that the gate-reads-gate check has lost its subject and the remaining verdict is now
+> **self-enforced**. A self-enforced precondition is precisely the configuration this record exists to
+> object to.
+
+So the roster change **raises** the value of implementing this hook. Stated plainly because the opposite
+reading is available and wrong: *"one gatekeeper, so half the precondition, so half the point."* Half
+the markers, and the remaining one is the one nobody else checks.
+
+### The cost that got worse, named
+
+**The impersonation residue is unchanged, and the surface it covers is now the whole precondition.**
+This record already books that the harness holds the owner's token, so the author filter *"separates
+outsiders from the harness, never the harness from itself."* With two markers, a self-fabricating gate
+had to fabricate a verdict attributed to a persona it was not. With one, the marker it must produce is
+its own. Against **drift** the hook still works — a drifting gate posts an unparseable literal and is
+stopped. Against a gate that decides to post an approval it does not mean, this buys nothing, and never
+claimed to.
+
+**And the seam this record books grows no wider:** *"two mechanisms now encode part of one rule"* still
+holds, with one fewer persona file on the far side of it.
 
 ---
 

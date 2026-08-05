@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""Emit the README's skill inventory table, derived from `commands/`.
+
+WHY THIS IS A COMMITTED TOOL RATHER THAN A ONE-OFF. The README publishes one row per skill, and each
+description is the skill's own first line. That is not a style choice: a table of this size written by
+hand is one chance per row to describe a skill as something it does not say, with nothing anywhere able
+to catch it. Generating it removes the chance.
+
+But a generated table whose generator lives in a scratch directory is worse than a hand-written one — the
+next person to add a skill edits the table by hand, and the property that made generation worth doing is
+gone silently. `inventory-counts.test.sh` asserts that every skill file has a row, so a hand-edit that
+forgets one goes red. This file is what makes fixing that red cheap.
+
+WHAT IT DOES NOT DECIDE. Allocation — who wields a family — is a fact about the roster, not about the
+filesystem, so it is written below and maintained by hand. Everything else is read from `commands/`.
+
+Run:  python3 hooks/scripts/skills-table.py
+Then paste the output over the table in the README's skill-library section.
+"""
+import pathlib
+import re
+
+ROOT = pathlib.Path(__file__).resolve().parents[2]
+COMMANDS = ROOT / "commands"
+
+# Allocation is per family everywhere except `workflow`, which splits — `adr` belongs to the only
+# writer of the decision records, the rest to the builder. Family granularity cannot state that
+# truthfully, which is why the table is per skill and this map has an exception beside it.
+WIELDER = {
+    "principles": "`product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance`",
+    "workflow": "`developer`",
+    "frontend": "`developer`",
+    "backend": "`developer`",
+    "infrastructure": "`developer`",
+}
+PER_SKILL = {("workflow", "adr"): "`tech-lead` — the only writer of the ADRs"}
+
+# A family with no entry above is unallocated, and that is information rather than an error: an unused
+# convention is usually a prompt to delete the file. Rendering it as a visible dash beats omitting the
+# row, which would hide it.
+UNALLOCATED = "— none"
+
+MAX_DESC = 150
+
+
+def describe(path):
+    """The skill's own first non-empty line, stripped of heading syntax."""
+    text = next((l.strip() for l in path.read_text().splitlines() if l.strip()), "")
+    text = re.sub(r"^#+\s*", "", text).replace("|", r"\|")
+    if len(text) > MAX_DESC:
+        text = text[: MAX_DESC - 3].rsplit(" ", 1)[0] + "…"
+    return text
+
+
+def main():
+    families = sorted(p for p in COMMANDS.iterdir() if p.is_dir())
+    counts = ", ".join(f"{f.name} ({len(list(f.glob('*.md')))})" for f in families)
+    print(f"The library, by family: {counts}.\n")
+    print("| skill | what it decides | family | wielded by |")
+    print("|---|---|---|---|")
+    for family in families:
+        for f in sorted(family.glob("*.md")):
+            who = PER_SKILL.get((family.name, f.stem), WIELDER.get(family.name, UNALLOCATED))
+            print(f"| `{f.stem}` | {describe(f)} | `{family.name}` | {who} |")
+
+
+if __name__ == "__main__":
+    main()

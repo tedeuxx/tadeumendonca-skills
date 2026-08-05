@@ -36,6 +36,18 @@ The chain, and each link is load-bearing:
 > **Only then is the issue executable.** `developer` does not pick up an issue whose description is not
 > closed. An issue in the tracker is not the same as an issue ready for work.
 
+**`harness-reviewer` is not a link in that chain, and the omission is deliberate rather than an oversight
+in the list.** It shares the leads' tier and takes **no part in closing a story's description** — its
+object is the machinery this loop runs on (hooks, settings and permissions, agent briefs, skills,
+commands, the plugin, MCP), not the product the loop builds. It is dispatched on a **proposal about the
+loop itself**, returns the scenarios that proposal does not cover with how to check each one, and does
+that **before anything is built**. It gates nothing: no merge request, no merge, no Issue, no label
+transition — which is why it appears in no row of the table below.
+
+*Where the two chains meet.* A change to *how work is decided* — this skill, the states table, an ADR
+that governs the loop — is still a **boundary** decision for the owner. `harness-reviewer` is who the
+owner works that decision out with; it does not make it, and it does not put it in the tracker.
+
 #### The states, and the one artifact that was missing
 
 The chain above is **behaviour**; this is the state it implies. Derived by the assessment

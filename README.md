@@ -102,7 +102,7 @@ flowchart TB
   O(["OWNER · generates demand"])
   NI[["/new-issue"]]
 
-  subgraph T1["TIER 1 · INTAKE"]
+  subgraph T1["TIER 1 · INTAKE — the description is closed here"]
     direction LR
     PL["product-lead"]
     TL["tech-lead"]
@@ -114,9 +114,16 @@ flowchart TB
 
   ORCH["ORCHESTRATOR — the main session<br/>dispatches every persona · commits · pushes<br/>never merges · never decides the irreversible"]
 
-  DEV["developer · TIER 2 · BUILD<br/>one branch, ticking the story's task list"]
+  subgraph T2["TIER 2 · BUILD"]
+    DEV["developer<br/>one branch, ticking the story's task list"]
+  end
+
   MR{{"MERGE REQUEST · ONE per story, to main"}}
-  QA["quality-assurance · TIER 3 · GATE<br/>fresh context, no authorship bias"]
+
+  subgraph T3["TIER 3 · GATE — fresh context, no authorship bias"]
+    QA["quality-assurance<br/>two lenses in one pass"]
+  end
+
   M{{"merge to main = the deploy<br/>a real merge commit, never a squash"}}
   OUT(["OWNER · irreversible · architectural · go/no-go"])
 
