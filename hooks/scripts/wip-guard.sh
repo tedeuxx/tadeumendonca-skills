@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # wip-guard.sh — PreToolUse(Bash) guard bounding work-in-progress at the PR boundary.
 #
-# The bound has TWO LEVELS: file overlap between slices, and a COUNT between stories.
+# The bound is FILE OVERLAP, not a count. ONE level, and there is no second.
 #
-# ~~The bound is FILE OVERLAP, not a count.~~ True of slices, and false of stories since
-# `gitflow-single-env` (#122/#123). Struck rather than deleted because the paragraph below it
-# is the measured argument for the first half and still stands — see STORY AWARENESS further
-# down for why the second half is a count. Not a change of mind about counting: a story
-# branch diverges for as long as the story lasts, and overlap measured at an instant cannot
-# see time.
+# ~~The bound has TWO LEVELS: file overlap between slices, and a COUNT between stories.~~
+# ~~True of slices, and false of stories since `gitflow-single-env` (#122/#123).~~
+# **Struck 2026-08-04, owner's decision: the story level is REMOVED and the sentence above it
+# is true again without qualification.** The record of that design, and of the four defects
+# found in it, is kept struck under STORY AWARENESS — RETIRED at the bottom of this header.
+# Read it before proposing branch-level decomposition again: it was tried, it was correct, and
+# it came out for a reason that is a measurement rather than an opinion.
 #
 # It used to count: one open PR per repo, full stop. That was a proxy for the thing
 # actually worth preventing — stacked PRs that go stale and turn their merge into a
@@ -50,6 +51,54 @@
 # file whose entire diff is about a comment asserting something untrue.) A comment claiming that
 # question was already answered is exactly the failure it was written to prevent — which is how the
 # struck line above got here, found by `security` reviewing #124.
+#
+# ── STORY AWARENESS — RETIRED 2026-08-04 (kept struck, not deleted) ──────────────────
+#
+# ~~Under `gitflow-single-env` a story owns a short-lived branch and its tasks open PRs INTO
+# that branch; the story branch itself then opens one PR into the trunk, and THAT merge is the
+# deploy. So this guard has to move in two opposite directions at once:~~
+#
+#   ~~LOOSER inside a story: two task PRs touching the same file, in the same story, are
+#   normal work rather than a collision. They land in sequence on a branch that has not
+#   published yet. Blocking them would deny the exact flow the model creates.~~
+#
+#   ~~TIGHTER between stories: only one story may be live. Not because two stories would
+#   necessarily collide — file overlap already answered that question, and answered it
+#   correctly in #88/#90 — but because a story branch DIVERGES FOR AS LONG AS THE STORY
+#   LASTS. Overlap measured at an instant cannot see time, and every cost of the model (the
+#   lead dispatches, a diverging branch, a ratification, an acceptance) is per story.~~
+#
+# ~~Which story a PR belongs to is read off the branch pair: a task PR has `feat/*` as its
+# BASE, and the story's own publish PR has `feat/*` as its HEAD.~~
+#
+# **WHY IT CAME OUT, and the part that transfers: a user story's tasks are CHECKBOXES on its
+# issue, not branches. One story, one branch, one PR. Measured across roughly NINETY branches
+# in this repo, NOT ONE task branch has ever existed — no `story/*`, no `task/*`, and no PR
+# whose base is another feature branch. The two-level rule shipped, carried 14 suite cases,
+# stayed green, and never once decided anything.** It was inert for a second reason as well:
+# it read `story/` while every branch here is `feat/`. It is not removed for being wrong — it
+# is removed for describing a flow that does not exist, which is the defect class this repo
+# spent the week deleting. Leaving it would have been the second time knowingly.
+#
+# THE FOUR DEFECTS FOUND IN IT, kept because three of them are about shell, not about stories,
+# and the shapes recur:
+#   1. ATTACHED OPTION VALUES. `gh` accepts `--base=x` and `-Bx`; a space-only regex missed
+#      both. It broke the rule in OPPOSITE directions at once — the count failed OPEN (a
+#      second story read as no story) and the exemption failed CLOSED (a legitimate task PR
+#      denied), intermittently, depending only on how the command happened to be spelled.
+#      **This parsing SURVIVES the retirement — see `base` below — and must keep both spellings.**
+#   2. A BRANCH NAME INTERPOLATED INTO A REGEX. `.` is legal in a git ref, so `feat/1..thing`
+#      matched a live `feat/12-thing`, deleted it from the set, and let a second story through:
+#      a bypass a crafted name can drive and a mis-match real names hit by accident. Fixed with
+#      `grep -vxF`. **The surviving overlap path uses `grep -Fxf` for the same reason — fixed
+#      strings, never a regex, for anything that came out of a ref or a path.**
+#   3. A MISSING jq FIELD MAKING A RULE VANISH SILENTLY. Without `// ""`, a `gh` that omitted
+#      `headRefName`/`baseRefName` made `startswith` error, jq print nothing, and the whole
+#      story rule disappear while every test still passed.
+#   4. A VACUOUS TEST FOR (3). Its first version used a non-story branch, so the block
+#      short-circuited before the defaults were ever consulted — it passed with the line under
+#      test deleted outright. Only a MIXED open set, fieldless entry FIRST, could falsify it.
+#      That one is not about stories at all; it is this workspace's recurring defect.
 
 set -uo pipefail
 
@@ -87,92 +136,39 @@ case "$count" in
   ''|0) exit 0 ;;
 esac
 
-# ── STORY AWARENESS (gitflow-single-env) ────────────────────────────────────────────
+# The base this PR would target: an explicit -B/--base if the command carries one, else the
+# repo default.
 #
-# Under `gitflow-single-env` a story owns a short-lived branch and its tasks open PRs
-# INTO that branch; the story branch itself then opens one PR into the trunk, and THAT
-# merge is the deploy. So this guard has to move in two opposite directions at once, and
-# that is the reason it is the riskiest change in the batch — a pair like this passes a
-# suite while gating nothing.
-#
-#   LOOSER inside a story: two task PRs touching the same file, in the same story, are
-#   normal work rather than a collision. They land in sequence on a branch that has not
-#   published yet. Blocking them would deny the exact flow the model creates.
-#
-#   TIGHTER between stories: only one story may be live. Not because two stories would
-#   necessarily collide — file overlap already answered that question, and answered it
-#   correctly in #88/#90 — but because a story branch DIVERGES FOR AS LONG AS THE STORY
-#   LASTS. Overlap measured at an instant cannot see time, and every cost of the model
-#   (the lead dispatches, a diverging branch, a ratification, an acceptance) is per story.
-#   Written without a figure on purpose: it said six of them, a number derived from a roster
-#   that has since been cut twice, with nothing anywhere able to notice.
-#
-# Which story a PR belongs to is read off the branch pair: a task PR has `story/*` as its
-# BASE, and the story's own publish PR has `story/*` as its HEAD. Anything with neither is
-# an ordinary trunk slice and keeps the pre-existing behaviour untouched.
-story_of() { # $1 head, $2 base
-  case "$2" in story/*) printf '%s' "$2"; return ;; esac
-  case "$1" in story/*) printf '%s' "$1"; return ;; esac
-  printf ''
-}
-
-# The base this PR would target: an explicit -B/--base, else the repo default.
-default_base="$(gh repo view ${repo:+-R "$repo"} --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null || true)"
-[ -z "$default_base" ] && default_base="main"
 # ATTACHED VALUES, both spellings. `gh` accepts `--base=x` and `-Bx` exactly as it accepts
 # the spaced forms, and a space-only regex misses them — the same class `permission-guard`
-# 5b/5c were hardened for, so this is the in-repo idiom rather than a new idea.
-#
-# Missing them broke this rule in BOTH directions at once, which is why it is worth a
-# comment rather than a quiet fix:
-#   · the story COUNT failed OPEN and silently — `--base=story/other` read as no base at
-#     all, fell back to the default branch, and a second story opened unchallenged;
-#   · the same-story EXEMPTION failed CLOSED — a legitimate second task PR written with
-#     `--base=` was DENIED, wedging the primary flow this hook exists to permit, and doing
-#     it intermittently, since it depends on how the command happened to be spelled.
+# 5b/5c were hardened for, so this is the in-repo idiom rather than a new idea. Defect 1 in
+# the retired record above: it broke that rule in both directions at once.
 #
 # `-B[[:space:]]*` cannot mis-fire on `--base`: the character before `B` would have to be a
 # space, and in `--base` it is `-` with a lowercase `b`.
-new_base="$(printf '%s' "$cmd" | sed -nE 's/.*[[:space:]](-B[[:space:]]*|--base[[:space:]=]*)([^[:space:]]+).*/\2/p')"
-[ -z "$new_base" ] && new_base="$default_base"
-new_head="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
-new_story="$(story_of "$new_head" "$new_base")"
+explicit_base="$(printf '%s' "$cmd" | sed -nE 's/.*[[:space:]](-B[[:space:]]*|--base[[:space:]=]*)([^[:space:]]+).*/\2/p')"
 
-# Every story already live in the open set.
-# `// ""` on both fields, deliberately: a `gh` that omits them (an older version, a shape
-# change) would otherwise make `startswith` error, jq print nothing, and this whole rule
-# vanish silently while every test still passed. Defaulting to empty makes a missing field
-# mean "not a story" — which is the safe reading, and a visible one.
-live_stories="$(printf '%s' "$open_prs" | jq -r '.[] | (if ((.baseRefName // "") | startswith("story/")) then .baseRefName elif ((.headRefName // "") | startswith("story/")) then .headRefName else empty end)' 2>/dev/null | sort -u || true)"
+# What THIS branch would bring. Compared against the merge-base with the branch it would
+# target, not against that branch's tip, so commits that merely landed on the base while this
+# branch was alive are not counted as ours.
+merge_base=""
+[ -n "$explicit_base" ] && merge_base="$(git merge-base "origin/$explicit_base" HEAD 2>/dev/null || true)"
 
-# WIP = 1 STORY, by count. Fires only when this PR belongs to a story AND a DIFFERENT one
-# is already live — an ordinary trunk slice alongside a story is not what this bounds.
-if [ -n "$new_story" ] && [ -n "$live_stories" ]; then
-  # `-vxF`, not `-v "^…$"`: the branch name was being interpolated into a REGEX, and `.` is
-  # legal in a git ref. So a base like `story/1..thing` failed to match a live `story/12-thing`,
-  # that story vanished from the set, and a second story opened unchallenged. A bypass a
-  # crafted name can drive, and a mis-match that real names hit by accident.
-  others="$(printf '%s\n' "$live_stories" | grep -vxF "$new_story" || true)"
-  if [ -n "$others" ]; then
-    jq -n --arg r "Blocked: WIP is ONE story at a time, and $(printf '%s' "$others" | tr '\n' ' ')is already live. This is a count rather than file overlap on purpose — a story branch diverges for as long as the story lasts, and every cost of the model is per story. Finish that one through its ratification and merge, then open this. (Inside a single story, task PRs are NOT bounded by overlap — that is a different rule and it is looser, not stricter.)" '{
-      hookSpecificOutput: {
-        hookEventName: "PreToolUse",
-        permissionDecision: "deny",
-        permissionDecisionReason: $r
-      }
-    }'
-    exit 0
-  fi
-fi
-
-# What THIS branch would bring. Compared against the merge-base with the default branch,
-# not against its tip, so commits that merely landed on the base while this branch was
-# alive are not counted as ours.
+# FALL BACK TO THE DEFAULT BRANCH rather than giving up, when the command named a base this
+# clone cannot resolve (never fetched, a ref that does not exist, a remote not named origin).
+# Without the fallback, `--base=anything-unresolvable` is a one-word BYPASS of the whole guard:
+# no merge-base, no file list, fail open, done. The default branch is the right second guess —
+# it is what the old two-level version always used here, so this preserves that behaviour
+# exactly in the case where the explicit base tells us nothing.
 #
-# Reuses `default_base` resolved above rather than asking again — the story block already
-# made this exact query, and a second identical round-trip on every `gh pr create` is cost
-# for nothing. Both reviewers flagged it.
-merge_base="$(git merge-base "origin/$default_base" HEAD 2>/dev/null || true)"
+# ONE `gh repo view` at most, and it is the only one in this file now: the retired story block
+# made the identical query first and the overlap block reused its answer, so with that block
+# gone the resolution MOVED here rather than being asked twice or lost.
+if [ -z "$merge_base" ]; then
+  default_base="$(gh repo view ${repo:+-R "$repo"} --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null || true)"
+  [ -z "$default_base" ] && default_base="main"
+  merge_base="$(git merge-base "origin/$default_base" HEAD 2>/dev/null || true)"
+fi
 [ -z "$merge_base" ] && exit 0
 mine="$(git diff --name-only "$merge_base" HEAD 2>/dev/null || true)"
 # A branch with no diff yet is not a conflict risk, and it is also not a PR worth
@@ -184,25 +180,13 @@ mine="$(git diff --name-only "$merge_base" HEAD 2>/dev/null || true)"
 # around rather than acts on.
 collisions=""
 for pr in $(printf '%s' "$open_prs" | jq -r '.[].number' 2>/dev/null || true); do
-  # SAME-STORY PRs ARE EXEMPT — this is the "looser" half, and skipping it here rather
-  # than filtering the list earlier is deliberate: the exemption is a property of the
-  # PAIR, not of either PR alone.
-  #
-  # Two task PRs into one story branch land in sequence on a branch that has not published
-  # yet, so an overlap between them is ordinary sequential work, not a slice going stale
-  # behind another. The conflict this guard exists to prevent is between things racing to
-  # the SAME destination, and two tasks in one story are not racing.
-  their_head="$(printf '%s' "$open_prs" | jq -r --arg n "$pr" '.[] | select(.number == ($n|tonumber)) | .headRefName' 2>/dev/null || true)"
-  their_base="$(printf '%s' "$open_prs" | jq -r --arg n "$pr" '.[] | select(.number == ($n|tonumber)) | .baseRefName' 2>/dev/null || true)"
-  their_story="$(story_of "$their_head" "$their_base")"
-  if [ -n "$new_story" ] && [ "$their_story" = "$new_story" ]; then
-    continue
-  fi
-
   theirs="$(gh pr view "$pr" ${repo:+-R "$repo"} --json files -q '.files[].path' 2>/dev/null || true)"
   # Could not read that PR's files — fail open for this PR rather than guessing at an
   # overlap we cannot see.
   [ -z "$theirs" ] && continue
+  # `-Fxf`: fixed strings, whole line. A path is not a regex and must never be read as one —
+  # defect 2 in the retired record above is the same shape, and it produced both a bypass and
+  # an accidental mis-match.
   shared="$(printf '%s\n' "$mine" | grep -Fxf <(printf '%s\n' "$theirs") 2>/dev/null | tr '\n' ' ' || true)"
   [ -n "$shared" ] && collisions="${collisions}#${pr}: ${shared}; "
 done

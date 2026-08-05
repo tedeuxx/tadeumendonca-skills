@@ -1,6 +1,6 @@
 # 0002. Agentic dev-loop architecture — per-task subagents, ADRs as the durable brain
 
-- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite) · **amended 2026-08-04** (amendment #9 — `marketing-lead` merges into `product-lead`; the roster drops 6 → 5; the blocking-truth clause is carried across explicitly, and the capability floor that backed it is not)
+- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite) · **amended 2026-08-04** (amendment #9 — `marketing-lead` merges into `product-lead`; the roster drops 6 → 5; the blocking-truth clause is carried across explicitly, and the capability floor that backed it is not) · **amended 2026-08-04** (amendment #10 — `harness-reviewer` joins tier 1 as the owner's pair on the machinery, advisory and pre-implementation; `security` is **absorbed** into `quality-assurance`, which now holds two lenses in one pass and labels every finding with its lens. The roster is still **five** and **two of its members changed**. The persona criterion widens from *conflict wanted* to **four reasons**, with reconciliation cost paid **within** a tier. Amendment #9's *"both approvals are still required"* is **struck**. Books the rule that produced the gap: **a count is not an identity**)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
 - **Driven by:** [ADR-0001](./0001-adopt-madr-adrs.md), `docs/proposals/agentic-dev-loop.md`
@@ -1042,8 +1042,16 @@ That is absorption drift in a **string**, not the two rulers collapsing — the 
 dispute, every other record assigned them correctly, and the fix was to correct the description. This
 seam is kept, and it is kept having just been looked at rather than assumed.
 
-**The two gatekeepers are untouched.** `quality-assurance` and `security` both still review every MR in
-parallel, and both approvals are still required (amendment #8).
+~~**The two gatekeepers are untouched.** `quality-assurance` and `security` both still review every MR in
+parallel, and both approvals are still required (amendment #8).~~
+
+> **Struck 2026-08-04 by amendment #10.** `security` is absorbed into `quality-assurance`; there is
+> **one** gatekeeper, holding two lenses in one pass, and **one** approval. The sentence is struck rather
+> than edited because *"both approvals are still required"* was, from the moment the persona was removed,
+> a record describing a control as **stronger than it is** — and that is the direction that fails open. It
+> was true when written and it is the reason amendment #10 blocked a merge instead of being filed as
+> tidy-up. The claim it makes about **amendment #8's parallel dispatch** is what changed; the axis that
+> dispatch existed to guarantee did not.
 
 **Unchanged in full:** the merge authority, the falsifier rule, DoD criteria **1–9**, the round budget,
 *Review does not open work*, and every hook. (`agents/tech-lead.md` is edited, but only where it
@@ -1074,7 +1082,176 @@ granted `Read, Grep, Glob` and **no `Bash`** … covering it means trading a del
 against verifiability"* — is **falsified by this amendment**, because the trade it describes as
 unmade has now been made. Amended there, in that record, rather than settled here.
 
-Roster: **6 → 5** — `product-lead`, `tech-lead`, `developer`, `quality-assurance`, `security`.
+~~Roster: **6 → 5** — `product-lead`, `tech-lead`, `developer`, `quality-assurance`, `security`.~~
+**Struck 2026-08-04 by amendment #10** — the count is still five and the membership is not. `security`
+is absorbed and `harness-reviewer` joins. The line stands struck rather than corrected because the
+substitution it describes is exactly the one every mechanical check in this repo held green.
+
+## Amendment (2026-08-04, tenth) — `harness-reviewer` joins tier 1; `security` is absorbed into `quality-assurance`
+
+**Two decisions, both the owner's, both taken 2026-08-04**, recorded in one amendment because they are
+one roster move under one criterion — the same shape amendment #7 used, and the same decider in the same
+session. Where they differ they are kept apart below.
+
+**Why this record was late, and it is the finding that opened it.** `quality-assurance` blocked
+`-skills`#146 on this gap: the roster shipped and no decision record moved with it. The previous roster
+change (`6696148`) amended **four** records — this ADR, ADR-0006, the ADR index and
+`docs/dev-loop-design.md` — **in the same commit as the persona files**. So the practice is not in
+dispute and this is an **omission, not a policy**. The next reader should conclude that a sweep was
+missed once, not that records are written afterwards here.
+
+### Decision 1 — `harness-reviewer` exists, tier 1, advisory, pre-implementation
+
+The owner is the CEO of this initiative **and acts as its harness engineer**. `harness-reviewer` is
+their pair in the second role and only there: it is dispatched on a proposal about the machinery —
+hooks, settings and permissions, agent briefs, skills, commands, the plugin, MCP — and returns the
+scenarios that proposal does not cover, **before anything is built**.
+
+**It gates nothing.** It does not review merge requests, does not merge, does not open work. It sits in
+**tier 1** because a harness proposal is closed the same way a story is: upstream of the build.
+
+**Its standing rule is what makes it worth dispatching, and it is the whole of the decision:**
+
+> **Every scenario ships with how to verify it, or is labelled a hypothesis — in those words.**
+
+Without that rule this persona is a speculation engine: twenty plausible failure modes and no way to
+sort them, which costs more attention than it saves. The failures that made the case for it were not
+imaginative. Each was a mechanical fact somebody could have measured in seconds, and all four were found
+**by accident, after implementation**, in one day:
+
+- merging two personas left a third running an **installed brief that predated the merge**;
+- a `deny` written for `Edit`/`Write` has **no hook layer at all** — `hooks.json` registers `PreToolUse`
+  on the `Bash` matcher only;
+- `Edit(.claude/**)` is a **project-relative glob**, so in a two-repo workspace it does not reach the
+  other repo;
+- a repo's `settings.json` is **not loaded** in a session rooted elsewhere, so twelve denies were inert
+  the moment they were committed.
+
+**ADR-0008's question is its standing mandate** — *which layer carries a control, and can that layer
+hold it?* That record was written because nobody owned the question. Someone does now.
+
+**The name is not decoration, and the suite is what decided it.** The first draft was `harness-lead`.
+`inventory-counts.test.sh` derives the lead count from the filesystem (`agents/*-lead.md`) and went red,
+because six sentences across `agents/` and `commands/` state that the intake is **two** leads and the
+filesystem showed three. **Those six sentences were right** — this persona takes no part in closing a
+user story's description. Renamed on the owner's call; the six pass untouched. Recorded because it is
+the one instance in this batch where a derived count caught something a written one could not.
+
+*Cost, named:* nothing enforces a dispatch. An undispatched lens is indistinguishable from a clean one,
+and this persona — which runs before the build, where no gate exists — has no mechanical backstop at
+all. It is worth exactly as much as the owner's habit of invoking it.
+
+### Decision 2 — `security` is absorbed into `quality-assurance`
+
+**The owner's decision, taken after the objection was raised and reaffirmed after it.** The stated
+reason is the loop's, not the domain's: **fewer profiles reconciling one result on the same merge
+request.** The gate now holds **two lenses in one pass** — delivery and production — and **labels every
+finding with the lens it came from**. The asymmetry amendment #8 recorded did not merge away with the
+persona: one gate applies two rulers, one objective (external ruler, the Issue's requirements) and one
+judgement (*can this cause a problem in production*, not enumerable in advance). A finding whose ruler
+is unstated is a finding the reader cannot check, which is why the labelling is a rule and not a habit.
+
+**What it cost, recorded here because the record is where a cost survives.** These are not
+reservations about the decision; they are the price of it, and each is written into
+`agents/quality-assurance.md` as a **behaviour** rather than a summary, because a cost recorded only in
+a README is a cost nobody performs.
+
+1. **The two gates disagreed on severity and both were right.** On a `chmod` finding, one graded the
+   **exposure** and called it advisory; the other graded the **record** and blocked. Different objects,
+   both correct. One persona cannot produce that disagreement — it can only produce one severity — so
+   what used to be information is now a judgement call by a single reader.
+2. **They found by different instruments**, and neither would have found the other's. The single gate
+   must now run **both**: measuring a mechanism by executing payloads against it, *and* re-deriving a
+   stated claim against the artifact.
+3. **Nobody now observes the gate that signs the merge.** This is the structural cost and it is the
+   worst of the four. Until today `quality-assurance` **verified `security`'s comment before merging** —
+   the only place in this loop where a verdict was mechanically checked by a party other than its
+   author. That direction no longer has a subject. The remaining verdict is **self-enforced**.
+4. **Which is why the merged persona did NOT inherit the `Edit` tool.** `security` could remediate
+   inside its own concern — bump a dependency, tighten a permission — precisely **because it could not
+   merge**. A gate that both edits and merges is a gate reviewing its own remediation. So the
+   capability was dropped rather than absorbed: `quality-assurance` **prescribes** the fix and does not
+   apply it, and its `Write` grant exists for one purpose, composing its verdict body in the scratchpad.
+
+**The mechanical half was quieter than expected, and that is itself the finding.** **No rule in either
+guard keyed on the retired name.** What named it was the test suite — in six cases, using `security` as
+a stand-in for *"some non-`developer` subagent"*. Those cases **would have kept passing** with the
+persona gone, which is an assertion that cannot distinguish the rule holding from its subject having
+ceased to exist. They were **re-pointed, not deleted**.
+
+### The criterion that changed, which is the part that generalises
+
+Amendment #7 justified a persona by **conflict wanted**, and that single reason could not explain either
+decision above: `harness-reviewer` argues with the owner rather than with another persona, and `security`
+generated real disagreement and was merged anyway. The criterion is therefore widened, on the owner's
+call:
+
+> **A persona exists for one of four reasons:** disagreement is wanted · a fresh context is wanted ·
+> **the context window is the constraint** · the capability should be smaller. A persona that satisfies
+> none of the four is a handoff, and **a persona that is never invoked is a document.**
+
+And the rule that decides where one may be **added**, which is the operative half:
+
+> **Reconciliation cost is paid WITHIN a tier, not across tiers.** Two roles judging the same thing at
+> the same moment produce two verdicts someone has to weigh; across tiers each hands the next a finished
+> artifact rather than an opinion. So a **second** persona in one tier needs a reason the others do not.
+
+Read together they settle both decisions without special pleading. Tier 3 held two and paid the
+reconciliation cost every merge request — that is decision 2. Tier 1's second persona is justified
+because product-versus-system disagreement *is* the point, and its **third**, `harness-reviewer`, pays
+nothing because it never runs on the same work as the other two — that is decision 1.
+
+**This supersedes amendment #7's single-reason criterion.** That reason survives as the first of four;
+what is struck is the claim that it was the only one. Amendment #9's *"conflict between two objects"*
+refinement also stands, as a test applied within reason one.
+
+### The general rule this omission leaves behind, and it is worth more than the fix
+
+`quality-assurance` traced the cause: **`inventory-counts.test.sh` asserts the roster as a COUNT, not as
+a membership.** The value is derived honestly — `find agents -name '*.md' | wc -l` — and every stated
+figure in the docs is checked against it, which is a real check. It simply cannot see this change:
+`security` out and `harness-reviewer` in **holds the count at five**, so every gate stayed green through
+exactly the change they exist to catch.
+
+> **A count is not an identity.** An assertion that cannot tell a **substitution** from a **no-op** will
+> pass through the change it exists to catch, and it will do so **silently** — which is worse than
+> absent, because a green check is read as evidence.
+
+This is the same defect class as the six re-pointed test cases above, twice in one batch: an assertion
+whose subject can be replaced without the assertion noticing. `developer` is closing the membership half
+in `hooks/`; this record carries the rule, because the next enumeration written here will be a count
+unless somebody says otherwise.
+
+### What is NOT decided here
+
+- **The tier-1 and tier-2 personas are untouched** — `product-lead`, `tech-lead` and `developer` keep
+  their mandates verbatim, including the `product-lead` ↔ `tech-lead` seam amendment #9 kept.
+- **The merge authority is unchanged.** `quality-assurance` still holds the merge, still classifies
+  safe versus boundary, still escalates the boundary class. `permission-guard` rule **7b** already
+  denied `gh pr merge` to every `agent_type` other than `quality-assurance`, so the floor needed no edit.
+- **The Definition of Done is unchanged**, criteria 1–10, including criterion 10's relay obligation
+  decided in ADR-0006's third 2026-08-04 amendment. Criterion 9 is where the production lens now lands.
+- **The intake chain is unchanged** (amendment #8), except that its *"both gatekeepers approve every MR,
+  in parallel"* decision is superseded in the consequential half only — see below.
+
+### What this amendment supersedes elsewhere, stated so no sweep has to infer it
+
+- **Amendment #8's *"both gatekeepers approve every MR, in parallel"*** — the *decision* that the
+  security axis fires on **every** MR regardless of what the diff touches **survives verbatim**; only
+  its *carrier* changed from a second persona to a second lens. The `n/a` phrasing rule survives with
+  it, and now applies to a lens rather than to a gate.
+- **Amendment #9's *"The two gatekeepers are untouched … both approvals are still required"*** — struck
+  in place, above. It is the sentence this amendment was opened on, and the reason it blocked rather
+  than being tidy-up: **it describes a control as stronger than it is**, which is the direction that
+  fails open.
+- **ADR-0006** — its verification direction has lost its subject. Amended there.
+- **ADR-0007** — its precondition counts two markers. Amended there. It is status `proposed` and
+  unimplemented (`grep gatekeeper-verdict hooks/` returns nothing), so **nothing breaks today**; what
+  would have broken is the slice that implemented it against this record.
+
+Roster: **five** — `product-lead`, `tech-lead`, `harness-reviewer` (tier 1) · `developer` (tier 2) ·
+`quality-assurance` (tier 3). The count is unchanged from amendment #9 **and two of the five members
+are different**, which is the whole point of writing the names.
 
 ## Consequences
 **Good**

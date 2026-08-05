@@ -6,8 +6,14 @@
   `Bash`) · **amended 2026-08-04, second** (a mechanism now stands behind the copy lens's
   identifier-only rule) · **amended 2026-08-04, third** (**the closing open question is CLOSED** — a
   gate may relay another persona's verdict, and for the copy lens it must; criterion 10 upgrades from
-  *returned* to *returned and quoted*). **The decision itself is unchanged by all four** — the relay is
-  an addition alongside the two first-party markers, never a substitute for either.
+  *returned* to *returned and quoted*) · **amended 2026-08-04, fourth** (`security` is absorbed into
+  `quality-assurance` per [ADR-0002](./0002-agentic-dev-loop-architecture.md) amendment #10, so **the
+  gate-reads-gate verification has no subject** — the artifact survives and still closes *omission*, the
+  **confirmation** does not, and the remaining verdict is self-enforced). **The decision itself is
+  unchanged by all five** — ~~the relay is an addition alongside the two first-party markers, never a
+  substitute for either.~~ **Corrected by the fourth amendment:** there is now **one** first-party
+  marker, and the relay is an addition alongside it. That it is never a substitute is what did not
+  change.
 - **Date:** 2026-08-02
 - **Deciders:** the owner
 - **Driven by:** [ADR-0003](./0003-mr-definition-of-done.md), [ADR-0004](./0004-autonomy-and-permission-model.md)
@@ -565,7 +571,64 @@ ruling correct by decision instead of by improvisation, and upgrades it — #337
 disclosed paraphrase; a relay is now **verbatim, under the relayer's marker**, which is the half that
 makes it attributable.
 
+## Amendment (2026-08-04, fourth) — the verification direction has lost its subject; the artifact survives, the check does not
+
+**Cause:** [ADR-0002](./0002-agentic-dev-loop-architecture.md)'s amendment #10 — `security` is absorbed
+into `quality-assurance`. **The decision this record makes is unchanged**: a verdict owed to another
+persona is still an artifact on the PR, still carries the head SHA it read, still is never a relayed
+claim. What changed is that **one half of its mechanism no longer has a second party**, and that half
+was the load-bearing one.
+
+**What is falsified, precisely.** This record's *Decision outcome* has both gatekeepers write and **one
+read the other's** — *"the read gates a merge and only one gate merges."* There is now one gatekeeper.
+So:
+
+> ~~`quality-assurance` verifies `security`'s marker before merging — present, approving, and naming
+> the current `headRefOid`.~~ **Struck: there is no second marker.** The remaining verdict is posted by
+> the party that merges and is **read by nobody**. The posting rule is **self-enforced**.
+
+**This is the single largest loss in this record's history and it is not softened.** The gate-reads-gate
+step was **the only place in this loop where a verdict was mechanically checked by a party other than
+its author.** Its removal was not a defect in this decision; it is a consequence of an owner decision
+taken for a different reason — fewer profiles reconciling one result — and the price is booked here
+because here is where it will be looked for.
+
+**What the artifact still buys, stated so it is not written off either.** It closes **omission**: a
+merge proceeding on a review that was claimed rather than given leaves no comment, and the harness's own
+monitor flagged exactly that (observation 1). The record of *what was decided and why*, at *which head*,
+still exists for a later audit. What it no longer buys is **confirmation**, and that word should replace
+any lingering *"verified"* in prose describing the remaining gate.
+
+**The rule for the merging gate is unchanged and is now carrying all the weight.** *"A gatekeeper that
+cannot write its verdict does not proceed as though it had"* was written for the half nobody verified,
+and that half is now the whole. Its own justification is worth re-reading in the new light: *"without
+that clause the asymmetry rebuilds the original failure in the half nobody verifies — a merge with no
+delivery record, silently."*
+
+**The blind spot this record already books widens again.** It already said that *"no party holds both
+the verdict a gate returned and the verdict it posted"*, and the third amendment widened that to a third
+party's relayed verdict. It now covers **the only verdict there is**. The detector would still be
+trivial and there is still nowhere to put it.
+
+### What this does NOT touch
+
+- **The relay decision (third amendment) survives entire**, and its `quality-assurance` / `product-lead`
+  pair is unaffected — `product-lead` still cannot publish (rule 5e), criterion 10 still upgrades from
+  *returned* to *returned and quoted*, the quote is still verbatim under the relayer's own marker.
+- **The multiplier objection survives**, and it is now stronger: reviving a third marker would add a
+  reconciliation cost inside tier 3, which ADR-0002 amendment #10 has just paid down deliberately.
+- **The exclusion list in §1 loses one entry and keeps its principle.** *"`security`'s approval … a
+  relay of it remains exactly what this record was written to refuse"* has **no referent**; the persona
+  is gone. **The discriminator is untouched** — *authority versus record*, a verdict that **permits an
+  act** must be first-party, a verdict that **supplies findings a gate then judges** may be carried. The
+  owner's ratification (ADR-0003's 2026-07-29 amendment) remains in the list and is now its only member,
+  which makes the general form load-bearing rather than illustrative: the next authority-bearing verdict
+  is covered by the rule and not by an enumeration that would have had to be edited again.
+- **The impersonation limit** is unchanged and unreachable from here.
+
 ## Links
+- [ADR-0002](./0002-agentic-dev-loop-architecture.md) amendment #10 — the roster change that removed the
+  reading party; the four costs of the absorption are recorded there, cost 3 being this one
 - Makes [ADR-0003](./0003-mr-definition-of-done.md)'s two-gatekeeper requirement checkable rather than
   instructed; reuses the verification shape its 2026-07-29 amendment established for the owner's
   ratification · applies [ADR-0004](./0004-autonomy-and-permission-model.md)'s 2026-08-02 amendment

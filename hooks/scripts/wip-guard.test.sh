@@ -58,15 +58,26 @@ STUB
 # returned a sha, so the guard exited on the empty DIFF instead and `[ -z "$merge_base" ]` was never
 # executed. That is the likeliest real failure of the four — `origin/main` not fetched in a fresh clone,
 # a detached worktree, a remote not named origin — so it is the one that most needed asserting.
-#   $3 — what `rev-parse --abbrev-ref HEAD` prints (the branch this PR would come FROM);
-#        defaults to a plain feature branch. Story awareness reads it, so it has to vary.
+#   $3 — the merge-base ARGUMENTS this stub will answer for, e.g. `origin/feat/x HEAD`. Empty
+#        (the default) answers any. This is how the BASE PARSING is observable at all: with a
+#        stub that answers unconditionally, `--base=x` and no base at all produce identical
+#        output and the parsing cannot be asserted — which is exactly the vacuous-test shape
+#        this suite has been bitten by. Asked-for ref not matched → empty → the guard fails
+#        open, so a mis-parse shows up as ALLOW where DENY was asserted.
+#   $3 was previously `rev-parse --abbrev-ref HEAD`, read only by the retired story rule. The
+#        guard no longer runs `rev-parse` at all, so the stub no longer answers it.
 stub_git() {
   cat > "$STUBDIR/git" <<STUB
 #!/usr/bin/env bash
 args="\$*"
+expect='${3-}'
 case "\$args" in
-  *"merge-base"*) printf '%s' '${2-abc1234}' ;;
-  *"rev-parse"*)  printf '%s' '${3-feat/ordinary}' ;;
+  *"merge-base"*)
+    if [ -n "\$expect" ] && [ "\${args#*merge-base }" != "\$expect" ]; then
+      printf ''
+    else
+      printf '%s' '${2-abc1234}'
+    fi ;;
   *"diff"*)       printf '%s' '$1' ;;
   *)              exit 0 ;;
 esac
@@ -189,107 +200,94 @@ check ALLOW "this branch's diff unreadable"  "gh pr create --title x"
 # origin/main not fetched, a detached worktree, a remote not named origin.
 stub_git "$MINE_OVERLAPS" ""
 check ALLOW "no merge-base with the base"    "gh pr create --title x"
-echo "--- gitflow-single-env: LOOSER inside a story, TIGHTER between stories ---"
-# The two halves pull in opposite directions in one hook, which is the classic shape that
-# passes a suite while gating nothing. So each half is asserted WITH ITS CONTROL: the same
-# inputs differing only in the variable under test.
+echo "--- paths are matched as FIXED, WHOLE lines: a path is not a pattern ---"
+# `grep -Fxf`, and both letters are load-bearing. This was found once already on the retired
+# story rule (a branch name interpolated into a BRE, where `.` is legal in a ref and matched
+# the wrong story); the surviving overlap path intersects PATHS, which have the same problem.
+# It went unasserted until the story cases were removed and this one was measured missing.
+#
+# One fixture kills both mutations. `-f` without `-F`: `CLAUDE.md` as a regex matches
+# `CLAUDEXmd`. `-Ff` without `-x`: `README.md` is a substring of `docs/README.md`. Neither is
+# a real overlap, so the correct answer is ALLOW — and an ALLOW asserted here is the strict
+# case, since the guard's failure directions all end in ALLOW.
+MINE_LOOKALIKE='CLAUDEXmd
+docs/README.md'
+THEIRS_LOOKALIKE='CLAUDE.md
+README.md'
+stub_gh "$ONE" "$THEIRS_LOOKALIKE"
+stub_git "$MINE_LOOKALIKE"
+check ALLOW "lookalike paths are not an overlap" "gh pr create --title x"
 
-# Fixtures. A task PR carries the story as its BASE; the story's publish PR carries it as
-# its HEAD. Both spellings must resolve to the same story or the rule splits in half.
-TASK_A='[{"number":65,"title":"task a","headRefName":"task/a","baseRefName":"story/12-thing"}]'
-TASK_B_LIVE='[{"number":65,"title":"task a","headRefName":"task/a","baseRefName":"story/12-thing"}]'
-STORY_PUBLISH='[{"number":70,"title":"story 12","headRefName":"story/12-thing","baseRefName":"main"}]'
+echo "--- the base is parsed off the command, in every spelling gh accepts ---"
+# The overlap rule diffs against the merge-base with the branch this PR would TARGET, so the
+# base has to be read out of the command. `gh` accepts `--base x`, `--base=x` and `-Bx`, and a
+# space-only regex misses the last two — defect 1 in the guard's retired record, where it broke
+# the story rule in both directions at once. The story rule is gone; the parsing is not, and
+# until now every assertion on it was one of the cases that went with it.
+#
+# The stub answers merge-base ONLY for `origin/feat/target`, so a mis-parse falls back to the
+# default branch, gets no merge-base, and fails open → ALLOW where DENY is asserted.
+stub_gh "$ONE" "$THEIRS"
+stub_git "$MINE_OVERLAPS" abc1234 "origin/feat/target HEAD"
+check DENY  "--base spaced"                   "gh pr create --base feat/target --title x"
+check DENY  "--base= attached"                "gh pr create --base=feat/target --title x"
+check DENY  "-B attached"                     "gh pr create -Bfeat/target --title x"
+# The control that makes those three mean something: same stub, no base on the command, so the
+# guard resolves the repo default (`main` from the gh stub) and the merge-base does not answer.
+# Without this line all three would also pass on a stub that answered unconditionally.
+check ALLOW "no base: the repo default is used, not feat/target" "gh pr create --title x"
+
+# AND THE FALLBACK. A base this clone cannot resolve must not disable the guard: without the
+# fall back to the default branch, `--base=<anything unresolvable>` is a one-word bypass —
+# no merge-base, no file list, fail open. Here the stub answers only for `origin/main`, the
+# command names a base it will not answer for, and the correct result is still DENY.
+stub_gh "$ONE" "$THEIRS"
+stub_git "$MINE_OVERLAPS" abc1234 "origin/main HEAD"
+check DENY  "an unresolvable base falls back to the default" "gh pr create --base=feat/nope --title x"
+
+# EXACTLY ONE `gh repo view`. Two identical round-trips per `gh pr create` was a real finding
+# against the two-level version (the story block asked, then the overlap block asked again),
+# and with the story block deleted the resolution had to MOVE rather than vanish. Asserted
+# rather than read: a second query is invisible in behaviour and only a call log can see it.
+CALLLOG="$STUBDIR/gh.calls"
+cat > "$STUBDIR/gh" <<STUB
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >> '$CALLLOG'
+case "\$*" in
+  *"repo view"*)   printf 'main' ;;
+  *"pr view"*)     printf '%s' '$THEIRS' ;;
+  *"pr list"*)     printf '%s' '$ONE' ;;
+  *)               exit 0 ;;
+esac
+STUB
+chmod +x "$STUBDIR/gh"
+stub_git "$MINE_OVERLAPS"
+: > "$CALLLOG"
+printf '%s' "gh pr create --title x" | jq -R '{tool_input:{command:.}}' | bash "$GUARD" > /dev/null
+views=$(grep -c 'repo view' "$CALLLOG" || true)
+if [ "$views" = "1" ]; then
+  pass=$((pass + 1)); printf 'ok    %-6s %s\n' "ONCE" "the default base is resolved with exactly one gh repo view"
+else
+  fail=$((fail + 1)); printf 'FAIL  gh repo view called %s times, want 1\n' "$views"
+fi
+
+echo "--- the branch fields on an open PR are not read, and must not disturb the rule ---"
+# STORY AWARENESS WAS REMOVED 2026-08-04 (owner's decision; the guard's header carries the
+# struck record and the measurement — ninety branches, zero task branches). Fourteen cases
+# exercised the two-level behaviour and are gone with it. THIS one survives the cut because
+# what it asserts is true of the one-level rule too: an open PR carrying `headRefName` /
+# `baseRefName` is an ordinary open PR, and overlap against it still denies. Its twin below
+# ("no branch fields") asserts the same for a PR carrying neither, which is how a guard that
+# started reading those fields again would be caught from both sides.
 PLAIN='[{"number":65,"title":"bump","headRefName":"chore/deps","baseRefName":"main"}]'
-
-# LOOSER — the half that must not be a no-op. Same files, same story: allowed. Two tasks
-# land in sequence on a branch that has not published, so this is ordinary work.
-stub_gh "$TASK_A" "$THEIRS"
-stub_git "$MINE_OVERLAPS" abc1234 "task/b"
-check ALLOW "same story, OVERLAPPING files"   "gh pr create --base story/12-thing --title x"
-
-# Its control: identical overlap, no story anywhere → the pre-existing rule still denies.
-# Without this line the ALLOW above would also pass on a guard that stopped checking overlap
-# entirely, which is the mutation that matters.
 stub_gh "$PLAIN" "$THEIRS"
-stub_git "$MINE_OVERLAPS" abc1234 "feat/ordinary"
-check DENY  "no story, OVERLAPPING files"     "gh pr create --title x"
-
-# TIGHTER — a second story while one is live. Files are DISJOINT on purpose: under the old
-# rule this was the allowed case, so a denial here can only come from the story count.
-stub_gh "$TASK_B_LIVE" "$THEIRS"
-stub_git "$MINE_DISJOINT" abc1234 "task/c"
-check DENY  "a SECOND story, disjoint files"  "gh pr create --base story/99-other --title x"
-
-# Its control: same disjoint files, same live story, but this PR belongs to THAT story.
-stub_gh "$TASK_A" "$THEIRS_OTHER"
-stub_git "$MINE_DISJOINT" abc1234 "task/c"
-check ALLOW "same story, disjoint files"      "gh pr create --base story/12-thing --title x"
-
-# The story's own publish PR: head is the story branch, base is the trunk. It must read as
-# the SAME story as its tasks, or the story could never be published while its tasks are open.
-stub_gh "$TASK_A" "$THEIRS_OTHER"
-stub_git "$MINE_DISJOINT" abc1234 "story/12-thing"
-check ALLOW "the story's publish PR"          "gh pr create --title x"
-
-# An ordinary trunk slice alongside a live story is NOT what WIP=1-story bounds. It keeps the
-# file-overlap rule and nothing else — asserted because the natural over-implementation is to
-# deny everything while a story is live.
-stub_gh "$TASK_A" "$THEIRS_OTHER"
-stub_git "$MINE_DISJOINT" abc1234 "chore/unrelated"
-check ALLOW "trunk slice beside a live story" "gh pr create --title x"
-
-# ATTACHED VALUES — the spelling that broke BOTH halves at once, found by `security` on the
-# first round. `gh` accepts `--base=x` and `-Bx`; the first regex required a space, so:
-#   · the story COUNT failed OPEN and silently (a second story read as no story at all);
-#   · the same-story EXEMPTION failed CLOSED, denying the primary flow, intermittently,
-#     depending only on how the command happened to be written.
-#
-# Both halves get both spellings. Asserting only the count would have left the wedging half
-# uncovered — and that is the one that hurts, because a spurious DENY on this flow violates
-# the guard's own rule that a loop-discipline check must never wedge the loop.
-stub_gh "$TASK_B_LIVE" "$THEIRS"
-stub_git "$MINE_DISJOINT" abc1234 "task/c"
-check DENY  "second story, --base= attached"  "gh pr create --base=story/99-other --title x"
-check DENY  "second story, -B attached"       "gh pr create -Bstory/99-other --title x"
-
-stub_gh "$TASK_A" "$THEIRS"
-stub_git "$MINE_OVERLAPS" abc1234 "task/b"
-check ALLOW "same story, --base= attached"    "gh pr create --base=story/12-thing --title x"
-check ALLOW "same story, -B attached"         "gh pr create -Bstory/12-thing --title x"
-
-# The live-story name was interpolated into a BRE, and `.` is legal in a git ref — so a base
-# whose regex happens to match a real story deleted it from the set and let a second story
-# through. Fixed with `grep -vxF`. Asserted with a name that is NOT the live story but whose
-# regex form matches it.
-stub_gh "$TASK_B_LIVE" "$THEIRS"
-stub_git "$MINE_DISJOINT" abc1234 "task/c"
-check DENY  "a base that only MATCHES the live story as a regex" "gh pr create --base story/1..thing --title x"
-
-# The `// ""` defaults, asserted with a fixture that can actually FALSIFY them.
-#
-# THE FIRST VERSION OF THIS TEST WAS VACUOUS and the reviewer proved it: it used a
-# non-story branch, so `new_story` was empty and the story block short-circuited BEFORE
-# `live_stories` was ever consulted. It reached the overlap path and denied for reasons
-# unrelated to the defaults — it passed with line 103 deleted outright.
-#
-# What discriminates: a MIXED open set. One PR without the branch fields, one WITH a story
-# base, and a new PR belonging to a DIFFERENT story. Correct answer is DENY. Without the
-# defaults, jq errors on the fieldless entry, `live_stories` comes back empty, and the rule
-# silently disappears → ALLOW.
-#
-# The fieldless PR is FIRST on purpose. The failure is ORDER-DEPENDENT — jq emits the story
-# before it aborts if the story sorts first — so a fixture in the other order would pass
-# either way. An intermittent silent failure in the guard that bounds WIP is worse than a
-# deterministic one, and only this ordering catches it.
-MIXED='[{"number":65,"title":"no fields"},{"number":45,"title":"task a","headRefName":"task/a","baseRefName":"story/12-thing"}]'
-stub_gh "$MIXED" "$THEIRS_OTHER"
-stub_git "$MINE_DISJOINT" abc1234 "task/c"
-check DENY  "mixed set: a fieldless PR must not blind the story rule" "gh pr create --base story/99-other --title x"
+stub_git "$MINE_OVERLAPS"
+check DENY  "branch fields present: overlap holds" "gh pr create --title x"
 
 # Kept, and it does assert something true — a fieldless open set must not stop the OVERLAP
-# rule working. It is simply not the case that carries the `// ""` claim.
+# rule working.
 stub_gh "$ONE" "$THEIRS"
-stub_git "$MINE_OVERLAPS" abc1234 "feat/ordinary"
+stub_git "$MINE_OVERLAPS"
 check DENY  "no branch fields: overlap holds" "gh pr create --title x"
 
 # The "gh is not installed" branch is deliberately NOT tested here. Exercising it means

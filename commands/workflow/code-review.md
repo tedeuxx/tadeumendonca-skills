@@ -1,10 +1,12 @@
-Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeepers' review that comes after.
+Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's review that comes after.
 
 Context: $ARGUMENTS
 
 ## What this is, and what it is not
 
-**An anticipation of both gates, run by the author.** `quality-assurance` will consolidate that every requirement of the Issue was met and every DoD item holds; `security` will ask whether this can break production. **You answer both first, while fixing is still free.**
+**An anticipation of both of the gate's lenses, run by the author.** `quality-assurance` will consolidate that every requirement of the Issue was met and every DoD item holds, **and** it will ask whether this can cause a problem in production — one gate, two rulers, since `security` was absorbed into it on 2026-08-04. **You answer both first, while fixing is still free.**
+
+**The merge raised the value of this pass rather than lowering it.** There is no longer a second gatekeeper reading the same diff from a different direction, so a defect one of them would have caught is now caught once or not at all. §7 below is where that lands.
 
 **You verify the DoD items here — you do not defer them.** The gate re-verifies independently, in a fresh context, and that independence is the point of having it. But arriving at the gate with the DoD unchecked outsources your own work to it, and every item it has to raise costs a round, a re-ratification and the owner's attention.
 
@@ -134,11 +136,11 @@ The convention you are about to break is usually **your own**, from earlier the 
 - **Reviewers run in the same working tree.** While a gate is reviewing, use a `git worktree` rather than the main checkout — a mutation for verification and an edit for authoring look identical to git, and both parties lose.
 - **Verify the branch base.** A branch cut while another slice was mid-merge starts from the wrong commit and carries its diff into your PR.
 
-## 7 · The question the Issue does not contain — anticipate `security`
+## 7 · The question the Issue does not contain — anticipate the production lens
 
-The sections above anticipate the delivery gate. This one anticipates the other, and it is the half most often skipped **because the Issue cannot prompt it**: *can this cause a problem in production?* is not enumerable in advance — if it were, it would be a requirement.
+The sections above anticipate the delivery lens. This one anticipates the other, and it is the half most often skipped **because the Issue cannot prompt it**: *can this cause a problem in production?* is not enumerable in advance — if it were, it would be a requirement.
 
-Name the axes you looked at and what you found, **the way `security` will**:
+Name the axes you looked at and what you found, **the way the gate will**:
 
 - **Dependencies** — a new package, a version change, a lockfile move.
 - **Permissions and IAM** — anything widening what CI or the agent may do.

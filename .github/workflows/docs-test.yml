@@ -47,18 +47,15 @@ on:
       # and never start the gate asserting against it: green on the PR that breaks it, and never red
       # at all — the failure this file's own header warns about twice.
       - "docs/**"
-      # `PRINCIPLES.md`, for the FOURTH time and the same reason — and this entry is the last one that
-      # should ever be added by measurement. The suite scans every tracked `.md`/`.sh`; this file is
-      # tracked, was in the scan set, and was not in this filter, so a PR editing only it could
-      # introduce a stale floor claim and never start the gate. Latent when found (the file carries no
-      # floor claim today), which is exactly why it survived three previous sweeps of this list.
+      # `PRINCIPLES.md` was added here as the FOURTH occurrence of the same miss, and has since been
+      # folded into the README — a floor behind a click is a floor nobody reads — so its entry is gone
+      # with it. The history is kept because the CAUSE is what matters and it outlives the file: the
+      # suite's scan set was derived while this filter was enumerated, extended by whichever miss
+      # someone happened to measure, and **nobody diffed the two sets against each other**.
       #
-      # THE CAUSE, NOW FIXED IN THE SUITE RATHER THAN HERE: the scan set was derived and this filter
-      # was extended by whichever miss someone happened to measure, and **nobody diffed the two sets
-      # against each other**. `inventory-counts.test.sh` now asserts that every file it scans is a file
-      # this filter can start on. A fifth occurrence goes red in CI instead of being noticed by a
-      # reviewer — which is what the first four depended on.
-      - "PRINCIPLES.md"
+      # THAT IS NOW ASSERTED RATHER THAN SWEPT. `inventory-counts.test.sh` checks that every file it
+      # scans is a file this filter can start on, so a fifth occurrence goes red in CI instead of
+      # waiting to be noticed by a reviewer — which is what the first four depended on.
       - ".github/workflows/docs-test.yml"
 
 permissions:
@@ -70,6 +67,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # FULL HISTORY, AND THE SUITE FAILS WITHOUT IT. The roster-membership assertions derive the
+          # set of RETIRED personas from `git log --diff-filter=D -- 'agents/*.md'` — the names that
+          # once had a file and no longer do. `actions/checkout` defaults to `fetch-depth: 1`, on which
+          # that command returns NOTHING, and an absence check over an empty set of names passes
+          # vacuously: green in CI, red on a maintainer's machine, for a reason nothing prints.
+          #
+          # The suite asserts the set is non-empty rather than trusting this line, so removing it goes
+          # red instead of quiet. Both halves are needed — this makes it work, that makes the failure
+          # legible.
+          fetch-depth: 0
 
       - name: Assert the published inventory counts match the repo
         run: bash hooks/scripts/inventory-counts.test.sh

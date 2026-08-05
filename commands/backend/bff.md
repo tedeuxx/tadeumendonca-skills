@@ -3,7 +3,7 @@ Implement or review the Backend-for-Frontend (BFF) pattern.
 Context: $ARGUMENTS
 
 ## What a BFF is
-A **BFF is the single backend that exists to serve one frontend.** API Gateway fronts **only the BFF** — there is no other public backend for this SPA — so the BFF's **routes live at the root** (`/profile`, `/posts`, …); the whole API *is* the BFF. **One BFF per SPA** (1:1, never shared — `/architecture/fed-spa-bff`). Its job: expose endpoints **shaped for this frontend's screens** and **orchestrate/aggregate** the domain logic / downstream microservices behind it — one round trip per screen instead of the SPA fanning out to many resource APIs.
+A **BFF is the single backend that exists to serve one frontend.** API Gateway fronts **only the BFF** — there is no other public backend for this SPA — so the BFF's **routes live at the root** (`/profile`, `/posts`, …); the whole API *is* the BFF. **One BFF per SPA** (1:1, never shared). Its job: expose endpoints **shaped for this frontend's screens** and **orchestrate/aggregate** the domain logic / downstream microservices behind it — one round trip per screen instead of the SPA fanning out to many resource APIs.
 
 ## Auth/authz are EXTERNAL to the BFF (kept simple)
 The BFF contains **no authentication or authorization code**. Auth is handled outside it:

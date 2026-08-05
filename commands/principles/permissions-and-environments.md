@@ -56,7 +56,7 @@ Direct cloud mutation is denied entirely: writes to staging happen **through the
 
 The reason it cannot be a permission rule is structural, not a preference: **whether a merge needs the human depends on the CLASS of the change, and a permission matcher reads a command string.** `gh pr merge 331 --merge` looks identical whether the diff is a typo fix or a Terraform change. A rule that prompts on all of them taxes the safe class — which is most merges — while proving nothing about the boundary class, and the tax lands on the owner, who then approves something they already asked for.
 
-So **the classification is the gate, and `quality-assurance` holds it**: it merges the safe class once both gatekeepers are green, and never merges the boundary class — infrastructure and anything threatening continuity, a change to the loop's own rules, publishing in the owner's voice, or any expansion of its own authority. When the class is unclear, it is boundary.
+So **the classification is the gate, and `quality-assurance` holds it**: it merges the safe class once both of its lenses are green — delivery, and can-this-break-production — and never merges the boundary class — infrastructure and anything threatening continuity, a change to the loop's own rules, publishing in the owner's voice, or any expansion of its own authority. When the class is unclear, it is boundary.
 
 *The named cost:* this is a persona-level guarantee, not a mechanical one — as strong as the model reading its own definition, where the Deny row is a shell script that cannot be argued with. Accepted deliberately, and it is why the **irreversible** floor stays in Deny rather than moving to the same layer.
 
