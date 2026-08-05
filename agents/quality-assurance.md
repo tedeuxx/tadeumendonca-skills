@@ -504,6 +504,34 @@ attributable to you and is itself a review defect. Never paraphrase, never "summ
 never re-classify a severity in transit. If you disagree with a finding, say so **in your own text,
 below the quote**, where the reader can see both.
 
+**FENCE THE QUOTE, so a machine can find it and not only a person.** Open with
+`<!-- copy-verdict: product-lead -->` and close with `<!-- /copy-verdict -->`, the lens's words between
+them:
+
+```
+<!-- gatekeeper-verdict: quality-assurance -->
+REQUEST-CHANGES
+head: <the headRefOid you reviewed>
+
+…your verdict and the per-criterion table…
+
+<!-- copy-verdict: product-lead -->
+…the lens's verdict, verbatim…
+<!-- /copy-verdict -->
+```
+
+**This adds no comment and no marker vocabulary — it is a delimiter inside the one you already post.**
+That distinction is what keeps it out of ADR-0006 §3's rejected third marker: the objection there was
+the multiplier (one more comment on every MR) and the privacy of a lens that reads the private
+positioning layer. Neither moves. The lens still posts nothing, rule 5e needs no carve-out, and the
+comment count is unchanged.
+
+**Why it is worth a delimiter at all.** Criterion 10 is the only one whose satisfaction is unreadable by
+anything except the gate that asserted it — a verbatim quote with no fence is indistinguishable, to any
+reader, from a comment that never carried one. So "was the copy lens relayed" is a question nothing can
+ask, which is the same shape as the failure the queue listing was built to fix: an artifact that exists
+and has no reader. With the fence it is one `jq` away for whoever needs it next.
+
 **When the verdict is long — the rule, because a rule that cannot be followed gets followed
 selectively, which is worse than none.** Quote it **in full, always**. Length is not a reason to cut,
 and it costs you nothing: your `Write` grant exists precisely so the body is composed in the scratchpad

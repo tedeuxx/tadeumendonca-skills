@@ -117,6 +117,80 @@ expect 'marker + matching head is reviewed' absent  "$NEEDLE"
 expect 'and it is still listed'             present '#150'
 rm -rf "$root"
 
+echo '--- THE VERDICT IS REPORTED, not merely its existence ---'
+# The defect this section exists for, measured on -io#357: a PR sitting at REQUEST-CHANGES
+# rendered identically to an approved one, because the check asked "is there a marker at this
+# head" and stopped. The listing's whole job is to say which PRs still need something.
+for v in REQUEST-CHANGES APPROVE-PENDING-HUMAN; do
+  setup
+  add_pr 150 'chore: prune an inert deny rule' tedeuxx
+  build_list
+  add_pr_view 150 'abc123' "$MARKER
+$v
+head: abc123"
+  expect "$v is named on the line"        present "quality-assurance returned $v on the current head"
+  expect "$v is NOT read as unreviewed"   absent  "$NEEDLE"
+  rm -rf "$root"
+done
+
+# The partner half: the one verdict that means "done" must stay silent, or every reviewed PR
+# carries a line and the signal dies of noise.
+setup
+add_pr 150 'chore: prune an inert deny rule' tedeuxx
+build_list
+add_pr_view 150 'abc123' "$MARKER
+APPROVE-AND-MERGE
+head: abc123"
+expect 'APPROVE-AND-MERGE renders silently' absent 'quality-assurance returned'
+rm -rf "$root"
+
+# VERDICT DRIFT — a literal the gate's own persona does not define. Reporting it is the point:
+# this is the failure ADR-0007 was opened for, and rendering it as "fine" hides the one thing
+# that check exists to see. `APPROVED` is the real historical example — the marker template
+# carried it while the verdict set said APPROVE-AND-MERGE.
+setup
+add_pr 150 'chore: prune an inert deny rule' tedeuxx
+build_list
+add_pr_view 150 'abc123' "$MARKER
+APPROVED
+head: abc123"
+expect 'an unrecognised literal is reported' present 'UNRECOGNISED verdict on the current head: APPROVED'
+expect 'and is not silently treated as approval' absent 'quality-assurance returned'
+rm -rf "$root"
+
+echo '--- TWO VERDICTS AT ONE HEAD: the LAST one is the current one ---'
+# A re-review posts a second verdict at the same head, so this is the ordinary path rather than an
+# edge case. With `.[0]` an APPROVE-AND-MERGE followed by a REQUEST-CHANGES rendered SILENT — this
+# hook's own headline defect, on a path it did not cover. GitHub returns comments in creation order.
+#
+# Both directions are asserted. Without the approve-then-block case the fix would be untested in the
+# direction that matters; without the block-then-approve case the check could pass by always taking
+# the noisiest verdict rather than the latest.
+two_verdicts() { # number · head · first verdict · second verdict
+  jq -n --arg h "$2" --arg a "$MARKER
+$3
+head: $2" --arg b "$MARKER
+$4
+head: $2" '{headRefOid:$h, comments:[
+      {body:$a, authorAssociation:"OWNER"},
+      {body:$b, authorAssociation:"OWNER"}]}' > "$root/fix/pr-$1.json"
+}
+
+setup
+add_pr 150 're-reviewed after changes' tedeuxx
+build_list
+two_verdicts 150 'abc123' 'APPROVE-AND-MERGE' 'REQUEST-CHANGES'
+expect 'approve-then-block reports the BLOCK' present 'quality-assurance returned REQUEST-CHANGES on the current head'
+rm -rf "$root"
+
+setup
+add_pr 150 're-reviewed after changes' tedeuxx
+build_list
+two_verdicts 150 'abc123' 'REQUEST-CHANGES' 'APPROVE-AND-MERGE'
+expect 'block-then-approve renders silent' absent 'quality-assurance returned'
+expect 'and is not read as unreviewed'     absent "$NEEDLE"
+rm -rf "$root"
+
 echo '--- STALENESS: a verdict on a superseded head is not a verdict on this code ---'
 # The case a naive "does a verdict comment exist" check gets wrong. The gate reviewed
 # `old999`; the branch has moved to `abc123` since, so nothing has reviewed what is there now.
