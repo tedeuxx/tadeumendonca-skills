@@ -1248,6 +1248,11 @@ unless somebody says otherwise.
 - **ADR-0007** — its precondition counts two markers. Amended there. It is status `proposed` and
   unimplemented (`grep gatekeeper-verdict hooks/` returns nothing), so **nothing breaks today**; what
   would have broken is the slice that implemented it against this record.
+  > **The parenthetical expired 2026-08-05.** That `grep` now hits `session-wip.sh` and its suite — a
+  > SessionStart *reader* that annotates a PR with no verdict on its current head, deciding nothing.
+  > ADR-0007's deny hook is still unimplemented; only the command that proved it is gone. Superseded
+  > in place at [ADR-0007](./0007-the-merge-precondition-is-a-floor-not-an-instruction.md), with the
+  > reason the proxy broke: a grep for a *string* stood in for the existence of a *control*.
 
 Roster: **five** — `product-lead`, `tech-lead`, `harness-reviewer` (tier 1) · `developer` (tier 2) ·
 `quality-assurance` (tier 3). The count is unchanged from amendment #9 **and two of the five members

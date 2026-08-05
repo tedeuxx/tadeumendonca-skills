@@ -48,13 +48,25 @@ MARKER='<!-- gatekeeper-verdict: quality-assurance -->'
 # (no auth, rate limit, no network), the line stays exactly as it read before this existed.
 # An unavailable answer is not a finding, and MUST NOT render as "not reviewed" — that would
 # make the hook lie in precisely the direction that erodes trust in it.
+#
+# THE AUTHOR FILTER IS NOT DECORATION. These repos are PUBLIC, and the head SHA is public with
+# them. Without it, one comment from any GitHub account carrying the marker and that SHA makes
+# a genuinely unreviewed PR render clean — the one failure direction that matters here, since
+# a missing annotation reads as "fine" while a spurious one is only noise. `authorAssociation`
+# already rides in the same payload, so this costs no extra call. It bounds who can SUPPRESS
+# the mark; it cannot prove who wrote a conforming comment, because every context holding the
+# owner's token reports OWNER (ADR-0006's impersonation residual, unchanged by this).
 verdict_suffix() {
   pr_json="$(gh pr view "$1" --json headRefOid,comments 2>/dev/null || true)"
   [ -z "$pr_json" ] && return 0
   matches="$(printf '%s' "$pr_json" | jq -r --arg m "$MARKER" '
     (.headRefOid // "") as $h
     | if $h == "" then "unknown"
-      else [ .comments[]?.body // "" | select(contains($m)) | select(contains($h)) ]
+      else [ .comments[]?
+             | select((.authorAssociation // "") as $a
+                      | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
+             | .body // ""
+             | select(contains($m)) | select(contains($h)) ]
            | length | tostring
       end' 2>/dev/null || true)"
   case "$matches" in

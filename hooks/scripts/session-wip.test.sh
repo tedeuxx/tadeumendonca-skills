@@ -53,12 +53,15 @@ build_list() {
 
 # The per-PR payload the hook reads. Passing '' for the comment body means "no comments at
 # all"; passing the literal SKIP means the read FAILS (no fixture file), which is the
-# degradation path.
-add_pr_view() { # number · headRefOid · comment body
+# degradation path. The 4th argument is the commenter's authorAssociation and defaults to
+# OWNER — the only value that made the pre-filter version of this hook pass.
+add_pr_view() { # number · headRefOid · comment body · [authorAssociation]
+  assoc="${4:-OWNER}"
   case "$3" in
     SKIP) return 0 ;;
     '')   jq -n --arg h "$2" '{headRefOid:$h, comments:[]}' > "$root/fix/pr-$1.json" ;;
-    *)    jq -n --arg h "$2" --arg b "$3" '{headRefOid:$h, comments:[{body:$b}]}' > "$root/fix/pr-$1.json" ;;
+    *)    jq -n --arg h "$2" --arg b "$3" --arg a "$assoc" \
+            '{headRefOid:$h, comments:[{body:$b, authorAssociation:$a}]}' > "$root/fix/pr-$1.json" ;;
   esac
 }
 
@@ -124,6 +127,43 @@ add_pr_view 150 'abc123' "$MARKER
 APPROVE-AND-MERGE
 head: old999"
 expect 'marker on a stale head is NOT a pass' present "$NEEDLE"
+rm -rf "$root"
+
+echo '--- SUPPRESSION: these repos are public, so who wrote the verdict has to matter ---'
+# The failure direction that counts. A missing annotation reads as "fine"; a spurious one is
+# only noise. So the question is who can make the mark DISAPPEAR — and without an author
+# filter the answer is anyone with a GitHub account, since the head SHA is public too.
+for assoc in NONE CONTRIBUTOR FIRST_TIME_CONTRIBUTOR; do
+  setup
+  add_pr 150 'chore: prune an inert deny rule' tedeuxx
+  build_list
+  add_pr_view 150 'abc123' "$MARKER
+APPROVE-AND-MERGE
+head: abc123" "$assoc"
+  expect "a $assoc comment cannot suppress the mark" present "$NEEDLE"
+  rm -rf "$root"
+done
+
+# The partner half: the filter must not reject the people who legitimately review here, or it
+# annotates every PR forever and the signal dies of noise.
+for assoc in OWNER MEMBER COLLABORATOR; do
+  setup
+  add_pr 150 'chore: prune an inert deny rule' tedeuxx
+  build_list
+  add_pr_view 150 'abc123' "$MARKER
+APPROVE-AND-MERGE
+head: abc123" "$assoc"
+  expect "a $assoc verdict still counts" absent "$NEEDLE"
+  rm -rf "$root"
+done
+
+# A payload with no authorAssociation field at all must not be treated as trusted.
+setup
+add_pr 150 'chore: prune an inert deny rule' tedeuxx
+build_list
+jq -n --arg h abc123 --arg b "$MARKER
+head: abc123" '{headRefOid:$h, comments:[{body:$b}]}' > "$root/fix/pr-150.json"
+expect 'a comment with no association is not trusted' present "$NEEDLE"
 rm -rf "$root"
 
 echo '--- silent degradation: an unavailable answer must not render as "not reviewed" ---'

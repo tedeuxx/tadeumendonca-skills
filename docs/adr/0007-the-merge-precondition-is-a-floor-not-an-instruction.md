@@ -158,6 +158,19 @@ The page bounds **count, not bytes** — a stranger cannot choose how many comme
 
 **Status is still `proposed` and this amendment does not advance it.** The hook is **unimplemented** —
 `grep gatekeeper-verdict hooks/` returns nothing — so **nothing in the running system is wrong today**.
+
+> **The falsifier above expired on 2026-08-05, and the conclusion it supported did not.** That `grep`
+> now returns hits, from `session-wip.sh` and its suite — a **SessionStart reader** that annotates an
+> open PR carrying no verdict on its current head. It decides nothing and blocks nothing. **This
+> record's hook — the one that DENIES a merge lacking the marker — is still unimplemented**, and the
+> command that used to prove it no longer can.
+>
+> Kept rather than rewritten, because the sentence is the reason the next sweep must not trust it: a
+> grep for a *string* was standing in for the existence of a *control*, and the first artifact to
+> mention the string in passing broke the proxy. To check the claim now, look for a hook that returns
+> a `deny` decision on `gh pr merge` — `permission-guard.sh`'s rule 7b routes that merge to the gate
+> persona but asserts nothing about a verdict. Reading the marker as a merge precondition remains
+> undone.
 What would have been wrong is the slice that implemented this record as written: it enumerates *both
 markers*, and one of the two personas no longer exists.
 
