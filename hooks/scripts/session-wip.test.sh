@@ -158,6 +158,39 @@ expect 'an unrecognised literal is reported' present 'UNRECOGNISED verdict on th
 expect 'and is not silently treated as approval' absent 'quality-assurance returned'
 rm -rf "$root"
 
+echo '--- TWO VERDICTS AT ONE HEAD: the LAST one is the current one ---'
+# A re-review posts a second verdict at the same head, so this is the ordinary path rather than an
+# edge case. With `.[0]` an APPROVE-AND-MERGE followed by a REQUEST-CHANGES rendered SILENT — this
+# hook's own headline defect, on a path it did not cover. GitHub returns comments in creation order.
+#
+# Both directions are asserted. Without the approve-then-block case the fix would be untested in the
+# direction that matters; without the block-then-approve case the check could pass by always taking
+# the noisiest verdict rather than the latest.
+two_verdicts() { # number · head · first verdict · second verdict
+  jq -n --arg h "$2" --arg a "$MARKER
+$3
+head: $2" --arg b "$MARKER
+$4
+head: $2" '{headRefOid:$h, comments:[
+      {body:$a, authorAssociation:"OWNER"},
+      {body:$b, authorAssociation:"OWNER"}]}' > "$root/fix/pr-$1.json"
+}
+
+setup
+add_pr 150 're-reviewed after changes' tedeuxx
+build_list
+two_verdicts 150 'abc123' 'APPROVE-AND-MERGE' 'REQUEST-CHANGES'
+expect 'approve-then-block reports the BLOCK' present 'quality-assurance returned REQUEST-CHANGES on the current head'
+rm -rf "$root"
+
+setup
+add_pr 150 're-reviewed after changes' tedeuxx
+build_list
+two_verdicts 150 'abc123' 'REQUEST-CHANGES' 'APPROVE-AND-MERGE'
+expect 'block-then-approve renders silent' absent 'quality-assurance returned'
+expect 'and is not read as unreviewed'     absent "$NEEDLE"
+rm -rf "$root"
+
 echo '--- STALENESS: a verdict on a superseded head is not a verdict on this code ---'
 # The case a naive "does a verdict comment exist" check gets wrong. The gate reviewed
 # `old999`; the branch has moved to `abc123` since, so nothing has reviewed what is there now.

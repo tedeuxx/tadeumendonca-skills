@@ -66,13 +66,22 @@ MARKER='<!-- gatekeeper-verdict: quality-assurance -->'
 #
 # Reading the literal is expressible where reading prose would not be: the verdict set is a
 # CLOSED ENUMERATION of three, defined in `agents/quality-assurance.md` under *Your verdict —
-# exactly one of*, and the marker template is a projection of that same set. ADR-0008's
-# amendment #2 draws exactly this line — a control over a closed set the author wrote may be
-# recorded as closed; one over a caller-controlled grammar may not.
+# exactly one of*, and the marker template is a projection of that same set. ADR-0008's first
+# 2026-08-04 amendment, section 2, draws exactly this line — a control over a closed set the
+# author wrote may be recorded as closed; one over a caller-controlled grammar may not.
 #
 # An UNRECOGNISED literal is reported rather than passed over. That is verdict drift — a gate
 # posting a word its own persona does not define — and it is the failure ADR-0007 was opened
 # for. Rendering it as "fine" would hide the one thing that check exists to see.
+#
+# THE LAST MATCH, NOT THE FIRST (`.[-1]`), and it is an ordinary path rather than an edge case:
+# a re-review posts a second verdict at the same head. With `.[0]`, an APPROVE-AND-MERGE followed
+# by a REQUEST-CHANGES rendered SILENT — this hook's own headline defect, on a path it did not
+# cover. GitHub returns comments in creation order, so the last match is the current verdict.
+# Until the two-verdict cases in the suite, the ordering was asserted by NOTHING: the suite stayed
+# 32/32 under either index. Note the comment lives here and not inside the jq program — an
+# apostrophe in a jq comment terminates the single-quoted shell string, which is how the first
+# version of this note silently emptied the whole hook.
 verdict_suffix() {
   pr_json="$(gh pr view "$1" --json headRefOid,comments 2>/dev/null || true)"
   [ -z "$pr_json" ] && return 0
@@ -90,7 +99,7 @@ verdict_suffix() {
              | .body // ""
              | select(contains($m)) | select(contains($h))
              | literal(split("\n"); $m) ]
-           | if length == 0 then "none" else .[0] end
+           | if length == 0 then "none" else .[-1] end
       end' 2>/dev/null || true)"
   case "$verdict" in
     '') : ;;                                   # unavailable — say nothing, per the contract above
@@ -131,7 +140,6 @@ exists because nothing else in the loop can tell you it was skipped.
 
 A line naming a verdict — REQUEST-CHANGES or APPROVE-PENDING-HUMAN — HAS been through the
 gate and is not done: the first needs changes and a re-review, the second needs the owner.
-Only APPROVE-AND-MERGE renders silently, so an unannotated line means reviewed and clear.
 A line reporting an UNRECOGNISED verdict means the gate posted a literal its own persona
 does not define, which is a defect in the gate rather than in the PR.
 
