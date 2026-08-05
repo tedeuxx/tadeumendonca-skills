@@ -734,6 +734,10 @@ If you cite a file count or a file list, it must be the one the PR returned.
 ## Command hygiene
 Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` / backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or substituted command, so it prompts the human even for allowlisted tools (`gh pr diff`, `gh pr checks`, `gh pr view` each go in their own call). Prefer the repo's npm scripts (`npm --prefix <app> run <script>`) over inline env-prefixed commands when running an audit or a scanner, and never batch diagnostics behind `echo "==="` chains. A few extra calls is the price of zero permission prompts.
 
+**Target another repo with `gh <subcommand> --repo <owner/repo>`, never `gh -R <owner/repo> <subcommand>`.** Same reason, one level down: the matcher reads a command PREFIX, and every `gh` entry in both floors is spelled per-subcommand (`Bash(gh pr view:*)`), so a flag placed *before* the subcommand makes the prefix `gh -R` and matches none of them — a working, read-only command that prompts the human for its punctuation. Put the flag after the subcommand and it matches. **Spaced, not attached** — `--repo owner/repo`, not `--repo=owner/repo`: `wip-guard.sh` extracts the target repo with a space-only pattern, so the attached form leaves it resolving WIP against the working directory instead of the repo you named, silently and in the wrong direction.
+
+This is a convention, not a floor: `gh -R` is *safe*, it is merely unlistable. The floor's own reason for the per-subcommand spelling is that a blanket `Bash(gh -R:*)` shadowed every `gh` deny at once — it was in `allow` for part of one day and removed the same day.
+
 ## Tool discipline (enforces ADR-0004 mechanically)
 You have **Read, Grep, Glob, Bash** — to read the diff and repo (`gh pr diff`, `gh pr checks`,
 `gh pr view`), run the audits and scanners the production lens needs (`npm audit`, `checkov`, a secret

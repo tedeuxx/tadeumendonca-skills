@@ -337,8 +337,24 @@ done
 bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g')"
 
 # ── ONE SPELLING OF "AN OPTIONAL -R/--repo BEFORE THE SUBCOMMAND" ────────────────────────────────
-# `gh -R <repo> <subcommand>` is this workspace's PRESCRIBED multi-repo convention, so the flag can
-# appear before the subcommand in any command this hook sees, and every `gh` rule has to expect it.
+# ~~`gh -R <repo> <subcommand>` is this workspace's PRESCRIBED multi-repo convention~~ — **STRUCK,
+# 2026-08-05. It is the opposite: the prescribed form is `gh <subcommand> --repo <owner/repo>`, and
+# `gh -R` before the subcommand is the spelling that does NOT work.** The flag can still appear there
+# in a command this hook sees, so every `gh` rule must still expect it — the variable below is
+# unchanged and nothing about the matching changes. What was wrong was the sentence, not the code.
+#
+# HOW IT WAS WRONG, because the shape recurs: the paragraph below it already recorded the removal of
+# `Bash(gh -R:*)` from `allow` and stated the working replacement in its own last clause. The
+# correction landed in the record and the header above it was never re-read. So the file simultaneously
+# prescribed a form and explained why that form cannot be allowlisted, and the header is the half a
+# reader hits first.
+#
+# THE COST WAS MEASURED BEFORE THE FIX: a `product-lead` dispatch ran `gh -R <repo> issue view …` and
+# stopped for a human on a read-only command. This comment was the only place in the workspace that
+# said anything about the convention at all — `commands/principles/permissions-and-environments.md`
+# contained neither spelling — so the rule that makes commands work lived in the file nobody opens
+# before typing a command, and the rule that breaks them was what every persona had been taught.
+# The teaching now lives in the five agent briefs, which is where an invocation convention is read.
 #
 # THE HISTORY IS KEPT BECAUSE IT IS THE REASON THE VARIABLE EXISTS, and it is history: for part of one
 # day the floor carried `Bash(gh -R:*)` / `Bash(gh --repo:*)` in `allow`. The settings matcher reads a

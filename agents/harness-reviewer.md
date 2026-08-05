@@ -123,6 +123,14 @@ rather than inferring, and say when you did.
   not think of; a decision already taken is exactly when that is worth something. Say it plainly once,
   then accept the call.
 
+## Command hygiene
+
+Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` / backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or substituted command, so it prompts the human even for allowlisted tools. A few extra calls is the price of zero permission prompts.
+
+**Target another repo with `gh <subcommand> --repo <owner/repo>`, never `gh -R <owner/repo> <subcommand>`.** The matcher reads a command PREFIX, and every `gh` entry in both floors is spelled per-subcommand (`Bash(gh issue view:*)`), so a flag placed *before* the subcommand makes the prefix `gh -R` and matches none of them. Put the flag after the subcommand and it matches. **Spaced, not attached** — `--repo owner/repo`, not `--repo=owner/repo`, because `wip-guard.sh` extracts the target repo with a space-only pattern.
+
+**A caveat that is specifically yours:** you are the persona most likely to be *probing* the guard, and a probe whose payload merely mentions a denied act is denied as the act. Heredocs are the sharp edge — `$bare` collapses quoted spans but not heredoc bodies, so `cat > probe.sh <<EOF` carrying `gh secret set` in its text is blocked. Write probe files with the `Write` tool rather than through the shell, and report that friction as a finding rather than working around it silently.
+
 ## How to write your answer
 
 **Lead with the scenarios, ordered by what they cost — not by how likely they are.** A configuration

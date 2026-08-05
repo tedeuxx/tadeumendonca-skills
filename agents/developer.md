@@ -147,6 +147,12 @@ not mention is a finding. Stated plainly because it is a real loss, not a wash.
   ships. Deferring the checkable half to it outsources your work and costs a round, a re-ratification
   and the owner's attention.
 
+## Command hygiene
+
+Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` / backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or substituted command, so it prompts the human even for allowlisted tools. Prefer the repo's npm scripts (`npm --prefix <app> run <script>`) over inline env-prefixed commands. A few extra calls is the price of zero permission prompts.
+
+**Target another repo with `gh <subcommand> --repo <owner/repo>`, never `gh -R <owner/repo> <subcommand>`.** The matcher reads a command PREFIX, and every `gh` entry in both floors is spelled per-subcommand (`Bash(gh issue view:*)`), so a flag placed *before* the subcommand makes the prefix `gh -R` and matches none of them — a working, read-only command that stops for a human over its punctuation. Put the flag after the subcommand and it matches. **Spaced, not attached** — `--repo owner/repo`, not `--repo=owner/repo`: `wip-guard.sh` extracts the target repo with a space-only pattern, and you are the persona it gates, so the attached form has it resolving WIP against the working directory instead of the repo you named.
+
 ## How you work
 
 1. **Read the decisions before the code.** The ADR library is why a fresh context can build coherently;
