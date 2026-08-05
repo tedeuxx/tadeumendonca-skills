@@ -61,8 +61,11 @@ on:
       # but the gate-coverage check derived its input from `FLOOR_CLAIM_FILES`, which is
       # `git ls-files -- '*.md' '*.sh'`. A `.json` file was never in that set, so the instrument
       # written after four misses passed green on the fifth. Measured on #150, which changed exactly
-      # this file and started no gate. The check now reads the union of both sources, so it goes red
-      # here rather than waiting for a reviewer — which is what all five previous ones depended on.
+      # this file and started no gate. The check now reads the union of ALL SIX sources the suite
+      # opens — not "both", which is what this comment said until the reviewer counted them: the
+      # first fix unioned two, and its own prose called that complete. The correction is that the
+      # union is built from the variables rather than from memory. It goes red here now rather than
+      # waiting for a reviewer, which is what all five previous occurrences depended on.
       - ".claude/**"
       - ".github/workflows/docs-test.yml"
 
