@@ -1017,6 +1017,23 @@ else
   if [ -z "$filter_globs" ]; then
     bad "gate coverage — no paths: globs parsed from docs-test.yml; the file changed shape and this assertion did NOT run"
   else
+    # THE SCAN SET IS NOT `FLOOR_CLAIM_FILES` ALONE, and believing it was is how this assertion sat
+    # green with a hole one variable away. The suite ALSO reads `$SETTINGS` — the floor-claims block
+    # parses its `allow` list, and five assertions rest on it — but it is `.json`, and the scan set
+    # comes from `git ls-files -- '*.md' '*.sh'`, so it was never a member.
+    #
+    # That made this the FIFTH occurrence of the miss this very check was written to prevent, and the
+    # first one invisible to the instrument built for it: a PR changing only `.claude/settings.json`
+    # could not start the workflow whose suite asserts against `.claude/settings.json`. Measured on
+    # tedeuxx/tadeumendonca-skills#150, which changed exactly that file and ran no gate.
+    #
+    # The lesson is in the shape rather than the file: the check derived its input from ONE of the
+    # suite's two sources because that source was the one in a convenient variable. A gate that
+    # enumerates its own inputs has to enumerate all of them, and nothing here can prove it did —
+    # which is why the union is built once, named, and used by both readers below.
+    scanned_files="$FLOOR_CLAIM_FILES
+$SETTINGS"
+
     uncovered=""
     while IFS= read -r file; do
       [ -z "$file" ] && continue
@@ -1032,7 +1049,7 @@ else
       done <<< "$filter_globs"
       [ -z "$matched" ] && uncovered="$uncovered
     $rel"
-    done <<< "$FLOOR_CLAIM_FILES"
+    done <<< "$scanned_files"
 
     if [ -z "$uncovered" ]; then
       ok "gate coverage — every file the floor-claim scan reads is matched by docs-test.yml's paths: filter"
