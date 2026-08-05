@@ -640,6 +640,106 @@ else
   fi
 fi
 
+# --- the README's skill TABLE, not just its counts ---------------------------------------------
+#
+# THE SAME DEFECT AS THE `CLAUDE.md` PER-FAMILY TABLES, IN THE OTHER DOCUMENT. This file's header books
+# it in its own words — "it asserts the numbers, never the prose around them" — and the family loop
+# above already closed it for `CLAUDE.md` with `rows=$(grep -c ...)`, after it SHIPPED: a skill was
+# added, the heading count went red, someone bumped the number the failure named, and the suite went
+# green with the table below still listing one fewer. The README's table had no equivalent, so the same
+# sequence there is still available. Adding a skill reddens `<N> skills + autonomy-on`, one edit fixes
+# the sentence the failure quotes, and the skill ships published-and-unlisted in the one document a
+# forker actually reads.
+#
+# ── THE ANCHOR IS THE (SKILL, FAMILY) PAIR, AND MATCHING ON THE NAME ALONE WOULD BE WRONG ──────
+# Measured before choosing: FOUR skill names exist in two families each — `coverage`, `dynamodb`,
+# `cloudwatch-rum` and `environment-config`. A check keyed on the backticked name alone passes with one
+# of a duplicate pair missing from the table, which is precisely the failure it exists to catch, so the
+# name is not a key. The row shape the generator emits is
+#     | `<skill>` | <description> | `<family>` | <wielded by> |
+# and both directions below key on cells 1 and 3 together. `.*` spans cell 2 rather than splitting on
+# `|`, because a description containing an escaped `\|` still contains the delimiter.
+#
+# ── THE ROW SHAPE SELECTS THE TABLE WITHOUT NAMING WHERE IT IS ─────────────────────────────────
+# The reverse direction needs the set of rows, and the README holds a SECOND table whose first cell is
+# also backticked (the hook-event matrix: `| \`UserPromptSubmit\` | … |`). Rather than parse section
+# boundaries — a thing to get wrong for no gain, as the family loop's comment already argues — the shape
+# below requires cells 1 AND 3 to each be a single backticked lowercase token. Measured on the current
+# head that selects exactly 73 lines, the same number the generator emits, and none of the 14 hook-event
+# rows. It also means a row surviving the deletion of an entire FAMILY directory is still caught, which
+# a family-name allowlist would have missed.
+#
+# ── HOW TO FIX A RED HERE, because a red that teaches the wrong repair is worse than none ──────
+# **Re-run `hooks/scripts/skills-table.py` and paste its output over the table.** Do NOT hand-edit the
+# row the failure names. The table is generated precisely so that no description is a hand-written
+# claim about what a skill does, and repairing it by hand restores that risk one row at a time while
+# turning this assertion green.
+#
+# ── WHAT THIS DOES NOT ASSERT, said plainly ────────────────────────────────────────────────────
+# It checks that a row EXISTS for each skill and that no row invents one. It does NOT check the row's
+# CONTENT — a description hand-edited to say something the skill does not say passes both directions.
+# Closing that needs a verbatim diff against the generator's output, which was considered and rejected:
+# it reddens on any reflow or formatting change to a published README, which is the cry-wolf failure
+# this file books elsewhere. The generator's docstring carries the same limit from its side.
+skill_rows_re='^\| `[a-z0-9][a-z0-9-]*` \|.*\| `[a-z0-9][a-z0-9-]*` \|'
+
+# DIRECTION 1 — every skill file has a row. Catches an ADDED skill nobody listed.
+table_missing=""
+skill_files=0
+for path in "$ROOT"/commands/*/; do
+  fam=$(basename "$path")
+  for f in "$path"*.md; do
+    [ -e "$f" ] || continue
+    stem=$(basename "$f" .md)
+    skill_files=$((skill_files + 1))
+    grep -qE "^\| \`$stem\` \|.*\| \`$fam\` \|" "$README" && continue
+    table_missing="$table_missing
+    commands/$fam/$stem.md — no row in the README table"
+  done
+done
+
+if [ "$skill_files" -eq 0 ]; then
+  bad "README skill table — no skill files found under commands/; this assertion did NOT run"
+elif [ -n "$table_missing" ]; then
+  bad "README skill table — a skill is published and has no row in the table a forker reads:$table_missing
+      The counts above can be green while this is wrong: fixing the number a count failure quotes does not add the row.
+      Fix by re-running \`hooks/scripts/skills-table.py\` and replacing the table — not by hand-writing the row."
+else
+  ok "README skill table — all $skill_files skill files have a row, keyed on (skill, family)"
+fi
+
+# DIRECTION 2 — every row has a file. Catches a DELETED skill whose row stayed, which is the direction
+# that goes stale silently: nothing about deleting a file makes anyone open the README, and no count
+# assertion moves if the row is still there while the total is restated correctly elsewhere.
+table_orphans=""
+table_rows=0
+while IFS= read -r row; do
+  [ -z "$row" ] && continue
+  table_rows=$((table_rows + 1))
+  # SPLIT ON CELLS, NEVER ON A GREEDY `.*` — and this is a corrected defect, not a precaution. The first
+  # version captured cell 3 with `^\| \`…\` \|.*\| \`([a-z0-9-]+)\` \|`, and `.*` being greedy walked
+  # PAST the family cell to the LAST backticked token on the row, which is the *wielder*. Every row came
+  # out as family `developer`, and the assertion reported 60-odd skills missing from a table that was
+  # complete — a red naming the wrong thing, which is the failure mode a check is least likely to
+  # survive being trusted through. Escaped pipes inside the description (`\|`) are neutralised first, so
+  # the field split is on real cell boundaries only.
+  r_skill=$(printf '%s' "$row" | sed 's/\\|/§/g' | awk -F'|' '{gsub(/[ `]/,"",$2); print $2}')
+  r_fam=$(printf '%s' "$row" | sed 's/\\|/§/g' | awk -F'|' '{gsub(/[ `]/,"",$4); print $4}')
+  [ -z "$r_skill" ] && continue
+  [ -f "$ROOT/commands/$r_fam/$r_skill.md" ] && continue
+  table_orphans="$table_orphans
+    the table lists \`$r_skill\` in family \`$r_fam\` — commands/$r_fam/$r_skill.md does not exist"
+done <<< "$(grep -E "$skill_rows_re" "$README" 2>/dev/null || true)"
+
+if [ "$table_rows" -eq 0 ]; then
+  bad "README skill table — the row pattern matched NOTHING; the table moved or changed shape, and direction 2 did not run"
+elif [ -n "$table_orphans" ]; then
+  bad "README skill table — a row names a skill file that is not in the tree:$table_orphans
+      A skill was deleted or moved and its row stayed. Re-run \`hooks/scripts/skills-table.py\` and replace the table."
+else
+  ok "README skill table — all $table_rows rows name a skill file that exists"
+fi
+
 # --- the roster's MEMBERSHIP, not its cardinality ----------------------------------------------
 #
 # THE DEFECT: `security` was deleted from `agents/` and `harness-reviewer` was added in the same slice.
@@ -762,6 +862,64 @@ else
     fi
   fi
 
+  # ── ASSERTION 1b: EVERY PERSONA BRIEF NAMES EVERY OTHER PERSONA ──────────────────────────────
+  #
+  # THE HOLE THIS CLOSES IS IN THE CHECK ABOVE, NOT IN THE DOCS. Assertion 2 below decides that a
+  # document "enumerates the roster" by COUNTING names on a line — N−1 or more. **A threshold is not a
+  # membership either**, which is the same defect one layer down: `agents/tech-lead.md` and
+  # `agents/developer.md` named THREE and TWO personas respectively, so neither was ever examined, and
+  # both contained ZERO occurrences of the persona added that day. `tech-lead`'s brief still said
+  # `product-lead` was its only counterpart. The check was green about them because it never looked.
+  #
+  # ── WHY THIS ONE NEEDS NO THRESHOLD, WHICH IS THE WHOLE POINT ────────────────────────────────
+  # Assertion 2 has to GUESS which prose is an enumeration, because it scans ~100 files that are mostly
+  # narrative. Here the selection is not a guess and not a heuristic: **`agents/*.md` IS the roster** —
+  # each file is one member of it, derived from the filesystem, the same set `roster_live` comes from.
+  # There is nothing to threshold. That is the general lesson worth carrying: when a rule keeps needing
+  # a cutoff, look for the set the cutoff is approximating and assert over that instead.
+  #
+  # THE CLAIM, EXACTLY: a persona brief must name every OTHER live persona, backticked. Not itself —
+  # a file whose front-matter `name:` is the subject does not backtick its own name, and requiring it
+  # would fire on all five for a formatting habit rather than a fact.
+  #
+  # WHY THAT IS THE RIGHT OBLIGATION AND NOT BUSYWORK. A brief is where one persona's relationship to
+  # the others is stated, and the failure mode is exact: a roster change leaves four briefs describing a
+  # loop that no longer exists, each of them individually plausible. It is also the class of staleness
+  # nothing else can catch — a brief is read by an agent in a fresh context that has no other source.
+  # Naming a peer is cheap; the honest form of "I do not interact with X" is a sentence saying so, which
+  # is exactly what a reader of that brief needs.
+  #
+  # ── WHAT THIS DELIBERATELY DOES **NOT** ASSERT, so the green is not read as more ─────────────
+  # It does not reach `commands/`, `docs/` or the hook scripts. Measured on the current head, requiring
+  # every-peer THERE would fire on fifteen files that legitimately mention two or three personas —
+  # `commands/workflow/code-review.md` naming the two gates, `docs/adr/0008` naming the two it is about.
+  # Those are correct prose, and a check that reddens correct prose is the cry-wolf failure this file
+  # already books once. The bound is written into assertion 2's own comment below; between the two,
+  # `agents/` is covered by MEMBERSHIP and everything else by the weaker threshold, and neither is
+  # described as covering the other.
+  roster_brief_gaps=""
+  while IFS= read -r persona; do
+    [ -z "$persona" ] && continue
+    brief="$ROOT/agents/$persona.md"
+    [ -r "$brief" ] || continue
+    named=$(grep -ohE "\`($roster_live_alt)\`" "$brief" 2>/dev/null | tr -d '`' | sort -u)
+    # `comm` needs both sides sorted; `roster_live` already is, and the peer set is it minus self.
+    peers=$(printf '%s\n' "$roster_live" | grep -vxF "$persona")
+    missing=$(comm -23 <(printf '%s\n' "$peers") <(printf '%s\n' "$named" | grep -v '^$') | tr '\n' ' ')
+    [ -z "${missing// /}" ] && continue
+    roster_brief_gaps="$roster_brief_gaps
+    agents/$persona.md never names: ${missing% }"
+  done <<< "$roster_live"
+
+  if [ -z "$roster_brief_gaps" ]; then
+    ok "roster membership — every persona brief names all $((roster_n - 1)) of its peers"
+  else
+    bad "roster membership — a persona brief does not name a persona it shares the roster with:$roster_brief_gaps
+      The roster changed and this brief did not. Say what the relationship IS — a peer it argues with, a
+      tier it shares, or a persona it never meets — not just the name. A brief is read in a fresh context
+      that has no other source, so a relationship it omits is one that does not exist for the reader."
+  fi
+
   # ── ASSERTION 2: a roster-enumerating LINE must not name a persona that has no file ───────────
   # THE DIRECTION THAT ACTUALLY CAUGHT NOTHING. Renaming a persona file — the exact change that shipped
   # clean — leaves the old name standing in every document that lists the roster, and no count moves.
@@ -780,6 +938,22 @@ else
   #     narrated one or two personas at a time, never as "the roster is A, B, C, D and <retired>".
   #     It therefore MISSES a stale claim about one persona ("`security` still reviews every MR", alone
   #     on its line). That miss is deliberate: catching it costs the 135 false positives above.
+  #
+  #     AND THE THRESHOLD DECIDES WHICH FILES ARE EXAMINED AT ALL, WHICH IS THE COSTLIER HALF —
+  #     booked here rather than left to be rediscovered. **A threshold is not a membership**, the same
+  #     defect as the count it was written to replace, one layer down: a file naming FEWER than N−1
+  #     personas is never read by this assertion, so it can name a retired one, or omit a live one,
+  #     entirely unobserved. Measured when this was written: `agents/tech-lead.md` (3) and
+  #     `agents/developer.md` (2) both fell under the cutoff while containing zero occurrences of the
+  #     persona added that day.
+  #
+  #     WHAT WAS DONE ABOUT IT, AND WHAT WAS NOT. Lowering the cutoff to two was measured and rejected —
+  #     ~60 lines of accurate prose fire, and an ignored check also looks like coverage. Instead the
+  #     file set where the cutoff was doing real damage got an assertion that needs no cutoff at all:
+  #     **1b above asserts every-peer over `agents/*.md`, selected as a derived SET rather than by a
+  #     text heuristic.** So: `agents/` is covered by membership; `commands/`, `docs/` and the hook
+  #     scripts are covered only by this weaker line-level check, and for those the bound above stands
+  #     unmitigated. Neither assertion is described as covering the other's ground.
   #
   #   IT DEPENDS ON THIS REPO'S STRIKE CONVENTION for the lines it does select. `~~…~~` and the
   #     past-tense markers below are what tell it a roster enumeration is history. A superseded roster
