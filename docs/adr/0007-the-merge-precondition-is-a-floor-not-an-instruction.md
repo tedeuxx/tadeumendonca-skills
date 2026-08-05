@@ -171,6 +171,7 @@ The page bounds **count, not bytes** — a stranger cannot choose how many comme
 > a `deny` decision on `gh pr merge` — `permission-guard.sh`'s rule 7b routes that merge to the gate
 > persona but asserts nothing about a verdict. Reading the marker as a merge precondition remains
 > undone.
+
 What would have been wrong is the slice that implemented this record as written: it enumerates *both
 markers*, and one of the two personas no longer exists.
 

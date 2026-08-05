@@ -194,13 +194,22 @@ APPROVE-AND-MERGE
 head: aaa111"
 add_pr_view 151 'bbb222' ''
 out="$(run_hook)"
+# ANCHORED TO THE WHOLE LINE, and that is the point rather than a style choice. The previous
+# version of the negative case matched "reviewed one — $NEEDLE", which the hook CANNOT emit:
+# the annotation is appended after the login and date, so " — tedeuxx, opened …" always sits
+# between them. It matched no possible output, so it passed unconditionally — a dead assertion
+# inside the section asserting the per-PR property, in a file whose header claims every
+# assertion was mutation-verified. It surfaced only because a mutation produced four failures
+# where five were predicted. Reading never finds these; counting does.
+META=' — tedeuxx, opened 2026-08-01'
 case "$out" in
-  *'#151 unreviewed one'*"$NEEDLE"*) ok 'the unreviewed PR carries the mark' ;;
+  *"#151 unreviewed one${META} — ${NEEDLE}"*) ok 'the unreviewed PR carries the mark' ;;
   *) bad 'the unreviewed PR carries the mark' "got: $out" ;;
 esac
 case "$out" in
-  *"reviewed one — $NEEDLE"*) bad 'the reviewed PR does not' "got: $out" ;;
-  *)                          ok 'the reviewed PR does not' ;;
+  *"#150 reviewed one${META} — ${NEEDLE}"*) bad 'the reviewed PR does not' "got: $out" ;;
+  *"#150 reviewed one${META}"*)             ok  'the reviewed PR does not' ;;
+  *) bad 'the reviewed PR does not' "the reviewed PR was not listed at all; got: $out" ;;
 esac
 rm -rf "$root"
 
