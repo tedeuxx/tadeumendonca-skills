@@ -542,11 +542,13 @@ flowchart LR
   H2["wip-guard"]
   H3["session-wip"]
   H4["session-plugin-version"]
+  H5["session-scratch"]
 
   E1 --> H1
   E1 --> H2
   O1 --> H3
   O1 --> H4
+  O1 --> H5
 
   class E1,O1 used
 ```
@@ -554,7 +556,7 @@ flowchart LR
 | event | when it fires | denies? | hooks wired here | purpose |
 |---|---|---|---|---|
 | **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard`, `wip-guard` | refuse the irreversible floor and a PR that overlaps an open one, *before* either happens |
-| **`SessionStart`** | a session begins or resumes | no | `session-wip`, `session-plugin-version` | inject the open queue, and warn when the installed build is not the merged one |
+| **`SessionStart`** | a session begins or resumes | no | `session-wip`, `session-plugin-version`, `session-scratch` | inject the open queue, warn when the installed build is not the merged one, and empty the scratch so nothing survives into a new session |
 | `UserPromptSubmit` | a prompt is submitted, before processing | **yes** | — | |
 | `UserPromptExpansion` | a typed command expands, before it reaches the model | **yes** | — | |
 | `PermissionRequest` | a call needs a permission decision | **yes** | — | |
@@ -593,6 +595,17 @@ does not degrade at all.
 request that touches files an open one already touches — the bound is file overlap, not a count, because
 counting blocks disjoint work while doing nothing about the real risk. `session-wip` lists the open queue.
 `session-plugin-version` says when the installed build is not the merged one.
+
+**`session-scratch` empties `<repo-root>/.scratch/` in both repos, and that is the whole guarantee.**
+Nothing can delete a file *because its use ended* — there is no such event — so the session boundary
+is the only observable proxy, and the honest claim is that nothing survives into a new session rather
+than that nothing outlives its use. It is a hook rather than a rule the agent follows because every
+recursive delete the agent could issue is either denied by the floor or asks the human, except
+`find -delete`, which passes with no decision from any layer: "the agent tidies up after itself"
+resolves to "the agent uses the one delete nothing watches". And it runs at `SessionStart` rather than
+`SessionEnd` because `SessionEnd` does not fire on a crash — sixteen orphaned session directories are
+what best-effort looked like after two weeks — and because sweeping at the end would delete during the
+window a handoff still needs.
 
 ## Stack
 

@@ -32,5 +32,8 @@ jobs:
       - name: Run the session-wip suite
         run: bash hooks/scripts/session-wip.test.sh
 
+      - name: Run the session-scratch suite
+        run: bash hooks/scripts/session-scratch.test.sh
+
       - name: Assert every hook script is committed executable
         run: bash hooks/scripts/hooks-executable.test.sh
