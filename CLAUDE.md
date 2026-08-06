@@ -300,6 +300,35 @@ DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella f
 
 ---
 
+## Scratch — `<repo-root>/.scratch/`, and nothing survives a new session
+
+**`.scratch/` at the repo root is the ONE place for throwaway files.** Gitignored, never committed,
+never referenced by anything that has to still work tomorrow. Not `/tmp`, not the session scratchpad
+directory, not a stray path in the tracked tree.
+
+`session-scratch.sh` empties it at the start of every new session, so the guarantee is a bound, not
+a promise: **write it, use it, and expect it gone.** A resumed or compacted session does not sweep —
+a pause is not a new session, and the PR body written before it is still owed to the command that
+consumes it.
+
+**The taxonomy matters more than the location**, because most of what accumulated there never
+belonged in a scratch at all:
+
+| what | where |
+|---|---|
+| PR bodies, commit messages | **`.scratch/`** — written once, consumed by `--body-file`, discarded. The only use that matches the purpose. |
+| lens and gate verdicts | **the PR comment.** It is already the durable record and is already machine-read by `session-wip.sh`. A file copy is a second source of truth with no reader — and it is what broke: the file handoff failed twice while `SendMessage` failed zero times. |
+| interview transcripts, raw source material | **`.brand/`** — private, gitignored, already the documented home for exactly this. |
+| a measurement instrument | **a repo script with a test, if and only if a gate will run it.** Otherwise discard. "It worked once" is not "it must persist". |
+| an isolated checkout | **not a scratch class.** Use the repo — WIP=1 already serialises — or a git worktree with its own install. |
+
+**Why a hook and not a discipline** (this is the part that generalises): every recursive delete the
+agent can issue is either denied by the floor or asks the human, *except* `find -delete`. So "the
+agent tidies up after itself" resolves to "the agent reaches for the one delete nothing watches".
+The measurements behind all of this are in #155; the reasoning is in the hook's own header.
+
+---
+
 ## Versioning
 
 Numeric SemVer via `bump-my-version`. **Every merge to `main` auto-bumps the PATCH and publishes a
