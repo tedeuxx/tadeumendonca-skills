@@ -935,10 +935,19 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   # the condition that produced it. The suite was right and the guard was wrong.
   # Count the non-flag words after `push`: the first is the remote, a second is a refspec.
   # `awk` rather than `set --`, so this does not clobber the script's own positional parameters.
+  # `HEAD` and `@` DO NOT COUNT. They are the spelling that means "let HEAD decide", which is the
+  # exact condition this block guards — so counting them as a refspec skipped the check and let
+  # `git push origin HEAD` from a trunk checkout through. That pushes `refs/heads/main`: a trunk
+  # push wearing a refspec that does not spell the trunk, and the string check two blocks above
+  # matches only a literal `main`/`master`. `@` is git's documented alias for `HEAD`.
+  #
+  # Found by the merge gate probing the FIXED guard, after the first narrowing shipped the hole
+  # in the same commit that closed the over-block. Narrowing a rule opens whatever the wide
+  # version was incidentally covering.
   operands="$(printf '%s' "$bare" | awk '{
     seen = 0; n = 0
     for (i = 1; i <= NF; i++) {
-      if (seen && substr($i, 1, 1) != "-") n++
+      if (seen && substr($i, 1, 1) != "-" && $i != "HEAD" && $i != "@") n++
       if ($i == "push") seen = 1
     }
     print n

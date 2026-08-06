@@ -119,9 +119,20 @@ check DENY  "push origin, HEAD is main"     "git -C $TMP push origin"
 check ALLOW "feature refspec while HEAD is main" "git -C $TMP push origin feat/x"
 check ALLOW "and with -u, HEAD still main"       "git -C $TMP push -u origin feat/x"
 check DENY  "but an explicit trunk refspec"      "git -C $TMP push origin main"
+# `HEAD` and `@` are the spelling that means "let HEAD decide", so they are NOT a refspec for this
+# purpose. `git push origin HEAD` from a trunk checkout pushes refs/heads/main — a trunk push
+# wearing a refspec that does not spell the trunk, which the string check above cannot see.
+# These exist because narrowing the rule to fix the over-block opened this in the same commit.
+check DENY  "HEAD as refspec, HEAD is main"      "git -C $TMP push origin HEAD"
+check DENY  "@ is HEAD, HEAD is main"            "git -C $TMP push -u origin @"
 git -C "$TMP" checkout -q -b feat/thing
 check ALLOW "bare push, HEAD is a feature"  "git -C $TMP push"
 check ALLOW "push origin, HEAD a feature"   "git -C $TMP push origin"
+# The partner half of the two DENY cases above. Without these, treating HEAD as "not a refspec"
+# would pass for the wrong reason — a rule that denies HEAD everywhere is also wrong, and these
+# are what tell the two apart.
+check ALLOW "HEAD as refspec, HEAD a feature" "git -C $TMP push origin HEAD"
+check ALLOW "@ is HEAD, HEAD a feature"       "git -C $TMP push -u origin @"
 rm -rf "$TMP"
 
 # An unborn HEAD (init, no commits) still reports its branch via symbolic-ref. This
