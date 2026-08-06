@@ -43,32 +43,11 @@ verdict() {
   esac
 }
 
-# THE SUITE CONTROLS THE GUARD'S CWD, AND IT HAS TO — this was not hermetic until it did.
-#
-# Rule 7 resolves `git push` with no `-C` against `dir="."`, so it reads the CURRENT BRANCH OF
-# WHATEVER DIRECTORY THE SUITE RUNS FROM. Five ALLOW cases assert that a plain feature push is
-# not blocked; run the suite from a checkout sitting on `main` and the guard denies them —
-# correctly, for the command it was given — and the suite reports five failures that say nothing
-# about the guard.
-#
-# MEASURED, not reasoned: from `tadeumendonca-io` on `main` this suite reported 276 passed / 5
-# failed; from the same directory on a feature branch, 281 / 0. Only the branch moved.
-#
-# CI never saw it, and that is the shape worth naming: a PR checkout is always on a feature
-# branch, so this is green in CI forever and red on a maintainer's machine, for a reason nothing
-# prints. The repo's own comments warn about exactly that failure class twice.
-#
-# The fixture is an unborn repo — `git init -b` with no commit — because `symbolic-ref` reports
-# the branch of an unborn HEAD, which is the same property rule 7 relies on and the `BARE` case
-# below already asserts. No commit, no identity config, nothing to keep in sync.
-CWD_REPO="$(mktemp -d)"
-git init -q -b feat/suite-fixture "$CWD_REPO"
-
 check() {
   want="$1"
   desc="$2"
   cmd="$3"
-  out=$(printf '%s' "$cmd" | jq -R '{tool_input:{command:.}}' | (cd "$CWD_REPO" && bash "$GUARD"))
+  out=$(printf '%s' "$cmd" | jq -R '{tool_input:{command:.}}' | bash "$GUARD")
   got=$(verdict "$out")
   if [ "$got" = "$want" ]; then
     pass=$((pass + 1))
@@ -810,8 +789,6 @@ check ALLOW "force without recursive"       "rm -f /some/path"
 check ALLOW "--force alone"                 "rm --force /some/path"
 check ALLOW "plain rm"                      "rm /some/path"
 check ALLOW "a word merely ENDING in rm"    "npm run confirm -r -f"
-
-rm -rf "$CWD_REPO"
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
