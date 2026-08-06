@@ -108,6 +108,17 @@ git -C "$TMP" config user.name "fixture"
 git -C "$TMP" commit -q --allow-empty -m init
 check DENY  "bare push, HEAD is main"       "git -C $TMP push"
 check DENY  "push origin, HEAD is main"     "git -C $TMP push origin"
+# THE OVER-BLOCK, PINNED WHERE IT CANNOT DEPEND ON THE RUNNER. HEAD decides the destination only
+# when nothing else does; `git push origin feat/x` names its target and never touches the trunk,
+# so denying it is the over-block this rule's header says pattern-listing causes.
+#
+# It went undetected because the four cases above at line 91 exercise the same shape WITHOUT `-C`,
+# which resolves against the SUITE'S OWN cwd — green from a feature checkout, red from `main`, and
+# CI only ever checks out feature branches. This case pins it against a fixture on `main`, so it
+# fails from anywhere the moment the guard over-blocks again.
+check ALLOW "feature refspec while HEAD is main" "git -C $TMP push origin feat/x"
+check ALLOW "and with -u, HEAD still main"       "git -C $TMP push -u origin feat/x"
+check DENY  "but an explicit trunk refspec"      "git -C $TMP push origin main"
 git -C "$TMP" checkout -q -b feat/thing
 check ALLOW "bare push, HEAD is a feature"  "git -C $TMP push"
 check ALLOW "push origin, HEAD a feature"   "git -C $TMP push origin"
