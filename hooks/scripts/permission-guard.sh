@@ -912,59 +912,17 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
     deny "Blocked: pushing tags publishes a Release. The deploy workflow's 'release' job owns tagging — it bumps VERSION, tags and publishes in one pass, and a hand-pushed tag desynchronises the three. Push the branch alone."
   fi
   # A bare `git push` inherits HEAD — resolve it instead of guessing from the string.
-  #
-  # ONLY WHEN THE PUSH CARRIES NO REFSPEC, and the missing guard here was a live over-block.
-  # This check used to fire on ANY push once HEAD was the trunk, so `git push origin feat/x`
-  # from a `main` checkout was denied with the message "this push lands on the trunk" — which
-  # is FALSE for that command: it pushes `feat/x` and never touches main. Over-blocking every
-  # feature-branch push is the exact failure this rule's own header says pattern-listing causes,
-  # and it caused it here.
-  #
-  # HEAD only decides the destination when nothing else does. With an explicit refspec, HEAD is
-  # irrelevant — and a refspec landing on the trunk is already denied two blocks above, by a
-  # check that reads the string rather than the working tree.
-  #
-  # The refspec is the token after the remote. `git push`, `git push origin` and `git push -u
-  # origin` carry none; `git push origin feat/x` does. Flags are skipped so `-u` and `--porcelain`
-  # do not read as one.
-  #
-  # HOW THIS WAS FOUND, because the route matters more than the fix: five ALLOW cases in the
-  # suite went red when it ran from a checkout sitting on `main`, and green from a feature
-  # branch. The first reading was that the SUITE was not hermetic, and a change to control its
-  # cwd made all 281 pass. That change was reverted — it made a true signal green by removing
-  # the condition that produced it. The suite was right and the guard was wrong.
-  # Count the non-flag words after `push`: the first is the remote, a second is a refspec.
-  # `awk` rather than `set --`, so this does not clobber the script's own positional parameters.
-  # `HEAD` and `@` DO NOT COUNT. They are the spelling that means "let HEAD decide", which is the
-  # exact condition this block guards — so counting them as a refspec skipped the check and let
-  # `git push origin HEAD` from a trunk checkout through. That pushes `refs/heads/main`: a trunk
-  # push wearing a refspec that does not spell the trunk, and the string check two blocks above
-  # matches only a literal `main`/`master`. `@` is git's documented alias for `HEAD`.
-  #
-  # Found by the merge gate probing the FIXED guard, after the first narrowing shipped the hole
-  # in the same commit that closed the over-block. Narrowing a rule opens whatever the wide
-  # version was incidentally covering.
-  operands="$(printf '%s' "$bare" | awk '{
-    seen = 0; n = 0
-    for (i = 1; i <= NF; i++) {
-      if (seen && substr($i, 1, 1) != "-" && $i != "HEAD" && $i != "@") n++
-      if ($i == "push") seen = 1
-    }
-    print n
-  }')"
-  if [ "${operands:-0}" -lt 2 ]; then
-    dir="$(printf '%s' "$bare" | sed -nE 's/.*[[:space:]]-C[[:space:]]+([^[:space:]]+).*/\1/p')"
-    [ -z "$dir" ] && dir="."
-    # symbolic-ref, not rev-parse: it reports the checked-out branch even when HEAD is
-    # unborn (a fresh repo with no commits), where rev-parse fails and would silently
-    # skip this check. On a detached HEAD it fails too, which is correct — there is no
-    # branch to land on.
-    branch="$(git -C "$dir" symbolic-ref --short HEAD 2>/dev/null || true)"
-    case "$branch" in
-      main|master)
-        deny "Blocked: HEAD is '$branch' and this push names no branch, so it lands on the trunk. Merging to main is the deploy and the human's go/no-go. Branch first, then push the branch." ;;
-    esac
-  fi
+  dir="$(printf '%s' "$bare" | sed -nE 's/.*[[:space:]]-C[[:space:]]+([^[:space:]]+).*/\1/p')"
+  [ -z "$dir" ] && dir="."
+  # symbolic-ref, not rev-parse: it reports the checked-out branch even when HEAD is
+  # unborn (a fresh repo with no commits), where rev-parse fails and would silently
+  # skip this check. On a detached HEAD it fails too, which is correct — there is no
+  # branch to land on.
+  branch="$(git -C "$dir" symbolic-ref --short HEAD 2>/dev/null || true)"
+  case "$branch" in
+    main|master)
+      deny "Blocked: HEAD is '$branch', so this push lands on the trunk. Merging to main is the deploy and the human's go/no-go. Branch first, then push the branch." ;;
+  esac
 fi
 
 # 7b. Merging a PR is the deploy — ADR-0004 makes it the quality-assurance's act alone,

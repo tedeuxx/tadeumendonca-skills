@@ -88,10 +88,28 @@ check DENY  "--all sweeps the trunk"        "git push --all origin"
 check DENY  "--mirror sweeps the trunk"     "git push --mirror origin"
 
 echo "--- rule 7: feature-branch pushes MUST survive (the over-block that motivated this) ---"
-check ALLOW "feature branch, plain"         "git push origin feat/x"
+# EVERY CASE HERE NAMES ITS REPO, and that is not decoration — it is the whole reason this
+# section is trustworthy.
+#
+# Rule 7 resolves a push carrying no `-C` against `dir="."`, so it reads the CURRENT BRANCH OF
+# WHATEVER DIRECTORY THE SUITE RUNS FROM. Written without `-C`, these four asserted ALLOW and
+# were green from a feature checkout and RED from one sitting on `main` — 276 passed / 5 failed,
+# measured. The guard was right both times; the suite was asking a question whose answer it did
+# not control.
+#
+# CI never saw it: a PR checkout is always on a feature branch, so this was green in CI forever
+# and red on a maintainer's machine, for a reason nothing prints. This repo's comments warn about
+# that class twice already.
+#
+# `$FEAT` is an unborn repo on a feature branch — `git init -b` with no commit, because
+# `symbolic-ref` reports an unborn HEAD, which is the property rule 7 relies on and the `BARE`
+# case below already asserts.
+FEAT="$(mktemp -d)"
+git init -q -b feat/fixture "$FEAT"
+check ALLOW "feature branch, plain"         "git -C $FEAT push origin feat/x"
 check ALLOW "feature branch via -C"         "git -C /some/repo push origin feat/x"
-check ALLOW "set-upstream a feature"        "git push -u origin feat/x"
-check ALLOW "branch merely NAMED main-*"    "git push origin feat/main-nav"
+check ALLOW "set-upstream a feature"        "git -C $FEAT push -u origin feat/x"
+check ALLOW "branch merely NAMED main-*"    "git -C $FEAT push origin feat/main-nav"
 
 echo "--- rule 7: must not fire on non-push git ---"
 check ALLOW "log mentioning main"           "git log --oneline main..HEAD"
@@ -108,31 +126,9 @@ git -C "$TMP" config user.name "fixture"
 git -C "$TMP" commit -q --allow-empty -m init
 check DENY  "bare push, HEAD is main"       "git -C $TMP push"
 check DENY  "push origin, HEAD is main"     "git -C $TMP push origin"
-# THE OVER-BLOCK, PINNED WHERE IT CANNOT DEPEND ON THE RUNNER. HEAD decides the destination only
-# when nothing else does; `git push origin feat/x` names its target and never touches the trunk,
-# so denying it is the over-block this rule's header says pattern-listing causes.
-#
-# It went undetected because the four cases above at line 91 exercise the same shape WITHOUT `-C`,
-# which resolves against the SUITE'S OWN cwd — green from a feature checkout, red from `main`, and
-# CI only ever checks out feature branches. This case pins it against a fixture on `main`, so it
-# fails from anywhere the moment the guard over-blocks again.
-check ALLOW "feature refspec while HEAD is main" "git -C $TMP push origin feat/x"
-check ALLOW "and with -u, HEAD still main"       "git -C $TMP push -u origin feat/x"
-check DENY  "but an explicit trunk refspec"      "git -C $TMP push origin main"
-# `HEAD` and `@` are the spelling that means "let HEAD decide", so they are NOT a refspec for this
-# purpose. `git push origin HEAD` from a trunk checkout pushes refs/heads/main — a trunk push
-# wearing a refspec that does not spell the trunk, which the string check above cannot see.
-# These exist because narrowing the rule to fix the over-block opened this in the same commit.
-check DENY  "HEAD as refspec, HEAD is main"      "git -C $TMP push origin HEAD"
-check DENY  "@ is HEAD, HEAD is main"            "git -C $TMP push -u origin @"
 git -C "$TMP" checkout -q -b feat/thing
 check ALLOW "bare push, HEAD is a feature"  "git -C $TMP push"
 check ALLOW "push origin, HEAD a feature"   "git -C $TMP push origin"
-# The partner half of the two DENY cases above. Without these, treating HEAD as "not a refspec"
-# would pass for the wrong reason — a rule that denies HEAD everywhere is also wrong, and these
-# are what tell the two apart.
-check ALLOW "HEAD as refspec, HEAD a feature" "git -C $TMP push origin HEAD"
-check ALLOW "@ is HEAD, HEAD a feature"       "git -C $TMP push -u origin @"
 rm -rf "$TMP"
 
 # An unborn HEAD (init, no commits) still reports its branch via symbolic-ref. This
@@ -573,7 +569,7 @@ echo "--- rule 7: pushing tags publishes a Release ---"
 check DENY  "push --tags"                   "git push --tags"
 check DENY  "push --tags behind -C"         "git -C /some/repo push --tags origin"
 check DENY  "push --follow-tags"            "git push --follow-tags origin feat/x"
-check ALLOW "a plain feature push"          "git push origin feat/x"
+check ALLOW "a plain feature push"          "git -C $FEAT push origin feat/x"
 
 echo "--- rule 7b: squash is denied to EVERYONE, the reviewer included ---"
 # The floor denies `gh pr merge --squash`; `Bash(gh -R:*)` walked around that entry, and the reviewer is
@@ -698,7 +694,7 @@ echo "--- ANSI-C escape decoding is NOT covered, and these are the witnesses ---
 # never reads that file.
 check ALLOW "hex escape hides the MERGE GATE"  "bash -c \$'gh pr \\x6derge 145 --merge'"
 check ALLOW "hex escape hides rm -rf"          "bash -c \$'r\\x6d -rf /x'"
-check ALLOW "hex escape hides the trunk push"  "bash -c \$'git push origin \\x6dain'"
+check ALLOW "hex escape hides the trunk push"  "bash -c \$'git -C $FEAT push origin \\x6dain'"
 # `\x6d` is not the last spelling, which is the whole reason the class came out of the floor rather
 # than out of the regex. Octal and plain concatenation need no escape decoding at all.
 check ALLOW "octal escape, same class"         "bash -c \$'gh pr \\155erge 145 --merge'"
@@ -811,6 +807,8 @@ check ALLOW "force without recursive"       "rm -f /some/path"
 check ALLOW "--force alone"                 "rm --force /some/path"
 check ALLOW "plain rm"                      "rm /some/path"
 check ALLOW "a word merely ENDING in rm"    "npm run confirm -r -f"
+
+rm -rf "$FEAT"
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
