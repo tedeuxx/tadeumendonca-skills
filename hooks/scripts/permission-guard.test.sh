@@ -537,13 +537,31 @@ check ALLOW "git stash"                      "git stash list"
 # REACH by a single act — it narrows what ONE ENTRY CLAIMS. Asserting ALLOW here keeps that priced
 # rather than quietly believed closed; ADR-0008 owns the gap.
 #
-# THE INTERPRETER SET IS `python3`, `node`, `npx`, `npm` — FOUR, NOT SIX. Four sites in this PR also
-# said `perl` and `ruby`, including the "reach is unchanged" justification offered in the owner's name.
-# Both were REMOVED from `allow` on 2026-08-04. `inventory-counts.test.sh:426` asserts their absence BY
-# NAME and was green at 58/58 throughout, and that suite printed `no 'perl' entry in allow` on this
-# branch in a run the author read before writing the claim. The conclusion survives on the remaining
-# four — but it rested two-sixths on evidence a passing assertion in this repo contradicted, and the
-# contradiction was on screen. READING IS NOT CHECKING; fourth demonstration of that in this PR.
+# ~~THE INTERPRETER SET IS `python3`, `node`, `npx`, `npm` — FOUR, NOT SIX.~~ **STRUCK at round 5, one
+# round after it was written to correct "six". It is false as a statement about REACH, which is the
+# only thing it is used to justify.** Measured against the live floor:
+#
+#   command perl -e 'print 1'          ALLOW      `Bash(command:*)` is in allow
+#   command ruby -e 'puts 1'           ALLOW      same
+#   awk 'BEGIN{system("id")}'          ALLOW      `Bash(awk:*)` is in allow
+#   find . -name x -exec bash -c id {} +   ALLOW  `Bash(find:*)` is in allow
+#
+# `perl` and `ruby` were removed BY NAME on 2026-08-04 and are reachable ONE WRAPPER OVER, uninspected.
+# So "six" was wrong about the entries and "four" was wrong about the reach; only the CONCLUSION — that
+# this rule narrows reach by nothing — was right, both times, for a reason neither number captured.
+#
+# THE CAUSE, AND IT IS THE RECORD'S OWN SUBJECT. Both corrections enumerated interpreter NAMES. The
+# question is ENTRIES THAT CAN REACH AN INTERPRETER, and that is NOT ENUMERABLE — a closed list
+# answering an open grammar, which is the kind-mismatch ADR-0008's third amendment exists to name,
+# committed twice inside the PR that names it.
+#
+# The proof it is method rather than oversight: rule 9's own `awk` block, thirty lines from the
+# enumeration that omitted it, LISTS `command` AS A WRAPPER. The counter-example was in the same file,
+# written by the same author, in the same commit.
+#
+# DO NOT REPLACE THIS WITH A CORRECTED LIST. That is the move that failed twice. The honest form is the
+# property: THIS RULE NARROWS REACH BY NOTHING, because the floor grants uninspected execution through
+# more entries than anyone has enumerated — and the number of them is not the claim.
 check ALLOW "node with .. — the priced gap"  "node ../scripts/x.mjs"
 
 echo "--- rule 9: the shell name in ARGUMENT position is not an invocation ---"

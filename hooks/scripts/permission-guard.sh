@@ -1006,9 +1006,14 @@ fi
 #
 #    WHY IT IS KEPT ANYWAY. It costs one grep, it catches the spelling a person or an agent reaches for
 #    without thinking, and a speed bump that announces itself as a speed bump is honest. What it must
-#    not do is appear in any sentence containing the word *bounded*. It buys no containment: `python3`,
-#    `node`, `npx` and `npm` are in `allow` UNINSPECTED, so every act it denies is one
-#    interpreter away regardless.
+#    not do is appear in any sentence containing the word *bounded*. It buys no containment: the floor
+#    grants UNINSPECTED EXECUTION THROUGH MORE ENTRIES THAN ANYONE HAS ENUMERATED, so every act it
+#    denies is one interpreter away regardless. `python3` and `node` are the obvious ones; `perl` and
+#    `ruby` were removed BY NAME and are still reachable through `Bash(command:*)`, and `Bash(awk:*)`
+#    and `Bash(find:*)` each execute arbitrary code without naming an interpreter at all.
+#    **DO NOT REPLACE THIS WITH A LIST.** Two attempts to state the set as a number ("six", then "four")
+#    were each false one round later — a closed enumeration answering an open grammar. The claim is the
+#    PROPERTY, and the count is not part of it.
 #
 #    ── the original reasoning, kept because the standing rule it invokes is still right ──
 #    It is here because THE MATCHER CANNOT EXPRESS IT — the standing rule for the next rule, applied.
@@ -1041,8 +1046,9 @@ fi
 #    mechanism available at this layer delivers it. A floor that says what it does is worth more than a
 #    floor that claims a bound and has none — which is the state this PR was opened in.
 #
-#    WHAT IT DOES NOT BUY, stated because the opposite reading is the dangerous one. `python3`, `node`,
-#    `npx` and `npm` are all in `allow` UNINSPECTED, so anything this rule denies in a
+#    WHAT IT DOES NOT BUY, stated because the opposite reading is the dangerous one. The floor grants
+#    uninspected execution through more entries than anyone has enumerated — `Bash(command:*)` alone
+#    restores `perl` and `ruby` after both were removed by name — so anything this rule denies in a
 #    shell spelling remains reachable one interpreter over. This rule does not narrow the agent's REACH
 #    by a single act. ~~It narrows what ONE ENTRY CLAIMS.~~ **It does not do that either** — the entry's
 #    claim is fixed by the record, above. That gap is ADR-0008's priced, accepted one; it is not closed

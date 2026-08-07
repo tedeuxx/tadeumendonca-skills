@@ -5,14 +5,6 @@
 - **Deciders:** the owner
 - **Supersedes / superseded by:** supersedes the layering claim in [ADR-0004](./0004-autonomy-and-permission-model.md)'s second 2026-08-04 amendment (*"the settings `deny` list is the hard backstop"*, inherited from `permission-guard.sh`'s own header)
 - **Driven by:** the permission audit of 2026-08-04 and the ~150-probe sweep that closed it (`4842ecd`, `745d949`)
-- **Floor grant recorded by this ADR — a status field, not reasoning:** `Bash(bash .scratch/*)` is honestly
-  `bash <any path on disk>` with a required prefix token, and **no mechanism bounds it** (owner,
-  2026-08-07, *option A*; reasoning in the third amendment). **If this decision reverses, this line is
-  EDITED here — not struck.** ~~It is the one class of line this library mutates
-  in place, which is why the marker lives here~~ — **struck 2026-08-07: measured false. No ADR has ever
-  carried `Status: superseded`; the `Status` lines of ADR-0002, 0006 and 0007 are append-chains. The
-  instruction above is a NEW convention this line asks for, not an existing one it inherits.** See *the
-  marker that survives strike-through* in the third amendment for what that does and does not buy.
 
 ## Context & problem
 
@@ -270,9 +262,7 @@ sentence that matches it, and a reviewer who reads either before deleting a deny
 > removes one more thing the fail-open cost is bounded by** — so the price of the hook's fail-open contract
 > is not fixed, it is paid again, slightly higher, each time a rule moves.
 
-~~Two~~ **Three** obligations follow (the third added 2026-08-07 by the third amendment; struck rather
-than rewritten, per *record the derivation, not the count*), and they are cheap only if they are done at
-the time:
+Two obligations follow, and they are cheap only if they are done at the time:
 
 - **A migration into the hook is an amendment to this record**, not a comment in the rule. Three
   undocumented migrations in one day is what made this decision necessary; the fourth should append here.
@@ -280,23 +270,6 @@ the time:
   budget for nothing. `claude mcp` is the worked example, named rather than omitted: no flag convention
   sits between the words and no `allow` entry shadows it, so the prefix matcher sees every spelling and
   the hook would add exactly zero.
-- **Added 2026-08-07 — ask the routing test's second question, and know which of the two failures you are
-  in.** *Can this layer **express** the control* is not sufficient; **`can this layer EVALUATE the
-  property the control is about?`** is the other half, and a layer can express a property it has no
-  instrument to decide. The two failures are different in kind and take **different remedies**:
-
-  | | **sampling shortfall** | **kind mismatch** |
-  |---|---|---|
-  | example | the unwrap regex vs the shell grammar (amendment #2) | rule 9 — a **lexical** instrument asserting a **filesystem** property (third amendment) |
-  | what more probes buy | more coverage, never all of it | **nothing**; the property is not decidable at that layer |
-  | remedy | publish the derivation — *"these spellings, measured this way, on this date"* — so the next reader extends it | **stop claiming the control and record the grant**; there is no direction to extend in |
-
-  The practical test, since neither has an instrument: **a rule that asserts a filesystem, network or
-  process property from a caller-supplied string should be assumed unable to evaluate it until probed.**
-  Rule 9 was routed to the hook **correctly** by the four reasons above, was tested with eighteen cases,
-  went green, and bounded nothing — so passing the routing test is not evidence of holding the control.
-  Worked example and measurements in the third amendment.
-
 ## A practice this decision promotes: *record the derivation, not the count*
 
 Judged to have earned a named place, on the evidence that it was reached independently **three times
@@ -559,406 +532,41 @@ reason 4 is not weakened by this — it is satisfied.** The shadowing was remove
 which is the remedy this record prefers wherever it is available, and `Bash(git -C:*)` shows where it is
 not: no convention change removes it, because `-C` *is* how the multi-repo loop addresses the other repo.
 
-## Amendment (2026-08-07, third) — a layer can EXPRESS a control it cannot EVALUATE, and expressing it reads exactly like enforcing it
+## Amendment (2026-08-07) — the floor grant this record carries: `Bash(bash .scratch/*)`
 
-Raised by the merge gate on PR #160 and decided by the owner the same day (*option A*). **The routing
-decision, the fail-open acceptance and the retained-floor-entry cost are untouched again.** What this
-amendment adds is a **second question** the record did not ask, and one floor entry recorded as what it
-actually is.
+Decided by the owner on 2026-08-07 (*option A*), on PR #160. **One decision is recorded here — what this
+floor entry is — and nothing else.**
 
-### The decision
+The allow list carries `Bash(bash .scratch/*)`. **Recorded as what it is rather than as what its spelling
+suggests:** it is `bash <any path on disk>` with a required prefix token. `.scratch/` is not a directory
+scope. A path in an allow entry is a **string prefix**, and traversal, quoting, escaping and symlink
+resolution each carry that prefix while reaching any file on disk — measured on this floor, with the
+entry in force: `bash .scratch/../../<other-repo>/VERSION` executed a file in another repository with
+**no decision from any layer**. **Nothing bounds it** — not the matcher, which cannot express a
+directory, and not `permission-guard.sh`, which deliberately does not resolve paths. The grant is
+deliberate; this section is where it is stated plainly instead of implied by a path that looks like a
+scope.
 
-> **`Bash(bash .scratch/*)` stays in the floor, and this record states what it is: `bash <any path on
-> disk>` with a required prefix token.** There is no mechanism bounding it. The honesty lives in the
-> record, not in a mechanism, because **no mechanism available at that layer delivers it.**
+**Where it lives, and how to check rather than trust.** It is an entry in a **project** floor, not the
+user floor (`grep -n scratch ~/.claude/settings.json` returns nothing). It is committed in this repo's
+`.claude/settings.json` and mirrored into the consuming repo's (`-io`#371). **To learn which projects
+carry it, grep for the literal entry** — a number written here would be stale the first time a third
+repo adopted the plugin, which is this record's own *record the derivation, not the count*.
 
-`.scratch/` in that entry is not a boundary. It is a **password** — a string the caller must type, after
-which every file on the filesystem is reachable.
+**What accepting it costs in reach: nothing that was not already granted — and the reason is not a list
+of interpreters.** `python3` and `node` are allow-listed directly; `Bash(command:*)`, `Bash(awk:*)`,
+`Bash(find:*)` and `Bash(sed:*)` each reach an arbitrary interpreter one wrapper over. Measured
+2026-08-07: **`command perl -e 'print 1'` runs with no decision from any layer**, although neither
+`perl` nor `ruby` is itself in `allow` — so *"which interpreters are allow-listed"* is the wrong
+question, confidently answered. **Read the four entries above as a sample, not as the set.** The
+question this grant actually turns on is *which allow entries can reach an interpreter*, and that is a
+property of an open grammar, not a list of names: the same reason *Considered options* item 3 rejects
+enumeration, and the same reason the 2026-08-04 amendment forbids the word *closed* to a control that
+matches a pattern against a caller-controlled string.
 
-### The measurement, so it is checkable rather than reported
-
-Against the live floor, with the entry in force:
-
-```
-$ bash .scratch/../../tadeumendonca-io/VERSION
-.scratch/../../tadeumendonca-io/VERSION: line 1: 0.1.193: command not found
-```
-
-`bash` opened and executed a file in **another repository**. Exit 127 is `bash` choking on the contents;
-the permission decision was **ALLOW**, from no layer.
-
-`permission-guard.sh` rule 9 was written to close exactly this and does not. Three escape classes, each
-measured **with rule 9 in force**:
-
-| spelling | decision | why |
-|---|---|---|
-| `bash .scratch/\.\./\.\./other-repo/x` | **ALLOW** | backslash escape; `\` is not in the preceding-character class, and `\.` is `.` to the shell |
-| `bash .scratch/.""./.""./other-repo/x` | **ALLOW** | empty quoted span — there is **no `..` adjacency anywhere in the string**, so no widening of a character class can ever catch it |
-| `bash .scratch/link.sh` | **ALLOW** | symlink out; the guard never resolves paths |
-
-**The asymmetry that would have fooled a single probe:** escaping *one* dot pair still denies on the
-next. A prober who tried one escape, saw a deny, and generalised would have reported the rule holding.
-
-### The second question this earns
-
-This record's standing test is *which layer can express this control?* Rule 9 passes that test — the
-prefix matcher provably cannot express *"inside this directory"*, so by routing reason 4 the control
-belongs in the hook, and that routing was **correct**. The rule was then written, tested with eighteen
-cases, went green, and **bounded nothing.**
-
-> **Expressibility is two questions, not one. Can this layer *express* the control — and can it
-> *evaluate* the property the control is about?** A layer can express a property it has no instrument to
-> decide, and the expression is indistinguishable, from the outside, from enforcement.
-
-**The cause, stated as a category rather than a bug:** rule 9 asserts a **filesystem** property with a
-**lexical** instrument. Between the command string and the file that opens sit quote removal, escape
-processing and symlink resolution. `permission-guard.sh` performs none of the three — deliberately,
-because performing them means parsing shell — and every escape in the table above is one of them.
-
-**This is not amendment #2 restated, and the difference is the operative part.** Amendment #2 says a
-pattern-over-a-grammar control may be recorded only as *"these spellings, measured this way, on this
-date"*, because the class is a grammar and the evidence is a sample. That is a **sampling shortfall**:
-more probes buy more coverage, just never all of it. Rule 9 is a **kind mismatch**: more probes buy
-nothing, because the property is not decidable at that layer at all. Amendment #2's remedy — publish the
-derivation and let the next reader extend it — does not apply, since there is no direction to extend in.
-The remedy here is different in kind too: **stop claiming the control and record the grant.**
-
-**This distinction is promoted out of this amendment** into *The standing consequence* above, as a third
-obligation with the two remedies side by side. It is only reusable if a reviewer meets it where they
-apply the routing test, and nobody reads to a third amendment before routing a rule.
-
-### What was actually traded, and what was not
-
-**Reach is unchanged either way.** ~~`python3`, `node`, `npx`, `npm`, `perl` and `ruby` are in `allow`~~
-**`python3`, `node`, `npx` and `npm` — four, not six — are in `allow`**
-**uninspected**, so every act the entry permits was already one interpreter away. The entry adds no
-reachable act.
-
-> **Corrected at round 4, and the correction is worth more than the corrected list.** `perl` and `ruby`
-> are **not** in `allow`; they came out on 2026-08-04 at `786437c`. The conclusion survives intact on the
-> remaining four — one uninspected interpreter is as sufficient as six — but the claim's **standing as
-> evidence** does not, because it was offered as the ground for *reach is unchanged*, **in the owner's
-> name**, and two-sixths of it was something this repo actively asserts the opposite of.
->
-> **The defect is not that the fact was hard to find. It is that this record already contained it, twice,
-> 400 lines up.** The *Bad / accepted costs* bullet reads *"of the six interpreters listed, only `node`
-> and `python3` are in `allow` at that head; `perl`, `ruby`, `bash` and `sh` reach the human as an ASK"*,
-> and the perimeter table and the second amendment both record the removal commit by hash. **An amendment
-> restated a perimeter its own record had corrected twice** — so this document contradicted itself
-> across 400 lines, and the amendment did not read up before writing in the owner's name.
->
-> **The obligation that follows, and it is narrower and more checkable than *be careful*:** *"read what
-> was already decided"* is not satisfied by having read the record once. **Before an amendment asserts a
-> fact about the floor, grep THIS FILE for the fact.** The entry names were right there; the amendment
-> searched the floor's current state in its head instead of searching the record it was appending to.
->
-> **And the direction here is the inverse of everything else in this PR, which is why it is kept
-> visible.** `inventory-counts.test.sh:426` asserts `perl` and `ruby` are absent **by name**, and has
-> been green at 58/58 throughout — including at every moment this false sentence sat in the record.
-> **The mechanism was right and the prose drifted.** Every other finding in this batch runs the other
-> way (a green suite over an absent property, a comment that held nothing, a rule that bounded nothing).
-> This one is the counterexample, and it is the strongest available argument for the position this
-> record keeps arriving at from the opposite side: **where a mechanism exists, it outlives the prose
-> beside it.** **What was wrong was the entry claiming a bound** — which is this record's *"the floor
-now reads as broader than it is"* cost, arriving in the one place a reader would least suspect it,
-inside a path that looks like a scope.
-
-### Considered and rejected
-
-1. **Widen rule 9 a fourth time.** *Why not:* the empty-quoted-span escape has no `..` adjacency
-   anywhere in the string, so no character class reaches it. This is *Considered options* item 3
-   (*enumeration does not converge*) at a higher altitude, and this batch had already respelled four
-   spelling-shaped rules for the same reason. The shape was never the problem.
-2. **Forbid the wildcard; one exact-match entry per script.** The previous answer, and a real one —
-   `inventory-counts.test.sh`'s assertion 3 was written to require exactly this, and said a future need
-   *"should arrive as a deliberate change to THIS assertion, reviewed, rather than as a quiet line in
-   the floor."* *Why not:* it restores the friction the scratch convention exists to remove. Probe
-   scripts are generated with distinct names, so every probe costs a frozen absolute entry or a human
-   prompt — and the floor gains nothing measurable, since reach is unchanged (above). *This is the
-   option a future reader should re-open first if the trade stops looking right;* it is rejected on
-   cost, not on principle.
-3. **Record rule 9 as the bound and move on.** *Why not:* measured false the day it was written. A
-   record asserting a control stronger than it is fails in the direction nobody notices — which is the
-   failure this whole record exists to close, and the reason the strike marks in rule 9's header were
-   made rather than the text quietly replaced.
-
-### ~~The residual the relative spelling leaves — recorded, not settled~~ The relative spelling is DECIDED, and the consequence is accepted
-
-> **Struck the same day it was written.** The owner ruled on the relative-versus-absolute question on
-> 2026-08-07, so it is a **decision**, not a residual. The heading is struck and followed rather than
-> rewritten, and the analysis below it stands unchanged — what changes is its status.
-
-`grep -nE 'cwd|PWD|pwd' hooks/scripts/permission-guard.sh` returns **nothing**: the guard never learns
-where the command runs. Neither does the settings matcher. So the **relative** spelling `.scratch/*`
-means *any directory named `.scratch` relative to wherever the shell is* — and this workspace has a
-second registered working directory with its own `.scratch/` (`/Users/tadeumen/git-reps/tadeumendonca-io/.scratch`,
-confirmed present).
-
-**The decision: the entry stays relative.** `Bash(bash .scratch/*)`, owner, 2026-08-07. Issue #155 had
-specified the **absolute** form — `Bash(bash /Users/tadeumen/git-reps/<repo>/.scratch/*)` — so this is a
-deviation from what that issue asked for, and **the fact worth recording is that the deviation is now a
-decision rather than an oversight.** In the earlier round it was an unrecorded trade; that is the defect
-this paragraph closes, and it is the only thing about the deviation that had been wrong.
-
-**His reasoning, in full, and nothing is added to it:** *"se caminho relativo funciona, eu prefiro nesse
-caso"* — relative works, so he prefers it. One sentence is the whole of what is known, and this record
-does not manufacture a second.
-
-**The consequence, stated as accepted rather than as a warning — and stated more precisely than the
-first pass managed.** The tempting formulation is *"the grant applies in any project that has a
-`.scratch/` directory"*. **That is wrong, and it is wrong in this record's own characteristic way.** The
-permission decision is a **string-prefix match on the command**; it consults no filesystem. So
-`bash .scratch/<anything>` matches the entry ~~in **every** session, in **every** project,~~ whether or not
-a `.scratch/` directory exists anywhere. What the directory's existence gates is whether the command
-**succeeds** — POSIX resolves each path component, so `bash .scratch/../../x` returns `ENOENT` where
-there is no `.scratch/` (verified: `ls /Users/tadeumen/nosuchdir/../git-reps` → *No such file or
-directory*).
-
-> ~~**So the accurate statement is that the relative spelling changes neither what the grant reaches nor
-> which sessions carry it — every session carries it, unconditionally. What varies by session is whether
-> the traversal SUCCEEDS, and that is a filesystem fact no layer decides.**~~
-
-Describing that variation as a bound would be **rule 9's error at one level up**: a filesystem property
-standing in for a permission property. It is named here because the first draft of this very section made
-it, which is the strongest available evidence that the confusion is easy rather than careless.
-
-> **Corrected 2026-08-07, by the gate's third round — the premise was right and the conclusion was not,
-> and correcting it costs this section one of its own arguments.**
->
-> *"Every session, every project, unconditionally"* does not follow from *"the matcher consults no
-> filesystem"*, because **the entry lives in a PROJECT settings file.** Measured: `grep -n scratch
-> ~/.claude/settings.json` returns **nothing** — it is not in the user floor — and it had to be
-> **mirrored** into the consuming repo at `tadeumendonca-io/.claude/settings.json:166` (`-io`#371).
->
-> **The accurate statement.** The grant is carried by **sessions rooted at a project whose committed
-> floor contains the entry** — today exactly two, by two separate edits to two files. What the relative
-> spelling changes, *within* such a session, is that the match does not depend on where the shell stands;
-> what it does **not** change is which projects grant it, and it never reached beyond a project floor.
->
-> **The half that cuts this record, and it is the gate's rather than the author's:** the per-repo
-> mirroring cost was **paid by the relative form too** — that is what `-io`#371 is. So it was **never a
-> differentiator between the two spellings**, and the argument two paragraphs below, which rejects the
-> absolute form partly on the ground that it must be written once per repo *"in a second settings file a
-> session rooted elsewhere never loads"*, **does not survive**. It is struck there. Both spellings cost
-> the same two edits.
->
-> **What is left standing, stated so the decision does not look better-argued than it is:** the relative
-> spelling is the owner's **stated preference** — *relative works, so he prefers it* — and after this
-> correction that is the **whole** of the case for it. The author's cost analysis against the absolute
-> form collapsed on measurement. **That is legitimate and is recorded as what it is:** the spelling is
-> his call, taken on preference, with no cost differential established in either direction. A decision
-> resting on preference is not weaker for saying so; it is weaker for being dressed as analysis.
->
-> **Whose failure, split rather than absorbed, since both halves are instructive.** The false claim is
-> the **record author's** — it was reasoned from the matcher's behaviour without checking which file the
-> entry sits in, the same one-artifact inspection this workspace has booked before. The **acceptance
-> without re-derivation** belongs to the reader who requested the framing and took it, one turn after
-> asking this record to contradict them rather than agree by omission. Neither absorbs the other, and the
-> pairing is the point: **a claim and its check failed in the same direction on the same day, and the
-> gate was the only layer that held.**
-
-`session-scratch.sh` does **not** manufacture the precondition — checked rather than assumed: it reads
-`scratch="$root/.scratch"` and then `[ -d "$scratch" ] || continue`, so it sweeps an existing scratch and
-never creates one. A hypothesis that the plugin seeds `.scratch/` wherever it is installed was formed and
-**falsified**; it is recorded because it is the kind of claim that would have read plausibly.
-
-**Accepted, in the owner's name.** Under option A the reach inside a granted session is total regardless
-of the spelling, so what the absolute form would have bought is narrower than the first draft of this
-section claimed — see the correction below.
-
-### The coupling this creates, and my judgement of it
-
-`hooks/scripts/inventory-counts.test.sh` assertion 3 forbids a trailing wildcard on any shell-interpreter
-allow entry. It now grants **one exception**, and the exception applies only while this file contains
-both the literal entry string and the phrase `any path on disk`. Delete the record and the entry is
-flagged again.
-
-**I judge the coupling sound, for the reason it is unusual: under option A the record IS the control**,
-so tying the assertion to the record ties it to the only thing that carries the property. The tie it
-replaced was worse in a way worth keeping visible — it grepped a **phrase from rule 9's deny message**,
-so commenting out rule 9's code left the phrase alive in the comment and the exception applying with no
-rule behind it. Commenting out is what a bisect and a revert-in-place both do. That tie failed in the
-**unsafe** direction; this one fails safe.
-
-**Its bound, stated so it is known rather than discovered.** The check is a `grep -F` for two strings. It
-verifies the record *mentions* the entry; it cannot verify the record is *true*, and — in a library whose
-convention is **supersede and strike, never delete** — it cannot verify the record still *asserts* what
-it asserted. A struck `~~Bash(bash .scratch/*)~~` inside a superseded span greps identically to a live
-one. The check would go green on a record that had reversed itself.
-
-#### ~~The marker that survives strike-through — narrowed, not closed~~ The marker's placement, and the narrowing that was never real
-
-~~There **is** a spelling that survives, and it is the one line class this library **mutates in place
-instead of striking**: the front-matter status block. `Status: accepted → superseded` is already the
-documented reversal move for a whole record, so a field there is governed by *edit*, not by *append and
-strike*.~~ The marker is stated as a **status field in this record's header**, added by this
-amendment, carrying both literal strings and an explicit instruction that a reversal edits it.
-
-~~**What that buys:** it moves the marker from a place the convention **preserves** (struck prose, which
-greps identically to live prose) to a place the convention **requires editing**. Reversing the decision
-without touching the field is now a visible inconsistency in the header rather than an invisible pass.~~
-
-> **Struck 2026-08-07 by the gate's third round: the ground was measured false, and with it the
-> narrowing.** Three measurements, all cheap to repeat:
->
-> - **No ADR in this library has ever gone `accepted → superseded`.** `grep -rn 'Status:\*\* superseded'
->   docs/adr/` returns **nothing**; the transition exists only in `template.md`'s HTML comment.
-> - **The `Status` lines of ADR-0002, 0006 and 0007 are append-chains** — `accepted · **amended …** ·
->   **amended …**` — so *observed* practice on exactly the line class named is **append**, not mutate.
->   ADR-0002's chain even records a clause being *struck* rather than removed.
-> - ~~**`grep -cF 'Bash(bash .scratch/*)'` on this file returns 4**, three of them outside the front
->   matter.~~ **The marker string appears in the front matter AND at several places in this amendment's
->   body, so deleting the front-matter copy leaves the check green regardless** — the field is not
->   load-bearing for the assertion in the first place.
->
->   > **The count is struck at round 4, and it invalidated itself by being written.** It printed **4**;
->   > the commit that printed it (`673dd0a`) added two more lines containing the counted string, so it
->   > read **6** the moment it was committed. **A count of occurrences in a file, written into that
->   > file, is self-referential** — and this record already owns the rule it broke: *record the
->   > derivation, not the count*, whose own words are **"a derived count in prose is a claim with no
->   > owner"**. The structural statement above cannot go stale, and it is what that practice asks for.
->   > The conclusion is **unaffected and stronger**: more copies means more margin, not less.
->
-> **The correct statement, replacing the struck one:** the placement buys **less than was claimed, and on
-> the evidence available, nothing that can be demonstrated.** It rests on a convention **this line asks
-> for and no ADR has ever exercised** — which is, precisely, a control that is *expressed but not
-> evaluated*. **That is this amendment's own thesis, committed by this amendment, in the paragraph that
-> proposed the remedy.** Third instance in the same document; it is left visible rather than tidied,
-> because a thesis that its own author trips over twice is better evidence for the thesis than any
-> argument in its favour.
->
-> **The marker stays where it is** — it is honest, it costs nothing, and moving it again would be
-> chasing a spelling. **What does not stay is the claim that it narrows the bound.** The bound below is
-> therefore **unnarrowed and stated correctly**, which is the trade this record prefers: an accurate
-> unclosed cost beats a narrowing resting on a convention nobody has ever exercised. *A false reason for
-> a real caveat tells the next reader the caveat is smaller than it is* — that framing is the reviewing
-> reader's and is adopted here on agreement, not deference.
-
-**What it does not buy, and this is the honest half.** Nothing *forces* the field to be updated. It is
-held by the same convention as the retained floor entry two sections up — *"true only by convention;
-nothing verifies it, and nothing would notice its removal"* — and it fails the same way: silently, with
-no test reddening. ~~**The bound is narrowed, not closed, and it stays recorded as a bound.**~~
-**Corrected 2026-08-07: the bound is NOT narrowed. It stays recorded as a bound, at full width** — the
-three measurements above remove the narrowing, and the marker's placement is kept for honesty rather than
-for effect.
-
-**Rejected: teach the check to ignore matches inside `~~…~~`.** *Why not:* it is a **spelling**, and this
-batch's entire subject is spelling-shaped rules being respelled. `<s>`, `<del>`, a strike opened on one
-line and closed on another, or a superseding block quote that strikes nothing and simply says *"this no
-longer holds"* all defeat it, and each would leave the check reporting coverage it does not have —
-amendment #2's prohibition applied to the check itself. A shorter check with a written failure mode beats
-a cleverer one whose failure mode nobody can predict.
-
-> **The check should point at the status field, not at the whole file.** That is a `hooks/` change,
-> outside this record's grant, so **today the check still greps the whole file and the field is inert.**
-> Booked here so the slice is written down rather than remembered — the same disposition this record used
-> for `permission-guard.sh`'s header.
-
-**If a mechanism existed, I would prefer it, and where one exists the rule is to execute it rather than
-grep for a sentence about it.** For this control none exists at this layer, and that is the decision
-above rather than an omission. ~~What I would add instead, and it is a behaviour check rather than a
-document check: assert the **spelling** of the entry in `.claude/settings.json` — that any `.scratch`
-wildcard is written in the absolute form. That is a property of a file the suite already reads, it goes
-red on the exact regression the residual above describes, and it is not a sentence anyone can satisfy by
-writing prose. Proposed, not decided; it belongs to the owner and to a `hooks/` diff, not to this record.~~
-
-> **Declined by the owner, 2026-08-07, hours after it was proposed — the entry stays relative, so there
-> is no absolute spelling for a check to assert.** Struck rather than deleted, because the proposal was
-> made in this record and a reader who met it deserves to find out it was ruled on rather than to find it
-> silently gone.
->
-> ~~**And the claim inside it was wrong on my own analysis, independently of the ruling.** It called the
-> absolute form *"available at zero cost to the fail-open budget"*. The cost exists and this record
-> already contains its worked example: `Bash(git -C /Users/tadeumen/git-reps/tadeumendonca-skills push:*)`
-> is described in *Context* as **hardcoded to one of the two repos, with the consuming repo's own floor
-> holding no equivalent entry at all.** An absolute entry must be written once per repo, in a second
-> settings file, that a session rooted elsewhere never loads (this record's second amendment, residual 1)
-> — and the mirroring has **already failed once in this same floor**. That is a real cost, it is the same
-> class as *"the entry is one file, the record of it is five"*, and calling it zero was an overclaim.~~
->
-> **Struck 2026-08-07 by the gate's third round, and the strike is the more useful record.** The
-> *"zero cost"* overclaim was real and stands corrected — but **the cost offered in its place is not a
-> cost of the absolute form**, because the relative form paid it too: the entry is in a project floor and
-> was mirrored into `tadeumendonca-io/.claude/settings.json:166` (`-io`#371). Per-repo mirroring was
-> **never a differentiator between the two spellings**. So this paragraph replaced one wrong number with
-> a wrong comparison, which is the worse of the two errors — it reads as analysis and it decided nothing.
-> See the correction in the section above for what is actually left standing.
->
-> **What is NOT offered as a cost, because it is measured false:** that the absolute form would leak the
-> owner's home path into a committed public file. Five entries at `.claude/settings.json:66-70` already
-> carry `/Users/tadeumen/git-reps/…`, so that disclosure is long since paid and the absolute form adds
-> none of it. It is named only so the next reader does not reach for it as a justification.
->
-> **This paragraph is the author's analysis and is not attributed to the owner.** His stated reasoning is
-> one sentence, recorded verbatim above; nothing here is offered as his.
-
-### The finding worth the most, and it is about the record rather than the rule
-
-**This exact hole was measured in this repo three months earlier, by a different author, and written
-down** — `inventory-counts.test.sh:455-459`:
-
-> *"Measured at round 4: a path prefix is a STRING prefix, and `…/hooks/scripts/../../../../private/tmp/x.sh`
-> carries it while reaching any script on disk. **The prefix bounded the characters, not the directory.**"*
-
-The wildcard entry went into the floor anyway, and a hook rule was then written to close a hole the tree
-already documented as unclosable by that means.
-
-> **A comment is a place to put a finding, not a layer that can hold a control.** The finding was
-> correct, current, in the right file, and in the file the new entry's own assertion lives in — and it
-> stopped nothing.
-
-That is **this record's own subject turned on the record itself**: *which layer carries this control, and
-can that layer hold it?* asked about the **documentation** layer. It answers the way the rest of this
-record answers — the layer can express the finding and cannot enforce it — and it is the reason the
-mechanical half matters here. What eventually caught the entry was not the comment stating the property;
-it was assertion 3 **executing** it.
-
-The consequence, and it is the obligation this amendment adds to the two in *The standing consequence*:
-
-- **When a finding is measured and cannot be mechanised, it goes in an ADR — not only in the comment of
-  the file where it was found.** A comment is scoped to its reader; this library is what a floor change
-  is required to be grepped against (*"the entry is one file, the record of it is five"*). The finding
-  above lived in exactly one of the five, and the four commits that could have caught it never opened it.
-
-### What it costs
-
-- **The floor now contains one entry whose honest description is `bash <any path on disk>`**, and the
-  only thing distinguishing it from a bare `Bash(bash:*)` — which this library removed at `14d7b43` — is
-  the friction of typing a prefix token. That is a real weakening relative to the post-`14d7b43` floor,
-  accepted in the owner's name, on the ground that reach is unchanged by the uninspected interpreters.
-- **A record is now load-bearing for a test's verdict.** Editing prose can turn a suite green or red,
-  which is a coupling this library has otherwise avoided; the bound above is the price.
-- **Added 2026-08-07 with the relative-spelling decision — ~~the entry is session-unscoped, and~~ the last
-  claimed exception to this amendment's own thesis is gone.** ~~The bullet above says the only thing
-  separating this entry from the `Bash(bash:*)` this library removed at `14d7b43` is the friction of a
-  prefix token; with the relative spelling that separation is the **same in every session, in every
-  project**, since the matcher never consults a working directory.~~
-
-  > **Struck at round 4 — the THIRD site of a claim corrected twice already**, and the reason it is
-  > called out rather than quietly fixed: the same false sentence stood at three places, two were
-  > corrected in round 3, and this one was missed. **That is `the entry is one file, the record of it is
-  > five` — this record's own rule — failing inside the record that states it, on the fourth occurrence
-  > in one PR.** The lesson is not *be careful*: it is that **a correction is a grep for the claim's
-  > wording across the file, not an edit at the site the reviewer cited.** The reviewer cites where they
-  > looked; the author owes everywhere it says the same thing.
-  >
-  > The corrected fact, as established in the residual section above: the entry sits in a **project**
-  > floor, so the grant reaches **sessions rooted at a project whose floor carries it — today two**, and
-  > `session-unscoped` was never true. What survives, unchanged, is that within such a session the match
-  > does not depend on where the shell stands.
-
-  **Asked directly, because it is the
-  question a reader should ask: does this weaken the amendment?** It does not weaken its argument — it
-  **removes the one exception to it.** The amendment's thesis is that no mechanism at this layer delivers
-  the bound, and the absolute form was the single place this record claimed a mechanism was cheaply
-  available. That claim was withdrawn (declined by the owner, and overclaimed by its author — above), so
-  the thesis now holds without exception. **What is weaker is the floor, not the record**, and those are
-  different sentences: the grant is broader than issue #155 specified, deliberately, with the breadth
-  written down instead of implied. That is the entire content of option A, applied to itself.
-- **The second question does not come with an instrument either.** *Can this layer evaluate the
-  property?* is answered by judgement and by probing, exactly like the stopping-rule problem amendment #2
-  left unremedied. No remedy is proposed. What holds it is that a rule asserting a filesystem, network or
-  process property from a command string should now be **assumed** unable to evaluate it until probed.
+**Status of this grant: live.** If it is withdrawn or narrowed, this section is **amended — appended and
+dated** — rather than edited away, which is what the `Status` lines of ADR-0002, 0006 and 0007 do and is
+this library's observed practice.
 
 ## Links
 - Supersedes the layering claim in [ADR-0004](./0004-autonomy-and-permission-model.md)'s second
@@ -982,31 +590,10 @@ The consequence, and it is the obligation this amendment adds to the two in *The
   scope of the removal commits; `14d7b43`'s message for the `$'r'"m -rf /x"` probe that decided the
   reversal; `git show cb9a2f3:hooks/scripts/permission-guard.sh` for the header's own *NOT COVERED,
   DELIBERATELY* list of the interpreters that remain allow-listed.
-- **Third amendment evidence (2026-08-07):** PR #160 and its merge-gate verdict, which raised the
-  measurement; the live-floor run of `bash .scratch/../../tadeumendonca-io/VERSION` (ALLOW, exit 127 from
-  `bash` on the file's contents, no decision from any layer); the three escape classes probed against
-  `hooks/scripts/permission-guard.sh` **rule 9 in force**, whose struck header records the same three;
-  `grep -nE 'cwd|PWD|pwd' hooks/scripts/permission-guard.sh` → **no match**, for the relative-spelling
-  residual, with `/Users/tadeumen/git-reps/tadeumendonca-io/.scratch` confirmed present as the second
-  candidate directory; issue **#155** for the absolute form that was specified and traded away
-  (`Bash(bash /Users/tadeumen/git-reps/<repo>/.scratch/*)`); `hooks/scripts/inventory-counts.test.sh`
-  assertion 3 for the coupling, and its round-4 comment at lines **455-459** for the same hole measured
-  three months earlier. **For the relative-spelling decision of the same day:** the owner's ruling
-  (*"se caminho relativo funciona, eu prefiro nesse caso"*); `ls /Users/tadeumen/nosuchdir/../git-reps` →
-  *No such file or directory*, for POSIX component-by-component resolution; `session-scratch.sh:124-125`
-  (`[ -d "$scratch" ] || continue`) falsifying the hypothesis that the plugin seeds `.scratch/`;
-  `.claude/settings.json:66-70` for the five absolute `/Users/tadeumen/git-reps/…` entries already
-  committed, and `:125` for the single-repo `git -C` entry that is the per-repo mirroring cost's worked
-  example. **Round-3 corrections (same day):** `grep -n scratch ~/.claude/settings.json` → **nothing**
-  (the entry is not in the user floor) against `tadeumendonca-io/.claude/settings.json:166` and `-io`#371
-  (it was mirrored), for the project-scope correction and the collapse of the per-repo-mirroring
-  argument; `grep -rn 'Status:\*\* superseded' docs/adr/` → **nothing**, and the `Status` lines of
-  ADR-0002, 0006 and 0007, for the append-chain finding; `grep -cF 'Bash(bash .scratch/*)'` on this file
-  → **4**, for the marker being non-load-bearing. The hook fix for the false deny is at `003b607` and is
-  not this record's. **Round-4 corrections (same day):** `jq -r '.permissions.allow[]' .claude/settings.json`
-  filtered for interpreters → **`npm`, `npx`, `node`, `python3` only**, against this record's own lines
-  ~217, ~357 and ~496, which had already recorded `perl`/`ruby` leaving at `786437c`, and against
-  `inventory-counts.test.sh:426`, which asserts both absences by name and was green throughout;
-  `grep -cF 'Bash(bash .scratch/*)'` → **6**, not the 4 printed by `673dd0a`, which is why the count is
-  replaced by a structural statement; and `grep -n 'session-unscoped'` for the third unstruck site of the
-  round-3 correction.
+- **2026-08-07 amendment evidence:** PR #160 for the decision; the live-floor run of
+  `bash .scratch/../../tadeumendonca-io/VERSION` (ALLOW, no decision from any layer);
+  `grep -n scratch ~/.claude/settings.json` → **nothing**, against
+  `tadeumendonca-io/.claude/settings.json:166` and `-io`#371, for the project scope;
+  `jq -r '.permissions.allow[]' .claude/settings.json` for `Bash(command:*)`, `Bash(awk:*)`,
+  `Bash(find:*)`, `Bash(sed:*)`, `Bash(node:*)`, `Bash(python3:*)`; and `command perl -e 'print 1'`
+  running undecided, which is why the reach claim is stated as a sample rather than an enumeration.
