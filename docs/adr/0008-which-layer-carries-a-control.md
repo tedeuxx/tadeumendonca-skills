@@ -8,9 +8,11 @@
 - **Floor grant recorded by this ADR — a status field, not reasoning:** `Bash(bash .scratch/*)` is honestly
   `bash <any path on disk>` with a required prefix token, and **no mechanism bounds it** (owner,
   2026-08-07, *option A*; reasoning in the third amendment). **If this decision reverses, this line is
-  EDITED here — not struck — exactly as `Status:` is.** It is the one class of line this library mutates
-  in place, which is why the marker lives here; see *the marker that survives strike-through* in the third
-  amendment for what that does and does not buy.
+  EDITED here — not struck.** ~~It is the one class of line this library mutates
+  in place, which is why the marker lives here~~ — **struck 2026-08-07: measured false. No ADR has ever
+  carried `Status: superseded`; the `Status` lines of ADR-0002, 0006 and 0007 are append-chains. The
+  instruction above is a NEW convention this line asks for, not an existing one it inherits.** See *the
+  marker that survives strike-through* in the third amendment for what that does and does not buy.
 
 ## Context & problem
 
@@ -678,19 +680,54 @@ does not manufacture a second.
 first pass managed.** The tempting formulation is *"the grant applies in any project that has a
 `.scratch/` directory"*. **That is wrong, and it is wrong in this record's own characteristic way.** The
 permission decision is a **string-prefix match on the command**; it consults no filesystem. So
-`bash .scratch/<anything>` matches the entry in **every** session, in **every** project, whether or not
+`bash .scratch/<anything>` matches the entry ~~in **every** session, in **every** project,~~ whether or not
 a `.scratch/` directory exists anywhere. What the directory's existence gates is whether the command
 **succeeds** — POSIX resolves each path component, so `bash .scratch/../../x` returns `ENOENT` where
 there is no `.scratch/` (verified: `ls /Users/tadeumen/nosuchdir/../git-reps` → *No such file or
 directory*).
 
-> **So the accurate statement is that the relative spelling changes neither what the grant reaches nor
+> ~~**So the accurate statement is that the relative spelling changes neither what the grant reaches nor
 > which sessions carry it — every session carries it, unconditionally. What varies by session is whether
-> the traversal SUCCEEDS, and that is a filesystem fact no layer decides.**
+> the traversal SUCCEEDS, and that is a filesystem fact no layer decides.**~~
 
 Describing that variation as a bound would be **rule 9's error at one level up**: a filesystem property
 standing in for a permission property. It is named here because the first draft of this very section made
 it, which is the strongest available evidence that the confusion is easy rather than careless.
+
+> **Corrected 2026-08-07, by the gate's third round — the premise was right and the conclusion was not,
+> and correcting it costs this section one of its own arguments.**
+>
+> *"Every session, every project, unconditionally"* does not follow from *"the matcher consults no
+> filesystem"*, because **the entry lives in a PROJECT settings file.** Measured: `grep -n scratch
+> ~/.claude/settings.json` returns **nothing** — it is not in the user floor — and it had to be
+> **mirrored** into the consuming repo at `tadeumendonca-io/.claude/settings.json:166` (`-io`#371).
+>
+> **The accurate statement.** The grant is carried by **sessions rooted at a project whose committed
+> floor contains the entry** — today exactly two, by two separate edits to two files. What the relative
+> spelling changes, *within* such a session, is that the match does not depend on where the shell stands;
+> what it does **not** change is which projects grant it, and it never reached beyond a project floor.
+>
+> **The half that cuts this record, and it is the gate's rather than the author's:** the per-repo
+> mirroring cost was **paid by the relative form too** — that is what `-io`#371 is. So it was **never a
+> differentiator between the two spellings**, and the argument two paragraphs below, which rejects the
+> absolute form partly on the ground that it must be written once per repo *"in a second settings file a
+> session rooted elsewhere never loads"*, **does not survive**. It is struck there. Both spellings cost
+> the same two edits.
+>
+> **What is left standing, stated so the decision does not look better-argued than it is:** the relative
+> spelling is the owner's **stated preference** — *relative works, so he prefers it* — and after this
+> correction that is the **whole** of the case for it. The author's cost analysis against the absolute
+> form collapsed on measurement. **That is legitimate and is recorded as what it is:** the spelling is
+> his call, taken on preference, with no cost differential established in either direction. A decision
+> resting on preference is not weaker for saying so; it is weaker for being dressed as analysis.
+>
+> **Whose failure, split rather than absorbed, since both halves are instructive.** The false claim is
+> the **record author's** — it was reasoned from the matcher's behaviour without checking which file the
+> entry sits in, the same one-artifact inspection this workspace has booked before. The **acceptance
+> without re-derivation** belongs to the reader who requested the framing and took it, one turn after
+> asking this record to contradict them rather than agree by omission. Neither absorbs the other, and the
+> pairing is the point: **a claim and its check failed in the same direction on the same day, and the
+> gate was the only layer that held.**
 
 `session-scratch.sh` does **not** manufacture the precondition — checked rather than assumed: it reads
 `scratch="$root/.scratch"` and then `[ -d "$scratch" ] || continue`, so it sweeps an existing scratch and
@@ -721,22 +758,52 @@ convention is **supersede and strike, never delete** — it cannot verify the re
 it asserted. A struck `~~Bash(bash .scratch/*)~~` inside a superseded span greps identically to a live
 one. The check would go green on a record that had reversed itself.
 
-#### The marker that survives strike-through — narrowed, not closed
+#### ~~The marker that survives strike-through — narrowed, not closed~~ The marker's placement, and the narrowing that was never real
 
-There **is** a spelling that survives, and it is the one line class this library **mutates in place
+~~There **is** a spelling that survives, and it is the one line class this library **mutates in place
 instead of striking**: the front-matter status block. `Status: accepted → superseded` is already the
 documented reversal move for a whole record, so a field there is governed by *edit*, not by *append and
-strike*. The marker is therefore stated as a **status field in this record's header**, added by this
+strike*.~~ The marker is stated as a **status field in this record's header**, added by this
 amendment, carrying both literal strings and an explicit instruction that a reversal edits it.
 
-**What that buys:** it moves the marker from a place the convention **preserves** (struck prose, which
+~~**What that buys:** it moves the marker from a place the convention **preserves** (struck prose, which
 greps identically to live prose) to a place the convention **requires editing**. Reversing the decision
-without touching the field is now a visible inconsistency in the header rather than an invisible pass.
+without touching the field is now a visible inconsistency in the header rather than an invisible pass.~~
+
+> **Struck 2026-08-07 by the gate's third round: the ground was measured false, and with it the
+> narrowing.** Three measurements, all cheap to repeat:
+>
+> - **No ADR in this library has ever gone `accepted → superseded`.** `grep -rn 'Status:\*\* superseded'
+>   docs/adr/` returns **nothing**; the transition exists only in `template.md`'s HTML comment.
+> - **The `Status` lines of ADR-0002, 0006 and 0007 are append-chains** — `accepted · **amended …** ·
+>   **amended …**` — so *observed* practice on exactly the line class named is **append**, not mutate.
+>   ADR-0002's chain even records a clause being *struck* rather than removed.
+> - **`grep -cF 'Bash(bash .scratch/*)'` on this file returns 4**, three of them outside the front
+>   matter. So **deleting the marker leaves the check green anyway**, and the field is not load-bearing
+>   for the assertion in the first place.
+>
+> **The correct statement, replacing the struck one:** the placement buys **less than was claimed, and on
+> the evidence available, nothing that can be demonstrated.** It rests on a convention **this line asks
+> for and no ADR has ever exercised** — which is, precisely, a control that is *expressed but not
+> evaluated*. **That is this amendment's own thesis, committed by this amendment, in the paragraph that
+> proposed the remedy.** Third instance in the same document; it is left visible rather than tidied,
+> because a thesis that its own author trips over twice is better evidence for the thesis than any
+> argument in its favour.
+>
+> **The marker stays where it is** — it is honest, it costs nothing, and moving it again would be
+> chasing a spelling. **What does not stay is the claim that it narrows the bound.** The bound below is
+> therefore **unnarrowed and stated correctly**, which is the trade this record prefers: an accurate
+> unclosed cost beats a narrowing resting on a convention nobody has ever exercised. *A false reason for
+> a real caveat tells the next reader the caveat is smaller than it is* — that framing is the reviewing
+> reader's and is adopted here on agreement, not deference.
 
 **What it does not buy, and this is the honest half.** Nothing *forces* the field to be updated. It is
 held by the same convention as the retained floor entry two sections up — *"true only by convention;
 nothing verifies it, and nothing would notice its removal"* — and it fails the same way: silently, with
-no test reddening. **The bound is narrowed, not closed, and it stays recorded as a bound.**
+no test reddening. ~~**The bound is narrowed, not closed, and it stays recorded as a bound.**~~
+**Corrected 2026-08-07: the bound is NOT narrowed. It stays recorded as a bound, at full width** — the
+three measurements above remove the narrowing, and the marker's placement is kept for honesty rather than
+for effect.
 
 **Rejected: teach the check to ignore matches inside `~~…~~`.** *Why not:* it is a **spelling**, and this
 batch's entire subject is spelling-shaped rules being respelled. `<s>`, `<del>`, a strike opened on one
@@ -763,14 +830,22 @@ writing prose. Proposed, not decided; it belongs to the owner and to a `hooks/` 
 > made in this record and a reader who met it deserves to find out it was ruled on rather than to find it
 > silently gone.
 >
-> **And the claim inside it was wrong on my own analysis, independently of the ruling.** It called the
+> ~~**And the claim inside it was wrong on my own analysis, independently of the ruling.** It called the
 > absolute form *"available at zero cost to the fail-open budget"*. The cost exists and this record
 > already contains its worked example: `Bash(git -C /Users/tadeumen/git-reps/tadeumendonca-skills push:*)`
 > is described in *Context* as **hardcoded to one of the two repos, with the consuming repo's own floor
 > holding no equivalent entry at all.** An absolute entry must be written once per repo, in a second
 > settings file, that a session rooted elsewhere never loads (this record's second amendment, residual 1)
 > — and the mirroring has **already failed once in this same floor**. That is a real cost, it is the same
-> class as *"the entry is one file, the record of it is five"*, and calling it zero was an overclaim.
+> class as *"the entry is one file, the record of it is five"*, and calling it zero was an overclaim.~~
+>
+> **Struck 2026-08-07 by the gate's third round, and the strike is the more useful record.** The
+> *"zero cost"* overclaim was real and stands corrected — but **the cost offered in its place is not a
+> cost of the absolute form**, because the relative form paid it too: the entry is in a project floor and
+> was mirrored into `tadeumendonca-io/.claude/settings.json:166` (`-io`#371). Per-repo mirroring was
+> **never a differentiator between the two spellings**. So this paragraph replaced one wrong number with
+> a wrong comparison, which is the worse of the two errors — it reads as analysis and it decided nothing.
+> See the correction in the section above for what is actually left standing.
 >
 > **What is NOT offered as a cost, because it is measured false:** that the absolute form would leak the
 > owner's home path into a committed public file. Five entries at `.claude/settings.json:66-70` already
@@ -870,4 +945,10 @@ The consequence, and it is the obligation this amendment adds to the two in *The
   (`[ -d "$scratch" ] || continue`) falsifying the hypothesis that the plugin seeds `.scratch/`;
   `.claude/settings.json:66-70` for the five absolute `/Users/tadeumen/git-reps/…` entries already
   committed, and `:125` for the single-repo `git -C` entry that is the per-repo mirroring cost's worked
-  example.
+  example. **Round-3 corrections (same day):** `grep -n scratch ~/.claude/settings.json` → **nothing**
+  (the entry is not in the user floor) against `tadeumendonca-io/.claude/settings.json:166` and `-io`#371
+  (it was mirrored), for the project-scope correction and the collapse of the per-repo-mirroring
+  argument; `grep -rn 'Status:\*\* superseded' docs/adr/` → **nothing**, and the `Status` lines of
+  ADR-0002, 0006 and 0007, for the append-chain finding; `grep -cF 'Bash(bash .scratch/*)'` on this file
+  → **4**, for the marker being non-load-bearing. The hook fix for the false deny is at `003b607` and is
+  not this record's.
