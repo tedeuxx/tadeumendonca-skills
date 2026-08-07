@@ -538,6 +538,34 @@ check ALLOW "git stash"                      "git stash list"
 # rather than quietly believed closed; ADR-0008 owns the gap.
 check ALLOW "node with .. — the priced gap"  "node ../scripts/x.mjs"
 
+echo "--- rule 9: the shell name in ARGUMENT position is not an invocation ---"
+#
+# THE FALSE DENY THE FIRST VERSION SHIPPED, found by the gate at round 3. Rule 9 was two INDEPENDENT
+# greps over the whole string — "a shell name appears" AND "a `..` appears" — with no positional
+# relation between them. So an ordinary search DENIED:
+#
+#   grep -rn bash  ../other/hooks    DENY    <- `bash` is a SEARCH TERM. No shell is invoked.
+#   grep -rn bashx ../other/hooks    ALLOW   <- one character apart, which is how the cause was proved
+#
+# A hard deny on ordinary work is WORSE than the hole it failed to close. The hole costs nothing today
+# (every escape is one interpreter away regardless); this wedged the loop on a routine grep.
+#
+# TWENTY-TWO CASES COVERED THIS RULE AND NOT ONE PUT THE SHELL NAME IN ARGUMENT POSITION — and I wrote
+# both the pattern and the table. That is the miss assertion 3 already records twice in its own
+# comments: a table samples the spellings its author already had in mind, and only a DIFFERENT author
+# writing a DIFFERENT table finds the rest. Third instance in this repo, first one I produced.
+check ALLOW "shell name as a grep TERM"      "grep -rn bash ../tadeumendonca-io/hooks"
+check ALLOW "the one-character control"      "grep -rn bashx ../tadeumendonca-io/hooks"
+check ALLOW "'..' in an ARGUMENT, not path"  "bash .scratch/probe.sh --repo ../tadeumendonca-io"
+check ALLOW "shell name inside a filename"   "cat ../notes/sh.md"
+check ALLOW "path with .. to another tool"   "git diff ../other/a.sh"
+check ALLOW "listing another repo's scratch" "ls ../tadeumendonca-io/.scratch"
+# Wrappers must still reach the shell — these are the cases the positional version could most easily
+# have broken, and they are why the wrapper list exists rather than "the first word must be a shell".
+check DENY  "wrapper: env"                   "env bash ../x.sh"
+check DENY  "wrapper: exec"                  "exec bash ../x.sh"
+check DENY  "flag before the script path"    "bash -x ../x.sh"
+
 echo "--- rule 9: the three escapes, asserted ALLOW so the hole cannot go quiet ---"
 #
 # THESE ARE NOT ASPIRATIONS. Each was measured reaching a file in ANOTHER REPOSITORY with rule 9 live,

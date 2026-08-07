@@ -570,8 +570,9 @@ else
       A path prefix is a STRING prefix, not a directory scope: '<allowed-prefix>/../../../tmp/x.sh' carries it.
       permission-guard.sh does not look inside a script file, so that suffix is arbitrary code with no decision from any layer.
       Measured on #160 against a live floor: 'bash .scratch/../../<other-repo>/VERSION' ran with NO decision from any layer.
-      Either use exact-match entries (one per script), or bound the directory in permission-guard.sh the way rule 9 bounds
-      'Bash(bash .scratch/*)' — and if you add an exception here, tie it to the rule that justifies it, as that one is tied."
+      Use exact-match entries (one per script). DO NOT reach for a hook rule: rule 9 was written to bound this directory and
+      CANNOT — a lexical instrument cannot decide a filesystem property, and three escapes walk through it (ADR-0008, third
+      amendment). If you add an exception here, tie it to a RECORD that states the accepted grant, as the one above is tied."
     fi
   fi
 fi

@@ -1050,8 +1050,42 @@ fi
 #
 #    Reads `$cmd`, not `$bare`: `$bare` collapses quoted spans, so `bash '.scratch/../x'` would arrive
 #    as `bash ''` and walk through. Quoting must not be a spelling that exempts.
-if printf '%s' "$cmd" | grep -Eq '(^|[[:space:]]|/)(bash|sh|zsh|ksh|dash)([[:space:]])' \
-   && printf '%s' "$cmd" | grep -Eq '(^|[[:space:]]|/|'"'"'|")\.\.(/|[[:space:]]|'"'"'|"|$)'; then
+#    ── THE FALSE DENY, AND WHY THE FIRST VERSION HAD IT ──
+#    Shipped as TWO INDEPENDENT greps over the whole string with NO POSITIONAL RELATION: "a shell name
+#    appears somewhere" AND "a `..` appears somewhere". Measured by the gate at round 3:
+#
+#      grep -rn bash ../tadeumendonca-io/hooks    DENY   <- `bash` is a SEARCH TERM. No shell invoked.
+#      grep -rn bashx ../tadeumendonca-io/hooks   ALLOW  <- one character apart, proving the cause
+#      bash .scratch/probe.sh --repo ../other     DENY   <- the `..` is in an ARGUMENT, not the path
+#
+#    And the deny message described a match that had not happened. A hard deny on ordinary work is
+#    worse than the hole it failed to close: the hole costs nothing today, this wedged the loop.
+#
+#    Twenty-two cases covered this rule and NOT ONE put the shell name in argument position. The table
+#    was written by whoever wrote the pattern, which is the miss this file already records twice under
+#    assertion 3 — a table samples the spellings its author had in mind.
+#
+#    NOW POSITIONAL: find the shell in COMMAND position (first word, or after a known wrapper), then
+#    check ONLY THE FIRST NON-FLAG TOKEN AFTER IT. That token is the script path and nothing else is.
+script_arg="$(printf '%s' "$cmd" | awk '
+  function base(p) { sub(/^.*\//, "", p); return p }
+  BEGIN { seen = 0 }
+  {
+    for (i = 1; i <= NF; i++) {
+      w = $i
+      if (seen) { if (substr(w, 1, 1) != "-") { print w; exit } ; continue }
+      b = base(w)
+      if (b == "bash" || b == "sh" || b == "zsh" || b == "ksh" || b == "dash") { seen = 1; continue }
+      # wrappers that may legitimately precede the interpreter; anything else means the shell name is
+      # an ARGUMENT to some other tool and this rule has no business firing.
+      if (b == "env" || b == "exec" || b == "command" || b == "busybox" || b == "nohup" || b == "time") continue
+      if (substr(w, 1, 1) == "-") continue
+      if (w ~ /^[A-Za-z_][A-Za-z0-9_]*=/) continue
+      exit
+    }
+  }')"
+if [ -n "$script_arg" ] \
+   && printf '%s' "$script_arg" | grep -Eq '(^|/|'"'"'|")\.\.(/|'"'"'|"|$)'; then
   deny "Blocked: a script path handed to a shell contains a '..' segment. A path in an allow entry is a STRING prefix, not a directory scope — '<allowed-prefix>/../../x.sh' carries the prefix while reaching any file on disk, and permission-guard.sh deliberately does not look inside a script. Use the path without traversal, or run the script from the directory that owns it."
 fi
 
