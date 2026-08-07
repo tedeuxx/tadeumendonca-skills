@@ -2,6 +2,13 @@
 .claude/settings.local.json
 .claude/worktrees/
 
+# The ONE place for scratch files, and it does not survive a session — `session-scratch.sh` empties
+# it at SessionStart. Ignored rather than absent so a scratch write lands somewhere named instead of
+# somewhere random: the failure this replaces was an agent leaving `dist-old-qa/` at a repo path that
+# nothing ignored, which dirtied `git status` and broke a local lint with 1480 errors from a bundle.
+# A leak into a named ignored directory is a leak that costs nothing.
+.scratch/
+
 # editor / os
 .DS_Store
 *.log

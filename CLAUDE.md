@@ -300,6 +300,43 @@ DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella f
 
 ---
 
+## Scratch — `<repo-root>/.scratch/`, and nothing survives a new session
+
+**`.scratch/` at the repo root is the ONE place for throwaway files.** Gitignored, never committed,
+never referenced by anything that has to still work tomorrow. Not `/tmp`, not the session scratchpad
+directory, not a stray path in the tracked tree.
+
+`session-scratch.sh` empties it at the start of every new session, so the guarantee is a bound, not
+a promise: **write it, use it, and expect it gone.** A resumed or compacted session does not sweep —
+a pause is not a new session, and the PR body written before it is still owed to the command that
+consumes it.
+
+**The taxonomy matters more than the location**, because most of what accumulated there never
+belonged in a scratch at all:
+
+| what | where |
+|---|---|
+| PR bodies, commit messages | **`.scratch/`** — written once, consumed by `--body-file`, discarded. The only use that matches the purpose. |
+| lens and gate verdicts | **the PR comment.** It is the durable record for both — and the **gate** verdict is additionally machine-read by `session-wip.sh`, which matches the `gatekeeper-verdict: quality-assurance` marker and nothing else; a lens verdict has no reader but a human. A file copy is a second source of truth with no reader either way — and it is what broke: the file handoff failed twice while `SendMessage` failed zero times. |
+| interview transcripts, raw source material | **`.brand/` in `tadeumendonca-io`** — private and gitignored *there*, which is the documented home for exactly this. **It is NOT gitignored in this repo**, so the path is only safe in the repo that ignores it; writing private material to `.brand/` here puts it in a tracked path in a public repo. |
+| a measurement instrument | **a repo script with a test, if and only if a gate will run it.** Otherwise discard. "It worked once" is not "it must persist". |
+| an isolated checkout | **not a scratch class.** Use the repo — WIP=1 already serialises — or a git worktree with its own install. |
+
+**Why a hook and not a discipline** (this is the part that generalises): of the delete spellings #155
+measured — `rm -rf`, `rm -r`, `git clean -fdX`, `find -delete` — the first three are denied by the floor
+or ask the human, and `find -delete` passes with no decision from any layer. So "the agent tidies up
+after itself" resolves to "the agent reaches for the delete nothing watches". **The claim is those
+spellings, measured — not the class**: `permission-guard.sh` deliberately does not chase the
+interpreters, and `Bash(python3:*)` / `Bash(node:*)` are in `allow`, so a `shutil.rmtree` is a recursive
+delete that no layer sees either. That gap is priced, not closed, and the hook does not depend on it
+being closed. The measurements are in #155; the reasoning is in the hook's own header.
+
+**`/clear` sweeps too**, and it is the one sweep a human triggers deliberately, mid-work — a PR body
+written, then `/clear`, then "post it" is the same loss in a smaller box. The spared cases are `resume`
+and `compact` only; do not complete the set by symmetry.
+
+---
+
 ## Versioning
 
 Numeric SemVer via `bump-my-version`. **Every merge to `main` auto-bumps the PATCH and publishes a
