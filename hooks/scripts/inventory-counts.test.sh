@@ -1072,5 +1072,37 @@ $(printf '%s\n' "${INVENTORY_DOCS[@]}")"
   fi
 fi
 
+# ---------------------------------------------------------------------------------------------------
+# EVERY PERSONA BRIEF STATES WHERE ITS WORKING FILES GO.
+#
+# A rule that lives only in CLAUDE.md does not reach a subagent: CLAUDE.md is the MAIN agent's context,
+# and a persona's context is its own brief. The harness separately instructs every agent to use a session
+# scratchpad under /tmp. So on 2026-08-06 subagents wrote working files there — correctly, since it was
+# the only instruction they had — and `session-scratch.sh` does not sweep it, so those files outlived
+# every session and were invisible to the owner.
+#
+# WHAT THIS ASSERTS IS THE OVERRIDE, NOT THE WORD. `.scratch/` alone would pass on a brief that mentions
+# it in passing while still calling the harness's directory "the scratchpad" — which is exactly the shape
+# that failed: quality-assurance.md said "scratchpad" five times and never said where, so its brief did
+# not merely omit the rule, it pointed away from it. Both halves are required: the destination, and the
+# sentence that the harness's own instruction loses to it.
+for brief in "$ROOT"/agents/*.md; do
+  name="$(basename "$brief")"
+  if ! grep -qF -- '<repo-root>/.scratch/' "$brief"; then
+    bad "agent brief — $name does not name <repo-root>/.scratch/ as where its working files go.
+      CLAUDE.md cannot carry this rule to a subagent; only the brief can."
+  # ANCHOR ON THE OVERRIDE, NOT ON ITS PREAMBLE. The first version of this check grepped for "harness
+  # will tell you otherwise" — the sentence that SETS UP the override — and a mutation replacing the
+  # override verb with "Use it" left the preamble standing and passed. Predicted 1 failure, measured 0.
+  # The phrase that cannot survive the defect is the one that asserts which instruction WINS.
+  elif ! grep -qiF -- 'overrides that' "$brief"; then
+    bad "agent brief — $name names .scratch/ but does not override the harness's own instruction.
+      The harness tells every agent to use a /tmp scratchpad. A brief that states the destination without
+      naming the competing instruction leaves the agent choosing between two, and it chose /tmp."
+  else
+    ok "agent brief — $name names .scratch/ AND overrides the harness's /tmp instruction"
+  fi
+done
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
