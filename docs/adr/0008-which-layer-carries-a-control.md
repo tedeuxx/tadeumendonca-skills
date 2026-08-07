@@ -5,6 +5,12 @@
 - **Deciders:** the owner
 - **Supersedes / superseded by:** supersedes the layering claim in [ADR-0004](./0004-autonomy-and-permission-model.md)'s second 2026-08-04 amendment (*"the settings `deny` list is the hard backstop"*, inherited from `permission-guard.sh`'s own header)
 - **Driven by:** the permission audit of 2026-08-04 and the ~150-probe sweep that closed it (`4842ecd`, `745d949`)
+- **Floor grant recorded by this ADR — a status field, not reasoning:** `Bash(bash .scratch/*)` is honestly
+  `bash <any path on disk>` with a required prefix token, and **no mechanism bounds it** (owner,
+  2026-08-07, *option A*; reasoning in the third amendment). **If this decision reverses, this line is
+  EDITED here — not struck — exactly as `Status:` is.** It is the one class of line this library mutates
+  in place, which is why the marker lives here; see *the marker that survives strike-through* in the third
+  amendment for what that does and does not buy.
 
 ## Context & problem
 
@@ -262,7 +268,9 @@ sentence that matches it, and a reviewer who reads either before deleting a deny
 > removes one more thing the fail-open cost is bounded by** — so the price of the hook's fail-open contract
 > is not fixed, it is paid again, slightly higher, each time a rule moves.
 
-Two obligations follow, and they are cheap only if they are done at the time:
+~~Two~~ **Three** obligations follow (the third added 2026-08-07 by the third amendment; struck rather
+than rewritten, per *record the derivation, not the count*), and they are cheap only if they are done at
+the time:
 
 - **A migration into the hook is an amendment to this record**, not a comment in the rule. Three
   undocumented migrations in one day is what made this decision necessary; the fourth should append here.
@@ -270,6 +278,22 @@ Two obligations follow, and they are cheap only if they are done at the time:
   budget for nothing. `claude mcp` is the worked example, named rather than omitted: no flag convention
   sits between the words and no `allow` entry shadows it, so the prefix matcher sees every spelling and
   the hook would add exactly zero.
+- **Added 2026-08-07 — ask the routing test's second question, and know which of the two failures you are
+  in.** *Can this layer **express** the control* is not sufficient; **`can this layer EVALUATE the
+  property the control is about?`** is the other half, and a layer can express a property it has no
+  instrument to decide. The two failures are different in kind and take **different remedies**:
+
+  | | **sampling shortfall** | **kind mismatch** |
+  |---|---|---|
+  | example | the unwrap regex vs the shell grammar (amendment #2) | rule 9 — a **lexical** instrument asserting a **filesystem** property (third amendment) |
+  | what more probes buy | more coverage, never all of it | **nothing**; the property is not decidable at that layer |
+  | remedy | publish the derivation — *"these spellings, measured this way, on this date"* — so the next reader extends it | **stop claiming the control and record the grant**; there is no direction to extend in |
+
+  The practical test, since neither has an instrument: **a rule that asserts a filesystem, network or
+  process property from a caller-supplied string should be assumed unable to evaluate it until probed.**
+  Rule 9 was routed to the hook **correctly** by the four reasons above, was tested with eighteen cases,
+  went green, and bounded nothing — so passing the routing test is not evidence of holding the control.
+  Worked example and measurements in the third amendment.
 
 ## A practice this decision promotes: *record the derivation, not the count*
 
@@ -533,6 +557,214 @@ reason 4 is not weakened by this — it is satisfied.** The shadowing was remove
 which is the remedy this record prefers wherever it is available, and `Bash(git -C:*)` shows where it is
 not: no convention change removes it, because `-C` *is* how the multi-repo loop addresses the other repo.
 
+## Amendment (2026-08-07, third) — a layer can EXPRESS a control it cannot EVALUATE, and expressing it reads exactly like enforcing it
+
+Raised by the merge gate on PR #160 and decided by the owner the same day (*option A*). **The routing
+decision, the fail-open acceptance and the retained-floor-entry cost are untouched again.** What this
+amendment adds is a **second question** the record did not ask, and one floor entry recorded as what it
+actually is.
+
+### The decision
+
+> **`Bash(bash .scratch/*)` stays in the floor, and this record states what it is: `bash <any path on
+> disk>` with a required prefix token.** There is no mechanism bounding it. The honesty lives in the
+> record, not in a mechanism, because **no mechanism available at that layer delivers it.**
+
+`.scratch/` in that entry is not a boundary. It is a **password** — a string the caller must type, after
+which every file on the filesystem is reachable.
+
+### The measurement, so it is checkable rather than reported
+
+Against the live floor, with the entry in force:
+
+```
+$ bash .scratch/../../tadeumendonca-io/VERSION
+.scratch/../../tadeumendonca-io/VERSION: line 1: 0.1.193: command not found
+```
+
+`bash` opened and executed a file in **another repository**. Exit 127 is `bash` choking on the contents;
+the permission decision was **ALLOW**, from no layer.
+
+`permission-guard.sh` rule 9 was written to close exactly this and does not. Three escape classes, each
+measured **with rule 9 in force**:
+
+| spelling | decision | why |
+|---|---|---|
+| `bash .scratch/\.\./\.\./other-repo/x` | **ALLOW** | backslash escape; `\` is not in the preceding-character class, and `\.` is `.` to the shell |
+| `bash .scratch/.""./.""./other-repo/x` | **ALLOW** | empty quoted span — there is **no `..` adjacency anywhere in the string**, so no widening of a character class can ever catch it |
+| `bash .scratch/link.sh` | **ALLOW** | symlink out; the guard never resolves paths |
+
+**The asymmetry that would have fooled a single probe:** escaping *one* dot pair still denies on the
+next. A prober who tried one escape, saw a deny, and generalised would have reported the rule holding.
+
+### The second question this earns
+
+This record's standing test is *which layer can express this control?* Rule 9 passes that test — the
+prefix matcher provably cannot express *"inside this directory"*, so by routing reason 4 the control
+belongs in the hook, and that routing was **correct**. The rule was then written, tested with eighteen
+cases, went green, and **bounded nothing.**
+
+> **Expressibility is two questions, not one. Can this layer *express* the control — and can it
+> *evaluate* the property the control is about?** A layer can express a property it has no instrument to
+> decide, and the expression is indistinguishable, from the outside, from enforcement.
+
+**The cause, stated as a category rather than a bug:** rule 9 asserts a **filesystem** property with a
+**lexical** instrument. Between the command string and the file that opens sit quote removal, escape
+processing and symlink resolution. `permission-guard.sh` performs none of the three — deliberately,
+because performing them means parsing shell — and every escape in the table above is one of them.
+
+**This is not amendment #2 restated, and the difference is the operative part.** Amendment #2 says a
+pattern-over-a-grammar control may be recorded only as *"these spellings, measured this way, on this
+date"*, because the class is a grammar and the evidence is a sample. That is a **sampling shortfall**:
+more probes buy more coverage, just never all of it. Rule 9 is a **kind mismatch**: more probes buy
+nothing, because the property is not decidable at that layer at all. Amendment #2's remedy — publish the
+derivation and let the next reader extend it — does not apply, since there is no direction to extend in.
+The remedy here is different in kind too: **stop claiming the control and record the grant.**
+
+**This distinction is promoted out of this amendment** into *The standing consequence* above, as a third
+obligation with the two remedies side by side. It is only reusable if a reviewer meets it where they
+apply the routing test, and nobody reads to a third amendment before routing a rule.
+
+### What was actually traded, and what was not
+
+**Reach is unchanged either way.** `python3`, `node`, `npx`, `npm`, `perl` and `ruby` are in `allow`
+**uninspected**, so every act the entry permits was already one interpreter away. The entry adds no
+reachable act. **What was wrong was the entry claiming a bound** — which is this record's *"the floor
+now reads as broader than it is"* cost, arriving in the one place a reader would least suspect it,
+inside a path that looks like a scope.
+
+### Considered and rejected
+
+1. **Widen rule 9 a fourth time.** *Why not:* the empty-quoted-span escape has no `..` adjacency
+   anywhere in the string, so no character class reaches it. This is *Considered options* item 3
+   (*enumeration does not converge*) at a higher altitude, and this batch had already respelled four
+   spelling-shaped rules for the same reason. The shape was never the problem.
+2. **Forbid the wildcard; one exact-match entry per script.** The previous answer, and a real one —
+   `inventory-counts.test.sh`'s assertion 3 was written to require exactly this, and said a future need
+   *"should arrive as a deliberate change to THIS assertion, reviewed, rather than as a quiet line in
+   the floor."* *Why not:* it restores the friction the scratch convention exists to remove. Probe
+   scripts are generated with distinct names, so every probe costs a frozen absolute entry or a human
+   prompt — and the floor gains nothing measurable, since reach is unchanged (above). *This is the
+   option a future reader should re-open first if the trade stops looking right;* it is rejected on
+   cost, not on principle.
+3. **Record rule 9 as the bound and move on.** *Why not:* measured false the day it was written. A
+   record asserting a control stronger than it is fails in the direction nobody notices — which is the
+   failure this whole record exists to close, and the reason the strike marks in rule 9's header were
+   made rather than the text quietly replaced.
+
+### The residual the relative spelling leaves — recorded, not settled
+
+`grep -nE 'cwd|PWD|pwd' hooks/scripts/permission-guard.sh` returns **nothing**: the guard never learns
+where the command runs. Neither does the settings matcher. So the **relative** spelling `.scratch/*`
+means *any directory named `.scratch` relative to wherever the shell is* — and this workspace has a
+second registered working directory with its own `.scratch/` (`/Users/tadeumen/git-reps/tadeumendonca-io/.scratch`,
+confirmed present).
+
+Issue #155 specified the **absolute** form — `Bash(bash /Users/tadeumen/git-reps/<repo>/.scratch/*)` —
+and that spelling closes the cross-repo ambiguity for free, at the matcher, with no hook involvement. It
+was traded away for portability without the cost being seen. **Book this as a security consequence of
+the relative spelling, not as a portability trade.** It does not change the decision above — the
+absolute form is still `bash <any path on disk>` by the same traversal — but it is the one improvement
+available at zero cost to the fail-open budget, and it is the owner's call rather than this record's.
+
+### The coupling this creates, and my judgement of it
+
+`hooks/scripts/inventory-counts.test.sh` assertion 3 forbids a trailing wildcard on any shell-interpreter
+allow entry. It now grants **one exception**, and the exception applies only while this file contains
+both the literal entry string and the phrase `any path on disk`. Delete the record and the entry is
+flagged again.
+
+**I judge the coupling sound, for the reason it is unusual: under option A the record IS the control**,
+so tying the assertion to the record ties it to the only thing that carries the property. The tie it
+replaced was worse in a way worth keeping visible — it grepped a **phrase from rule 9's deny message**,
+so commenting out rule 9's code left the phrase alive in the comment and the exception applying with no
+rule behind it. Commenting out is what a bisect and a revert-in-place both do. That tie failed in the
+**unsafe** direction; this one fails safe.
+
+**Its bound, stated so it is known rather than discovered.** The check is a `grep -F` for two strings. It
+verifies the record *mentions* the entry; it cannot verify the record is *true*, and — in a library whose
+convention is **supersede and strike, never delete** — it cannot verify the record still *asserts* what
+it asserted. A struck `~~Bash(bash .scratch/*)~~` inside a superseded span greps identically to a live
+one. The check would go green on a record that had reversed itself.
+
+#### The marker that survives strike-through — narrowed, not closed
+
+There **is** a spelling that survives, and it is the one line class this library **mutates in place
+instead of striking**: the front-matter status block. `Status: accepted → superseded` is already the
+documented reversal move for a whole record, so a field there is governed by *edit*, not by *append and
+strike*. The marker is therefore stated as a **status field in this record's header**, added by this
+amendment, carrying both literal strings and an explicit instruction that a reversal edits it.
+
+**What that buys:** it moves the marker from a place the convention **preserves** (struck prose, which
+greps identically to live prose) to a place the convention **requires editing**. Reversing the decision
+without touching the field is now a visible inconsistency in the header rather than an invisible pass.
+
+**What it does not buy, and this is the honest half.** Nothing *forces* the field to be updated. It is
+held by the same convention as the retained floor entry two sections up — *"true only by convention;
+nothing verifies it, and nothing would notice its removal"* — and it fails the same way: silently, with
+no test reddening. **The bound is narrowed, not closed, and it stays recorded as a bound.**
+
+**Rejected: teach the check to ignore matches inside `~~…~~`.** *Why not:* it is a **spelling**, and this
+batch's entire subject is spelling-shaped rules being respelled. `<s>`, `<del>`, a strike opened on one
+line and closed on another, or a superseding block quote that strikes nothing and simply says *"this no
+longer holds"* all defeat it, and each would leave the check reporting coverage it does not have —
+amendment #2's prohibition applied to the check itself. A shorter check with a written failure mode beats
+a cleverer one whose failure mode nobody can predict.
+
+> **The check should point at the status field, not at the whole file.** That is a `hooks/` change,
+> outside this record's grant, so **today the check still greps the whole file and the field is inert.**
+> Booked here so the slice is written down rather than remembered — the same disposition this record used
+> for `permission-guard.sh`'s header.
+
+**If a mechanism existed, I would prefer it, and where one exists the rule is to execute it rather than
+grep for a sentence about it.** For this control none exists at this layer, and that is the decision
+above rather than an omission. What I would add instead, and it is a behaviour check rather than a
+document check: assert the **spelling** of the entry in `.claude/settings.json` — that any `.scratch`
+wildcard is written in the absolute form. That is a property of a file the suite already reads, it goes
+red on the exact regression the residual above describes, and it is not a sentence anyone can satisfy by
+writing prose. Proposed, not decided; it belongs to the owner and to a `hooks/` diff, not to this record.
+
+### The finding worth the most, and it is about the record rather than the rule
+
+**This exact hole was measured in this repo three months earlier, by a different author, and written
+down** — `inventory-counts.test.sh:455-459`:
+
+> *"Measured at round 4: a path prefix is a STRING prefix, and `…/hooks/scripts/../../../../private/tmp/x.sh`
+> carries it while reaching any script on disk. **The prefix bounded the characters, not the directory.**"*
+
+The wildcard entry went into the floor anyway, and a hook rule was then written to close a hole the tree
+already documented as unclosable by that means.
+
+> **A comment is a place to put a finding, not a layer that can hold a control.** The finding was
+> correct, current, in the right file, and in the file the new entry's own assertion lives in — and it
+> stopped nothing.
+
+That is **this record's own subject turned on the record itself**: *which layer carries this control, and
+can that layer hold it?* asked about the **documentation** layer. It answers the way the rest of this
+record answers — the layer can express the finding and cannot enforce it — and it is the reason the
+mechanical half matters here. What eventually caught the entry was not the comment stating the property;
+it was assertion 3 **executing** it.
+
+The consequence, and it is the obligation this amendment adds to the two in *The standing consequence*:
+
+- **When a finding is measured and cannot be mechanised, it goes in an ADR — not only in the comment of
+  the file where it was found.** A comment is scoped to its reader; this library is what a floor change
+  is required to be grepped against (*"the entry is one file, the record of it is five"*). The finding
+  above lived in exactly one of the five, and the four commits that could have caught it never opened it.
+
+### What it costs
+
+- **The floor now contains one entry whose honest description is `bash <any path on disk>`**, and the
+  only thing distinguishing it from a bare `Bash(bash:*)` — which this library removed at `14d7b43` — is
+  the friction of typing a prefix token. That is a real weakening relative to the post-`14d7b43` floor,
+  accepted in the owner's name, on the ground that reach is unchanged by the uninspected interpreters.
+- **A record is now load-bearing for a test's verdict.** Editing prose can turn a suite green or red,
+  which is a coupling this library has otherwise avoided; the bound above is the price.
+- **The second question does not come with an instrument either.** *Can this layer evaluate the
+  property?* is answered by judgement and by probing, exactly like the stopping-rule problem amendment #2
+  left unremedied. No remedy is proposed. What holds it is that a rule asserting a filesystem, network or
+  process property from a command string should now be **assumed** unable to evaluate it until probed.
+
 ## Links
 - Supersedes the layering claim in [ADR-0004](./0004-autonomy-and-permission-model.md)'s second
   2026-08-04 amendment (both the *"the hook, not the floor, stops them"* sentence, superseded in place
@@ -555,3 +787,13 @@ not: no convention change removes it, because `-C` *is* how the multi-repo loop 
   scope of the removal commits; `14d7b43`'s message for the `$'r'"m -rf /x"` probe that decided the
   reversal; `git show cb9a2f3:hooks/scripts/permission-guard.sh` for the header's own *NOT COVERED,
   DELIBERATELY* list of the interpreters that remain allow-listed.
+- **Third amendment evidence (2026-08-07):** PR #160 and its merge-gate verdict, which raised the
+  measurement; the live-floor run of `bash .scratch/../../tadeumendonca-io/VERSION` (ALLOW, exit 127 from
+  `bash` on the file's contents, no decision from any layer); the three escape classes probed against
+  `hooks/scripts/permission-guard.sh` **rule 9 in force**, whose struck header records the same three;
+  `grep -nE 'cwd|PWD|pwd' hooks/scripts/permission-guard.sh` → **no match**, for the relative-spelling
+  residual, with `/Users/tadeumen/git-reps/tadeumendonca-io/.scratch` confirmed present as the second
+  candidate directory; issue **#155** for the absolute form that was specified and traded away
+  (`Bash(bash /Users/tadeumen/git-reps/<repo>/.scratch/*)`); `hooks/scripts/inventory-counts.test.sh`
+  assertion 3 for the coupling, and its round-4 comment at lines **455-459** for the same hole measured
+  three months earlier.
