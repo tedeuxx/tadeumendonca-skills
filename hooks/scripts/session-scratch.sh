@@ -18,11 +18,25 @@
 # they must: a PR body is written and consumed minutes apart. He accepted that ceiling explicitly,
 # on the reasoning that anything escaping one sweep is caught by the next.
 #
-# WHY A HOOK RATHER THAN A RULE THE AGENT FOLLOWS. Every recursive delete the agent could issue is
-# either denied by the floor (`rm -rf`, `git clean -fdX`) or asks the human (`rm -r`) — except
-# `find -delete`, which passes with no decision from any layer. So "the agent tidies up after
-# itself" resolves to "the agent uses the one delete nothing watches", which is not a discipline
-# anyone should want. A hook runs as a subprocess of the harness rather than as a tool call, so
+# WHY A HOOK RATHER THAN A RULE THE AGENT FOLLOWS. Of the four spellings #155 measured, three are
+# either denied by the floor (`rm -rf`, `git clean -fdX`) or ask the human (`rm -r`), and
+# `find -delete` passes with no decision from any layer. So "the agent tidies up after itself"
+# resolves to "the agent uses the delete nothing watches", which is not a discipline anyone should
+# want.
+#
+# ~~EVERY recursive delete the agent could issue.~~ **Struck: false as an absolute, and it stood
+# here after the same sentence was corrected in `CLAUDE.md` and `README.md` — which is the defect
+# worth recording.** That pass was scoped to the two files a review had QUOTED rather than to every
+# place the claim appears, and this header is the one the corrected `CLAUDE.md` paragraph routes the
+# reader to BY NAME. `Bash(python3:*)` and `Bash(node:*)` are in `allow`; a `python3 -c` calling
+# `shutil.rmtree` is a recursive delete and produces no deny — measured by piping it into
+# `permission-guard.sh`, not inferred. That guard says so itself at :234 ("NOT COVERED, DELIBERATELY:
+# the other interpreters"), and its own suite asserts ALLOW for them at :735, labelled "the priced
+# gap". The claim here is now THOSE SPELLINGS, MEASURED — never the class, which is the rule
+# `permission-guard.sh:247` states one file away.
+#
+# The hook's justification does not depend on the absolute and never did: the delete the agent
+# actually reaches for is unwatched, and that is measured. A hook runs as a subprocess of the harness rather than as a tool call, so
 # `PreToolUse` never sees it: no `allow` entry covers a hook invocation, and none is needed.
 #
 # TWO CLAIMS THAT USED TO SIT HERE WERE WRONG, and the corrections are the useful part.
@@ -38,8 +52,11 @@
 # suite already asserts it: `-mindepth 1 -delete` empties the directory and PRESERVES it, where
 # `rm -rf` would remove it. Nothing here depends on `find` being permitted to the agent.
 #
-# WHY SessionStart AND NOT SessionEnd. SessionEnd is best-effort — it does not fire on a crash,
-# and the 16 orphaned directories, the oldest ten days old, are what best-effort looks like. It would also
+# WHY SessionStart AND NOT SessionEnd. SessionEnd is best-effort — it is not reported to fire on a
+# crash, and that clause is a claim about third-party harness behaviour which nothing here measured;
+# the 16 orphaned directories, the oldest ten days old, are what best-effort looked like, and THAT is
+# measured. Softened to match `README.md`, where the same sentence was hedged and this one was not —
+# one correction pass, two places, only one of them reached. It would also
 # delete during the window in which a handoff is still needed. SessionStart fails SAFE: if it does
 # not run you accumulate, visibly, and never lose work.
 #
