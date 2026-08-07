@@ -1117,8 +1117,14 @@ done
 # does not make them move together — nothing can. It makes them unable to DRIFT APART in silence, which
 # is the property that was actually missing: `wip-guard` spent a week a spelling behind `permission-guard`
 # on exactly this flag, and no check anywhere could say so.
-guard_class="$(grep -oE '\(-R\[\[:space:\]=\]\*\|--repo\[\[:space:\]=\]\*\)' "$ROOT/hooks/scripts/permission-guard.sh" | head -1)"
-wip_classes="$(grep -oE '\(-R\[\[:space:\]=\]\*\|--repo\[\[:space:\]=\]\*\)' "$ROOT/hooks/scripts/wip-guard.sh")"
+# THE ANCHOR IS DELIBERATELY LOOSER THAN THE CLASS IT COMPARES. Anchoring on the full literal made
+# the third branch DEAD BY CONSTRUCTION: both sides searched for the same fixed string, so `grep -oE`
+# could only ever emit that string and `grep -qvxF` had nothing to find. Measured — mutating one file
+# reached branch 2, mutating both reached branch 2, mutating the guard reached branch 1, and branch 3
+# never fired. Matching `(` + the flag + anything-up-to-`)` lets the two sides emit DIFFERENT text,
+# which is the only way a difference can be reported at all.
+guard_class="$(grep -oE '\((-R|--repo)[^)]*\)' "$ROOT/hooks/scripts/permission-guard.sh" | head -1)"
+wip_classes="$(grep -oE '\((-R|--repo)[^)]*\)' "$ROOT/hooks/scripts/wip-guard.sh")"
 wip_count="$(printf '%s' "$wip_classes" | grep -c . || true)"
 
 if [ -z "$guard_class" ]; then
