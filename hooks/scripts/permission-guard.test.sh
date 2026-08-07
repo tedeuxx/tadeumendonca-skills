@@ -478,6 +478,53 @@ check DENY  "command substitution"          'echo $(date)'
 check DENY  "backticks"                     'echo `date`'
 check DENY  "env-var prefix"                "E2E_ENV=local npx playwright test"
 
+echo "--- rule 9: a script path handed to a shell must not traverse ---"
+#
+# THE MEASUREMENT THAT PRODUCED THIS RULE, on #160, with `Bash(bash .scratch/*)` live in the floor:
+#
+#   $ bash .scratch/../../tadeumendonca-io/VERSION
+#   .scratch/../../tadeumendonca-io/VERSION: line 1: 0.1.193: command not found
+#
+# No prompt, no denial — bash opened and executed a file in ANOTHER REPOSITORY, and exit 127 is bash
+# choking on the contents rather than any layer refusing. The directory in the entry was a PASSWORD,
+# not a boundary.
+#
+# It was measured a second time because it had been measured a FIRST time and forgotten:
+# `inventory-counts.test.sh`'s assertion 3 wrote the same finding down at round 4 — *"a path prefix
+# is a STRING prefix … The prefix bounded the characters, not the directory"* — and the wildcard
+# entry went into the floor anyway, three months later, by an author who had not read it. That is the
+# argument for a HOOK over a comment, and it is the reason these cases exist as executable ones.
+check DENY  "traversal out of the prefix"    "bash .scratch/../../tadeumendonca-io/VERSION"
+check DENY  "traversal, one level"           "bash .scratch/../x.sh"
+check DENY  "traversal, leading"             "sh ../x.sh"
+check DENY  "traversal, interpreter by path" "/bin/bash .scratch/../x.sh"
+check DENY  "traversal, absolute prefix"     "bash /Users/a/.scratch/../../etc/x.sh"
+check DENY  "traversal, mid-path"            "zsh ./a/../b.sh"
+check DENY  "traversal, single-quoted"       "bash '.scratch/../x.sh'"
+check DENY  "traversal, double-quoted"       'bash ".scratch/../x.sh"'
+# The two quoted cases are the reason this rule reads `$cmd` and not `$bare`. `$bare` collapses a
+# quoted span to '', so `bash '.scratch/../x.sh'` would arrive as `bash ''` — the traversal gone and
+# the deny with it. Quoting must never be a spelling that exempts; both were verified to pass ALLOW
+# against a `$bare` version of the rule before this was changed.
+
+echo "--- rule 9: what it must NOT break ---"
+check ALLOW "nested scratch, no traversal"   "bash .scratch/probe/deep/x.sh"
+check ALLOW "relative suite path"            "bash hooks/scripts/inventory-counts.test.sh"
+check ALLOW "git range is not a path"        "git diff HEAD..main"
+check ALLOW "git range, reversed"            "git log main..HEAD --oneline"
+check ALLOW "npm --prefix with .."           "npm --prefix ../tadeumendonca-io run test"
+check ALLOW "a tool NAME containing sh"      "shellcheck ../x.sh"
+check ALLOW "another tool name, with .."     "shasum ../x.sh"
+# `git show`/`git stash` are here for the same reason assertion 3's pass-set carries them: the shell
+# name is a SUBSTRING, and a boundary that ended in anything but slash-or-whitespace flags them all.
+check ALLOW "git show"                       "git show HEAD~1"
+check ALLOW "git stash"                      "git stash list"
+# DELIBERATELY ALLOWED, and the honest half of this rule: `node` is in `allow` UNINSPECTED, so this
+# reaches every file rule 9 just denied, one interpreter over. Rule 9 does not narrow the agent's
+# REACH by a single act — it narrows what ONE ENTRY CLAIMS. Asserting ALLOW here keeps that priced
+# rather than quietly believed closed; ADR-0008 owns the gap.
+check ALLOW "node with .. — the priced gap"  "node ../scripts/x.mjs"
+
 echo "--- rule 8: single commands MUST survive ---"
 check ALLOW "a pipe is fine"                "grep -rn foo src | head -20"
 check ALLOW "npm --prefix"                  "npm --prefix apps/fed run test"

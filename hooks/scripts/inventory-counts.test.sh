@@ -508,15 +508,47 @@ else
     #     The four `git`/`npm` entries are in the pass set on purpose: `show`, `stash`, `finish` and
     #     `lint` all contain a shell name as a SUBSTRING, and a prefix group that ended in anything but
     #     a slash or whitespace would flag every one of them.
+    #     WIDENED 2026-08-07 FROM `:\*\)` TO `[:/]\*\)`, and this is the deliberate reviewed change the
+    #     paragraph above asked for. The pattern required a COLON before the star, so
+    #     `Bash(bash .scratch/*)` — a slash — walked straight through an assertion written to forbid
+    #     exactly its property. One character. It shipped on #160 and was caught by the merge gate, not
+    #     here. That is the third time in this file's history that this assertion was one spelling short,
+    #     and the lesson is identical each time: the shape was right, the CHARACTER SET was a guess.
+    #
+    #     AND ONE NAMED EXCEPTION, because the owner chose to keep the wildcard rather than restore the
+    #     friction. `Bash(bash .scratch/*)` is permitted HERE ONLY BECAUSE `permission-guard.sh` rule 9
+    #     denies a `..` segment in a script path handed to a shell — which is what makes `.scratch/` an
+    #     actual directory rather than a required prefix token. The matcher cannot express that; a hook
+    #     can; that is the standing rule for the next rule, applied.
+    #
+    #     THE EXCEPTION IS TIED TO ITS JUSTIFICATION, not asserted alongside it. If rule 9 is deleted or
+    #     renamed, the exception STOPS APPLYING and the entry is flagged again. An exception that
+    #     outlives its reason is this workspace's most repeated defect — a claim corrected where someone
+    #     quoted it and standing where nobody did — and it is not going to be introduced deliberately in
+    #     the assertion whose whole subject is that a comment cannot hold a control.
+    guard_has_rule9=""
+    if grep -qF -- 'a script path handed to a shell contains a' "$ROOT/hooks/scripts/permission-guard.sh"; then
+      guard_has_rule9="yes"
+    fi
     wildcard_shells="$(printf '%s\n' "$allow_entries" \
-      | grep -E "^Bash\(([^)]*[/[:space:]])?(bash|sh|zsh|ksh|dash)([[:space:]][^)]*)?:\*\)$" || true)"
+      | grep -E "^Bash\(([^)]*[/[:space:]])?(bash|sh|zsh|ksh|dash)([[:space:]][^)]*)?[:/]\*\)$" || true)"
+    if [ -n "$guard_has_rule9" ]; then
+      wildcard_shells="$(printf '%s\n' "$wildcard_shells" | grep -vxF -- 'Bash(bash .scratch/*)' || true)"
+    fi
+    wildcard_shells="$(printf '%s' "$wildcard_shells" | grep -v '^[[:space:]]*$' || true)"
     if [ -z "$wildcard_shells" ]; then
-      ok "permission floor — no shell-interpreter allow entry ends in a wildcard"
+      if [ -n "$guard_has_rule9" ]; then
+        ok "permission floor — no unbounded shell entry; the one wildcard is bounded by permission-guard rule 9"
+      else
+        ok "permission floor — no shell-interpreter allow entry ends in a wildcard"
+      fi
     else
-      bad "permission floor — a shell-interpreter entry ends in ':*', which permits an unbounded suffix: $wildcard_shells
+      bad "permission floor — a shell-interpreter entry ends in a wildcard, which permits an unbounded suffix: $wildcard_shells
       A path prefix is a STRING prefix, not a directory scope: '<allowed-prefix>/../../../tmp/x.sh' carries it.
       permission-guard.sh does not look inside a script file, so that suffix is arbitrary code with no decision from any layer.
-      Use exact-match entries (no trailing ':*'), one per script."
+      Measured on #160 against a live floor: 'bash .scratch/../../<other-repo>/VERSION' ran with NO decision from any layer.
+      Either use exact-match entries (one per script), or bound the directory in permission-guard.sh the way rule 9 bounds
+      'Bash(bash .scratch/*)' — and if you add an exception here, tie it to the rule that justifies it, as that one is tied."
     fi
   fi
 fi

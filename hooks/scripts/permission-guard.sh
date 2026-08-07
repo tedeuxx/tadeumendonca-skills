@@ -978,4 +978,41 @@ if printf '%s' "$bare" | grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*='; then
   deny "Blocked: env-var prefix (VAR=x cmd) hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
 fi
 
+# 9. A SCRIPT PATH HANDED TO A SHELL MUST NOT TRAVERSE. This is the control that makes a directory-
+#    scoped wildcard mean what it says, and it is here because THE MATCHER CANNOT EXPRESS IT — the
+#    standing rule for the next rule, applied.
+#
+#    THE HOLE, MEASURED TWICE, THREE MONTHS APART BY DIFFERENT AUTHORS. `inventory-counts.test.sh`'s
+#    assertion 3 recorded it first (round 4, in its own comment): *"a path prefix is a STRING prefix …
+#    The prefix bounded the characters, not the directory."* It was measured again on #160, against a
+#    live floor, with the entry `Bash(bash .scratch/*)` in force:
+#
+#      $ bash .scratch/../../tadeumendonca-io/VERSION
+#      .scratch/../../tadeumendonca-io/VERSION: line 1: 0.1.193: command not found
+#
+#    No prompt, no denial. `bash` opened and executed a file in ANOTHER REPOSITORY; exit 127 is bash
+#    choking on the contents, and the permission decision was ALLOW. `.scratch/` was not a boundary,
+#    it was a PASSWORD — a required prefix token, after which any path on disk is reachable.
+#
+#    WHY THE RULE IS NOT "FORBID THE WILDCARD". That was the previous answer and it is a real one; it
+#    is written out at `inventory-counts.test.sh:461-464`, which also says a future need "should arrive
+#    as a deliberate change to THIS assertion, reviewed, rather than as a quiet line in the floor."
+#    This is that change. Forbidding the wildcard restores the friction the scratch work exists to
+#    remove — one frozen absolute path per probe, and agents generate distinct paths — so the trade
+#    taken here is to keep the wildcard and make the DIRECTORY real, which only a hook can do.
+#
+#    WHAT IT DOES NOT BUY, stated because the opposite reading is the dangerous one. `python3`, `node`,
+#    `npx`, `npm`, `perl` and `ruby` are all in `allow` UNINSPECTED, so anything this rule denies in a
+#    shell spelling remains reachable one interpreter over. This rule does not narrow the agent's REACH
+#    by a single act. It narrows what ONE ENTRY CLAIMS — so that a floor a stranger reads means what it
+#    says. That gap is ADR-0008's priced, accepted one; it is not closed here and must not be recorded
+#    as closed.
+#
+#    Reads `$cmd`, not `$bare`: `$bare` collapses quoted spans, so `bash '.scratch/../x'` would arrive
+#    as `bash ''` and walk through. Quoting must not be a spelling that exempts.
+if printf '%s' "$cmd" | grep -Eq '(^|[[:space:]]|/)(bash|sh|zsh|ksh|dash)([[:space:]])' \
+   && printf '%s' "$cmd" | grep -Eq '(^|[[:space:]]|/|'"'"'|")\.\.(/|[[:space:]]|'"'"'|"|$)'; then
+  deny "Blocked: a script path handed to a shell contains a '..' segment. A path in an allow entry is a STRING prefix, not a directory scope — '<allowed-prefix>/../../x.sh' carries the prefix while reaching any file on disk, and permission-guard.sh deliberately does not look inside a script. Use the path without traversal, or run the script from the directory that owns it."
+fi
+
 exit 0
