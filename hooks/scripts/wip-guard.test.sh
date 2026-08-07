@@ -22,6 +22,19 @@ GUARD="$(cd "$(dirname "$0")" && pwd)/wip-guard.sh"
 STUBDIR="$(mktemp -d)"
 REAL_PATH="$PATH"
 
+# THE CALL LOG — what `gh pr list` was actually ASKED, not what the guard decided.
+#
+# `check` compares a verdict, and a verdict cannot see a malformed repo slug: the stub matches its
+# repo argument with `grep -qF`, a SUBSTRING test, so `-R =other/elsewhere` still matches
+# `other/elsewhere` and an ALLOW case passes with the bug present. That is how `-R=x` — a spelling
+# `gh` accepts — survived the first fix AND its new assertions: real `gh` would have failed to
+# resolve `=other/elsewhere`, returned nothing, and the guard would have exited allowing the create.
+# The stub was kinder than the tool, for the third time in this file.
+#
+# So the argument itself is recorded and asserted on. A test that can only read the verdict cannot
+# distinguish "asked the right repo" from "asked a broken slug and got lucky".
+export STUB_CALLS="$STUBDIR/gh-calls.log"
+
 pass=0
 fail=0
 
@@ -53,6 +66,7 @@ case "\$args" in
   *"pr view 45"*)  printf '%s' '${3:-$2}' ;;
   *"pr view"*)     printf '%s' '$2' ;;
   *"pr list"*)
+    printf '%s\n' "\$args" >> "\$STUB_CALLS"
     if [ -n "\$other" ] && printf '%s' "\$args" | grep -qF -- "\$other"; then
       printf '%s' '${5-}'
     else
@@ -222,6 +236,32 @@ check ALLOW "-R spaced reaches the other repo"           "gh -R other/elsewhere 
 check ALLOW "--repo= attached reaches the other repo"    "gh --repo=other/elsewhere pr create --title x"
 check ALLOW "-R attached reaches the other repo"         "gh -Rother/elsewhere pr create --title x"
 check ALLOW "--repo= after create reaches the other repo" "gh pr create --repo=other/elsewhere --title x"
+
+# AND THE SLUG HANDED TO `gh` IS CLEAN — asserted on the CALL, not on the verdict.
+#
+# `-R=owner/x` is the fifth spelling and the one the first fix missed. With a space-only class the
+# `=` leaks into the captured value, `gh pr list -R =owner/x` cannot resolve, `open_prs` is empty and
+# the guard exits ALLOWING. The verdict is ALLOW either way here, so only the recorded argument can
+# tell a correct parse from a broken one.
+asked() {
+  want="$1"; desc="$2"; cmd="$3"
+  : > "$STUB_CALLS"
+  printf '%s' "$cmd" | jq -R '{tool_input:{command:.}}' | bash "$GUARD" >/dev/null
+  got="$(grep -o -- '-R [^ ]*' "$STUB_CALLS" | head -1)"
+  if [ "$got" = "$want" ]; then
+    pass=$((pass + 1)); printf 'ok    %-6s %s\n' "ASKED" "$desc"
+  else
+    fail=$((fail + 1)); printf 'FAIL  want=%s got=%s  %s\n      cmd: %s\n' "$want" "${got:-<no pr list call>}" "$desc" "$cmd"
+  fi
+}
+echo "--- the slug handed to gh is clean in every spelling (asserted on the CALL) ---"
+stub_gh "$ONE" "$THEIRS" "" "other/elsewhere" "[]"
+stub_git "$MINE_OVERLAPS"
+asked "-R other/elsewhere" "-R spaced"          "gh -R other/elsewhere pr create --title x"
+asked "-R other/elsewhere" "-R attached"        "gh -Rother/elsewhere pr create --title x"
+asked "-R other/elsewhere" "-R= attached"       "gh -R=other/elsewhere pr create --title x"
+asked "-R other/elsewhere" "--repo spaced"      "gh --repo other/elsewhere pr create --title x"
+asked "-R other/elsewhere" "--repo= attached"   "gh --repo=other/elsewhere pr create --title x"
 
 echo '--- only "gh pr create" is gated; the rest of the loop is untouched ---'
 stub_gh "$ONE" "$THEIRS"
