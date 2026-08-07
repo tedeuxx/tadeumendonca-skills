@@ -552,8 +552,8 @@ check ALLOW "git stash"                      "git stash list"
 #
 # THE CAUSE, AND IT IS THE RECORD'S OWN SUBJECT. Both corrections enumerated interpreter NAMES. The
 # question is ENTRIES THAT CAN REACH AN INTERPRETER, and that is NOT ENUMERABLE — a closed list
-# answering an open grammar, which is the kind-mismatch ADR-0008's third amendment exists to name,
-# committed twice inside the PR that names it.
+# answering an open grammar. ADR-0008's 2026-08-04 amendment already forbids recording a control of
+# this shape as *closed*; that is the rule this broke, twice, in the MR that cites it.
 #
 # The proof it is method rather than oversight: rule 9's own `awk` block, thirty lines from the
 # enumeration that omitted it, LISTS `command` AS A WRAPPER. The counter-example was in the same file,
