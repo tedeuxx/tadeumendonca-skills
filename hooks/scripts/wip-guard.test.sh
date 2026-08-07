@@ -34,15 +34,30 @@ fail=0
 # only `.[0]` — or broke out of the loop on the first collision — passed every assertion in this file,
 # because both PRs collided identically. Giving #65 and #45 different lists is what makes the loop
 # observable at all, and it is what lets the disjoint-PR-absent assertion exist.
+#   $4 — a repo slug this stub answers DIFFERENTLY for, and $5 — the `pr list` it returns for that repo.
+#
+# REPO-AWARE, and it had to become so before the `-R` extraction could be tested at all. `pr list`
+# answered the same list for every repo, so a guard that parsed `--repo` correctly and one that dropped
+# it produced identical output — the extraction fix was mutation-proof for the wrong reason, and this
+# suite already carried a `-R` case that proved nothing because it asserted ALLOW on a disjoint fixture.
+# This is the same shape as defect 4 in the source header: the stub, not the source, is where the
+# assertion went vacuous. A stub more permissive than the real tool cannot falsify anything the real
+# tool would.
 stub_gh() {
   cat > "$STUBDIR/gh" <<STUB
 #!/usr/bin/env bash
 args="\$*"
+other='${4-}'
 case "\$args" in
   *"repo view"*)   printf 'main' ;;
   *"pr view 45"*)  printf '%s' '${3:-$2}' ;;
   *"pr view"*)     printf '%s' '$2' ;;
-  *"pr list"*)     printf '%s' '$1' ;;
+  *"pr list"*)
+    if [ -n "\$other" ] && printf '%s' "\$args" | grep -qF -- "\$other"; then
+      printf '%s' '${5-}'
+    else
+      printf '%s' '$1'
+    fi ;;
   *)               exit 0 ;;
 esac
 STUB
@@ -167,6 +182,46 @@ echo "--- an empty queue lets the slice open ---"
 stub_gh "$NONE" "$THEIRS"
 stub_git "$MINE_OVERLAPS"
 check ALLOW "no open PRs"                    "gh pr create --title x --body y"
+
+# EVERY SPELLING OF THE REPO FLAG REACHES A DECISION.
+#
+# `-R x` was the only one the trigger accepted. `--repo=x` and `-Rx` produced NO DECISION AT ALL — the
+# hook exited at its trigger, silently, for any repo and not only the cross-repo case. Two one-word
+# spellings turned the whole control off, and nothing anywhere said so.
+#
+# ASSERT DENY, NOT ALLOW, and that is the point of the fixture: with an overlap staged, a spelling that
+# reaches the guard must DENY. An ALLOW here is indistinguishable from the bypass — which is exactly why
+# the bug survived a suite that already had a `-R` case (it asserted ALLOW on a disjoint fixture, so the
+# trigger firing and the trigger missing produce the same result and the case proved nothing).
+echo "--- every spelling of -R/--repo reaches a decision, and a bypass shows up as ALLOW ---"
+stub_gh "$ONE" "$THEIRS"
+stub_git "$MINE_OVERLAPS"
+check DENY "-R with a space"                 "gh -R owner/repo pr create --title x"
+check DENY "--repo with a space"             "gh --repo owner/repo pr create --title x"
+check DENY "--repo= attached"                "gh --repo=owner/repo pr create --title x"
+check DENY "-R attached, no space"           "gh -Rowner/repo pr create --title x"
+# The flag AFTER the subcommand is the shape gh actually documents, and it took a different route to the
+# same failure: the trigger fired on the bare `gh pr create`, then the EXTRACTION missed, `$repo` came
+# back empty, and the guard judged a create aimed at one repo against another repo's queue and branch —
+# coherent, confident and wrong, with a denial naming a real PR and a real file list.
+check DENY "--repo= after the subcommand"    "gh pr create --repo=owner/repo --title x"
+check DENY "-R after the subcommand"         "gh pr create -R owner/repo --title x"
+
+# AND THE EXTRACTED VALUE IS ACTUALLY USED — which the cases above cannot show, because reaching a
+# decision and reaching the RIGHT repo's decision are different claims. Here the default repo has a
+# colliding PR and `other/elsewhere` has none, so:
+#   extraction works  -> the other repo's (empty) queue is consulted -> ALLOW
+#   extraction broken -> `$repo` empty, gh infers the cwd repo, the WRONG queue collides -> DENY
+# A denial naming a real PR and a real file list, for a create aimed somewhere else entirely. That is
+# the failure that cost an evening: it is not loud, it is plausible.
+echo "--- the repo the flag names is the repo consulted, in every spelling ---"
+stub_gh "$ONE" "$THEIRS" "" "other/elsewhere" "[]"
+stub_git "$MINE_OVERLAPS"
+check DENY  "no flag: the cwd repo's queue collides"     "gh pr create --title x"
+check ALLOW "-R spaced reaches the other repo"           "gh -R other/elsewhere pr create --title x"
+check ALLOW "--repo= attached reaches the other repo"    "gh --repo=other/elsewhere pr create --title x"
+check ALLOW "-R attached reaches the other repo"         "gh -Rother/elsewhere pr create --title x"
+check ALLOW "--repo= after create reaches the other repo" "gh pr create --repo=other/elsewhere --title x"
 
 echo '--- only "gh pr create" is gated; the rest of the loop is untouched ---'
 stub_gh "$ONE" "$THEIRS"

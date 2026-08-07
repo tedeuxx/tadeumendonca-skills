@@ -113,13 +113,29 @@ cmd="$(printf '%s' "$cmd" | sed -e "s/'[^']*'/''/g" -e 's/"[^"]*"/""/g')"
 
 # Only `gh pr create` is interesting. Everything else leaves immediately, so this adds
 # no measurable cost to the Bash calls that make up the actual dev loop.
-printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R|--repo)[[:space:]]+[^[:space:]]+)*[[:space:]]+pr[[:space:]]+create([[:space:]]|$)' || exit 0
+# THE FLAG HAS FOUR SPELLINGS AND THIS USED TO ACCEPT ONE. `-R x` matched; `--repo=x` and `-Rx` did
+# not, and neither did `--repo x` reach the `pr` that has to follow. When the pattern missed, the hook
+# exited HERE — no decision, no denial, no trace. Two one-word spellings turned the whole control off,
+# for any repo, not only the cross-repo case.
+#
+# This is defect 1 of the retired record above, which claims to have SURVIVED the rewrite. It survived
+# for `--base` (see the extraction below, which handles `--base=` and `-B`) and was never carried to
+# `-R`/`--repo` in either place. A comment asserting a control is held, in a file whose header is
+# largely about a comment that asserted something untrue.
+printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]]*[^[:space:]]+|--repo[[:space:]=]+[^[:space:]]+))*[[:space:]]+pr[[:space:]]+create([[:space:]]|$)' || exit 0
 
 command -v gh >/dev/null 2>&1 || exit 0
 command -v git >/dev/null 2>&1 || exit 0
 
 # Honour an explicit -R/--repo; otherwise let gh infer from the working directory.
-repo="$(printf '%s' "$cmd" | sed -nE 's/.*[[:space:]](-R|--repo)[[:space:]]+([^[:space:]]+).*/\2/p')"
+#
+# ALL FOUR SPELLINGS, and this one matters even when the trigger above already fired. `gh pr create
+# --repo=X` passes the trigger on the bare `gh pr create` and then failed HERE: `$repo` came back empty,
+# `gh pr list` inferred the repo from the working directory, and the guard judged a create aimed at one
+# repo using another repo's queue and another repo's branch — internally coherent and entirely wrong,
+# with a denial naming a real PR and a real file list. That is worse than the trigger miss, because the
+# message looks right and the author believes it.
+repo="$(printf '%s' "$cmd" | sed -nE 's/.*[[:space:]](-R[[:space:]]*|--repo[[:space:]=]+)([^[:space:]]+).*/\2/p')"
 if [ -n "$repo" ]; then
   open_prs="$(gh pr list -R "$repo" --state open --author @me --json number,title,headRefName,baseRefName 2>/dev/null || true)"
 else
