@@ -113,13 +113,41 @@ cmd="$(printf '%s' "$cmd" | sed -e "s/'[^']*'/''/g" -e 's/"[^"]*"/""/g')"
 
 # Only `gh pr create` is interesting. Everything else leaves immediately, so this adds
 # no measurable cost to the Bash calls that make up the actual dev loop.
-printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R|--repo)[[:space:]]+[^[:space:]]+)*[[:space:]]+pr[[:space:]]+create([[:space:]]|$)' || exit 0
+# THE REPO FLAG USED TO BE ACCEPTED IN ONE SPELLING. `-R x` matched; `--repo=x`, `-Rx` and `-R=x` did
+# not, and neither did `--repo x` reach the `pr` that has to follow. When the pattern missed, the hook
+# exited HERE — no decision, no denial, no trace. Spellings `gh` itself accepts turned the whole
+# control off, for any repo, not only the cross-repo case.
+#
+# ~~FOUR SPELLINGS~~ — the first fix said four, covered four, and `-R=x` was the fifth. Struck rather
+# than corrected in place, because how it was found is the lesson: not by reading the pattern, but by a
+# gate running the REAL `gh`. It accepts `-R=x`; the space-only extraction leaked the `=` into the slug;
+# `gh pr list -R =owner/x` failed to resolve; `open_prs` came back empty; and the guard exited ALLOWING
+# the create. An enumerating comment is a comment that can be wrong by omission, so the pattern is now
+# shared rather than restated.
+#
+# THE CHARACTER CLASS IS `permission-guard.sh`'s `gh_repo_flag`, VERBATIM (that file, line 380).
+# Converging on it is the point: two hooks parsing the same flag two different ways is how one of them
+# ends up a spelling behind, which is precisely what happened here. If a sixth spelling ever appears,
+# it is fixed in one place and both hooks move.
+#
+# This is defect 1 of the retired record above, which claims to have SURVIVED the rewrite. It survived
+# for `--base` (see the extraction below, which handles `--base=` and `-B`) and was never carried to
+# `-R`/`--repo` in either place. A comment asserting a control is held, in a file whose header is
+# largely about a comment that asserted something untrue.
+printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]=]*|--repo[[:space:]=]*)[^[:space:]]+)*[[:space:]]+pr[[:space:]]+create([[:space:]]|$)' || exit 0
 
 command -v gh >/dev/null 2>&1 || exit 0
 command -v git >/dev/null 2>&1 || exit 0
 
 # Honour an explicit -R/--repo; otherwise let gh infer from the working directory.
-repo="$(printf '%s' "$cmd" | sed -nE 's/.*[[:space:]](-R|--repo)[[:space:]]+([^[:space:]]+).*/\2/p')"
+#
+# ALL FOUR SPELLINGS, and this one matters even when the trigger above already fired. `gh pr create
+# --repo=X` passes the trigger on the bare `gh pr create` and then failed HERE: `$repo` came back empty,
+# `gh pr list` inferred the repo from the working directory, and the guard judged a create aimed at one
+# repo using another repo's queue and another repo's branch — internally coherent and entirely wrong,
+# with a denial naming a real PR and a real file list. That is worse than the trigger miss, because the
+# message looks right and the author believes it.
+repo="$(printf '%s' "$cmd" | sed -nE 's/.*[[:space:]](-R[[:space:]=]*|--repo[[:space:]=]*)([^[:space:]]+).*/\2/p')"
 if [ -n "$repo" ]; then
   open_prs="$(gh pr list -R "$repo" --state open --author @me --json number,title,headRefName,baseRefName 2>/dev/null || true)"
 else
