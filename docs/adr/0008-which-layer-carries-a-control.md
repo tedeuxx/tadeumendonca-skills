@@ -652,7 +652,11 @@ inside a path that looks like a scope.
    failure this whole record exists to close, and the reason the strike marks in rule 9's header were
    made rather than the text quietly replaced.
 
-### The residual the relative spelling leaves — recorded, not settled
+### ~~The residual the relative spelling leaves — recorded, not settled~~ The relative spelling is DECIDED, and the consequence is accepted
+
+> **Struck the same day it was written.** The owner ruled on the relative-versus-absolute question on
+> 2026-08-07, so it is a **decision**, not a residual. The heading is struck and followed rather than
+> rewritten, and the analysis below it stands unchanged — what changes is its status.
 
 `grep -nE 'cwd|PWD|pwd' hooks/scripts/permission-guard.sh` returns **nothing**: the guard never learns
 where the command runs. Neither does the settings matcher. So the **relative** spelling `.scratch/*`
@@ -660,12 +664,42 @@ means *any directory named `.scratch` relative to wherever the shell is* — and
 second registered working directory with its own `.scratch/` (`/Users/tadeumen/git-reps/tadeumendonca-io/.scratch`,
 confirmed present).
 
-Issue #155 specified the **absolute** form — `Bash(bash /Users/tadeumen/git-reps/<repo>/.scratch/*)` —
-and that spelling closes the cross-repo ambiguity for free, at the matcher, with no hook involvement. It
-was traded away for portability without the cost being seen. **Book this as a security consequence of
-the relative spelling, not as a portability trade.** It does not change the decision above — the
-absolute form is still `bash <any path on disk>` by the same traversal — but it is the one improvement
-available at zero cost to the fail-open budget, and it is the owner's call rather than this record's.
+**The decision: the entry stays relative.** `Bash(bash .scratch/*)`, owner, 2026-08-07. Issue #155 had
+specified the **absolute** form — `Bash(bash /Users/tadeumen/git-reps/<repo>/.scratch/*)` — so this is a
+deviation from what that issue asked for, and **the fact worth recording is that the deviation is now a
+decision rather than an oversight.** In the earlier round it was an unrecorded trade; that is the defect
+this paragraph closes, and it is the only thing about the deviation that had been wrong.
+
+**His reasoning, in full, and nothing is added to it:** *"se caminho relativo funciona, eu prefiro nesse
+caso"* — relative works, so he prefers it. One sentence is the whole of what is known, and this record
+does not manufacture a second.
+
+**The consequence, stated as accepted rather than as a warning — and stated more precisely than the
+first pass managed.** The tempting formulation is *"the grant applies in any project that has a
+`.scratch/` directory"*. **That is wrong, and it is wrong in this record's own characteristic way.** The
+permission decision is a **string-prefix match on the command**; it consults no filesystem. So
+`bash .scratch/<anything>` matches the entry in **every** session, in **every** project, whether or not
+a `.scratch/` directory exists anywhere. What the directory's existence gates is whether the command
+**succeeds** — POSIX resolves each path component, so `bash .scratch/../../x` returns `ENOENT` where
+there is no `.scratch/` (verified: `ls /Users/tadeumen/nosuchdir/../git-reps` → *No such file or
+directory*).
+
+> **So the accurate statement is that the relative spelling changes neither what the grant reaches nor
+> which sessions carry it — every session carries it, unconditionally. What varies by session is whether
+> the traversal SUCCEEDS, and that is a filesystem fact no layer decides.**
+
+Describing that variation as a bound would be **rule 9's error at one level up**: a filesystem property
+standing in for a permission property. It is named here because the first draft of this very section made
+it, which is the strongest available evidence that the confusion is easy rather than careless.
+
+`session-scratch.sh` does **not** manufacture the precondition — checked rather than assumed: it reads
+`scratch="$root/.scratch"` and then `[ -d "$scratch" ] || continue`, so it sweeps an existing scratch and
+never creates one. A hypothesis that the plugin seeds `.scratch/` wherever it is installed was formed and
+**falsified**; it is recorded because it is the kind of claim that would have read plausibly.
+
+**Accepted, in the owner's name.** Under option A the reach inside a granted session is total regardless
+of the spelling, so what the absolute form would have bought is narrower than the first draft of this
+section claimed — see the correction below.
 
 ### The coupling this creates, and my judgement of it
 
@@ -718,11 +752,33 @@ a cleverer one whose failure mode nobody can predict.
 
 **If a mechanism existed, I would prefer it, and where one exists the rule is to execute it rather than
 grep for a sentence about it.** For this control none exists at this layer, and that is the decision
-above rather than an omission. What I would add instead, and it is a behaviour check rather than a
+above rather than an omission. ~~What I would add instead, and it is a behaviour check rather than a
 document check: assert the **spelling** of the entry in `.claude/settings.json` — that any `.scratch`
 wildcard is written in the absolute form. That is a property of a file the suite already reads, it goes
 red on the exact regression the residual above describes, and it is not a sentence anyone can satisfy by
-writing prose. Proposed, not decided; it belongs to the owner and to a `hooks/` diff, not to this record.
+writing prose. Proposed, not decided; it belongs to the owner and to a `hooks/` diff, not to this record.~~
+
+> **Declined by the owner, 2026-08-07, hours after it was proposed — the entry stays relative, so there
+> is no absolute spelling for a check to assert.** Struck rather than deleted, because the proposal was
+> made in this record and a reader who met it deserves to find out it was ruled on rather than to find it
+> silently gone.
+>
+> **And the claim inside it was wrong on my own analysis, independently of the ruling.** It called the
+> absolute form *"available at zero cost to the fail-open budget"*. The cost exists and this record
+> already contains its worked example: `Bash(git -C /Users/tadeumen/git-reps/tadeumendonca-skills push:*)`
+> is described in *Context* as **hardcoded to one of the two repos, with the consuming repo's own floor
+> holding no equivalent entry at all.** An absolute entry must be written once per repo, in a second
+> settings file, that a session rooted elsewhere never loads (this record's second amendment, residual 1)
+> — and the mirroring has **already failed once in this same floor**. That is a real cost, it is the same
+> class as *"the entry is one file, the record of it is five"*, and calling it zero was an overclaim.
+>
+> **What is NOT offered as a cost, because it is measured false:** that the absolute form would leak the
+> owner's home path into a committed public file. Five entries at `.claude/settings.json:66-70` already
+> carry `/Users/tadeumen/git-reps/…`, so that disclosure is long since paid and the absolute form adds
+> none of it. It is named only so the next reader does not reach for it as a justification.
+>
+> **This paragraph is the author's analysis and is not attributed to the owner.** His stated reasoning is
+> one sentence, recorded verbatim above; nothing here is offered as his.
 
 ### The finding worth the most, and it is about the record rather than the rule
 
@@ -760,6 +816,18 @@ The consequence, and it is the obligation this amendment adds to the two in *The
   accepted in the owner's name, on the ground that reach is unchanged by the uninspected interpreters.
 - **A record is now load-bearing for a test's verdict.** Editing prose can turn a suite green or red,
   which is a coupling this library has otherwise avoided; the bound above is the price.
+- **Added 2026-08-07 with the relative-spelling decision — the entry is session-unscoped, and the last
+  claimed exception to this amendment's own thesis is gone.** The bullet above says the only thing
+  separating this entry from the `Bash(bash:*)` this library removed at `14d7b43` is the friction of a
+  prefix token; with the relative spelling that separation is the **same in every session, in every
+  project**, since the matcher never consults a working directory. **Asked directly, because it is the
+  question a reader should ask: does this weaken the amendment?** It does not weaken its argument — it
+  **removes the one exception to it.** The amendment's thesis is that no mechanism at this layer delivers
+  the bound, and the absolute form was the single place this record claimed a mechanism was cheaply
+  available. That claim was withdrawn (declined by the owner, and overclaimed by its author — above), so
+  the thesis now holds without exception. **What is weaker is the floor, not the record**, and those are
+  different sentences: the grant is broader than issue #155 specified, deliberately, with the breadth
+  written down instead of implied. That is the entire content of option A, applied to itself.
 - **The second question does not come with an instrument either.** *Can this layer evaluate the
   property?* is answered by judgement and by probing, exactly like the stopping-rule problem amendment #2
   left unremedied. No remedy is proposed. What holds it is that a rule asserting a filesystem, network or
@@ -796,4 +864,10 @@ The consequence, and it is the obligation this amendment adds to the two in *The
   candidate directory; issue **#155** for the absolute form that was specified and traded away
   (`Bash(bash /Users/tadeumen/git-reps/<repo>/.scratch/*)`); `hooks/scripts/inventory-counts.test.sh`
   assertion 3 for the coupling, and its round-4 comment at lines **455-459** for the same hole measured
-  three months earlier.
+  three months earlier. **For the relative-spelling decision of the same day:** the owner's ruling
+  (*"se caminho relativo funciona, eu prefiro nesse caso"*); `ls /Users/tadeumen/nosuchdir/../git-reps` →
+  *No such file or directory*, for POSIX component-by-component resolution; `session-scratch.sh:124-125`
+  (`[ -d "$scratch" ] || continue`) falsifying the hypothesis that the plugin seeds `.scratch/`;
+  `.claude/settings.json:66-70` for the five absolute `/Users/tadeumen/git-reps/…` entries already
+  committed, and `:125` for the single-repo `git -C` entry that is the per-repo mirroring cost's worked
+  example.
