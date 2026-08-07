@@ -978,4 +978,121 @@ if printf '%s' "$bare" | grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*='; then
   deny "Blocked: env-var prefix (VAR=x cmd) hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
 fi
 
+# 9. A SPEED BUMP ON THE NAIVE TRAVERSAL. **NOT A BOUND, AND IT MUST NEVER BE CITED AS ONE.**
+#
+#    ~~This is the control that makes a directory-scoped wildcard mean what it says.~~ **STRUCK the
+#    day it was written, 2026-08-07, by the gate that reviewed it.** It does not. `Bash(bash .scratch/*)`
+#    remains `bash <any path on disk>`; the owner accepted that knowingly (option A), and the record of
+#    the acceptance — not this rule — is what makes the floor honest.
+#
+#    THREE ESCAPE CLASSES, ALL MEASURED AGAINST THIS RULE IN FORCE:
+#
+#      bash .scratch/\.\./\.\./other-repo/VERSION    ALLOW — backslash escape; `\` is not in the
+#                                                    preceding-character class, and `\.` is `.` to the shell
+#      bash .scratch/.""./.""./other-repo/VERSION    ALLOW — empty quoted span; there is no `..` ADJACENCY
+#                                                    anywhere in the string, so NO widening of the
+#                                                    character class can find it. This is the one that
+#                                                    settles the question.
+#      bash .scratch/link.sh                         ALLOW — symlink out; the guard never resolves paths
+#
+#    Note the asymmetry that would fool a single probe: escaping ONE dot pair still denies on the next.
+#    A prober who tried one escape and saw a deny would have concluded the rule held.
+#
+#    THE CAUSE, WHICH IS WHY THIS IS NOT A REGEX BUG. **Rule 9 asserts a FILESYSTEM property with a
+#    LEXICAL instrument.** Between the command string and the file that opens sit quote removal, escape
+#    processing and symlink resolution. This guard does none of the three — deliberately, since doing
+#    them means parsing shell — and every escape above is one of them. Widening the pattern a fourth
+#    time would repeat the week's defect at a higher altitude: the shape was never the problem.
+#
+#    WHY IT IS KEPT ANYWAY. It costs one grep, it catches the spelling a person or an agent reaches for
+#    without thinking, and a speed bump that announces itself as a speed bump is honest. What it must
+#    not do is appear in any sentence containing the word *bounded*. It buys no containment: the floor
+#    grants UNINSPECTED EXECUTION THROUGH MORE ENTRIES THAN ANYONE HAS ENUMERATED, so every act it
+#    denies is one interpreter away regardless. `python3` and `node` are the obvious ones; `perl` and
+#    `ruby` were removed BY NAME and are still reachable through `Bash(command:*)`, and `Bash(awk:*)`
+#    and `Bash(find:*)` each execute arbitrary code without naming an interpreter at all.
+#    **DO NOT REPLACE THIS WITH A LIST.** Two attempts to state the set as a number ("six", then "four")
+#    were each false one round later — a closed enumeration answering an open grammar. The claim is the
+#    PROPERTY, and the count is not part of it.
+#
+#    ── the original reasoning, kept because the standing rule it invokes is still right ──
+#    It is here because THE MATCHER CANNOT EXPRESS IT — the standing rule for the next rule, applied.
+#    That rule remains correct; what this episode adds to it is a SECOND question it did not ask:
+#    **can THIS LAYER hold the control, or only express it?** A hook can express a filesystem property
+#    it cannot evaluate, and expressing it reads exactly like enforcing it.
+#
+#    THE HOLE, MEASURED TWICE, THREE MONTHS APART BY DIFFERENT AUTHORS. `inventory-counts.test.sh`'s
+#    assertion 3 recorded it first (round 4, in its own comment): *"a path prefix is a STRING prefix …
+#    The prefix bounded the characters, not the directory."* It was measured again on #160, against a
+#    live floor, with the entry `Bash(bash .scratch/*)` in force:
+#
+#      $ bash .scratch/../../tadeumendonca-io/VERSION
+#      .scratch/../../tadeumendonca-io/VERSION: line 1: 0.1.193: command not found
+#
+#    No prompt, no denial. `bash` opened and executed a file in ANOTHER REPOSITORY; exit 127 is bash
+#    choking on the contents, and the permission decision was ALLOW. `.scratch/` was not a boundary,
+#    it was a PASSWORD — a required prefix token, after which any path on disk is reachable.
+#
+#    WHY THE RULE IS NOT "FORBID THE WILDCARD". That was the previous answer and it is a real one; it
+#    is written out at `inventory-counts.test.sh:461-464`, which also says a future need "should arrive
+#    as a deliberate change to THIS assertion, reviewed, rather than as a quiet line in the floor."
+#    This is that change. Forbidding the wildcard restores the friction the scratch work exists to
+#    remove — one frozen absolute path per probe, and agents generate distinct paths.
+#
+#    ~~So the trade taken here is to keep the wildcard and make the DIRECTORY real, which only a hook
+#    can do.~~ **STRUCK the same day.** A hook cannot do it either — see the three escape classes above.
+#    THE TRADE ACTUALLY TAKEN (owner, 2026-08-07, option A) is to keep the wildcard and **record what it
+#    is**: `bash <any path on disk>`. The honesty lives in the RECORD, not in a mechanism, because no
+#    mechanism available at this layer delivers it. A floor that says what it does is worth more than a
+#    floor that claims a bound and has none — which is the state this PR was opened in.
+#
+#    WHAT IT DOES NOT BUY, stated because the opposite reading is the dangerous one. The floor grants
+#    uninspected execution through more entries than anyone has enumerated — `Bash(command:*)` alone
+#    restores `perl` and `ruby` after both were removed by name — so anything this rule denies in a
+#    shell spelling remains reachable one interpreter over. This rule does not narrow the agent's REACH
+#    by a single act. ~~It narrows what ONE ENTRY CLAIMS.~~ **It does not do that either** — the entry's
+#    claim is fixed by the record, above. That gap is ADR-0008's priced, accepted one; it is not closed
+#    as closed.
+#
+#    Reads `$cmd`, not `$bare`: `$bare` collapses quoted spans, so `bash '.scratch/../x'` would arrive
+#    as `bash ''` and walk through. Quoting must not be a spelling that exempts.
+#    ── THE FALSE DENY, AND WHY THE FIRST VERSION HAD IT ──
+#    Shipped as TWO INDEPENDENT greps over the whole string with NO POSITIONAL RELATION: "a shell name
+#    appears somewhere" AND "a `..` appears somewhere". Measured by the gate at round 3:
+#
+#      grep -rn bash ../tadeumendonca-io/hooks    DENY   <- `bash` is a SEARCH TERM. No shell invoked.
+#      grep -rn bashx ../tadeumendonca-io/hooks   ALLOW  <- one character apart, proving the cause
+#      bash .scratch/probe.sh --repo ../other     DENY   <- the `..` is in an ARGUMENT, not the path
+#
+#    And the deny message described a match that had not happened. A hard deny on ordinary work is
+#    worse than the hole it failed to close: the hole costs nothing today, this wedged the loop.
+#
+#    Twenty-two cases covered this rule and NOT ONE put the shell name in argument position. The table
+#    was written by whoever wrote the pattern, which is the miss this file already records twice under
+#    assertion 3 — a table samples the spellings its author had in mind.
+#
+#    NOW POSITIONAL: find the shell in COMMAND position (first word, or after a known wrapper), then
+#    check ONLY THE FIRST NON-FLAG TOKEN AFTER IT. That token is the script path and nothing else is.
+script_arg="$(printf '%s' "$cmd" | awk '
+  function base(p) { sub(/^.*\//, "", p); return p }
+  BEGIN { seen = 0 }
+  {
+    for (i = 1; i <= NF; i++) {
+      w = $i
+      if (seen) { if (substr(w, 1, 1) != "-") { print w; exit } ; continue }
+      b = base(w)
+      if (b == "bash" || b == "sh" || b == "zsh" || b == "ksh" || b == "dash") { seen = 1; continue }
+      # wrappers that may legitimately precede the interpreter; anything else means the shell name is
+      # an ARGUMENT to some other tool and this rule has no business firing.
+      if (b == "env" || b == "exec" || b == "command" || b == "busybox" || b == "nohup" || b == "time") continue
+      if (substr(w, 1, 1) == "-") continue
+      if (w ~ /^[A-Za-z_][A-Za-z0-9_]*=/) continue
+      exit
+    }
+  }')"
+if [ -n "$script_arg" ] \
+   && printf '%s' "$script_arg" | grep -Eq '(^|/|'"'"'|")\.\.(/|'"'"'|"|$)'; then
+  deny "Blocked: a script path handed to a shell contains a '..' segment. A path in an allow entry is a STRING prefix, not a directory scope — '<allowed-prefix>/../../x.sh' carries the prefix while reaching any file on disk, and permission-guard.sh deliberately does not look inside a script. Use the path without traversal, or run the script from the directory that owns it."
+fi
+
 exit 0

@@ -478,6 +478,138 @@ check DENY  "command substitution"          'echo $(date)'
 check DENY  "backticks"                     'echo `date`'
 check DENY  "env-var prefix"                "E2E_ENV=local npx playwright test"
 
+echo "--- rule 9: a script path handed to a shell must not traverse ---"
+#
+# THE MEASUREMENT THAT PRODUCED THIS RULE, on #160, with `Bash(bash .scratch/*)` live in the floor:
+#
+#   $ bash .scratch/../../tadeumendonca-io/VERSION
+#   .scratch/../../tadeumendonca-io/VERSION: line 1: 0.1.193: command not found
+#
+# No prompt, no denial — bash opened and executed a file in ANOTHER REPOSITORY, and exit 127 is bash
+# choking on the contents rather than any layer refusing. The directory in the entry was a PASSWORD,
+# not a boundary.
+#
+# It was measured a second time because it had been measured a FIRST time and forgotten:
+# `inventory-counts.test.sh`'s assertion 3 wrote the same finding down at round 4 — *"a path prefix
+# is a STRING prefix … The prefix bounded the characters, not the directory"* — and the wildcard
+# entry went into the floor anyway, three months later, by an author who had not read it. That is the
+# argument for a HOOK over a comment, and it is the reason these cases exist as executable ones.
+#
+# ~~And these cases are what makes the directory in the entry real.~~ **STRUCK the same day, by round 2
+# of the gate that approved round 1's fix.** THEY ARE NOT. Every case below passes AND the entry is
+# still `bash <any path on disk>` — three escape classes walk through, and one of them (`.""./`) has no
+# `..` adjacency anywhere in the string, so no widening of the pattern can ever reach it. Rule 9's own
+# header carries all three, measured.
+#
+# THIS BLOCK IS KEPT, AND WHAT IT IS FOR CHANGED. It pins a SPEED BUMP against regression — the naive
+# spelling stays denied — and it is deliberately left in place as the executable record that a green
+# suite proved nothing about the property everyone believed it proved. Eighteen cases, all passing,
+# against a rule that bounded nothing. **Do not cite a passing case here as evidence of containment.**
+# The containment is not here; under the owner's option A (2026-08-07) there is none, and ADR-0008
+# carries the accepted cost.
+check DENY  "traversal out of the prefix"    "bash .scratch/../../tadeumendonca-io/VERSION"
+check DENY  "traversal, one level"           "bash .scratch/../x.sh"
+check DENY  "traversal, leading"             "sh ../x.sh"
+check DENY  "traversal, interpreter by path" "/bin/bash .scratch/../x.sh"
+check DENY  "traversal, absolute prefix"     "bash /Users/a/.scratch/../../etc/x.sh"
+check DENY  "traversal, mid-path"            "zsh ./a/../b.sh"
+check DENY  "traversal, single-quoted"       "bash '.scratch/../x.sh'"
+check DENY  "traversal, double-quoted"       'bash ".scratch/../x.sh"'
+# The two quoted cases are the reason this rule reads `$cmd` and not `$bare`. `$bare` collapses a
+# quoted span to '', so `bash '.scratch/../x.sh'` would arrive as `bash ''` — the traversal gone and
+# the deny with it. Quoting must never be a spelling that exempts; both were verified to pass ALLOW
+# against a `$bare` version of the rule before this was changed.
+
+echo "--- rule 9: what it must NOT break ---"
+check ALLOW "nested scratch, no traversal"   "bash .scratch/probe/deep/x.sh"
+check ALLOW "relative suite path"            "bash hooks/scripts/inventory-counts.test.sh"
+check ALLOW "git range is not a path"        "git diff HEAD..main"
+check ALLOW "git range, reversed"            "git log main..HEAD --oneline"
+check ALLOW "npm --prefix with .."           "npm --prefix ../tadeumendonca-io run test"
+check ALLOW "a tool NAME containing sh"      "shellcheck ../x.sh"
+check ALLOW "another tool name, with .."     "shasum ../x.sh"
+# `git show`/`git stash` are here for the same reason assertion 3's pass-set carries them: the shell
+# name is a SUBSTRING, and a boundary that ended in anything but slash-or-whitespace flags them all.
+check ALLOW "git show"                       "git show HEAD~1"
+check ALLOW "git stash"                      "git stash list"
+# DELIBERATELY ALLOWED, and the honest half of this rule: `node` is in `allow` UNINSPECTED, so this
+# reaches every file rule 9 just denied, one interpreter over. Rule 9 does not narrow the agent's
+# REACH by a single act — it narrows what ONE ENTRY CLAIMS. Asserting ALLOW here keeps that priced
+# rather than quietly believed closed; ADR-0008 owns the gap.
+#
+# ~~THE INTERPRETER SET IS `python3`, `node`, `npx`, `npm` — FOUR, NOT SIX.~~ **STRUCK at round 5, one
+# round after it was written to correct "six". It is false as a statement about REACH, which is the
+# only thing it is used to justify.** Measured against the live floor:
+#
+#   command perl -e 'print 1'          ALLOW      `Bash(command:*)` is in allow
+#   command ruby -e 'puts 1'           ALLOW      same
+#   awk 'BEGIN{system("id")}'          ALLOW      `Bash(awk:*)` is in allow
+#   find . -name x -exec bash -c id {} +   ALLOW  `Bash(find:*)` is in allow
+#
+# `perl` and `ruby` were removed BY NAME on 2026-08-04 and are reachable ONE WRAPPER OVER, uninspected.
+# So "six" was wrong about the entries and "four" was wrong about the reach; only the CONCLUSION — that
+# this rule narrows reach by nothing — was right, both times, for a reason neither number captured.
+#
+# THE CAUSE, AND IT IS THE RECORD'S OWN SUBJECT. Both corrections enumerated interpreter NAMES. The
+# question is ENTRIES THAT CAN REACH AN INTERPRETER, and that is NOT ENUMERABLE — a closed list
+# answering an open grammar. ADR-0008's 2026-08-04 amendment already forbids recording a control of
+# this shape as *closed*; that is the rule this broke, twice, in the MR that cites it.
+#
+# The proof it is method rather than oversight: rule 9's own `awk` block, thirty lines from the
+# enumeration that omitted it, LISTS `command` AS A WRAPPER. The counter-example was in the same file,
+# written by the same author, in the same commit.
+#
+# DO NOT REPLACE THIS WITH A CORRECTED LIST. That is the move that failed twice. The honest form is the
+# property: THIS RULE NARROWS REACH BY NOTHING, because the floor grants uninspected execution through
+# more entries than anyone has enumerated — and the number of them is not the claim.
+check ALLOW "node with .. — the priced gap"  "node ../scripts/x.mjs"
+
+echo "--- rule 9: the shell name in ARGUMENT position is not an invocation ---"
+#
+# THE FALSE DENY THE FIRST VERSION SHIPPED, found by the gate at round 3. Rule 9 was two INDEPENDENT
+# greps over the whole string — "a shell name appears" AND "a `..` appears" — with no positional
+# relation between them. So an ordinary search DENIED:
+#
+#   grep -rn bash  ../other/hooks    DENY    <- `bash` is a SEARCH TERM. No shell is invoked.
+#   grep -rn bashx ../other/hooks    ALLOW   <- one character apart, which is how the cause was proved
+#
+# A hard deny on ordinary work is WORSE than the hole it failed to close. The hole costs nothing today
+# (every escape is one interpreter away regardless); this wedged the loop on a routine grep.
+#
+# TWENTY-TWO CASES COVERED THIS RULE AND NOT ONE PUT THE SHELL NAME IN ARGUMENT POSITION — and I wrote
+# both the pattern and the table. That is the miss assertion 3 already records twice in its own
+# comments: a table samples the spellings its author already had in mind, and only a DIFFERENT author
+# writing a DIFFERENT table finds the rest. Third instance in this repo, first one I produced.
+check ALLOW "shell name as a grep TERM"      "grep -rn bash ../tadeumendonca-io/hooks"
+check ALLOW "the one-character control"      "grep -rn bashx ../tadeumendonca-io/hooks"
+check ALLOW "'..' in an ARGUMENT, not path"  "bash .scratch/probe.sh --repo ../tadeumendonca-io"
+check ALLOW "shell name inside a filename"   "cat ../notes/sh.md"
+check ALLOW "path with .. to another tool"   "git diff ../other/a.sh"
+check ALLOW "listing another repo's scratch" "ls ../tadeumendonca-io/.scratch"
+# Wrappers must still reach the shell — these are the cases the positional version could most easily
+# have broken, and they are why the wrapper list exists rather than "the first word must be a shell".
+check DENY  "wrapper: env"                   "env bash ../x.sh"
+check DENY  "wrapper: exec"                  "exec bash ../x.sh"
+check DENY  "flag before the script path"    "bash -x ../x.sh"
+
+echo "--- rule 9: the three escapes, asserted ALLOW so the hole cannot go quiet ---"
+#
+# THESE ARE NOT ASPIRATIONS. Each was measured reaching a file in ANOTHER REPOSITORY with rule 9 live,
+# and each is asserted ALLOW so that the porosity is a FACT IN THE SUITE rather than a paragraph. If
+# someone ever closes one, this goes red and they are forced to read why it was open.
+#
+# The three are three DIFFERENT failures of the same instrument, and the middle one is decisive:
+#   backslash     — the escape character is not in the preceding-character class. A widening reaches it.
+#   empty quote   — `.""./` has NO `..` ADJACENCY. Nothing to find. NO widening ever reaches it, which
+#                   is what settles that this is the wrong instrument rather than the wrong pattern.
+#   symlink       — the guard does not resolve paths, so it is out of reach by construction.
+check ALLOW "escape: backslash"              'bash .scratch/\.\./\.\./other/VERSION'
+check ALLOW "escape: empty quoted span"      'bash .scratch/.""./.""./other/VERSION'
+check ALLOW "escape: symlink out"            "bash .scratch/link.sh"
+# The asymmetry that would fool a single probe, pinned: escaping ONE pair still denies on the next, so
+# a prober who tried one escape, saw a deny, and stopped would have reported the rule as holding.
+check DENY  "escape: only ONE pair escaped"  'bash .scratch/\.\./../other/VERSION'
+
 echo "--- rule 8: single commands MUST survive ---"
 check ALLOW "a pipe is fine"                "grep -rn foo src | head -20"
 check ALLOW "npm --prefix"                  "npm --prefix apps/fed run test"

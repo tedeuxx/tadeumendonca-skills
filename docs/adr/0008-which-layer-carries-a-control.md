@@ -270,7 +270,6 @@ Two obligations follow, and they are cheap only if they are done at the time:
   budget for nothing. `claude mcp` is the worked example, named rather than omitted: no flag convention
   sits between the words and no `allow` entry shadows it, so the prefix matcher sees every spelling and
   the hook would add exactly zero.
-
 ## A practice this decision promotes: *record the derivation, not the count*
 
 Judged to have earned a named place, on the evidence that it was reached independently **three times
@@ -533,6 +532,81 @@ reason 4 is not weakened by this — it is satisfied.** The shadowing was remove
 which is the remedy this record prefers wherever it is available, and `Bash(git -C:*)` shows where it is
 not: no convention change removes it, because `-C` *is* how the multi-repo loop addresses the other repo.
 
+## Amendment (2026-08-07) — the floor grant this record carries: `Bash(bash .scratch/*)`
+
+Decided by the owner on 2026-08-07 (*option A*), on PR #160. **One decision is recorded here — what this
+floor entry is — and nothing else.**
+
+The allow list carries `Bash(bash .scratch/*)`. **Recorded as what it is rather than as what its spelling
+suggests:** it is `bash <any path on disk>` with a required prefix token. `.scratch/` is not a directory
+scope. A path in an allow entry is a **string prefix**, and traversal, quoting, escaping and symlink
+resolution each carry that prefix while reaching any file on disk. **Measured against the floor and the
+hook as this MR leaves them:**
+
+```
+bash .scratch/.""./.""./<other-repo>/VERSION      -> no decision from any layer
+bash .scratch/\.\./\.\./<other-repo>/VERSION      -> no decision from any layer
+```
+
+**The obvious spelling — `bash .scratch/../../<other-repo>/VERSION` — is DENIED at this head**, by rule 9,
+which this same MR adds. It is named here and deliberately **not** offered as the evidence: quoting it
+would hand the reader, as proof of the property, the one string this MR closes. The spellings above are
+the honest ones, and the first is the one no pattern can reach — **there is no `..` adjacency anywhere in
+that string**, so no widening of a character class finds it.
+
+**Nothing bounds the entry** — not the matcher, which cannot express a directory, and not
+`permission-guard.sh`, which deliberately does not resolve quoting, escaping or symlinks. Rule 9 is a
+speed bump on the naive spelling and is recorded as one. The grant is deliberate; this section is where
+it is stated plainly instead of implied by a path that looks like a scope.
+
+**Where it lives, and how to check rather than trust.** It is an entry in a **project** floor, not the
+user floor (`grep -n scratch ~/.claude/settings.json` returns nothing). It is committed in this repo's
+`.claude/settings.json` and mirrored into the consuming repo's (`-io`#371). **To learn which projects
+carry it, grep for the literal entry** — a number written here would be stale the first time a third
+repo adopted the plugin, which is this record's own *record the derivation, not the count*.
+
+**What accepting it costs in reach: nothing that was not already granted.** The claim is stated in the
+form that a single probe can settle, because that is the only form available over a grammar:
+
+> **At least one `allow` entry reaches an arbitrary interpreter, so reach is already unbounded.**
+
+Measured 2026-08-07: **`command perl -e 'print 1'` runs with no decision from any layer**, via
+`Bash(command:*)`, although neither `perl` nor `ruby` is itself in `allow`. That one witness settles it.
+
+**Kept as a sample and labelled as one:** `Bash(awk:*)`, `Bash(find:*)` and `Bash(sed:*)` are three more
+routes, and `python3` and `node` are allow-listed directly. **This list is not the set, and closing any
+member of it does not restore a bound** — the question is *which allow entries can reach an interpreter*,
+which is a property of an open grammar rather than a list of names. Enumerating interpreter **names**
+answers a different question, and answers it confidently: that is what a previous draft of this record did
+when it asserted *"four, not six"*, thirty lines from an entry (`command`) that made the count irrelevant.
+
+Stated this way on purpose. *"More entries than anyone has enumerated"* is a claim about **enumeration
+effort** and has no falsifier; the existential form above has exactly one, and it is cheap. This is
+*Considered options* item 3 and the 2026-08-04 amendment's ban on the word *closed*, applied to the
+argument **for** a grant rather than against a control.
+
+**The spelling is relative, and that is a deviation from #155 taken deliberately.** Issue #155's DoD
+specifies an **absolute** per-repo entry — `Bash(bash /Users/<user>/git-reps/<repo>/.scratch/*)`. This
+ships **relative**. The owner ruled on it on 2026-08-07: *relative works, so he prefers it.* **That one
+sentence is the whole of the case, and it is recorded as such** — an author's cost analysis against the
+absolute form was attempted and collapsed on measurement (both spellings need the same per-repo mirroring,
+and both are `bash <any path on disk>` by the same traversal). **A decision resting on preference is not
+weaker for saying so; it is weaker for being dressed as analysis.** What matters for the record is that
+the deviation is now a **decision** rather than the unrecorded trade it was before.
+
+**The net floor is BROADER after this merges, and the reason is not in this repo.**
+`Bash(bash /private/tmp/*)` remains live in the **user-scope** `~/.claude/settings.json` — unversioned,
+committed nowhere, and therefore not removable by this or any MR. `/private/tmp` is world-writable
+(`drwxrwxrwt`), so anything any process on the machine drops there is executable without a prompt. This
+record **notes it without owning it**: it is the owner's item, on a file outside every repo's floor, and
+naming it here is the only thing an MR-scoped record can do. Stated because the alternative is a record
+that describes one grant honestly while the broader one it sits beside goes unmentioned — which is
+*"the floor reads as broader than it is"* run in reverse, and worse, because it reads as **narrower**.
+
+**Status of this grant: live.** If it is withdrawn or narrowed, this section is **amended — appended and
+dated** — rather than edited away, which is what the `Status` lines of ADR-0002, 0006 and 0007 do and is
+this library's observed practice.
+
 ## Links
 - Supersedes the layering claim in [ADR-0004](./0004-autonomy-and-permission-model.md)'s second
   2026-08-04 amendment (both the *"the hook, not the floor, stops them"* sentence, superseded in place
@@ -555,3 +629,13 @@ not: no convention change removes it, because `-C` *is* how the multi-repo loop 
   scope of the removal commits; `14d7b43`'s message for the `$'r'"m -rf /x"` probe that decided the
   reversal; `git show cb9a2f3:hooks/scripts/permission-guard.sh` for the header's own *NOT COVERED,
   DELIBERATELY* list of the interpreters that remain allow-listed.
+- **2026-08-07 amendment evidence:** PR #160 for the decision; payloads piped at
+  `hooks/scripts/permission-guard.sh` **as this MR leaves it** —
+  `bash .scratch/.""./.""./<other-repo>/VERSION` and `bash .scratch/\.\./\.\./<other-repo>/VERSION` both
+  draw **no decision from any layer**, while the naive `bash .scratch/../../<other-repo>/VERSION` returns
+  `"permissionDecision": "deny"` from rule 9, **which is why the naive spelling is not the evidence
+  offered**; `grep -n scratch ~/.claude/settings.json` → **nothing**, against
+  `tadeumendonca-io/.claude/settings.json:166` and `-io`#371, for the project scope;
+  `jq -r '.permissions.allow[]' .claude/settings.json` for `Bash(command:*)`, `Bash(awk:*)`,
+  `Bash(find:*)`, `Bash(sed:*)`, `Bash(node:*)`, `Bash(python3:*)`; and `command perl -e 'print 1'`
+  running undecided, which is why the reach claim is stated as a sample rather than an enumeration.

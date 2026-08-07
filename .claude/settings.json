@@ -114,7 +114,8 @@
       "WebSearch",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:www.githubstatus.com)",
-      "WebFetch(domain:docs.claude.com)"
+      "WebFetch(domain:docs.claude.com)",
+      "Bash(bash .scratch/*)"
     ],
     "deny": [
       "Edit(.claude/**)",

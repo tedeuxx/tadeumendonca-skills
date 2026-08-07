@@ -508,15 +508,83 @@ else
     #     The four `git`/`npm` entries are in the pass set on purpose: `show`, `stash`, `finish` and
     #     `lint` all contain a shell name as a SUBSTRING, and a prefix group that ended in anything but
     #     a slash or whitespace would flag every one of them.
+    #     WIDENED 2026-08-07 FROM `:\*\)` TO `[:/]\*\)`, and this is the deliberate reviewed change the
+    #     paragraph above asked for. The pattern required a COLON before the star, so
+    #     `Bash(bash .scratch/*)` — a slash — walked straight through an assertion written to forbid
+    #     exactly its property. One character. It shipped on #160 and was caught by the merge gate, not
+    #     here. That is the third time in this file's history that this assertion was one spelling short,
+    #     and the lesson is identical each time: the shape was right, the CHARACTER SET was a guess.
+    #
+    #     AND ONE NAMED EXCEPTION, because the owner chose to keep the wildcard rather than restore the
+    #     friction.
+    #
+    #     ~~`Bash(bash .scratch/*)` is permitted HERE ONLY BECAUSE `permission-guard.sh` rule 9 denies a
+    #     `..` segment in a script path handed to a shell — which is what makes `.scratch/` an actual
+    #     directory rather than a required prefix token. The matcher cannot express that; a hook can;
+    #     that is the standing rule for the next rule, applied.~~
+    #
+    #     ~~THE EXCEPTION IS TIED TO ITS JUSTIFICATION, not asserted alongside it. If rule 9 is deleted
+    #     or renamed, the exception STOPS APPLYING and the entry is flagged again. An exception that
+    #     outlives its reason is this workspace's most repeated defect — a claim corrected where someone
+    #     quoted it and standing where nobody did — and it is not going to be introduced deliberately in
+    #     the assertion whose whole subject is that a comment cannot hold a control.~~
+    #
+    #     **BOTH PARAGRAPHS STRUCK 2026-08-07 — they survived UNMARKED for two rounds while the sentence
+    #     below corrected them, so a reader met the false claim first and the correction second.** The
+    #     second is false twice over: the exception is gated on two `grep -qF` calls against ADR-0008 and
+    #     NOTHING HERE READS THE GUARD, so deleting rule 9 does not flag anything. Found at round 4 by
+    #     sweeping SEMANTICS rather than a word — neither paragraph contains any form of "bound", so
+    #     three inflection sweeps could not reach them.
+    #     ~~THE EXCEPTION IS TIED TO RULE 9.~~ **STRUCK 2026-08-07, the same day, by round 2 of the same
+    #     gate.** Rule 9 does not bound anything: `bash .scratch/.""./.""./other/x` reaches out of the
+    #     directory with NO `..` adjacency anywhere in the string, so no character class can catch it.
+    #     Tying the exception to rule 9 made this assertion print *"bounded by permission-guard rule 9"*
+    #     — a false green, which is worse than the red it replaced.
+    #
+    #     AND THE OLD TIE FAILED IN THE UNSAFE DIRECTION, which is the part worth keeping. It grepped a
+    #     PHRASE from the deny message. Measured by the gate: comment out rule 9's code and the phrase
+    #     survives in the comment, so the exception kept applying with no rule behind it — and commenting
+    #     out is exactly what a bisect or a revert-in-place does. A phrase is a spelling; that is the
+    #     week's lesson, arrived at from a fourth direction.
+    #
+    #     WHAT IT IS TIED TO NOW: the RECORD, because under the owner's decision (option A, 2026-08-07)
+    #     there is no mechanism to tie to. The wildcard is kept and what it IS gets written down —
+    #     `bash <any path on disk>` — in ADR-0008, the record that owns "which layer carries a control".
+    #     So the exception applies only while the ADR names this entry. Delete the record and the entry
+    #     is flagged again, which is the correct coupling: under option A the record IS the control.
+    #
+    #     This is deliberately a document check, and it is weaker than a behaviour check. It is chosen
+    #     because the thing being asserted is a DECISION, and a decision has no runtime behaviour to
+    #     probe. Where a mechanism exists, tie to the mechanism by executing it — never by grepping for
+    #     a sentence about it.
+    guard_has_rule9=""
+    if grep -qF -- 'Bash(bash .scratch/*)' "$ROOT/docs/adr/0008-which-layer-carries-a-control.md" 2>/dev/null \
+       && grep -qF -- 'any path on disk' "$ROOT/docs/adr/0008-which-layer-carries-a-control.md" 2>/dev/null; then
+      guard_has_rule9="yes"
+    fi
     wildcard_shells="$(printf '%s\n' "$allow_entries" \
-      | grep -E "^Bash\(([^)]*[/[:space:]])?(bash|sh|zsh|ksh|dash)([[:space:]][^)]*)?:\*\)$" || true)"
+      | grep -E "^Bash\(([^)]*[/[:space:]])?(bash|sh|zsh|ksh|dash)([[:space:]][^)]*)?[:/]\*\)$" || true)"
+    if [ -n "$guard_has_rule9" ]; then
+      wildcard_shells="$(printf '%s\n' "$wildcard_shells" | grep -vxF -- 'Bash(bash .scratch/*)' || true)"
+    fi
+    wildcard_shells="$(printf '%s' "$wildcard_shells" | grep -v '^[[:space:]]*$' || true)"
     if [ -z "$wildcard_shells" ]; then
-      ok "permission floor — no shell-interpreter allow entry ends in a wildcard"
+      if [ -n "$guard_has_rule9" ]; then
+        ok "permission floor — one shell wildcard, UNBOUNDED and recorded as such in ADR-0008 (owner's option A)"
+      else
+        ok "permission floor — no shell-interpreter allow entry ends in a wildcard"
+      fi
     else
-      bad "permission floor — a shell-interpreter entry ends in ':*', which permits an unbounded suffix: $wildcard_shells
+      bad "permission floor — a shell-interpreter entry ends in a wildcard, which permits an unbounded suffix: $wildcard_shells
       A path prefix is a STRING prefix, not a directory scope: '<allowed-prefix>/../../../tmp/x.sh' carries it.
       permission-guard.sh does not look inside a script file, so that suffix is arbitrary code with no decision from any layer.
-      Use exact-match entries (no trailing ':*'), one per script."
+      Measured on #160 against a live floor: 'bash .scratch/.\"\"./.\"\"./<other-repo>/VERSION' runs with NO decision from any layer.
+      That spelling is deliberate. The obvious one ('.scratch/../../<other-repo>/VERSION') was the original measurement and
+      permission-guard rule 9 now DENIES it — so quoting it here would offer, as the evidence, the one string this repo closed.
+      The empty quoted span has no '..' adjacency at all, which is why no pattern reaches it and why the property survives.
+      Use exact-match entries (one per script). DO NOT reach for a hook rule: rule 9 was written to bound this directory and
+      CANNOT — a lexical instrument cannot decide a filesystem property. If you add an exception here, tie it to a RECORD that
+      states the accepted grant, as the one above is tied."
     fi
   fi
 fi
