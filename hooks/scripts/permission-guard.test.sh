@@ -536,6 +536,14 @@ check ALLOW "git stash"                      "git stash list"
 # reaches every file rule 9 just denied, one interpreter over. Rule 9 does not narrow the agent's
 # REACH by a single act — it narrows what ONE ENTRY CLAIMS. Asserting ALLOW here keeps that priced
 # rather than quietly believed closed; ADR-0008 owns the gap.
+#
+# THE INTERPRETER SET IS `python3`, `node`, `npx`, `npm` — FOUR, NOT SIX. Four sites in this PR also
+# said `perl` and `ruby`, including the "reach is unchanged" justification offered in the owner's name.
+# Both were REMOVED from `allow` on 2026-08-04. `inventory-counts.test.sh:426` asserts their absence BY
+# NAME and was green at 58/58 throughout, and that suite printed `no 'perl' entry in allow` on this
+# branch in a run the author read before writing the claim. The conclusion survives on the remaining
+# four — but it rested two-sixths on evidence a passing assertion in this repo contradicted, and the
+# contradiction was on screen. READING IS NOT CHECKING; fourth demonstration of that in this PR.
 check ALLOW "node with .. — the priced gap"  "node ../scripts/x.mjs"
 
 echo "--- rule 9: the shell name in ARGUMENT position is not an invocation ---"

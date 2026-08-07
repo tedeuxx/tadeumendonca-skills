@@ -629,9 +629,37 @@ apply the routing test, and nobody reads to a third amendment before routing a r
 
 ### What was actually traded, and what was not
 
-**Reach is unchanged either way.** `python3`, `node`, `npx`, `npm`, `perl` and `ruby` are in `allow`
+**Reach is unchanged either way.** ~~`python3`, `node`, `npx`, `npm`, `perl` and `ruby` are in `allow`~~
+**`python3`, `node`, `npx` and `npm` — four, not six — are in `allow`**
 **uninspected**, so every act the entry permits was already one interpreter away. The entry adds no
-reachable act. **What was wrong was the entry claiming a bound** — which is this record's *"the floor
+reachable act.
+
+> **Corrected at round 4, and the correction is worth more than the corrected list.** `perl` and `ruby`
+> are **not** in `allow`; they came out on 2026-08-04 at `786437c`. The conclusion survives intact on the
+> remaining four — one uninspected interpreter is as sufficient as six — but the claim's **standing as
+> evidence** does not, because it was offered as the ground for *reach is unchanged*, **in the owner's
+> name**, and two-sixths of it was something this repo actively asserts the opposite of.
+>
+> **The defect is not that the fact was hard to find. It is that this record already contained it, twice,
+> 400 lines up.** The *Bad / accepted costs* bullet reads *"of the six interpreters listed, only `node`
+> and `python3` are in `allow` at that head; `perl`, `ruby`, `bash` and `sh` reach the human as an ASK"*,
+> and the perimeter table and the second amendment both record the removal commit by hash. **An amendment
+> restated a perimeter its own record had corrected twice** — so this document contradicted itself
+> across 400 lines, and the amendment did not read up before writing in the owner's name.
+>
+> **The obligation that follows, and it is narrower and more checkable than *be careful*:** *"read what
+> was already decided"* is not satisfied by having read the record once. **Before an amendment asserts a
+> fact about the floor, grep THIS FILE for the fact.** The entry names were right there; the amendment
+> searched the floor's current state in its head instead of searching the record it was appending to.
+>
+> **And the direction here is the inverse of everything else in this PR, which is why it is kept
+> visible.** `inventory-counts.test.sh:426` asserts `perl` and `ruby` are absent **by name**, and has
+> been green at 58/58 throughout — including at every moment this false sentence sat in the record.
+> **The mechanism was right and the prose drifted.** Every other finding in this batch runs the other
+> way (a green suite over an absent property, a comment that held nothing, a rule that bounded nothing).
+> This one is the counterexample, and it is the strongest available argument for the position this
+> record keeps arriving at from the opposite side: **where a mechanism exists, it outlives the prose
+> beside it.** **What was wrong was the entry claiming a bound** — which is this record's *"the floor
 now reads as broader than it is"* cost, arriving in the one place a reader would least suspect it,
 inside a path that looks like a scope.
 
@@ -778,9 +806,18 @@ without touching the field is now a visible inconsistency in the header rather t
 > - **The `Status` lines of ADR-0002, 0006 and 0007 are append-chains** — `accepted · **amended …** ·
 >   **amended …**` — so *observed* practice on exactly the line class named is **append**, not mutate.
 >   ADR-0002's chain even records a clause being *struck* rather than removed.
-> - **`grep -cF 'Bash(bash .scratch/*)'` on this file returns 4**, three of them outside the front
->   matter. So **deleting the marker leaves the check green anyway**, and the field is not load-bearing
->   for the assertion in the first place.
+> - ~~**`grep -cF 'Bash(bash .scratch/*)'` on this file returns 4**, three of them outside the front
+>   matter.~~ **The marker string appears in the front matter AND at several places in this amendment's
+>   body, so deleting the front-matter copy leaves the check green regardless** — the field is not
+>   load-bearing for the assertion in the first place.
+>
+>   > **The count is struck at round 4, and it invalidated itself by being written.** It printed **4**;
+>   > the commit that printed it (`673dd0a`) added two more lines containing the counted string, so it
+>   > read **6** the moment it was committed. **A count of occurrences in a file, written into that
+>   > file, is self-referential** — and this record already owns the rule it broke: *record the
+>   > derivation, not the count*, whose own words are **"a derived count in prose is a claim with no
+>   > owner"**. The structural statement above cannot go stale, and it is what that practice asks for.
+>   > The conclusion is **unaffected and stronger**: more copies means more margin, not less.
 >
 > **The correct statement, replacing the struck one:** the placement buys **less than was claimed, and on
 > the evidence available, nothing that can be demonstrated.** It rests on a convention **this line asks
@@ -891,11 +928,26 @@ The consequence, and it is the obligation this amendment adds to the two in *The
   accepted in the owner's name, on the ground that reach is unchanged by the uninspected interpreters.
 - **A record is now load-bearing for a test's verdict.** Editing prose can turn a suite green or red,
   which is a coupling this library has otherwise avoided; the bound above is the price.
-- **Added 2026-08-07 with the relative-spelling decision — the entry is session-unscoped, and the last
-  claimed exception to this amendment's own thesis is gone.** The bullet above says the only thing
+- **Added 2026-08-07 with the relative-spelling decision — ~~the entry is session-unscoped, and~~ the last
+  claimed exception to this amendment's own thesis is gone.** ~~The bullet above says the only thing
   separating this entry from the `Bash(bash:*)` this library removed at `14d7b43` is the friction of a
   prefix token; with the relative spelling that separation is the **same in every session, in every
-  project**, since the matcher never consults a working directory. **Asked directly, because it is the
+  project**, since the matcher never consults a working directory.~~
+
+  > **Struck at round 4 — the THIRD site of a claim corrected twice already**, and the reason it is
+  > called out rather than quietly fixed: the same false sentence stood at three places, two were
+  > corrected in round 3, and this one was missed. **That is `the entry is one file, the record of it is
+  > five` — this record's own rule — failing inside the record that states it, on the fourth occurrence
+  > in one PR.** The lesson is not *be careful*: it is that **a correction is a grep for the claim's
+  > wording across the file, not an edit at the site the reviewer cited.** The reviewer cites where they
+  > looked; the author owes everywhere it says the same thing.
+  >
+  > The corrected fact, as established in the residual section above: the entry sits in a **project**
+  > floor, so the grant reaches **sessions rooted at a project whose floor carries it — today two**, and
+  > `session-unscoped` was never true. What survives, unchanged, is that within such a session the match
+  > does not depend on where the shell stands.
+
+  **Asked directly, because it is the
   question a reader should ask: does this weaken the amendment?** It does not weaken its argument — it
   **removes the one exception to it.** The amendment's thesis is that no mechanism at this layer delivers
   the bound, and the absolute form was the single place this record claimed a mechanism was cheaply
@@ -951,4 +1003,10 @@ The consequence, and it is the obligation this amendment adds to the two in *The
   argument; `grep -rn 'Status:\*\* superseded' docs/adr/` → **nothing**, and the `Status` lines of
   ADR-0002, 0006 and 0007, for the append-chain finding; `grep -cF 'Bash(bash .scratch/*)'` on this file
   → **4**, for the marker being non-load-bearing. The hook fix for the false deny is at `003b607` and is
-  not this record's.
+  not this record's. **Round-4 corrections (same day):** `jq -r '.permissions.allow[]' .claude/settings.json`
+  filtered for interpreters → **`npm`, `npx`, `node`, `python3` only**, against this record's own lines
+  ~217, ~357 and ~496, which had already recorded `perl`/`ruby` leaving at `786437c`, and against
+  `inventory-counts.test.sh:426`, which asserts both absences by name and was green throughout;
+  `grep -cF 'Bash(bash .scratch/*)'` → **6**, not the 4 printed by `673dd0a`, which is why the count is
+  replaced by a structural statement; and `grep -n 'session-unscoped'` for the third unstruck site of the
+  round-3 correction.

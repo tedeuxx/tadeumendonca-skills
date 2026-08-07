@@ -1007,7 +1007,7 @@ fi
 #    WHY IT IS KEPT ANYWAY. It costs one grep, it catches the spelling a person or an agent reaches for
 #    without thinking, and a speed bump that announces itself as a speed bump is honest. What it must
 #    not do is appear in any sentence containing the word *bounded*. It buys no containment: `python3`,
-#    `node`, `npx`, `npm`, `perl` and `ruby` are in `allow` UNINSPECTED, so every act it denies is one
+#    `node`, `npx` and `npm` are in `allow` UNINSPECTED, so every act it denies is one
 #    interpreter away regardless.
 #
 #    ── the original reasoning, kept because the standing rule it invokes is still right ──
@@ -1042,7 +1042,7 @@ fi
 #    floor that claims a bound and has none — which is the state this PR was opened in.
 #
 #    WHAT IT DOES NOT BUY, stated because the opposite reading is the dangerous one. `python3`, `node`,
-#    `npx`, `npm`, `perl` and `ruby` are all in `allow` UNINSPECTED, so anything this rule denies in a
+#    `npx` and `npm` are all in `allow` UNINSPECTED, so anything this rule denies in a
 #    shell spelling remains reachable one interpreter over. This rule does not narrow the agent's REACH
 #    by a single act. ~~It narrows what ONE ENTRY CLAIMS.~~ **It does not do that either** — the entry's
 #    claim is fixed by the record, above. That gap is ADR-0008's priced, accepted one; it is not closed

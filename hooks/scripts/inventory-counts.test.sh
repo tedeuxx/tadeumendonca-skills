@@ -516,16 +516,25 @@ else
     #     and the lesson is identical each time: the shape was right, the CHARACTER SET was a guess.
     #
     #     AND ONE NAMED EXCEPTION, because the owner chose to keep the wildcard rather than restore the
-    #     friction. `Bash(bash .scratch/*)` is permitted HERE ONLY BECAUSE `permission-guard.sh` rule 9
-    #     denies a `..` segment in a script path handed to a shell — which is what makes `.scratch/` an
-    #     actual directory rather than a required prefix token. The matcher cannot express that; a hook
-    #     can; that is the standing rule for the next rule, applied.
+    #     friction.
     #
-    #     THE EXCEPTION IS TIED TO ITS JUSTIFICATION, not asserted alongside it. If rule 9 is deleted or
-    #     renamed, the exception STOPS APPLYING and the entry is flagged again. An exception that
+    #     ~~`Bash(bash .scratch/*)` is permitted HERE ONLY BECAUSE `permission-guard.sh` rule 9 denies a
+    #     `..` segment in a script path handed to a shell — which is what makes `.scratch/` an actual
+    #     directory rather than a required prefix token. The matcher cannot express that; a hook can;
+    #     that is the standing rule for the next rule, applied.~~
+    #
+    #     ~~THE EXCEPTION IS TIED TO ITS JUSTIFICATION, not asserted alongside it. If rule 9 is deleted
+    #     or renamed, the exception STOPS APPLYING and the entry is flagged again. An exception that
     #     outlives its reason is this workspace's most repeated defect — a claim corrected where someone
     #     quoted it and standing where nobody did — and it is not going to be introduced deliberately in
-    #     the assertion whose whole subject is that a comment cannot hold a control.
+    #     the assertion whose whole subject is that a comment cannot hold a control.~~
+    #
+    #     **BOTH PARAGRAPHS STRUCK 2026-08-07 — they survived UNMARKED for two rounds while the sentence
+    #     below corrected them, so a reader met the false claim first and the correction second.** The
+    #     second is false twice over: the exception is gated on two `grep -qF` calls against ADR-0008 and
+    #     NOTHING HERE READS THE GUARD, so deleting rule 9 does not flag anything. Found at round 4 by
+    #     sweeping SEMANTICS rather than a word — neither paragraph contains any form of "bound", so
+    #     three inflection sweeps could not reach them.
     #     ~~THE EXCEPTION IS TIED TO RULE 9.~~ **STRUCK 2026-08-07, the same day, by round 2 of the same
     #     gate.** Rule 9 does not bound anything: `bash .scratch/.""./.""./other/x` reaches out of the
     #     directory with NO `..` adjacency anywhere in the string, so no character class can catch it.
