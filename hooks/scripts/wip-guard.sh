@@ -127,8 +127,18 @@ cmd="$(printf '%s' "$cmd" | sed -e "s/'[^']*'/''/g" -e 's/"[^"]*"/""/g')"
 #
 # THE CHARACTER CLASS IS `permission-guard.sh`'s `gh_repo_flag`, VERBATIM (that file, line 380).
 # Converging on it is the point: two hooks parsing the same flag two different ways is how one of them
-# ends up a spelling behind, which is precisely what happened here. If a sixth spelling ever appears,
-# it is fixed in one place and both hooks move.
+# ends up a spelling behind, which is precisely what happened here.
+#
+# ~~If a sixth spelling ever appears, it is fixed in one place and both hooks move.~~ **False when
+# written, and struck rather than deleted because the shape is the lesson.** These are two DUPLICATED
+# LITERALS, not one shared variable — a hook cannot source a variable out of another hook. Editing
+# `permission-guard.sh:380` alone leaves this file behind and BOTH suites stay green; that was
+# measured, not reasoned. So the sentence described a mechanism that did not exist, in the comment
+# block of the fix whose whole subject is a comment asserting a control it did not hold.
+#
+# What makes the claim true is elsewhere: `inventory-counts.test.sh` asserts the two literals are
+# byte-identical, in all three places. A sixth spelling still takes two edits — the guarantee is not
+# that they move together, it is that they cannot silently drift apart.
 #
 # This is defect 1 of the retired record above, which claims to have SURVIVED the rewrite. It survived
 # for `--base` (see the extraction below, which handles `--base=` and `-B`) and was never carried to

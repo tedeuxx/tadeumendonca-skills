@@ -1104,5 +1104,44 @@ for brief in "$ROOT"/agents/*.md; do
   fi
 done
 
+# ---------------------------------------------------------------------------------------------------
+# THE TWO HOOKS PARSE `-R`/`--repo` WITH THE SAME CHARACTER CLASS.
+#
+# `permission-guard.sh` defines `gh_repo_flag` and interpolates it into every `gh` rule; `wip-guard.sh`
+# writes the same class inline, twice, because a hook cannot source a variable out of another hook.
+# They are DUPLICATED LITERALS, and `wip-guard.sh` claimed otherwise — its comment said a sixth spelling
+# would be "fixed in one place and both hooks move". Measured false: editing one file alone leaves the
+# other behind and both suites stay green.
+#
+# THIS IS WHAT MAKES THE CLAIM TRUE, and it is deliberately weaker than the sentence it replaces. It
+# does not make them move together — nothing can. It makes them unable to DRIFT APART in silence, which
+# is the property that was actually missing: `wip-guard` spent a week a spelling behind `permission-guard`
+# on exactly this flag, and no check anywhere could say so.
+# THE ANCHOR IS DELIBERATELY LOOSER THAN THE CLASS IT COMPARES. Anchoring on the full literal made
+# the third branch DEAD BY CONSTRUCTION: both sides searched for the same fixed string, so `grep -oE`
+# could only ever emit that string and `grep -qvxF` had nothing to find. Measured — mutating one file
+# reached branch 2, mutating both reached branch 2, mutating the guard reached branch 1, and branch 3
+# never fired. Matching `(` + the flag + anything-up-to-`)` lets the two sides emit DIFFERENT text,
+# which is the only way a difference can be reported at all.
+guard_class="$(grep -oE '\((-R|--repo)[^)]*\)' "$ROOT/hooks/scripts/permission-guard.sh" | head -1)"
+wip_classes="$(grep -oE '\((-R|--repo)[^)]*\)' "$ROOT/hooks/scripts/wip-guard.sh")"
+wip_count="$(printf '%s' "$wip_classes" | grep -c . || true)"
+
+if [ -z "$guard_class" ]; then
+  bad "flag class — permission-guard.sh no longer contains the shared -R/--repo class this asserts on.
+      If it was deliberately reshaped, reshape this assertion with it — do not delete it: the drift it
+      catches is the one that already happened once."
+elif [ "$wip_count" -ne 2 ]; then
+  bad "flag class — wip-guard.sh carries $wip_count copies of the class, expected 2 (trigger + extraction).
+      A copy that disappeared is a parse that silently narrowed."
+elif printf '%s\n' "$wip_classes" | grep -qvxF -- "$guard_class"; then
+  bad "flag class — wip-guard.sh and permission-guard.sh parse the repo flag DIFFERENTLY.
+      permission-guard: $guard_class
+      wip-guard:        $(printf '%s' "$wip_classes" | tr '\n' ' ')
+      One of them is a spelling behind. That is how \`gh -R=owner/x pr create\` turned wip-guard off."
+else
+  ok "flag class — both hooks parse -R/--repo with the identical class, in all 3 places"
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
