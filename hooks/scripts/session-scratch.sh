@@ -39,7 +39,7 @@
 # `rm -rf` would remove it. Nothing here depends on `find` being permitted to the agent.
 #
 # WHY SessionStart AND NOT SessionEnd. SessionEnd is best-effort — it does not fire on a crash,
-# and the 16 orphaned directories are what best-effort looks like after two weeks. It would also
+# and the 16 orphaned directories, the oldest ten days old, are what best-effort looks like. It would also
 # delete during the window in which a handoff is still needed. SessionStart fails SAFE: if it does
 # not run you accumulate, visibly, and never lose work.
 #

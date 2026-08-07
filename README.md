@@ -599,13 +599,16 @@ counting blocks disjoint work while doing nothing about the real risk. `session-
 **`session-scratch` empties `<repo-root>/.scratch/` in both repos, and that is the whole guarantee.**
 Nothing can delete a file *because its use ended* — there is no such event — so the session boundary
 is the only observable proxy, and the honest claim is that nothing survives into a new session rather
-than that nothing outlives its use. It is a hook rather than a rule the agent follows because every
-recursive delete the agent could issue is either denied by the floor or asks the human, except
-`find -delete`, which passes with no decision from any layer: "the agent tidies up after itself"
-resolves to "the agent uses the one delete nothing watches". And it runs at `SessionStart` rather than
-`SessionEnd` because `SessionEnd` does not fire on a crash — sixteen orphaned session directories are
-what best-effort looked like after two weeks — and because sweeping at the end would delete during the
-window a handoff still needs.
+than that nothing outlives its use. A **resumed or compacted** session does not sweep — a pause is not
+a new session — while `startup` and `clear` do. It is a hook rather than a rule the agent follows
+because of the four delete spellings measured — `rm -rf`, `rm -r`, `git clean -fdX`, `find -delete` —
+three are denied by the floor or ask the human and `find -delete` passes with no decision from any
+layer: "the agent tidies up after itself" resolves to "the agent uses the delete nothing watches".
+That is a claim about those spellings, not about the class — the interpreters (`python3 -c`, `node -e`)
+reach the same act and are deliberately not chased, a gap the guard prices rather than closes. And it
+runs at `SessionStart` rather than `SessionEnd` because `SessionEnd` is not reported to fire on a crash
+— sixteen orphaned session directories, the oldest ten days old, are what best-effort looked like —
+and because sweeping at the end would delete during the window a handoff still needs.
 
 ## Stack
 
