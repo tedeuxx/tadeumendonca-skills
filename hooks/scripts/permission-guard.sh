@@ -978,9 +978,43 @@ if printf '%s' "$bare" | grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*='; then
   deny "Blocked: env-var prefix (VAR=x cmd) hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
 fi
 
-# 9. A SCRIPT PATH HANDED TO A SHELL MUST NOT TRAVERSE. This is the control that makes a directory-
-#    scoped wildcard mean what it says, and it is here because THE MATCHER CANNOT EXPRESS IT — the
-#    standing rule for the next rule, applied.
+# 9. A SPEED BUMP ON THE NAIVE TRAVERSAL. **NOT A BOUND, AND IT MUST NEVER BE CITED AS ONE.**
+#
+#    ~~This is the control that makes a directory-scoped wildcard mean what it says.~~ **STRUCK the
+#    day it was written, 2026-08-07, by the gate that reviewed it.** It does not. `Bash(bash .scratch/*)`
+#    remains `bash <any path on disk>`; the owner accepted that knowingly (option A), and the record of
+#    the acceptance — not this rule — is what makes the floor honest.
+#
+#    THREE ESCAPE CLASSES, ALL MEASURED AGAINST THIS RULE IN FORCE:
+#
+#      bash .scratch/\.\./\.\./other-repo/VERSION    ALLOW — backslash escape; `\` is not in the
+#                                                    preceding-character class, and `\.` is `.` to the shell
+#      bash .scratch/.""./.""./other-repo/VERSION    ALLOW — empty quoted span; there is no `..` ADJACENCY
+#                                                    anywhere in the string, so NO widening of the
+#                                                    character class can find it. This is the one that
+#                                                    settles the question.
+#      bash .scratch/link.sh                         ALLOW — symlink out; the guard never resolves paths
+#
+#    Note the asymmetry that would fool a single probe: escaping ONE dot pair still denies on the next.
+#    A prober who tried one escape and saw a deny would have concluded the rule held.
+#
+#    THE CAUSE, WHICH IS WHY THIS IS NOT A REGEX BUG. **Rule 9 asserts a FILESYSTEM property with a
+#    LEXICAL instrument.** Between the command string and the file that opens sit quote removal, escape
+#    processing and symlink resolution. This guard does none of the three — deliberately, since doing
+#    them means parsing shell — and every escape above is one of them. Widening the pattern a fourth
+#    time would repeat the week's defect at a higher altitude: the shape was never the problem.
+#
+#    WHY IT IS KEPT ANYWAY. It costs one grep, it catches the spelling a person or an agent reaches for
+#    without thinking, and a speed bump that announces itself as a speed bump is honest. What it must
+#    not do is appear in any sentence containing the word *bounded*. It buys no containment: `python3`,
+#    `node`, `npx`, `npm`, `perl` and `ruby` are in `allow` UNINSPECTED, so every act it denies is one
+#    interpreter away regardless.
+#
+#    ── the original reasoning, kept because the standing rule it invokes is still right ──
+#    It is here because THE MATCHER CANNOT EXPRESS IT — the standing rule for the next rule, applied.
+#    That rule remains correct; what this episode adds to it is a SECOND question it did not ask:
+#    **can THIS LAYER hold the control, or only express it?** A hook can express a filesystem property
+#    it cannot evaluate, and expressing it reads exactly like enforcing it.
 #
 #    THE HOLE, MEASURED TWICE, THREE MONTHS APART BY DIFFERENT AUTHORS. `inventory-counts.test.sh`'s
 #    assertion 3 recorded it first (round 4, in its own comment): *"a path prefix is a STRING prefix …
@@ -998,14 +1032,20 @@ fi
 #    is written out at `inventory-counts.test.sh:461-464`, which also says a future need "should arrive
 #    as a deliberate change to THIS assertion, reviewed, rather than as a quiet line in the floor."
 #    This is that change. Forbidding the wildcard restores the friction the scratch work exists to
-#    remove — one frozen absolute path per probe, and agents generate distinct paths — so the trade
-#    taken here is to keep the wildcard and make the DIRECTORY real, which only a hook can do.
+#    remove — one frozen absolute path per probe, and agents generate distinct paths.
+#
+#    ~~So the trade taken here is to keep the wildcard and make the DIRECTORY real, which only a hook
+#    can do.~~ **STRUCK the same day.** A hook cannot do it either — see the three escape classes above.
+#    THE TRADE ACTUALLY TAKEN (owner, 2026-08-07, option A) is to keep the wildcard and **record what it
+#    is**: `bash <any path on disk>`. The honesty lives in the RECORD, not in a mechanism, because no
+#    mechanism available at this layer delivers it. A floor that says what it does is worth more than a
+#    floor that claims a bound and has none — which is the state this PR was opened in.
 #
 #    WHAT IT DOES NOT BUY, stated because the opposite reading is the dangerous one. `python3`, `node`,
 #    `npx`, `npm`, `perl` and `ruby` are all in `allow` UNINSPECTED, so anything this rule denies in a
 #    shell spelling remains reachable one interpreter over. This rule does not narrow the agent's REACH
-#    by a single act. It narrows what ONE ENTRY CLAIMS — so that a floor a stranger reads means what it
-#    says. That gap is ADR-0008's priced, accepted one; it is not closed here and must not be recorded
+#    by a single act. ~~It narrows what ONE ENTRY CLAIMS.~~ **It does not do that either** — the entry's
+#    claim is fixed by the record, above. That gap is ADR-0008's priced, accepted one; it is not closed
 #    as closed.
 #
 #    Reads `$cmd`, not `$bare`: `$bare` collapses quoted spans, so `bash '.scratch/../x'` would arrive

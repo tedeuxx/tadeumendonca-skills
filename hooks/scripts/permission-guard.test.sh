@@ -494,6 +494,19 @@ echo "--- rule 9: a script path handed to a shell must not traverse ---"
 # is a STRING prefix … The prefix bounded the characters, not the directory"* — and the wildcard
 # entry went into the floor anyway, three months later, by an author who had not read it. That is the
 # argument for a HOOK over a comment, and it is the reason these cases exist as executable ones.
+#
+# ~~And these cases are what makes the directory in the entry real.~~ **STRUCK the same day, by round 2
+# of the gate that approved round 1's fix.** THEY ARE NOT. Every case below passes AND the entry is
+# still `bash <any path on disk>` — three escape classes walk through, and one of them (`.""./`) has no
+# `..` adjacency anywhere in the string, so no widening of the pattern can ever reach it. Rule 9's own
+# header carries all three, measured.
+#
+# THIS BLOCK IS KEPT, AND WHAT IT IS FOR CHANGED. It pins a SPEED BUMP against regression — the naive
+# spelling stays denied — and it is deliberately left in place as the executable record that a green
+# suite proved nothing about the property everyone believed it proved. Eighteen cases, all passing,
+# against a rule that bounded nothing. **Do not cite a passing case here as evidence of containment.**
+# The containment is not here; under the owner's option A (2026-08-07) there is none, and ADR-0008
+# carries the accepted cost.
 check DENY  "traversal out of the prefix"    "bash .scratch/../../tadeumendonca-io/VERSION"
 check DENY  "traversal, one level"           "bash .scratch/../x.sh"
 check DENY  "traversal, leading"             "sh ../x.sh"
@@ -524,6 +537,24 @@ check ALLOW "git stash"                      "git stash list"
 # REACH by a single act — it narrows what ONE ENTRY CLAIMS. Asserting ALLOW here keeps that priced
 # rather than quietly believed closed; ADR-0008 owns the gap.
 check ALLOW "node with .. — the priced gap"  "node ../scripts/x.mjs"
+
+echo "--- rule 9: the three escapes, asserted ALLOW so the hole cannot go quiet ---"
+#
+# THESE ARE NOT ASPIRATIONS. Each was measured reaching a file in ANOTHER REPOSITORY with rule 9 live,
+# and each is asserted ALLOW so that the porosity is a FACT IN THE SUITE rather than a paragraph. If
+# someone ever closes one, this goes red and they are forced to read why it was open.
+#
+# The three are three DIFFERENT failures of the same instrument, and the middle one is decisive:
+#   backslash     — the escape character is not in the preceding-character class. A widening reaches it.
+#   empty quote   — `.""./` has NO `..` ADJACENCY. Nothing to find. NO widening ever reaches it, which
+#                   is what settles that this is the wrong instrument rather than the wrong pattern.
+#   symlink       — the guard does not resolve paths, so it is out of reach by construction.
+check ALLOW "escape: backslash"              'bash .scratch/\.\./\.\./other/VERSION'
+check ALLOW "escape: empty quoted span"      'bash .scratch/.""./.""./other/VERSION'
+check ALLOW "escape: symlink out"            "bash .scratch/link.sh"
+# The asymmetry that would fool a single probe, pinned: escaping ONE pair still denies on the next, so
+# a prober who tried one escape, saw a deny, and stopped would have reported the rule as holding.
+check DENY  "escape: only ONE pair escaped"  'bash .scratch/\.\./../other/VERSION'
 
 echo "--- rule 8: single commands MUST survive ---"
 check ALLOW "a pipe is fine"                "grep -rn foo src | head -20"

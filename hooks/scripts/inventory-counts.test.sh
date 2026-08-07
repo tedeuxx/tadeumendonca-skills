@@ -526,8 +526,31 @@ else
     #     outlives its reason is this workspace's most repeated defect — a claim corrected where someone
     #     quoted it and standing where nobody did — and it is not going to be introduced deliberately in
     #     the assertion whose whole subject is that a comment cannot hold a control.
+    #     ~~THE EXCEPTION IS TIED TO RULE 9.~~ **STRUCK 2026-08-07, the same day, by round 2 of the same
+    #     gate.** Rule 9 does not bound anything: `bash .scratch/.""./.""./other/x` reaches out of the
+    #     directory with NO `..` adjacency anywhere in the string, so no character class can catch it.
+    #     Tying the exception to rule 9 made this assertion print *"bounded by permission-guard rule 9"*
+    #     — a false green, which is worse than the red it replaced.
+    #
+    #     AND THE OLD TIE FAILED IN THE UNSAFE DIRECTION, which is the part worth keeping. It grepped a
+    #     PHRASE from the deny message. Measured by the gate: comment out rule 9's code and the phrase
+    #     survives in the comment, so the exception kept applying with no rule behind it — and commenting
+    #     out is exactly what a bisect or a revert-in-place does. A phrase is a spelling; that is the
+    #     week's lesson, arrived at from a fourth direction.
+    #
+    #     WHAT IT IS TIED TO NOW: the RECORD, because under the owner's decision (option A, 2026-08-07)
+    #     there is no mechanism to tie to. The wildcard is kept and what it IS gets written down —
+    #     `bash <any path on disk>` — in ADR-0008, the record that owns "which layer carries a control".
+    #     So the exception applies only while the ADR names this entry. Delete the record and the entry
+    #     is flagged again, which is the correct coupling: under option A the record IS the control.
+    #
+    #     This is deliberately a document check, and it is weaker than a behaviour check. It is chosen
+    #     because the thing being asserted is a DECISION, and a decision has no runtime behaviour to
+    #     probe. Where a mechanism exists, tie to the mechanism by executing it — never by grepping for
+    #     a sentence about it.
     guard_has_rule9=""
-    if grep -qF -- 'a script path handed to a shell contains a' "$ROOT/hooks/scripts/permission-guard.sh"; then
+    if grep -qF -- 'Bash(bash .scratch/*)' "$ROOT/docs/adr/0008-which-layer-carries-a-control.md" 2>/dev/null \
+       && grep -qF -- 'any path on disk' "$ROOT/docs/adr/0008-which-layer-carries-a-control.md" 2>/dev/null; then
       guard_has_rule9="yes"
     fi
     wildcard_shells="$(printf '%s\n' "$allow_entries" \
@@ -538,7 +561,7 @@ else
     wildcard_shells="$(printf '%s' "$wildcard_shells" | grep -v '^[[:space:]]*$' || true)"
     if [ -z "$wildcard_shells" ]; then
       if [ -n "$guard_has_rule9" ]; then
-        ok "permission floor — no unbounded shell entry; the one wildcard is bounded by permission-guard rule 9"
+        ok "permission floor — one shell wildcard, UNBOUNDED and recorded as such in ADR-0008 (owner's option A)"
       else
         ok "permission floor — no shell-interpreter allow entry ends in a wildcard"
       fi
