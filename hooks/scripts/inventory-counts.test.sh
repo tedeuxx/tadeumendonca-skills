@@ -1173,6 +1173,62 @@ for brief in "$ROOT"/agents/*.md; do
 done
 
 # ---------------------------------------------------------------------------------------------------
+# EVERY PERSONA CAN REACH THE SKILL LIBRARY.
+#
+# THE DEFECT: `tools:` in a persona's frontmatter is a CLOSED ALLOWLIST, and none of the five named
+# `Skill`. So the 75-file library this repo exists to publish was unreachable by every persona meant to
+# apply it — not badly indexed, unreachable — for as long as the personas had existed. `developer.md`'s
+# own description asserted it "wields the /frontend, /backend, /infrastructure and /workflow skills"
+# while holding no tool that could open one, and #166's descriptions made them discoverable to something
+# that can call `Skill` when nothing in this plugin could.
+#
+# WHY IT WAS INVISIBLE, which is the part that makes an assertion the right remedy rather than care: the
+# grant and the claim live in DIFFERENT FILES from the thing they grant access to. Adding a skill, or
+# writing a paragraph in a brief about which skills it wields, touches nothing that would reveal the tool
+# is absent. Nothing in this suite could have said so either — the per-brief loop above checks `.scratch/`
+# and the membership block checks who a brief NAMES; both are prose, and this is a capability.
+#
+# THE ASSERTION IS DELIBERATELY UNIFORM — all five, no allowlist of "personas that need skills". A skill
+# is GUIDANCE, not capability: reading one grants no power a persona does not already hold, so there is
+# nothing to scope. The selective question is about the SEPARATE `skills:` preloading field, which has a
+# real context-window cost (`commands/` is ~409 KB) and is not what this checks. Reachability is cheap
+# and uniform; preloading is expensive and selective.
+#
+# WHAT A GREEN HERE DOES AND DOES NOT MEAN. It means the tool is REACHABLE. It does not mean a persona
+# ever invokes it — that is model judgement matching on a skill's description, and it is the premise
+# ADR-0009 records about itself as unverified. This assertion removes an impossibility; no assertion in a
+# shell script can demonstrate a behaviour.
+#
+# A BRIEF WITH NO `tools:` LINE PASSES, and that is the property, not a hole: no list means no allowlist,
+# which means every tool including `Skill`. It is reported with a DIFFERENT message so the reason for the
+# green is visible rather than assumed — a pass for an unexamined reason is what this file exists to stop.
+skill_tool_briefs=0
+for brief in "$ROOT"/agents/*.md; do
+  [ -e "$brief" ] || continue
+  name="$(basename "$brief")"
+  skill_tool_briefs=$((skill_tool_briefs + 1))
+  tools_line="$(grep -m1 '^tools:' "$brief" || true)"
+  if [ -z "$tools_line" ]; then
+    ok "agent brief — $name declares no tools: list, so no allowlist closes over Skill"
+  # DELIMITED, NOT A SUBSTRING. `grep -qF Skill` would pass on a hypothetical `SkillPreview` or on the
+  # word appearing in a description that happens to sit on the same line. The list is comma-separated,
+  # so the token must be bounded by a list boundary on both sides.
+  elif printf '%s' "$tools_line" | grep -qE '(^tools:|,)[[:space:]]*Skill[[:space:]]*(,|$)'; then
+    ok "agent brief — $name lists the Skill tool, so the library is reachable from it"
+  else
+    bad "agent brief — $name has an explicit tools: list that does not name Skill, so it CANNOT open any
+      of the skills under commands/ — the library this repo publishes is unreachable from it.
+      An explicit tools: list is a closed allowlist. Add Skill to: $tools_line"
+  fi
+done
+
+if [ "$skill_tool_briefs" -eq 0 ]; then
+  bad "agent brief — no persona files found under agents/; the Skill-tool assertion did NOT run"
+else
+  ok "agent brief — Skill-tool reachability checked across $skill_tool_briefs persona file(s)"
+fi
+
+# ---------------------------------------------------------------------------------------------------
 # THE TWO HOOKS PARSE `-R`/`--repo` WITH THE SAME CHARACTER CLASS.
 #
 # `permission-guard.sh` defines `gh_repo_flag` and interpolates it into every `gh` rule; `wip-guard.sh`
