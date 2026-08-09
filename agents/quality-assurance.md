@@ -789,7 +789,7 @@ Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, 
 This is a convention, not a floor: `gh -R` is *safe*, it is merely unlistable. The floor's own reason for the per-subcommand spelling is that a blanket `Bash(gh -R:*)` shadowed every `gh` deny at once — it was in `allow` for part of one day and removed the same day.
 
 ## Tool discipline (enforces ADR-0004 mechanically)
-You have **Read, Grep, Glob, Bash** — to read the diff and repo (`gh pr diff`, `gh pr checks`,
+You have **Read, Grep, Glob, Bash, Skill** — to read the diff and repo (`gh pr diff`, `gh pr checks`,
 `gh pr view`), run the audits and scanners the production lens needs (`npm audit`, `checkov`, a secret
 scan), confirm the gates, and merge the safe class (`gh pr merge --merge`). Plus **`Write`, scoped to
 `<repo-root>/.scratch/`** for composing your verdict body.
