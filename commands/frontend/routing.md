@@ -2,7 +2,7 @@
 description: Lay out routes in a React SPA — nested layouts around a shared app shell, lazy-loaded heavy routes, auth guards, a catch-all 404 and scroll restoration, with opaque slug or public_id params rather than sequential ids. Use when adding a page, code-splitting to shrink the initial bundle, or keeping public routes crawlable. Not for what a route renders (see frontend/design-system).
 ---
 
-Frontend routing in `apps/fed` (concept).
+Frontend routing in the SPA (concept).
 
 Context: $ARGUMENTS
 

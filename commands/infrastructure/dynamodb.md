@@ -75,7 +75,7 @@ DynamoDB has **no master user / no connection secret** — access is pure IAM. T
 # /${env}/data/subscriptions-table-name = module.subscriptions_table.dynamodb_table_id
 # /${env}/data/audits-table-name        = module.audits_table.dynamodb_table_id
 ```
-IaC writes the table names; `apps/bff` reads them at deploy → Lambda env (`/infrastructure/ssm`). Non-sensitive (names only).
+IaC writes the table names; the application deploy job reads them at deploy → Lambda env (`/infrastructure/ssm`). Non-sensitive (names only).
 
 ## Network
 DynamoDB is a **regional service**. With the BFF non-VPC (the default), the Lambda reaches DynamoDB over the **public DynamoDB endpoint with IAM** (no NAT, no VPC endpoint — there is no VPC). **When in-VPC** (e.g. once Redis/RDS forces a VPC), it is reached over a **Gateway VPC endpoint** (like S3) — Lambda→DynamoDB traffic stays on the AWS backbone, **off the NAT path** (`/infrastructure/vpc` declares the `dynamodb` Gateway endpoint alongside `s3`). HTTPS/TLS in transit by default either way (`/infrastructure/kms`).

@@ -10,22 +10,41 @@ Context: $ARGUMENTS
 
 All documentation is **Markdown + Mermaid**. **No static image diagrams** — every diagram is Mermaid so it stays diffable and versioned.
 
+## Where a document lives — the placement rule
+
+**A `docs/` folder belongs to the smallest unit that owns the thing being described, and travels with it.**
+Resolve it in that order and the paths below follow mechanically:
+
+1. **The deployable unit owns its docs.** A standalone repo puts them at `docs/`; a monorepo puts them at
+   `<unit>/docs/` — one folder per workspace (the SPA, the API, the IaC root), never one shared folder at
+   the top pretending to describe all three.
+2. **Name the file for the question it answers, not for the unit** — `architecture.md`, `data-model.md`,
+   `sequences.md`. The unit is already the directory; repeating it in the filename buys nothing and
+   breaks the cross-repo habit of knowing where to look.
+3. **A diagram that spans two units is duplicated from each side, not centralised.** Each copy is drawn
+   from its own unit's vantage point (what it calls out to, what calls it), because a single "system"
+   diagram is the one that rots first — nobody owns it, so nobody updates it on a change.
+
+*Why placement is a rule at all:* docs decay in proportion to their distance from the code, and the only
+reliable forcing function is that the same PR touching the code also touches the file next to it. A
+`docs/` folder one repo away is a folder nobody's diff ever reaches.
+
 ## Diagram types
 
 | Diagram | Mermaid | Where |
 |---|---|---|
 | Infra architecture | `flowchart TD` / `graph LR` | `docs/architecture.md` (each repo) |
-| Data model (tables) | `erDiagram` | `apps/bff/docs/data-model.md` |
-| Flows / integrations | `sequenceDiagram` | `docs/sequences.md` (`apps/bff` + `apps/fed`) |
-| Frontend components | `flowchart LR` | `apps/fed/docs/architecture.md` |
+| Data model (tables) | `erDiagram` | `docs/data-model.md` in the API unit |
+| Flows / integrations | `sequenceDiagram` | `docs/sequences.md`, one per unit that participates |
+| Frontend components | `flowchart LR` | `docs/architecture.md` in the SPA unit |
 
 ## Expected content per file
-- **`<project>-pwa/iac/docs/architecture.md`** — Terraform module dependency graph (+ network topology when a VPC is provisioned: subnets/NAT/endpoints).
-- **`apps/bff/docs/data-model.md`** — `erDiagram` of `profiles`, `posts`, `articles`, `subscribers` (fields, types, implicit relations).
-- **`apps/bff/docs/sequences.md`** — full PKCE auth, `POST /posts` (admin → API → DynamoDB → SES notification), OG edge (bot → Lambda@Edge → API → S3).
-- **`apps/bff/docs/architecture.md`** — Lambdas × API GW × DynamoDB × Secrets Manager × S3.
-- **`apps/fed/docs/sequences.md`** — Cognito PKCE login, `useProfile` fetch, infinite-scroll posts.
-- **`apps/fed/docs/architecture.md`** — pages × hooks × store × services.
+- **`iac/docs/architecture.md`** — Terraform module dependency graph (+ network topology when a VPC is provisioned: subnets/NAT/endpoints).
+- **The API unit's `docs/data-model.md`** — `erDiagram` of the persisted entities (fields, types, implicit relations); on a document store, the implicit relations are the ones worth drawing, since nothing in the engine declares them.
+- **The API unit's `docs/sequences.md`** — the auth exchange end to end, one representative write path (admin → API → store → notification), and any request that leaves the normal path (a bot/SEO render, a webhook).
+- **The API unit's `docs/architecture.md`** — compute × gateway × data store × secrets × object storage.
+- **The SPA unit's `docs/sequences.md`** — login, one representative authenticated fetch, one paginated/infinite-scroll read.
+- **The SPA unit's `docs/architecture.md`** — pages × hooks × store × services.
 
 ## Conventions
 - Every repo has a `docs/` folder; keep diagrams next to the code they describe.

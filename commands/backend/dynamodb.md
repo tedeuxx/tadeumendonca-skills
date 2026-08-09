@@ -2,7 +2,7 @@
 description: Read and write DynamoDB from server handler code — the client singleton, the table-name accessor, key and sparse-GSI queries instead of a Scan, cursor pagination over LastEvaluatedKey, and write consistency. Use when adding a repository query, replacing a Scan, or paginating a list endpoint. Not for provisioning the tables (see infrastructure/dynamodb) or a cache in front of them (see backend/redis-cache).
 ---
 
-Connect to and access DynamoDB in `apps/bff`.
+Connect to and access DynamoDB in the BFF.
 
 Context: $ARGUMENTS
 

@@ -2,7 +2,7 @@
 description: Set the browser-side quality, test and security gates — lint, typecheck, unit coverage at or above 85%, E2E journeys, dependency advisories and secret scanning, all blocking the deploy. Use when a gate is red, adding gates to a repo, or resisting pressure to lower a threshold to go green. Not for the server-side equivalents (see backend/coverage), the Sonar step itself (see workflow/sonarcloud), or what done means (see principles/verification-and-gates).
 ---
 
-Set up or review the frontend (`apps/fed`) quality, test, and security gates.
+Set up or review the frontend (the SPA) quality, test, and security gates.
 
 Context: $ARGUMENTS
 

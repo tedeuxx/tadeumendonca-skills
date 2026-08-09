@@ -2,7 +2,7 @@
 description: Call the backend from a React SPA through one typed client — base URL from build-time config, Bearer token attached, snake_case payloads with no mapping layer, cached queries and mutations that invalidate what they changed. Use when adding a data call, centralising 401 handling, or removing a raw fetch from a component. Not for the page-by-page cursor contract (see frontend/pagination).
 ---
 
-SPA → BFF API calls in `apps/fed` (concept).
+SPA → BFF API calls in the SPA (concept).
 
 Context: $ARGUMENTS
 

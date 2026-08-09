@@ -2,7 +2,7 @@
 description: Implement one domain module inside a BFF — the files a module owns, its Hono routes, the audit call, its DynamoDB repository, and opaque resource ids in paths rather than sequential ones. Use when adding a resource to the API, reviewing a module against the mandatory conventions, or wiring a handler to its data access. Not for the app-wide framework wiring (see backend/framework-hono).
 ---
 
-Implement a domain module in the BFF (`apps/bff`).
+Implement a domain module in the BFF.
 
 Module: $ARGUMENTS (e.g., "posts", "articles", "notifications")
 
