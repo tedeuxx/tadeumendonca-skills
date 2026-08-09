@@ -1413,14 +1413,42 @@ else
     # ONLY THE PLAIN-PATH FORM IS RESOLVABLE, which is what earned the deviation from the standard's
     # backticked bare stem: `(see cloudwatch-rum)` names two files in two families, so under that
     # spelling this check could not exist at all.
+    #
+    # ── NOTHING IS SKIPPED, AND THAT IS A CORRECTION ────────────────────────────────────────────────
+    # THE FIRST VERSION FILTERED WITH `grep -E '^[a-z0-9-]+/[a-z0-9-]+$'` AND DROPPED EVERYTHING ELSE.
+    # Measured by the merge gate: rewrite a pointer as `(see backend/framework-hono.md)` — a `.` fails
+    # the class — and the suite prints `61 passed, 0 failed`. The pointer is unresolvable, the check
+    # cannot see it, and the green says nothing is wrong.
+    #
+    # THAT IS THE THIRD INSTANCE OF THIS SLICE'S OWN SUBJECT, and it had reached a PERMANENT record:
+    # ADR-0009 lists "every `(see X)` resolving to a file" as gated. The ADR was accurate about the
+    # intent and wrong about the coverage — the same shape as the one-line comment that described a
+    # check nobody had implemented, and as `skills-table.py` claiming the first line. A filter that
+    # silently drops what it cannot parse is indistinguishable from a filter that found nothing.
+    #
+    # SO THE UNPARSEABLE IS REPORTED, NOT DISCARDED. Two branches, and every token reaches one of them.
+    #
+    # THE CLASS ALSO GAINED AN OPTIONAL FAMILY. `(/[a-z0-9-]+)?` admits a BARE stem, which resolves
+    # against `commands/<stem>.md` — the two top-level commands `autonomy-on` and `new-issue` point at
+    # each other that way, legitimately, and ADR-0009 documents them as the only such files. The old
+    # class excluded exactly the two pointers the same record called correct. A bare stem naming a
+    # NAMESPACED skill (`see metrics`) still fails, because `commands/metrics.md` does not exist —
+    # which is the ambiguity the plain-path convention exists to refuse, now enforced rather than
+    # assumed.
     while IFS= read -r ref; do
       [ -z "$ref" ] && continue
+      if ! printf '%s' "$ref" | grep -qE '^([a-z0-9-]+/)?[a-z0-9-]+$'; then
+        l2_problems="$l2_problems
+    $rel — pointer 'see $ref' is not a resolvable reference (expected <family>/<skill> or a top-level
+      command). Write it as a bare path with no extension, backticks or punctuation."
+        continue
+      fi
       [ -f "$ROOT/commands/$ref.md" ] && continue
       l2_problems="$l2_problems
     $rel — points at 'see $ref', and commands/$ref.md does not exist"
     done <<< "$(printf '%s' "$desc" | grep -oE '\(see [^)]*\)' \
                   | sed 's/^(see //; s/)$//' | tr ',' '\n' | sed 's/^ *see *//; s/^ *//; s/ *$//' \
-                  | grep -E '^[a-z0-9-]+/[a-z0-9-]+$' || true)"
+                  | grep -v '^$' || true)"
   done <<< "$SKILL_FILES"
 
   if [ -z "$l1_problems" ]; then
