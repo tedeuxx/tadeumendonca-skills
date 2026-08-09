@@ -1277,9 +1277,25 @@ else
     fi
     desc_count=$((desc_count + 1))
 
-    # ONE PHYSICAL LINE. Checked as "the key appears once and the line after it is either the closing
-    # fence or another key" — a folded or block scalar would put the text on following lines, and this
-    # is what makes `description: >` fail here rather than parse into something the matcher never sees.
+    # ONE PHYSICAL LINE — three checks, and the third is the one that was MISSING while this comment
+    # claimed it. Recorded rather than quietly added, because the defect WAS the record:
+    #
+    #   THIS BLOCK USED TO SAY "the key appears once and the line after it is either the closing fence
+    #   or another key" AND IMPLEMENT ONLY THE FIRST TWO. Measured on #168 by the merge gate: split
+    #   `workflow/license.md`'s description at its last comma, so `Use when` stayed on line 1 and the
+    #   remainder wrapped onto line 2. PyYAML parses that as ONE value of 305 chars — plain scalars
+    #   continue across lines — while this block measured only the 248-char first line. The suite
+    #   printed `61 passed, 0 failed` and, worse, `PASS … are one line` about a description that was
+    #   not one line. THE LENGTH BOUND HAD SILENTLY APPLIED TO A FRAGMENT.
+    #
+    #   Exposure was zero — no file is written that way — and that is exactly what made it dangerous:
+    #   an assertion describing a check nobody had implemented, green for a reason no one would look
+    #   behind. Same class as this file's other corrections, reached from a new direction.
+    #
+    # WHY A WRAPPED LINE MATTERS AND IS NOT PEDANTRY: the matcher receives the FULL parsed value, so a
+    # wrap defeats the length bound — and it defeats every `case` test below too. `Use when`, the
+    # consumer-path lint and `(concept)` all match against `$desc`, which is the first line only. One
+    # wrap and half the L2 set stops looking at half the sentence.
     if [ "$(printf '%s\n' "$fm" | grep -c '^description:')" != "1" ]; then
       l1_problems="$l1_problems
     $rel — more than one 'description:' line"
@@ -1287,6 +1303,15 @@ else
     if printf '%s\n' "$fm" | grep -qE '^description:[[:space:]]*[|>]'; then
       l1_problems="$l1_problems
     $rel — description uses a block scalar (| or >); it must be one physical line"
+    fi
+    # THE LINE AFTER THE KEY. `fm` excludes the `---` fences, so "the closing fence" is simply the end
+    # of the block — no next line at all. Anything else must be another key. A continuation line is
+    # neither, which is what fires.
+    next_line="$(printf '%s\n' "$fm" | awk '/^description:/ { getline nxt; print nxt; exit }')"
+    if [ -n "$next_line" ] && ! printf '%s' "$next_line" | grep -qE '^[A-Za-z][A-Za-z0-9_-]*:'; then
+      l1_problems="$l1_problems
+    $rel — the line after 'description:' is neither the end of the frontmatter nor another key, so the
+      value CONTINUES onto it. YAML reads the whole thing; every check here reads only the first line."
     fi
 
     # NO UNQUOTED COLON — the failure the standard names in its own words: `description: Foo: bar` is a
@@ -1361,14 +1386,41 @@ else
     # DOES NOT OPEN WITH ITS OWN STEM. Catches the straight-through rewrite — `Routing …` in routing.md,
     # `Metrics …` in metrics.md — which is a title with a `Use when` bolted on. The first tokens are the
     # discriminating ones, so they must be an act, not the filename.
+    #
+    # THE SEGMENT LOOP IS THE WHOLE CHECK. It used to also test `$first_word = $stem`, which is dead
+    # both ways: for a single-word stem the loop's one segment IS the stem, and for a hyphenated one a
+    # single first word can never equal `og-image-generator`. A redundant arm in an assertion is not
+    # free — it reads as extra coverage and is none — so it is gone rather than left decorating.
     first_word="$(printf '%s' "$desc" | awk '{print tolower($1)}' | tr -d '[:punct:]')"
     for seg in $(printf '%s' "$stem" | tr '-' ' '); do
-      if [ "$first_word" = "$seg" ] || [ "$first_word" = "$stem" ]; then
+      if [ "$first_word" = "$seg" ]; then
         l2_problems="$l2_problems
     $rel — description opens with its own stem ('$first_word'); open on an act + object instead"
         break
       fi
     done
+
+    # EVERY `(see X)` POINTER RESOLVES TO A FILE — all of them, not just the clustered ones.
+    #
+    # L3 below checks its 31 cluster members. Measured on #168: the 75 descriptions carry 112 pointers,
+    # so 38 of them had no existence assertion anywhere. A pointer is a promise that a named file is
+    # where to go instead, and a dangling one sends a matcher — and a reader — at nothing.
+    #
+    # SAME CLASS AS THE `skills-table.py` LANDMINE THIS SLICE FIXED: cheap to state, invisible until
+    # someone follows it. It catches every rename that L3's hand-maintained table cannot see, because
+    # it is DERIVED — the pointers are read out of the descriptions rather than enumerated here.
+    #
+    # ONLY THE PLAIN-PATH FORM IS RESOLVABLE, which is what earned the deviation from the standard's
+    # backticked bare stem: `(see cloudwatch-rum)` names two files in two families, so under that
+    # spelling this check could not exist at all.
+    while IFS= read -r ref; do
+      [ -z "$ref" ] && continue
+      [ -f "$ROOT/commands/$ref.md" ] && continue
+      l2_problems="$l2_problems
+    $rel — points at 'see $ref', and commands/$ref.md does not exist"
+    done <<< "$(printf '%s' "$desc" | grep -oE '\(see [^)]*\)' \
+                  | sed 's/^(see //; s/)$//' | tr ',' '\n' | sed 's/^ *see *//; s/^ *//; s/ *$//' \
+                  | grep -E '^[a-z0-9-]+/[a-z0-9-]+$' || true)"
   done <<< "$SKILL_FILES"
 
   if [ -z "$l1_problems" ]; then

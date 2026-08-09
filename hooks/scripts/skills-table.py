@@ -2,9 +2,10 @@
 """Emit the README's skill inventory table, derived from `commands/`.
 
 WHY THIS IS A COMMITTED TOOL RATHER THAN A ONE-OFF. The README publishes one row per skill, and each
-description is the skill's own first line. That is not a style choice: a table of this size written by
-hand is one chance per row to describe a skill as something it does not say, with nothing anywhere able
-to catch it. Generating it removes the chance.
+description is the skill's own first line OF BODY — never the `description` frontmatter field, which is
+written for the matcher and is far too long for this column (see `body_lines` below). That is not a
+style choice: a table of this size written by hand is one chance per row to describe a skill as
+something it does not say, with nothing anywhere able to catch it. Generating it removes the chance.
 
 But a generated table whose generator lives in a scratch directory is worse than a hand-written one — the
 next person to add a skill edits the table by hand, and the property that made generation worth doing is
