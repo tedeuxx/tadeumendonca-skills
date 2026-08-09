@@ -292,9 +292,9 @@ The library, by family: backend (20), frontend (18), infrastructure (21), princi
 | `secrets-management` | Fetch sensitive backend values from AWS Secrets Manager in the BFF. | `backend` | `developer` |
 | `tracing` | Implement or review distributed tracing in the BFF. | `backend` | `developer` |
 | `analytics` | Frontend analytics (GA4) in the SPA (concept). | `frontend` | `developer` |
-| `api-client` | SPA → BFF API calls in the SPA (concept). | `frontend` | `developer` |
-| `authentication` | SPA authentication in the SPA (concept). | `frontend` | `developer` |
-| `authorization` | SPA authorization / UI gating in the SPA (concept). | `frontend` | `developer` |
+| `api-client` | SPA → BFF API calls (concept). | `frontend` | `developer` |
+| `authentication` | SPA authentication (concept). | `frontend` | `developer` |
+| `authorization` | SPA authorization / UI gating (concept). | `frontend` | `developer` |
 | `cloudwatch-rum` | Frontend real-user monitoring (CloudWatch RUM) in the SPA (concept). | `frontend` | `developer` |
 | `coverage` | Set up or review the frontend (the SPA) quality, test, and security gates. | `frontend` | `developer` |
 | `design-system` | Design system (custom Tailwind, no component library) — which pattern for each UI need. | `frontend` | `developer` |
