@@ -1,3 +1,7 @@
+---
+description: Implement the viewer-request Lambda at Edge that classifies a request three ways — human passthrough, social crawler to the OG card, SEO crawler to prerendered HTML — under Edge constraints of no environment variables and a tiny zero-dependency bundle. Use when a crawler sees the wrong markup, adding a user-agent class, or working within Lambda at Edge limits. Not for the prerendered HTML it forwards to (see backend/prerender).
+---
+
 Implement or update the og-edge Lambda@Edge handler. **It lives in `<project>-pwa/iac`** (`iac/lambda-src/og-edge/index.js`), not `apps/bff` — see "Where the code lives" below.
 
 Context: $ARGUMENTS

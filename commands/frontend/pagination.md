@@ -1,3 +1,7 @@
+---
+description: Implement the cursor pagination contract in a React SPA — an opaque cursor and next_cursor rather than offsets, with infinite scroll driven by an IntersectionObserver sentinel near the list end. Use when a list grows past one page, when page numbers would drift under inserts, or when matching the server's cursor contract. Not for the client that issues the request (see frontend/api-client).
+---
+
 Cursor pagination in `apps/fed` (concept).
 
 Context: $ARGUMENTS

@@ -1211,5 +1211,350 @@ else
   ok "flag class — both hooks parse -R/--repo with the identical class, in all 3 places"
 fi
 
+# ---------------------------------------------------------------------------------------------------
+# EVERY SKILL CARRIES A `description` WRITTEN TO INDEX, NOT A TITLE (#166).
+#
+# WHY THIS IS AN INVENTORY CONCERN AT ALL. Commands were merged into skills, and model-invoked loading
+# matches on the `description` field. A skill without one competes without the field that decides, so
+# `description` is now part of what this repo PUBLISHES — the same class as a count on the README, and
+# it rots the same way: nothing about adding a skill makes anyone write a trigger sentence for it.
+#
+# THE STANDARD IS harness-reviewer's, ON #166, AND THESE ARE ITS THREE LEVELS. What is asserted here is
+# deliberately only the mechanical half. The standard names the authorial half explicitly — whether the
+# situation named is the RIGHT one, whether the technology nouns are the ones a real task would contain,
+# whether `Not for` points at the NEAREST rival, and whether the description is TRUE about the body —
+# and refuses, by name, any quality score built out of keyword counts, noun density or embedding
+# similarity, because ALL OF THEM PASS ON KEYWORD SALAD. That refusal is honoured here: nothing below
+# scores a description. A green means the shape is right, never that the sentence is good.
+
+SKILL_FILES="$(find "$ROOT/commands" -name '*.md' -type f | sort)"
+ARG_HINT_ALLOWED="autonomy-on new-issue"   # the two the OWNER types; a model-invoked skill has no typed argument
+
+# The frontmatter block, exclusive of its `---` fences. Empty for a file that has none, which is what
+# the presence assertion below reads.
+fm_block() {
+  awk 'NR==1 && $0 != "---" { exit } NR==1 { infm=1; next } infm && $0 == "---" { exit } infm' "$1"
+}
+
+if [ -z "$SKILL_FILES" ]; then
+  bad "skill descriptions — no files found under commands/; every assertion below would pass vacuously"
+else
+  # --- LEVEL 1: presence and parse, zero judgement ------------------------------------------------
+  # Length bounds are a FLOOR AND A CEILING, NOT A QUALITY METRIC, and the standard says so in those
+  # words. 120 is below anything that can carry an act, an object and a `Use when`; 500 is above the
+  # longest written. They catch an empty stub and a pasted paragraph. They cannot catch a bad sentence
+  # of the right size, and are not intended to.
+  DESC_MIN=120
+  DESC_MAX=500
+
+  l1_problems=""
+  l2_problems=""
+  desc_count=0
+  while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    rel="${f#"$ROOT"/}"
+    stem="$(basename "$f" .md)"
+    fm="$(fm_block "$f")"
+
+    if [ -z "$fm" ]; then
+      l1_problems="$l1_problems
+    $rel — no frontmatter block (must open AND close with ---)"
+      continue
+    fi
+
+    desc_line="$(printf '%s\n' "$fm" | grep -m1 '^description:' || true)"
+    if [ -z "$desc_line" ]; then
+      l1_problems="$l1_problems
+    $rel — frontmatter carries no 'description:' key"
+      continue
+    fi
+    desc="${desc_line#description:}"
+    desc="${desc# }"
+    if [ -z "$desc" ]; then
+      l1_problems="$l1_problems
+    $rel — 'description:' is present and EMPTY"
+      continue
+    fi
+    desc_count=$((desc_count + 1))
+
+    # ONE PHYSICAL LINE — three checks, and the third is the one that was MISSING while this comment
+    # claimed it. Recorded rather than quietly added, because the defect WAS the record:
+    #
+    #   THIS BLOCK USED TO SAY "the key appears once and the line after it is either the closing fence
+    #   or another key" AND IMPLEMENT ONLY THE FIRST TWO. Measured on #168 by the merge gate: split
+    #   `workflow/license.md`'s description at its last comma, so `Use when` stayed on line 1 and the
+    #   remainder wrapped onto line 2. PyYAML parses that as ONE value of 305 chars — plain scalars
+    #   continue across lines — while this block measured only the 248-char first line. The suite
+    #   printed `61 passed, 0 failed` and, worse, `PASS … are one line` about a description that was
+    #   not one line. THE LENGTH BOUND HAD SILENTLY APPLIED TO A FRAGMENT.
+    #
+    #   Exposure was zero — no file is written that way — and that is exactly what made it dangerous:
+    #   an assertion describing a check nobody had implemented, green for a reason no one would look
+    #   behind. Same class as this file's other corrections, reached from a new direction.
+    #
+    # WHY A WRAPPED LINE MATTERS AND IS NOT PEDANTRY: the matcher receives the FULL parsed value, so a
+    # wrap defeats the length bound — and it defeats every `case` test below too. `Use when`, the
+    # consumer-path lint and `(concept)` all match against `$desc`, which is the first line only. One
+    # wrap and half the L2 set stops looking at half the sentence.
+    if [ "$(printf '%s\n' "$fm" | grep -c '^description:')" != "1" ]; then
+      l1_problems="$l1_problems
+    $rel — more than one 'description:' line"
+    fi
+    if printf '%s\n' "$fm" | grep -qE '^description:[[:space:]]*[|>]'; then
+      l1_problems="$l1_problems
+    $rel — description uses a block scalar (| or >); it must be one physical line"
+    fi
+    # THE LINE AFTER THE KEY. `fm` excludes the `---` fences, so "the closing fence" is simply the end
+    # of the block — no next line at all. Anything else must be another key. A continuation line is
+    # neither, which is what fires.
+    next_line="$(printf '%s\n' "$fm" | awk '/^description:/ { getline nxt; print nxt; exit }')"
+    if [ -n "$next_line" ] && ! printf '%s' "$next_line" | grep -qE '^[A-Za-z][A-Za-z0-9_-]*:'; then
+      l1_problems="$l1_problems
+    $rel — the line after 'description:' is neither the end of the frontmatter nor another key, so the
+      value CONTINUES onto it. YAML reads the whole thing; every check here reads only the first line."
+    fi
+
+    # NO UNQUOTED COLON — the failure the standard names in its own words: `description: Foo: bar` is a
+    # YAML parse error. THIS IS STRICTER THAN YAML, DELIBERATELY. YAML only breaks on a colon FOLLOWED
+    # BY SPACE, so `https://x` is legal in a plain scalar. The rule is written as "no colon" because an
+    # author applying it should not have to know YAML's plain-scalar grammar to get it right, and
+    # nothing in these 75 descriptions needs one. A description that genuinely needs a colon can quote
+    # itself, which is why the quoted form is exempted rather than forbidden.
+    case "$desc" in
+      \"*|\'*) : ;;   # explicitly quoted — YAML owns the escaping, nothing to check
+      *:*)
+        l1_problems="$l1_problems
+    $rel — unquoted description contains ':' (YAML parse hazard); rephrase or quote the value" ;;
+    esac
+
+    len=${#desc}
+    if [ "$len" -lt "$DESC_MIN" ] || [ "$len" -gt "$DESC_MAX" ]; then
+      l1_problems="$l1_problems
+    $rel — description is $len chars, outside the $DESC_MIN-$DESC_MAX bound"
+    fi
+
+    case "$desc" in
+      *'$ARGUMENTS'*)
+        l1_problems="$l1_problems
+    $rel — description contains \$ARGUMENTS; it is matched against, not interpolated" ;;
+    esac
+
+    # `argument-hint` BOTH DIRECTIONS. Positive so the two typed commands cannot silently lose theirs,
+    # negative because the standard calls carrying it to a model-invoked skill cargo cult — there is no
+    # typed argument to hint at. (Whether it also influences matching is unmeasured, and labelled a
+    # hypothesis there; nothing here depends on the answer.)
+    has_hint=""
+    printf '%s\n' "$fm" | grep -q '^argument-hint:' && has_hint=yes
+    allowed=""
+    for a in $ARG_HINT_ALLOWED; do [ "$stem" = "$a" ] && allowed=yes; done
+    if [ -n "$allowed" ] && [ -z "$has_hint" ]; then
+      l1_problems="$l1_problems
+    $rel — is user-typed and LOST its argument-hint"
+    elif [ -z "$allowed" ] && [ -n "$has_hint" ]; then
+      l1_problems="$l1_problems
+    $rel — carries argument-hint; only these are typed by the owner: $ARG_HINT_ALLOWED"
+    fi
+
+    # --- LEVEL 2: the anti-title assertions, which encode the MEASURED defects of the 75 first lines --
+    #
+    # SCOPED TO THE FRONTMATTER, NEVER THE FILE, and that scope is a decision taken in the standard
+    # rather than an oversight here. 43 of 75 BODIES carry `apps/fed` / `apps/bff`; that is #167's
+    # slice. A file-wide assertion would turn one slice into five and redden this suite against work
+    # nobody has scheduled.
+    case "$desc" in
+      *apps/fed*|*apps/bff*)
+        l2_problems="$l2_problems
+    $rel — description names a consumer path (apps/fed / apps/bff); use <project> or a plain noun" ;;
+    esac
+    case "$desc" in
+      *'(concept)'*)
+        l2_problems="$l2_problems
+    $rel — description carries '(concept)', which means nothing to a matcher" ;;
+    esac
+
+    # THE SINGLE HIGHEST-VALUE ASSERTION IN THE SET, in the standard's words: `Use when` is the clause
+    # that converts a title into a trigger, it is the exact defect of all 75 original first lines, and
+    # IT CANNOT BE SATISFIED BY ACCIDENT. Same shape as the `overrides that` anchor above, for the same
+    # reason — an anchor that a near-miss also satisfies is not an anchor.
+    case "$desc" in
+      *'Use when'*) : ;;
+      *)
+        l2_problems="$l2_problems
+    $rel — description has no 'Use when' clause, so it names an artifact and not a situation" ;;
+    esac
+
+    # DOES NOT OPEN WITH ITS OWN STEM. Catches the straight-through rewrite — `Routing …` in routing.md,
+    # `Metrics …` in metrics.md — which is a title with a `Use when` bolted on. The first tokens are the
+    # discriminating ones, so they must be an act, not the filename.
+    #
+    # THE SEGMENT LOOP IS THE WHOLE CHECK. It used to also test `$first_word = $stem`, which is dead
+    # both ways: for a single-word stem the loop's one segment IS the stem, and for a hyphenated one a
+    # single first word can never equal `og-image-generator`. A redundant arm in an assertion is not
+    # free — it reads as extra coverage and is none — so it is gone rather than left decorating.
+    first_word="$(printf '%s' "$desc" | awk '{print tolower($1)}' | tr -d '[:punct:]')"
+    for seg in $(printf '%s' "$stem" | tr '-' ' '); do
+      if [ "$first_word" = "$seg" ]; then
+        l2_problems="$l2_problems
+    $rel — description opens with its own stem ('$first_word'); open on an act + object instead"
+        break
+      fi
+    done
+
+    # EVERY `(see X)` POINTER RESOLVES TO A FILE — all of them, not just the clustered ones.
+    #
+    # L3 below checks its 31 cluster members. Measured on #168: the 75 descriptions carry 112 pointers,
+    # so 38 of them had no existence assertion anywhere. A pointer is a promise that a named file is
+    # where to go instead, and a dangling one sends a matcher — and a reader — at nothing.
+    #
+    # SAME CLASS AS THE `skills-table.py` LANDMINE THIS SLICE FIXED: cheap to state, invisible until
+    # someone follows it. It catches every rename that L3's hand-maintained table cannot see, because
+    # it is DERIVED — the pointers are read out of the descriptions rather than enumerated here.
+    #
+    # ONLY THE PLAIN-PATH FORM IS RESOLVABLE, which is what earned the deviation from the standard's
+    # backticked bare stem: `(see cloudwatch-rum)` names two files in two families, so under that
+    # spelling this check could not exist at all.
+    #
+    # ── NOTHING IS SKIPPED, AND THAT IS A CORRECTION ────────────────────────────────────────────────
+    # THE FIRST VERSION FILTERED WITH `grep -E '^[a-z0-9-]+/[a-z0-9-]+$'` AND DROPPED EVERYTHING ELSE.
+    # Measured by the merge gate: rewrite a pointer as `(see backend/framework-hono.md)` — a `.` fails
+    # the class — and the suite prints `61 passed, 0 failed`. The pointer is unresolvable, the check
+    # cannot see it, and the green says nothing is wrong.
+    #
+    # THAT IS THE THIRD INSTANCE OF THIS SLICE'S OWN SUBJECT, and it had reached a PERMANENT record:
+    # ADR-0009 lists "every `(see X)` resolving to a file" as gated. The ADR was accurate about the
+    # intent and wrong about the coverage — the same shape as the one-line comment that described a
+    # check nobody had implemented, and as `skills-table.py` claiming the first line. A filter that
+    # silently drops what it cannot parse is indistinguishable from a filter that found nothing.
+    #
+    # SO THE UNPARSEABLE IS REPORTED, NOT DISCARDED. Two branches, and every token reaches one of them.
+    #
+    # THE CLASS ALSO GAINED AN OPTIONAL FAMILY. `(/[a-z0-9-]+)?` admits a BARE stem, which resolves
+    # against `commands/<stem>.md` — the two top-level commands `autonomy-on` and `new-issue` point at
+    # each other that way, legitimately, and ADR-0009 documents them as the only such files. The old
+    # class excluded exactly the two pointers the same record called correct. A bare stem naming a
+    # NAMESPACED skill (`see metrics`) still fails, because `commands/metrics.md` does not exist —
+    # which is the ambiguity the plain-path convention exists to refuse, now enforced rather than
+    # assumed.
+    while IFS= read -r ref; do
+      [ -z "$ref" ] && continue
+      if ! printf '%s' "$ref" | grep -qE '^([a-z0-9-]+/)?[a-z0-9-]+$'; then
+        l2_problems="$l2_problems
+    $rel — pointer 'see $ref' is not a resolvable reference (expected <family>/<skill> or a top-level
+      command). Write it as a bare path with no extension, backticks or punctuation."
+        continue
+      fi
+      [ -f "$ROOT/commands/$ref.md" ] && continue
+      l2_problems="$l2_problems
+    $rel — points at 'see $ref', and commands/$ref.md does not exist"
+    done <<< "$(printf '%s' "$desc" | grep -oE '\(see [^)]*\)' \
+                  | sed 's/^(see //; s/)$//' | tr ',' '\n' | sed 's/^ *see *//; s/^ *//; s/ *$//' \
+                  | grep -v '^$' || true)"
+  done <<< "$SKILL_FILES"
+
+  if [ -z "$l1_problems" ]; then
+    ok "skill descriptions L1 — all $desc_count parse, are one line, are $DESC_MIN-$DESC_MAX chars, and argument-hint is on exactly: $ARG_HINT_ALLOWED"
+  else
+    bad "skill descriptions L1 — presence/parse:$l1_problems"
+  fi
+
+  if [ -z "$l2_problems" ]; then
+    ok "skill descriptions L2 — all $desc_count are triggers, not titles (Use when present, no consumer path, no '(concept)', no stem opener)"
+  else
+    bad "skill descriptions L2 — a description is written as a TITLE rather than a TRIGGER:$l2_problems
+      A title names the artifact; a trigger names the situation. See the standard on #166."
+  fi
+
+  # --- LEVEL 3: cluster symmetry -----------------------------------------------------------------
+  #
+  # Disambiguation is a property of THE SET, not of the file: `backend/logging`, `frontend/analytics`
+  # and `infrastructure/cloudwatch` all touch observability, and a per-file pass cannot tell them
+  # apart because each one, read alone, is correct. So each member must name at least one rival, and
+  # the naming must be MUTUAL — if A says "not me, see B" while B has never heard of A, the pair has
+  # drifted and a matcher gets one-way advice.
+  #
+  # ── WHAT THIS COSTS, STATED RATHER THAN IMPLIED, because this repo's standard is that a check says
+  #    what it does NOT cover ────────────────────────────────────────────────────────────────────────
+  # THE TABLE BELOW IS HAND-MAINTAINED, AND IT CANNOT CATCH AN ADDITION. A new skill that belongs in
+  # one of these clusters — say a second tracing skill — is simply absent from the table, so nothing
+  # here asks whether it disambiguates itself, and this block stays green while the cluster it joined
+  # silently competes on its subject. There is no way to catch that: cluster membership is a semantic
+  # judgement about what two files are ABOUT, and deriving it from the filesystem would mean deriving
+  # meaning from a path. That is exactly the "quality score" the standard refuses — it would be wrong
+  # often enough that the loop learns to silence it.
+  #
+  # WHAT IT DOES CATCH IS DELETION AND RENAME, asserted positively: every member listed must exist as a
+  # file. So removing or renaming a clustered skill reddens this and drags the table out for editing in
+  # the same commit, which is the property the rest of this suite is built on. The uncovered direction
+  # is ADDITION only, and it is uncovered on purpose rather than by omission.
+  #
+  # ── THE MATCH NEEDS A TRAILING BOUNDARY, AND THAT IS LOAD-BEARING ───────────────────────────────
+  # `infrastructure/cloudwatch` is a PREFIX of both `infrastructure/cloudwatch-rum` and
+  # `infrastructure/cloudwatch-xray`. A fixed-string search would read cloudwatch-xray's description —
+  # which names `-rum` and not the bare one — as naming `infrastructure/cloudwatch` too, then demand a
+  # reciprocal reference that should not exist, and redden a correct pair. This file has learned the
+  # substring lesson three times on the practice's name; the same shape appears here in a different
+  # guise, so the reference is matched with a non-slug character (or end of line) required after it.
+  CLUSTERS="
+observability|backend/logging backend/metrics backend/tracing infrastructure/cloudwatch infrastructure/cloudwatch-xray infrastructure/cloudwatch-rum frontend/cloudwatch-rum frontend/analytics
+config-and-secrets|backend/environment-config frontend/environment-config backend/secrets-management infrastructure/secrets-manager infrastructure/ssm
+gates|backend/coverage frontend/coverage workflow/sonarcloud workflow/code-review principles/verification-and-gates
+data|backend/dynamodb infrastructure/dynamodb backend/redis-cache infrastructure/elasticache
+auth|frontend/authentication frontend/authorization infrastructure/cognito backend/action-types
+delivery|workflow/github-actions workflow/versioning workflow/terraform-cloud infrastructure/terraform principles/dev-loop
+"
+
+  names_rival() {  # $1 = description text, $2 = rival path
+    printf '%s' "$1" | grep -qE "$2([^a-z0-9/-]|$)"
+  }
+
+  cluster_problems=""
+  cluster_members=0
+  while IFS= read -r row; do
+    [ -z "$row" ] && continue
+    cname="${row%%|*}"
+    members="${row#*|}"
+
+    for m in $members; do
+      cluster_members=$((cluster_members + 1))
+      mf="$ROOT/commands/$m.md"
+      if [ ! -f "$mf" ]; then
+        cluster_problems="$cluster_problems
+    $cname: $m is in the cluster table and has NO FILE — it was renamed or deleted; update the table"
+        continue
+      fi
+      mdesc="$(fm_block "$mf" | grep -m1 '^description:' || true)"
+
+      named=0
+      for other in $members; do
+        [ "$other" = "$m" ] && continue
+        names_rival "$mdesc" "$other" || continue
+        named=$((named + 1))
+        # SYMMETRY. Reported from the side that FAILS to reciprocate, so the message names the file to
+        # edit rather than the file that is already right.
+        of="$ROOT/commands/$other.md"
+        [ -f "$of" ] || continue
+        odesc="$(fm_block "$of" | grep -m1 '^description:' || true)"
+        if ! names_rival "$odesc" "$m"; then
+          cluster_problems="$cluster_problems
+    $cname: $m names $other, but $other does not name $m back — add the reciprocal 'Not for … (see $m)'"
+        fi
+      done
+
+      if [ "$named" -eq 0 ]; then
+        cluster_problems="$cluster_problems
+    $cname: $m names no rival in its own cluster — it competes on a shared subject with nothing to separate it"
+      fi
+    done
+  done <<< "$CLUSTERS"
+
+  if [ "$cluster_members" -eq 0 ]; then
+    bad "skill descriptions L3 — the cluster table parsed as EMPTY; this assertion did NOT run"
+  elif [ -z "$cluster_problems" ]; then
+    ok "skill descriptions L3 — all $cluster_members clustered skills name a rival, and every naming is mutual (addition to a cluster is NOT covered — see the note above)"
+  else
+    bad "skill descriptions L3 — cluster disambiguation:$cluster_problems"
+  fi
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

@@ -1,3 +1,7 @@
+---
+description: Apply the Backend-for-Frontend pattern — one backend owned by one client, screen-shaped aggregation, auth kept external to it, and the request lifecycle from gateway to handler. Use when deciding whether a response should be aggregated server-side, drawing the topology, or arguing a BFF against calling services directly from a client. Not for the framework that implements it (see backend/framework-hono).
+---
+
 Implement or review the Backend-for-Frontend (BFF) pattern.
 
 Context: $ARGUMENTS

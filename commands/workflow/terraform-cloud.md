@@ -1,3 +1,7 @@
+---
+description: Configure Terraform Cloud as the remote state backend — a workspace per environment, Local execution mode, and the pipeline-only apply and destroy policy that leaves a laptop read-only. Use when adding a workspace, pointing CI at TFC state, or explaining why an apply must never run locally. Not for the Terraform configuration itself (see infrastructure/terraform).
+---
+
 Use Terraform Cloud (TFC) in <project> infrastructure (state backend).
 
 Context: $ARGUMENTS

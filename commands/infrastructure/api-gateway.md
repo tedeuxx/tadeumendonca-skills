@@ -1,3 +1,7 @@
+---
+description: Provision a REST API Gateway in Terraform — the OpenAPI body imported as the contract, a per-route Cognito authorizer, stage throttling and usage plans, a REGIONAL custom domain, CORS in the spec and a WAF association. Use when exposing a backend, adding an authorizer, or splitting contract ownership between infrastructure and the application. Not for authoring the contract itself (see backend/openapi).
+---
+
 Use API Gateway (REST API, v1) in <project> infrastructure.
 
 Context: $ARGUMENTS

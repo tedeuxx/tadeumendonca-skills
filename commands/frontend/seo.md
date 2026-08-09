@@ -1,3 +1,7 @@
+---
+description: Set client-side SEO in a React SPA with no SSR — per-route title, description, canonical, Open Graph and JSON-LD, plus a build-generated sitemap.xml and a static robots.txt. Use when a page needs correct metadata, adding structured data, or keeping browser metadata identical to what the edge serves crawlers. Not for the crawler render path itself (see backend/prerender).
+---
+
 Frontend SEO in `apps/fed` (concept, no SSR).
 
 Context: $ARGUMENTS

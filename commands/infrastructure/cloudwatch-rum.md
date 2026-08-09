@@ -1,3 +1,7 @@
+---
+description: Provision a CloudWatch RUM app monitor in Terraform — the monitor plus a Cognito guest identity pool whose unauthenticated role can put RUM events to that monitor and nothing else. Use when a browser needs to ship telemetry, scoping the guest role, or bounding an open ingest surface. Not for the browser client that sends the events (see frontend/cloudwatch-rum), server-side logs and alarms (see infrastructure/cloudwatch), or the backend trace (see infrastructure/cloudwatch-xray).
+---
+
 Provision CloudWatch RUM (app monitor) in <project>-iac.
 
 Context: $ARGUMENTS

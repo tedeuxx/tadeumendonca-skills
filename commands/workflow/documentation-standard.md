@@ -1,3 +1,7 @@
+---
+description: Write repository documentation to the platform standard — Markdown and Mermaid only, the diagram types expected per repo, and the content each document owes. Use when adding a README or an architecture page, choosing a diagram type, or reviewing docs that drifted from the format. Not for decision records, which have their own format (see workflow/adr).
+---
+
 Write or review docs for any <project> repo following the documentation standard.
 
 Context: $ARGUMENTS

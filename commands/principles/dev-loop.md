@@ -1,3 +1,7 @@
+---
+description: Run a change from idea to live in one of two loop models — gitflow-multi-env with staging and promotion, or trunk-single-env where merge is deploy — including intake, what gets worked next, closing criteria, and revert-then-forward-fix on failure. Use when deciding which model a repo is on, sequencing a slice through review and merge, or handling a failed deploy. Not for the workflow files that implement it (see workflow/github-actions).
+---
+
 Apply the platform's end-to-end development loop in a `<project>` repo. This is the flow the principles run inside — `/principles/engineering-philosophy` is the judgment, `/principles/verification-and-gates` is what "done" means; this is how a change travels from idea to live.
 
 Context: $ARGUMENTS

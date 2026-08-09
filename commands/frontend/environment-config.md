@@ -1,3 +1,7 @@
+---
+description: Inject build-time configuration into a React SPA — values read from the parameter store in CI and baked in as VITE_ prefixed variables, behind one typed accessor, with nothing secret because the bundle is public. Use when adding a config key, wiring a deploy job to fetch configuration, or explaining why a value change needs a rebuild. Not for server-side runtime config (see backend/environment-config) or writing the parameters (see infrastructure/ssm).
+---
+
 Frontend environment config in `apps/fed` (concept).
 
 Context: $ARGUMENTS

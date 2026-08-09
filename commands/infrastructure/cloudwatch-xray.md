@@ -1,3 +1,7 @@
+---
+description: Enable X-Ray in Terraform — active tracing on API Gateway and Lambda, sampling rules, and the service map that results. Use when a request path must be traceable across services, tuning sampling for cost, or working out why a segment is missing. Not for the in-code instrumentation (see backend/tracing) or the browser half of the trace (see infrastructure/cloudwatch-rum).
+---
+
 Use AWS X-Ray in <project> infrastructure (distributed tracing service).
 
 Context: $ARGUMENTS

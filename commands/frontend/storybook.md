@@ -1,3 +1,7 @@
+---
+description: Build and document the component library with Storybook — a story per primitive, autodocs, and interaction and visual tests. Use when a component needs a state matrix to develop against, adding docs for a primitive, or catching a visual regression before it ships. Not for the design decisions those components implement (see frontend/design-system).
+---
+
 Build the component library with Storybook in `apps/fed`.
 
 Context: $ARGUMENTS

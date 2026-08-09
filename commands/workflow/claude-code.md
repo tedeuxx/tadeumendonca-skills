@@ -1,3 +1,7 @@
+---
+description: Set up the Claude Code GitHub App in a repo — the on-demand assistant workflow and the automatic pull-request review workflow, both advisory and non-blocking by design. Use when installing the app, tuning what its review looks at, or deciding whether its comments gate a merge. Not for the author-side pass that precedes it (see workflow/code-review).
+---
+
 Set up or review the Claude Code GitHub App automation in a <project> repo.
 
 Context: $ARGUMENTS

@@ -1,3 +1,7 @@
+---
+description: Decide where a piece of state lives in a React SPA — server data in React Query, UI state in Zustand, session and auth in the SDK — and what belongs in none of them. Use when adding a store, choosing between a cache and a store, or untangling state duplicated between a server response and local UI. Not for form field state (see frontend/forms) or URL state (see frontend/routing).
+---
+
 Frontend state management in `apps/fed` (concept).
 
 Context: $ARGUMENTS

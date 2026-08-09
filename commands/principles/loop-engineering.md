@@ -1,3 +1,7 @@
+---
+description: Name and practise Agent Harness Engineering (also AI-DLC) — the AI-native development loop treated as the engineered artifact, its three surfaces, and the rule that a loop change re-derives its state model before execution. Use when proposing a change to the harness itself, deciding whether a remedy belongs in a hook or in a brief, or naming this discipline in public writing. Not for the day-to-day flow a slice travels (see principles/dev-loop).
+---
+
 Name and practice the discipline this whole plugin exists to run: **Agent Harness Engineering** (the owner's term for how he works; also **AI-DLC**, the AI-native Development Life Cycle). The other four `/principles/*` skills are its parts — `/principles/engineering-philosophy` is the judgment it applies, `/principles/verification-and-gates` is the gates it composes, `/principles/dev-loop` is the flow it drives, `/principles/permissions-and-environments` is the boundary it makes mechanical. This skill is the whole, named as one thing: **the AI-native development loop, treated as the engineered artifact.**
 
 Context: $ARGUMENTS

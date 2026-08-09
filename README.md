@@ -260,7 +260,12 @@ services, the frontend stack, the CI/CD wiring and the engineering principles. E
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
 "improve".
 
-**They are not shared evenly, and at family granularity the allocation cannot even be stated truthfully** — one skill is wielded by a different persona than the rest of its family, which is a fact about that skill rather than about the family. So this is one table, the family is a column, and **each description is the skill's own first line rather than a paraphrase of it.**
+**They are not shared evenly, and at family granularity the allocation cannot even be stated truthfully** — one skill is wielded by a different persona than the rest of its family, which is a fact about that skill rather than about the family. So this is one table, the family is a column, and **each description is the skill's own first line of body rather than a paraphrase of it.**
+
+*"Of body"* is a precision the frontmatter forced (#166): every skill now opens with a `description:`
+block written for the **matcher** — one trigger sentence of 300-500 characters naming the situation the
+skill serves. This column is not that field, deliberately. It is the human inventory, and the generator
+skips the frontmatter to keep reading the line under it.
 
 The library, by family: backend (20), frontend (18), infrastructure (21), principles (5), workflow (9).
 

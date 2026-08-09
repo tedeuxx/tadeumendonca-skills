@@ -1,3 +1,7 @@
+---
+description: Provision SNS in Terraform for asynchronous domain-event fan-out — the topic, its subscriptions, and a mandatory dead-letter queue on every subscription so no event is silently lost. Use when decoupling a side effect from a request, adding a subscriber, or picking the cheapest pub/sub. Not for the publisher code (see backend/notifications).
+---
+
 Use Amazon SNS in <project> infrastructure (async domain events).
 
 Context: $ARGUMENTS

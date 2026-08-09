@@ -1,3 +1,7 @@
+---
+description: Apply the owner's engineering principles in two tiers — a non-negotiable floor and risk-calibrated judgment — over the agent-led verification, human-residual spine. Use when a design choice has no obvious right answer, when deciding how much rigor a change deserves, or when an agent needs the defaults plus the explicit triggers to deviate. Not for what done means or which gates prove it (see principles/verification-and-gates).
+---
+
 Apply these engineering principles — the owner's way of building software — in any <project> repo. They shape every decision an agent makes here. Read them as defaults plus the explicit triggers to deviate, not as rigid rules.
 
 Context: $ARGUMENTS

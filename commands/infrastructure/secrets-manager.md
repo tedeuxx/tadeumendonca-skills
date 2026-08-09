@@ -1,3 +1,7 @@
+---
+description: Provision secrets in Secrets Manager with Terraform — naming, jsonencode for structured values, third-party secrets created out of band, and publishing only the ARN so a plaintext value never reaches a function's environment or Terraform state. Use when a workload needs a credential, registering an out-of-band secret, or keeping a value out of state. Not for fetching it at runtime (see backend/secrets-management) or non-sensitive config (see infrastructure/ssm).
+---
+
 Provision secrets in AWS Secrets Manager (<project> infrastructure).
 
 Context: $ARGUMENTS

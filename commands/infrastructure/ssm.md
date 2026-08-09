@@ -1,3 +1,7 @@
+---
+description: Publish non-sensitive configuration to SSM Parameter Store with Terraform as a cross-repo config bus — the path namespace, which component owns which parameter, and how deploy jobs read them. Use when infrastructure must hand a value to an application repo, naming a parameter, or deciding a value is not sensitive enough to need more. Not for sensitive values (see infrastructure/secrets-manager) or how a client bakes them into a bundle (see frontend/environment-config).
+---
+
 Use AWS SSM Parameter Store in <project> infrastructure (the cross-repo config bus).
 
 Context: $ARGUMENTS
