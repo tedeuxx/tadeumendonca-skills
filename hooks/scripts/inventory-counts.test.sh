@@ -1357,15 +1357,12 @@ else
 
     # --- LEVEL 2: the anti-title assertions, which encode the MEASURED defects of the 75 first lines --
     #
-    # SCOPED TO THE FRONTMATTER, NEVER THE FILE, and that scope is a decision taken in the standard
-    # rather than an oversight here. 43 of 75 BODIES carry `apps/fed` / `apps/bff`; that is #167's
-    # slice. A file-wide assertion would turn one slice into five and redden this suite against work
-    # nobody has scheduled.
-    case "$desc" in
-      *apps/fed*|*apps/bff*)
-        l2_problems="$l2_problems
-    $rel — description names a consumer path (apps/fed / apps/bff); use <project> or a plain noun" ;;
-    esac
+    # THE CONSUMER-PATH CHECK NO LONGER LIVES HERE. It was frontmatter-scoped on #166 for a stated
+    # reason — 43 of 75 BODIES carried `apps/fed` / `apps/bff`, and a file-wide assertion would have
+    # reddened this suite against work nobody had scheduled. #167 cleaned the bodies, so the scope
+    # widened to the whole file and the check moved to its own block below. The rest of L2 stays
+    # description-scoped, because "is this a trigger and not a title" is a question about the
+    # description only.
     case "$desc" in
       *'(concept)'*)
         l2_problems="$l2_problems
@@ -1458,10 +1455,64 @@ else
   fi
 
   if [ -z "$l2_problems" ]; then
-    ok "skill descriptions L2 — all $desc_count are triggers, not titles (Use when present, no consumer path, no '(concept)', no stem opener)"
+    ok "skill descriptions L2 — all $desc_count are triggers, not titles (Use when present, no '(concept)', no stem opener, every '(see X)' resolves)"
   else
     bad "skill descriptions L2 — a description is written as a TITLE rather than a TRIGGER:$l2_problems
       A title names the artifact; a trigger names the situation. See the standard on #166."
+  fi
+
+  # --- NO CONSUMER-SPECIFIC REFERENCE, ANYWHERE IN A SKILL FILE (#167) ---------------------------
+  #
+  # THE RULE, WHICH IS OLDER THAN THIS CHECK: a skill must not name any path, identifier or artefact
+  # that exists in EXACTLY ONE PROJECT. `CLAUDE.md` has said so since the first commit — "project-
+  # agnostic, generic <project> / <apex-domain> placeholders, no real names or paths" — and NOTHING
+  # ENFORCED IT, which is precisely how 43 of 75 files drifted past it unnoticed for months. A rule
+  # that lives only in prose is a rule that is true until someone is in a hurry.
+  #
+  # WHY IT MATTERS BEYOND TIDINESS: this library is published for reuse. A guide naming one consumer's
+  # directories teaches that consumer's setup instead of the pattern, and a skill matched into a repo
+  # with a different layout hands the model a path that does not exist there.
+  #
+  # THE ONE ALLOWED HIT IS THE PLUGIN'S OWN NAME, and the distinction is not cosmetic:
+  # `tadeumendonca-skills` is the INVOCATION SURFACE — `/tadeumendonca-skills:infrastructure/vpc` is
+  # what EVERY consumer types, identically. Scrubbing it would make the install and invocation
+  # instructions wrong. `tadeumendonca-io` and `tadeumendonca.io` are a specific consumer's repo and
+  # domain, and go. That is why the allowance is spelled as an exact token rather than a prefix:
+  # `tadeumendonca-anything-else` is a leak until someone argues otherwise, in an MR, on the record.
+  #
+  # THE MATCH IS TOKENISED, NOT SUBSTRING, deliberately. Matching the bare stem and then filtering
+  # lines containing the allowed name would let a genuine leak hide on the same LINE as a legitimate
+  # self-reference. Extracting whole tokens and judging each one has no such blind spot — and it means
+  # trailing punctuation (`tadeumendonca-skills.`) cannot turn an allowed token into a false failure,
+  # which a naive `grep -v` on the raw match would.
+  #
+  # SCOPE IS commands/ ONLY. `agents/`, the README and the ADRs describe THIS repo and are entitled to
+  # name it; the skills are the artefact that travels.
+  consumer_problems=""
+  consumer_scanned=0
+  while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    rel="${f#"$ROOT"/}"
+    consumer_scanned=$((consumer_scanned + 1))
+    # grep -no prints LINE:MATCH, one per occurrence. The alternation captures the consumer app dirs
+    # and any `tadeumendonca…` token; the filter drops the single allowed token, exactly.
+    while IFS= read -r hit; do
+      [ -z "$hit" ] && continue
+      consumer_problems="$consumer_problems
+    $rel:$hit"
+    done <<< "$(grep -noE 'apps/(fed|bff)|tadeumendonca(\.[A-Za-z]+|-[A-Za-z]+)?' "$f" \
+                  | grep -vE ':tadeumendonca-skills$' || true)"
+  done <<< "$SKILL_FILES"
+
+  if [ "$consumer_scanned" -eq 0 ]; then
+    bad "consumer references — no skill files were scanned; this assertion did NOT run"
+  elif [ -z "$consumer_problems" ]; then
+    ok "consumer references — all $consumer_scanned skill files are project-agnostic across their WHOLE body, not just the frontmatter (only 'tadeumendonca-skills', the plugin's own invocation name, is allowed)"
+  else
+    bad "consumer references — a skill names something that exists in exactly one project:$consumer_problems
+      Replace it with a <project>-style placeholder, or with a sentence that teaches the pattern where
+      the path was doing explanatory work — never delete it and leave a hole. The plugin's own name
+      ('tadeumendonca-skills') is the ONLY allowed occurrence, because it is what every consumer types."
   fi
 
   # --- LEVEL 3: cluster symmetry -----------------------------------------------------------------
