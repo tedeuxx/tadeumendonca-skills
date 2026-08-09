@@ -2,7 +2,7 @@
 description: Wire the Hono framework onto AWS Lambda in server handler code — the app and Lambda adapter, zod-openapi routes and validation, and the middleware chain for logging, errors, audit and authorize. Use when creating the API entry point, inserting a middleware, or setting up vitest for handlers. Not for a single domain module's routes (see backend/lambda-handler).
 ---
 
-Implement or review the Hono backend framework for `apps/bff` (the BFF).
+Implement or review the Hono backend framework for the BFF.
 
 Context: $ARGUMENTS
 

@@ -271,44 +271,44 @@ The library, by family: backend (20), frontend (18), infrastructure (21), princi
 
 | skill | what it decides | family | wielded by |
 |---|---|---|---|
-| `action-types` | Define or review action types (audit + RBAC + feature toggles) in `apps/bff`. | `backend` | `developer` |
-| `audit-middleware` | Define or review the audit trail in `apps/bff`. | `backend` | `developer` |
+| `action-types` | Define or review action types (audit + RBAC + feature toggles) in the BFF. | `backend` | `developer` |
+| `audit-middleware` | Define or review the audit trail in the BFF. | `backend` | `developer` |
 | `bff` | Implement or review the Backend-for-Frontend (BFF) pattern. | `backend` | `developer` |
-| `coverage` | Set up or review the backend (`apps/bff`) quality, test, and security gates. | `backend` | `developer` |
-| `dynamodb` | Connect to and access DynamoDB in `apps/bff`. | `backend` | `developer` |
-| `environment-config` | Configure and validate backend environments in `apps/bff`. | `backend` | `developer` |
-| `error-handling` | Implement or review HTTP error handling in `apps/bff`. | `backend` | `developer` |
-| `framework-hono` | Implement or review the Hono backend framework for `apps/bff` (the BFF). | `backend` | `developer` |
-| `lambda-handler` | Implement a domain module in the BFF (`apps/bff`). | `backend` | `developer` |
-| `logging` | Implement or review structured logging in `apps/bff`. | `backend` | `developer` |
-| `metrics` | Implement or review metrics in `apps/bff` (Powertools Metrics → EMF → CloudWatch). | `backend` | `developer` |
-| `notifications` | Implement or review notifications (email via SES) in `apps/bff`. | `backend` | `developer` |
-| `og-edge-handler` | Implement or update the og-edge Lambda@Edge handler. **It lives in `<project>-pwa/iac`** (`iac/lambda-src/og-edge/index.js`), not `apps/bff` — see… | `backend` | `developer` |
-| `og-image-generator` | Implement or update the OG image generator — a module of the BFF (`apps/bff/src/modules/og-image/`). | `backend` | `developer` |
+| `coverage` | Set up or review the backend quality, test, and security gates. | `backend` | `developer` |
+| `dynamodb` | Connect to and access DynamoDB in the BFF. | `backend` | `developer` |
+| `environment-config` | Configure and validate backend environments. | `backend` | `developer` |
+| `error-handling` | Implement or review HTTP error handling in the BFF. | `backend` | `developer` |
+| `framework-hono` | Implement or review the Hono backend framework for the BFF. | `backend` | `developer` |
+| `lambda-handler` | Implement a domain module in the BFF. | `backend` | `developer` |
+| `logging` | Implement or review structured logging in the BFF. | `backend` | `developer` |
+| `metrics` | Implement or review metrics in the BFF (Powertools Metrics → EMF → CloudWatch). | `backend` | `developer` |
+| `notifications` | Implement or review notifications (email via SES) in the BFF. | `backend` | `developer` |
+| `og-edge-handler` | Implement or update the og-edge Lambda@Edge handler. **It lives with the Terraform, not with the API application**… | `backend` | `developer` |
+| `og-image-generator` | Implement or update the OG image generator — a module of the BFF, at `src/modules/og-image/` under the BFF app's root. | `backend` | `developer` |
 | `openapi` | Maintain the backend API contract (OpenAPI) — generated, versioned, committed. | `backend` | `developer` |
-| `postman` | Use Postman (+ newman) for API testing in `apps/bff`. | `backend` | `developer` |
-| `prerender` | Implement or review the bot-rendering API (og-meta + prerender) in `apps/bff`. | `backend` | `developer` |
-| `redis-cache` | Implement or review backend caching with Redis (ElastiCache) in `apps/bff`. Redis is VPC-only, so enabling it puts the BFF in-VPC (it is non-VPC… | `backend` | `developer` |
-| `secrets-management` | Fetch sensitive backend values from AWS Secrets Manager in `apps/bff`. | `backend` | `developer` |
-| `tracing` | Implement or review distributed tracing in `apps/bff`. | `backend` | `developer` |
-| `analytics` | Frontend analytics (GA4) in `apps/fed` (concept). | `frontend` | `developer` |
-| `api-client` | SPA → BFF API calls in `apps/fed` (concept). | `frontend` | `developer` |
-| `authentication` | SPA authentication in `apps/fed` (concept). | `frontend` | `developer` |
-| `authorization` | SPA authorization / UI gating in `apps/fed` (concept). | `frontend` | `developer` |
-| `cloudwatch-rum` | Frontend real-user monitoring (CloudWatch RUM) in `apps/fed` (concept). | `frontend` | `developer` |
-| `coverage` | Set up or review the frontend (`apps/fed`) quality, test, and security gates. | `frontend` | `developer` |
+| `postman` | Use Postman (+ newman) for API testing in the BFF. | `backend` | `developer` |
+| `prerender` | Implement or review the bot-rendering API (og-meta + prerender) in the BFF. | `backend` | `developer` |
+| `redis-cache` | Implement or review backend caching with Redis (ElastiCache). Redis is VPC-only, so enabling it puts the BFF in-VPC (it is non-VPC by default). | `backend` | `developer` |
+| `secrets-management` | Fetch sensitive values from AWS Secrets Manager in the BFF. | `backend` | `developer` |
+| `tracing` | Implement or review distributed tracing in the BFF. | `backend` | `developer` |
+| `analytics` | Frontend analytics with GA4 (concept). | `frontend` | `developer` |
+| `api-client` | SPA → BFF API calls (concept). | `frontend` | `developer` |
+| `authentication` | SPA authentication (concept). | `frontend` | `developer` |
+| `authorization` | SPA authorization / UI gating (concept). | `frontend` | `developer` |
+| `cloudwatch-rum` | Frontend real-user monitoring with CloudWatch RUM (concept). | `frontend` | `developer` |
+| `coverage` | Set up or review the frontend quality, test, and security gates. | `frontend` | `developer` |
 | `design-system` | Design system (custom Tailwind, no component library) — which pattern for each UI need. | `frontend` | `developer` |
-| `environment-config` | Frontend environment config in `apps/fed` (concept). | `frontend` | `developer` |
-| `forms` | Implement or review forms in `apps/fed` (admin compose). | `frontend` | `developer` |
-| `framework-react` | Implement or review the React frontend framework for `apps/fed`. | `frontend` | `developer` |
-| `markdown` | Render article markdown in `apps/fed` (concept). | `frontend` | `developer` |
-| `pagination` | Cursor pagination in `apps/fed` (concept). | `frontend` | `developer` |
-| `playwright` | Use Playwright for E2E tests in `apps/fed`. | `frontend` | `developer` |
-| `routing` | Frontend routing in `apps/fed` (concept). | `frontend` | `developer` |
-| `seo` | Frontend SEO in `apps/fed` (concept, no SSR). | `frontend` | `developer` |
-| `state` | Frontend state management in `apps/fed` (concept). | `frontend` | `developer` |
-| `storybook` | Build the component library with Storybook in `apps/fed`. | `frontend` | `developer` |
-| `ux-states` | Loading / empty / error UX states in `apps/fed` (concept). | `frontend` | `developer` |
+| `environment-config` | Frontend environment config (concept). | `frontend` | `developer` |
+| `forms` | Implement or review forms in the SPA (admin compose). | `frontend` | `developer` |
+| `framework-react` | Implement or review the React frontend framework for the SPA. | `frontend` | `developer` |
+| `markdown` | Render article markdown in the SPA (concept). | `frontend` | `developer` |
+| `pagination` | Cursor pagination in the SPA (concept). | `frontend` | `developer` |
+| `playwright` | Use Playwright for E2E tests in the SPA. | `frontend` | `developer` |
+| `routing` | Frontend routing (concept). | `frontend` | `developer` |
+| `seo` | Frontend SEO (concept, no SSR). | `frontend` | `developer` |
+| `state` | Frontend state management (concept). | `frontend` | `developer` |
+| `storybook` | Build the component library with Storybook in the SPA. | `frontend` | `developer` |
+| `ux-states` | Loading / empty / error UX states in the SPA (concept). | `frontend` | `developer` |
 | `acm` | Use AWS Certificate Manager (ACM) in <project> infrastructure. | `infrastructure` | `developer` |
 | `api-gateway` | Use API Gateway (REST API, v1) in <project> infrastructure. | `infrastructure` | `developer` |
 | `cloudfront` | Use CloudFront in <project> infrastructure (incl. the SPA distribution). | `infrastructure` | `developer` |

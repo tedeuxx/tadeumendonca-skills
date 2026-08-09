@@ -2,7 +2,7 @@
 description: Generate Open Graph preview images on demand — satori turning JSX into SVG, resvg rendering it to PNG, and an S3 cache served through the CDN, with the WASM bundling and testing gotchas that come with it. Use when social previews are missing or wrong, changing the card template, or debugging a WASM build inside a Lambda. Not for the request classification that decides who is served one (see backend/og-edge-handler).
 ---
 
-Implement or update the OG image generator — a module of the BFF (`apps/bff/src/modules/og-image/`).
+Implement or update the OG image generator — a module of the BFF, at `src/modules/og-image/` under the BFF app's root.
 
 Context: $ARGUMENTS
 

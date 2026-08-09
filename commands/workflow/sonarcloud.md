@@ -10,7 +10,7 @@ SonarCloud runs on every PR and on push to develop/main as a **Quality Gate** �
 
 ## Setup (per repo)
 - `sonar-project.properties`: `sonar.projectKey`, `sonar.organization`, `sonar.sources` (+ `sonar.tests`/`sonar.coverage.exclusions` for code repos).
-- Secret **`SONAR_TOKEN`** (per repo — `tedeuxx` is a personal account, so no org-level secret).
+- Secret **`SONAR_TOKEN`** — **per repo under a personal GitHub account**, since organization-level secrets do not exist there; under an org, define it once at org level and grant it to the repos that need it. *The cost of the personal-account shape is rotation:* one token change is N repo edits, so keep a list of the repos that hold it, or the next rotation silently leaves one red.
 - Coverage import (code repos): `sonar.javascript.lcov.reportPaths=coverage/lcov.info` (from vitest; covers TS/TSX too). IaC repos have no coverage.
 
 ## CI step (after tests, in ci.yml — see `/workflow/github-actions`)

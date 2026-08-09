@@ -8,7 +8,7 @@ Context: $ARGUMENTS
 
 The single GitHub/CI-CD capability skill: the Actions platform, the branching + numeric-versioning model, the per-repo deploy workflows, and the Issues backlog all live here. Pipelines are **independent per repo** — never trigger one repo's pipeline from another.
 
-> **How to read this skill.** Like the roster's OFF personas, it **defines** the full CI/CD capability so it's reusable, but a given repo **enables** only what its architecture needs. The **active** shape for a static, backend-less, single-environment site (as `tadeumendonca-io` is) is the frontend deploy + the infra runner under `trunk-single-env`. The **backend-ful / multi-env** pieces (the BFF deploy role and section, the monorepo, `TEST_USER_*`, `gitflow` staging→production) are marked **“backend-ful reference (OFF in a static repo)”** — kept for a project that turns them on, not describing the static repo.
+> **How to read this skill.** Like the roster's OFF personas, it **defines** the full CI/CD capability so it's reusable, but a given repo **enables** only what its architecture needs. The **active** shape for a static, backend-less, single-environment site is the frontend deploy + the infra runner under `trunk-single-env`. The **backend-ful / multi-env** pieces (the BFF deploy role and section, the monorepo, `TEST_USER_*`, `gitflow` staging→production) are marked **“backend-ful reference (OFF in a static repo)”** — kept for a project that turns them on, not describing the static repo.
 
 ## Pipeline roles & AWS auth (OIDC) — what CI can do in the account
 Every pipeline assumes a dedicated AWS role via **GitHub OIDC** (`aws-actions/configure-aws-credentials` + `permissions: id-token: write`) — **no `AWS_ACCESS_KEY_ID` secrets**. A deploy role has two halves: the **trust policy = the OIDC handshake** (WHO may assume — the repo's **immutable** OIDC subject `repo:<org>@<org_id>/<repo>@<repo_id>:*` on the pre-existing GitHub OIDC provider, see `/infrastructure/iam`) and a **least-privilege permissions policy** (WHAT it may do). All of this is a pipeline concern and lives here.
@@ -52,12 +52,12 @@ Every pipeline assumes a dedicated AWS role via **GitHub OIDC** (`aws-actions/co
 | `TEST_USER_USERNAME` / `TEST_USER_PASSWORD` | environment | — *(no auth)* | — | ✓ *(authed e2e)* |
 
 - **Trade-off / migration:** re-scoping a secret (repo→environment) or renaming it means the GitHub secret store AND the consuming jobs change **together** — the deploy/apply jobs declare `environment:`, so the same `secrets.AWS_*_OIDC_ROLE_ARN` ref resolves from the Environment once the env secret exists; sequence: **add** the env secret → prove on a PR/apply → **remove** the old repo-level secret last.
-- **Durable facts:** `VERSION_BUMP_TOKEN` is the fine-grained PAT `tadeumendonca-version-bump` — perms MUST be Contents:write + Workflows:write (a missing Workflows scope 403s the bump). The **owner** runs `gh secret set` for any credential value (the agent can't handle it); `claude setup-token` needs a real TTY.
+- **Durable facts:** `VERSION_BUMP_TOKEN` is a fine-grained PAT of its own (name it for its job — `<project>-version-bump` — so a token audit can tell at a glance what breaks if it is revoked) — perms MUST be Contents:write + Workflows:write (a missing Workflows scope 403s the bump). The **owner** runs `gh secret set` for any credential value (the agent can't handle it); `claude setup-token` needs a real TTY.
 
 **Environments:** under `trunk-single-env` there is a **single** GitHub Environment (it scopes the role ARNs as env secrets) and **no** approval gate at the environment level — the gate is the merge itself. Under `gitflow-multi-env`, `staging` (no rules) + `production` (required reviewer) — production deploys gate on environment approval. Either way **every** role ARN lives as an environment secret.
 
 ## Workflow set (per repo)
-- **The build/test gate** — for the static site it's **`build-test.yml`** (PR): lint + typecheck + tests (coverage ≥85%) + build + **Playwright E2E** + **SonarCloud** gate, path-filtered to `apps/fed`. (A backend-ful repo names it `ci.yml` and adds `/backend/coverage`.) The infra gate is **`infra-plan.yml`** (checkov + `fmt`/`validate`/`plan`), path-filtered to `iac/`.
+- **The build/test gate** — for the static site it's **`build-test.yml`** (PR): lint + typecheck + tests (coverage ≥85%) + build + **Playwright E2E** + **SonarCloud** gate, path-filtered to the SPA's directory. (A backend-ful repo names it `ci.yml` and adds `/backend/coverage`.) The infra gate is **`infra-plan.yml`** (checkov + `fmt`/`validate`/`plan`), path-filtered to `iac/`.
 - **Required check + trigger `paths:` filter = docs PRs BLOCKED forever (gotcha).** If a *required* status check is gated by a trigger-level `on.pull_request.paths:` filter, a PR touching none of those paths (a docs-only `CLAUDE.md` PR) never starts the workflow, so the required check never reports — branch protection then leaves the PR permanently `BLOCKED` (and `--admin` bypass defeats the gate). **Fix:** drop `paths:` from the `pull_request` trigger so the job ALWAYS runs (and always reports), then gate the heavy steps inside the job with a `dorny/paths-filter@v3` step + `if: steps.changes.outputs.<filter> == 'true'`. Docs-only PRs run the job and finish **green** in seconds. Keep the `push` trigger's `paths:` (SonarCloud baseline only on real changes). Don't gate the whole *job* with `if:` — gate the *steps* so the job still reports success.
 - **Deploy** — for the static site, **`deploy.yml`** (one job on merge to `main`) + **`infra-apply.yml`** (Terraform apply on merge, when `iac/` changed). Under `gitflow-multi-env` a `deploy.yml` does develop→staging (auto), main→production (approval).
 - **`version-main.yml`** — numeric SemVer bump (below). `trunk-single-env` needs only the `main` one; `gitflow-multi-env` adds `version-develop.yml`.
@@ -137,8 +137,10 @@ GitHub repo **descriptions** follow one format — lead with the platform name (
 ```
 <apex-domain> — <repo role>: <stack/scope>
 ```
-- Static site — `tadeumendonca.io — proof-of-engineering site: static SPA (React/Vite) on S3+CloudFront`
-- Skills plugin — `tadeumendonca.io — Claude Code skills library: reusable engineering workflows`
+- Static site — `<apex-domain> — proof-of-engineering site: static SPA (React/Vite) on S3+CloudFront`
+- Skills plugin — `<apex-domain> — Claude Code skills library: reusable engineering workflows`
+
+Every repo in a platform leads with the **same** `<apex-domain>`, deliberately: the description is read in search results and on a profile, where repos appear detached from each other, so the shared prefix is what tells a reader they are one system rather than five side projects.
 - *(Backend-ful reference)* App monorepo — `<apex-domain> — product monorepo: PWA (React) + BFF (Hono/Lambda) + app infra (Terraform)`
 
 ## Language

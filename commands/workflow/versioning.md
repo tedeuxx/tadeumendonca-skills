@@ -12,7 +12,7 @@ The single source of truth for **versioning and git tags** across the repos. The
 - **Marketplace-distributed plugin** (`<project>-skills`) — **auto-bumps the PATCH on every merge to `main`** (`version-main.yml`) and publishes a Release, because the marketplace only serves *published* versions and an unreleased `main` is invisible to the installed plugin. **Publishing ≠ forcing adoption:** each consumer opts in via `/plugin update`, so publishing on every merge has no downside and removes the "merged but never shipped" failure mode. Deliberate minor/major via `release.yml`. (Methodology ADR-0005.)
 - **Semver-pinned library** (an npm dependency a consumer locks) — releases **deliberately**, because its tag *is* a consumer lockfile and every tag invites a version resolution. Here `release.yml` (`workflow_dispatch`) is the trigger and pushes do not auto-bump.
 
-The static-site repo (`tadeumendonca-io`) is a **deploy-model** repo: `main` auto-bumps the patch on merge (`version-main.yml`) since the merge deploys.
+A **deployed** repo — a site or service whose merge to `main` *is* the deploy — is a **deploy-model** repo: `main` auto-bumps the patch on merge (`version-main.yml`), because the version's job there is to name what is live, and something went live either way. The test is not what the repo contains but **who acts on the number**: a consumer resolving a dependency (deliberate release) or an operator identifying a running build (auto-bump).
 
 ## Scheme — purely numeric SemVer
 `MAJOR.MINOR.PATCH` only — **no `-dev` / pre-release suffix** (explicitly rejected). `VERSION` starts at `0.1.0`. Tags are `vX.Y.Z`.
@@ -52,7 +52,7 @@ Bump commits use message `bump: {current} → {new}`; **both workflows skip any 
 
 ## Conventions
 - Same scheme/threshold in all repos — never a per-repo variant.
-- The version is the contract stamp: the BFF's OpenAPI `info.version` (`apps/bff`) == the monorepo `VERSION` (`/backend/openapi`).
+- The version is the contract stamp: the API's OpenAPI `info.version` == the `VERSION` file of the repo that ships it (`/backend/openapi`) — generated from it at build time, never typed twice, so a published contract can always be traced back to the exact tag that produced it.
 
 ## Post-release: back-merge `main → develop`
 After a release to `main`, the version-bump commit + tag live only on `main`, so `develop`'s `VERSION` lags. **Back-merge `main` into `develop`** so the lineage reconciles and the next dev work continues from the released version (e.g. `0.2.0` → next `develop` push → `0.2.1`):

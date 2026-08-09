@@ -30,7 +30,7 @@ Every ADR uses **MADR** (Markdown Any Decision Record). Copy `docs/adr/template.
 | Library | Lives in | Records |
 |---|---|---|
 | **Methodology** | `tadeumendonca-skills/docs/adr/` | decisions about the *machine* — the dev-loop, the roster, the gates, this practice itself |
-| **Product** | the consuming repo's `docs/adr/` (e.g. `tadeumendonca-io/docs/adr/`) | decisions about the *product* — its architecture, stack, infra, UX |
+| **Product** | `docs/adr/` in the repo that installs the plugin — one library per product, at its root | decisions about the *product* — its architecture, stack, infra, UX |
 
 This skill (the template + practice) is single and lives in the plugin; both libraries consume it.
 

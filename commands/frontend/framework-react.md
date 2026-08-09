@@ -2,7 +2,7 @@
 description: Build the React and Vite single-page app — providers at bootstrap, the Cognito SDK, React Query, the typed API client, routing with guards, and vitest with React Testing Library. This is the one skill that carries actual React snippets. Use when scaffolding the app, wiring a provider, or turning a concept into components. Not for the tokens and primitives it renders (see frontend/design-system).
 ---
 
-Implement or review the React frontend framework for `apps/fed`.
+Implement or review the React frontend framework for the SPA.
 
 Context: $ARGUMENTS
 

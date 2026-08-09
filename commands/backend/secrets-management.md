@@ -2,7 +2,7 @@
 description: Fetch sensitive values from AWS Secrets Manager at runtime in server handler code — a client singleton with an in-memory cache, so a secret is never baked into an environment variable or a bundle. Use when code needs a credential or third-party token, tuning how long a secret is cached, or removing a plaintext value from configuration. Not for non-secret configuration (see backend/environment-config) or provisioning the secret (see infrastructure/secrets-manager).
 ---
 
-Fetch sensitive backend values from AWS Secrets Manager in `apps/bff`.
+Fetch sensitive values from AWS Secrets Manager in the BFF.
 
 Context: $ARGUMENTS
 

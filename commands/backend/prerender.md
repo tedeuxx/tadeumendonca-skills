@@ -2,7 +2,7 @@
 description: Serve prerendered HTML and head metadata to bots from a shared render module — the og-meta and prerender endpoints, JSON-LD structured data, and parity with what the app renders so it is not cloaking. Use when a crawler needs server-rendered content without adopting SSR, adding structured data, or aligning bot and browser output. Not for the edge classification in front of it (see backend/og-edge-handler).
 ---
 
-Implement or review the bot-rendering API (og-meta + prerender) in `apps/bff`.
+Implement or review the bot-rendering API (og-meta + prerender) in the BFF.
 
 Context: $ARGUMENTS
 

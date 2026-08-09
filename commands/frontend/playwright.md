@@ -2,7 +2,7 @@
 description: Write browser end-to-end journeys with Playwright — one command targeting either a local server or the deployed apex, the standard that every user-facing feature ships its E2E, and the critical journeys run in CI. Use when a slice changes user-visible behaviour, when a journey owes a regression, or when wiring E2E into a pipeline. Not for API-level contract tests (see backend/postman).
 ---
 
-Use Playwright for E2E tests in `apps/fed`.
+Use Playwright for E2E tests in the SPA.
 
 Context: $ARGUMENTS
 
@@ -14,7 +14,7 @@ deploy), and the same specs can run as a **post-deploy smoke** against the live 
 ## Setup (single environment, one command targets local or the apex)
 - `playwright.config.ts`: `baseURL` from `PLAYWRIGHT_BASE_URL`, or from `E2E_ENV` mapped to a URL — `local`
   (a `vite preview` of the built app at `:4173`) or the **single environment served at the apex**
-  (`https://tadeumendonca.io`). `trace: 'on-first-retry'`, `retries` in CI, chromium project. The **same
+  (`https://<apex-domain>`). `trace: 'on-first-retry'`, `retries` in CI, chromium project. The **same
   specs run anywhere** — only the base URL changes.
 - `package.json` scripts: `e2e:local` (against `vite preview`) is the **pre-merge gate**; the apex-targeted
   run is the **deploy smoke**. (There is one environment; any `staging`/`production` script names are aliases

@@ -105,9 +105,15 @@ axes cover the whole library: **use vs provision · which surface · decide vs i
 
 **The enforcement boundary, which is deliberately partial and is the second half of this decision.**
 Gated: frontmatter presence and parse, `description` present and non-empty, **one physical line**,
-length bounds, the literal `Use when`, the frontmatter-scoped consumer-path ban, no `(concept)`, no
+length bounds, the literal `Use when`, ~~the frontmatter-scoped consumer-path ban~~ **the consumer-path
+ban — whole-file since [PR #169](https://github.com/tedeuxx/tadeumendonca-skills/pull/169), and its own
+block rather than part of this list's L2; see the amendment of 2026-08-09 below**, no `(concept)`, no
 description opening with its own stem, `argument-hint` on the two typed commands and nowhere else,
 cluster symmetry, and every `(see X)` resolving to a file. **Refused: any quality score**, per option 3.
+
+*The struck scope was chosen, not defaulted to, and the amendment keeps the reason it was chosen. What
+changed is that its precondition was discharged — the widening is strictly wider, so nothing this
+sentence gated when it was written is ungated now.*
 
 ## The plain-path deviation — recorded as a live tension, not resolved
 
@@ -206,8 +212,14 @@ does not show that any of them matches a task.
 - Open and deliberately **not** pre-empted:
   [#164](https://github.com/tedeuxx/tadeumendonca-skills/issues/164) (family merges / tree shape — the
   plain-path tension above) and
-  [#167](https://github.com/tedeuxx/tadeumendonca-skills/issues/167) (consumer paths in **bodies**; the
-  ban recorded here is frontmatter-scoped, which is what kept this slice one slice).
+  ~~[#167](https://github.com/tedeuxx/tadeumendonca-skills/issues/167) (consumer paths in **bodies**; the
+  ban recorded here is frontmatter-scoped, which is what kept this slice one slice).~~ **Struck
+  2026-08-09 — #167 is no longer deferred.** It is implemented by
+  [PR #169](https://github.com/tedeuxx/tadeumendonca-skills/pull/169), open at the time of writing, which
+  cleaned the bodies and widened the ban to the whole file. The sentence was true when written and the
+  scoping reasoning is preserved in the amendment below rather than deleted, because a scope
+  deliberately chosen and later discharged is a different thing from a scope that was always this.
+  **#164 remains open and remains deliberately not pre-empted.**
 - Related: [ADR-0008](./0008-which-layer-carries-a-control.md) for *a check that is wrong more often
   than right trains the loop to silence it*, which is the reason option 3 is refused rather than
   deferred; and [ADR-0003](./0003-mr-definition-of-done.md), whose *decision recorded* criterion is what
@@ -216,3 +228,131 @@ does not show that any of them matches a task.
   → two files, against 75 today, for the 73-with-no-frontmatter figure; and a scan of the 75
   frontmatter blocks for the **112** pointers, **zero** dangling, and the **four** duplicated stems
   (`cloudwatch-rum`, `coverage`, `dynamodb`, `environment-config`).
+
+## Amendment (2026-08-09) — the consumer-path ban is now whole-file; the scope this record chose was discharged, not wrong
+
+Everything above stands as the decision. **Two of its sentences are stale** — the enforcement list in
+**Decision outcome** and the #167 bullet in **Links** — and both are struck in place rather than
+rewritten. What changed is not the reasoning; it is the reasoning's precondition.
+
+### 1 · Why the ban was frontmatter-scoped, which is the half worth keeping
+
+[PR #168](https://github.com/tedeuxx/tadeumendonca-skills/pull/168) gated the consumer-path ban on the
+`description` field only. That was a **sequencing decision taken in the standard**, not an oversight in
+the check: the bodies were dirty, and a file-wide assertion would have turned the suite red against work
+nobody had scheduled — one slice becoming five, and a gate arriving already failing. This library has
+already recorded what an enforcement mechanism that cannot be satisfied costs
+([ADR-0008](./0008-which-layer-carries-a-control.md)): it gets silenced, and a silenced check still
+looks like coverage. So the scope was drawn where the check could be **green and honest on the same
+day**.
+
+**Re-derived at `485b97e` (this record's merge base) rather than relayed:**
+
+    git grep -nIoE 'apps/(fed|bff)|tadeumendonca(\.[A-Za-z]+|-[A-Za-z]+)?' 485b97e -- commands/ \
+      | grep -vE ':tadeumendonca-skills$'
+
+→ **80 occurrences on 73 lines across 45 files.** Broken down: `apps/bff` 45, `apps/fed` 26,
+`tadeumendonca.io` 4, `tadeumendonca-io` 3, `tadeumendonca-version` 1, bare `tadeumendonca` 1. The
+**43 files** figure carried in the check's own comment and in #167's title is the `apps/…` subset alone;
+both numbers are true, of different sets, and the difference is the six files whose only leak was a
+`tadeumendonca…` token. *(#169's description reports 72 occurrences. The file count reproduces exactly;
+the occurrence count does not, and the command above is the one this record stands behind rather than
+the prose it was relayed from.)*
+
+### 2 · What discharged it
+
+PR #169, implementing [#167](https://github.com/tedeuxx/tadeumendonca-skills/issues/167), cleaned the
+bodies to **zero by the same command at branch head**, and widened the assertion from the frontmatter to
+the whole file. The widening is **mutation-proven, not read**: a consumer path injected at
+`commands/frontend/state.md:28` — a body line the frontmatter-scoped check structurally could not see —
+fails red naming file and line, and the negative control (`tadeumendonca-skills`, three live
+occurrences) stays green. That matters here because the recurring defect this repo keeps finding is an
+assertion that cannot fail, and a *widened* assertion is exactly where that defect hides.
+
+**The distinction that decided the judgement calls, recorded because it is the one a future author will
+have to make again.** Of the nine `tadeumendonca…` occurrences that were not `-skills`, **seven** were
+`tadeumendonca-io` (3) or `tadeumendonca.io` (4) — one consumer's repo and one consumer's domain — and
+they go. **`tadeumendonca-skills` stays**, because it is the plugin **naming its own invocation
+surface**: `/tadeumendonca-skills:infrastructure/vpc` is what every consumer types, identically, and
+scrubbing it would make the install and invocation instructions wrong. That is why the allowance is
+spelled as an **exact token rather than a prefix** — `tadeumendonca-<anything-else>` is a leak until
+someone argues otherwise, in an MR, on the record. The remaining two occurrences are consumer facts as
+well and also went: the PAT name `tadeumendonca-version-bump`, and the bare `tadeumendonca` used as an
+example Terraform `project` value.
+
+### 3 · The gate as it now stands, so the enumerated list above stays true rather than generous
+
+- The consumer-path check has **moved out of L2 into its own block**. The rest of L2 stays
+  description-scoped, because *"is this a trigger and not a title"* is a question about the description
+  only.
+- Its scan set is **`commands/**/*.md` and nothing else** — `agents/`, the README and these ADRs
+  describe *this* repo and are entitled to name it; the skills are the artefact that travels.
+- Its match is **tokenised rather than substring**, so a genuine leak cannot hide on a line that also
+  carries a legitimate self-reference, and trailing punctuation cannot turn an allowed token into a
+  false failure.
+- An **empty scan set fails loudly** rather than passing.
+- The widening is **strictly wider**: the frontmatter is part of the file, so nothing this record gated
+  when it was written is ungated now.
+
+### 4 · A bound on that claim, because the widened gate reads stronger than it is
+
+Project-agnosticism is now mechanised for **literal** consumer identifiers only. Measured at branch
+head, `git grep -lE '<project>-(pwa|iac)' -- commands/` returns **11 files**, of which three carry
+`<project>-pwa` (`infrastructure/elasticache`, `infrastructure/terraform`, `infrastructure/waf`). Those
+pass the check **correctly** — they name nothing that exists in exactly one project — and they
+nevertheless assert **one specific two-repo topology** (a monorepo `<project>-pwa/iac` beside a separate
+shared `<project>-iac`) as though it were the pattern, which is the same failure #167 names, wearing a
+placeholder.
+
+**Ruled out of scope for this record and out of scope for #167, deliberately.** Not this record's,
+because its subject is the `description` field and **zero** of those 11 occurrences are in a
+description — every one is in a first body line or below (measured, not assumed). Not #167's, because
+#167's question is *literal identifiers*, and widening its vocabulary mid-slice to cover a placeholder
+would be answering a different question under a closed one's name. It is a **content** question — what a
+deliberately-retained reference-pattern skill may assume about repo layout — it sits beside
+[#164](https://github.com/tedeuxx/tadeumendonca-skills/issues/164), and it is the owner's to open or
+not. Named here so a later reader does not mistake a green consumer-path check for the whole of the
+project-agnostic rule.
+
+### 5 · A cost this record did not carry, and option 2 is where it came from
+
+Rejecting *"reuse the existing first line as the description"* (**Considered options**, option 2) was
+right for the reason given, and it left a consequence the record did not book: **every skill now has two
+independently authored descriptions** — the `description` field, and the **first body line**, which
+`hooks/scripts/skills-table.py` publishes as **column 2 of the README's skill table**. They can drift
+from each other and from the body, and nothing reconciles them.
+
+#169 edited body first lines and therefore changed published README rows. It regenerated with the
+committed generator, and that is verified rather than trusted: every row emitted by `skills-table.py` at
+branch head appears verbatim in `README.md` (73 rows, `grep -Fxv -f README.md` over the generator's
+output returns nothing). **The table is correct today.**
+
+**What has no guard is that it stays correct.** `hooks/scripts/inventory-counts.test.sh` asserts the
+table in both directions — every skill file has a row, every row names a skill file — but **keys on
+cells 1 and 3 only** (skill, family), which the generator's own docstring states. So the description
+cell is unasserted. **Mutation-proven, not inferred:** replacing the `vpc` row's cell 2 with
+`TOTALLY WRONG DESCRIPTION THAT IS NOT THE FIRST BODY LINE` leaves the suite at **62 passed, 0 failed**,
+both table assertions green. A fabricated published description passes.
+
+**Recorded as a cost, not as a decision.** Closing it is a routine assertion — regenerate and diff the
+table, which also subsumes both existing directions — and it is below `/workflow/adr`'s significance
+bar: no public contract, no fixed decision altered, no new dependency, no cross-cutting pattern. Folding
+it in as a decision would put a **second decision** in a record whose entire subject is one field, and
+one decision per ADR is the rule this library does not bend. It belongs here only as the consequence of
+option 2 that this record failed to name, and it is the same class as the three defects #168 found
+inside itself: **a green that was never observed to go red is not a gate.**
+
+**Links added by this amendment**
+
+- [PR #169](https://github.com/tedeuxx/tadeumendonca-skills/pull/169), implementing
+  [#167](https://github.com/tedeuxx/tadeumendonca-skills/issues/167) — the bodies cleaned and the ban
+  widened. The *"frontmatter-scoped"* wording in **Decision outcome** and in **Links** above is
+  superseded by this amendment.
+- **Narrows no claim in [ADR-0008](./0008-which-layer-carries-a-control.md)** and leans on it twice: for
+  *why the original scope was narrow* (§1) and for the standing refusal to call a pattern-matching
+  control *closed* — §3 states what the widened check scans and how it matches, not that consumer
+  leakage is now impossible.
+- **Evidence re-derived on this branch, not relayed:** the `485b97e` grep in §1; the same grep returning
+  zero at branch head; `git grep -lE '<project>-(pwa|iac)'` → 11 files in §4; and the README cell-2
+  mutation in §5, run against `hooks/scripts/inventory-counts.test.sh` with the tree otherwise clean and
+  reverted afterwards.

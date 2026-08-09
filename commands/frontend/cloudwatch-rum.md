@@ -2,7 +2,7 @@
 description: Instrument real-user monitoring in a React SPA with the aws-rum-web client — web vitals, JS errors, HTTP latency and sessions, correlated end to end with X-Ray, with sampling to bound cost. Use when field performance is unknown, when a browser error is invisible server-side, or when tuning RUM sampling. Not for product analytics (see frontend/analytics) or provisioning the app monitor (see infrastructure/cloudwatch-rum).
 ---
 
-Frontend real-user monitoring (CloudWatch RUM) in `apps/fed` (concept).
+Frontend real-user monitoring with CloudWatch RUM (concept).
 
 Context: $ARGUMENTS
 

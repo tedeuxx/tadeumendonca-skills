@@ -38,7 +38,7 @@ These skills are **project-agnostic templates**. Workload-specific values appear
 | `<tfc-org>` | `var.tfc_organization` | the `cloud{}` block |
 | `<account-id>` | `data.aws_caller_identity` | prose only — never hardcoded in config |
 
-The **example instance** is `project = tadeumendonca`, `apex_domain = tadeumendonca.io`. The per-environment value (`var.environment` = `staging`/`production`) is a **real variable**, not a placeholder — it's `${var.environment}` in HCL, `process.env.ENVIRONMENT` in TS, `$ENV_NAME` in bash.
+Each placeholder is substituted **once, at bootstrap**, by a `terraform.tfvars` value — and `project` is the one worth thinking about before typing, because it is prefixed onto dozens of resource names, SSM paths and secret names: keep it short, lowercase and DNS-safe, since some of those names are length-capped (an IAM role at 64 chars, an ALB target group at 32) and a long project token silently eats the budget the *resource* name needed. The per-environment value (`var.environment` = `staging`/`production`) is a **real variable**, not a placeholder — it's `${var.environment}` in HCL, `process.env.ENVIRONMENT` in TS, `$ENV_NAME` in bash.
 > The `cloud{}` block + workspace tags **can't interpolate variables** (parsed before vars resolve) — substitute `<tfc-org>`/`<project>` literally there, or pass via partial config / `TF_WORKSPACE`. Everywhere else uses the variables directly.
 
 ## Variables & data sources

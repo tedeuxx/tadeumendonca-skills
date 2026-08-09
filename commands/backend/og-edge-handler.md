@@ -2,7 +2,7 @@
 description: Implement the viewer-request Lambda at Edge that classifies a request three ways — human passthrough, social crawler to the OG card, SEO crawler to prerendered HTML — under Edge constraints of no environment variables and a tiny zero-dependency bundle. Use when a crawler sees the wrong markup, adding a user-agent class, or working within Lambda at Edge limits. Not for the prerendered HTML it forwards to (see backend/prerender).
 ---
 
-Implement or update the og-edge Lambda@Edge handler. **It lives in `<project>-pwa/iac`** (`iac/lambda-src/og-edge/index.js`), not `apps/bff` — see "Where the code lives" below.
+Implement or update the og-edge Lambda@Edge handler. **It lives with the Terraform, not with the API application** (`iac/lambda-src/og-edge/index.js`) — see "Where the code lives" below.
 
 Context: $ARGUMENTS
 
@@ -75,7 +75,7 @@ Both come from the API (DynamoDB) — see `/backend/prerender`. The React app an
 
 ## Where the code lives + deploy (IaC owns it — Pattern-B exception)
 
-Unlike the BFF (`apps/bff` ships code, IaC owns config), the **edge code lives in `<project>-pwa/iac`** and Terraform owns its full lifecycle. *Why:* CloudFront must reference a **specific published version** (a qualified ARN — `$LATEST` is rejected), so every code change must publish a new version **and** repoint the distribution. Terraform does both in one apply:
+Unlike the BFF (whose pipeline ships code while IaC owns config — Pattern B, `/infrastructure/lambda`), the **edge code lives inside the IaC tree** (`iac/lambda-src/og-edge/`) and Terraform owns its full lifecycle. *The placement rule generalises:* code belongs to whichever pipeline can deploy it **atomically with the resource that must point at it** — everywhere else that is the app pipeline, and here it is Terraform, for the reason below. *Why:* CloudFront must reference a **specific published version** (a qualified ARN — `$LATEST` is rejected), so every code change must publish a new version **and** repoint the distribution. Terraform does both in one apply:
 
 ```hcl
 module "fn_og_edge" {
@@ -97,7 +97,7 @@ module "fn_og_edge" {
 resource "aws_ssm_parameter" "lambda_edge_og_qualified_arn" { value = module.fn_og_edge.lambda_function_qualified_arn /* … */ }
 ```
 
-*Trade-off:* an edge code change is a `terraform apply` (not the `apps/bff` deploy pipeline). Acceptable — the edge is bot/SEO-only and changes rarely. The rejected alternative (`apps/bff` `update-function-code` + `publish-version`, then a separate CloudFront `update-distribution`) would fight the CloudFront module's state permanently, since Terraform reconciles the association back to the version it knows. With `create_package=true` + `source_path` there's **no esbuild** — the zero-dep file is zipped as-is (Terraform's lambda module needs Python 3 on the runner to package).
+*Trade-off:* an edge code change is a `terraform apply` (not the application deploy pipeline). Acceptable — the edge is bot/SEO-only and changes rarely. The rejected alternative (an app-pipeline `update-function-code` + `publish-version`, then a separate CloudFront `update-distribution`) would fight the CloudFront module's state permanently, since Terraform reconciles the association back to the version it knows. With `create_package=true` + `source_path` there's **no esbuild** — the zero-dep file is zipped as-is (Terraform's lambda module needs Python 3 on the runner to package).
 
 After apply, CloudFront propagation + Lambda@Edge replication take several minutes; verify with `curl -A Googlebot` once the distribution is `Deployed` (look for `x-prerendered-by: og-edge`).
 
@@ -105,7 +105,7 @@ After apply, CloudFront propagation + Lambda@Edge replication take several minut
 *(The sections above carry the per-mechanism trade-offs — Host-derived base, 40 KB cap, zero-deps, IaC-owned code. This summarizes the architectural call.)*
 - **Classify the viewer at the edge and do the MINIMUM for humans.** A viewer-request Lambda@Edge does a 3-way User-Agent split: **humans pass straight through** to the SPA (CSR, untouched), **social scrapers** get a lightweight OG `<head>`, **search crawlers** get full prerendered HTML + JSON-LD. *Why at the edge:* serve bots server-rendered content **without paying for SSR on human traffic**. *Cost trade-off:* L@E runs on **every** viewer request and is pricier than regular Lambda, so the human path is a bare pass-through and real work happens only for bot UAs — the routing heuristic is the cost lever.
 - **Not cloaking — bot and human resolve to the same content** (the edge fetches the same data the SPA renders, via the BFF bot API — `/backend/prerender`). *Trade-off:* a second render path that must stay in sync with the SPA.
-- **The edge code is IaC-owned (the Pattern-B exception)** — CloudFront must reference a specific published version, so Terraform publishes the version AND repoints the distribution in one apply, rather than the `apps/bff` deploy pipeline. *Trade-off:* an edge change is a `terraform apply` with slow CloudFront/replication propagation — acceptable because it's bot/SEO-only and changes rarely.
+- **The edge code is IaC-owned (the Pattern-B exception)** — CloudFront must reference a specific published version, so Terraform publishes the version AND repoints the distribution in one apply, rather than the application deploy pipeline. *Trade-off:* an edge change is a `terraform apply` with slow CloudFront/replication propagation — acceptable because it's bot/SEO-only and changes rarely.
 
 ## Pros & cons
 **Pros**
