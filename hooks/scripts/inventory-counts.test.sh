@@ -1480,6 +1480,25 @@ else
   # domain, and go. That is why the allowance is spelled as an exact token rather than a prefix:
   # `tadeumendonca-anything-else` is a leak until someone argues otherwise, in an MR, on the record.
   #
+  # THAT CLAIM WAS FALSE WHEN FIRST WRITTEN, AND THE REGEX WAS RAISED TO MEET IT RATHER THAN THE CLAIM
+  # LOWERED TO MEET THE REGEX. Measured by the merge gate on #169, with this falsifier:
+  #
+  #   printf 'tadeumendonca-skills-evil\n' \
+  #     | grep -noE 'apps/(fed|bff)|tadeumendonca(\.[A-Za-z]+|-[A-Za-z]+)?' \
+  #     | grep -vE ':tadeumendonca-skills$'      # → NOTHING. Green.
+  #
+  # The FILTER was correctly anchored (`$`); the TOKENISER was not. `-[A-Za-z]+` consumes at most ONE
+  # hyphen-segment, so `tadeumendonca-skills-evil` truncated to exactly `tadeumendonca-skills` and the
+  # anchored filter then dropped it as allowed. The hole was neither the scope nor the filter, and it
+  # was not general: `tadeumendonca-anything-else` and `tadeumendonca-io-backup` were both caught. It
+  # was exactly `tadeumendonca-skills-*` — the one shape an anchored filter cannot distinguish from
+  # the token it is anchored to, once the tokeniser has already thrown the tail away.
+  #
+  # `([-.][A-Za-z]+)*` consumes ALL following segments, so the token reaching the filter is whole and
+  # the anchor means what it says. Same class as this file's other corrections: an assertion describing
+  # a check nobody had implemented, green for a reason no one would look behind — and it landed in the
+  # slice whose entire subject is a rule that nothing enforced.
+  #
   # THE MATCH IS TOKENISED, NOT SUBSTRING, deliberately. Matching the bare stem and then filtering
   # lines containing the allowed name would let a genuine leak hide on the same LINE as a legitimate
   # self-reference. Extracting whole tokens and judging each one has no such blind spot — and it means
@@ -1500,7 +1519,7 @@ else
       [ -z "$hit" ] && continue
       consumer_problems="$consumer_problems
     $rel:$hit"
-    done <<< "$(grep -noE 'apps/(fed|bff)|tadeumendonca(\.[A-Za-z]+|-[A-Za-z]+)?' "$f" \
+    done <<< "$(grep -noE 'apps/(fed|bff)|tadeumendonca([-.][A-Za-z]+)*' "$f" \
                   | grep -vE ':tadeumendonca-skills$' || true)"
   done <<< "$SKILL_FILES"
 

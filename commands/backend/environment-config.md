@@ -2,7 +2,7 @@
 description: Read non-secret runtime configuration in server handler code — a dotenv file per environment for local runs and tests, behind one typed accessor that is the only place process env is touched. Use when adding a config key, validating configuration at startup, or keeping local and deployed configuration in step. Not for build-time client config (see frontend/environment-config) or sensitive values (see backend/secrets-management).
 ---
 
-Configure and validate backend environments in the BFF.
+Configure and validate backend environments.
 
 Context: $ARGUMENTS
 

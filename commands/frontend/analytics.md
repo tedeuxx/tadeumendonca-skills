@@ -2,7 +2,7 @@
 description: Instrument product analytics in a React SPA with Google Analytics 4 — a page_view on every route change, because an SPA never reloads, plus custom events for key actions and no PII. Use when measuring what users actually do, adding an event, or keeping non-production traffic out of the property. Not for performance and error telemetry (see frontend/cloudwatch-rum).
 ---
 
-Frontend analytics (GA4) in the SPA (concept).
+Frontend analytics with GA4 (concept).
 
 Context: $ARGUMENTS
 
