@@ -1,3 +1,7 @@
+---
+description: Write or review an Architecture Decision Record in MADR format — the light significance gate that decides whether one is owed at all, the split between the methodology and product libraries, numbering and status, and supersede-never-delete. Use when a change crosses a boundary, when superseding an earlier record, or when judging whether a decision is architecturally significant.
+---
+
 Author or review an Architecture Decision Record (ADR) for any `<project>` repo, following the platform's ADR practice.
 
 Context: $ARGUMENTS

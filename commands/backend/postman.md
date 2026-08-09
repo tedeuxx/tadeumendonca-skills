@@ -1,3 +1,7 @@
+---
+description: Write and run API contract tests with Postman collections and newman, in a repo that actually has an API — Bearer JWT auth via a native test user, schema checks, and a post-deploy smoke run in CI. Use when an endpoint ships and owes a regression, when auth must be proven to reject an unauthenticated call, or when wiring newman into a pipeline. Not for browser journeys (see frontend/playwright).
+---
+
 Use Postman (+ newman) for API testing in `apps/bff`.
 
 Context: $ARGUMENTS

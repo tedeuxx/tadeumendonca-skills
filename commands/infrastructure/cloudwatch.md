@@ -1,3 +1,7 @@
+---
+description: Provision CloudWatch in Terraform — log group naming and retention, VPC flow logs, custom metrics derived from EMF output, and alarms and dashboards. Use when logs are unbounded or missing, setting a retention window, or adding an alarm. Not for emitting the log lines (see backend/logging) or the metrics (see backend/metrics), and not for browser telemetry (see infrastructure/cloudwatch-rum).
+---
+
 Use Amazon CloudWatch in <project> infrastructure.
 
 Context: $ARGUMENTS

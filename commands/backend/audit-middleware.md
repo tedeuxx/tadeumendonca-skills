@@ -1,3 +1,7 @@
+---
+description: Capture an audit trail in server handler code — identity taken from the validated token with no session store, the audits item shape, and where the middleware sits in the chain. Use when a mutation must be attributable, designing what an audit record holds, or reviewing a route that writes without leaving a trail. Not for the vocabulary it records (see backend/action-types).
+---
+
 Define or review the audit trail in `apps/bff`.
 
 Context: $ARGUMENTS

@@ -1,3 +1,7 @@
+---
+description: Build admin forms in a React SPA — controlled inputs with a zod schema mirroring exactly what the server validates, submit as a mutation that invalidates and navigates, and server errors surfaced inline. Use when adding a create or edit screen, keeping client and server validation in step, or handling a pending submit. Not for where the surrounding state lives (see frontend/state).
+---
+
 Implement or review forms in `apps/fed` (admin compose).
 
 Context: $ARGUMENTS

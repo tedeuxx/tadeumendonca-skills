@@ -1,3 +1,7 @@
+---
+description: Provision Cognito in Terraform — a user pool with a social-only Google identity provider, a public PKCE client, groups assigned by a trigger function, a custom hosted-UI domain and its Route53 alias. Use when standing up authentication, adding an identity provider, or getting group claims into tokens. Not for consuming the session in a client (see frontend/authentication) or the server-side permission model (see backend/action-types).
+---
+
 Use Amazon Cognito in <project> infrastructure.
 
 Context: $ARGUMENTS

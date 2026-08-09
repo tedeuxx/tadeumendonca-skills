@@ -1,3 +1,7 @@
+---
+description: Provision SES in Terraform — domain verification, DKIM records, and the deliverability and operations picture around actually sending. Use when a product must send email, when messages land in spam, or when moving a domain out of the sandbox. Not for the code that composes and sends (see backend/notifications).
+---
+
 Provision or review SES (domain verification + DKIM) in <project>-iac (auth.tf).
 
 Context: $ARGUMENTS

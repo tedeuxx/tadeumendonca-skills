@@ -1,3 +1,7 @@
+---
+description: Provision DynamoDB tables in Terraform — one table per entity rather than single-table design, on-demand billing, GSIs, point-in-time recovery, TTL where it applies, IAM-based access and table names published to the config bus. Use when adding a table or index, choosing a billing mode, or justifying per-entity tables. Not for querying them from code (see backend/dynamodb) or the cache tier beside them (see infrastructure/elasticache).
+---
+
 Provision or review the DynamoDB tables (data.tf) in <project>-iac.
 
 Context: $ARGUMENTS

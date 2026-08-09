@@ -1,3 +1,7 @@
+---
+description: Provision an ElastiCache for Redis cluster in Terraform — every argument set, the AUTH token kept in Secrets Manager rather than tfvars or the parameter store, the endpoint published as non-sensitive config, and backup retention. Use when a workload needs a cache tier, rotating an AUTH token, or wiring a function to Redis. Not for the durable store (see infrastructure/dynamodb) or the cache-aside code (see backend/redis-cache).
+---
+
 Provision or review the ElastiCache for Redis cluster (cache.tf) in `<project>-pwa/iac`.
 
 Context: $ARGUMENTS

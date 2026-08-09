@@ -1,3 +1,7 @@
+---
+description: Gate UI in a React SPA on the groups and claims in the session — show or hide admin controls and guard routes, knowing this is cosmetic and never the security boundary. Use when hiding a control from a non-admin, guarding an admin route, or reviewing client code that treats a hidden button as protection. Not for obtaining the session (see frontend/authentication) or the server-side check that actually enforces (see backend/action-types).
+---
+
 SPA authorization / UI gating in `apps/fed` (concept).
 
 Context: $ARGUMENTS

@@ -1,3 +1,7 @@
+---
+description: Decide what an agent may do without asking, per loop model — the git-reversibility tolerance test, IaC as pipeline-only, the global and per-project layering, and what the guard hook actually enforces. Use when writing an allow or deny list, deciding whether an act is irreversible, or explaining why a command stops for a human. Not for the gates a finished change must pass (see principles/verification-and-gates).
+---
+
 Apply the platform's environment and permission model in any `<project>` repo — both at the global Claude Code level and per-project. This is the mechanical encoding of the "agent-led verification, human-residual" boundary (`/principles/verification-and-gates`): pre-authorize everything the agent owns, gate exactly at the irreversible line.
 
 Context: $ARGUMENTS

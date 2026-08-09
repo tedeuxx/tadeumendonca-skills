@@ -1,3 +1,7 @@
+---
+description: Wire the SonarCloud quality gate as a blocking merge check — per-repo setup, the CI step that runs after tests, and importing the unit-coverage lcov so SAST, coverage and code smells are judged together. Use when a Sonar gate is red, adding Sonar to a repo, or deciding whether a smell should block. Not for the full gate list around it (see backend/coverage, frontend/coverage).
+---
+
 Use SonarCloud in <project> repos (code quality + security scan).
 
 Context: $ARGUMENTS

@@ -1,3 +1,7 @@
+---
+description: Throw typed errors in server handler code — AppError, NotFoundError and Unauthorized rather than returning a 4xx inline — with one response shape for every failure. Use when a route needs to fail, standardising an error payload across handlers, or reviewing code that builds status codes by hand. Not for recording the failure (see backend/logging).
+---
+
 Implement or review HTTP error handling in `apps/bff`.
 
 Context: $ARGUMENTS

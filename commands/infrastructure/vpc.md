@@ -1,3 +1,7 @@
+---
+description: Design or review the VPC layer in Terraform — subnet tiers, NAT gateway versus S3 and DynamoDB Gateway endpoints, Lambda security groups, managed prefix lists, and keeping traffic off NAT. Use when provisioning network topology, deciding whether a Lambda belongs in the VPC at all, or auditing egress cost. Not for IAM policy authoring (see infrastructure/iam) or edge routing (see infrastructure/cloudfront).
+---
+
 Implement or review the VPC and networking layer (vpc.tf) in <project>-iac.
 
 Context: $ARGUMENTS

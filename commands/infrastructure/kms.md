@@ -1,3 +1,7 @@
+---
+description: Apply the encryption posture across Terraform — the in-transit and at-rest matrix per service, AWS-managed keys versus a customer-managed CMK, key policies and rotation. Use when a resource needs encryption configured, justifying a CMK against its monthly cost, or auditing a service for unencrypted storage. Not for where secret values are kept (see infrastructure/secrets-manager).
+---
+
 Apply the encryption + KMS key policy across <project>-iac.
 
 Context: $ARGUMENTS

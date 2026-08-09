@@ -1,3 +1,7 @@
+---
+description: Handle the four async states in every React SPA view — loading, empty, error with a retry, and success — plus an ErrorBoundary around route subtrees so a render failure does not white-screen. Use when a view fetches data, when a pending action gives no feedback, or when errors are rendered inconsistently across screens. Not for the primitives themselves (see frontend/design-system).
+---
+
 Loading / empty / error UX states in `apps/fed` (concept).
 
 Context: $ARGUMENTS

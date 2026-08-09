@@ -1,3 +1,7 @@
+---
+description: Define the action-type vocabulary server code shares across audit records, RBAC checks and feature toggles — one central constants module, and the rule that every operation declares one. Use when adding an operation, composing role-based permissions, or exposing a user's allowed actions to a client. Not for cosmetic UI gating (see frontend/authorization) or the identity provider that issues the groups (see infrastructure/cognito).
+---
+
 Define or review action types (audit + RBAC + feature toggles) in `apps/bff`.
 
 Context: $ARGUMENTS

@@ -1,3 +1,7 @@
+---
+description: Set up Terraform for a project as a whole — version and provider pinning, repo layout, project parameterization, input validation, the module-sourcing policy, tagging through default_tags in a shared account, and tfvars per environment. Use when starting an infrastructure repo, deciding whether to adopt a community module, or adding a validated variable. Not for the state backend (see workflow/terraform-cloud) or the pipeline that runs plan and apply (see workflow/github-actions).
+---
+
 Use Terraform in <project> infrastructure (how we use it as a whole).
 
 Context: $ARGUMENTS

@@ -1,3 +1,7 @@
+---
+description: Provision a CloudFront distribution in Terraform — origin access control to a private S3 origin, TLS, managed cache policies, SPA error routing, an extra behaviour for generated images, a viewer-request Lambda at Edge association and a WAF WebACL. Use when serving a static site, adding a path behaviour, or debugging why a deep link returns 404. Not for the edge function's code (see backend/og-edge-handler) or the WebACL rules (see infrastructure/waf).
+---
+
 Use CloudFront in <project> infrastructure (incl. the SPA distribution).
 
 Context: $ARGUMENTS

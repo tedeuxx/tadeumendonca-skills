@@ -1,3 +1,7 @@
+---
+description: Provision WAF WebACLs in Terraform in both scopes — CLOUDFRONT in us-east-1 for the distribution, and REGIONAL shared by an API Gateway stage and the Cognito hosted UI — with managed rule groups, rate limiting and logging. Use when adding request filtering, tuning a rule that blocks legitimate traffic, or checking OWASP coverage. Not for the distribution it attaches to (see infrastructure/cloudfront).
+---
+
 Implement or review the WAF WebACLs (CLOUDFRONT + REGIONAL) across the two repos that own them.
 
 Context: $ARGUMENTS

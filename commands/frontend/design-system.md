@@ -1,3 +1,7 @@
+---
+description: Choose the UI pattern for a need in a React SPA built on custom Tailwind with no component library — HSL design tokens in a single root, a cn class-merge helper instead of cva, and hand-built primitives for shell, card, form control, button, nav, table and badge. Use when a new UI need appears, resisting an off-the-shelf library, or theming by token. Not for documenting those primitives (see frontend/storybook).
+---
+
 Design system (custom Tailwind, no component library) — which pattern for each UI need.
 
 Pattern/section: $ARGUMENTS

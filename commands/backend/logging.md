@@ -1,3 +1,7 @@
+---
+description: Emit structured JSON logs from server handler code with Powertools Logger — level per environment, correlation ids, and what must never reach a log line. Use when instrumenting a handler, tuning log level per environment, or reviewing a diff for a leaked secret. Not for counters and dashboards (see backend/metrics), request traces (see backend/tracing), or provisioning log groups, retention and alarms in Terraform (see infrastructure/cloudwatch).
+---
+
 Implement or review structured logging in `apps/bff`.
 
 Context: $ARGUMENTS

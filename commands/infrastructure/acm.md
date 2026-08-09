@@ -1,3 +1,7 @@
+---
+description: Resolve TLS certificates in Terraform — one wildcard certificate per environment, issued out of band and reused, required in us-east-1 for CloudFront, and looked up by the environment's domain through a data source. Use when a distribution or custom domain needs a certificate, or when a lookup fails because the certificate is in the wrong region. Not for the DNS records that point at it (see infrastructure/route53).
+---
+
 Use AWS Certificate Manager (ACM) in <project> infrastructure.
 
 Context: $ARGUMENTS

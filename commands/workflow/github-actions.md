@@ -1,3 +1,7 @@
+---
+description: Wire GitHub Actions for a repo — per-job OIDC into AWS, secrets and environments, the branching model, the build and deploy workflows, and the Issues backlog conventions. Use when adding or reviewing a workflow, granting CI a role to assume, or setting up a repo's branching and protection. Not for the tagging rules (see workflow/versioning), the loop model itself (see principles/dev-loop), or the Terraform configuration CI runs (see infrastructure/terraform).
+---
+
 Use GitHub for <project> repos — the CI/CD capability (Actions, branching + versioning, deploys, issues). Branching comes in **two models** — see *Branching* below; pick the repo's before configuring anything.
 
 Context: $ARGUMENTS

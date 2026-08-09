@@ -43,9 +43,37 @@ UNALLOCATED = "— none"
 MAX_DESC = 150
 
 
+def body_lines(path):
+    """The file's lines with any YAML frontmatter block removed.
+
+    EVERY SKILL GAINED FRONTMATTER (#166), AND WITHOUT THIS THE GENERATOR EMITS `---` AS ALL 73
+    DESCRIPTIONS. That is worse than a crash, because `inventory-counts.test.sh` tells whoever hits a
+    red table to fix it by re-running THIS script and pasting the output — and its table assertion
+    keys on cells 1 and 3 only, so a README with `---` in every description cell passes both
+    directions. The repair instruction would have introduced the defect, silently, in the one document
+    a forker reads first.
+
+    THE FIRST BODY LINE IS STILL THE SOURCE, deliberately, rather than the new `description` field.
+    Switching the column to the frontmatter is a content decision about a published README — the
+    descriptions are trigger sentences of 300-500 chars written for a matcher, and MAX_DESC would cut
+    each one mid-clause. Keeping the body line makes this slice's README diff exactly zero, which is
+    what makes it reviewable. If the column should carry the description instead, that is its own
+    change with its own truncation policy.
+    """
+    lines = path.read_text().splitlines()
+    if lines and lines[0].strip() == "---":
+        for i, line in enumerate(lines[1:], start=1):
+            if line.strip() == "---":
+                return lines[i + 1:]
+        # Unterminated block: fall through rather than silently returning nothing. A file that opens
+        # `---` and never closes it is malformed, and emitting its raw first line makes that visible
+        # in the table instead of blanking the row.
+    return lines
+
+
 def describe(path):
-    """The skill's own first non-empty line, stripped of heading syntax."""
-    text = next((l.strip() for l in path.read_text().splitlines() if l.strip()), "")
+    """The skill's own first non-empty line of BODY, stripped of heading syntax."""
+    text = next((l.strip() for l in body_lines(path) if l.strip()), "")
     text = re.sub(r"^#+\s*", "", text).replace("|", r"\|")
     if len(text) > MAX_DESC:
         text = text[: MAX_DESC - 3].rsplit(" ", 1)[0] + "…"

@@ -1,3 +1,7 @@
+---
+description: Provision Lambda functions in Terraform — nodejs22 on arm64, non-VPC by default with in-VPC as a deliberate security versus cost call, Pattern B where infrastructure owns config and the app ships code, tracing and encryption. Use when adding a function, deciding its VPC posture, or wiring its environment and role. Not for the execution role's policy (see infrastructure/iam) or the handler code inside it (see backend/lambda-handler).
+---
+
 Use AWS Lambda in <project> infrastructure.
 
 Context: $ARGUMENTS

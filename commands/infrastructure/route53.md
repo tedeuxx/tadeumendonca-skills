@@ -1,3 +1,7 @@
+---
+description: Model DNS in Terraform — one apex per product with environment-scoped subdomains, a pre-existing hosted zone read through a data source, and one A-alias record per public-facing service. Use when exposing a new service on a domain, adding an environment, or tracing which record points at which distribution. Not for the certificate that domain needs (see infrastructure/acm).
+---
+
 Use Amazon Route53 in <project> infrastructure (DNS records + the per-env domain model).
 
 Context: $ARGUMENTS
