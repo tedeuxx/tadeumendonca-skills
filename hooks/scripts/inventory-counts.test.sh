@@ -1247,8 +1247,60 @@ fm_block() {
   awk 'NR==1 && $0 != "---" { exit } NR==1 { infm=1; next } infm && $0 == "---" { exit } infm' "$1"
 }
 
-if [ -z "$SKILL_FILES" ]; then
-  bad "skill descriptions — no files found under commands/; every assertion below would pass vacuously"
+# ── THE VACUITY GUARD IS A FLOOR, NOT AN EMPTINESS TEST ─────────────────────────────────────────────
+# IT USED TO FIRE ONLY ON ZERO, AND ZERO IS NOT HOW THIS SCAN LOSES ITS SUBJECT. Measured by
+# `harness-reviewer` on #164 against a simulation of the flat `skills/` layout: `find $ROOT/commands`
+# returns TWO files, the suite prints `38 passed, 10 failed`, and all ten reds are elsewhere — the
+# counts, the README table, the loop-engineering tripwire. Meanwhile the three controls anchored on
+# this file set print, in these words:
+#
+#     PASS  skill descriptions L1 — all 2 parse...
+#     PASS  skill descriptions L2 — all 2 are triggers, not titles...
+#     PASS  consumer references — all 2 skill files are project-agnostic...
+#
+# #166's description standard, #167's project-agnostic lint and the `(see X)` resolver stop covering 69
+# of 71 files and SAY SO IN A GREEN. Whoever repairs the ten reds has no reason to open this block.
+# A GUARD THAT CATCHES ONLY ZERO CANNOT CATCH A SCOPE THAT SHRANK BY 97 PERCENT.
+#
+# THE EXPECTATION IS DERIVED, AND DELIBERATELY NOT FROM THE SCAN ITSELF. Deriving it by counting the
+# same `find` would be a tautology that can never fail; writing it as a literal makes it the next thing
+# to go stale, which is the defect this whole file exists to catch. So it comes from the two places
+# that already state the library's size for a reason of their own:
+#
+#   - THE PUBLISHED FIGURE — the count this repo prints on its front door, read out of the same four
+#     inventory documents `check_every_occurrence` reads, with the same pattern. Those four are already
+#     required to agree with the family walk, so this borrows a number that is independently pinned.
+#   - THE TYPED-COMMAND ENUMERATION — `ARG_HINT_ALLOWED`, counted rather than assumed. The published
+#     figure counts the namespaced skills only ("<N> skills + autonomy-on"), so the un-namespaced
+#     commands have to be added back, and this file already maintains the list of exactly which they
+#     are. #165's `autonomy-off` moves both numbers in the same commit, as it should.
+#
+# WHAT IT CATCHES: any shrink of the scan set that the documents have NOT been told about — a move to
+# another directory, a deletion, a `find` whose path stopped resolving. WHAT IT DELIBERATELY DOES NOT:
+# a shrink the docs were updated for in the same commit, which is a reviewed removal and not a silent
+# one — and a GROWTH, because a floor is one-sided on purpose. An added skill is caught by the count
+# assertions above, in a message that names the documents to edit.
+#
+# ONE THING IT NOW COVERS THAT NOTHING DID: deleting `commands/autonomy-on.md` used to remove the file
+# from the scan set, which is the ONE way to silence L1's POSITIVE `argument-hint` assertion — the loop
+# never opens a file it cannot see. The floor counts the typed commands independently of the scan, so
+# the deletion is a shortfall rather than an absence.
+published_skills="$(grep -ohE '[0-9]+ ([a-z-]+ ){0,2}skills' "${INVENTORY_DOCS[@]}" 2>/dev/null \
+                      | grep -oE '^[0-9]+' | sort -n | tail -1)"
+typed_cmds="$(printf '%s\n' $ARG_HINT_ALLOWED | grep -c . || true)"
+scanned_skills="$(printf '%s\n' "$SKILL_FILES" | grep -c . || true)"
+expected_skills=$((published_skills + typed_cmds))
+
+if [ -z "$published_skills" ]; then
+  bad "skill descriptions — no published skill count could be read out of the inventory documents, so the
+      floor below has nothing to compare against and every assertion in this block would run unbounded.
+      Either the figure stopped being published or its phrasing left the pattern; restore one of them."
+elif [ "$scanned_skills" -lt "$expected_skills" ]; then
+  bad "skill descriptions — the scan found $scanned_skills file(s) under commands/, and the repo publishes
+      $published_skills skill(s) plus $typed_cmds typed command(s) = $expected_skills. Every assertion in this block is
+      anchored on that set, so it is now covering LESS than the library and would still print PASS.
+      If the library MOVED, repoint the scan in this same commit. If files were deliberately removed,
+      the published figure moves with them — and then this goes green because the shrink is on record."
 else
   # --- LEVEL 1: presence and parse, zero judgement ------------------------------------------------
   # Length bounds are a FLOOR AND A CEILING, NOT A QUALITY METRIC, and the standard says so in those
