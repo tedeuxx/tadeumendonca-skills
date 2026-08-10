@@ -12,13 +12,30 @@ on:
 
 jobs:
   claude-review:
-    # Skip the develop→main release/promotion PR (huge diff, nothing new to review) — auto-review
-    # only PRs that target develop, where it adds value. (Add author/path filters here if needed.)
-    if: github.event.pull_request.base.ref != 'main'
+    # ~~Skip the develop→main release/promotion PR (huge diff, nothing new to review) — auto-review
+    # only PRs that target develop, where it adds value.~~ THAT CONDITION WAS `base.ref != 'main'`,
+    # AND IT NEVER ONCE EVALUATED TRUE HERE. It was written for a GitFlow repo with a long-lived
+    # `develop`; this repo is trunk-based (methodology ADR-0003), so every PR targets `main` and the
+    # job reported `skipping` on every run since it was added. Struck rather than deleted, because a
+    # deleted condition reads as though nothing was ever wrong.
+    #
+    # Skipped and green are indistinguishable at a glance, which is why it survived: `gh pr checks`
+    # shows a row either way, and nobody reads a skip as an absence. Found on #180 by the gate, while
+    # answering "which jobs ran and which were filtered" — a question that only gets a true answer
+    # when someone is made to name both halves.
+    #
+    # It runs on every PR now, and it is ADVISORY: `quality-assurance` is the merge gate and this
+    # blocks nothing. Its value is being a SECOND reader of a repo that has exactly one — the gate
+    # itself said, verdict on #180, that "a context that approved and merged it would have no
+    # observer". This is the observer, and it costs one comment per PR.
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: read
+      # `pull-requests: write` because the review is delivered AS a PR comment — with `read` the job
+      # would run, do the work, and fail to post it, which is a worse failure than not running: a
+      # green row and no output. Untested before this change for the obvious reason that the job
+      # never reached the posting step.
+      pull-requests: write
       issues: read
       id-token: write
 
