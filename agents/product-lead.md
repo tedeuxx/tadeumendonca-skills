@@ -76,8 +76,9 @@ CLAUDE_PLUGIN_ROOT` exits 1 in a subagent shell, so it is also the whole channel
 draft its shape, and the form of a well-posed Issue is what you and `tech-lead` are jointly judged on at
 intake.
 
-**Everything else in `commands/` is excluded, and that is a finding rather than a gap** — it is 71
-implementation guides for an architecture you do not judge. The one real candidate was
+**Everything else in `commands/` is excluded, and that is a finding rather than a gap** — the library is
+71 files, and the 70 you do not carry are 69 implementation guides for an architecture you do not judge,
+plus `autonomy-on`, which is a command the owner invokes rather than a guide. The one real candidate was
 **`workflow:documentation-standard` (3,725 B)**, and it was cut: its consumer is whoever *writes* the
 doc, not the persona reviewing whether a published claim is true.
 

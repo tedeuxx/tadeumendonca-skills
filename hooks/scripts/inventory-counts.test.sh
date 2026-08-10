@@ -720,10 +720,19 @@ fi
 # forker actually reads.
 #
 # ── THE ANCHOR IS THE (SKILL, FAMILY) PAIR, AND MATCHING ON THE NAME ALONE WOULD BE WRONG ──────
-# Measured before choosing: FOUR skill names exist in two families each — `coverage`, `dynamodb`,
+# Measured before choosing: FOUR skill names existed in two families each — `coverage`, `dynamodb`,
 # `cloudwatch-rum` and `environment-config`. A check keyed on the backticked name alone passes with one
 # of a duplicate pair missing from the table, which is precisely the failure it exists to catch, so the
-# name is not a key. The row shape the generator emits is
+# name is not a key.
+#
+# RE-TENSED, NOT DELETED (#178): #174 merged all four pairs and
+#   git ls-tree -r --name-only HEAD -- commands | xargs -n1 basename | sort | uniq -d
+# now returns nothing, so no stem is ambiguous today. The (skill, family) key is kept anyway — #164's
+# flatten is what reintroduces the collision, and a key chosen for a reason that has lapsed is still the
+# right key when the reason is about to return. The measurement is kept in the past tense because it is
+# why the choice was made, and a stale present tense is what made it read as a live fact.
+#
+# The row shape the generator emits is
 #     | `<skill>` | <description> | `<family>` | <whose domain> |
 # (cell 4 was headed `wielded by` until #172; it is `whose domain` now, and the rename is why the
 # heading is not what either direction keys on — both key on cells 1 and 3, which are unaffected.)

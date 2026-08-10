@@ -173,9 +173,15 @@ for agent in $agent_files; do
     # --- ASSERTION 5 — a BARE identifier must resolve to exactly one file ------------------------
     # Runs FIRST for a bare identifier, because for that form it IS the resolution: the loader searches
     # by stem, so two files sharing a stem make the identifier ambiguous and which one loads is not
-    # something this repo gets to decide. Unambiguous today — but four stems already exist in two
-    # families each (`coverage`, `dynamodb`, `cloudwatch-rum`, `environment-config`), so the ambiguity
-    # is one bare identifier away, and #164's flatten is exactly when it starts biting.
+    # something this repo gets to decide.
+    #
+    # NO STEM OCCURS IN TWO FAMILIES TODAY — #174 merged the four that did (`coverage`, `dynamodb`,
+    # `cloudwatch-rum`, `environment-config`), and
+    #   git ls-tree -r --name-only HEAD -- commands | xargs -n1 basename | sort | uniq -d
+    # returns nothing. So this assertion cannot fire on the current tree, and it is here for #164's
+    # flatten, which collapses every family segment into one namespace and is exactly what
+    # reintroduces the collision. That is the whole argument; an earlier draft of this comment also
+    # claimed the four pairs still existed, which was false at the head it shipped on.
     bare=$(strip_prefix "$id")
     case "$bare" in
       *:*)

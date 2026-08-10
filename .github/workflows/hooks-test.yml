@@ -5,19 +5,38 @@ name: hooks-test
 # expensive, and neither visible until someone hits it locally. So the guard's behaviour is a gate:
 # every DENY it must make, and every ALLOW it must not break, is asserted on the PR that changes it.
 #
-# Path-filtered to hooks/ — nothing else in the repo can change what the guard does.
+# THE FILTER IS THE UNION OF WHAT EVERY SUITE HERE READS — NOT WHERE THE SUITES LIVE, AND NOT WHAT EACH
+# ONE IS "ABOUT". That distinction is the whole content of this note, because deriving it the other way
+# is a mistake this repo has now made SIX times; `docs-test.yml`'s header enumerates the first five, and
+# the sixth is recorded below in its own words rather than quietly fixed.
 #
-# `agents/**` IS IN THE FILTER, AND IT IS NOT AN EXCEPTION TO THAT SENTENCE — it is a second suite with a
-# different subject. `skills-resolve.test.sh` lives in hooks/scripts/ but asserts against `agents/*.md`,
-# so a PR editing only a `skills:` list would not have matched `hooks/**` and the one check that can see
-# a broken identifier would not have run. A wrong identifier fails at 0 bytes of stderr (#172); a gate
-# that does not trigger on the file it grades is the same silence with a green tick on top.
+# `hooks/**` — the guard suites. The permission guard is the only thing in this plugin that can HALT a
+# consuming repo's agent, so a regression is either a hole in the irreversible floor or a wedged dev
+# loop, and nothing outside `hooks/` changes what it does.
+#
+# `agents/**` AND `commands/**` — both for `skills-resolve.test.sh`, which reads TWO trees and is the
+# reason this filter is no longer a one-liner. It parses `skills:` out of `agents/*.md` and resolves
+# each identifier against `commands/**`, so EITHER side can falsify it:
+#   * edit an identifier            → `agents/**`   catches it;
+#   * rename or delete its target   → `commands/**` catches it.
+# `agents/**` shipped in #172 and `commands/**` did NOT, which left the suite unable to fire on the
+# second class — precisely #164 step 3, and precisely what #174 already performed once. A wrong
+# identifier fails at 0 bytes of stderr, so that gap was the silent half of a check built against
+# silence. Caught by `quality-assurance` on PR #178 (B1), not by CI, because no instrument here can yet
+# see a filter narrower than its suite's inputs.
+#
+# THE CAUSE, STATED SO THE SEVENTH OCCURRENCE IS HARDER: the filter was derived from where the suite's
+# SUBJECT lives rather than from the union of trees it READS. `inventory-counts.test.sh` has a
+# gate-coverage assertion built after the earlier misses, but it is scoped to that suite's own input
+# variables and cannot see this workflow. So when adding a step here, ask what the script OPENS — every
+# path, not the one in its name — and put each of those trees in this list.
 
 on:
   pull_request:
     paths:
       - "hooks/**"
       - "agents/**"
+      - "commands/**"
       - ".github/workflows/hooks-test.yml"
 
 permissions:

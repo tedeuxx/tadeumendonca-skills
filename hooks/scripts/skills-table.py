@@ -17,8 +17,9 @@ the filesystem, so it is written below and maintained by hand. Everything else i
 
 THE COLUMN IS `whose domain`, NOT `wielded by`, AND NOT `preloaded by` (renamed in #172). It answers who
 is ACCOUNTABLE for a convention. It deliberately does NOT answer what a persona has loaded at startup —
-that is the `skills:` frontmatter, it covers 7 skills rather than 69, and it is published as its own list
-in the README with the byte cost of each. Merging the two would print "— none" against two thirds of the
+that is the `skills:` frontmatter, whose ten entries resolve to 8 distinct files — 7 of them rows in this
+table, since `new-issue` is top-level — and it is published as its own list in the README with the byte
+cost of each. Merging the two would print "— none" against 62 of the 69 rows, i.e. nine tenths of the
 library, which is false. If you are here because the two look contradictory: they answer different
 questions, and the README says so above the table.
 
