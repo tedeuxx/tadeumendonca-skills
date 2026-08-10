@@ -627,7 +627,32 @@ cost are untouched.
 2026-08-08 14:24:31 -0300 — and `main` carried the input until the merge. Against rule 5g's landing at
 2026-08-04 12:29:57 -0300 (`745d949`) that is **4 d 22 h, five calendar days.** The hole it opened was
 closed in **the workflow file** — `github.event_name == 'push'` on the `terraform-apply` job — not in
-the floor and not in the hook. Neither of this record's two layers moved.
+the floor and not in the hook. Neither of this record's two layers moved **on this control** — `hooks/`
+took 46 commits across that window and none of them touched rule 5g's line:
+
+```
+git log --oneline --since=2026-08-04T12:29:57-0300 --until=2026-08-09T10:54:00-0300 \
+    origin/main -- hooks/                                             # 46 commits
+git log -G"workflow[[:space:]]+run" origin/main -- hooks/scripts/permission-guard.sh
+                                                                      # 745d949, and only it
+```
+
+**`-G`, not `-S`, and the difference is the point:** `-S` counts occurrence *changes*, so a
+remove-and-re-add inside one commit is invisible to it. `-G` matches any diff line touching the pattern.
+The same blind spot applies to this amendment's `git log -S"apply_infra"` evidence below: `deploy.yml`
+took several commits in the window, so a two-commit `-S` result does not by itself prove the input was
+present throughout. What proves it is reading the file mid-window —
+
+```
+git -C <io> grep -c apply_infra 3ee01ff -- .github/workflows/deploy.yml   # 2
+git -C <io> rev-list --count --since=2026-08-04T12:29:57-0300 \
+    --until=2026-08-09T10:54:00-0300 origin/main -- .github/workflows/deploy.yml   # 5
+```
+
+— which shows presence, not a net-zero artifact. *(The count is instrument-dependent: `rev-list` with a
+pathspec applies history simplification and drops the merge, so a different spelling can legitimately
+return 6. The presence check is the load-bearing one and does not depend on the count. Instrument defect
+found by `quality-assurance` on #179 round 2, carried forward here rather than only fixed in place.)*
 
 ```
 git -C <skills> show -s --format=%cd --date=iso 745d949         # 2026-08-04 12:29:57 -0300
@@ -660,7 +685,7 @@ Three already in this repo, against the enumeration in the rule below:
 
 | control | workspace rule | the system that actually authorises it |
 |---|---|---|
-| direct push to the trunk | hook 7 (`:890-924`), floor `Bash(git push origin main)` | **branch protection** on `main` |
+| direct push to the trunk | hook 7 (`:890-924`), floor `Bash(git push origin main)` | **branch protection** on `main` — **asserted, not measured**: the protection API is denied to the agent, so this row rests on `docs-test.yml`'s own statement (footnote) |
 | merging with squash | hook 7b (`:950-960`), floor `Bash(gh pr merge --squash:*)` | a **repository setting** — measured `squashMergeAllowed: false`, so the act is already foreclosed where it is decided |
 | `terraform apply` from a laptop | hook 2 (`:388-391`) | **Terraform Cloud** pipeline-only apply, plus an AWS OIDC trust only CI can assume (CLAUDE.md convention 5) |
 
@@ -674,8 +699,9 @@ routing cannot be checked — which is precisely how rule 5g's five days happene
 
 > **Ask which SYSTEM authorises the act, before asking which layer of this workspace can see it.** Where
 > the act is authorised by a system outside the agent's shell — a CI trigger, a cloud IAM policy, a
-> branch protection, a repository setting — **that system's own configuration is the authoritative
-> layer**, and both the floor and the hook are, at best, a speed bump on one caller. Route the control
+> branch protection, a repository setting — **that system's own configuration is the AUTHORISING SYSTEM,
+> and that is where the control belongs**, and both the floor and the hook are, at best, a speed bump on
+> one caller. Route the control
 > there, **keep the workspace rule**, and record it as what it then is: a **convenience refusal for the
 > agent**, not the control.
 >
@@ -683,6 +709,31 @@ routing cannot be checked — which is precisely how rule 5g's five days happene
 > it — the agent's shell is still one of the routes, and a refusal that costs nothing is worth having on
 > it. This sentence exists because the general form without it is the sentence someone would quote while
 > deleting a hook rule that had just been correctly re-described.
+
+**A word this record already spends, which this amendment must not overload.** Everywhere above,
+*authoritative* answers a question **internal to this workspace** — hook versus floor — and it is used
+that way eight times. The layer named here answers a different question, **which system authorises the
+act at all**, so it is called the **authorising system** and never *the authoritative layer*. The two
+are orthogonal and a control has both at once: `terraform apply`'s authoritative *workspace* layer is
+the hook, and its *authorising system* is Terraform Cloud. Every pre-existing use of *authoritative* in
+this record keeps the workspace-internal sense; this amendment changes none of them.
+
+**Two statements above are narrowed by that distinction — narrowed here rather than rewritten there,
+because an amendment appends:**
+
+- **Fail-open does not travel to the third layer.** *"The authoritative layer fails open"* is a fact
+  about `permission-guard.sh` and stays exactly true of it. It is **not** a property of an authorising
+  system: a branch protection, a repository setting and Terraform Cloud's pipeline-only apply do not
+  emit no decision on a malformed payload, and none of them is one caller's shell. So **routing a
+  control to its authorising system is the only move in this record that takes a control out of the
+  fail-open blast radius** — which is the third layer's second argument, independent of reach.
+- **The set the hook alone carries no longer only grows.** *"…and the set of controls it alone carries
+  only grows"* was true while this record had two layers, because migration only ever ran floor → hook.
+  **This amendment supplies the first mechanism that shrinks it:** route the control to its authorising
+  system, keep the workspace rule, and the control leaves the hook-alone set while the speed bump stays.
+  Nothing is deleted and no coverage is given up — what changes is that the control is no longer *only*
+  on the layer that fails open. A reader who takes *only grows* as still unqualified learns that
+  migration is monotonically expensive and misses the one move that stops the meter.
 
 Applied to the worked example: the control is `terraform-apply`'s `if:`. Rule 5g is kept, and is now
 correctly described as stopping the agent from taking a route it should not take anyway — which is worth
