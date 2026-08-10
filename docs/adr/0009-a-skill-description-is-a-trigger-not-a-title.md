@@ -127,13 +127,20 @@ The builder's reasons were that constraint 7 (*no markdown*) contradicts the thr
 use backticks, and that a bare stem is ambiguous. Both hold. **The decisive reason is a third one, and
 it belongs to the gate:** the plain-path form makes a pointer **machine-resolvable**.
 
-**Re-derived at `596481e` rather than relayed** (`.scratch/verify-pointers.py`, discarded after use):
+~~**Re-derived at `596481e` rather than relayed** (`.scratch/verify-pointers.py`, discarded after use):
 **112** `(see X)` pointers across the 75 descriptions, resolving to files with **zero dangling**; and
 **four stems occur in two families each** — `cloudwatch-rum`, `coverage`, `dynamodb`,
 `environment-config`. Under bare stems that resolution check **could not exist** for those four, and the
 ambiguity falls exactly where disambiguation is the job: the two `cloudwatch-rum` files sit on
 **opposite sides of their own cluster's separating axis** (browser client versus Terraform
-provisioning), so a bare pointer would name both and separate neither.
+provisioning), so a bare pointer would name both and separate neither.~~
+
+**Struck 2026-08-09 — the measurement is false at this head, and it was the decisive argument.** [PR
+#174](https://github.com/tedeuxx/tadeumendonca-skills/pull/174) merged all four pairs, so **zero stems
+occur in two families**. The paragraph is kept because it is the reason the form was chosen and a reader
+who applies it today would be applying a reason that has expired. **The form itself is unchanged and the
+decision stands** — see the second amendment of 2026-08-09 below for what now holds it up, and what does
+not.
 
 **The cost this buys, stated because it points the other way:** `backend/metrics` **embeds a folder
 path in the description**, which is precisely what constraint 2 warns against. Today that is free. **If
@@ -195,11 +202,14 @@ does not show that any of them matches a task.
   cluster nobody adds to the table stays uncovered. Deletion and rename go red; addition is uncovered
   **on purpose**, since deriving cluster membership from paths would be the refused quality score in
   another shape.
-- **The pointers embed folder paths**, and #164 can invalidate 112 of them in one merge.
-- **Four descriptions are already known to be superseded** — one from each of the `dynamodb`,
+- **The pointers embed folder paths**, and #164 can invalidate ~~112~~ **98** of them in one merge.
+  *(The count moved with the merges — PR #174; the exposure did not.)*
+- ~~**Four descriptions are already known to be superseded** — one from each of the `dynamodb`,
   `coverage`, `cloudwatch-rum` and `environment-config` pairs — the day #164's merges land, and each
   merged file will need a **third** description, written to this same standard, covering both sides of
-  its axis.
+  its axis.~~ **Discharged 2026-08-09 by PR #174** — the four third descriptions exist and are named in
+  the second amendment below. The bullet is struck because the cost was *paid*, not because it was
+  wrong.
 - **The gate's runtime grew**, and the cost is uneven: roughly a minute on macOS from process-spawn
   cost, about eight seconds on the CI runner where the gate actually decides anything.
 
@@ -356,3 +366,137 @@ inside itself: **a green that was never observed to go red is not a gate.**
   zero at branch head; `git grep -lE '<project>-(pwa|iac)'` → 11 files in §4; and the README cell-2
   mutation in §5, run against `hooks/scripts/inventory-counts.test.sh` with the tree otherwise clean and
   reverted afterwards.
+
+## Amendment (2026-08-09, second) — the four family merges discharge one booked cost and dissolve the decisive argument for the plain-path form
+
+**The decision is unchanged.** The canonical form, the seven constraints, the cluster rule, the refusal
+of a quality score and the enforcement boundary all stand exactly as written. What this amendment
+records is that **two of this record's load-bearing measurements are now false**, that **one booked cost
+has been paid**, and that **the reason the plain-path deviation was upheld no longer exists** — while
+the deviation itself does.
+
+[PR #174](https://github.com/tedeuxx/tadeumendonca-skills/pull/174), step 1 of
+[#164](https://github.com/tedeuxx/tadeumendonca-skills/issues/164), merged the four cross-family pairs
+into one file each: `dynamodb` and `cloudwatch-rum` into `infrastructure/`, `coverage` and
+`environment-config` into `backend/`.
+
+### 1 · What is now false, measured at `78f4e5b` rather than relayed
+
+    git ls-tree -r --name-only <ref> commands/ | sed 's#.*/##' | sort | uniq -d
+      origin/main -> cloudwatch-rum.md coverage.md dynamodb.md environment-config.md   (4)
+      78f4e5b     -> (nothing)                                                          (0)
+
+    git grep -h '^description:' <ref> -- commands/ \
+      | grep -oE '\(see [^)]*\)' | tr ',' '\n' | grep -coE '[a-z-]+/[a-z0-9-]+'
+      origin/main -> 110
+      78f4e5b     -> 98
+
+**Two figures rather than one, on purpose.** This record states **112** pointers, derived on #168 by
+`.scratch/verify-pointers.py`, which was discarded after use. The command above — the only instrument
+that still exists — returns **110** on the same tree. The difference is two pointers and its cause is
+not recoverable, because the original instrument is gone. **The 112 is not corrected to 110**; both are
+recorded, with the command that produced the survivor, so the next reader re-derives rather than
+inherits. That a discarded instrument leaves an unverifiable number behind is a real cost of this
+repo's *discard the scratch* rule, and it is worth naming once.
+
+The **cluster table** moved with the tree: **31 members → 27**, four clusters each losing their
+duplicate (`observability`, `config-and-secrets`, `gates`, `data`).
+
+### 2 · The plain-path deviation stands, and its decisive argument does not
+
+The section above upheld `see backend/metrics` over the backticked bare stem on one argument the record
+called **decisive**: four stems were ambiguous under bare stems, so the `(see X)` resolution check
+*could not exist* for them. **That argument is gone.** All 71 stems are unique at this head, so a bare
+stem resolves as deterministically as a path.
+
+**The deviation is nevertheless upheld, on the two reasons this record called weaker and the builder
+gave first:** constraint 7 forbids markdown, so the backticked spelling contradicts the standard's own
+rule; and the plain path is what the 98 live pointers are written in, so changing the spelling now is 98
+edits buying nothing today.
+
+**And the tension this record refused to resolve has inverted, which is the part a flattening MR needs.**
+When this was written, the folder path was the *cheap* spelling and flattening was the threat. Now the
+bare stem is **available** — it was not before — and it is the spelling that survives a flat tree
+unchanged. So the choice #164 step 3 faces is no longer *rot 98 pointers or keep an ambiguity*; it is
+**a mechanical, deterministic rewrite of 98 pointers from `family/stem` to `stem`**, which is what
+#164's own closing comment concluded from the owner's merge ruling.
+
+> **Still not resolved here, and still deliberately.** This amendment records that the option set
+> changed; it does not pick from it. Step 3 has not been decided, and a record that pre-empted it would
+> be deciding the tree's shape as a side effect of a sentence's punctuation — the same refusal as
+> before, for the same reason.
+
+### 3 · The booked cost is paid, and paying it exposed something about the cluster rule
+
+The **Bad / accepted costs** bullet promising four superseded descriptions and four *third* descriptions
+is discharged. The four exist, each written to this standard, each passing the mechanical gate
+(presence, one line, bounds, `Use when`, resolving `(see X)`, cluster reciprocity): `backend/coverage`,
+`backend/environment-config`, `infrastructure/dynamodb`, `infrastructure/cloudwatch-rum`.
+
+**What was not foreseen, and it is a real bound on the cluster rule rather than a defect in it:** all
+four merged files now **span the very axis their cluster uses to separate members**, and two of the
+three axes are affected.
+
+| merged skill | cluster | the axis it now spans | how the description says so |
+|---|---|---|---|
+| `infrastructure/dynamodb` | data | **use vs provision** | *"Provision and use DynamoDB end to end"* |
+| `infrastructure/cloudwatch-rum` | observability | **use vs provision** | *"Provision and instrument … the Terraform app monitor … the browser client"* |
+| `backend/environment-config` | config-and-secrets | **which surface** | server runtime **and** build-time browser bundle |
+| `backend/coverage` | gates | **which surface** | *"for both stacks"* |
+
+This is not incidental. **The families WERE the axis** — the pairs existed in two families precisely
+because each concept had a provisioning half and a using half, or a server half and a browser half.
+Merging them is the owner's ruling, and it necessarily produces members that straddle.
+
+**The rule survives it, narrowly.** Each of the four still names a rival in its own cluster and the
+naming is still mutual, so the gate is green and honest. What is weaker is the *third* axis of
+separation for those four: a matcher deciding between `infrastructure/dynamodb` and
+`infrastructure/elasticache` can no longer be helped by *provision or use*, only by *which datastore*.
+**Booked as an accepted cost, not a decision** — no rule changes, and inventing an axis to restore the
+separation would be authoring a taxonomy to fit a check, which is the shape option 3 was refused for.
+It gets broader, predictably, at step 3: a flat tree removes the folder as a hint for **every** skill,
+which is the situation constraint 2 was written for.
+
+### 4 · What is deliberately NOT recorded, here or anywhere — the family-choice rule
+
+PR #174 invented a rule to decide which family keeps each merged file: **the family whose charter covers
+the merged scope; on a tie, the side with more inbound references.** It killed four published invocation
+names (`/backend/dynamodb`, `/frontend/cloudwatch-rum`, `/frontend/coverage`,
+`/frontend/environment-config`). **The ruling is *no ADR*, and it is stated rather than left silent**,
+because a published cost with no record is the shape the significance gate exists for and a reader is
+owed the reason it did not fire.
+
+`/workflow/adr`'s five arms, applied:
+
+- **`iac/`** — not touched.
+- **A public contract changes** — **yes, and it is already recorded.** The invocation surface is the
+  contract, and the four deaths are *entailed* by the owner's ruling *merge the overlapping pairs rather
+  than rename them apart*. Merging two files necessarily kills one of two names; the rule chose **which**
+  one, not **whether**. The decision, its MAJOR, and the sequencing that cuts it are in #164.
+- **A fixed decision is altered** — **yes, this record**, which is why this amendment exists rather than
+  a new ADR.
+- **A new dependency or tool-class** — none.
+- **A cross-cutting pattern others will follow** — **no, and this is the arm that decides it.** The rule
+  governs a taxonomy that #164 step 3 abolishes. It was applied four times, to four files, and there is
+  no future case for it to bind. A record that outlives its subject trains readers to skim the library,
+  which is the cost `/workflow/adr` names for an ADR written for a routine change.
+
+**The weakest link is `coverage`**, where neither charter fit and `workflow/` was rejected because
+re-homing into a third family was not authorised. That rejection is the correct move — deferring a
+taxonomy decision to the owner rather than taking it inside an implementation slice — and it is exactly
+why the rule is not a decision worth a record: it is the *absence* of one, held for three steps.
+
+### Links added by this amendment
+
+- [PR #174](https://github.com/tedeuxx/tadeumendonca-skills/pull/174), step 1 of
+  [#164](https://github.com/tedeuxx/tadeumendonca-skills/issues/164) — the four merges. The
+  *"four stems occur in two families each"* paragraph and the four-superseded-descriptions bullet above
+  are superseded by this amendment.
+- **#164 remains open** and steps 2–6 remain deliberately not pre-empted, per the refusal in §2.
+- Related: [ADR-0008](./0008-which-layer-carries-a-control.md) for *a measurement to re-derive rather
+  than a verdict to read*, which is why §1 ships the command and both figures instead of one corrected
+  number.
+- **Evidence re-derived at `78f4e5b`, not relayed:** the two commands in §1, each run against
+  `origin/main` and the branch head; the cluster-member counts by extracting the `CLUSTERS` table from
+  `hooks/scripts/inventory-counts.test.sh` on both refs (31 and 27); and the four descriptions in §3
+  read from the tree rather than from the PR description.
