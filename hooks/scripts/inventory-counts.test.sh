@@ -1247,8 +1247,60 @@ fm_block() {
   awk 'NR==1 && $0 != "---" { exit } NR==1 { infm=1; next } infm && $0 == "---" { exit } infm' "$1"
 }
 
-if [ -z "$SKILL_FILES" ]; then
-  bad "skill descriptions — no files found under commands/; every assertion below would pass vacuously"
+# ── THE VACUITY GUARD IS A FLOOR, NOT AN EMPTINESS TEST ─────────────────────────────────────────────
+# IT USED TO FIRE ONLY ON ZERO, AND ZERO IS NOT HOW THIS SCAN LOSES ITS SUBJECT. Measured by
+# `harness-reviewer` on #164 against a simulation of the flat `skills/` layout: `find $ROOT/commands`
+# returns TWO files, the suite prints `38 passed, 10 failed`, and all ten reds are elsewhere — the
+# counts, the README table, the loop-engineering tripwire. Meanwhile the three controls anchored on
+# this file set print, in these words:
+#
+#     PASS  skill descriptions L1 — all 2 parse...
+#     PASS  skill descriptions L2 — all 2 are triggers, not titles...
+#     PASS  consumer references — all 2 skill files are project-agnostic...
+#
+# #166's description standard, #167's project-agnostic lint and the `(see X)` resolver stop covering 69
+# of 71 files and SAY SO IN A GREEN. Whoever repairs the ten reds has no reason to open this block.
+# A GUARD THAT CATCHES ONLY ZERO CANNOT CATCH A SCOPE THAT SHRANK BY 97 PERCENT.
+#
+# THE EXPECTATION IS DERIVED, AND DELIBERATELY NOT FROM THE SCAN ITSELF. Deriving it by counting the
+# same `find` would be a tautology that can never fail; writing it as a literal makes it the next thing
+# to go stale, which is the defect this whole file exists to catch. So it comes from the two places
+# that already state the library's size for a reason of their own:
+#
+#   - THE PUBLISHED FIGURE — the count this repo prints on its front door, read out of the same four
+#     inventory documents `check_every_occurrence` reads, with the same pattern. Those four are already
+#     required to agree with the family walk, so this borrows a number that is independently pinned.
+#   - THE TYPED-COMMAND ENUMERATION — `ARG_HINT_ALLOWED`, counted rather than assumed. The published
+#     figure counts the namespaced skills only ("<N> skills + autonomy-on"), so the un-namespaced
+#     commands have to be added back, and this file already maintains the list of exactly which they
+#     are. #165's `autonomy-off` moves both numbers in the same commit, as it should.
+#
+# WHAT IT CATCHES: any shrink of the scan set that the documents have NOT been told about — a move to
+# another directory, a deletion, a `find` whose path stopped resolving. WHAT IT DELIBERATELY DOES NOT:
+# a shrink the docs were updated for in the same commit, which is a reviewed removal and not a silent
+# one — and a GROWTH, because a floor is one-sided on purpose. An added skill is caught by the count
+# assertions above, in a message that names the documents to edit.
+#
+# ONE THING IT NOW COVERS THAT NOTHING DID: deleting `commands/autonomy-on.md` used to remove the file
+# from the scan set, which is the ONE way to silence L1's POSITIVE `argument-hint` assertion — the loop
+# never opens a file it cannot see. The floor counts the typed commands independently of the scan, so
+# the deletion is a shortfall rather than an absence.
+published_skills="$(grep -ohE '[0-9]+ ([a-z-]+ ){0,2}skills' "${INVENTORY_DOCS[@]}" 2>/dev/null \
+                      | grep -oE '^[0-9]+' | sort -n | tail -1)"
+typed_cmds="$(printf '%s\n' $ARG_HINT_ALLOWED | grep -c . || true)"
+scanned_skills="$(printf '%s\n' "$SKILL_FILES" | grep -c . || true)"
+expected_skills=$((published_skills + typed_cmds))
+
+if [ -z "$published_skills" ]; then
+  bad "skill descriptions — no published skill count could be read out of the inventory documents, so the
+      floor below has nothing to compare against and every assertion in this block would run unbounded.
+      Either the figure stopped being published or its phrasing left the pattern; restore one of them."
+elif [ "$scanned_skills" -lt "$expected_skills" ]; then
+  bad "skill descriptions — the scan found $scanned_skills file(s) under commands/, and the repo publishes
+      $published_skills skill(s) plus $typed_cmds typed command(s) = $expected_skills. Every assertion in this block is
+      anchored on that set, so it is now covering LESS than the library and would still print PASS.
+      If the library MOVED, repoint the scan in this same commit. If files were deliberately removed,
+      the published figure moves with them — and then this goes green because the shrink is on record."
 else
   # --- LEVEL 1: presence and parse, zero judgement ------------------------------------------------
   # Length bounds are a FLOOR AND A CEILING, NOT A QUALITY METRIC, and the standard says so in those
@@ -1634,6 +1686,98 @@ delivery|workflow/github-actions workflow/versioning workflow/terraform-cloud in
     ok "skill descriptions L3 — all $cluster_members clustered skills name a rival, and every naming is mutual (addition to a cluster is NOT covered — see the note above)"
   else
     bad "skill descriptions L3 — cluster disambiguation:$cluster_problems"
+  fi
+fi
+
+# ---------------------------------------------------------------------------------------------------
+# EVERY POINTER A PERSONA BRIEF MAKES INTO THE LIBRARY RESOLVES (#164, finding 8).
+#
+# THE SAME RULE AS THE `(see X)` RESOLVER ABOVE, POINTED AT THE OTHER SET OF FILES THAT MAKE THE SAME
+# CLAIM. A skill description saying `(see backend/dynamodb)` has been gated since #168; a persona brief
+# saying `/principles/dev-loop` has been gated by nothing at all, and there are ten of them across the
+# five briefs.
+#
+# WHY IT IS WORTH A BLOCK, in `harness-reviewer`'s words on #164: it is "the only place where a break is
+# both silent AND consequential". A wrong skill identifier fails at ZERO BYTES OF STDERR without
+# `--debug-file` — measured — so a persona told to consult a name that no longer resolves reaches for
+# nothing and reports nothing. The failure is indistinguishable from a deliberate omission, forever.
+#
+# WHY IT IS AT TOP LEVEL AND NOT INSIDE THE SCAN BLOCK ABOVE, WHICH IS WHERE IT WAS FIRST WRITTEN. It
+# resolves into `commands/`, so nesting it under that block's guard looked like the tidy choice. IT WAS
+# MEASURED WRONG BEFORE IT SHIPPED: two mutations — moving `commands/workflow/adr.md` aside, and
+# emptying `commands/frontend` — both shrink the scan set, so the floor fired, the `else` was skipped
+# and THIS ASSERTION NEVER RAN. The suite was red, and not one of its reds named the dangling pointer.
+# That is precisely the disease the floor above was added to cure, reintroduced one block later. Both
+# mutations now redden this block by name.
+#
+# THE FAMILY LIST IS DERIVED FROM THE TREE, not enumerated, for the reason the family walk at the top of
+# this file already gives: an enumeration inside a file written to catch stale enumerations.
+#
+# ── WHAT IT DOES NOT COVER, and each direction is on purpose ──────────────────────────────────────
+#   - A POINTER AT AN INVENTED FAMILY (`/nonexistent/dev-loop`) is invisible, because the extraction
+#     keys on families that EXIST. Widening it to any `/x/y` token would swallow `.github/workflows/**`,
+#     `apps/**/scripts` and every docs path in the briefs — and a check wrong more often than right is
+#     one the loop learns to silence. The covered direction is the one that actually happens: a real
+#     family whose file was renamed, merged or moved.
+#   - THE `skills:` PRELOAD IDENTIFIERS in the briefs' frontmatter are a DIFFERENT form —
+#     colon-separated, `family:stem` — and are not read here. THEY ARE ALREADY GATED, by
+#     `hooks/scripts/skills-resolve.test.sh`, which is scoped to the frontmatter and says so in its own
+#     words: "the FRONTMATTER only, never the body". This block is the complement — the BODY, where the
+#     same brief writes the same library in the slash spelling that the loader does not resolve. The
+#     two together cover both forms, and neither covers the other. (An earlier draft of this comment
+#     claimed the frontmatter form was ungated. It was false when written, and the correction is kept
+#     rather than tidied away, because a comment overstating a gap is the same defect class as one
+#     overstating coverage.)
+brief_families=""
+for path in "$ROOT"/commands/*/; do
+  [ -d "$path" ] || continue
+  brief_families="$brief_families|$(basename "$path")"
+done
+brief_families="${brief_families#|}"
+
+brief_problems=""
+brief_pointers=0
+if [ -z "$brief_families" ]; then
+  bad "agent brief pointers — no skill families were found under commands/, so every pointer in the
+      briefs was resolved against nothing and this assertion did NOT run. If the library moved,
+      repoint this resolver in the same commit."
+else
+  for brief in "$ROOT"/agents/*.md; do
+    [ -f "$brief" ] || continue
+    brel="${brief#"$ROOT"/}"
+    while IFS= read -r hit; do
+      [ -z "$hit" ] && continue
+      lineno="${hit%%:*}"
+      ref="${hit#*:}"
+      ref="${ref#/}"
+      brief_pointers=$((brief_pointers + 1))
+      fam="${ref%%/*}"
+      leaf="${ref#*/}"
+      if [ "$leaf" = "*" ]; then
+        # THE FAMILY-GLOB FORM (`/frontend/*`), which is how `developer.md` names its four source globs.
+        # It promises the family exists AND holds skills, so an emptied family is a broken pointer even
+        # though the directory survives.
+        if [ -z "$(find "$ROOT/commands/$fam" -name '*.md' -type f 2>/dev/null)" ]; then
+          brief_problems="$brief_problems
+    $brel:$lineno — points at '/$ref', and commands/$fam holds no skill files"
+        fi
+      elif [ ! -f "$ROOT/commands/$ref.md" ]; then
+        brief_problems="$brief_problems
+    $brel:$lineno — points at '/$ref', and commands/$ref.md does not exist"
+      fi
+    done <<< "$(grep -noE "/($brief_families)/([a-z0-9-]+|\*)" "$brief" || true)"
+  done
+
+  if [ "$brief_pointers" -eq 0 ]; then
+    bad "agent brief pointers — not one family-qualified pointer was found across agents/*.md, and there
+      were ten when this was written. Either the briefs stopped naming the library that way — in which
+      case retarget this resolver at the form they use now, in this commit — or the extraction broke."
+  elif [ -z "$brief_problems" ]; then
+    ok "agent brief pointers — all $brief_pointers /<family>/<skill> pointers across the persona briefs resolve to a file (a wrong one fails at 0 bytes of stderr, so nothing else would say so)"
+  else
+    bad "agent brief pointers — a persona brief sends its reader at something that does not exist:$brief_problems
+      A wrong identifier fails SILENTLY — zero bytes of stderr — so this block is the only thing that
+      will ever say so. Fix the pointer, or put the file back."
   fi
 fi
 
