@@ -14,16 +14,22 @@ name: hooks-test
 # consuming repo's agent, so a regression is either a hole in the irreversible floor or a wedged dev
 # loop, and nothing outside `hooks/` changes what it does.
 #
-# `agents/**` AND `commands/**` — both for `skills-resolve.test.sh`, which reads TWO trees and is the
-# reason this filter is no longer a one-liner. It parses `skills:` out of `agents/*.md` and resolves
-# each identifier against `commands/**`, so EITHER side can falsify it:
-#   * edit an identifier            → `agents/**`   catches it;
-#   * rename or delete its target   → `commands/**` catches it.
+# `agents/**`, `skills/**` AND `commands/**` — all three for `skills-resolve.test.sh`, which reads TWO
+# trees and is the reason this filter is no longer a one-liner. It parses `skills:` out of `agents/*.md`
+# and resolves each identifier against the library, so EITHER side can falsify it:
+#   * edit an identifier            → `agents/**`               catches it;
+#   * rename or delete its target   → `skills/**`/`commands/**` catches it.
 # `agents/**` shipped in #172 and `commands/**` did NOT, which left the suite unable to fire on the
 # second class — precisely #164 step 3, and precisely what #174 already performed once. A wrong
 # identifier fails at 0 bytes of stderr, so that gap was the silent half of a check built against
 # silence. Caught by `quality-assurance` on PR #178 (B1), not by CI, because no instrument here can yet
 # see a filter narrower than its suite's inputs.
+#
+# `skills/**` IS THE SAME ENTRY ONE TREE LATER (#164). The library moved to `skills/<stem>/SKILL.md`, so
+# the resolution target of every identifier moved with it and `commands/**` — added one slice earlier for
+# exactly this reason — stopped covering the half it was added for. `commands/**` is KEPT rather than
+# swapped: the two typed commands still live there and `new-issue` is a live `skills:` identifier, so
+# both trees can still falsify this suite.
 #
 # THE CAUSE, STATED SO THE SEVENTH OCCURRENCE IS HARDER: the filter was derived from where the suite's
 # SUBJECT lives rather than from the union of trees it READS. `inventory-counts.test.sh` has a
@@ -36,6 +42,7 @@ on:
     paths:
       - "hooks/**"
       - "agents/**"
+      - "skills/**"
       - "commands/**"
       - ".github/workflows/hooks-test.yml"
 

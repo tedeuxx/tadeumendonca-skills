@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Asserts that every `skills:` identifier in `agents/*.md` resolves to a tracked file in `commands/`.
+# Asserts that every `skills:` identifier in `agents/*.md` resolves to a tracked file in the library.
 #
 # WHY THIS EXISTS, and why it is CI rather than the runtime. A wrong identifier in a `skills:` list
 # fails at **0 bytes of stderr**. The persona starts, the skill is simply not there, and nothing —
@@ -20,6 +20,12 @@
 # All three were measured rather than assumed (#172): `workflow:license`, bare `license` and
 # `plugin:workflow:license` all resolve; the slash and glob forms do not.
 #
+# THE FAMILY-QUALIFIED FORM IS RETIRED, NOT DEPRECATED (#164). The library is flat —
+# `skills/<stem>/SKILL.md` — so the identifier is the innermost directory and there is no family segment
+# left to qualify with. `workflow:code-review` names a family that does not exist and would fail exactly
+# as silently as a typo, so every list was rewritten to the bare form in the same commit as the move.
+# The colon PREFIX for the plugin (`plugin:` / `tadeumendonca-skills:`) is a different thing and stays.
+#
 # WHAT IT DOES NOT ASSERT, said plainly. That the list is the RIGHT one — curation is judgement, made by
 # `tech-lead` and recorded in the ADR, and no test can hold it. And that the runtime actually loads what
 # resolves here: this reads the same tree the loader reads, but it is not the loader. It catches a
@@ -30,6 +36,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 AGENTS="$ROOT/agents"
 COMMANDS="$ROOT/commands"
+SKILLS="$ROOT/skills"
 
 fails=0
 ok()  { printf '  ok   %s\n' "$1"; }
@@ -56,20 +63,20 @@ strip_prefix() {
   printf '%s' "$id"
 }
 
-# A QUALIFIED identifier (one carrying a family segment) maps positionally:
-#   `workflow:code-review` -> commands/workflow/code-review.md
+# A QUALIFIED identifier — one still carrying a family segment — resolves to NOTHING since #164, and
+# that is now a hard failure rather than a path computation. It used to map positionally
+# (`workflow:code-review` -> `commands/workflow/code-review.md`); the library is flat, the family
+# directories are gone, and a loader handed `workflow:code-review` finds no such skill and says so at
+# zero bytes of stderr. Reporting it here is the whole reason this suite exists.
 #
-# A BARE identifier does NOT — and assuming it did was a real defect in the first draft of this file,
-# caught by writing the mutation probes rather than by reading it. Bare `license` resolves to
-# `commands/workflow/license.md`, i.e. the loader searches the tree by STEM; it does not look only at
-# the top level. The first version mapped bare `<id>` to `commands/<id>.md`, which happened to be right
-# for `new-issue` (genuinely top-level) and would have been wrong, silently and in the permissive
-# direction, for every bare identifier naming a skill inside a family. Bare resolution is therefore the
-# `find` below, which is also what makes assertion 5 the resolution mechanism rather than a bolt-on.
-resolve_qualified() {
-  local id
-  id="$(strip_prefix "$1")"
-  printf 'commands/%s.md' "${id//://}"
+# A BARE identifier resolves by STEM, which is what the loader does — and assuming otherwise was a real
+# defect in the first draft of this file, caught by writing the mutation probes rather than by reading
+# it. The `find` below is that resolution, which is also what makes assertion 5 the resolution mechanism
+# rather than a bolt-on. Under the flat tree it searches `skills/<stem>/SKILL.md` and the two typed
+# commands at `commands/<stem>.md`.
+resolve_bare() {
+  find "$SKILLS" -mindepth 2 -maxdepth 2 -name 'SKILL.md' -path "*/$1/SKILL.md" 2>/dev/null
+  find "$COMMANDS" -maxdepth 1 -name "$1.md" 2>/dev/null
 }
 
 total_ids=0
@@ -170,33 +177,34 @@ for agent in $agent_files; do
     esac
     seen_ids="$seen_ids $id"
 
-    # --- ASSERTION 5 — a BARE identifier must resolve to exactly one file ------------------------
-    # Runs FIRST for a bare identifier, because for that form it IS the resolution: the loader searches
-    # by stem, so two files sharing a stem make the identifier ambiguous and which one loads is not
-    # something this repo gets to decide.
+    # --- ASSERTION 5 — the identifier must be BARE and resolve to exactly one file ---------------
+    # THE RESOLUTION IS THE ASSERTION: the loader searches by stem, so two files sharing a stem make the
+    # identifier ambiguous and which one loads is not something this repo gets to decide.
     #
-    # NO STEM OCCURS IN TWO FAMILIES TODAY — #174 merged the four that did (`coverage`, `dynamodb`,
-    # `cloudwatch-rum`, `environment-config`), and
-    #   git ls-tree -r --name-only HEAD -- commands | xargs -n1 basename | sort | uniq -d
-    # returns nothing. So this assertion cannot fire on the current tree, and it is here for #164's
-    # flatten, which collapses every family segment into one namespace and is exactly what
-    # reintroduces the collision. That is the whole argument; an earlier draft of this comment also
-    # claimed the four pairs still existed, which was false at the head it shipped on.
+    # NO STEM OCCURS TWICE — #174 merged the four that did (`coverage`, `dynamodb`, `cloudwatch-rum`,
+    # `environment-config`), which is what made #164's flatten deterministic: collapsing every family
+    # segment into one namespace is exactly what WOULD have reintroduced the collision, and the merge is
+    # why it did not. This assertion is what says so on every run rather than in a comment.
+    #
+    # A REMAINING COLON IS NOW A FAILURE, and it is the defect this move is most likely to leave behind.
+    # `workflow:code-review` resolved before the flatten and resolves to nothing after it — the family
+    # is not a directory any more — and it fails at 0 bytes of stderr, which is the shape this whole
+    # suite exists for. The message names the bare form rather than describing the rule, because the
+    # repair is mechanical.
     bare=$(strip_prefix "$id")
     case "$bare" in
       *:*)
-        rel=$(resolve_qualified "$id")
-        ;;
-      *)
-        matches=$(find "$COMMANDS" -name "$bare.md" | sort)
-        n_matches=$(printf '%s\n' "$matches" | grep -c . || true)
-        if [ "$n_matches" -ne 1 ]; then
-          bad "$name — bare \`$id\` matches $n_matches files under commands/; it must match exactly one. Qualify it with its family."
-          continue
-        fi
-        rel="${matches#"$ROOT"/}"
+        bad "$name — \`$id\` still carries a family segment. Since #164 the library is flat and the identifier is the skill's own directory name; use \`${bare##*:}\`."
+        continue
         ;;
     esac
+    matches=$(resolve_bare "$bare" | sort)
+    n_matches=$(printf '%s\n' "$matches" | grep -c . || true)
+    if [ "$n_matches" -ne 1 ]; then
+      bad "$name — bare \`$id\` matches $n_matches files across skills/ and commands/; it must match exactly one."
+      continue
+    fi
+    rel="${matches#"$ROOT"/}"
 
     # --- ASSERTION 1 — resolves to a file that exists AND is tracked -----------------------------
     # Tracked matters as much as present: an untracked file resolves on the author's laptop and is

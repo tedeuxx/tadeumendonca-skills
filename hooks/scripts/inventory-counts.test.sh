@@ -56,42 +56,104 @@ expect_in() {
 agents=$(find "$ROOT/agents" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
 expect_in "$README" "$agents subagent personas" "agents/"
 
-# --- skills, per directory and in total ------------------------------------------------------
-# The root-level commands (autonomy-on.md) are counted SEPARATELY from the namespaced skills,
-# because that is how both documents present them: "<N> skills + autonomy-on".
+# --- skills, per family and in total -----------------------------------------------------------
+# The root-level commands (autonomy-on.md) are counted SEPARATELY from the library, because that is
+# how both documents present them: "<N> skills + autonomy-on".
+#
 # THE FAMILY LIST IS DERIVED, NOT ENUMERATED. It used to be a literal list here, and when a family was
 # emptied and its directory removed, this loop kept asserting `<name> (0)` against two documents that
 # had correctly stopped mentioning it — a red suite reporting the docs were wrong when the suite was.
 # An enumeration inside the file written to catch stale enumerations; deriving it also means a NEW
 # family is asserted from the moment it exists rather than from whenever someone remembers this line.
+#
+# ── WHERE THE FAMILY LIVES NOW, AND WHY THE SOURCE MOVED (#164) ────────────────────────────────────
+# THE FAMILY IS NO LONGER A DIRECTORY. The library is flat — `skills/<stem>/SKILL.md`, one directory per
+# skill — because the invocation name is the innermost directory and the owner's reason for splitting
+# `commands/` from `skills/` was human reading of the repo. So there is nothing on the PATH to group by.
+#
+# It is read out of a `family:` frontmatter key instead, and that choice is forced rather than stylistic:
+# both published documents still carry a per-family breakdown (this loop is what pins it), the owner's
+# own remedy for a flat tree is that the README is promoted to the primary reading structure, and the
+# only two alternatives were a hand-maintained 69-entry map — the enumeration-inside-the-enumeration-
+# catcher this file has paid for twice — or deleting the grouping from the docs, which is content loss
+# under a repo rule that says deepen and never thin.
+#
+# WHAT IT BUYS THAT THE DIRECTORY DID NOT: a skill added without a family is not silently unfiled, it is
+# a hard error in `skills-table.py` and a shortfall here.
+SKILL_DIRS="$(find "$ROOT/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)"
+
+family_of() {  # $1 = skill directory name -> its `family:` frontmatter value, empty if absent
+  awk 'NR==1 && $0 != "---" { exit } NR==1 { next } $0 == "---" { exit } /^family:/ { sub(/^family:[[:space:]]*/, ""); print; exit }' \
+    "$ROOT/skills/$1/SKILL.md" 2>/dev/null
+}
+
+# Families and their members, derived once. A skill with no `family:` is collected separately and
+# reported — never bucketed into a default, which would let it pass every assertion below while being
+# absent from the breakdown a reader actually uses.
+FAMILY_LIST=""
+unfamilied=""
 total=0
-for path in "$ROOT"/commands/*/; do
-  dir=$(basename "$path")
-  n=$(find "$ROOT/commands/$dir" -name '*.md' -type f | wc -l | tr -d ' ')
-  total=$((total + n))
-  expect_in "$README" "$dir ($n)" "commands/$dir"
-  expect_in "$CLAUDE" "$dir/ ($n)" "commands/$dir"
+while IFS= read -r d; do
+  [ -z "$d" ] && continue
+  stem="$(basename "$d")"
+  fam="$(family_of "$stem")"
+  total=$((total + 1))
+  if [ -z "$fam" ]; then
+    unfamilied="$unfamilied
+    skills/$stem/SKILL.md"
+    continue
+  fi
+  case " $FAMILY_LIST " in *" $fam "*) : ;; *) FAMILY_LIST="$FAMILY_LIST $fam" ;; esac
+done <<< "$SKILL_DIRS"
+FAMILY_LIST="${FAMILY_LIST# }"
+
+if [ -n "$unfamilied" ]; then
+  bad "skill families — a skill carries no 'family:' key, so it is in the tree and in NO published breakdown:$unfamilied
+      The family stopped being a directory when the library flattened; the frontmatter key is the only
+      thing that files a skill under a heading a reader will ever open."
+else
+  ok "skill families — all $total skills carry a 'family:' key"
+fi
+
+for fam in $FAMILY_LIST; do
+  n=0
+  fam_stems=""
+  while IFS= read -r d; do
+    [ -z "$d" ] && continue
+    stem="$(basename "$d")"
+    [ "$(family_of "$stem")" = "$fam" ] || continue
+    n=$((n + 1))
+    fam_stems="$fam_stems $stem"
+  done <<< "$SKILL_DIRS"
+
+  expect_in "$README" "$fam ($n)" "family $fam"
+  expect_in "$CLAUDE" "$fam ($n)" "family $fam"
 
   # The HEADING is not the inventory — the TABLE UNDER IT is what a reader actually reads.
   #
   # This assertion exists because the gap it closes shipped. Adding a skill reddened the heading
   # above, someone bumped "(8)" to "(9)", and the suite went green with the table below it still
   # listing eight rows. The skill was published and undiscoverable in the one document a reader
-  # opens to find out what exists — and the file's own header already booked this hole in its own
-  # words: "It asserts the numbers, never the prose around them."
+  # opens to find out what exists.
   #
-  # Row-counted across the whole file rather than parsed per-section, deliberately: every skill
-  # appears exactly once as a table row, so a global count needs no section-boundary logic, and
-  # boundary parsing is a thing to get wrong for no gain.
-  rows=$(grep -c "^| \`/$dir/" "$CLAUDE" || true)
-  if [ "$rows" = "$n" ]; then
-    ok "commands/$dir — CLAUDE.md table lists all $n"
+  # RE-KEYED FROM A ROW PREFIX TO THE MEMBER SET (#164), and that is stronger rather than equivalent.
+  # It used to count `^| \`/<family>/` rows, which worked only because the row carried the family in
+  # its invocation path; flat rows are `| \`/<stem>\` |` and carry no family at all, so a prefix count
+  # would have matched zero and a bare count of all rows would not have been per-family. Asserting that
+  # each MEMBER has a row names the missing skill instead of reporting a number that is one short.
+  missing_rows=""
+  for stem in $fam_stems; do
+    grep -qF "| \`/$stem\` |" "$CLAUDE" && continue
+    missing_rows="$missing_rows $stem"
+  done
+  if [ -z "$missing_rows" ]; then
+    ok "family $fam — CLAUDE.md's table has a row for all $n"
   else
-    bad "commands/$dir — CLAUDE.md heading says $n, the table under it lists $rows; a skill is published and unlisted"
+    bad "family $fam — CLAUDE.md heading says $n and these have no row:$missing_rows; a skill is published and unlisted"
   fi
 done
 
-expect_in "$README" "$total skills + autonomy-on" "commands/ total"
+expect_in "$README" "$total skills + autonomy-on" "library total"
 
 # EVERY occurrence, not the one literal — and this is the hole the first version of this file had.
 # The README states the total twice: once as the asserted string in the diagram, and once in prose in
@@ -229,7 +291,7 @@ fi
 # `PRINCIPLES.md` was in this list until it was folded into the README — a floor behind a click is a
 # floor nobody reads. Removed here rather than left to fail: the existence guard below would have
 # reported it, which is correct behaviour and the wrong signal, since the file is gone on purpose.
-for doc in "$README" "$CLAUDE" "$ROOT/commands/principles/loop-engineering.md"; do
+for doc in "$README" "$CLAUDE" "$ROOT/skills/loop-engineering/SKILL.md"; do
   name=$(basename "$doc")
   # Existence first. Without it, a renamed or deleted file makes `grep` print to stderr and return
   # non-zero — which the "is clear of the retired term" branch reads as SUCCESS, emitting a green line
@@ -273,23 +335,31 @@ done
 # THE COVERAGE ABOVE IS NOT TOTAL, and the exception is asserted rather than described so that it
 # cannot be quietly forgotten.
 #
-# The command is still at `commands/principles/loop-engineering.md`, so the PATH `/principles/loop-
-# engineering` is published in CLAUDE.md's and PRINCIPLES.md's command reference — a table cell that
-# names the practice `Harness Engineering` while pointing at a command named after the term that
-# replaced. The check above cannot see it: it greps the title-case, spaced form, and the slug does
-# not match.
+# The skill is still NAMED `loop-engineering`, so the invocation `/loop-engineering` is published in
+# CLAUDE.md's command reference — a table cell that names the practice `Agent Harness Engineering` while
+# pointing at a command named after the term that replaced. The check above cannot see it: it greps the
+# title-case, spaced form, and the slug does not match.
 #
-# Left deliberately. That path is a public invocation surface and this repo's SemVer contract makes a
+# Left deliberately. That name is a public invocation surface and this repo's SemVer contract makes a
 # renamed command a MAJOR bump; shipping one under a `docs:` subject is a worse defect than the
 # mismatch. The rename belongs in its own release.
 #
-# Asserted POSITIVELY — the slug must still be there — so that the day the rename happens this goes
-# red and drags this note out with it. A known gap that fails when it closes is bookkeeping; one that
-# stays silent is exactly how the retired term survived the first propagation.
-if [ -f "$ROOT/commands/principles/loop-engineering.md" ]; then
+# THE TRIPWIRE FIRED ON #164 EXACTLY AS DESIGNED, AND THE ANSWER IS RECORDED HERE RATHER THAN IN THE
+# COMMIT MESSAGE, because this note is what the next reader meets. The library moved from
+# `commands/principles/loop-engineering.md` to `skills/loop-engineering/SKILL.md`, this assertion went
+# red, and it dragged this paragraph out for editing — which is the whole point of asserting a known gap
+# positively. What it found is that THE SLUG DID NOT MOVE: the exception's subject is the NAME
+# `loop-engineering`, and only the path around it changed, so the gap is unchanged and the note stands.
+#
+# The bump the failure message asks about was answered separately and is NOT what this assertion
+# thought it was asking. #164's flatten renames sixty-nine invocations — `/principles/loop-engineering`
+# becomes `/loop-engineering` — and the owner ruled that travels as a PATCH, on the reading that #174
+# and the flatten are one contract change which `1.0.0` already announced. So a red here does not mean
+# "a MAJOR is owed"; it means "a versioning decision is owed, and it must be made rather than assumed".
+if [ -f "$ROOT/skills/loop-engineering/SKILL.md" ]; then
   ok "vocabulary — the slug exception is still in place, as recorded (see the note above)"
 else
-  bad "vocabulary — the command was renamed: retire this assertion, this note, and the four-doc list above, and confirm the MAJOR bump"
+  bad "vocabulary — the skill was renamed: retire this assertion, this note, and the three-doc list above, and settle the version bump the rename owes (see the note — a rename is MAJOR by the CLAUDE.md rule, and #164 records the one reading under which a follow-on PATCH is the honest carrier)"
 fi
 
 # --- the roster's SHAPE, written as an English word inside an instruction -----------------------
@@ -313,14 +383,14 @@ case "$lead_files" in
 esac
 
 # SCOPE IS INSTRUCTIONS, NOT RECORDS, and that cut is the whole reason this is not a cry-wolf regex.
-# `agents/**` and `commands/**` are read by an agent as current fact, and `hooks/scripts/*.sh`
+# `agents/**`, `skills/**` and `commands/**` are read by an agent as current fact, and `hooks/scripts/*.sh`
 # comments state the rule the code beside them enforces — all three must be TRUE. `docs/**` is
 # excluded on purpose: it narrates how the roster got here, and a check that reddens on "the roster
 # was three leads until 2026-08-04" would force a record to be falsified to go green, which is worse
 # than the gap it closes. `*.test.sh` is excluded because a suite's fixtures are deliberately wrong
 # strings — including this file, whose own comments describe the phrasing it hunts.
 lead_scan_files=$(
-  find "$ROOT/agents" "$ROOT/commands" -name '*.md' -type f
+  find "$ROOT/agents" "$ROOT/commands" "$ROOT/skills" -name '*.md' -type f
   find "$ROOT/hooks/scripts" -name '*.sh' -type f ! -name '*.test.sh'
 )
 
@@ -763,22 +833,25 @@ fi
 skill_rows_re='^\| `[a-z0-9][a-z0-9-]*` \|.*\| `[a-z0-9][a-z0-9-]*` \|'
 
 # DIRECTION 1 — every skill file has a row. Catches an ADDED skill nobody listed.
+#
+# THE (SKILL, FAMILY) KEY SURVIVED THE FLATTEN AND CHANGED WHAT IT PROVES (#164). The family cell used
+# to restate the directory the file was already found in, so a wrong cell was a typo. Now the family
+# comes from the file's own frontmatter and the tree has no family in it at all — so this pair check is
+# the ONLY thing comparing the published grouping against the skill's own claim about where it belongs.
 table_missing=""
 skill_files=0
-for path in "$ROOT"/commands/*/; do
-  fam=$(basename "$path")
-  for f in "$path"*.md; do
-    [ -e "$f" ] || continue
-    stem=$(basename "$f" .md)
-    skill_files=$((skill_files + 1))
-    grep -qE "^\| \`$stem\` \|.*\| \`$fam\` \|" "$README" && continue
-    table_missing="$table_missing
-    commands/$fam/$stem.md — no row in the README table"
-  done
-done
+while IFS= read -r d; do
+  [ -z "$d" ] && continue
+  stem=$(basename "$d")
+  fam=$(family_of "$stem")
+  skill_files=$((skill_files + 1))
+  grep -qE "^\| \`$stem\` \|.*\| \`$fam\` \|" "$README" && continue
+  table_missing="$table_missing
+    skills/$stem/SKILL.md — no row in the README table for family '$fam'"
+done <<< "$SKILL_DIRS"
 
 if [ "$skill_files" -eq 0 ]; then
-  bad "README skill table — no skill files found under commands/; this assertion did NOT run"
+  bad "README skill table — no skill directories found under skills/; this assertion did NOT run"
 elif [ -n "$table_missing" ]; then
   bad "README skill table — a skill is published and has no row in the table a forker reads:$table_missing
       The counts above can be green while this is wrong: fixing the number a count failure quotes does not add the row.
@@ -805,9 +878,17 @@ while IFS= read -r row; do
   r_skill=$(printf '%s' "$row" | sed 's/\\|/§/g' | awk -F'|' '{gsub(/[ `]/,"",$2); print $2}')
   r_fam=$(printf '%s' "$row" | sed 's/\\|/§/g' | awk -F'|' '{gsub(/[ `]/,"",$4); print $4}')
   [ -z "$r_skill" ] && continue
-  [ -f "$ROOT/commands/$r_fam/$r_skill.md" ] && continue
+  # BOTH HALVES OF THE PAIR, and the second is new. The file existing is no longer enough: the row also
+  # claims a family, and after the flatten that claim can be wrong while the file is perfectly present.
+  if [ ! -f "$ROOT/skills/$r_skill/SKILL.md" ]; then
+    table_orphans="$table_orphans
+    the table lists \`$r_skill\` in family \`$r_fam\` — skills/$r_skill/SKILL.md does not exist"
+    continue
+  fi
+  r_actual="$(family_of "$r_skill")"
+  [ "$r_actual" = "$r_fam" ] && continue
   table_orphans="$table_orphans
-    the table lists \`$r_skill\` in family \`$r_fam\` — commands/$r_fam/$r_skill.md does not exist"
+    the table files \`$r_skill\` under \`$r_fam\`, and its own frontmatter says \`$r_actual\`"
 done <<< "$(grep -E "$skill_rows_re" "$README" 2>/dev/null || true)"
 
 if [ "$table_rows" -eq 0 ]; then
@@ -1238,7 +1319,36 @@ fi
 # similarity, because ALL OF THEM PASS ON KEYWORD SALAD. That refusal is honoured here: nothing below
 # scores a description. A green means the shape is right, never that the sentence is good.
 
-SKILL_FILES="$(find "$ROOT/commands" -name '*.md' -type f | sort)"
+# ── THE SCAN SET IS BOTH TREES, AND THE KEY IS THE PARENT DIRECTORY (#164, finding 2) ──────────────
+# THE OBVIOUS REPAIR FOR THE MOVE IS THE ONE THAT BREAKS THIS BLOCK SILENTLY, and it was measured before
+# it could ship. Repointing `find` at `skills/` alone restores the file SET and destroys the file KEY:
+# every path is `skills/<stem>/SKILL.md`, so a basename stem is the string SKILL for all 69, and the two
+# assertions below that are keyed on the stem stop meaning anything. `harness-reviewer` mutated the
+# source to prove it — a stem-opener added to `routing`'s description, `argument-hint:` deleted from
+# `autonomy-on` — and BOTH SURVIVED, under a PASS line asserting the property just removed. Zero reds.
+#
+# So the stem comes from the PARENT DIRECTORY for a library skill, and from the basename for a typed
+# command. And the two typed commands are kept IN the set as a second source rather than dropped with
+# the directory they no longer share: the positive `argument-hint` assertion can only run on a file the
+# loop opens, so a scan that stops at `skills/` silences it by never looking.
+#
+# THE RE-KEY WAS RE-MUTATED AFTER THE MOVE, both cases, and both go red. An assertion is only real once
+# it has been seen to fail, and this file has found four that could not fail in a single day.
+SKILL_FILES="$(
+  find "$ROOT/skills" -name 'SKILL.md' -type f 2>/dev/null
+  find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f 2>/dev/null
+)"
+SKILL_FILES="$(printf '%s\n' "$SKILL_FILES" | sort)"
+
+# The invocation name, which is what every assertion below is about. `skills/<stem>/SKILL.md` -> `<stem>`
+# (the loader takes the innermost directory); `commands/<stem>.md` -> `<stem>`.
+skill_stem() {
+  case "$1" in
+    */SKILL.md) basename "$(dirname "$1")" ;;
+    *)          basename "$1" .md ;;
+  esac
+}
+
 ARG_HINT_ALLOWED="autonomy-on new-issue"   # the two the OWNER types; a model-invoked skill has no typed argument
 
 # The frontmatter block, exclusive of its `---` fences. Empty for a file that has none, which is what
@@ -1296,7 +1406,7 @@ if [ -z "$published_skills" ]; then
       floor below has nothing to compare against and every assertion in this block would run unbounded.
       Either the figure stopped being published or its phrasing left the pattern; restore one of them."
 elif [ "$scanned_skills" -lt "$expected_skills" ]; then
-  bad "skill descriptions — the scan found $scanned_skills file(s) under commands/, and the repo publishes
+  bad "skill descriptions — the scan found $scanned_skills file(s) across skills/ and commands/, and the repo publishes
       $published_skills skill(s) plus $typed_cmds typed command(s) = $expected_skills. Every assertion in this block is
       anchored on that set, so it is now covering LESS than the library and would still print PASS.
       If the library MOVED, repoint the scan in this same commit. If files were deliberately removed,
@@ -1316,7 +1426,7 @@ else
   while IFS= read -r f; do
     [ -z "$f" ] && continue
     rel="${f#"$ROOT"/}"
-    stem="$(basename "$f" .md)"
+    stem="$(skill_stem "$f")"
     fm="$(fm_block "$f")"
 
     if [ -z "$fm" ]; then
@@ -1470,9 +1580,11 @@ else
     # someone follows it. It catches every rename that L3's hand-maintained table cannot see, because
     # it is DERIVED — the pointers are read out of the descriptions rather than enumerated here.
     #
-    # ONLY THE PLAIN-PATH FORM IS RESOLVABLE, which is what earned the deviation from the standard's
-    # backticked bare stem: `(see cloudwatch-rum)` names two files in two families, so under that
-    # spelling this check could not exist at all.
+    # THE POINTER IS A BARE STEM NOW (#164), and the reason the plain-path form existed has gone with
+    # the families. It was `(see backend/metrics)` because `(see cloudwatch-rum)` once named two files
+    # in two families and could not be resolved; #174 merged all four such pairs and the flatten leaves
+    # 69 unique stems, so a bare stem resolves deterministically and is the only spelling the tree can
+    # still support. The rewrite was mechanical for exactly that reason.
     #
     # ── NOTHING IS SKIPPED, AND THAT IS A CORRECTION ────────────────────────────────────────────────
     # THE FIRST VERSION FILTERED WITH `grep -E '^[a-z0-9-]+/[a-z0-9-]+$'` AND DROPPED EVERYTHING ELSE.
@@ -1488,24 +1600,26 @@ else
     #
     # SO THE UNPARSEABLE IS REPORTED, NOT DISCARDED. Two branches, and every token reaches one of them.
     #
-    # THE CLASS ALSO GAINED AN OPTIONAL FAMILY. `(/[a-z0-9-]+)?` admits a BARE stem, which resolves
-    # against `commands/<stem>.md` — the two top-level commands `autonomy-on` and `new-issue` point at
-    # each other that way, legitimately, and ADR-0009 documents them as the only such files. The old
-    # class excluded exactly the two pointers the same record called correct. A bare stem naming a
-    # NAMESPACED skill (`see metrics`) still fails, because `commands/metrics.md` does not exist —
-    # which is the ambiguity the plain-path convention exists to refuse, now enforced rather than
-    # assumed.
+    # THE CLASS IS NOW A BARE STEM ONLY, and a SLASH IS REJECTED RATHER THAN IGNORED. A surviving
+    # `(see backend/metrics)` names a path that no longer exists anywhere, and the old class — which
+    # made the family segment optional — would have accepted it and then failed on the file check with
+    # a message about a missing file rather than about a stale spelling. Two targets are legal: a
+    # library skill at `skills/<stem>/SKILL.md`, and one of the two typed commands at
+    # `commands/<stem>.md`, which point at each other legitimately (ADR-0009 documents them as the only
+    # such files).
     while IFS= read -r ref; do
       [ -z "$ref" ] && continue
-      if ! printf '%s' "$ref" | grep -qE '^([a-z0-9-]+/)?[a-z0-9-]+$'; then
+      if ! printf '%s' "$ref" | grep -qE '^[a-z0-9-]+$'; then
         l2_problems="$l2_problems
-    $rel — pointer 'see $ref' is not a resolvable reference (expected <family>/<skill> or a top-level
-      command). Write it as a bare path with no extension, backticks or punctuation."
+    $rel — pointer 'see $ref' is not a resolvable reference. Since #164 the library is flat and the
+      invocation name is the bare stem: write 'see <skill>' with no family segment, extension,
+      backticks or punctuation."
         continue
       fi
+      [ -f "$ROOT/skills/$ref/SKILL.md" ] && continue
       [ -f "$ROOT/commands/$ref.md" ] && continue
       l2_problems="$l2_problems
-    $rel — points at 'see $ref', and commands/$ref.md does not exist"
+    $rel — points at 'see $ref', and neither skills/$ref/SKILL.md nor commands/$ref.md exists"
     done <<< "$(printf '%s' "$desc" | grep -oE '\(see [^)]*\)' \
                   | sed 's/^(see //; s/)$//' | tr ',' '\n' | sed 's/^ *see *//; s/^ *//; s/ *$//' \
                   | grep -v '^$' || true)"
@@ -1621,23 +1735,36 @@ else
   # is ADDITION only, and it is uncovered on purpose rather than by omission.
   #
   # ── THE MATCH NEEDS A TRAILING BOUNDARY, AND THAT IS LOAD-BEARING ───────────────────────────────
-  # `infrastructure/cloudwatch` is a PREFIX of both `infrastructure/cloudwatch-rum` and
-  # `infrastructure/cloudwatch-xray`. A fixed-string search would read cloudwatch-xray's description —
-  # which names `-rum` and not the bare one — as naming `infrastructure/cloudwatch` too, then demand a
-  # reciprocal reference that should not exist, and redden a correct pair. This file has learned the
-  # substring lesson three times on the practice's name; the same shape appears here in a different
-  # guise, so the reference is matched with a non-slug character (or end of line) required after it.
+  # `cloudwatch` is a PREFIX of both `cloudwatch-rum` and `cloudwatch-xray`. A fixed-string search would
+  # read cloudwatch-xray's description — which names `-rum` and not the bare one — as naming
+  # `cloudwatch` too, then demand a reciprocal reference that should not exist, and redden a correct
+  # pair. This file has learned the substring lesson three times on the practice's name; the same shape
+  # appears here in a different guise, so a non-slug character (or end of line) is required after it.
+  #
+  # ── AND THE MATCH IS NOW SCOPED TO THE POINTER, NOT THE SENTENCE (#164, finding 10) ──────────────
+  # THE MEMBERS USED TO BE `family/stem` PATHS, WHICH ARE UNAMBIGUOUS BY CONSTRUCTION. Flat members are
+  # BARE STEMS, and the stems are ordinary English nouns — `metrics`, `tracing`, `analytics`, `coverage`,
+  # `authentication` — so a description that happens to use the word satisfies a membership it was never
+  # written to satisfy. Measured before the flatten, by stripping every `(see ...)` pointer out of the
+  # current descriptions and applying the bare-stem match: FIVE of the thirty-one memberships came out
+  # satisfied by a word the author wrote for a different reason (`cloudwatch` "naming" metrics,
+  # `cloudwatch-xray` tracing, `cloudwatch-rum` analytics, `sonarcloud` coverage, `cognito`
+  # authentication). Green, and meaningless for those five.
+  #
+  # So the rival must be named INSIDE a `(see ...)` construct, which is the form the #166 standard
+  # requires for a disambiguating pointer anyway. That leaves this check STRICTER than it was rather
+  # than weaker: before the flatten a rival mentioned in passing counted, and now only a pointer does.
   CLUSTERS="
-observability|backend/logging backend/metrics backend/tracing infrastructure/cloudwatch infrastructure/cloudwatch-xray infrastructure/cloudwatch-rum frontend/analytics
-config-and-secrets|backend/environment-config backend/secrets-management infrastructure/secrets-manager infrastructure/ssm
-gates|backend/coverage workflow/sonarcloud workflow/code-review principles/verification-and-gates
-data|infrastructure/dynamodb backend/redis-cache infrastructure/elasticache
-auth|frontend/authentication frontend/authorization infrastructure/cognito backend/action-types
-delivery|workflow/github-actions workflow/versioning workflow/terraform-cloud infrastructure/terraform principles/dev-loop
+observability|logging metrics tracing cloudwatch cloudwatch-xray cloudwatch-rum analytics
+config-and-secrets|environment-config secrets-management secrets-manager ssm
+gates|coverage sonarcloud code-review verification-and-gates
+data|dynamodb redis-cache elasticache
+auth|authentication authorization cognito action-types
+delivery|github-actions versioning terraform-cloud terraform dev-loop
 "
 
-  names_rival() {  # $1 = description text, $2 = rival path
-    printf '%s' "$1" | grep -qE "$2([^a-z0-9/-]|$)"
+  names_rival() {  # $1 = description text, $2 = rival stem — matched only inside a `(see …)` pointer
+    printf '%s' "$1" | grep -oE '\(see [^)]*\)' | grep -qE "(^|[^a-z0-9-])$2([^a-z0-9-]|$)"
   }
 
   cluster_problems=""
@@ -1649,7 +1776,7 @@ delivery|workflow/github-actions workflow/versioning workflow/terraform-cloud in
 
     for m in $members; do
       cluster_members=$((cluster_members + 1))
-      mf="$ROOT/commands/$m.md"
+      mf="$ROOT/skills/$m/SKILL.md"
       if [ ! -f "$mf" ]; then
         cluster_problems="$cluster_problems
     $cname: $m is in the cluster table and has NO FILE — it was renamed or deleted; update the table"
@@ -1664,7 +1791,7 @@ delivery|workflow/github-actions workflow/versioning workflow/terraform-cloud in
         named=$((named + 1))
         # SYMMETRY. Reported from the side that FAILS to reciprocate, so the message names the file to
         # edit rather than the file that is already right.
-        of="$ROOT/commands/$other.md"
+        of="$ROOT/skills/$other/SKILL.md"
         [ -f "$of" ] || continue
         odesc="$(fm_block "$of" | grep -m1 '^description:' || true)"
         if ! names_rival "$odesc" "$m"; then
@@ -1710,15 +1837,31 @@ fi
 # That is precisely the disease the floor above was added to cure, reintroduced one block later. Both
 # mutations now redden this block by name.
 #
-# THE FAMILY LIST IS DERIVED FROM THE TREE, not enumerated, for the reason the family walk at the top of
-# this file already gives: an enumeration inside a file written to catch stale enumerations.
+# ── WHAT THE POINTER LOOKS LIKE SINCE #164, AND WHY THE EXTRACTION HAD TO CHANGE SHAPE ────────────
+# IT USED TO BE `/<family>/<skill>`, AND THE FAMILY SEGMENT WAS DOING THE WORK. The extraction keyed on
+# the set of family directories, which is what kept it from swallowing `.github/workflows/**` and
+# `apps/**/scripts` — every brief is full of paths that are not skills.
 #
-# ── WHAT IT DOES NOT COVER, and each direction is on purpose ──────────────────────────────────────
-#   - A POINTER AT AN INVENTED FAMILY (`/nonexistent/dev-loop`) is invisible, because the extraction
-#     keys on families that EXIST. Widening it to any `/x/y` token would swallow `.github/workflows/**`,
-#     `apps/**/scripts` and every docs path in the briefs — and a check wrong more often than right is
-#     one the loop learns to silence. The covered direction is the one that actually happens: a real
-#     family whose file was renamed, merged or moved.
+# Flat pointers are `/<skill>`, a single segment, and that anchor is GONE: `/tmp`, `/iac`, `/me` and
+# every other bare path in a brief has the identical shape. So the extraction keys on the SKILL NAMES
+# THEMSELVES, derived from the tree. That inverts what this block can catch, and both directions are
+# stated rather than implied:
+#
+#   - IT STILL CATCHES THE DIRECTION THAT HAPPENS: a skill renamed, merged or moved leaves the brief's
+#     pointer naming nothing, and the name disappears from the derived set, so the pointer stops being
+#     extracted at all — which is why the COUNT is asserted below and not only the resolutions. A drop
+#     in the number of pointers found is the signal; that is the anti-vacuity guard's whole job here.
+#   - IT CANNOT CATCH AN INVENTED NAME (`/dev-lop`), for the same reason it never caught an invented
+#     family: the extraction only sees what exists. Widening to any `/token` is the cry-wolf failure
+#     this file refuses elsewhere, and it would fire on `/tmp` in every brief.
+#
+# THE FAMILY-GLOB FORM IS GONE WITH THE DIRECTORIES. `developer.md` wrote `/frontend/*` for its four
+# source globs; a family is no longer a path, so that spelling names nothing and was rewritten to
+# `` the `frontend` family ``. It is gated below on the frontmatter instead — a family that no skill
+# claims is a broken reference exactly as an emptied directory was.
+#
+# THE SKILL LIST IS DERIVED FROM THE TREE, not enumerated, for the reason the family walk at the top of
+# this file already gives: an enumeration inside a file written to catch stale enumerations.
 #   - THE `skills:` PRELOAD IDENTIFIERS in the briefs' frontmatter are a DIFFERENT form —
 #     colon-separated, `family:stem` — and are not read here. THEY ARE ALREADY GATED, by
 #     `hooks/scripts/skills-resolve.test.sh`, which is scoped to the frontmatter and says so in its own
@@ -1728,57 +1871,113 @@ fi
 #     claimed the frontmatter form was ungated. It was false when written, and the correction is kept
 #     rather than tidied away, because a comment overstating a gap is the same defect class as one
 #     overstating coverage.)
-brief_families=""
-for path in "$ROOT"/commands/*/; do
-  [ -d "$path" ] || continue
-  brief_families="$brief_families|$(basename "$path")"
-done
-brief_families="${brief_families#|}"
+brief_skills=""
+while IFS= read -r d; do
+  [ -z "$d" ] && continue
+  brief_skills="$brief_skills|$(basename "$d")"
+done <<< "$SKILL_DIRS"
+brief_skills="${brief_skills#|}"
 
 brief_problems=""
 brief_pointers=0
-if [ -z "$brief_families" ]; then
-  bad "agent brief pointers — no skill families were found under commands/, so every pointer in the
-      briefs was resolved against nothing and this assertion did NOT run. If the library moved,
-      repoint this resolver in the same commit."
+brief_family_refs=0
+if [ -z "$brief_skills" ]; then
+  bad "agent brief pointers — no skills were found under skills/, so every pointer in the briefs was
+      resolved against nothing and this assertion did NOT run. If the library moved, repoint this
+      resolver in the same commit."
 else
   for brief in "$ROOT"/agents/*.md; do
     [ -f "$brief" ] || continue
     brel="${brief#"$ROOT"/}"
+
+    # THE SLASH-INVOCATION FORM — `/code-review`, the spelling a brief uses in prose.
     while IFS= read -r hit; do
       [ -z "$hit" ] && continue
       lineno="${hit%%:*}"
       ref="${hit#*:}"
       ref="${ref#/}"
       brief_pointers=$((brief_pointers + 1))
-      fam="${ref%%/*}"
-      leaf="${ref#*/}"
-      if [ "$leaf" = "*" ]; then
-        # THE FAMILY-GLOB FORM (`/frontend/*`), which is how `developer.md` names its four source globs.
-        # It promises the family exists AND holds skills, so an emptied family is a broken pointer even
-        # though the directory survives.
-        if [ -z "$(find "$ROOT/commands/$fam" -name '*.md' -type f 2>/dev/null)" ]; then
-          brief_problems="$brief_problems
-    $brel:$lineno — points at '/$ref', and commands/$fam holds no skill files"
-        fi
-      elif [ ! -f "$ROOT/commands/$ref.md" ]; then
+      if [ ! -f "$ROOT/skills/$ref/SKILL.md" ] && [ ! -f "$ROOT/commands/$ref.md" ]; then
         brief_problems="$brief_problems
-    $brel:$lineno — points at '/$ref', and commands/$ref.md does not exist"
+    $brel:$lineno — points at '/$ref', and neither skills/$ref/SKILL.md nor commands/$ref.md exists"
       fi
-    done <<< "$(grep -noE "/($brief_families)/([a-z0-9-]+|\*)" "$brief" || true)"
+    done <<< "$(grep -noE "/($brief_skills)([^a-z0-9-]|$)" "$brief" | sed 's/[^a-z0-9/-]*$//' || true)"
+
+    # THE FAMILY FORM — `` the `frontend` family ``, which replaced `/frontend/*` when the families
+    # stopped being directories. It promises the family EXISTS, i.e. that some skill claims it.
+    while IFS= read -r hit; do
+      [ -z "$hit" ] && continue
+      lineno="${hit%%:*}"
+      fam="$(printf '%s' "${hit#*:}" | tr -d '`' | awk '{print $1}')"
+      brief_family_refs=$((brief_family_refs + 1))
+      case " $FAMILY_LIST " in
+        *" $fam "*) : ;;
+        *) brief_problems="$brief_problems
+    $brel:$lineno — names the '$fam' family, and no skill's frontmatter claims it" ;;
+      esac
+    done <<< "$(grep -noE '\`[a-z0-9-]+\` family' "$brief" || true)"
   done
 
   if [ "$brief_pointers" -eq 0 ]; then
-    bad "agent brief pointers — not one family-qualified pointer was found across agents/*.md, and there
-      were ten when this was written. Either the briefs stopped naming the library that way — in which
-      case retarget this resolver at the form they use now, in this commit — or the extraction broke."
+    bad "agent brief pointers — not one /<skill> pointer was found across agents/*.md, and there were
+      seven when this was rewritten for the flat tree. Either the briefs stopped naming the library that
+      way — in which case retarget this resolver at the form they use now, in this commit — or the
+      extraction broke."
+  elif [ "$brief_family_refs" -eq 0 ]; then
+    bad "agent brief pointers — not one \`<family>\` family reference was found across agents/*.md, and
+      there were four when this was rewritten. The family-glob form (\`/frontend/*\`) was retired with the
+      family directories; if the briefs now spell it some third way, retarget this arm in this commit."
   elif [ -z "$brief_problems" ]; then
-    ok "agent brief pointers — all $brief_pointers /<family>/<skill> pointers across the persona briefs resolve to a file (a wrong one fails at 0 bytes of stderr, so nothing else would say so)"
+    ok "agent brief pointers — all $brief_pointers /<skill> pointers and $brief_family_refs family references across the persona briefs resolve (a wrong one fails at 0 bytes of stderr, so nothing else would say so)"
   else
     bad "agent brief pointers — a persona brief sends its reader at something that does not exist:$brief_problems
       A wrong identifier fails SILENTLY — zero bytes of stderr — so this block is the only thing that
       will ever say so. Fix the pointer, or put the file back."
   fi
+fi
+
+# ---------------------------------------------------------------------------------------------------
+# EVERY PUBLISHED `/tadeumendonca-skills:<name>` INVOCATION NAMES SOMETHING THAT EXISTS (#164, finding 11).
+#
+# THE TWO DOCUMENTS A FORKER MEETS FIRST PUBLISH SIX OF THESE, AND NOTHING ASSERTED ANY OF THEM — the
+# only occurrence of that string anywhere in this suite was a comment. They are the install-and-invoke
+# instructions: `CLAUDE.md`'s usage fence and the README's, the literal lines someone types on their
+# first day with this plugin.
+#
+# WHY IT IS WORTH ITS OWN BLOCK RATHER THAN A NOTE. The failure is silent at BOTH ends. A wrong skill
+# identifier fails at 0 bytes of stderr in the runtime — the whole premise of the resolver blocks above
+# — and an unresolved identifier WITH A SLASH is worse than that: it is not recognised as a command at
+# all, falls through as ordinary prompt text, and the model improvises an answer to it. So a stale
+# example does not error, it produces a confident wrong one, and the reader has no way to tell.
+# Measured on #164: every one of the 71 identifiers this repo published before the flatten contained a
+# slash, so that was the failure mode the whole rename walked toward.
+#
+# THE PLUGIN PREFIX IS THE ANCHOR, deliberately. Matching bare `/word` in a document this size would
+# fire on every path in it. `/tadeumendonca-skills:` is unambiguous, it is exactly the form a consumer
+# types, and it is the only form these two documents use for an invocation.
+inv_problems=""
+inv_checked=0
+for doc in "$README" "$CLAUDE"; do
+  while IFS= read -r ref; do
+    [ -z "$ref" ] && continue
+    inv_checked=$((inv_checked + 1))
+    [ -f "$ROOT/skills/$ref/SKILL.md" ] && continue
+    [ -f "$ROOT/commands/$ref.md" ] && continue
+    inv_problems="$inv_problems
+    $(basename "$doc") publishes /tadeumendonca-skills:$ref — no such skill or command"
+  done <<< "$(grep -ohE '/tadeumendonca-skills:[a-z0-9:/-]+' "$doc" 2>/dev/null | sed 's#^/tadeumendonca-skills:##' || true)"
+done
+
+if [ "$inv_checked" -eq 0 ]; then
+  bad "published invocations — not one '/tadeumendonca-skills:<name>' string was found in README.md or
+      CLAUDE.md, and there were six when this was written. Either the usage examples were removed — in
+      which case delete this block in the same commit — or the extraction broke."
+elif [ -z "$inv_problems" ]; then
+  ok "published invocations — all $inv_checked '/tadeumendonca-skills:<name>' examples name a skill or command that exists"
+else
+  bad "published invocations — an install-and-invoke example names something that is not there:$inv_problems
+      A wrong identifier CARRYING A SLASH is not reported as unknown: it falls through as prompt text and
+      the model answers it anyway. A stale example here produces a confident wrong answer, not an error."
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"

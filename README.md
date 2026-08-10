@@ -28,8 +28,8 @@ three things, and this repository is the middle one:
   built with Vite and TypeScript, the Terraform that provisions CloudFront and S3, the pipeline with
   its gates and its deploy, and the markdown content held in the repository itself.
 - **The customization** — this repository: the personas in `agents/`, the hooks registered in
-  `hooks/hooks.json`, the skill library in `commands/`, the commands in no family (`autonomy-on` and
-  `new-issue`), and the methodology ADRs in `docs/adr/`.
+  `hooks/hooks.json`, the skill library in `skills/`, the two commands a human types in `commands/`
+  (`autonomy-on` and `new-issue`), and the methodology ADRs in `docs/adr/`.
 - **The runtime** — Claude Code: the orchestrator and the subagents, the `PreToolUse` and
   `SessionStart` events, the permission policy, and the tools with MCP.
 
@@ -315,15 +315,15 @@ before the persona's first turn.** There is no declare-without-loading option, s
 deprivation rather than a deferral**, which is why the briefs argue their omissions rather than listing
 them.
 
-- **`developer` — 35,294 B** — `workflow:code-review` · `principles:verification-and-gates` ·
-  `principles:engineering-philosophy`
-- **`quality-assurance` — 18,215 B** — `principles:verification-and-gates` · `backend:coverage` ·
-  `workflow:sonarcloud`
-- **`tech-lead` — 16,857 B** — `workflow:adr` · `principles:engineering-philosophy` ·
-  `workflow:documentation-standard`
+- **`developer` — 35,294 B** — `code-review` · `verification-and-gates` ·
+  `engineering-philosophy`
+- **`quality-assurance` — 18,215 B** — `verification-and-gates` · `coverage` ·
+  `sonarcloud`
+- **`tech-lead` — 16,857 B** — `adr` · `engineering-philosophy` ·
+  `documentation-standard`
 - **`product-lead` — 8,895 B** — `new-issue`
 - **`harness-reviewer` — 0 B, `skills: []`, and this is a decision rather than a blank.** Its object is
-  `hooks/`, `settings.json`, `agents/`, the plugin and MCP — none of which is in `commands/`. It is also
+  `hooks/`, `settings.json`, `agents/`, the plugin and MCP — none of which is in `skills/`. It is also
   the persona most exposed to staleness, and a preload is a frozen snapshot, which would arm the drift
   it exists to catch.
 
@@ -331,12 +331,14 @@ them.
 35 KB.** The two figures differ because `verification-and-gates` and `engineering-philosophy` are each
 carried by two personas: there is no dedupe, so both are billed twice and the library sees them once.
 Note what this table and
-the one below disagree about, deliberately: `developer` **preloads** two `principles/*` skills while the
-column below puts that family under the four judging personas. Both are true. The principles are the
+the one below disagree about, deliberately: `developer` **preloads** two `principles`-family skills while
+the column below puts that family under the four judging personas. Both are true. The principles are the
 judges' ruler and the builder's floor; *whose domain* and *what is loaded* are different questions, which
 is exactly why they are now two lists rather than one contested column.
 
-**Identifiers are colon-separated** (`workflow:code-review`). Slash forms do not resolve, there is no
+**Identifiers are the skill's own directory name** (`code-review`) — the family segment went away with
+the family directories when the library moved to a flat `skills/`, and the colon form that qualified it
+(`workflow:code-review`) no longer resolves. Slash forms do not resolve, there is no
 glob support, and there is no dedupe — two identifiers naming one file load it twice and bill it twice.
 A wrong identifier fails at **0 bytes of stderr**, which is why the check sits in CI rather than in the
 runtime: `hooks/scripts/skills-resolve.test.sh` asserts that every list **complies** with those rules —
@@ -385,9 +387,9 @@ The library, by family: backend (19), frontend (15), infrastructure (21), princi
 | `acm` | Use AWS Certificate Manager (ACM) in <project> infrastructure. | `infrastructure` | `developer` |
 | `api-gateway` | Use API Gateway (REST API, v1) in <project> infrastructure. | `infrastructure` | `developer` |
 | `cloudfront` | Use CloudFront in <project> infrastructure (incl. the SPA distribution). | `infrastructure` | `developer` |
+| `cloudwatch` | Use Amazon CloudWatch in <project> infrastructure. | `infrastructure` | `developer` |
 | `cloudwatch-rum` | Provision the RUM app monitor and instrument the browser that reports to it. | `infrastructure` | `developer` |
 | `cloudwatch-xray` | Use AWS X-Ray in <project> infrastructure (distributed tracing service). | `infrastructure` | `developer` |
-| `cloudwatch` | Use Amazon CloudWatch in <project> infrastructure. | `infrastructure` | `developer` |
 | `cognito` | Use Amazon Cognito in <project> infrastructure. | `infrastructure` | `developer` |
 | `dynamodb` | Provision, model and query DynamoDB — the whole lifecycle of one table. | `infrastructure` | `developer` |
 | `elasticache` | Provision or review the ElastiCache for Redis cluster (cache.tf) in `<project>-pwa/iac`. | `infrastructure` | `developer` |
@@ -403,7 +405,7 @@ The library, by family: backend (19), frontend (15), infrastructure (21), princi
 | `terraform` | Use Terraform in <project> infrastructure (how we use it as a whole). | `infrastructure` | `developer` |
 | `vpc` | Implement or review the VPC and networking layer (vpc.tf) in <project>-iac. | `infrastructure` | `developer` |
 | `waf` | Implement or review the WAF WebACLs (CLOUDFRONT + REGIONAL) across the two repos that own them. | `infrastructure` | `developer` |
-| `dev-loop` | Apply the platform's end-to-end development loop in a `<project>` repo. This is the flow the principles run inside —… | `principles` | `product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance` |
+| `dev-loop` | Apply the platform's end-to-end development loop in a `<project>` repo. This is the flow the principles run inside — `/engineering-philosophy` is… | `principles` | `product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance` |
 | `engineering-philosophy` | Apply these engineering principles — the owner's way of building software — in any <project> repo. They shape every decision an agent makes here.… | `principles` | `product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance` |
 | `loop-engineering` | Name and practice the discipline this whole plugin exists to run: **Agent Harness Engineering** (the owner's term for how he works; also… | `principles` | `product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance` |
 | `permissions-and-environments` | Apply the platform's environment and permission model in any `<project>` repo — both at the global Claude Code level and per-project. This is the… | `principles` | `product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance` |
@@ -417,7 +419,6 @@ The library, by family: backend (19), frontend (15), infrastructure (21), princi
 | `sonarcloud` | Use SonarCloud in <project> repos (code quality + security scan). | `workflow` | `developer` |
 | `terraform-cloud` | Use Terraform Cloud (TFC) in <project> infrastructure (state backend). | `workflow` | `developer` |
 | `versioning` | Apply the semantic-versioning + tagging rules (bump-my-version) in any <project> repo. | `workflow` | `developer` |
-
 **Three things the table shows rather than asserts.** The builder is the only persona holding a build
 family — conventions exist for building, and one persona builds. `workflow` is the only family that
 splits, and it splits for a reason: `adr` belongs to the only writer of the records. And **the gate's**
@@ -584,7 +585,7 @@ the second one. With one environment there is nothing to defer to, so **the whol
 single PR**, and the merge that carries it is also the deploy.
 
 The depth for both — protection settings, the versioning triggers, the two meanings of "ships" — lives
-in `/workflow/github-actions`. This is the pointer, not the copy.
+in `/github-actions`. This is the pointer, not the copy.
 
 ## The hooks, and what they refuse
 
@@ -758,8 +759,8 @@ the tag from [the releases page](https://github.com/tedeuxx/tadeumendonca-skills
 Invoke a skill by its namespaced path, passing context as arguments:
 
 ```
-/tadeumendonca-skills:infrastructure/cognito staging
-/tadeumendonca-skills:workflow/github-actions production
+/tadeumendonca-skills:cognito staging
+/tadeumendonca-skills:github-actions production
 ```
 
 **Hooks activate on install. Personas do not run themselves** — every one of them, the reviewer
