@@ -287,7 +287,7 @@ So the tiers here hold one persona each, except intake, where the second exists 
 between product and system is the point** — and where the third, on the machinery, never runs on the same
 work as the other two.
 
-## The skill library, and who wields each family
+## The skill library, whose domain each family is, and what is actually preloaded
 
 **Skills carry the conventions so the model does not re-invent them.** **69 skills + autonomy-on** and
 `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
@@ -295,16 +295,52 @@ services, the frontend stack, the CI/CD wiring and the engineering principles. E
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
 "improve".
 
-**They are not shared evenly, and at family granularity the allocation cannot even be stated truthfully** — one skill is wielded by a different persona than the rest of its family, which is a fact about that skill rather than about the family. So this is one table, the family is a column, and **each description is the skill's own first line of body rather than a paraphrase of it.**
+**They are not shared evenly, and at family granularity the allocation cannot even be stated truthfully** — one skill belongs to a different persona than the rest of its family, which is a fact about that skill rather than about the family. So this is one table, the family is a column, and **each description is the skill's own first line of body rather than a paraphrase of it.**
+
+**That column was headed *wielded by* until #172, and the rename is the point rather than a tidy-up.** It answers **whose mandate a convention falls under** — who is accountable for `dynamodb` being right. It does **not** answer *what does this persona have loaded*, and the two diverge sharply: under the old heading a reader had one column and no way to tell which question it was answering, so the curated preload below read as a contradiction of it rather than as a different fact.
+
+**Reconciling the two into one column was the alternative, and it was rejected.** Preload names seven distinct files; the table is 69 rows. Making the column mean *preloaded by* would print "— none" against `dynamodb`, `vpc`, `cloudfront` and 61 others — publishing, on the document a forker reads first, that no persona is responsible for two thirds of the library. That is false, and it deletes the true information the column already carries to remove a contradiction that a heading fixes.
 
 *"Of body"* is a precision the frontmatter forced (#166): every skill now opens with a `description:`
 block written for the **matcher** — one trigger sentence of 300-500 characters naming the situation the
 skill serves. This column is not that field, deliberately. It is the human inventory, and the generator
 skips the frontmatter to keep reading the line under it.
 
+### What each persona actually preloads
+
+**`skills:` in a persona's frontmatter is not a menu — it injects each file's full body into the context
+before the persona's first turn.** There is no declare-without-loading option, so the list is bounded by
+**bytes, not by count**, and it is also the **only** channel: `Skill` is not grantable through `tools:`
+(#177), and `printenv CLAUDE_PLUGIN_ROOT` exits 1 inside a subagent shell. **Every exclusion is a real
+deprivation rather than a deferral**, which is why the briefs argue their omissions rather than listing
+them.
+
+- **`developer` — 35,294 B** — `workflow:code-review` · `principles:verification-and-gates` ·
+  `principles:engineering-philosophy`
+- **`quality-assurance` — 18,215 B** — `principles:verification-and-gates` · `backend:coverage` ·
+  `workflow:sonarcloud`
+- **`tech-lead` — 16,857 B** — `workflow:adr` · `principles:engineering-philosophy` ·
+  `workflow:documentation-standard`
+- **`product-lead` — 8,895 B** — `new-issue`
+- **`harness-reviewer` — 0 B, `skills: []`, and this is a decision rather than a blank.** Its object is
+  `hooks/`, `settings.json`, `agents/`, the plugin and MCP — none of which is in `commands/`. It is also
+  the persona most exposed to staleness, and a preload is a frozen snapshot, which would arm the drift
+  it exists to catch.
+
+**79,261 B across the five — 17.6% of the library, and no persona over 35 KB.** Note what this table and
+the one below disagree about, deliberately: `developer` **preloads** two `principles/*` skills while the
+column below puts that family under the four judging personas. Both are true. The principles are the
+judges' ruler and the builder's floor; *whose domain* and *what is loaded* are different questions, which
+is exactly why they are now two lists rather than one contested column.
+
+**Identifiers are colon-separated** (`workflow:code-review`). Slash forms do not resolve, there is no
+glob support, and there is no dedupe — two identifiers naming one file load it twice and bill it twice.
+A wrong identifier fails at **0 bytes of stderr**, so `hooks/scripts/skills-resolve.test.sh` asserts all
+of that in CI, where the failure can be seen.
+
 The library, by family: backend (19), frontend (15), infrastructure (21), principles (5), workflow (9).
 
-| skill | what it decides | family | wielded by |
+| skill | what it decides | family | whose domain |
 |---|---|---|---|
 | `action-types` | Define or review action types (audit + RBAC + feature toggles) in the BFF. | `backend` | `developer` |
 | `audit-middleware` | Define or review the audit trail in the BFF. | `backend` | `developer` |
@@ -376,11 +412,18 @@ The library, by family: backend (19), frontend (15), infrastructure (21), princi
 | `terraform-cloud` | Use Terraform Cloud (TFC) in <project> infrastructure (state backend). | `workflow` | `developer` |
 | `versioning` | Apply the semantic-versioning + tagging rules (bump-my-version) in any <project> repo. | `workflow` | `developer` |
 
-**Three things the table shows rather than asserts.** The builder is the only persona wielding a build
+**Three things the table shows rather than asserts.** The builder is the only persona holding a build
 family — conventions exist for building, and one persona builds. `workflow` is the only family that
-splits, and it splits for a reason: `adr` belongs to the only writer of the records. And the gate wields
-`principles` and nothing else, because its questions are answered from the diff and the running system,
-not from this repo's conventions.
+splits, and it splits for a reason: `adr` belongs to the only writer of the records. And `principles` is
+the only family the judging personas hold, because their questions are answered from the diff and the
+running system, not from this repo's conventions.
+
+**What the table still does not assert, and it is the same limit the rename made visible.** The `whose
+domain` column is hand-maintained, in `hooks/scripts/skills-table.py`'s `WIELDER` map — it is a fact
+about the roster, not about the filesystem, so nothing derives it and nothing checks it. The preload
+list above is the half that *is* checked: `skills-resolve.test.sh` verifies every identifier resolves to
+a tracked file. **Neither check reaches the other's claim**, and a reader deciding how much to trust each
+column should know which one has a gate behind it.
 
 **Choice: one convention per question, over the model's best guess each session.**
 
