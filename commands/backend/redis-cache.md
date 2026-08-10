@@ -1,5 +1,5 @@
 ---
-description: Add cache-aside caching to server handler code with Redis — a fail-open client singleton, the key convention and TTLs, and invalidation on writes, accepting that Redis is VPC-only and pulls the function into the VPC. Use when a hot read needs caching, choosing a TTL, or deciding whether caching justifies in-VPC networking. Not for the durable store underneath (see backend/dynamodb) or provisioning the cluster (see infrastructure/elasticache).
+description: Add cache-aside caching to server handler code with Redis — a fail-open client singleton, the key convention and TTLs, and invalidation on writes, accepting that Redis is VPC-only and pulls the function into the VPC. Use when a hot read needs caching, choosing a TTL, or deciding whether caching justifies in-VPC networking. Not for the durable store underneath (see infrastructure/dynamodb) or provisioning the cluster (see infrastructure/elasticache).
 ---
 
 Implement or review backend caching with Redis (ElastiCache). Redis is VPC-only, so enabling it puts the BFF in-VPC (it is non-VPC by default).

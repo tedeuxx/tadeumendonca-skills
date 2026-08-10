@@ -1,5 +1,5 @@
 ---
-description: Define what done means and the mechanical gates that prove it — the Definition of Done, the 100% functional-regression invariant, local validation, and the gate table per loop model. Use when deciding whether a slice is shippable, calibrating gates to blast radius, or arguing that a green check is not evidence. Not for the stack-specific gate lists (see backend/coverage, frontend/coverage) or the author's own pre-merge pass (see workflow/code-review).
+description: Define what done means and the mechanical gates that prove it — the Definition of Done, the 100% functional-regression invariant, local validation, and the gate table per loop model. Use when deciding whether a slice is shippable, calibrating gates to blast radius, or arguing that a green check is not evidence. Not for the concrete gate list and thresholds (see backend/coverage) or the author's own pre-merge pass (see workflow/code-review).
 ---
 
 Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that prove it — the enforcement half of the principles layer (`/principles/engineering-philosophy` is the judgment half; `/principles/dev-loop` is the flow).

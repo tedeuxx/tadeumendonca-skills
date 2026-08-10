@@ -8,7 +8,7 @@ Context: $ARGUMENTS
 
 ## Hono on AWS Lambda
 
-Hono owns the request lifecycle inside the **single BFF Lambda** — routing + middleware + error handling. It **replaces middy**. The api is one `OpenAPIHono` app with routes at the **root**; domain features register as modules (`/backend/lambda-handler`). The infra/cross-cutting concerns are **framework-agnostic** skills (`/backend/audit-middleware`, `/backend/action-types`, `/backend/logging`, `/backend/error-handling`, `/backend/dynamodb`, …) — **this skill is where they get wired** as Hono middleware.
+Hono owns the request lifecycle inside the **single BFF Lambda** — routing + middleware + error handling. It **replaces middy**. The api is one `OpenAPIHono` app with routes at the **root**; domain features register as modules (`/backend/lambda-handler`). The infra/cross-cutting concerns are **framework-agnostic** skills (`/backend/audit-middleware`, `/backend/action-types`, `/backend/logging`, `/backend/error-handling`, `/infrastructure/dynamodb`, …) — **this skill is where they get wired** as Hono middleware.
 
 ## App + Lambda adapter: src/index.ts
 ```typescript

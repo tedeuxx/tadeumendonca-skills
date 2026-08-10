@@ -115,7 +115,7 @@ resource "aws_route53_record" "auth" {                       # /infrastructure/r
 ## Conventions
 - **Profiles:** public (no auth, no group) / `registered` (any Google sign-in) / `admin` (email allowlist). REGIONAL WAF fronts the hosted UI (`/infrastructure/waf`).
 - The Google **client_secret** lives in Secrets Manager (`<project>/${env}/google-oauth`), provisioned out-of-band; only the non-secret **client_id** is a tfvar. The owner creates the Google OAuth client + provides them.
-- Pool/client ids → SSM for app repos; the SPA reads them at build (`/frontend/environment-config`).
+- Pool/client ids → SSM for app repos; the SPA reads them at build (`/backend/environment-config`).
 - New environment → its own pool + custom domain + its own Google OAuth client (distinct redirect host).
 
 ## Decision & trade-off

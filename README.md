@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 73 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 69 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -254,7 +254,7 @@ work as the other two.
 
 ## The skill library, and who wields each family
 
-**Skills carry the conventions so the model does not re-invent them.** **73 skills + autonomy-on** and
+**Skills carry the conventions so the model does not re-invent them.** **69 skills + autonomy-on** and
 `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
@@ -267,16 +267,15 @@ block written for the **matcher** — one trigger sentence of 300-500 characters
 skill serves. This column is not that field, deliberately. It is the human inventory, and the generator
 skips the frontmatter to keep reading the line under it.
 
-The library, by family: backend (20), frontend (18), infrastructure (21), principles (5), workflow (9).
+The library, by family: backend (19), frontend (15), infrastructure (21), principles (5), workflow (9).
 
 | skill | what it decides | family | wielded by |
 |---|---|---|---|
 | `action-types` | Define or review action types (audit + RBAC + feature toggles) in the BFF. | `backend` | `developer` |
 | `audit-middleware` | Define or review the audit trail in the BFF. | `backend` | `developer` |
 | `bff` | Implement or review the Backend-for-Frontend (BFF) pattern. | `backend` | `developer` |
-| `coverage` | Set up or review the backend quality, test, and security gates. | `backend` | `developer` |
-| `dynamodb` | Connect to and access DynamoDB in the BFF. | `backend` | `developer` |
-| `environment-config` | Configure and validate backend environments. | `backend` | `developer` |
+| `coverage` | Set up or review the quality, test and security gates — the same policy on both sides of the stack. | `backend` | `developer` |
+| `environment-config` | Configure an application's non-secret values — server runtime and browser build alike. | `backend` | `developer` |
 | `error-handling` | Implement or review HTTP error handling in the BFF. | `backend` | `developer` |
 | `framework-hono` | Implement or review the Hono backend framework for the BFF. | `backend` | `developer` |
 | `lambda-handler` | Implement a domain module in the BFF. | `backend` | `developer` |
@@ -295,10 +294,7 @@ The library, by family: backend (20), frontend (18), infrastructure (21), princi
 | `api-client` | SPA → BFF API calls (concept). | `frontend` | `developer` |
 | `authentication` | SPA authentication (concept). | `frontend` | `developer` |
 | `authorization` | SPA authorization / UI gating (concept). | `frontend` | `developer` |
-| `cloudwatch-rum` | Frontend real-user monitoring with CloudWatch RUM (concept). | `frontend` | `developer` |
-| `coverage` | Set up or review the frontend quality, test, and security gates. | `frontend` | `developer` |
 | `design-system` | Design system (custom Tailwind, no component library) — which pattern for each UI need. | `frontend` | `developer` |
-| `environment-config` | Frontend environment config (concept). | `frontend` | `developer` |
 | `forms` | Implement or review forms in the SPA (admin compose). | `frontend` | `developer` |
 | `framework-react` | Implement or review the React frontend framework for the SPA. | `frontend` | `developer` |
 | `markdown` | Render article markdown in the SPA (concept). | `frontend` | `developer` |
@@ -312,11 +308,11 @@ The library, by family: backend (20), frontend (18), infrastructure (21), princi
 | `acm` | Use AWS Certificate Manager (ACM) in <project> infrastructure. | `infrastructure` | `developer` |
 | `api-gateway` | Use API Gateway (REST API, v1) in <project> infrastructure. | `infrastructure` | `developer` |
 | `cloudfront` | Use CloudFront in <project> infrastructure (incl. the SPA distribution). | `infrastructure` | `developer` |
-| `cloudwatch-rum` | Provision CloudWatch RUM (app monitor) in <project>-iac. | `infrastructure` | `developer` |
+| `cloudwatch-rum` | Provision the RUM app monitor and instrument the browser that reports to it. | `infrastructure` | `developer` |
 | `cloudwatch-xray` | Use AWS X-Ray in <project> infrastructure (distributed tracing service). | `infrastructure` | `developer` |
 | `cloudwatch` | Use Amazon CloudWatch in <project> infrastructure. | `infrastructure` | `developer` |
 | `cognito` | Use Amazon Cognito in <project> infrastructure. | `infrastructure` | `developer` |
-| `dynamodb` | Provision or review the DynamoDB tables (data.tf) in <project>-iac. | `infrastructure` | `developer` |
+| `dynamodb` | Provision, model and query DynamoDB — the whole lifecycle of one table. | `infrastructure` | `developer` |
 | `elasticache` | Provision or review the ElastiCache for Redis cluster (cache.tf) in `<project>-pwa/iac`. | `infrastructure` | `developer` |
 | `iam` | Author or review any IAM role/policy in <project> infrastructure. | `infrastructure` | `developer` |
 | `kms` | Apply the encryption + KMS key policy across <project>-iac. | `infrastructure` | `developer` |

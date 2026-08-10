@@ -30,7 +30,7 @@ export async function sendEmail(to: string, subject: string, html: string) {
 ```
 - `POST /subscriptions` → upsert an `active` subscriber (the user's `sub`/`email` from the validated claims).
 - `DELETE /subscriptions` (or a one-click unsubscribe link/token) → `status = "unsubscribed"`.
-- Partition key `cognito_sub`; query active subscribers via a `status` GSI (`/backend/dynamodb`).
+- Partition key `cognito_sub`; query active subscribers via a `status` GSI (`/infrastructure/dynamodb`).
 
 ## Sync vs async (never block the request)
 A publish that notifies **N** subscribers must **not** run inline — fan-out is slow and fails partially.

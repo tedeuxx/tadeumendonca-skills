@@ -15,7 +15,7 @@ Authentication is **external to the BFF**: the SPA uses the **Cognito IdP SDK** 
 - **MFA is the IdP's** (Google 2FA) — Cognito applies no second factor to federated users. Groups (`admin`/`registered`) are assigned server-side by a Cognito trigger and arrive in `cognito:groups`; the SPA only **reads** them for cosmetic gating (`/frontend/authorization`).
 - Every BFF call carries the access token as a Bearer header (`/frontend/api-client`).
 - `401` → re-authenticate.
-- Config (pool/client/hosted-UI ids) from **SSM** at build time (`/frontend/environment-config`).
+- Config (pool/client/hosted-UI ids) from **SSM** at build time (`/backend/environment-config`).
 
 ## Session lifecycle (OIDC + PKCE)
 - **Tokens:** `id_token` (identity/claims for UI), `access_token` (sent as Bearer to the BFF), `refresh_token` (renews the other two).
