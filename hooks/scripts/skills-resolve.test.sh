@@ -78,28 +78,57 @@ personas_with_key=0
 for agent in $agent_files; do
   name=$(basename "$agent" .md)
 
+  # --- SCOPE: the FRONTMATTER only, never the body ----------------------------------------------
+  # A brief is tens of KB of prose and these briefs now DISCUSS their own `skills:` list in the body.
+  # Scanning the whole file would let a line of documentation be parsed as configuration — a check
+  # reading a different thing from the loader, which is a check that can go green about the wrong file.
+  frontmatter=$(awk '
+    NR == 1 && $0 == "---" { inside = 1; next }
+    inside && $0 == "---"   { exit }
+    inside                  { print }
+  ' "$agent")
+
   # --- the key must be PRESENT, even when the answer is "none" -----------------------------------
   # An ABSENT `skills:` key and a DELIBERATELY EMPTY one are the same glyph to every reader and to
   # this test. `harness-reviewer` genuinely preloads nothing, and that is a decision worth publishing;
   # if absence were accepted here, a persona whose list was dropped in an edit would be indistinguish-
   # able from it. So the key is required and `skills: []` is how "none" is spelled.
-  if ! grep -qE '^skills:' "$agent"; then
-    bad "$name — no \`skills:\` key. Absence is indistinguishable from a dropped list; write \`skills: []\` if the answer is none."
+  if ! printf '%s\n' "$frontmatter" | grep -qE '^skills:'; then
+    bad "$name — no \`skills:\` key in the frontmatter. Absence is indistinguishable from a dropped list; write \`skills: []\` if the answer is none."
     continue
   fi
   personas_with_key=$((personas_with_key + 1))
 
-  # Collect the list items: lines of the form `  - <id>` between `skills:` and the next top-level key.
-  ids=$(awk '
-    /^skills:/          { in_block = 1; next }
+  # Collect the list items. BOTH YAML SEQUENCE SPELLINGS ARE PARSED, and that is a corrected defect
+  # rather than a precaution: the first version handled only block style, so `skills: [workflow:adr]`
+  # — legal YAML the loader accepts — was read as an EMPTY list and reported "empty, deliberately".
+  # A false green, in the one check that exists because this field fails silently. Quotes are stripped
+  # for the same reason: `- "workflow:adr"` is legal and would otherwise resolve to a path containing
+  # quote characters and fail as a phantom red.
+  ids=$(printf '%s\n' "$frontmatter" | awk '
+    function emit(s) {
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", s)
+      gsub(/^["'"'"']|["'"'"']$/, "", s)
+      if (s != "") print s
+    }
+    /^skills:[[:space:]]*\[/ {
+      # Flow style: skills: [a, b]
+      line = $0
+      sub(/^skills:[[:space:]]*\[/, "", line)
+      sub(/\].*$/, "", line)
+      n = split(line, parts, ",")
+      for (i = 1; i <= n; i++) emit(parts[i])
+      next
+    }
+    /^skills:/                   { in_block = 1; next }
     in_block && /^[^[:space:]-]/ { in_block = 0 }
     in_block && /^[[:space:]]*-[[:space:]]/ {
       line = $0
       sub(/^[[:space:]]*-[[:space:]]*/, "", line)
-      sub(/[[:space:]]*(#.*)?$/, "", line)
-      if (line != "") print line
+      sub(/[[:space:]]*#.*$/, "", line)
+      emit(line)
     }
-  ' "$agent")
+  ')
 
   if [ -z "$ids" ]; then
     ok "$name — \`skills:\` present and empty (preloads nothing, deliberately)"

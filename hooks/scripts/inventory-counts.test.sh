@@ -724,7 +724,9 @@ fi
 # `cloudwatch-rum` and `environment-config`. A check keyed on the backticked name alone passes with one
 # of a duplicate pair missing from the table, which is precisely the failure it exists to catch, so the
 # name is not a key. The row shape the generator emits is
-#     | `<skill>` | <description> | `<family>` | <wielded by> |
+#     | `<skill>` | <description> | `<family>` | <whose domain> |
+# (cell 4 was headed `wielded by` until #172; it is `whose domain` now, and the rename is why the
+# heading is not what either direction keys on — both key on cells 1 and 3, which are unaffected.)
 # and both directions below key on cells 1 and 3 together. `.*` spans cell 2 rather than splitting on
 # `|`, because a description containing an escaped `\|` still contains the delimiter.
 #
