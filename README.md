@@ -18,6 +18,41 @@ live deployed site with a blocking CI matrix, a decision library recording each 
 and what it cost, and hooks carrying their own test suites. **The library is wider than that one
 site proves**, which is the honest scope and is spelled out under [Limitation](#limitation).
 
+## One of three pillars
+
+The site this loop ships opens its architecture page on the frame this repository sits inside, and a
+reader arriving from there should meet the same frame at the door rather than a click away. It is
+three things, and this repository is the middle one:
+
+- **The solution** — [`tadeumendonca-io`](https://github.com/tedeuxx/tadeumendonca-io): the React SPA
+  built with Vite and TypeScript, the Terraform that provisions CloudFront and S3, the pipeline with
+  its gates and its deploy, and the markdown content held in the repository itself.
+- **The customization** — this repository: the personas in `agents/`, the hooks registered in
+  `hooks/hooks.json`, the skill library in `commands/`, the commands in no family (`autonomy-on` and
+  `new-issue`), and the methodology ADRs in `docs/adr/`.
+- **The runtime** — Claude Code: the orchestrator and the subagents, the `PreToolUse` and
+  `SessionStart` events, the permission policy, and the tools with MCP.
+
+**Agent Harness Engineering is what sits where the three overlap** — deciding what the harness
+**refuses**, what it **advises** and what it only **documents**, and then proving the inventory of
+that is still true. None of the three is the discipline on its own.
+
+**The frame does not make this repository a component of the site**, and that is the load-bearing
+half rather than a caveat on it — the intersection only means something if the three are independent.
+The site states it directly, so it is quoted rather than restated:
+
+> The three are not tiers of one system […]: **each one exists without the other two**. The site runs
+> without the plugin. The plugin installs in any repository. The runtime is not mine.
+>
+> — [tadeumendonca.io/en/architecture](https://tadeumendonca.io/en/architecture)
+
+Read from this side, that is a claim this repository has to keep paying: installing it needs no AWS
+account, no domain and nothing deployed — see [What it does not require](#what-it-does-not-require) —
+and the loop it installs is judged by the gates in *your* repository, not by anything running at
+tadeumendonca.io. What the site is, here, is the worked example: the one place the whole thing is
+visible end to end, which is also why its scope is the honest bound on the library — see
+[Limitation](#limitation).
+
 ## The problem
 
 Agentic development produces plausible work fast. The bottleneck moves: it is no longer *writing* the
@@ -724,6 +759,7 @@ the React/Vite conventions are one context's answers. **Take the pattern, not th
 
 - **[tadeumendonca-io](https://github.com/tedeuxx/tadeumendonca-io)** — the site this plugin is
   consumed by, and the worked example of the loop. Its `docs/adr/` is the decision library.
-- [tadeumendonca.io/en/architecture](https://tadeumendonca.io/en/architecture) — how the two fit together.
+- [tadeumendonca.io/en/architecture](https://tadeumendonca.io/en/architecture) — the three pillars,
+  and what sits in the intersection.
 - [LinkedIn](https://www.linkedin.com/in/luiz-tadeu-mendonca-83a16530/) · [GitHub](https://github.com/tedeuxx)
 
