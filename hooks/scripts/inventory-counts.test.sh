@@ -1689,5 +1689,97 @@ delivery|workflow/github-actions workflow/versioning workflow/terraform-cloud in
   fi
 fi
 
+# ---------------------------------------------------------------------------------------------------
+# EVERY POINTER A PERSONA BRIEF MAKES INTO THE LIBRARY RESOLVES (#164, finding 8).
+#
+# THE SAME RULE AS THE `(see X)` RESOLVER ABOVE, POINTED AT THE OTHER SET OF FILES THAT MAKE THE SAME
+# CLAIM. A skill description saying `(see backend/dynamodb)` has been gated since #168; a persona brief
+# saying `/principles/dev-loop` has been gated by nothing at all, and there are ten of them across the
+# five briefs.
+#
+# WHY IT IS WORTH A BLOCK, in `harness-reviewer`'s words on #164: it is "the only place where a break is
+# both silent AND consequential". A wrong skill identifier fails at ZERO BYTES OF STDERR without
+# `--debug-file` — measured — so a persona told to consult a name that no longer resolves reaches for
+# nothing and reports nothing. The failure is indistinguishable from a deliberate omission, forever.
+#
+# WHY IT IS AT TOP LEVEL AND NOT INSIDE THE SCAN BLOCK ABOVE, WHICH IS WHERE IT WAS FIRST WRITTEN. It
+# resolves into `commands/`, so nesting it under that block's guard looked like the tidy choice. IT WAS
+# MEASURED WRONG BEFORE IT SHIPPED: two mutations — moving `commands/workflow/adr.md` aside, and
+# emptying `commands/frontend` — both shrink the scan set, so the floor fired, the `else` was skipped
+# and THIS ASSERTION NEVER RAN. The suite was red, and not one of its reds named the dangling pointer.
+# That is precisely the disease the floor above was added to cure, reintroduced one block later. Both
+# mutations now redden this block by name.
+#
+# THE FAMILY LIST IS DERIVED FROM THE TREE, not enumerated, for the reason the family walk at the top of
+# this file already gives: an enumeration inside a file written to catch stale enumerations.
+#
+# ── WHAT IT DOES NOT COVER, and each direction is on purpose ──────────────────────────────────────
+#   - A POINTER AT AN INVENTED FAMILY (`/nonexistent/dev-loop`) is invisible, because the extraction
+#     keys on families that EXIST. Widening it to any `/x/y` token would swallow `.github/workflows/**`,
+#     `apps/**/scripts` and every docs path in the briefs — and a check wrong more often than right is
+#     one the loop learns to silence. The covered direction is the one that actually happens: a real
+#     family whose file was renamed, merged or moved.
+#   - THE `skills:` PRELOAD IDENTIFIERS in the briefs' frontmatter are a DIFFERENT form —
+#     colon-separated, `family:stem` — and are not read here. THEY ARE ALREADY GATED, by
+#     `hooks/scripts/skills-resolve.test.sh`, which is scoped to the frontmatter and says so in its own
+#     words: "the FRONTMATTER only, never the body". This block is the complement — the BODY, where the
+#     same brief writes the same library in the slash spelling that the loader does not resolve. The
+#     two together cover both forms, and neither covers the other. (An earlier draft of this comment
+#     claimed the frontmatter form was ungated. It was false when written, and the correction is kept
+#     rather than tidied away, because a comment overstating a gap is the same defect class as one
+#     overstating coverage.)
+brief_families=""
+for path in "$ROOT"/commands/*/; do
+  [ -d "$path" ] || continue
+  brief_families="$brief_families|$(basename "$path")"
+done
+brief_families="${brief_families#|}"
+
+brief_problems=""
+brief_pointers=0
+if [ -z "$brief_families" ]; then
+  bad "agent brief pointers — no skill families were found under commands/, so every pointer in the
+      briefs was resolved against nothing and this assertion did NOT run. If the library moved,
+      repoint this resolver in the same commit."
+else
+  for brief in "$ROOT"/agents/*.md; do
+    [ -f "$brief" ] || continue
+    brel="${brief#"$ROOT"/}"
+    while IFS= read -r hit; do
+      [ -z "$hit" ] && continue
+      lineno="${hit%%:*}"
+      ref="${hit#*:}"
+      ref="${ref#/}"
+      brief_pointers=$((brief_pointers + 1))
+      fam="${ref%%/*}"
+      leaf="${ref#*/}"
+      if [ "$leaf" = "*" ]; then
+        # THE FAMILY-GLOB FORM (`/frontend/*`), which is how `developer.md` names its four source globs.
+        # It promises the family exists AND holds skills, so an emptied family is a broken pointer even
+        # though the directory survives.
+        if [ -z "$(find "$ROOT/commands/$fam" -name '*.md' -type f 2>/dev/null)" ]; then
+          brief_problems="$brief_problems
+    $brel:$lineno — points at '/$ref', and commands/$fam holds no skill files"
+        fi
+      elif [ ! -f "$ROOT/commands/$ref.md" ]; then
+        brief_problems="$brief_problems
+    $brel:$lineno — points at '/$ref', and commands/$ref.md does not exist"
+      fi
+    done <<< "$(grep -noE "/($brief_families)/([a-z0-9-]+|\*)" "$brief" || true)"
+  done
+
+  if [ "$brief_pointers" -eq 0 ]; then
+    bad "agent brief pointers — not one family-qualified pointer was found across agents/*.md, and there
+      were ten when this was written. Either the briefs stopped naming the library that way — in which
+      case retarget this resolver at the form they use now, in this commit — or the extraction broke."
+  elif [ -z "$brief_problems" ]; then
+    ok "agent brief pointers — all $brief_pointers /<family>/<skill> pointers across the persona briefs resolve to a file (a wrong one fails at 0 bytes of stderr, so nothing else would say so)"
+  else
+    bad "agent brief pointers — a persona brief sends its reader at something that does not exist:$brief_problems
+      A wrong identifier fails SILENTLY — zero bytes of stderr — so this block is the only thing that
+      will ever say so. Fix the pointer, or put the file back."
+  fi
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
