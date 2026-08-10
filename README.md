@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 73 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 69 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -254,7 +254,7 @@ work as the other two.
 
 ## The skill library, and who wields each family
 
-**Skills carry the conventions so the model does not re-invent them.** **73 skills + autonomy-on** and
+**Skills carry the conventions so the model does not re-invent them.** **69 skills + autonomy-on** and
 `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
