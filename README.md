@@ -267,16 +267,15 @@ block written for the **matcher** — one trigger sentence of 300-500 characters
 skill serves. This column is not that field, deliberately. It is the human inventory, and the generator
 skips the frontmatter to keep reading the line under it.
 
-The library, by family: backend (20), frontend (18), infrastructure (21), principles (5), workflow (9).
+The library, by family: backend (19), frontend (15), infrastructure (21), principles (5), workflow (9).
 
 | skill | what it decides | family | wielded by |
 |---|---|---|---|
 | `action-types` | Define or review action types (audit + RBAC + feature toggles) in the BFF. | `backend` | `developer` |
 | `audit-middleware` | Define or review the audit trail in the BFF. | `backend` | `developer` |
 | `bff` | Implement or review the Backend-for-Frontend (BFF) pattern. | `backend` | `developer` |
-| `coverage` | Set up or review the backend quality, test, and security gates. | `backend` | `developer` |
-| `dynamodb` | Connect to and access DynamoDB in the BFF. | `backend` | `developer` |
-| `environment-config` | Configure and validate backend environments. | `backend` | `developer` |
+| `coverage` | Set up or review the quality, test and security gates — the same policy on both sides of the stack. | `backend` | `developer` |
+| `environment-config` | Configure an application's non-secret values — server runtime and browser build alike. | `backend` | `developer` |
 | `error-handling` | Implement or review HTTP error handling in the BFF. | `backend` | `developer` |
 | `framework-hono` | Implement or review the Hono backend framework for the BFF. | `backend` | `developer` |
 | `lambda-handler` | Implement a domain module in the BFF. | `backend` | `developer` |
@@ -295,10 +294,7 @@ The library, by family: backend (20), frontend (18), infrastructure (21), princi
 | `api-client` | SPA → BFF API calls (concept). | `frontend` | `developer` |
 | `authentication` | SPA authentication (concept). | `frontend` | `developer` |
 | `authorization` | SPA authorization / UI gating (concept). | `frontend` | `developer` |
-| `cloudwatch-rum` | Frontend real-user monitoring with CloudWatch RUM (concept). | `frontend` | `developer` |
-| `coverage` | Set up or review the frontend quality, test, and security gates. | `frontend` | `developer` |
 | `design-system` | Design system (custom Tailwind, no component library) — which pattern for each UI need. | `frontend` | `developer` |
-| `environment-config` | Frontend environment config (concept). | `frontend` | `developer` |
 | `forms` | Implement or review forms in the SPA (admin compose). | `frontend` | `developer` |
 | `framework-react` | Implement or review the React frontend framework for the SPA. | `frontend` | `developer` |
 | `markdown` | Render article markdown in the SPA (concept). | `frontend` | `developer` |
@@ -312,11 +308,11 @@ The library, by family: backend (20), frontend (18), infrastructure (21), princi
 | `acm` | Use AWS Certificate Manager (ACM) in <project> infrastructure. | `infrastructure` | `developer` |
 | `api-gateway` | Use API Gateway (REST API, v1) in <project> infrastructure. | `infrastructure` | `developer` |
 | `cloudfront` | Use CloudFront in <project> infrastructure (incl. the SPA distribution). | `infrastructure` | `developer` |
-| `cloudwatch-rum` | Provision CloudWatch RUM (app monitor) in <project>-iac. | `infrastructure` | `developer` |
+| `cloudwatch-rum` | Provision the RUM app monitor and instrument the browser that reports to it. | `infrastructure` | `developer` |
 | `cloudwatch-xray` | Use AWS X-Ray in <project> infrastructure (distributed tracing service). | `infrastructure` | `developer` |
 | `cloudwatch` | Use Amazon CloudWatch in <project> infrastructure. | `infrastructure` | `developer` |
 | `cognito` | Use Amazon Cognito in <project> infrastructure. | `infrastructure` | `developer` |
-| `dynamodb` | Provision or review the DynamoDB tables (data.tf) in <project>-iac. | `infrastructure` | `developer` |
+| `dynamodb` | Provision, model and query DynamoDB — the whole lifecycle of one table. | `infrastructure` | `developer` |
 | `elasticache` | Provision or review the ElastiCache for Redis cluster (cache.tf) in `<project>-pwa/iac`. | `infrastructure` | `developer` |
 | `iam` | Author or review any IAM role/policy in <project> infrastructure. | `infrastructure` | `developer` |
 | `kms` | Apply the encryption + KMS key policy across <project>-iac. | `infrastructure` | `developer` |

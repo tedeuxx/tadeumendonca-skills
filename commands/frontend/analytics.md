@@ -1,5 +1,5 @@
 ---
-description: Instrument product analytics in a React SPA with Google Analytics 4 — a page_view on every route change, because an SPA never reloads, plus custom events for key actions and no PII. Use when measuring what users actually do, adding an event, or keeping non-production traffic out of the property. Not for performance and error telemetry (see frontend/cloudwatch-rum).
+description: Instrument product analytics in a React SPA with Google Analytics 4 — a page_view on every route change, because an SPA never reloads, plus custom events for key actions and no PII. Use when measuring what users actually do, adding an event, or keeping non-production traffic out of the property. Not for performance and error telemetry (see infrastructure/cloudwatch-rum).
 ---
 
 Frontend analytics with GA4 (concept).
@@ -8,10 +8,10 @@ Context: $ARGUMENTS
 
 Conceptual skill — the analytics contract. The gtag snippet lives in `/frontend/framework-react`.
 
-Product analytics via **Google Analytics (GA4)** — page views + events. SPA-aware: send a **page_view on every route change** (SPAs don't reload). Complements RUM (`/frontend/cloudwatch-rum`), which is performance/errors.
+Product analytics via **Google Analytics (GA4)** — page views + events. SPA-aware: send a **page_view on every route change** (SPAs don't reload). Complements RUM (`/infrastructure/cloudwatch-rum`), which is performance/errors.
 
 ## Contract
-- Load GA4 once with the measurement id (from SSM — `/frontend/environment-config`).
+- Load GA4 once with the measurement id (from SSM — `/backend/environment-config`).
 - `page_view` on each route change; custom `event`s for key actions (e.g. `article_open`, `subscribe`).
 - **Production only** (or a separate property per env) so staging doesn't pollute data.
 

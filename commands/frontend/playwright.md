@@ -9,7 +9,7 @@ Context: $ARGUMENTS
 End-to-end tests that drive the real **static SPA** in a browser — the functional proof that nothing already
 working broke. Under `trunk-single-env` E2E runs on the **PR gate** (it blocks the merge, and the merge is the
 deploy), and the same specs can run as a **post-deploy smoke** against the live apex. Part of the quality gate
-(`/frontend/coverage`).
+(`/backend/coverage`).
 
 ## Setup (single environment, one command targets local or the apex)
 - `playwright.config.ts`: `baseURL` from `PLAYWRIGHT_BASE_URL`, or from `E2E_ENV` mapped to a URL — `local`

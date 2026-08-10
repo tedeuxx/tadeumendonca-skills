@@ -487,4 +487,4 @@ LIVE (deploy on merge) + tag / Release  ──  post-deploy smoke + confirm heal
 ## What the human does (the residual)
 Everything mechanical is the agent's job: plan, slice, build, validate locally, make the gates green, report evidence. The human is left only the residual — approving (or redirecting) architectural/contract decisions and giving the **go/no-go on the irreversible act** (the promotion under `gitflow-multi-env`, the merge to `main` or the release under `trunk-single-env`). Designing the loop so that residual stays small is the whole point (`/principles/verification-and-gates`).
 
-See also: `/workflow/github-actions` (branching, OIDC, the deploy workflows), `/workflow/versioning` (release model), `/frontend/coverage` + `/backend/coverage` (gate definitions), `/frontend/playwright` (E2E). Repos with an API layer add its contract/API suite — see `/backend/postman`.
+See also: `/workflow/github-actions` (branching, OIDC, the deploy workflows), `/workflow/versioning` (release model), `/backend/coverage` (gate definitions, both stacks), `/frontend/playwright` (E2E). Repos with an API layer add its contract/API suite — see `/backend/postman`.

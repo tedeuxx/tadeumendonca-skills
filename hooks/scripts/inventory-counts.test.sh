@@ -1621,10 +1621,10 @@ else
   # substring lesson three times on the practice's name; the same shape appears here in a different
   # guise, so the reference is matched with a non-slug character (or end of line) required after it.
   CLUSTERS="
-observability|backend/logging backend/metrics backend/tracing infrastructure/cloudwatch infrastructure/cloudwatch-xray infrastructure/cloudwatch-rum frontend/cloudwatch-rum frontend/analytics
-config-and-secrets|backend/environment-config frontend/environment-config backend/secrets-management infrastructure/secrets-manager infrastructure/ssm
-gates|backend/coverage frontend/coverage workflow/sonarcloud workflow/code-review principles/verification-and-gates
-data|backend/dynamodb infrastructure/dynamodb backend/redis-cache infrastructure/elasticache
+observability|backend/logging backend/metrics backend/tracing infrastructure/cloudwatch infrastructure/cloudwatch-xray infrastructure/cloudwatch-rum frontend/analytics
+config-and-secrets|backend/environment-config backend/secrets-management infrastructure/secrets-manager infrastructure/ssm
+gates|backend/coverage workflow/sonarcloud workflow/code-review principles/verification-and-gates
+data|infrastructure/dynamodb backend/redis-cache infrastructure/elasticache
 auth|frontend/authentication frontend/authorization infrastructure/cognito backend/action-types
 delivery|workflow/github-actions workflow/versioning workflow/terraform-cloud infrastructure/terraform principles/dev-loop
 "

@@ -54,7 +54,7 @@ One item per user interaction (all fields snake_case):
 **Cons:** a write per request adds latency + DynamoDB write cost on hot paths (mitigate: fire-and-forget, or batch/async via a queue if volume grows); coupled to the request DB (fail open); stores PII (set the `ttl` retention attribute + access controls); captures response **status only** by default — add body capture deliberately, with truncation + redaction.
 
 ## Wiring
-The Hono middleware `audit(action)` that runs after the handler and `Put`s this item is defined in `/backend/framework-hono`; the action constants in `/backend/action-types`; the table access/client in `/backend/dynamodb`.
+The Hono middleware `audit(action)` that runs after the handler and `Put`s this item is defined in `/backend/framework-hono`; the action constants in `/backend/action-types`; the table access/client in `/infrastructure/dynamodb`.
 
 ## Pros & cons
 **Pros**

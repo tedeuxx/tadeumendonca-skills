@@ -6,7 +6,7 @@ Set up or review the Claude Code GitHub App automation in a <project> repo.
 
 Context: $ARGUMENTS
 
-AI-assisted development is a **standing preference**: every repo runs the Claude Code GitHub App for an on-demand assistant **and** an automatic PR review — a quality signal alongside (not replacing) SonarCloud + the coverage gates (`/workflow/sonarcloud`, `/backend/coverage`, `/frontend/coverage`). Two workflows, identical across all repos; both use `anthropics/claude-code-action@v1` with the `CLAUDE_CODE_OAUTH_TOKEN` secret.
+AI-assisted development is a **standing preference**: every repo runs the Claude Code GitHub App for an on-demand assistant **and** an automatic PR review — a quality signal alongside (not replacing) SonarCloud + the coverage gates (`/workflow/sonarcloud`, `/backend/coverage`). Two workflows, identical across all repos; both use `anthropics/claude-code-action@v1` with the `CLAUDE_CODE_OAUTH_TOKEN` secret.
 
 ## `claude.yml` — on-demand assistant (`@claude`)
 Triggers when `@claude` appears in an issue (opened/assigned), an issue comment, a PR review, or a PR review comment:

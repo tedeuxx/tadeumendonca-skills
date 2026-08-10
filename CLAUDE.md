@@ -189,7 +189,7 @@ The lesson worth keeping: **a persona earns its place by generating a disagreeme
 | `/principles/dev-loop` | End-to-end flow in **two models** — `gitflow-multi-env` (staging → promote → prod) and `trunk-single-env` (PR → `main` → live); how to tell which applies; failure = revert + forward fix |
 | `/principles/permissions-and-environments` | The permission zones **per loop model**; git-reversibility tolerance test; IaC pipeline-only + infra-first; global + per-project layering; what the guard hook actually enforces (and why it stays branch-agnostic) |
 
-### backend/ (20)
+### backend/ (19)
 
 | Command | Purpose |
 |---|---|
@@ -197,14 +197,13 @@ The lesson worth keeping: **a persona earns its place by generating a disagreeme
 | `/backend/openapi` | Contract auto-maintained from code (agnostic): versioned, committed root copy, AWS overlay |
 | `/backend/bff` | Backend-for-Frontend: API GW fronts only it (root routes); auth external, no auth code |
 | `/backend/lambda-handler` | Implement a BFF domain module (Hono routes + audit + DynamoDB) |
-| `/backend/dynamodb` | DynamoDB: client singleton, per-entity tables, key/GSI access, cursor pagination (LastEvaluatedKey) |
 | `/backend/audit-middleware` | Audit trail (conceptual): what's captured + the audits document shape |
 | `/backend/action-types` | Action types (conceptual): audit + RBAC + feature toggles |
 | `/backend/error-handling` | Throw AppError/NotFoundError/Unauthorized — never return 4xx |
 | `/backend/logging` | Structured logging via Powertools Logger (JSON, level per env) |
 | `/backend/metrics` | OTel metrics → ADOT collector → CloudWatch (awsemf), no AMP |
 | `/backend/tracing` | Powertools Tracer / X-Ray: segments, annotations, downstream capture |
-| `/backend/environment-config` | dotenv per env + typed config accessor (non-secrets only) |
+| `/backend/environment-config` | Config both sides: dotenv + typed accessor at runtime, parameter store baked into the bundle at build |
 | `/backend/secrets-management` | Sensitive values from Secrets Manager at runtime (cached) |
 | `/backend/redis-cache` | ElastiCache Redis cache-aside, fail-open, TTLs, invalidation |
 | `/backend/notifications` | Email via SES + SNS async fan-out; subscriptions |
@@ -212,9 +211,9 @@ The lesson worth keeping: **a persona earns its place by generating a disagreeme
 | `/backend/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
 | `/backend/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DynamoDB |
 | `/backend/postman` | API/contract tests (reference pattern — the current consumer has no API): Bearer JWT auth, collection run in CI |
-| `/backend/coverage` | Backend quality/test/security gates (agnostic): lint, typecheck, ≥85% cov, audit, Sonar |
+| `/backend/coverage` | Quality/test/security gates for BOTH stacks, one threshold: lint, typecheck, ≥85% cov, E2E + contract, audit, Sonar |
 
-### frontend/ (18)
+### frontend/ (15)
 
 | Command | Purpose |
 |---|---|
@@ -230,12 +229,9 @@ The lesson worth keeping: **a persona earns its place by generating a disagreeme
 | `/frontend/design-system` | Cloudscape: which component per UI pattern (CV / feed / articles) |
 | `/frontend/storybook` | Component library: stories, autodocs, interaction/visual tests |
 | `/frontend/ux-states` | Loading/empty/error states + ErrorBoundary (consistent async UX) |
-| `/frontend/environment-config` | Build-time VITE_* from SSM (concept); typed accessor |
 | `/frontend/analytics` | GA4 (concept): SPA page_view per route + events |
-| `/frontend/cloudwatch-rum` | RUM (concept): web vitals, JS errors, http; X-Ray end-to-end |
 | `/frontend/seo` | Client SEO (concept): per-route meta + sitemap/robots + JSON-LD |
 | `/frontend/playwright` | E2E browser tests (lives in `apps/fed`): login via Cognito SDK, critical journeys |
-| `/frontend/coverage` | Frontend quality/test/security gates (agnostic): lint, typecheck, ≥85% cov, E2E, audit, Sonar |
 
 ### infrastructure/ (21)
 
@@ -253,7 +249,7 @@ One skill per AWS service / tool used — each is the canonical parametrization 
 | `/infrastructure/lambda` | Lambda: nodejs22/arm64, non-VPC by default (VPC on demand), **Pattern B**, tracing; og-edge exception |
 | `/infrastructure/api-gateway` | API GW (REST v1): fronts only the BFF, per-route Cognito authorizer, WAF-fronted, **contract via put-rest-api** |
 | `/infrastructure/cognito` | Cognito: user pool, 3 groups, PKCE public client, **custom domain** |
-| `/infrastructure/dynamodb` | DynamoDB: per-entity tables, on-demand, GSIs, PITR, IAM access, SSM table names |
+| `/infrastructure/dynamodb` | DynamoDB end to end: per-entity tables, on-demand, GSIs, PITR, IAM access, client singleton, GSI queries, cursor pagination |
 | `/infrastructure/elasticache` | ElastiCache Redis + AUTH in Secrets Manager + SSM |
 | `/infrastructure/ses` | SES: domain verify + DKIM |
 | `/infrastructure/sns` | SNS: async domain-event fan-out (notifications); cheapest pub/sub |
@@ -262,12 +258,12 @@ One skill per AWS service / tool used — each is the canonical parametrization 
 | `/infrastructure/ssm` | SSM Parameter Store: cross-repo config bus (namespace, read at deploy) |
 | `/infrastructure/kms` | KMS + **encryption**: in-transit/at-rest matrix, AWS-managed vs CMK, rotation |
 | `/infrastructure/cloudwatch` | CloudWatch: log groups/retention, flow logs, EMF metrics, alarms |
-| `/infrastructure/cloudwatch-rum` | RUM: app monitor + Cognito guest identity pool (real-user monitoring) |
+| `/infrastructure/cloudwatch-rum` | RUM end to end: app monitor + Cognito guest identity pool, and the browser client that reports to it |
 | `/infrastructure/cloudwatch-xray` | X-Ray: active tracing (API GW+Lambda), sampling rules, service map |
 
 ### workflow/ (9)
 
-DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella for OIDC, secrets/environments, branching (both loop models), the deploy workflows, and the Issues backlog; the numeric-SemVer tagging rules are their own skill (`versioning`). Test-runner + gate skills live with their repo (`/backend/postman` + `/backend/coverage`, `/frontend/playwright` + `/frontend/coverage`); IaC checkov is in `/infrastructure/terraform`. Architecturally-significant decisions are recorded via `adr`.
+DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella for OIDC, secrets/environments, branching (both loop models), the deploy workflows, and the Issues backlog; the numeric-SemVer tagging rules are their own skill (`versioning`). Test runners live with their repo (`/backend/postman`, `/frontend/playwright`); the gate policy they feed is one stack-agnostic skill (`/backend/coverage`); IaC checkov is in `/infrastructure/terraform`. Architecturally-significant decisions are recorded via `adr`.
 
 | Command | Purpose |
 |---|---|

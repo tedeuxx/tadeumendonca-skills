@@ -16,7 +16,7 @@ Conceptual skill — consistent async UX + error boundaries. Components/snippets
 React Query exposes `isLoading` / `isError` / `data` — branch on them uniformly.
 
 ## Error boundaries
-- A React **ErrorBoundary** around route subtrees catches render-time errors → fallback UI (don't white-screen); report to RUM (`/frontend/cloudwatch-rum`).
+- A React **ErrorBoundary** around route subtrees catches render-time errors → fallback UI (don't white-screen); report to RUM (`/infrastructure/cloudwatch-rum`).
 - Network/HTTP errors are handled at the query/mutation layer, not in boundaries.
 
 ## Conventions

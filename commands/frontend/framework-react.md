@@ -14,7 +14,7 @@ Context: $ARGUMENTS
 src/
 ├── main.tsx          # providers bootstrap
 ├── router.tsx        # routes (react-router v6) + RequireAuth
-├── env.ts            # typed import.meta.env (/frontend/environment-config)
+├── env.ts            # typed import.meta.env (/backend/environment-config)
 ├── lib/              # api.ts (BFF client), analytics.ts, rum.ts, seo.tsx
 ├── pages/  components/  hooks/  services/  store/  types/
 ```
@@ -60,7 +60,7 @@ export const useCreatePost = () => { const qc = useQueryClient();
     onSuccess: () => qc.invalidateQueries({ queryKey: ['posts'] }) }); };
 ```
 
-## SEO / Analytics / RUM — concepts in /frontend/seo, /frontend/analytics, /frontend/cloudwatch-rum
+## SEO / Analytics / RUM — concepts in /frontend/seo, /frontend/analytics, /infrastructure/cloudwatch-rum
 ```tsx
 <Helmet><title>…</title><meta name="description" /* … */ /><script type="application/ld+json">{JSON.stringify(jsonLd)}</script></Helmet>
 window.gtag?.('event', 'page_view', { page_path });                                  // GA4
@@ -73,7 +73,7 @@ new AwsRum(env.rumAppMonitorId, '1.0.0', env.region, { sessionSampleRate: 0.1, i
 ```
 
 ## Testing (vitest + RTL)
-Unit/component tests run on **vitest** + React Testing Library (`environment: 'jsdom'`); the coverage gate (≥ 85%) is the agnostic policy in `/frontend/coverage`. Thresholds in `vitest.config.ts`:
+Unit/component tests run on **vitest** + React Testing Library (`environment: 'jsdom'`); the coverage gate (≥ 85%) is the agnostic policy in `/backend/coverage`. Thresholds in `vitest.config.ts`:
 ```ts
 test: { environment: 'jsdom', coverage: { provider: 'v8', thresholds: { lines: 85, functions: 85, branches: 85, statements: 85 } } }
 ```
@@ -81,7 +81,7 @@ E2E is Playwright, not vitest (`/frontend/playwright`). lcov feeds SonarCloud (`
 
 ## Conventions
 - **Only this skill carries React/library code**; the concept skills (authentication, authorization, api-client, pagination, seo, analytics, cloudwatch-rum, environment-config, forms, markdown) stay agnostic.
-- snake_case API payloads (no mapping layer); build-time config from SSM (`/frontend/environment-config`).
+- snake_case API payloads (no mapping layer); build-time config from SSM (`/backend/environment-config`).
 - Content-hashed assets (immutable); cache split + invalidation in `/workflow/github-actions`. UI primitives from `/frontend/design-system`; components developed in `/frontend/storybook`.
 
 ## Pros & cons
