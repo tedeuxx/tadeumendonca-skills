@@ -621,10 +621,28 @@ cost are untouched.
 > *"…dispatches CI, which is the only place in this workspace holding AWS credentials — **it can reach
 > `terraform apply` without the merge that is supposed to authorise it**."*
 
-**The rule named the exact risk, correctly, and the risk stayed live for four days.** `-io`'s
-`deploy.yml` carried an `apply_infra` dispatch input until 2026-08-08, and the hole it opened was closed
-in **the workflow file** — `github.event_name == 'push'` on the `terraform-apply` job — not in the floor
-and not in the hook. Neither of this record's two layers moved.
+**The rule named the exact risk, correctly, and the risk stayed live for five days.** `-io`'s
+`deploy.yml` carried an `apply_infra` dispatch input **on `main` until 2026-08-09 10:54:00 -0300**
+(`a12a305`, the merge of `-io`#402). The fix was *authored* on its branch a day earlier — `130b98a`,
+2026-08-08 14:24:31 -0300 — and `main` carried the input until the merge. Against rule 5g's landing at
+2026-08-04 12:29:57 -0300 (`745d949`) that is **4 d 22 h, five calendar days.** The hole it opened was
+closed in **the workflow file** — `github.event_name == 'push'` on the `terraform-apply` job — not in
+the floor and not in the hook. Neither of this record's two layers moved.
+
+```
+git -C <skills> show -s --format=%cd --date=iso 745d949         # 2026-08-04 12:29:57 -0300
+git -C <io> show -s --format=%cd --date=iso 130b98a             # 2026-08-08 14:24:31 -0300  (authoring)
+gh pr view 402 --repo tedeuxx/tadeumendonca-io --json mergedAt  # 2026-08-09T13:54:00Z       (merge)
+```
+
+> **~~four days~~ five days — and how the four got published is this record's own subject matter.**
+> The commit that introduced this amendment (`e72b61c`) and its PR title (#179) both say *four days*,
+> and **they stay that way**: history is not rewritten here, so read them as stale and corrected at this
+> line. The four was a real delta from a real command — 5g's landing to `130b98a` is `4 d 01 h` — but
+> `130b98a` is the **authoring** date on a branch, and the question being answered was *how long was the
+> risk live*. A risk is live until the fix is on `main`. The anchor and the number came from different
+> commits, and the evidence footnote below named the anchor (*"`-io`#402's merge date"*) that falsifies
+> the number it was attached to. Found by `quality-assurance` on #179, not by the author.
 
 That is not a failure of rule 5g. It is a fact about what rule 5g **can** bind: **one caller's terminal
 in one session.** The GitHub UI, a PAT, a session with a different settings root, or any of the
@@ -634,15 +652,37 @@ another system.
 
 ### The decision — the third layer, stated as a routing question
 
-This record divides controls between two layers. **There is a third, and it was never named because
-until now every control this library routed happened to be an act the agent performs directly.**
+This record divides controls between two layers. **There is a third. It went unnamed not because no
+control needed it, but because this record had never asked which system authorises the act** — so
+controls of exactly that shape were routed here **implicitly**, and the routing was invisible.
+
+Three already in this repo, against the enumeration in the rule below:
+
+| control | workspace rule | the system that actually authorises it |
+|---|---|---|
+| direct push to the trunk | hook 7 (`:890-924`), floor `Bash(git push origin main)` | **branch protection** on `main` |
+| merging with squash | hook 7b (`:950-960`), floor `Bash(gh pr merge --squash:*)` | a **repository setting** — measured `squashMergeAllowed: false`, so the act is already foreclosed where it is decided |
+| `terraform apply` from a laptop | hook 2 (`:388-391`) | **Terraform Cloud** pipeline-only apply, plus an AWS OIDC trust only CI can assume (CLAUDE.md convention 5) |
+
+```
+gh repo view tedeuxx/tadeumendonca-skills --json squashMergeAllowed   # {"squashMergeAllowed":false}
+```
+
+That the omission was one of *naming* rather than of *coverage* is the stronger reading and the one that
+argues for writing the test down: the routing was already happening, unrecorded, and an unrecorded
+routing cannot be checked — which is precisely how rule 5g's five days happened.
 
 > **Ask which SYSTEM authorises the act, before asking which layer of this workspace can see it.** Where
 > the act is authorised by a system outside the agent's shell — a CI trigger, a cloud IAM policy, a
 > branch protection, a repository setting — **that system's own configuration is the authoritative
 > layer**, and both the floor and the hook are, at best, a speed bump on one caller. Route the control
-> there, and record the hook rule as what it then is: a **convenience refusal for the agent**, not the
-> control.
+> there, **keep the workspace rule**, and record it as what it then is: a **convenience refusal for the
+> agent**, not the control.
+>
+> **Keeping it is part of the rule, not an afterthought.** Reclassifying a speed bump is not removing
+> it — the agent's shell is still one of the routes, and a refusal that costs nothing is worth having on
+> it. This sentence exists because the general form without it is the sentence someone would quote while
+> deleting a hook rule that had just been correctly re-described.
 
 Applied to the worked example: the control is `terraform-apply`'s `if:`. Rule 5g is kept, and is now
 correctly described as stopping the agent from taking a route it should not take anyway — which is worth
@@ -780,8 +820,18 @@ owner's.
 - **2026-08-08 amendment evidence:** `-io`#402 (`fix/dispatch-cannot-apply-infra`) for the incident and
   the fix's location — `.github/workflows/deploy.yml`'s `terraform-apply` job, in neither of this
   record's two layers; `git log -S"workflow[[:space:]]+run" -- hooks/scripts/permission-guard.sh` →
-  `745d949` (2026-08-04) for the date rule 5g's `workflow run` deny landed, against `-io`#402's merge
-  date, for the four days the named risk stayed live; `hooks/scripts/permission-guard.sh:509-517` for
+  `745d949` (2026-08-04 12:29:57 -0300) for the date rule 5g's `workflow run` deny landed, against
+  `-io`#402's **merge** date — `gh pr view 402 --repo tedeuxx/tadeumendonca-io --json mergedAt` →
+  `2026-08-09T13:54:00Z`, merge commit `a12a305` — for the **five days** the named risk stayed live.
+  `130b98a` (2026-08-08 14:24:31 -0300) is the **authoring** date on the branch and is not the anchor;
+  it is what the superseded "four days" was derived from. For the third layer's three
+  already-routed controls: `gh repo view tedeuxx/tadeumendonca-skills --json squashMergeAllowed` →
+  `false` (measured), and `hooks/scripts/permission-guard.sh` `:388-391` / `:890-924` / `:950-960` for
+  rules 2, 7 and 7b. **`main`'s branch-protection payload is asserted, not measured:**
+  `gh api repos/tedeuxx/tadeumendonca-skills/branches/main/protection` is **denied by the permission
+  system** to the author and to the gate alike, so that row rests on `.github/workflows/docs-test.yml`'s
+  own statement that `main` protection carries review and force-push rules; the squash row, which is
+  measured, carries the argument on its own. Also `hooks/scripts/permission-guard.sh:509-517` for
   5g's three denies and `:516` for the message quoted above; `:668-673` for 5e's three-subcommand
   predicate; and two payloads piped at the guard at `571837f` —
   `gh workflow run deploy.yml --json` → **deny** (rule 5g, act in the string) and
