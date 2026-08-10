@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """Emit the README's skill inventory table, derived from `skills/`.
 
-THE FAMILY IS READ OUT OF THE FILE, NOT OFF THE PATH (#164). The library is flat — one directory per
-skill, each holding `SKILL.md` — so `parent.name` is the SKILL and there is no family segment anywhere
-in the tree. The family survives as a `family:` frontmatter key, which is the only form that keeps the
-per-family grouping DERIVED: a hand-maintained 69-entry map in this file would be exactly the
-enumeration-inside-the-enumeration-catcher that `inventory-counts.test.sh` has already paid for twice,
-and a skill arriving without a family would be invisible to it.
+THE FAMILY IS READ OFF THE PATH AGAIN (#182). The tree is `skills/<family>/<name>/SKILL.md`, so
+`parent.name` is the SKILL and `parent.parent.name` is the FAMILY. Both come from the filesystem and
+nothing here enumerates either.
+
+~~THE FAMILY IS READ OUT OF THE FILE, NOT OFF THE PATH (#164). The library is flat — one directory per
+skill — so there is no family segment anywhere in the tree, and the family survives as a `family:`
+frontmatter key.~~ **STRUCK: the premise was measured false on #182.** The flat tree existed because
+nesting was believed not to resolve; it resolves whenever `plugin.json` declares the path, and the
+identifier stays the bare innermost directory name either way. With the directory carrying the family
+again, the `family:` key was a second source of one truth and a non-platform field in 69 published
+files, so it is gone.
 
 WHY THIS IS A COMMITTED TOOL RATHER THAN A ONE-OFF. The README publishes one row per skill, and each
 description is the skill's own first line OF BODY — never the `description` frontmatter field, which is
@@ -97,25 +102,21 @@ def describe(path):
 
 
 def family_of(path):
-    """The `family:` key from the frontmatter. Absent is a hard error, never a default.
+    """The family DIRECTORY the skill sits in — `skills/<family>/<name>/SKILL.md`.
 
-    Defaulting would let a skill with no family land in the table under some catch-all, pass both
-    directions of the README assertion, and drop out of the per-family counts with nothing red — the
-    silent-shrink shape #164 finding 1 is about.
+    A wrong depth is a hard error rather than a default. Defaulting would let a misplaced skill land
+    in the table under some catch-all, pass both directions of the README assertion, and drop out of
+    the per-family counts with nothing red — the silent-shrink shape #164 finding 1 is about, and the
+    reason `inventory-counts.test.sh` asserts the tree's shape separately.
     """
-    lines = path.read_text().splitlines()
-    if not lines or lines[0].strip() != "---":
-        raise SystemExit(f"{path} has no frontmatter block")
-    for line in lines[1:]:
-        if line.strip() == "---":
-            break
-        if line.startswith("family:"):
-            return line.split(":", 1)[1].strip()
-    raise SystemExit(f"{path} has no `family:` key in its frontmatter")
+    rel = path.relative_to(SKILLS)
+    if len(rel.parts) != 3 or rel.parts[2] != "SKILL.md":
+        raise SystemExit(f"{path} is not at skills/<family>/<name>/SKILL.md")
+    return rel.parts[0]
 
 
 def main():
-    skills = sorted(p / "SKILL.md" for p in SKILLS.iterdir() if p.is_dir())
+    skills = sorted(SKILLS.glob("*/*/SKILL.md"))
     fams = {}
     for f in skills:
         fams.setdefault(family_of(f), []).append(f)

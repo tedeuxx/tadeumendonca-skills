@@ -20,10 +20,14 @@
 # All three were measured rather than assumed (#172): `workflow:license`, bare `license` and
 # `plugin:workflow:license` all resolve; the slash and glob forms do not.
 #
-# THE FAMILY-QUALIFIED FORM IS RETIRED, NOT DEPRECATED (#164). The library is flat —
-# `skills/<stem>/SKILL.md` — so the identifier is the innermost directory and there is no family segment
-# left to qualify with. `workflow:code-review` names a family that does not exist and would fail exactly
-# as silently as a typo, so every list was rewritten to the bare form in the same commit as the move.
+# THE FAMILY-QUALIFIED FORM IS RETIRED, NOT DEPRECATED (#164, and still true after #182). The identifier
+# is the INNERMOST DIRECTORY, and that is a property of the loader rather than of the tree's shape —
+# which is why it survived the tree changing shape twice. Measured on #182, probe against control: a
+# skill at `skills/fam/nested/SKILL.md` resolves as `nestprobe:nested`, and `nestprobe:fam/nested` is not
+# recognised as a command at all — it falls through as prompt text and the model improvises. So
+# `workflow:code-review` names a family segment the loader does not read, and fails exactly as silently
+# as a typo. Every list was rewritten to the bare form on #164 and NOTHING was rewritten on #182: the
+# family directories came back and the identifiers did not change, which is the whole point of the shape.
 # The colon PREFIX for the plugin (`plugin:` / `tadeumendonca-skills:`) is a different thing and stays.
 #
 # WHAT IT DOES NOT ASSERT, said plainly. That the list is the RIGHT one — curation is judgement, made by
@@ -72,10 +76,15 @@ strip_prefix() {
 # A BARE identifier resolves by STEM, which is what the loader does — and assuming otherwise was a real
 # defect in the first draft of this file, caught by writing the mutation probes rather than by reading
 # it. The `find` below is that resolution, which is also what makes assertion 5 the resolution mechanism
-# rather than a bolt-on. Under the flat tree it searches `skills/<stem>/SKILL.md` and the two typed
-# commands at `commands/<stem>.md`.
+# rather than a bolt-on. It searches `skills/<family>/<stem>/SKILL.md` and the two typed commands at
+# `commands/<stem>.md`.
+#
+# THE DEPTH MOVED WITH THE TREE (#182) AND THE SEARCH DID NOT CHANGE IN KIND, which is the property
+# worth naming: the resolution was ALREADY a search by innermost directory rather than a path
+# computation, so re-nesting the library cost one integer. It was a path computation once
+# (`commands/<family>/<stem>.md`), and that is what made #164 expensive.
 resolve_bare() {
-  find "$SKILLS" -mindepth 2 -maxdepth 2 -name 'SKILL.md' -path "*/$1/SKILL.md" 2>/dev/null
+  find "$SKILLS" -mindepth 3 -maxdepth 3 -name 'SKILL.md' -path "*/$1/SKILL.md" 2>/dev/null
   find "$COMMANDS" -maxdepth 1 -name "$1.md" 2>/dev/null
 }
 

@@ -1,0 +1,54 @@
+---
+description: Provision CloudWatch in Terraform — log group naming and retention, VPC flow logs, custom metrics derived from EMF output, and alarms and dashboards. Use when logs are unbounded or missing, setting a retention window, or adding an alarm. Not for emitting the log lines (see logging) or the metrics (see metrics), and not for browser telemetry (see cloudwatch-rum).
+---
+
+Use Amazon CloudWatch in <project> infrastructure.
+
+Context: $ARGUMENTS
+
+## Log group & stream naming
+**Path shape:** `/aws/<service>/<project>-<workload>-<env>[/<sub>]` — the **first path levels identify the AWS service** at a glance (`/aws/<service>/`), then a **specific workload** (`<project>-<workload>-<env>`). We keep the `/aws/<service>/` prefix even on groups we create ourselves, so every log group is self-describing: service first, workload next, env last.
+
+| Source | Log group | Created by | Streams |
+|---|---|---|---|
+| BFF Lambda | `/aws/lambda/<project>-bff-${env}` | Lambda (auto) | `YYYY/MM/DD/[$LATEST]{exec-id}` — app logs **+ EMF metrics** land here |
+| og-edge (Lambda@Edge) | `/aws/lambda/us-east-1.<project>-og-edge-${env}` | Lambda@Edge (auto, replicated per edge region) | `{region}/YYYY/MM/DD/...` |
+| API GW access logs | `/aws/apigateway/<project>-api-${env}` | us (`aws_cloudwatch_log_group`) | per-stage; `$context.requestId` per entry |
+| VPC Flow Logs | `/aws/vpc/flow-logs/<project>-${env}` | us | per-ENI |
+| WAF (CLOUDFRONT + REGIONAL) | `aws-waf-logs-<project>-${env}` | us | per-webacl |
+
+- **AWS-mandated exceptions:** Lambda auto-names `/aws/lambda/<function-name>` — so we name the *function* `<project>-bff-${env}` and the group follows the convention for free. **WAF requires the `aws-waf-logs-` prefix** (it can't use `/aws/waf/`), so the workload identifier moves right after that mandated prefix.
+- **Env is always the last token** of the workload segment; any sub-stream qualifier comes after the workload.
+- Retention per env (30d staging / 90d production) via `var.environment`; **encrypted** — key choice in `/kms`.
+- Structured app logs come from Powertools Logger (`/logging`).
+
+## Metrics — EMF (Powertools), no collector
+- App metrics are **EMF** emitted by **Powertools Metrics** straight into the BFF Lambda log group; CloudWatch auto-extracts them under namespace `<project>/${env}` — **no ADOT collector, no AMP, no Prometheus** (`/metrics`).
+- Because EMF is extracted from logs, the Lambda role needs **no `cloudwatch:PutMetricData`** (`/iam`).
+- AWS service metrics (Lambda, API GW, DynamoDB, CloudFront, ElastiCache) are available out of the box — DynamoDB observability is CloudWatch metrics (+ optional Contributor Insights), with **no DB log groups** (on-demand DynamoDB has no audit/profiler log exports).
+
+## Log retention policy
+- **Every log group sets `retention_in_days`** — never the default *never-expire*, which grows storage cost unbounded.
+- Per env: **30 days staging / 90 days production** (driven by `var.environment`); raise a specific group only where an audit/incident need justifies it.
+- Module-created groups (lambda / flow-log) set retention via the module input; standalone `aws_cloudwatch_log_group` resources set it directly. All groups are KMS-encrypted (`/kms`).
+- **Long-term archive (optional, not default):** for retention beyond 90d, export a group to S3 with a lifecycle to cheaper storage classes — enable only when a compliance need appears.
+
+## Alarms & dashboards (as needed)
+- Alarms on error rate / p99 latency / 5xx / DLQ depth → SNS to the owner (`/sns`).
+- One dashboard per env composing the key Lambda / API GW / DynamoDB / CloudFront widgets.
+
+## Conventions
+- Never log PII or the Authorization header (`/logging`).
+- Tag log groups / alarms via `default_tags` (`/terraform`); retention via `var.environment` conditionals (no extra variable).
+
+## Decision & trade-off
+- **EMF via Powertools, no collector.** App metrics are emitted as EMF into the Lambda log group and auto-extracted — **no ADOT collector / no AMP / no Prometheus**, and the role needs no `cloudwatch:PutMetricData`. *Trade-off:* CloudWatch metric queries are less expressive than PromQL, accepted for the zero-ops, serverless-native fit.
+- **Retention is per-env and always set (never never-expire).** 30 days staging / 90 days production via `var.environment` — a deliberate storage-cost control; default never-expire grows cost unbounded. Long-term archive (export to S3) is opt-in, only when a compliance need appears.
+
+## Pros & cons
+**Pros**
+- Serverless-native EMF — no collector/scrape; one backend for logs + metrics.
+- Service-first log-group paths make ownership obvious at a glance.
+**Cons**
+- Metric queries less expressive than PromQL.
+- Retention is a recurring storage cost; WAF's group can't follow the `/aws/` convention (AWS-mandated prefix).
