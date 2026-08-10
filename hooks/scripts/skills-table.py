@@ -12,8 +12,16 @@ next person to add a skill edits the table by hand, and the property that made g
 gone silently. `inventory-counts.test.sh` asserts that every skill file has a row, so a hand-edit that
 forgets one goes red. This file is what makes fixing that red cheap.
 
-WHAT IT DOES NOT DECIDE. Allocation — who wields a family — is a fact about the roster, not about the
-filesystem, so it is written below and maintained by hand. Everything else is read from `commands/`.
+WHAT IT DOES NOT DECIDE. Allocation — whose domain a family is — is a fact about the roster, not about
+the filesystem, so it is written below and maintained by hand. Everything else is read from `commands/`.
+
+THE COLUMN IS `whose domain`, NOT `wielded by`, AND NOT `preloaded by` (renamed in #172). It answers who
+is ACCOUNTABLE for a convention. It deliberately does NOT answer what a persona has loaded at startup —
+that is the `skills:` frontmatter, whose ten entries resolve to 8 distinct files — 7 of them rows in this
+table, since `new-issue` is top-level — and it is published as its own list in the README with the byte
+cost of each. Merging the two would print "— none" against 62 of the 69 rows, i.e. nine tenths of the
+library, which is false. If you are here because the two look contradictory: they answer different
+questions, and the README says so above the table.
 
 Run:  python3 hooks/scripts/skills-table.py
 Then paste the output over the table in the README's skill-library section.
@@ -85,7 +93,7 @@ def main():
     families = sorted(p for p in COMMANDS.iterdir() if p.is_dir())
     counts = ", ".join(f"{f.name} ({len(list(f.glob('*.md')))})" for f in families)
     print(f"The library, by family: {counts}.\n")
-    print("| skill | what it decides | family | wielded by |")
+    print("| skill | what it decides | family | whose domain |")
     print("|---|---|---|---|")
     for family in families:
         for f in sorted(family.glob("*.md")):
