@@ -115,16 +115,73 @@ marketplace update`). For **local skill authoring** (test edits to this repo, un
 The skills are **generic** (`<project>` / `<apex-domain>` placeholders) — Claude substitutes the
 real values per project (in `tadeumendonca-io/iac`, they become `var.project` / `var.apex_domain`).
 
+### What is a command and what is a skill — three rules, and only one of them is a mechanism
+
+This took a full session to arrive at and was written down nowhere. **Measured, not read from docs.**
+
+**1 · The folder is for the human. It is not a mechanism.**
+`commands/` and `skills/` are two top-level directories because a reader opening this repo should not
+meet a library and a control surface in the same pile — the owner's reason, in his words: *"o problema é
+a contaminação na leitura do repositório por humanos se tudo ficar no mesmo lugar."* **The loader does
+not distinguish them.** `claude plugin details` on the split tree reports **`Skills (71)`** — the 69
+under `skills/` **plus the 2 under `commands/`**, counted alike, reachable alike.
+
+**2 · The root is for the loader's SKILL INDEX. Nesting kept the 69 out of it — and only out of it.**
+Before the split the same command reported **`Skills (2)`** — `autonomy-on` and `new-issue`, the only two
+files not inside a family. **Be precise about what that did and did not break**, because the loose
+version of this claim is wrong:
+
+- **Broken by nesting: the model's own discovery.** The skill index is what lets the model see that a
+  `vpc` skill exists and reach for it, and it is the only consumer of a `description:`. So the dense
+  triggers ADR-0009 exists to produce were being written, linted and published **for a consumer that did
+  not exist**. Nested skills were measured to resolve under **no** spelling — not `/plugin:nested`, not
+  `/plugin:fam/nested`, not `/plugin:fam:nested`, and **not the `Skill` tool** either.
+- **NOT broken: everything a human or a brief addressed by name.** Typed invocation worked
+  (`/plugin:infrastructure/vpc`), and **`skills:` preloading worked** with the family in the identifier
+  (`workflow:code-review`, measured resolving before the split; it is `code-review` after).
+
+So the split did not turn the library on. **It turned on the half that nobody had to name explicitly** —
+and that half is the whole point of writing 69 descriptions.
+
+**3 · `argument-hint` is the contract. It is the only real distinction, and it is semantic.**
+
+| | a **command** | a **skill** |
+|---|---|---|
+| what it is | a file a human **types**, with arguments | a body of knowledge the model **reaches for** |
+| declares `argument-hint` | **yes** — it is what the human sees while typing | **no** |
+| lives in | `commands/` | `skills/<name>/SKILL.md` |
+| invocable as `/plugin:<name>` | yes | yes |
+| reachable by the `Skill` tool | yes | yes |
+| preloadable via a persona's `skills:` | yes | yes |
+| `$ARGUMENTS` interpolates | yes | yes — measured, with `$NOTAVARIABLE` surviving literally as the control |
+
+**The last four rows are identical on purpose: there is no mechanical difference left.** What separates
+the two is what the file is *for*, and `hooks/scripts/inventory-counts.test.sh` asserts it **in both
+directions** — removing `argument-hint` from a typed command reddens, and adding one to a skill reddens.
+The distinction is gated, not conventional.
+
+**The cost this makes visible:** the 69 descriptions total ~28 KB and are now **always-on**, about
+**+9,919 tokens per session** (`Skills (2)` ≈ 1,444 tok → `Skills (71)` ≈ 11,363 tok). ADR-0009 made
+those descriptions dense deliberately; **that decision was free while nothing loaded them and is not
+free now.** Nobody has revisited it at this price — that is an open decision, not a settled one.
+
 ### Usage
 
-Plugin commands are **namespaced under the plugin name**. Type the command and pass context after
-it (received as `$ARGUMENTS`):
+Plugin commands and skills are **namespaced under the plugin name**, with **no family segment** — the
+name is the file's own directory (`skills/vpc/SKILL.md` → `vpc`). Type it and pass context after it
+(received as `$ARGUMENTS`):
 
 ```
 /tadeumendonca-skills:lambda-handler posts
 /tadeumendonca-skills:cognito staging
 /tadeumendonca-skills:github-actions production
 ```
+
+**A side effect of losing the family segment, and it is the best one:** an unresolved identifier
+**without** a slash returns `Unknown command:`, while one **with** a slash is not recognised as a command
+at all — it falls through as ordinary prompt text and the model improvises a plausible answer. Every
+identifier this plugin published used to contain a slash. **None does now**, so a broken invocation
+fails loudly instead of silently.
 
 ### Releasing a version
 
