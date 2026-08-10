@@ -126,22 +126,41 @@ a contaminação na leitura do repositório por humanos se tudo ficar no mesmo l
 not distinguish them.** `claude plugin details` on the split tree reports **`Skills (71)`** — the 69
 under `skills/` **plus the 2 under `commands/`**, counted alike, reachable alike.
 
-**2 · The root is for the loader's SKILL INDEX. Nesting kept the 69 out of it — and only out of it.**
-Before the split the same command reported **`Skills (2)`** — `autonomy-on` and `new-issue`, the only two
-files not inside a family. **Be precise about what that did and did not break**, because the loose
-version of this claim is wrong:
+**2 · DECLARATION is what registers a skill. The root is only the default.**
 
-- **Broken by nesting: the model's own discovery.** The skill index is what lets the model see that a
-  `vpc` skill exists and reach for it, and it is the only consumer of a `description:`. So the dense
-  triggers ADR-0009 exists to produce were being written, linted and published **for a consumer that did
-  not exist**. Nested skills were measured to resolve under **no** spelling — not `/plugin:nested`, not
-  `/plugin:fam/nested`, not `/plugin:fam:nested`, and **not the `Skill` tool** either.
-- **NOT broken: everything a human or a brief addressed by name.** Typed invocation worked
-  (`/plugin:infrastructure/vpc`), and **`skills:` preloading worked** with the family in the identifier
-  (`workflow:code-review`, measured resolving before the split; it is `code-review` after).
+~~**The root is for the loader's SKILL INDEX. Nesting kept the 69 out of it — and only out of it.**
+Before the split the same command reported `Skills (2)` — `autonomy-on` and `new-issue`, the only two
+files not inside a family.~~ ~~Nested skills were measured to resolve under **no** spelling — not
+`/plugin:nested`, not `/plugin:fam/nested`, not `/plugin:fam:nested`, and **not the `Skill` tool**
+either.~~
 
-So the split did not turn the library on. **It turned on the half that nobody had to name explicitly** —
-and that half is the whole point of writing 69 descriptions.
+**STRUCK 2026-08-10 — the second sentence is FALSE, and it was published to this branch before it was
+tested.** It is struck rather than deleted because anyone who read it took a design decision from it: it
+is the sentence that forced the flat tree.
+
+**What is actually true, measured on #182 — probe against control, one variable:**
+
+| probe plugin | `skills` array in `plugin.json` | nested `skills/fam/nested/SKILL.md` | flat `skills/flatctl/SKILL.md` |
+|---|---|---|---|
+| `nestprobe` | **present** — `["./skills/fam/nested", "./skills/flatctl"]` | **resolved**, returned its body nonce | resolved |
+| `nestprobectl` | **absent**, tree otherwise identical | **`SKILL-NOT-AVAILABLE`** | resolved |
+
+**An explicit `skills` array loads a nested skill, and the identifier stays the BARE innermost directory
+name** — `nestprobe:nested`, never `nestprobe:fam/nested` (that spelling was measured falling through as
+prompt text, which is rule 3's side effect below, from the other side). **Nesting was never blocked; it
+was blocked by omission** — the root is what a manifest with no `skills` key scans, and that is the whole
+of what "the root registers" ever meant.
+
+**What the original claim got right, and it is the half worth keeping.** The consumer that a
+non-registered skill loses is **the model's own discovery** — the skill index is what lets the model see
+that a `vpc` skill exists and reach for it, and it is the only consumer of a `description:`. Everything a
+human or a brief addresses **by name** was unaffected then and is unaffected now: typed invocation, and
+`skills:` preloading. So the failure this rule guards is still the same one, and it is still silent —
+only its cause is a missing line in `plugin.json` rather than a directory.
+
+**Which is why the array is gated in both directions** (`hooks/scripts/inventory-counts.test.sh`): every
+declared path must resolve to a real `SKILL.md`, and every `SKILL.md` in the tree must be declared. A
+skill added and not declared does not exist to the model, and nothing else anywhere would say so.
 
 **3 · `argument-hint` is the contract. It is the only real distinction, and it is semantic.**
 
@@ -149,7 +168,7 @@ and that half is the whole point of writing 69 descriptions.
 |---|---|---|
 | what it is | a file a human **types**, with arguments | a body of knowledge the model **reaches for** |
 | declares `argument-hint` | **yes** — it is what the human sees while typing | **no** |
-| lives in | `commands/` | `skills/<name>/SKILL.md` |
+| lives in | `commands/<name>.md` | `skills/<family>/<name>/SKILL.md`, declared in `plugin.json` |
 | invocable as `/plugin:<name>` | yes | yes |
 | reachable by the `Skill` tool | yes | yes |
 | preloadable via a persona's `skills:` | yes | yes |
@@ -168,8 +187,9 @@ free now.** Nobody has revisited it at this price — that is an open decision, 
 ### Usage
 
 Plugin commands and skills are **namespaced under the plugin name**, with **no family segment** — the
-name is the file's own directory (`skills/vpc/SKILL.md` → `vpc`). Type it and pass context after it
-(received as `$ARGUMENTS`):
+name is the file's own **innermost** directory (`skills/infrastructure/vpc/SKILL.md` → `vpc`). The family
+directory is for the human reading the library and is **not** part of any identifier. Type it and pass
+context after it (received as `$ARGUMENTS`):
 
 ```
 /tadeumendonca-skills:lambda-handler posts
@@ -181,7 +201,9 @@ name is the file's own directory (`skills/vpc/SKILL.md` → `vpc`). Type it and 
 **without** a slash returns `Unknown command:`, while one **with** a slash is not recognised as a command
 at all — it falls through as ordinary prompt text and the model improvises a plausible answer. Every
 identifier this plugin published used to contain a slash. **None does now**, so a broken invocation
-fails loudly instead of silently.
+fails loudly instead of silently. **The family directories coming back on #182 did not cost this**, which
+is the reason the identifiers were kept bare rather than re-qualified: the loader takes the innermost
+directory either way, so the tree regained a reading structure and the namespace did not change at all.
 
 ### Releasing a version
 

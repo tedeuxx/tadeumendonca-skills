@@ -336,9 +336,12 @@ the column below puts that family under the four judging personas. Both are true
 judges' ruler and the builder's floor; *whose domain* and *what is loaded* are different questions, which
 is exactly why they are now two lists rather than one contested column.
 
-**Identifiers are the skill's own directory name** (`code-review`) — the family segment went away with
-the family directories when the library moved to a flat `skills/`, and the colon form that qualified it
-(`workflow:code-review`) no longer resolves. Slash forms do not resolve, there is no
+**Identifiers are the skill's own INNERMOST directory name** (`code-review`, for
+`skills/workflow/code-review/SKILL.md`) — the loader never reads the family segment, so the colon form
+that qualified it (`workflow:code-review`) does not resolve. That is a property of the loader rather than
+of the tree's shape, which is why it held through the library flattening on #164 and re-nesting on #182:
+the family is a directory again, for a human reading the library, and no identifier changed. Slash forms
+do not resolve, there is no
 glob support, and there is no dedupe — two identifiers naming one file load it twice and bill it twice.
 A wrong identifier fails at **0 bytes of stderr**, which is why the check sits in CI rather than in the
 runtime: `hooks/scripts/skills-resolve.test.sh` asserts that every list **complies** with those rules —

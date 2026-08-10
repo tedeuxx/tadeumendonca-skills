@@ -13,7 +13,7 @@ skills:
 **The `skills:` list above is a preload, not a menu** — `verification-and-gates`,
 `coverage` and `sonarcloud` are already injected here in full. **18,215 B.**
 `verification-and-gates` is your ruler; `coverage` is, post-#174, the gate policy for **both**
-stacks despite a `backend` family label the flat tree no longer spells in its name; `sonarcloud` is here because this brief
+stacks despite sitting in the `backend` family directory; `sonarcloud` is here because this brief
 obliges you to return the **cause** of a failing gate and Sonar is a named blocking one.
 
 `Skill` is not grantable through `tools:` (#177) and `printenv CLAUDE_PLUGIN_ROOT` exits 1 in a subagent
