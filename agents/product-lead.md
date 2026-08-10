@@ -79,7 +79,7 @@ intake.
 **Everything else in `commands/` is excluded, and that is a finding rather than a gap** — the library is
 71 files, and the 70 you do not carry are 69 implementation guides for an architecture you do not judge,
 plus `autonomy-on`, which is a command the owner invokes rather than a guide. The one real candidate was
-**`workflow:documentation-standard` (3,725 B)**, and it was cut: its consumer is whoever *writes* the
+**`documentation-standard` (3,725 B)**, and it was cut: its consumer is whoever *writes* the
 doc, not the persona reviewing whether a published claim is true.
 
 ## Working files — read this before your first command
@@ -217,7 +217,7 @@ anything:
 executable.** `developer` does not pick up an issue whose description is not closed, and **nothing is
 worked that is not in the issue tracker** — no size threshold, no exceptions.
 
-You do not *file* it: only the owner opens work (`/principles/dev-loop`, *Review does not open work*).
+You do not *file* it: only the owner opens work (`/dev-loop`, *Review does not open work*).
 You write what goes in it.
 
 **The requirements the leads state are the ruler `quality-assurance` applies.** It consolidates that

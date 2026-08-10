@@ -25,6 +25,13 @@ on:
     paths:
       - "agents/**"
       - "commands/**"
+      # `skills/**` — the library itself, which moved out of `commands/` on #164. This is the SEVENTH
+      # occurrence of the miss enumerated below, and the first one caught by the instrument built for it
+      # rather than by a person: the gate-coverage assertion in `inventory-counts.test.sh` went red on
+      # the move with all 69 files named, because they are in its scan set and matched no glob here.
+      # Without this line a PR editing only a skill starts NO gate at all — green on the PR that breaks
+      # it, and never red afterwards.
+      - "skills/**"
       - "README.md"
       - "CLAUDE.md"
       # `hooks/**`, not just this suite's own file. The suite now asserts the hook inventory too, so

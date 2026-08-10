@@ -5,12 +5,12 @@ via the **marketplace in this repo** and consumed by **`tadeumendonca-io`** (the
 `apps/fed` + its Terraform in `iac/`).
 The commands are generic, reusable implementation guides (no AWS dependency to run).
 
-Each command is a per-component guide: when the owner runs `/tadeumendonca-skills:frontend/framework-react`,
+Each command is a per-component guide: when the owner runs `/tadeumendonca-skills:framework-react`,
 Claude reads the guide and knows exactly how to implement that piece following this project's
 established patterns (custom Tailwind design system, snake_case contracts, Terraform parametrization,
 numeric SemVer, etc.).
 
-> **The library is broader than its current consumer.** `backend/*` and several `infrastructure/*`
+> **The library is broader than its current consumer.** The `backend` family and several `infrastructure`
 > skills document a BFF-on-Lambda + DynamoDB + Cognito architecture that `tadeumendonca-io` **retired**
 > — it is now fully static. Those skills are kept **deliberately, as reference patterns**, not as a
 > description of the live platform. Never infer the consumer's architecture from them; read the
@@ -49,7 +49,7 @@ and on LinkedIn. The reasoning behind it stays in the private source and is neve
 - **The owner's opinionated default + when he deviates** (the "My take" layer) — THIS is the differentiator;
   generic best-practice alone is not enough.
 - **The nuances that bite** — the gotchas / war stories worth materializing.
-- `commands/infrastructure/vpc.md` is the **density exemplar** — match it.
+- `skills/vpc/SKILL.md` is the **density exemplar** — match it.
 
 **Deep-dive authoring process (done in-place here):**
 1. **Scaffold** the scenario space (Claude drafts the dense structure from sound practice + the platform repos).
@@ -60,10 +60,15 @@ and on LinkedIn. The reasoning behind it stays in the private source and is neve
 **Hard principles:** **project-agnostic** — generic `<project>` / `<apex-domain>` placeholders, **NO** real
 names/domains/ARNs/ids; **English** (it's published); **additive density** (deepen; never thin out good content).
 
-**State (re-verified 2026-08-02, unchanged in substance since 2026-06-21):** the thin
-`## Decision & trade-off` baseline has landed for `infrastructure/*` and `backend/*`, plus the `vpc` deep
-exemplar; **`frontend/*` is still effectively unstarted — exactly one file under it carries a trade-off
-in any form** (`grep -rl trade-off commands/frontend/`, against the count published below). The
+**State (re-verified 2026-08-10, unchanged in substance since 2026-06-21):** the thin
+`## Decision & trade-off` baseline has landed for the `infrastructure` and `backend` families, plus the
+`vpc` deep exemplar; **the `frontend` family is still effectively unstarted — exactly one file in it
+carries a trade-off in any form** (`grep -rl '^family: frontend' skills | xargs grep -il trade-off` → 1,
+`authentication`; against the count published below). **The command carries `-i`, and that is a
+correction rather than a flourish:** the form published here until #164 was
+`grep -rl trade-off commands/frontend/`, which returns **zero** — the one occurrence is written
+`Trade-off`. The figure was right and the command beside it did not produce it, which is the exact
+failure this repo's "publish the number with its command" rule exists to make visible. The
 **deep-dive above is the active workstream**; those baseline sections are scaffolding to deepen, not the
 goal.
 
@@ -77,7 +82,8 @@ person can falsify it in one command instead of trusting the date.
 ## Installation (Claude Code plugin)
 
 This repo is a **Claude Code plugin + marketplace** — the native way to reuse skills across
-projects. Commands live in `commands/`; `.claude-plugin/marketplace.json` is the catalog and
+projects. The skill library lives in `skills/`, one directory per skill holding a `SKILL.md`, and the two
+commands a human types live in `commands/`; `.claude-plugin/marketplace.json` is the catalog and
 `.claude-plugin/plugin.json` the manifest. **Nothing is published outside this git repo** — the
 marketplace is just a metadata file the consumer points at.
 
@@ -109,16 +115,95 @@ marketplace update`). For **local skill authoring** (test edits to this repo, un
 The skills are **generic** (`<project>` / `<apex-domain>` placeholders) — Claude substitutes the
 real values per project (in `tadeumendonca-io/iac`, they become `var.project` / `var.apex_domain`).
 
+### What is a command and what is a skill — three rules, and only one of them is a mechanism
+
+This took a full session to arrive at and was written down nowhere. **Measured, not read from docs.**
+
+**1 · The folder is for the human. It is not a mechanism.**
+`commands/` and `skills/` are two top-level directories because a reader opening this repo should not
+meet a library and a control surface in the same pile — the owner's reason, in his words: *"o problema é
+a contaminação na leitura do repositório por humanos se tudo ficar no mesmo lugar."* **The loader does
+not distinguish them.** `claude plugin details` on the split tree reports **`Skills (71)`** — the 69
+under `skills/` **plus the 2 under `commands/`**, counted alike, reachable alike.
+
+**2 · DECLARATION is what registers a skill. The root is only the default.**
+
+~~**The root is for the loader's SKILL INDEX. Nesting kept the 69 out of it — and only out of it.**
+Before the split the same command reported `Skills (2)` — `autonomy-on` and `new-issue`, the only two
+files not inside a family.~~ ~~Nested skills were measured to resolve under **no** spelling — not
+`/plugin:nested`, not `/plugin:fam/nested`, not `/plugin:fam:nested`, and **not the `Skill` tool**
+either.~~
+
+**STRUCK 2026-08-10 — the second sentence is FALSE, and it was published to this branch before it was
+tested.** It is struck rather than deleted because anyone who read it took a design decision from it: it
+is the sentence that forced the flat tree.
+
+**What is actually true, measured on #182 — probe against control, one variable:**
+
+| probe plugin | `skills` array in `plugin.json` | nested `skills/fam/nested/SKILL.md` | flat `skills/flatctl/SKILL.md` |
+|---|---|---|---|
+| `nestprobe` | **present** — `["./skills/fam/nested", "./skills/flatctl"]` | **resolved**, returned its body nonce | resolved |
+| `nestprobectl` | **absent**, tree otherwise identical | **`SKILL-NOT-AVAILABLE`** | resolved |
+
+**An explicit `skills` array loads a nested skill, and the identifier stays the BARE innermost directory
+name** — `nestprobe:nested`, never `nestprobe:fam/nested` (that spelling was measured falling through as
+prompt text, which is rule 3's side effect below, from the other side). **Nesting was never blocked; it
+was blocked by omission** — the root is what a manifest with no `skills` key scans, and that is the whole
+of what "the root registers" ever meant.
+
+**What the original claim got right, and it is the half worth keeping.** The consumer that a
+non-registered skill loses is **the model's own discovery** — the skill index is what lets the model see
+that a `vpc` skill exists and reach for it, and it is the only consumer of a `description:`. Everything a
+human or a brief addresses **by name** was unaffected then and is unaffected now: typed invocation, and
+`skills:` preloading. So the failure this rule guards is still the same one, and it is still silent —
+only its cause is a missing line in `plugin.json` rather than a directory.
+
+**Which is why the array is gated in both directions** (`hooks/scripts/inventory-counts.test.sh`): every
+declared path must resolve to a real `SKILL.md`, and every `SKILL.md` in the tree must be declared. A
+skill added and not declared does not exist to the model, and nothing else anywhere would say so.
+
+**3 · `argument-hint` is the contract. It is the only real distinction, and it is semantic.**
+
+| | a **command** | a **skill** |
+|---|---|---|
+| what it is | a file a human **types**, with arguments | a body of knowledge the model **reaches for** |
+| declares `argument-hint` | **yes** — it is what the human sees while typing | **no** |
+| lives in | `commands/<name>.md` | `skills/<family>/<name>/SKILL.md`, declared in `plugin.json` |
+| invocable as `/plugin:<name>` | yes | yes |
+| reachable by the `Skill` tool | yes | yes |
+| preloadable via a persona's `skills:` | yes | yes |
+| `$ARGUMENTS` interpolates | yes | yes — measured, with `$NOTAVARIABLE` surviving literally as the control |
+
+**The last four rows are identical on purpose: there is no mechanical difference left.** What separates
+the two is what the file is *for*, and `hooks/scripts/inventory-counts.test.sh` asserts it **in both
+directions** — removing `argument-hint` from a typed command reddens, and adding one to a skill reddens.
+The distinction is gated, not conventional.
+
+**The cost this makes visible:** the 69 descriptions total ~28 KB and are now **always-on**, about
+**+9,919 tokens per session** (`Skills (2)` ≈ 1,444 tok → `Skills (71)` ≈ 11,363 tok). ADR-0009 made
+those descriptions dense deliberately; **that decision was free while nothing loaded them and is not
+free now.** Nobody has revisited it at this price — that is an open decision, not a settled one.
+
 ### Usage
 
-Plugin commands are **namespaced under the plugin name**. Type the command and pass context after
-it (received as `$ARGUMENTS`):
+Plugin commands and skills are **namespaced under the plugin name**, with **no family segment** — the
+name is the file's own **innermost** directory (`skills/infrastructure/vpc/SKILL.md` → `vpc`). The family
+directory is for the human reading the library and is **not** part of any identifier. Type it and pass
+context after it (received as `$ARGUMENTS`):
 
 ```
-/tadeumendonca-skills:backend/lambda-handler posts
-/tadeumendonca-skills:infrastructure/cognito staging
-/tadeumendonca-skills:workflow/github-actions production
+/tadeumendonca-skills:lambda-handler posts
+/tadeumendonca-skills:cognito staging
+/tadeumendonca-skills:github-actions production
 ```
+
+**A side effect of losing the family segment, and it is the best one:** an unresolved identifier
+**without** a slash returns `Unknown command:`, while one **with** a slash is not recognised as a command
+at all — it falls through as ordinary prompt text and the model improvises a plausible answer. Every
+identifier this plugin published used to contain a slash. **None does now**, so a broken invocation
+fails loudly instead of silently. **The family directories coming back on #182 did not cost this**, which
+is the reason the identifiers were kept bare rather than re-qualified: the loader takes the innermost
+directory either way, so the tree regained a reading structure and the namespace did not change at all.
 
 ### Releasing a version
 
@@ -128,7 +213,7 @@ work lands via short-lived `feature/*` / `docs/*` PRs, and `main` is always rele
 `main` does **not** auto-version — the version is a deliberate, consumer-facing decision decoupled
 from integration.
 
-A release is cut **on demand** from the `release` workflow (numeric SemVer, `/workflow/versioning`):
+A release is cut **on demand** from the `release` workflow (numeric SemVer, `/versioning`):
 
 ```
 GitHub → Actions → release → Run workflow → choose part (major | minor | patch)
@@ -150,7 +235,7 @@ safe pin (no mid-development tags pollute the namespace).
 
 ## Command reference
 
-### principles/ (5) — the drift-reducer
+### principles (5) — the drift-reducer
 
 The harness's **principles layer**: how the owner builds software, so an agent's behavior doesn't drift. Cross-cutting (applies to every repo), distinct from the per-component how-to skills. Canonical summary in the README's *engineering floor* section; deep validation via the subagent that **owns** the decision — `tech-lead` against the principles and the ADR library at design time, `quality-assurance` against the Definition of Done once it is built (`plan-reviewer`, named here until 2026-08-03, was retired outright and invoking it fails); irreversible-floor enforcement via the shipped PreToolUse guard (`hooks/`).
 
@@ -183,99 +268,99 @@ The lesson worth keeping: **a persona earns its place by generating a disagreeme
 
 | Command | Purpose |
 |---|---|
-| `/principles/loop-engineering` | **Names the discipline the whole plugin runs — Agent Harness Engineering / AI-DLC** (the owner's central identity term, with Claude Code & Kiro): the AI-native loop treated as the engineered artifact — its cadence, its gates-as-a-system, the harness itself. The other four principles skills are its parts. |
-| `/principles/engineering-philosophy` | The 11 principles in two tiers (non-negotiable floor + risk-calibrated judgment); the agent-led/human-residual spine |
-| `/principles/verification-and-gates` | What "done" means: the thesis, Definition of Done, the 100% functional-regression invariant, the gate tables per loop model |
-| `/principles/dev-loop` | End-to-end flow in **two models** — `gitflow-multi-env` (staging → promote → prod) and `trunk-single-env` (PR → `main` → live); how to tell which applies; failure = revert + forward fix |
-| `/principles/permissions-and-environments` | The permission zones **per loop model**; git-reversibility tolerance test; IaC pipeline-only + infra-first; global + per-project layering; what the guard hook actually enforces (and why it stays branch-agnostic) |
+| `/loop-engineering` | **Names the discipline the whole plugin runs — Agent Harness Engineering / AI-DLC** (the owner's central identity term, with Claude Code & Kiro): the AI-native loop treated as the engineered artifact — its cadence, its gates-as-a-system, the harness itself. The other four principles skills are its parts. |
+| `/engineering-philosophy` | The 11 principles in two tiers (non-negotiable floor + risk-calibrated judgment); the agent-led/human-residual spine |
+| `/verification-and-gates` | What "done" means: the thesis, Definition of Done, the 100% functional-regression invariant, the gate tables per loop model |
+| `/dev-loop` | End-to-end flow in **two models** — `gitflow-multi-env` (staging → promote → prod) and `trunk-single-env` (PR → `main` → live); how to tell which applies; failure = revert + forward fix |
+| `/permissions-and-environments` | The permission zones **per loop model**; git-reversibility tolerance test; IaC pipeline-only + infra-first; global + per-project layering; what the guard hook actually enforces (and why it stays branch-agnostic) |
 
-### backend/ (19)
-
-| Command | Purpose |
-|---|---|
-| `/backend/framework-hono` | Hono framework + middleware wiring (logger/error/audit/authorize); routing, zod-openapi |
-| `/backend/openapi` | Contract auto-maintained from code (agnostic): versioned, committed root copy, AWS overlay |
-| `/backend/bff` | Backend-for-Frontend: API GW fronts only it (root routes); auth external, no auth code |
-| `/backend/lambda-handler` | Implement a BFF domain module (Hono routes + audit + DynamoDB) |
-| `/backend/audit-middleware` | Audit trail (conceptual): what's captured + the audits document shape |
-| `/backend/action-types` | Action types (conceptual): audit + RBAC + feature toggles |
-| `/backend/error-handling` | Throw AppError/NotFoundError/Unauthorized — never return 4xx |
-| `/backend/logging` | Structured logging via Powertools Logger (JSON, level per env) |
-| `/backend/metrics` | OTel metrics → ADOT collector → CloudWatch (awsemf), no AMP |
-| `/backend/tracing` | Powertools Tracer / X-Ray: segments, annotations, downstream capture |
-| `/backend/environment-config` | Config both sides: dotenv + typed accessor at runtime, parameter store baked into the bundle at build |
-| `/backend/secrets-management` | Sensitive values from Secrets Manager at runtime (cached) |
-| `/backend/redis-cache` | ElastiCache Redis cache-aside, fail-open, TTLs, invalidation |
-| `/backend/notifications` | Email via SES + SNS async fan-out; subscriptions |
-| `/backend/og-image-generator` | OG image: satori JSX→SVG + resvg→PNG + S3 cache |
-| `/backend/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
-| `/backend/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DynamoDB |
-| `/backend/postman` | API/contract tests (reference pattern — the current consumer has no API): Bearer JWT auth, collection run in CI |
-| `/backend/coverage` | Quality/test/security gates for BOTH stacks, one threshold: lint, typecheck, ≥85% cov, E2E + contract, audit, Sonar |
-
-### frontend/ (15)
+### backend (19)
 
 | Command | Purpose |
 |---|---|
-| `/frontend/framework-react` | React+Vite impl home: providers, Amplify, React Query, api client, routing (only place with React snippets) |
-| `/frontend/authentication` | SPA auth (concept): Cognito SDK holds JWT → Bearer; API GW authorizer validates |
-| `/frontend/authorization` | SPA UI gating by groups/claims (cosmetic); real authz is server-side |
-| `/frontend/routing` | Route map + patterns: nested layouts, lazy, guards, 404, scroll (concept) |
-| `/frontend/state` | State ownership: server→React Query, UI→Zustand, session→SDK |
-| `/frontend/api-client` | BFF calls (concept): base URL from SSM, Bearer, 401, queries/mutations + invalidation |
-| `/frontend/pagination` | Cursor pagination contract + infinite-scroll UX (concept) |
-| `/frontend/forms` | Admin forms: controlled inputs + zod (mirrors BFF) → mutation |
-| `/frontend/markdown` | Article markdown render: highlight + sanitize; consistent with edge prerender |
-| `/frontend/design-system` | Cloudscape: which component per UI pattern (CV / feed / articles) |
-| `/frontend/storybook` | Component library: stories, autodocs, interaction/visual tests |
-| `/frontend/ux-states` | Loading/empty/error states + ErrorBoundary (consistent async UX) |
-| `/frontend/analytics` | GA4 (concept): SPA page_view per route + events |
-| `/frontend/seo` | Client SEO (concept): per-route meta + sitemap/robots + JSON-LD |
-| `/frontend/playwright` | E2E browser tests (lives in `apps/fed`): login via Cognito SDK, critical journeys |
+| `/framework-hono` | Hono framework + middleware wiring (logger/error/audit/authorize); routing, zod-openapi |
+| `/openapi` | Contract auto-maintained from code (agnostic): versioned, committed root copy, AWS overlay |
+| `/bff` | Backend-for-Frontend: API GW fronts only it (root routes); auth external, no auth code |
+| `/lambda-handler` | Implement a BFF domain module (Hono routes + audit + DynamoDB) |
+| `/audit-middleware` | Audit trail (conceptual): what's captured + the audits document shape |
+| `/action-types` | Action types (conceptual): audit + RBAC + feature toggles |
+| `/error-handling` | Throw AppError/NotFoundError/Unauthorized — never return 4xx |
+| `/logging` | Structured logging via Powertools Logger (JSON, level per env) |
+| `/metrics` | OTel metrics → ADOT collector → CloudWatch (awsemf), no AMP |
+| `/tracing` | Powertools Tracer / X-Ray: segments, annotations, downstream capture |
+| `/environment-config` | Config both sides: dotenv + typed accessor at runtime, parameter store baked into the bundle at build |
+| `/secrets-management` | Sensitive values from Secrets Manager at runtime (cached) |
+| `/redis-cache` | ElastiCache Redis cache-aside, fail-open, TTLs, invalidation |
+| `/notifications` | Email via SES + SNS async fan-out; subscriptions |
+| `/og-image-generator` | OG image: satori JSX→SVG + resvg→PNG + S3 cache |
+| `/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
+| `/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DynamoDB |
+| `/postman` | API/contract tests (reference pattern — the current consumer has no API): Bearer JWT auth, collection run in CI |
+| `/coverage` | Quality/test/security gates for BOTH stacks, one threshold: lint, typecheck, ≥85% cov, E2E + contract, audit, Sonar |
 
-### infrastructure/ (21)
+### frontend (15)
+
+| Command | Purpose |
+|---|---|
+| `/framework-react` | React+Vite impl home: providers, Amplify, React Query, api client, routing (only place with React snippets) |
+| `/authentication` | SPA auth (concept): Cognito SDK holds JWT → Bearer; API GW authorizer validates |
+| `/authorization` | SPA UI gating by groups/claims (cosmetic); real authz is server-side |
+| `/routing` | Route map + patterns: nested layouts, lazy, guards, 404, scroll (concept) |
+| `/state` | State ownership: server→React Query, UI→Zustand, session→SDK |
+| `/api-client` | BFF calls (concept): base URL from SSM, Bearer, 401, queries/mutations + invalidation |
+| `/pagination` | Cursor pagination contract + infinite-scroll UX (concept) |
+| `/forms` | Admin forms: controlled inputs + zod (mirrors BFF) → mutation |
+| `/markdown` | Article markdown render: highlight + sanitize; consistent with edge prerender |
+| `/design-system` | Cloudscape: which component per UI pattern (CV / feed / articles) |
+| `/storybook` | Component library: stories, autodocs, interaction/visual tests |
+| `/ux-states` | Loading/empty/error states + ErrorBoundary (consistent async UX) |
+| `/analytics` | GA4 (concept): SPA page_view per route + events |
+| `/seo` | Client SEO (concept): per-route meta + sitemap/robots + JSON-LD |
+| `/playwright` | E2E browser tests (lives in `apps/fed`): login via Cognito SDK, critical journeys |
+
+### infrastructure (21)
 
 One skill per AWS service / tool used — each is the canonical parametrization + usage pattern (Terraform-resource detail). Cross-cutting policies are folded into their owning service (module sourcing + tagging → `terraform`; domain model → `route53`; encryption → `kms`; IAM authoring + OIDC roles → `iam`).
 
 | Command | Purpose |
 |---|---|
-| `/infrastructure/terraform` | Terraform overall: versions/providers, TFC state, layout, **module-sourcing policy**, **tagging**, tfvars, CI |
-| `/infrastructure/vpc` | VPC: subnets/NAT, S3 endpoint, lambda SG, traffic design (off-NAT) |
-| `/infrastructure/route53` | Route53: **per-env domain model** + hosted-zone data source + A-alias records |
-| `/infrastructure/acm` | ACM: per-env wildcard certs (reused, out-of-band), us-east-1, resolved by domain |
-| `/infrastructure/s3` | S3: frontend(OAC)/artifacts/og-images + SSE + SSM |
-| `/infrastructure/cloudfront` | CloudFront: OAC, TLS, cache policies, **SPA error routing + /og/***, Lambda@Edge, WAF |
-| `/infrastructure/waf` | WAF CLOUDFRONT + REGIONAL (shared by API GW + Cognito) |
-| `/infrastructure/lambda` | Lambda: nodejs22/arm64, non-VPC by default (VPC on demand), **Pattern B**, tracing; og-edge exception |
-| `/infrastructure/api-gateway` | API GW (REST v1): fronts only the BFF, per-route Cognito authorizer, WAF-fronted, **contract via put-rest-api** |
-| `/infrastructure/cognito` | Cognito: user pool, 3 groups, PKCE public client, **custom domain** |
-| `/infrastructure/dynamodb` | DynamoDB end to end: per-entity tables, on-demand, GSIs, PITR, IAM access, client singleton, GSI queries, cursor pagination |
-| `/infrastructure/elasticache` | ElastiCache Redis + AUTH in Secrets Manager + SSM |
-| `/infrastructure/ses` | SES: domain verify + DKIM |
-| `/infrastructure/sns` | SNS: async domain-event fan-out (notifications); cheapest pub/sub |
-| `/infrastructure/iam` | IAM: **canonical role/policy authoring catalog** + OIDC deploy roles |
-| `/infrastructure/secrets-manager` | Secrets Manager (provision): naming, jsonencode, ARN-only to SSM |
-| `/infrastructure/ssm` | SSM Parameter Store: cross-repo config bus (namespace, read at deploy) |
-| `/infrastructure/kms` | KMS + **encryption**: in-transit/at-rest matrix, AWS-managed vs CMK, rotation |
-| `/infrastructure/cloudwatch` | CloudWatch: log groups/retention, flow logs, EMF metrics, alarms |
-| `/infrastructure/cloudwatch-rum` | RUM end to end: app monitor + Cognito guest identity pool, and the browser client that reports to it |
-| `/infrastructure/cloudwatch-xray` | X-Ray: active tracing (API GW+Lambda), sampling rules, service map |
+| `/terraform` | Terraform overall: versions/providers, TFC state, layout, **module-sourcing policy**, **tagging**, tfvars, CI |
+| `/vpc` | VPC: subnets/NAT, S3 endpoint, lambda SG, traffic design (off-NAT) |
+| `/route53` | Route53: **per-env domain model** + hosted-zone data source + A-alias records |
+| `/acm` | ACM: per-env wildcard certs (reused, out-of-band), us-east-1, resolved by domain |
+| `/s3` | S3: frontend(OAC)/artifacts/og-images + SSE + SSM |
+| `/cloudfront` | CloudFront: OAC, TLS, cache policies, **SPA error routing + /og/***, Lambda@Edge, WAF |
+| `/waf` | WAF CLOUDFRONT + REGIONAL (shared by API GW + Cognito) |
+| `/lambda` | Lambda: nodejs22/arm64, non-VPC by default (VPC on demand), **Pattern B**, tracing; og-edge exception |
+| `/api-gateway` | API GW (REST v1): fronts only the BFF, per-route Cognito authorizer, WAF-fronted, **contract via put-rest-api** |
+| `/cognito` | Cognito: user pool, 3 groups, PKCE public client, **custom domain** |
+| `/dynamodb` | DynamoDB end to end: per-entity tables, on-demand, GSIs, PITR, IAM access, client singleton, GSI queries, cursor pagination |
+| `/elasticache` | ElastiCache Redis + AUTH in Secrets Manager + SSM |
+| `/ses` | SES: domain verify + DKIM |
+| `/sns` | SNS: async domain-event fan-out (notifications); cheapest pub/sub |
+| `/iam` | IAM: **canonical role/policy authoring catalog** + OIDC deploy roles |
+| `/secrets-manager` | Secrets Manager (provision): naming, jsonencode, ARN-only to SSM |
+| `/ssm` | SSM Parameter Store: cross-repo config bus (namespace, read at deploy) |
+| `/kms` | KMS + **encryption**: in-transit/at-rest matrix, AWS-managed vs CMK, rotation |
+| `/cloudwatch` | CloudWatch: log groups/retention, flow logs, EMF metrics, alarms |
+| `/cloudwatch-rum` | RUM end to end: app monitor + Cognito guest identity pool, and the browser client that reports to it |
+| `/cloudwatch-xray` | X-Ray: active tracing (API GW+Lambda), sampling rules, service map |
 
-### workflow/ (9)
+### workflow (9)
 
-DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella for OIDC, secrets/environments, branching (both loop models), the deploy workflows, and the Issues backlog; the numeric-SemVer tagging rules are their own skill (`versioning`). Test runners live with their repo (`/backend/postman`, `/frontend/playwright`); the gate policy they feed is one stack-agnostic skill (`/backend/coverage`); IaC checkov is in `/infrastructure/terraform`. Architecturally-significant decisions are recorded via `adr`.
+DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella for OIDC, secrets/environments, branching (both loop models), the deploy workflows, and the Issues backlog; the numeric-SemVer tagging rules are their own skill (`versioning`). Test runners live with their repo (`/postman`, `/playwright`); the gate policy they feed is one stack-agnostic skill (`/coverage`); IaC checkov is in `/terraform`. Architecturally-significant decisions are recorded via `adr`.
 
 | Command | Purpose |
 |---|---|
-| `/workflow/github-actions` | GitHub/CI-CD capability: OIDC, secrets/envs, branching per loop model, the deploy workflows, Issues backlog |
-| `/workflow/adr` | Architecture Decision Records: MADR format, two libraries (methodology/product), light significance gate, supersede-never-delete |
-| `/workflow/versioning` | Semantic versioning + tags: numeric SemVer via bump-my-version, loop guard, PR labels |
-| `/workflow/terraform-cloud` | TFC remote-state backend; per-env workspaces; Local execution; **pipeline-only apply/destroy** |
-| `/workflow/sonarcloud` | SonarCloud quality gate (SAST + coverage + smells), blocks merge |
-| `/workflow/claude-code` | Claude GitHub App: `@claude` assistant + automatic PR review (advisory, non-blocking) |
-| `/workflow/code-review` | Author-side completeness pass before opening the MR: anticipates both gates, verifies the DoD with evidence |
-| `/workflow/documentation-standard` | Markdown + Mermaid only; diagram types per repo |
-| `/workflow/license` | Licensing standard: MIT `LICENSE` + manifest license field in every repo |
+| `/github-actions` | GitHub/CI-CD capability: OIDC, secrets/envs, branching per loop model, the deploy workflows, Issues backlog |
+| `/adr` | Architecture Decision Records: MADR format, two libraries (methodology/product), light significance gate, supersede-never-delete |
+| `/versioning` | Semantic versioning + tags: numeric SemVer via bump-my-version, loop guard, PR labels |
+| `/terraform-cloud` | TFC remote-state backend; per-env workspaces; Local execution; **pipeline-only apply/destroy** |
+| `/sonarcloud` | SonarCloud quality gate (SAST + coverage + smells), blocks merge |
+| `/claude-code` | Claude GitHub App: `@claude` assistant + automatic PR review (advisory, non-blocking) |
+| `/code-review` | Author-side completeness pass before opening the MR: anticipates both gates, verifies the DoD with evidence |
+| `/documentation-standard` | Markdown + Mermaid only; diagram types per repo |
+| `/license` | Licensing standard: MIT `LICENSE` + manifest license field in every repo |
 
 ---
 
@@ -292,7 +377,7 @@ DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella f
 5. **IaC mutations are pipeline-only** — `terraform apply`/`destroy` run **only in CI** (plan on PR,
    apply on merge); never from a laptop. Local is read-only (`fmt`/`validate`/inspection `plan`).
    Destroying live infra = remove from config + merge (or a reviewed `workflow_dispatch` teardown).
-   See `/workflow/terraform-cloud`.
+   See `/terraform-cloud`.
 
 ---
 

@@ -152,7 +152,13 @@ every identifier resolves to a **tracked** file; no `/`; no `*`; no duplicate id
 identifiers resolving to one path; a bare identifier matches exactly one file; and two anti-vacuous
 guards, because a suite that silently checks nothing is the failure this class of gate is most prone to.
 `agents/**` was added to `hooks-test.yml`'s path filter in the same MR — without it, a PR editing only a
-`skills:` list would not have triggered the one check that can see a broken identifier.
+`skills:` list would not have triggered the one check that can see a broken identifier. **That was half
+the filter, and the record said so as though it were all of it.** The suite reads TWO trees and either
+side can falsify it: an edited identifier is caught by `agents/**`, a renamed or deleted TARGET only by
+a glob over the library. `commands/**` was added on [#180](https://github.com/tedeuxx/tadeumendonca-skills/issues/180)
+and `skills/**` on [#164](https://github.com/tedeuxx/tadeumendonca-skills/issues/164), when the library
+moved there; all three are in the filter now. Corrected here rather than left, because a record naming
+one of three entries describes a control as narrower work than it was and reads as complete.
 
 **What the assertion does not cover, said plainly:** whether a list is the **right** one. That is
 judgement, it is recorded here, and no test can hold it. And it reads the same tree the loader reads

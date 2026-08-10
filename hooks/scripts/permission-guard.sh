@@ -351,7 +351,7 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 #
 # THE COST WAS MEASURED BEFORE THE FIX: a `product-lead` dispatch ran `gh -R <repo> issue view …` and
 # stopped for a human on a read-only command. This comment was the only place in the workspace that
-# said anything about the convention at all — `commands/principles/permissions-and-environments.md`
+# said anything about the convention at all — `skills/permissions-and-environments/SKILL.md`
 # contained neither spelling — so the rule that makes commands work lived in the file nobody opens
 # before typing a command, and the rule that breaks them was what every persona had been taught.
 # The teaching now lives in the five agent briefs, which is where an invocation convention is read.
