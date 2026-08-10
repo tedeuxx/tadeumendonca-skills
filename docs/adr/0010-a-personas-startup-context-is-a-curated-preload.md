@@ -64,8 +64,8 @@ starts, the skill is simply absent, and nothing distinguishes a typo from a deli
 
 1. **A curated per-persona preload — each brief declares the skills it loads, and argues its exclusions**
    *(chosen)*. **Ten entries across five personas, resolving to eight distinct files** — seven of which
-   are rows in the README's 69-row skill table, `new-issue` being top-level and not one — **79,261 B, 17.6% of the library**,
-   no persona over 35 KB. *Trade-off:* the curation is **judgement with no falsifier** — no test can say
+   are rows in the README's 69-row skill table, `new-issue` being top-level and not one — **79,261 B as
+   billed, 63,647 B distinct, 14.2% of the library** (the split is at `:130`), no persona over 35 KB. *Trade-off:* the curation is **judgement with no falsifier** — no test can say
    a list is the right one — and it is a **static** grant, so there is no per-dispatch top-up when a
    slice needs something the list omits. The known bite is `developer` on a CI slice: it owns
    `.github/workflows/**` and does not carry `workflow:github-actions` (19,582 B), so the invoking

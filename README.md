@@ -327,7 +327,10 @@ them.
   the persona most exposed to staleness, and a preload is a frozen snapshot, which would arm the drift
   it exists to catch.
 
-**79,261 B across the five — 17.6% of the library, and no persona over 35 KB.** Note what this table and
+**79,261 B as billed across the five, 63,647 B distinct — 14.2% of the library, and no persona over
+35 KB.** The two figures differ because `verification-and-gates` and `engineering-philosophy` are each
+carried by two personas: there is no dedupe, so both are billed twice and the library sees them once.
+Note what this table and
 the one below disagree about, deliberately: `developer` **preloads** two `principles/*` skills while the
 column below puts that family under the four judging personas. Both are true. The principles are the
 judges' ruler and the builder's floor; *whose domain* and *what is loaded* are different questions, which
@@ -335,8 +338,11 @@ is exactly why they are now two lists rather than one contested column.
 
 **Identifiers are colon-separated** (`workflow:code-review`). Slash forms do not resolve, there is no
 glob support, and there is no dedupe — two identifiers naming one file load it twice and bill it twice.
-A wrong identifier fails at **0 bytes of stderr**, so `hooks/scripts/skills-resolve.test.sh` asserts all
-of that in CI, where the failure can be seen.
+A wrong identifier fails at **0 bytes of stderr**, which is why the check sits in CI rather than in the
+runtime: `hooks/scripts/skills-resolve.test.sh` asserts that every list **complies** with those rules —
+no slash, no glob, no duplicate or same-path alias, and every identifier resolving to a tracked file.
+**It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
+not the loader, so it catches a broken reference rather than a broken loader.
 
 The library, by family: backend (19), frontend (15), infrastructure (21), principles (5), workflow (9).
 
@@ -414,9 +420,9 @@ The library, by family: backend (19), frontend (15), infrastructure (21), princi
 
 **Three things the table shows rather than asserts.** The builder is the only persona holding a build
 family — conventions exist for building, and one persona builds. `workflow` is the only family that
-splits, and it splits for a reason: `adr` belongs to the only writer of the records. And `principles` is
-the only family the judging personas hold, because their questions are answered from the diff and the
-running system, not from this repo's conventions.
+splits, and it splits for a reason: `adr` belongs to the only writer of the records. And **the gate's**
+domain is `principles` and nothing else, because its questions are answered from the diff and the running
+system, not from this repo's conventions.
 
 **What the table still does not assert, and it is the same limit the rename made visible.** The `whose
 domain` column is hand-maintained, in `hooks/scripts/skills-table.py`'s `WIELDER` map — it is a fact
