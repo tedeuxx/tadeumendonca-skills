@@ -150,11 +150,16 @@ for agent in $agent_files; do
     total_ids=$((total_ids + 1))
 
     # --- ASSERTION 2 — no `/` -------------------------------------------------------------------
-    # Slash forms do not resolve and fail silently. This is the single most likely typo, because every
-    # OTHER surface in this repo writes the same skill as `/workflow/code-review`.
+    # Slash forms do not resolve and fail silently. This is still the most likely typo, and the reason
+    # RE-TENSED on #164 rather than deleted, because the old reason has gone and a new one replaced it.
+    # It used to be that every OTHER surface in this repo wrote the same skill as `/workflow/code-review`
+    # — a family-qualified path — so the slash was what a hand would reach for. That spelling exists
+    # nowhere now. What survives is the BARE slash form: the briefs still write `/code-review` in prose
+    # (correctly — that is the invocation), so the one-segment slash is a live near-miss for the
+    # identifier, which takes no slash at all.
     case "$id" in
       */*)
-        bad "$name — \`$id\` contains \`/\`. Slash forms do NOT resolve; use the colon form (\`${id//\//:}\`)."
+        bad "$name — \`$id\` contains \`/\`. Slash forms do NOT resolve; the identifier is the bare skill name (\`${id##*/}\`)."
         continue
         ;;
     esac

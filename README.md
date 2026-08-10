@@ -756,7 +756,8 @@ the tag from [the releases page](https://github.com/tedeuxx/tadeumendonca-skills
 `vX.Y.Z` tag is cut by the release workflow and never mid-development, so any tag is a safe pin. The
 `ref` is the lockfile.
 
-Invoke a skill by its namespaced path, passing context as arguments:
+Invoke a skill as `<plugin>:<skill>` — the skill's own name, with no family segment, since the library
+is flat — passing context as arguments:
 
 ```
 /tadeumendonca-skills:cognito staging

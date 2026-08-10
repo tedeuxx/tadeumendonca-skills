@@ -22,7 +22,7 @@
 #     inventories are still counts plus a name list, and nothing checks membership of a family.
 #   - CLAUDE.md ALSO publishes "18 subagents" enabled and "26 defined". Those are counts of the ROSTER
 #     as ADR-0002 defines it in the consuming repo — not of this tree — so nothing here can derive
-#     them and nothing here asserts them. The per-directory skill counts are checked in both files;
+#     them and nothing here asserts them. The per-FAMILY skill counts are checked in both files;
 #     the persona count is checked only where it describes `agents/`. Said explicitly because "the
 #     counts are pinned" would otherwise be read as covering those two.
 #
@@ -206,11 +206,21 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # directory too high, where nothing in the docs enumerates it and no reader ever finds it. A
 # deliberate addition costs one line here and gets the docs updated in the same commit; an accidental
 # one goes red. A `-ge 1` would have caught neither.
+#
+# WHAT IT NOW CATCHES IS THE OTHER DIRECTION TOO, and #164 is why the wording changed. "Un-namespaced"
+# was the distinction when the library sat under family directories and these two did not; the library
+# is flat and NOTHING carries a family segment any more, so that word had stopped separating anything.
+# The real distinction is TYPED-vs-MATCHED: these two are invoked by the owner (they carry
+# `argument-hint`, which the L1 block asserts on exactly them), and the 69 are matched by the model.
+# So the failure this now catches is a LIBRARY SKILL LANDING IN `commands/` — where it is typed-only,
+# never matched, and absent from every count and table in this file.
 root_cmds=$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
 if [ "$root_cmds" -eq 2 ]; then
-  ok "commands/ root — exactly two un-namespaced commands (autonomy-on, new-issue), as the docs enumerate"
+  ok "commands/ root — exactly two owner-typed commands (autonomy-on, new-issue), as the docs enumerate"
 else
-  bad "commands/ root — $root_cmds un-namespaced commands; the docs enumerate two (autonomy-on, new-issue)"
+  bad "commands/ root — $root_cmds file(s); the docs enumerate two owner-typed commands (autonomy-on, new-issue).
+      A library skill belongs in skills/<name>/SKILL.md — under commands/ it is absent from every count
+      and table here, and from the per-family breakdown a reader actually opens."
 fi
 
 # --- hooks ------------------------------------------------------------------------------------
@@ -224,7 +234,7 @@ fi
 #
 # TWO ASSERTIONS, NOT ONE, because the count alone is the weaker half. A renamed hook keeps the count
 # and falsifies the diagram just as completely, so the names are checked too — the same reason the
-# per-directory skill counts grew a table-row assertion above.
+# per-family skill counts grew a table-row assertion above.
 #
 # The diagram is counted by its NODE DECLARATIONS (`H<n>["…"]`), which is what a reader sees as a box.
 # That prefix is used nowhere else in the README, so the count needs no subgraph-boundary parsing —
@@ -1052,7 +1062,7 @@ else
   # ── WHAT THIS DELIBERATELY DOES **NOT** ASSERT, so the green is not read as more ─────────────
   # It does not reach `commands/`, `docs/` or the hook scripts. Measured on the current head, requiring
   # every-peer THERE would fire on fifteen files that legitimately mention two or three personas —
-  # `commands/workflow/code-review.md` naming the two gates, `docs/adr/0008` naming the two it is about.
+  # `skills/code-review/SKILL.md` naming the two gates, `docs/adr/0008` naming the two it is about.
   # Those are correct prose, and a check that reddens correct prose is the cry-wolf failure this file
   # already books once. The bound is written into assertion 2's own comment below; between the two,
   # `agents/` is covered by MEMBERSHIP and everything else by the weaker threshold, and neither is
@@ -1381,9 +1391,9 @@ fm_block() {
 #     inventory documents `check_every_occurrence` reads, with the same pattern. Those four are already
 #     required to agree with the family walk, so this borrows a number that is independently pinned.
 #   - THE TYPED-COMMAND ENUMERATION — `ARG_HINT_ALLOWED`, counted rather than assumed. The published
-#     figure counts the namespaced skills only ("<N> skills + autonomy-on"), so the un-namespaced
-#     commands have to be added back, and this file already maintains the list of exactly which they
-#     are. #165's `autonomy-off` moves both numbers in the same commit, as it should.
+#     figure counts the LIBRARY only ("<N> skills + autonomy-on"), so the two owner-typed commands have
+#     to be added back, and this file already maintains the list of exactly which they are. #165's
+#     `autonomy-off` moves both numbers in the same commit, as it should.
 #
 # WHAT IT CATCHES: any shrink of the scan set that the documents have NOT been told about — a move to
 # another directory, a deletion, a `find` whose path stopped resolving. WHAT IT DELIBERATELY DOES NOT:
@@ -1820,9 +1830,11 @@ fi
 # EVERY POINTER A PERSONA BRIEF MAKES INTO THE LIBRARY RESOLVES (#164, finding 8).
 #
 # THE SAME RULE AS THE `(see X)` RESOLVER ABOVE, POINTED AT THE OTHER SET OF FILES THAT MAKE THE SAME
-# CLAIM. A skill description saying `(see backend/dynamodb)` has been gated since #168; a persona brief
-# saying `/principles/dev-loop` has been gated by nothing at all, and there are ten of them across the
-# five briefs.
+# CLAIM. A skill description saying `(see dynamodb)` has been gated since #168; a persona brief saying
+# `/dev-loop` was gated by nothing at all until #180, and there were ten of them across the five briefs.
+# (Both spellings above were family-qualified — `(see backend/dynamodb)`, `/principles/dev-loop` — until
+# #164 flattened the library; the sentence is re-tensed rather than left describing a form the tree no
+# longer contains.)
 #
 # WHY IT IS WORTH A BLOCK, in `harness-reviewer`'s words on #164: it is "the only place where a break is
 # both silent AND consequential". A wrong skill identifier fails at ZERO BYTES OF STDERR without
