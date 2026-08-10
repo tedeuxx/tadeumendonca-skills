@@ -6,11 +6,18 @@ name: hooks-test
 # every DENY it must make, and every ALLOW it must not break, is asserted on the PR that changes it.
 #
 # Path-filtered to hooks/ — nothing else in the repo can change what the guard does.
+#
+# `agents/**` IS IN THE FILTER, AND IT IS NOT AN EXCEPTION TO THAT SENTENCE — it is a second suite with a
+# different subject. `skills-resolve.test.sh` lives in hooks/scripts/ but asserts against `agents/*.md`,
+# so a PR editing only a `skills:` list would not have matched `hooks/**` and the one check that can see
+# a broken identifier would not have run. A wrong identifier fails at 0 bytes of stderr (#172); a gate
+# that does not trigger on the file it grades is the same silence with a green tick on top.
 
 on:
   pull_request:
     paths:
       - "hooks/**"
+      - "agents/**"
       - ".github/workflows/hooks-test.yml"
 
 permissions:
@@ -34,6 +41,9 @@ jobs:
 
       - name: Run the session-scratch suite
         run: bash hooks/scripts/session-scratch.test.sh
+
+      - name: Run the skills-resolve suite
+        run: bash hooks/scripts/skills-resolve.test.sh
 
       - name: Assert every hook script is committed executable
         run: bash hooks/scripts/hooks-executable.test.sh
