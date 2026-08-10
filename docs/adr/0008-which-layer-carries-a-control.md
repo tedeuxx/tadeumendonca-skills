@@ -607,6 +607,144 @@ that describes one grant honestly while the broader one it sits beside goes unme
 dated** — rather than edited away, which is what the `Status` lines of ADR-0002, 0006 and 0007 do and is
 this library's observed practice.
 
+## Amendment (2026-08-08) — a control whose act is not the command: the third layer, and what a crude deny must say about itself
+
+Raised by `harness-reviewer` on `-io`#402 (`terraform apply` was reachable from `workflow_dispatch`
+against a caller-chosen tree). **One decision is recorded here — an extension to this record's routing
+test — and nothing else.** The routing decision, the fail-open acceptance and the retained-floor-entry
+cost are untouched.
+
+### The worked example, and it is this record's sharpest one because the rule already existed
+
+**Rule 5g's `gh workflow run` deny landed on 2026-08-04 (`745d949`) and its message says, verbatim:**
+
+> *"…dispatches CI, which is the only place in this workspace holding AWS credentials — **it can reach
+> `terraform apply` without the merge that is supposed to authorise it**."*
+
+**The rule named the exact risk, correctly, and the risk stayed live for four days.** `-io`'s
+`deploy.yml` carried an `apply_infra` dispatch input until 2026-08-08, and the hole it opened was closed
+in **the workflow file** — `github.event_name == 'push'` on the `terraform-apply` job — not in the floor
+and not in the hook. Neither of this record's two layers moved.
+
+That is not a failure of rule 5g. It is a fact about what rule 5g **can** bind: **one caller's terminal
+in one session.** The GitHub UI, a PAT, a session with a different settings root, or any of the
+interpreter routes this record already prices reach the same dispatch with rule 5g never consulted. A
+control whose enforcement point is the agent's shell cannot cover an act whose authorisation lives in
+another system.
+
+### The decision — the third layer, stated as a routing question
+
+This record divides controls between two layers. **There is a third, and it was never named because
+until now every control this library routed happened to be an act the agent performs directly.**
+
+> **Ask which SYSTEM authorises the act, before asking which layer of this workspace can see it.** Where
+> the act is authorised by a system outside the agent's shell — a CI trigger, a cloud IAM policy, a
+> branch protection, a repository setting — **that system's own configuration is the authoritative
+> layer**, and both the floor and the hook are, at best, a speed bump on one caller. Route the control
+> there, and record the hook rule as what it then is: a **convenience refusal for the agent**, not the
+> control.
+
+Applied to the worked example: the control is `terraform-apply`'s `if:`. Rule 5g is kept, and is now
+correctly described as stopping the agent from taking a route it should not take anyway — which is worth
+having, and is not the thing that makes the act unreachable.
+
+### The obligation this puts on a crude deny — accepted, with the wording corrected
+
+`harness-reviewer` proposed the general form as:
+
+> *"A command-level deny is honest only where the command is the act. Where the risk lives behind an
+> argument or a state, the floor's correct move is the crude, fail-closed deny — and the record must say
+> which capability it is standing in for, so nobody later mistakes its bluntness for precision."*
+
+**The second half is adopted and is the operative obligation:**
+
+> **A deny that stands in for a capability must name the capability in its own comment.** Crudeness is
+> not a defect to apologise for — it is the honest shape when the act is not in the string — but a rule
+> whose *name* is narrower than its *purpose* reads as precision and is filed as coverage.
+
+**The first half is corrected, and the correction is why this is an amendment rather than an adoption.**
+*"The floor's correct move… fail-closed"* is the wrong noun on both counts, and it is the exact confusion
+this record exists to prevent:
+
+- **These rules are not in the floor.** 5e, 5f and 5g are **hook** rules. The floor holds the direct
+  form; the hook holds the semantic cases — which is this record's whole decision.
+- **They are therefore not fail-closed.** The hook is the layer that **fails open**, by design, on the
+  reason recorded in *Considered options* item 2. What is fail-closed about them is their **predicate** —
+  they deny the whole class rather than attempting to distinguish inside it — and that is a property of
+  the rule's logic, not of the layer's failure mode. **Calling a hook rule fail-closed is the "hard
+  backstop" sentence being re-derived from scratch**, four days after this record was written to strike
+  it.
+
+So the adopted form separates the two words the proposal fused: **crude in predicate, fail-open in
+layer, and the record must say both.**
+
+### The sibling reviewer test — *can the hook SEE this?* — adopted, with its scope measured
+
+This record gives reviewers one test: *can a prefix express this?* `harness-reviewer` added a second, and
+it is genuinely additive rather than a restatement:
+
+> **Can the hook SEE this?** `permission-guard.sh` receives `.tool_input.command` and the root
+> `agent_type`. **Nothing else exists to it.** A value that can travel on **stdin**, in a file the
+> command reads, in an environment variable, or in a later interactive prompt is invisible to a
+> `PreToolUse` hook however clever the matcher is. `gh workflow run` accepts `--json` reading its inputs
+> from stdin, which is the concrete instance.
+
+**Its scope, measured rather than asserted, because the obvious reading of it is wrong.** Piped at
+`permission-guard.sh` at `571837f`:
+
+```
+gh workflow run deploy.yml --json   ->  deny (rule 5g)
+```
+
+**Rule 5g is not defeated by the stdin form**, because the *act* — dispatching a workflow — is in the
+command string; only the *inputs* are outside it. The test therefore does not indict any rule this
+library currently has. What it forecloses is a rule someone would otherwise propose: **a value-level
+refusal** such as *"deny `gh workflow run` only when it carries `apply_infra=true`"*. That rule is
+unwritable at this layer, and the reason is not matcher cleverness — the value need never appear in
+`.tool_input.command` at all. **Recorded as a design constraint on future rules, not as a defect in
+existing ones**, which is the distinction the proposal did not draw.
+
+### The classification behind this, re-derived rather than cited
+
+`harness-reviewer` classified every rule and reported **four** command-level proxies — 5e, 5f, and 5g
+twice (`workflow run`, `release create`). **Re-derived here against `hooks/scripts/permission-guard.sh`
+at `571837f`, and the classification holds**, on the test *is the command the act, or does it stand in
+for one?*: 5g's `repo delete/archive/rename` and 5b's `secret set/delete` are the act itself; `workflow
+run` stands in for *reaching `terraform apply` without a merge*, `release create` for *publishing a
+public artifact*, 5f for *the acts behind the raw API* (issue-opening, merging), and 5e for *paraphrasing
+private positioning material onto a public surface*. **In the spirit of *record the derivation, not the
+count*, the test above is the thing to check against, not the number four.**
+
+Its judgement that 5f and both 5g rules are **correct as written** and need only their over-breadth
+stated in their comments is **accepted**, with the wording correction above applied to how that comment
+is phrased.
+
+### The one finding that errs OPEN — recorded, not decided here
+
+**Rule 5e is the one proxy that fails in the direction nobody notices, and this is confirmed by probe
+rather than by reading.** Its predicate matches `gh pr comment`, `gh issue comment` and `gh issue
+create`. Measured at `571837f`:
+
+```
+{"tool_input":{"command":"gh pr edit 402 --body x"},
+ "agent_type":"tadeumendonca-skills:product-lead"}
+  -> no decision from any layer
+```
+
+`Bash(gh pr edit:*)` and `Bash(gh issue edit:*)` are both in the committed `allow` list
+(`jq -r '.permissions.allow[]' .claude/settings.json`), so `product-lead` — the persona 5e exists to keep
+off public surfaces, on the **irreversibility of a disclosure** — reaches the same public surface through
+a sibling subcommand the rule does not name. **5e's own comment claims "all three subcommands it names
+are genuinely its own", which is true and is not the same claim as coverage.**
+
+**This is recorded and deliberately not decided.** It is a `hooks/` change and a floor question, it is
+not `-io`#402's scope, and the significance test that applies to it is the one this amendment just
+wrote: before adding `pr edit` to 5e's predicate, ask whether **enumerating sibling subcommands
+converges** — *Considered options* item 3 says it does not, and 5e's argument is about a **capability**
+(`marketing-lead` had no `Bash` at all), which points at the tool grant rather than at a longer regex.
+Naming that as the open question is what this record can honestly do; choosing between them is the
+owner's.
+
 ## Links
 - Supersedes the layering claim in [ADR-0004](./0004-autonomy-and-permission-model.md)'s second
   2026-08-04 amendment (both the *"the hook, not the floor, stops them"* sentence, superseded in place
@@ -639,3 +777,15 @@ this library's observed practice.
   `jq -r '.permissions.allow[]' .claude/settings.json` for `Bash(command:*)`, `Bash(awk:*)`,
   `Bash(find:*)`, `Bash(sed:*)`, `Bash(node:*)`, `Bash(python3:*)`; and `command perl -e 'print 1'`
   running undecided, which is why the reach claim is stated as a sample rather than an enumeration.
+- **2026-08-08 amendment evidence:** `-io`#402 (`fix/dispatch-cannot-apply-infra`) for the incident and
+  the fix's location — `.github/workflows/deploy.yml`'s `terraform-apply` job, in neither of this
+  record's two layers; `git log -S"workflow[[:space:]]+run" -- hooks/scripts/permission-guard.sh` →
+  `745d949` (2026-08-04) for the date rule 5g's `workflow run` deny landed, against `-io`#402's merge
+  date, for the four days the named risk stayed live; `hooks/scripts/permission-guard.sh:509-517` for
+  5g's three denies and `:516` for the message quoted above; `:668-673` for 5e's three-subcommand
+  predicate; and two payloads piped at the guard at `571837f` —
+  `gh workflow run deploy.yml --json` → **deny** (rule 5g, act in the string) and
+  `gh pr edit 402 --body x` with `agent_type=tadeumendonca-skills:product-lead` → **no decision from any
+  layer**, against `jq -r '.permissions.allow[]' .claude/settings.json` carrying `Bash(gh pr edit:*)` and
+  `Bash(gh issue edit:*)`. The definition-source link in `-io`#402's derivation is a **hypothesis** and is
+  labelled one there; nothing in this amendment rests on it.
