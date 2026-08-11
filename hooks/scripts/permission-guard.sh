@@ -274,6 +274,17 @@ cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
 #
 # THREE PASSES, for `bash -c "bash -c '…'"`. Bounded rather than `while`, because a hook that can loop
 # on adversarial input is a wedged agent; three is past any real nesting and terminates unconditionally.
+#
+# `cmd_original` AND `unwrap_chain` EXIST FOR RULE 10 ALONE, and they are here rather than there because
+# this is the only place the payloads are separable. Appending to `cmd` is right for every rule that
+# asks "does this STRING contain X" and wrong for the one rule that asks "what is this command's VERB":
+# after the append, `bash -c "cp a b"` reads as one command whose first word is `bash`, and `cp` is a
+# mid-line token indistinguishable from `cp` inside a commit message. Rule 10 needs SEGMENTS, so the
+# payloads are recorded as segments (`|`-joined — the separator rule 10 already splits on for pipes)
+# while `cmd` keeps the flat form every other rule was written against. Nothing above rule 10 reads
+# either variable.
+cmd_original="$cmd"
+unwrap_chain=""
 unwrap_scan="$cmd"
 for _ in 1 2 3; do
   case "$unwrap_scan" in
@@ -304,6 +315,7 @@ for _ in 1 2 3; do
   unwrap_payload="$(printf '%s' "$unwrap_payload" | sed -E -e 's/^\$//' -e "s/^'(.*)'\$/\\1/; s/^\"(.*)\"\$/\\1/")"
   [ -z "$unwrap_payload" ] && break
   cmd="$cmd $unwrap_payload"
+  unwrap_chain="$unwrap_chain | $unwrap_payload"
   unwrap_scan="$unwrap_payload"
 done
 
@@ -1094,5 +1106,211 @@ if [ -n "$script_arg" ] \
    && printf '%s' "$script_arg" | grep -Eq '(^|/|'"'"'|")\.\.(/|'"'"'|"|$)'; then
   deny "Blocked: a script path handed to a shell contains a '..' segment. A path in an allow entry is a STRING prefix, not a directory scope — '<allowed-prefix>/../../x.sh' carries the prefix while reaching any file on disk, and permission-guard.sh deliberately does not look inside a script. Use the path without traversal, or run the script from the directory that owns it."
 fi
+
+# 10. WRITING THE HARNESS'S OWN CONFIGURATION — THE FLOOR AND THE RUNNING GUARD — THROUGH BASH.
+#
+#    ── WHY IT IS HERE AND NOT IN THE FLOOR ──────────────────────────────────────────────────────────
+#    ADR-0008's routing test, as amended on #179: ask which SYSTEM authorises the act before asking
+#    which layer can SEE it. The act here is "a write whose DESTINATION is harness configuration", and
+#    the destination is an ARGUMENT — the last word of `cp a b`, the word after `>`, an operand of
+#    `sed -i`. A prefix matcher reads a command PREFIX, so it cannot express "any command whose final
+#    argument resolves under `.claude/`". That is routing reason 3, SEMANTIC: the act is not in the
+#    prefix. It is also routing reason 4, SHADOWED BY AN ALLOW — `cp`, `mv`, `tee`, `sed`, `rsync` are
+#    each broadly allowed in the project floor, and a broad allow on a tool re-opens every deny for
+#    that tool at once.
+#
+#    THE STANDING RULE ASKS FOR THE DIRECT FORM TO STAY IN THE FLOOR AS WELL, and here there is no
+#    direct form to keep: there is no prefix that names a destination. What the floor CAN hold is the
+#    file-tool half, and it already does — see the next block.
+#
+#    ── WHAT WAS MEASURED, AND THE PART OF THE FINDING THAT TURNED OUT TO BE WRONG ────────────────────
+#    The finding as reported was that the floor's protection of these paths is spelled for the Edit
+#    tool, so Bash reaches the same bytes; and that a Bash-only rule is therefore THEATRE, because
+#    `Write` and `Edit` are bare-allowed at the top of each project `allow` list and no hook is
+#    registered on either tool (`hooks.json` matches `Bash` and nothing else — still true).
+#
+#    THE FIRST HALF RE-DERIVED, 2026-08-11, against this file at v1.0.7. Both drew NO DECISION:
+#
+#      cp /private/tmp/p.sh ~/.claude/plugins/cache/<mkt>/<plugin>/<ver>/hooks/scripts/permission-guard.sh
+#      tee ~/.claude/settings.json
+#
+#    THE SECOND HALF IS FALSE, and it is the reason this rule is a control rather than a gesture.
+#    `deny` beats `allow` across scopes, and a deny spelled `Edit(<path>)` is TOOL-GENERIC over the
+#    built-in file-editing tools — it covers `Write` too. Measured, in the direction that can only
+#    return one answer:
+#
+#      Write -> ~/.claude/plugins/.probe-write-check     DENIED ("directory is denied by your
+#                                                        permission settings") — the file was not created
+#      Write -> ~/.claude/.probe-write-negative-control  CREATED, then removed
+#
+#    The negative control is the load-bearing half: it is one directory level up, outside
+#    `Edit(//Users/<user>/.claude/plugins/**)`, and it went through. So the denial came from THAT
+#    ENTRY, and that entry stops the `Write` tool. The same inference carries to
+#    `Edit(//Users/<user>/.claude/settings.json)` — same syntax class, same mechanism — and it is
+#    recorded as an INFERENCE, not a probe, because the only probe available overwrites the owner's
+#    floor to ask the question.
+#
+#    SO THE EDIT/WRITE PATH IS ALREADY CLOSED BY THE FLOOR, AND BASH IS THE WHOLE OF WHAT IS OPEN.
+#    A Bash-only rule is not friction on the honest path beside an open one; it is the remaining hole.
+#
+#    ── WHAT IT COVERS, AND WHAT IT KNOWINGLY DOES NOT ───────────────────────────────────────────────
+#    COVERED (each asserted in permission-guard.test.sh, not claimed here):
+#      redirection      `> f`  `>> f`  `>| f`  `2> f`  `&> f`  and a heredoc's `cat > f <<EOF`
+#      destination-last `cp`  `mv`  `install`  `rsync`  `ln`  — the LAST non-flag operand only, so
+#                       copying a protected file OUT (`cp ~/.claude/settings.json /tmp/x`) stays a read
+#      all-operand      `tee`  `ed`  `ex`  `patch`  `truncate`  `dd` (incl. `of=`)  `rm`  `unlink`
+#                       `shred` — deleting the running guard removes the control as surely as rewriting it
+#      in-place editors `sed -i`  `perl -i` — gated on the `-i`, so a plain `sed`/`perl` READ still passes
+#      through `bash -c`, via `unwrap_chain` above
+#      path forms       `~`, `$HOME`, `${HOME}`, a relative path from the payload's own `cwd`, `..`
+#                       traversal, `//` and `/./` noise, and the escaped/quoted spellings ADR-0008:547
+#                       measured as unreachable by rule 9 (`.""./.""./`, `\.\.`) — quote and backslash
+#                       CHARACTERS are deleted before normalisation, which is strictly more inclusive
+#                       than honouring shell quoting and is why those two spellings resolve here
+#      the versioned cache path — matched by the `.claude` SEGMENT, so no version, marketplace or
+#                       plugin name is hardcoded and none goes stale
+#
+#    NOT COVERED, DELIBERATELY, AND THIS IS THE #155 PRICE PAID AGAIN RATHER THAN A GAP OVERLOOKED:
+#      interpreters     `python3 -c`, `node -e`, `awk`, `find -exec`, `xargs`, and `perl`/`ruby` via
+#                       `Bash(command:*)`. This guard does not chase them (#155, ADR-0008 amendment
+#                       2026-08-07), and `Bash(python3:*)` / `Bash(node:*)` are in `allow`. A three-line
+#                       Python `shutil.copy` reaches these paths with no decision from any layer.
+#      symlinks         a link inside an unprotected directory pointing at a protected one. The guard
+#                       resolves paths LEXICALLY and never touches the filesystem — same bound rule 9
+#                       records.
+#      variable indirection  `cp x "$D/settings.json"` where `D` was exported by an earlier call. Rules
+#                       8b/8c deny the chained and env-prefixed spellings that would set it in the same
+#                       command; an inherited variable is not visible here at all.
+#      `cp -t DIR src`  bare `-t`; `--target-directory=DIR` IS covered as a token.
+#      metadata         `chmod`, `chown`, `touch` — they do not rewrite content. Named so the omission
+#                       reads as a decision.
+#
+#    THIS RULE DOES NOT NARROW THE AGENT'S REACH. It closes the shell spellings and nothing else, and
+#    the interpreter line above says why that is the honest description. Do not write the word *closed*
+#    about the class — the file's 2026-08-04 amendment bans it, for the reason it was banned.
+#
+#    ── THE REPO COPY OF THIS FILE IS DELIBERATELY NOT PROTECTED ─────────────────────────────────────
+#    `hooks/scripts/**` under a git repository is editable through Bash exactly as before. Three
+#    reasons, in order of weight: it is NOT the copy that executes — the cache under `.claude/plugins/`
+#    is; it is git-tracked, so every change to it is reversible, and irreversibility that escapes git is
+#    this file's entire criterion; and it is the slice a `developer` is usually holding, so protecting
+#    it would be friction on the honest path with no control gained. **The cache is protected, the
+#    source is not, and the distinction is the point.**
+#
+#    ── THE ONE FALSE-POSITIVE CLASS, NAMED WITH ITS WORKAROUND ──────────────────────────────────────
+#    The redirection scan reads `$cmd` (raw), not `$bare` (quoted spans collapsed), because a target may
+#    legitimately be quoted (`> "$HOME/.claude/x"`) and `$bare` would erase it. The cost is that a
+#    command MENTIONING a redirection into a protected path inside a quoted string — a commit message
+#    about this very rule — is denied as the act. That is rule 5b's old defect accepted knowingly on the
+#    safe side, and the deny message names the fix, which is this workspace's standing rule anyway:
+#    bodies and messages longer than one line go through `--body-file` / `-F`.
+#    The VERB scan does NOT have this problem: it reads only the first verb of each `|`-segment, so
+#    `git commit -m "cp a ~/.claude/b"` has verb `git` and passes.
+harness_cwd="$(printf '%s' "$input" | jq -r '.cwd // empty' 2>/dev/null || true)"
+[ -z "$harness_cwd" ] && harness_cwd="$PWD"
+
+# Canonicalise ONE token to an absolute, lexically-normalised, lower-cased path.
+#
+# LOWER-CASED, AND THAT IS THE PART WORTH EXPLAINING. macOS's default filesystem is case-INSENSITIVE,
+# so `~/.CLAUDE/settings.json` and `~/.claude/settings.json` are one file; a case-sensitive comparison
+# treats them as two identities and the second spelling walks through. `realpath` does not fix this —
+# it returns the spelling it was given rather than the on-disk one. Resolving through the directory
+# listing would give the true spelling, but only for a path that EXISTS, and this rule must also match
+# a write that CREATES its target. Folding case is the comparison that needs neither. Its cost is a
+# false positive on a genuinely distinct `.CLAUDE` directory on a case-sensitive volume, which nothing
+# in this workspace has.
+harness_canon() {
+  hp="$1"
+  # Quote and backslash CHARACTERS removed, not shell quoting HONOURED. `\.\.` becomes `..` and
+  # `.""./` becomes `../`, which is what makes the two spellings ADR-0008:547 records as unreachable
+  # by rule 9 reachable here.
+  hp="$(printf '%s' "$hp" | tr -d "\"'\\\\")"
+  hp="${hp//\$\{HOME\}/$HOME}"
+  hp="${hp//\$HOME/$HOME}"
+  # shellcheck disable=SC2088  # the tilde is a PATTERN being matched, not a path being expanded
+  case "$hp" in
+    '~') hp="$HOME" ;;
+    '~/'*) hp="$HOME/${hp#\~/}" ;;
+  esac
+  case "$hp" in
+    /*) ;;
+    *) hp="$harness_cwd/$hp" ;;
+  esac
+  printf '%s' "$hp" | awk -F/ '{
+    n = 0
+    for (i = 1; i <= NF; i++) {
+      s = $i
+      if (s == "" || s == ".") continue
+      if (s == "..") { if (n > 0) n--; continue }
+      st[++n] = s
+    }
+    out = ""
+    for (i = 1; i <= n; i++) out = out "/" st[i]
+    if (out == "") out = "/"
+    print tolower(out)
+  }'
+}
+
+# THE PROTECTED SET IS A DIRECTORY SEGMENT, NOT A LIST OF PATHS. Any canonical path with a `.claude`
+# component is harness configuration: the user floor (`~/.claude/settings.json`), the executing plugin
+# cache (`~/.claude/plugins/**`, whose version segment varies per scope — 1.0.0 in a repo session,
+# 1.0.5 in user scope), and each repo's committed project floor (`<repo>/.claude/**`). Those are the
+# four `Edit(...)` deny entries the floor already carries, and covering the SEGMENT rather than the
+# four strings is what stops this rule going stale at the next version bump or the third repo.
+harness_protected() {
+  case "$(harness_canon "$1")" in
+    */.claude|*/.claude/*) return 0 ;;
+  esac
+  return 1
+}
+
+harness_scan="$cmd_original$unwrap_chain"
+
+harness_candidates="$(printf '%s' "$harness_scan" \
+  | grep -oE '[0-9]*&?>>?\|?[[:space:]]*[^[:space:]|&>;()]+' 2>/dev/null \
+  | sed -E 's/^[0-9]*&?>>?\|?[[:space:]]*//' || true)"
+
+harness_candidates="$harness_candidates
+$(printf '%s' "$harness_scan" | awk -v RS='|' '
+  function base(p) { sub(/^.*\//, "", p); return p }
+  {
+    verb = ""; inplace = 0; nt = 0; split("", args)
+    for (i = 1; i <= NF; i++) {
+      w = $i
+      gsub(/["\047\\]/, "", w)
+      if (w == "") continue
+      if (verb == "") {
+        b = base(w)
+        # Wrappers that may legitimately precede the real verb. Same list rule 9 uses, for the same
+        # reason: `env cp a b` is a `cp`, and stopping at `env` would miss it.
+        if (b=="env"||b=="exec"||b=="command"||b=="nohup"||b=="time"||b=="sudo"||b=="stdbuf") continue
+        if (substr(w,1,1) == "-") continue
+        if (w ~ /^[A-Za-z_][A-Za-z0-9_]*=/) continue
+        verb = b
+        continue
+      }
+      if (w ~ /^--target-directory=/) { print substr(w, 20); continue }
+      if (w ~ /^of=/) { print substr(w, 4); continue }
+      # `-i`, `-i.bak`, `-Ei` — over-inclusive on purpose; the cost of reading a `-n` as in-place is an
+      # extra path check, and the cost of missing `-i` is the rule.
+      if (substr(w,1,1) == "-") { if (w ~ /i/) inplace = 1; continue }
+      args[++nt] = w
+    }
+    if (verb=="cp"||verb=="mv"||verb=="install"||verb=="rsync"||verb=="ln") {
+      if (nt > 0) print args[nt]
+    } else if (verb=="tee"||verb=="ed"||verb=="ex"||verb=="patch"||verb=="truncate"||verb=="dd" \
+               ||verb=="rm"||verb=="unlink"||verb=="shred") {
+      for (j = 1; j <= nt; j++) print args[j]
+    } else if ((verb=="sed"||verb=="perl") && inplace) {
+      for (j = 1; j <= nt; j++) print args[j]
+    }
+  }' || true)"
+
+while IFS= read -r harness_tok; do
+  [ -z "$harness_tok" ] && continue
+  if harness_protected "$harness_tok"; then
+    deny "Blocked: this command WRITES to harness configuration — '$harness_tok' resolves under a '.claude' directory. That covers the user floor (~/.claude/settings.json), the plugin cache under ~/.claude/plugins/ (the copy of permission-guard.sh that actually executes — the repo copy is not it), and each repo's committed .claude/. Those files decide what every agent may do, so an agent rewriting them is the control editing its own terms; they are the owner's, changed by the owner. The floor already denies the Edit and Write tools on these paths — this rule closes the Bash spellings that reached the same bytes (cp, mv, tee, rsync, sed -i, redirection, rm). If you need a change there, SPECIFY IT EXACTLY and hand it up to the human. Editing hooks/scripts/ inside a git repo is untouched — that is tracked, reversible, and is where this file is developed. If this was a quoted MENTION of a path rather than a write to it, put the text in a file and pass it with --body-file / -F, which is this workspace's rule for any body longer than one line."
+  fi
+done <<< "$harness_candidates"
 
 exit 0

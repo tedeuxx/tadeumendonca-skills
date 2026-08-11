@@ -940,6 +940,143 @@ check ALLOW "--force alone"                 "rm --force /some/path"
 check ALLOW "plain rm"                      "rm /some/path"
 check ALLOW "a word merely ENDING in rm"    "npm run confirm -r -f"
 
+
+# ══ RULE 10 — writing harness configuration through Bash ══════════════════════════════════════════
+#
+# WHY A THIRD HELPER. Rule 10 anchors a RELATIVE path against the payload's own `cwd` field, which
+# `check()` does not set — so a relative case run through `check()` would resolve against wherever the
+# suite happened to be invoked from and assert nothing repeatable. `check_cwd` pins it.
+check_cwd() {
+  want="$1"
+  wd="$2"
+  desc="$3"
+  cmd="$4"
+  out=$(jq -n --arg c "$cmd" --arg w "$wd" '{tool_input:{command:$c}, cwd:$w}' | bash "$GUARD")
+  got=$(verdict "$out")
+  if [ "$got" = "$want" ]; then
+    pass=$((pass + 1))
+    printf 'ok    %-6s %s\n' "$got" "$desc"
+  else
+    fail=$((fail + 1))
+    printf 'FAIL  want=%s got=%s  %s\n      cmd: %s\n' "$want" "$got" "$desc" "$cmd"
+  fi
+}
+
+# The two payloads the finding was measured with. Both drew NO DECISION at v1.0.7; if either of these
+# goes green-as-ALLOW again, the rule has been removed or defeated and the finding is live once more.
+CACHE=/Users/x/.claude/plugins/cache/tadeumendonca/tadeumendonca-skills/1.0.0/hooks/scripts/permission-guard.sh
+SETTINGS=/Users/x/.claude/settings.json
+
+echo "--- rule 10: the two measured payloads, exactly as reported ---"
+check DENY  "cp over the RUNNING guard"     "cp /private/tmp/p.sh $CACHE"
+check DENY  "tee over the user floor"       "tee $SETTINGS"
+
+echo "--- rule 10: redirection, every operator spelling ---"
+check DENY  "> truncating redirect"         "cat /private/tmp/p.sh > $SETTINGS"
+check DENY  ">> appending redirect"         "echo x >> $SETTINGS"
+check DENY  ">| clobber override"           "echo x >| $SETTINGS"
+check DENY  "no space after the operator"   "echo x >$SETTINGS"
+check DENY  "numbered fd 2>"                "somecmd 2> $CACHE"
+check DENY  "&> both streams"               "somecmd &> $CACHE"
+check DENY  "heredoc into the floor"        "cat > $SETTINGS <<EOF"
+
+echo "--- rule 10: destination-last verbs ---"
+check DENY  "cp"                            "cp /private/tmp/x $SETTINGS"
+check DENY  "mv"                            "mv /private/tmp/x $CACHE"
+check DENY  "install"                       "install -m 644 /private/tmp/x $CACHE"
+check DENY  "rsync"                         "rsync -a /private/tmp/x $CACHE"
+check DENY  "ln -sf over the guard"         "ln -sf /private/tmp/p.sh $CACHE"
+check DENY  "--target-directory="           "cp --target-directory=/Users/x/.claude/plugins /private/tmp/x"
+check DENY  "absolute verb path"            "/bin/cp /private/tmp/x $SETTINGS"
+check DENY  "env wrapper before the verb"   "env cp /private/tmp/x $SETTINGS"
+
+echo "--- rule 10: all-operand verbs, including the DELETE of the running guard ---"
+check DENY  "tee with flags"                "tee -a $SETTINGS"
+check DENY  "rm of the running guard"       "rm $CACHE"
+check DENY  "unlink"                        "unlink $CACHE"
+check DENY  "shred"                         "shred $SETTINGS"
+check DENY  "truncate"                      "truncate -s 0 $SETTINGS"
+check DENY  "dd of="                        "dd if=/private/tmp/x of=$SETTINGS"
+check DENY  "patch"                         "patch $SETTINGS /private/tmp/x.diff"
+check DENY  "ed"                            "ed $SETTINGS"
+
+echo "--- rule 10: in-place editors, and the READ that must survive ---"
+check DENY  "sed -i"                        "sed -i s/a/b/ $SETTINGS"
+check DENY  "sed -i.bak"                    "sed -i.bak s/a/b/ $SETTINGS"
+check DENY  "perl -i"                       "perl -i -pe s/a/b/ $SETTINGS"
+check ALLOW "plain sed is a READ"           "sed -n 1p $SETTINGS"
+check ALLOW "plain perl is a READ"          "perl -ne print $SETTINGS"
+
+echo "--- rule 10: path forms — the string is never trusted, only the canonical form ---"
+check DENY  "~ expansion"                   "cp /private/tmp/x ~/.claude/settings.json"
+check DENY  "\$HOME expansion"              "cp /private/tmp/x \$HOME/.claude/settings.json"
+check DENY  "\${HOME} expansion"            "cp /private/tmp/x \${HOME}/.claude/settings.json"
+check DENY  "// and /./ noise"              "cp /private/tmp/x /Users/x//.claude/./settings.json"
+check DENY  "quoted target"                 "cp /private/tmp/x \"$SETTINGS\""
+# CASE. macOS's default filesystem is case-insensitive, so this is the SAME FILE under another
+# spelling — and `realpath` would have returned the spelling it was handed, not the on-disk one.
+check DENY  "case-folded .CLAUDE"           "cp /private/tmp/x /Users/x/.CLAUDE/settings.json"
+# TRAVERSAL — the three spellings ADR-0008:547 records. The first is the one rule 9 denies; the second
+# and third are the ones it CANNOT reach, because neither contains a `..` adjacency. Rule 10 resolves
+# all three, because it deletes quote and backslash CHARACTERS before normalising rather than trying
+# to honour shell quoting.
+check_cwd DENY /Users/x/git-reps/repo "traversal, plain"     "cp p .scratch/../.claude/settings.json"
+check_cwd DENY /Users/x/git-reps/repo "traversal, escaped"   'cp p .scratch/\.\./.claude/settings.json'
+check_cwd DENY /Users/x/git-reps/repo "traversal, .\"\"./"   'cp p .scratch/.""./.claude/settings.json'
+check_cwd DENY /Users/x/.claude/plugins/cache "relative from INSIDE .claude" "cp /private/tmp/x ../settings.json"
+check_cwd DENY /Users/x/git-reps/repo "repo project floor"   "cp /private/tmp/x .claude/settings.json"
+
+echo "--- rule 10: through the bash -c wrapper (routing reason 1) ---"
+check DENY  "bash -c hides the cp"          "bash -c \"cp /private/tmp/x $SETTINGS\""
+check DENY  "bash -c hides the redirect"    "bash -c \"echo x > $SETTINGS\""
+
+echo "--- rule 10: THE FALSE-POSITIVE DIRECTION — reads of these paths must survive ---"
+# This half is the negative control for the block above. A rule that denies everything touching the
+# string '.claude' would pass every DENY case above and be useless; these are the cases that separate
+# "denies writes to harness config" from "denies mentioning harness config".
+check ALLOW "cat"                           "cat $SETTINGS"
+check ALLOW "diff"                          "diff /private/tmp/x $SETTINGS"
+check ALLOW "grep"                          "grep -n allow $SETTINGS"
+check ALLOW "head"                          "head -20 $CACHE"
+check ALLOW "jq over the floor"             "jq -r .permissions.allow[] $SETTINGS"
+# COPYING OUT IS A READ. Only the LAST operand of cp/mv/install/rsync/ln is a destination, which is
+# why this is not caught by "any argument resolves under .claude".
+check ALLOW "cp OUT of .claude is a read"   "cp $SETTINGS /private/tmp/backup"
+check ALLOW "rsync OUT is a read"           "rsync -a /Users/x/.claude/plugins/ /private/tmp/backup"
+
+echo "--- rule 10: ordinary work must not be touched ---"
+# THE REPO COPY OF THE GUARD IS DELIBERATELY UNPROTECTED — it is not the copy that executes, and it is
+# git-tracked, so it is reversible. This assertion is the one that would go red if someone "hardened"
+# the rule by protecting hooks/scripts/ too, which would wedge the persona that develops this file.
+check ALLOW "dev edit of the REPO guard"    "cp /private/tmp/new.sh /Users/x/git-reps/tadeumendonca-skills/hooks/scripts/permission-guard.sh"
+check ALLOW "tee into scratch"              "tee /Users/x/git-reps/repo/.scratch/body.md"
+check ALLOW "redirect into scratch"         "echo x > /Users/x/git-reps/repo/.scratch/out"
+check ALLOW "rm outside .claude"            "rm /private/tmp/x"
+# `.claude` MUST BE A PATH SEGMENT, not a substring. Both of these contain the string and neither is
+# harness configuration.
+check ALLOW "claude/ without the dot"       "cp /private/tmp/x /Users/x/claude/settings.json"
+check ALLOW ".claude-backup is not .claude" "cp /private/tmp/x /Users/x/.claude-backup/settings.json"
+# The VERB scan reads only the first verb of each `|`-segment, so a write verb QUOTED inside another
+# command's argument does not fire. This is what keeps commit messages about this rule workable.
+check ALLOW "cp named in a commit message"  "git commit -m \"cp a ~/.claude/b\""
+check ALLOW "sed -i named in a message"     "git commit -m \"sed -i on ~/.claude/settings.json\""
+
+echo "--- rule 10: the KNOWN false positive, pinned so it is visible rather than discovered ---"
+# The redirection scan reads the RAW command, because a target may legitimately be quoted and the
+# quote-collapsed form would erase it. The price is this: a redirection MENTIONED inside a string is
+# denied as the act. Asserted DENY on purpose — if someone later makes the scan quote-aware, this goes
+# red and they have to decide deliberately which of the two costs they are taking.
+check DENY  "redirect mentioned in a message" "git commit -m \"the > $SETTINGS case\""
+
+echo "--- rule 10: NOT COVERED, asserted as ALLOW so the gap is a fact and not a hope ---"
+# These are the #155 price, paid again. `Bash(python3:*)` and `Bash(node:*)` are in `allow` and this
+# guard deliberately does not chase interpreters, so each of these reaches the same bytes with no
+# decision from any layer. They are asserted rather than described: if a future change closes one, this
+# goes red and the header above has to be corrected in the same commit.
+check ALLOW "python3 reaches the floor"     "python3 -c import shutil"
+check ALLOW "node reaches the floor"        "node -e require('fs')"
+check ALLOW "bare -t target-directory"      "cp -t /Users/x/.claude/plugins /private/tmp/x"
+
 rm -rf "$FEAT"
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
