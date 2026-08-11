@@ -2095,7 +2095,17 @@ else
         *) brief_problems="$brief_problems
     $brel:$lineno — names the '$fam' family, and no skill's frontmatter claims it" ;;
       esac
-    done <<< "$(grep -noE '\`[a-z0-9-]+\` family' "$brief" || true)"
+    # DOUBLE-quoted, like the seven other backtick greps in this file (1169, 1224, 1295, 1297, 1300),
+    # and the difference is not cosmetic. SINGLE-quoted, the shell hands grep a literal `\``, which is
+    # a BACKTICK in BSD ERE and the START-OF-BUFFER ANCHOR in GNU ERE. Measured on this pattern against
+    # agents/developer.md: BSD `grep -coE` -> 4, GNU `ggrep -coE` -> 0. So the arm found nothing on CI
+    # (GNU), tripped the `brief_family_refs -eq 0` guard below, and read 67/1 — while a laptop (BSD)
+    # read 68/0 and the author saw green. Double-quoted, the SHELL removes the backslash and grep gets
+    # a bare backtick, which is literal in both dialects: BSD 4, GNU 4.
+    #
+    # WHY IT SURVIVED: `docs-test` is `pull_request`-only, so `main` is never re-tested — the red landed
+    # on the trunk and the next PR inherited it as its baseline.
+    done <<< "$(grep -noE "\`[a-z0-9-]+\` family" "$brief" || true)"
   done
 
   if [ "$brief_pointers" -eq 0 ]; then
