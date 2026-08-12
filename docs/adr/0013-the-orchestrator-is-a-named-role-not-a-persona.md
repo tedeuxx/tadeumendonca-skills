@@ -219,7 +219,7 @@ way ADR-0004 and ADR-0005 book obligations onto later work rather than dischargi
   is the one ADR-0002 calls "the main loop" (`ADR-0002:812` uses "main agent"); this record narrows
   nothing ADR-0002 decided, it converges the vocabulary ADR-0002 helped originate.
 - [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md) — cited: its own measured
-  evidence (`-io`#338, `:522`) is the real instance — not a hypothetical — of the orchestrator omitting a
+  evidence (`-io`#338, `:523`) is the real instance — not a hypothetical — of the orchestrator omitting a
   dispatch that this record's fifth duty and boundary discussion rely on.
 - [ADR-0008](./0008-which-layer-carries-a-control.md) — cited: the discipline of stating what a layer
   actually enforces versus what it is assumed to enforce, applied here to the orchestrator's boundary.
