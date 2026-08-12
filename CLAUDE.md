@@ -266,6 +266,22 @@ Two rules the owner set for the loop, above every persona's own checklist: **it 
 
 The lesson worth keeping: **a persona earns its place by generating a disagreement someone needs to hear**, not by completing an org chart. A mandate with no trigger is a document; a persona with no counterpart is a handoff. `harness-reviewer` is not the exception it looks like — its counterpart is **the owner**, wearing the harness-engineer hat, which is the one role in this loop that had nobody to argue with.
 
+**The orchestrator is the main session itself — one name, not a sixth persona** (ADR-0013). It is not
+dispatchable: no `Task` invocation ever targets it, and it satisfies none of the four reasons a persona
+exists (amendment #10 above). Its **duties**: dispatches every persona (no persona talks to another
+directly); commits and pushes on the loop's behalf; applies the `ready` label once the two intake leads
+have closed an Issue's description; applies the ADR-0012 routing label (`product`/`content`/`loop`); and
+decides, in the moment, whether a given review specialist needs dispatching at all — a real judgment
+call, not a formality.
+
+Its **boundary is stated in two honest parts, not one.** Mechanically enforced, for exactly two acts:
+merge and direct push to the trunk — `hooks/scripts/permission-guard.sh` leaves the orchestrator's
+`agent_type` empty by design, and rules 7 (trunk push) and 7b (merge) fire against that empty value.
+**Not enforced, and not claimed to be:** label application — `gh issue edit`/`gh label` sit in the global
+allow, unscoped to who calls them — and the dispatch-omission judgment call, which is a different failure
+shape than "decides the irreversible": an omission nobody can see happened or didn't, not a decision on
+an irreversible act. See ADR-0013 for the full record.
+
 | Command | Purpose |
 |---|---|
 | `/loop-engineering` | **Names the discipline the whole plugin runs — Agent Harness Engineering / AI-DLC** (the owner's central identity term, with Claude Code & Kiro): the AI-native loop treated as the engineered artifact — its cadence, its gates-as-a-system, the harness itself. The other four principles skills are its parts. |
