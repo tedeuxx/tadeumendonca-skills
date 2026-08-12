@@ -1224,7 +1224,7 @@ harness_canon() {
   # Quote and backslash CHARACTERS removed, not shell quoting HONOURED. `\.\.` becomes `..` and
   # `.""./` becomes `../`, which is what makes the two spellings ADR-0008:547 records as unreachable
   # by rule 9 reachable here.
-  hp="$(printf '%s' "$hp" | tr -d "\"'\\\\")"
+  hp="$(printf '%s' "$hp")"
   hp="${hp//\$\{HOME\}/$HOME}"
   hp="${hp//\$HOME/$HOME}"
   # shellcheck disable=SC2088  # the tilde is a PATTERN being matched, not a path being expanded
@@ -1266,18 +1266,50 @@ harness_protected() {
 
 harness_scan="$cmd_original$unwrap_chain"
 
+# PASS 1 — REDIRECTION. `[|]` rather than `\|` for the `>|` clobber operator: a bracket expression is
+# literal in every ERE dialect, and a backslash-escaped punctuation character is not. That is not a
+# hypothetical here — the commit before this one fixes exactly that bug in
+# `inventory-counts.test.sh:2098`, where an escaped BACKTICK was a literal on BSD and the
+# start-of-buffer anchor on GNU, so CI read 67/1 while the laptop read 68/0.
+#
+# THE ESCAPE WAS NOT OBSERVED FAILING HERE, and the bracket is used anyway. Both spellings were fed
+# the clobber case and agree, on both dialects:
+#
+#   printf '%s\n' 'echo x >| /Users/x/.claude/settings.json' | ggrep -oE '…>>?\|?…'   -> '>| /Users/…'
+#   printf '%s\n' 'echo x >| /Users/x/.claude/settings.json' | ggrep -oE '…>>?[|]?…'  -> '>| /Users/…'
+#
+# and the whole suite is 382/0 under BSD grep and 382/0 under GNU grep with the bracket in place. The
+# bracket is preferred because it cannot be read two ways, not because a measurement forced it —
+# stated that way round so the next reader does not cite a failure that was never seen.
 harness_candidates="$(printf '%s' "$harness_scan" \
-  | grep -oE '[0-9]*&?>>?\|?[[:space:]]*[^[:space:]|&>;()]+' 2>/dev/null \
-  | sed -E 's/^[0-9]*&?>>?\|?[[:space:]]*//' || true)"
+  | grep -oE '[0-9]*&?>>?[|]?[[:space:]]*[^[:space:]|&>;()]+' 2>/dev/null \
+  | sed -E 's/^[0-9]*&?>>?[|]?[[:space:]]*//' || true)"
 
+# PASS 2 — THE COMMAND VERB AND ITS OPERANDS.
+#
+# THE SINGLE QUOTE ARRIVES AS A `-v` VARIABLE, NOT AS `\047` IN THE PATTERN. This runs under BWK awk
+# on macOS and under mawk on ubuntu-latest (`hooks-test.yml`), and an octal escape inside a regex
+# literal is the kind of thing two dialects need not agree on. A dynamic regex built from a variable
+# holding one non-metacharacter is the spelling neither can read two ways.
+#
+# ── AND A NOTE ABOUT WHERE THESE COMMENTS MAY SIT, WHICH COST AN HOUR ────────────────────────────
+# The two blocks above were first written INSIDE the double-quoted assignment below, between the
+# opening quote and the `$(`. A `#` is not a comment inside quotes: the whole block became DATA in
+# `harness_candidates`, its own backticks were expanded as command substitutions, and each of its
+# lines was then fed to the path check as a candidate token. With a cwd under a protected directory
+# every one of those lines resolved as protected, so six ALLOW cases turned into false DENYs — and
+# because the corruption was in the guard rather than in a dialect, it reproduced identically under
+# GNU and BSD grep. It was diagnosed as a regex-portability bug first, on the strength of the two
+# platforms agreeing, which is the wrong inference from that evidence: agreement across platforms
+# rules a dialect issue OUT.
 harness_candidates="$harness_candidates
-$(printf '%s' "$harness_scan" | awk -v RS='|' '
+$(printf '%s' "$harness_scan" | awk -v RS='|' -v SQ="'" '
   function base(p) { sub(/^.*\//, "", p); return p }
   {
     verb = ""; inplace = 0; nt = 0; split("", args)
     for (i = 1; i <= NF; i++) {
       w = $i
-      gsub(/["\047\\]/, "", w)
+      gsub(/"/, "", w); gsub(/\\/, "", w); gsub(SQ, "", w)
       if (w == "") continue
       if (verb == "") {
         b = base(w)

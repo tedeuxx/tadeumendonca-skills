@@ -967,6 +967,38 @@ check_cwd() {
 CACHE=/Users/x/.claude/plugins/cache/tadeumendonca/tadeumendonca-skills/1.0.0/hooks/scripts/permission-guard.sh
 SETTINGS=/Users/x/.claude/settings.json
 
+# ══ THE MUTATION TABLE FOR RULE 10 ═══════════════════════════════════════════════════════════════
+# Every assertion below was shown to FAIL by mutating permission-guard.sh — the SOURCE, not the test.
+# Recorded here because "the suite is green" is not evidence that the suite can go red, and four of
+# these cases were green for the wrong reason on the first pass (see the note above the path-form
+# block). Re-runnable: `.scratch/probe-mutate2.py` in the branch that produced it, one mutation at a
+# time, each restored from the git index afterwards.
+#
+#   mutation applied to permission-guard.sh              what flipped                      result
+#   ──────────────────────────────────────────────────── ───────────────────────────────── ─────────
+#   protected set `*/.claude` -> `*/.nothing`            every rule-10 DENY                342/40
+#   protected set -> an exact path list, no segment      the versioned cache path, the     363/11
+#                                                        relative-from-inside case, 9 more
+#   the `deny` call neutered to `:`                      every rule-10 DENY, and NOTHING   339/43
+#                                                        else — the ALLOW half stayed green
+#   redirection scan pattern -> a non-matching literal   the 7 redirection cases + the     365/9
+#                                                        wrapped redirect + the pinned FP
+#   destination-last emission disabled                   cp / mv / install / rsync / ln    354/20
+#   all-operand emission disabled                        tee / rm / unlink / shred /       363/11
+#                                                        truncate / patch / ed / sed -i
+#   `harness_scan` drops `unwrap_chain`                  only the two `bash -c` cases      373/1
+#   `..` resolution removed                              only the two climb-out ALLOWs     377/2
+#   cwd anchoring removed                                only the two cwd-relative cases   377/2
+#   case folding (`tolower`) removed                     only `.CLAUDE`                    378/1
+#   `~` expansion removed                                only `~ resolves away from cwd`   378/1
+#   `${HOME}` expansion removed                          only the `${HOME}` climb-out      381/1
+#   quote/backslash strip removed from `harness_canon`   only the two REDIRECTION cases,   380/2
+#                                                        because the verb scan pre-strips
+#
+# THE NEGATIVE CONTROL IS THE `deny`-NEUTERED ROW. It takes the rule out entirely and the 27 ALLOW
+# cases stay green — so they are not passing because the rule denies everything, which is the failure
+# mode a table of reds cannot distinguish on its own. Baseline before every mutation: 382/0.
+
 echo "--- rule 10: the two measured payloads, exactly as reported ---"
 check DENY  "cp over the RUNNING guard"     "cp /private/tmp/p.sh $CACHE"
 check DENY  "tee over the user floor"       "tee $SETTINGS"
@@ -1008,6 +1040,28 @@ check ALLOW "plain sed is a READ"           "sed -n 1p $SETTINGS"
 check ALLOW "plain perl is a READ"          "perl -ne print $SETTINGS"
 
 echo "--- rule 10: path forms — the string is never trusted, only the canonical form ---"
+# ── READ THIS BEFORE TRUSTING THE ELEVEN DENY CASES BELOW ────────────────────────────────────────
+# THEY PIN SPELLINGS, NOT MECHANISMS, AND FOUR OF THEM SURVIVED THE MUTATION THAT SHOULD HAVE KILLED
+# THEM. Measured by mutating permission-guard.sh itself, one normalisation step at a time:
+#
+#   remove `..` resolution          -> 374/0, NOTHING FLIPPED
+#   remove quote/backslash stripping-> 374/0, NOTHING FLIPPED
+#   remove `~` expansion            -> 374/0, NOTHING FLIPPED
+#   remove `${HOME}` expansion      -> 374/0, NOTHING FLIPPED
+#   remove case folding             -> 373/1, ONLY `case-folded .CLAUDE` flipped
+#
+# THE CAUSE IS THE PROTECTED SET, AND IT IS GOOD NEWS FOR THE CONTROL AND BAD NEWS FOR THESE LABELS.
+# Rule 10 matches a `.claude` SEGMENT anywhere in the canonical path. Every case below still CONTAINS
+# a clean `.claude` segment after the botched normalisation, so it still denies — the rule is robust
+# to its own normalisation failing, which is more than was claimed for it. What these cases therefore
+# assert is "this exact spelling denies", which is worth pinning (they are the spellings the finding
+# named), but NOT "the normalisation runs".
+#
+# THE ISOLATING CASES ARE THE `ALLOW`s at the bottom of this block, and they are there BECAUSE of this
+# measurement rather than for symmetry: each of them is a path that resolves OUTSIDE the protected set
+# only if the corresponding step runs, so removing that step turns it into a false DENY. That is the
+# direction in which normalisation is load-bearing here, and stating it the other way round would have
+# been a coverage claim four mutations contradict.
 check DENY  "~ expansion"                   "cp /private/tmp/x ~/.claude/settings.json"
 check DENY  "\$HOME expansion"              "cp /private/tmp/x \$HOME/.claude/settings.json"
 check DENY  "\${HOME} expansion"            "cp /private/tmp/x \${HOME}/.claude/settings.json"
@@ -1025,6 +1079,31 @@ check_cwd DENY /Users/x/git-reps/repo "traversal, escaped"   'cp p .scratch/\.\.
 check_cwd DENY /Users/x/git-reps/repo "traversal, .\"\"./"   'cp p .scratch/.""./.claude/settings.json'
 check_cwd DENY /Users/x/.claude/plugins/cache "relative from INSIDE .claude" "cp /private/tmp/x ../settings.json"
 check_cwd DENY /Users/x/git-reps/repo "repo project floor"   "cp /private/tmp/x .claude/settings.json"
+
+echo "--- rule 10: the cases that make normalisation load-bearing — each is a FALSE DENY if it stops ---"
+# `..` RESOLUTION. This path leaves the protected directory. Without the lexical resolve, the raw
+# string still carries a `.claude` segment and the command is denied for a directory it does not
+# write to. Mutating the resolve out flips exactly this case.
+check ALLOW "traversal OUT of .claude"      "cp /private/tmp/x /Users/x/.claude/../elsewhere/f"
+# CWD ANCHORING. A relative path must resolve against the payload's `cwd`; anchoring it at `/` instead
+# would put this outside the protected set and let the write through.
+check_cwd DENY /Users/x/.claude/plugins "relative, anchored at cwd" "cp /private/tmp/x settings.json"
+# `~` / `$HOME` EXPANSION. With the cwd INSIDE a protected directory, an unexpanded `~` is prefixed
+# with that cwd and the path inherits a `.claude` segment it does not have. This is the case where the
+# expansion is the difference between a correct ALLOW and a false DENY.
+check_cwd ALLOW /Users/x/.claude/plugins "~ resolves away from cwd"      "cp /private/tmp/x ~/notes/f"
+check_cwd ALLOW /Users/x/.claude/plugins "\$HOME resolves away from cwd" "cp /private/tmp/x \$HOME/notes/f"
+# QUOTE / BACKSLASH STRIPPING, same construction: from inside a protected cwd, an escaped traversal
+# that should climb out does not climb out unless the backslashes are removed first.
+check_cwd ALLOW /Users/x/.claude/plugins "\${HOME} resolves away from cwd" "cp /private/tmp/x \${HOME}/notes/f"
+check_cwd ALLOW /Users/x/.claude/plugins "escaped traversal climbs out" 'cp /private/tmp/x \.\./\.\./notes/f'
+# THE QUOTE/BACKSLASH STRIP IS ONLY LOAD-BEARING ON THE REDIRECTION PATH, and finding that out is the
+# reason these two exist. The VERB scan already strips quotes and backslashes in its own awk before
+# `harness_canon` runs, so removing the strip inside `harness_canon` changed nothing for any `cp` case
+# — the first attempt at these assertions survived that mutation at 379/0. The redirection scan does
+# NOT pre-strip, so it is the only caller for which the step is the difference.
+check_cwd ALLOW /Users/x/.claude/plugins "escaped redirect climbs out" 'echo x > \.\./\.\./notes/f'
+check_cwd ALLOW /Users/x/.claude/plugins "quoted redirect target"      'echo x > "/Users/x/notes/f"'
 
 echo "--- rule 10: through the bash -c wrapper (routing reason 1) ---"
 check DENY  "bash -c hides the cp"          "bash -c \"cp /private/tmp/x $SETTINGS\""
