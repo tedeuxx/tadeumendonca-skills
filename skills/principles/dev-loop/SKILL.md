@@ -45,12 +45,31 @@ in the list.** It shares the leads' tier and takes **no part in closing a story'
 object is the machinery this loop runs on (hooks, settings and permissions, agent briefs, skills,
 commands, the plugin, MCP), not the product the loop builds. It is dispatched on a **proposal about the
 loop itself**, returns the scenarios that proposal does not cover with how to check each one, and does
-that **before anything is built**. It gates nothing: no merge request, no merge, no Issue, no label
-transition — which is why it appears in no row of the table below.
+that **before anything is built**.
+
+~~It gates nothing: no merge request, no merge, no Issue, no label transition — which is why it appears
+in no row of the table below.~~ **Struck by
+[ADR-0015](../../../docs/adr/0015-harness-reviewer-implements-the-harness-it-reviews.md).** A harness
+proposal worth stress-testing now enters the tracker as a `loop`-typed Issue — filed by the orchestrator,
+asked, on `harness-reviewer`'s naming (per *Review does not open work* below; `harness-reviewer` itself
+remains denied `gh issue create`, rule 5d's catch-all, unchanged) — and a harness diff now requires a
+`harness-reviewer` verdict marker present on its PR before `quality-assurance` may classify that diff
+safe (ADR-0015, Corollary 2; absent the marker it is boundary class regardless of what else it does).
+**`loop`-typed `ready` is an owner-only label transition** (ADR-0015, Corollary 4) — never applied by any
+dispatch, `harness-reviewer`'s own included — which is what keeps the proposal dispatch and the build
+dispatch separate rather than one session doing both unread. What the ADR does **not** change: rule 7b's
+catch-all still denies `harness-reviewer` `gh pr merge` (it holds no merge authority, before or after),
+and it still reviews no other persona's merge request — its gate runs entirely through the verdict marker
+`quality-assurance` reads, never through merging or MR review. Whether the persona can also *post* that
+verdict and hold `Write`/`Edit` to build against it is the capability half of the same ADR; check
+`agents/harness-reviewer.md:4`'s current `tools:` line rather than assuming either state from this text —
+this correction holds regardless of whether that grant has landed yet.
 
 *Where the two chains meet.* A change to *how work is decided* — this skill, the states table, an ADR
 that governs the loop — is still a **boundary** decision for the owner. `harness-reviewer` is who the
-owner works that decision out with; it does not make it, and it does not put it in the tracker.
+owner works that decision out with; it does not make it, and ~~it does not put it in the tracker~~ — struck
+per the same ADR: the proposal now enters the tracker (above), opened by the orchestrator rather than by
+`harness-reviewer` itself, which still cannot `gh issue create`.
 
 #### The states, and the one artifact that was missing
 
