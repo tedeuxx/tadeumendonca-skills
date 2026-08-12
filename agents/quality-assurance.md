@@ -115,13 +115,16 @@ What that means for you, concretely, because the tempting misreading is that cos
 partly repaid:
 
 - **ADR-0015 Corollary 3 decides `harness-reviewer` will post a durable verdict marker**
-  (`<!-- harness-reviewer-verdict: ... -->`), but that capability is **not implemented as of this
-  writing** — if `agents/harness-reviewer.md:4` still reads `tools: Read, Grep, Glob, Bash` (no
-  `Write`/`Edit`), the marker mechanism has not landed, and no diff touching `hooks/**`, `agents/**`,
-  `skills/**`, `commands/**`, or `.claude/**` can carry it. Until it does, the boundary-class criterion
-  above makes every such diff boundary class, unconditionally — not merely "when the marker is absent."
-  Check `agents/harness-reviewer.md:4` before trusting either reading. **Independent convergence is
-  still gone** — do not report a conclusion as corroborated because a harness lens looked at the same
+  (`<!-- harness-reviewer-verdict: ... -->`, posted via `gh issue comment`/`gh pr comment` — a `Bash`
+  call this persona was never denied, independent of whether it also holds `Write`/`Edit`). Check for
+  the marker STRING ITSELF, not a proxy: `grep -n "harness-reviewer-verdict" agents/harness-reviewer.md`
+  — if that returns nothing, the posting instruction has not landed regardless of what `agents/
+  harness-reviewer.md:4`'s `tools:` line says (that line tracks Corollary 1, a different, causally
+  unrelated grant). Until the instruction exists, no diff touching `hooks/**`, `agents/**`, `skills/**`,
+  `commands/**`, or `.claude/**` can carry the marker, and the boundary-class criterion above makes every
+  such diff boundary class, unconditionally — not merely "when the marker is absent." **Independent
+  convergence is still gone** — do not report a conclusion as corroborated because a harness lens looked
+  at the same
   repo earlier.
 - **You are still the only gate.** A merge request that changes `hooks/`, `agents/` or
   `.claude/settings.json` is reviewed by you, under both your lenses, exactly as any other diff. The
