@@ -1,4 +1,4 @@
-# 0011. A skill is a **BEHAVIOUR the owner standardises for many agents across sessions** — behaviour, transversality and persistence are each constitutive; the technology in a skill's name is the *scope* of the behaviour, not the subject of the file
+# 0011. A skill exists to be **ASSIGNED to a profile in the loop's roster** — *to which profile is this assigned, and why?* is the operative test, and a skill assigned to nobody has no reason to exist whatever its quality; what it standardises is a **behaviour**, transversal, persisting across sessions
 
 - **Status:** accepted
 - **Date:** 2026-08-11
@@ -263,7 +263,88 @@ which is the clearest place the current tree does not match this record: `develo
 `verification-and-gates` and `engineering-philosophy`, all three on the methodology axis, and **zero
 technical standards** for the app, the infrastructure or the pipeline it delivers.
 
-### The two tests, and the candidate each one rejects
+### THE OPERATIVE TEST — to which profile is this assigned, and why?
+
+**This is the test. Everything else in this record is subordinate to it**, including the two criteria
+below, which were the record's operative test in an earlier draft and are now what you apply *after* the
+assignment question is answered.
+
+> ***To which profile is this assigned, and why?***
+
+**A skill exists to be assigned to a profile in the loop's roster. A skill with no profile assigned has
+no reason to exist** — not *"not yet associated"*, which reads as a scheduling gap, but **without
+function**. Nothing consumes it, so it standardises nothing, so it is not a skill.
+
+The owner's words, which are the source of this clause and of the review it orders:
+
+> *"está claro que elas servem à atribuição aos perfis de agentes que vamos ter no nosso loop?"*
+>
+> *"eu quero rever todos skills com esse propósito agora ancorado e que deve ser registrado em ADR para
+> não termos esse problema novamente."*
+
+**Note what the test is NOT.** Not *is this skill good*. Not *is this generic*. Not *is this a standard*.
+Not *is this well written*. **A file that cannot answer the assignment question does not belong in the
+library regardless of its quality** — and the two subordinate tests below cannot rescue it, because a
+file can pass both and still be assigned to nobody.
+
+### The failure mode this test exists to prevent, in one sentence
+
+> **A library grew for two years against no assignment criterion, and the defect stayed invisible because
+> every individual file was defensible.**
+
+**That is why the test is about assignment and not about quality: quality was never the thing that
+failed.** Every review this library has had asked whether a file was correct, dense, generic or
+well-formed, and every file passed. None of those questions can see a file that nothing consumes.
+
+### What the assignment state is today, measured
+
+The roster is **five profiles**. The library is **69 skills**. The assignment between them:
+
+    for f in $(find skills -name SKILL.md); do stem=$(basename $(dirname $f));
+      grep -rhq -- "- $stem\$" agents/*.md || echo "$stem"; done | wc -l
+    → 62 unassigned
+
+| profile | entries | assigned |
+|---|---|---|
+| `developer` | 3 | `code-review` · `verification-and-gates` · `engineering-philosophy` |
+| `quality-assurance` | 3 | `verification-and-gates` · `coverage` · `sonarcloud` |
+| `tech-lead` | 3 | `adr` · `engineering-philosophy` · `documentation-standard` |
+| `product-lead` | 1 | `new-issue` — **a command, which must go** (corollary 1), leaving the list empty |
+| `harness-reviewer` | 0 | `skills: []` |
+
+**Seven distinct skills are assigned. Sixty-two are not — 90% of the library.** Of the 14 process
+skills, **8 are assigned to nobody**, `dev-loop` among them.
+
+**One correction, because the figure was nearly published wrong and the exception carries the finding.**
+It is natural to state this as *"of the ~55 technical files, none is assigned to anyone."* **That is false
+by one, and the one matters:**
+
+    for f in $(find skills -name SKILL.md | sort); do stem=$(basename $(dirname $f));
+      if grep -rhq -- "- $stem\$" agents/*.md; then echo "$f"; fi; done
+    → skills/backend/coverage/SKILL.md   ← the only technical-family file assigned to anyone
+      + the six process skills
+
+**`backend/coverage` is assigned — to `quality-assurance`, the profile that CHECKS the delivery, not to
+`developer`, the profile that makes it.** So the sharper true statement is: **of 55 technical files,
+exactly one is assigned, and it is assigned to the persona that verifies rather than the one that
+builds.** `developer` — the only profile that writes app code, infrastructure and pipeline — carries
+**three process skills and zero delivery standards.** That is the assignment defect in its purest form,
+and it would have been hidden by the rounder claim.
+
+### The consequence for what this library IS
+
+**The library is the roster's equipment.** It is sized by what the five profiles need, not by what has
+been learned and written down. That answers the question #183 left open about what the plugin should be,
+and it does so without requiring a decision about any individual file.
+
+**What does not answer the assignment question is an archive** — publishable, referenceable, potentially
+excellent, and **not a skill**. Naming that category is deliberate: it gives the ~62 files a destination
+that is not deletion, so the review the owner ordered is not forced into a false choice between *keep as
+a skill* and *cut*.
+
+### The two subordinate tests, and the candidate each one rejects
+
+Applied **after** a file has a profile, to decide whether what it contains is a skill's content:
 
 > **1 · Does this change what an agent does?** Knowledge that changes no behaviour is reading material,
 > not a skill.
@@ -271,8 +352,8 @@ technical standards** for the app, the infrastructure or the pipeline it deliver
 > **2 · Is it transversal?** What is not transversal is not a skill. If a rule binds one persona, its
 > home is that persona's brief.
 
-**Both tests are recorded through a candidate they reject, because a criterion that only admits settles
-no argument.**
+**Both are recorded through a candidate they reject, because a criterion that only admits settles no
+argument.**
 
 **Test 1 rejects: a dense passage of decision material that changes nothing an agent does.** However
 good, however correct, however well written. This is the test that has never been applied in this
@@ -349,9 +430,40 @@ better than shipping a regex that goes green on the wrong thing. The one fence t
 narrow and is recorded as a candidate rather than a decision: *no file under `skills/principles/**` may
 name a cloud provider, runtime, framework or datastore outside a marked example.*
 
+### What prevents recurrence — and today the answer is NOTHING
+
+The owner asked for this recorded *"para não termos esse problema novamente."* **This record does not, by
+itself, prevent it.** Saying so is the repo's own standard: a rule with no mechanism is a document, and
+ADR-0008's routing question applies to this record as much as to a hook.
+
+**What exists today:** `hooks/scripts/skills-resolve.test.sh` asserts the association in **one
+direction** — every identifier in a `skills:` list resolves to a tracked file. **Nothing asserts the
+reverse**, that a file in the library is named by at least one profile. A skill can be added, be perfect,
+and be consumed by nobody, with every gate green. **That is precisely how 62 files got here.**
+
+**The assertion that would close it** — *every `SKILL.md` is named in at least one `agents/*.md`
+`skills:` list* — is checkable, is a few lines, and belongs inside `skills-resolve.test.sh`, which
+already parses both trees. **It would fail on 62 of 69 files today.**
+
+**Whether that assertion should exist is a decision this record does NOT make**, and the reason is
+ADR-0008's: a check that arrives already red on 90% of its subject is a check that gets silenced, and
+ADR-0009's first amendment records this repo paying exactly that price once. It is only writable **after**
+the review the owner ordered, not before — so the honest sequence is *review, then assert*, and the
+assertion is the thing that makes the review stick rather than a substitute for it.
+
+**Until then the prevention is a review discipline with no mechanism, and this record says so rather than
+implying a control it does not have.**
+
 ### The criterion, in one question
 
-> ***Does this anchor a behaviour I want applied, or describe something I did?***
+> ***To which profile is this assigned, and why?***
+
+The two questions that were the operative test in an earlier draft — *"does this anchor a behaviour I
+want applied, or describe something I did?"* and its workload-mirror form *"does this anchor HOW I
+deliver, or describe WHAT I delivered?"* — are **kept and subordinated**. They decide whether a file's
+*content* is a skill's content. **They do not decide whether the file should exist; only the assignment
+question does that**, and it is the one to ask first because it disqualifies fastest and on the axis
+that actually failed.
 
 The earlier phrasing — *"does this anchor HOW I deliver, or describe WHAT I delivered?"* — is kept as the
 workload-mirror form of the same question, and it is the one to reach for when the candidate is a
@@ -362,9 +474,14 @@ generic, well-written passage that changes nothing.
 
 **Good**
 
-- **The library gets a membership test instead of a folder convention**, and it is two tests that each
-  reject as well as admit — demonstrated on `--squash` (transversality) and on the well-written passage
-  that changes no behaviour (the behaviour unit).
+- **The library gets a membership test instead of a folder convention**, and the operative one —
+  *to which profile is this assigned?* — **disqualifies on the axis that actually failed**. It is also
+  the cheapest test in the record to apply: it is answerable from frontmatter, in one command, on all 69
+  files, without reading any of them.
+- **The two subordinate tests each reject as well as admit** — demonstrated on `--squash`
+  (transversality) and on the well-written passage that changes no behaviour (the behaviour unit).
+- **The ~62 unassigned files get a destination that is not deletion.** *Archive* is a named category, so
+  the review the owner ordered is not forced into *keep as a skill or cut*.
 - **The drift in the Context section becomes a defect with a named cause** rather than an untidiness. It
   is also the cheapest thing on this record to act on: the two missing clauses go into
   `agents/quality-assurance.md` as a two-line change, **independently of everything else here**, and that
@@ -403,6 +520,13 @@ generic, well-written passage that changes nothing.
   weakens the check, and this record says so rather than implying the swap is free.**
 - **The definition makes part of the current library not-a-skill by its own test**, which converts a
   content question into a backlog. Sized but not decided: see below.
+- **This record prevents nothing on its own, and the assertion that would is not written.** Stated above
+  in full. The gap is one-directional: identifiers are checked to resolve, files are never checked to be
+  consumed, and a check that would arrive red on 62 of 69 files is one this repo has already learned gets
+  silenced.
+- **The test disqualifies 90% of the library on day one**, which converts a definition into a review
+  backlog of ~62 files and a decision per file. That is the cost of having had no criterion for two
+  years, and it is paid now rather than avoided.
 - **The behaviour test has never been run against the library, and its cost is unknown.** Every
   measurement on #183 sorted files by *genericity* or by *normative vocabulary* — neither of which can
   see whether a passage changes what an agent does. **It is a reading judgement with no proxy**, it will
@@ -427,6 +551,14 @@ Stated so nobody reads the definition as having settled them:
   bound on what this record disqualifies.
 - **How many methodology skills there should be**, and which rules go in each. One, three, or a split of
   one of them, is an open design question.
+- **The outcome of the review the owner ordered.** This record supplies the criterion and the measurement
+  (62 unassigned); it decides **no individual file**. Each one is *assign to a profile*, *rewrite so a
+  profile can be assigned*, *move to archive*, or *cut* — and that is 62 decisions, his.
+- **Whether the reverse assertion is added**, and when. Argued above: it is writable only after the
+  review, because arriving red on 62 of 69 files is how a check gets silenced.
+- **What `archive` is mechanically** — a directory, a frontmatter flag, a separate plugin, or simply
+  files that stay where they are and stop being called skills. The category is named here; its shape is
+  not decided.
 - **The removal of `new-issue` from `agents/product-lead.md`**, and what — if anything — that list holds
   instead. This record states the rule it violates.
 - **Whether `harness-reviewer`'s `skills: []` should change.** ADR-0010 argued it on three grounds and at
@@ -437,9 +569,13 @@ Stated so nobody reads the definition as having settled them:
 ## Links
 
 - Driving Issue [#183](https://github.com/tedeuxx/tadeumendonca-skills/issues/183) — the owner's
-  definition, his genericity constraint, and `harness-reviewer`'s reassessment and two addenda, which are
-  the source of the drift finding (§2), the `--squash` correction (§4), the `argument-hint` property (§7),
-  the standard/guide sizing (§B2) and the `developer`-carries-no-technical-standard finding (§B3).
+  definition, his genericity constraint, **his closing assignment clause (the operative test above, and
+  the order to review all 69 skills against it)**, and `harness-reviewer`'s reassessment and two addenda,
+  which are the source of the drift finding (§2), the `--squash` correction (§4), the `argument-hint`
+  property (§7), the standard/guide sizing (§B2) and the
+  `developer`-carries-no-technical-standard finding (§B3) — that last one **narrowed here on
+  measurement**: `developer` carries none, but the library is not wholly unassigned on the technical
+  axis, since `backend/coverage` is assigned to `quality-assurance`.
 - [ADR-0009](./0009-a-skill-description-is-a-trigger-not-a-title.md) — **cited, not amended.** It owns
   *how a skill is discovered*; this record owns *what a skill is*. Its standard was executed well —
   69/69 descriptions carry `Use when`, 67/69 carry `Not for` — and the only thing this record adds is
@@ -467,4 +603,5 @@ Stated so nobody reads the definition as having settled them:
   76,059 B; `grep -c squash agents/*.md`; `grep -rl 'Use when' --include=SKILL.md skills | wc -l` → 69
   and the same for `Not for` → 67; `grep -rlF 'Context: $ARGUMENTS' … | wc -l` → 67; and
   `printenv CLAUDE_PLUGIN_ROOT` → exit 1 **and** the `PATH` plugin-cache entry, both in the shell that
-  wrote this record.
+  wrote this record; and **the assignment sweep**, which is the measurement the operative test rests on —
+  the unassigned count (**62 of 69**) and the assigned seven, from the same loop run both ways.
