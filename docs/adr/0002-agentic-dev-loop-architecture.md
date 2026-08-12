@@ -1100,7 +1100,12 @@ change (`6696148`) amended **four** records — this ADR, ADR-0006, the ADR inde
 dispute and this is an **omission, not a policy**. The next reader should conclude that a sweep was
 missed once, not that records are written afterwards here.
 
-### Decision 1 — `harness-reviewer` exists, tier 1, advisory, pre-implementation
+### Decision 1 — `harness-reviewer` exists, tier 1, advisory, ~~pre-implementation~~
+
+**Struck 2026-08-12 by the eleventh amendment, below** — the owner reversed the pre-implementation-only
+constraint; `harness-reviewer` now also implements the harness changes it stress-tests, under
+[ADR-0015](./0015-harness-reviewer-implements-the-harness-it-reviews.md). The persona's existence, its
+tier, and every other clause in this Decision stand unchanged.
 
 The owner is the CEO of this initiative **and acts as its harness engineer**. `harness-reviewer` is
 their pair in the second role and only there: it is dispatched on a proposal about the machinery —
@@ -1257,6 +1262,38 @@ unless somebody says otherwise.
 Roster: **five** — `product-lead`, `tech-lead`, `harness-reviewer` (tier 1) · `developer` (tier 2) ·
 `quality-assurance` (tier 3). The count is unchanged from amendment #9 **and two of the five members
 are different**, which is the whole point of writing the names.
+
+## Amendment (2026-08-12, eleventh) — Decision 1's *"advisory, pre-implementation"* framing is struck; `harness-reviewer` gains an implementer role
+
+**Struck, not rewritten:** Decision 1's header above reads *"`harness-reviewer` exists, tier 1, advisory,
+pre-implementation"* and its body states *"It gates nothing. It does not review merge requests, does not
+merge, does not open work."* The **merge** and **MR-review** clauses stand verbatim — unchanged by this
+amendment, and re-verified as still true (`hooks/scripts/permission-guard.sh:136`'s catch-all still
+denies `gh pr merge` to this persona). The **pre-implementation** clause is struck: the owner reversed it
+on 2026-08-12, and `harness-reviewer` now also builds the harness changes it stress-tests, under
+[ADR-0015](./0015-harness-reviewer-implements-the-harness-it-reviews.md).
+
+**Why struck rather than silently widened:** amendment #10's own framing — *"a persona exists only where
+conflict is wanted"* widened, that same day, to *"a persona exists for one of four reasons"* — was struck
+in place rather than edited, on the stated rule that *"a record describing a control as stronger than it
+is [...] is the direction that fails open."* The same rule applies here in the opposite direction: leaving
+*"pre-implementation"* standing after the owner reversed it would describe the persona as **weaker** than
+it now is, which fails the reader just as surely as the earlier case failed the control.
+
+**What changed, precisely, per ADR-0015:** `agents/harness-reviewer.md:4` gains `Write, Edit`, mirroring
+`agents/tech-lead.md:4`'s unscoped grant; the mitigation is the same "cannot merge" floor already
+mechanical for this persona (rules 5d and 7b's catch-alls), not a new hook or a path-scoped deny — the
+latter was considered and rejected on the record already made at `agents/quality-assurance.md:100-102`
+(the `security`/`Edit(.claude/**)` failure). `harness-reviewer` also gains a durable, posted verdict
+(ADR-0006's shape) and a real Issue for its harness proposals (`loop`-typed), with `ready` on a
+`loop`-typed Issue now an **owner-only** transition — closing the question [ADR-0012](./0012-issue-type-
+is-the-routing-axis-and-is-exclusive.md) named and left open (*"whether `loop` items should ever reach
+`ready` autonomously the way `product` items can"*).
+
+**What is unchanged:** the roster count (still five), tier 1's membership, the merge authority (still
+`quality-assurance` alone, rule 7b), and the reason `harness-reviewer` was created in the first place —
+*"every scenario ships with how to verify it, or is labelled a hypothesis."* This amendment widens **what**
+the persona may do once its scenarios are accepted; it does not touch **how** it produces them.
 
 ## Consequences
 **Good**
