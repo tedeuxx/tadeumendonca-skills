@@ -158,7 +158,7 @@ exists, so a PR-head reference would have nothing to point at for Corollary 4's 
 
 **The gap this opens, named rather than assumed closed:** `harness-reviewer` "never posts" has been a
 documentation-only rule in its own brief, not guard-enforced. Re-verified —
-`hooks/scripts/permission-guard.sh:133-142`:
+`hooks/scripts/permission-guard.sh:133-143`:
 
 > `harness-reviewer` joined the roster on 2026-08-04 and needs no rule of its own. [...] It is NOT
 > denied `gh pr comment`, and that is deliberate rather than an oversight: 5e's argument is the
@@ -252,6 +252,14 @@ ship a persona whose own brief still describes a tool it now has as one it doesn
 - **The `permission-guard.sh` posting boundary** (Corollary 3) — named as an open question, no rule
   proposed, because no private-material class in `harness-reviewer`'s domain is known to exist today.
 - **`dev-loop/SKILL.md:43-53`'s rewrite** (Corollary 5) — named, not made.
+- **`skills/principles/loop-engineering/SKILL.md:78`'s rewrite.** It states, live and unstruck as of
+  this record: *"It is **advisory and pre-implementation**: it gates nothing, reviews no merge request,
+  merges nothing and opens no Issue."* — the exact phrase this ADR reverses. Named here rather than left
+  for a reader to find the drift themselves, the same discipline ADR-0014 owed `README.md:497-499`. Not
+  edited — outside `docs/adr/**`.
+- **`agents/quality-assurance.md:117`'s smaller instance of the same drift** (*"It posts no verdict, holds
+  no veto"*, said of `harness-reviewer`) — becomes false once Corollary 3 ships. Named alongside the
+  `:714-718` boundary-class edit already owed (Corollary 2), not a separate item.
 - **Whether `loop`-ready should also be floor-enforced**, beyond instruction (Corollary 4) — a
   which-layer question left to ADR-0008's own test, not resolved by fiat here.
 - **The actual `agents/harness-reviewer.md` frontmatter edit and the two sentence fixes** (Corollaries 1
@@ -325,9 +333,10 @@ ship a persona whose own brief still describes a tool it now has as one it doesn
 - `agents/quality-assurance.md:397-399,714-718` — re-verified: the significance criterion and
   boundary-class list Corollary 2 names the exact addition for.
 - `agents/tech-lead.md:1-4` — re-verified: the unscoped `Write, Edit` precedent Corollary 1 mirrors.
-- `agents/harness-reviewer.md:4,27-42,133-143,170` — re-verified: the current tool grant, the
-  scratch-file section, the permission-guard commentary quoted in Corollary 3, and the two execution
-  defects Corollary 6 names.
+- `agents/harness-reviewer.md:4,27-42,170` — re-verified: the current tool grant, the scratch-file
+  section, and the two execution defects Corollary 6 names. (The permission-guard commentary quoted in
+  Corollary 3 is a separate file — `hooks/scripts/permission-guard.sh:133-143`, cited on its own line
+  below — not this one; an earlier draft conflated the two.)
 - `hooks/hooks.json:3-5` — re-verified: `PreToolUse` registers on the `Bash` matcher only, the fact
   Corollary 1 relies on for "no new hook needed."
 - `hooks/scripts/permission-guard.sh:133-143` — re-verified verbatim: the comment explaining why
