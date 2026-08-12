@@ -129,9 +129,17 @@ dual-labelled issues in `-io` do today. Measured: neither existing profile build
 now — `product-lead` has no `Write` (`agents/product-lead.md:4` — `tools: Read, Grep, Glob, Bash`), and
 `developer` has `Write` and the glob (`apps/**` covers articles) but is never dispatched there, because
 `/autonomy-on`'s predicate excludes pure-`content` issues (the same predicate corollary 1 touches, on the
-other type). The consequence is measured on Issue
-[#161](https://github.com/tedeuxx/tadeumendonca-skills/issues/161): only **2 of 21** pure-`content` issues
-in `tadeumendonca-io` have ever closed, against **7 of 8** of the dual-labelled ones.
+other type). Re-derived directly, not relayed from #161 (its own body carries a different, older
+2026-08-07 measurement and neither of these figures):
+
+    gh issue list --repo tedeuxx/tadeumendonca-io --state all --label content --limit 40
+    → 21 total. 8 carry product+content: 6 CLOSED, 2 OPEN. 13 carry content alone: 2 CLOSED, 11 OPEN.
+
+**2 of 13** pure-`content` issues have ever closed, against **6 of 8** of the dual-labelled ones. The
+gap is real — 15% versus 75% — and it is the argument for this corollary; an earlier draft of this
+record stated it as "2 of 21" against "7 of 8", mixing the pure population's numerator with the total
+population's denominator. Corrected here rather than left to compound, since it is the exact class of
+error this repo's own gate exists to catch.
 
 **Decision (owner, overriding #161's own "wait for a measured delta before adding a persona"
 precondition):** a `writer` persona is created **now** to be the mechanical builder of `content`, tracked
@@ -166,7 +174,7 @@ a different decision than the routing-axis question this record makes.
   and `dev-loop/SKILL.md` were describing a `loop` lane that the label vocabulary could not produce; this
   decision closes that gap from the vocabulary side.
 - **A real builder exists for a real lane.** Corollary 3 turns `content`'s "nobody mechanically builds
-  this" (2 of 21 ever closed) into a routed, staffed path.
+  this" (2 of 13 pure-`content` issues ever closed) into a routed, staffed path.
 - **The label-decides-class decoration is named rather than left implicit** — corollary 2 is honest about
   the fact that exclusivity is being imposed on a vocabulary that was already leaking into a role
   (merge-class) it doesn't actually hold.
@@ -249,4 +257,8 @@ a different decision than the routing-axis question this record makes.
   skill holder with `Write, Edit`); `.claude/settings.json` (`gh issue edit`, `gh label` in `allow`);
   `hooks/scripts/permission-guard.sh` and `hooks/scripts/wip-guard.sh` (neither keys on either command);
   `dev-loop/SKILL.md:61-68,123-139,475,477`; `agents/quality-assurance.md:710-718`; `README.md:150-194`;
-  Issues #161 and #187 fetched directly (`gh issue view`).
+  Issues #161 and #187 fetched directly (`gh issue view`); and
+  `gh issue list --repo tedeuxx/tadeumendonca-io --state all --label content --limit 40` (21 total, 8
+  dual-labelled with 6 closed, 13 pure-`content` with 2 closed) — this last one corrected after the
+  gate on this PR caught an earlier draft mixing the pure population's numerator with the total
+  population's denominator ("2 of 21" against "7 of 8"); the corrected figures are 2 of 13 and 6 of 8.
