@@ -2102,10 +2102,11 @@ else
     # That distinction is the whole instruction: a start-of-buffer story makes re-escaping look
     # conditionally safe. It is not — escaped, this arm matches NOTHING ANYWHERE. Do not restore it.
     #
-    # Measured on the tree, not reasoned backwards from the manual — and the count is FIVE, not the
-    # four distinct family NAMES it is natural to eyeball (`developer.md` names four and cites one
-    # twice, `quality-assurance.md` names one):
+    # Measured on the tree, not reasoned backwards from the manual. The arm counts OCCURRENCES, so the
+    # figure is the enumeration and nothing else — every attempt to also explain it has been wrong:
     #     grep -rnoE '`[a-z0-9-]+` family' agents/   ->  5   (ugrep, BSD, and GNU with this pattern)
+    #       developer.md:158 `frontend` · :162 `infrastructure` · :165 `workflow` · :166 `backend`
+    #       quality-assurance.md:16 `backend`
     #     the same command with '\`…\`' under GNU    ->  0   (the runner, on every branch since #182)
     # So the anti-vacuity below fired on every branch from #182 onward — and #182 was MERGED with this
     # gate red. An assertion that cannot match is not a strict assertion, it is a dead one that
