@@ -98,7 +98,9 @@ Issue is more useful carrying both arguments than carrying a resolution nobody r
 - **A lead needs an owner decision to close its half** → no `ready`, and put the question in the body in
   the form the owner answers in one line.
 
-Also apply: **`product`** or **`content`**; **`reader-facing`** if a reader sees anything; **`blocked`**
+Also apply exactly one type, required: **`product`**, **`content`**, or **`loop`** — the three types are
+exclusive routing labels, not independently optional (ADR-0012). Also apply **`reader-facing`** if a
+reader sees anything; **`blocked`**
 only if something concrete is in the way, and **name what** — a `blocked` label whose blocker is not
 written down reads as *waiting on the owner* forever. (#166 carried one for over a week after its stated
 blocker had shipped.)
