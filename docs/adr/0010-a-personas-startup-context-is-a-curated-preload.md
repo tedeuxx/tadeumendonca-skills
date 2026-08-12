@@ -26,8 +26,29 @@ Three facts compose into one hole:
 1. **`Skill` is not grantable through `tools:`.** [#171](https://github.com/tedeuxx/tadeumendonca-skills/issues/171)
    added it to all five briefs believing it opened an on-demand channel; the grant was inert, and
    [#177](https://github.com/tedeuxx/tadeumendonca-skills/pull/177) removed it.
-2. **Nothing tells a persona where the library is on disk.** The plugin cache is readable by absolute
-   path, but `CLAUDE_PLUGIN_ROOT` is unset inside a subagent shell, so there is no path to read.
+2. ~~**Nothing tells a persona where the library is on disk.** The plugin cache is readable by absolute
+   path, but `CLAUDE_PLUGIN_ROOT` is unset inside a subagent shell, so there is no path to read.~~
+
+   **FALSIFIED — marker placed 2026-08-12; the measurement is
+   [ADR-0011](./0011-a-skill-exists-to-be-assigned-to-a-profile.md)'s, in its *Context*, where the
+   command and the date live.** The `CLAUDE_PLUGIN_ROOT` half stands. What does not is the inference:
+   **an unset environment variable is not the absence of a path.** Claude Code appends a
+   `…/plugins/cache/<marketplace>/<plugin>/<version>/bin` entry to `PATH`, from which the library root is
+   derivable, and a persona holding `Read` and `Bash` can read the library from disk. Struck rather than
+   deleted, per this practice's supersede-never-rewrite rule: this is the premise anyone who acted on
+   this record read, and it must stay legible.
+
+   **What that costs this record, said here so a reader does not have to infer it:** point 3 below —
+   and the *"every exclusion is a real deprivation, not a deferral"* sentence it carries — **rests on
+   this clause and is therefore contested, not current.** Under the corrected premise an exclusion is a
+   **deferral**. The difference in kind is not a formality and cuts the other way: the model must
+   *decide* to go and read, a dispatch that fails to decide fails silently, and **nothing in the tree
+   tells any persona where to look.**
+
+   **This is a marker, not the amendment.** ADR-0011 declined to write the amendment for reasons this
+   record accepts — one decision per ADR, and a correction authored from the citing side risks two
+   records disagreeing about one measurement. **The amendment is still owed to this record**, and it
+   will re-argue the decision outcome rather than only this sentence.
 3. **Therefore `skills:` is not an optimisation over reading on demand — it is the entire channel.**
 
 That third point is what makes this a decision rather than a preference. **Every exclusion from a
