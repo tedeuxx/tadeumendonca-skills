@@ -2,7 +2,7 @@
 loop gains `Write`/`Edit` under the same "cannot merge" mitigation that already holds `tech-lead`, and the
 proposal/build split becomes a real, owner-gated boundary rather than a convention
 
-- **Status:** proposed
+- **Status:** accepted
 - **Date:** 2026-08-12
 - **Deciders:** the owner (the reversal itself, and each `DECISION`/`DECISION REQUIRED` point below);
   written by `tech-lead`; pre-implementation stress test by `harness-reviewer` on this proposal, about

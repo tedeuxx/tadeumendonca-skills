@@ -1,6 +1,6 @@
 # 0013. The orchestrator is a named role — one term, listed duties, a stated boundary — not a persona
 
-- **Status:** proposed
+- **Status:** accepted
 - **Date:** 2026-08-12
 - **Deciders:** owner (ratifies) · tech-lead (writes the record)
 - **Supersedes / superseded by:** —
