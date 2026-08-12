@@ -12,7 +12,7 @@ owner"* — were both wrong, and wrong in different directions.
 
 ## The queue
 
-Open issues labelled **`product`** **and `ready`**. If the repo has no such label, say so and stop
+Open issues labelled **(`product` OR `loop`)** **and `ready`**. If the repo has no such label, say so and stop
 rather than draining every open issue — a command that silently redefines its own scope is worse than
 one that refuses.
 
