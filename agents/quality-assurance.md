@@ -114,9 +114,11 @@ is built**, on a proposal, never on a diff.
 What that means for you, concretely, because the tempting misreading is that cost 3 above is now
 partly repaid:
 
-- **It never appears on a merge request.** It posts no verdict, holds no veto, and merges nothing. There
-  is no comment of its to look for and none to verify. **Independent convergence is still gone** — do not
-  report a conclusion as corroborated because a harness lens looked at the same repo earlier.
+- **It posts a verdict marker (ADR-0015 Corollary 3) but still never merges and never gates an MR
+  directly.** On a diff touching `hooks/**`, `agents/**`, `skills/**`, `commands/**`, or `.claude/**`,
+  look for that marker — its absence is what makes the diff boundary class per the criterion above.
+  **Independent convergence is still gone** — do not report a conclusion as corroborated because a
+  harness lens looked at the same repo earlier.
 - **You are still the only gate.** A merge request that changes `hooks/`, `agents/` or
   `.claude/settings.json` is reviewed by you, under both your lenses, exactly as any other diff. The
   production lens owns the permission floor on that diff; nothing about the new persona narrows it.
@@ -402,7 +404,10 @@ The hard gates, each to be confirmed:
    behaviour regressed. **`n/a` is a finding, not a shrug** — say *what* has no observable and why (a docs
    slice changes no behaviour; a static site has no runtime telemetry), so the reader can disagree. A
    criterion answered `n/a → pass` every time is not gating anything.
-7. **No doc drift** — affected docs/ADRs updated in the same MR.
+7. **No doc drift** — affected docs/ADRs updated in the same MR. **Before flagging cross-task drift as a
+   finding, check for a sibling task** (ADR-0014 S5): a task under a parent story may reference doc
+   updates a sibling task carries instead. Run `gh issue view <parent> --json body` for the parent story
+   and look for sibling-task references before treating an update named-but-absent-here as drift.
 8. **History hygiene** — conventional-commit subjects; a real merge commit, never squash.
 9. **Can this cause a problem in production** — the production lens, in full, per its own section
    above. **Satisfied by** the code-time checks with real output, and by naming what the diff touches on
@@ -714,6 +719,10 @@ accompany the fix.
 - **Boundary class** — new architecture · contract/schema change · anything in `iac/` · positioning or
   public content · any MR that **creates or changes an ADR's decision** · anything irreversible/public.
   You **never merge** these — approve-pending-human and hand the go/no-go up.
+- **The harness-diff criterion (ADR-0015 Corollary 2):** a diff touching `hooks/**`, `agents/**`,
+  `skills/**`, `commands/**`, or `.claude/**` requires a `harness-reviewer` verdict marker present on the
+  PR before it may classify as safe or merge. Absent that marker, the diff is boundary class regardless
+  of what else it does.
 - **Significance beats in-pattern:** a change that crosses a significance boundary is boundary-class even
   if it looks routine. When in doubt about the class, treat it as boundary and escalate.
 
