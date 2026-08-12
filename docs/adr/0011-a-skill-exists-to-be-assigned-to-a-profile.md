@@ -85,10 +85,13 @@ entry Claude Code appends to `PATH`, and a persona holding `Read` and `Bash` can
 disk. That makes every exclusion under ADR-0010 a **deferral** rather than the *"real deprivation"* that
 record calls it. **Why no amendment here:** it is a correction to that record's premise, not part of this
 decision; one decision per ADR; and `harness-reviewer` is mid-audit on exactly that clause, so a
-correction written from this side risks two records disagreeing about the same measurement. **ADR-0010
-owes an amendment on this clause and this paragraph is the pointer that stops the false premise reading
-as current.** Note the difference in kind before anyone treats it as a substitute for preload: **the
-model must decide to go and read, and a dispatch that fails to decide fails silently.**
+correction written from this side risks two records disagreeing about the same measurement. **What stops
+the false premise reading as current is a falsification marker placed IN ADR-0010, at the clause itself**
+— its Context item 2, struck, linked forward here, and naming which of its own conclusions the
+falsification makes contested. This paragraph is not that pointer and was published claiming to be one;
+it is the measurement the marker points at. **The full amendment is still owed to ADR-0010, and a marker
+is not an amendment.** Note the difference in kind before anyone treats disk access as a substitute for
+preload: **the model must decide to go and read, and a dispatch that fails to decide fails silently.**
 
 ## Decision drivers
 
