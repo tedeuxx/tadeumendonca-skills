@@ -494,9 +494,20 @@ is the one category where an agent amending the record would be amending its own
 
 ## The branch model the loop runs on
 
-**One user story, one branch, one pull request.** The story's tasks are checkboxes on its issue, not
-branches — so the branch layer has exactly one level, and the pull request the gate reviews is the unit
-that has product meaning.
+**Two levels: one branch per story, one branch per task.** Per [ADR-0014](./docs/adr/0014-a-task-is-an-issue-child-not-a-checkbox.md),
+a task is an Issue **child** — its own Issue, `Parent: #N` in its body, its own branch, its own pull
+request — not a checkbox on the story's issue. Each level is independently reviewable: the pull request
+the gate reviews is the unit that has product meaning, at whichever level it sits, story or task.
+`gh issue develop <n>` links the branch to whichever issue it is run against, story or task, the same
+way — GitHub holds that link as structured data rather than as a naming convention (see below).
+
+**Sibling tasks touching the same file, as this repo's mechanism stands today:** `wip-guard.sh`'s overlap
+rule denies a new PR that touches a file an open PR by the same author already has open, with no
+parent-story carve-out — so two sibling tasks under one story that would both touch the same file are
+blocked until that exemption is rebuilt (tracked as #195, not yet merged as of this writing). Read
+`hooks/scripts/wip-guard.sh`'s overlap logic directly for the mechanism as it currently stands rather than
+trusting this paragraph's date — the restriction lifts the moment #195 lands, and this text is not
+guaranteed to be updated at that instant.
 
 ```
 feat/<issue>-<slug>     a user story
