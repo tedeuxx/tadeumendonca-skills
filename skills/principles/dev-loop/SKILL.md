@@ -60,10 +60,14 @@ dispatch, `harness-reviewer`'s own included — which is what keeps the proposal
 dispatch separate rather than one session doing both unread. What the ADR does **not** change: rule 7b's
 catch-all still denies `harness-reviewer` `gh pr merge` (it holds no merge authority, before or after),
 and it still reviews no other persona's merge request — its gate runs entirely through the verdict marker
-`quality-assurance` reads, never through merging or MR review. Whether the persona can also *post* that
-verdict and hold `Write`/`Edit` to build against it is the capability half of the same ADR; check
-`agents/harness-reviewer.md:4`'s current `tools:` line rather than assuming either state from this text —
-this correction holds regardless of whether that grant has landed yet.
+`quality-assurance` reads, never through merging or MR review. Two different capabilities decide whether
+that marker can exist at all, and they are gated differently — do not check one as a proxy for the
+other. **Posting the marker** (ADR-0015 Corollary 3) is a `Bash` call — `gh issue comment`/`gh pr
+comment` — this persona was never denied; check for the marker string itself,
+`grep -n "harness-reviewer-verdict" agents/harness-reviewer.md`. **Building against an accepted
+proposal** (Corollary 1) needs `Write`/`Edit`; check `agents/harness-reviewer.md:4`'s `tools:` line
+separately. Neither check substitutes for the other, and this correction holds regardless of which, if
+either, has landed.
 
 *Where the two chains meet.* A change to *how work is decided* — this skill, the states table, an ADR
 that governs the loop — is still a **boundary** decision for the owner. `harness-reviewer` is who the
