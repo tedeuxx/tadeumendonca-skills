@@ -2085,6 +2085,16 @@ else
 
     # THE FAMILY FORM — `` the `frontend` family ``, which replaced `/frontend/*` when the families
     # stopped being directories. It promises the family EXISTS, i.e. that some skill claims it.
+    #
+    # THE BACKTICK IS NOT ESCAPED, AND THAT IS THE FIX (#182 shipped it escaped and this arm has been
+    # INERT ever since). A backtick is not a metacharacter in ERE, so `\`` is an UNDEFINED escape and
+    # implementations disagree: ugrep and BSD grep read it as a literal backtick and the arm works,
+    # GNU grep — the runner's — gives `\`` the start-of-BUFFER meaning, so the pattern demands a
+    # backtick at byte 0 of the file and can never match mid-line. Measured, not reasoned backwards
+    # from the manual: the same tree that yields four matches locally yielded ZERO on the runner, so
+    # the anti-vacuity below fired on every branch from #182 onward — and #182 was MERGED with this
+    # gate red. An assertion that cannot match is not a strict assertion, it is a dead one that
+    # happens to be loud. Do not "fix" a future failure here by re-escaping it.
     while IFS= read -r hit; do
       [ -z "$hit" ] && continue
       lineno="${hit%%:*}"
@@ -2095,7 +2105,7 @@ else
         *) brief_problems="$brief_problems
     $brel:$lineno — names the '$fam' family, and no skill's frontmatter claims it" ;;
       esac
-    done <<< "$(grep -noE '\`[a-z0-9-]+\` family' "$brief" || true)"
+    done <<< "$(grep -noE '`[a-z0-9-]+` family' "$brief" || true)"
   done
 
   if [ "$brief_pointers" -eq 0 ]; then
