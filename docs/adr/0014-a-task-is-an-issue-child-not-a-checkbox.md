@@ -182,6 +182,21 @@ brief should name the mitigation option of checking `gh issue view <parent> --js
 references before flagging cross-task drift as a finding against the task under review. Not designed
 further here.
 
+### `README.md` states the retired model as live prose, and this record owes it a correction
+
+`README.md:497-499` reads, unstruck, as of this record: *"**One user story, one branch, one pull
+request.** The story's tasks are checkboxes on its issue, not branches — so the branch layer has exactly
+one level, and the pull request the gate reviews is the unit that has product meaning."* This decision
+makes that sentence false the moment it is ratified. ADR-0012 named the identical class of owed
+`README.md` correction explicitly rather than leaving a reader to find the drift themselves
+(`docs/adr/0012-issue-type-is-the-routing-axis-and-is-exclusive.md`, "What this record does NOT decide");
+this record follows that precedent rather than breaking it silently.
+
+**Consequent work, out of scope here** (`README.md` is outside this ADR's `docs/adr/**` scope): update
+`README.md:497-499` to state the branch layer now has two levels — one branch per story, one branch per
+task, each with its own PR — and that the sibling-file exemption is not yet rebuilt (S1), so two sibling
+tasks touching the same file are blocked until it is. Not edited here.
+
 ## Consequences
 
 **Good**
@@ -210,6 +225,8 @@ further here.
 - **This record creates real branch/PR volume where a checkbox model created none** — every task is now a
   full slice with its own review overhead, which is a heavier mechanism than a checkbox, chosen because
   the checkbox model measurably never got used rather than because it is cheaper.
+- **`README.md:497-499` states the retired checkbox model as live prose the moment this ADR is ratified**
+  — named as consequent work, not fixed here, following ADR-0012's own precedent for the same class of gap.
 
 ## Links
 
@@ -225,6 +242,8 @@ further here.
 - [ADR-0002](./0002-agentic-dev-loop-architecture.md) (tenth amendment) — cited for *reconciliation cost
   is paid within a tier*, the driver behind S3's inheritance ruling.
 - `agents/developer.md:111-141` — the task-filing rule this record makes literal.
+- `README.md:497-499` — states the retired checkbox model as live prose; the correction it owes is named,
+  not made, per this repo's own citation discipline.
 - `hooks/scripts/wip-guard.sh:55-101` (struck, retired 2026-08-04) — the retired two-level/checkbox
   design and its four documented defects, cited as lessons for the exemption's eventual rebuild, not as
   something to revert.
