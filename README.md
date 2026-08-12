@@ -193,7 +193,7 @@ flowchart TB
   TLL --> ORCH
 
   ORCH -->|"product · content"| DEV
-  ORCH -->|"loop: no story, no gate"| HRB
+  ORCH -->|"loop: owner-gated ready, no tier 3"| HRB
 
   DEV --> MR
   MR -->|"via orchestrator"| QA
@@ -215,10 +215,14 @@ blocking question, and receives every relay through the orchestrator — an inte
 continuously through a story's whole build, not only at the two endpoints (`/new-issue` and the
 irreversible act) the earlier diagram showed.
 
-**`loop` is a shorter path, and the picture now shows why instead of only saying so.** `product` and
-`content` both produce a `US` (a ready story) and both build through `developer`; `loop` produces neither
-— it skips `US` and `AO` entirely, and its own tier 2 is `harness-reviewer`, building what it just
-stress-tested. The missing tier 3 is a structural absence rather than a sentence under the figure:
+**`loop` is a shorter path, but not for the reason an earlier draft of this figure claimed.** It is not
+gate-free at intake — a `loop`-typed Issue still needs `ready` before anything builds against it, and
+`/autonomy-on`'s own queue predicate is `(product OR loop) AND ready` ([ADR-0012](./docs/adr/0012-issue-type-is-the-routing-axis-and-is-exclusive.md)),
+so it can be drained the same mechanical way a `product` story can. What is actually different: `ready`
+on a `loop` Issue is an **owner-only** transition ([ADR-0015](./docs/adr/0015-harness-reviewer-implements-the-harness-it-reviews.md),
+Corollary 4) rather than the two leads reconciling between themselves, and its own tier 2 is
+`harness-reviewer`, building what it just stress-tested. The missing tier 3 is a structural absence
+rather than a sentence under the figure:
 `HRB --> OUT` is the only build-to-owner edge that never touches `MR`, `QA`, or `M`.
 
 **No persona talks to another persona** — every dispatch still goes through the orchestrator; what changed
