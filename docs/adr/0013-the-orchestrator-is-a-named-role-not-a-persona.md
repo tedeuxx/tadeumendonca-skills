@@ -15,9 +15,11 @@ as a node in `README.md`'s diagram (`ORCH["ORCHESTRATOR — the main session<br/
 persona · commits · pushes<br/>never merges · never decides the irreversible"]`, `README.md:150`), but it
 is not defined anywhere as a role: no duty list, no boundary statement outside that one diagram label, and
 no single term. The tree currently uses **five** spellings for the same actor, each still live:
-`orchestrator` (`README.md:150,422,473,991` — the diagram itself and prose around it; also used by
-`ADR-0012:39`), `main session` (`README.md:150`, inside the same diagram node), `main loop`
-(`README.md:23,991`, `CLAUDE.md`'s "five personas" section by implication), `main agent`
+`orchestrator` (`README.md:33,150,182,193,197,224,248,254,256` — the diagram itself and prose around it;
+also used by `ADR-0012:39`), `main session` (`README.md:150,670`, inside the same diagram node and again
+naming the actor `SessionStart`'s injected context reaches), `main loop`
+(`docs/adr/0002-agentic-dev-loop-architecture.md:23,991`, `hooks/scripts/permission-guard.sh:124`,
+`permission-guard.test.sh` throughout, `skills/principles/dev-loop/SKILL.md:266,294`), `main agent`
 (`hooks/scripts/permission-guard.sh:118,931`, `permission-guard.test.sh` throughout, `ADR-0002:812`), and
 `invoking context` (`docs/dev-loop-design.md`, `ADR-0006`, `ADR-0002`, `agents/quality-assurance.md`,
 `agents/developer.md`, `agents/product-lead.md`). Five names for one actor is the kind of drift ADR-0009
@@ -29,9 +31,11 @@ Two further problems compound the naming gap:
 1. **The actor already performs duties nowhere listed together.** It applies the `ready` label that makes
    an Issue executable (`agents/tech-lead.md`, `agents/product-lead.md`), it applies the ADR-0012 routing
    label (`product`/`content`/`loop`) that decides which review path an Issue takes, it commits and
-   pushes on behalf of every dispatch, and — per `docs/dev-loop-design.md:298` — it has, at least once,
-   decided **not** to dispatch a review specialist because "the invoking context already held the
-   background." None of that is written down as a duty list; it is inferred from scattered mentions.
+   pushes on behalf of every dispatch, and — per ADR-0006's own measured evidence
+   (`docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md:523`, citing `-io`#338) — it has, at
+   least once, decided **not** to dispatch a review lens although the trigger for it had already fired:
+   *"the trigger fires and it has NOT been dispatched."* None of that is written down as a duty list; it
+   is inferred from scattered mentions.
 2. **The one place a boundary is stated (`README.md:150`) is not the orchestrator's own loaded context.**
    `hooks/scripts/inventory-counts.test.sh:1397` states the general rule this record must obey: *"A rule
    that lives only in CLAUDE.md does not reach a subagent: CLAUDE.md is the MAIN agent's context, and a
@@ -98,8 +102,9 @@ ever targets it.
   description (`agents/tech-lead.md`, `agents/product-lead.md`).
 - Applies the ADR-0012 routing label (`product`/`content`/`loop`) that determines an Issue's review path.
 - Decides, in the moment, whether a given review specialist needs dispatching at all — a real judgment
-  call already exercised at least once (`docs/dev-loop-design.md:298`), with no owner sign-off and no gate
-  on it today.
+  call already exercised at least once, measured on `-io`#338: the copy-lens trigger fired and the lens
+  was not dispatched at all (`docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md:523`),
+  with no owner sign-off and no gate on it today.
 
 **Boundary — stated precisely, in two parts, because it is not one uniform thing:**
 
@@ -130,15 +135,17 @@ ever targets it.
     duty is the same discipline ADR-0008 established for a control claimed stronger than it is: the
     failure that matters is the one nobody notices, and a record is the place that notices get written
     down.
-  - **The dispatch-omission judgment call.** Deciding not to dispatch a review specialist
-    (`docs/dev-loop-design.md:298`) is a different failure shape than "decides the irreversible" — it is
-    an **invisible omission**: `README.md:259` already names the consequence generally ("an undispatched
-    lens fails silently and looks identical to a clean one"), but the existing one-line boundary
-    (`README.md:150`) is scoped to deploy-class acts and does not cover it. This record names the
-    dispatch-omission judgment as the boundary's blind spot explicitly, rather than folding it silently
-    into "never decides the irreversible" as if that sentence already covered it — it does not, because
-    an omission is not a decision on an irreversible act; it is the absence of an act nobody can see
-    happened or didn't.
+  - **The dispatch-omission judgment call.** Deciding not to dispatch a review specialist is a different
+    failure shape than "decides the irreversible" — it is an **invisible omission**, and it is not a
+    hypothetical one: ADR-0006's own measurement of `-io`#338 records exactly this — the copy-lens
+    trigger fired and *"the trigger fires and it has NOT been dispatched"*
+    (`docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md:523`). `README.md:259` already
+    names the consequence generally ("an undispatched lens fails silently and looks identical to a clean
+    one"), but the existing one-line boundary (`README.md:150`) is scoped to deploy-class acts and does
+    not cover it. This record names the dispatch-omission judgment as the boundary's blind spot
+    explicitly, rather than folding it silently into "never decides the irreversible" as if that sentence
+    already covered it — it does not, because an omission is not a decision on an irreversible act; it is
+    the absence of an act nobody can see happened or didn't.
 
 **Naming safety, verified rather than assumed:** `grep -n "invoking context\|main loop\|main session\|
 main agent\|orchestrator" hooks/scripts/inventory-counts.test.sh` returns nothing — that suite asserts
@@ -211,6 +218,9 @@ way ADR-0004 and ADR-0005 book obligations onto later work rather than dischargi
 - [ADR-0002](./0002-agentic-dev-loop-architecture.md) — cited, not amended: the actor this record names
   is the one ADR-0002 calls "the main loop" (`ADR-0002:812` uses "main agent"); this record narrows
   nothing ADR-0002 decided, it converges the vocabulary ADR-0002 helped originate.
+- [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md) — cited: its own measured
+  evidence (`-io`#338, `:522`) is the real instance — not a hypothetical — of the orchestrator omitting a
+  dispatch that this record's fifth duty and boundary discussion rely on.
 - [ADR-0008](./0008-which-layer-carries-a-control.md) — cited: the discipline of stating what a layer
   actually enforces versus what it is assumed to enforce, applied here to the orchestrator's boundary.
 - [ADR-0010](./0010-a-personas-startup-context-is-a-curated-preload.md) and
@@ -219,9 +229,9 @@ way ADR-0004 and ADR-0005 book obligations onto later work rather than dischargi
 - [ADR-0012](./0012-issue-type-is-the-routing-axis-and-is-exclusive.md) — cited: already names the
   ungated-relabeling question as open, and already uses "orchestrator" in prose (`:39`); this record does
   not re-decide either point.
-- `README.md:150,177,193,259` · `docs/dev-loop-design.md:298` · `hooks/scripts/permission-guard.sh:118`
-  · `hooks/scripts/permission-guard.test.sh:143,221-228,336` · `.claude/settings.json:51,54` ·
-  `hooks/scripts/inventory-counts.test.sh:1397` — the measurements this record is built on, each cited at
-  the site it was verified.
+- `README.md:150,177,193,259` · `docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md:523`
+  · `hooks/scripts/permission-guard.sh:118` · `hooks/scripts/permission-guard.test.sh:143,221-228,336` ·
+  `.claude/settings.json:51,54` · `hooks/scripts/inventory-counts.test.sh:1397` — the measurements this
+  record is built on, each cited at the site it was verified.
 - Driven by a `harness-reviewer` pre-implementation stress test (six scenarios; no Issue — filed and
   closed within tier 1 as a methodology-library decision).
