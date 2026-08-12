@@ -2085,6 +2085,32 @@ else
 
     # THE FAMILY FORM — `` the `frontend` family ``, which replaced `/frontend/*` when the families
     # stopped being directories. It promises the family EXISTS, i.e. that some skill claims it.
+    #
+    # THE BACKTICK IS NOT ESCAPED, AND THAT IS THE FIX (#182 shipped it escaped and this arm has been
+    # INERT ever since). A backtick is not a metacharacter in ERE, so `\`` is an UNDEFINED escape and
+    # implementations disagree: ugrep and BSD grep read it as a literal backtick and the arm works.
+    # GNU grep — the runner's — reads it as a ZERO-WIDTH ANCHOR, and the two things a reader assumes
+    # about that are both false, which is why they are written down rather than summarised:
+    #
+    #   it does NOT demand a backtick, and it is NOT byte 0 of the FILE — it anchors per LINE:
+    #     printf 'aaa\nbbb `frontend` family\n' | ggrep -noE '\`[a-z0-9-]+'   ->  1:aaa   2:bbb
+    #                                                        ^ matched with no backtick present
+    #   and the pattern carries TWO of them, the second AFTER [a-z0-9-]+ has consumed input, so it is
+    #   unsatisfiable at any position, including a line that begins with a backtick:
+    #     printf '`frontend` family here\n' | ggrep -c -oE '\`[a-z0-9-]+\`'   ->  0
+    #
+    # That distinction is the whole instruction: a start-of-buffer story makes re-escaping look
+    # conditionally safe. It is not — escaped, this arm matches NOTHING ANYWHERE. Do not restore it.
+    #
+    # Measured on the tree, not reasoned backwards from the manual. The arm counts OCCURRENCES, so the
+    # figure is the enumeration and nothing else — every attempt to also explain it has been wrong:
+    #     grep -rnoE '`[a-z0-9-]+` family' agents/   ->  5   (ugrep, BSD, and GNU with this pattern)
+    #       developer.md:158 `frontend` · :162 `infrastructure` · :165 `workflow` · :166 `backend`
+    #       quality-assurance.md:16 `backend`
+    #     the same command with '\`…\`' under GNU    ->  0   (the runner, on every branch since #182)
+    # So the anti-vacuity below fired on every branch from #182 onward — and #182 was MERGED with this
+    # gate red. An assertion that cannot match is not a strict assertion, it is a dead one that
+    # happens to be loud.
     while IFS= read -r hit; do
       [ -z "$hit" ] && continue
       lineno="${hit%%:*}"
@@ -2095,7 +2121,7 @@ else
         *) brief_problems="$brief_problems
     $brel:$lineno — names the '$fam' family, and no skill's frontmatter claims it" ;;
       esac
-    done <<< "$(grep -noE '\`[a-z0-9-]+\` family' "$brief" || true)"
+    done <<< "$(grep -noE '`[a-z0-9-]+` family' "$brief" || true)"
   done
 
   if [ "$brief_pointers" -eq 0 ]; then
