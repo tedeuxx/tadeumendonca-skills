@@ -11,6 +11,13 @@
 # Read it before proposing branch-level decomposition again: it was tried, it was correct, and
 # it came out for a reason that is a measurement rather than an opinion.
 #
+# **#195 (2026-08-12): the SIBLING-TASK EXEMPTION named as consequent work in ADR-0014 S1 is now
+# implemented** — see "SIBLING-TASK EXEMPTION" near the overlap loop below. This is NOT the
+# retired two-level story model above: it does not diverge branches, does not count stories, and
+# reuses none of that design. It answers one narrower question at the point of overlap — do the
+# two colliding PRs' source Issues share a `Parent: #N` — and is built informed by, but is new
+# code against, the four defects that model's retirement documents.
+#
 # It used to count: one open PR per repo, full stop. That was a proxy for the thing
 # actually worth preventing — stacked PRs that go stale and turn their merge into a
 # conflict resolution — and it was a bad one. It blocked disjoint slices, which is the
@@ -213,6 +220,66 @@ mine="$(git diff --name-only "$merge_base" HEAD 2>/dev/null || true)"
 # blocking. Either way there is nothing to intersect.
 [ -z "$mine" ] && exit 0
 
+# ── SIBLING-TASK EXEMPTION (ADR-0014 S1) ─────────────────────────────────────────────
+#
+# Two sibling task PRs under the SAME parent story are permitted to overlap: they are
+# the decomposition the leads already ratified once, not a stale queue about to conflict.
+# Everything else in this file's overlap rule stays exactly as it was — this only turns
+# an otherwise-denied collision into an allow when both sides trace to the same parent.
+#
+# "Same parent" per ADR-0014 / agents/developer.md's task-filing rule: an Issue's body
+# carries a `Parent: #N` line. Two issues are siblings if they name the same #N, or if
+# one OF THEM IS #N and the other names it. Reduced to one comparison: each side's
+# ROOT is its own Parent if it has one, else its own issue number — two sides are
+# siblings iff both roots are non-empty and equal.
+#
+# The issue number for a branch is read off this repo's own naming convention
+# (`<lane>/issue-<n>-<slug>`), which is the only signal a bare git command carries —
+# there is no CLI flag for "which issue is this". Not a regex hazard: only digits are
+# ever extracted (`grep -oE '[0-9]+'`), never interpolated back into a pattern (defect 2).
+#
+# Every field read off `gh` JSON defaults explicitly — `// ""` on the body, and the
+# per-PR `headRefName` is read with `select(...) | .headRefName // ""` rather than a
+# positional zip of two separate arrays, so a PR entry missing the field (or sitting
+# first in a mixed list) degrades to "no exemption for this PR", never to a misaligned
+# match against a DIFFERENT PR's branch (defect 3/4's shape).
+#
+# Lazy and memoized: `gh issue view` only runs when a real file overlap was already
+# found for that PR, and MY side is resolved at most once regardless of how many open
+# PRs are in the loop.
+issue_of_branch() {
+  # `head -1`: a crafted or coincidental branch name can carry more than one
+  # `issue-<n>` substring (e.g. a slug mentioning another issue number); without this,
+  # `grep -oE` returns every match and the multi-line result breaks the single-issue
+  # `gh issue view "$n"` call downstream. The FIRST match is the one this repo's own
+  # naming convention (`<lane>/issue-<n>-<slug>`) always places right after the lane.
+  printf '%s' "$1" | grep -oE 'issue-[0-9]+' | head -1 | grep -oE '[0-9]+' || true
+}
+
+# parent_of <issue-number> -> the number after `Parent: #` in that issue's body, or
+# empty. Fails open (empty) on any lookup error — an exemption we cannot confirm is
+# simply not granted, which leaves the pre-existing deny-on-overlap behavior intact
+# rather than opening a new gap.
+parent_of() {
+  local n="$1" body
+  [ -z "$n" ] && return 0
+  body="$(gh issue view "$n" ${repo:+-R "$repo"} --json body -q '.body // ""' 2>/dev/null || true)"
+  [ -z "$body" ] && return 0
+  printf '%s' "$body" | grep -oE 'Parent:[[:space:]]*#[0-9]+' | head -1 | grep -oE '[0-9]+' || true
+}
+
+my_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+my_issue="$(issue_of_branch "$my_branch")"
+my_root=""
+my_root_resolved=0
+resolve_my_root() {
+  [ "$my_root_resolved" = 1 ] && return 0
+  my_root_resolved=1
+  [ -z "$my_issue" ] && return 0
+  my_parent="$(parent_of "$my_issue")"
+  my_root="${my_parent:-$my_issue}"
+}
+
 # Intersect against each open PR in turn, so the denial can name WHICH PR and WHICH
 # files — a denial that does not say what to look at is a denial the author works
 # around rather than acts on.
@@ -226,6 +293,19 @@ for pr in $(printf '%s' "$open_prs" | jq -r '.[].number' 2>/dev/null || true); d
   # defect 2 in the retired record above is the same shape, and it produced both a bypass and
   # an accidental mis-match.
   shared="$(printf '%s\n' "$mine" | grep -Fxf <(printf '%s\n' "$theirs") 2>/dev/null | tr '\n' ' ' || true)"
+  if [ -n "$shared" ]; then
+    resolve_my_root
+    if [ -n "$my_root" ]; then
+      their_head="$(printf '%s' "$open_prs" | jq -r --arg n "$pr" '.[] | select((.number|tostring)==$n) | .headRefName // ""' 2>/dev/null || true)"
+      their_issue="$(issue_of_branch "$their_head")"
+      their_root=""
+      if [ -n "$their_issue" ]; then
+        their_parent="$(parent_of "$their_issue")"
+        their_root="${their_parent:-$their_issue}"
+      fi
+      [ -n "$their_root" ] && [ "$their_root" = "$my_root" ] && shared=""
+    fi
+  fi
   [ -n "$shared" ] && collisions="${collisions}#${pr}: ${shared}; "
 done
 
