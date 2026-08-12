@@ -167,8 +167,8 @@ flowchart TB
 
   MR{{"MERGE REQUEST · ONE per story, to main"}}
 
-  subgraph T3["TIER 3 · GATE — fresh context, no authorship bias · loop has none"]
-    QA["quality-assurance<br/>two lenses in one pass"]
+  subgraph T3["TIER 3 · GATE — fresh context, no authorship bias"]
+    QA["quality-assurance<br/>product · content — two lenses in one pass<br/>loop — checks the harness-reviewer verdict marker"]
   end
 
   M{{"merge to main = the deploy<br/>a real merge commit, never a squash"}}
@@ -193,13 +193,13 @@ flowchart TB
   TLL --> ORCH
 
   ORCH -->|"product · content"| DEV
-  ORCH -->|"loop: owner-gated ready, no tier 3"| HRB
+  ORCH -->|"loop: owner-gated ready"| HRB
 
   DEV --> MR
+  HRB --> MR
   MR -->|"via orchestrator"| QA
   QA --> M
   M --> OUT
-  HRB --> OUT
 ```
 
 **Three lanes, one hub — not one box per tier.** Tier 1's composition is not a single box wearing three
@@ -221,9 +221,13 @@ gate-free at intake — a `loop`-typed Issue still needs `ready` before anything
 so it can be drained the same mechanical way a `product` story can. What is actually different: `ready`
 on a `loop` Issue is an **owner-only** transition ([ADR-0015](./docs/adr/0015-harness-reviewer-implements-the-harness-it-reviews.md),
 Corollary 4) rather than the two leads reconciling between themselves, and its own tier 2 is
-`harness-reviewer`, building what it just stress-tested. The missing tier 3 is a structural absence
-rather than a sentence under the figure:
-`HRB --> OUT` is the only build-to-owner edge that never touches `MR`, `QA`, or `M`.
+`harness-reviewer`, building what it just stress-tested. **Tier 3 is not skipped — its lens is.** Every
+lane, `loop` included, still merges through `MR --> QA --> M`: rule 7b denies `gh pr merge` to every
+`agent_type` but `quality-assurance`, unconditionally, so a harness-reviewer-built change is no exception.
+What differs is what `quality-assurance` checks there — `agents/quality-assurance.md`'s harness-diff
+criterion (ADR-0015 Corollary 2) means a diff touching `hooks/**`, `agents/**`, `skills/**`, `commands/**`
+or `.claude/**` is gated on the presence of a `harness-reviewer` verdict marker, not on the full two-lens
+Definition of Done — the DoD review already happened, in tier 1, before the build.
 
 **No persona talks to another persona** — every dispatch still goes through the orchestrator; what changed
 is that the edge is now drawn for its full span (including the owner's side of it) rather than once for
