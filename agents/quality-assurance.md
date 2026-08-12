@@ -114,11 +114,15 @@ is built**, on a proposal, never on a diff.
 What that means for you, concretely, because the tempting misreading is that cost 3 above is now
 partly repaid:
 
-- **It posts a verdict marker (ADR-0015 Corollary 3) but still never merges and never gates an MR
-  directly.** On a diff touching `hooks/**`, `agents/**`, `skills/**`, `commands/**`, or `.claude/**`,
-  look for that marker — its absence is what makes the diff boundary class per the criterion above.
-  **Independent convergence is still gone** — do not report a conclusion as corroborated because a
-  harness lens looked at the same repo earlier.
+- **ADR-0015 Corollary 3 decides `harness-reviewer` will post a durable verdict marker**
+  (`<!-- harness-reviewer-verdict: ... -->`), but that capability is **not implemented as of this
+  writing** — if `agents/harness-reviewer.md:4` still reads `tools: Read, Grep, Glob, Bash` (no
+  `Write`/`Edit`), the marker mechanism has not landed, and no diff touching `hooks/**`, `agents/**`,
+  `skills/**`, `commands/**`, or `.claude/**` can carry it. Until it does, the boundary-class criterion
+  above makes every such diff boundary class, unconditionally — not merely "when the marker is absent."
+  Check `agents/harness-reviewer.md:4` before trusting either reading. **Independent convergence is
+  still gone** — do not report a conclusion as corroborated because a harness lens looked at the same
+  repo earlier.
 - **You are still the only gate.** A merge request that changes `hooks/`, `agents/` or
   `.claude/settings.json` is reviewed by you, under both your lenses, exactly as any other diff. The
   production lens owns the permission floor on that diff; nothing about the new persona narrows it.
