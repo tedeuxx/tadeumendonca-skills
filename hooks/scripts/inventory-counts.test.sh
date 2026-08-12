@@ -2088,13 +2088,28 @@ else
     #
     # THE BACKTICK IS NOT ESCAPED, AND THAT IS THE FIX (#182 shipped it escaped and this arm has been
     # INERT ever since). A backtick is not a metacharacter in ERE, so `\`` is an UNDEFINED escape and
-    # implementations disagree: ugrep and BSD grep read it as a literal backtick and the arm works,
-    # GNU grep — the runner's — gives `\`` the start-of-BUFFER meaning, so the pattern demands a
-    # backtick at byte 0 of the file and can never match mid-line. Measured, not reasoned backwards
-    # from the manual: the same tree that yields four matches locally yielded ZERO on the runner, so
-    # the anti-vacuity below fired on every branch from #182 onward — and #182 was MERGED with this
+    # implementations disagree: ugrep and BSD grep read it as a literal backtick and the arm works.
+    # GNU grep — the runner's — reads it as a ZERO-WIDTH ANCHOR, and the two things a reader assumes
+    # about that are both false, which is why they are written down rather than summarised:
+    #
+    #   it does NOT demand a backtick, and it is NOT byte 0 of the FILE — it anchors per LINE:
+    #     printf 'aaa\nbbb `frontend` family\n' | ggrep -noE '\`[a-z0-9-]+'   ->  1:aaa   2:bbb
+    #                                                        ^ matched with no backtick present
+    #   and the pattern carries TWO of them, the second AFTER [a-z0-9-]+ has consumed input, so it is
+    #   unsatisfiable at any position, including a line that begins with a backtick:
+    #     printf '`frontend` family here\n' | ggrep -c -oE '\`[a-z0-9-]+\`'   ->  0
+    #
+    # That distinction is the whole instruction: a start-of-buffer story makes re-escaping look
+    # conditionally safe. It is not — escaped, this arm matches NOTHING ANYWHERE. Do not restore it.
+    #
+    # Measured on the tree, not reasoned backwards from the manual — and the count is FIVE, not the
+    # four distinct family NAMES it is natural to eyeball (`developer.md` names four and cites one
+    # twice, `quality-assurance.md` names one):
+    #     grep -rnoE '`[a-z0-9-]+` family' agents/   ->  5   (ugrep, BSD, and GNU with this pattern)
+    #     the same command with '\`…\`' under GNU    ->  0   (the runner, on every branch since #182)
+    # So the anti-vacuity below fired on every branch from #182 onward — and #182 was MERGED with this
     # gate red. An assertion that cannot match is not a strict assertion, it is a dead one that
-    # happens to be loud. Do not "fix" a future failure here by re-escaping it.
+    # happens to be loud.
     while IFS= read -r hit; do
       [ -z "$hit" ] && continue
       lineno="${hit%%:*}"
