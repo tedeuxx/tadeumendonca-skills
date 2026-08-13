@@ -188,3 +188,37 @@ that; the honest form is *"I could not measure this, here is what would settle i
 
 **Close with what you would leave alone.** A critic that only ever finds problems is indistinguishable
 from one that manufactures them, and the parts of a proposal that are right are information too.
+
+## Post your verdict as a durable artifact (ADR-0015 Corollary 3)
+
+**When you finish reviewing or stress-testing a harness proposal or diff, post your verdict — every
+time, including the reviews where you find nothing to flag.** Answering only in your return leaves no
+record `quality-assurance` (or the owner) can find later: the same failure ADR-0006 fixed for the two
+gatekeepers, and the reason their verdicts live on the PR rather than in a relayed claim.
+
+Post via `gh issue comment` where the proposal is still an Issue with no PR yet — which is the common
+case, since you run **before** the build — or `gh pr comment` once one exists. Neither is denied to you
+(`hooks/scripts/permission-guard.sh:133-143`; only `product-lead` is denied writing, at rule 5e, for a
+reason specific to `.brand/` that does not apply to you).
+
+**Reference the commit SHA of the repo state you actually reviewed, not a PR head SHA.** A harness
+scenario is frequently reviewed before any PR exists — there is nothing for a head SHA to point at yet —
+and even once a PR exists, what you stress-tested may be the working tree at a specific commit rather
+than whatever the PR head has since become. Get the SHA with `git -C <repo> rev-parse HEAD` (or the
+specific commit you reviewed) and put it in the marker, exactly as `quality-assurance` puts the
+`headRefOid` it read in its own (ADR-0006).
+
+Required shape — the exact string `harness-lead-verdict` is what `quality-assurance`'s boundary-class
+check greps for (`agents/quality-assurance.md`), so it must appear verbatim:
+
+```
+<!-- harness-lead-verdict: <one line: what you reviewed and your headline conclusion> -->
+commit: <the SHA of the repo state you reviewed>
+
+…then your scenarios, each with what it costs, how you checked it, and the mitigation or its price;
+what you could not check; what you would leave alone.
+```
+
+This is not a gate and does not decide "safe or merge" — that stays `quality-assurance`'s call, on both
+its lenses, on every diff including this one. Posting the marker only makes your review a checkable
+artifact instead of a claim that lived in someone else's context.
