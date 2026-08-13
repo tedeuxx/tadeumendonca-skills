@@ -1,6 +1,8 @@
 # 0011. A skill exists to be **ASSIGNED to a profile in the loop's roster** — *to which profile is this assigned, and why?* is the operative test, and a skill assigned to nobody has no reason to exist whatever its quality; what it standardises is a **behaviour**, transversal, persisting across sessions
 
-- **Status:** accepted
+- **Status:** accepted · amended 2026-08-13 (a fifth disposition, scoped to the three technical
+  families — `cloud-infrastructure`/`backend`/`frontend` consolidation, per-family, curated on the owner's preferred
+  pattern rather than exhaustive merge; the process-family four-way framework is untouched)
 - **Date:** 2026-08-11
 - **Deciders:** the owner (he arrived at the definition across a conversation and ordered it recorded; his sentences are quoted verbatim and unparaphrased in *Decision outcome*); written by `tech-lead`; measurement input from `harness-lead` on [#183](https://github.com/tedeuxx/tadeumendonca-skills/issues/183), cited per finding below
 - **Supersedes / superseded by:** —
@@ -568,6 +570,147 @@ Stated so nobody reads the definition as having settled them:
   least one of them ("your object is not in that directory") does not survive the current tree, since
   `skills/principles/permissions-and-environments/SKILL.md` documents `hooks/permission-guard.sh` by
   name. Re-arguing that list is a decision about a persona, not about what a skill is.
+
+## Amendment (2026-08-13) — a fifth disposition, scoped to the three technical families: consolidate, don't rewrite-per-file
+
+Ratified directly by the owner in conversation, extending the four-way disposition framework this record
+handed to [#192](https://github.com/tedeuxx/tadeumendonca-skills/issues/192) (*assign / rewrite-then-assign
+/ archive / cut*, applied per file). This amendment does not repeal that framework — it adds a fifth shape
+that applies to one region of the library only, for a reason the framework itself did not have available
+when it was written: the mechanical fact this record's own Context already states (*"`Skill` is not
+grantable through `tools:`"*) was re-confirmed, not re-derived, on
+[#177](https://github.com/tedeuxx/tadeumendonca-skills/pull/177) as the closing item of a separate
+Issue, and this amendment is the first record to draw its consequence out fully.
+
+**The reasoning chain, in the order the owner walked it:**
+
+1. **The mechanical floor (already recorded, re-cited here from #177).** No subagent persona has true
+   on-demand skill invocation. There are exactly two channels into a persona's context: **forced
+   preload** via its brief's `skills:` list, present before the first turn and identical on every
+   dispatch; or a **manual `Read`/`Bash`** of the raw file, which happens only if the model, unprompted,
+   decides to go and look — a decision this record's own Context already named as one that *"fails
+   silently"* when it isn't made. There is no third channel, and no situational, description-triggered
+   loading exists inside a subagent the way it exists for the main agent.
+
+2. **What that constraint implies about what's worth forcing.** Given only those two channels, the owner
+   reasoned: what actually *needs* to be anchored — forced into every dispatch, governing behaviour
+   whether or not the model thinks to go looking — is the **process/workflow layer**: the 14 files under
+   `skills/principles/*` and `skills/workflow/*` (5 + 9, re-derived here:
+   `find skills/principles skills/workflow -name SKILL.md | wc -l` → **14**), because that layer is what
+   this repo's own stated mission calls the differentiator — *"the reviewable loop is the differentiator
+   … the skill library is its least distinctive third"* (this file's own `CLAUDE.md` framing, cited rather
+   than re-quoted). A process rule an agent never sees does not shape a dispatch; a technical file an
+   agent never sees is simply not consulted this time, which is a smaller and different failure.
+
+3. **The technical families do not need the same treatment.** The 55 files across `backend`, `frontend`
+   and `infrastructure` (re-derived here, and corrected from the framing that reached this record —
+   see the note below) are reference material: consulted by manual `Read` when a persona judges it
+   relevant to the slice in front of it, not something whose *absence from every dispatch* would let
+   behaviour drift the way an unloaded workflow rule does. Forcing 55 files into a preload was never on
+   the table (ADR-0010 already rejected the universal-floor shape on cost grounds); the live question was
+   whether they should stay 55 separately-assigned files or become something else.
+
+4. **Given reference-only status, consolidation is the more usable shape.** If a persona reaches these
+   files only by deciding to go and read, one entry point per family — searchable and greppable in a
+   single file — serves that act better than 55 files a persona has to first guess between. The owner
+   named the resolution directly and by name:
+
+   - **`infrastructure` (21 files) → one consolidated skill, named `cloud-infrastructure`** (not
+     `infrastructure` — the family directory name and the skill's own name diverge, same as every skill
+     today; the name is the discipline/capability, not the taxonomy bucket). **Renamed from an earlier
+     `aws` naming, owner decision 2026-08-13**: `cloud-infrastructure` reads better as a capability name
+     and stays consistent with the discipline-naming convention applied to `devops`/`harness-engineering`
+     — but the *content* still names AWS explicitly as the main CSP covered, since that is what all 21
+     source files actually document. The skill isn't provider-neutral; only its filename is
+     provider-agnostic, leaving room to note a different CSP later without another rename.
+   - **`backend` (19 files, corrected below) → one consolidated skill, named `backend`**, holding *"the
+     desired patterns"* — a **curated distillation**, not an exhaustive merge of all 19 files' full depth.
+   - **`frontend` (15 files) → one consolidated skill, named `frontend`**, kept live and at full depth,
+     since it is the current consumer's actual stack.
+
+**Correction owed to the number that reached this record.** The reasoning chain as relayed into this
+amendment's driving conversation stated `18 + 15 + 21 = 54`. Re-derived directly against the tree at
+`24dbaf5` (`main`, this repo):
+
+    find skills/backend -name SKILL.md | wc -l        → 19
+    find skills/frontend -name SKILL.md | wc -l        → 15
+    find skills/infrastructure -name SKILL.md | wc -l  → 21
+    → 55, not 54
+
+`backend` carries 19 files, not 18 — matching `CLAUDE.md`'s own published table (`### backend (19)`),
+which the relayed figure should have been checked against and was not. The three consolidations below are
+priced against **55**, not 54. This is a small, immaterial correction to the input arithmetic and changes
+no part of the decision.
+
+### What this does NOT repeal
+
+**ADR-0011's disposition framework stands, unchanged, for the 14 process-family files** — the ones under
+`skills/principles/*` and `skills/workflow/*`. Those keep per-file granularity: each is independently
+`assign`ed, `rewrite`-then-assigned, `archive`d, or `cut`, exactly as [#192](https://github.com/tedeuxx/tadeumendonca-skills/issues/192)
+already frames it. Nothing here changes that Issue's task 1 (the 8 named files still unassigned to any
+profile — `dev-loop`, `loop-engineering`, `permissions-and-environments`, `claude-code`, `github-actions`,
+`license`, `terraform-cloud`, `versioning`).
+
+**The density standard survives the consolidation; its unit of application changes.** `CLAUDE.md` names
+`skills/vpc/SKILL.md` the density exemplar — the bar every AWS-service skill should read at. `vpc` is one
+of the 21 files folding into `cloud-infrastructure`. The bar is **not lowered by folding**: it now applies to the *section*
+within `cloud-infrastructure` that covers VPC, not to a standalone file. A consolidated file that reads shallow because it
+is one file rather than 21 has failed the same test a shallow standalone file would have failed; size of
+container is not the measure, depth per subject is.
+
+### The curation criterion — one rule, applied uniformly to all three consolidated skills
+
+**Late refinement, arrived after this amendment's driving conversation and incorporated here rather than
+scoped to `backend` alone, which is how it was first framed.** The curation is not *merge everything from
+the N source files* and not *neutral best-practice coverage re-derived fresh in one place* — it is
+specifically **the owner's own opinionated pattern per concern**, already stated today, only stated in a
+denser, more granular way, scattered across the N separate files each consolidation absorbs. This is not
+a new standard invented for the consolidation: `CLAUDE.md`'s own *"Deep-dive authoring process"* section
+already names the *"owner's opinionated default + when he deviates"* — the **"My take" layer** — as
+*"THIS is the differentiator; generic best-practice alone is not enough."* The consolidation's job is to
+**anchor that existing preferred-pattern layer** in one file per family — not to exhaustively re-cover
+every option each source file discussed.
+
+This applies to **all three** consolidated skills alike — `cloud-infrastructure`, `backend`, and `frontend` — not to
+`backend` uniquely, correcting how the reasoning first reached this record.
+
+- **Who makes the call:** whoever executes each consolidation task (`tech-lead`, or `developer` under
+  `tech-lead`'s direction, at build time on the task tracked under #192's redirected scope, one task per
+  family) — not decided in advance by this amendment as a named individual dispatch, because none of the
+  three tasks has been scheduled yet. What this amendment fixes is the **criterion**, so the call is
+  checkable regardless of who makes it.
+- **The filter is ADR-0011's own test, applied at paragraph grain rather than only at file-survival
+  grain:** *"the more a technical skill reads like documentation about the technology, the less of a
+  skill it is."* Content earns a place in a consolidated file only if it states **the owner's chosen
+  pattern for that concern and, where recorded, the trigger to deviate from it** — signal, in ADR-0011's
+  own vocabulary — not because it is accurate or complete background on the technology or the
+  architecture. A passage that surveys every option a source file discussed, without saying which one is
+  the default here and why, is noise under this filter regardless of how well-written or correct it is —
+  the same failure ADR-0011 already named for a standalone file, now applied inside one.
+- **Why `backend` carries the sharpest version of this cost, without being the only file it applies to:**
+  `backend` documents a **retired** architecture (`CLAUDE.md`'s own framing: *"the `backend` family …
+  document[s] a BFF-on-Lambda + DynamoDB + Cognito architecture that `tadeumendonca-io` retired"*), so
+  applying the same filter there additionally means the owner's preferred pattern is being kept as a
+  **reference pattern with no live consumer to exercise it** — a different and named risk from `cloud-infrastructure` and
+  `frontend`, where the kept pattern is exercised by dispatches against the live stack. The filter itself
+  — keep the preferred pattern, drop the survey — is the same rule in all three; only what's at stake if
+  the filter is applied wrong differs.
+
+### What this amendment does NOT decide
+
+- **The internal structure of `cloud-infrastructure`** — how 21 services' worth of content organises inside one file (by
+  architectural layer, by lifecycle stage, alphabetically by service, or some other axis). Left open
+  deliberately rather than proposed here: the density exemplar (`vpc`) is itself one service among 21 and
+  gives no signal about cross-service ordering, and a structural call made without having assembled the
+  21 sections first is more likely to be re-litigated than followed. Named as unsettled, not decided by
+  default.
+- **The per-file profile assignment of the 8 remaining process files** named in [#192](https://github.com/tedeuxx/tadeumendonca-skills/issues/192)'s
+  task 1 (`dev-loop`, `loop-engineering`, `permissions-and-environments`, `claude-code`, `github-actions`,
+  `license`, `terraform-cloud`, `versioning`) — unchanged, ongoing, and not this amendment's job.
+- **Which profile(s), if any, preload the three consolidated files.** `cloud-infrastructure`/`backend`/`frontend` are
+  reference-only by this amendment's own reasoning (item 3 above) — read by `Read`, not forced by
+  `skills:` — but whether any of them is nonetheless small enough or central enough to warrant a preload
+  slot on `developer` is a separate call this amendment does not make.
 
 ## Links
 
