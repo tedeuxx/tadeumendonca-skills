@@ -44,9 +44,10 @@ import re
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SKILLS = ROOT / "skills"
 
-# Allocation is per family everywhere except `workflow`, which splits — `adr` belongs to the only
-# writer of the decision records, the rest to the builder. Family granularity cannot state that
-# truthfully, which is why the table is per skill and this map has an exception beside it.
+# Allocation is per family everywhere except `workflow`, which splits — `adr` belongs to its two
+# writers, split by domain (#223), and `command-hygiene` is transversal (#225) like the `principles`
+# family, not the builder alone. Family granularity cannot state that truthfully, which is why the
+# table is per skill and this map has exceptions beside it.
 WIELDER = {
     "principles": "`product-lead` · `tech-lead` · `harness-lead` · `quality-assurance`",
     "workflow": "`developer`",
@@ -54,7 +55,10 @@ WIELDER = {
     "backend": "`developer`",
     "infrastructure": "`developer`",
 }
-PER_SKILL = {("workflow", "adr"): "`tech-lead` — the only writer of the ADRs"}
+PER_SKILL = {
+    ("workflow", "adr"): "`tech-lead` · `harness-lead` — split by domain (#223)",
+    ("workflow", "command-hygiene"): "`product-lead` · `tech-lead` · `harness-lead` · `developer` · `quality-assurance`",
+}
 
 # A family with no entry above is unallocated, and that is information rather than an error: an unused
 # convention is usually a prompt to delete the file. Rendering it as a visible dash beats omitting the

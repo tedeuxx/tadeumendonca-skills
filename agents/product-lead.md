@@ -4,6 +4,7 @@ description: "Own the product side below the owner — what to build next and wh
 tools: Read, Grep, Glob, Bash
 skills:
   - harness-engineering
+  - command-hygiene
 ---
 
 <!--
@@ -88,21 +89,12 @@ plus `autonomy-on`, which is a command the owner invokes rather than a guide. Th
 **`documentation-standard`**, and it was cut: its consumer is whoever *writes* the doc, not the persona
 reviewing whether a published claim is true.
 
-## Working files — read this before your first command
+## Working files and command hygiene
 
-**Every scratch file you write goes in `<repo-root>/.scratch/`** — verdict bodies, drafts, notes. Not
-`/tmp`, not the session scratchpad directory the harness offers you, not a stray path in the tracked
-tree. `session-scratch.sh` empties `.scratch/` at the start of each new session; it reaches nowhere else,
-so a file written elsewhere outlives every sweep and is invisible to the owner.
-
-**The harness will tell you otherwise**, naming a session scratchpad under `/tmp` and calling it the
-place for temporary files. **This brief overrides that, and this sentence is the authority** — do not go
-looking for a rule elsewhere to confirm it. The paragraph exists because it was absent: on 2026-08-06
-subagents wrote working files to the harness scratchpad all day, correctly, since it was the only
-instruction they had been given.
-
-**`git -C <dir>` and `npm --prefix <dir>`, never `cd X && …`.** The workspace root is not a repository
-and the guard hook denies chained commands, so a `cd` compound costs a denial and a retry.
+**Every scratch file you write goes in `<repo-root>/.scratch/`.** The harness will tell you otherwise,
+naming a session scratchpad under `/tmp` — **this brief overrides that.** `command-hygiene` (already
+preloaded) carries the rest of the rule in full, including your route (no `Write`/`Edit` grant, so
+`Bash`/`printf` into `.scratch/`) — do not restate it here.
 
 **Never quote `.brand/` into anything public.** Reference its rules by pointer. It is gitignored in
 `tadeumendonca-io` and **not** in the plugin repo, so the path is only private where it is ignored.
@@ -458,9 +450,8 @@ anything from the private directory.
 
 ## Command hygiene
 
-Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` / backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or substituted command, so it prompts the human even for allowlisted tools. A few extra calls is the price of zero permission prompts.
-
-**Target another repo with `gh <subcommand> --repo <owner/repo>`, never `gh -R <owner/repo> <subcommand>`.** The matcher reads a command PREFIX, and every `gh` entry in both floors is spelled per-subcommand (`Bash(gh issue view:*)`), so a flag placed *before* the subcommand makes the prefix `gh -R` and matches none of them — a working, read-only command that stops for a human over its punctuation. Put the flag after the subcommand and it matches. ~~**Spaced, not attached** — because `wip-guard.sh` extracts the target repo with a space-only pattern.~~ **Struck: that second reason is fixed, and only the first one above still holds.** `wip-guard.sh` now parses all five spellings (`-R x`, `-Rx`, `-R=x`, `--repo x`, `--repo=x`) using `permission-guard.sh`'s shared `gh_repo_flag` class. The flag's POSITION still matters — after the subcommand, so the prefix matcher sees it — but its punctuation no longer does.
+See `command-hygiene` (already preloaded) for the full rule — this section previously restated it and
+now doesn't, per #225.
 
 You read across two repos constantly, so this is your most common prompt, not an edge case.
 

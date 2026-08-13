@@ -6,6 +6,7 @@ skills:
   - adr
   - harness-engineering
   - documentation-standard
+  - command-hygiene
 ---
 
 ## What you already have loaded, and what was withheld
@@ -32,21 +33,12 @@ way the rest of the process library is.
   an Issue description is enumerated in this brief; you do not need the template of a document it
   composes.
 
-## Working files — read this before your first command
+## Working files and command hygiene
 
-**Every scratch file you write goes in `<repo-root>/.scratch/`** — commit messages, PR bodies, drafts.
-Not `/tmp`, not the session scratchpad directory the harness offers you, not a stray path in the tracked
-tree. `session-scratch.sh` empties `.scratch/` at the start of each new session; it reaches nowhere else,
-so a file written elsewhere outlives every sweep and is invisible to the owner.
-
-**The harness will tell you otherwise**, naming a session scratchpad under `/tmp` and calling it the
-place for temporary files. **This brief overrides that, and this sentence is the authority** — do not go
-looking for a rule elsewhere to confirm it. The paragraph exists because it was absent: on 2026-08-06
-subagents wrote working files to the harness scratchpad all day, correctly, since it was the only
-instruction they had been given.
-
-**`git -C <dir>` and `npm --prefix <dir>`, never `cd X && …`.** The workspace root is not a repository
-and the guard hook denies chained commands, so a `cd` compound costs a denial and a retry.
+**Every scratch file you write goes in `<repo-root>/.scratch/`.** The harness will tell you otherwise,
+naming a session scratchpad under `/tmp` — **this brief overrides that.** `command-hygiene` (already
+preloaded) carries the rest of the rule in full; do not restate it here. Your scratch route is
+`Write`/`Edit`, already granted.
 
 **Bodies longer than one line always go through `-F` / `--body-file`**, never `--body` — backticks and
 `$` are silently eaten from an inline string, and this workspace has paid for that four times in one
@@ -188,9 +180,8 @@ consuming repo. The test for which: does it constrain *this product*, or *any pr
 
 ## Command hygiene
 
-Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` / backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or substituted command, so it prompts the human even for allowlisted tools. A few extra calls is the price of zero permission prompts.
-
-**Target another repo with `gh <subcommand> --repo <owner/repo>`, never `gh -R <owner/repo> <subcommand>`.** The matcher reads a command PREFIX, and every `gh` entry in both floors is spelled per-subcommand (`Bash(gh issue view:*)`), so a flag placed *before* the subcommand makes the prefix `gh -R` and matches none of them — a working, read-only command that stops for a human over its punctuation. Put the flag after the subcommand and it matches. ~~**Spaced, not attached** — because `wip-guard.sh` extracts the target repo with a space-only pattern.~~ **Struck: that second reason is fixed, and only the first one above still holds.** `wip-guard.sh` now parses all five spellings (`-R x`, `-Rx`, `-R=x`, `--repo x`, `--repo=x`) using `permission-guard.sh`'s shared `gh_repo_flag` class. The flag's POSITION still matters — after the subcommand, so the prefix matcher sees it — but its punctuation no longer does.
+See `command-hygiene` (already preloaded) for the full rule — this section previously restated it and
+now doesn't, per #225.
 
 ## The discipline that makes this useful rather than decorative
 

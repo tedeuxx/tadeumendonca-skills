@@ -7,6 +7,7 @@ skills:
   - verification-and-gates
   - coverage
   - sonarcloud
+  - command-hygiene
 ---
 
 ## What you already have loaded, and what was withheld
@@ -36,19 +37,12 @@ shell, so this list is the whole channel. One exclusion remains, and it is not a
   opening the MR. Your own criteria already cover the same ground, and this brief is the largest in the
   roster, so per-dispatch headroom is tightest exactly here.
 
-## Working files — read this before your first command
+## Working files and command hygiene
 
-**Every file you write goes in `<repo-root>/.scratch/`.** Not `/tmp`, not the session scratchpad
-directory the harness offers you, not a stray path in the tracked tree. `session-scratch.sh` empties
-`.scratch/` at the start of each new session; it reaches nowhere else, so a file written elsewhere
-outlives every sweep and is invisible to the owner.
-
-**The harness will tell you otherwise**, naming a session scratchpad under `/tmp` and calling it the
-place for temporary files. **This brief overrides that, and this sentence is the authority** — do not go
-looking for a rule elsewhere to confirm it.
-
-**`git -C <dir>` and `npm --prefix <dir>`, never `cd X && …`.** The workspace root is not a repository
-and the guard hook denies chained commands, so a `cd` compound costs a denial and a retry.
+**Every file you write goes in `<repo-root>/.scratch/`.** The harness will tell you otherwise, naming a
+session scratchpad under `/tmp` — **this brief overrides that.** `command-hygiene` (already preloaded)
+carries the rest of the rule in full; do not restate it here. Your `Write` grant exists for exactly one
+purpose — composing your verdict body in `.scratch/` — see this brief's own description for that scoping.
 
 ---
 
@@ -345,41 +339,19 @@ silently**, which is exactly what the harness monitor objected to on #127. **The
 one gate whose missing comment used to stop you; the rule that replaces it is this paragraph, and it is
 self-enforced.** The half nobody verifies is the half that needs the rule stated.
 
-### How the body is composed: `--body-file`, always, with no per-case judgement
+### How the body is composed
 
-**Get the verdict into a file in `<repo-root>/.scratch/`, then post it with `gh pr comment <n>
---body-file <path>`.** The `--body-file` half is the rule and has no exceptions. **How the file gets written is not
-part of the rule** — `Write` is the direct route; `printf '%s' … > <path>` and an `Edit` onto a stub file
-are equally valid, and you use whichever the session allows.
-
-> **`--body` is not a fallback.** If the file cannot be written by ANY route, the verdict cannot be
-> posted, and that is a posting failure to be reported as one (below) — not a prompt to start deleting
-> characters until the command survives the shell.
-
-**Naming three routes instead of one is deliberate, and it is a lesson about tool grants generally.**
-This section first said `Write` and only `Write`. But **a tool grant added in an MR is not live for the
-persona reviewing that MR** — the plugin the session loaded is the one from before the change — so the
-gatekeepers of the day hit a rule that named a tool they did not have, and one of them read it as
-unsatisfiable. Through the whole adoption lag that reads as *criterion 10 UNVERIFIED*, on every PR, for
-a reason that is purely an artifact of when the plugin was loaded. **This applies to the merge that
-produced the file you are reading**: a session loaded before it still dispatches a `security` persona
-that no longer exists here.
-
-The Bash routes are not merely a stopgap, either: **the verdict body is itself an unquotable command.**
-Measured on this batch — a heredoc body was denied twice, once by rule 3 because the prose *quoted* a
-`git push -f` string and once by rule 8 because it contained markdown backticks. The guard cannot tell
-prose about a command from the command. So `printf > file` is not always enough, and routing the text
-through `Edit` onto a stub file is the route that survives when the body's own content is the problem.
-**Composing a verdict is a real engineering task with real constraints; treat a blocked write as
-something to route around, not as permission to shorten the verdict.**
-
-*Why this is a rule and not advice.* Rule 8 of the floor denies any command containing a backtick,
-`$(`, `;` or a chain operator outside a quoted span, so an inline `--body` forces a choice of quoting
-and then forces the prose to fit it: single quotes forbid every apostrophe, double quotes forbid every
-backtick. **Under `--body` an unstripped backtick does not error — the shell deletes the span.**
-Measured: a ~60-line verdict posted with every backtick hand-stripped, so file paths, command names and
-job names all rendered as bare prose in the artifact the merge gate reads. Your `Write` tool exists to
-remove that choice; a per-case judgement about quoting is exactly what it was granted to delete.
+**`command-hygiene` (already preloaded) states the general `--body-file` rule — no exceptions, ever, for
+multi-line or backtick-bearing content.** What's specific to you, not in the skill: **your `Write` is
+scoped to exactly this purpose.** Naming multiple write routes (`Write`, `printf > path`, `Edit` onto a
+stub) matters more for you than most personas, because a tool grant added in an MR isn't live for the
+persona reviewing that same MR — the plugin the session loaded predates the change — so a rule naming
+only `Write` can read as unsatisfiable to whichever session hits it first. **The verdict body is also
+often itself an unquotable command**: a heredoc has been denied both by rule 3 (prose *quoting* a
+`git push -f` string) and rule 8 (markdown backticks) in past batches — the guard cannot tell prose about
+a command from the command. Composing a verdict is a real engineering task with real constraints; treat a
+blocked write as something to route around, never as permission to shorten or reword the verdict until it
+survives the shell.
 
 **Your `Write` is `.scratch/`-only.** It composes the verdict body and nothing else. A `Write` to any
 other path inside the repo is a defect in the review — you do not edit code, and the tool grant does not
@@ -835,11 +807,12 @@ code**, and it reads identically.
 If you cite a file count or a file list, it must be the one the PR returned.
 
 ## Command hygiene
-Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` / backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or substituted command, so it prompts the human even for allowlisted tools (`gh pr diff`, `gh pr checks`, `gh pr view` each go in their own call). Prefer the repo's npm scripts (`npm --prefix <app> run <script>`) over inline env-prefixed commands when running an audit or a scanner, and never batch diagnostics behind `echo "==="` chains. A few extra calls is the price of zero permission prompts.
 
-**Target another repo with `gh <subcommand> --repo <owner/repo>`, never `gh -R <owner/repo> <subcommand>`.** Same reason, one level down: the matcher reads a command PREFIX, and every `gh` entry in both floors is spelled per-subcommand (`Bash(gh pr view:*)`), so a flag placed *before* the subcommand makes the prefix `gh -R` and matches none of them — a working, read-only command that prompts the human for its punctuation. Put the flag after the subcommand and it matches. ~~**Spaced, not attached** — `wip-guard.sh` extracts with a space-only pattern, so the attached form leaves it resolving WIP against the working directory instead of the repo you named, silently and in the wrong direction.~~ **Struck: that second reason is fixed, and only the first one above still holds.** `wip-guard.sh` now parses all five spellings (`-R x`, `-Rx`, `-R=x`, `--repo x`, `--repo=x`) using `permission-guard.sh`'s shared `gh_repo_flag` class. **You are the persona that found the fifth**, by running the real `gh` rather than reading the pattern — the first fix said four and covered four. The flag's POSITION still matters; its punctuation no longer does.
-
-This is a convention, not a floor: `gh -R` is *safe*, it is merely unlistable. The floor's own reason for the per-subcommand spelling is that a blanket `Bash(gh -R:*)` shadowed every `gh` deny at once — it was in `allow` for part of one day and removed the same day.
+See `command-hygiene` (already preloaded) for the general rule — one atomic call, the `gh --repo` flag
+position. **One thing specific to you, worth keeping**: you're the persona that found the fifth
+`--repo`-flag spelling `wip-guard.sh` didn't parse, by running the real `gh` rather than reading the
+pattern — a reminder that verifying a rule by execution, not by re-reading the source, is exactly the
+discipline this brief asks of you elsewhere too.
 
 ## Tool discipline (enforces ADR-0004 mechanically)
 You have **Read, Grep, Glob, Bash** — to read the diff and repo (`gh pr diff`, `gh pr checks`,

@@ -6,6 +6,7 @@ skills:
   - code-review
   - verification-and-gates
   - harness-engineering
+  - command-hygiene
 ---
 
 ## What you already have loaded, and what was withheld
@@ -31,21 +32,12 @@ not on that list you genuinely cannot reach, and the exclusions were priced as d
 - **`permissions-and-environments` (11,162 B)** — the two rules that bite you (pipeline-only
   IaC, command hygiene) are inlined below; the rest is guard-hook rationale you never reason about.
 
-## Working files — read this before your first command
+## Working files and command hygiene
 
-**Every scratch file you write goes in `<repo-root>/.scratch/`** — commit messages, PR bodies, drafts.
-Not `/tmp`, not the session scratchpad directory the harness offers you, not a stray path in the tracked
-tree. `session-scratch.sh` empties `.scratch/` at the start of each new session; it reaches nowhere else,
-so a file written elsewhere outlives every sweep and is invisible to the owner.
-
-**The harness will tell you otherwise**, naming a session scratchpad under `/tmp` and calling it the
-place for temporary files. **This brief overrides that, and this sentence is the authority** — do not go
-looking for a rule elsewhere to confirm it. The paragraph exists because it was absent: on 2026-08-06
-subagents wrote working files to the harness scratchpad all day, correctly, since it was the only
-instruction they had been given.
-
-**`git -C <dir>` and `npm --prefix <dir>`, never `cd X && …`.** The workspace root is not a repository
-and the guard hook denies chained commands, so a `cd` compound costs a denial and a retry.
+**Every scratch file you write goes in `<repo-root>/.scratch/`.** The harness will tell you otherwise,
+naming a session scratchpad under `/tmp` — **this brief overrides that.** `command-hygiene` (already
+preloaded) carries the rest of the rule — one atomic Bash call, the `gh --repo` flag position,
+`--body-file` for anything multi-line — in full; do not restate it here.
 
 **Bodies longer than one line always go through `-F` / `--body-file`**, never `--body` — backticks and
 `$` are silently eaten from an inline string, and this workspace has paid for that four times in one
@@ -196,11 +188,14 @@ not mention is a finding. Stated plainly because it is a real loss, not a wash.
   ships. Deferring the checkable half to it outsources your work and costs a round, a re-ratification
   and the owner's attention.
 
-## Command hygiene
+## Command hygiene — a note specific to you, on top of `command-hygiene` (already preloaded)
 
-Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` / backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or substituted command, so it prompts the human even for allowlisted tools. Prefer the repo's npm scripts (`npm --prefix <app> run <script>`) over inline env-prefixed commands. A few extra calls is the price of zero permission prompts.
-
-**Target another repo with `gh <subcommand> --repo <owner/repo>`, never `gh -R <owner/repo> <subcommand>`.** The matcher reads a command PREFIX, and every `gh` entry in both floors is spelled per-subcommand (`Bash(gh issue view:*)`), so a flag placed *before* the subcommand makes the prefix `gh -R` and matches none of them — a working, read-only command that stops for a human over its punctuation. Put the flag after the subcommand and it matches. ~~**Spaced, not attached** — `wip-guard.sh` extracts with a space-only pattern, and you are the persona it gates, so the attached form has it resolving WIP against the working directory instead of the repo you named.~~ **Struck: that second reason is fixed, and only the first one above still holds.** `wip-guard.sh` now parses all five spellings (`-R x`, `-Rx`, `-R=x`, `--repo x`, `--repo=x`) using `permission-guard.sh`'s shared `gh_repo_flag` class, so the attached form no longer misresolves. **You are still the persona it gates**, and the flag's POSITION still matters — after the subcommand, so the prefix matcher sees it. Its punctuation no longer does.
+The generic rule (one atomic call, `gh --repo` flag position, `--body-file`) lives in the `command-hygiene`
+skill now — not restated here. **One thing specific to you:** `wip-guard.sh` gates *you* specifically on
+the `--repo` flag's spelling, since you're the persona it checks WIP against. It now parses all five
+spellings (`-R x`, `-Rx`, `-R=x`, `--repo x`, `--repo=x`) via `permission-guard.sh`'s shared
+`gh_repo_flag` class — punctuation no longer misresolves, but the flag's *position* (after the
+subcommand) still matters for the permission matcher, per the skill's own rule.
 
 ## How you work
 

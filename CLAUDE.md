@@ -360,14 +360,15 @@ One skill per AWS service / tool used — each is the canonical parametrization 
 | `/cloudwatch-rum` | RUM end to end: app monitor + Cognito guest identity pool, and the browser client that reports to it |
 | `/cloudwatch-xray` | X-Ray: active tracing (API GW+Lambda), sampling rules, service map |
 
-### workflow (9)
+### workflow (10)
 
-DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella for OIDC, secrets/environments, branching (both loop models), the deploy workflows, and the Issues backlog; the numeric-SemVer tagging rules are their own skill (`versioning`). Test runners live with their repo (`/postman`, `/playwright`); the gate policy they feed is one stack-agnostic skill (`/coverage`); IaC checkov is in `/terraform`. Architecturally-significant decisions are recorded via `adr`.
+DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella for OIDC, secrets/environments, branching (both loop models), the deploy workflows, and the Issues backlog; the numeric-SemVer tagging rules are their own skill (`versioning`). Test runners live with their repo (`/postman`, `/playwright`); the gate policy they feed is one stack-agnostic skill (`/coverage`); IaC checkov is in `/terraform`. Architecturally-significant decisions are recorded via `adr`. Working-files and shell-command discipline — transversal across the whole roster, not DevOps-specific — is `command-hygiene`.
 
 | Command | Purpose |
 |---|---|
 | `/github-actions` | GitHub/CI-CD capability: OIDC, secrets/envs, branching per loop model, the deploy workflows, Issues backlog |
 | `/adr` | Architecture Decision Records: MADR format, two libraries (methodology/product), light significance gate, supersede-never-delete |
+| `/command-hygiene` | Where scratch files go, one atomic Bash call, the `gh --repo` flag position, `--body-file` always — preloaded by all 5 personas |
 | `/versioning` | Semantic versioning + tags: numeric SemVer via bump-my-version, loop guard, PR labels |
 | `/terraform-cloud` | TFC remote-state backend; per-env workspaces; Local execution; **pipeline-only apply/destroy** |
 | `/sonarcloud` | SonarCloud quality gate (SAST + coverage + smells), blocks merge |

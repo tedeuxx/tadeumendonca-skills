@@ -1,6 +1,6 @@
 {
   "name": "tadeumendonca-skills",
-  "description": "A Claude Code harness: 5 subagent personas — two leads that disagree by design (product-and-market, tech) and consolidate one demand, one fullstack developer, one gatekeeper (a quality-assurance that holds the merge gate and reviews both technical delivery and whether the change can break production), and a harness-lead that stress-tests proposed changes to the harness itself and, per ADR-0015, may implement the harness changes it reviews (never merging, never gating an MR) — PreToolUse hooks that mechanically deny the irreversible floor (force-push, terraform apply, rm -rf, secret writes), and 67 generic skills for AWS infrastructure, React/Vite frontends and CI/CD (<project>/<apex-domain> placeholders).",
+  "description": "A Claude Code harness: 5 subagent personas — two leads that disagree by design (product-and-market, tech) and consolidate one demand, one fullstack developer, one gatekeeper (a quality-assurance that holds the merge gate and reviews both technical delivery and whether the change can break production), and a harness-lead that stress-tests proposed changes to the harness itself and, per ADR-0015, may implement the harness changes it reviews (never merging, never gating an MR) — PreToolUse hooks that mechanically deny the irreversible floor (force-push, terraform apply, rm -rf, secret writes), and 68 generic skills for AWS infrastructure, React/Vite frontends and CI/CD (<project>/<apex-domain> placeholders).",
   "version": "1.0.15",
   "author": {
     "name": "Luiz Tadeu Mendon\u00e7a"
@@ -69,6 +69,7 @@
     "./skills/principles/verification-and-gates",
     "./skills/workflow/adr",
     "./skills/workflow/claude-code",
+    "./skills/workflow/command-hygiene",
     "./skills/workflow/code-review",
     "./skills/workflow/documentation-standard",
     "./skills/workflow/github-actions",
