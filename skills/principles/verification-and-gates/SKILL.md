@@ -33,7 +33,7 @@ The regression suite must **functionally cover 100% of the repo's implemented fe
 ## Local validation (before anything ships)
 Development is validated **locally and automatically before the deploy** — not by a manual click-through:
 - Run the repo's **regression against the local environment**. The suite is multi-env by design: it runs locally now and against the deployed environment post-deploy.
-- What "locally" requires depends on the loop model — a static repo runs fully offline; a repo with backing services points at them per `/permissions-and-environments`.
+- What "locally" requires depends on the loop model — a static repo runs fully offline; a repo with backing services points at them per `/devops`.
 - "The regression passes locally" is the concrete pre-deploy gate.
 
 ## Gates — calibrated to blast-radius

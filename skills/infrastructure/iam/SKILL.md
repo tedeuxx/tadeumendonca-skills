@@ -1,5 +1,5 @@
 ---
-description: Author IAM roles and policies in Terraform — least-privilege principles, authoring conventions, which AWS-managed policies are relied on, the role catalog per workload, and the OIDC deploy roles CI assumes. Use when a workload needs a permission, reviewing a policy for over-grant, or pinning an OIDC trust to an immutable subject. Not for the workflow that assumes the role (see github-actions).
+description: Author IAM roles and policies in Terraform — least-privilege principles, authoring conventions, which AWS-managed policies are relied on, the role catalog per workload, and the OIDC deploy roles CI assumes. Use when a workload needs a permission, reviewing a policy for over-grant, or pinning an OIDC trust to an immutable subject. Not for the workflow that assumes the role (see devops).
 ---
 
 Author or review any IAM role/policy in <project> infrastructure.

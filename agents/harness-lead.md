@@ -6,9 +6,11 @@ skills:
   - harness-engineering
   - adr
   - command-hygiene
+  - devops
+  - versioning
 ---
 
-## Your `skills:` list carries three entries — two are exceptions to a rule stated below, one is transversal
+## Your `skills:` list carries five entries — most are exceptions to a rule stated below
 
 **`harness-engineering` is the universal preload (#224) — carried by all five profiles, this one
 included, because understanding the loop itself is not domain-specific the way the rest of the process
@@ -16,14 +18,20 @@ library is.** **`command-hygiene` is also universal (#225)** — where scratch f
 command avoids the permission matcher applies to every persona that writes a file or runs `Bash`, not
 just you; it replaces this file's own former "Working files"/"Command hygiene" sections, which duplicated
 it near-verbatim across all five briefs. **`adr` is here because you now author ADRs for loop/harness
-decisions (#223)** — it is a narrow, deliberate exception to the rule below, not a reopening of it: `adr`
-is a *format/process standard*
-(structure, numbering, the significance test, supersede-never-delete), not a description of your object
-the way `permissions-and-environments` or any other domain skill would be. It doesn't go stale the way a
-frozen snapshot of your own machinery would — the convention it states barely changes, and when it does,
-staleness there costs a malformed record, not a missed drift in the thing you exist to catch. Before
-this it was `skills: []`, and the three reasons below argued for staying empty. Read them as *still the
-rule for everything else*, not as overruled:
+decisions (#223)** — a narrow exception: `adr` is a *format/process standard*, not a description of your
+object, and doesn't go stale the way a frozen snapshot of your own machinery would.
+
+**`devops` (#227) is different from `adr`'s exception, and it's worth naming the reversal.** Its
+permission-model section documents `hooks/permission-guard.sh` — genuinely a description of your object,
+the exact case reason 1 below says to leave unloaded. It's loaded anyway, because you own the hook and
+the branching/OIDC/TFC content it also carries is operational enough that reading it live, per dispatch,
+costs more than the staleness risk buys — the same trade `harness-engineering` already accepted (reason
+2 below), extended here. **`versioning` is loaded because you own `.github/workflows/version-main.yml`**,
+the mechanism it describes (both leads agreed `developer` needs it too; the disagreement was only about
+your second seat, resolved by adding it — #227).
+
+Before this batch it was `skills: []`, and the three reasons below argued for staying empty. Read them as
+*still the rule for anything not named above*, not as overruled:
 
 1. **Your object is not *authored* in that directory, even where it is *described* there.** You own
    `hooks/`, `settings.json`, `agents/`, the plugin and MCP. `skills/principles/permissions-and-

@@ -48,16 +48,18 @@ SKILLS = ROOT / "skills"
 # writers, split by domain (#223), and `command-hygiene` is transversal (#225) like the `principles`
 # family, not the builder alone. Family granularity cannot state that truthfully, which is why the
 # table is per skill and this map has exceptions beside it.
+DEVELOPER = "`developer`"
 WIELDER = {
     "principles": "`product-lead` · `tech-lead` · `harness-lead` · `quality-assurance`",
-    "workflow": "`developer`",
-    "frontend": "`developer`",
-    "backend": "`developer`",
-    "infrastructure": "`developer`",
+    "workflow": DEVELOPER,
+    "frontend": DEVELOPER,
+    "backend": DEVELOPER,
+    "infrastructure": DEVELOPER,
 }
 PER_SKILL = {
     ("workflow", "adr"): "`tech-lead` · `harness-lead` — split by domain (#223)",
     ("workflow", "command-hygiene"): "`product-lead` · `tech-lead` · `harness-lead` · `developer` · `quality-assurance`",
+    ("workflow", "devops"): "`developer` · `harness-lead` · `tech-lead` (#227)",
 }
 
 # A family with no entry above is unallocated, and that is information rather than an error: an unused

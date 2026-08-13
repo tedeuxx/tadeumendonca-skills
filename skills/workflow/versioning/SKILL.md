@@ -1,5 +1,5 @@
 ---
-description: Apply purely numeric SemVer with bump-my-version — what major, minor and patch mean for the artifact, the tag name and bump-commit loop guard, and the token the bump push needs. Use when cutting a release, deciding which part to bump, or debugging a version workflow that re-triggers itself. Not for the pipeline wiring around it (see github-actions).
+description: Apply purely numeric SemVer with bump-my-version — what major, minor and patch mean for the artifact, the tag name and bump-commit loop guard, and the token the bump push needs. Use when cutting a release, deciding which part to bump, or debugging a version workflow that re-triggers itself. Not for the pipeline wiring around it (see devops).
 ---
 
 Apply the semantic-versioning + tagging rules (bump-my-version) in any <project> repo.

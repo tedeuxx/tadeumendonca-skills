@@ -7,6 +7,7 @@ skills:
   - harness-engineering
   - documentation-standard
   - command-hygiene
+  - versioning
 ---
 
 ## What you already have loaded, and what was withheld
@@ -21,6 +22,11 @@ is a real deprivation:
 preload — the loop's state machine, the intake chain, and the eleven principles in one file, carried
 by all five profiles rather than by a subset. Understanding the loop itself is not domain-specific the
 way the rest of the process library is.
+
+**`versioning` is loaded because release cadence is a sequencing/architecture call (#227)** — the two
+leads disagreed only on whether `tech-lead` or `harness-lead` should hold a second seat alongside
+`developer` (both leads agreed `developer` needs it); the issue allowed adding both rather than
+adjudicating, and both did.
 
 - **`verification-and-gates` (8,406 B)** — withheld deliberately. The DoD is
   `quality-assurance`'s ruler, not yours; your half of intake is preconditions, blast radius and what a
