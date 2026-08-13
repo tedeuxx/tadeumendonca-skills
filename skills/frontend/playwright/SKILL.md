@@ -1,5 +1,5 @@
 ---
-description: Write browser end-to-end journeys with Playwright — one command targeting either a local server or the deployed apex, the standard that every user-facing feature ships its E2E, and the critical journeys run in CI. Use when a slice changes user-visible behaviour, when a journey owes a regression, or when wiring E2E into a pipeline. Not for API-level contract tests (see postman).
+description: Write browser end-to-end journeys with Playwright — one command targeting either a local server or the deployed apex, the standard that every user-facing feature ships its E2E, and the critical journeys run in CI. Use when a slice changes user-visible behaviour, when a journey owes a regression, or when wiring E2E into a pipeline. Not for API-level contract tests (see backend).
 ---
 
 Use Playwright for E2E tests in the SPA.

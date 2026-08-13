@@ -15,8 +15,10 @@ skills:
 **The `skills:` list above is a preload, not a menu** — `harness-engineering`,
 `verification-and-gates`, `coverage` and `sonarcloud` are already injected here in full.
 `verification-and-gates` is your ruler; `coverage` is, post-#174, the gate policy for **both**
-stacks despite sitting in the `backend` family directory; `sonarcloud` is here because this brief
-obliges you to return the **cause** of a failing gate and Sonar is a named blocking one.
+stacks — extracted to its own `workflow` skill at #230 precisely so it did not get pulled into the
+`backend` family's reference-only BFF consolidation, which nothing here should preload; `sonarcloud`
+is here because this brief obliges you to return the **cause** of a failing gate and Sonar is a named
+blocking one.
 
 **`harness-engineering` is new here (#224), and it is not the exception the old rationale below would
 have refused.** `engineering-philosophy` used to be withheld on exactly this brief's own logic:

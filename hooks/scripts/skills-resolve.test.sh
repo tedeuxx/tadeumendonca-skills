@@ -83,7 +83,12 @@ strip_prefix() {
 # worth naming: the resolution was ALREADY a search by innermost directory rather than a path
 # computation, so re-nesting the library cost one integer. It was a path computation once
 # (`commands/<family>/<stem>.md`), and that is what made #164 expensive.
+#
+# TWO DEPTHS SINCE #230/#231: depth 3 is the ordinary `skills/<family>/<name>/SKILL.md`; depth 2 is
+# FAMILY-AS-SKILL (`skills/<family>/SKILL.md` — `backend`, `frontend`), where the family directory IS
+# the skill and there is no separate name directory to search a level deeper for.
 resolve_bare() {
+  find "$SKILLS" -mindepth 2 -maxdepth 2 -name 'SKILL.md' -path "*/$1/SKILL.md" 2>/dev/null
   find "$SKILLS" -mindepth 3 -maxdepth 3 -name 'SKILL.md' -path "*/$1/SKILL.md" 2>/dev/null
   find "$COMMANDS" -maxdepth 1 -name "$1.md" 2>/dev/null
 }

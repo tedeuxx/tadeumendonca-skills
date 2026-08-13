@@ -60,6 +60,7 @@ PER_SKILL = {
     ("workflow", "adr"): "`tech-lead` · `harness-lead` — split by domain (#223)",
     ("workflow", "command-hygiene"): "`product-lead` · `tech-lead` · `harness-lead` · `developer` · `quality-assurance`",
     ("workflow", "devops"): "`developer` · `harness-lead` · `tech-lead` (#227)",
+    ("workflow", "coverage"): "`developer` · `quality-assurance` — extracted from `backend` (#230)",
 }
 
 # A family with no entry above is unallocated, and that is information rather than an error: an unused
@@ -108,21 +109,25 @@ def describe(path):
 
 
 def family_of(path):
-    """The family DIRECTORY the skill sits in — `skills/<family>/<name>/SKILL.md`.
+    """The family DIRECTORY the skill sits in — `skills/<family>/<name>/SKILL.md`, or
+    `skills/<family>/SKILL.md` when a family consolidated to one file and the family directory IS the
+    skill (#230/#231 — `backend`, `frontend`).
 
     A wrong depth is a hard error rather than a default. Defaulting would let a misplaced skill land
     in the table under some catch-all, pass both directions of the README assertion, and drop out of
     the per-family counts with nothing red — the silent-shrink shape #164 finding 1 is about, and the
-    reason `inventory-counts.test.sh` asserts the tree's shape separately.
+    reason `inventory-counts.test.sh` asserts the tree's shape separately (same two depths, mirrored).
     """
     rel = path.relative_to(SKILLS)
-    if len(rel.parts) != 3 or rel.parts[2] != "SKILL.md":
-        raise SystemExit(f"{path} is not at skills/<family>/<name>/SKILL.md")
-    return rel.parts[0]
+    if len(rel.parts) == 2 and rel.parts[1] == "SKILL.md":
+        return rel.parts[0]
+    if len(rel.parts) == 3 and rel.parts[2] == "SKILL.md":
+        return rel.parts[0]
+    raise SystemExit(f"{path} is not at skills/<family>/[<name>/]SKILL.md")
 
 
 def main():
-    skills = sorted(SKILLS.glob("*/*/SKILL.md"))
+    skills = sorted(SKILLS.glob("*/SKILL.md")) + sorted(SKILLS.glob("*/*/SKILL.md"))
     fams = {}
     for f in skills:
         fams.setdefault(family_of(f), []).append(f)

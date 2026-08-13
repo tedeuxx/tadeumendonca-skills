@@ -90,10 +90,28 @@ expect_in "$README" "$agents subagent personas" "agents/"
 # WHAT THAT COSTS, AND WHERE IT IS PAID: the declaration is now load-bearing. A skill added to the tree
 # and not added to `plugin.json` DOES NOT EXIST to the model, silently — the control probe's exact
 # result. That is gated below, in both directions, under "the declared skills array".
-SKILL_DIRS="$(find "$ROOT/skills" -mindepth 2 -maxdepth 2 -type d 2>/dev/null | sort)"
+# SKILL_DIRS holds any directory, at depth 1 OR 2 under skills/, that directly contains a SKILL.md —
+# depth 2 is the ordinary `skills/<family>/<name>/SKILL.md` shape; depth 1 is the FAMILY-AS-SKILL shape
+# (`skills/<family>/SKILL.md`, #230/#231) where a family that consolidated to one file has no separate
+# name directory left, and the family directory IS the skill. Both are legitimate; a family cannot be in
+# both shapes at once (either it has a direct SKILL.md, or it has name subdirectories — never both), so
+# there is no ambiguity in what this returns.
+SKILL_DIRS="$(find "$ROOT/skills" -mindepth 1 -maxdepth 2 -type d 2>/dev/null | while IFS= read -r d; do
+  [ -f "$d/SKILL.md" ] && printf '%s\n' "$d"
+done | sort)"
 
-skill_dirs_named() {  # $1 = bare skill name -> every skills/<family>/<name> carrying that name
+skill_dirs_named() {  # $1 = bare skill name -> every skills/<family>[/<name>] carrying that name
   printf '%s\n' "$SKILL_DIRS" | awk -F/ -v n="$1" '$NF == n'
+}
+
+fam_of_skilldir() {  # $1 = a SKILL_DIRS entry -> its family name, handling both shapes above
+  local parent
+  parent="$(dirname "$1")"
+  if [ "$parent" = "$ROOT/skills" ]; then
+    basename "$1"        # family-as-skill: the family IS the skill directory
+  else
+    basename "$parent"    # ordinary: family is the skill directory's parent
+  fi
 }
 
 # THE RESOLVERS RETURN NOTHING WHEN A NAME IS AMBIGUOUS, deliberately, and that is not a way of hiding
@@ -113,7 +131,7 @@ family_of() {  # $1 = bare skill name -> the family DIRECTORY it sits in; empty 
   local dirs
   dirs="$(skill_dirs_named "$1")"
   [ "$(printf '%s\n' "$dirs" | grep -c .)" = "1" ] || return 0
-  basename "$(dirname "$dirs")"
+  fam_of_skilldir "$dirs"
   return 0
 }
 
@@ -122,7 +140,7 @@ FAMILY_LIST=""
 total=0
 while IFS= read -r d; do
   [ -z "$d" ] && continue
-  fam="$(basename "$(dirname "$d")")"
+  fam="$(fam_of_skilldir "$d")"
   total=$((total + 1))
   case " $FAMILY_LIST " in *" $fam "*) : ;; *) FAMILY_LIST="$FAMILY_LIST $fam" ;; esac
 done <<< "$SKILL_DIRS"
@@ -130,15 +148,24 @@ FAMILY_LIST="${FAMILY_LIST# }"
 
 # THE SHAPE ASSERTION REPLACES THE `family:` PRESENCE CHECK, and it covers the same defect from the
 # other side. Under the frontmatter model a skill could be in the tree and in no published breakdown by
-# omitting a key; under the directory model it does that by sitting at the WRONG DEPTH —
-# `skills/<name>/SKILL.md`, unfiled, invisible to `SKILL_DIRS` and therefore to every count, table and
-# resolver below. `find` walks the whole tree here precisely so a misplaced file is seen by the one
-# assertion that can report it.
+# omitting a key; under the directory model it does that by sitting at the WRONG DEPTH — anything deeper
+# than 2 levels, unfiled, invisible to `SKILL_DIRS` and therefore to every count, table and resolver
+# below. `find` walks the whole tree here precisely so a misplaced file is seen by the one assertion
+# that can report it.
+#
+# TWO DEPTHS ARE VALID, NOT ONE, SINCE #230/#231 — `skills/<family>/<name>/SKILL.md` (ordinary) and
+# `skills/<family>/SKILL.md` (FAMILY-AS-SKILL: a family consolidated to one file, and the family
+# directory IS the skill — `backend`, `frontend`). Both are legitimate shapes, ratified by the owner for
+# those two specific slices, not a general reopening of "any bare skill anywhere" — a new depth-1 skill
+# still has to clear the SAME declared-skills gate below as anything else, and the accident this
+# assertion originally guarded against (a skill dropped straight under `skills/` with no family at all,
+# pre-#182) is still excluded: `skills/SKILL.md` itself (depth 0) is not accepted by either pattern.
 misplaced=""
 while IFS= read -r f; do
   [ -z "$f" ] && continue
   rel="${f#"$ROOT"/}"
   case "$rel" in
+    skills/*/SKILL.md) : ;;
     skills/*/*/SKILL.md) : ;;
     *) misplaced="$misplaced
     $rel" ;;
@@ -146,11 +173,12 @@ while IFS= read -r f; do
 done <<< "$(find "$ROOT/skills" -name 'SKILL.md' -type f 2>/dev/null | sort)"
 
 if [ -n "$misplaced" ]; then
-  bad "skill tree shape — a SKILL.md is not at skills/<family>/<name>/SKILL.md:$misplaced
-      The family is a DIRECTORY again (#182). A file at any other depth is outside every count, table and
-      resolver in this suite, and its identifier is whatever the innermost directory happens to be."
+  bad "skill tree shape — a SKILL.md is not at skills/<family>/[<name>/]SKILL.md:$misplaced
+      The family is a DIRECTORY again (#182), and a family may itself BE the skill (#230/#231). A file at
+      any other depth is outside every count, table and resolver in this suite, and its identifier is
+      whatever the innermost directory happens to be."
 else
-  ok "skill tree shape — all $total skills sit at skills/<family>/<name>/SKILL.md across ${FAMILY_LIST// /, }"
+  ok "skill tree shape — all $total skills sit at skills/<family>/[<name>/]SKILL.md across ${FAMILY_LIST// /, }"
 fi
 
 # --- the declared skills array -----------------------------------------------------------------
@@ -990,7 +1018,7 @@ skill_files=0
 while IFS= read -r d; do
   [ -z "$d" ] && continue
   stem=$(basename "$d")
-  fam="$(basename "$(dirname "$d")")"
+  fam="$(fam_of_skilldir "$d")"
   skill_files=$((skill_files + 1))
   grep -qE "^\| \`$stem\` \|.*\| \`$fam\` \|" "$README" && continue
   table_missing="$table_missing
@@ -1902,10 +1930,8 @@ else
   # requires for a disambiguating pointer anyway. That leaves this check STRICTER than it was rather
   # than weaker: before the flatten a rival mentioned in passing counted, and now only a pointer does.
   CLUSTERS="
-observability|logging metrics tracing
-config-and-secrets|environment-config secrets-management
-gates|coverage sonarcloud code-review verification-and-gates
-auth|authentication authorization action-types
+gates|code-review verification-and-gates
+auth|authentication authorization
 delivery|devops versioning harness-engineering
 "
 
