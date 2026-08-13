@@ -432,7 +432,8 @@ The **WIP bound moving from a count to file overlap** ships in the same batch bu
 it belongs to the principles layer and to the `wip-guard` hook. It is noted because two personas —
 `plan-reviewer` and `scrum-master` — act on it, and both were updated in the same batch. *(The `wip-guard`
 hook shipped its overlap implementation immediately after, in `-skills`#88, closing the window in which it
-was knowingly stricter than the rule.)*
+was knowingly stricter than the rule.)* **A later collision this move produced, and its own correction, is
+recorded in the twelfth amendment below rather than here — see that entry.**
 
 ## Amendment (2026-08-01, sixth) — a finding blocks only by naming a criterion; the DoD grows a tenth
 
@@ -1294,6 +1295,31 @@ is-the-routing-axis-and-is-exclusive.md) named and left open (*"whether `loop` i
 `quality-assurance` alone, rule 7b), and the reason `harness-lead` was created in the first place —
 *"every scenario ships with how to verify it, or is labelled a hypothesis."* This amendment widens **what**
 the persona may do once its scenarios are accepted; it does not touch **how** it produces them.
+
+## Amendment (2026-08-13, twelfth) — the WIP bound's collision with "act while you wait", and its correction
+
+**Named here because `harness-engineering`'s consolidation ([#224](https://github.com/tedeuxx/tadeumendonca-skills/issues/224))
+found no ADR home for it and this is the nearest one** — the fifth amendment above named the WIP-bound
+move as out of scope for itself; this is that debt, paid as its own dated entry rather than folded into
+the fifth's block.
+
+The principles layer separately states that a turn ending on a dispatched-and-waiting reviewer must
+**name and begin the next non-overlapping action** rather than merely report status — silence reads as
+being stuck. While WIP was bounded by a raw *count*, that rule collided with it directly: the guard
+denied opening a second PR even for a slice sharing zero files with the one already open, so *"work in
+parallel while you wait"* and *"WIP = 1"* gave opposite instructions on the same turn, and the
+count-based hook was the one with a backstop. The bound moving to file **overlap** (the fifth amendment
+above) is what resolved the collision, by making "start something disjoint while you wait" and "don't
+let two overlapping slices rot into conflict" the same rule instead of two rules fighting over the same
+guard.
+
+**The 2026-08-13 WIP=1 correction** (see `harness-engineering`'s own section on it) **supersedes the
+WRITTEN principle this collision produced** — the disjoint-files exception is struck and the policy is
+now a strict count of one in-flight branch — but that correction is written policy only.
+`hooks/scripts/wip-guard.sh` still enforces file overlap, not a raw count, so as of this amendment the
+mechanism and the stated policy disagree: the hook permits a second, disjoint PR that the policy now
+forbids. **Named as a residual rather than silently left inconsistent**; closing it is a
+`wip-guard.sh` change, not a docs one, and is not this amendment's or #224's job.
 
 ## Consequences
 **Good**

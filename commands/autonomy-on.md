@@ -16,18 +16,18 @@ Open issues labelled **(`product` OR `loop`)** **and `ready`**. If the repo has 
 rather than draining every open issue — a command that silently redefines its own scope is worse than
 one that refuses.
 
-**`ready` means the leads closed the description** (`/dev-loop`, *Intake*). An Issue
+**`ready` means the leads closed the description** (`/harness-engineering`, *Intake*). An Issue
 without it is in the tracker but not executable, and the right move is to say so and run the intake pass
 — not to build it and discover the missing requirement at the gate.
 
 ~~**This command currently REFUSES to run on the harness repo.**~~ **It did until 2026-08-02, and the
 fix landed in the same slice that found it.** The first run of the state-model assessment
-(`/loop-engineering`) turned up that `tadeumendonca-skills` had no `product` label at all —
+(`/harness-engineering`) turned up that `tadeumendonca-skills` had no `product` label at all —
 it carried a separate 24-label taxonomy that was almost entirely unused — so the repo whose whole
 purpose is the loop could not be drained by the command that drains loops. Its backlog got worked by
 someone reading and judging, which is the failure the `ready` state exists to remove.
 
-The owner reconciled both repos to one vocabulary (`/dev-loop`, *One vocabulary across every
+The owner reconciled both repos to one vocabulary (`/harness-engineering`, *One vocabulary across every
 repo*), so **this command now runs on either repo.** Kept as a correction rather than deleted, because
 the gap is the evidence for why the assessment is a standing rule.
 
@@ -42,7 +42,7 @@ produced seventeen closed issues with not one from the owner's product queue.
 
 ## Decisions first, then work
 
-Per `/dev-loop`, "Opening a session": **collect the pending owner decisions across the
+Per `/harness-engineering`, "Opening a session": **collect the pending owner decisions across the
 whole queue and ask them as a batch, before choosing what to build.** One conversation unblocks
 everything at once; one question per slice produces one stall per slice.
 
@@ -63,11 +63,11 @@ That is the timing. What follows is the exception path for what you *discover* m
 
 ## Per slice — the loop, unchanged
 
-Follow `/dev-loop`. Nothing here relaxes it:
+Follow `/harness-engineering`. Nothing here relaxes it:
 
 - Plan first for anything non-trivial; the two leads consolidate **one** demand before the build.
 - Thin vertical slice, end to end, finished **through merge** before opening the next.
-- WIP is bounded per `/dev-loop` — read it there rather than trusting a restatement, and
+- WIP is bounded per `/harness-engineering` — read it there rather than trusting a restatement, and
   note the guard enforcing it may lag the rule (`product-lead` carries the caveat).
 - Every gate green with real evidence, and the `quality-assurance` on every PR. It merges the safe
   class and escalates the boundary class; a green CI is not a substitute for it.
@@ -80,7 +80,7 @@ Follow `/dev-loop`. Nothing here relaxes it:
   `developer`, so "denies every subagent" is no longer accurate — but a **review** is still denied,
   which is the case this bullet is about.)* The **main loop may open
   issues**, and should: recording something the owner asked for is not generating demand. The guard
-  asks rather than denies there, so the owner decides per issue. See `/dev-loop`,
+  asks rather than denies there, so the owner decides per issue. See `/harness-engineering`,
   *Review does not open work* — which is about reviews, not about the queue being unwritable.
 
 ## What autonomy does NOT extend to
@@ -161,7 +161,7 @@ It replaced *"until the backlog is empty"* (#97) on the argument that the first 
 **human** and is therefore unreachable. True, and it shipped a version that fails because of the
 **loop** — which is worse, because it looks reachable.
 
-**What makes the new condition reachable is the pruning step** (`/dev-loop`, *Closing an
+**What makes the new condition reachable is the pruning step** (`/harness-engineering`, *Closing an
 issue is a step*): a loop that only ever adds has no terminal state at any threshold. With a closing
 criterion, the queue can shrink, and "no open issue outranks the cost of continuing" becomes a real
 question rather than a formality.

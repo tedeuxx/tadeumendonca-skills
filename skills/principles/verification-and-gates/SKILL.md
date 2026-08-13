@@ -2,7 +2,7 @@
 description: Define what done means and the mechanical gates that prove it — the Definition of Done, the 100% functional-regression invariant, local validation, and the gate table per loop model. Use when deciding whether a slice is shippable, calibrating gates to blast radius, or arguing that a green check is not evidence. Not for the concrete gate list and thresholds (see coverage) or the author's own pre-merge pass (see code-review).
 ---
 
-Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that prove it — the enforcement half of the principles layer (`/engineering-philosophy` is the judgment half; `/dev-loop` is the flow).
+Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that prove it — the enforcement half of the principles layer (`/harness-engineering` carries the judgment and the flow).
 
 Context: $ARGUMENTS
 
@@ -37,7 +37,7 @@ Development is validated **locally and automatically before the deploy** — not
 - "The regression passes locally" is the concrete pre-deploy gate.
 
 ## Gates — calibrated to blast-radius
-The gate set is the same; **where it sits** follows the loop model (`/dev-loop`). The organizing rule: **the heavy gates sit at the point of no return.**
+The gate set is the same; **where it sits** follows the loop model (`/harness-engineering`). The organizing rule: **the heavy gates sit at the point of no return.**
 
 ### `gitflow-multi-env`
 | Gate | Staging (merge → integration branch) | Production (promote → release branch) |

@@ -5,21 +5,25 @@ tools: Read, Grep, Glob, Write, Edit, Bash
 skills:
   - code-review
   - verification-and-gates
-  - engineering-philosophy
+  - harness-engineering
 ---
 
 ## What you already have loaded, and what was withheld
 
 **The `skills:` list above is not a menu — it is a preload.** Each file's full body is injected into this
 context before your first turn, so `code-review`, `verification-and-gates` and
-`engineering-philosophy` are already here. **35,294 B.** Do not go looking for them on disk.
+`harness-engineering` are already here. Do not go looking for them on disk.
+
+**`harness-engineering` replaces `dev-loop`, `loop-engineering` and `engineering-philosophy` (#224).**
+Where this brief used to name `dev-loop` as **withheld** — larger than the whole list, and inlined
+here anyway (the intake chain, the `ready` query, the task-filing rule) — the consolidated skill is
+now **loaded**, not withheld: the intake chain, the state table and the eleven principles all arrive
+in one preload, carried by all five profiles rather than reasoned about as a deprivation unique to you.
 
 **And there is no other channel.** `Skill` is not grantable through `tools:` (#177), and `printenv
 CLAUDE_PLUGIN_ROOT` exits 1 inside a subagent shell — nothing tells you where the library is. So what is
 not on that list you genuinely cannot reach, and the exclusions were priced as deprivations:
 
-- **`dev-loop` (38,702 B)** — larger than your whole list, and this brief already inlines what
-  it would supply: the intake chain, the `ready` query, the task-filing rule.
 - **`github-actions` (19,582 B)** — the honest cost. You own `.github/workflows/**`, so on a CI
   slice you work without the guide and cannot fetch it. **Say so in your report when it bites** — the
   invoking context or the Issue has to supply the content, because a `skills:` list is static and there

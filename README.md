@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 69 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 67 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -329,7 +329,7 @@ work as the other two.
 
 ## The skill library, whose domain each family is, and what is actually preloaded
 
-**Skills carry the conventions so the model does not re-invent them.** **69 skills + autonomy-on** and
+**Skills carry the conventions so the model does not re-invent them.** **67 skills + autonomy-on** and
 `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
@@ -339,7 +339,14 @@ and its trade-off*, not just the rule — because a rule without its reason is o
 
 **That column was headed *wielded by* until #172, and the rename is the point rather than a tidy-up.** It answers **whose mandate a convention falls under** — who is accountable for `dynamodb` being right. It does **not** answer *what does this persona have loaded*, and the two diverge sharply: under the old heading a reader had one column and no way to tell which question it was answering, so the curated preload below read as a contradiction of it rather than as a different fact.
 
-**Reconciling the two into one column was the alternative, and it was rejected.** The ten preload entries resolve to **eight distinct files**, and only **seven** of those are rows in this table — `new-issue` is top-level and has no row. Against 69 rows, making the column mean *preloaded by* would therefore print "— none" against **62 of them**, `dynamodb`, `vpc` and `cloudfront` among them: publishing, on the document a forker reads first, that no persona is responsible for nine tenths of the library. That is false, and it deletes the true information the column already carries to remove a contradiction that a heading fixes.
+**Reconciling the two into one column was the alternative, and it was rejected.** Across the five
+briefs the `skills:` lists total **twelve preload entries** (`harness-engineering`'s universal preload,
+#224, is what pushed this above the ten it used to be), resolving to **seven distinct files, all seven
+of them rows in this table.** Against 67 rows, making the column mean *preloaded by* would still print
+"— none" against **60 of them**, `dynamodb`, `vpc` and `cloudfront` among them: publishing, on the
+document a forker reads first, that no persona is responsible for nine tenths of the library. That is
+false, and it deletes the true information the column already carries to remove a contradiction that a
+heading fixes.
 
 *"Of body"* is a precision the frontmatter forced (#166): every skill now opens with a `description:`
 block written for the **matcher** — one trigger sentence of 300-500 characters naming the situation the
@@ -355,22 +362,24 @@ before the persona's first turn.** There is no declare-without-loading option, s
 deprivation rather than a deferral**, which is why the briefs argue their omissions rather than listing
 them.
 
-- **`developer` — 35,294 B** — `code-review` · `verification-and-gates` ·
-  `engineering-philosophy`
-- **`quality-assurance` — 18,215 B** — `verification-and-gates` · `coverage` ·
-  `sonarcloud`
-- **`tech-lead` — 16,857 B** — `adr` · `engineering-philosophy` ·
+- **`developer` — 60,264 B** — `code-review` · `verification-and-gates` ·
+  `harness-engineering`
+- **`quality-assurance` — 50,222 B** — `harness-engineering` · `verification-and-gates` ·
+  `coverage` · `sonarcloud`
+- **`tech-lead` — 42,301 B** — `adr` · `harness-engineering` ·
   `documentation-standard`
-- **`product-lead` — 8,895 B** — `new-issue`
-- **`harness-lead` — 0 B, `skills: []`, and this is a decision rather than a blank.** Its object is
-  `hooks/`, `settings.json`, `agents/`, the plugin and MCP — none of which is in `skills/`. It is also
-  the persona most exposed to staleness, and a preload is a frozen snapshot, which would arm the drift
-  it exists to catch.
+- **`product-lead` — 32,250 B** — `harness-engineering`
+- **`harness-lead` — 32,250 B** — `harness-engineering`, the one exception to what used to be
+  `skills: []`. Its object is `hooks/`, `settings.json`, `agents/`, the plugin and MCP — none of which
+  is in `skills/` — and it is the persona most exposed to staleness, a real tension a frozen preload
+  creates that its own brief now names as a residual rather than resolves.
 
-**79,261 B as billed across the five, 63,647 B distinct — 14.2% of the library, and no persona over
-35 KB.** The two figures differ because `verification-and-gates` and `engineering-philosophy` are each
-carried by two personas: there is no dedupe, so both are billed twice and the library sees them once.
-Note what this table and
+**217,287 B as billed across the five, 79,942 B distinct — 17.8% of the library, and no persona over
+61 KB.** `harness-engineering` (32,250 B, the universal preload, #224) is the largest single skill in
+the library and is now carried by all five briefs, which is why the billed total roughly tripled from
+the pre-#224 figure. The two figures (billed vs. distinct) differ because `verification-and-gates` is
+carried by two personas and `harness-engineering` by all five: there is no dedupe, so each is billed
+once per persona and the library sees it once. Note what this table and
 the one below disagree about, deliberately: `developer` **preloads** two `principles`-family skills while
 the column below puts that family under the four judging personas. Both are true. The principles are the
 judges' ruler and the builder's floor; *whose domain* and *what is loaded* are different questions, which
@@ -389,7 +398,7 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library, by family: backend (19), frontend (15), infrastructure (21), principles (5), workflow (9).
+The library, by family: backend (19), frontend (15), infrastructure (21), principles (3), workflow (9).
 
 | skill | what it decides | family | whose domain |
 |---|---|---|---|
@@ -448,9 +457,7 @@ The library, by family: backend (19), frontend (15), infrastructure (21), princi
 | `terraform` | Use Terraform in <project> infrastructure (how we use it as a whole). | `infrastructure` | `developer` |
 | `vpc` | Implement or review the VPC and networking layer (vpc.tf) in <project>-iac. | `infrastructure` | `developer` |
 | `waf` | Implement or review the WAF WebACLs (CLOUDFRONT + REGIONAL) across the two repos that own them. | `infrastructure` | `developer` |
-| `dev-loop` | Apply the platform's end-to-end development loop in a `<project>` repo. This is the flow the principles run inside — `/engineering-philosophy` is… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
-| `engineering-philosophy` | Apply these engineering principles — the owner's way of building software — in any <project> repo. They shape every decision an agent makes here.… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
-| `loop-engineering` | Name and practice the discipline this whole plugin exists to run: **Agent Harness Engineering** (the owner's term for how he works; also… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `permissions-and-environments` | Apply the platform's environment and permission model in any `<project>` repo — both at the global Claude Code level and per-project. This is the… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `verification-and-gates` | Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `adr` | Author or review an Architecture Decision Record (ADR) for any `<project>` repo, following the platform's ADR practice. | `workflow` | `tech-lead` — the only writer of the ADRs |
@@ -759,7 +766,7 @@ by hand:
 
 | resource type | ships? | where | how it takes effect |
 |---|---|---|---|
-| **Skills** | yes — **69** | `skills/<family>/<name>/SKILL.md`, each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
+| **Skills** | yes — **67** | `skills/<family>/<name>/SKILL.md`, each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **2** (`autonomy-on`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-family-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **5 subagent personas** | `agents/*.md` (`developer`, `harness-lead`, `product-lead`, `quality-assurance`, `tech-lead`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 5** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`, `session-scratch`) — automatic, no invocation |

@@ -438,7 +438,7 @@ fi
 # `PRINCIPLES.md` was in this list until it was folded into the README — a floor behind a click is a
 # floor nobody reads. Removed here rather than left to fail: the existence guard below would have
 # reported it, which is correct behaviour and the wrong signal, since the file is gone on purpose.
-for doc in "$README" "$CLAUDE" "$ROOT/skills/principles/loop-engineering/SKILL.md"; do
+for doc in "$README" "$CLAUDE" "$ROOT/skills/principles/harness-engineering/SKILL.md"; do
   name=$(basename "$doc")
   # Existence first. Without it, a renamed or deleted file makes `grep` print to stderr and return
   # non-zero — which the "is clear of the retired term" branch reads as SUCCESS, emitting a green line
@@ -479,43 +479,22 @@ for doc in "$README" "$CLAUDE" "$ROOT/skills/principles/loop-engineering/SKILL.m
   fi
 done
 
-# THE COVERAGE ABOVE IS NOT TOTAL, and the exception is asserted rather than described so that it
-# cannot be quietly forgotten.
+# THE EXCEPTION THIS BLOCK USED TO ASSERT IS RETIRED, NOT SILENTLY DROPPED. Every prior version of this
+# comment recorded a known, deliberate gap: the skill was still named `loop-engineering` even though the
+# vocabulary check above required `Agent Harness Engineering`, so `/loop-engineering` was a live public
+# invocation naming a superseded term, on purpose, because renaming it was its own MAJOR-bump release.
 #
-# The skill is still NAMED `loop-engineering`, so the invocation `/loop-engineering` is published in
-# CLAUDE.md's command reference — a table cell that names the practice `Agent Harness Engineering` while
-# pointing at a command named after the term that replaced. The check above cannot see it: it greps the
-# title-case, spaced form, and the slug does not match.
+# `harness-engineering` (#224) is that release. `skills/principles/loop-engineering/SKILL.md` no longer
+# exists — folded, together with `dev-loop` and `engineering-philosophy`, into
+# `skills/principles/harness-engineering/SKILL.md` — so `/loop-engineering` is no longer a published
+# invocation and the gap this block asserted is closed by the rename it was written to wait for.
+# **This is the version decision the block's last form asked for, made rather than assumed: a command
+# renamed/removed is a MAJOR bump per CLAUDE.md's own rule.** Whether the release that ships this PR
+# carries it as MAJOR or, per #164's precedent, as one contract change already announced by a prior
+# major version, is the owner's call at release time — not asserted here.
 #
-# Left deliberately. That name is a public invocation surface and this repo's SemVer contract makes a
-# renamed command a MAJOR bump; shipping one under a `docs:` subject is a worse defect than the
-# mismatch. The rename belongs in its own release.
-#
-# THE TRIPWIRE FIRED ON #164 EXACTLY AS DESIGNED, AND THE ANSWER IS RECORDED HERE RATHER THAN IN THE
-# COMMIT MESSAGE, because this note is what the next reader meets. The library moved from
-# `commands/principles/loop-engineering.md` to `skills/loop-engineering/SKILL.md`, this assertion went
-# red, and it dragged this paragraph out for editing — which is the whole point of asserting a known gap
-# positively. What it found is that THE SLUG DID NOT MOVE: the exception's subject is the NAME
-# `loop-engineering`, and only the path around it changed, so the gap is unchanged and the note stands.
-#
-# The bump the failure message asks about was answered separately and is NOT what this assertion
-# thought it was asking. #164's flatten renames sixty-nine invocations — `/principles/loop-engineering`
-# becomes `/loop-engineering` — and the owner ruled that travels as a PATCH, on the reading that #174
-# and the flatten are one contract change which `1.0.0` already announced. So a red here does not mean
-# "a MAJOR is owed"; it means "a versioning decision is owed, and it must be made rather than assumed".
-#
-# IT FIRED AGAIN ON #182, AND THE ANSWER IS THE SAME ONE, WHICH IS THE POINT WORTH RECORDING. The tree
-# went back to `skills/principles/loop-engineering/SKILL.md` — the path moved a second time and the SLUG
-# did not, because #182 keeps identifiers BARE (measured: a nested skill resolves as `plugin:nested`, not
-# `plugin:fam/nested`). So no invocation changed, no version decision is owed by this move, and the
-# exception's subject — the NAME — is untouched for the second time running. This is a `-f` on a path,
-# so a path move reddens it even when the contract is unaffected; that is the assertion being noisier
-# than its subject, and it is kept because the noise costs one edit and the silence would cost the gap.
-if [ -f "$ROOT/skills/principles/loop-engineering/SKILL.md" ]; then
-  ok "vocabulary — the slug exception is still in place, as recorded (see the note above)"
-else
-  bad "vocabulary — the skill was renamed: retire this assertion, this note, and the three-doc list above, and settle the version bump the rename owes (see the note — a rename is MAJOR by the CLAUDE.md rule, and #164 records the one reading under which a follow-on PATCH is the honest carrier)"
-fi
+# The block is retired rather than deleted so the next reader can see what closed it, per this repo's
+# own struck-not-deleted convention for exactly this kind of record.
 
 # --- the roster's SHAPE, written as an English word inside an instruction -----------------------
 # THE SECOND SURFACE OF A ROSTER CHANGE, and the numbers above cannot see it. When `marketing-lead`
@@ -1927,7 +1906,7 @@ config-and-secrets|environment-config secrets-management secrets-manager ssm
 gates|coverage sonarcloud code-review verification-and-gates
 data|dynamodb redis-cache elasticache
 auth|authentication authorization cognito action-types
-delivery|github-actions versioning terraform-cloud terraform dev-loop
+delivery|github-actions versioning terraform-cloud terraform harness-engineering
 "
 
   names_rival() {  # $1 = description text, $2 = rival stem — matched only inside a `(see …)` pointer
