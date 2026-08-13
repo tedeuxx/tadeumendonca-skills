@@ -1,0 +1,486 @@
+---
+description: Run any slice through the loop — intake, the state machine, the inner-loop steps — and apply the judgment (eleven principles, two tiers) behind every decision in it. Use when picking up a slice, proposing a change to the loop itself, or naming Agent Harness Engineering / AI-DLC in public writing. Not what "done" means (see verification-and-gates), the permission zones (see permissions-and-environments), or the CI workflows themselves (see github-actions).
+---
+
+Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state
+machine a change travels through, the judgment that shapes every decision inside it — in any
+`<project>` repo.
+
+Context: $ARGUMENTS
+
+This is the **universal preload**: the one skill every profile in this roster carries, because
+understanding the loop itself is not domain-specific the way the rest of the process library is.
+Two companion skills carry adjacent ground and are **not** folded in here: `/verification-and-gates`
+(what "done" means, the Definition of Done, the gate tables) and `/permissions-and-environments`
+(the permission zones and the guard hook that make the deny-boundary mechanical). The single- vs.
+two-environment branching topology moves to `/devops` (#227) — this skill keeps only how the state
+machine, labels and inner loop work once a mode is chosen, not the mode itself.
+
+## What Agent Harness Engineering is
+
+Most teams point an AI coding tool at an unchanged process and write code faster inside it. Agent Harness
+Engineering inverts that: **the loop itself — how a change travels from intent to live, and
+every gate and guard along the way — is the thing you engineer.** The code is the output of a
+well-built loop, not the point. Run with **Claude Code and Kiro** as the hands, its spine is
+**agent-led verification, human-residual**: the agent proves "done" mechanically; the human is left
+only the irreversible/architectural residual.
+
+The honest claim it makes (and the one it does **not**): *a development loop that turns AI-native
+techniques into production-ready software* — **not** agents running in production at scale. The
+loop is the track record; overclaiming the agents is off-discipline.
+
+### The three surfaces this discipline engineers
+
+The loop is a product with three surfaces, and this discipline owns their **design**, not their
+execution. The fleet executes (the leads consolidate one demand → `developer` builds →
+`quality-assurance` gates it); `product-lead` guards that the flow is *honest* (tracked,
+WIP-respected). What has no other owner is the loop **as a system**:
+
+1. **Cadence & flow** — thin vertical slices bounded by file overlap, finish-through-merge. Not "is
+   each slice tracked" (`product-lead`'s bookkeeping) but "is the loop *shaped* so work flows — is
+   the human's residual small, and does the slice boundary fall where the human's attention is
+   actually worth spending?" A loop that asks the human on in-pattern work is a **design defect**,
+   not mere friction.
+2. **The gates as a composed system** — the gatekeeper (`quality-assurance`), the mechanical hooks
+   (`permission-guard`, `wip-guard`, `session-wip`, `session-plugin-version`), the CI gates. The
+   failure mode this discipline exists to catch is **a gate that verifies nothing**: a hook committed
+   non-executable so it silently no-ops; a job that prints PASS having run nothing; a test that
+   exercises the guard through a shell call and so never checks the *installed* form. A green that
+   proves nothing is worse than a red. When you find one, fix the **gate**, not just the finding.
+3. **The harness as the artifact** — the agent fleet, the principles, and the hooks are themselves
+   versioned, tested, and improved. A defect in the loop is a bug in the *product*, filed and fixed
+   like any other.
+
+### The move that makes it a discipline, not a vibe
+
+Every guarantee above is **mechanical or it is not real.** "The reviewer holds the merge gate" is
+Agent Harness Engineering only once a hook denies the merge to every context but the reviewer; until
+then it is an instruction the loop can break — and the same model that skipped a review is the one
+trusted to remember. The test, applied to any claimed property of the loop:
+
+> *If this guarantee failed right now, would something stop me — or only my memory?*
+
+If only memory, it is not engineered yet — it is an intention.
+
+### Before a loop change goes into execution — re-derive the state model
+
+**Owner rule, 2026-08-02: every time the loop is re-evaluated, redo this assessment before executing
+it.** Not once, and not only when the tracker is being touched — *every* time.
+
+Three axes, and the third is the one that gets skipped:
+
+1. **Issue TYPES** — what kinds of work exist, and what each implies for merge class.
+2. **STATES per type** — every state an item passes through, not just `open` and `closed`.
+3. **WHICH ROLE acts at each transition — and what ARTIFACT records that it happened.**
+
+The whole assessment collapses into one question, asked once per rule the change introduces:
+
+> **What observable artifact says this rule was applied?** If the answer is *"someone reads the item
+> and judges"*, the rule has no state. It will be applied inconsistently, and — worse — inconsistently
+> *and silently*, because there is nothing to audit.
+
+This rule was itself earned by a failure of exactly this shape ([ADR-0002](../../../docs/adr/0002-agentic-dev-loop-architecture.md)
+amendment #8): an intake chain shipped with nothing in the tracker able to say whether a description
+had been closed, one day after being written. **Keep the remedy to one bit.** Do not add a state that
+duplicates something already observable — an open PR already says "in progress." Prefer the smallest
+label set that makes each rule's precondition **queryable**, and if a rule needs no new state, say so
+explicitly rather than leaving the axis unexamined.
+
+### When to reach for this discipline specifically
+
+- **Standing up the loop** in a new repo, or picking the loop model — see `/devops`.
+- **A gate feels like theater**, or a green does not sit right — audit whether it verifies what it
+  claims (widen the assertion to the installed form; make "did the reviewer run?" a precondition,
+  not a hope).
+- **The human is asked too often**, or WIP is piling — the loop's *shape* needs tuning, not more
+  discipline from the people in it.
+- **Validating a loop/gate change** — pair it with `tech-lead` (design-time, against the principles
+  and the ADR library) and `quality-assurance` (code-time, against the Definition of Done).
+- **Proposing a change to the MACHINERY** — dispatch `harness-lead` before implementing it. Its
+  standing question is [ADR-0008](../../../docs/adr/0008-which-layer-carries-a-control.md)'s — *which
+  layer can actually carry this control, and can that layer hold it?* Since
+  [ADR-0015](../../../docs/adr/0015-harness-lead-implements-the-harness-it-reviews.md) it may also
+  implement the harness changes it stress-tests (never merging, never gating an MR of its own — rule
+  7b's catch-all and rule 5d's catch-all are unchanged by that ADR).
+
+## Pick the loop model first
+
+The loop has **two shapes**. They share every invariant below and differ only in how a change is
+promoted. Full branching diagrams, per-environment topology, and the CI wiring live in `/devops`
+(#227) — this is the pointer, not the depth.
+
+| Model | Use when | Promotion |
+|---|---|---|
+| **`gitflow-multi-env`** | The repo deploys to **more than one environment** and carries an integration branch. | Two hops: PR → integration branch → staging, then a promotion PR → release branch → production behind manual approval. |
+| **`trunk-single-env`** | The repo has **one long-lived branch (`main`) and one destination** — a single deployed environment, or a consumed artifact released deliberately. | One hop: PR → `main` → deploy/release. |
+
+**How to tell**, in order of authority: the repo's `CLAUDE.md` states the model outright; otherwise
+look for an integration branch (`develop`) on the remote and more than one environment in CI. **If
+both signals are absent, it is `trunk-single-env`.**
+
+## Intake — where work is born, and the chain it must walk
+
+**Nothing is worked that is not recorded in the issue tracker.** No exceptions, no size threshold.
+
+**The chain — see `agents/product-lead.md` and `agents/tech-lead.md` for the persona-level detail;
+this is the canonical statement, and both briefs point here rather than restate it:**
+
+> **The owner generates demand.** They are the only origin of work — see *Review does not open work*
+> below.
+>
+> **The leads close the description among themselves.** `product-lead` and `tech-lead` collaborate:
+> what it must deliver for the reader, what it must say to the market, what the system must carry.
+> They disagree first and reconcile second; a disagreement they cannot settle goes **up** to the
+> owner, never **down** as competing briefs.
+>
+> **Only then is the issue executable.** `developer` does not pick up an issue whose description is
+> not closed.
+
+**`harness-lead` is not a link in that chain, deliberately.** It shares the leads' tier and takes no
+part in closing a story's description — its object is the machinery this loop runs on, not the
+product the loop builds. It is dispatched on a **proposal about the loop itself**, before anything is
+built, and per ADR-0015 that proposal now enters the tracker as a `loop`-typed Issue — filed by the
+orchestrator on its naming (`harness-lead` itself remains denied `gh issue create`). `loop`-typed
+`ready` is an **owner-only** label transition (ADR-0015 Corollary 4), never applied by any dispatch —
+see ADR-0015 for the corollaries in full (durable verdict marker, the harness-diff criterion, the
+proposal/build dispatch separation).
+
+*Where the two chains meet.* A change to *how work is decided* — this skill, the states table, an
+ADR that governs the loop — is still a **boundary** decision for the owner. `harness-lead` is who the
+owner works that decision out with; it does not make it.
+
+## The states
+
+| transition | type | who acts | artifact that records it |
+|---|---|---|---|
+| → **filed** | all | the owner, alone | the Issue exists |
+| filed → **ready** | `product` | both leads, closing the description together | **`ready` label** |
+| filed → **ready** | `content` | `product-lead`, alone | **`ready` label** |
+| filed → **ready** | `loop` | the owner, alone — not the leads (ADR-0015 Corollary 4) | **`ready` label** |
+| ready → **in progress** | `product` · `content` | `developer` | an open PR |
+| ready → **in progress** | `loop` | `harness-lead` (ADR-0015 Corollary 1) | an open PR |
+| in progress → **reviewed** | `product` · `content` | `quality-assurance`, against the full two-lens DoD | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
+| in progress → **reviewed** | `loop` | `quality-assurance`, checking for a `harness-lead` verdict marker rather than the full two-lens DoD (ADR-0015 Corollary 2) | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
+| reviewed → **closed** | all | `quality-assurance` (safe) · the owner (boundary) | the merge, and for boundary the owner's ratifying comment |
+| **any → blocked → back** | all | anyone, on discovering it waits on the owner or on something outside the loop | **`blocked` label** |
+
+**`blocked` is orthogonal, not a sixth step.** It can attach at any point and returns the item to
+wherever it was.
+
+**Since [ADR-0006](../../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)** the
+`reviewed` row's artifact is real — the gatekeeper posts a marker comment carrying the head SHA it
+read, so a verdict on a moved head fails loudly instead of reading as approval. Until 2026-08-04 that
+verdict was checked by a second gatekeeper (`security`) before merge; `security` was absorbed into
+`quality-assurance` ([ADR-0002](../../../docs/adr/0002-agentic-dev-loop-architecture.md) amendment
+#10 — the rationale for that merge lives there, not here), so the posting rule is now
+**self-enforced**: nothing verifies it but the persona itself.
+
+**`ready` is the only state added, and the restraint is the point.** An issue with no `ready` label
+is not executable — a mechanism, not something a persona must remember. *What it does not buy:*
+nothing verifies the leads actually closed the description rather than one nodding it through. The
+label is auditable and attributable, not proven.
+
+## One vocabulary across every repo
+
+| label | means | set by | queried by |
+|---|---|---|---|
+| `product` | the repo's own deliverable | the owner, at filing | `/autonomy-on`'s queue · merge class **safe** |
+| `content` | published in the owner's voice | the owner, at filing | merge class **boundary** |
+| `ready` | the leads closed the description | the leads | `/autonomy-on` · `developer` refuses an Issue without it |
+| `blocked` | waiting on the owner, or on something outside the loop | anyone | the "what needs the owner" report |
+| `reader-facing` | the diff will change words or images a reader sees | the owner or the leads | which lens the gate dispatches — **a signal, never a gate** |
+
+`product` / `content` / `loop` are exclusive per
+[ADR-0012](../../../docs/adr/0012-issue-type-is-the-routing-axis-and-is-exclusive.md), which is the
+citation for *why* — routing, not a re-argument here. **The test a label has to pass: something must
+QUERY it.** A label nobody reads is decoration that ages, which is why the retired vocabulary
+(`type:*`, `phase:*`, `priority:*`, `semver:*`, `status:blocked`) stays retired — each failed that
+test or was superseded by one of the five above.
+
+**Why the formalism is not ceremony.** `quality-assurance` consolidates that every requirement of the
+Issue was met, and those requirements are the leads' output — so the ruler the gate applies is
+**external to the gate**. A vague issue leaves the gate nothing to anchor on, so it falls back on
+impression, which has no stopping rule. That objectivity is what the labels buy: they are how the
+chain above becomes checkable instead of merely believed.
+
+## Opening a session — decisions before work
+
+**Collect the pending owner decisions across the whole queue and ask them as a batch, before choosing
+what to build.** One question at a time, in one sitting. Asking a decision when a slice hits it
+produces one stall per slice; asking them up front produces one conversation and unblocks everything
+at once.
+
+Then **`product-lead` states the order**, and the session works it:
+
+> Starting a slice that is **not** the top of the stated order requires `product-lead` to have
+> returned a new order, or the session records that the order is unchanged.
+
+**A session with no pending decisions says so.** A step that silently did nothing must not read like
+a step that ran.
+
+## What gets worked next — discovered vs requested
+
+**Work you discover only preempts work the owner asked for when it BLOCKS it.** File everything,
+always — evidence in hand is worth recording whether or not it is worked. The test:
+
+> Does the requested work ship **wrong**, or **not at all**, without this?
+
+Yes → it goes first, stated as a blocking relationship. No → it queues like everything else and
+`product-lead` orders it. Discovered work is cheap to justify (found in context, usually safe class,
+merges without the owner); requested work needs decisions, sometimes the owner's own words. Left
+unchecked, the autonomy gradient sorts the queue by what can flow without a human, which is exactly
+backwards from what a backlog is for.
+
+## What "delivered" means
+
+**A slice DELIVERED when a reader can do, see or read something different.** Everything else is
+**hygiene** — comments, dead code, a test mechanism, a process rule, a README. Hygiene is not lesser
+work and it is not delivery: it is the cost of being able to deliver again.
+
+**Report product slices against hygiene slices, every session.** A session with zero product slices
+is a finding, not a status. **Hygiene is picked up when it BLOCKS a product slice, or in one
+deliberate bounded batch** — not opportunistically, and not because it is what flows most easily
+without a human.
+
+## Closing an issue is a step, with a criterion
+
+**The loop must be able to REMOVE work, or it has no terminal state.** Close an issue when any of
+these holds, and state which one in the closing comment:
+
+- **Superseded** — a later decision answered it. Say what superseded it.
+- **Implemented elsewhere** — the mechanism exists now, under another slice's name. Point at it.
+- **Its premise no longer holds** — the condition that produced it is gone.
+- **The cost of tracking exceeds the cost of rediscovering it** — real, small, cheaper to find again
+  than to carry. Say so plainly rather than pretending it was fixed.
+
+**A closing comment that states no criterion is not a close, it is a deletion.** This is the owner's
+act, like opening one — the permission floor leaves closing open everywhere, deliberately: opening
+work commits the owner's future attention, closing it releases attention already committed. But
+**propose the batch and the criteria**; do not close silently.
+
+## Review does not open work
+
+**Only the owner decides what enters the queue.** A REVIEW never files: an agent that turns its own
+finding into an Issue has decided something should exist and is merely asking for agreement
+afterwards. Findings are **named** — in a verdict, in the PR, to the human — and the owner decides
+whether any of them becomes tracked work.
+
+**Enforced by WHO is asking.** `permission-guard` rule 5c reads `agent_type`, which the harness
+stamps and the model cannot forge; every subagent except `developer` (rule 5d) is denied
+`gh issue create` outright, and the main loop is asked. Reading, listing, commenting, labelling and
+closing stay open everywhere.
+
+**The one exception.** A story is broken into tasks, and `developer` executes them. **Opening scope**
+is creating work nobody asked for; **decomposing** is dividing work the owner opened and the leads
+ratified. `developer` may file a task, and the rule it must follow — *only under a story carrying
+`ready`, referencing its parent, never extending the story* — lives in `agents/developer.md`, and
+`quality-assurance` verifies it on the task's own MR.
+
+**Why, measured rather than assumed.** In one session the queue grew by 19 issues net, with roughly
+13 born inside a *review of something else*. Every finding became work nobody had decided to do. The
+accepted cost: a finding in a verdict is ephemeral where an Issue is not — fewer things tracked, some
+real findings lost, preferred to a queue that grows by working.
+
+## The agent's state while a slice is blocked on someone else
+
+**With no defined action for that interval, the default behaviour is to report status. Reporting
+reads to the agent as delivery and to the owner as stopping.**
+
+> **On dispatching work to a reviewer — or to any actor you do not control — name and BEGIN the next
+> non-overlapping action before ending the turn.** If there is none, say so: *"waiting on X, nothing
+> disjoint in the queue"* is honest status. Silence is not, because silence is indistinguishable from
+> being stuck.
+
+## Inner loop (per slice)
+
+1. **Plan-first**, then implement. Ask only on architecture / contracts / irreversible calls; decide
+   autonomously on in-pattern implementation.
+2. **One thin vertical slice at a time**, end-to-end and reviewable. Keep it surgical; adjacent debt
+   is **named, not refactored inline and not filed** — see *Review does not open work*.
+   **WIP=1 — one worktree, one in-flight branch, one open PR at a time, full stop, until formally
+   reversed** (owner correction, 2026-08-13; see *WIP=1* below for the struck predecessor rule and
+   why). **Integrate `main` before requesting review** if `main` has moved.
+3. **Develop locally**, against whatever backing services the repo actually has — see
+   `/permissions-and-environments`.
+4. **Validate locally**: run the repo's **functional regression** and self-verify the gates (lint,
+   typecheck, coverage). Report with the real output, never a claim.
+5. **Run `/code-review`** before opening the PR — the author's own completeness pass. *Namespaced
+   deliberately:* a bare `/code-review` resolves to a different, external marketplace plugin this
+   repo also installs.
+6. **`quality-assurance` reviews every MR, holding TWO lenses in one pass** — delivery (*was every
+   requirement of the Issue met?*) and production (*can this cause a problem in production?*). Both
+   are labelled per finding. The gatekeeper posts its verdict to the PR before returning — a
+   `<!-- gatekeeper-verdict: … -->` comment carrying the head SHA it read
+   ([ADR-0006](../../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)). A relay
+   from the invoking context is a notification, never the authority.
+
+### Always true
+
+- **Pipelines are independent per repo** (never cross-trigger). Infrastructure changes are
+  **pipeline-only**: a reviewed plan on the PR, apply on merge.
+- **Merge with a real merge commit, never squash** — each thin slice's conventional commits are the
+  changelog and the slice-by-slice trail.
+- **The regression suite must functionally cover 100% of implemented features.** Which suites that
+  means is per repo — E2E always; an API suite only where an API exists.
+- **Something irreversible always asks.** The models differ on *which* act is the point of no return,
+  never on whether one exists.
+
+## The merge is the go/no-go — who decides which class
+
+**"The merge is the go/no-go" does NOT mean "the merge always asks a human."** What the merge asks
+for is a **judgement**, and who supplies it depends on the class:
+
+- **Safe class** — docs, dependency bumps, tests, in-pattern implementation of an already-approved
+  spec. **`quality-assurance` merges it**, once both of its lenses are green.
+- **Boundary class** — infrastructure and anything threatening continuity, a change to the loop's own
+  rules, publishing in the owner's voice. **The gate never merges these.** It approves pending the
+  human and hands the go/no-go up.
+
+*Significance beats in-pattern:* when the class is unclear, it is boundary. And **the gate never
+merges an expansion of its own authority**, whatever the diff looks like — see
+[ADR-0011](../../../docs/adr/0011-a-skill-exists-to-be-assigned-to-a-profile.md) for the record of
+this clause drifting out of `agents/quality-assurance.md` and back in.
+
+**Failure path:** revert the offending merge and let the revert deploy/re-release — a forward fix
+with a new slice, not a long-lived hotfix branch.
+
+## What the human does (the residual)
+
+Everything mechanical is the agent's job: plan, slice, build, validate locally, make the gates green,
+report evidence. The human is left only the residual — approving (or redirecting)
+architectural/contract decisions and giving the **go/no-go on the irreversible act**. Designing the
+loop so that residual stays small is the whole point.
+
+---
+
+## The judgment — eleven principles, two tiers
+
+This is the section that folds in what was `/engineering-philosophy`: the lens every agent applies
+while doing the above, not a separate concern from it. Read it as defaults plus the explicit triggers
+to deviate, not as rigid rules.
+
+### The spine: agent-led verification, human-residual
+
+Everything below serves the same purpose stated above: the gates are objective and mechanical so an
+agent can *prove* "done" itself, and the human's attention is reserved for what can't be reliably
+automated. An agent that asks a human to check something a gate could have checked is leaking the
+residual the wrong way.
+
+### Two tiers — know which you're in
+
+- **Non-negotiable floor** (never bends, regardless of risk): the quality gate, 100% functional
+  regression, observability, security/resilience by-design. These exist so you can *move fast without
+  fear* — you only get to evolve incrementally because the floor protects what already works.
+- **Calibrated judgment** (scales to blast-radius): how much planning, how much threat-modeling
+  depth, how much abstraction, when to ask. Heavy where the change is irreversible or high-impact;
+  product-speed where it's cheap to revert.
+
+**The floor is a set of properties, not a fixed checklist of tools.** *What* proves each property is
+read from the repo — the loop model, the suites that exist, the runtime that emits telemetry. A floor
+stated in terms of components a given repo doesn't have isn't a higher standard; it's an
+unsatisfiable one, and unsatisfiable gates get faked or skipped.
+
+### How I approach work
+
+**1. Plan-first.** Design the solution and align on it *before* writing code. Default to Plan mode
+for any non-trivial task. *When I move faster:* a trivial, in-pattern change doesn't need a ceremony
+— but the bar for "trivial" is low, not high.
+
+**2. Ask before deciding — on the right things.** Stop and align on **architecture, contracts
+(API/schema), and anything irreversible**. *Decide autonomously* on implementation that fits the
+existing pattern. The line is "does this change a boundary others depend on, or something hard to
+undo?" → ask. Otherwise → decide and report. Never make a *solo architectural* call.
+
+**3. Thin vertical slices, bounded by overlap AND by WIP=1.** Each increment crosses the layers and
+delivers reviewable value. **WIP=1 — see below.** Serial focus beats half-finished breadth.
+
+**4. Surgical changes, tracked debt.** Keep each change focused on its slice. When adjacent mess sits
+in the path, **work around it and file the debt** — do *not* refactor alongside (no boy-scouting
+mid-feature). Debt is recorded and paid in a dedicated cycle, not smuggled into an unrelated change.
+
+### What I optimize for
+
+**5. Simple but extensible.** Bias to the simplest thing that solves the problem now, with clear
+extension points only where growth is genuinely known. Not radical YAGNI, not build-for-scale-upfront
+— the deliberate middle. Abstraction must pay for itself before it's added.
+
+**6. No architecture or tech dogma — the tool follows the problem.** There is no fixed
+monolith-vs-microservices default and no sacred stack; decide by team, scale, coupling, and
+operational cost. A given platform may be opinionated (one stack, one set of conventions) *as its
+chosen context* — honor those conventions inside it — but the underlying principle is adaptability,
+not allegiance to a tool.
+
+**7. Rigor calibrated to blast-radius.** Match the weight of process to the cost of being wrong.
+Irreversible / live / high-coupling → maximum rigor and a human in the loop. Cheap-to-revert /
+isolated / git-reversible → product-speed. This is the dial; the floor (tier 1) is what the dial
+never turns below. "Cheap to revert" is a property of the *change*, not of a tier of environment — a
+repo with a single environment has no cheap tier to hide in, so the dial reads off blast-radius
+directly.
+
+### What "good" must always carry (the floor)
+
+**8. Quality is a gate, not an option.** "Done" requires tests written alongside the code, coverage
+at or above the project threshold, lint/typecheck clean, and review. **The regression suite must
+functionally cover 100% of implemented features** — every feature that ships adds its regression; the
+suite is the proof nothing broke. A change that adds behavior without its regression is not done.
+Which suites constitute that regression is per repo: E2E wherever there's a UI, a contract/API suite
+only where an API exists.
+
+**9. Observability is part of "done."** A change isn't finished until its behavior is provable
+**where it runs**. Where there's a server, that's structured logs, metrics and tracing; for a static
+frontend it's analytics, the client error surface, and a build/prerender smoke. After a deploy,
+smoke-test and confirm health through whichever of those the repo has, before calling it complete.
+
+**10. Security and resilience by-design.** Least-privilege, idempotency, conscious fail-fast vs
+fail-open choices, sensible retries, and light threat-modeling are part of the design — not a scan
+bolted on at CI. Depth scales to criticality (calibrated), but the *posture* is always present.
+
+**11. Living docs.** Architecture and decisions live as Mermaid diagrams plus markdown in the repo,
+kept current with the code — not as an afterthought. The history (clean, conventional commits)
+carries the *why*; the docs carry the *shape*.
+
+### WIP=1 — the struck exception, and why
+
+Principle #3 above used to read, and this project's own struck-not-deleted convention keeps the old
+text visible rather than erasing it:
+
+~~**A slice may start while another is open only if they touch no file in common**; if they overlap,
+finish the first to its Definition of Done. Serial focus beats half-finished breadth — but serialising
+*disjoint* work buys nothing and stalls the queue, which is why the bound is overlap and not a
+count.~~
+
+**Struck 2026-08-13 (owner correction).** This session tested the disjoint-files exception directly —
+two disjoint-file issues were built in separate `git worktree` checkouts at the same time — and the
+owner corrected it on sight: *"nao temos intencionalidade de trabalhar assim por enquanto"* ("we have
+no intention of working that way for now"). The written rule and current intent disagreed, and intent
+wins.
+
+**State plainly, in its place: one worktree, one in-flight branch, one open PR at a time — full stop,
+until this is formally reversed.** The worktree mechanism itself — a separate checkout sharing the
+same repo's history, removed after merge — is **not** struck; it remains the correct isolation tool
+for a single build. Only the license to run two of them at once is struck. A future session may
+reverse this by the same route: an explicit owner decision, recorded the same way.
+
+**Named residual: the policy above and the mechanism disagree.** `hooks/scripts/wip-guard.sh` still
+denies a second PR only on file **overlap**, not on a raw count — the mechanism ADR-0002's amendment
+#6 addendum describes, unchanged by this correction. So today the hook permits a second, disjoint PR
+that this written policy now forbids. Follow the written policy regardless of what the hook allows;
+closing the gap is a `wip-guard.sh` change, not a docs one, and is not this skill's job to make.
+
+### Using this section
+
+When an agent works in a consuming repo, these eleven principles are the lens for every choice: plan
+first, ask on the boundaries, slice thin, keep the floor green, and verify your own work before
+handing the residual to a human. The deep-dive component skills tell you *how* to build each piece;
+this tells you *how to decide* while you do. Today that means the per-service families under
+`skills/backend/*`, `skills/frontend/*` and `skills/infrastructure/*`; per
+[ADR-0011](../../../docs/adr/0011-a-skill-exists-to-be-assigned-to-a-profile.md)'s 2026-08-13
+amendment these are consolidating into single reference skills named `backend`, `frontend` and
+`cloud-infrastructure` — **not yet built as of this writing**, so read the family directories as they
+stand until that consolidation lands.
+
+See also: `/verification-and-gates` (the Definition of Done, the gate tables per loop model),
+`/permissions-and-environments` (the permission zones and the guard hook), `/devops` (branching,
+per-environment topology, OIDC, the deploy workflows — once #227 lands), `/coverage` (gate
+definitions, both stacks), `/playwright` (E2E). Repos with an API layer add its contract/API suite —
+see `/postman`.

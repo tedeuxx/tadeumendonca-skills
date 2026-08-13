@@ -232,6 +232,37 @@ a different decision than the routing-axis question this record makes.
   should ever become a second, orthogonal axis. Both are explicitly out of scope (see *Considered
   options*, option 2).
 
+## Amendment (2026-08-13) — the earlier reconciliation this decision builds on, carried here from `dev-loop/SKILL.md`
+
+**Relocated, not new.** `skills/principles/dev-loop/SKILL.md` carried this measurement inline under a
+"One vocabulary across every repo" heading; the harness-engineering consolidation
+([#224](https://github.com/tedeuxx/tadeumendonca-skills/issues/224)) moved it here, to the ADR that
+already owns the label-vocabulary decision, rather than restating it in the operative skill.
+
+Before `product` / `content` / `loop` existed as the routing axis, the first pass at reconciling this
+repo's label vocabulary against a sibling repo's found **incompatible taxonomies**: one used `product`
+/ `content` / `reader-facing`, the other a scheme (`type:*`, `phase:*`, `priority:*`, `semver:*`,
+`status:blocked`) that was almost entirely unused. Reconciled to one vocabulary (owner decision,
+2026-08-02).
+
+**The measurement, corrected in review and stated precisely because the first version was wrong in
+three places** — it said "88% dead, four labels used, on four Issues, 29 of 33". Re-derived from the
+repository's label events, which is the only source that survives the deletion:
+
+- the repo had **34** Issues, **29** carrying no label at all;
+- of the **15** labels retired, **11 were never applied to anything**, and four were:
+  `type:feature`, `phase:1`, `semver:minor`, `semver:patch`;
+- on **Issues** only three of them ever appeared — on #4–#7, all closed in the repo's first week;
+- `semver:*` also landed on **eight merged PRs**, which the original count missed entirely.
+
+*Why the correction is recorded rather than quietly fixed:* the original figure mixed two
+populations, taking "four labels" from a PR-inclusive set and "four Issues" from an Issue-only one.
+That is precisely the shape of error this whole record is about — a number that reads as measured and
+was assembled. `type` and `priority` restated what a title and an order already say; `phase` described
+a roadmap that ended; `semver:*` was vestigial from a **different loop model** (`gitflow-multi-env`,
+where `/versioning` still documents label-driven bumps); `status:blocked` survives as `blocked`,
+renamed for consistency rather than dropped.
+
 ## Links
 
 - [#184](https://github.com/tedeuxx/tadeumendonca-skills/issues/184) — the owner's own statement that

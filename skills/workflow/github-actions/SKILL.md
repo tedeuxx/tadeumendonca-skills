@@ -1,5 +1,5 @@
 ---
-description: Wire GitHub Actions for a repo — per-job OIDC into AWS, secrets and environments, the branching model, the build and deploy workflows, and the Issues backlog conventions. Use when adding or reviewing a workflow, granting CI a role to assume, or setting up a repo's branching and protection. Not for the tagging rules (see versioning), the loop model itself (see dev-loop), or the Terraform configuration CI runs (see terraform).
+description: Wire GitHub Actions for a repo — per-job OIDC into AWS, secrets and environments, the branching model, the build and deploy workflows, and the Issues backlog conventions. Use when adding or reviewing a workflow, granting CI a role to assume, or setting up a repo's branching and protection. Not for the tagging rules (see versioning), the loop model itself (see harness-engineering), or the Terraform configuration CI runs (see terraform).
 ---
 
 Use GitHub for <project> repos — the CI/CD capability (Actions, branching + versioning, deploys, issues). Branching comes in **two models** — see *Branching* below; pick the repo's before configuring anything.
@@ -65,7 +65,7 @@ Every pipeline assumes a dedicated AWS role via **GitHub OIDC** (`aws-actions/co
 - **`concurrency`** groups to avoid overlapping deploys/version bumps (`cancel-in-progress: false`); **SHA-pin** third-party actions (supply-chain); `npm ci --ignore-scripts`; least-privilege `permissions:` per job (`id-token: write` only where OIDC is needed).
 
 ## Branching — pick the loop model first
-Branching follows the repo's loop model (`/dev-loop`). **Determine it before configuring protection or writing a deploy workflow** — a GitFlow layout on a single-environment repo creates a `develop` branch nothing merges to, and moves the required checks off the PR that actually ships.
+Branching follows the repo's loop model (`/harness-engineering`). **Determine it before configuring protection or writing a deploy workflow** — a GitFlow layout on a single-environment repo creates a `develop` branch nothing merges to, and moves the required checks off the PR that actually ships.
 
 **How to tell:** the repo's `CLAUDE.md` states it. Otherwise, count environments — **more than one → `gitflow-multi-env`; one (or none, for a consumed artifact) → `trunk-single-env`.**
 
@@ -128,7 +128,7 @@ The product backlog is **GitHub Issues per repository** — no central backlog r
 
 > **This label set is RETIRED in the owner's own repos (2026-08-02), and it is retired for a reason worth reading before copying it.** `type:` and `priority:` restate what a title and a stated order already say; `phase:` described a roadmap that ended; `status:blocked` survives as a bare `blocked`. Measured before deleting: of the fifteen labels, **eleven had never been applied to anything.**
 >
-> The live vocabulary is five labels, each with a named consumer — `product`, `content`, `ready`, `blocked`, `reader-facing`. See `/dev-loop`, *One vocabulary across every repo*, and the test a label has to pass: **something must query it, or it is decoration that ages.**
+> The live vocabulary is five labels, each with a named consumer — `product`, `content`, `ready`, `blocked`, `reader-facing`. See `/harness-engineering`, *One vocabulary across every repo*, and the test a label has to pass: **something must query it, or it is decoration that ages.**
 >
 > The table above is **kept, not corrected**, because `semver:` is load-bearing under `gitflow-multi-env` — there the merged PR's label drives the bump (`/versioning`). A `trunk-single-env` artifact repo picks its part at dispatch and reads no label, which is why it went unused here. Read the table as *what this convention looks like where it applies*, not as a set to create by default.
 

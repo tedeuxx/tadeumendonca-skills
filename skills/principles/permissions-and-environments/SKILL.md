@@ -7,7 +7,7 @@ Apply the platform's environment and permission model in any `<project>` repo �
 Context: $ARGUMENTS
 
 ## Pick the model first
-Permissions encode where the irreversible line falls, so they follow the repo's loop model (`/dev-loop`). Determine it before writing a single allow/deny entry — an allowlist built for the wrong model pre-authorizes branches that do not exist and leaves the real boundary open.
+Permissions encode where the irreversible line falls, so they follow the repo's loop model (`/harness-engineering`). Determine it before writing a single allow/deny entry — an allowlist built for the wrong model pre-authorizes branches that do not exist and leaves the real boundary open.
 
 | Model | Environments | The irreversible act |
 |---|---|---|

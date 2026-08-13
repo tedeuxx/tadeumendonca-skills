@@ -434,6 +434,23 @@ it belongs to the principles layer and to the `wip-guard` hook. It is noted beca
 hook shipped its overlap implementation immediately after, in `-skills`#88, closing the window in which it
 was knowingly stricter than the rule.)*
 
+**Why the move happened, named here because `harness-engineering`'s consolidation ([#224](https://github.com/tedeuxx/tadeumendonca-skills/issues/224))
+found no ADR home for it and this is the nearest one.** The principles layer separately states that a
+turn ending on a dispatched-and-waiting reviewer must **name and begin the next non-overlapping action**
+rather than merely report status — silence reads as being stuck. While WIP was bounded by a raw *count*,
+that rule collided with it directly: the guard denied opening a second PR even for a slice sharing zero
+files with the one already open, so *"work in parallel while you wait"* and *"WIP = 1"* gave opposite
+instructions on the same turn, and the count-based hook was the one with a backstop. The bound moving to
+file **overlap** (this section) is what resolved the collision, by making "start something disjoint while
+you wait" and "don't let two overlapping slices rot into conflict" the same rule instead of two rules
+fighting over the same guard. *The 2026-08-13 WIP=1 correction (see `harness-engineering`'s own section
+on it) supersedes the WRITTEN principle this collision produced — the disjoint-files exception is struck
+and the policy is now a strict count of one in-flight branch — but that correction is written policy
+only. `hooks/scripts/wip-guard.sh` still enforces file overlap, not a raw count, so as of this amendment
+the mechanism and the stated policy disagree: the hook permits a second, disjoint PR that the policy now
+forbids. Named as a residual rather than silently left inconsistent; closing it is a `wip-guard.sh`
+change, not a docs one, and is not this amendment's or #224's job.*
+
 ## Amendment (2026-08-01, sixth) — a finding blocks only by naming a criterion; the DoD grows a tenth
 
 **Problem, measured rather than felt.** Sixteen review passes across four slices in one day — six on a
