@@ -240,8 +240,8 @@ orchestrator.
 | persona | tier | what it holds |
 |---|---|---|
 | **product-lead** | 1 · intake | what to build and why · the reader · the market · the copy lens |
-| **tech-lead** | 1 · intake | architecture direction · sequencing · **the only writer of the ADRs** |
-| **harness-lead** | 1 · intake | the machinery — the scenarios a harness proposal misses, before it is built |
+| **tech-lead** | 1 · intake | architecture direction · sequencing · **writes product/system ADRs** |
+| **harness-lead** | 1 · intake | the machinery — the scenarios a harness proposal misses, before it is built · **writes loop/machinery ADRs** |
 | **developer** | 2 · build | the slice end to end — app, infrastructure and pipeline |
 | **quality-assurance** | 3 · gate | the Definition of Done, **and** whether this can cause a problem in production · **holds the merge** |
 
@@ -460,7 +460,7 @@ The library, by family: backend (19), frontend (15), infrastructure (21), princi
 | `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `permissions-and-environments` | Apply the platform's environment and permission model in any `<project>` repo — both at the global Claude Code level and per-project. This is the… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `verification-and-gates` | Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
-| `adr` | Author or review an Architecture Decision Record (ADR) for any `<project>` repo, following the platform's ADR practice. | `workflow` | `tech-lead` — the only writer of the ADRs |
+| `adr` | Author or review an Architecture Decision Record (ADR) for any `<project>` repo, following the platform's ADR practice. | `workflow` | `tech-lead` · `harness-lead` — the two writers of the ADRs, split by domain (#223) |
 | `claude-code` | Set up or review the Claude Code GitHub App automation in a <project> repo. | `workflow` | `developer` |
 | `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `workflow` | `developer` |
 | `documentation-standard` | Write or review docs for any <project> repo following the documentation standard. | `workflow` | `developer` |
@@ -471,9 +471,10 @@ The library, by family: backend (19), frontend (15), infrastructure (21), princi
 | `versioning` | Apply the semantic-versioning + tagging rules (bump-my-version) in any <project> repo. | `workflow` | `developer` |
 **Three things the table shows rather than asserts.** The builder is the only persona holding a build
 family — conventions exist for building, and one persona builds. `workflow` is the only family that
-splits, and it splits for a reason: `adr` belongs to the only writer of the records. And **the gate's**
-domain is `principles` and nothing else, because its questions are answered from the diff and the running
-system, not from this repo's conventions.
+splits, and it splits for a reason: `adr` belongs to the two writers of the records, split by domain
+(#223), not to a single default author. And **the gate's** domain is `principles` and nothing else,
+because its questions are answered from the diff and the running system, not from this repo's
+conventions.
 
 **What the table still does not assert, and it is the same limit the rename made visible.** The `whose
 domain` column is hand-maintained, in `hooks/scripts/skills-table.py`'s `WIELDER` map — it is a fact
