@@ -194,7 +194,7 @@ context after it (received as `$ARGUMENTS`):
 ```
 /tadeumendonca-skills:lambda-handler posts
 /tadeumendonca-skills:cognito staging
-/tadeumendonca-skills:github-actions production
+/tadeumendonca-skills:devops production
 ```
 
 **A side effect of losing the family segment, and it is the best one:** an unresolved identifier
@@ -235,7 +235,7 @@ safe pin (no mid-development tags pollute the namespace).
 
 ## Command reference
 
-### principles (3) — the drift-reducer
+### principles (2) — the drift-reducer
 
 The harness's **principles layer**: how the owner builds software, so an agent's behavior doesn't drift. Cross-cutting (applies to every repo), distinct from the per-component how-to skills. Canonical summary in the README's *engineering floor* section; deep validation via the subagent that **owns** the decision — `tech-lead` against the principles and the ADR library at design time, `quality-assurance` against the Definition of Done once it is built (`plan-reviewer`, named here until 2026-08-03, was retired outright and invoking it fails); irreversible-floor enforcement via the shipped PreToolUse guard (`hooks/`).
 
@@ -284,9 +284,8 @@ an irreversible act. See ADR-0013 for the full record.
 
 | Command | Purpose |
 |---|---|
-| `/harness-engineering` | **The universal preload, carried by all 5 profiles.** Names the discipline the whole plugin runs — Agent Harness Engineering / AI-DLC (the owner's central identity term, with Claude Code & Kiro) — and is the loop itself: the state machine (issue types, states, who acts, what artifact records it), the intake chain, the inner-loop steps, end-to-end flow in **two models** (`gitflow-multi-env` staging → promote → prod, `trunk-single-env` PR → `main` → live; failure = revert + forward fix), **and** the 11 engineering principles in two tiers (non-negotiable floor + risk-calibrated judgment) that shape every decision inside it. Merges the former `dev-loop`, `loop-engineering` and `engineering-philosophy` into one file (#224). The branching/topology diagrams move to `/devops` (#227) once it exists. |
+| `/harness-engineering` | **The universal preload, carried by all 5 profiles.** Names the discipline the whole plugin runs — Agent Harness Engineering / AI-DLC (the owner's central identity term, with Claude Code & Kiro) — and is the loop itself: the state machine (issue types, states, who acts, what artifact records it), the intake chain, the inner-loop steps, **and** the 11 engineering principles in two tiers (non-negotiable floor + risk-calibrated judgment) that shape every decision inside it. Merges the former `dev-loop`, `loop-engineering` and `engineering-philosophy` into one file (#224). The branching/topology diagrams (`gitflow-multi-env`, `trunk-single-env`) and the permission model live in `/devops` (#227), not here. |
 | `/verification-and-gates` | What "done" means: the thesis, Definition of Done, the 100% functional-regression invariant, the gate tables per loop model |
-| `/permissions-and-environments` | The permission zones **per loop model**; git-reversibility tolerance test; IaC pipeline-only + infra-first; global + per-project layering; what the guard hook actually enforces (and why it stays branch-agnostic) |
 
 ### backend (19)
 
@@ -360,17 +359,16 @@ One skill per AWS service / tool used — each is the canonical parametrization 
 | `/cloudwatch-rum` | RUM end to end: app monitor + Cognito guest identity pool, and the browser client that reports to it |
 | `/cloudwatch-xray` | X-Ray: active tracing (API GW+Lambda), sampling rules, service map |
 
-### workflow (10)
+### workflow (9)
 
-DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella for OIDC, secrets/environments, branching (both loop models), the deploy workflows, and the Issues backlog; the numeric-SemVer tagging rules are their own skill (`versioning`). Test runners live with their repo (`/postman`, `/playwright`); the gate policy they feed is one stack-agnostic skill (`/coverage`); IaC checkov is in `/terraform`. Architecturally-significant decisions are recorded via `adr`. Working-files and shell-command discipline — transversal across the whole roster, not DevOps-specific — is `command-hygiene`.
+DevOps tooling. `devops` is the umbrella (#227) — GitHub/CI-CD (OIDC, secrets/environments, the deploy workflows, the Issues backlog), Terraform Cloud as the state backend, branching per loop model, and the permission model that keeps IaC pipeline-only, all in one skill, preloaded by `developer` and `harness-lead`. The numeric-SemVer tagging rules are their own skill (`versioning`). Test runners live with their repo (`/postman`, `/playwright`); the gate policy they feed is one stack-agnostic skill (`/coverage`); IaC checkov is in `/terraform`. Architecturally-significant decisions are recorded via `adr`, split by domain (#223). Working-files and shell-command discipline — transversal across the whole roster, not DevOps-specific — is `command-hygiene`.
 
 | Command | Purpose |
 |---|---|
-| `/github-actions` | GitHub/CI-CD capability: OIDC, secrets/envs, branching per loop model, the deploy workflows, Issues backlog |
-| `/adr` | Architecture Decision Records: MADR format, two libraries (methodology/product), light significance gate, supersede-never-delete |
+| `/devops` | GitHub Actions + Terraform Cloud + the permission model: OIDC, secrets/envs, branching per loop model, deploy workflows, TFC state backend, pipeline-only IaC |
+| `/adr` | Architecture Decision Records: MADR format, two libraries (methodology/product), light significance gate, supersede-never-delete — authorship split by domain (#223) |
 | `/command-hygiene` | Where scratch files go, one atomic Bash call, the `gh --repo` flag position, `--body-file` always — preloaded by all 5 personas |
 | `/versioning` | Semantic versioning + tags: numeric SemVer via bump-my-version, loop guard, PR labels |
-| `/terraform-cloud` | TFC remote-state backend; per-env workspaces; Local execution; **pipeline-only apply/destroy** |
 | `/sonarcloud` | SonarCloud quality gate (SAST + coverage + smells), blocks merge |
 | `/claude-code` | Claude GitHub App: `@claude` assistant + automatic PR review (advisory, non-blocking) |
 | `/code-review` | Author-side completeness pass before opening the MR: anticipates both gates, verifies the DoD with evidence |
@@ -392,7 +390,7 @@ DevOps tooling. The GitHub/CI-CD capability (`github-actions`) is the umbrella f
 5. **IaC mutations are pipeline-only** — `terraform apply`/`destroy` run **only in CI** (plan on PR,
    apply on merge); never from a laptop. Local is read-only (`fmt`/`validate`/inspection `plan`).
    Destroying live infra = remove from config + merge (or a reviewed `workflow_dispatch` teardown).
-   See `/terraform-cloud`.
+   See `/devops`.
 
 ---
 

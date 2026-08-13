@@ -1907,7 +1907,7 @@ config-and-secrets|environment-config secrets-management secrets-manager ssm
 gates|coverage sonarcloud code-review verification-and-gates
 data|dynamodb redis-cache elasticache
 auth|authentication authorization cognito action-types
-delivery|github-actions versioning terraform-cloud terraform harness-engineering
+delivery|devops versioning terraform harness-engineering
 "
 
   names_rival() {  # $1 = description text, $2 = rival stem — matched only inside a `(see …)` pointer

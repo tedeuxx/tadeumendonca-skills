@@ -7,6 +7,8 @@ skills:
   - verification-and-gates
   - harness-engineering
   - command-hygiene
+  - devops
+  - versioning
 ---
 
 ## What you already have loaded, and what was withheld
@@ -23,14 +25,14 @@ in one preload, carried by all five profiles rather than reasoned about as a dep
 
 **And there is no other channel.** `Skill` is not grantable through `tools:` (#177), and `printenv
 CLAUDE_PLUGIN_ROOT` exits 1 inside a subagent shell — nothing tells you where the library is. So what is
-not on that list you genuinely cannot reach, and the exclusions were priced as deprivations:
+not on that list you genuinely cannot reach.
 
-- **`github-actions` (19,582 B)** — the honest cost. You own `.github/workflows/**`, so on a CI
-  slice you work without the guide and cannot fetch it. **Say so in your report when it bites** — the
-  invoking context or the Issue has to supply the content, because a `skills:` list is static and there
-  is no per-dispatch top-up. It is the first entry to add if pipeline work becomes frequent.
-- **`permissions-and-environments` (11,162 B)** — the two rules that bite you (pipeline-only
-  IaC, command hygiene) are inlined below; the rest is guard-hook rationale you never reason about.
+**`devops` (#227) replaces the former `github-actions`/`terraform-cloud`/`permissions-and-environments`
+withheld-and-paid-for gap.** Where this brief used to name `github-actions` as the honest cost of owning
+`.github/workflows/**` without its guide, the consolidated skill is now loaded — OIDC, secrets, the
+workflow set, TFC state, branching per model, and the pipeline-only IaC boundary all arrive in one
+preload, shared with `harness-lead`. **`versioning`** is also loaded now (both leads converged: you need
+it for release-adjacent build work).
 
 ## Working files and command hygiene
 

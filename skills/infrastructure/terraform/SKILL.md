@@ -1,5 +1,5 @@
 ---
-description: Set up Terraform for a project as a whole — version and provider pinning, repo layout, project parameterization, input validation, the module-sourcing policy, tagging through default_tags in a shared account, and tfvars per environment. Use when starting an infrastructure repo, deciding whether to adopt a community module, or adding a validated variable. Not for the state backend (see terraform-cloud) or the pipeline that runs plan and apply (see github-actions).
+description: Set up Terraform for a project as a whole — version and provider pinning, repo layout, project parameterization, input validation, the module-sourcing policy, tagging through default_tags in a shared account, and tfvars per environment. Use when starting an infrastructure repo, deciding whether to adopt a community module, or adding a validated variable. Not for the state backend or the pipeline that runs plan and apply (see devops).
 ---
 
 Use Terraform in <project> infrastructure (how we use it as a whole).
@@ -21,7 +21,7 @@ provider "aws" { alias = "us_east_1"; region = "us-east-1"; default_tags { tags 
 Pin provider + module versions with `~>`. Two providers: default + `us_east_1` alias (CloudFront, WAF CLOUDFRONT, ACM, Cognito custom domain).
 
 ## State management (TFC)
-Remote state only — **Terraform Cloud is the state backend** (`cloud{}`); no local state, no S3/Dynamo backend, state never committed. **One workspace per environment** (`<project>-iac-{staging|production}`, tagged). Execution mode **Local**: TFC stores/locks state, **GitHub Actions runs `plan`/`apply`**. CI selects the target with `TF_WORKSPACE` + matching `-var-file`. Details: `/terraform-cloud`.
+Remote state only — **Terraform Cloud is the state backend** (`cloud{}`); no local state, no S3/Dynamo backend, state never committed. **One workspace per environment** (`<project>-iac-{staging|production}`, tagged). Execution mode **Local**: TFC stores/locks state, **GitHub Actions runs `plan`/`apply`**. CI selects the target with `TF_WORKSPACE` + matching `-var-file`. Details: `/devops`.
 > Inherited from the now-decommissioned landing-zone project.
 
 ## Repo layout (single canonical root)
@@ -122,7 +122,7 @@ locals { tags = { Project = "<project>", Environment = var.environment, ManagedB
 - `terraform-deploy.yml`: develop → staging auto-apply; main → production (Environment approval).
 - `version-develop/main.yml`: numeric SemVer (`/github-actions`).
 
-See `/terraform-cloud`, `/route53`, and the per-service skills.
+See `/devops`, `/route53`, and the per-service skills.
 ## Decision & trade-off
 - **Single shared AWS account for all environments — no account-level isolation.** A cost decision: a multi-account org adds real overhead/cost not justified for a solo product. Env separation is done with the `Project`/`Environment` tags, per-env resource names (`*-staging`/`*-production`), and per-env TFC workspaces — **not** separate Organizations accounts.
 - **The IAM role boundary is the isolation that compensates.** Because there is no account boundary, **least-privilege per-job + per-env OIDC roles are the primary isolation mechanism** (a leaked staging token can't assume the prod role; the prod role is gated by the `production` Environment approval). Cross-ref `/github-actions` (the full secrets/role/OIDC model) and `/iam` (runtime roles) — not restated here.

@@ -1,5 +1,5 @@
 ---
-description: Run any slice through the loop — intake, the state machine, the inner-loop steps — and apply the judgment (eleven principles, two tiers) behind every decision in it. Use when picking up a slice, proposing a change to the loop itself, or naming Agent Harness Engineering / AI-DLC in public writing. Not what "done" means (see verification-and-gates), the permission zones (see permissions-and-environments), or the CI workflows themselves (see github-actions).
+description: Run any slice through the loop — intake, the state machine, the inner-loop steps — and apply the judgment (eleven principles, two tiers) behind every decision in it. Use when picking up a slice, proposing a change to the loop itself, or naming Agent Harness Engineering / AI-DLC in public writing. Not what "done" means (see verification-and-gates), or the permission zones and CI/CD workflows (see devops).
 ---
 
 Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state
@@ -11,9 +11,9 @@ Context: $ARGUMENTS
 This is the **universal preload**: the one skill every profile in this roster carries, because
 understanding the loop itself is not domain-specific the way the rest of the process library is.
 Two companion skills carry adjacent ground and are **not** folded in here: `/verification-and-gates`
-(what "done" means, the Definition of Done, the gate tables) and `/permissions-and-environments`
-(the permission zones and the guard hook that make the deny-boundary mechanical). The single- vs.
-two-environment branching topology moves to `/devops` (#227) — this skill keeps only how the state
+(what "done" means, the Definition of Done, the gate tables) and `/devops` (the permission zones and
+guard hook that make the deny-boundary mechanical, plus CI/CD and the branching topology). The single-
+vs. two-environment branching topology lives in `/devops` (#227) — this skill keeps only how the state
 machine, labels and inner loop work once a mode is chosen, not the mode itself.
 
 ## What Agent Harness Engineering is
@@ -300,8 +300,7 @@ reads to the agent as delivery and to the owner as stopping.**
    **WIP=1 — one worktree, one in-flight branch, one open PR at a time, full stop, until formally
    reversed** (owner correction, 2026-08-13; see *WIP=1* below for the struck predecessor rule and
    why). **Integrate `main` before requesting review** if `main` has moved.
-3. **Develop locally**, against whatever backing services the repo actually has — see
-   `/permissions-and-environments`.
+3. **Develop locally**, against whatever backing services the repo actually has — see `/devops`.
 4. **Validate locally**: run the repo's **functional regression** and self-verify the gates (lint,
    typecheck, coverage). Report with the real output, never a claim.
 5. **Run `/code-review`** before opening the PR — the author's own completeness pass. *Namespaced
@@ -489,7 +488,6 @@ amendment these are consolidating into single reference skills named `backend`, 
 stand until that consolidation lands.
 
 See also: `/verification-and-gates` (the Definition of Done, the gate tables per loop model),
-`/permissions-and-environments` (the permission zones and the guard hook), `/devops` (branching,
-per-environment topology, OIDC, the deploy workflows — once #227 lands), `/coverage` (gate
-definitions, both stacks), `/playwright` (E2E). Repos with an API layer add its contract/API suite —
-see `/postman`.
+`/devops` (the permission zones and guard hook, branching, per-environment topology, OIDC, the deploy
+workflows, TFC state), `/coverage` (gate definitions, both stacks), `/playwright` (E2E). Repos with an
+API layer add its contract/API suite — see `/postman`.
