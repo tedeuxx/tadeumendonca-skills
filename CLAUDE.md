@@ -49,7 +49,9 @@ and on LinkedIn. The reasoning behind it stays in the private source and is neve
 - **The owner's opinionated default + when he deviates** (the "My take" layer) — THIS is the differentiator;
   generic best-practice alone is not enough.
 - **The nuances that bite** — the gotchas / war stories worth materializing.
-- `skills/vpc/SKILL.md` is the **density exemplar** — match it.
+- The VPC section of `skills/infrastructure/cloud-infrastructure/SKILL.md` (formerly the standalone
+  `skills/vpc/SKILL.md`, folded in by #229) is the **density exemplar** — match it, at section-grain now
+  rather than file-grain.
 
 **Deep-dive authoring process (done in-place here):**
 1. **Scaffold** the scenario space (Claude drafts the dense structure from sound practice + the platform repos).
@@ -187,13 +189,13 @@ free now.** Nobody has revisited it at this price — that is an open decision, 
 ### Usage
 
 Plugin commands and skills are **namespaced under the plugin name**, with **no family segment** — the
-name is the file's own **innermost** directory (`skills/infrastructure/vpc/SKILL.md` → `vpc`). The family
+name is the file's own **innermost** directory (`skills/infrastructure/cloud-infrastructure/SKILL.md` → `cloud-infrastructure`). The family
 directory is for the human reading the library and is **not** part of any identifier. Type it and pass
 context after it (received as `$ARGUMENTS`):
 
 ```
 /tadeumendonca-skills:lambda-handler posts
-/tadeumendonca-skills:cognito staging
+/tadeumendonca-skills:cloud-infrastructure staging
 /tadeumendonca-skills:devops production
 ```
 
@@ -331,33 +333,19 @@ an irreversible act. See ADR-0013 for the full record.
 | `/seo` | Client SEO (concept): per-route meta + sitemap/robots + JSON-LD |
 | `/playwright` | E2E browser tests (lives in `apps/fed`): login via Cognito SDK, critical journeys |
 
-### infrastructure (21)
+### infrastructure (1)
 
-One skill per AWS service / tool used — each is the canonical parametrization + usage pattern (Terraform-resource detail). Cross-cutting policies are folded into their owning service (module sourcing + tagging → `terraform`; domain model → `route53`; encryption → `kms`; IAM authoring + OIDC roles → `iam`).
+The prior one-per-service layout (21 files) consolidated into a single skill, `cloud-infrastructure` (#229) — same
+consolidation pattern as `harness-engineering` (#224) and `devops` (#227): one section per AWS
+service/capability (network, identity/security, config/secrets bus, data + cache, storage, compute, API
++ CDN edge, certificates, DNS, email/event fan-out, observability), each kept at the density the old
+`vpc` exemplar set, now applied at section-grain rather than file-grain. Named provider-agnostically
+(`cloud-infrastructure`, not `aws`) per the owner's 2026-08-13 decision — the content itself names AWS
+explicitly as the CSP covered, since that's what all 21 source files documented.
 
 | Command | Purpose |
 |---|---|
-| `/terraform` | Terraform overall: versions/providers, TFC state, layout, **module-sourcing policy**, **tagging**, tfvars, CI |
-| `/vpc` | VPC: subnets/NAT, S3 endpoint, lambda SG, traffic design (off-NAT) |
-| `/route53` | Route53: **per-env domain model** + hosted-zone data source + A-alias records |
-| `/acm` | ACM: per-env wildcard certs (reused, out-of-band), us-east-1, resolved by domain |
-| `/s3` | S3: frontend(OAC)/artifacts/og-images + SSE + SSM |
-| `/cloudfront` | CloudFront: OAC, TLS, cache policies, **SPA error routing + /og/***, Lambda@Edge, WAF |
-| `/waf` | WAF CLOUDFRONT + REGIONAL (shared by API GW + Cognito) |
-| `/lambda` | Lambda: nodejs22/arm64, non-VPC by default (VPC on demand), **Pattern B**, tracing; og-edge exception |
-| `/api-gateway` | API GW (REST v1): fronts only the BFF, per-route Cognito authorizer, WAF-fronted, **contract via put-rest-api** |
-| `/cognito` | Cognito: user pool, 3 groups, PKCE public client, **custom domain** |
-| `/dynamodb` | DynamoDB end to end: per-entity tables, on-demand, GSIs, PITR, IAM access, client singleton, GSI queries, cursor pagination |
-| `/elasticache` | ElastiCache Redis + AUTH in Secrets Manager + SSM |
-| `/ses` | SES: domain verify + DKIM |
-| `/sns` | SNS: async domain-event fan-out (notifications); cheapest pub/sub |
-| `/iam` | IAM: **canonical role/policy authoring catalog** + OIDC deploy roles |
-| `/secrets-manager` | Secrets Manager (provision): naming, jsonencode, ARN-only to SSM |
-| `/ssm` | SSM Parameter Store: cross-repo config bus (namespace, read at deploy) |
-| `/kms` | KMS + **encryption**: in-transit/at-rest matrix, AWS-managed vs CMK, rotation |
-| `/cloudwatch` | CloudWatch: log groups/retention, flow logs, EMF metrics, alarms |
-| `/cloudwatch-rum` | RUM end to end: app monitor + Cognito guest identity pool, and the browser client that reports to it |
-| `/cloudwatch-xray` | X-Ray: active tracing (API GW+Lambda), sampling rules, service map |
+| `/cloud-infrastructure` | AWS infrastructure end to end, one section per service: VPC, IAM, KMS, Secrets Manager, SSM, Cognito, WAF, DynamoDB, ElastiCache, S3, Lambda, API Gateway, CloudFront, ACM, Route53, SES, SNS, CloudWatch, CloudWatch RUM, CloudWatch X-Ray, and the Terraform setup that carries them all |
 
 ### workflow (9)
 

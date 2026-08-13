@@ -1902,12 +1902,11 @@ else
   # requires for a disambiguating pointer anyway. That leaves this check STRICTER than it was rather
   # than weaker: before the flatten a rival mentioned in passing counted, and now only a pointer does.
   CLUSTERS="
-observability|logging metrics tracing cloudwatch cloudwatch-xray cloudwatch-rum analytics
-config-and-secrets|environment-config secrets-management secrets-manager ssm
+observability|logging metrics tracing
+config-and-secrets|environment-config secrets-management
 gates|coverage sonarcloud code-review verification-and-gates
-data|dynamodb redis-cache elasticache
-auth|authentication authorization cognito action-types
-delivery|devops versioning terraform harness-engineering
+auth|authentication authorization action-types
+delivery|devops versioning harness-engineering
 "
 
   names_rival() {  # $1 = description text, $2 = rival stem — matched only inside a `(see …)` pointer

@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 66 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 46 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -329,7 +329,7 @@ work as the other two.
 
 ## The skill library, whose domain each family is, and what is actually preloaded
 
-**Skills carry the conventions so the model does not re-invent them.** **66 skills + autonomy-on**,
+**Skills carry the conventions so the model does not re-invent them.** **46 skills + autonomy-on**,
 `autonomy-off` and `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
@@ -398,7 +398,7 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library, by family: backend (19), frontend (15), infrastructure (21), principles (2), workflow (9).
+The library, by family: backend (19), frontend (15), infrastructure (1), principles (2), workflow (9).
 
 | skill | what it decides | family | whose domain |
 |---|---|---|---|
@@ -436,27 +436,7 @@ The library, by family: backend (19), frontend (15), infrastructure (21), princi
 | `state` | Frontend state management (concept). | `frontend` | `developer` |
 | `storybook` | Build the component library with Storybook in the SPA. | `frontend` | `developer` |
 | `ux-states` | Loading / empty / error UX states in the SPA (concept). | `frontend` | `developer` |
-| `acm` | Use AWS Certificate Manager (ACM) in <project> infrastructure. | `infrastructure` | `developer` |
-| `api-gateway` | Use API Gateway (REST API, v1) in <project> infrastructure. | `infrastructure` | `developer` |
-| `cloudfront` | Use CloudFront in <project> infrastructure (incl. the SPA distribution). | `infrastructure` | `developer` |
-| `cloudwatch` | Use Amazon CloudWatch in <project> infrastructure. | `infrastructure` | `developer` |
-| `cloudwatch-rum` | Provision the RUM app monitor and instrument the browser that reports to it. | `infrastructure` | `developer` |
-| `cloudwatch-xray` | Use AWS X-Ray in <project> infrastructure (distributed tracing service). | `infrastructure` | `developer` |
-| `cognito` | Use Amazon Cognito in <project> infrastructure. | `infrastructure` | `developer` |
-| `dynamodb` | Provision, model and query DynamoDB — the whole lifecycle of one table. | `infrastructure` | `developer` |
-| `elasticache` | Provision or review the ElastiCache for Redis cluster (cache.tf) in `<project>-pwa/iac`. | `infrastructure` | `developer` |
-| `iam` | Author or review any IAM role/policy in <project> infrastructure. | `infrastructure` | `developer` |
-| `kms` | Apply the encryption + KMS key policy across <project>-iac. | `infrastructure` | `developer` |
-| `lambda` | Use AWS Lambda in <project> infrastructure. | `infrastructure` | `developer` |
-| `route53` | Use Amazon Route53 in <project> infrastructure (DNS records + the per-env domain model). | `infrastructure` | `developer` |
-| `s3` | Provision or review the S3 buckets (storage.tf) in <project>-iac. | `infrastructure` | `developer` |
-| `secrets-manager` | Provision secrets in AWS Secrets Manager (<project> infrastructure). | `infrastructure` | `developer` |
-| `ses` | Provision or review SES (domain verification + DKIM) in <project>-iac (auth.tf). | `infrastructure` | `developer` |
-| `sns` | Use Amazon SNS in <project> infrastructure (async domain events). | `infrastructure` | `developer` |
-| `ssm` | Use AWS SSM Parameter Store in <project> infrastructure (the cross-repo config bus). | `infrastructure` | `developer` |
-| `terraform` | Use Terraform in <project> infrastructure (how we use it as a whole). | `infrastructure` | `developer` |
-| `vpc` | Implement or review the VPC and networking layer (vpc.tf) in <project>-iac. | `infrastructure` | `developer` |
-| `waf` | Implement or review the WAF WebACLs (CLOUDFRONT + REGIONAL) across the two repos that own them. | `infrastructure` | `developer` |
+| `cloud-infrastructure` | Cloud infrastructure (AWS) | `infrastructure` | `developer` |
 | `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `verification-and-gates` | Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `adr` | Author or review an Architecture Decision Record (ADR) for any `<project>` repo, following the platform's ADR practice. | `workflow` | `tech-lead` · `harness-lead` — split by domain (#223) |
@@ -909,7 +889,7 @@ Invoke a skill as `<plugin>:<skill>` — the skill's own name, with no family se
 is flat — passing context as arguments:
 
 ```
-/tadeumendonca-skills:cognito staging
+/tadeumendonca-skills:cloud-infrastructure staging
 /tadeumendonca-skills:devops production
 ```
 

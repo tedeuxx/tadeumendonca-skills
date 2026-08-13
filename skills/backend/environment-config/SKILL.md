@@ -1,5 +1,5 @@
 ---
-description: Configure an application from one contract — a dotenv file per environment behind a typed accessor at server runtime, and parameter-store values baked into a browser bundle at build time as VITE_ prefixed variables, nothing sensitive on either path. Use when adding a config key, wiring a deploy job to fetch configuration, or explaining why a client value change needs a rebuild. Not for sensitive values (see secrets-management) or writing the parameters (see ssm).
+description: Configure an application from one contract — a dotenv file per environment behind a typed accessor at server runtime, and parameter-store values baked into a browser bundle at build time as VITE_ prefixed variables, nothing sensitive on either path. Use when adding a config key, wiring a deploy job to fetch configuration, or explaining why a client value change needs a rebuild. Not for sensitive values (see secrets-management) or writing the parameters (see cloud-infrastructure).
 ---
 
 Configure an application's non-secret values — server runtime and browser build alike.

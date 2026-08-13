@@ -1,5 +1,5 @@
 ---
-description: Instrument server handler code with Powertools Tracer for X-Ray — subsegments, annotations and metadata, and capturing downstream AWS SDK and HTTP calls. Use when a request path must be timed end to end, adding an annotation to filter traces by, or chasing latency across services. Not for log lines (see logging), counters (see metrics), or enabling and sampling tracing in Terraform (see cloudwatch-xray).
+description: Instrument server handler code with Powertools Tracer for X-Ray — subsegments, annotations and metadata, and capturing downstream AWS SDK and HTTP calls. Use when a request path must be timed end to end, adding an annotation to filter traces by, or chasing latency across services. Not for log lines (see logging), counters (see metrics), or enabling and sampling tracing in Terraform (see cloud-infrastructure).
 ---
 
 Implement or review distributed tracing in the BFF.
