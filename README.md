@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 46 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 29 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -329,7 +329,7 @@ work as the other two.
 
 ## The skill library, whose domain each family is, and what is actually preloaded
 
-**Skills carry the conventions so the model does not re-invent them.** **46 skills + autonomy-on**,
+**Skills carry the conventions so the model does not re-invent them.** **29 skills + autonomy-on**,
 `autonomy-off` and `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
@@ -398,29 +398,11 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library, by family: backend (19), frontend (15), infrastructure (1), principles (2), workflow (9).
+The library, by family: backend (1), frontend (15), infrastructure (1), principles (2), workflow (10).
 
 | skill | what it decides | family | whose domain |
 |---|---|---|---|
-| `action-types` | Define or review action types (audit + RBAC + feature toggles) in the BFF. | `backend` | `developer` |
-| `audit-middleware` | Define or review the audit trail in the BFF. | `backend` | `developer` |
-| `bff` | Implement or review the Backend-for-Frontend (BFF) pattern. | `backend` | `developer` |
-| `coverage` | Set up or review the quality, test and security gates — the same policy on both sides of the stack. | `backend` | `developer` |
-| `environment-config` | Configure an application's non-secret values — server runtime and browser build alike. | `backend` | `developer` |
-| `error-handling` | Implement or review HTTP error handling in the BFF. | `backend` | `developer` |
-| `framework-hono` | Implement or review the Hono backend framework for the BFF. | `backend` | `developer` |
-| `lambda-handler` | Implement a domain module in the BFF. | `backend` | `developer` |
-| `logging` | Implement or review structured logging in the BFF. | `backend` | `developer` |
-| `metrics` | Implement or review metrics in the BFF (Powertools Metrics → EMF → CloudWatch). | `backend` | `developer` |
-| `notifications` | Implement or review notifications (email via SES) in the BFF. | `backend` | `developer` |
-| `og-edge-handler` | Implement or update the og-edge Lambda@Edge handler. **It lives with the Terraform, not with the API application**… | `backend` | `developer` |
-| `og-image-generator` | Implement or update the OG image generator — a module of the BFF, at `src/modules/og-image/` under the BFF app's root. | `backend` | `developer` |
-| `openapi` | Maintain the backend API contract (OpenAPI) — generated, versioned, committed. | `backend` | `developer` |
-| `postman` | Use Postman (+ newman) for API testing in the BFF. | `backend` | `developer` |
-| `prerender` | Implement or review the bot-rendering API (og-meta + prerender) in the BFF. | `backend` | `developer` |
-| `redis-cache` | Implement or review backend caching with Redis (ElastiCache). Redis is VPC-only, so enabling it puts the BFF in-VPC (it is non-VPC by default). | `backend` | `developer` |
-| `secrets-management` | Fetch sensitive values from AWS Secrets Manager in the BFF. | `backend` | `developer` |
-| `tracing` | Implement or review distributed tracing in the BFF. | `backend` | `developer` |
+| `backend` | Backend (BFF-on-Lambda) | `backend` | `developer` |
 | `analytics` | Frontend analytics with GA4 (concept). | `frontend` | `developer` |
 | `api-client` | SPA → BFF API calls (concept). | `frontend` | `developer` |
 | `authentication` | SPA authentication (concept). | `frontend` | `developer` |
@@ -443,6 +425,7 @@ The library, by family: backend (19), frontend (15), infrastructure (1), princip
 | `claude-code` | Set up or review the Claude Code GitHub App automation in a <project> repo. | `workflow` | `developer` |
 | `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `workflow` | `developer` |
 | `command-hygiene` | Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched | `workflow` | `product-lead` · `tech-lead` · `harness-lead` · `developer` · `quality-assurance` |
+| `coverage` | Quality gates | `workflow` | `developer` · `quality-assurance` — extracted from `backend` (#230) |
 | `devops` | Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and | `workflow` | `developer` · `harness-lead` · `tech-lead` (#227) |
 | `documentation-standard` | Write or review docs for any <project> repo following the documentation standard. | `workflow` | `developer` |
 | `license` | Apply the repository licensing standard in any <project> repo. | `workflow` | `developer` |

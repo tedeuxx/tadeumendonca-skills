@@ -1,5 +1,5 @@
 ---
-description: Render article markdown to HTML in a React SPA — a markdown renderer with lazy-loaded syntax highlighting, strict sanitisation of untrusted HTML, and typography mapped to the design system. Use when displaying long-form content, hardening a renderer against XSS, or keeping browser output identical to what crawlers are served. Not for the crawler render path (see prerender).
+description: Render article markdown to HTML in a React SPA — a markdown renderer with lazy-loaded syntax highlighting, strict sanitisation of untrusted HTML, and typography mapped to the design system. Use when displaying long-form content, hardening a renderer against XSS, or keeping browser output identical to what crawlers are served. Not for the crawler render path (see backend).
 ---
 
 Render article markdown in the SPA (concept).

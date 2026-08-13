@@ -194,7 +194,7 @@ directory is for the human reading the library and is **not** part of any identi
 context after it (received as `$ARGUMENTS`):
 
 ```
-/tadeumendonca-skills:lambda-handler posts
+/tadeumendonca-skills:backend posts
 /tadeumendonca-skills:cloud-infrastructure staging
 /tadeumendonca-skills:devops production
 ```
@@ -289,29 +289,19 @@ an irreversible act. See ADR-0013 for the full record.
 | `/harness-engineering` | **The universal preload, carried by all 5 profiles.** Names the discipline the whole plugin runs — Agent Harness Engineering / AI-DLC (the owner's central identity term, with Claude Code & Kiro) — and is the loop itself: the state machine (issue types, states, who acts, what artifact records it), the intake chain, the inner-loop steps, **and** the 11 engineering principles in two tiers (non-negotiable floor + risk-calibrated judgment) that shape every decision inside it. Merges the former `dev-loop`, `loop-engineering` and `engineering-philosophy` into one file (#224). The branching/topology diagrams (`gitflow-multi-env`, `trunk-single-env`) and the permission model live in `/devops` (#227), not here. |
 | `/verification-and-gates` | What "done" means: the thesis, Definition of Done, the 100% functional-regression invariant, the gate tables per loop model |
 
-### backend (19)
+### backend (1)
+
+The prior one-per-concern layout (19 files) consolidated into a single skill, `backend` (#230) — the family
+directory itself is the skill (`skills/backend/SKILL.md`), same naming pattern the issue set for
+`frontend` (#231). Curated per ADR-0011's own test — *"the more a technical skill reads like
+documentation about the technology, the less of a skill it is"* — applied with extra weight here
+because this is a **reference with no live consumer**: `tadeumendonca-io` retired the BFF-on-Lambda +
+DynamoDB + Cognito architecture this family documents; it is kept deliberately as a knowledge-transfer
+pattern, not a description of anything currently deployed.
 
 | Command | Purpose |
 |---|---|
-| `/framework-hono` | Hono framework + middleware wiring (logger/error/audit/authorize); routing, zod-openapi |
-| `/openapi` | Contract auto-maintained from code (agnostic): versioned, committed root copy, AWS overlay |
-| `/bff` | Backend-for-Frontend: API GW fronts only it (root routes); auth external, no auth code |
-| `/lambda-handler` | Implement a BFF domain module (Hono routes + audit + DynamoDB) |
-| `/audit-middleware` | Audit trail (conceptual): what's captured + the audits document shape |
-| `/action-types` | Action types (conceptual): audit + RBAC + feature toggles |
-| `/error-handling` | Throw AppError/NotFoundError/Unauthorized — never return 4xx |
-| `/logging` | Structured logging via Powertools Logger (JSON, level per env) |
-| `/metrics` | OTel metrics → ADOT collector → CloudWatch (awsemf), no AMP |
-| `/tracing` | Powertools Tracer / X-Ray: segments, annotations, downstream capture |
-| `/environment-config` | Config both sides: dotenv + typed accessor at runtime, parameter store baked into the bundle at build |
-| `/secrets-management` | Sensitive values from Secrets Manager at runtime (cached) |
-| `/redis-cache` | ElastiCache Redis cache-aside, fail-open, TTLs, invalidation |
-| `/notifications` | Email via SES + SNS async fan-out; subscriptions |
-| `/og-image-generator` | OG image: satori JSX→SVG + resvg→PNG + S3 cache |
-| `/og-edge-handler` | Lambda@Edge 3-way: human passthrough / social OG / SEO crawler |
-| `/prerender` | Bot API: og-meta (head) + prerender (full HTML + JSON-LD) from DynamoDB |
-| `/postman` | API/contract tests (reference pattern — the current consumer has no API): Bearer JWT auth, collection run in CI |
-| `/coverage` | Quality/test/security gates for BOTH stacks, one threshold: lint, typecheck, ≥85% cov, E2E + contract, audit, Sonar |
+| `/backend` | Implement a BFF-on-Lambda backend end to end: the Hono modular monolith, cross-cutting middleware (errors, logging, metrics, tracing, audit, action types), Redis cache-aside, config/secrets, the generated OpenAPI contract + Postman tests, notifications, OG-image + bot-rendering, and the shared quality gate |
 
 ### frontend (15)
 
@@ -347,9 +337,9 @@ explicitly as the CSP covered, since that's what all 21 source files documented.
 |---|---|
 | `/cloud-infrastructure` | AWS infrastructure end to end, one section per service: VPC, IAM, KMS, Secrets Manager, SSM, Cognito, WAF, DynamoDB, ElastiCache, S3, Lambda, API Gateway, CloudFront, ACM, Route53, SES, SNS, CloudWatch, CloudWatch RUM, CloudWatch X-Ray, and the Terraform setup that carries them all |
 
-### workflow (9)
+### workflow (10)
 
-DevOps tooling. `devops` is the umbrella (#227) — GitHub/CI-CD (OIDC, secrets/environments, the deploy workflows, the Issues backlog), Terraform Cloud as the state backend, branching per loop model, and the permission model that keeps IaC pipeline-only, all in one skill, preloaded by `developer` and `harness-lead`. The numeric-SemVer tagging rules are their own skill (`versioning`). Test runners live with their repo (`/postman`, `/playwright`); the gate policy they feed is one stack-agnostic skill (`/coverage`); IaC checkov is in `/terraform`. Architecturally-significant decisions are recorded via `adr`, split by domain (#223). Working-files and shell-command discipline — transversal across the whole roster, not DevOps-specific — is `command-hygiene`.
+DevOps tooling. `devops` is the umbrella (#227) — GitHub/CI-CD (OIDC, secrets/environments, the deploy workflows, the Issues backlog), Terraform Cloud as the state backend, branching per loop model, and the permission model that keeps IaC pipeline-only, all in one skill, preloaded by `developer` and `harness-lead`. The numeric-SemVer tagging rules are their own skill (`versioning`). Test runners live with their repo (the backend's Postman collection is a section of `/backend`, `/playwright` is standalone); the gate policy they feed is one stack-agnostic skill, `/coverage` — extracted from the `backend` consolidation at #230 specifically so it stays preloaded on every merge review regardless of stack; IaC checkov is in `/cloud-infrastructure`'s Terraform section. Architecturally-significant decisions are recorded via `adr`, split by domain (#223). Working-files and shell-command discipline — transversal across the whole roster, not DevOps-specific — is `command-hygiene`.
 
 | Command | Purpose |
 |---|---|
@@ -357,6 +347,7 @@ DevOps tooling. `devops` is the umbrella (#227) — GitHub/CI-CD (OIDC, secrets/
 | `/adr` | Architecture Decision Records: MADR format, two libraries (methodology/product), light significance gate, supersede-never-delete — authorship split by domain (#223) |
 | `/command-hygiene` | Where scratch files go, one atomic Bash call, the `gh --repo` flag position, `--body-file` always — preloaded by all 5 personas |
 | `/versioning` | Semantic versioning + tags: numeric SemVer via bump-my-version, loop guard, PR labels |
+| `/coverage` | Stack-agnostic quality/test/security gate policy: lint, typecheck, ≥85% coverage, contract/E2E, dependency + secret scanning, SAST — preloaded by `quality-assurance` on every review (#230) |
 | `/sonarcloud` | SonarCloud quality gate (SAST + coverage + smells), blocks merge |
 | `/claude-code` | Claude GitHub App: `@claude` assistant + automatic PR review (advisory, non-blocking) |
 | `/code-review` | Author-side completeness pass before opening the MR: anticipates both gates, verifies the DoD with evidence |
