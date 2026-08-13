@@ -828,10 +828,13 @@ flowchart LR
 
 **The self-loop is the non-obvious fact, and it has a real consequence.** A session working in this repo
 installs its own plugin from the published marketplace, never from the working tree it is editing — so a
-persona rename committed and merged in that same session does not resolve until `/plugin marketplace
-update` re-pulls and the plugin is reinstalled. This is not hypothetical: `harness-reviewer` was renamed
-to `harness-lead` in #219, and the session that merged it kept dispatching the stale `harness-reviewer`
-identifier because the installed build still predated the merge. `session-plugin-version` (above, under
+merged change to a hook, persona or skill does not reach that same session until `/plugin marketplace
+update` re-pulls and the plugin is reinstalled. This is not hypothetical, and #93 is the measured case:
+a `wip-guard` rewrite (#88/#90) merged and released as `0.4.18`, and minutes later the installed copy —
+three versions behind, still on the pre-rewrite logic — denied a PR for the exact case the rewrite existed
+to allow. It matters most for the change that is hardest to notice: a renamed or deleted subagent still
+resolves to its OLD definition until the cache refreshes, so a dispatch silently runs a persona whose file
+no longer exists in the repo. `session-plugin-version` (above, under
 [The hooks](#the-hooks-and-what-they-refuse)) is the mechanism that catches exactly this gap — it does not
 resolve it, it warns at the next `SessionStart` that the installed build is behind the merged one.
 
