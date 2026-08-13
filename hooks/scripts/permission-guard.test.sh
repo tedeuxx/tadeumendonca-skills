@@ -640,6 +640,30 @@ check DENY  "operator OUTSIDE quotes still caught"    'git commit -m "msg" && np
 check DENY  "unbalanced quote fails CLOSED"           'echo "unterminated && npx tsc'
 check DENY  "escaped-quote span then a REAL operator" 'gh pr comment 1 --body "said \"hi\"" && npx tsc'
 
+echo "--- rule 8b: shell redirection ('>'/'>>') to create or overwrite a file ---"
+# #244 — measured 2026-08-13 that a redirect to a NEW file path prompts regardless of destination or
+# whether the command itself is allowlisted. The remedy is Write (composed content) or running the
+# command without the redirect and Write-ing its returned stdout (captured content) — never '>'.
+check DENY  "plain redirect creates a file"        "git show abc123 > file.txt"
+check DENY  "append redirect"                      "echo hi >> file.txt"
+check DENY  "redirect into a scratch path"         "python3 hooks/scripts/skills-table.py > .scratch/out.txt"
+check DENY  "heredoc feeding a redirect"            'cat > file.txt <<EOF
+hello
+EOF'
+check DENY  "both streams to a file (&>)"          "echo hi &> file.txt"
+check DENY  "both streams, append (&>>)"           "echo hi &>> file.txt"
+# Excluded BY DESIGN: fd-to-fd duplication creates no file. The '&' sits AFTER the '>' here, which is
+# what distinguishes it from '&>' above (where '&' precedes '>' and the target is still a path).
+check ALLOW "stderr merged into stdout (2>&1)"     "echo hi 2>&1"
+check ALLOW "stdout merged into stderr (1>&2)"     "echo hi 1>&2"
+check ALLOW "bare fd dup (>&2)"                    "echo hi >&2"
+check ALLOW "an ordinary read-only command"        "gh pr view 243 --json state"
+check ALLOW "no redirect at all"                   "git status"
+# A known, accepted false positive — pinned rather than hidden, same as rule 9's escape classes. This
+# floor does not parse shell, so bash's string-comparison operator inside '[[ ]]' is indistinguishable
+# from a redirect by construction.
+check DENY  "false positive: [[ ]] string compare, documented" '[[ "a" > "b" ]]'
+
 echo "--- rule 5b: gh secret writes survive the -R convention ---"
 check DENY  "secret set, plain"             "gh secret set MY_TOKEN"
 check DENY  "secret set behind -R"          "gh -R owner/repo secret set MY_TOKEN"
