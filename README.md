@@ -750,6 +750,88 @@ runs at `SessionStart` rather than `SessionEnd` because `SessionEnd` is not repo
 — sixteen orphaned session directories, the oldest ten days old, are what best-effort looked like —
 and because sweeping at the end would delete during the window a handoff still needs.
 
+## What this repo ships — the platform's own resource taxonomy
+
+A Claude Code plugin can export nine kinds of resource: Skills · Commands (legacy) · Agents · Hooks ·
+MCP servers · LSP servers · Monitors · Settings · Executables (`bin/`). This repo ships five of the
+nine and deliberately does not ship the other four — read straight off the tree below it, not counted
+by hand:
+
+| resource type | ships? | where | how it takes effect |
+|---|---|---|---|
+| **Skills** | yes — **69** | `skills/<family>/<name>/SKILL.md`, each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
+| **Commands (legacy)** | yes — **2** (`autonomy-on`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-family-is-and-what-is-actually-preloaded) |
+| **Agents** | yes — **5 subagent personas** | `agents/*.md` (`developer`, `harness-lead`, `product-lead`, `quality-assurance`, `tech-lead`) | dispatched by name via `Task` |
+| **Hooks** | yes — **`hooks.json` registers 5** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`, `session-scratch`) — automatic, no invocation |
+| **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
+| MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
+| LSP servers | **no** | — | no `.lsp.json` |
+| Monitors | **no** | — | no `monitors/` directory |
+| Executables | **no** | — | no `bin/` directory, no `executable` field in `plugin.json` |
+
+The two files under `.claude-plugin/` — `plugin.json` and `marketplace.json` — are not a row of their
+own; they are the manifests that make the five shipped rows above resolvable as a plugin at all.
+
+**Versioned-and-shared is not the same set as versioned.** `.claude/settings.json` above is the row that
+matters here, and it is committed; `.claude/settings.local.json` and `.brand/` are the deliberate
+counter-example — local, gitignored, changing behaviour on one machine only, never in this table because
+they are never in this repo's git history.
+
+**Shipped is not the same claim as exported, and `docs/` is the case that proves it.** The methodology
+ADR library lives at `docs/adr/`, is tracked in git, and travels with every clone — a human reading this
+repository reaches it by opening the directory. **Nothing loads it at runtime.** No hook in
+`hooks/hooks.json` reads it, no manifest references it, and no persona's `skills:` frontmatter names a
+`docs/` path — the five personas above preload only files under `skills/`. An agent reaches `docs/` the
+same way a human does: by choosing to read the path, not because the harness put it in front of them.
+That gap is why the decision records are read by *convention* (`tech-lead` writes them, the leads and the
+gate are told to consult them) rather than by *mechanism* — nothing here forces the read the way
+`session-plugin-version` forces the marketplace-staleness warning below.
+
+### The producer, its own marketplace, and the two consumers
+
+**This repo is not just the producer — it is also a consumer of itself, and not of its own working
+tree.** `.claude/settings.json`'s `extraKnownMarketplaces` points at
+`{ "source": "github", "repo": "tedeuxx/tadeumendonca-skills" }` — the **published**, tagged state of
+this repository, fetched the same way `tadeumendonca-io` fetches it. There is no local-path source
+anywhere in either consumer's settings.
+
+```mermaid
+flowchart LR
+  subgraph PRODUCER["producer — this repo's working tree"]
+    WT["skills/ · agents/ · hooks/ · commands/<br/>.claude-plugin/plugin.json"]
+  end
+
+  subgraph RELEASE["release workflow, on merge to main"]
+    TAG["bump · tag vX.Y.Z<br/>publish GitHub Release"]
+  end
+
+  subgraph MARKET["published marketplace"]
+    MP[".claude-plugin/marketplace.json<br/>at the tagged ref"]
+  end
+
+  subgraph CONS1["consumer — this repo, of ITSELF"]
+    S1[".claude/settings.json<br/>extraKnownMarketplaces → github:tedeuxx/tadeumendonca-skills"]
+  end
+
+  subgraph CONS2["consumer — tadeumendonca-io"]
+    S2[".claude/settings.json<br/>extraKnownMarketplaces → github:tedeuxx/tadeumendonca-skills"]
+  end
+
+  WT -->|merge| TAG
+  TAG -->|publishes| MP
+  MP -->|"/plugin marketplace update"| S1
+  MP -->|"/plugin marketplace update"| S2
+```
+
+**The self-loop is the non-obvious fact, and it has a real consequence.** A session working in this repo
+installs its own plugin from the published marketplace, never from the working tree it is editing — so a
+persona rename committed and merged in that same session does not resolve until `/plugin marketplace
+update` re-pulls and the plugin is reinstalled. This is not hypothetical: `harness-reviewer` was renamed
+to `harness-lead` in #219, and the session that merged it kept dispatching the stale `harness-reviewer`
+identifier because the installed build still predated the merge. `session-plugin-version` (above, under
+[The hooks](#the-hooks-and-what-they-refuse)) is the mechanism that catches exactly this gap — it does not
+resolve it, it warns at the next `SessionStart` that the installed build is behind the merged one.
+
 ## Stack
 
 Markdown skill definitions · POSIX shell hooks (`bash`, `jq`) · Claude Code plugin + marketplace
