@@ -1408,34 +1408,39 @@ $(printf '%s\n' "${INVENTORY_DOCS[@]}")"
 fi
 
 # ---------------------------------------------------------------------------------------------------
-# EVERY PERSONA BRIEF STATES WHERE ITS WORKING FILES GO.
+# EVERY PERSONA BRIEF STATES WHERE ITS WORKING FILES GO — FLIPPED AT #245.
 #
 # A rule that lives only in CLAUDE.md does not reach a subagent: CLAUDE.md is the MAIN agent's context,
-# and a persona's context is its own brief. The harness separately instructs every agent to use a session
-# scratchpad under /tmp. So on 2026-08-06 subagents wrote working files there — correctly, since it was
-# the only instruction they had — and `session-scratch.sh` does not sweep it, so those files outlived
-# every session and were invisible to the owner.
+# and a persona's context is its own brief. THIS USED TO ASSERT AN OVERRIDE — a repo-root `.scratch/`
+# the brief had to state explicitly WINS over the harness's own session-scratchpad instruction, because
+# on 2026-08-06 subagents followed the harness's instruction correctly and it was the wrong answer at
+# the time. #245 retired the repo-root directory once #244 measured that the friction it existed to
+# dodge never depended on location at all — so the harness's own instruction is now the right answer,
+# and there is nothing left to override. What survives is the other half of the original reasoning:
+# CLAUDE.md still cannot reach a subagent, so the brief still has to state the destination itself, in
+# its own words, or a fresh dispatch has no way to know it.
 #
-# WHAT THIS ASSERTS IS THE OVERRIDE, NOT THE WORD. `.scratch/` alone would pass on a brief that mentions
-# it in passing while still calling the harness's directory "the scratchpad" — which is exactly the shape
-# that failed: quality-assurance.md said "scratchpad" five times and never said where, so its brief did
-# not merely omit the rule, it pointed away from it. Both halves are required: the destination, and the
-# sentence that the harness's own instruction loses to it.
+# ONE PERSONA IS A GENUINE EXCEPTION, NOT AN OVERSIGHT. `product-lead` holds no `Write`/`Edit` grant and
+# writes no scratch file at all by design (its verdict returns as text; `quality-assurance` quotes it
+# onto the PR verbatim) — asserting "session scratchpad" against it would demand a sentence describing a
+# capability the brief deliberately does not have.
 for brief in "$ROOT"/agents/*.md; do
   name="$(basename "$brief")"
-  if ! grep -qF -- '<repo-root>/.scratch/' "$brief"; then
-    bad "agent brief — $name does not name <repo-root>/.scratch/ as where its working files go.
-      CLAUDE.md cannot carry this rule to a subagent; only the brief can."
-  # ANCHOR ON THE OVERRIDE, NOT ON ITS PREAMBLE. The first version of this check grepped for "harness
-  # will tell you otherwise" — the sentence that SETS UP the override — and a mutation replacing the
-  # override verb with "Use it" left the preamble standing and passed. Predicted 1 failure, measured 0.
-  # The phrase that cannot survive the defect is the one that asserts which instruction WINS.
-  elif ! grep -qiF -- 'overrides that' "$brief"; then
-    bad "agent brief — $name names .scratch/ but does not override the harness's own instruction.
-      The harness tells every agent to use a /tmp scratchpad. A brief that states the destination without
-      naming the competing instruction leaves the agent choosing between two, and it chose /tmp."
+  if [ "$name" = "product-lead.md" ]; then
+    if grep -qiF -- 'you write no scratch file' "$brief"; then
+      ok "agent brief — $name states its exception: no Write/Edit, writes no scratch file"
+    else
+      bad "agent brief — $name is expected to state it writes no scratch file at all (no Write/Edit grant).
+      If that has changed — the persona now holds Write/Edit — this whole exception is stale; give it the
+      ordinary 'session scratchpad' assertion below instead."
+    fi
+    continue
+  fi
+  if grep -qiF -- 'session scratchpad' "$brief"; then
+    ok "agent brief — $name names the session scratchpad as where its working files go"
   else
-    ok "agent brief — $name names .scratch/ AND overrides the harness's /tmp instruction"
+    bad "agent brief — $name does not name the session scratchpad as where its working files go.
+      CLAUDE.md cannot carry this rule to a subagent; only the brief can."
   fi
 done
 

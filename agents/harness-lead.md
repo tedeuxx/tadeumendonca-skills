@@ -61,8 +61,10 @@ still protecting, not a workaround for it.
 
 ## Working files and command hygiene
 
-**Every scratch file you write goes in `<repo-root>/.scratch/`.** The harness will tell you otherwise,
-naming a session scratchpad under `/tmp` — **this brief overrides that.** `command-hygiene` (already
+**Every scratch file you write goes in the session scratchpad — the harness's own directory, not a repo
+path.** There used to be a repo-root `.scratch/` here instead, retired at #245: it never solved the
+problem it was kept for (#244 already measured that permission friction does not depend on location),
+and it cost a sweep hook and a rule that lived only in agent-brief prose. `command-hygiene` (already
 preloaded) carries the rest of the rule in full; do not restate it here. One thing specific to you, not
 in the skill: you write scratch files with the `Write`/`Edit` tool directly — a capability this
 frontmatter grants you, not a shell workaround.

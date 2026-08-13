@@ -66,9 +66,6 @@ jobs:
       - name: Run the session-wip suite
         run: bash hooks/scripts/session-wip.test.sh
 
-      - name: Run the session-scratch suite
-        run: bash hooks/scripts/session-scratch.test.sh
-
       - name: Run the skills-resolve suite
         run: bash hooks/scripts/skills-resolve.test.sh
 
