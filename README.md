@@ -770,7 +770,10 @@ by hand:
 | Executables | **no** | — | no `bin/` directory, no `executable` field in `plugin.json` |
 
 The two files under `.claude-plugin/` — `plugin.json` and `marketplace.json` — are not a row of their
-own; they are the manifests that make the five shipped rows above resolvable as a plugin at all.
+own; they are the manifests that make the first four shipped rows (Skills, Commands, Agents, Hooks)
+resolvable as a plugin at all. **Settings is different in kind, not degree** — `.claude/settings.json`
+is not packaged *by* the plugin, it is what a consumer commits to *turn the plugin on* (`enabledPlugins`,
+`extraKnownMarketplaces`); this repo ships one because it is also its own first consumer, covered next.
 
 **Versioned-and-shared is not the same set as versioned.** `.claude/settings.json` above is the row that
 matters here, and it is committed; `.claude/settings.local.json` and `.brand/` are the deliberate
