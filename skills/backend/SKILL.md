@@ -1,5 +1,5 @@
 ---
-description: Implement a BFF-on-Lambda backend as a reference pattern — the Hono modular monolith, cross-cutting middleware (errors, logging, metrics, tracing, audit, action types), Redis cache-aside, config/secrets, the generated OpenAPI contract + Postman tests, notifications, and OG-image + bot-rendering. Use when a project actually needs a BFF and its cross-cutting shape. Not for the AWS resources it runs on (see cloud-infrastructure) or the SPA calling it (see framework-react).
+description: Implement a BFF-on-Lambda backend as a reference pattern — the Hono modular monolith, cross-cutting middleware (errors, logging, metrics, tracing, audit, action types), Redis cache-aside, config/secrets, the generated OpenAPI contract + Postman tests, notifications, and OG-image + bot-rendering. Use when a project actually needs a BFF and its cross-cutting shape. Not for the AWS resources it runs on (see cloud-infrastructure) or the SPA calling it (see frontend).
 ---
 
 # Backend (BFF-on-Lambda)
