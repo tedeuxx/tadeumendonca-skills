@@ -385,6 +385,120 @@ stub_gh "$ONE" "$THEIRS"
 stub_git "$MINE_OVERLAPS"
 check DENY  "no branch fields: overlap holds" "gh pr create --title x"
 
+echo "--- SIBLING TASKS (ADR-0014 S1): same parent story permits the overlap ---"
+#
+# Dedicated stubs, not the shared stub_gh/stub_git: this exercises `gh issue view` and
+# `git rev-parse --abbrev-ref HEAD`, which the shared stubs never answer (both fall
+# through to their `*) exit 0` arm), and every EXISTING case above relies on that
+# silence to mean "no branch found, no exemption possible" — so leaving them untouched
+# is itself part of what proves the exemption is additive, not a behavior change to the
+# baseline overlap rule.
+#
+# Issue bodies live as files under $STUB_ISSUES/<n>.txt so each test sets exactly the
+# ones it needs; a number with no file means "no such issue reachable", which the guard
+# must read as "no parent, and no exemption" — never as a crash.
+STUB_ISSUES="$STUBDIR/issues"
+mkdir -p "$STUB_ISSUES"
+export STUB_ISSUES
+
+cat > "$STUBDIR/gh" <<'STUB'
+#!/usr/bin/env bash
+args="$*"
+case "$args" in
+  *"repo view"*)   printf 'main' ;;
+  *"issue view"*)
+    n=$(printf '%s' "$args" | awk '{print $3}')
+    f="$STUB_ISSUES/$n.txt"
+    if [ -f "$f" ]; then cat "$f"; else printf ''; fi
+    ;;
+  *"pr view 45"*)  printf '%s' "${STUB_PRFILES_45:-$STUB_PRFILES}" ;;
+  *"pr view"*)     printf '%s' "$STUB_PRFILES" ;;
+  *"pr list"*)     printf '%s' "$STUB_PRLIST" ;;
+  *)               exit 0 ;;
+esac
+STUB
+chmod +x "$STUBDIR/gh"
+
+cat > "$STUBDIR/git" <<'STUB'
+#!/usr/bin/env bash
+args="$*"
+case "$args" in
+  *"rev-parse --abbrev-ref HEAD"*) printf '%s' "$STUB_MY_BRANCH" ;;
+  *"merge-base"*)  printf '%s' "${STUB_MERGE_BASE:-abc1234}" ;;
+  *"diff"*)        printf '%s' "$STUB_MY_DIFF" ;;
+  *)               exit 0 ;;
+esac
+STUB
+chmod +x "$STUBDIR/git"
+PATH="$STUBDIR:$REAL_PATH"
+
+set_issue() { printf '%s' "$2" > "$STUB_ISSUES/$1.txt"; }
+rm -f "$STUB_ISSUES"/*.txt
+
+# Case 1: both sides name the SAME explicit parent — the plain reading of ADR-0014's rule.
+set_issue 200 ''
+set_issue 201 'Parent: #200'
+set_issue 202 'Parent: #200'
+export STUB_MY_BRANCH='product/issue-201-task-a'
+export STUB_MY_DIFF="$MINE_OVERLAPS"
+export STUB_PRLIST='[{"number":65,"title":"sibling","headRefName":"product/issue-202-task-b"}]'
+export STUB_PRFILES="$THEIRS"
+check ALLOW "same explicit Parent: #N on both sides" "gh pr create --title x"
+
+# Case 2: MY branch IS the parent story itself, and theirs names it. The other half of
+# ADR-0014's "OR one IS the parent" clause — Case 1 alone would miss it.
+export STUB_MY_BRANCH='product/issue-200-parent-story'
+check ALLOW "mine IS the parent, theirs names it" "gh pr create --title x"
+
+# Case 3: different parents — NOT siblings, must still deny exactly as before.
+set_issue 210 'Parent: #200'
+set_issue 211 'Parent: #199'
+export STUB_MY_BRANCH='product/issue-210-task-a'
+export STUB_PRLIST='[{"number":65,"title":"unrelated","headRefName":"product/issue-211-task-c"}]'
+check DENY "different parents: overlap still denied" "gh pr create --title x"
+
+# Case 3b: NEITHER side has a parent — two ordinary feature branches must not become
+# "siblings" merely because each falls back to its own issue number as its root (that
+# fallback exists for the "mine IS the parent" case, and must not fire between two
+# unrelated roots that happen to both be issue-shaped).
+set_issue 300 ''
+set_issue 301 ''
+export STUB_MY_BRANCH='product/issue-300-lone'
+export STUB_PRLIST='[{"number":65,"title":"unrelated","headRefName":"product/issue-301-lone"}]'
+check DENY "no parent on either side: overlap still denied" "gh pr create --title x"
+
+# Case 4 — THE NON-NEGOTIABLE FIXTURE: a mixed open set with a FIELDLESS entry FIRST
+# (#65 carries no headRefName at all), followed by a real sibling (#45). This is the
+# exact shape the retired record's fourth defect could not be caught by — a test using
+# only one branch type short-circuits before the `// ""` default is ever consulted.
+# Correct behavior: #65 cannot be resolved to any issue, so it gets NO exemption and
+# stays denied; #45 resolves to a real sibling and IS exempted. The overall verdict is
+# still DENY (because of #65), and the reason must name #65 but not #45 — proving the
+# two PRs were judged independently rather than one missing field silently disabling
+# the whole rule (or, in the other direction, silently exempting everything).
+set_issue 201 'Parent: #200'
+set_issue 202 'Parent: #200'
+export STUB_MY_BRANCH='product/issue-201-task-a'
+export STUB_PRLIST='[{"number":65,"title":"fieldless"},{"number":45,"title":"sibling","headRefName":"product/issue-202-task-b","baseRefName":"main"}]'
+export STUB_PRFILES="$THEIRS"
+out=$(printf '%s' "gh pr create --title x" | jq -R '{tool_input:{command:.}}' | bash "$GUARD")
+if printf '%s' "$out" | grep -q '"deny"' && printf '%s' "$out" | grep -q '#65' && ! printf '%s' "$out" | grep -q '#45'; then
+  pass=$((pass + 1)); printf 'ok    %-6s %s\n' "MIXED" "fieldless-first PR stays denied; its sibling is exempted independently"
+else
+  fail=$((fail + 1)); printf 'FAIL  mixed fieldless-first fixture: got %s\n' "$out"
+fi
+
+# Case 5: a branch name carrying MORE than one `issue-<n>` substring (a slug that
+# mentions a different issue) must resolve to the FIRST one, not fail on a multi-line
+# extraction that would break the single-issue `gh issue view` call downstream.
+set_issue 201 'Parent: #200'
+set_issue 202 'Parent: #200'
+export STUB_MY_BRANCH='product/issue-201-also-fixes-issue-999'
+export STUB_PRLIST='[{"number":65,"title":"sibling","headRefName":"product/issue-202-task-b"}]'
+check ALLOW "branch slug mentions a second issue-N: the first one wins" "gh pr create --title x"
+
+unset STUB_MY_BRANCH STUB_MY_DIFF STUB_PRLIST STUB_PRFILES STUB_PRFILES_45 STUB_MERGE_BASE
+
 # The "gh is not installed" branch is deliberately NOT tested here. Exercising it means
 # removing gh from PATH, and any PATH narrow enough to hide gh also hides bash, jq and
 # grep — the harness dies and the case "passes" for the wrong reason, which is how it

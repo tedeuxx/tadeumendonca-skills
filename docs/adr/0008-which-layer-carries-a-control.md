@@ -71,11 +71,32 @@ wrong and both are the wrong thing to check against** — see *record the deriva
 > here, against that section's *"the count only moves in one direction"* — a prediction about migrations,
 > not about an allow entry being withdrawn.
 
-The trunk-push denies are shadowed the same way, and the one
+The trunk-push denies are shadowed the same way, and ~~the one
 `-C`-form deny that exists (`Bash(git -C /Users/tadeumen/git-reps/tadeumendonca-skills push:*)`) is
-hardcoded to one of the two repos in the workspace — the consuming repo's own floor has no equivalent
+hardcoded to one of the two repos in the workspace~~ **the one `-C`-form deny that existed until
+2026-08-12 (`Bash(git -C /Users/tadeumen/git-reps/tadeumendonca-skills push:*)`) was hardcoded to one of
+the two repos in the workspace** — the consuming repo's own floor has no equivalent
 entry at all. For all of these the hook is already the only layer, and item 1 above puts **every**
 remaining entry in the same position the moment a caller types eight extra characters.
+
+> **Corrected 2026-08-12.** The entry this paragraph named was removed from this repo's own
+> `.claude/settings.json` that day, by the owner directly, for a reason outside this record's axis:
+> `tadeumendonca-skills` has no live/production environment that `main` represents here — every real
+> consumer pins to a released, reviewed tag (`ref: v0.2.0` style, in their own `.claude/settings.json`),
+> so a feature-branch push from this repo never touches anything a consumer runs. The neighbouring denies
+> for `main`, `--force` and `--tags` are untouched, and `quality-assurance`'s exclusive merge authority
+> (rule 7b) is completely unaffected — nothing about the merge-to-main flow changed.
+>
+> **The paragraph's point survives, and the removal makes it sharper rather than weaker.** What this
+> sentence was illustrating was never "this entry protects trunk-push" — it was that the deny list's
+> floor for the `-C` form was narrow and hardcoded, so the hook was already the only layer carrying the
+> control for anything but that one exact spelling. Deleting the one entry that existed does not
+> contradict that; it completes it. Where this repo previously had a single-path floor entry for the
+> `-C` form, it now has **none**, matching the consuming repo's floor exactly — both repos' `-C`-form
+> trunk-push protection now lives in `permission-guard.sh` alone, which is precisely what "for all of
+> these the hook is already the only layer" already asserted. No amendment to the routing decision, the
+> fail-open acceptance, or the retained-floor-entry cost follows from this: this is a removed
+> illustration, not a falsified claim about the architecture.
 
 **The pattern is what demands a decision, not the instances.** Each of the three migrations was locally
 correct, each was made by someone solving a different problem, and **nobody was deciding the

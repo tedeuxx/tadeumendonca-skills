@@ -137,65 +137,105 @@ flowchart TB
   O(["OWNER · generates demand"])
   NI[["/new-issue"]]
 
-  subgraph T1["TIER 1 · INTAKE — the description is closed here"]
+  subgraph T1P["TIER 1 · product — disagree by design"]
     direction LR
     PL["product-lead"]
     TL["tech-lead"]
-    HR["harness-lead"]
   end
 
-  US{{"USER STORY — the issue<br/>one description, both leads agreed · label: ready<br/>its TASK LIST is the decomposition"}}
+  subgraph T1C["TIER 1 · content — the owner's voice"]
+    direction LR
+    PLC["product-lead"]
+  end
+
+  subgraph T1L["TIER 1 · loop — the machinery itself"]
+    direction LR
+    HR["harness-lead"]
+    TLL["tech-lead"]
+  end
+
+  US{{"USER STORY — the issue<br/>one description, both leads agreed · label: ready<br/>its TASK LIST is the decomposition<br/>product · content only"}}
   AO[["/autonomy-on · drains the ready queue"]]
 
   ORCH["ORCHESTRATOR — the main session<br/>dispatches every persona · commits · pushes<br/>never merges · never decides the irreversible"]
 
   subgraph T2["TIER 2 · BUILD"]
-    DEV["developer<br/>one branch, ticking the story's task list"]
+    direction LR
+    DEV["developer<br/>product · content — one branch, ticking the task list"]
+    HRB["harness-lead<br/>loop — builds what it stress-tests"]
   end
 
   MR{{"MERGE REQUEST · ONE per story, to main"}}
 
   subgraph T3["TIER 3 · GATE — fresh context, no authorship bias"]
-    QA["quality-assurance<br/>two lenses in one pass"]
+    QA["quality-assurance<br/>product · content — two lenses in one pass<br/>loop — checks the harness-lead verdict marker"]
   end
 
   M{{"merge to main = the deploy<br/>a real merge commit, never a squash"}}
   OUT(["OWNER · irreversible · architectural · go/no-go"])
 
   O --> NI
+  O <-->|"redirects · ratifies · answers blocking questions<br/>receives every relay"| ORCH
+
   NI -->|product| PL
   NI -->|product| TL
-  NI -->|content| PL
+  NI -->|content| PLC
   NI -->|loop| HR
+  NI -->|loop| TLL
 
   PL --> US
   TL --> US
+  PLC --> US
   US --> AO
   AO --> ORCH
-  ORCH -->|"product · content"| DEV
-  DEV --> MR
-  MR --> QA
-  QA --> M
-  M --> OUT
 
   HR --> ORCH
-  ORCH -->|"loop: no story, no gate —<br/>the orchestrator builds, the owner merges"| OUT
+  TLL --> ORCH
+
+  ORCH -->|"product · content"| DEV
+  ORCH -->|"loop: owner-gated ready"| HRB
+
+  DEV --> MR
+  HRB --> MR
+  MR -->|"via orchestrator"| QA
+  QA --> M
+  M --> OUT
 ```
 
-**The edge label is the routing rule.** A `product` issue is closed by the two leads that disagree by
-design; `content` is the owner's voice, so only the lens that holds it takes part; `loop` changes how
-work is decided, and there the owner is both the lead and the gate — which is why that path never
-reaches tier 3.
+**Three lanes, one hub — not one box per tier.** Tier 1's composition is not a single box wearing three
+labels; it is three lanes, and the issue's type decides which one it enters. `product` closes through the
+two leads that disagree by design; `content` closes through the lens that holds the owner's voice alone;
+`loop` closes through **both** `harness-lead` and `tech-lead` — the persona that stress-tests the
+machinery and the persona that would write the ADR it produces, since a `loop` issue is the kind most
+likely to need one. All three lanes converge on the same orchestrator: **the orchestrator is the hub every
+lane passes through**, not a station one tier dispatches through.
 
-**The work units are where the handoffs happen.** The leads converge on one user story; `ready` is what
-makes it executable. The gate reviews a merge request, not a task list.
+**The owner↔orchestrator edge is drawn now, not left implicit.** The owner redirects, ratifies, answers a
+blocking question, and receives every relay through the orchestrator — an interaction that runs
+continuously through a story's whole build, not only at the two endpoints (`/new-issue` and the
+irreversible act) the earlier diagram showed.
 
-**No persona talks to another persona** — every dispatch goes through the orchestrator. It is drawn once,
-where its own act is distinct, because drawing every edge would make the picture unreadable.
+**`loop` is a shorter path, but not for the reason an earlier draft of this figure claimed.** It is not
+gate-free at intake — a `loop`-typed Issue still needs `ready` before anything builds against it, and
+`/autonomy-on`'s own queue predicate is `(product OR loop) AND ready` ([ADR-0012](./docs/adr/0012-issue-type-is-the-routing-axis-and-is-exclusive.md)),
+so it can be drained the same mechanical way a `product` story can. What is actually different: `ready`
+on a `loop` Issue is an **owner-only** transition ([ADR-0015](./docs/adr/0015-harness-lead-implements-the-harness-it-reviews.md),
+Corollary 4) rather than the two leads reconciling between themselves, and its own tier 2 is
+`harness-lead`, building what it just stress-tested. **Tier 3 is not skipped — its lens is.** Every
+lane, `loop` included, still merges through `MR --> QA --> M`: rule 7b denies `gh pr merge` to every
+`agent_type` but `quality-assurance`, unconditionally, so a harness-lead-built change is no exception.
+What differs is what `quality-assurance` checks there — `agents/quality-assurance.md`'s harness-diff
+criterion (ADR-0015 Corollary 2) means a diff touching `hooks/**`, `agents/**`, `skills/**`, `commands/**`
+or `.claude/**` is gated on the presence of a `harness-lead` verdict marker, not on the full two-lens
+Definition of Done — the DoD review already happened, in tier 1, before the build.
 
-**The `loop` path is shorter on purpose.** A product slice passes three independent readings between build
-and merge; a loop change passes none — the orchestrator builds and the owner merges. Drawn, so it can be
-judged.
+**No persona talks to another persona** — every dispatch still goes through the orchestrator; what changed
+is that the edge is now drawn for its full span (including the owner's side of it) rather than once for
+legibility.
+
+**`MR --> QA` reads "via orchestrator"** because the gate is dispatched, not self-triggered — the merge
+request reaches `quality-assurance` the same way every other piece of work reaches a persona: through the
+orchestrator.
 
 | persona | tier | what it holds |
 |---|---|---|
