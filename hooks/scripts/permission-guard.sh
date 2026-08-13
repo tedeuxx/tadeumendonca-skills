@@ -978,6 +978,43 @@ if printf '%s' "$bare" | grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*='; then
   deny "Blocked: env-var prefix (VAR=x cmd) hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
 fi
 
+# 8b. Shell output redirection (`>` / `>>`) to create or overwrite a file. THIS IS A DIFFERENT ROOT
+#     CAUSE FROM RULE 8 ABOVE, not a sub-case of it — rule 8 is about the matcher failing to decompose
+#     a command it CAN otherwise allowlist; this is a permission prompt that fires on `command > path`
+#     REGARDLESS of whether the command itself is allowlisted, measured repeatedly on 2026-08-13
+#     (`git show … > file`, `gh pr diff … > file`, `python3 script.py > file`, several more), and
+#     independent of the destination directory — `.scratch/`, the session scratchpad, anywhere; the
+#     owner asked directly and the answer is the same everywhere. It is grouped with rule 8 anyway
+#     because the REMEDY is identical: convert a human interruption into an instruction the agent can
+#     act on itself, since guidance alone (a skill, a brief) did not hold — the model used `>` in this
+#     very session after already having diagnosed the problem, which is the argument for a mechanical
+#     floor over a preloaded rule.
+#
+#     THE ALTERNATIVE, STATED SO THE DENY MESSAGE IS ACTIONABLE RATHER THAN A DEAD END. Content the
+#     agent is composing itself (a commit message, a PR/issue body, any generated text) goes through
+#     `Write`, never a heredoc piped into `>`. Content that is a COMMAND'S OWN STDOUT (a `git show`, a
+#     generator script) is captured by running the command WITHOUT the redirect — its output already
+#     returns to the caller — and, if it needs to persist as a file, handed to `Write` from there. There
+#     is no case this floor is aware of where `>`/`>>` is the only route to either outcome.
+#
+#     WHAT THIS DOES NOT CATCH, NAMED RATHER THAN HIDDEN. `2>&1`, `1>&2` and `>&2` redirect one STREAM
+#     to another FILE DESCRIPTOR — they create no file, and are excluded by construction: the `&`
+#     following the `>` marks a descriptor target, not a path. `&>`/`&>>` (bash's "redirect both
+#     stdout+stderr to a file" shorthand) are the opposite case — the `&` PRECEDES the `>` there, the
+#     target is still a path, and they ARE caught, correctly. `[[ a > b ]]`, bash's string comparison
+#     operator, is lexically indistinguishable from a redirect by a tool that does not parse shell (the
+#     standing rule two rules up: this file expresses a property, it does not evaluate one), so a
+#     command using it will be denied too — a known, accepted false positive, the same shape and the
+#     same honesty as rule 9's own escape classes below. Likewise a heredoc body (`<<EOF … EOF`) that
+#     happens to contain a literal `>` (e.g. a markdown blockquote line) and is NOT itself feeding a
+#     redirect will still be denied — `bare` strips quoted-string CONTENTS upstream (line ~337) but a
+#     heredoc is not a quoted span in that sed's sense. Both are accepted rather than chased, because the
+#     remedy this rule exists to push — compose with `Write`, capture stdout by not redirecting it — makes
+#     the heredoc-into-redirect pattern that would trigger it disappear from normal use in the first place.
+if printf '%s' "$bare" | grep -Eq '>{1,2}([^&]|$)'; then
+  deny "Blocked: shell output redirection ('>' or '>>') to create or overwrite a file. Content you are composing yourself goes through the Write tool, never a heredoc piped into '>'. Content that is a command's own stdout: run the command WITHOUT the redirect (its output returns to you) and Write it from there if it needs to persist. (If this fired on '[[ a > b ]]' string comparison or a heredoc body containing a literal '>' rather than an actual redirect: rephrase without it — this floor does not parse shell and cannot tell the two apart.)"
+fi
+
 # 9. A SPEED BUMP ON THE NAIVE TRAVERSAL. **NOT A BOUND, AND IT MUST NEVER BE CITED AS ONE.**
 #
 #    ~~This is the control that makes a directory-scoped wildcard mean what it says.~~ **STRUCK the

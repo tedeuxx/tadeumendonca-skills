@@ -28,11 +28,13 @@ temporary files. **This rule overrides that.** The instruction exists because it
 2026-08-06, subagents wrote working files to the harness scratchpad all day, correctly, since it was the
 only instruction they had been given.
 
-**Any tool grant reaches the file** — `Write` is the direct route where a persona holds it;
-`printf '%s' … > <path>` or an `Edit` onto a stub file are equally valid where it doesn't. How the file
-gets written is not part of the rule; that it lands in `.scratch/` is. If the file cannot be written by
-any route available, that is a posting failure to report as one — not a reason to fall back to an inline
-argument that strips backticks and `$`.
+**`Write` is the route — never a shell redirect (`>`/`>>`) into a stub file.** An `Edit` onto a file that
+already exists is the other valid route where `Write` doesn't fit. `printf '%s' … > <path>` used to be
+listed here as equally valid; it is not — see "Never redirect stdout to create a file" below, which
+`hooks/scripts/permission-guard.sh` now denies mechanically regardless of destination. If the file
+cannot be written by any tool-granted route available, that is a posting failure to report as one — not
+a reason to fall back to an inline argument that strips backticks and `$`, and not a reason to reach for
+`>` because it is quicker.
 
 ## Command hygiene — one atomic Bash call
 
@@ -51,6 +53,17 @@ The permission matcher reads a command **prefix**, and an allowlist is typically
 (`Bash(gh issue view:*)`); a flag placed *before* the subcommand changes the prefix to `gh -R`, which
 matches none of them — a working, read-only command that stops for a human over its punctuation alone.
 Put the flag after the subcommand and it matches.
+
+**Never redirect stdout to create a file (`>`/`>>`) — mechanically enforced (#244), not advisory.**
+`command > path` prompts a human regardless of destination — `.scratch/`, the session scratchpad,
+anywhere — and regardless of whether `command` itself is allowlisted; measured directly, repeatedly, in
+this session (`git show … > file`, `gh pr diff … > file`, a generator script's own stdout). Guidance
+alone did not hold — the pattern kept recurring after it was already diagnosed — so
+`hooks/scripts/permission-guard.sh` denies it outright now. Two routes cover everything `>` was used
+for: content the agent is composing itself goes through `Write`; content that is a command's own stdout
+is obtained by running the command *without* the redirect (the output already returns to the caller) and
+`Write`-ing it from there if it needs to persist. `2>&1` / `1>&2` / `>&2` (redirecting one stream to
+another) are unaffected — they create no file.
 
 ## `--body-file`, always, for anything longer than one line
 
