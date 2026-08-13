@@ -7,7 +7,6 @@
 # somewhere random: the failure this replaces was an agent leaving `dist-old-qa/` at a repo path that
 # nothing ignored, which dirtied `git status` and broke a local lint with 1480 errors from a bundle.
 # A leak into a named ignored directory is a leak that costs nothing.
-.scratch/
 
 # editor / os
 .DS_Store

@@ -17,24 +17,24 @@ them — so they're one preload, not a per-persona restatement.
 
 ## Working files — where they go
 
-**Every scratch file a persona writes goes in `<repo-root>/.scratch/`** — commit messages, PR/issue
-bodies, drafts, verdict text. Not `/tmp`, not a session scratchpad directory the harness may offer, not a
-stray path in the tracked tree. `session-scratch.sh` empties `.scratch/` at the start of each new
-session; it reaches nowhere else, so a file written elsewhere outlives every sweep and is invisible to
-the owner.
+**Every scratch file a persona writes goes in the session scratchpad** — the path the harness hands you
+at session start, session-specific and outside every tracked tree — for commit messages, PR/issue
+bodies, drafts, verdict text.
 
-**The harness may say otherwise**, naming a session scratchpad under `/tmp` and calling it the place for
-temporary files. **This rule overrides that.** The instruction exists because it was once absent: on
-2026-08-06, subagents wrote working files to the harness scratchpad all day, correctly, since it was the
-only instruction they had been given.
+**There used to be a repo-root `<repo-root>/.scratch/` directory here instead, retired at #245.** It
+existed on the belief that WHERE a scratch file lived affected permission friction; #244 measured
+directly that it does not — the friction was always the shell-redirect pattern used to write the file,
+not its destination, and that is now denied mechanically regardless of location (see "Never redirect
+stdout" below). Carrying a repo-side scratch directory bought nothing that fix didn't already buy, and
+cost a sweep hook (`session-scratch.sh`) and a rule that lived only in agent-brief prose — exactly the
+shape a preloaded skill exists to remove. If a brief still names `.scratch/`, that is stale and should be
+fixed to point here instead.
 
 **`Write` is the route — never a shell redirect (`>`/`>>`) into a stub file.** An `Edit` onto a file that
-already exists is the other valid route where `Write` doesn't fit. `printf '%s' … > <path>` used to be
-listed here as equally valid; it is not — see "Never redirect stdout to create a file" below, which
-`hooks/scripts/permission-guard.sh` now denies mechanically regardless of destination. If the file
-cannot be written by any tool-granted route available, that is a posting failure to report as one — not
-a reason to fall back to an inline argument that strips backticks and `$`, and not a reason to reach for
-`>` because it is quicker.
+already exists is the other valid route where `Write` doesn't fit. If the file cannot be written by any
+tool-granted route available, that is a posting failure to report as one — not a reason to fall back to
+an inline argument that strips backticks and `$`, and not a reason to reach for `>` because it is
+quicker.
 
 ## Command hygiene — one atomic Bash call
 
@@ -67,7 +67,7 @@ another) are unaffected — they create no file.
 
 ## `--body-file`, always, for anything longer than one line
 
-**Get the content into a file in `.scratch/`, then post it with `--body-file <path>`** — `gh pr comment`,
+**Get the content into a file in the session scratchpad, then post it with `--body-file <path>`** — `gh pr comment`,
 `gh pr create`, `gh issue create`, `gh issue comment`, any command taking a `--body`/`--message` flag with
 multi-line or backtick-bearing content. This has no per-case exception: backticks and `$` are silently
 eaten from an inline `--body` string by shell interpolation, and this platform has paid for that failure

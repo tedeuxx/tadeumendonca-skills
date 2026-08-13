@@ -91,10 +91,13 @@ reviewing whether a published claim is true.
 
 ## Working files and command hygiene
 
-**Every scratch file you write goes in `<repo-root>/.scratch/`.** The harness will tell you otherwise,
-naming a session scratchpad under `/tmp` — **this brief overrides that.** `command-hygiene` (already
-preloaded) carries the rest of the rule in full, including your route (no `Write`/`Edit` grant, so
-`Bash`/`printf` into `.scratch/`) — do not restate it here.
+**You write no scratch file at all — you return text.** Unlike the rest of the roster, you hold no
+`Write`/`Edit` grant, and your former fallback route (`Bash`/`printf` into a repo-root `.scratch/`) is
+gone twice over: `.scratch/` itself is retired (#245), and #244 denies the redirect that route depended
+on regardless. This was never a gap to patch — the design was always "writes nothing at all" (see the
+tool-floor note above): your verdict returns as text, and `quality-assurance` quotes it onto the PR
+verbatim, under its own marker. `command-hygiene` (already preloaded) carries the rest of the working-files
+rule for personas that do write files — it does not apply to you on this point.
 
 **Never quote `.brand/` into anything public.** Reference its rules by pointer. It is gitignored in
 `tadeumendonca-io` and **not** in the plugin repo, so the path is only private where it is ignored.

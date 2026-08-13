@@ -652,13 +652,11 @@ flowchart LR
   H2["wip-guard"]
   H3["session-wip"]
   H4["session-plugin-version"]
-  H5["session-scratch"]
 
   E1 --> H1
   E1 --> H2
   O1 --> H3
   O1 --> H4
-  O1 --> H5
 
   class E1,O1 used
 ```
@@ -666,7 +664,7 @@ flowchart LR
 | event | when it fires | denies? | hooks wired here | purpose |
 |---|---|---|---|---|
 | **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard`, `wip-guard` | refuse the irreversible floor and a PR that overlaps an open one, *before* either happens |
-| **`SessionStart`** | a session begins or resumes | no | `session-wip`, `session-plugin-version`, `session-scratch` | inject the open queue, warn when the installed build is not the merged one, and empty the scratch so nothing survives into a new session |
+| **`SessionStart`** | a session begins or resumes | no | `session-wip`, `session-plugin-version` | inject the open queue, and warn when the installed build is not the merged one |
 | `UserPromptSubmit` | a prompt is submitted, before processing | **yes** | — | |
 | `UserPromptExpansion` | a typed command expands, before it reaches the model | **yes** | — | |
 | `PermissionRequest` | a call needs a permission decision | **yes** | — | |
@@ -706,19 +704,12 @@ request that touches files an open one already touches — the bound is file ove
 counting blocks disjoint work while doing nothing about the real risk. `session-wip` lists the open queue.
 `session-plugin-version` says when the installed build is not the merged one.
 
-**`session-scratch` empties `<repo-root>/.scratch/` in both repos, and that is the whole guarantee.**
-Nothing can delete a file *because its use ended* — there is no such event — so the session boundary
-is the only observable proxy, and the honest claim is that nothing survives into a new session rather
-than that nothing outlives its use. A **resumed or compacted** session does not sweep — a pause is not
-a new session — while `startup` and `clear` do. It is a hook rather than a rule the agent follows
-because of the four delete spellings measured — `rm -rf`, `rm -r`, `git clean -fdX`, `find -delete` —
-three are denied by the floor or ask the human and `find -delete` passes with no decision from any
-layer: "the agent tidies up after itself" resolves to "the agent uses the delete nothing watches".
-That is a claim about those spellings, not about the class — the interpreters (`python3 -c`, `node -e`)
-reach the same act and are deliberately not chased, a gap the guard prices rather than closes. And it
-runs at `SessionStart` rather than `SessionEnd` because `SessionEnd` is not reported to fire on a crash
-— sixteen orphaned session directories, the oldest ten days old, are what best-effort looked like —
-and because sweeping at the end would delete during the window a handoff still needs.
+**There used to be a fifth hook here, `session-scratch`, sweeping a repo-root `.scratch/` directory —
+retired at #245.** It existed to guarantee nothing survived into a new session, on the belief that a
+repo-side scratch directory needed its own cleanup because nothing else would ever provide one. Scratch
+work now lives in the harness's own session scratchpad, which is not part of any repo and needs no
+repo-side sweep hook to own its lifecycle — so the hook, its test suite, and the directory it swept are
+gone rather than adapted.
 
 ## What this repo ships — the platform's own resource taxonomy
 
@@ -729,10 +720,10 @@ by hand:
 
 | resource type | ships? | where | how it takes effect |
 |---|---|---|---|
-| **Skills** | yes — **67** | `skills/<family>/<name>/SKILL.md`, each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
+| **Skills** | yes — **29** | `skills/<family>/[<name>/]SKILL.md`, each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-family-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **5 subagent personas** | `agents/*.md` (`developer`, `harness-lead`, `product-lead`, `quality-assurance`, `tech-lead`) | dispatched by name via `Task` |
-| **Hooks** | yes — **`hooks.json` registers 5** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`, `session-scratch`) — automatic, no invocation |
+| **Hooks** | yes — **`hooks.json` registers 4** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`) — automatic, no invocation |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
 | LSP servers | **no** | — | no `.lsp.json` |
