@@ -48,7 +48,12 @@ reliable forcing function is that the same PR touching the code also touches the
 
 ## Conventions
 - Every repo has a `docs/` folder; keep diagrams next to the code they describe.
-- Documentation is a deliverable per phase (labeled `type:docs`), part of the `v1.0.0` GA criteria.
+- ~~Documentation is a deliverable per phase (labeled `type:docs`), part of the `v1.0.0` GA criteria.~~
+  **Struck 2026-08-13 — `type:*`/`phase:*` were retired 2026-08-02** (`/dev-loop`, "eleven had never
+  been applied to anything"); the live vocabulary is `product`/`content`/`ready`/`blocked`/
+  `reader-facing`, and there is no `v1.0.0` GA milestone in the live loop. See `github-actions`'s own
+  labels table for the same retirement, carried there with the "kept, not corrected" flag this line
+  lacked.
 
 ## Pros & cons
 **Pros**
