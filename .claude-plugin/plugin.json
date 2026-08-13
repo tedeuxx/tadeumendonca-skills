@@ -1,6 +1,6 @@
 {
   "name": "tadeumendonca-skills",
-  "description": "A Claude Code harness: 5 subagent personas — two leads that disagree by design (product-and-market, tech) and consolidate one demand, one fullstack developer, one gatekeeper (a quality-assurance that holds the merge gate and reviews both technical delivery and whether the change can break production), and a harness-lead that stress-tests proposed changes to the harness itself and, per ADR-0015, may implement the harness changes it reviews (never merging, never gating an MR) — PreToolUse hooks that mechanically deny the irreversible floor (force-push, terraform apply, rm -rf, secret writes), and 29 generic skills for AWS infrastructure, React/Vite frontends and CI/CD (<project>/<apex-domain> placeholders).",
+  "description": "A Claude Code harness: 5 subagent personas — two leads that disagree by design (product-and-market, tech) and consolidate one demand, one fullstack developer, one gatekeeper (a quality-assurance that holds the merge gate and reviews both technical delivery and whether the change can break production), and a harness-lead that stress-tests proposed changes to the harness itself and, per ADR-0015, may implement the harness changes it reviews (never merging, never gating an MR) — PreToolUse hooks that mechanically deny the irreversible floor (force-push, terraform apply, rm -rf, secret writes), and 15 generic skills for AWS infrastructure, React/Vite frontends and CI/CD (<project>/<apex-domain> placeholders).",
   "version": "1.0.15",
   "author": {
     "name": "Luiz Tadeu Mendonça"
@@ -10,21 +10,7 @@
   "license": "MIT",
   "skills": [
     "./skills/backend",
-    "./skills/frontend/analytics",
-    "./skills/frontend/api-client",
-    "./skills/frontend/authentication",
-    "./skills/frontend/authorization",
-    "./skills/frontend/design-system",
-    "./skills/frontend/forms",
-    "./skills/frontend/framework-react",
-    "./skills/frontend/markdown",
-    "./skills/frontend/pagination",
-    "./skills/frontend/playwright",
-    "./skills/frontend/routing",
-    "./skills/frontend/seo",
-    "./skills/frontend/state",
-    "./skills/frontend/storybook",
-    "./skills/frontend/ux-states",
+    "./skills/frontend",
     "./skills/infrastructure/cloud-infrastructure",
     "./skills/principles/harness-engineering",
     "./skills/principles/verification-and-gates",

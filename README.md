@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 29 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 15 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -329,7 +329,7 @@ work as the other two.
 
 ## The skill library, whose domain each family is, and what is actually preloaded
 
-**Skills carry the conventions so the model does not re-invent them.** **29 skills + autonomy-on**,
+**Skills carry the conventions so the model does not re-invent them.** **15 skills + autonomy-on**,
 `autonomy-off` and `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
@@ -398,26 +398,12 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library, by family: backend (1), frontend (15), infrastructure (1), principles (2), workflow (10).
+The library, by family: backend (1), frontend (1), infrastructure (1), principles (2), workflow (10).
 
 | skill | what it decides | family | whose domain |
 |---|---|---|---|
 | `backend` | Backend (BFF-on-Lambda) | `backend` | `developer` |
-| `analytics` | Frontend analytics with GA4 (concept). | `frontend` | `developer` |
-| `api-client` | SPA → BFF API calls (concept). | `frontend` | `developer` |
-| `authentication` | SPA authentication (concept). | `frontend` | `developer` |
-| `authorization` | SPA authorization / UI gating (concept). | `frontend` | `developer` |
-| `design-system` | Design system (custom Tailwind, no component library) — which pattern for each UI need. | `frontend` | `developer` |
-| `forms` | Implement or review forms in the SPA (admin compose). | `frontend` | `developer` |
-| `framework-react` | Implement or review the React frontend framework for the SPA. | `frontend` | `developer` |
-| `markdown` | Render article markdown in the SPA (concept). | `frontend` | `developer` |
-| `pagination` | Cursor pagination in the SPA (concept). | `frontend` | `developer` |
-| `playwright` | Use Playwright for E2E tests in the SPA. | `frontend` | `developer` |
-| `routing` | Frontend routing (concept). | `frontend` | `developer` |
-| `seo` | Frontend SEO (concept, no SSR). | `frontend` | `developer` |
-| `state` | Frontend state management (concept). | `frontend` | `developer` |
-| `storybook` | Build the component library with Storybook in the SPA. | `frontend` | `developer` |
-| `ux-states` | Loading / empty / error UX states in the SPA (concept). | `frontend` | `developer` |
+| `frontend` | Frontend (React SPA) | `frontend` | `developer` |
 | `cloud-infrastructure` | Cloud infrastructure (AWS) | `infrastructure` | `developer` |
 | `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `verification-and-gates` | Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
@@ -720,7 +706,7 @@ by hand:
 
 | resource type | ships? | where | how it takes effect |
 |---|---|---|---|
-| **Skills** | yes — **29** | `skills/<family>/[<name>/]SKILL.md`, each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
+| **Skills** | yes — **15** | `skills/<family>/[<name>/]SKILL.md`, each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-family-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **5 subagent personas** | `agents/*.md` (`developer`, `harness-lead`, `product-lead`, `quality-assurance`, `tech-lead`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 4** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`) — automatic, no invocation |

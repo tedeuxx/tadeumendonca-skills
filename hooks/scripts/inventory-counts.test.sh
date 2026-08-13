@@ -1936,7 +1936,6 @@ else
   # than weaker: before the flatten a rival mentioned in passing counted, and now only a pointer does.
   CLUSTERS="
 gates|code-review verification-and-gates
-auth|authentication authorization
 delivery|devops versioning harness-engineering
 "
 

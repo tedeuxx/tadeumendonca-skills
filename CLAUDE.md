@@ -5,7 +5,7 @@ via the **marketplace in this repo** and consumed by **`tadeumendonca-io`** (the
 `apps/fed` + its Terraform in `iac/`).
 The commands are generic, reusable implementation guides (no AWS dependency to run).
 
-Each command is a per-component guide: when the owner runs `/tadeumendonca-skills:framework-react`,
+Each command is a per-component guide: when the owner runs `/tadeumendonca-skills:frontend`,
 Claude reads the guide and knows exactly how to implement that piece following this project's
 established patterns (custom Tailwind design system, snake_case contracts, Terraform parametrization,
 numeric SemVer, etc.).
@@ -303,25 +303,17 @@ pattern, not a description of anything currently deployed.
 |---|---|
 | `/backend` | Implement a BFF-on-Lambda backend end to end: the Hono modular monolith, cross-cutting middleware (errors, logging, metrics, tracing, audit, action types), Redis cache-aside, config/secrets, the generated OpenAPI contract + Postman tests, notifications, OG-image + bot-rendering, and the shared quality gate |
 
-### frontend (15)
+### frontend (1)
+
+The prior one-per-concern layout (15 files) consolidated into a single skill, `frontend` (#231) — the
+family directory itself is the skill, same shape as `backend`. Live/active content, kept at full depth
+(unlike `backend`, this documents the current consumer's actual stack): framework-react (the only
+section with React/library snippets) → routing → state → api-client → authentication → authorization →
+forms → pagination → design-system → storybook → ux-states → markdown → seo → analytics → playwright.
 
 | Command | Purpose |
 |---|---|
-| `/framework-react` | React+Vite impl home: providers, Amplify, React Query, api client, routing (only place with React snippets) |
-| `/authentication` | SPA auth (concept): Cognito SDK holds JWT → Bearer; API GW authorizer validates |
-| `/authorization` | SPA UI gating by groups/claims (cosmetic); real authz is server-side |
-| `/routing` | Route map + patterns: nested layouts, lazy, guards, 404, scroll (concept) |
-| `/state` | State ownership: server→React Query, UI→Zustand, session→SDK |
-| `/api-client` | BFF calls (concept): base URL from SSM, Bearer, 401, queries/mutations + invalidation |
-| `/pagination` | Cursor pagination contract + infinite-scroll UX (concept) |
-| `/forms` | Admin forms: controlled inputs + zod (mirrors BFF) → mutation |
-| `/markdown` | Article markdown render: highlight + sanitize; consistent with edge prerender |
-| `/design-system` | Cloudscape: which component per UI pattern (CV / feed / articles) |
-| `/storybook` | Component library: stories, autodocs, interaction/visual tests |
-| `/ux-states` | Loading/empty/error states + ErrorBoundary (consistent async UX) |
-| `/analytics` | GA4 (concept): SPA page_view per route + events |
-| `/seo` | Client SEO (concept): per-route meta + sitemap/robots + JSON-LD |
-| `/playwright` | E2E browser tests (lives in `apps/fed`): login via Cognito SDK, critical journeys |
+| `/frontend` | The React + Vite SPA end to end: bootstrap/providers, routing, state ownership, the typed BFF client, auth + cosmetic UI gating, forms, cursor pagination, the design system, Storybook, async UX states, markdown, SEO, GA4 analytics, and Playwright E2E |
 
 ### infrastructure (1)
 
