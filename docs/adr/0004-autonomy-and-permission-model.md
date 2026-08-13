@@ -536,6 +536,18 @@ oversight: the permission surface is owner-edited, and an agent proposes changes
 applying them.** Without this sentence the first agent that needs an allowlist entry reads the denial as
 a bug and works around it, which is the failure mode this record exists to prevent.
 
+## Amendment (2026-08-13) — two artifacts stated opposite rules about the same act, and neither was wrong on its own terms (#62)
+
+**Recorded here, on `harness-engineering`'s consolidation ([#224](https://github.com/tedeuxx/tadeumendonca-skills/issues/224)/[#237](https://github.com/tedeuxx/tadeumendonca-skills/pull/237)), because the incident it documents is this ADR's own decision drifting out of sync with a second copy of it** — the retired `skills/principles/dev-loop/SKILL.md` (folded into `harness-engineering` by that PR) carried its own prose description of the merge step, independent of this ADR's text, and the two fell out of agreement.
+
+**What happened.** `skills/principles/dev-loop/SKILL.md` stated, for the `trunk-single-env` model: *"Auto-merging to `main` is never in-pattern here."* That sentence predates this ADR's **Decision outcome** above (*"the safe class self-merges on a green DoD; the boundary escalates"*, 2026-07-22) and was never updated to match it. An agent reading only the dev-loop skill and an agent reading only this ADR reached **opposite conclusions** about the same act — whether `quality-assurance` (then `critical-reviewer`) may merge the safe class itself — because the two records of the same decision disagreed, and nothing cross-checked them.
+
+**Why this is a decision-currency defect, not a merge-authority defect.** The classification this ADR decided (safe self-merges, boundary escalates, Amendment 2026-07-25 making "only the reviewer merges" mechanically true) was never wrong or ambiguous *in this ADR*. The failure was that a second prose restatement of the same rule, in a different file, was allowed to go stale independently — the platform equivalent of two callers holding different cached copies of the same config with no invalidation between them.
+
+**Resolution.** The stale sentence was struck in `dev-loop`'s own text (*"That was written before ADR-0004's classified autonomy and contradicted `quality-assurance`'s own definition… What the merge asks for is a judgement, and who supplies it depends on the class"*) and the corrected framing — safe class merges itself once both lenses are green, boundary class never does, unclear-is-boundary — is now carried in exactly one place: `skills/principles/harness-engineering/SKILL.md`'s *"The merge is the go/no-go"* section, which cites this ADR directly rather than re-deriving the rule in its own words. Consolidating three principle skills into one (`harness-engineering`) removes the specific duplication that let this drift happen; it does not remove the general risk of a future skill restating an ADR's decision in fresh prose that can then drift.
+
+**Accepted cost, named rather than solved:** nothing mechanical asserts that a skill's prose description of a decision still matches the ADR it describes. This amendment records the one incident that surfaced; it is not a standing check.
+
 ## Links
 - Driven by ADR-0002, ADR-0003 · consumed per project via committed `.claude/settings.json` · the global
   floor + guard hook are described in the plugin's `/principles/permissions-and-environments` · amended
@@ -562,4 +574,7 @@ a bug and works around it, which is the failure mode this record exists to preve
   `786437c`): the owner took the interpreter class out of `allow` once plain string concatenation
   (`$'r'"m -rf /x"`, no escapes) showed that a fourth patch to the unwrap regex buys a spelling and not
   the class. Non-containment stays accepted and `node`/`python3` stay granted; the measurement is in
-  [ADR-0008](./0008-which-layer-carries-a-control.md)'s second 2026-08-04 amendment.**
+  [ADR-0008](./0008-which-layer-carries-a-control.md)'s second 2026-08-04 amendment.** · amended
+  (2026-08-13) to record #62 — a retired principles skill's own prose restatement of this ADR's
+  safe/boundary merge decision went stale independently and stated the opposite rule, closing the gap
+  on `harness-engineering`'s consolidation.

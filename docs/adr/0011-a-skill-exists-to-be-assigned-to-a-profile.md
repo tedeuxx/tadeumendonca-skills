@@ -46,9 +46,9 @@ three questions have been answered by folder and by habit:
        loaded by 2: engineering-philosophy · verification-and-gates
        loaded by 1: adr · code-review · documentation-standard · sonarcloud
 
-**The consequence is a live defect, not a design worry, and it is the evidence for this record.** Because
-the definition does not reach the persona that applies it, what reaches that persona is the **copy in its
-brief** — and the copy and the source have drifted:
+~~**The consequence is a live defect, not a design worry, and it is the evidence for this record.**
+Because the definition does not reach the persona that applies it, what reaches that persona is the
+**copy in its brief** — and the copy and the source have drifted:
 
     grep -rn "own authority\|loop's own rules\|expansion of its own" agents/ skills/principles/dev-loop/SKILL.md
     → 2 hits, BOTH in skills/principles/dev-loop/SKILL.md (475, 477). ZERO in any brief.
@@ -58,7 +58,24 @@ class**, and ***the gate never merges an expansion of its own authority*** — w
 `agents/quality-assurance.md:714-716` (`new architecture`, `contract/schema change`, `creates or changes
 an ADR's decision`). The one persona that applies the class is `quality-assurance`, and **its list does
 not contain *a change to the loop's own rules*.** A slice implementing this Issue is a change to the
-loop's own rules. Found by `harness-lead` on #183 §2; the grep above was re-run here.
+loop's own rules. Found by `harness-lead` on #183 §2; the grep above was re-run here.~~
+
+**FALSIFIED — marker placed 2026-08-13, closed by [#224](https://github.com/tedeuxx/tadeumendonca-skills/issues/224)/[#237](https://github.com/tedeuxx/tadeumendonca-skills/pull/237).**
+The drift this paragraph reports no longer exists: `skills/principles/dev-loop/SKILL.md` was folded into
+`skills/principles/harness-engineering/SKILL.md` by that consolidation, and both clauses now live in
+`agents/quality-assurance.md:737,744` alongside the three that were already there. Re-run of the same
+grep, against the current tree:
+
+    grep -rn "own authority\|loop's own rules\|expansion of its own" agents/ skills/principles/harness-engineering/SKILL.md
+    → 3 hits, all in agents/quality-assurance.md (737, 744, and the original three merged with these two)
+
+**What this costs the record, said here so a reader does not have to infer it:** this paragraph was the
+**evidence** for the decision this ADR records, not the decision itself — the definition-as-test argument
+in *Decision outcome* below does not depend on this specific drift and still stands. What is contested is
+only the *present-tense* claim that the drift is live; it is closed, and citing this paragraph as current
+evidence of an ongoing defect is now wrong. Struck rather than deleted, per this repo's supersede-never-
+delete convention: this is the premise the decision was argued from, and it must stay legible even after
+the world it described has changed under it.
 
 **Two mechanism facts bound every option below.**
 

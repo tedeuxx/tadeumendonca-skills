@@ -341,6 +341,14 @@ merges an expansion of its own authority**, whatever the diff looks like — see
 [ADR-0011](../../../docs/adr/0011-a-skill-exists-to-be-assigned-to-a-profile.md) for the record of
 this clause drifting out of `agents/quality-assurance.md` and back in.
 
+This framing above is the corrected one — an earlier prose restatement of it, in the retired
+`dev-loop` skill this file replaces, said the opposite (*"auto-merging to `main` is never in-pattern
+here"*) and went stale against
+[ADR-0004](../../../docs/adr/0004-autonomy-and-permission-model.md)'s classified-autonomy decision
+without anyone noticing until the two disagreed in front of an agent (#62). That incident, and the
+decision-currency lesson it carries, is recorded as ADR-0004's 2026-08-13 amendment rather than
+re-told here — this section states only the current, corrected rule.
+
 **Failure path:** revert the offending merge and let the revert deploy/re-release — a forward fix
 with a new slice, not a long-lived hotfix branch.
 
@@ -462,10 +470,11 @@ for a single build. Only the license to run two of them at once is struck. A fut
 reverse this by the same route: an explicit owner decision, recorded the same way.
 
 **Named residual: the policy above and the mechanism disagree.** `hooks/scripts/wip-guard.sh` still
-denies a second PR only on file **overlap**, not on a raw count — the mechanism ADR-0002's amendment
-#6 addendum describes, unchanged by this correction. So today the hook permits a second, disjoint PR
-that this written policy now forbids. Follow the written policy regardless of what the hook allows;
-closing the gap is a `wip-guard.sh` change, not a docs one, and is not this skill's job to make.
+denies a second PR only on file **overlap**, not on a raw count — the mechanism
+[ADR-0002](../../../docs/adr/0002-agentic-dev-loop-architecture.md)'s twelfth amendment (2026-08-13)
+describes, unchanged by this correction. So today the hook permits a second, disjoint PR that this
+written policy now forbids. Follow the written policy regardless of what the hook allows; closing the
+gap is a `wip-guard.sh` change, not a docs one, and is not this skill's job to make.
 
 ### Using this section
 
