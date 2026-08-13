@@ -130,16 +130,16 @@ command="$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/nu
 # `quality-assurance` to allow it. Every other persona is decided by those rules' catch-all `*)`
 # branches — that is the shape, and it is why `tech-lead` has no rule either.
 #
-# `harness-reviewer` joined the roster on 2026-08-04 and **needs no rule of its own.** Worked through
+# `harness-lead` joined the roster on 2026-08-04 and **needs no rule of its own.** Worked through
 # act by act rather than asserted: it is a subagent, so `agent_type` is non-empty and does not match
 # `*:developer`, so 5d's `*)` DENIES `gh issue create` — which is what its brief says it must never do;
 # it does not match `*:quality-assurance`, so 7b's `*)` DENIES `gh pr merge`. Both obligations are
 # already mechanical. It is NOT denied `gh pr comment`, and that is deliberate rather than an
 # oversight: 5e's argument is the irreversibility of paraphrasing PRIVATE material (`.brand/`) into a
-# public comment, and `harness-reviewer`'s mandate is the machinery — hooks, settings, briefs — which
+# public comment, and `harness-lead`'s mandate is the machinery — hooks, settings, briefs — which
 # is published in this repo already. Adding a deny to make the list of named personas look complete
 # would be a rule with no argument behind it, and this file has spent four rounds learning what those
-# cost. Its "never posts" is an instruction in `agents/harness-reviewer.md`, on the same footing as
+# cost. Its "never posts" is an instruction in `agents/harness-lead.md`, on the same footing as
 # `tech-lead`'s.
 agent_type="$(printf '%s' "$input" | jq -r '.agent_type // empty' 2>/dev/null || true)"
 

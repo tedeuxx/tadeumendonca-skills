@@ -609,7 +609,7 @@ this library's observed practice.
 
 ## Amendment (2026-08-08) — a control whose act is not the command: the third layer, and what a crude deny must say about itself
 
-Raised by `harness-reviewer` on `-io`#402 (`terraform apply` was reachable from `workflow_dispatch`
+Raised by `harness-lead` on `-io`#402 (`terraform apply` was reachable from `workflow_dispatch`
 against a caller-chosen tree). **One decision is recorded here — an extension to this record's routing
 test — and nothing else.** The routing decision, the fail-open acceptance and the retained-floor-entry
 cost are untouched.
@@ -741,7 +741,7 @@ having, and is not the thing that makes the act unreachable.
 
 ### The obligation this puts on a crude deny — accepted, with the wording corrected
 
-`harness-reviewer` proposed the general form as:
+`harness-lead` proposed the general form as:
 
 > *"A command-level deny is honest only where the command is the act. Where the risk lives behind an
 > argument or a state, the floor's correct move is the crude, fail-closed deny — and the record must say
@@ -771,7 +771,7 @@ layer, and the record must say both.**
 
 ### The sibling reviewer test — *can the hook SEE this?* — adopted, with its scope measured
 
-This record gives reviewers one test: *can a prefix express this?* `harness-reviewer` added a second, and
+This record gives reviewers one test: *can a prefix express this?* `harness-lead` added a second, and
 it is genuinely additive rather than a restatement:
 
 > **Can the hook SEE this?** `permission-guard.sh` receives `.tool_input.command` and the root
@@ -797,7 +797,7 @@ existing ones**, which is the distinction the proposal did not draw.
 
 ### The classification behind this, re-derived rather than cited
 
-`harness-reviewer` classified every rule and reported **four** command-level proxies — 5e, 5f, and 5g
+`harness-lead` classified every rule and reported **four** command-level proxies — 5e, 5f, and 5g
 twice (`workflow run`, `release create`). **Re-derived here against `hooks/scripts/permission-guard.sh`
 at `571837f`, and the classification holds**, on the test *is the command the act, or does it stand in
 for one?*: 5g's `repo delete/archive/rename` and 5b's `secret set/delete` are the act itself; `workflow

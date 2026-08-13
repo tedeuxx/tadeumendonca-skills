@@ -141,7 +141,7 @@ flowchart TB
     direction LR
     PL["product-lead"]
     TL["tech-lead"]
-    HR["harness-reviewer"]
+    HR["harness-lead"]
   end
 
   US{{"USER STORY — the issue<br/>one description, both leads agreed · label: ready<br/>its TASK LIST is the decomposition"}}
@@ -201,12 +201,12 @@ judged.
 |---|---|---|
 | **product-lead** | 1 · intake | what to build and why · the reader · the market · the copy lens |
 | **tech-lead** | 1 · intake | architecture direction · sequencing · **the only writer of the ADRs** |
-| **harness-reviewer** | 1 · intake | the machinery — the scenarios a harness proposal misses, before it is built |
+| **harness-lead** | 1 · intake | the machinery — the scenarios a harness proposal misses, before it is built |
 | **developer** | 2 · build | the slice end to end — app, infrastructure and pipeline |
 | **quality-assurance** | 3 · gate | the Definition of Done, **and** whether this can cause a problem in production · **holds the merge** |
 
 **The owner appears twice on purpose** — *human-residual* is where the loop opens and where the
-undelegatable part comes back. **`harness-reviewer` sits in tier 1** because a harness proposal is closed
+undelegatable part comes back. **`harness-lead` sits in tier 1** because a harness proposal is closed
 the same way a story is: before anything is built.
 
 **A fresh context is the whole point.** The gate has not read the conversation that produced the work, so
@@ -270,7 +270,7 @@ document.**
   effects of a configuration change are invisible from inside the change — a deny written for a tool no
   hook can see, a glob scoped to the wrong root, a persona left running a brief that predates the merge
   it is reviewing. Each was found by accident, after implementation, and each cost review rounds in
-  tokens and wall-clock. `harness-reviewer` exists to move that discovery **before** the build, and its
+  tokens and wall-clock. `harness-lead` exists to move that discovery **before** the build, and its
   standing rule is the one that decides whether it is worth dispatching: **every scenario ships with how
   to verify it, or is labelled a hypothesis.** A persona that speculates about a harness produces twenty
   plausible failure modes and no way to sort them.
@@ -322,7 +322,7 @@ them.
 - **`tech-lead` — 16,857 B** — `adr` · `engineering-philosophy` ·
   `documentation-standard`
 - **`product-lead` — 8,895 B** — `new-issue`
-- **`harness-reviewer` — 0 B, `skills: []`, and this is a decision rather than a blank.** Its object is
+- **`harness-lead` — 0 B, `skills: []`, and this is a decision rather than a blank.** Its object is
   `hooks/`, `settings.json`, `agents/`, the plugin and MCP — none of which is in `skills/`. It is also
   the persona most exposed to staleness, and a preload is a frozen snapshot, which would arm the drift
   it exists to catch.
@@ -408,11 +408,11 @@ The library, by family: backend (19), frontend (15), infrastructure (21), princi
 | `terraform` | Use Terraform in <project> infrastructure (how we use it as a whole). | `infrastructure` | `developer` |
 | `vpc` | Implement or review the VPC and networking layer (vpc.tf) in <project>-iac. | `infrastructure` | `developer` |
 | `waf` | Implement or review the WAF WebACLs (CLOUDFRONT + REGIONAL) across the two repos that own them. | `infrastructure` | `developer` |
-| `dev-loop` | Apply the platform's end-to-end development loop in a `<project>` repo. This is the flow the principles run inside — `/engineering-philosophy` is… | `principles` | `product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance` |
-| `engineering-philosophy` | Apply these engineering principles — the owner's way of building software — in any <project> repo. They shape every decision an agent makes here.… | `principles` | `product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance` |
-| `loop-engineering` | Name and practice the discipline this whole plugin exists to run: **Agent Harness Engineering** (the owner's term for how he works; also… | `principles` | `product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance` |
-| `permissions-and-environments` | Apply the platform's environment and permission model in any `<project>` repo — both at the global Claude Code level and per-project. This is the… | `principles` | `product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance` |
-| `verification-and-gates` | Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that… | `principles` | `product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance` |
+| `dev-loop` | Apply the platform's end-to-end development loop in a `<project>` repo. This is the flow the principles run inside — `/engineering-philosophy` is… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `engineering-philosophy` | Apply these engineering principles — the owner's way of building software — in any <project> repo. They shape every decision an agent makes here.… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `loop-engineering` | Name and practice the discipline this whole plugin exists to run: **Agent Harness Engineering** (the owner's term for how he works; also… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `permissions-and-environments` | Apply the platform's environment and permission model in any `<project>` repo — both at the global Claude Code level and per-project. This is the… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `verification-and-gates` | Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `adr` | Author or review an Architecture Decision Record (ADR) for any `<project>` repo, following the platform's ADR practice. | `workflow` | `tech-lead` — the only writer of the ADRs |
 | `claude-code` | Set up or review the Claude Code GitHub App automation in a <project> repo. | `workflow` | `developer` |
 | `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `workflow` | `developer` |

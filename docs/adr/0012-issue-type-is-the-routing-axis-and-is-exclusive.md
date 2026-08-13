@@ -4,7 +4,7 @@
 - **Status:** accepted
 - **Date:** 2026-08-12
 - **Deciders:** the owner (four decisions below, each a direct ruling); written by `tech-lead`;
-  pre-implementation stress test by `harness-reviewer` (8 scenarios, S1–S8, cited per finding; all
+  pre-implementation stress test by `harness-lead` (8 scenarios, S1–S8, cited per finding; all
   re-derived independently in this record rather than relayed)
 - **Supersedes / superseded by:** —
 - **Driven by:** [#184](https://github.com/tedeuxx/tadeumendonca-skills/issues/184) (the owner's own
@@ -35,7 +35,7 @@ This matters more than a missing label, because `type:*` was retired on a stated
 way unless something is written to query it. Separately, `dev-loop/SKILL.md:61-68`'s state table
 (`filed → ready → in progress → reviewed → closed`) carries **no type column** — it presents the `product`
 path as universal, when the loop already has three different tier-1 and tier-2 compositions per type
-(product-lead+tech-lead / product-lead-only / harness-reviewer-only; developer / developer / the
+(product-lead+tech-lead / product-lead-only / harness-lead-only; developer / developer / the
 orchestrator itself, per `README.md:185-188`'s own prose).
 
 **What this ADR is not.** It does not decide issue *granularity* — story / task / proposal, a later ADR.
@@ -43,7 +43,7 @@ Type and granularity are independent axes: an issue has exactly one type (routin
 shape (a later decision). Confusing the two is the error this record exists to foreclose, because
 `README.md:169`'s single `NI -->|loop| HR` edge reads as though `loop` were a size, not a lane.
 
-A `harness-reviewer` dispatch stress-tested making `loop` a real, exclusive routing label before any of
+A `harness-lead` dispatch stress-tested making `loop` a real, exclusive routing label before any of
 it was built (as ADR-0002's tenth amendment requires of harness proposals) and returned 8 scenarios.
 Re-derived, not relayed, below.
 
@@ -152,10 +152,10 @@ contain (article-drafting delta, style calibration).
 ### Related, not decided here — the forward reference (S7)
 
 Under a separate, later decision (this ADR names it as **ADR-0015**'s subject and takes no position on
-it), `harness-reviewer` itself may become an implementer of harness/`loop` changes rather than purely
-advisory — today it holds no `Write` (`agents/harness-reviewer.md:4`) and gates nothing. **A rejected
+it), `harness-lead` itself may become an implementer of harness/`loop` changes rather than purely
+advisory — today it holds no `Write` (`agents/harness-lead.md:4`) and gates nothing. **A rejected
 alternative for THAT future decision, named here so it is not silently reintroduced**, would be to let
-`loop` issues route to `harness-reviewer` alone for both proposing and building in one dispatch. The
+`loop` issues route to `harness-lead` alone for both proposing and building in one dispatch. The
 owner's stated mitigation for that later decision is that proposal and build ship as **separate
 dispatches under separate Issues**, restoring "a different actor reads it" at the artifact level — the
 same principle tier 3's independent gate protects on `product`/`content`, applied where tier 3 does not
@@ -195,7 +195,7 @@ a different decision than the routing-axis question this record makes.
   `loop` a real, exclusive, high-consequence lane raises the cost of that gap without closing it. **Left
   as an open question rather than a silently accepted cost**, because closing it is a *which-layer-can-
   carry-this-control* question (ADR-0008), not a routing decision, and belongs in its own record or a
-  `harness-reviewer` dispatch — not invented here to make this ADR read as more finished than it is.
+  `harness-lead` dispatch — not invented here to make this ADR read as more finished than it is.
 - **Corollary 2's migration is real work with no owner named here.** The 8 dual-labelled issues in
   `tadeumendonca-io` need a human or lead decision per issue; this record does not make those 8 decisions.
 - **Corollary 3 is an explicit override of a precondition the loop itself set** (#161's "measure before
@@ -209,9 +209,9 @@ a different decision than the routing-axis question this record makes.
 ## What this record does NOT decide
 
 - **`README.md:166-169,181-182`'s diagram correction.** Measured: `agents/tech-lead.md:3-4` is the sole
-  ADR author (`Write, Edit`, skill `adr`) and `harness-reviewer` holds neither `Write` nor a merge role
-  (`agents/harness-reviewer.md:3-5`) — so `loop` issues, which are the ones most likely to produce an ADR,
-  need to route to **both** `harness-reviewer` and `tech-lead`, not the single `NI -->|loop| HR` edge the
+  ADR author (`Write, Edit`, skill `adr`) and `harness-lead` holds neither `Write` nor a merge role
+  (`agents/harness-lead.md:3-5`) — so `loop` issues, which are the ones most likely to produce an ADR,
+  need to route to **both** `harness-lead` and `tech-lead`, not the single `NI -->|loop| HR` edge the
   diagram draws today (S6). Following this repo's own citation discipline (ADR-0011 names files it does
   not edit — e.g. `commands/autonomy-on.md`, `commands/new-issue.md` — as consequent work rather than
   editing them in the deciding record), **this ADR names the correction owed to `README.md` and does not
@@ -219,7 +219,7 @@ a different decision than the routing-axis question this record makes.
   work, already partly tracked at [#184](https://github.com/tedeuxx/tadeumendonca-skills/issues/184).
 - **Whether relabeling should be gated**, and if so at which layer. Named above as an open question
   (S3), not resolved.
-- **ADR-0015's subject** — whether `harness-reviewer` becomes an implementer of `loop` changes. Named as
+- **ADR-0015's subject** — whether `harness-lead` becomes an implementer of `loop` changes. Named as
   a forward reference only (S7).
 - **Task-as-Issue-child.** A separate, later decision. Named here only as a known collision for that
   future ADR to inherit: `hooks/scripts/wip-guard.sh`'s overlap rule deliberately removed a "two sibling
@@ -253,7 +253,7 @@ a different decision than the routing-axis question this record makes.
   `gh issue list --state all --limit 30` (12 of 13 open issues carry `product`); `commands/autonomy-on.md:15`
   (`product`+`ready` predicate); `commands/new-issue.md:101` (the "apply product or content" step);
   `agents/product-lead.md:4` (no `Write`); `agents/developer.md:1-9` (`Write` + `apps/**`);
-  `agents/harness-reviewer.md:3-5` (`skills: []`, no `Write`); `agents/tech-lead.md:2-8` (sole `adr`
+  `agents/harness-lead.md:3-5` (`skills: []`, no `Write`); `agents/tech-lead.md:2-8` (sole `adr`
   skill holder with `Write, Edit`); `.claude/settings.json` (`gh issue edit`, `gh label` in `allow`);
   `hooks/scripts/permission-guard.sh` and `hooks/scripts/wip-guard.sh` (neither keys on either command);
   `dev-loop/SKILL.md:61-68,123-139,475,477`; `agents/quality-assurance.md:710-718`; `README.md:150-194`;

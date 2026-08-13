@@ -138,7 +138,7 @@ The five lists as accepted, re-derived at `origin/main` rather than copied from 
 | `quality-assurance` | 18,215 | `principles:verification-and-gates` · `backend:coverage` · `workflow:sonarcloud` |
 | `tech-lead` | 16,857 | `workflow:adr` · `principles:engineering-philosophy` · `workflow:documentation-standard` |
 | `product-lead` | 8,895 | `new-issue` |
-| `harness-reviewer` | 0 | `skills: []` |
+| `harness-lead` | 0 | `skills: []` |
 
     git ls-tree -r -l origin/main -- commands/workflow/code-review.md \
       commands/principles/verification-and-gates.md commands/principles/engineering-philosophy.md \
@@ -158,7 +158,7 @@ dispatch pays for its own copy.
   Its ruler is external by design. A principles document is a ruler with no falsifier attached, and the
   gate is the one persona whose findings must each name a criterion and a falsifier
   (ADR-0002, amendment #6).
-- **`harness-reviewer` carries an explicit empty list, not an absent key.** Its object is `hooks/`,
+- **`harness-lead` carries an explicit empty list, not an absent key.** Its object is `hooks/`,
   `settings.json`, `agents/`, the plugin and MCP — none of which lives in `commands/`; and a preload is
   a frozen snapshot handed to the persona whose standing rule is *read the files, do not trust your
   training*, which would arm the drift it exists to catch. The spelling is load-bearing: **an absent key

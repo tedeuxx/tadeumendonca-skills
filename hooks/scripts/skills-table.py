@@ -48,7 +48,7 @@ SKILLS = ROOT / "skills"
 # writer of the decision records, the rest to the builder. Family granularity cannot state that
 # truthfully, which is why the table is per skill and this map has an exception beside it.
 WIELDER = {
-    "principles": "`product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance`",
+    "principles": "`product-lead` · `tech-lead` · `harness-lead` · `quality-assurance`",
     "workflow": "`developer`",
     "frontend": "`developer`",
     "backend": "`developer`",

@@ -2,7 +2,7 @@
 
 - **Status:** accepted
 - **Date:** 2026-08-11
-- **Deciders:** the owner (he arrived at the definition across a conversation and ordered it recorded; his sentences are quoted verbatim and unparaphrased in *Decision outcome*); written by `tech-lead`; measurement input from `harness-reviewer` on [#183](https://github.com/tedeuxx/tadeumendonca-skills/issues/183), cited per finding below
+- **Deciders:** the owner (he arrived at the definition across a conversation and ordered it recorded; his sentences are quoted verbatim and unparaphrased in *Decision outcome*); written by `tech-lead`; measurement input from `harness-lead` on [#183](https://github.com/tedeuxx/tadeumendonca-skills/issues/183), cited per finding below
 - **Supersedes / superseded by:** —
 - **Driven by:** [#183](https://github.com/tedeuxx/tadeumendonca-skills/issues/183)
 
@@ -56,7 +56,7 @@ class**, and ***the gate never merges an expansion of its own authority*** — w
 `agents/quality-assurance.md:714-716` (`new architecture`, `contract/schema change`, `creates or changes
 an ADR's decision`). The one persona that applies the class is `quality-assurance`, and **its list does
 not contain *a change to the loop's own rules*.** A slice implementing this Issue is a change to the
-loop's own rules. Found by `harness-reviewer` on #183 §2; the grep above was re-run here.
+loop's own rules. Found by `harness-lead` on #183 §2; the grep above was re-run here.
 
 **Two mechanism facts bound every option below.**
 
@@ -84,7 +84,7 @@ An unset environment variable is not the absence of a path. The plugin root is d
 entry Claude Code appends to `PATH`, and a persona holding `Read` and `Bash` can read the library from
 disk. That makes every exclusion under ADR-0010 a **deferral** rather than the *"real deprivation"* that
 record calls it. **Why no amendment here:** it is a correction to that record's premise, not part of this
-decision; one decision per ADR; and `harness-reviewer` is mid-audit on exactly that clause, so a
+decision; one decision per ADR; and `harness-lead` is mid-audit on exactly that clause, so a
 correction written from this side risks two records disagreeing about the same measurement. **What stops
 the false premise reading as current is a falsification marker placed IN ADR-0010, at the clause itself**
 — its Context item 2, struck, linked forward here, and naming which of its own conclusions the
@@ -125,13 +125,13 @@ preload: **the model must decide to go and read, and a dispatch that fails to de
    Cost of keeping it: **20,777 B of duplicated operating hygiene**, re-derived here, and one more
    divergence per edit that touches four files instead of five.
 
-       for a in developer product-lead tech-lead quality-assurance harness-reviewer; do
+       for a in developer product-lead tech-lead quality-assurance harness-lead; do
          f=agents/$a.md
          w=$(awk '/^## Working files/{p=1} p&&/^---$/{exit} p' $f | wc -c)
          c=$(awk '/^## Command hygiene/{p=1} p&&/^---$/{exit} p' $f | wc -c)
          printf "%-20s wf=%5d ch=%5d\n" "$a" "$w" "$c"; done
        → developer 1310/3121 · product-lead 1290/3613 · tech-lead 1310/2553
-         quality-assurance 858/3045 · harness-reviewer 1079/2598      sum = 20,777
+         quality-assurance 858/3045 · harness-lead 1079/2598      sum = 20,777
 
 3. **A universal floor — every persona preloads all of `skills/principles/*`.** *Why not:* **rejected
    already, and the rejection stands** ([ADR-0010](./0010-a-personas-startup-context-is-a-curated-preload.md),
@@ -147,7 +147,7 @@ preload: **the model must decide to go and read, and a dispatch that fails to de
    ruler must be external. **What this record does correct is the object that arithmetic was priced
    against**, not the arithmetic: a skill holding only the transversal operating rules is ~5 KB — about
    **6.5%** of the floor — so **ADR-0010's figure does not reach a small transversal skill and should not
-   be cited against one.** `harness-reviewer` measured centralising the hygiene rows as roughly
+   be cited against one.** `harness-lead` measured centralising the hygiene rows as roughly
    **byte-neutral** (~20,777 B inline today against ~25,000 B billed across five). **The case for this
    definition is correctness, not saving** — a *"we saved bytes"* framing is falsifiable in one command
    and would be false.
@@ -313,7 +313,7 @@ The roster is **five profiles**. The library is **69 skills**. The assignment be
 | `quality-assurance` | 3 | `verification-and-gates` · `coverage` · `sonarcloud` |
 | `tech-lead` | 3 | `adr` · `engineering-philosophy` · `documentation-standard` |
 | `product-lead` | 1 | `new-issue` — **a command, which must go** (corollary 1), leaving the list empty |
-| `harness-reviewer` | 0 | `skills: []` |
+| `harness-lead` | 0 | `skills: []` |
 
 **Seven distinct skills are assigned. Sixty-two are not — 90% of the library.** Of the 14 process
 skills, **8 are assigned to nobody**, `dev-loop` among them.
@@ -368,15 +368,15 @@ perfectly generic, perfectly accurate, and still leave every agent doing exactly
 under-covered — one brief out of five:
 
     grep -c squash agents/*.md
-    → quality-assurance 2 ; developer 0 ; product-lead 0 ; tech-lead 0 ; harness-reviewer 0
+    → quality-assurance 2 ; developer 0 ; product-lead 0 ; tech-lead 0 ; harness-lead 0
 
 **That is correct scoping, not a gap.** `quality-assurance` is the only persona that merges; `developer`
-never merges, both leads are advisory, `harness-reviewer` merges nothing. A merge-spelling rule belongs
+never merges, both leads are advisory, `harness-lead` merges nothing. A merge-spelling rule belongs
 in exactly one brief and is in exactly one. **Centralising it would push a rule binding one persona into
 five contexts — the mirror image of the defect this record exists to fix.** A criterion that visibly
 rejects a plausible candidate is worth more than one that only admits, and the repeated-behaviour framing
 got this case wrong where the transversality test gets it right. (Correction supplied by
-`harness-reviewer` on #183 §4; the count above was re-run here.)
+`harness-lead` on #183 §4; the count above was re-run here.)
 
 The operational form of test 2: **if changing a persona's mandate would change the rule, it is not
 transversal.**
@@ -544,7 +544,7 @@ generic, well-written passage that changes nothing.
 
 Stated so nobody reads the definition as having settled them:
 
-- **Whether the workload-mirroring files are rewritten or cut.** `harness-reviewer` sized the set at
+- **Whether the workload-mirroring files are rewritten or cut.** `harness-lead` sized the set at
   roughly **50 guides against 19 standards or rescuable standards** on #183 §B2, by a normative-vocabulary
   proxy it verified at the extremes by reading and labelled a **hypothesis in the middle band**. Its own
   recommendation is *rewrite, not cut* for `coverage`, `iam`, `dynamodb`, `authorization`,
@@ -564,7 +564,7 @@ Stated so nobody reads the definition as having settled them:
   not decided.
 - **The removal of `new-issue` from `agents/product-lead.md`**, and what — if anything — that list holds
   instead. This record states the rule it violates.
-- **Whether `harness-reviewer`'s `skills: []` should change.** ADR-0010 argued it on three grounds and at
+- **Whether `harness-lead`'s `skills: []` should change.** ADR-0010 argued it on three grounds and at
   least one of them ("your object is not in that directory") does not survive the current tree, since
   `skills/principles/permissions-and-environments/SKILL.md` documents `hooks/permission-guard.sh` by
   name. Re-arguing that list is a decision about a persona, not about what a skill is.
@@ -573,7 +573,7 @@ Stated so nobody reads the definition as having settled them:
 
 - Driving Issue [#183](https://github.com/tedeuxx/tadeumendonca-skills/issues/183) — the owner's
   definition, his genericity constraint, **his closing assignment clause (the operative test above, and
-  the order to review all 69 skills against it)**, and `harness-reviewer`'s reassessment and two addenda,
+  the order to review all 69 skills against it)**, and `harness-lead`'s reassessment and two addenda,
   which are the source of the drift finding (§2), the `--squash` correction (§4), the `argument-hint`
   property (§7), the standard/guide sizing (§B2) and the
   `developer`-carries-no-technical-standard finding (§B3) — that last one **narrowed here on

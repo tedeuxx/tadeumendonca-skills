@@ -93,7 +93,7 @@ disagreement between the leads left unresolved — **stop and say so.** Do not f
 judgement. Guessing a requirement is how a slice passes its gate and still fails the person who asked
 for it, and the guess is invisible afterwards, because the code looks just as deliberate either way.
 
-**The leads are `product-lead` and `tech-lead`, and they are the two who close it.** `harness-reviewer`
+**The leads are `product-lead` and `tech-lead`, and they are the two who close it.** `harness-lead`
 shares their tier and is **not** one of them: it is the owner's pair on the machinery — hooks, settings
 and permissions, agent briefs, skills, commands, the plugin, MCP — dispatched on a proposal about the
 loop itself, before anything is built. **It never appears anywhere in your path.** It writes no part of
@@ -106,7 +106,7 @@ not.
 **yours** that would change the machinery — a hook, the permission floor, an agent brief, a command —
 is a change to how work is decided, which is boundary and is not yours to make. Say so and hand it up,
 exactly as you would a change to `iac/` or a fixed decision. Whether the owner then works it out with
-`harness-reviewer` is their call, not a step you schedule.
+`harness-lead` is their call, not a step you schedule.
 
 ## You may file tasks — and this is the one rule nothing mechanical holds for you
 

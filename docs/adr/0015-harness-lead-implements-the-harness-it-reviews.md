@@ -1,11 +1,11 @@
-# 0015. `harness-reviewer` becomes the owner's IMPLEMENTER on the machinery it reviews — the pair on the
+# 0015. `harness-lead` becomes the owner's IMPLEMENTER on the machinery it reviews — the pair on the
 loop gains `Write`/`Edit` under the same "cannot merge" mitigation that already holds `tech-lead`, and the
 proposal/build split becomes a real, owner-gated boundary rather than a convention
 
 - **Status:** accepted
 - **Date:** 2026-08-12
 - **Deciders:** the owner (the reversal itself, and each `DECISION`/`DECISION REQUIRED` point below);
-  written by `tech-lead`; pre-implementation stress test by `harness-reviewer` on this proposal, about
+  written by `tech-lead`; pre-implementation stress test by `harness-lead` on this proposal, about
   itself, told explicitly not to soften anything (six findings, F1–F6, all re-verified independently in
   this record rather than relayed — every citation below was re-run on this branch)
 - **Supersedes / superseded by:** amends [ADR-0002](./0002-agentic-dev-loop-architecture.md)'s tenth
@@ -18,13 +18,13 @@ proposal/build split becomes a real, owner-gated boundary rather than a conventi
 
 ## Context & problem
 
-`harness-reviewer` exists since ADR-0002's tenth amendment as **advisory and pre-implementation only**:
+`harness-lead` exists since ADR-0002's tenth amendment as **advisory and pre-implementation only**:
 it stress-tests a harness proposal — hooks, settings, agent briefs, skills, commands, the plugin, MCP —
 before anything is built, and it gates nothing (no merge request, no merge, no Issue). `agents/harness-
 reviewer.md:4` holds `tools: Read, Grep, Glob, Bash` — no `Write`, no `Edit`. Someone else has always had
 to turn its findings into a diff.
 
-The owner now reverses that: `harness-reviewer` becomes the owner's harness-reconfiguration arm — it
+The owner now reverses that: `harness-lead` becomes the owner's harness-reconfiguration arm — it
 reviews **and implements** changes to the harness. Five things are true of this reversal at once, and
 none of them was free to assume:
 
@@ -33,8 +33,8 @@ none of them was free to assume:
    immediately implementing against it with no owner read in between.
 2. `quality-assurance`'s own boundary-class list does not name `hooks/**`, `agents/**`, `skills/**`,
    `commands/**` or `.claude/**` by path, so a harness diff can self-classify safe and self-merge today
-   with zero `harness-reviewer` involvement — the mechanical trigger this decision needs does not exist.
-3. A verdict `harness-reviewer` produces has no durable form — it is a transcript in a dispatch's context,
+   with zero `harness-lead` involvement — the mechanical trigger this decision needs does not exist.
+3. A verdict `harness-lead` produces has no durable form — it is a transcript in a dispatch's context,
    read once and gone, which is the same failure ADR-0006 named for every other persona's verdict before
    that record gave each one an artifact.
 4. `loop`-typed `ready` was named and explicitly left open by ADR-0012 — *"whether `loop` items should
@@ -70,7 +70,7 @@ corollary this record calls out explicitly below rather than assuming.
 
 ## Considered options
 
-1. **Grant `harness-reviewer` unscoped `Write, Edit`, mirroring `tech-lead`'s exact shape, mitigated
+1. **Grant `harness-lead` unscoped `Write, Edit`, mirroring `tech-lead`'s exact shape, mitigated
    purely by "cannot merge" (rule 7b) — no new hook, no path-scoped deny** *(chosen)*. *Trade-off:* the
    persona now holds two roles on the same object — it can both stress-test a harness change and build
    it — which is exactly the "nobody observes the gate that signs the merge" shape `quality-assurance`
@@ -80,7 +80,7 @@ corollary this record calls out explicitly below rather than assuming.
    internal reviewer.
 
 2. **A path-scoped `Edit`/`Write` grant plus a new `.claude/settings.json` deny entry for what
-   `harness-reviewer` may not touch** *(rejected)*. *Why not:* this control was already tried, for a
+   `harness-lead` may not touch** *(rejected)*. *Why not:* this control was already tried, for a
    different persona, on the same class of surface, and **measured not to hold**:
    `agents/quality-assurance.md:100-102` — *"`security` discovered that `Edit(.claude/**)` does not
    hold by editing that file while believing it was blocked."* Re-verified independently here: no hook
@@ -91,7 +91,7 @@ corollary this record calls out explicitly below rather than assuming.
 
    `PreToolUse` fires on the `Bash` matcher only, so a path-scoped `deny` on `Edit(...)` has no
    enforcement layer to sit in even in principle — it would be exactly the control ADR-0008 calls a
-   claim stronger than the layer can carry. Proposing it again for `harness-reviewer` would be proposing
+   claim stronger than the layer can carry. Proposing it again for `harness-lead` would be proposing
    a control this repo has already spent a review round proving inert.
 
 3. **Status quo — advisory only, forever** *(rejected — the owner's reversal, argued anyway for the
@@ -109,7 +109,7 @@ notional — the same shape ADR-0012 used for its own routing decision.
 
 ### Corollary 1 — the capability shape, and explicitly nothing new in the hook layer (F6)
 
-`agents/harness-reviewer.md`'s frontmatter gains `Write, Edit` on `tools:`, changing line 4 from
+`agents/harness-lead.md`'s frontmatter gains `Write, Edit` on `tools:`, changing line 4 from
 `tools: Read, Grep, Glob, Bash` to `tools: Read, Grep, Glob, Bash, Write, Edit` — the exact set
 `agents/tech-lead.md:4` already carries. The mitigation is the same two rules already mechanical for
 this persona and requiring **no new rule**:
@@ -118,7 +118,7 @@ this persona and requiring **no new rule**:
   reviewer` is a subagent, does not match `*:quality-assurance`, and is denied by the catch-all
   (`hooks/scripts/permission-guard.sh:136`, re-verified). It could not merge before this grant and
   cannot merge after it.
-- **Rule 5d** denies `gh issue create` to every subagent except `developer` — `harness-reviewer` is
+- **Rule 5d** denies `gh issue create` to every subagent except `developer` — `harness-lead` is
   denied by the same catch-all (`hooks/scripts/permission-guard.sh:135`, re-verified). It cannot file
   its own proposal Issue; see Corollary 3.
 
@@ -126,23 +126,23 @@ this persona and requiring **no new rule**:
 hooks.json:3-5` registers `PreToolUse` on the `Bash` matcher only, so `Edit` and `Write` are invisible to
 the hook layer for every persona that holds them, `tech-lead` included, today. `tech-lead`'s brief already
 states its own mitigation in those terms — *"advisory on code, it proposes and never merges"*
-(`agents/tech-lead.md:3`) — mechanism-free, floor-only. `harness-reviewer` needs the identical sentence
+(`agents/tech-lead.md:3`) — mechanism-free, floor-only. `harness-lead` needs the identical sentence
 for the identical reason, not a heavier apparatus the existing precedent does not require.
 
 ### Corollary 2 — the mechanical trigger `quality-assurance` needs, named precisely (F2)
 
 Without this, "harness changes get reviewed before merge" is a sentence with no artifact behind it, the
-same way `harness-reviewer`'s own dispatch has none today. Measured: neither
+same way `harness-lead`'s own dispatch has none today. Measured: neither
 `agents/quality-assurance.md:397-399` (the significance criterion) nor `:714-718` (the boundary-class
 list) names `hooks/`, `agents/`, `skills/`, `commands/`, or `.claude/` by path — a harness diff classifies
 today by the same generic rules as any other diff, and nothing in the gate's text would catch a harness
-PR merging with zero `harness-reviewer` involvement.
+PR merging with zero `harness-lead` involvement.
 
 **Decision:** `agents/quality-assurance.md`'s boundary-class list (`:714-718`) must gain this criterion,
 stated precisely enough that the edit is mechanical rather than a judgement call for whoever makes it:
 
 > A diff touching `hooks/**`, `agents/**`, `skills/**`, `commands/**`, or `.claude/**` requires a
-> `harness-reviewer` verdict marker present on the PR (Corollary 3) before it may classify as safe or
+> `harness-lead` verdict marker present on the PR (Corollary 3) before it may classify as safe or
 > merge. Absent that marker, the diff is boundary class regardless of what else it does.
 
 **Consequent work, out of scope here** (this ADR's write scope is `docs/adr/**`): the actual edit to
@@ -151,31 +151,31 @@ the whole of what that edit needs to say.
 
 ### Corollary 3 — the durable verdict, and the gap it opens in `permission-guard.sh` (F3)
 
-`harness-reviewer`'s output becomes a real artifact: an `<!-- harness-reviewer-verdict: ... -->` marker
+`harness-lead`'s output becomes a real artifact: an `<!-- harness-lead-verdict: ... -->` marker
 posted as an Issue comment, following ADR-0006's shape, referenced against a **commit SHA of the repo
 state reviewed** rather than a PR head SHA — a harness scenario is frequently reviewed before any PR
 exists, so a PR-head reference would have nothing to point at for Corollary 4's own proposal dispatch.
 
-**The gap this opens, named rather than assumed closed:** `harness-reviewer` "never posts" has been a
+**The gap this opens, named rather than assumed closed:** `harness-lead` "never posts" has been a
 documentation-only rule in its own brief, not guard-enforced. Re-verified —
 `hooks/scripts/permission-guard.sh:133-143`:
 
-> `harness-reviewer` joined the roster on 2026-08-04 and needs no rule of its own. [...] It is NOT
+> `harness-lead` joined the roster on 2026-08-04 and needs no rule of its own. [...] It is NOT
 > denied `gh pr comment`, and that is deliberate rather than an oversight: 5e's argument is the
 > irreversibility of paraphrasing PRIVATE material (`.brand/`) into a public comment, and `harness-
 > reviewer`'s mandate is the machinery [...] which is published in this repo already. [...] Its "never
-> posts" is an instruction in `agents/harness-reviewer.md`, on the same footing as `tech-lead`'s.
+> posts" is an instruction in `agents/harness-lead.md`, on the same footing as `tech-lead`'s.
 
 That reasoning holds unchanged for **posting a verdict on a public, methodology-machinery Issue** — the
 exact case this corollary makes routine rather than exceptional. What it does not yet examine is the
 **other direction**: now that posting is a desired, routine capability, the boundary of what
-`harness-reviewer` should **not** be allowed to post has never been drawn, the way `product-lead` is
-denied writing entirely (rule 5e) for a reason specific to `.brand/`'s privacy. `harness-reviewer` has no
+`harness-lead` should **not** be allowed to post has never been drawn, the way `product-lead` is
+denied writing entirely (rule 5e) for a reason specific to `.brand/`'s privacy. `harness-lead` has no
 `.brand/` exposure, but it does have read access to the whole repo, including any future private material
 under a different path.
 
 **Consequent work, out of scope here:** examine and, if warranted, add a `permission-guard.sh` boundary
-for what `harness-reviewer` may not post — not designed here, because no such private-material class is
+for what `harness-lead` may not post — not designed here, because no such private-material class is
 known to exist in its domain today, and inventing one to close a hypothetical gap is the shape this
 repo's own reviewer is instructed to be suspicious of.
 
@@ -186,7 +186,7 @@ ADR-0012 named this precisely and took no position: *"[ADR-0012] did NOT decide 
 should ever reach `ready` autonomously the way `product` items can."* This record resolves it.
 
 **Decision:** for `loop`-typed Issues, the `ready` label transition is an **owner-only** action — never
-applied by a dispatch, including `harness-reviewer`'s own. This is what converts "separate Issue for
+applied by a dispatch, including `harness-lead`'s own. This is what converts "separate Issue for
 proposal versus build" from a convention into an actual gate: a proposal dispatch may file the Issue and
 post its findings (Corollary 3), but nothing in this loop lets the same or a later dispatch move that
 Issue to `ready` and start building against it without the owner having read the proposal artifact and
@@ -202,13 +202,13 @@ change, applied at the one type this ADR concerns.
 **Consequent work, out of scope here:** whether the transition should also be enforced at the floor (a
 `gh label` guard keyed on issue type, the same open question ADR-0012 and ADR-0013 already named and left
 unresolved for `product`) is a which-layer-can-carry-this-control question (ADR-0008), not decided again
-here. Today it is owner-only **by instruction**, the same footing `harness-reviewer`'s own "never posts"
+here. Today it is owner-only **by instruction**, the same footing `harness-lead`'s own "never posts"
 rule stood on before this record examined it — named as a cost below, not silently upgraded to enforced.
 
 ### Corollary 5 — harness proposals enter the tracker as real Issues (F5), and this is a corollary of
 Corollary 4, not an orthogonal decision
 
-`dev-loop/SKILL.md:43-53` states today that `harness-reviewer` "does not put it in the tracker" and "It
+`dev-loop/SKILL.md:43-53` states today that `harness-lead` "does not put it in the tracker" and "It
 gates nothing: no merge request, no merge, no Issue, no label transition." Corollary 4's owner-only
 `ready` gate has nothing to attach to without an Issue to hold the label — a transition needs a subject.
 **This record treats tracker entry as forced by, not separate from, the gate this ADR is built to add**,
@@ -217,8 +217,8 @@ becomes a real gate, a harness proposal that never enters the tracker has no art
 act on, which reopens exactly the session-boundary hole Corollary 4 closes.
 
 **Decision:** a harness proposal that warrants stress-testing before a build is filed as a `loop`-typed
-Issue, carrying `harness-reviewer`'s verdict marker (Corollary 3). Filing is unchanged by this ADR in
-**who** does it: `harness-reviewer` remains denied `gh issue create` (Corollary 1, rule 5d's catch-all,
+Issue, carrying `harness-lead`'s verdict marker (Corollary 3). Filing is unchanged by this ADR in
+**who** does it: `harness-lead` remains denied `gh issue create` (Corollary 1, rule 5d's catch-all,
 unchanged), so the Issue is opened the same way every Issue in this loop is opened today — by the
 orchestrator, asked, per *"Review does not open work"* (`dev-loop/SKILL.md:254-267`). Nothing about "only
 the owner opens work" is loosened; a proposal dispatch names the Issue it wants filed, the orchestrator's
@@ -232,7 +232,7 @@ citation discipline for the same class of owed correction.
 
 ### Corollary 6 — the two execution-defect bugs travel with the same PR that grants the capability
 
-Re-verified, both in `agents/harness-reviewer.md` as it stands before this ADR:
+Re-verified, both in `agents/harness-lead.md` as it stands before this ADR:
 
 - `:170` — *"Write probe files with the `Write` tool rather than through the shell"* — instructs using a
   tool the frontmatter (`:4`) does not grant.
@@ -250,7 +250,7 @@ ship a persona whose own brief still describes a tool it now has as one it doesn
 - **`quality-assurance`'s boundary-class list edit itself** (Corollary 2) — the wording is specified; the
   file is not touched here (`docs/adr/**` only).
 - **The `permission-guard.sh` posting boundary** (Corollary 3) — named as an open question, no rule
-  proposed, because no private-material class in `harness-reviewer`'s domain is known to exist today.
+  proposed, because no private-material class in `harness-lead`'s domain is known to exist today.
 - **`dev-loop/SKILL.md:43-53`'s rewrite** (Corollary 5) — named, not made.
 - **`skills/principles/loop-engineering/SKILL.md:78`'s rewrite.** It states, live and unstruck as of
   this record: *"It is **advisory and pre-implementation**: it gates nothing, reviews no merge request,
@@ -258,13 +258,13 @@ ship a persona whose own brief still describes a tool it now has as one it doesn
   for a reader to find the drift themselves, the same discipline ADR-0014 owed `README.md:497-499`. Not
   edited — outside `docs/adr/**`.
 - **`agents/quality-assurance.md:117`'s smaller instance of the same drift** (*"It posts no verdict, holds
-  no veto"*, said of `harness-reviewer`) — becomes false once Corollary 3 ships. Named alongside the
+  no veto"*, said of `harness-lead`) — becomes false once Corollary 3 ships. Named alongside the
   `:714-718` boundary-class edit already owed (Corollary 2), not a separate item.
 - **Whether `loop`-ready should also be floor-enforced**, beyond instruction (Corollary 4) — a
   which-layer question left to ADR-0008's own test, not resolved by fiat here.
-- **The actual `agents/harness-reviewer.md` frontmatter edit and the two sentence fixes** (Corollaries 1
+- **The actual `agents/harness-lead.md` frontmatter edit and the two sentence fixes** (Corollaries 1
   and 6) — named precisely, not executed; this record's write scope is `docs/adr/**`.
-- **Whether `harness-reviewer` should also gain a merge role.** It does not, under any reading here —
+- **Whether `harness-lead` should also gain a merge role.** It does not, under any reading here —
   rule 7b's catch-all is unchanged and this ADR does not propose amending it. The persona builds; it does
   not sign off on its own build.
 - **Any change to `product`-typed `ready`**, which stays governed by ADR-0012 (the two leads,
@@ -275,7 +275,7 @@ ship a persona whose own brief still describes a tool it now has as one it doesn
 **Good**
 
 - **Advisory findings stop dying with the dispatch that produced them.** Corollary 3 gives every
-  `harness-reviewer` finding a durable artifact, closing the cost ADR-0002's tenth amendment named and
+  `harness-lead` finding a durable artifact, closing the cost ADR-0002's tenth amendment named and
   left open — *"an undispatched lens is indistinguishable from a clean one."* A posted verdict is at
   least checkable after the fact, even if a dispatch is still skipped.
 - **The proposal/build boundary becomes a real gate instead of a convention.** Corollary 4 is the one
@@ -283,7 +283,7 @@ ship a persona whose own brief still describes a tool it now has as one it doesn
   the second dispatch cannot begin until the owner has acted on the first artifact.
 - **A harness diff can no longer self-classify safe by accident.** Corollary 2 closes a gap that existed
   independently of this decision — today, before this ADR, nothing stops a harness change from merging
-  with zero `harness-reviewer` involvement at all, which this record fixes as a byproduct of making the
+  with zero `harness-lead` involvement at all, which this record fixes as a byproduct of making the
   new capability accountable.
 - **No new hook mechanism, no new class of control to maintain.** Corollary 1 reuses a mitigation this
   repo already trusts (`tech-lead`'s precedent) instead of re-inventing a path-scoped deny already shown
@@ -291,7 +291,7 @@ ship a persona whose own brief still describes a tool it now has as one it doesn
 
 **Bad / accepted costs**
 
-- **`harness-reviewer` now plays two roles on the same object — reviewer of a harness proposal and
+- **`harness-lead` now plays two roles on the same object — reviewer of a harness proposal and
   builder of it.** This is the identical shape `quality-assurance` named as its own accepted cost when
   `security` merged into it: "nobody observes the gate that signs the merge" (ADR-0002, tenth amendment,
   Decision 2, cost 4). Mitigated the same way — it cannot merge, so `quality-assurance`'s ordinary review
@@ -300,7 +300,7 @@ ship a persona whose own brief still describes a tool it now has as one it doesn
   advisory-only model, traded for the advisory-only model's own failure (findings with no artifact).
 - **`loop`-ready is owner-only by instruction, not by floor enforcement.** Corollary 4's gate is exactly
   as strong as the owner's habit of reading the artifact before acting — the same caveat this repo
-  already carries for `harness-reviewer`'s "never posts" rule and for `product`-typed relabeling
+  already carries for `harness-lead`'s "never posts" rule and for `product`-typed relabeling
   (ADR-0012, ADR-0013). Left open rather than pretended closed.
 - **Three pieces of consequent work are named and not done**: the `quality-assurance` criterion text
   (Corollary 2), the `permission-guard.sh` posting boundary (Corollary 3), and `dev-loop/SKILL.md:43-53`'s
@@ -333,14 +333,14 @@ ship a persona whose own brief still describes a tool it now has as one it doesn
 - `agents/quality-assurance.md:397-399,714-718` — re-verified: the significance criterion and
   boundary-class list Corollary 2 names the exact addition for.
 - `agents/tech-lead.md:1-4` — re-verified: the unscoped `Write, Edit` precedent Corollary 1 mirrors.
-- `agents/harness-reviewer.md:4,27-42,170` — re-verified: the current tool grant, the scratch-file
+- `agents/harness-lead.md:4,27-42,170` — re-verified: the current tool grant, the scratch-file
   section, and the two execution defects Corollary 6 names. (The permission-guard commentary quoted in
   Corollary 3 is a separate file — `hooks/scripts/permission-guard.sh:133-143`, cited on its own line
   below — not this one; an earlier draft conflated the two.)
 - `hooks/hooks.json:3-5` — re-verified: `PreToolUse` registers on the `Bash` matcher only, the fact
   Corollary 1 relies on for "no new hook needed."
 - `hooks/scripts/permission-guard.sh:133-143` — re-verified verbatim: the comment explaining why
-  `harness-reviewer` needs no rule of its own, quoted in Corollary 3.
+  `harness-lead` needs no rule of its own, quoted in Corollary 3.
 - `hooks/scripts/permission-guard.sh:135,136` — re-verified: rules 5d and 7b's catch-alls, already
   denying `gh issue create` and `gh pr merge` to this persona before and after this grant.
 - `skills/principles/dev-loop/SKILL.md:43-53,254-267` — re-verified: the current "does not put it in the

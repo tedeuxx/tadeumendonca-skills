@@ -2,7 +2,7 @@
 
 - **Status:** accepted
 - **Date:** 2026-08-09
-- **Deciders:** the owner (the standard is his, posted as [#166's closing comment](https://github.com/tedeuxx/tadeumendonca-skills/issues/166#issuecomment-5232005136) and ratified by labelling the Issue `ready`); drafted by `harness-reviewer`; recorded by `tech-lead`
+- **Deciders:** the owner (the standard is his, posted as [#166's closing comment](https://github.com/tedeuxx/tadeumendonca-skills/issues/166#issuecomment-5232005136) and ratified by labelling the Issue `ready`); drafted by `harness-lead`; recorded by `tech-lead`
 - **Supersedes / superseded by:** —
 - **Driven by:** [#166](https://github.com/tedeuxx/tadeumendonca-skills/issues/166) and its implementation [PR #168](https://github.com/tedeuxx/tadeumendonca-skills/pull/168), where `quality-assurance` blocked on the absence of this record (finding **B2**) and the builder conceded rather than argued
 
