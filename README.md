@@ -150,7 +150,7 @@ flowchart TB
 
   subgraph T1L["TIER 1 · loop — the machinery itself"]
     direction LR
-    HR["harness-reviewer"]
+    HR["harness-lead"]
     TLL["tech-lead"]
   end
 
@@ -162,13 +162,13 @@ flowchart TB
   subgraph T2["TIER 2 · BUILD"]
     direction LR
     DEV["developer<br/>product · content — one branch, ticking the task list"]
-    HRB["harness-reviewer<br/>loop — builds what it stress-tests"]
+    HRB["harness-lead<br/>loop — builds what it stress-tests"]
   end
 
   MR{{"MERGE REQUEST · ONE per story, to main"}}
 
   subgraph T3["TIER 3 · GATE — fresh context, no authorship bias"]
-    QA["quality-assurance<br/>product · content — two lenses in one pass<br/>loop — checks the harness-reviewer verdict marker"]
+    QA["quality-assurance<br/>product · content — two lenses in one pass<br/>loop — checks the harness-lead verdict marker"]
   end
 
   M{{"merge to main = the deploy<br/>a real merge commit, never a squash"}}
@@ -205,7 +205,7 @@ flowchart TB
 **Three lanes, one hub — not one box per tier.** Tier 1's composition is not a single box wearing three
 labels; it is three lanes, and the issue's type decides which one it enters. `product` closes through the
 two leads that disagree by design; `content` closes through the lens that holds the owner's voice alone;
-`loop` closes through **both** `harness-reviewer` and `tech-lead` — the persona that stress-tests the
+`loop` closes through **both** `harness-lead` and `tech-lead` — the persona that stress-tests the
 machinery and the persona that would write the ADR it produces, since a `loop` issue is the kind most
 likely to need one. All three lanes converge on the same orchestrator: **the orchestrator is the hub every
 lane passes through**, not a station one tier dispatches through.
@@ -219,14 +219,14 @@ irreversible act) the earlier diagram showed.
 gate-free at intake — a `loop`-typed Issue still needs `ready` before anything builds against it, and
 `/autonomy-on`'s own queue predicate is `(product OR loop) AND ready` ([ADR-0012](./docs/adr/0012-issue-type-is-the-routing-axis-and-is-exclusive.md)),
 so it can be drained the same mechanical way a `product` story can. What is actually different: `ready`
-on a `loop` Issue is an **owner-only** transition ([ADR-0015](./docs/adr/0015-harness-reviewer-implements-the-harness-it-reviews.md),
+on a `loop` Issue is an **owner-only** transition ([ADR-0015](./docs/adr/0015-harness-lead-implements-the-harness-it-reviews.md),
 Corollary 4) rather than the two leads reconciling between themselves, and its own tier 2 is
-`harness-reviewer`, building what it just stress-tested. **Tier 3 is not skipped — its lens is.** Every
+`harness-lead`, building what it just stress-tested. **Tier 3 is not skipped — its lens is.** Every
 lane, `loop` included, still merges through `MR --> QA --> M`: rule 7b denies `gh pr merge` to every
-`agent_type` but `quality-assurance`, unconditionally, so a harness-reviewer-built change is no exception.
+`agent_type` but `quality-assurance`, unconditionally, so a harness-lead-built change is no exception.
 What differs is what `quality-assurance` checks there — `agents/quality-assurance.md`'s harness-diff
 criterion (ADR-0015 Corollary 2) means a diff touching `hooks/**`, `agents/**`, `skills/**`, `commands/**`
-or `.claude/**` is gated on the presence of a `harness-reviewer` verdict marker, not on the full two-lens
+or `.claude/**` is gated on the presence of a `harness-lead` verdict marker, not on the full two-lens
 Definition of Done — the DoD review already happened, in tier 1, before the build.
 
 **No persona talks to another persona** — every dispatch still goes through the orchestrator; what changed
@@ -241,12 +241,12 @@ orchestrator.
 |---|---|---|
 | **product-lead** | 1 · intake | what to build and why · the reader · the market · the copy lens |
 | **tech-lead** | 1 · intake | architecture direction · sequencing · **the only writer of the ADRs** |
-| **harness-reviewer** | 1 · intake | the machinery — the scenarios a harness proposal misses, before it is built |
+| **harness-lead** | 1 · intake | the machinery — the scenarios a harness proposal misses, before it is built |
 | **developer** | 2 · build | the slice end to end — app, infrastructure and pipeline |
 | **quality-assurance** | 3 · gate | the Definition of Done, **and** whether this can cause a problem in production · **holds the merge** |
 
 **The owner appears twice on purpose** — *human-residual* is where the loop opens and where the
-undelegatable part comes back. **`harness-reviewer` sits in tier 1** because a harness proposal is closed
+undelegatable part comes back. **`harness-lead` sits in tier 1** because a harness proposal is closed
 the same way a story is: before anything is built.
 
 **A fresh context is the whole point.** The gate has not read the conversation that produced the work, so
@@ -310,7 +310,7 @@ document.**
   effects of a configuration change are invisible from inside the change — a deny written for a tool no
   hook can see, a glob scoped to the wrong root, a persona left running a brief that predates the merge
   it is reviewing. Each was found by accident, after implementation, and each cost review rounds in
-  tokens and wall-clock. `harness-reviewer` exists to move that discovery **before** the build, and its
+  tokens and wall-clock. `harness-lead` exists to move that discovery **before** the build, and its
   standing rule is the one that decides whether it is worth dispatching: **every scenario ships with how
   to verify it, or is labelled a hypothesis.** A persona that speculates about a harness produces twenty
   plausible failure modes and no way to sort them.
@@ -362,7 +362,7 @@ them.
 - **`tech-lead` — 16,857 B** — `adr` · `engineering-philosophy` ·
   `documentation-standard`
 - **`product-lead` — 8,895 B** — `new-issue`
-- **`harness-reviewer` — 0 B, `skills: []`, and this is a decision rather than a blank.** Its object is
+- **`harness-lead` — 0 B, `skills: []`, and this is a decision rather than a blank.** Its object is
   `hooks/`, `settings.json`, `agents/`, the plugin and MCP — none of which is in `skills/`. It is also
   the persona most exposed to staleness, and a preload is a frozen snapshot, which would arm the drift
   it exists to catch.
@@ -448,11 +448,11 @@ The library, by family: backend (19), frontend (15), infrastructure (21), princi
 | `terraform` | Use Terraform in <project> infrastructure (how we use it as a whole). | `infrastructure` | `developer` |
 | `vpc` | Implement or review the VPC and networking layer (vpc.tf) in <project>-iac. | `infrastructure` | `developer` |
 | `waf` | Implement or review the WAF WebACLs (CLOUDFRONT + REGIONAL) across the two repos that own them. | `infrastructure` | `developer` |
-| `dev-loop` | Apply the platform's end-to-end development loop in a `<project>` repo. This is the flow the principles run inside — `/engineering-philosophy` is… | `principles` | `product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance` |
-| `engineering-philosophy` | Apply these engineering principles — the owner's way of building software — in any <project> repo. They shape every decision an agent makes here.… | `principles` | `product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance` |
-| `loop-engineering` | Name and practice the discipline this whole plugin exists to run: **Agent Harness Engineering** (the owner's term for how he works; also… | `principles` | `product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance` |
-| `permissions-and-environments` | Apply the platform's environment and permission model in any `<project>` repo — both at the global Claude Code level and per-project. This is the… | `principles` | `product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance` |
-| `verification-and-gates` | Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that… | `principles` | `product-lead` · `tech-lead` · `harness-reviewer` · `quality-assurance` |
+| `dev-loop` | Apply the platform's end-to-end development loop in a `<project>` repo. This is the flow the principles run inside — `/engineering-philosophy` is… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `engineering-philosophy` | Apply these engineering principles — the owner's way of building software — in any <project> repo. They shape every decision an agent makes here.… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `loop-engineering` | Name and practice the discipline this whole plugin exists to run: **Agent Harness Engineering** (the owner's term for how he works; also… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `permissions-and-environments` | Apply the platform's environment and permission model in any `<project>` repo — both at the global Claude Code level and per-project. This is the… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `verification-and-gates` | Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `adr` | Author or review an Architecture Decision Record (ADR) for any `<project>` repo, following the platform's ADR practice. | `workflow` | `tech-lead` — the only writer of the ADRs |
 | `claude-code` | Set up or review the Claude Code GitHub App automation in a <project> repo. | `workflow` | `developer` |
 | `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `workflow` | `developer` |

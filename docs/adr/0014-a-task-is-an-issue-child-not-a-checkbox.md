@@ -5,7 +5,7 @@ its body — not a checkbox on the story
 - **Date:** 2026-08-12
 - **Deciders:** owner (ratifies) · tech-lead (writes the record)
 - **Supersedes / superseded by:** —
-- **Driven by:** a `harness-reviewer` pre-implementation stress test of this proposal (5 scenarios,
+- **Driven by:** a `harness-lead` pre-implementation stress test of this proposal (5 scenarios,
   independently re-verified by tech-lead before this record was written); no Issue — methodology-library
   decision, filed and closed at tier 1
 
@@ -177,7 +177,7 @@ diff can then contain hunks that read as unexplained drift relative to B's own t
 nothing in the gate's brief telling it to check for a sibling before flagging that as a finding.
 
 **Consequent work, out of scope here** (this is `tech-lead`'s design call on `agents/quality-assurance.md`,
-not `harness-reviewer`'s to make and not this ADR's `docs/adr/**` scope to execute): a future edit to that
+not `harness-lead`'s to make and not this ADR's `docs/adr/**` scope to execute): a future edit to that
 brief should name the mitigation option of checking `gh issue view <parent> --json body` for sibling task
 references before flagging cross-task drift as a finding against the task under review. Not designed
 further here.
@@ -252,5 +252,5 @@ tasks touching the same file are blocked until it is. Not edited here.
 - `hooks/scripts/permission-guard.sh:843-858` (struck, retired 2026-08-02) — the four-round parent-
   verification history this record declines to reopen.
 - `agents/quality-assurance.md` — grepped and confirmed to carry no sibling/parent-PR awareness (S5).
-- Driven by a `harness-reviewer` pre-implementation stress test (5 scenarios; no Issue — filed and closed
+- Driven by a `harness-lead` pre-implementation stress test (5 scenarios; no Issue — filed and closed
   within tier 1 as a methodology-library decision).

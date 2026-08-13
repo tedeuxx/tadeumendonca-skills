@@ -59,7 +59,7 @@ The governing rule was one line:
 > the context.~~
 
 **Struck 2026-08-04: it survives as the first of four reasons, not as the only one.** It could not
-explain either move made that day — `harness-reviewer` argues with the *owner* rather than with another
+explain either move made that day — `harness-lead` argues with the *owner* rather than with another
 persona, and `security` generated real disagreement and was merged anyway. The rule now:
 
 > **A persona exists for one of four reasons:** disagreement is wanted · a fresh context is wanted ·
@@ -90,7 +90,7 @@ its **third** pays nothing, because it never runs on the same work as the other 
               decides · ratifies the boundary · the only one who opens work
                              │
         ┌────────────────────┼────────────────────┐         ┌─────────────────┐
-   product-lead              ⇄              tech-lead       │ harness-reviewer│
+   product-lead              ⇄              tech-lead       │ harness-lead│
    reader, value,                           architecture,   │ the machinery:  │
    order, slice size,                       measurement,    │ hooks, settings,│
    positioning, voice,                      sequencing,     │ briefs, plugin  │
@@ -142,7 +142,7 @@ competing instructions.
 
 ### 2.1b · The harness reviewer — tier 1, and its peer is the owner
 
-**`harness-reviewer`** is the only persona whose counterpart is not another agent. The owner is the CEO
+**`harness-lead`** is the only persona whose counterpart is not another agent. The owner is the CEO
 of this initiative **and acts as its harness engineer**; this is their pair in the second role, and only
 there. It is dispatched on a proposal about the **machinery** — hooks, settings and permissions, agent
 briefs, skills, commands, the plugin, MCP — and returns the scenarios that proposal does not cover,

@@ -4,7 +4,7 @@
 - **Date:** 2026-08-12
 - **Deciders:** owner (ratifies) · tech-lead (writes the record)
 - **Supersedes / superseded by:** —
-- **Driven by:** a `harness-reviewer` pre-implementation stress test of this proposal (six scenarios,
+- **Driven by:** a `harness-lead` pre-implementation stress test of this proposal (six scenarios,
   independently re-verified by tech-lead before this record was written); no Issue — this is a
   methodology-library decision, filed and closed at tier 1
 
@@ -84,7 +84,7 @@ dispatchable persona it structurally is not?**
    scoping, and (per ADR-0002 amendment #10) its own reason among the four that justify a persona's
    existence. The orchestrator satisfies none of those reasons: it is not dispatched, it does not need a
    fresh context from itself, and giving it a brief would misrepresent it as one more subagent among
-   five — exactly what `harness-reviewer`'s stress test flagged as the wrong shape. It also does not
+   five — exactly what `harness-lead`'s stress test flagged as the wrong shape. It also does not
    solve the actual problem (naming drift + an unreached boundary), since a brief nobody dispatches
    is not read by anyone either.
 
@@ -170,7 +170,7 @@ because this record's write access is `docs/adr/**` only.
 2. **Close, or explicitly re-affirm as an accepted-but-unclosed cost, the `gh issue edit` / `gh label`
    scoping gap.** This record names the gap; it does not decide whether it is worth closing. That is a
    which-layer-carries-this-control question (ADR-0008), not a naming one, and belongs in its own record
-   once someone picks it up — most plausibly `tech-lead` at a future intake, or `harness-reviewer` if it
+   once someone picks it up — most plausibly `tech-lead` at a future intake, or `harness-lead` if it
    is scoped as a harness change.
 3. **Add "(via orchestrator)" to the `MR --> QA` edge label in `README.md:177`.** The diagram's
    no-peer-talk invariant is already stated in prose (`README.md:193`) and the diagram admits drawing it
@@ -233,5 +233,5 @@ way ADR-0004 and ADR-0005 book obligations onto later work rather than dischargi
   · `hooks/scripts/permission-guard.sh:118` · `hooks/scripts/permission-guard.test.sh:143,221-228,336` ·
   `.claude/settings.json:51,54` · `hooks/scripts/inventory-counts.test.sh:1397` — the measurements this
   record is built on, each cited at the site it was verified.
-- Driven by a `harness-reviewer` pre-implementation stress test (six scenarios; no Issue — filed and
+- Driven by a `harness-lead` pre-implementation stress test (six scenarios; no Issue — filed and
   closed within tier 1 as a methodology-library decision).

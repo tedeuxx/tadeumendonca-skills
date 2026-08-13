@@ -197,7 +197,7 @@ not because it generated no conflict, but because the conflict it generated was 
 The product and the presence are the same thing, and two leads over one object produced two outputs to
 reconcile where the reconciliation was the owner's to make anyway.
 
-**`harness-reviewer` sits at your altitude and is not your peer.** It joined the roster on 2026-08-04 as
+**`harness-lead` sits at your altitude and is not your peer.** It joined the roster on 2026-08-04 as
 the owner's pair on the **machinery** — hooks, settings and permissions, agent briefs, skills, commands,
 the plugin, MCP. Three things about it are worth holding, because they are what keep it from costing you
 anything:
