@@ -336,7 +336,8 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 #
 # The expected value moved 1 → 2 on 2026-08-04, when `commands/new-issue.md` shipped as a deliberate
 # second root-level ACTION command (autonomy-on turns the loop on; new-issue captures a request as an
-# Issue — both are things the owner invokes directly, neither belongs under a namespace).
+# Issue — both are things the owner invokes directly, neither belongs under a namespace), then 2 → 3 on
+# #165, when `commands/autonomy-off.md` shipped as the deliberate off-switch autonomy-on always lacked.
 #
 # THE ASSERTION IS NOT WEAKER FOR HAVING BEEN BUMPED, and that is the whole reason it is a pinned
 # literal rather than a `-ge`. It exists to catch the ACCIDENTAL root command — a skill dropped one
@@ -352,10 +353,10 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # So the failure this now catches is a LIBRARY SKILL LANDING IN `commands/` — where it is typed-only,
 # never matched, and absent from every count and table in this file.
 root_cmds=$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
-if [ "$root_cmds" -eq 2 ]; then
-  ok "commands/ root — exactly two owner-typed commands (autonomy-on, new-issue), as the docs enumerate"
+if [ "$root_cmds" -eq 3 ]; then
+  ok "commands/ root — exactly three owner-typed commands (autonomy-on, autonomy-off, new-issue), as the docs enumerate"
 else
-  bad "commands/ root — $root_cmds file(s); the docs enumerate two owner-typed commands (autonomy-on, new-issue).
+  bad "commands/ root — $root_cmds file(s); the docs enumerate three owner-typed commands (autonomy-on, autonomy-off, new-issue).
       A library skill belongs in skills/<name>/SKILL.md — under commands/ it is absent from every count
       and table here, and from the per-family breakdown a reader actually opens."
 fi
@@ -1495,7 +1496,7 @@ skill_stem() {
   esac
 }
 
-ARG_HINT_ALLOWED="autonomy-on new-issue"   # the two the OWNER types; a model-invoked skill has no typed argument
+ARG_HINT_ALLOWED="autonomy-on autonomy-off new-issue"   # the three the OWNER types; a model-invoked skill has no typed argument
 
 # The frontmatter block, exclusive of its `---` fences. Empty for a file that has none, which is what
 # the presence assertion below reads.
