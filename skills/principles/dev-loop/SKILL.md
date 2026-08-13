@@ -81,14 +81,25 @@ The chain above is **behaviour**; this is the state it implies. Derived by the a
 `/loop-engineering` now requires before any loop change is executed — and the first run of
 that assessment found this gap **one day after the chain was merged**.
 
-| transition | who acts | artifact that records it |
-|---|---|---|
-| → **filed** | the owner, alone | the Issue exists |
-| filed → **ready** | the leads, closing the description | **`ready` label** ← *this was missing* |
-| ready → **in progress** | `developer` | an open PR (already observable — no new state) |
-| in progress → **reviewed** | `quality-assurance` | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
-| reviewed → **closed** | `quality-assurance` (safe) · the owner (boundary) | the merge, and for boundary the owner's ratifying comment |
-| **any → blocked → back** | anyone, on discovering it waits on the owner or on something outside the loop | **`blocked` label** |
+**Scope, stated rather than implied by the table's shape:** every row below applies to all three issue
+types (`product` / `content` / `loop`, exclusive per
+[ADR-0012](../../../docs/adr/0012-issue-type-is-the-routing-axis-and-is-exclusive.md)). Three
+transitions diverge by type, so those three are split into one row per type rather than folded into a
+cell that would need its own footnote; the other three (`filed`, `closed`, `blocked`) are the same act
+regardless of type and stay single rows.
+
+| transition | type | who acts | artifact that records it |
+|---|---|---|---|
+| → **filed** | all | the owner, alone | the Issue exists |
+| filed → **ready** | `product` | both leads, closing the description together | **`ready` label** ← *this was missing* |
+| filed → **ready** | `content` | `product-lead`, alone | **`ready` label** |
+| filed → **ready** | `loop` | the owner, alone — **not** the leads reconciling ([ADR-0015](../../../docs/adr/0015-harness-lead-implements-the-harness-it-reviews.md) Corollary 4) | **`ready` label** |
+| ready → **in progress** | `product` · `content` | `developer` | an open PR (already observable — no new state) |
+| ready → **in progress** | `loop` | `harness-lead` — builds what it just stress-tested (ADR-0015 Corollary 1) | an open PR |
+| in progress → **reviewed** | `product` · `content` | `quality-assurance`, against the full two-lens Definition of Done | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
+| in progress → **reviewed** | `loop` | `quality-assurance`, checking for the presence of a `harness-lead` verdict marker rather than the full two-lens DoD — the DoD review already happened in tier 1 (ADR-0015 Corollary 2) | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
+| reviewed → **closed** | all | `quality-assurance` (safe) · the owner (boundary) | the merge, and for boundary the owner's ratifying comment |
+| **any → blocked → back** | all | anyone, on discovering it waits on the owner or on something outside the loop | **`blocked` label** |
 
 **`blocked` is orthogonal, not a sixth step, and saying that is part of the model rather than an excuse
 for leaving it out.** It can attach at any point and it returns the item to wherever it was — an Issue
