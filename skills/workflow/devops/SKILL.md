@@ -1,5 +1,5 @@
 ---
-description: Operate the DevOps capability for a `<project>` repo — GitHub Actions CI/CD, Terraform Cloud as the state backend, the branching model per loop mode, and the permission floor keeping IaC pipeline-only. Use when wiring a pipeline, granting CI a role, or choosing a repo's branching/protection. Not for the Terraform configuration itself (see terraform), the loop's state machine (see harness-engineering), or SemVer tagging (see versioning).
+description: Operate the DevOps capability for a `<project>` repo — GitHub Actions CI/CD, Terraform Cloud as the state backend, the branching model per loop mode, and the permission floor keeping IaC pipeline-only. Use when wiring a pipeline, granting CI a role, or choosing a repo's branching/protection. Not for the Terraform configuration itself (see cloud-infrastructure), the loop's state machine (see harness-engineering), or SemVer tagging (see versioning).
 ---
 
 Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and

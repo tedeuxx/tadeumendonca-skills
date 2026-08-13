@@ -1,5 +1,5 @@
 ---
-description: Maintain the API contract as OpenAPI generated from the route code — the committed vendor-neutral root copy, the AWS overlay that gets published, and the CI step that regenerates both. Use when a route's shape changes, when the contract and the code disagree, or when wiring contract generation into a pipeline. Not for provisioning the gateway that serves it (see api-gateway).
+description: Maintain the API contract as OpenAPI generated from the route code — the committed vendor-neutral root copy, the AWS overlay that gets published, and the CI step that regenerates both. Use when a route's shape changes, when the contract and the code disagree, or when wiring contract generation into a pipeline. Not for provisioning the gateway that serves it (see cloud-infrastructure).
 ---
 
 Maintain the backend API contract (OpenAPI) — generated, versioned, committed.

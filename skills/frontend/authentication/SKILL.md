@@ -1,5 +1,5 @@
 ---
-description: Hold a user session in a React SPA with the Cognito SDK — social login through Google using Authorization Code with PKCE, token storage and silent refresh, and sending the access token as a Bearer header on every call. Use when adding login, handling a 401, or reasoning about expiry, refresh and logout. Not for what the UI shows per role (see authorization) or provisioning the user pool (see cognito).
+description: Hold a user session in a React SPA with the Cognito SDK — social login through Google using Authorization Code with PKCE, token storage and silent refresh, and sending the access token as a Bearer header on every call. Use when adding login, handling a 401, or reasoning about expiry, refresh and logout. Not for what the UI shows per role (see authorization) or provisioning the user pool (see cloud-infrastructure).
 ---
 
 SPA authentication (concept).

@@ -1,5 +1,5 @@
 ---
-description: Emit custom metrics from server handler code with Powertools Metrics over EMF, so CloudWatch derives them from log output with no collector and no Prometheus to run. Use when adding a business or latency counter, choosing dimensions, or justifying not running a metrics agent. Not for log lines (see logging), request traces (see tracing), or the alarms built on the metric (see cloudwatch).
+description: Emit custom metrics from server handler code with Powertools Metrics over EMF, so CloudWatch derives them from log output with no collector and no Prometheus to run. Use when adding a business or latency counter, choosing dimensions, or justifying not running a metrics agent. Not for log lines (see logging), request traces (see tracing), or the alarms built on the metric (see cloud-infrastructure).
 ---
 
 Implement or review metrics in the BFF (Powertools Metrics → EMF → CloudWatch).

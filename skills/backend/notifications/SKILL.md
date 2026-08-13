@@ -1,5 +1,5 @@
 ---
-description: Send email through SES and fan out domain events through SNS from server handler code — the subscribers table, and keeping delivery asynchronous so a request never blocks on it. Use when a feature must notify someone, adding a subscription, or moving a slow side effect off the request path. Not for provisioning the topic and its dead-letter queue (see sns).
+description: Send email through SES and fan out domain events through SNS from server handler code — the subscribers table, and keeping delivery asynchronous so a request never blocks on it. Use when a feature must notify someone, adding a subscription, or moving a slow side effect off the request path. Not for provisioning the topic and its dead-letter queue (see cloud-infrastructure).
 ---
 
 Implement or review notifications (email via SES) in the BFF.
