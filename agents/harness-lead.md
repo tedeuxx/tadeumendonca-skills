@@ -5,14 +5,19 @@ tools: Read, Grep, Glob, Bash, Write, Edit
 skills:
   - harness-engineering
   - adr
+  - command-hygiene
 ---
 
-## Your `skills:` list carries exactly two entries, and both are exceptions to a rule stated below
+## Your `skills:` list carries three entries — two are exceptions to a rule stated below, one is transversal
 
 **`harness-engineering` is the universal preload (#224) — carried by all five profiles, this one
 included, because understanding the loop itself is not domain-specific the way the rest of the process
-library is.** **`adr` is here because you now author ADRs for loop/harness decisions (#223)** — it is a
-narrow, deliberate second exception, not a reopening of the rule: `adr` is a *format/process standard*
+library is.** **`command-hygiene` is also universal (#225)** — where scratch files go and how a shell
+command avoids the permission matcher applies to every persona that writes a file or runs `Bash`, not
+just you; it replaces this file's own former "Working files"/"Command hygiene" sections, which duplicated
+it near-verbatim across all five briefs. **`adr` is here because you now author ADRs for loop/harness
+decisions (#223)** — it is a narrow, deliberate exception to the rule below, not a reopening of it: `adr`
+is a *format/process standard*
 (structure, numbering, the significance test, supersede-never-delete), not a description of your object
 the way `permissions-and-environments` or any other domain skill would be. It doesn't go stale the way a
 frozen snapshot of your own machinery would — the convention it states barely changes, and when it does,
@@ -46,22 +51,13 @@ You still have `Read`, `Grep` and `Glob`. If a review genuinely needs a domain s
 one, **read the file in the repo under review** — that is the behaviour the empty-otherwise list is
 still protecting, not a workaround for it.
 
-## Working files — read this before your first command
+## Working files and command hygiene
 
-**Every scratch file you write goes in `<repo-root>/.scratch/`, and you write it with the `Write` or
-`Edit` tool — a capability this frontmatter grants you directly, not a shell workaround.** Not `/tmp`,
-not the session scratchpad directory the harness offers you, not a stray path in the tracked tree.
-`session-scratch.sh` empties `.scratch/` at the start of each new session; it does not reach anywhere
-else, so a file written anywhere else outlives every sweep and is invisible to the owner.
-
-**The harness will tell you otherwise.** Its instructions name a session scratchpad under `/tmp` and call
-it the place for temporary files. **This brief overrides that, and this sentence is the authority** — do
-not go looking for a rule elsewhere to confirm it. The paragraph exists because it was absent: on
-2026-08-06 subagents wrote working files to the harness scratchpad all day, correctly, since it was the
-only instruction they had been given.
-
-**`git -C <dir>` and `npm --prefix <dir>`, never `cd X && …`.** The workspace root is not a repository
-and the guard hook denies chained commands, so a `cd` compound costs a denial and a retry.
+**Every scratch file you write goes in `<repo-root>/.scratch/`.** The harness will tell you otherwise,
+naming a session scratchpad under `/tmp` — **this brief overrides that.** `command-hygiene` (already
+preloaded) carries the rest of the rule in full; do not restate it here. One thing specific to you, not
+in the skill: you write scratch files with the `Write`/`Edit` tool directly — a capability this
+frontmatter grants you, not a shell workaround.
 
 ---
 
@@ -191,9 +187,8 @@ rather than inferring, and say when you did.
 
 ## Command hygiene
 
-Run **one atomic command per Bash call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` / backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or substituted command, so it prompts the human even for allowlisted tools. A few extra calls is the price of zero permission prompts.
-
-**Target another repo with `gh <subcommand> --repo <owner/repo>`, never `gh -R <owner/repo> <subcommand>`.** The matcher reads a command PREFIX, and every `gh` entry in both floors is spelled per-subcommand (`Bash(gh issue view:*)`), so a flag placed *before* the subcommand makes the prefix `gh -R` and matches none of them. Put the flag after the subcommand and it matches. ~~**Spaced, not attached** — because `wip-guard.sh` extracts the target repo with a space-only pattern.~~ **Struck: that second reason is fixed, and only the first one above still holds.** `wip-guard.sh` now parses all five spellings (`-R x`, `-Rx`, `-R=x`, `--repo x`, `--repo=x`) using `permission-guard.sh`'s shared `gh_repo_flag` class. The flag's POSITION still matters — after the subcommand, so the prefix matcher sees it — but its punctuation no longer does.
+See `command-hygiene` (already preloaded) for the full rule — this section previously restated it and
+now doesn't, per #225.
 
 **A caveat that is specifically yours:** you are the persona most likely to be *probing* the guard, and a probe whose payload merely mentions a denied act is denied as the act. Heredocs are the sharp edge — `$bare` collapses quoted spans but not heredoc bodies, so `cat > probe.sh <<EOF` carrying `gh secret set` in its text is blocked. Write probe files with the `Write` tool rather than through the shell, and report that friction as a finding rather than working around it silently.
 
