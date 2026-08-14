@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 11 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 10 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -332,7 +332,7 @@ work as the other two.
 
 ## The skill library, whose domain each family is, and what is actually preloaded
 
-**Skills carry the conventions so the model does not re-invent them.** **11 skills + autonomy-on**,
+**Skills carry the conventions so the model does not re-invent them.** **10 skills + autonomy-on**,
 `autonomy-off` and `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
@@ -375,36 +375,50 @@ them.
   put to `tech-lead`, decided the same way and for a stronger reason here: `devops` also carries the
   canonical source for three of this brief's own production-lens criteria (IAM least-privilege, the
   immutable OIDC subject, SHA-pinning) that this file previously restated in compressed form.
-- **`tech-lead` — 76,495 B** — `adr` · `harness-engineering` ·
-  `documentation-standard` · `command-hygiene` · `devops`. `versioning` used to be the fifth entry here;
+- **`tech-lead` — 78,085 B** — `documentation-standard` · `harness-engineering` ·
+  `command-hygiene` · `devops`. This used to be five entries (`adr`, `documentation-standard`,
+  `harness-engineering`, `command-hygiene`, `devops`); #260 folded `adr` into `documentation-standard`
+  as its Part II, so the entry count drops. This brief already preloaded both bodies of content in full
+  before the merge (76,495 B), and the merged file runs 1,590 B heavier than the sum of the two originals
+  it replaces (12,024 B vs. 6,307 B + 4,127 B) — the added framing prose that keeps Part I and Part II
+  legible as two sections rather than one blended body. `versioning` used to be a separate fifth entry too;
   #258 folded it into `devops`, and this brief now preloads `devops` whole rather than losing the
   sequencing content it argued it needs (#227) — a real decision, recorded in the brief itself, that
   also closes a gap the *whose domain* table below already asserted (`tech-lead` as a `devops` domain
   holder, #227) without this preload list backing it until now. The trade: a heavier preload than the
   narrow `versioning` file it replaces.
 - **`product-lead` — 38,665 B** — `harness-engineering` · `command-hygiene`
-- **`harness-lead` — 72,368 B** — `harness-engineering` · `adr` · `command-hygiene` · `devops`.
-  `harness-engineering` was the one exception to what used to be `skills: []`; the other three followed
-  for reasons its own brief states (`adr` for loop/harness ADRs since #223, `command-hygiene` and
-  `devops` as the transversal/machinery skills it owns). `versioning` used to be a fifth entry here;
+- **`harness-lead` — 78,085 B** — `harness-engineering` · `documentation-standard` · `command-hygiene` ·
+  `devops`. `harness-engineering` was the one exception to what used to be `skills: []`; the other three
+  followed for reasons its own brief states (`documentation-standard`'s Part II — the ADR practice
+  formerly the standalone `adr` skill, folded in at #260 — for loop/harness ADRs since #223,
+  `command-hygiene` and `devops` as the transversal/machinery skills it owns). This entry used to read
+  `adr` (6,307 B, 72,368 B total); the #260 merge swaps the identifier **and** grows what this brief
+  receives — it now also carries Part I, the general documentation standard, which it never preloaded on
+  its own. That is a real, if incidental, increase (+5,717 B) rather than a renaming with no effect, and
+  it is harmless: nothing in Part I describes machinery this brief owns, so there is nothing new to go
+  stale. `versioning` used to be a fifth entry here;
   #258 folded it into `devops`, so the entry disappeared and the content travels inside the skill already
   loaded. It remains the persona most exposed to staleness, a real tension a frozen
   preload creates that its own brief names as a residual rather than resolves.
 - **`writer` — 38,665 B** — `harness-engineering` · `command-hygiene`
 
-**406,959 B as billed across the six, 110,647 B distinct — 30.2% of the library (366,030 B across 11
-skills; `find skills -name SKILL.md | xargs wc -c`), and no persona over 101 KB (`developer`, now the
-largest at 100,213 B, crossed the old 97 KB mark once `devops` absorbed `sonarcloud`'s content).** (All
-figures measured
-directly — `wc -c` per file listed above — rather than carried forward from an earlier count; #259
-folded `sonarcloud` into `devops`, which changed four of the six totals — `developer`, `harness-lead` and
-`tech-lead` via `devops`'s growth, and `quality-assurance` via the `sonarcloud`→`devops` swap decided
-above — so every figure here was re-measured, not adjusted by arithmetic on the prior count.)
+**414,266 B as billed across the six, 112,237 B distinct — 30.5% of the library (367,620 B across 10
+skills; `find skills -name SKILL.md | xargs wc -c`), and no persona over 101 KB (`developer`, still the
+largest at 100,213 B, unaffected by this merge — it never preloaded `adr` or `documentation-standard`).**
+(All figures measured
+directly — `wc -c` per file listed above — rather than carried forward from an earlier count; #260
+folded `adr` into `documentation-standard`, which changed the `tech-lead` and `harness-lead` totals and
+the library-wide distinct/billed figures; #259 folded `sonarcloud` into `devops` before that, changing
+four of the six totals — `developer`, `harness-lead` and `tech-lead` via `devops`'s growth, and
+`quality-assurance` via the `sonarcloud`→`devops` swap decided above. Every figure here was re-measured
+after both merges landed, as the LAST step, per the rule that a byte-count table is measured against the
+final committed state and not read off mid-edit — not adjusted by arithmetic on the prior count.)
 `harness-engineering` (32,751 B, the
 universal preload, #224) is the
 largest single skill in the library and is carried by all six briefs. The two figures (billed vs.
 distinct) differ because several skills — `harness-engineering`, `command-hygiene`, `quality-gates`,
-`adr`, `devops` — are each carried by more than one persona: there is no dedupe, so each is
+`documentation-standard`, `devops` — are each carried by more than one persona: there is no dedupe, so each is
 billed once per persona and the library sees it once. Note what this table and
 the one below disagree about, deliberately: `developer` **preloads** two `principles`-family skills while
 the column below puts that family under the four judging personas. Both are true. The principles are the
@@ -424,7 +438,7 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library, by family: backend (1), frontend (1), infrastructure (1), principles (2), workflow (6).
+The library, by family: backend (1), frontend (1), infrastructure (1), principles (2), workflow (5).
 
 | skill | what it decides | family | whose domain |
 |---|---|---|---|
@@ -433,16 +447,17 @@ The library, by family: backend (1), frontend (1), infrastructure (1), principle
 | `cloud-infrastructure` | Cloud infrastructure (AWS) | `infrastructure` | `developer` |
 | `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `quality-gates` | Quality gates — the definition of done and the concrete policy that proves it | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
-| `adr` | Author or review an Architecture Decision Record (ADR) for any `<project>` repo, following the platform's ADR practice. | `workflow` | `tech-lead` · `harness-lead` — split by domain (#223) |
 | `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `workflow` | `developer` |
 | `command-hygiene` | Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched | `workflow` | `product-lead` · `tech-lead` · `harness-lead` · `developer` · `quality-assurance` |
 | `devops` | Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and | `workflow` | `developer` · `harness-lead` · `tech-lead` (#227) |
-| `documentation-standard` | Write or review docs for any <project> repo following the documentation standard. | `workflow` | `developer` |
+| `documentation-standard` | Documentation — the general standard and the ADR practice | `workflow` | `developer` (Part I, general docs) · `tech-lead` · `harness-lead` — Part II, ADR practice split by domain (#223) |
 | `license` | Apply the repository licensing standard in any <project> repo. | `workflow` | `developer` |
 **Three things the table shows rather than asserts.** The builder is the only persona holding a build
 family — conventions exist for building, and one persona builds. `workflow` is the only family that
-splits, and it splits for a reason: `adr` belongs to the two writers of the records, split by domain
-(#223), not to a single default author. And **the gate's** domain is `principles` and nothing else,
+splits, and it splits for a reason: `documentation-standard`'s ADR practice (Part II, merged in from the
+former standalone `adr` skill at #260) belongs to the two writers of the records, split by domain
+(#223), not to a single default author, while its general-docs half (Part I) stays the builder's. And
+**the gate's** domain is `principles` and nothing else,
 because its questions are answered from the diff and the running system, not from this repo's
 conventions.
 
