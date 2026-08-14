@@ -365,13 +365,13 @@ before the persona's first turn.** There is no declare-without-loading option, s
 deprivation rather than a deferral**, which is why the briefs argue their omissions rather than listing
 them.
 
-- **`developer` — 96,711 B** — `code-review` · `quality-gates` ·
+- **`developer` — 96,572 B** — `code-review` · `quality-gates` ·
   `harness-engineering` · `command-hygiene` · `devops`
 - **`quality-assurance` — 56,756 B** — `harness-engineering` · `quality-gates` ·
   `sonarcloud` · `command-hygiene`. `coverage` used to be a fifth, separate entry here; #257 folded its
   content into `quality-gates`, so the same policy is still fully preloaded — the entry disappeared, not
   the content.
-- **`tech-lead` — 72,985 B** — `adr` · `harness-engineering` ·
+- **`tech-lead` — 72,846 B** — `adr` · `harness-engineering` ·
   `documentation-standard` · `command-hygiene` · `devops`. `versioning` used to be the fifth entry here;
   #258 folded it into `devops`, and this brief now preloads `devops` whole rather than losing the
   sequencing content it argued it needs (#227) — a real decision, recorded in the brief itself, that
@@ -379,7 +379,7 @@ them.
   holder, #227) without this preload list backing it until now. The trade: a heavier preload than the
   narrow `versioning` file it replaces.
 - **`product-lead` — 38,665 B** — `harness-engineering` · `command-hygiene`
-- **`harness-lead` — 68,858 B** — `harness-engineering` · `adr` · `command-hygiene` · `devops`.
+- **`harness-lead` — 68,719 B** — `harness-engineering` · `adr` · `command-hygiene` · `devops`.
   `harness-engineering` was the one exception to what used to be `skills: []`; the other three followed
   for reasons its own brief states (`adr` for loop/harness ADRs since #223, `command-hygiene` and
   `devops` as the transversal/machinery skills it owns). `versioning` used to be a fifth entry here;
@@ -388,7 +388,7 @@ them.
   preload creates that its own brief names as a residual rather than resolves.
 - **`writer` — 38,665 B** — `harness-engineering` · `command-hygiene`
 
-**372,640 B as billed across the six, 110,736 B distinct — 30.2% of the library (366,146 B across 12
+**372,223 B as billed across the six, 110,597 B distinct — 30.2% of the library (365,992 B across 12
 skills; `find skills -name SKILL.md | xargs wc -c`), and no persona over 97 KB.** (All figures measured
 directly — `wc -c` per file listed above — rather than carried forward from an earlier count; #258
 folded `versioning` into `devops`, which changed three of the six totals — `developer` and `harness-lead`
