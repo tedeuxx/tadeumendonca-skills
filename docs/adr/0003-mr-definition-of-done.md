@@ -94,3 +94,8 @@ lost. That is the trade — and it is preferred to a backlog that grows by worki
 ## Links
 - Driven by ADR-0002 · the classification feeds the autonomy model ADR-0004 · full checklist in the
   proposal §6.
+- **Added 2026-08-14 (#265), pointer only — no decision content changed.** The generic concept this ADR
+  applies (what a Definition of Done is for, what makes a criterion well-formed, common shapes and
+  failure modes) now has its own SDLC-generic skill, `/definition-of-done`. This ADR remains the record
+  of *this loop's own* pacted, objective DoD and its safe/boundary classification — one concrete instance
+  of that generic concept, not a restatement of it.
