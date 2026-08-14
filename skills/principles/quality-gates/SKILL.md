@@ -1,5 +1,5 @@
 ---
-description: Define what done means AND the concrete, stack-agnostic gate policy that proves it — the Definition of Done, the 100% regression invariant, the gate table per loop model, plus thresholds (lint/typecheck at zero, coverage ≥85%, contract/E2E, dependency + secret scanning, SAST). Use when deciding if a slice ships, calibrating gates, or wiring a gate into CI. Not for the pre-merge pass (see code-review) or Sonar mechanics (see devops).
+description: Apply THIS loop's concrete Definition of Done and gate policy that proves it — the 100% regression invariant, the gate table per loop model, plus thresholds (lint/typecheck zero, coverage ≥85%, contract/E2E, dependency + secret scanning, SAST). Use when deciding if a slice ships, calibrating gates, or wiring CI. Not for the pre-merge pass (see code-review), Sonar mechanics (see devops), or what a DoD generically is and how to design one (see definition-of-done).
 ---
 
 # Quality gates — the definition of done and the concrete policy that proves it
@@ -19,6 +19,14 @@ Part I for *what counts as done*; read Part II for *the numbers and checks that 
 Context: $ARGUMENTS
 
 ## Part I — What "done" means (the definition)
+
+**This section is deliberately narrow now (#265).** It used to open on the generic case for a Definition
+of Done — why "done" needs a ruler at all, what makes a criterion well-formed, the shapes a DoD can take
+and how one goes wrong — stated in general terms before ever reaching this loop's own numbers. That
+generic content now lives in `/definition-of-done`, a standalone SDLC-generic skill, so it exists once
+rather than at two altitudes with no pointer between them. **Read `/definition-of-done` first if you are
+asking "what should a Definition of Done even contain" — this section answers a narrower question: what
+does THIS repo's loop specifically require**, given that the general case is already settled elsewhere.
 
 ### The thesis: agent-led verification, human-residual
 The point of this model is that **agents perform the majority of verification and humans are left only the residual.** Every gate below is objective and mechanical *on purpose* — so an agent can prove "done" by itself, and a human's scarce attention goes only to what can't be automated with confidence: irreversible/architectural judgment and the final go/no-go.
