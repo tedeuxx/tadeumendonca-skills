@@ -5,7 +5,6 @@ tools: Read, Grep, Glob, Write, Bash
 skills:
   - harness-engineering
   - quality-gates
-  - coverage
   - sonarcloud
   - command-hygiene
 ---
@@ -13,12 +12,15 @@ skills:
 ## What you already have loaded, and what was withheld
 
 **The `skills:` list above is a preload, not a menu** — `harness-engineering`,
-`quality-gates`, `coverage` and `sonarcloud` are already injected here in full.
-`quality-gates` is your ruler; `coverage` is, post-#174, the gate policy for **both**
-stacks — extracted to its own `workflow` skill at #230 precisely so it did not get pulled into the
-`backend` family's reference-only BFF consolidation, which nothing here should preload; `sonarcloud`
-is here because this brief obliges you to return the **cause** of a failing gate and Sonar is a named
-blocking one.
+`quality-gates` and `sonarcloud` are already injected here in full.
+`quality-gates` is your ruler, in two parts within the one file: the *definition* of done, and — since
+#257 folded the former standalone `coverage` skill into it — the *concrete, stack-agnostic gate policy*
+for **both** stacks, post-#174. That policy was extracted to its own `workflow` skill at #230
+precisely so it did not get pulled into the `backend` family's reference-only BFF consolidation, which
+nothing here should preload; folding it into `quality-gates` at #257 keeps that same independence,
+because it now travels inside the one skill you already preload rather than needing a second entry on
+this list. `sonarcloud` is here because this brief obliges you to return the **cause** of a failing gate
+and Sonar is a named blocking one.
 
 **`harness-engineering` is new here (#224), and it is not the exception the old rationale below would
 have refused.** `engineering-philosophy` used to be withheld on exactly this brief's own logic:

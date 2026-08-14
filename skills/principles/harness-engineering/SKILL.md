@@ -491,7 +491,8 @@ amendment these are consolidating into single reference skills named `backend`, 
 `cloud-infrastructure` — **not yet built as of this writing**, so read the family directories as they
 stand until that consolidation lands.
 
-See also: `/quality-gates` (the Definition of Done, the gate tables per loop model),
+See also: `/quality-gates` (the Definition of Done, the gate tables per loop model, and — since #257
+folded the former standalone `coverage` skill in — the concrete gate definitions for both stacks),
 `/devops` (the permission zones and guard hook, branching, per-environment topology, OIDC, the deploy
-workflows, TFC state), `/coverage` (gate definitions, both stacks), `/playwright` (E2E). Repos with an
-API layer add its contract/API suite — see `/postman`.
+workflows, TFC state), `/playwright` (E2E). Repos with an API layer add its contract/API suite — see
+`/postman`.

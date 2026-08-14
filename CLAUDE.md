@@ -295,7 +295,7 @@ an irreversible act. See ADR-0013 for the full record.
 | Command | Purpose |
 |---|---|
 | `/harness-engineering` | **The universal preload, carried by all 5 profiles.** Names the discipline the whole plugin runs — Agent Harness Engineering / AI-DLC (the owner's central identity term, with Claude Code & Kiro) — and is the loop itself: the state machine (issue types, states, who acts, what artifact records it), the intake chain, the inner-loop steps, **and** the 11 engineering principles in two tiers (non-negotiable floor + risk-calibrated judgment) that shape every decision inside it. Merges the former `dev-loop`, `loop-engineering` and `engineering-philosophy` into one file (#224). The branching/topology diagrams (`gitflow-multi-env`, `trunk-single-env`) and the permission model live in `/devops` (#227), not here. |
-| `/quality-gates` | What "done" means: the thesis, Definition of Done, the 100% functional-regression invariant, the gate tables per loop model |
+| `/quality-gates` | What "done" means AND the concrete gate policy that proves it, as two clearly-headed parts of one file: the thesis, Definition of Done, the 100% functional-regression invariant, the gate tables per loop model (Part I) — plus the stack-agnostic thresholds (lint=0, unit coverage ≥85%, contract/E2E, dependency + secret scanning, SAST) formerly the standalone `coverage` skill, folded in at #257 |
 
 ### backend (1)
 
@@ -337,9 +337,9 @@ explicitly as the CSP covered, since that's what all 21 source files documented.
 |---|---|
 | `/cloud-infrastructure` | AWS infrastructure end to end, one section per service: VPC, IAM, KMS, Secrets Manager, SSM, Cognito, WAF, DynamoDB, ElastiCache, S3, Lambda, API Gateway, CloudFront, ACM, Route53, SES, SNS, CloudWatch, CloudWatch RUM, CloudWatch X-Ray, and the Terraform setup that carries them all |
 
-### workflow (9)
+### workflow (8)
 
-DevOps tooling. `devops` is the umbrella (#227) — GitHub/CI-CD (OIDC, secrets/environments, the deploy workflows, the Issues backlog, the Claude Code GitHub App automation folded in at #256), Terraform Cloud as the state backend, branching per loop model, and the permission model that keeps IaC pipeline-only, all in one skill, preloaded by `developer` and `harness-lead`. The numeric-SemVer tagging rules are their own skill (`versioning`). Test runners live with their repo (the backend's Postman collection is a section of `/backend`, `/playwright` is standalone); the gate policy they feed is one stack-agnostic skill, `/coverage` — extracted from the `backend` consolidation at #230 specifically so it stays preloaded on every merge review regardless of stack; IaC checkov is in `/cloud-infrastructure`'s Terraform section. Architecturally-significant decisions are recorded via `adr`, split by domain (#223). Working-files and shell-command discipline — transversal across the whole roster, not DevOps-specific — is `command-hygiene`.
+DevOps tooling. `devops` is the umbrella (#227) — GitHub/CI-CD (OIDC, secrets/environments, the deploy workflows, the Issues backlog, the Claude Code GitHub App automation folded in at #256), Terraform Cloud as the state backend, branching per loop model, and the permission model that keeps IaC pipeline-only, all in one skill, preloaded by `developer` and `harness-lead`. The numeric-SemVer tagging rules are their own skill (`versioning`). Test runners live with their repo (the backend's Postman collection is a section of `/backend`, `/playwright` is standalone); the stack-agnostic gate policy that used to be its own skill (`coverage`, extracted at #230) is now a section of `/quality-gates` (`principles` family) — folded in at #257 once the two skills sat next to each other under near-identical names, still preloaded on every merge review regardless of stack because it travels with the skill every reviewing persona already carries; IaC checkov is in `/cloud-infrastructure`'s Terraform section. Architecturally-significant decisions are recorded via `adr`, split by domain (#223). Working-files and shell-command discipline — transversal across the whole roster, not DevOps-specific — is `command-hygiene`.
 
 | Command | Purpose |
 |---|---|
@@ -347,7 +347,6 @@ DevOps tooling. `devops` is the umbrella (#227) — GitHub/CI-CD (OIDC, secrets/
 | `/adr` | Architecture Decision Records: MADR format, two libraries (methodology/product), light significance gate, supersede-never-delete — authorship split by domain (#223) |
 | `/command-hygiene` | Where scratch files go, one atomic Bash call, the `gh --repo` flag position, `--body-file` always — preloaded by all 5 personas |
 | `/versioning` | Semantic versioning + tags: numeric SemVer via bump-my-version, loop guard, PR labels |
-| `/coverage` | Stack-agnostic quality/test/security gate policy: lint, typecheck, ≥85% coverage, contract/E2E, dependency + secret scanning, SAST — preloaded by `quality-assurance` on every review (#230) |
 | `/sonarcloud` | SonarCloud quality gate (SAST + coverage + smells), blocks merge |
 | `/code-review` | Author-side completeness pass before opening the MR: anticipates both gates, verifies the DoD with evidence |
 | `/documentation-standard` | Markdown + Mermaid only; diagram types per repo |

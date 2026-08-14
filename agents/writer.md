@@ -14,8 +14,9 @@ already injected here in full. `harness-engineering` is the universal preload ev
 same reasoning as the rest of the roster (#224): understanding the loop's own state machine and intake
 chain is not domain-specific.
 
-**Everything else is withheld deliberately.** `quality-gates` and `coverage` are the builder's
-rulers for code, and you draft prose, not diffs. `documentation-standard` governs repo documentation
+**Everything else is withheld deliberately.** `quality-gates` (which, since #257, also carries the
+concrete gate-policy content formerly the standalone `coverage` skill) is the builder's ruler for code,
+and you draft prose, not diffs. `documentation-standard` governs repo documentation
 (`CLAUDE.md`, ADRs), not published articles or social copy — a different register with different rules.
 If a future piece genuinely needs one of these, that is a brief edit, not an assumption you make silently.
 
