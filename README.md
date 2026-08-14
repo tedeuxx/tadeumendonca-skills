@@ -801,19 +801,25 @@ flowchart LR
   H2["wip-guard"]
   H3["session-wip"]
   H4["session-plugin-version"]
+  H5["dispatch-metrics-start"]
+  H6["dispatch-metrics-stop"]
 
   E1 --> H1
   E1 --> H2
   O1 --> H3
   O1 --> H4
+  O4 --> H5
+  O4 --> H6
 
-  class E1,O1 used
+  class E1,O1,O4 used
 ```
 
 | event | when it fires | denies? | hooks wired here | purpose |
 |---|---|---|---|---|
 | **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard`, `wip-guard` | refuse the irreversible floor and a PR that overlaps an open one, *before* either happens |
 | **`SessionStart`** | a session begins or resumes | no | `session-wip`, `session-plugin-version` | inject the open queue, and warn when the installed build is not the merged one |
+| **`SubagentStart`** | a subagent is dispatched | no | `dispatch-metrics-start` | best-effort dependency probe only — see below; does not post |
+| **`SubagentStop`** | a subagent finishes | no | `dispatch-metrics-stop` | log rework rounds, time, output size and token cost for the dispatch as a structured Issue comment (#209) |
 | `UserPromptSubmit` | a prompt is submitted, before processing | **yes** | — | |
 | `UserPromptExpansion` | a typed command expands, before it reaches the model | **yes** | — | |
 | `PermissionRequest` | a call needs a permission decision | **yes** | — | |
@@ -822,7 +828,7 @@ flowchart LR
 | `ConfigChange` | a configuration file changes mid-session | **yes** | — | |
 | `PostToolUse` · `PostToolUseFailure` · `PostToolBatch` | after a call succeeds, fails, or a parallel batch resolves | no | — | |
 | `SessionEnd` · `Setup` · `Notification` · `MessageDisplay` | session teardown · one-time prep · notification · message render | no | — | |
-| `SubagentStart` · `SubagentStop` · `TeammateIdle` | a subagent spawns or finishes · a teammate goes idle | not documented | — | |
+| `TeammateIdle` | a teammate goes idle | not documented | — | |
 | `TaskCreated` · `TaskCompleted` | a task is created or completed | not documented | — | |
 | `InstructionsLoaded` · `CwdChanged` · `DirectoryAdded` · `FileChanged` | project rules load · cwd moves · a directory is added · a watched file changes | no | — | |
 | `WorktreeCreate` · `WorktreeRemove` | a worktree is created or removed | not documented / no | — | |
@@ -851,7 +857,14 @@ does not degrade at all.
 `permission-guard` denies the irreversible floor before the command runs. `wip-guard` refuses a pull
 request that touches files an open one already touches — the bound is file overlap, not a count, because
 counting blocks disjoint work while doing nothing about the real risk. `session-wip` lists the open queue.
-`session-plugin-version` says when the installed build is not the merged one.
+`session-plugin-version` says when the installed build is not the merged one. `dispatch-metrics-stop`
+logs the four benchmarking metrics the owner asked for on #209 — rework rounds, time, token cost, and an
+output-size proxy — as a structured comment on the Issue the dispatch worked, deriving them from
+`agent_transcript_path` (a per-dispatch JSONL transcript, separate from the main session's own) and from
+the PR's own gatekeeper-verdict markers rather than pasting any raw dispatch text. `dispatch-metrics-start`
+does not post; it only warns, once, if `jq` is missing and the Stop hook therefore cannot capture
+anything this session — see `hooks/scripts/dispatch-metrics-stop.sh` for the full design record,
+including why this is one comment per dispatch rather than one comment updated per Issue.
 
 **There used to be a fifth hook here, `session-scratch`, sweeping a repo-root `.scratch/` directory —
 retired at #245.** It existed to guarantee nothing survived into a new session, on the belief that a
@@ -872,7 +885,7 @@ by hand:
 | **Skills** | yes — **13** | `skills/<family>/[<name>/]SKILL.md`, each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-family-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **6 subagent personas** | `agents/*.md` (`developer`, `harness-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `writer`) | dispatched by name via `Task` |
-| **Hooks** | yes — **`hooks.json` registers 4** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`) — automatic, no invocation |
+| **Hooks** | yes — **`hooks.json` registers 6** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`) — automatic, no invocation |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
 | LSP servers | **no** | — | no `.lsp.json` |
