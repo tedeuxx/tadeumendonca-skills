@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 12 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 13 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -414,7 +414,7 @@ was built to avoid.
 
 ## The skill library, whose domain each family is, and what is actually preloaded
 
-**Skills carry the conventions so the model does not re-invent them.** **12 skills + autonomy-on**,
+**Skills carry the conventions so the model does not re-invent them.** **13 skills + autonomy-on**,
 `autonomy-off` and `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
@@ -508,12 +508,25 @@ from scratch, and the new skill's actual audience — someone standing up a DoD 
 not a role any of the six plays inside this loop's own operation. It stays reachable the same way every
 non-preloaded skill is: typed as `/definition-of-done`, or via the `Skill` tool on demand.
 
-**442,298 B as billed across the six, 124,931 B distinct — 31.6% of the library (395,429 B across 12
+**`planning-poker` (13,112 B, #266) is deliberately preloaded by NO persona either, and for a stronger
+reason than `definition-of-done`'s.** This loop runs no human estimation ceremony at all — the roster
+that would once have held one (`scrum-master`, `product-owner`, `product-manager`) was absorbed into
+`product-lead`, and the loop's own thesis (`/harness-engineering`) replaced story points with mechanical,
+agent-graded gates as the thing that decides whether work is done. No persona in this roster *runs* a
+planning poker round, *diagnoses* one, or *designs* one at dispatch time — unlike `definition-of-done`,
+where `quality-assurance` at least *applies* a concrete instance of the concept the skill defines, nothing
+here even touches this skill's subject at any dispatch. It stays reachable the same way every
+non-preloaded skill is: typed as `/planning-poker`, or via the `Skill` tool on demand.
+
+**442,298 B as billed across the six, 124,931 B distinct — 30.6% of the library (408,541 B across 13
 skills; `find skills -name SKILL.md | xargs wc -c`), and no persona over 102 KB (`developer`, still the
 largest at 101,637 B — see its bullet above for the 763 B, #265-driven delta).**
 (All figures measured
 directly — `wc -c` per file listed above — rather than carried forward from an earlier count, as the LAST
-step against the final committed state; #265 added `definition-of-done` as a new skill, preloaded by no
+step against the final committed state; #266 added `planning-poker` as a new skill, preloaded by no
+persona (see above), which moves the library-wide total and percentage but neither the billed nor the
+distinct preload figure, since nothing carries it. #265 added `definition-of-done` as a new skill,
+preloaded by no
 persona (see above), and grew `quality-gates` by 763 B via its own repointing paragraph, which moves
 `developer`'s and `quality-assurance`'s totals — the only two that carry `quality-gates` — by that amount.
 #264 added `definition-of-ready` as a new skill and a new preload
@@ -548,7 +561,7 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library, by family: backend (1), frontend (1), infrastructure (1), principles (4), workflow (5).
+The library, by family: backend (1), frontend (1), infrastructure (1), principles (5), workflow (5).
 
 | skill | what it decides | family | whose domain |
 |---|---|---|---|
@@ -558,6 +571,7 @@ The library, by family: backend (1), frontend (1), infrastructure (1), principle
 | `definition-of-done` | Definition of Done — the ruler that decides when work stops | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `definition-of-ready` | Definition of Ready — the bar a work item clears before it is buildable | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `planning-poker` | Planning Poker — consensus estimation, and what it is actually for | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `quality-gates` | Quality gates — the definition of done and the concrete policy that proves it | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `workflow` | `developer` |
 | `command-hygiene` | Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched | `workflow` | `product-lead` · `tech-lead` · `harness-lead` · `developer` · `quality-assurance` |
@@ -855,7 +869,7 @@ by hand:
 
 | resource type | ships? | where | how it takes effect |
 |---|---|---|---|
-| **Skills** | yes — **12** | `skills/<family>/[<name>/]SKILL.md`, each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
+| **Skills** | yes — **13** | `skills/<family>/[<name>/]SKILL.md`, each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-family-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **6 subagent personas** | `agents/*.md` (`developer`, `harness-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `writer`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 4** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`) — automatic, no invocation |
