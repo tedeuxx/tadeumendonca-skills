@@ -32,7 +32,7 @@ reads as a reference to the section below/above that covers it instead. Referenc
 this merge (`/devops`, `/harness-engineering`,
 `/lambda-handler`, `/redis-cache`, `/notifications`, `/og-edge-handler`, `/environment-config`,
 `/secrets-management`, `/authentication`, `/bff`, `/metrics`, `/logging`, `/tracing`, `/pagination`,
-`/openapi`, `/sonarcloud`, `/versioning`, …) are unchanged.
+`/openapi`, `/sonarcloud`, …) are unchanged.
 
 ## Terraform
 
