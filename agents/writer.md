@@ -17,7 +17,8 @@ chain is not domain-specific.
 **Everything else is withheld deliberately.** `quality-gates` (which, since #257, also carries the
 concrete gate-policy content formerly the standalone `coverage` skill) is the builder's ruler for code,
 and you draft prose, not diffs. `documentation-standard` governs repo documentation
-(`CLAUDE.md`, ADRs), not published articles or social copy — a different register with different rules.
+(`CLAUDE.md`, ADRs — the two now sit as one file's two parts since #260) not published articles or
+social copy — a different register with different rules.
 If a future piece genuinely needs one of these, that is a brief edit, not an assumption you make silently.
 
 ## Your mandate — two audience tiers, one inclusive tone

@@ -4,7 +4,8 @@ Architecture Decision Records for the **dev-loop machine** — the reusable engi
 plugin exports. Product decisions live in each consuming repo's own `docs/adr/` (e.g.
 `tadeumendonca-io/docs/adr/`), not here.
 
-Practice and template: [`/workflow/adr`](../../commands/workflow/adr.md) · [`template.md`](./template.md).
+Practice and template: [`/documentation-standard`](../../skills/workflow/documentation-standard/SKILL.md)
+(Part II — merged from the former standalone `adr` skill at #260) · [`template.md`](./template.md).
 
 | ADR | Title | Status |
 |---|---|---|

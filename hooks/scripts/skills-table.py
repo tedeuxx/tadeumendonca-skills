@@ -57,7 +57,7 @@ WIELDER = {
     "infrastructure": DEVELOPER,
 }
 PER_SKILL = {
-    ("workflow", "adr"): "`tech-lead` · `harness-lead` — split by domain (#223)",
+    ("workflow", "documentation-standard"): "`developer` (Part I, general docs) · `tech-lead` · `harness-lead` — Part II, ADR practice split by domain (#223)",
     ("workflow", "command-hygiene"): "`product-lead` · `tech-lead` · `harness-lead` · `developer` · `quality-assurance`",
     ("workflow", "devops"): "`developer` · `harness-lead` · `tech-lead` (#227)",
 }

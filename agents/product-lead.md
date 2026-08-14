@@ -86,8 +86,9 @@ discipline as any other non-preloaded reference; do not assume its guidance is a
 **Everything else in `commands/` and `skills/` is excluded, and that is a finding rather than a gap** —
 the ones you do not carry are the remaining implementation guides for an architecture you do not judge,
 plus `autonomy-on`, which is a command the owner invokes rather than a guide. The one real candidate was
-**`documentation-standard`**, and it was cut: its consumer is whoever *writes* the doc, not the persona
-reviewing whether a published claim is true.
+**`documentation-standard`** (which, since #260, also carries the ADR practice formerly its own `adr`
+skill), and it was cut: its consumer is whoever *writes* the doc, not the persona reviewing whether a
+published claim is true.
 
 ## Working files and command hygiene
 
