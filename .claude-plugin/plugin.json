@@ -13,7 +13,7 @@
     "./skills/frontend",
     "./skills/infrastructure/cloud-infrastructure",
     "./skills/principles/harness-engineering",
-    "./skills/principles/verification-and-gates",
+    "./skills/principles/quality-gates",
     "./skills/workflow/adr",
     "./skills/workflow/claude-code",
     "./skills/workflow/code-review",

@@ -1,5 +1,5 @@
 ---
-description: Run any slice through the loop — intake, the state machine, the inner-loop steps — and apply the judgment (eleven principles, two tiers) behind every decision in it. Use when picking up a slice, proposing a change to the loop itself, or naming Agent Harness Engineering / AI-DLC in public writing. Not what "done" means (see verification-and-gates), or the permission zones and CI/CD workflows (see devops).
+description: Run any slice through the loop — intake, the state machine, the inner-loop steps — and apply the judgment (eleven principles, two tiers) behind every decision in it. Use when picking up a slice, proposing a change to the loop itself, or naming Agent Harness Engineering / AI-DLC in public writing. Not what "done" means (see quality-gates), or the permission zones and CI/CD workflows (see devops).
 ---
 
 Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state
@@ -10,7 +10,7 @@ Context: $ARGUMENTS
 
 This is the **universal preload**: the one skill every profile in this roster carries, because
 understanding the loop itself is not domain-specific the way the rest of the process library is.
-Two companion skills carry adjacent ground and are **not** folded in here: `/verification-and-gates`
+Two companion skills carry adjacent ground and are **not** folded in here: `/quality-gates`
 (what "done" means, the Definition of Done, the gate tables) and `/devops` (the permission zones and
 guard hook that make the deny-boundary mechanical, plus CI/CD and the branching topology). The single-
 vs. two-environment branching topology lives in `/devops` (#227) — this skill keeps only how the state
@@ -491,7 +491,7 @@ amendment these are consolidating into single reference skills named `backend`, 
 `cloud-infrastructure` — **not yet built as of this writing**, so read the family directories as they
 stand until that consolidation lands.
 
-See also: `/verification-and-gates` (the Definition of Done, the gate tables per loop model),
+See also: `/quality-gates` (the Definition of Done, the gate tables per loop model),
 `/devops` (the permission zones and guard hook, branching, per-environment topology, OIDC, the deploy
 workflows, TFC state), `/coverage` (gate definitions, both stacks), `/playwright` (E2E). Repos with an
 API layer add its contract/API suite — see `/postman`.

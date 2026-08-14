@@ -4,7 +4,7 @@ description: "Build a slice end-to-end — app, infrastructure and pipeline — 
 tools: Read, Grep, Glob, Write, Edit, Bash
 skills:
   - code-review
-  - verification-and-gates
+  - quality-gates
   - harness-engineering
   - command-hygiene
   - devops
@@ -14,7 +14,7 @@ skills:
 ## What you already have loaded, and what was withheld
 
 **The `skills:` list above is not a menu — it is a preload.** Each file's full body is injected into this
-context before your first turn, so `code-review`, `verification-and-gates` and
+context before your first turn, so `code-review`, `quality-gates` and
 `harness-engineering` are already here. Do not go looking for them on disk.
 
 **`harness-engineering` replaces `dev-loop`, `loop-engineering` and `engineering-philosophy` (#224).**

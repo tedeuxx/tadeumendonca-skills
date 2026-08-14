@@ -1,5 +1,5 @@
 ---
-description: Set the quality/test/security gate policy that blocks a merge — lint and typecheck at zero, unit coverage ≥85% on both stacks, contract/E2E proof for what exists, dependency and secret scanning, and SAST imported with coverage into one verdict. Use when a merge needs a reviewable Definition of Done, deciding whether a threshold can be lowered, or wiring a new gate into CI. Not for the definition of done itself (see verification-and-gates) or SonarCloud mechanics (see sonarcloud).
+description: Set the quality/test/security gate policy that blocks a merge — lint and typecheck at zero, unit coverage ≥85% on both stacks, contract/E2E proof for what exists, dependency and secret scanning, and SAST imported with coverage into one verdict. Use when a merge needs a reviewable Definition of Done, deciding whether a threshold can be lowered, or wiring a new gate into CI. Not for the definition of done itself (see quality-gates) or SonarCloud mechanics (see sonarcloud).
 ---
 
 # Quality gates
