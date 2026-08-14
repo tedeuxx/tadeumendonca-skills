@@ -4,6 +4,7 @@ description: "Own the product side below the owner — what to build next and wh
 tools: Read, Grep, Glob, Bash
 skills:
   - harness-engineering
+  - definition-of-ready
   - command-hygiene
 ---
 
@@ -67,12 +68,19 @@ skills:
   leak this predicts ever happens, the fix is to split the tool grant, not to add more prose.
 -->
 
-## One skill preloaded, and why the rest still isn't
+## What's preloaded, and why the rest still isn't
 
-**This brief carries exactly one `skills:` entry, `harness-engineering` (#224) — the universal
-preload every profile carries, because understanding the loop's own state machine and intake chain is
-not domain-specific the way the rest of the process library is.** It used to carry none, and the
-reasoning below for staying otherwise empty is unchanged: this is the one exception, not a reopening.
+**This brief carries three `skills:` entries.** `harness-engineering` (#224) is the universal preload
+every profile carries, because understanding the loop's own state machine and intake chain is not
+domain-specific the way the rest of the process library is. `command-hygiene` (#225) is the second
+universal preload, for the working-files and shell-command discipline every persona that writes or runs
+`Bash` needs — see below for why it barely applies to you. **`definition-of-ready` (#264) is the one
+domain-specific addition, and it is argued rather than assumed:** closing an Issue's description — the
+act that earns it the `ready` label — is not an occasional reference for this persona, it is what you do
+at every single intake dispatch, jointly with `tech-lead`. That is the same class of necessity that
+justifies a universal preload, narrowed to the two personas who actually perform the act. It used to
+carry only `harness-engineering`, and the reasoning below for staying otherwise empty is unchanged for
+everything but this one exception.
 
 `new-issue` is a **command** (`commands/new-issue.md`, it carries `argument-hint`), not a skill — and a
 command is never associated with any profile's `skills:` list, per this repo's own command-vs-skill
