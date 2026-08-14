@@ -1,0 +1,65 @@
+name: Loop
+description: The loop's own machinery — a hook, an agent brief, a skill, a command, the permission floor, the plugin manifest. Routes to harness-lead + tech-lead intake.
+labels: ["loop"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Only the owner opens work. This template exists so `/new-issue` (and a human filing directly)
+        close the same description the two-lead intake produces — see `commands/new-issue.md` for the
+        full process this mirrors. Loop-typed intake is `harness-lead` alone (standing rule) — see
+        `/harness-engineering`.
+  - type: textarea
+    id: request
+    attributes:
+      label: What you want changed in the harness itself
+      description: A hook, an agent brief, a skill, the permission floor, the plugin manifest — in your own words.
+    validations:
+      required: true
+  - type: textarea
+    id: search
+    attributes:
+      label: What the search found
+      description: |
+        Was this already decided somewhere — an ADR (`docs/adr/`), `CLAUDE.md`, a closed Issue, the
+        hook's own header comment?
+        One of three answers: it was decided and here is why · it was decided and a premise changed ·
+        nothing decides it (say so explicitly).
+    validations:
+      required: true
+  - type: textarea
+    id: intake
+    attributes:
+      label: harness-lead intake
+      description: |
+        The scenarios a proposed change does not cover, each with how to check it or labelled a
+        hypothesis, per `harness-lead`'s own mandate. `tech-lead` co-cites only if the decision
+        straddles a product/system-architecture stake.
+    validations:
+      required: false
+  - type: input
+    id: parent
+    attributes:
+      label: "Parent (if this is a task, not a story)"
+      description: "Parent: #N — a task is an Issue child, per ADR-0014. Leave blank for a story-level Issue."
+      placeholder: "#N"
+    validations:
+      required: false
+  - type: dropdown
+    id: class
+    attributes:
+      label: Class
+      description: "A change to the dev-loop's own rules is boundary by definition. Significance beats in-pattern — when unclear, it is boundary."
+      options:
+        - boundary
+        - safe
+    validations:
+      required: true
+  - type: input
+    id: intake-stamp
+    attributes:
+      label: Intake stamp
+      description: "Date and the main SHA harness-lead read, once the description closes."
+      placeholder: "YYYY-MM-DD, <sha>"
+    validations:
+      required: false
