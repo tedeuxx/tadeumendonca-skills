@@ -249,9 +249,7 @@ safe pin (no mid-development tags pollute the namespace).
 
 The harness's **principles layer**: how the owner builds software, so an agent's behavior doesn't drift. Cross-cutting (applies to every repo), distinct from the per-component how-to skills. Canonical summary in the README's *engineering floor* section; deep validation via the subagent that **owns** the decision — `tech-lead` against the principles and the ADR library at design time, `quality-assurance` against the Definition of Done once it is built (`plan-reviewer`, named here until 2026-08-03, was retired outright and invoking it fails); irreversible-floor enforcement via the shipped PreToolUse guard (`hooks/`).
 
-The **agentic dev-loop** (methodology ADRs `docs/adr/`, design in `docs/proposals/agentic-dev-loop.md`): a team of per-task subagents in `agents/`, materialized lazily.
-
-The **agentic dev-loop** (methodology ADRs `docs/adr/`): per-task subagents in `agents/`, materialized lazily and **cut when they do not run**.
+The **agentic dev-loop** (methodology ADRs `docs/adr/`, design in `README.md`): per-task subagents in `agents/`, materialized lazily and **cut when they do not run**.
 
 **Six personas, down from nineteen, plus one added back deliberately (#187).** `product-lead`, `tech-lead` and `harness-lead` above the build, `developer` and `writer` building, `quality-assurance` gating. The roster was modelling an org's ROLES, one per concern. The owner's criterion replaced that: **a persona exists only where conflict is wanted** — where someone should be arguing against someone else. Everything that generated no disagreement was a handoff, and the handoff was why it never ran. See ADR-0002's seventh amendment for the measurement, and its later amendment recording `writer`'s addition (#187) — a content-scoped second builder, added because a `content`-typed Issue had no mechanical builder at all, not because it argues with anyone.
 

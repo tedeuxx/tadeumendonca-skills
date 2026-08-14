@@ -1,9 +1,35 @@
 # Proposal: the agentic dev-loop
 
-- **Status:** Proposed (awaiting ratification)
+- **Status:** Superseded — ratified into ADR-0001 through ADR-0004; superseded as a design document by
+  README.md (2026-08-14, #262)
 - **Date:** 2026-07-22
 - **Scope:** `tadeumendonca-skills` (the plugin — the reusable machine) consumed by `tadeumendonca-io` and future projects
 - **On acceptance, splits into methodology ADRs:** ADR-0001 (adopt MADR), ADR-0002 (agentic dev-loop architecture), ADR-0003 (MR Definition of Done), ADR-0004 (autonomy & permission model)
+
+**Archived 2026-08-14 (#262).** This proposal's own `Status:` field said "Proposed (awaiting
+ratification)" long after it was in fact ratified — the four methodology ADRs it names above
+(ADR-0001 through ADR-0004) landed within days of this document, and every subsequent amendment
+recorded here (the roster reshapes, the merges, `plan-reviewer`'s retirement) was tracked in
+`CLAUDE.md`, `README.md` and the ADR library instead, not here. This document still names
+`plan-reviewer`, a persona retired outright — read that and every other detail below as **the
+proposal as it stood on 2026-07-22**, not as the loop's current shape.
+
+**The current, single source of truth for the dev-loop design is [README.md](../../README.md)**
+(ratified by [ADR-0019](../adr/0019-readme-is-the-single-source-of-truth-for-the-dev-loop.md),
+2026-08-14, superseding the intermediate consolidation this same document had briefly pointed
+readers to, `docs/dev-loop-design.md` — now itself a redirect stub for the same reason this file is
+being marked one). For the decisions this proposal was ratified into, read
+[ADR-0001](../adr/0001-adopt-madr-adrs.md) (adopt MADR),
+[ADR-0002](../adr/0002-agentic-dev-loop-architecture.md) (the dev-loop architecture, including every
+roster amendment since),
+[ADR-0003](../adr/0003-mr-definition-of-done.md) (the MR Definition of Done), and
+[ADR-0004](../adr/0004-autonomy-and-permission-model.md) (autonomy & the permission model).
+
+**Kept below, in full, as a historical record — not rewritten, per this platform's own
+supersede-never-delete convention.** Anyone who bookmarked or linked into this document deserves to
+find out what happened to it, not to read stale content as if it still described the live loop.
+
+---
 
 ## 0. TL;DR
 

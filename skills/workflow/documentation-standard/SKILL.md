@@ -96,7 +96,8 @@ the options weighed, the choice, and its consequences. ADRs are the **durable sh
 platform — a fresh, per-task agent context cannot remember prior decisions, so it reads them here.
 Without ADRs, isolated contexts re-decide and drift; with them, every context stays coherent with what
 was already pacted. This is why the ADR library is the substrate the rest of the dev-loop stands on (see
-`docs/proposals/agentic-dev-loop.md`).
+`README.md`, the current single source of truth for the dev-loop design — the former
+`docs/proposals/agentic-dev-loop.md` is now a superseded historical record, per ADR-0019).
 
 ### When to write one — the significance test (the light gate)
 
