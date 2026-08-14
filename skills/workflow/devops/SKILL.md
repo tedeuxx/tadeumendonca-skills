@@ -1,5 +1,5 @@
 ---
-description: Operate DevOps for a `<project>` repo — GitHub Actions, Terraform Cloud, branching per loop mode, the pipeline-only IaC floor, numeric SemVer via bump-my-version, and the Claude Code GitHub App. Use when wiring a pipeline, granting CI a role, choosing branching/protection, cutting a release, or deciding which SemVer part to bump. Not for Terraform config (see cloud-infrastructure), the loop state machine (see harness-engineering), or the pre-merge pass (see code-review).
+description: Operate DevOps for a `<project>` repo — GitHub Actions, Terraform Cloud, branching, the pipeline-only IaC floor, numeric SemVer, the Claude Code GitHub App, and SonarCloud (setup, CI step, gate wiring). Use when wiring a pipeline, granting CI a role, cutting a release, bumping SemVer, or a Sonar gate is red. Not for Terraform config (see cloud-infrastructure), state machine (see harness-engineering), the gate list Sonar sits inside (see quality-gates), or the pre-merge pass (see code-review).
 ---
 
 Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and
@@ -160,6 +160,59 @@ starts the workflow, so branch protection leaves it permanently `BLOCKED`. **Fix
 the `pull_request` trigger so the job always runs and reports, then gate the heavy *steps* inside it with
 a `dorny/paths-filter@v3` step + `if:`. Keep the `push` trigger's `paths:` (SonarCloud baseline only on
 real changes).
+
+### SonarCloud — the quality-gate mechanics
+
+Folded in here (#259) because it is the same object as everything else in this section: a CI step
+wired into the workflow set above, not a separate capability. SonarCloud runs on every PR and on push
+to develop/main as a **Quality Gate** — static analysis (bugs, code smells, **vulnerabilities/SAST**,
+security hotspots), coverage, and duplication. A failing gate **blocks the merge/deploy**. Analysis is
+**CI-based**, not Automatic: SonarCloud **Automatic Analysis must be OFF** per project or the scanner is
+rejected. For the full gate list this sits inside (lint, typecheck, coverage thresholds, contract/E2E,
+dependency + secret scanning), see `quality-gates` — this section is the Sonar mechanics only.
+
+**Setup (per repo):**
+- `sonar-project.properties`: `sonar.projectKey`, `sonar.organization`, `sonar.sources` (+
+  `sonar.tests`/`sonar.coverage.exclusions` for code repos).
+- Secret **`SONAR_TOKEN`** — **per repo under a personal GitHub account**, since organization-level
+  secrets do not exist there; under an org, define it once at org level and grant it to the repos that
+  need it. *The cost of the personal-account shape is rotation:* one token change is N repo edits, so
+  keep a list of the repos that hold it, or the next rotation silently leaves one red.
+- Coverage import (code repos): `sonar.javascript.lcov.reportPaths=coverage/lcov.info` (from vitest;
+  covers TS/TSX too). IaC repos have no coverage.
+
+**CI step (after tests, in the build/test workflow above).** The legacy `sonarcloud-github-action` is
+**deprecated/archived** — use the unified scan action. One step both scans and gates via
+`qualitygate.wait` (no separate quality-gate action):
+```yaml
+- uses: SonarSource/sonarqube-scan-action@v7
+  env:
+    SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    SONAR_HOST_URL: https://sonarcloud.io   # SonarCloud host
+  with:
+    args: -Dsonar.qualitygate.wait=true     # poll + FAIL the job on a red gate
+```
+Checkout needs `fetch-depth: 0` (full history → accurate new-code/blame attribution).
+
+**Conventions:**
+- **Where it lives:** code repos (api/fed) run Sonar **inside the build/test workflow** after
+  lint/typecheck/tests — it consumes the test step's `coverage/lcov.info`. The iac repo runs Sonar in a
+  **standalone `sonar.yml`** (no coverage to consume, and it must not trigger the AWS plan on push).
+- **iac:** SonarCloud **IaC analysis** scans the Terraform (smells, security hotspots) **in addition to**
+  `checkov` (policy/security gate in the infra-plan workflow) — the two are complementary
+  (`cloud-infrastructure`'s Terraform section).
+- **Quality gate definition:** the built-in **"Sonar way"** gate (Default) on **new code**
+  (clean-as-you-code), incl. **Coverage on New Code ≥ 80%**. `qualitygate.wait=true` fails the *job*; to
+  actually **block merge**, also make the workflow check (`ci` for api/fed, `sonar` for iac) a
+  **required status check** in branch protection.
+- Vitest still enforces the local **≥85%** (whole-codebase) as a fast pre-check; Sonar owns the
+  authoritative gate on **new code** (≥80%) — two different scopes, not a contradiction.
+- `SONAR_TOKEN` is a per-repo GitHub secret — same secrets standard as the rest of this skill.
+- **This skills repo is not a Sonar project** — markdown command guides have nothing to analyze.
+
+**Pros/cons, specific to this automation:** SAST + coverage + smells in one quality gate that blocks
+merge, free for public repos, trend tracking — traded against false positives to triage, another
+account/gate to manage, and thresholds that need tuning.
 
 ## Versioning & tags — numeric SemVer via bump-my-version
 
