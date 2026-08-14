@@ -429,16 +429,36 @@ check_agent ALLOW "tadeumendonca-skills:product-lead" "reading a PR's comments" 
 # commit message ABOUT the act. Same trap, asserted rather than assumed.
 check_agent ALLOW "tadeumendonca-skills:product-lead" "a message mentioning the act" "git commit -m 'gh pr comment notes'"
 
+echo "--- rule 5e: writer is contained the same way, and for the same reason (#187) ---"
+# `writer` reads `.brand/` to draft, exactly the shape `product-lead` was denied for — inverted from a
+# denylist to an allowlist at #187 specifically so a new private-material-reading persona defaults to
+# DENY rather than needing to be remembered.
+check_agent DENY "tadeumendonca-skills:writer" "pr comment"       "gh pr comment 149 --body 'draft text'"
+check_agent DENY "tadeumendonca-skills:writer" "issue comment"    "gh issue comment 149 --body 'draft text'"
+check_agent DENY "tadeumendonca-skills:writer" "issue create"     "gh issue create --title x --body y"
+# Drafting itself is untouched — writer's route is Write/Edit onto tracked files, not this rule's concern.
+check_agent ALLOW "tadeumendonca-skills:writer" "listing PRs"     "gh pr list --state open"
+check_agent ALLOW "tadeumendonca-skills:writer" "viewing an issue" "gh issue view 173"
+
+echo "--- rule 5e: an unlisted persona defaults to DENY, not ALLOW (#187, ADR-0018) ---"
+# The falsifier the inversion exists to satisfy: a persona nobody remembered to add to the allow side
+# must NOT post by default. Before #187 this fell through ALLOW for anything not literally named
+# `product-lead` — the exact "absent is not a state" shape ADR-0018 records for the AWS floor, now
+# closed here too.
+check_agent DENY "tadeumendonca-skills:some-future-persona" "unlisted persona, pr comment" "gh pr comment 149 --body b"
+check_agent DENY "tadeumendonca-skills:some-future-persona" "unlisted persona, issue create" "gh issue create --title x --body y"
+
 echo "--- rule 5e: the gatekeeper protocol must keep running ---"
 # The gatekeeper comments its verdict on every MR. A rule that matched by SUBCOMMAND rather than by
 # agent would take out the protocol this whole loop runs on, and would do it silently — the verdicts
-# would simply stop arriving. These are the cases that fail if 5e is ever widened past its one persona.
+# would simply stop arriving. These are the cases that fail if 5e's allowlist ever drops an entry it
+# needs.
 #
 # THE SECOND GATEKEEPER'S CASES ARE NOT DELETED, THEY ARE RE-POINTED. `security` was absorbed into
 # `quality-assurance` on 2026-08-04, and the property those two lines held was never about that
-# persona: it is that 5e denies `product-lead` and NOBODY ELSE. Dropping them would leave the
-# reviewer as the only non-denied persona under test, so a widening of 5e to "every subagent but the
-# builder" would pass. `harness-lead` keeps that half alive.
+# persona: it is that 5e's allowlist covers every persona that legitimately posts as part of its normal
+# work. Dropping them would leave the reviewer as the only allowed persona under test, so a narrowing
+# of 5e's allowlist would pass. `harness-lead` keeps that half alive.
 check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer comments its verdict" "gh pr comment 149 --body-file /tmp/verdict.md"
 check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer comments on an issue" "gh issue comment 173 --body b"
 check_agent ALLOW "tadeumendonca-skills:harness-lead"  "the harness lens comments too"     "gh pr comment 149 --body-file /tmp/verdict.md"
