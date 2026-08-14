@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 10 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 11 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -414,7 +414,7 @@ was built to avoid.
 
 ## The skill library, whose domain each family is, and what is actually preloaded
 
-**Skills carry the conventions so the model does not re-invent them.** **10 skills + autonomy-on**,
+**Skills carry the conventions so the model does not re-invent them.** **11 skills + autonomy-on**,
 `autonomy-off` and `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
@@ -447,9 +447,9 @@ before the persona's first turn.** There is no declare-without-loading option, s
 deprivation rather than a deferral**, which is why the briefs argue their omissions rather than listing
 them.
 
-- **`developer` — 100,213 B** — `code-review` · `quality-gates` ·
+- **`developer` — 100,874 B** — `code-review` · `quality-gates` ·
   `harness-engineering` · `command-hygiene` · `devops`
-- **`quality-assurance` — 80,553 B** — `harness-engineering` · `quality-gates` ·
+- **`quality-assurance` — 81,214 B** — `harness-engineering` · `quality-gates` ·
   `devops` · `command-hygiene`. `coverage` used to be a fifth, separate entry here; #257 folded its
   content into `quality-gates`, so the same policy is still fully preloaded — the entry disappeared, not
   the content. `sonarcloud` used to be the third entry; #259 folded it into `devops`, and this brief now
@@ -457,10 +457,11 @@ them.
   put to `tech-lead`, decided the same way and for a stronger reason here: `devops` also carries the
   canonical source for three of this brief's own production-lens criteria (IAM least-privilege, the
   immutable OIDC subject, SHA-pinning) that this file previously restated in compressed form.
-- **`tech-lead` — 78,085 B** — `documentation-standard` · `harness-engineering` ·
-  `command-hygiene` · `devops`. This used to be five entries (`adr`, `documentation-standard`,
-  `harness-engineering`, `command-hygiene`, `devops`); #260 folded `adr` into `documentation-standard`
-  as its Part II, so the entry count drops. This brief already preloaded both bodies of content in full
+- **`tech-lead` — 90,016 B** — `documentation-standard` · `harness-engineering` ·
+  `definition-of-ready` · `command-hygiene` · `devops`. This used to be five entries (`adr`,
+  `documentation-standard`, `harness-engineering`, `command-hygiene`, `devops`); #260 folded `adr` into
+  `documentation-standard` as its Part II, so the entry count temporarily dropped to four before #264
+  added a fifth back. This brief already preloaded both bodies of content in full
   before the merge (76,495 B), and the merged file runs 1,590 B heavier than the sum of the two originals
   it replaces (12,024 B vs. 6,307 B + 4,127 B) — the added framing prose that keeps Part I and Part II
   legible as two sections rather than one blended body. `versioning` used to be a separate fifth entry too;
@@ -468,9 +469,16 @@ them.
   sequencing content it argued it needs (#227) — a real decision, recorded in the brief itself, that
   also closes a gap the *whose domain* table below already asserted (`tech-lead` as a `devops` domain
   holder, #227) without this preload list backing it until now. The trade: a heavier preload than the
-  narrow `versioning` file it replaces.
-- **`product-lead` — 38,665 B** — `harness-engineering` · `command-hygiene`
-- **`harness-lead` — 78,085 B** — `harness-engineering` · `documentation-standard` · `command-hygiene` ·
+  narrow `versioning` file it replaces. **`definition-of-ready` (11,131 B, #264) is the newest entry** —
+  argued rather than assumed: closing an Issue's description with `product-lead` is not an occasional
+  reference for this persona, it happens at every intake dispatch, which is the same class of necessity
+  that justifies a preload rather than a `Read` on demand.
+- **`product-lead` — 50,457 B** — `harness-engineering` · `definition-of-ready` · `command-hygiene`.
+  `definition-of-ready` (11,131 B, #264) is a new, deliberate second domain-specific entry alongside the
+  universal preloads — the same reasoning as `tech-lead`'s addition above: this persona performs the act
+  the skill defines (closing a description to the point it earns `ready`) at every dispatch, not
+  occasionally.
+- **`harness-lead` — 78,885 B** — `harness-engineering` · `documentation-standard` · `command-hygiene` ·
   `devops`. `harness-engineering` was the one exception to what used to be `skills: []`; the other three
   followed for reasons its own brief states (`documentation-standard`'s Part II — the ADR practice
   formerly the standalone `adr` skill, folded in at #260 — for loop/harness ADRs since #223,
@@ -481,22 +489,28 @@ them.
   it is harmless: nothing in Part I describes machinery this brief owns, so there is nothing new to go
   stale. `versioning` used to be a fifth entry here;
   #258 folded it into `devops`, so the entry disappeared and the content travels inside the skill already
-  loaded. It remains the persona most exposed to staleness, a real tension a frozen
+  loaded. **`definition-of-ready` was deliberately NOT added here** — `harness-lead` takes no part in
+  closing a `product`/`content` description (`/harness-engineering`, *Intake*); it is dispatched on
+  `loop`-typed proposals only, where `ready` is an owner-only transition it never performs. It remains
+  the persona most exposed to staleness, a real tension a frozen
   preload creates that its own brief names as a residual rather than resolves.
-- **`writer` — 38,665 B** — `harness-engineering` · `command-hygiene`
+- **`writer` — 39,326 B** — `harness-engineering` · `command-hygiene`
 
-**414,266 B as billed across the six, 112,237 B distinct — 30.5% of the library (367,620 B across 10
+**440,772 B as billed across the six, 124,168 B distinct — 32.7% of the library (379,551 B across 11
 skills; `find skills -name SKILL.md | xargs wc -c`), and no persona over 101 KB (`developer`, still the
-largest at 100,213 B, unaffected by this merge — it never preloaded `adr` or `documentation-standard`).**
+largest at 100,874 B, only 661 B heavier than before — the growth is `harness-engineering`'s two new
+cross-reference sentences to `definition-of-ready`, #264, not a new preload entry for this persona).**
 (All figures measured
-directly — `wc -c` per file listed above — rather than carried forward from an earlier count; #260
-folded `adr` into `documentation-standard`, which changed the `tech-lead` and `harness-lead` totals and
+directly — `wc -c` per file listed above — rather than carried forward from an earlier count, as the LAST
+step against the final committed state; #264 added `definition-of-ready` as a new skill and a new preload
+entry for `product-lead` and `tech-lead` specifically — see each bullet above for why those two and not
+the other four — and grew `harness-engineering` itself by 661 B via its own cross-reference edit, which
+moves every persona's total by that amount since all six carry it. #260 folded `adr` into
+`documentation-standard`, which changed the `tech-lead` and `harness-lead` totals and
 the library-wide distinct/billed figures; #259 folded `sonarcloud` into `devops` before that, changing
 four of the six totals — `developer`, `harness-lead` and `tech-lead` via `devops`'s growth, and
-`quality-assurance` via the `sonarcloud`→`devops` swap decided above. Every figure here was re-measured
-after both merges landed, as the LAST step, per the rule that a byte-count table is measured against the
-final committed state and not read off mid-edit — not adjusted by arithmetic on the prior count.)
-`harness-engineering` (32,751 B, the
+`quality-assurance` via the `sonarcloud`→`devops` swap decided above.)
+`harness-engineering` (33,412 B, the
 universal preload, #224) is the
 largest single skill in the library and is carried by all six briefs. The two figures (billed vs.
 distinct) differ because several skills — `harness-engineering`, `command-hygiene`, `quality-gates`,
@@ -520,13 +534,14 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library, by family: backend (1), frontend (1), infrastructure (1), principles (2), workflow (5).
+The library, by family: backend (1), frontend (1), infrastructure (1), principles (3), workflow (5).
 
 | skill | what it decides | family | whose domain |
 |---|---|---|---|
 | `backend` | Backend (BFF-on-Lambda) | `backend` | `developer` |
 | `frontend` | Frontend (React SPA) | `frontend` | `developer` |
 | `cloud-infrastructure` | Cloud infrastructure (AWS) | `infrastructure` | `developer` |
+| `definition-of-ready` | Definition of Ready — the bar a work item clears before it is buildable | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `quality-gates` | Quality gates — the definition of done and the concrete policy that proves it | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `workflow` | `developer` |

@@ -16,7 +16,8 @@ Open issues labelled **(`product` OR `loop`)** **and `ready`**. If the repo has 
 rather than draining every open issue — a command that silently redefines its own scope is worse than
 one that refuses.
 
-**`ready` means the leads closed the description** (`/harness-engineering`, *Intake*). An Issue
+**`ready` means the leads closed the description** (`/harness-engineering`, *Intake*; the generic bar
+a description must clear to earn that label is `/definition-of-ready`). An Issue
 without it is in the tracker but not executable, and the right move is to say so and run the intake pass
 — not to build it and discover the missing requirement at the gate.
 

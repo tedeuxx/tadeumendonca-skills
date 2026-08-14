@@ -89,7 +89,8 @@ Issue is more useful carrying both arguments than carrying a resolution nobody r
 
 ### 3 · Label it honestly, and `ready` is not automatic
 
-**`ready` means the leads closed the description.** It does not mean the Issue exists.
+**`ready` means the leads closed the description** (the SDLC-generic bar a description must clear to
+earn it is `/definition-of-ready`). It does not mean the Issue exists.
 
 - **Both closed it and neither says stop** → apply `ready`.
 - **Any lead recommends defer or drop** → **do not apply `ready`.** Record the recommendation in the body

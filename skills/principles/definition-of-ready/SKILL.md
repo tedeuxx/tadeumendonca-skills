@@ -1,0 +1,151 @@
+---
+description: Set the bar a work item must clear before a builder can pick it up, and recognize an item that looks ready but is not. Use when writing acceptance criteria, running intake on a story, sizing a backlog, or diagnosing why in-progress work keeps stalling on undecided scope. Not for what "done" means at delivery (see quality-gates), or this repo's own two-lead intake mechanism (see harness-engineering).
+---
+
+# Definition of Ready — the bar a work item clears before it is buildable
+
+Apply this SDLC-generic concept in any `<project>` — it defines what makes an item **ready to build**,
+independent of which loop, tracker or team runs it. `/harness-engineering` and `/quality-gates` are the
+two ends of the same lifecycle this skill sits between: **ready** is the entry gate to building, **done**
+(`quality-gates`) is the exit gate out of it. Neither substitutes for the other, and a loop that only
+enforces one of them fails at the end it left open — a strong Definition of Done cannot repair a story
+that was ambiguous when the builder started, and a strong Definition of Ready does not verify what was
+actually shipped.
+
+Context: $ARGUMENTS
+
+## Why "ready" is a concept a loop needs, not a courtesy
+
+**A builder should not have to make a product or architecture call mid-build.** That is the whole reason
+this bar exists. When a work item is picked up before it is ready, the person building it is forced to
+either stop and ask — which is the exact interruption a well-shaped backlog exists to avoid — or guess,
+which quietly moves a product/architecture decision into whoever happens to be typing that day. Neither
+is acceptable, and both are avoidable at a cost that is always cheaper paid *before* the build starts:
+a wrong assumption caught at intake costs a sentence; the same assumption caught mid-build costs a
+half-built branch, and caught at review it costs a review round on top of that.
+
+**"Ready" is therefore a property of the description, not of the backlog's mood.** An item is ready when
+someone who did **not** write it, and is not going to build it, can read it and know: what to build, what
+"acceptable" looks like from the outside, and where the item's boundary sits against its neighbors. If
+any of those three requires a conversation to resolve, the item is not ready yet, however long it has sat
+in the queue.
+
+## The checklist shape — conditional on what the project actually has
+
+There is no universal Definition-of-Ready checklist, because "ready" is defined against what a builder
+would otherwise have to invent — and what a builder would have to invent depends entirely on what the
+project's surfaces are. **A checklist item that names a surface the project does not have is not a higher
+bar; it is an unsatisfiable one**, and an unsatisfiable gate teaches the team to rubber-stamp it or to
+skip it quietly — the same failure mode this whole platform's engineering floor names for a Definition of
+Done (`/quality-gates`) is exactly this on the other end of the lifecycle.
+
+So the right move is not "adopt the universal checklist" — it is "read the project, then name the items
+that actually remove ambiguity for it." Three worked examples, same discipline, different shape:
+
+- **A UI-heavy product** (a consumer-facing app, a product with a design system). Ready needs: a user
+  story, a navigable screen prototype/mockup so "what does this look like" is not answered mid-build,
+  documentation of any external API the work integrates with, acceptance criteria, and an estimate. This
+  is the dense case — it has the most surfaces that can be silently assumed, so it has the longest list.
+- **A backend service with no UI.** Drop the prototype — there is no screen to mock. Keep the story,
+  the external-API documentation (a service still integrates with something), acceptance criteria stated
+  as request/response or event-contract shape, and an estimate. The absence of a prototype item here is
+  not a lowered bar; a prototype for a surface that renders nothing removes no ambiguity, so requiring
+  one would be decoration.
+- **A CLI / library / plugin — this repo is exactly this case.** Drop the prototype (no screen) **and**
+  drop the external-API-integration item (a skill library like this one has no runtime dependency it
+  calls over a network at build time — it is *consumed* by other repos, but consumes nothing itself).
+  What is left: a clear statement of the convention or mechanism being added, acceptance criteria stated
+  as an observable artifact or a passing check, and — where sizing matters — an estimate. This is not a
+  special case invented for this repo; it is the same discipline applied to a project shape with fewer
+  ambiguous surfaces to pin down.
+
+**The pattern behind all three:** ready-ness items exist to remove ambiguity from a specific surface, and
+a surface the project does not have cannot carry ambiguity. Checking "does this project have that
+surface at all" is the first step of building any checklist, before asking whether any given item is
+satisfied.
+
+## How to recognize an item that looks ready but isn't
+
+The common failure is not a missing acceptance criterion — those are easy to spot, because their absence
+is visible in the text. **The common failure is undefined scope at the edges.** The center of a story is
+almost always clear: everyone agrees roughly what it is about. What is missing is where it **starts and
+stops** — the boundary against the item next to it, not the item's own substance.
+
+**The flagship failure pattern: overlapping behavior fragmented across separate issues.** Two issues are
+filed, each individually readable, each individually plausible as "ready" by every item on the checklist
+above. What neither one states is that a piece of behavior sits in the seam between them — implicitly
+half-claimed by both, or by neither. Nobody notices at intake, because intake reads each issue on its own
+terms and the checklist has nothing that asks "does this boundary overlap a neighbor's." The overlap
+surfaces **mid-build**, when the second issue's implementer discovers the first one already built (or
+half-built, or assumed) the shared piece — which is exactly the class of interruption a Definition of
+Ready exists to prevent, arriving anyway because the checklist checked completeness within an issue and
+never checked the seam between issues.
+
+**The check this implies, and it is not on the standard checklist:** before marking two related issues
+ready, read them against each other, not only against themselves. Ask "if both of these are built exactly
+as written, is there a piece of behavior that belongs to both, or to neither?" A single well-formed issue
+can pass every item above and still be the wrong slice, because slicing is a decision about the seams
+between issues and no single-issue checklist can see a seam.
+
+## Ready and estimation — related, not the same question
+
+Estimation (story points, or any relative-sizing method) commonly sits **inside** a Definition-of-Ready
+checklist, and it is worth separating why it belongs there from what it actually measures. An item can
+only be sized honestly once it is unambiguous enough to compare against a reference item — sizing an item
+whose scope is still fuzzy at the edges produces a number that measures the fuzziness, not the work. So
+**estimation is not itself a readiness check; it is a symptom check that piggybacks on one.** A team that
+cannot agree on an item's size in five minutes has usually found an ambiguity the rest of the checklist
+missed, which is why "can we size this" is a fast, cheap probe for "is this actually ready" even when the
+number produced is never used for anything else.
+
+*How estimation itself is done — the mechanics of relative sizing, consensus and the group technique most
+teams reach for* — is a separate concern from what this skill defines, and belongs in its own skill:
+**`/planning-poker`** (tracked, not yet written). This skill states only the relationship: sizing is a
+readiness signal as much as it is a planning input, and a checklist that drops it loses a cheap probe for
+exactly the failure mode named above.
+
+## Pros & cons
+
+**Pros**
+- Moves ambiguity resolution to where it is cheapest — before a branch exists — rather than to wherever
+  the builder first trips on it.
+- Makes "is this item buildable" a checkable property instead of a feeling, the same move the `ready`
+  label makes mechanical in this repo's own loop (`/harness-engineering`).
+- The checklist scales down honestly: a project with fewer surfaces gets a shorter, still-complete list,
+  rather than a universal list with items nobody can satisfy.
+
+**Cons**
+- The checklist itself needs judgment to shape per project — get it wrong and it either blocks trivial
+  work on decoration or waves through real ambiguity.
+- It catches ambiguity *inside* an issue reliably; it does nothing by construction to catch ambiguity **at
+  the seam between issues** unless the team deliberately reads related issues against each other — the
+  flagship failure above is exactly this blind spot.
+- A bar that is only ever checked at filing time goes stale the moment a related issue is filed after it;
+  readiness is not a one-time property if the backlog around an item keeps changing.
+
+## My take
+
+*(Elicited directly from the owner — not scaffolded, not generalized.)*
+
+**Default posture, the macro/common case:** a user story, a navigable screen prototype (when UI is
+involved), documentation of the APIs the work integrates with, acceptance criteria, and story-point
+estimation. In his words: *"estoria, prototipo de tela, documentacao das apis a serem integradas,
+criterios de aceitacao, pontuacao das estorias — esse tipo de coisas. no cenario macro esses seriam os
+criterios mais comuns."*
+
+**On this very repo, that checklist shrinks — and it is not a lowered bar.** This library has no
+navigable prototypes and no external API integration to document, so those two items are simply absent
+by project shape: *"aqui no caso por exemplo, nao trabalhamos com prototipos navegaveis, tbm nao temos
+integracao com apis externas."* That is the origin of the "conditional on what the project actually has"
+framing above — it is not a general principle he stated abstractly, it is what fell out of asking him to
+apply his own checklist to the repo he was standing in at the time.
+
+**What is usually missing when an issue looks ready but isn't:** undefined scope at the edges — the
+center of the story is clear, but where it starts and stops is not. That single sentence is the origin
+of the whole "recognize an item that looks ready but isn't" section above.
+
+**The concrete failure pattern he has seen:** overlapping behavior fragmented across separate issues —
+the boundary between two issues isn't clean, so the same behavior is implicitly half-claimed by more than
+one issue, and the overlap surfaces mid-build rather than at intake. That is the flagship failure named
+above, verbatim to what he described rather than a generic pattern this skill invented and attributed to
+him.

@@ -1,5 +1,5 @@
 ---
-description: Run any slice through the loop — intake, the state machine, the inner-loop steps — and apply the judgment (eleven principles, two tiers) behind every decision in it. Use when picking up a slice, proposing a change to the loop itself, or naming Agent Harness Engineering / AI-DLC in public writing. Not what "done" means (see quality-gates), or the permission zones and CI/CD workflows (see devops).
+description: Run any slice through the loop — intake, the state machine, the inner-loop steps — and apply the judgment (eleven principles, two tiers) behind every decision in it. Use when picking up a slice, proposing a change to the loop itself, or naming Agent Harness Engineering / AI-DLC in public writing. Not what "done" means (see quality-gates), the permission zones and CI/CD workflows (see devops), or the generic, SDLC-wide meaning of ready (see definition-of-ready).
 ---
 
 Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state
@@ -121,6 +121,13 @@ both signals are absent, it is `trunk-single-env`.**
 ## Intake — where work is born, and the chain it must walk
 
 **Nothing is worked that is not recorded in the issue tracker.** No exceptions, no size threshold.
+
+**What "closed" means for a description, generically, is `/definition-of-ready`'s subject, not
+restated here.** This section is this loop's own **mechanism** for reaching that state — which two
+personas close it, what label records the transition, what the state machine does once it is set — not
+a second definition of what "ready" means as a concept. Read `/definition-of-ready` for the SDLC-generic
+bar (the checklist shape, the flagship failure of scope fragmented across issues, the relationship to
+estimation); read this section for how *this loop specifically* gets an Issue there.
 
 **The chain — see `agents/product-lead.md` and `agents/tech-lead.md` for the persona-level detail;
 this is the canonical statement, and both briefs point here rather than restate it:**

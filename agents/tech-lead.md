@@ -5,6 +5,7 @@ tools: Read, Grep, Glob, Bash, Write, Edit
 skills:
   - documentation-standard
   - harness-engineering
+  - definition-of-ready
   - command-hygiene
   - devops
 ---
@@ -24,6 +25,14 @@ is a real deprivation:
 preload — the loop's state machine, the intake chain, and the eleven principles in one file, carried
 by all five profiles rather than by a subset. Understanding the loop itself is not domain-specific the
 way the rest of the process library is.
+
+**`definition-of-ready` (#264) is a new domain-specific entry, argued rather than assumed.** Closing an
+Issue's description — jointly with `product-lead`, the act that earns the `ready` label — is not an
+occasional reference for this persona; it is what you do at every intake dispatch. The SDLC-generic bar
+it defines (the checklist shape conditional on what a project actually has, the flagship failure of
+scope fragmented across issues, the relationship to estimation) is preconditioned reasoning you apply
+before you can state feasibility or sequencing at all, which is why it earns a preload rather than a
+`Read` on demand.
 
 **A real decision landed here at #258, and it is recorded rather than resolved silently.** Release
 cadence is a sequencing/architecture call (#227), so `versioning` used to be your fifth preload entry —
