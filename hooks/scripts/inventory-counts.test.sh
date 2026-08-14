@@ -1935,7 +1935,7 @@ else
   # requires for a disambiguating pointer anyway. That leaves this check STRICTER than it was rather
   # than weaker: before the flatten a rival mentioned in passing counted, and now only a pointer does.
   CLUSTERS="
-gates|code-review verification-and-gates
+gates|code-review quality-gates
 delivery|devops versioning harness-engineering
 "
 

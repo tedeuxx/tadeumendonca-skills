@@ -295,7 +295,7 @@ an irreversible act. See ADR-0013 for the full record.
 | Command | Purpose |
 |---|---|
 | `/harness-engineering` | **The universal preload, carried by all 5 profiles.** Names the discipline the whole plugin runs — Agent Harness Engineering / AI-DLC (the owner's central identity term, with Claude Code & Kiro) — and is the loop itself: the state machine (issue types, states, who acts, what artifact records it), the intake chain, the inner-loop steps, **and** the 11 engineering principles in two tiers (non-negotiable floor + risk-calibrated judgment) that shape every decision inside it. Merges the former `dev-loop`, `loop-engineering` and `engineering-philosophy` into one file (#224). The branching/topology diagrams (`gitflow-multi-env`, `trunk-single-env`) and the permission model live in `/devops` (#227), not here. |
-| `/verification-and-gates` | What "done" means: the thesis, Definition of Done, the 100% functional-regression invariant, the gate tables per loop model |
+| `/quality-gates` | What "done" means: the thesis, Definition of Done, the 100% functional-regression invariant, the gate tables per loop model |
 
 ### backend (1)
 

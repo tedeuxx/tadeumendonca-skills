@@ -365,9 +365,9 @@ before the persona's first turn.** There is no declare-without-loading option, s
 deprivation rather than a deferral**, which is why the briefs argue their omissions rather than listing
 them.
 
-- **`developer` — 60,264 B** — `code-review` · `verification-and-gates` ·
+- **`developer` — 60,264 B** — `code-review` · `quality-gates` ·
   `harness-engineering`
-- **`quality-assurance` — 50,222 B** — `harness-engineering` · `verification-and-gates` ·
+- **`quality-assurance` — 50,222 B** — `harness-engineering` · `quality-gates` ·
   `coverage` · `sonarcloud`
 - **`tech-lead` — 42,301 B** — `adr` · `harness-engineering` ·
   `documentation-standard`
@@ -380,7 +380,7 @@ them.
 **217,287 B as billed across the five, 79,942 B distinct — 17.8% of the library, and no persona over
 61 KB.** `harness-engineering` (32,250 B, the universal preload, #224) is the largest single skill in
 the library and is now carried by all five briefs, which is why the billed total roughly tripled from
-the pre-#224 figure. The two figures (billed vs. distinct) differ because `verification-and-gates` is
+the pre-#224 figure. The two figures (billed vs. distinct) differ because `quality-gates` is
 carried by two personas and `harness-engineering` by all five: there is no dedupe, so each is billed
 once per persona and the library sees it once. Note what this table and
 the one below disagree about, deliberately: `developer` **preloads** two `principles`-family skills while
@@ -409,7 +409,7 @@ The library, by family: backend (1), frontend (1), infrastructure (1), principle
 | `frontend` | Frontend (React SPA) | `frontend` | `developer` |
 | `cloud-infrastructure` | Cloud infrastructure (AWS) | `infrastructure` | `developer` |
 | `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
-| `verification-and-gates` | Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `quality-gates` | Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `adr` | Author or review an Architecture Decision Record (ADR) for any `<project>` repo, following the platform's ADR practice. | `workflow` | `tech-lead` · `harness-lead` — split by domain (#223) |
 | `claude-code` | Set up or review the Claude Code GitHub App automation in a <project> repo. | `workflow` | `developer` |
 | `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `workflow` | `developer` |

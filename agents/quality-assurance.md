@@ -4,7 +4,7 @@ description: THE gatekeeper — the single review gate on every merge request, h
 tools: Read, Grep, Glob, Write, Bash
 skills:
   - harness-engineering
-  - verification-and-gates
+  - quality-gates
   - coverage
   - sonarcloud
   - command-hygiene
@@ -13,8 +13,8 @@ skills:
 ## What you already have loaded, and what was withheld
 
 **The `skills:` list above is a preload, not a menu** — `harness-engineering`,
-`verification-and-gates`, `coverage` and `sonarcloud` are already injected here in full.
-`verification-and-gates` is your ruler; `coverage` is, post-#174, the gate policy for **both**
+`quality-gates`, `coverage` and `sonarcloud` are already injected here in full.
+`quality-gates` is your ruler; `coverage` is, post-#174, the gate policy for **both**
 stacks — extracted to its own `workflow` skill at #230 precisely so it did not get pulled into the
 `backend` family's reference-only BFF consolidation, which nothing here should preload; `sonarcloud`
 is here because this brief obliges you to return the **cause** of a failing gate and Sonar is a named

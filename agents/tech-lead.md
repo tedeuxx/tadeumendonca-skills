@@ -28,7 +28,7 @@ leads disagreed only on whether `tech-lead` or `harness-lead` should hold a seco
 `developer` (both leads agreed `developer` needs it); the issue allowed adding both rather than
 adjudicating, and both did.
 
-- **`verification-and-gates` (8,406 B)** — withheld deliberately. The DoD is
+- **`quality-gates` (8,406 B)** — withheld deliberately. The DoD is
   `quality-assurance`'s ruler, not yours; your half of intake is preconditions, blast radius and what a
   shape costs later. Loading the gate's checklist invites you to pre-run its review and wastes both.
 - **`analytics` and `cloudwatch-rum`** — you own *measurement*, so these look
