@@ -261,6 +261,44 @@ fi
 
 printf '\n%d persona(s) with a `skills:` key, %d identifier(s) checked\n' "$personas_with_key" "$total_ids"
 
+# ---------------------------------------------------------------------------------------------------
+# THE REVERSE ASSERTION, NAMED IN ADR-0011 AND WITHHELD BY IT UNTIL NOW (#192, #211).
+#
+# The forward direction — every `skills:` identifier resolves to a file — is everything above. The
+# reverse — every skill under `skills/` is named by SOME profile, so it exists to be assigned rather
+# than to be assigned to nobody — was deliberately NOT written when ADR-0011 first stated the
+# criterion, because it would have gone red on 62 of 69 files: "arriving red on the bulk of the
+# library today is how a check gets silenced." #192's three consolidation slices (#229/#230/#231) plus
+# the remaining process-file assignments closed that gap; this is the assertion ADR-0011 always meant
+# to arrive here.
+#
+# "ASSIGNED" IS THE `skills-table.py` WIELDER/PER_SKILL LEDGER, NOT THE PRELOAD LIST. Being named in a
+# persona's `skills:` frontmatter (checked above) is one way a skill reaches a profile; being the
+# stated domain of a profile that reads it on demand (the `cloud-infrastructure`/`backend`/`frontend`
+# consolidations, deliberately NOT preloaded — too large) is the other, equally real. `skills-table.py`
+# is the single ledger for the second kind, and this reuses IT rather than re-deriving the mapping in
+# bash a second time — two copies of "whose domain" is exactly the kind of duplicate source of truth
+# this repo's own review standard flags.
+TABLE_PY="$ROOT/hooks/scripts/skills-table.py"
+if ! command -v python3 >/dev/null 2>&1; then
+  bad "reverse assertion — python3 unavailable; this direction did NOT run"
+elif [ ! -f "$TABLE_PY" ]; then
+  bad "reverse assertion — $TABLE_PY does not exist; this direction did NOT run"
+else
+  table_out="$(python3 "$TABLE_PY" 2>&1)"
+  unassigned="$(printf '%s\n' "$table_out" | grep -E '^\| .* — none \|$' || true)"
+  row_count="$(printf '%s\n' "$table_out" | grep -cE '^\| `' || true)"
+  if [ "$row_count" -eq 0 ]; then
+    bad "reverse assertion — skills-table.py produced no rows; this direction did NOT run"
+  elif [ -n "$unassigned" ]; then
+    bad "reverse assertion — a skill exists to be assigned to a profile (ADR-0011), and these are assigned
+      to nobody:
+    $unassigned"
+  else
+    ok "reverse assertion — all $row_count skills in skills-table.py's ledger are assigned to a profile"
+  fi
+fi
+
 if [ "$fails" -gt 0 ]; then
   printf '%d failure(s)\n\n' "$fails"
   exit 1
