@@ -1,5 +1,5 @@
 ---
-description: Define what done means AND the concrete, stack-agnostic gate policy that proves it — the Definition of Done, the 100% regression invariant, the gate table per loop model, plus thresholds (lint/typecheck at zero, coverage ≥85%, contract/E2E, dependency + secret scanning, SAST). Use when deciding if a slice ships, calibrating gates, or wiring a gate into CI. Not for the pre-merge pass (see code-review) or Sonar mechanics (see sonarcloud).
+description: Define what done means AND the concrete, stack-agnostic gate policy that proves it — the Definition of Done, the 100% regression invariant, the gate table per loop model, plus thresholds (lint/typecheck at zero, coverage ≥85%, contract/E2E, dependency + secret scanning, SAST). Use when deciding if a slice ships, calibrating gates, or wiring a gate into CI. Not for the pre-merge pass (see code-review) or Sonar mechanics (see devops).
 ---
 
 # Quality gates — the definition of done and the concrete policy that proves it
@@ -126,7 +126,7 @@ what exists is required** — a service with no browser surface owes no E2E jour
 **Security — same four checks, different location for the secret.** Dependencies: block on
 high/critical advisories, dependency review and automated update PRs. SAST + quality gate: the
 SonarCloud Quality Gate blocks merge and imports the unit-coverage lcov, so SAST, coverage and smells
-are judged together — see `sonarcloud` for the mechanics of that import. Secrets: secret scanning,
+are judged together — see `devops` for the mechanics of that import. Secrets: secret scanning,
 nothing sensitive committed — on the server a sensitive value is fetched at runtime from a secret store
 (see the Secrets section); in a browser bundle there is no such place at all, so client configuration is
 non-secret by construction (see the Config section). Automated review: an automated code-review action

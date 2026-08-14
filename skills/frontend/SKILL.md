@@ -88,7 +88,7 @@ in `vitest.config.ts`:
 ```ts
 test: { environment: 'jsdom', coverage: { provider: 'v8', thresholds: { lines: 85, functions: 85, branches: 85, statements: 85 } } }
 ```
-E2E is Playwright, not vitest (Playwright below). lcov feeds SonarCloud (`/sonarcloud`).
+E2E is Playwright, not vitest (Playwright below). lcov feeds SonarCloud (`/devops`).
 
 **Conventions**
 - Only this section carries React/library code; every other section in this file stays agnostic.

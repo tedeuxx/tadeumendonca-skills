@@ -5,22 +5,38 @@ tools: Read, Grep, Glob, Write, Bash
 skills:
   - harness-engineering
   - quality-gates
-  - sonarcloud
+  - devops
   - command-hygiene
 ---
 
 ## What you already have loaded, and what was withheld
 
 **The `skills:` list above is a preload, not a menu** — `harness-engineering`,
-`quality-gates` and `sonarcloud` are already injected here in full.
+`quality-gates` and `devops` are already injected here in full.
 `quality-gates` is your ruler, in two parts within the one file: the *definition* of done, and — since
 #257 folded the former standalone `coverage` skill into it — the *concrete, stack-agnostic gate policy*
 for **both** stacks, post-#174. That policy was extracted to its own `workflow` skill at #230
 precisely so it did not get pulled into the `backend` family's reference-only BFF consolidation, which
 nothing here should preload; folding it into `quality-gates` at #257 keeps that same independence,
 because it now travels inside the one skill you already preload rather than needing a second entry on
-this list. `sonarcloud` is here because this brief obliges you to return the **cause** of a failing gate
-and Sonar is a named blocking one.
+this list.
+
+**A real decision landed here at #259, recorded rather than resolved silently — the same fork #258 hit
+for `tech-lead`.** `sonarcloud` used to be your third preload entry, here specifically because this
+brief obliges you to return the **cause** of a failing gate and Sonar is a named blocking one. #259
+folded the standalone `sonarcloud` skill into `devops` (its CI step is pipeline wiring, the same object
+as everything else in that skill), which left the same two options `tech-lead` faced: drop the content
+from this preload, or preload `devops` whole to keep it. **Here the whole-preload case is stronger than
+it was for `tech-lead`, not merely equal to it.** Criteria 3–5 of your own production lens — IAM
+least-privilege, the immutable OIDC subject, `SONAR_TOKEN`/secrets scope-and-naming, third-party-action
+SHA-pinning — are exactly what the rest of `devops` documents in depth (OIDC trust policy, the secrets
+standard, the SHA-pinning convention), where this file previously carried only a compressed restatement
+of them. Swapping `sonarcloud` for `devops` keeps the Sonar mechanics you need for diagnosis **and**
+gives the production lens its own canonical source instead of a paraphrase; the cost is a heavier
+preload (`devops` also carries branching, TFC and the full workflow set alongside the sections you use)
+rather than a narrow one. Accepted here for the same reason `tech-lead` accepted it: losing the content
+this brief already argued it needs is worse than the extra bytes; see the README's persona-preload table
+for the re-measured total.
 
 **`harness-engineering` is new here (#224), and it is not the exception the old rationale below would
 have refused.** `engineering-philosophy` used to be withheld on exactly this brief's own logic:

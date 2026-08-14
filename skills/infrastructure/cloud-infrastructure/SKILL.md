@@ -32,7 +32,7 @@ reads as a reference to the section below/above that covers it instead. Referenc
 this merge (`/devops`, `/harness-engineering`,
 `/lambda-handler`, `/redis-cache`, `/notifications`, `/og-edge-handler`, `/environment-config`,
 `/secrets-management`, `/authentication`, `/bff`, `/metrics`, `/logging`, `/tracing`, `/pagination`,
-`/openapi`, `/sonarcloud`, …) are unchanged.
+`/openapi`, `/devops`, …) are unchanged.
 
 ## Terraform
 
@@ -150,7 +150,7 @@ locals { tags = { Project = "<project>", Environment = var.environment, ManagedB
 
 ### CI/CD (.github/workflows)
 - `terraform-plan.yml` (PR): `checkov -d terraform/` (fail on any unsuppressed finding) → `fmt -check` → `validate` → `plan` → comment.
-- `sonar.yml` (PR + push to develop/main): **SonarCloud IaC** scan of `terraform/` (`/sonarcloud`) — code smells + security hotspots, gate blocks. **Complementary to checkov, not a replacement** (checkov = policy/security; Sonar = maintainability + the quality gate). Kept standalone (not a job in `terraform-plan.yml`) so it can run on push for the new-code baseline without firing the AWS-OIDC plan.
+- `sonar.yml` (PR + push to develop/main): **SonarCloud IaC** scan of `terraform/` (`/devops`) — code smells + security hotspots, gate blocks. **Complementary to checkov, not a replacement** (checkov = policy/security; Sonar = maintainability + the quality gate). Kept standalone (not a job in `terraform-plan.yml`) so it can run on push for the new-code baseline without firing the AWS-OIDC plan.
 - `terraform-deploy.yml`: develop → staging auto-apply; main → production (Environment approval).
 - `version-develop/main.yml`: numeric SemVer (`/github-actions`).
 

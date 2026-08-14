@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 12 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 11 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -332,7 +332,7 @@ work as the other two.
 
 ## The skill library, whose domain each family is, and what is actually preloaded
 
-**Skills carry the conventions so the model does not re-invent them.** **12 skills + autonomy-on**,
+**Skills carry the conventions so the model does not re-invent them.** **11 skills + autonomy-on**,
 `autonomy-off` and `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
@@ -365,13 +365,17 @@ before the persona's first turn.** There is no declare-without-loading option, s
 deprivation rather than a deferral**, which is why the briefs argue their omissions rather than listing
 them.
 
-- **`developer` — 96,572 B** — `code-review` · `quality-gates` ·
+- **`developer` — 100,213 B** — `code-review` · `quality-gates` ·
   `harness-engineering` · `command-hygiene` · `devops`
-- **`quality-assurance` — 56,756 B** — `harness-engineering` · `quality-gates` ·
-  `sonarcloud` · `command-hygiene`. `coverage` used to be a fifth, separate entry here; #257 folded its
+- **`quality-assurance` — 80,553 B** — `harness-engineering` · `quality-gates` ·
+  `devops` · `command-hygiene`. `coverage` used to be a fifth, separate entry here; #257 folded its
   content into `quality-gates`, so the same policy is still fully preloaded — the entry disappeared, not
-  the content.
-- **`tech-lead` — 72,846 B** — `adr` · `harness-engineering` ·
+  the content. `sonarcloud` used to be the third entry; #259 folded it into `devops`, and this brief now
+  preloads `devops` whole rather than losing the Sonar-diagnosis content it needs — the same fork #258
+  put to `tech-lead`, decided the same way and for a stronger reason here: `devops` also carries the
+  canonical source for three of this brief's own production-lens criteria (IAM least-privilege, the
+  immutable OIDC subject, SHA-pinning) that this file previously restated in compressed form.
+- **`tech-lead` — 76,495 B** — `adr` · `harness-engineering` ·
   `documentation-standard` · `command-hygiene` · `devops`. `versioning` used to be the fifth entry here;
   #258 folded it into `devops`, and this brief now preloads `devops` whole rather than losing the
   sequencing content it argued it needs (#227) — a real decision, recorded in the brief itself, that
@@ -379,7 +383,7 @@ them.
   holder, #227) without this preload list backing it until now. The trade: a heavier preload than the
   narrow `versioning` file it replaces.
 - **`product-lead` — 38,665 B** — `harness-engineering` · `command-hygiene`
-- **`harness-lead` — 68,719 B** — `harness-engineering` · `adr` · `command-hygiene` · `devops`.
+- **`harness-lead` — 72,368 B** — `harness-engineering` · `adr` · `command-hygiene` · `devops`.
   `harness-engineering` was the one exception to what used to be `skills: []`; the other three followed
   for reasons its own brief states (`adr` for loop/harness ADRs since #223, `command-hygiene` and
   `devops` as the transversal/machinery skills it owns). `versioning` used to be a fifth entry here;
@@ -388,12 +392,15 @@ them.
   preload creates that its own brief names as a residual rather than resolves.
 - **`writer` — 38,665 B** — `harness-engineering` · `command-hygiene`
 
-**372,223 B as billed across the six, 110,597 B distinct — 30.2% of the library (365,992 B across 12
-skills; `find skills -name SKILL.md | xargs wc -c`), and no persona over 97 KB.** (All figures measured
-directly — `wc -c` per file listed above — rather than carried forward from an earlier count; #258
-folded `versioning` into `devops`, which changed three of the six totals — `developer` and `harness-lead`
-directly, and `tech-lead` via the `versioning`→`devops` swap decided above — so every figure here was
-re-measured, not adjusted by arithmetic on the prior count.) `harness-engineering` (32,751 B, the
+**406,959 B as billed across the six, 110,647 B distinct — 30.2% of the library (366,030 B across 11
+skills; `find skills -name SKILL.md | xargs wc -c`), and no persona over 101 KB (`developer`, now the
+largest at 100,213 B, crossed the old 97 KB mark once `devops` absorbed `sonarcloud`'s content).** (All
+figures measured
+directly — `wc -c` per file listed above — rather than carried forward from an earlier count; #259
+folded `sonarcloud` into `devops`, which changed four of the six totals — `developer`, `harness-lead` and
+`tech-lead` via `devops`'s growth, and `quality-assurance` via the `sonarcloud`→`devops` swap decided
+above — so every figure here was re-measured, not adjusted by arithmetic on the prior count.)
+`harness-engineering` (32,751 B, the
 universal preload, #224) is the
 largest single skill in the library and is carried by all six briefs. The two figures (billed vs.
 distinct) differ because several skills — `harness-engineering`, `command-hygiene`, `quality-gates`,
@@ -417,7 +424,7 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library, by family: backend (1), frontend (1), infrastructure (1), principles (2), workflow (7).
+The library, by family: backend (1), frontend (1), infrastructure (1), principles (2), workflow (6).
 
 | skill | what it decides | family | whose domain |
 |---|---|---|---|
@@ -432,7 +439,6 @@ The library, by family: backend (1), frontend (1), infrastructure (1), principle
 | `devops` | Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and | `workflow` | `developer` · `harness-lead` · `tech-lead` (#227) |
 | `documentation-standard` | Write or review docs for any <project> repo following the documentation standard. | `workflow` | `developer` |
 | `license` | Apply the repository licensing standard in any <project> repo. | `workflow` | `developer` |
-| `sonarcloud` | Use SonarCloud in <project> repos (code quality + security scan). | `workflow` | `developer` |
 **Three things the table shows rather than asserts.** The builder is the only persona holding a build
 family — conventions exist for building, and one persona builds. `workflow` is the only family that
 splits, and it splits for a reason: `adr` belongs to the two writers of the records, split by domain
@@ -722,7 +728,7 @@ by hand:
 
 | resource type | ships? | where | how it takes effect |
 |---|---|---|---|
-| **Skills** | yes — **15** | `skills/<family>/[<name>/]SKILL.md`, each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
+| **Skills** | yes — **11** | `skills/<family>/[<name>/]SKILL.md`, each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-family-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **6 subagent personas** | `agents/*.md` (`developer`, `harness-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `writer`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 4** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`) — automatic, no invocation |
