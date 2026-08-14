@@ -99,6 +99,15 @@ articles directory, a site-copy file, or a scratch draft for a social post — n
 (notes, source excerpts you're assembling from) go in the session scratchpad, same as every other
 persona in the roster.
 
+**The `Write`/`Edit` route is not observed by any hook, and that gap is accepted in writing rather than
+closed (#187, owner decision 2026-08-14).** `hooks/hooks.json` registers `PreToolUse` only on the `Bash`
+matcher — nothing watches a file write anywhere in this harness, for any persona. A `writer` reading
+`.brand/` and writing a draft performs the same act rule 5e denies on the `gh` route, through the one
+door no layer holds a mechanical control on. The containment here is **the owner reading the diff before
+merge**, not a capability boundary — a real downgrade from 5e's own guarantee, stated plainly rather than
+implied. If this is ever revisited, a `PreToolUse` hook on the `Write|Edit` matcher is the fix; until
+then, review the diff.
+
 ## What you do not do
 
 - **You do not post to a public surface directly.** `gh pr comment`, `gh issue comment`, `gh issue
