@@ -337,19 +337,18 @@ explicitly as the CSP covered, since that's what all 21 source files documented.
 |---|---|
 | `/cloud-infrastructure` | AWS infrastructure end to end, one section per service: VPC, IAM, KMS, Secrets Manager, SSM, Cognito, WAF, DynamoDB, ElastiCache, S3, Lambda, API Gateway, CloudFront, ACM, Route53, SES, SNS, CloudWatch, CloudWatch RUM, CloudWatch X-Ray, and the Terraform setup that carries them all |
 
-### workflow (10)
+### workflow (9)
 
-DevOps tooling. `devops` is the umbrella (#227) — GitHub/CI-CD (OIDC, secrets/environments, the deploy workflows, the Issues backlog), Terraform Cloud as the state backend, branching per loop model, and the permission model that keeps IaC pipeline-only, all in one skill, preloaded by `developer` and `harness-lead`. The numeric-SemVer tagging rules are their own skill (`versioning`). Test runners live with their repo (the backend's Postman collection is a section of `/backend`, `/playwright` is standalone); the gate policy they feed is one stack-agnostic skill, `/coverage` — extracted from the `backend` consolidation at #230 specifically so it stays preloaded on every merge review regardless of stack; IaC checkov is in `/cloud-infrastructure`'s Terraform section. Architecturally-significant decisions are recorded via `adr`, split by domain (#223). Working-files and shell-command discipline — transversal across the whole roster, not DevOps-specific — is `command-hygiene`.
+DevOps tooling. `devops` is the umbrella (#227) — GitHub/CI-CD (OIDC, secrets/environments, the deploy workflows, the Issues backlog, the Claude Code GitHub App automation folded in at #256), Terraform Cloud as the state backend, branching per loop model, and the permission model that keeps IaC pipeline-only, all in one skill, preloaded by `developer` and `harness-lead`. The numeric-SemVer tagging rules are their own skill (`versioning`). Test runners live with their repo (the backend's Postman collection is a section of `/backend`, `/playwright` is standalone); the gate policy they feed is one stack-agnostic skill, `/coverage` — extracted from the `backend` consolidation at #230 specifically so it stays preloaded on every merge review regardless of stack; IaC checkov is in `/cloud-infrastructure`'s Terraform section. Architecturally-significant decisions are recorded via `adr`, split by domain (#223). Working-files and shell-command discipline — transversal across the whole roster, not DevOps-specific — is `command-hygiene`.
 
 | Command | Purpose |
 |---|---|
-| `/devops` | GitHub Actions + Terraform Cloud + the permission model: OIDC, secrets/envs, branching per loop model, deploy workflows, TFC state backend, pipeline-only IaC |
+| `/devops` | GitHub Actions + Terraform Cloud + the permission model: OIDC, secrets/envs, branching per loop model, deploy workflows, TFC state backend, pipeline-only IaC, the Claude Code GitHub App (`@claude` assistant + automatic PR review, advisory/non-blocking) |
 | `/adr` | Architecture Decision Records: MADR format, two libraries (methodology/product), light significance gate, supersede-never-delete — authorship split by domain (#223) |
 | `/command-hygiene` | Where scratch files go, one atomic Bash call, the `gh --repo` flag position, `--body-file` always — preloaded by all 5 personas |
 | `/versioning` | Semantic versioning + tags: numeric SemVer via bump-my-version, loop guard, PR labels |
 | `/coverage` | Stack-agnostic quality/test/security gate policy: lint, typecheck, ≥85% coverage, contract/E2E, dependency + secret scanning, SAST — preloaded by `quality-assurance` on every review (#230) |
 | `/sonarcloud` | SonarCloud quality gate (SAST + coverage + smells), blocks merge |
-| `/claude-code` | Claude GitHub App: `@claude` assistant + automatic PR review (advisory, non-blocking) |
 | `/code-review` | Author-side completeness pass before opening the MR: anticipates both gates, verifies the DoD with evidence |
 | `/documentation-standard` | Markdown + Mermaid only; diagram types per repo |
 | `/license` | Licensing standard: MIT `LICENSE` + manifest license field in every repo |
