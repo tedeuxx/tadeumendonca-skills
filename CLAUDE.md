@@ -245,7 +245,7 @@ safe pin (no mid-development tags pollute the namespace).
 
 ## Command reference
 
-### principles (4) — the drift-reducer
+### principles (5) — the drift-reducer
 
 The harness's **principles layer**: how the owner builds software, so an agent's behavior doesn't drift. Cross-cutting (applies to every repo), distinct from the per-component how-to skills. Canonical summary in the README's *engineering floor* section; deep validation via the subagent that **owns** the decision — `tech-lead` against the principles and the ADR library at design time, `quality-assurance` against the Definition of Done once it is built (`plan-reviewer`, named here until 2026-08-03, was retired outright and invoking it fails); irreversible-floor enforcement via the shipped PreToolUse guard (`hooks/`).
 
@@ -299,6 +299,7 @@ an irreversible act. See ADR-0013 for the full record.
 | `/definition-of-ready` | SDLC-generic: what makes a work item ready to build, the checklist shape conditional on project surfaces (UI-heavy / backend / CLI-library), the flagship failure (scope fragmented across overlapping issues), and how it relates to estimation. This repo's own two-lead intake mechanism and `ready` label are ONE application of it — see `/harness-engineering` for that mechanism (#264) |
 | `/harness-engineering` | **The universal preload, carried by all 5 profiles.** Names the discipline the whole plugin runs — Agent Harness Engineering / AI-DLC (the owner's central identity term, with Claude Code & Kiro) — and is the loop itself: the state machine (issue types, states, who acts, what artifact records it), the intake chain, the inner-loop steps, **and** the 11 engineering principles in two tiers (non-negotiable floor + risk-calibrated judgment) that shape every decision inside it. Merges the former `dev-loop`, `loop-engineering` and `engineering-philosophy` into one file (#224). The branching/topology diagrams (`gitflow-multi-env`, `trunk-single-env`) and the permission model live in `/devops` (#227), not here. |
 | `/quality-gates` | THIS loop's concrete Definition of Done AND the gate policy that proves it, as two clearly-headed parts of one file: the thesis, the actual DoD, the 100% functional-regression invariant, the gate tables per loop model (Part I) — plus the stack-agnostic thresholds (lint=0, unit coverage ≥85%, contract/E2E, dependency + secret scanning, SAST) formerly the standalone `coverage` skill, folded in at #257. The generic concept of what a DoD is and how to design one moved to `/definition-of-done` (#265) |
+| `/planning-poker` | SDLC-generic: consensus estimation with a team — the simultaneous-reveal mechanic, the owner's own reframe (the specific unit barely matters; the real payoff is a long-run team-velocity signal, not per-item accuracy), when the ceremony is worth it versus a coarser gut-call or t-shirt-size pass, the four named failure modes (anchoring, poker on a badly-scoped story, false-fast convergence, the empty ritual), and its explicit dependency on `/definition-of-ready`. Reference pattern — this repo's own loop runs no human estimation ceremony (#266) |
 
 ### backend (1)
 
