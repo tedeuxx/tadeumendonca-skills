@@ -1,5 +1,5 @@
 ---
-description: Operate the DevOps capability for a `<project>` repo — GitHub Actions CI/CD, Terraform Cloud as the state backend, the branching model per loop mode, and the permission floor keeping IaC pipeline-only. Use when wiring a pipeline, granting CI a role, or choosing a repo's branching/protection. Not for the Terraform configuration itself (see cloud-infrastructure), the loop's state machine (see harness-engineering), or SemVer tagging (see versioning).
+description: Operate DevOps for a `<project>` repo — GitHub Actions, Terraform Cloud, branching per loop mode, the pipeline-only IaC floor, and the Claude Code GitHub App (`@claude` assistant + auto PR review). Use when wiring a pipeline, granting CI a role, choosing branching/protection, or installing the GitHub App. Not for Terraform config (see cloud-infrastructure), the loop state machine (see harness-engineering), SemVer (see versioning), or the pre-merge pass (see code-review).
 ---
 
 Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and
@@ -87,9 +87,71 @@ same value for every environment, reserved for account/org-wide tooling tokens (
 **Workflow set (per repo):** the build/test gate (`build-test.yml` on PR — lint, typecheck, coverage
 ≥85%, E2E, SonarCloud, path-filtered) and the infra gate (`infra-plan.yml` — checkov, `fmt`/`validate`,
 `plan`, path-filtered to `iac/`); deploy workflows (`deploy.yml`, `infra-apply.yml` on merge to `main`);
-`version-main.yml` (numeric SemVer bump); `claude.yml`/`claude-code-review.yml` (`/claude-code`).
+`version-main.yml` (numeric SemVer bump); `claude.yml`/`claude-code-review.yml` (the Claude Code GitHub
+App, below).
 `concurrency` groups to avoid overlapping deploys; SHA-pin third-party actions; `npm ci --ignore-scripts`;
 least-privilege `permissions:` per job.
+
+### The Claude Code GitHub App — `claude.yml` + `claude-code-review.yml`
+
+AI-assisted development is a **standing preference**: every repo runs the Claude Code GitHub App for an
+on-demand assistant **and** an automatic PR review — a quality signal alongside (not replacing)
+SonarCloud + the coverage gates. Two workflows, identical across all repos, both advisory and
+non-blocking by design; both use `anthropics/claude-code-action@v1` with the `CLAUDE_CODE_OAUTH_TOKEN`
+secret.
+
+**`claude.yml` — on-demand assistant (`@claude`).** Triggers when `@claude` appears in an issue
+(opened/assigned), an issue comment, a PR review, or a PR review comment:
+```yaml
+on:
+  issue_comment: { types: [created] }
+  pull_request_review_comment: { types: [created] }
+  issues: { types: [opened, assigned] }
+  pull_request_review: { types: [submitted] }
+jobs:
+  claude:
+    if: contains(<event body/title>, '@claude')          # gate on the @claude mention
+    permissions: { contents: read, pull-requests: read, issues: read, id-token: write, actions: read }
+    steps:
+      - uses: actions/checkout@v4            # fetch-depth: 1
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          additional_permissions: |
+            actions: read                    # lets Claude read CI results on the PR
+```
+With no `prompt`, Claude follows the instruction in the comment that tagged it.
+
+**`claude-code-review.yml` — automatic PR review.** Runs on PR `opened` / `synchronize` /
+`ready_for_review` / `reopened` — but **skips PRs into `main`** under `gitflow-multi-env` (the
+`develop→main` release/promotion diff is huge and has nothing new to review); under `trunk-single-env`
+there is no promotion PR to skip. **Cost scales with diff size, and `synchronize` re-reviews on _every_
+push** to the PR branch (so a long-lived PR that keeps getting commits — e.g. version bumps — re-triggers
+a full review each time). Keep PRs tight; gate big/release PRs out.
+```yaml
+on: { pull_request: { types: [opened, synchronize, ready_for_review, reopened] } }
+jobs:
+  claude-review:
+    if: github.event.pull_request.base.ref != 'main'   # skip the develop→main release PR
+    permissions: { contents: read, pull-requests: read, issues: read, id-token: write }
+    steps:
+      - uses: actions/checkout@v4            # fetch-depth: 1
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
+          plugins: 'code-review@claude-code-plugins'
+          prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+```
+
+**Setup (one-time, per repo):** install the **Claude GitHub App** (via `/install-github-app`, a runbook
+step, not Terraform) and create `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`) as a repo secret —
+same secrets standard as above.
+
+**Pros/cons, specific to this automation:** on-demand `@claude` assistant plus a review on every
+revision, advisory so it never gates a merge on a non-deterministic reviewer — traded against review
+cost/noise scaling with push count, and single attribution tied to the owner's own auth rather than a
+service principal.
 
 **Required check + trigger `paths:` filter gotcha.** If a *required* status check is gated by a
 trigger-level `on.pull_request.paths:` filter, a PR touching none of those paths (a docs-only PR) never
