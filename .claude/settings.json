@@ -105,6 +105,8 @@
       "Bash(touch:*)",
       "Bash(cp:*)",
       "Bash(mv:*)",
+      "Bash(chmod:*)",
+      "Bash(rm:*)",
       "Bash(rsync:*)",
       "Bash(tar:*)",
       "Bash(lsof:*)",
@@ -114,11 +116,9 @@
       "WebSearch",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:www.githubstatus.com)",
-      "WebFetch(domain:docs.claude.com)",
-      "Bash(bash .scratch/*)"
+      "WebFetch(domain:docs.claude.com)"
     ],
     "deny": [
-      "Edit(.claude/**)",
       "Bash(git push origin main)",
       "Bash(git push origin main:*)",
       "Bash(git push origin HEAD:main:*)",
@@ -151,6 +151,9 @@
     ],
     "additionalDirectories": [
       "/Users/tadeumen/git-reps/tadeumendonca-io"
+    ],
+    "ask": [
+      "Edit(.claude/**)"
     ]
   },
   "extraKnownMarketplaces": {
