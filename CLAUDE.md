@@ -59,6 +59,13 @@ and on LinkedIn. The reasoning behind it stays in the private source and is neve
    of thumb? a war story?) and weave the answers into a **"My take / preference"** section.
 3. Iterate per skill until it reads like a senior engineer's knowledge transfer. Go skill by skill / by domain.
 
+**This process governs `agents/` as well as `commands/` (#162) — the same elicitation, aimed at the
+behaviour layer instead of the knowledge layer.** A persona brief's own "My take" section is calibrated
+the same way: a few sharp questions, woven in, not invented. No standing interview program is scheduled
+— per #162's own recorded disagreement, calibrating five briefs because there are five treats the roster
+as a checklist. Keep a running note of the specific moments a persona decided something the owner would
+have decided differently, and calibrate from that note when material accumulates, not on a fixed cadence.
+
 **Hard principles:** **project-agnostic** — generic `<project>` / `<apex-domain>` placeholders, **NO** real
 names/domains/ARNs/ids; **English** (it's published); **additive density** (deepen; never thin out good content).
 
