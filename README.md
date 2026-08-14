@@ -118,14 +118,22 @@ The eleven principles:
 ### Permissions
 
 **Pre-authorize the inner loop**, which is git-reversible. **Deny the irreversible boundary** —
-`terraform apply`/`destroy`, direct cloud mutation, force-push, `rm -rf`, secret writes — and gate at the
-repo's point of no return. Never `--dangerously-skip-permissions`.
+`terraform apply`/`destroy`, direct cloud mutation, force-push, history rewrite, hard reset, recursive
+delete, secret writes, and any flag that disables the permission system itself — and gate at the repo's
+point of no return. Never `--dangerously-skip-permissions`.
 
 **Permissions are a versioned repo contract**: the committed `settings.json`, never the gitignored local
 overlay. A prohibition that lives only in an unreviewed local file is one "allow always" click from
 being gone.
 
 **Control comes from reversibility, mechanical gates and the deny boundary — not from interrupting you.**
+
+**Design constraints any reimplementation of this floor must keep, stated because they are easy to get
+half right:** the deny must precede execution — a post-hoc audit is not this mechanism; the hook must be
+tested through its **installed** form, not invoked directly by its own test suite, because a guard
+committed non-executable silently no-ops and a test that never checks the installed path proves nothing
+about what ships; and when a gate is found not to gate, **the fix is the gate, not the finding** — a green
+that proves nothing is worse than a red.
 
 ## The roster, and what each tier holds
 
@@ -295,7 +303,12 @@ document.**
 
 - **Reconciliation overhead, and it scales with the roster.** Every persona is another verdict to weigh
   on the same merge request, and the orchestrator does the weighing. This is the cost that folded two
-  gatekeepers into one.
+  gatekeepers into one — and the fold has a residual: until 2026-08-04 `quality-assurance` verified the
+  security gatekeeper's own comment before merging (marker present, verdict approving, head SHA matching)
+  — the only place in this loop where a verdict was mechanically checked by a party other than its
+  author. That subject is gone; the remaining verdict is **self-enforced**. The posted artifact still
+  closes *omission* (a merge on a review that was claimed rather than given leaves no comment), it no
+  longer buys *confirmation*.
 - **The orchestrator is a relay, and relays distort.** A verdict reaches the owner through a summary
   someone wrote — which is why gatekeeper verdicts are posted as artifacts on the pull request, and why
   approvals and ratifications are read from the artifact rather than from the relay.
@@ -329,6 +342,75 @@ hands the next a finished artifact rather than an opinion.
 So the tiers here hold one persona each, except intake, where the second exists because **disagreement
 between product and system is the point** — and where the third, on the machinery, never runs on the same
 work as the other two.
+
+### Intake formalism is what buys the gate its objectivity
+
+**The gate's ruler is external to the gate, and that is the load-bearing relationship in the whole
+design.** `quality-assurance` consolidates that every requirement of the issue was met, and those
+requirements are the leads' output, not something the gate invents mid-review. A finding either anchors
+in a stated requirement or a Definition-of-Done criterion, or it does not block — taste has no route to a
+blocker, not because the reviewer restrains itself but because there is nothing to anchor it to.
+
+Read backwards, the failure is obvious: **a vague issue leaves the gate nothing to anchor on**, so it
+falls back on impression, and impression has no stopping rule — twenty-two findings on one documentation
+change is what an unanchored gate looks like. The work does not disappear when a loop adopts this
+formalism; it moves upstream, where a missed requirement costs a text edit at intake instead of a full
+review round at the gate. **A design that adopts the gate without the intake formalism gets the cost and
+not the benefit.**
+
+**Parallel, not serial.** Dispatching lens → fix → gate → fix serialises steps that have no dependency
+between them; the measured cost of serialising was the loop's throughput, not its round count.
+
+**Two rounds is the budget.** From the third round on, the gate's verdict is accompanied by a decision
+request: rounds consumed, what remains, and an explicit choice — push through, park, or narrow. The
+obligation is one sentence: **state what shipping as-is would cost.** Not whether more could be found —
+more can always be found — but what the reader or the next maintainer actually pays.
+
+## The Definition of Done, and when a finding earns the right to block
+
+**The primary ruler is the issue: every requirement the leads stated, enumerated and marked met or
+unmet, individually.** A verdict that says "implements the issue" has consolidated nothing. Where the
+description is not closed enough to enumerate, *that* is the finding — reviewing it anyway hides that
+intake failed. `quality-gates` (in the table below) is the **mechanical** half of "done" — the coverage
+floor, the gate table per loop model, the concrete thresholds. This is the **methodology** half: how a
+requirement becomes a verdict, and how a finding earns the right to hold a merge. Each of the ten
+criteria below is verified with **evidence** — a command's real output, a line in the diff — never with
+"looks fine".
+
+1. **Scope** — one thin vertical slice, end to end, no unrelated changes. Adjacent debt is *reported*,
+   not fixed inline and **not filed as new work**.
+2. **Traceability** — references its issue; acceptance criteria covered by end-to-end journeys.
+3. **Tests proportional to the slice** — unit/integration alongside the code to the repo's coverage
+   floor; a user-visible change adds a green end-to-end story; a docs change adds none but breaks none.
+4. **Gates green with real evidence** — lint, typecheck, build, end-to-end regression, static analysis.
+5. **Decision recorded** — if the change crosses a significance boundary (infrastructure, a public
+   contract or schema, a fixed decision, a new dependency or tool class, a cross-cutting pattern) it
+   references a decision record; otherwise it declares that none is needed.
+6. **Observability** — new behaviour is provable *where it runs*, satisfied by naming the artifact that
+   proves it. **`n/a` is a finding, not a shrug**: say what has no observable and why, so a reader can
+   disagree.
+7. **No documentation drift** — affected docs and records updated in the same merge request.
+8. **History hygiene** — conventional commit subjects; a real merge commit.
+9. **Security posture** — names what the diff touches on that axis and what was checked.
+10. **Content truth** — where the diff changes anything a reader or a crawler will see, the copy lens
+    (`product-lead`) returned a verdict and its blocking findings are resolved. **A claim the gate can
+    itself falsify against a checkable source fails this criterion whatever the lens returned.**
+
+**A finding blocks only if it names a criterion and a falsifier** — the command, line or file that would
+show the reviewer wrong. A finding naming no criterion is **advisory**: reported, never blocking. This is
+not licence to notice less; what changes is that *good observation* and *merge blocker* stop being the
+same thing. Without the rule, the ceiling on a review is however much the reviewer happened to notice —
+which is how six review passes land on a README.
+
+**Severity is set by the lens that found it**, with a stated reason. The party reading a verdict has no
+basis for re-ranking it and will treat everything as blocking otherwise — which is how a five-item list
+becomes five commits. A verdict whose findings are all advisory **does not hold a merge**, and must say
+so, because the word *adjust* reads like a blocker.
+
+**Named residual:** nothing catches a lens that marks something advisory when it should have blocked.
+Criterion 10's second half bounds it for false claims; the rest is accepted deliberately, because a
+reviewer that freely re-grades another lens's findings recreates the reconciliation cost the single gate
+was built to avoid.
 
 ## The skill library, whose domain each family is, and what is actually preloaded
 
@@ -902,6 +984,67 @@ gated, the raw API call is a named gap.)
 [`CLAUDE.md`](./CLAUDE.md) is the full command reference and the versioning contract. The engineering
 floor lives [above](#the-engineering-floor-the-whole-library-encodes) rather than in a file of its own —
 a floor behind a click is a floor nobody reads.
+
+## What travels if this design moves to another harness
+
+This repository is the **Claude Code** implementation. Nothing about the *design* it implements is
+specific to Claude Code — the author's CV calls the discipline **AI-DLC & Agent Harness Engineering**,
+named that way because it is meant to be run with Claude Code **and** Kiro, or reimplemented against a
+different tool entirely. This section is the record of that separation: what a reimplementation loses the
+guarantee by dropping, what it may re-choose freely, and what is weak here today rather than something
+the next reviewer has to rediscover.
+
+**Essential — a reimplementation loses the guarantee if it drops any of these:**
+
+- the three-layer separation: fresh-context review · mechanical pre-execution deny · durable decision
+  record — three different kinds of guarantee, and conflating them means presenting a prompt-level
+  instruction as an enforcement
+- personas justified by one of the four reasons [above](#the-roster-and-what-each-tier-holds) — never by
+  concern — and reconciliation cost paid *within* a tier, so a second persona in one tier needs a reason
+  the others do not
+- **intake formalism paired with gate objectivity** — the leads write the requirements, the gate applies
+  them as an external ruler (see [Intake formalism](#intake-formalism-is-what-buys-the-gate-its-objectivity)
+  above). Adopting either half alone gets the cost without the benefit
+- nothing worked outside the tracker; an issue is executable only once its description is closed
+- one consolidated demand reaching the builder
+- **both gate axes on every merge request** — one objective against the issue, one holding judgement over
+  production risk — unconditioned by what the diff touches. Whether they are two personas or two lenses in
+  one is incidental (this implementation moved from the first to the second on 2026-08-04, for
+  reconciliation cost); that both axes fire on every merge request is essential. If they are merged, every
+  finding must still name its lens
+- findings that name a criterion and a falsifier, with severity set at the source
+- an explicit safe/boundary classification, and ratification that is *verified* rather than relayed
+- an explicit round budget that converts "this is expensive" into a decision
+
+**Incidental to this implementation — re-choose per harness:**
+
+- the persona *names*, and the fact that they are markdown files with tool grants
+- the specific hook runtime, and the command-matching syntax
+- the coverage floor, the round budget's number, the CI provider, the cloud
+- the choice of MADR over a leaner record format
+- trunk-based single-environment, as opposed to a promotion model
+
+**Known-weak — named so a reviewer does not have to discover it independently:**
+
+- **the gate's objectivity is transferred, not created** — it holds exactly as far as the issue is
+  complete, and nothing mechanically checks that a description was actually closed by the leads rather
+  than nodded through by one
+- **the production lens's `n/a` is enforced by phrasing, not by a check** — nothing catches a verdict
+  that names axes it did not really examine
+- **the gate's own verdict is read by nobody** — see the note on the merged gatekeeper
+  [above](#what-the-model-buys-and-what-it-costs): the posting rule is self-enforced, and the artifact
+  closes omission without buying confirmation
+- **a roster assertion written as a COUNT cannot see a substitution.** Swapping one persona for another
+  holds the count constant, so a count-based check stays green through exactly the change it exists to
+  catch — silently, which is worse than absent, because a green check reads as evidence. Assert
+  **membership**, never a count
+- one builder means directory isolation is discipline, not capability
+- the significance test for an ADR is applied once, after the code exists, since the design-time reviewer
+  (`plan-reviewer`) was retired outright
+- a lens that under-classifies its own finding's severity is not caught by anything
+- the content-truth trigger is a *rule*, not an enumerable list, and nothing mechanical can enforce it — an
+  enumeration fails open, so the rule is phrased to fail closed: when it is unclear whether a string is
+  reader-facing, it is
 
 ## Limitation
 

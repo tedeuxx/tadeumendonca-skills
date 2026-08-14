@@ -633,6 +633,11 @@ amendment since it shipped.
 harness. It is a **derived** document: this ADR library remains authoritative, and where the two
 disagree the ADR wins.
 
+**Superseded 2026-08-14, per [ADR-0019](./0019-readme-is-the-single-source-of-truth-for-the-dev-loop.md).**
+`README.md` is now that home; `docs/dev-loop-design.md` is retired to a pointer stub rather than kept as
+a second document claiming the same authority. This ADR library is still what governs where the two, and
+where this note and ADR-0019 disagree, ADR-0019 — the later record — wins on this specific question.
+
 ## Amendment (2026-08-02, eighth) — the gate can only be as objective as the issue is complete
 
 **Problem.** Amendment #7 gave the roster a criterion and left the loop's *intake* untouched. Two
