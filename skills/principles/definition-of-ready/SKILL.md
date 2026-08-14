@@ -100,7 +100,7 @@ number produced is never used for anything else.
 
 *How estimation itself is done — the mechanics of relative sizing, consensus and the group technique most
 teams reach for* — is a separate concern from what this skill defines, and belongs in its own skill:
-**`/planning-poker`** (tracked, not yet written). This skill states only the relationship: sizing is a
+**`/planning-poker`** (#266). This skill states only the relationship: sizing is a
 readiness signal as much as it is a planning input, and a checklist that drops it loses a cheap probe for
 exactly the failure mode named above.
 

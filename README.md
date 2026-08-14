@@ -460,7 +460,7 @@ them.
   canonical source for three of this brief's own production-lens criteria (IAM least-privilege, the
   immutable OIDC subject, SHA-pinning) that this file previously restated in compressed form.
   `quality-gates`'s #265 growth (see `developer`, above) moves this total by the same 763 B.
-- **`tech-lead` — 90,016 B** — `documentation-standard` · `harness-engineering` ·
+- **`tech-lead` — 89,996 B** — `documentation-standard` · `harness-engineering` ·
   `definition-of-ready` · `command-hygiene` · `devops`. This used to be five entries (`adr`,
   `documentation-standard`, `harness-engineering`, `command-hygiene`, `devops`); #260 folded `adr` into
   `documentation-standard` as its Part II, so the entry count temporarily dropped to four before #264
@@ -476,7 +476,7 @@ them.
   argued rather than assumed: closing an Issue's description with `product-lead` is not an occasional
   reference for this persona, it happens at every intake dispatch, which is the same class of necessity
   that justifies a preload rather than a `Read` on demand.
-- **`product-lead` — 50,457 B** — `harness-engineering` · `definition-of-ready` · `command-hygiene`.
+- **`product-lead` — 50,437 B** — `harness-engineering` · `definition-of-ready` · `command-hygiene`.
   `definition-of-ready` (11,131 B, #264) is a new, deliberate second domain-specific entry alongside the
   universal preloads — the same reasoning as `tech-lead`'s addition above: this persona performs the act
   the skill defines (closing a description to the point it earns `ready`) at every dispatch, not
@@ -518,7 +518,7 @@ where `quality-assurance` at least *applies* a concrete instance of the concept 
 here even touches this skill's subject at any dispatch. It stays reachable the same way every
 non-preloaded skill is: typed as `/planning-poker`, or via the `Skill` tool on demand.
 
-**442,298 B as billed across the six, 124,931 B distinct — 30.6% of the library (408,541 B across 13
+**442,258 B as billed across the six, 124,911 B distinct — 30.6% of the library (408,521 B across 13
 skills; `find skills -name SKILL.md | xargs wc -c`), and no persona over 102 KB (`developer`, still the
 largest at 101,637 B — see its bullet above for the 763 B, #265-driven delta).**
 (All figures measured
