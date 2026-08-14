@@ -1,6 +1,6 @@
 # 0002. Agentic dev-loop architecture — per-task subagents, ADRs as the durable brain
 
-- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite) · **amended 2026-08-04** (amendment #9 — `marketing-lead` merges into `product-lead`; the roster drops 6 → 5; the blocking-truth clause is carried across explicitly, and the capability floor that backed it is not) · **amended 2026-08-04** (amendment #10 — `harness-lead` joins tier 1 as the owner's pair on the machinery, advisory and pre-implementation; `security` is **absorbed** into `quality-assurance`, which now holds two lenses in one pass and labels every finding with its lens. The roster is still **five** and **two of its members changed**. The persona criterion widens from *conflict wanted* to **four reasons**, with reconciliation cost paid **within** a tier. Amendment #9's *"both approvals are still required"* is **struck**. Books the rule that produced the gap: **a count is not an identity**)
+- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite) · **amended 2026-08-04** (amendment #9 — `marketing-lead` merges into `product-lead`; the roster drops 6 → 5; the blocking-truth clause is carried across explicitly, and the capability floor that backed it is not) · **amended 2026-08-04** (amendment #10 — `harness-lead` joins tier 1 as the owner's pair on the machinery, advisory and pre-implementation; `security` is **absorbed** into `quality-assurance`, which now holds two lenses in one pass and labels every finding with its lens. The roster is still **five** and **two of its members changed**. The persona criterion widens from *conflict wanted* to **four reasons**, with reconciliation cost paid **within** a tier. Amendment #9's *"both approvals are still required"* is **struck**. Books the rule that produced the gap: **a count is not an identity**) · **amended 2026-08-13** (amendment #13 — `writer` joins tier 2 as a content-scoped second builder; the roster grows 5 → 6; it satisfies none of the four reasons and is named plainly as an owner override; `permission-guard.sh` rule 5e inverted from a denylist to an allowlist to contain it; the `Write`/`Edit` observability gap is accepted in writing rather than closed mechanically)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
 - **Driven by:** [ADR-0001](./0001-adopt-madr-adrs.md), `docs/proposals/agentic-dev-loop.md`
@@ -1320,6 +1320,57 @@ now a strict count of one in-flight branch — but that correction is written po
 mechanism and the stated policy disagree: the hook permits a second, disjoint PR that the policy now
 forbids. **Named as a residual rather than silently left inconsistent**; closing it is a
 `wip-guard.sh` change, not a docs one, and is not this amendment's or #224's job.
+
+## Amendment (2026-08-13, thirteenth) — `writer` joins the roster; six personas, and the sixth satisfies none of the four reasons
+
+**The roster grows to six.** `writer` — a content-scoped second builder, drafting articles, site copy
+and social-post language (LinkedIn/X) in the owner's voice — joins tier 2 alongside `developer`.
+
+**Said plainly rather than stretched to fit: `writer` does not satisfy any of the four reasons amendment
+#10 states for a persona to exist** (disagreement wanted, fresh context wanted, context-window
+constraint, capability should be smaller). It exists because a `content`-typed Issue had no mechanical
+builder at all — `product-lead` holds no `Write`; `developer` has `Write` and the relevant globs but is
+never dispatched to `content` work, since `/autonomy-on`'s queue was `product`+`ready` only. That is a
+**capability gap**, a fifth shape the four-reason criterion does not name. **Owner override, 2026-08-12,
+ahead of #161's own measured-delta precondition** — #161 asked to measure the current roster's drafting
+delta on one article *before* adding a persona; this amendment adds it first and retains #161's
+measurement clause as `writer`'s own acceptance criteria (tracked in #187) rather than as a gate on its
+creation.
+
+**What compensates for skipping the precondition, named rather than assumed:** the same reconciliation
+logic that let `harness-lead` (amendment #10) join tier 1 at zero cost applies here in tier 2 —
+`developer` and `writer` never run on the same work, so there is no verdict of one to reconcile with the
+other's. The cost this addition actually pays is a NEW containment surface, not reconciliation:
+`writer` reads the same private positioning material (`.brand/`) that justified denying `product-lead`
+direct public posting, so it needed the identical mechanical boundary.
+
+**Two preconditions shipped WITH the persona, not after (#187):**
+
+1. **`permission-guard.sh` rule 5e inverted from a denylist to an allowlist.** The old form named only
+   `product-lead` to deny; probed, `agent_type=…:writer` fell through ALLOW — the exact "absent is not a
+   state" shape ADR-0018 later names for the AWS floor, found here first. The new form allowlists the
+   personas cleared to post directly (`developer`, `tech-lead`, `harness-lead`, `quality-assurance`, the
+   main agent) and denies everything else by default, `writer` included, so a future private-material-
+   reading persona is contained automatically rather than needing to be remembered.
+2. **The `Write`/`Edit` observability gap is accepted in writing, not closed mechanically.**
+   `hooks/hooks.json` registers `PreToolUse` on the `Bash` matcher only — nothing in this harness
+   observes a file write anywhere, for any persona, and building that hook (registering `PreToolUse` on
+   the `Write`/`Edit` matcher and confirming it receives a file path — nobody has tested whether it
+   does) needs the plugin active to test live, which it was not at the time this amendment was written.
+   **The accepted control for now is the owner reading the diff** — the same residual every merge
+   request already carries at the human end, not a new mechanism. Revisit once the hook can genuinely be
+   tested; do not read this as a closed question.
+
+**The sourcing constraint and the fail-open behavior are in `writer`'s own brief, not merely implied** —
+shape/cut/structure/translate, never originate; validate always, no autonomous-inference tier, per the
+owner's own calibration (*"é a minha imagem à prova. Prefiro validar sempre."*); and an explicit refusal
+to draft around a missing source for any consumer of this public plugin who has no private material of
+their own.
+
+**Named as consequent work, not done here:** the cross-repo staleness list #187 names (`-io`'s drift
+check, generated manifest, harness-source test, architecture-diagram test, both locale editions of the
+architecture page) and ADR-0012's own S5 resolution (route `content` Issues to `writer`, not `developer`
+as a stopgap) — both outside this ADR's write scope.
 
 ## Consequences
 **Good**

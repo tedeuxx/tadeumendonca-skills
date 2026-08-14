@@ -45,7 +45,7 @@ prompt-level instruction as an enforcement.
 
 ---
 
-## 2 · The roster — five personas, and the rule that produced them
+## 2 · The roster — six personas, five by the rule and one by override
 
 The roster was nineteen. It modelled an organisation: one persona per concern, each with a mandate. In
 practice most were never invoked, because **splitting a concern out of the main context creates a
@@ -84,6 +84,16 @@ Read together, the four reasons and the per-tier rule settle the roster without 
 3 held two personas and paid the reconciliation cost on every merge request — which is why it now holds
 one. Tier 1's second persona is justified because product-versus-system disagreement *is* the point, and
 its **third** pays nothing, because it never runs on the same work as the other two.
+
+**`writer` (#187) is the roster's sixth persona, and it does not satisfy any of the four reasons above —
+said plainly rather than stretched to fit.** It exists because a `content`-typed Issue had no mechanical
+builder at all: `product-lead` holds no `Write`, `developer` is never dispatched there. That is a
+capability gap, not disagreement, a fresh context, a context-window constraint, or a smaller capability
+— the owner decided it directly, ahead of the measured-delta precondition #161 would otherwise have
+required first. It costs the roster the same as any second-builder addition would: `product-lead` gates
+its output the way it gates any published claim, and `quality-assurance` merges its diffs through the
+same gate as `developer`'s — no new reconciliation surface, since neither of those relationships is new
+in kind, only in one more producer feeding them.
 
 ```
                         OWNER  (CEO, and harness engineer)

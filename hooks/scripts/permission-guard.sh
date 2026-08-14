@@ -665,10 +665,28 @@ fi
 #     (composition), so a composed command came out with NO decision at all. `deny` is terminal by
 #     design and that is correct; an ALLOW here must never be.
 # `gh_repo_flag` is defined above rule 5f, which is the first rule that reads it — see the note there.
+#
+# INVERTED FROM A DENYLIST TO AN ALLOWLIST (#187, 2026-08-13). The `writer` persona reads `.brand/`
+# (private positioning material) to draft public-facing prose — the same shape `product-lead` was
+# denied for — and probing `agent_type=…:writer` against the OLD form (`case ... *:product-lead) deny
+# ;; esac`, everything else falls through ALLOW) found it posts straight through with no decision at
+# all. Naming every persona that must NOT post, one at a time, is the same "absent is not a state"
+# failure ADR-0018 records for the AWS floor: a new persona that reads private material and is simply
+# never added to this list posts by default, silently. The fix is deny-unless-cleared: name the
+# personas ALLOWED to post directly, and anything else — including a future persona nobody remembered
+# to list here — denies by default.
 if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+(pr[[:space:]]+comment|issue[[:space:]]+(comment|create))([[:space:]]|\$)"; then
   case "$agent_type" in
+    ""|*:developer|*:tech-lead|*:harness-lead|*:quality-assurance)
+      : ;;  # allowlisted — none of these reads .brand/ as a matter of course, and each posts as part
+            # of its normal work (verdicts, findings, task filing). Falls through to the rest of the
+            # file, same as before.
     *:product-lead)
       deny "Blocked: \`product-lead\` writes nothing to a public surface. It reads the private positioning layer (\`.brand/\`) and \`gh pr comment\`/\`gh issue comment\`/\`gh issue create\` publish to a public repo — a paraphrase of that material in a comment is not revertible by deleting the comment. This restores the capability boundary the merged-away \`marketing-lead\` had (no Bash at all); reading the queue (\`gh pr list\`, \`gh issue list\`, \`gh pr view\`) is untouched. Return the finding in your verdict — it still reaches the PR: \`quality-assurance\` quotes your verdict there VERBATIM under its own marker, and its criterion 10 is not satisfied until that text is on the PR (owner decision 2026-08-04, recorded in ADR-0006). Say in your return that the finding needs to reach the PR, and write it so it can be quoted as it stands. agent_type='${agent_type}'." ;;
+    *:writer)
+      deny "Blocked: \`writer\` writes nothing to a public surface directly. It reads the private positioning layer (\`.brand/\`) to draft — the same shape \`product-lead\` is denied for, and for the same reason: a paraphrase of private material in a public comment is not revertible by deleting the comment. Drafts go through \`Write\`/\`Edit\` onto tracked files (\`content/blog/**\`, site copy, a social-post draft) for the owner's review, never straight to \`gh pr comment\`/\`gh issue comment\`/\`gh issue create\`. agent_type='${agent_type}'." ;;
+    *)
+      deny "Blocked: agent_type='${agent_type}' is not on this rule's allowlist for posting directly (\`gh pr comment\`/\`gh issue comment\`/\`gh issue create\`). New personas default to DENY here — deliberately, per ADR-0018's 'absent is not a state' — until someone decides they belong on the allow side above and adds them by name. If this SHOULD be allowed, that is a decision to make explicitly, not a gap to route around." ;;
   esac
 fi
 

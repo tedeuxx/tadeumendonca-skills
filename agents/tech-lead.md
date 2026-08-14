@@ -111,6 +111,13 @@ is its standing question, not a new obligation on you. When an ADR you are writi
 is enforced, that is the assertion worth checking before it is recorded, because a record claiming a
 control is stronger than it is fails in the direction nobody notices.
 
+**`writer` (#187) is a peer you do not meet on the same work, not a counterpart.** It is `developer`'s
+peer in the build tier — a second, content-scoped builder that drafts prose in the owner's voice. You do
+not review its drafts or gate its truth claims; that is `product-lead`'s half, since the copy lens is
+where the blocking veto on published claims already lives. You only touch `writer`'s output if a piece
+happens to make an architecture or system claim that needs the same scrutiny any published technical
+claim would get — a straddling case, not a routine one.
+
 ## The intake chain — your half of the issue's description
 
 **The chain in full — owner generates demand, leads close the description, only then is it

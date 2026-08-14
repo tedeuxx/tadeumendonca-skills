@@ -129,7 +129,7 @@ being gone.
 
 ## The roster, and what each tier holds
 
-`agents/` holds **5 subagent personas** — three tiers, the owner at both ends, and the work units they
+`agents/` holds **6 subagent personas** — three tiers, the owner at both ends, and the work units they
 hand each other.
 
 ```mermaid
@@ -161,7 +161,8 @@ flowchart TB
 
   subgraph T2["TIER 2 · BUILD"]
     direction LR
-    DEV["developer<br/>product · content — one branch, ticking the task list"]
+    DEV["developer<br/>product — one branch, ticking the task list"]
+    WRT["writer<br/>content — drafts prose, contained like product-lead (rule 5e)"]
     HRB["harness-lead<br/>loop — builds what it stress-tests"]
   end
 
@@ -192,10 +193,12 @@ flowchart TB
   HR --> ORCH
   TLL --> ORCH
 
-  ORCH -->|"product · content"| DEV
+  ORCH -->|"product"| DEV
+  ORCH -->|"content"| WRT
   ORCH -->|"loop: owner-gated ready"| HRB
 
   DEV --> MR
+  WRT --> MR
   HRB --> MR
   MR -->|"via orchestrator"| QA
   QA --> M
@@ -708,7 +711,7 @@ by hand:
 |---|---|---|---|
 | **Skills** | yes — **15** | `skills/<family>/[<name>/]SKILL.md`, each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-family-is-and-what-is-actually-preloaded) |
-| **Agents** | yes — **5 subagent personas** | `agents/*.md` (`developer`, `harness-lead`, `product-lead`, `quality-assurance`, `tech-lead`) | dispatched by name via `Task` |
+| **Agents** | yes — **6 subagent personas** | `agents/*.md` (`developer`, `harness-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `writer`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 4** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`) — automatic, no invocation |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
