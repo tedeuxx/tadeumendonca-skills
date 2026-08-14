@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 13 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 12 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -332,7 +332,7 @@ work as the other two.
 
 ## The skill library, whose domain each family is, and what is actually preloaded
 
-**Skills carry the conventions so the model does not re-invent them.** **13 skills + autonomy-on**,
+**Skills carry the conventions so the model does not re-invent them.** **12 skills + autonomy-on**,
 `autonomy-off` and `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
@@ -365,32 +365,39 @@ before the persona's first turn.** There is no declare-without-loading option, s
 deprivation rather than a deferral**, which is why the briefs argue their omissions rather than listing
 them.
 
-- **`developer` — 96,625 B** — `code-review` · `quality-gates` ·
-  `harness-engineering` · `command-hygiene` · `devops` · `versioning`
+- **`developer` — 96,711 B** — `code-review` · `quality-gates` ·
+  `harness-engineering` · `command-hygiene` · `devops`
 - **`quality-assurance` — 56,756 B** — `harness-engineering` · `quality-gates` ·
   `sonarcloud` · `command-hygiene`. `coverage` used to be a fifth, separate entry here; #257 folded its
   content into `quality-gates`, so the same policy is still fully preloaded — the entry disappeared, not
   the content.
-- **`tech-lead` — 55,557 B** — `adr` · `harness-engineering` ·
-  `documentation-standard` · `command-hygiene` · `versioning`
+- **`tech-lead` — 72,985 B** — `adr` · `harness-engineering` ·
+  `documentation-standard` · `command-hygiene` · `devops`. `versioning` used to be the fifth entry here;
+  #258 folded it into `devops`, and this brief now preloads `devops` whole rather than losing the
+  sequencing content it argued it needs (#227) — a real decision, recorded in the brief itself, that
+  also closes a gap the *whose domain* table below already asserted (`tech-lead` as a `devops` domain
+  holder, #227) without this preload list backing it until now. The trade: a heavier preload than the
+  narrow `versioning` file it replaces.
 - **`product-lead` — 38,665 B** — `harness-engineering` · `command-hygiene`
-- **`harness-lead` — 68,772 B** — `harness-engineering` · `adr` · `command-hygiene` · `devops` ·
-  `versioning`. `harness-engineering` was the one exception to what used to be `skills: []`; the other
-  four followed for reasons its own brief states (`adr` for loop/harness ADRs since #223,
-  `command-hygiene` and `devops` as the transversal/machinery skills it owns, `versioning` for the
-  workflow it authors). It remains the persona most exposed to staleness, a real tension a frozen
+- **`harness-lead` — 68,858 B** — `harness-engineering` · `adr` · `command-hygiene` · `devops`.
+  `harness-engineering` was the one exception to what used to be `skills: []`; the other three followed
+  for reasons its own brief states (`adr` for loop/harness ADRs since #223, `command-hygiene` and
+  `devops` as the transversal/machinery skills it owns). `versioning` used to be a fifth entry here;
+  #258 folded it into `devops`, so the entry disappeared and the content travels inside the skill already
+  loaded. It remains the persona most exposed to staleness, a real tension a frozen
   preload creates that its own brief names as a residual rather than resolves.
 - **`writer` — 38,665 B** — `harness-engineering` · `command-hygiene`
 
-**355,040 B as billed across the six, 110,650 B distinct — 30.2% of the library (366,060 B across 13
+**372,640 B as billed across the six, 110,736 B distinct — 30.2% of the library (366,146 B across 12
 skills; `find skills -name SKILL.md | xargs wc -c`), and no persona over 97 KB.** (All figures measured
-directly — `wc -c` per file listed above — rather than carried forward from an earlier count; the prior
-published figures here predated both `writer` (#187) and this section catching up with `command-hygiene`
-(#225), `devops` (#227) and `versioning` reaching several of these `skills:` lists, so they undercounted
-independently of the coverage merge.) `harness-engineering` (32,751 B, the universal preload, #224) is the
+directly — `wc -c` per file listed above — rather than carried forward from an earlier count; #258
+folded `versioning` into `devops`, which changed three of the six totals — `developer` and `harness-lead`
+directly, and `tech-lead` via the `versioning`→`devops` swap decided above — so every figure here was
+re-measured, not adjusted by arithmetic on the prior count.) `harness-engineering` (32,751 B, the
+universal preload, #224) is the
 largest single skill in the library and is carried by all six briefs. The two figures (billed vs.
 distinct) differ because several skills — `harness-engineering`, `command-hygiene`, `quality-gates`,
-`adr`, `devops`, `versioning` — are each carried by more than one persona: there is no dedupe, so each is
+`adr`, `devops` — are each carried by more than one persona: there is no dedupe, so each is
 billed once per persona and the library sees it once. Note what this table and
 the one below disagree about, deliberately: `developer` **preloads** two `principles`-family skills while
 the column below puts that family under the four judging personas. Both are true. The principles are the
@@ -410,7 +417,7 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library, by family: backend (1), frontend (1), infrastructure (1), principles (2), workflow (8).
+The library, by family: backend (1), frontend (1), infrastructure (1), principles (2), workflow (7).
 
 | skill | what it decides | family | whose domain |
 |---|---|---|---|
@@ -426,7 +433,6 @@ The library, by family: backend (1), frontend (1), infrastructure (1), principle
 | `documentation-standard` | Write or review docs for any <project> repo following the documentation standard. | `workflow` | `developer` |
 | `license` | Apply the repository licensing standard in any <project> repo. | `workflow` | `developer` |
 | `sonarcloud` | Use SonarCloud in <project> repos (code quality + security scan). | `workflow` | `developer` |
-| `versioning` | Apply the semantic-versioning + tagging rules (bump-my-version) in any <project> repo. | `workflow` | `developer` |
 **Three things the table shows rather than asserts.** The builder is the only persona holding a build
 family — conventions exist for building, and one persona builds. `workflow` is the only family that
 splits, and it splits for a reason: `adr` belongs to the two writers of the records, split by domain

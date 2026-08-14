@@ -6,7 +6,7 @@
     {
       "name": "tadeumendonca-skills",
       "source": "./",
-      "description": "Gives Claude a dev-loop with gates in it: a reviewer that verifies a merge request against a Definition of Done, PreToolUse hooks that mechanically refuse irreversible actions, and 13 generic skills for AWS, React and CI/CD."
+      "description": "Gives Claude a dev-loop with gates in it: a reviewer that verifies a merge request against a Definition of Done, PreToolUse hooks that mechanically refuse irreversible actions, and 12 generic skills for AWS, React and CI/CD."
     }
   ]
 }

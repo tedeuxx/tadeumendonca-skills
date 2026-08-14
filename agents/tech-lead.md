@@ -7,7 +7,7 @@ skills:
   - harness-engineering
   - documentation-standard
   - command-hygiene
-  - versioning
+  - devops
 ---
 
 ## What you already have loaded, and what was withheld
@@ -23,10 +23,19 @@ preload — the loop's state machine, the intake chain, and the eleven principle
 by all five profiles rather than by a subset. Understanding the loop itself is not domain-specific the
 way the rest of the process library is.
 
-**`versioning` is loaded because release cadence is a sequencing/architecture call (#227)** — the two
-leads disagreed only on whether `tech-lead` or `harness-lead` should hold a second seat alongside
-`developer` (both leads agreed `developer` needs it); the issue allowed adding both rather than
-adjudicating, and both did.
+**A real decision landed here at #258, and it is recorded rather than resolved silently.** Release
+cadence is a sequencing/architecture call (#227), so `versioning` used to be your fifth preload entry —
+the two leads disagreed only on whether `tech-lead` or `harness-lead` should hold a second seat alongside
+`developer`, and the issue allowed adding both rather than adjudicating. #258 folded the standalone
+`versioning` skill into `devops` (its trigger workflows are pipeline wiring, the same object as the rest
+of `devops`), which left two options: drop the content from this brief's preload, or preload `devops`
+whole to keep it. **The README's own "whose domain" table already named `tech-lead` a `devops` domain
+holder (#227)** — a claim about accountability that this preload list did not, until now, back with an
+actual load. Swapping `versioning` for `devops` closes that gap and keeps the sequencing content you
+relied on; the cost is a heavier preload (`devops` carries OIDC, secrets, TFC and the permission model
+alongside the versioning section you actually need) rather than a narrow one. Accepted here because the
+alternative — losing versioning content this brief already argued it needs — is worse than the extra
+bytes; see the README's persona-preload table for the re-measured total.
 
 - **`quality-gates` (8,406 B)** — withheld deliberately. The DoD is
   `quality-assurance`'s ruler, not yours; your half of intake is preconditions, blast radius and what a

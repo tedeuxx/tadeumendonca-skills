@@ -1936,7 +1936,7 @@ else
   # than weaker: before the flatten a rival mentioned in passing counted, and now only a pointer does.
   CLUSTERS="
 gates|code-review quality-gates
-delivery|devops versioning harness-engineering
+delivery|devops harness-engineering
 "
 
   names_rival() {  # $1 = description text, $2 = rival stem — matched only inside a `(see …)` pointer

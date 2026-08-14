@@ -8,7 +8,6 @@ skills:
   - harness-engineering
   - command-hygiene
   - devops
-  - versioning
 ---
 
 ## What you already have loaded, and what was withheld
@@ -31,8 +30,11 @@ not on that list you genuinely cannot reach.
 withheld-and-paid-for gap.** Where this brief used to name `github-actions` as the honest cost of owning
 `.github/workflows/**` without its guide, the consolidated skill is now loaded — OIDC, secrets, the
 workflow set, TFC state, branching per model, and the pipeline-only IaC boundary all arrive in one
-preload, shared with `harness-lead`. **`versioning`** is also loaded now (both leads converged: you need
-it for release-adjacent build work).
+preload, shared with `harness-lead`. **Versioning is also loaded now** (both leads converged: you need
+it for release-adjacent build work) — as `devops`'s own "Versioning & tags" section, since #258 folded
+the former standalone `versioning` skill into it (the trigger workflows it describes are pipeline
+wiring, the same object as everything else in `devops`). No preload-list entry disappeared for you:
+`devops` already carried the workflow-wiring half of this content; it now carries the SemVer half too.
 
 ## Working files and command hygiene
 

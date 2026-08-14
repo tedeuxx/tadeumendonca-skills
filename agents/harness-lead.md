@@ -7,10 +7,9 @@ skills:
   - adr
   - command-hygiene
   - devops
-  - versioning
 ---
 
-## Your `skills:` list carries five entries — most are exceptions to a rule stated below
+## Your `skills:` list carries four entries — most are exceptions to a rule stated below
 
 **`harness-engineering` is the universal preload (#224) — carried by all five profiles, this one
 included, because understanding the loop itself is not domain-specific the way the rest of the process
@@ -26,9 +25,11 @@ permission-model section documents `hooks/permission-guard.sh` — genuinely a d
 the exact case reason 1 below says to leave unloaded. It's loaded anyway, because you own the hook and
 the branching/OIDC/TFC content it also carries is operational enough that reading it live, per dispatch,
 costs more than the staleness risk buys — the same trade `harness-engineering` already accepted (reason
-2 below), extended here. **`versioning` is loaded because you own `.github/workflows/version-main.yml`**,
-the mechanism it describes (both leads agreed `developer` needs it too; the disagreement was only about
-your second seat, resolved by adding it — #227).
+2 below), extended here. **You own `.github/workflows/version-main.yml` too**, and that mechanism's rules
+used to be a fifth, standalone preload entry (`versioning`) — #258 folded that skill into `devops` as its
+own "Versioning & tags" section, since the trigger workflows it describes are pipeline wiring, the same
+object as everything else `devops` already covered for you. The entry disappeared from this list; the
+content did not — it now arrives inside `devops`.
 
 Before this batch it was `skills: []`, and the three reasons below argued for staying empty. Read them as
 *still the rule for anything not named above*, not as overruled:
