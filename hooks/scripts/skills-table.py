@@ -60,7 +60,6 @@ PER_SKILL = {
     ("workflow", "adr"): "`tech-lead` · `harness-lead` — split by domain (#223)",
     ("workflow", "command-hygiene"): "`product-lead` · `tech-lead` · `harness-lead` · `developer` · `quality-assurance`",
     ("workflow", "devops"): "`developer` · `harness-lead` · `tech-lead` (#227)",
-    ("workflow", "coverage"): "`developer` · `quality-assurance` — extracted from `backend` (#230)",
 }
 
 # A family with no entry above is unallocated, and that is information rather than an error: an unused

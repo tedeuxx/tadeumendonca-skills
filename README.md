@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 14 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 13 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -332,7 +332,7 @@ work as the other two.
 
 ## The skill library, whose domain each family is, and what is actually preloaded
 
-**Skills carry the conventions so the model does not re-invent them.** **14 skills + autonomy-on**,
+**Skills carry the conventions so the model does not re-invent them.** **13 skills + autonomy-on**,
 `autonomy-off` and `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
@@ -365,24 +365,33 @@ before the persona's first turn.** There is no declare-without-loading option, s
 deprivation rather than a deferral**, which is why the briefs argue their omissions rather than listing
 them.
 
-- **`developer` — 60,264 B** — `code-review` · `quality-gates` ·
-  `harness-engineering`
-- **`quality-assurance` — 50,222 B** — `harness-engineering` · `quality-gates` ·
-  `coverage` · `sonarcloud`
-- **`tech-lead` — 42,301 B** — `adr` · `harness-engineering` ·
-  `documentation-standard`
-- **`product-lead` — 32,250 B** — `harness-engineering`
-- **`harness-lead` — 32,250 B** — `harness-engineering`, the one exception to what used to be
-  `skills: []`. Its object is `hooks/`, `settings.json`, `agents/`, the plugin and MCP — none of which
-  is in `skills/` — and it is the persona most exposed to staleness, a real tension a frozen preload
-  creates that its own brief now names as a residual rather than resolves.
+- **`developer` — 96,625 B** — `code-review` · `quality-gates` ·
+  `harness-engineering` · `command-hygiene` · `devops` · `versioning`
+- **`quality-assurance` — 56,756 B** — `harness-engineering` · `quality-gates` ·
+  `sonarcloud` · `command-hygiene`. `coverage` used to be a fifth, separate entry here; #257 folded its
+  content into `quality-gates`, so the same policy is still fully preloaded — the entry disappeared, not
+  the content.
+- **`tech-lead` — 55,557 B** — `adr` · `harness-engineering` ·
+  `documentation-standard` · `command-hygiene` · `versioning`
+- **`product-lead` — 38,665 B** — `harness-engineering` · `command-hygiene`
+- **`harness-lead` — 68,772 B** — `harness-engineering` · `adr` · `command-hygiene` · `devops` ·
+  `versioning`. `harness-engineering` was the one exception to what used to be `skills: []`; the other
+  four followed for reasons its own brief states (`adr` for loop/harness ADRs since #223,
+  `command-hygiene` and `devops` as the transversal/machinery skills it owns, `versioning` for the
+  workflow it authors). It remains the persona most exposed to staleness, a real tension a frozen
+  preload creates that its own brief names as a residual rather than resolves.
+- **`writer` — 38,665 B** — `harness-engineering` · `command-hygiene`
 
-**217,287 B as billed across the five, 79,942 B distinct — 17.8% of the library, and no persona over
-61 KB.** `harness-engineering` (32,250 B, the universal preload, #224) is the largest single skill in
-the library and is now carried by all five briefs, which is why the billed total roughly tripled from
-the pre-#224 figure. The two figures (billed vs. distinct) differ because `quality-gates` is
-carried by two personas and `harness-engineering` by all five: there is no dedupe, so each is billed
-once per persona and the library sees it once. Note what this table and
+**355,040 B as billed across the six, 110,650 B distinct — 30.2% of the library (366,060 B across 13
+skills; `find skills -name SKILL.md | xargs wc -c`), and no persona over 97 KB.** (All figures measured
+directly — `wc -c` per file listed above — rather than carried forward from an earlier count; the prior
+published figures here predated both `writer` (#187) and this section catching up with `command-hygiene`
+(#225), `devops` (#227) and `versioning` reaching several of these `skills:` lists, so they undercounted
+independently of the coverage merge.) `harness-engineering` (32,751 B, the universal preload, #224) is the
+largest single skill in the library and is carried by all six briefs. The two figures (billed vs.
+distinct) differ because several skills — `harness-engineering`, `command-hygiene`, `quality-gates`,
+`adr`, `devops`, `versioning` — are each carried by more than one persona: there is no dedupe, so each is
+billed once per persona and the library sees it once. Note what this table and
 the one below disagree about, deliberately: `developer` **preloads** two `principles`-family skills while
 the column below puts that family under the four judging personas. Both are true. The principles are the
 judges' ruler and the builder's floor; *whose domain* and *what is loaded* are different questions, which
@@ -401,7 +410,7 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library, by family: backend (1), frontend (1), infrastructure (1), principles (2), workflow (9).
+The library, by family: backend (1), frontend (1), infrastructure (1), principles (2), workflow (8).
 
 | skill | what it decides | family | whose domain |
 |---|---|---|---|
@@ -409,11 +418,10 @@ The library, by family: backend (1), frontend (1), infrastructure (1), principle
 | `frontend` | Frontend (React SPA) | `frontend` | `developer` |
 | `cloud-infrastructure` | Cloud infrastructure (AWS) | `infrastructure` | `developer` |
 | `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
-| `quality-gates` | Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that… | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `quality-gates` | Quality gates — the definition of done and the concrete policy that proves it | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 | `adr` | Author or review an Architecture Decision Record (ADR) for any `<project>` repo, following the platform's ADR practice. | `workflow` | `tech-lead` · `harness-lead` — split by domain (#223) |
 | `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `workflow` | `developer` |
 | `command-hygiene` | Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched | `workflow` | `product-lead` · `tech-lead` · `harness-lead` · `developer` · `quality-assurance` |
-| `coverage` | Quality gates | `workflow` | `developer` · `quality-assurance` — extracted from `backend` (#230) |
 | `devops` | Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and | `workflow` | `developer` · `harness-lead` · `tech-lead` (#227) |
 | `documentation-standard` | Write or review docs for any <project> repo following the documentation standard. | `workflow` | `developer` |
 | `license` | Apply the repository licensing standard in any <project> repo. | `workflow` | `developer` |

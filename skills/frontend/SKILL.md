@@ -82,7 +82,8 @@ new AwsRum(env.rumAppMonitorId, '1.0.0', env.region, { sessionSampleRate: 0.1, i
 ```
 
 **Testing (vitest + RTL)** — Unit/component tests run on **vitest** + React Testing Library
-(`environment: 'jsdom'`); the coverage gate (≥ 85%) is the agnostic policy in `/coverage`. Thresholds
+(`environment: 'jsdom'`); the coverage gate (≥ 85%) is the agnostic policy in `/quality-gates` (folded
+in from the former standalone `coverage` skill at #257). Thresholds
 in `vitest.config.ts`:
 ```ts
 test: { environment: 'jsdom', coverage: { provider: 'v8', thresholds: { lines: 85, functions: 85, branches: 85, statements: 85 } } }
@@ -468,7 +469,7 @@ Cons: client-side, so ad-blockers/consent reduce data; privacy/consent handling 
 End-to-end tests that drive the real **static SPA** in a browser — the functional proof that
 nothing already working broke. Under `trunk-single-env` E2E runs on the **PR gate** (it blocks the
 merge, and the merge is the deploy), and the same specs can run as a **post-deploy smoke** against
-the live apex. Part of the quality gate (`/coverage`).
+the live apex. Part of the quality gate (`/quality-gates`).
 
 **Setup (single environment, one command targets local or the apex)**
 - `playwright.config.ts`: `baseURL` from `PLAYWRIGHT_BASE_URL`, or from `E2E_ENV` mapped to a URL —
