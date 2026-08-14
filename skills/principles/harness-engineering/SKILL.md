@@ -218,6 +218,10 @@ Then **`product-lead` states the order**, and the session works it:
 **A session with no pending decisions says so.** A step that silently did nothing must not read like
 a step that ran.
 
+**Each decision lands as an artifact on the issue it unblocks (#85)** — a comment, not only
+conversation — so the ratification survives the session that made it and a later reader can find why a
+slice went the way it did without reconstructing the chat.
+
 ## What gets worked next — discovered vs requested
 
 **Work you discover only preempts work the owner asked for when it BLOCKS it.** File everything,
