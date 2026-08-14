@@ -1,0 +1,69 @@
+name: Product
+description: A request about the platform's own product or skill library — what to build, change, or fix, not a change to the loop's own machinery.
+labels: ["product"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Only the owner opens work. This template exists so `/new-issue` (and a human filing directly)
+        close the same description the two-lead intake produces — see `commands/new-issue.md` for the
+        full process this mirrors.
+  - type: textarea
+    id: request
+    attributes:
+      label: What you want
+      description: The request, in your own words. A symptom is fine here — the search below is where it becomes a decision.
+    validations:
+      required: true
+  - type: textarea
+    id: search
+    attributes:
+      label: What the search found
+      description: |
+        Was this already decided somewhere — a doc comment, an ADR, a closed Issue, CLAUDE.md?
+        One of three answers: it was decided and here is why · it was decided and a premise changed ·
+        nothing decides it (say so explicitly).
+    validations:
+      required: true
+  - type: textarea
+    id: intake
+    attributes:
+      label: Two-lead intake
+      description: |
+        `product-lead` and `tech-lead`'s findings — value/order/slice size, and feasibility/cost/what a
+        record is owed. If either recommends defer or drop, say so here rather than omitting it.
+    validations:
+      required: false
+  - type: input
+    id: parent
+    attributes:
+      label: "Parent (if this is a task, not a story)"
+      description: "Parent: #N — a task is an Issue child, per ADR-0014. Leave blank for a story-level Issue."
+      placeholder: "#N"
+    validations:
+      required: false
+  - type: dropdown
+    id: class
+    attributes:
+      label: Class
+      description: "Boundary: touches iac/ or the site's continuity, or the class is unclear. Significance beats in-pattern."
+      options:
+        - safe
+        - boundary
+    validations:
+      required: true
+  - type: checkboxes
+    id: reader-facing
+    attributes:
+      label: Reader-facing
+      options:
+        - label: A reader sees something here (copy, a route, a visual change) — apply the `reader-facing` label
+          required: false
+  - type: input
+    id: intake-stamp
+    attributes:
+      label: Intake stamp
+      description: "Date and the main SHA the leads read, once the description closes."
+      placeholder: "YYYY-MM-DD, <sha>"
+    validations:
+      required: false
