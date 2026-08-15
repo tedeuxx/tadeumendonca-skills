@@ -79,13 +79,15 @@ any form** (`grep -rl '^family: frontend' skills | xargs grep -il trade-off` →
 against the count published below).~~
 
 **WITHDRAWN 2026-08-15, and deliberately not restated.** The measurement was taken on **2026-08-10**
-against a **15-file** `frontend` family. Three things went wrong at once, each a different failure:
+against a **15-file** `frontend` family. It is withdrawn against this repo's own
+**"publish the number with its command"** rule — *a measured number ships with the command that
+produced it, inline and runnable, **or not at all*** — which it failed three ways at once, each a
+different failure:
 
 - **The falsifier is dead.** `family:` frontmatter went away at #182, so the published command matches
   nothing and emits nothing at head. A falsifier that fails open reads to whoever runs it as *"nothing
-  to worry about"*, which is worse than publishing no command at all — and this repo's own rule, stated
-  one paragraph above, is that a measured number ships with the command that produced it **or not at
-  all**.
+  to worry about"*, which is worse than publishing no command at all — and is exactly what the rule
+  stated one paragraph above forbids.
 - **`authentication` is not a file.** The family consolidated into a single `skills/frontend/SKILL.md`
   at **#231 (2026-08-13)**; what the figure counted is now a *section* of that file
   (`skills/frontend/SKILL.md:202`).
@@ -103,7 +105,8 @@ whose denominator moved is the same call the token-price paragraph below makes, 
 *The 2026-08-10 figure's own correction, kept as the record of the defect class and not as anything to
 run:* the form published here until #164 was `grep -rl trade-off commands/frontend/`, which returned
 **zero** — the one occurrence is written `Trade-off`, so the replacement carried `-i`. The figure was
-right and the command beside it did not produce it. **Both spellings are dead at head.** That this
+right and the command beside it did not produce it — the exact failure that rule exists to make
+visible. **Both spellings are dead at head.** That this
 block's own header claimed re-verification while its published command returned nothing is that same
 failure one layer up, and it is why the header now dates the measurement instead of asserting it.
 
