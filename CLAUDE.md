@@ -69,17 +69,43 @@ have decided differently, and calibrate from that note when material accumulates
 **Hard principles:** **project-agnostic** — generic `<project>` / `<apex-domain>` placeholders, **NO** real
 names/domains/ARNs/ids; **English** (it's published); **additive density** (deepen; never thin out good content).
 
-**State (re-verified 2026-08-10, unchanged in substance since 2026-06-21):** the thin
-`## Decision & trade-off` baseline has landed for the `infrastructure` and `backend` families, plus the
-`vpc` deep exemplar; **the `frontend` family is still effectively unstarted — exactly one file in it
-carries a trade-off in any form** (`grep -rl '^family: frontend' skills | xargs grep -il trade-off` → 1,
-`authentication`; against the count published below). **The command carries `-i`, and that is a
-correction rather than a flourish:** the form published here until #164 was
-`grep -rl trade-off commands/frontend/`, which returns **zero** — the one occurrence is written
-`Trade-off`. The figure was right and the command beside it did not produce it, which is the exact
-failure this repo's "publish the number with its command" rule exists to make visible. The
-**deep-dive above is the active workstream**; those baseline sections are scaffolding to deepen, not the
-goal.
+**State (last measured 2026-08-10 — re-verified, not re-stamped; one figure WITHDRAWN 2026-08-15, see
+below):** the thin `## Decision & trade-off` baseline has landed for the `infrastructure` and `backend`
+families, plus the `vpc` deep exemplar. The **deep-dive above is the active workstream**; those baseline
+sections are scaffolding to deepen, not the goal.
+
+~~**the `frontend` family is still effectively unstarted — exactly one file in it carries a trade-off in
+any form** (`grep -rl '^family: frontend' skills | xargs grep -il trade-off` → 1, `authentication`;
+against the count published below).~~
+
+**WITHDRAWN 2026-08-15, and deliberately not restated.** The measurement was taken on **2026-08-10**
+against a **15-file** `frontend` family. Three things went wrong at once, each a different failure:
+
+- **The falsifier is dead.** `family:` frontmatter went away at #182, so the published command matches
+  nothing and emits nothing at head. A falsifier that fails open reads to whoever runs it as *"nothing
+  to worry about"*, which is worse than publishing no command at all — and this repo's own rule, stated
+  one paragraph above, is that a measured number ships with the command that produced it **or not at
+  all**.
+- **`authentication` is not a file.** The family consolidated into a single `skills/frontend/SKILL.md`
+  at **#231 (2026-08-13)**; what the figure counted is now a *section* of that file
+  (`skills/frontend/SKILL.md:202`).
+- **The denominator moved 15 → 1, which INVERTED the sentence.** "exactly one file in it" was one of
+  **fifteen**. The family is now **one** file, so the same words read *one of one* — 100% of the family
+  — while still being cited as the evidence that the family is "effectively unstarted". The number never
+  became false; it started arguing the opposite of what it was published for, which is strictly harder
+  to notice than a wrong number.
+
+**No current figure replaces it, and that is the honest form rather than a thinning.** Restating it
+would require judging where the `frontend` deep-dive now stands against one consolidated file — a
+workstream call, the owner's to make, not a measurement anyone can re-run. Withdrawing a measurement
+whose denominator moved is the same call the token-price paragraph below makes, for the same reason.
+
+*The 2026-08-10 figure's own correction, kept as the record of the defect class and not as anything to
+run:* the form published here until #164 was `grep -rl trade-off commands/frontend/`, which returned
+**zero** — the one occurrence is written `Trade-off`, so the replacement carried `-i`. The figure was
+right and the command beside it did not produce it. **Both spellings are dead at head.** That this
+block's own header claimed re-verification while its published command returned nothing is that same
+failure one layer up, and it is why the header now dates the measurement instead of asserting it.
 
 *The date was re-checked rather than re-stamped.* A `State (…)` marker whose date is refreshed without
 re-measuring is worse than a stale one: it converts an aging claim into a confidently wrong one, and the
