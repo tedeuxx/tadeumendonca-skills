@@ -244,7 +244,10 @@ to exist, and if it stops existing that is a **finding** rather than a silent mi
 target is a *region* rather than a clause — a table, a section, an amendment — **quote its heading
 verbatim** (`the "Considered options" section`, `the 2026-08-15 amendment`). A heading is a string, so it
 keeps both properties the clause rule buys, and it closes the one case where the convention would
-otherwise revert to line numbers exactly where they are hardest to check.
+otherwise revert to line numbers exactly where they are hardest to check. **What it does not close:
+quoting the wrong heading.** A heading pins a region only if it is the region the cited content sits in
+— not the nearest heading that *describes* it. Check that the thing you are citing is under the heading
+you quoted, or the citation is verbatim, checkable, and pointing somewhere else.
 
 *The measurement that produced this rule, because it is the argument.* On the first authorship in either
 library to use line locators, **five of nine were wrong** — four cited `:26` for a clause at `:25`, and
@@ -256,6 +259,15 @@ asserts a line locator — so a single inserted line silently re-breaks every ci
 green.
 
 *What it costs:* quoting is longer than `:25`, in records that are already long. Accepted.
+
+**A count, an enumeration and a "complete list" are each a claim about a SET — and verifying the members
+does not verify the set.** *"Three live records cite this"* is checked by re-reading the three that were
+named, which leaves the **three** itself untested: the set can hold five, and the two nobody counted are
+exactly the ones a later executor mishandles, because a list published as complete is read as complete.
+The same holds for a cost list, a sweep, or *"these are all the places"*. So **state the criterion that
+selects the members and publish the command that returns them** — `git grep -n -E "…" -- docs/adr/`, and
+the regex is part of the claim — or do not publish the count. A number verified against its examples and
+not against its criterion is an anecdote about the members, shaped like a fact about the set.
 
 ### Authoring checklist
 
