@@ -200,12 +200,23 @@ deletion. So this record changes what happens next; it deletes nothing today.
     reverse-engineered, kept not deleted)"*, and every existing row links a live file — so the first
     disposition-1 row would sit under a heading asserting the rule it replaces, and **would 404 its own
     link** unless the table's form changes with it.
-  - **`architecture.{en,pt}.md`'s *"Se você precisar do backend de volta"* section hard-links five
-    superseded records by URL** (`0025`–`0029`) and characterises their contents in the owner's voice.
-    Its whole argument is that reversibility is concrete because each reversal names the decision to
-    reopen — so a deletion sweep **404s five published links inside a live argument that depends on
-    them being readable**. A larger cost than the `AdrTable.test.tsx` assertion above, and the reason
+  - **`architecture.{en,pt}.md` hard-links five superseded records by URL** (`0025`–`0029`) and
+    characterises their contents in the owner's voice. The five URLs are in the **table** under the
+    heading
+    *"O que foi cortado — e tinha sido construído antes, que é a parte que importa"*
+    (*"What was cut — and it was built first, which is the part that matters"* in `en`). The subsection
+    below it,
+    *"Se você precisar do backend de volta, o registro diz qual decisão reverter"*,
+    carries the argument those links serve — reversibility is concrete because each reversal names the
+    decision to reopen — and refers to the five by bare number, pointing **upward** at the table rather
+    than linking them again. So a deletion sweep **404s five published links inside a live argument that depends on them
+    being readable**. A larger cost than the `AdrTable.test.tsx` assertion above, and the reason
     disposition 2's fold is a precondition rather than a follow-up.
+    **This bullet's first form named the subsection as the link site, and that is worth recording where
+    it happened:** it is the first instance *inside* the convention written to stop it. The heading was
+    quoted verbatim, as the rule asks — and it was the wrong heading. **Quoting a heading pins a region
+    only if it is the region the cited content sits in**, not the nearest one that describes it; the
+    rule's operative wording in `skills/workflow/documentation-standard/SKILL.md` now says so.
 - **The disposition-1 row has no defined home in *this* library yet.** The skill mandates a row in the
   library's `README.md` History table; `-io`'s library has such a table and this one has only an index
   table. Left open deliberately — the deletion set here is empty, so the first executor is in `-io`, and
