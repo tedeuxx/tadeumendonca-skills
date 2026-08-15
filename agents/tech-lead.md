@@ -206,9 +206,17 @@ Three rules that are not negotiable and are the ones most often broken:
 - **One decision per ADR.** If you are recording two, write two.
 - **The rejected option with its trade-off is half the record.** An ADR with only the chosen path
   documents nothing — the reader cannot tell whether an alternative was weighed or never seen.
-- **Supersede, never rewrite.** A reversed decision keeps its file, takes status `superseded`, and links
-  forward. History is not a gap to be tidied. An **amendment** to a live record is the other legal move
-  — it appends, it does not overwrite the reasoning it replaces.
+- **Supersede, never rewrite.** ~~A reversed decision keeps its file, takes status `superseded`, and
+  links forward.~~ **Struck 2026-08-15 (#281)** — that was **supersede-never-delete**, and it applied to
+  **whole records**, where it no longer holds: the disposition of a *reversed* decision is now one of
+  three, keyed on the record's `status` field and never on its filename — delete with a mandatory
+  History row, fold the context into the superseding record first, or keep the file. The operative
+  wording is `/documentation-standard`'s *"A record earns its place by explaining the CURRENT codebase"*
+  section; the argument is
+  [ADR-0020](../docs/adr/0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md).
+  **Inside a live record nothing changed, and that half is what this bullet's title still names**:
+  History is not a gap to be tidied. An **amendment** to a live record is the other legal move — it
+  appends, it does not overwrite the reasoning it replaces.
 
 The **methodology** library lives in the plugin (`docs/adr/`); the **product** library lives in the
 consuming repo. The test for which: does it constrain *this product*, or *any project using the plugin*?

@@ -29,7 +29,14 @@ exactly what a reader infers from a record's body.
 The library's practice until now answered this with a **marker**: a reversed decision took
 `status: superseded`, kept its file, and linked forward — *"reverted decisions are history, not gaps."*
 The premise underneath that rule is the same premise as this one: a retired record misleads a future
-reader. The two split only on the **remedy**, and the case for changing it is that the marker is not
+reader. **That is attested, not inferred** — the text of the old rule argued from *preservation value*
+(*"history, not gaps"*) and never stated the misleading-risk premise, so it is worth showing where the
+premise actually is written down. It is in the owner's own published voice, in `tadeumendonca-io`'s
+`apps/fed/src/content/architecture.pt.md`, in the `status` / `superseded-by` bullet: *"o registro de uma
+arquitetura aposentada lê como instrução — que é a forma mais barata de fazer um agente reconstruir algo
+que foi cortado de propósito."* The same reader, the same failure, on the surface the old rule was
+defended on. The two rules split only on the **remedy**, and the case for changing it is that the marker
+is not
 enough — the file is still there to be inferred from, and the reader most at risk never reads the status
 field that carries the marker.
 
