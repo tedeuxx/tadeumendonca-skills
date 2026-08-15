@@ -229,8 +229,7 @@ without it two assertions fail for an unrelated reason — a shallow-history gua
 red, not this one.) No hook, workflow or settings file asserts anything about the ADR library's shape,
 so the largest record in it can vanish with every gate green. This rule is a **discipline, not an
 enforcement** — including the History row and the fold, which are prose too and inherit the same zero
-enforcement. Treat that as the reason to do them in the
-same MR as the deletion, where a reviewer can still see both halves.
+enforcement. They land in the same MR as the deletion, where a reviewer can still see both halves.
 
 **Where a "this is not live" disclaimer belongs.** In the artifact's **body**, above the fold — not in a
 skill's `description:` frontmatter, which is gated as a *trigger* (length, single line, `Use when`, no

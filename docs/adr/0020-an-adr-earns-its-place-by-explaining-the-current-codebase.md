@@ -5,17 +5,26 @@
 - **Deciders:** the owner (decision); written by `harness-lead` per
   [ADR-0017](./0017-adr-authorship-is-split-by-domain-not-tech-lead-exclusive.md) — a pure
   loop/documentation-practice decision with no product-architecture consequence
-- **Supersedes / superseded by:** — . **It supersedes no record, and that is the point of this line.**
-  The rule it replaces, *supersede-never-delete*, was **never recorded as an ADR** in this library: it
-  had no `Decision outcome` anywhere in `docs/adr/`, living instead in
+- **Supersedes / superseded by:** — . It supersedes no record. The rule it replaces,
+  *supersede-never-delete*, was **never recorded as an ADR** in this library: it had no
+  `Decision outcome` anywhere in `docs/adr/`, living instead in
   `skills/workflow/documentation-standard/SKILL.md` (Part II) and in the index prose of this library's
-  own `README.md`, and being **cited as settled** by three live records. Only **one** of those three
-  citations is about the arm this record replaces — ADR-0019's rejected option 3, *"this repo's own
-  convention (supersede-never-delete) already answers the question"*, which is an argument against
-  `git rm`-ing a **whole file**. The other two — ADR-0010's *"Struck rather than deleted, per this
-  practice's supersede-never-rewrite rule"* and ADR-0011's *"Struck rather than deleted, per this repo's
-  supersede-never-delete convention"* — each justify **a strike inside a live record**, which this
-  record leaves explicitly unchanged. They are correct as they stand and are **not** to be swept.
+  own `README.md`, and being **cited as settled** by live records. **That set is stated by its
+  criterion, never by a count** — the two readings give different sets and both are needed:
+  - **Citing `supersede-never-delete` by name: two.** ADR-0019's rejected option 3, *"this repo's own
+    convention (supersede-never-delete) already answers the question"*, and ADR-0011's *"Struck rather
+    than deleted, per this repo's supersede-never-delete convention"*.
+  - **Citing the `supersede-*` family: five.** Those two, plus ADR-0010's *"Struck rather than deleted,
+    per this practice's supersede-never-rewrite rule"*, ADR-0002's *"the rule is
+    supersede-never-rewrite"* and ADR-0016's *"ADR-0011's own supersede-not-rewrite rule"*. All five
+    records are `accepted`.
+
+  Only **one** citation anywhere in that family is about the arm this record replaces — ADR-0019's,
+  which is an argument against `git rm`-ing a **whole file**. **The other four — ADR-0002's,
+  ADR-0010's, ADR-0011's and ADR-0016's — each justify a strike inside a live record**, which this
+  record leaves explicitly unchanged. All four are correct as they stand and are **not** to be swept.
+  Enumerate them without the hyphenated name, since every one of them is line-wrapped across a hyphen:
+  `git grep -n -E "supersede[- ]?never|supersede-not" -- docs/adr/`.
 - **Driven by:** [#281](https://github.com/tedeuxx/tadeumendonca-skills/issues/281)
 
 ## Context & problem
@@ -32,13 +41,20 @@ The premise underneath that rule is the same premise as this one: a retired reco
 reader. **That is attested, not inferred** — the text of the old rule argued from *preservation value*
 (*"history, not gaps"*) and never stated the misleading-risk premise, so it is worth showing where the
 premise actually is written down. It is in the owner's own published voice, in `tadeumendonca-io`'s
-`apps/fed/src/content/architecture.pt.md`, in the `status` / `superseded-by` bullet: *"o registro de uma
-arquitetura aposentada lê como instrução — que é a forma mais barata de fazer um agente reconstruir algo
-que foi cortado de propósito."* The same reader, the same failure, on the surface the old rule was
-defended on. The two rules split only on the **remedy**, and the case for changing it is that the marker
-is not
-enough — the file is still there to be inferred from, and the reader most at risk never reads the status
-field that carries the marker.
+`apps/fed/src/content/architecture.pt.md`, in the `status` / `superseded-by` bullet: *"**Sem isso,** o
+registro de uma arquitetura aposentada lê como instrução — que é a forma mais barata de fazer um agente
+reconstruir algo que foi cortado de propósito."* The same reader, the same failure, on the surface the
+old rule was defended on.
+
+**The leading clause is quoted because the passage turns on it.** *Sem isso* means *without the status
+marker*, and the same bullet closes asserting that the table is where reverted decisions *"aparecem
+marcadas em vez de sumirem"*. In full, then, the passage that attests the shared premise is **the
+owner's published defence of the remedy this record rejects** — it is cited for the premise and not for
+the remedy, and the elision is not worth the four words it saves. The strongest statement of the risk
+sits on the page that answers it the other way, which is itself the argument: the two rules split only
+on the **remedy**, and the case for changing it is that the marker is not enough — the file is still
+there to be inferred from, and the reader most at risk never reads the status field that carries the
+marker.
 
 **Why a record is owed for this, and on which arm of the significance test — corrected.** The
 implementing MR ([#282](https://github.com/tedeuxx/tadeumendonca-skills/pull/282)) named the arm *alters
@@ -46,9 +62,10 @@ a previously-recorded decision*. **That arm does not fire**, for the reason reco
 *Supersedes* line above: nothing was previously *recorded*. The arm that fires cleanly is **sets a
 cross-cutting pattern others will follow** — this rule governs **both** ADR libraries (methodology here,
 product in each consuming repo), it prescribes an irreversible act (`git rm`) against artifacts that a
-published page in `tadeumendonca-io` renders, and three live records already cite the convention it
-replaces. A record that misstated its own trigger would be the exact defect this Issue exists to remove,
-so the correction is carried here rather than quietly fixed.
+published page in `tadeumendonca-io` renders, and live records already cite the convention it replaces
+(two by name, five across the `supersede-*` family — enumerated in the *Supersedes* line above). A
+record that misstated its own trigger would be the exact defect this Issue exists to remove, so the
+correction is carried here rather than quietly fixed.
 
 ## Decision drivers
 
@@ -88,11 +105,16 @@ so the correction is carried here rather than quietly fixed.
 3. **Move the retired record to `docs/archive/`, as [ADR-0016](./0016-archive-is-docs-archive-not-a-skills-flag.md)
    does for skills, rather than deleting it.** *Why not:* ADR-0016's mechanism works because something
    **computes over the directory boundary** — `inventory-counts.test.sh` scans `skills/` and an archived
-   file is outside it, so the move changes behaviour. Nothing computes over `docs/adr/`; a moved record
-   is still a full-length body describing a dead architecture, still greppable, still loadable, just one
-   directory further away. The move would buy the appearance of the remedy without the remedy. Worth
-   noting as an accepted asymmetry rather than an inconsistency: the two records disagree about the
-   mechanism because they disagree about whether one exists.
+   file is outside it, so the move changes behaviour. **Nothing keys on the `docs/adr/` boundary**, so
+   moving a record out of it changes no gate's outcome. Machinery does read the directory — the same
+   suite greps two literal strings out of `docs/adr/0008-which-layer-carries-a-control.md` **by path**,
+   and `docs-test.yml` carries `docs/**` in its `paths:` filter precisely so the floor-claim assertion,
+   which scans every tracked `.md`, starts on an ADR edit — and that makes the why-not **stronger**: an
+   archived record is still scanned by that assertion, still a full-length body describing a dead
+   architecture, still greppable, still loadable, just one directory further away. The move buys the
+   appearance of the remedy and not the remedy. An accepted asymmetry rather than an inconsistency: the
+   two records disagree about the mechanism because in `skills/` the directory boundary is what a gate
+   reads, and in `docs/adr/` nothing reads it.
 
 4. **Build a gate — a check that fails when a record's `status` is `superseded`, or when a deletion lands
    with no History row.** *Why not:* not rejected on merit, deferred on evidence. The deletion set in
@@ -108,9 +130,8 @@ Chosen: **option 1**, in the wording that now lives in
 explaining the CURRENT codebase"* — the skill is the operative text; this record is the decision and its
 argument.
 
-Read the change as a **stronger reading of the same risk, not the correction of a mistake**. Two
-preconditions are what make it a disposition rather than a deletion, and both are stated in the skill as
-preconditions rather than follow-ups: **the History row** (*"A deletion with no row is not this rule; it
+Two preconditions are what make it a disposition rather than a deletion, and both are stated in the
+skill as preconditions rather than follow-ups: **the History row** (*"A deletion with no row is not this rule; it
 is a gap"*) and **the fold** (*"If there is nowhere to fold and no row is written, do not delete"*).
 
 Two boundaries are part of the decision, not caveats on it:
@@ -165,6 +186,26 @@ deletion. So this record changes what happens next; it deletes nothing today.
 - **`architecture.{en,pt}.md` in `-io` states the superseded rationale in the owner's own voice**, as
   published copy rather than a link. Whether that paragraph stays true after a deletion is
   `product-lead`'s call, whose findings on published copy are blocking. Not settled here.
+- **Three further `-io` costs, so this list is the whole brief the `-io` executor meets.** The
+  enumeration above stopped at what this repo could see, and a cost list that presents itself as a brief
+  and is short by three is worse than one that names its scope. Still not this slice's work — recorded
+  so the executor is not surprised:
+  - **`tadeumendonca-io/docs/adr/README.md` still publishes the retired instruction** verbatim — *"A
+    reversed decision becomes `superseded by ADR-XXXX` and links forward — never deleted."* It is the
+    sibling of the sentence this MR struck here and it survived every sweep for the same reason: **it
+    shares no vocabulary with `supersede-never-delete`**. Two public repos will carry contradictory
+    imperative instructions about one practice until that slice lands.
+  - **Disposition 1's designated home in `-io` contradicts the rule in its own heading**, and its row
+    form does not exist yet. That library's History table is headed *"History (superseded —
+    reverse-engineered, kept not deleted)"*, and every existing row links a live file — so the first
+    disposition-1 row would sit under a heading asserting the rule it replaces, and **would 404 its own
+    link** unless the table's form changes with it.
+  - **`architecture.{en,pt}.md`'s *"Se você precisar do backend de volta"* section hard-links five
+    superseded records by URL** (`0025`–`0029`) and characterises their contents in the owner's voice.
+    Its whole argument is that reversibility is concrete because each reversal names the decision to
+    reopen — so a deletion sweep **404s five published links inside a live argument that depends on
+    them being readable**. A larger cost than the `AdrTable.test.tsx` assertion above, and the reason
+    disposition 2's fold is a precondition rather than a follow-up.
 - **The disposition-1 row has no defined home in *this* library yet.** The skill mandates a row in the
   library's `README.md` History table; `-io`'s library has such a table and this one has only an index
   table. Left open deliberately — the deletion set here is empty, so the first executor is in `-io`, and
