@@ -91,8 +91,9 @@ person can falsify it in one command instead of trusting the date.
 ## Installation (Claude Code plugin)
 
 This repo is a **Claude Code plugin + marketplace** — the native way to reuse skills across
-projects. The skill library lives in `skills/`, one directory per skill holding a `SKILL.md`, and the two
-commands a human types live in `commands/`; `.claude-plugin/marketplace.json` is the catalog and
+projects. The skill library lives in `skills/`, one directory per skill holding a `SKILL.md`, and the three
+commands a human types live in `commands/` (`autonomy-on`, `autonomy-off`, `new-issue`);
+`.claude-plugin/marketplace.json` is the catalog and
 `.claude-plugin/plugin.json` the manifest. **Nothing is published outside this git repo** — the
 marketplace is just a metadata file the consumer points at.
 
@@ -132,8 +133,12 @@ This took a full session to arrive at and was written down nowhere. **Measured, 
 `commands/` and `skills/` are two top-level directories because a reader opening this repo should not
 meet a library and a control surface in the same pile — the owner's reason, in his words: *"o problema é
 a contaminação na leitura do repositório por humanos se tudo ficar no mesmo lugar."* **The loader does
-not distinguish them.** `claude plugin details` on the split tree reports **`Skills (71)`** — the 69
-under `skills/` **plus the 2 under `commands/`**, counted alike, reachable alike.
+not distinguish them.** **Measured on 2026-08-10**, `claude plugin details` on the split tree reported
+**`Skills (71)`** — the 69 the library held under `skills/` then, **plus the 2 then under `commands/`**,
+counted alike, reachable alike. **Both denominators have moved since** — the library consolidated to 13
+(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l`) and `commands/` holds 3 (`ls commands/`) — so
+read the 71 as the measurement that established the rule, not as today's inventory. **The rule is what
+survives the denominators:** the loader counts both directories alike.
 
 **2 · DECLARATION is what registers a skill. The root is only the default.**
 
@@ -188,10 +193,19 @@ the two is what the file is *for*, and `hooks/scripts/inventory-counts.test.sh` 
 directions** — removing `argument-hint` from a typed command reddens, and adding one to a skill reddens.
 The distinction is gated, not conventional.
 
-**The cost this makes visible:** the 69 descriptions total ~28 KB and are now **always-on**, about
-**+9,919 tokens per session** (`Skills (2)` ≈ 1,444 tok → `Skills (71)` ≈ 11,363 tok). ADR-0009 made
-those descriptions dense deliberately; **that decision was free while nothing loaded them and is not
-free now.** Nobody has revisited it at this price — that is an open decision, not a settled one.
+**The cost this makes visible, measured on 2026-08-10 against the 69 descriptions the library held
+then:** those 69 totalled ~28 KB and became **always-on**, about **+9,919 tokens per session**
+(`Skills (2)` ≈ 1,444 tok → `Skills (71)` ≈ 11,363 tok). ADR-0009 made those descriptions dense
+deliberately; **that decision was free while nothing loaded them and stopped being free once they
+loaded.** Nobody has revisited it — that is an open decision, not a settled one.
+
+**That figure is the price at its measurement, not the price today, and the denominator is why.** The
+library has consolidated to **13** since (`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 13,
+the same figure the family headings below sum to), so the per-session cost is smaller by some amount
+this file deliberately does not state. Re-measuring and publishing a current number would swap a
+checkable historical claim — 69 descriptions, one date, one command — for a current one sourced to a
+machine no reader and no gate can re-run. `tadeumendonca-io`'s `/architecture` gave the same figure the
+same treatment for the same reason.
 
 ### Usage
 
