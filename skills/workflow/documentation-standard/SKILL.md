@@ -10,8 +10,10 @@ Write or review docs for any `<project>` repo following the platform's documenta
 *general documentation* — README, architecture pages, diagram choice, the Markdown + Mermaid rule,
 where a doc lives. Part II is *the governed artifact* — an Architecture Decision Record: MADR format,
 the significance gate that decides whether one is owed at all, the methodology/product library split,
-numbering and status, and the current-codebase rule that replaced supersede-never-delete (#281). They
-were two separate skills until #260, on the owner's own call, made **after** he was shown that the split was legitimate rather than accidental — general
+numbering and status, and the current-codebase rule that replaced supersede-never-delete (#281,
+[ADR-0020](../../../docs/adr/0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)). They
+were two separate skills until #260, on the owner's own call, made **after** he was shown that the split
+was legitimate rather than accidental — general
 docs describe a *system*, an ADR records *one decision that was made about it*, and neither collapses
 into the other. Merged anyway because both bodies belong to the same object (repository documentation)
 and a reader who needs one is very likely, on this platform, to need the other in the same sitting. Read
@@ -207,7 +209,11 @@ the file is still there to be inferred from, and an agent loading a decision lib
 not status lines. Read it as a **stronger reading of the same risk**, not as the correction of a
 mistake. *Accepted cost:* the reasoning of a reversal is no longer preserved at length. Disposition 2 is
 what keeps the part of it that was load-bearing; disposition 1's row is what keeps the absence
-deliberate.
+deliberate. **The decision and its rejected options are recorded in
+[ADR-0020](../../../docs/adr/0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)** — this
+section is the operative wording, that record is the argument, including the correction that the
+significance arm which fires is *sets a cross-cutting pattern* and not *alters a previously-recorded
+decision* (supersede-never-delete was never itself recorded as an ADR).
 
 **Nothing enforces any of this.** Measured on this repo: a record was deleted outright from a scratch
 copy of the tree and the full suite still reported `69 passed, 0 failed`. No hook, workflow or settings

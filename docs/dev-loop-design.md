@@ -6,9 +6,10 @@ portability notes. This file's content was merged there rather than kept as a se
 see [ADR-0019](./adr/0019-readme-is-the-single-source-of-truth-for-the-dev-loop.md) for the record of that
 decision.
 
-This file is kept as a redirect, not deleted, for the same reason the platform never deletes a superseded
-record: anyone who bookmarked or linked the old canonical URL below deserves to land somewhere that says
-what happened, rather than a 404.
+This file is kept as a redirect, not deleted, for one reason: anyone who bookmarked or linked the old
+canonical URL below deserves to land somewhere that says what happened, rather than a 404. That is the
+reason ADR-0019 gave and it is unaffected by #281, which replaced this platform's deletion convention for
+**ADR records** — a class this file is not in.
 
 **Read the current, canonical version at:**
 <https://github.com/tedeuxx/tadeumendonca-skills/blob/main/README.md>

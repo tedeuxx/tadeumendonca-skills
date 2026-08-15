@@ -25,9 +25,13 @@ roster amendment since),
 [ADR-0003](../adr/0003-mr-definition-of-done.md) (the MR Definition of Done), and
 [ADR-0004](../adr/0004-autonomy-and-permission-model.md) (autonomy & the permission model).
 
-**Kept below, in full, as a historical record — not rewritten, per this platform's own
-supersede-never-delete convention.** Anyone who bookmarked or linked into this document deserves to
-find out what happened to it, not to read stale content as if it still described the live loop.
+**Kept below, in full, as a historical record — not rewritten.** Anyone who bookmarked or linked into
+this document deserves to find out what happened to it, not to read stale content as if it still
+described the live loop. (This note cited the platform's *supersede-never-delete* convention until
+#281 replaced it; that rule is scoped to **ADR records**, which this proposal is not, and the
+bookmark reason above stands on its own. The proposal body below is frozen 2026-07-22 content and is
+**not** amended — including its own description of the ADR practice, which is the practice as it stood
+that day.)
 
 ---
 

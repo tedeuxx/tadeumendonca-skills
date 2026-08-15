@@ -56,8 +56,9 @@ what changes here.
 3. **`git rm` the design doc outright rather than leave a stub.** *Why not:* the file's canonical URL
    (`raw.githubusercontent.com/…/docs/dev-loop-design.md`) is quoted in its own header as the citable
    target for import into another harness, and ADR-0002 already names it by that role. A 404 where a
-   redirect could stand costs a reader nothing to avoid and this repo's own convention
-   (supersede-never-delete) already answers the question.
+   redirect could stand costs a reader nothing to avoid ~~and this repo's own convention
+   (supersede-never-delete) already answers the question~~ — **that second clause is struck; see the
+   2026-08-15 amendment below.** The first clause is the surviving reason and it is sufficient.
 
 ## Decision outcome
 
@@ -100,7 +101,27 @@ argument in more detail than the design doc did).
   reference) need updating to point at README sections instead — named as consequent work in the
   implementing PR, not re-litigated here.
 
+## Amendment — 2026-08-15 (#281): the convention this record's option 3 cited no longer exists
+
+**What changed:** *supersede-never-delete* was replaced by the rule recorded in
+[ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) — *a record earns its
+place by explaining the current codebase*. This record's rejected option 3 cited that convention as one
+of two reasons not to `git rm` the design doc, so **half of that rejection is now unargued.** The clause
+is struck in place above rather than rewritten, per the convention ADR-0020 leaves explicitly unchanged
+for live records.
+
+**What does not change: the outcome.** Option 3 stays rejected on its **surviving reason**, which was
+always the load-bearing one — `docs/dev-loop-design.md`'s canonical URL is quoted in its own header as
+the citable target for import into another harness, and ADR-0002 names it by that role, so deleting it
+produces a 404 where a redirect costs nothing. That reason is independent of any deletion convention.
+
+**And ADR-0020 does not reach this file anyway**, which is worth stating so nobody applies the new rule
+to it by association: ADR-0020 is scoped to **ADR records**, and `docs/dev-loop-design.md` is a redirect
+stub, not a record. Its disposition is settled here and is untouched.
+
 ## Links
+- [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) — replaces the
+  convention this record's option 3 cited; see the 2026-08-15 amendment above.
 - #261 — the Issue this record executes, including the owner's mid-session correction reversing the
   original "thin the README" framing.
 - #262 — the sibling Issue (archiving `docs/proposals/agentic-dev-loop.md`), sequenced to land after this
