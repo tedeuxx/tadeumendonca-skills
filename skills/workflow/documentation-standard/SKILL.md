@@ -1,5 +1,5 @@
 ---
-description: Write or review documentation for any <project> repo — general docs (README, architecture pages, diagram choice, Markdown + Mermaid only) AND Architecture Decision Records (MADR format, the significance gate, the methodology/product library split, numbering and status, supersede-never-delete). Use when adding a README or architecture page, choosing a diagram type, reviewing drifted docs, writing or superseding an ADR, or judging architectural significance.
+description: Write or review documentation for any <project> repo — general docs (README, architecture pages, diagram choice, Markdown + Mermaid only) AND Architecture Decision Records (MADR format, the significance gate, the methodology/product library split, numbering and status, and the current-codebase rule for a reversed decision). Use when adding a README or architecture page, choosing a diagram type, reviewing drifted docs, writing or superseding an ADR, or judging architectural significance.
 ---
 
 # Documentation — the general standard and the ADR practice
@@ -10,8 +10,8 @@ Write or review docs for any `<project>` repo following the platform's documenta
 *general documentation* — README, architecture pages, diagram choice, the Markdown + Mermaid rule,
 where a doc lives. Part II is *the governed artifact* — an Architecture Decision Record: MADR format,
 the significance gate that decides whether one is owed at all, the methodology/product library split,
-numbering and status, supersede-never-delete. They were two separate skills until #260, on the owner's
-own call, made **after** he was shown that the split was legitimate rather than accidental — general
+numbering and status, and the current-codebase rule that replaced supersede-never-delete (#281). They
+were two separate skills until #260, on the owner's own call, made **after** he was shown that the split was legitimate rather than accidental — general
 docs describe a *system*, an ADR records *one decision that was made about it*, and neither collapses
 into the other. Merged anyway because both bodies belong to the same object (repository documentation)
 and a reader who needs one is very likely, on this platform, to need the other in the same sitting. Read
@@ -155,7 +155,92 @@ projects — folding product decisions into it would leak one project's choices 
 
 - **Numbering:** zero-padded sequential **per library** (`0001`, `0002`, …). Filename `NNNN-kebab-title.md`.
 - **Status lifecycle:** `proposed → accepted → superseded` (or `rejected`). A design starts `proposed`; the human's ratification makes it `accepted`.
-- **Superseding, never deleting:** a reversed decision becomes `superseded`, keeps its file, and links forward to the ADR that replaced it. Reverted decisions are **history, not gaps** — the record of *why we changed our mind* is as valuable as the current state. (This is why the exhaustive reverse-engineering of past decisions includes the retired backend era as `superseded`.)
+- **Disposition of a reversed decision:** see the next section — the record's `status` field is the criterion, and the disposition is one of three.
+
+### A record earns its place by explaining the CURRENT codebase
+
+**The rule.** An ADR is kept because it explains the codebase that exists now. A whole-file record whose
+entire subject is a component that was switched off does not — and it does not merely fail to help, it
+actively harms, because a later reader (human, and above all an agent loading a decision library) infers
+architecture from it. The disposition of a reversed decision is one of three, and the record's **`status`
+field is the criterion — never its filename**:
+
+1. **Delete the record; keep a History row.** *(Default, for a record whose whole subject is a component
+   that no longer exists.)* `git rm` the file and leave one row in the library's `README.md` History
+   table: the id, one line naming what was decided, and what replaced it. **That row is the marker.** It
+   costs one line, carries no architecture a reader could rebuild from, and answers *"was this ever
+   decided?"* without answering *"how was it built?"* — which is the whole of the distinction this rule
+   turns on. **A deletion with no row is not this rule; it is a gap.** A silent absence and a deliberate
+   absence must not look identical.
+2. **Fold the context into the record that replaced it — before the deletion, not after.** *(Mandatory
+   whenever the current decision is only intelligible against what it replaced.)* The superseding record
+   carries a `## What this replaced` section: what was in place, why it was reversed, and the one
+   consequence that still shapes the current design. A sentence in a live record explaining what it
+   replaced **explains today's codebase**; a whole file for the retired one does not. **If there is
+   nowhere to fold and no row is written, do not delete** — that deletion is a net loss of information
+   with no compensating artifact, and it is the version of this change that would deserve the name
+   *"we deleted our history."* **Where disposition 2 has no target, disposition 1 is what covers it** —
+   a reversal whose replacement is a *pivot* rather than a numbered record has nothing to fold into, and
+   the History row is then the only artifact, which is why it is mandatory and not a nicety.
+3. **Keep the file** where the record is not about a retired component at all: a **`proposed`** record
+   (it explains an *intended* codebase, and its status already says so), and an **`accepted`** record
+   whose mechanism has no instances yet (a current convention, merely unexercised). Scope the rule to
+   **reversed** decisions, never to *unbuilt* or *unexercised* ones.
+
+**This rule is about whole records, not about sentences inside a live one.** Within an `accepted` record
+the convention is unchanged and **load-bearing**: **amend by appending, strike in place (`~~…~~`), never
+rewrite.** Struck history inside a live record is how a reader — and at least one gate in this repo —
+tells a superseded claim from a stale one: `hooks/scripts/inventory-counts.test.sh`'s roster-membership
+assertion distinguishes the two by exactly those markers (its `roster_narr_re` pattern matches `~~`,
+`STRUCK`, `former`, `supersed` and the other past-tense forms), and its own comment states the reason.
+Stripping struck history out of a live record does not turn that check red — it makes it **quieter**,
+having less to read, which is worse. Nothing here licenses that.
+
+**Before deleting, discharge every inbound reference in the same MR.** A published page, a generated
+artifact or a test may resolve the file. The deletion is not done until they do not.
+
+**What this rule replaced.** It was **supersede-never-delete**: a reversed decision kept its file, took
+`status: superseded`, and linked forward — *"reverted decisions are history, not gaps."* **Both rules
+share a premise** — a retired record misleads a future reader who infers architecture from it — **and
+split only on the remedy.** The old rule says *mark it*; this one says the marker is not enough, because
+the file is still there to be inferred from, and an agent loading a decision library reads **bodies**,
+not status lines. Read it as a **stronger reading of the same risk**, not as the correction of a
+mistake. *Accepted cost:* the reasoning of a reversal is no longer preserved at length. Disposition 2 is
+what keeps the part of it that was load-bearing; disposition 1's row is what keeps the absence
+deliberate.
+
+**Nothing enforces any of this.** Measured on this repo: a record was deleted outright from a scratch
+copy of the tree and the full suite still reported `69 passed, 0 failed`. No hook, workflow or settings
+file asserts anything about the ADR library's shape, so the largest record in it can vanish with every
+gate green. This rule is a **discipline, not an enforcement** — including the History row and the fold,
+which are prose too and inherit the same zero enforcement. Treat that as the reason to do them in the
+same MR as the deletion, where a reviewer can still see both halves.
+
+**Where a "this is not live" disclaimer belongs.** In the artifact's **body**, above the fold — not in a
+skill's `description:` frontmatter, which is gated as a *trigger* (length, single line, `Use when`, no
+stem opener) and has no budget for a disclaimer competing with it. `skills/backend/SKILL.md` already
+carries its reference-only statement that way, and that is the right home.
+
+### Cite the clause, not the line
+
+**Reference another record's content — or your own — by quoting the clause verbatim, never by `:NN`.** A
+line number depends on another file's whitespace; a quoted clause depends only on that clause continuing
+to exist, and if it stops existing that is a **finding** rather than a silent misdirection. Where the
+target is a *region* rather than a clause — a table, a section, an amendment — **quote its heading
+verbatim** (`the "Considered options" section`, `the 2026-08-15 amendment`). A heading is a string, so it
+keeps both properties the clause rule buys, and it closes the one case where the convention would
+otherwise revert to line numbers exactly where they are hardest to check.
+
+*The measurement that produced this rule, because it is the argument.* On the first authorship in either
+library to use line locators, **five of nine were wrong** — four cited `:26` for a clause at `:25`, and
+one named a range that ended a line early *and* pointed at a definition while the surrounding sentence
+described the attachment. **A gate caught four and graded the fifth advisory**, so one imprecise locator
+would still have shipped through a reviewed path. That is not a case for more care; it is the case that
+**the locator form is the defect**. And nothing anywhere resolves a `:NN` — no test in either repo
+asserts a line locator — so a single inserted line silently re-breaks every citation with all gates
+green.
+
+*What it costs:* quoting is longer than `:25`, in records that are already long. Accepted.
 
 ### Authoring checklist
 
@@ -164,6 +249,8 @@ projects — folding product decisions into it would leak one project's choices 
 - [ ] Consequences list the **bad** ones too, not only the wins. An ADR with no downsides is not honest.
 - [ ] Links back to the driving Issue/spec and to any ADR it supersedes or depends on.
 - [ ] Committed **in the same MR** as the change it justifies (no decision drift — the docs move with the code).
+- [ ] Every citation of another record quotes the **clause or heading**, never a line number.
+- [ ] If the MR **deletes** a reversed record: the History row is written and the `## What this replaced` fold has landed in the superseding record, in this same MR — both are preconditions, not follow-ups.
 
 ### Pros & cons (of the ADR practice)
 
