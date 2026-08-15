@@ -120,10 +120,20 @@ Two boundaries are part of the decision, not caveats on it:
   rewrite.
 - **It is scoped to *reversed* decisions, never to *unbuilt* or *unexercised* ones** — disposition 3.
 
-**This library's own deletion set is empty, and that was measured rather than assumed:** 19 records, 18
-`accepted`, 1 `proposed`, zero `superseded`. The retired machinery in this repo lives *inside* live
-records as struck amendments, where the remedy is the strike convention and not deletion. So this record
-changes what happens next; it deletes nothing today.
+**This library's own deletion set is empty, and that was measured rather than assumed:** **19 records
+before this one** — 18 `accepted`, 1 `proposed`, zero `superseded` — and 20 / 19 / 1 / 0 once this record
+lands, since it is itself the twentieth. Both figures come from the same pair of commands, run at
+`2de6844`:
+
+```
+ls docs/adr/0*.md | wc -l                     → 20 (19 before this record)
+grep -ih "^- \*\*Status:\*\*" docs/adr/0*.md  → 19 accepted, 1 proposed (0007), 0 superseded
+```
+
+The count that carries the decision is the last one: **zero `superseded`**, which is what *the deletion
+set is empty* means and the only figure here the rule depends on. The retired machinery in this repo
+lives *inside* live records as struck amendments, where the remedy is the strike convention and not
+deletion. So this record changes what happens next; it deletes nothing today.
 
 ## Consequences
 
