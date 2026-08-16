@@ -129,5 +129,5 @@ established for the live tree is not lost on the way out.
 - [#192](https://github.com/tedeuxx/tadeumendonca-skills/issues/192) — the intake Issue executing ADR-0011's
   62 dispositions; this record unblocks its disposition-3 files.
 - `hooks/scripts/inventory-counts.test.sh` — the gate whose reverse assertion this record makes writable.
-- `skills/workflow/documentation-standard/SKILL.md` — owns the placement rule this record's archive path
+- `skills/documentation-standard/SKILL.md` — owns the placement rule this record's archive path
   follows; not yet amended to name `docs/archive/` (accepted cost, above).

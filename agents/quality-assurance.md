@@ -15,8 +15,8 @@ skills:
 `quality-gates` and `devops` are already injected here in full.
 `quality-gates` is your ruler, in two parts within the one file: the *definition* of done, and — since
 #257 folded the former standalone `coverage` skill into it — the *concrete, stack-agnostic gate policy*
-for **both** stacks, post-#174. That policy was extracted to its own `workflow` skill at #230
-precisely so it did not get pulled into the `backend` family's reference-only BFF consolidation, which
+for **both** stacks, post-#174. That policy was extracted to its own standalone skill at #230
+precisely so it did not get pulled into the `/backend` skill's reference-only BFF consolidation, which
 nothing here should preload; folding it into `quality-gates` at #257 keeps that same independence,
 because it now travels inside the one skill you already preload rather than needing a second entry on
 this list.

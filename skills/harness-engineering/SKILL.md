@@ -79,7 +79,7 @@ The whole assessment collapses into one question, asked once per rule the change
 > and judges"*, the rule has no state. It will be applied inconsistently, and — worse — inconsistently
 > *and silently*, because there is nothing to audit.
 
-This rule was itself earned by a failure of exactly this shape ([ADR-0002](../../../docs/adr/0002-agentic-dev-loop-architecture.md)
+This rule was itself earned by a failure of exactly this shape ([ADR-0002](../../docs/adr/0002-agentic-dev-loop-architecture.md)
 amendment #8): an intake chain shipped with nothing in the tracker able to say whether a description
 had been closed, one day after being written. **Keep the remedy to one bit.** Do not add a state that
 duplicates something already observable — an open PR already says "in progress." Prefer the smallest
@@ -97,9 +97,9 @@ explicitly rather than leaving the axis unexamined.
 - **Validating a loop/gate change** — pair it with `tech-lead` (design-time, against the principles
   and the ADR library) and `quality-assurance` (code-time, against the Definition of Done).
 - **Proposing a change to the MACHINERY** — dispatch `harness-lead` before implementing it. Its
-  standing question is [ADR-0008](../../../docs/adr/0008-which-layer-carries-a-control.md)'s — *which
+  standing question is [ADR-0008](../../docs/adr/0008-which-layer-carries-a-control.md)'s — *which
   layer can actually carry this control, and can that layer hold it?* Since
-  [ADR-0015](../../../docs/adr/0015-harness-lead-implements-the-harness-it-reviews.md) it may also
+  [ADR-0015](../../docs/adr/0015-harness-lead-implements-the-harness-it-reviews.md) it may also
   implement the harness changes it stress-tests (never merging, never gating an MR of its own — rule
   7b's catch-all and rule 5d's catch-all are unchanged by that ADR).
 
@@ -174,11 +174,11 @@ owner works that decision out with; it does not make it.
 **`blocked` is orthogonal, not a sixth step.** It can attach at any point and returns the item to
 wherever it was.
 
-**Since [ADR-0006](../../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)** the
+**Since [ADR-0006](../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)** the
 `reviewed` row's artifact is real — the gatekeeper posts a marker comment carrying the head SHA it
 read, so a verdict on a moved head fails loudly instead of reading as approval. Until 2026-08-04 that
 verdict was checked by a second gatekeeper (`security`) before merge; `security` was absorbed into
-`quality-assurance` ([ADR-0002](../../../docs/adr/0002-agentic-dev-loop-architecture.md) amendment
+`quality-assurance` ([ADR-0002](../../docs/adr/0002-agentic-dev-loop-architecture.md) amendment
 #10 — the rationale for that merge lives there, not here), so the posting rule is now
 **self-enforced**: nothing verifies it but the persona itself.
 
@@ -198,7 +198,7 @@ label is auditable and attributable, not proven.
 | `reader-facing` | the diff will change words or images a reader sees | the owner or the leads | which lens the gate dispatches — **a signal, never a gate** |
 
 `product` / `content` / `loop` are exclusive per
-[ADR-0012](../../../docs/adr/0012-issue-type-is-the-routing-axis-and-is-exclusive.md), which is the
+[ADR-0012](../../docs/adr/0012-issue-type-is-the-routing-axis-and-is-exclusive.md), which is the
 citation for *why* — routing, not a re-argument here. **The test a label has to pass: something must
 QUERY it.** A label nobody reads is decoration that ages, which is why the retired vocabulary
 (`type:*`, `phase:*`, `priority:*`, `semver:*`, `status:blocked`) stays retired — each failed that
@@ -321,7 +321,7 @@ reads to the agent as delivery and to the owner as stopping.**
    requirement of the Issue met?*) and production (*can this cause a problem in production?*). Both
    are labelled per finding. The gatekeeper posts its verdict to the PR before returning — a
    `<!-- gatekeeper-verdict: … -->` comment carrying the head SHA it read
-   ([ADR-0006](../../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)). A relay
+   ([ADR-0006](../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)). A relay
    from the invoking context is a notification, never the authority.
 
 ### Always true
@@ -348,13 +348,13 @@ for is a **judgement**, and who supplies it depends on the class:
 
 *Significance beats in-pattern:* when the class is unclear, it is boundary. And **the gate never
 merges an expansion of its own authority**, whatever the diff looks like — see
-[ADR-0011](../../../docs/adr/0011-a-skill-exists-to-be-assigned-to-a-profile.md) for the record of
+[ADR-0011](../../docs/adr/0011-a-skill-exists-to-be-assigned-to-a-profile.md) for the record of
 this clause drifting out of `agents/quality-assurance.md` and back in.
 
 This framing above is the corrected one — an earlier prose restatement of it, in the retired
 `dev-loop` skill this file replaces, said the opposite (*"auto-merging to `main` is never in-pattern
 here"*) and went stale against
-[ADR-0004](../../../docs/adr/0004-autonomy-and-permission-model.md)'s classified-autonomy decision
+[ADR-0004](../../docs/adr/0004-autonomy-and-permission-model.md)'s classified-autonomy decision
 without anyone noticing until the two disagreed in front of an agent (#62). That incident, and the
 decision-currency lesson it carries, is recorded as ADR-0004's 2026-08-13 amendment rather than
 re-told here — this section states only the current, corrected rule.
@@ -481,7 +481,7 @@ reverse this by the same route: an explicit owner decision, recorded the same wa
 
 **Named residual: the policy above and the mechanism disagree.** `hooks/scripts/wip-guard.sh` still
 denies a second PR only on file **overlap**, not on a raw count — the mechanism
-[ADR-0002](../../../docs/adr/0002-agentic-dev-loop-architecture.md)'s twelfth amendment (2026-08-13)
+[ADR-0002](../../docs/adr/0002-agentic-dev-loop-architecture.md)'s twelfth amendment (2026-08-13)
 describes, unchanged by this correction. So today the hook permits a second, disjoint PR that this
 written policy now forbids. Follow the written policy regardless of what the hook allows; closing the
 gap is a `wip-guard.sh` change, not a docs one, and is not this skill's job to make.
@@ -491,12 +491,14 @@ gap is a `wip-guard.sh` change, not a docs one, and is not this skill's job to m
 When an agent works in a consuming repo, these eleven principles are the lens for every choice: plan
 first, ask on the boundaries, slice thin, keep the floor green, and verify your own work before
 handing the residual to a human. The deep-dive component skills tell you *how* to build each piece;
-this tells you *how to decide* while you do. Today that means the per-service families under
+this tells you *how to decide* while you do. Today that means three reference skills — `/backend`,
+`/frontend` and `/cloud-infrastructure`. ~~Today that means the per-service families under
 `skills/backend/*`, `skills/frontend/*` and `skills/infrastructure/*`; per
-[ADR-0011](../../../docs/adr/0011-a-skill-exists-to-be-assigned-to-a-profile.md)'s 2026-08-13
-amendment these are consolidating into single reference skills named `backend`, `frontend` and
-`cloud-infrastructure` — **not yet built as of this writing**, so read the family directories as they
-stand until that consolidation lands.
+[ADR-0011](../../docs/adr/0011-a-skill-exists-to-be-assigned-to-a-profile.md)'s 2026-08-13
+amendment these are consolidating into single reference skills … **not yet built as of this writing**,
+so read the family directories as they stand until that consolidation lands.~~ **Struck: it is built.**
+#229/#230/#231 consolidated 21, 19 and 15 files into one skill each, and #283 removed the family
+directories the struck sentence told a reader to go and read. Every skill is `skills/<name>/SKILL.md`.
 
 See also: `/quality-gates` (the Definition of Done, the gate tables per loop model, and — since #257
 folded the former standalone `coverage` skill in — the concrete gate definitions for both stacks),

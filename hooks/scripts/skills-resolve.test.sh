@@ -84,12 +84,18 @@ strip_prefix() {
 # computation, so re-nesting the library cost one integer. It was a path computation once
 # (`commands/<family>/<stem>.md`), and that is what made #164 expensive.
 #
-# TWO DEPTHS SINCE #230/#231: depth 3 is the ordinary `skills/<family>/<name>/SKILL.md`; depth 2 is
-# FAMILY-AS-SKILL (`skills/<family>/SKILL.md` — `backend`, `frontend`), where the family directory IS
-# the skill and there is no separate name directory to search a level deeper for.
+# ~~TWO DEPTHS SINCE #230/#231: depth 3 is the ordinary `skills/<family>/<name>/SKILL.md`; depth 2 is
+# FAMILY-AS-SKILL (`skills/<family>/SKILL.md` — `backend`, `frontend`).~~ **ONE DEPTH SINCE #283** —
+# every skill is `skills/<name>/SKILL.md`, the families are gone, and the depth-3 arm is removed rather
+# than left as a harmless extra: it would silently resolve a re-nested skill, which is exactly the shape
+# `inventory-counts.test.sh`'s tree-shape assertion now refuses. Two files disagreeing about whether
+# nesting is legal is how one of them goes green about a tree the other rejects.
+#
+# THE RESOLUTION DID NOT CHANGE IN KIND, which is the property worth naming: it has been a SEARCH by
+# innermost directory since #164, not a path computation, so the tree changing shape a third time cost
+# one line. That is why re-nesting (#182) and re-flattening (#283) were both cheap and #164 was not.
 resolve_bare() {
   find "$SKILLS" -mindepth 2 -maxdepth 2 -name 'SKILL.md' -path "*/$1/SKILL.md" 2>/dev/null
-  find "$SKILLS" -mindepth 3 -maxdepth 3 -name 'SKILL.md' -path "*/$1/SKILL.md" 2>/dev/null
   find "$COMMANDS" -maxdepth 1 -name "$1.md" 2>/dev/null
 }
 

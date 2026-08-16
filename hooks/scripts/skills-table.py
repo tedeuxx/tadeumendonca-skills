@@ -1,17 +1,26 @@
 #!/usr/bin/env python3
 """Emit the README's skill inventory table, derived from `skills/`.
 
-THE FAMILY IS READ OFF THE PATH AGAIN (#182). The tree is `skills/<family>/<name>/SKILL.md`, so
-`parent.name` is the SKILL and `parent.parent.name` is the FAMILY. Both come from the filesystem and
-nothing here enumerates either.
+THERE IS NO FAMILY ANY MORE (#283). The tree is `skills/<name>/SKILL.md`, one level, thirteen
+directories — the owner's decision: *"o que eu quero é que todas skills estejam no mesmo nível
+hierárquico de diretórios."* So this file no longer computes a family, no longer emits a family column,
+and the allocation map below is keyed on the SKILL rather than inherited from a group.
 
-~~THE FAMILY IS READ OUT OF THE FILE, NOT OFF THE PATH (#164). The library is flat — one directory per
-skill — so there is no family segment anywhere in the tree, and the family survives as a `family:`
-frontmatter key.~~ **STRUCK: the premise was measured false on #182.** The flat tree existed because
-nesting was believed not to resolve; it resolves whenever `plugin.json` declares the path, and the
-identifier stays the bare innermost directory name either way. With the directory carrying the family
-again, the `family:` key was a second source of one truth and a non-platform field in 69 published
-files, so it is gone.
+~~THE FAMILY IS READ OFF THE PATH AGAIN (#182). The tree is `skills/<family>/<name>/SKILL.md`, so
+`parent.name` is the SKILL and `parent.parent.name` is the FAMILY.~~ ~~THE FAMILY IS READ OUT OF THE
+FILE, NOT OFF THE PATH (#164) … it survives as a `family:` frontmatter key.~~ **Both struck.** Kept
+visible rather than deleted because between them they record what the grouping cost: it moved from a
+directory to a frontmatter key and back again in two slices, and each move rewrote this generator and
+three assertions in `inventory-counts.test.sh`. The reason the directories existed at all — a human
+reading 69 files should not meet an alphabetical pile — is a claim about a denominator that has since
+fallen to 13. That history is written up in `CLAUDE.md`, not re-argued here.
+
+WHAT THE FLATTEN COST THIS FILE, said rather than left to look free: allocation was a per-FAMILY map
+with three per-skill exceptions, which was compact and could not state the truth for those three. It is
+now thirteen explicit lines. That is more to maintain and it is exact — no skill inherits an owner from
+a directory it merely happens to sit in, and a NEW skill lands as `UNALLOCATED` (rendered `— none`)
+instead of quietly inheriting its neighbours', which `skills-resolve.test.sh`'s reverse assertion
+reddens on.
 
 WHY THIS IS A COMMITTED TOOL RATHER THAN A ONE-OFF. The README publishes one row per skill, and each
 description is the skill's own first line OF BODY — never the `description` frontmatter field, which is
@@ -44,27 +53,35 @@ import re
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SKILLS = ROOT / "skills"
 
-# Allocation is per family everywhere except `workflow`, which splits — `adr` belongs to its two
-# writers, split by domain (#223), and `command-hygiene` is transversal (#225) like the `principles`
-# family, not the builder alone. Family granularity cannot state that truthfully, which is why the
-# table is per skill and this map has exceptions beside it.
+# ALLOCATION IS PER SKILL, KEYED ON THE SKILL'S OWN NAME (#283). It used to be a per-FAMILY map with
+# three exceptions beside it, because family granularity could not state the truth for those three
+# (`documentation-standard` splits by domain, `command-hygiene` is transversal, `devops` has three
+# holders). With no families left there is nothing to inherit from, so every skill states its own owner
+# and the exception list is gone — the same information, one indirection fewer, and thirteen lines that
+# each say what they mean.
 DEVELOPER = "`developer`"
+JUDGES = "`product-lead` · `tech-lead` · `harness-lead` · `quality-assurance`"
 WIELDER = {
-    "principles": "`product-lead` · `tech-lead` · `harness-lead` · `quality-assurance`",
-    "workflow": DEVELOPER,
-    "frontend": DEVELOPER,
     "backend": DEVELOPER,
-    "infrastructure": DEVELOPER,
-}
-PER_SKILL = {
-    ("workflow", "documentation-standard"): "`developer` (Part I, general docs) · `tech-lead` · `harness-lead` — Part II, ADR practice split by domain (#223)",
-    ("workflow", "command-hygiene"): "`product-lead` · `tech-lead` · `harness-lead` · `developer` · `quality-assurance`",
-    ("workflow", "devops"): "`developer` · `harness-lead` · `tech-lead` (#227)",
+    "cloud-infrastructure": DEVELOPER,
+    "code-review": DEVELOPER,
+    "command-hygiene": "`product-lead` · `tech-lead` · `harness-lead` · `developer` · `quality-assurance`",
+    "definition-of-done": JUDGES,
+    "definition-of-ready": JUDGES,
+    "devops": "`developer` · `harness-lead` · `tech-lead` (#227)",
+    "documentation-standard": "`developer` (Part I, general docs) · `tech-lead` · `harness-lead` — Part II, ADR practice split by domain (#223)",
+    "frontend": DEVELOPER,
+    "harness-engineering": JUDGES,
+    "license": DEVELOPER,
+    "planning-poker": JUDGES,
+    "quality-gates": JUDGES,
 }
 
-# A family with no entry above is unallocated, and that is information rather than an error: an unused
+# A skill with no entry above is unallocated, and that is information rather than an error: an unused
 # convention is usually a prompt to delete the file. Rendering it as a visible dash beats omitting the
-# row, which would hide it.
+# row, which would hide it. `skills-resolve.test.sh`'s reverse assertion greps for exactly this string,
+# so an unallocated skill is a RED BUILD rather than a quiet dash — which is the property the flatten
+# strengthened: a new skill can no longer inherit an owner from the directory it landed in.
 UNALLOCATED = "— none"
 
 MAX_DESC = 150
@@ -107,38 +124,31 @@ def describe(path):
     return text
 
 
-def family_of(path):
-    """The family DIRECTORY the skill sits in — `skills/<family>/<name>/SKILL.md`, or
-    `skills/<family>/SKILL.md` when a family consolidated to one file and the family directory IS the
-    skill (#230/#231 — `backend`, `frontend`).
+def stem_of(path):
+    """The skill's identifier — `skills/<name>/SKILL.md` -> `<name>`, and the ONLY shape (#283).
 
-    A wrong depth is a hard error rather than a default. Defaulting would let a misplaced skill land
-    in the table under some catch-all, pass both directions of the README assertion, and drop out of
-    the per-family counts with nothing red — the silent-shrink shape #164 finding 1 is about, and the
-    reason `inventory-counts.test.sh` asserts the tree's shape separately (same two depths, mirrored).
+    A wrong depth is a hard error rather than a default, unchanged in kind from when this function
+    computed a family. Defaulting would let a misplaced skill land in the table under some catch-all,
+    pass both directions of the README assertion, and drop out of the count with nothing red — the
+    silent-shrink shape #164 finding 1 is about, and the reason `inventory-counts.test.sh` asserts the
+    tree's shape separately (now one depth, mirrored).
     """
     rel = path.relative_to(SKILLS)
     if len(rel.parts) == 2 and rel.parts[1] == "SKILL.md":
         return rel.parts[0]
-    if len(rel.parts) == 3 and rel.parts[2] == "SKILL.md":
-        return rel.parts[0]
-    raise SystemExit(f"{path} is not at skills/<family>/[<name>/]SKILL.md")
+    raise SystemExit(f"{path} is not at skills/<name>/SKILL.md")
 
 
 def main():
-    skills = sorted(SKILLS.glob("*/SKILL.md")) + sorted(SKILLS.glob("*/*/SKILL.md"))
-    fams = {}
+    # ONE GLOB, ONE DEPTH. It was two globs while `backend`/`frontend` sat at depth 1 and the other
+    # eleven at depth 2; a second glob now would silently re-admit the shape this slice removed.
+    skills = sorted(SKILLS.glob("*/SKILL.md"))
+    print(f"The library: {len(skills)} skills, one directory each, at one level under `skills/`.\n")
+    print("| skill | what it decides | whose domain |")
+    print("|---|---|---|")
     for f in skills:
-        fams.setdefault(family_of(f), []).append(f)
-    counts = ", ".join(f"{name} ({len(fams[name])})" for name in sorted(fams))
-    print(f"The library, by family: {counts}.\n")
-    print("| skill | what it decides | family | whose domain |")
-    print("|---|---|---|---|")
-    for name in sorted(fams):
-        for f in sorted(fams[name], key=lambda p: p.parent.name):
-            stem = f.parent.name
-            who = PER_SKILL.get((name, stem), WIELDER.get(name, UNALLOCATED))
-            print(f"| `{stem}` | {describe(f)} | `{name}` | {who} |")
+        stem = stem_of(f)
+        print(f"| `{stem}` | {describe(f)} | {WIELDER.get(stem, UNALLOCATED)} |")
 
 
 if __name__ == "__main__":
