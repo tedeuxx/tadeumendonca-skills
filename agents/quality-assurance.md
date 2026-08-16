@@ -42,7 +42,7 @@ for the re-measured total.
 have refused.** `engineering-philosophy` used to be withheld on exactly this brief's own logic:
 a second ruler with no falsifier is how a gate starts grading impression instead of verifying claims.
 What changed is the object, not the argument — `harness-engineering`'s judgment section is still that
-same content, but the file is now the **universal preload**, carried by all five profiles because
+same content, but the file is now the **universal preload**, carried by all six profiles because
 understanding the loop's own state machine and intake chain (the operative half of the file, and the
 half you actually apply — the boundary-class list above cites it directly) is not optional background
 for the persona that classifies safe vs. boundary. The risk the old rationale named does not

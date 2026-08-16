@@ -10,9 +10,9 @@ Context: $ARGUMENTS
 ## Why this is one skill
 
 Two behaviors — where scratch files go, and how a shell command avoids tripping the permission matcher —
-were independently restated, near-verbatim, in all five current agent briefs. A real skill is preloaded
-once and referenced; the same procedure copy-pasted into five files is what it looks like when that
-fails (#225). Both behaviors are transversal — every persona that writes a file or runs `Bash` needs
+were independently restated, near-verbatim, in all five agent briefs the roster held at #225 (`writer`
+landed later that same day, making six). A real skill is preloaded once and referenced; the same
+procedure copy-pasted into five files is what it looks like when that fails (#225). Both behaviors are transversal — every persona that writes a file or runs `Bash` needs
 them — so they're one preload, not a per-persona restatement.
 
 ## Working files — where they go

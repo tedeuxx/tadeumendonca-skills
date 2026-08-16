@@ -11,7 +11,7 @@ skills:
 
 ## Your `skills:` list carries four entries — most are exceptions to a rule stated below
 
-**`harness-engineering` is the universal preload (#224) — carried by all five profiles, this one
+**`harness-engineering` is the universal preload (#224) — carried by all six profiles, this one
 included, because understanding the loop itself is not domain-specific the way the rest of the process
 library is.** **`command-hygiene` is also universal (#225)** — where scratch files go and how a shell
 command avoids the permission matcher applies to every persona that writes a file or runs `Bash`, not

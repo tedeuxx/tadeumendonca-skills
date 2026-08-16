@@ -424,8 +424,8 @@ and its trade-off*, not just the rule — because a rule without its reason is o
 
 **That column was headed *wielded by* until #172, and the rename is the point rather than a tidy-up.** It answers **whose mandate a convention falls under** — who is accountable for `dynamodb` being right. It does **not** answer *what does this persona have loaded*, and the two diverge sharply: under the old heading a reader had one column and no way to tell which question it was answering, so the curated preload below read as a contradiction of it rather than as a different fact.
 
-**Reconciling the two into one column was the alternative, and it was rejected.** Across the five
-briefs the `skills:` lists total **twelve preload entries** (`harness-engineering`'s universal preload,
+**Reconciling the two into one column was the alternative, and it was rejected.** Across the six
+briefs the `skills:` lists total **23 preload entries** (`harness-engineering`'s universal preload,
 #224, is what pushed this above the ten it used to be), resolving to **seven distinct files, all seven
 of them rows in this table.** Against 67 rows, making the column mean *preloaded by* would still print
 "— none" against **60 of them**, `dynamodb`, `vpc` and `cloudfront` among them: publishing, on the
@@ -907,7 +907,7 @@ they are never in this repo's git history.
 ADR library lives at `docs/adr/`, is tracked in git, and travels with every clone — a human reading this
 repository reaches it by opening the directory. **Nothing loads it at runtime.** No hook in
 `hooks/hooks.json` reads it, no manifest references it, and no persona's `skills:` frontmatter names a
-`docs/` path — the five personas above preload only files under `skills/`. An agent reaches `docs/` the
+`docs/` path — the six personas above preload only files under `skills/`. An agent reaches `docs/` the
 same way a human does: by choosing to read the path, not because the harness put it in front of them.
 That gap is why the decision records are read by *convention* (`tech-lead` writes them, the leads and the
 gate are told to consult them) rather than by *mechanism* — nothing here forces the read the way

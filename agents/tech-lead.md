@@ -23,7 +23,7 @@ is a real deprivation:
 
 **`harness-engineering` replaces `engineering-philosophy` here (#224).** It is the universal
 preload — the loop's state machine, the intake chain, and the eleven principles in one file, carried
-by all five profiles rather than by a subset. Understanding the loop itself is not domain-specific the
+by all six profiles rather than by a subset. Understanding the loop itself is not domain-specific the
 way the rest of the process library is.
 
 **`definition-of-ready` (#264) is a new domain-specific entry, argued rather than assumed.** Closing an
