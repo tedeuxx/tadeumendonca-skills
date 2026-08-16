@@ -20,7 +20,7 @@ context before your first turn, so `code-review`, `quality-gates` and
 Where this brief used to name `dev-loop` as **withheld** — larger than the whole list, and inlined
 here anyway (the intake chain, the `ready` query, the task-filing rule) — the consolidated skill is
 now **loaded**, not withheld: the intake chain, the state table and the eleven principles all arrive
-in one preload, carried by all five profiles rather than reasoned about as a deprivation unique to you.
+in one preload, carried by all six profiles rather than reasoned about as a deprivation unique to you.
 
 **And there is no other channel.** `Skill` is not grantable through `tools:` (#177), and `printenv
 CLAUDE_PLUGIN_ROOT` exits 1 inside a subagent shell — nothing tells you where the library is. So what is
