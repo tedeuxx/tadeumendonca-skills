@@ -497,7 +497,7 @@ this tells you *how to decide* while you do. Today that means three reference sk
 [ADR-0011](../../docs/adr/0011-a-skill-exists-to-be-assigned-to-a-profile.md)'s 2026-08-13
 amendment these are consolidating into single reference skills … **not yet built as of this writing**,
 so read the family directories as they stand until that consolidation lands.~~ **Struck: it is built.**
-#229/#230/#231 consolidated 21, 19 and 15 files into one skill each, and #283 removed the family
+#229/#230/#231 consolidated 21, 19 and 15 files into one skill each, and #286 removed the family
 directories the struck sentence told a reader to go and read. Every skill is `skills/<name>/SKILL.md`.
 
 See also: `/quality-gates` (the Definition of Done, the gate tables per loop model, and — since #257

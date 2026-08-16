@@ -70,9 +70,19 @@ have decided differently, and calibrate from that note when material accumulates
 names/domains/ARNs/ids; **English** (it's published); **additive density** (deepen; never thin out good content).
 
 **State (last measured 2026-08-10 — re-verified, not re-stamped; one figure WITHDRAWN 2026-08-15, see
-below):** the thin `## Decision & trade-off` baseline has landed for the `infrastructure` and `backend`
-families, plus the `vpc` deep exemplar. The **deep-dive above is the active workstream**; those baseline
-sections are scaffolding to deepen, not the goal.
+below):** the thin `## Decision & trade-off` baseline has landed across the **`cloud-infrastructure`**
+and **`backend`** skills, including the VPC deep-dive **section** that is this repo's density exemplar.
+The **deep-dive above is the active workstream**; those baseline sections are scaffolding to deepen, not
+the goal.
+
+~~the `infrastructure` and `backend` **families**, plus the `vpc` deep exemplar~~ — **struck #286, and
+both halves were wrong in different ways.** *Families:* there are none; the tree is one level (see
+*Command reference* below), and `infrastructure` was the directory name, never a skill's — the skill is
+`cloud-infrastructure`. *The `vpc` exemplar:* `skills/vpc/SKILL.md` stopped being a file at **#229**,
+when 21 per-service files became sections of one skill; the exemplar survives at section grain
+(`skills/cloud-infrastructure/SKILL.md`), which is what the Mission section above already says. **The
+`vpc` half was dead for six days before this slice and is fixed here because this slice is what made
+someone read the sentence** — the drift is #286's only in the family half.
 
 ~~**the `frontend` family is still effectively unstarted — exactly one file in it carries a trade-off in
 any form** (`grep -rl '^family: frontend' skills | xargs grep -il trade-off` → 1, `authentication`;
@@ -165,9 +175,13 @@ a contaminação na leitura do repositório por humanos se tudo ficar no mesmo l
 not distinguish them.** **Measured on 2026-08-10**, `claude plugin details` on the split tree reported
 **`Skills (71)`** — the 69 the library held under `skills/` then, **plus the 2 then under `commands/`**,
 counted alike, reachable alike. **Both denominators have moved since** — the library consolidated to 13
-(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l`) and `commands/` holds 3 (`ls commands/`) — so
-read the 71 as the measurement that established the rule, not as today's inventory. **The rule is what
-survives the denominators:** the loader counts both directories alike.
+(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 13, re-run #286) and `commands/` holds 3
+(`ls commands/` → `autonomy-off.md autonomy-on.md new-issue.md`, re-run #286) — so read the 71 as the
+measurement that established the rule, not as today's inventory. **Nor as today's SHAPE:** the tree it
+counted was two levels deep under `skills/`, which it no longer is (#286). That does not touch the rule
+— depth was never what the 71 was about — but a reader meeting a raw `Skills (71)` beside a flat tree
+would have no way to tell, and this paragraph is the most-read explanation in the file. **The rule is
+what survives the denominators:** the loader counts both directories alike.
 
 **2 · DECLARATION is what registers a skill. The root is only the default.**
 
@@ -211,7 +225,7 @@ skill added and not declared does not exist to the model, and nothing else anywh
 |---|---|---|
 | what it is | a file a human **types**, with arguments | a body of knowledge the model **reaches for** |
 | declares `argument-hint` | **yes** — it is what the human sees while typing | **no** |
-| lives in | `commands/<name>.md` | `skills/<name>/SKILL.md` — one level, no families since #283 — declared in `plugin.json` |
+| lives in | `commands/<name>.md` | `skills/<name>/SKILL.md` — one level, no families since #286 — declared in `plugin.json` |
 | invocable as `/plugin:<name>` | yes | yes |
 | reachable by the `Skill` tool | yes | yes |
 | preloadable via a persona's `skills:` | yes | yes |
@@ -239,7 +253,7 @@ same treatment for the same reason.
 ### Usage
 
 Plugin commands and skills are **namespaced under the plugin name**, and the name is the file's own
-**innermost** directory (`skills/cloud-infrastructure/SKILL.md` → `cloud-infrastructure`). Since #283
+**innermost** directory (`skills/cloud-infrastructure/SKILL.md` → `cloud-infrastructure`). Since #286
 that is also the ONLY directory — the tree is one level — but the rule was never about the tree's shape:
 the loader read the innermost name at every depth this library has had. Type it and pass context after
 it (received as `$ARGUMENTS`):
@@ -255,7 +269,7 @@ it (received as `$ARGUMENTS`):
 at all — it falls through as ordinary prompt text and the model improvises a plausible answer. Every
 identifier this plugin published used to contain a slash. **None does now**, so a broken invocation
 fails loudly instead of silently. **Neither the family directories arriving on #182 nor their removal on
-#283 cost this**, which is the reason the identifiers were kept bare rather than re-qualified: the loader
+#286 cost this**, which is the reason the identifiers were kept bare rather than re-qualified: the loader
 takes the innermost directory either way, so the tree has changed shape three times and the namespace has
 not changed once.
 
@@ -290,9 +304,9 @@ safe pin (no mid-development tags pollute the namespace).
 
 ## Command reference
 
-**13 skills, one directory each, at ONE level under `skills/` (#283)** — the owner's decision: *"o que
+**13 skills, one directory each, at ONE level under `skills/` (#286)** — the owner's decision: *"o que
 eu quero é que todas skills estejam no mesmo nível hierárquico de diretórios."* **The headings below are
-a reading structure in this document and nothing else.** They were directories until #283 (`principles/`,
+a reading structure in this document and nothing else.** They were directories until #286 (`principles/`,
 `backend/`, `frontend/`, `infrastructure/`, `workflow/`), and the reason they were is recorded in the
 next paragraph rather than deleted, because it is a measurement and it is still true about the tree it
 was made on.
@@ -304,7 +318,7 @@ for the human reading the library: a category teaches what a skill IS in a way a
 21, 19 and 15 files into one skill each — so the pile the grouping protected a reader from no longer
 exists. **What did NOT change is the identifier**: the loader reads the innermost directory name at any
 depth, so `/tadeumendonca-skills:cloud-infrastructure` is the same string before and after, and this
-slice is a PATCH rather than a breaking change. Re-measured on #283 rather than inherited from #182 —
+slice is a PATCH rather than a breaking change. Re-measured on #286 rather than inherited from #182 —
 one probe plugin, one skill body, only the depth varying:
 
 ```

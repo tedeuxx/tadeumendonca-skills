@@ -60,7 +60,7 @@ expect_in "$README" "$agents subagent personas" "agents/"
 # The root-level commands (autonomy-on.md) are counted SEPARATELY from the library, because that is
 # how both documents present them: "<N> skills + autonomy-on".
 #
-# ── THERE IS NO FAMILY. ONE LEVEL, THIRTEEN DIRECTORIES (#283) ────────────────────────────────────
+# ── THERE IS NO FAMILY. ONE LEVEL, THIRTEEN DIRECTORIES (#286) ────────────────────────────────────
 # The owner's decision, in his words: *"o que eu quero é que todas skills estejam no mesmo nível
 # hierárquico de diretórios."* Every skill is `skills/<name>/SKILL.md` and nothing groups them.
 #
@@ -76,7 +76,7 @@ expect_in "$README" "$agents subagent personas" "agents/"
 #
 # WHAT SURVIVED #182 UNCHANGED, AND IS THE REASON THIS SLICE IS A PATCH RATHER THAN A BREAK: the
 # identifier is the BARE INNERMOST DIRECTORY NAME, at any depth, whenever `plugin.json` declares the
-# path. Re-measured on #283 rather than inherited — probe and control, ONE variable, the same skill
+# path. Re-measured on #286 rather than inherited — probe and control, ONE variable, the same skill
 # body and the same manifest name, moved from `skills/fam/probealpha` to `skills/probealpha` with the
 # declaration updated to match:
 #     claude --plugin-dir <probe> -p "/probeplug:probealpha"   nested -> the nonce
@@ -123,7 +123,7 @@ total=$(printf '%s\n' "$SKILL_DIRS" | grep -c . || true)
 # below. `find` walks the whole tree here precisely so a misplaced file is seen by the one assertion
 # that can report it.
 #
-# ~~TWO DEPTHS ARE VALID, NOT ONE, SINCE #230/#231.~~ **STRUCK #283 — ONE DEPTH IS VALID.** The two
+# ~~TWO DEPTHS ARE VALID, NOT ONE, SINCE #230/#231.~~ **STRUCK #286 — ONE DEPTH IS VALID.** The two
 # depths existed because eleven skills sat under a family directory and two (`backend`, `frontend`) had
 # consolidated until the family directory WAS the skill. The families are gone, so the second depth
 # describes nothing that exists and accepting it would let a skill be re-nested with nothing red — the
@@ -148,7 +148,7 @@ done <<< "$(find "$ROOT/skills" -name 'SKILL.md' -type f 2>/dev/null | sort)"
 
 if [ -n "$misplaced" ]; then
   bad "skill tree shape — a SKILL.md is not at skills/<name>/SKILL.md:$misplaced
-      Since #283 the library is ONE level: thirteen directories under skills/, no families. A file at
+      Since #286 the library is ONE level: thirteen directories under skills/, no families. A file at
       any other depth is outside every count, table and resolver in this suite — and it still loads if
       plugin.json declares it, so nothing else would report it."
 else
@@ -234,7 +234,7 @@ fi
 # one — least of all the tree, which makes the collision look legitimate: two different directories,
 # two different families, one identifier.~~
 #
-# **THE ASSERTION IS DELETED, NOT MOVED (#283), AND THE DELETION IS THE HONEST ACT.** With one directory
+# **THE ASSERTION IS DELETED, NOT MOVED (#286), AND THE DELETION IS THE HONEST ACT.** With one directory
 # level the identifier IS the directory name, so a collision requires two directories with one name in
 # one parent — which the filesystem refuses. The check could not fail. A check that cannot fail is this
 # workspace's named recurring defect, and leaving one here, in the file whose header brags about
@@ -916,7 +916,7 @@ fi
 # the sentence the failure quotes, and the skill ships published-and-unlisted in the one document a
 # forker actually reads.
 #
-# ── THE ANCHOR WAS THE (SKILL, FAMILY) PAIR AND IS NOW THE SKILL ALONE (#283) ──────────────────
+# ── THE ANCHOR WAS THE (SKILL, FAMILY) PAIR AND IS NOW THE SKILL ALONE (#286) ──────────────────
 # ~~Measured before choosing: FOUR skill names existed in two families each — `coverage`, `dynamodb`,
 # `cloudwatch-rum` and `environment-config`. A check keyed on the backticked name alone passes with one
 # of a duplicate pair missing from the table, which is precisely the failure it exists to catch, so the
@@ -988,7 +988,7 @@ table_rows=0
 while IFS= read -r row; do
   [ -z "$row" ] && continue
   table_rows=$((table_rows + 1))
-  # SPLIT ON CELLS, NEVER ON A GREEDY `.*` — a corrected defect, kept in this shape after #283 for the
+  # SPLIT ON CELLS, NEVER ON A GREEDY `.*` — a corrected defect, kept in this shape after #286 for the
   # same reason it was written: a greedy span walks past the cell you meant to the last one on the row.
   # Escaped pipes inside the description (`\|`) are neutralised first, so the field split is on real
   # cell boundaries only.
@@ -2036,7 +2036,7 @@ else
     # ~~THE FAMILY FORM — `` the `frontend` family ``, which replaced `/frontend/*` when the families
     # stopped being directories. It promises the family EXISTS, i.e. that some skill claims it.~~
     #
-    # **THE WHOLE ARM IS DELETED (#283), AND THE BRIEFS WERE REWRITTEN IN THE SAME COMMIT.** With one
+    # **THE WHOLE ARM IS DELETED (#286), AND THE BRIEFS WERE REWRITTEN IN THE SAME COMMIT.** With one
     # directory level there is no family to name, so the five references it checked
     # (`developer.md` ×4, `quality-assurance.md` ×1) were rewritten to the SKILL they actually meant —
     # `` the `/frontend` skill ``, `` the `/cloud-infrastructure` skill ``, `` the `/devops` skill ``,
@@ -2087,7 +2087,7 @@ else
       [ -z "$hit" ] && continue
       lineno="${hit%%:*}"
       brief_problems="$brief_problems
-    $brel:$lineno — names a skill FAMILY, and there are none since #283. Name the skill: \`/<skill>\`."
+    $brel:$lineno — names a skill FAMILY, and there are none since #286. Name the skill: \`/<skill>\`."
     done <<< "$(grep -noE '`[a-z0-9-]+` family' "$brief" || true)"
   done
 

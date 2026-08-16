@@ -25,8 +25,11 @@ name: hooks-test
 # silence. Caught by `quality-assurance` on PR #178 (B1), not by CI, because no instrument here can yet
 # see a filter narrower than its suite's inputs.
 #
-# `skills/**` IS THE SAME ENTRY ONE TREE LATER (#164; still correct after #182, which re-nested the
-# library to `skills/<family>/<name>/SKILL.md` — `**` matches any depth, so the glob did not move).
+# `skills/**` IS THE SAME ENTRY THREE TREES LATER (#164; still correct after #182, which re-nested the
+# library to `skills/<family>/<name>/SKILL.md`, and after #286, which flattened it back to
+# `skills/<name>/SKILL.md` — `**` matches any depth, so the glob has never had to move). That the ENTRY
+# survived three reshapings while the PROSE beside it went stale twice is the point worth carrying: a
+# glob written against a tree's ROOT is depth-agnostic and a sentence describing that tree is not.
 # The resolution target of every identifier moved with the library, and `commands/**` — added one slice earlier for
 # exactly this reason — stopped covering the half it was added for. `commands/**` is KEPT rather than
 # swapped: the two typed commands still live there and `new-issue` is a live `skills:` identifier, so

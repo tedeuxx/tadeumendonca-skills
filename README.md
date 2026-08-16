@@ -420,7 +420,7 @@ services, the frontend stack, the CI/CD wiring and the engineering principles. E
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
 "improve".
 
-**They are not shared evenly, and the allocation is stated per skill because no coarser granularity could state it truthfully.** ~~At family granularity one skill belongs to a different persona than the rest of its family, which is a fact about that skill rather than about the family. So this is one table, the family is a column…~~ **Struck #283 — the families are gone and the tree is one level, thirteen directories.** The table was already per skill, which is why the flatten cost it one column rather than a redesign: what disappeared is the *inheritance* (`hooks/scripts/skills-table.py`'s map was per family with three exceptions beside it; it is now thirteen explicit lines, one per skill). **Each description is still the skill's own first line of body rather than a paraphrase of it.**
+**They are not shared evenly, and the allocation is stated per skill because no coarser granularity could state it truthfully.** ~~At family granularity one skill belongs to a different persona than the rest of its family, which is a fact about that skill rather than about the family. So this is one table, the family is a column…~~ **Struck #286 — the families are gone and the tree is one level, thirteen directories.** The table was already per skill, which is why the flatten cost it one column rather than a redesign: what disappeared is the *inheritance* (`hooks/scripts/skills-table.py`'s map was per family with three exceptions beside it; it is now thirteen explicit lines, one per skill). **Each description is still the skill's own first line of body rather than a paraphrase of it.**
 
 **That column was headed *wielded by* until #172, and the rename is the point rather than a tidy-up.** It answers **whose mandate a convention falls under** — who is accountable for `dynamodb` being right. It does **not** answer *what does this persona have loaded*, and the two diverge sharply: under the old heading a reader had one column and no way to tell which question it was answering, so the curated preload below read as a contradiction of it rather than as a different fact.
 
@@ -551,7 +551,7 @@ different questions, which is exactly why they are two lists rather than one con
 **Identifiers are the skill's own directory name** (`code-review`, for
 `skills/code-review/SKILL.md`). That has been true through every shape this tree has taken, and it is
 why none of the three moves changed a single invocation: flat (#164), nested under families (#182),
-flat again (#283). **Re-measured on #283 rather than inherited** — one probe plugin, one skill body,
+flat again (#286). **Re-measured on #286 rather than inherited** — one probe plugin, one skill body,
 the identifier held fixed and only the directory depth changed:
 
 ```
@@ -890,7 +890,7 @@ by hand:
 
 | resource type | ships? | where | how it takes effect |
 |---|---|---|---|
-| **Skills** | yes — **13** | `skills/<name>/SKILL.md` — one level, no families since #283 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
+| **Skills** | yes — **13** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **6 subagent personas** | `agents/*.md` (`developer`, `harness-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `writer`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 6** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`) — automatic, no invocation |
@@ -1030,7 +1030,7 @@ the tag from [the releases page](https://github.com/tedeuxx/tadeumendonca-skills
 `ref` is the lockfile.
 
 Invoke a skill as `<plugin>:<skill>` — the skill's own directory name, which is what the loader reads
-at any depth (measured, #283) and what it read when the library was nested too — passing context as
+at any depth (measured, #286) and what it read when the library was nested too — passing context as
 arguments:
 
 ```

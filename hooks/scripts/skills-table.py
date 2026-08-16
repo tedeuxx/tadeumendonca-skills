@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Emit the README's skill inventory table, derived from `skills/`.
 
-THERE IS NO FAMILY ANY MORE (#283). The tree is `skills/<name>/SKILL.md`, one level, thirteen
+THERE IS NO FAMILY ANY MORE (#286). The tree is `skills/<name>/SKILL.md`, one level, thirteen
 directories — the owner's decision: *"o que eu quero é que todas skills estejam no mesmo nível
 hierárquico de diretórios."* So this file no longer computes a family, no longer emits a family column,
 and the allocation map below is keyed on the SKILL rather than inherited from a group.
@@ -53,7 +53,7 @@ import re
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SKILLS = ROOT / "skills"
 
-# ALLOCATION IS PER SKILL, KEYED ON THE SKILL'S OWN NAME (#283). It used to be a per-FAMILY map with
+# ALLOCATION IS PER SKILL, KEYED ON THE SKILL'S OWN NAME (#286). It used to be a per-FAMILY map with
 # three exceptions beside it, because family granularity could not state the truth for those three
 # (`documentation-standard` splits by domain, `command-hygiene` is transversal, `devops` has three
 # holders). With no families left there is nothing to inherit from, so every skill states its own owner
@@ -125,7 +125,7 @@ def describe(path):
 
 
 def stem_of(path):
-    """The skill's identifier — `skills/<name>/SKILL.md` -> `<name>`, and the ONLY shape (#283).
+    """The skill's identifier — `skills/<name>/SKILL.md` -> `<name>`, and the ONLY shape (#286).
 
     A wrong depth is a hard error rather than a default, unchanged in kind from when this function
     computed a family. Defaulting would let a misplaced skill land in the table under some catch-all,
