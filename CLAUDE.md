@@ -69,17 +69,46 @@ have decided differently, and calibrate from that note when material accumulates
 **Hard principles:** **project-agnostic** — generic `<project>` / `<apex-domain>` placeholders, **NO** real
 names/domains/ARNs/ids; **English** (it's published); **additive density** (deepen; never thin out good content).
 
-**State (re-verified 2026-08-10, unchanged in substance since 2026-06-21):** the thin
-`## Decision & trade-off` baseline has landed for the `infrastructure` and `backend` families, plus the
-`vpc` deep exemplar; **the `frontend` family is still effectively unstarted — exactly one file in it
-carries a trade-off in any form** (`grep -rl '^family: frontend' skills | xargs grep -il trade-off` → 1,
-`authentication`; against the count published below). **The command carries `-i`, and that is a
-correction rather than a flourish:** the form published here until #164 was
-`grep -rl trade-off commands/frontend/`, which returns **zero** — the one occurrence is written
-`Trade-off`. The figure was right and the command beside it did not produce it, which is the exact
-failure this repo's "publish the number with its command" rule exists to make visible. The
-**deep-dive above is the active workstream**; those baseline sections are scaffolding to deepen, not the
-goal.
+**State (last measured 2026-08-10 — re-verified, not re-stamped; one figure WITHDRAWN 2026-08-15, see
+below):** the thin `## Decision & trade-off` baseline has landed for the `infrastructure` and `backend`
+families, plus the `vpc` deep exemplar. The **deep-dive above is the active workstream**; those baseline
+sections are scaffolding to deepen, not the goal.
+
+~~**the `frontend` family is still effectively unstarted — exactly one file in it carries a trade-off in
+any form** (`grep -rl '^family: frontend' skills | xargs grep -il trade-off` → 1, `authentication`;
+against the count published below).~~
+
+**WITHDRAWN 2026-08-15, and deliberately not restated.** The measurement was taken on **2026-08-10**
+against a **15-file** `frontend` family. It is withdrawn against this repo's own
+**"publish the number with its command"** rule — *a measured number ships with the command that
+produced it, inline and runnable, **or not at all*** — which it failed three ways at once, each a
+different failure:
+
+- **The falsifier is dead.** `family:` frontmatter went away at #182, so the published command matches
+  nothing and emits nothing at head. A falsifier that fails open reads to whoever runs it as *"nothing
+  to worry about"*, which is worse than publishing no command at all — and is exactly what the rule
+  stated one paragraph above forbids.
+- **`authentication` is not a file.** The family consolidated into a single `skills/frontend/SKILL.md`
+  at **#231 (2026-08-13)**; what the figure counted is now a *section* of that file
+  (`skills/frontend/SKILL.md:202`).
+- **The denominator moved 15 → 1, which INVERTED the sentence.** "exactly one file in it" was one of
+  **fifteen**. The family is now **one** file, so the same words read *one of one* — 100% of the family
+  — while still being cited as the evidence that the family is "effectively unstarted". The number never
+  became false; it started arguing the opposite of what it was published for, which is strictly harder
+  to notice than a wrong number.
+
+**No current figure replaces it, and that is the honest form rather than a thinning.** Restating it
+would require judging where the `frontend` deep-dive now stands against one consolidated file — a
+workstream call, the owner's to make, not a measurement anyone can re-run. Withdrawing a measurement
+whose denominator moved is the same call the token-price paragraph below makes, for the same reason.
+
+*The 2026-08-10 figure's own correction, kept as the record of the defect class and not as anything to
+run:* the form published here until #164 was `grep -rl trade-off commands/frontend/`, which returned
+**zero** — the one occurrence is written `Trade-off`, so the replacement carried `-i`. The figure was
+right and the command beside it did not produce it — the exact failure that rule exists to make
+visible. **Both spellings are dead at head.** That this
+block's own header claimed re-verification while its published command returned nothing is that same
+failure one layer up, and it is why the header now dates the measurement instead of asserting it.
 
 *The date was re-checked rather than re-stamped.* A `State (…)` marker whose date is refreshed without
 re-measuring is worse than a stale one: it converts an aging claim into a confidently wrong one, and the
@@ -91,8 +120,9 @@ person can falsify it in one command instead of trusting the date.
 ## Installation (Claude Code plugin)
 
 This repo is a **Claude Code plugin + marketplace** — the native way to reuse skills across
-projects. The skill library lives in `skills/`, one directory per skill holding a `SKILL.md`, and the two
-commands a human types live in `commands/`; `.claude-plugin/marketplace.json` is the catalog and
+projects. The skill library lives in `skills/`, one directory per skill holding a `SKILL.md`, and the three
+commands a human types live in `commands/` (`autonomy-on`, `autonomy-off`, `new-issue`);
+`.claude-plugin/marketplace.json` is the catalog and
 `.claude-plugin/plugin.json` the manifest. **Nothing is published outside this git repo** — the
 marketplace is just a metadata file the consumer points at.
 
@@ -132,8 +162,12 @@ This took a full session to arrive at and was written down nowhere. **Measured, 
 `commands/` and `skills/` are two top-level directories because a reader opening this repo should not
 meet a library and a control surface in the same pile — the owner's reason, in his words: *"o problema é
 a contaminação na leitura do repositório por humanos se tudo ficar no mesmo lugar."* **The loader does
-not distinguish them.** `claude plugin details` on the split tree reports **`Skills (71)`** — the 69
-under `skills/` **plus the 2 under `commands/`**, counted alike, reachable alike.
+not distinguish them.** **Measured on 2026-08-10**, `claude plugin details` on the split tree reported
+**`Skills (71)`** — the 69 the library held under `skills/` then, **plus the 2 then under `commands/`**,
+counted alike, reachable alike. **Both denominators have moved since** — the library consolidated to 13
+(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l`) and `commands/` holds 3 (`ls commands/`) — so
+read the 71 as the measurement that established the rule, not as today's inventory. **The rule is what
+survives the denominators:** the loader counts both directories alike.
 
 **2 · DECLARATION is what registers a skill. The root is only the default.**
 
@@ -188,10 +222,19 @@ the two is what the file is *for*, and `hooks/scripts/inventory-counts.test.sh` 
 directions** — removing `argument-hint` from a typed command reddens, and adding one to a skill reddens.
 The distinction is gated, not conventional.
 
-**The cost this makes visible:** the 69 descriptions total ~28 KB and are now **always-on**, about
-**+9,919 tokens per session** (`Skills (2)` ≈ 1,444 tok → `Skills (71)` ≈ 11,363 tok). ADR-0009 made
-those descriptions dense deliberately; **that decision was free while nothing loaded them and is not
-free now.** Nobody has revisited it at this price — that is an open decision, not a settled one.
+**The cost this makes visible, measured on 2026-08-10 against the 69 descriptions the library held
+then:** those 69 totalled ~28 KB and became **always-on**, about **+9,919 tokens per session**
+(`Skills (2)` ≈ 1,444 tok → `Skills (71)` ≈ 11,363 tok). ADR-0009 made those descriptions dense
+deliberately; **that decision was free while nothing loaded them and stopped being free once they
+loaded.** Nobody has revisited it — that is an open decision, not a settled one.
+
+**That figure is the price at its measurement, not the price today, and the denominator is why.** The
+library has consolidated to **13** since (`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 13,
+the same figure the family headings below sum to), so the per-session cost is smaller by some amount
+this file deliberately does not state. Re-measuring and publishing a current number would swap a
+checkable historical claim — 69 descriptions, one date, one command — for a current one sourced to a
+machine no reader and no gate can re-run. `tadeumendonca-io`'s `/architecture` gave the same figure the
+same treatment for the same reason.
 
 ### Usage
 
