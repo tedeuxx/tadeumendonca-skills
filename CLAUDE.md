@@ -177,11 +177,8 @@ not distinguish them.** **Measured on 2026-08-10**, `claude plugin details` on t
 counted alike, reachable alike. **Both denominators have moved since** — the library consolidated to 13
 (`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 13, re-run #286) and `commands/` holds 3
 (`ls commands/` → `autonomy-off.md autonomy-on.md new-issue.md`, re-run #286) — so read the 71 as the
-measurement that established the rule, not as today's inventory. **Nor as today's SHAPE:** the tree it
-counted was two levels deep under `skills/`, which it no longer is (#286). That does not touch the rule
-— depth was never what the 71 was about — but a reader meeting a raw `Skills (71)` beside a flat tree
-would have no way to tell, and this paragraph is the most-read explanation in the file. **The rule is
-what survives the denominators:** the loader counts both directories alike.
+measurement that established the rule, not as today's inventory. **The rule is what survives the
+denominators:** the loader counts both directories alike.
 
 **2 · DECLARATION is what registers a skill. The root is only the default.**
 
