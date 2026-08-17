@@ -11,16 +11,16 @@
   "skills": [
     "./skills/backend",
     "./skills/frontend",
-    "./skills/infrastructure/cloud-infrastructure",
-    "./skills/principles/definition-of-done",
-    "./skills/principles/definition-of-ready",
-    "./skills/principles/harness-engineering",
-    "./skills/principles/planning-poker",
-    "./skills/principles/quality-gates",
-    "./skills/workflow/code-review",
-    "./skills/workflow/command-hygiene",
-    "./skills/workflow/devops",
-    "./skills/workflow/documentation-standard",
-    "./skills/workflow/license"
+    "./skills/cloud-infrastructure",
+    "./skills/code-review",
+    "./skills/command-hygiene",
+    "./skills/definition-of-done",
+    "./skills/definition-of-ready",
+    "./skills/devops",
+    "./skills/documentation-standard",
+    "./skills/harness-engineering",
+    "./skills/license",
+    "./skills/planning-poker",
+    "./skills/quality-gates"
   ]
 }

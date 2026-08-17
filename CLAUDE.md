@@ -10,7 +10,7 @@ Claude reads the guide and knows exactly how to implement that piece following t
 established patterns (custom Tailwind design system, snake_case contracts, Terraform parametrization,
 numeric SemVer, etc.).
 
-> **The library is broader than its current consumer.** The `backend` family and several `infrastructure`
+> **The library is broader than its current consumer.** The `backend` skill and parts of `cloud-infrastructure`
 > skills document a BFF-on-Lambda + DynamoDB + Cognito architecture that `tadeumendonca-io` **retired**
 > — it is now fully static. Those skills are kept **deliberately, as reference patterns**, not as a
 > description of the live platform. Never infer the consumer's architecture from them; read the
@@ -49,7 +49,7 @@ and on LinkedIn. The reasoning behind it stays in the private source and is neve
 - **The owner's opinionated default + when he deviates** (the "My take" layer) — THIS is the differentiator;
   generic best-practice alone is not enough.
 - **The nuances that bite** — the gotchas / war stories worth materializing.
-- The VPC section of `skills/infrastructure/cloud-infrastructure/SKILL.md` (formerly the standalone
+- The VPC section of `skills/cloud-infrastructure/SKILL.md` (formerly the standalone
   `skills/vpc/SKILL.md`, folded in by #229) is the **density exemplar** — match it, at section-grain now
   rather than file-grain.
 
@@ -70,9 +70,19 @@ have decided differently, and calibrate from that note when material accumulates
 names/domains/ARNs/ids; **English** (it's published); **additive density** (deepen; never thin out good content).
 
 **State (last measured 2026-08-10 — re-verified, not re-stamped; one figure WITHDRAWN 2026-08-15, see
-below):** the thin `## Decision & trade-off` baseline has landed for the `infrastructure` and `backend`
-families, plus the `vpc` deep exemplar. The **deep-dive above is the active workstream**; those baseline
-sections are scaffolding to deepen, not the goal.
+below):** the thin `## Decision & trade-off` baseline has landed across the **`cloud-infrastructure`**
+and **`backend`** skills, including the VPC deep-dive **section** that is this repo's density exemplar.
+The **deep-dive above is the active workstream**; those baseline sections are scaffolding to deepen, not
+the goal.
+
+~~the `infrastructure` and `backend` **families**, plus the `vpc` deep exemplar~~ — **struck #286, and
+both halves were wrong in different ways.** *Families:* there are none; the tree is one level (see
+*Command reference* below), and `infrastructure` was the directory name, never a skill's — the skill is
+`cloud-infrastructure`. *The `vpc` exemplar:* `skills/vpc/SKILL.md` stopped being a file at **#229**,
+when 21 per-service files became sections of one skill; the exemplar survives at section grain
+(`skills/cloud-infrastructure/SKILL.md`), which is what the Mission section above already says. **The
+`vpc` half was dead for six days before this slice and is fixed here because this slice is what made
+someone read the sentence** — the drift is #286's only in the family half.
 
 ~~**the `frontend` family is still effectively unstarted — exactly one file in it carries a trade-off in
 any form** (`grep -rl '^family: frontend' skills | xargs grep -il trade-off` → 1, `authentication`;
@@ -165,9 +175,10 @@ a contaminação na leitura do repositório por humanos se tudo ficar no mesmo l
 not distinguish them.** **Measured on 2026-08-10**, `claude plugin details` on the split tree reported
 **`Skills (71)`** — the 69 the library held under `skills/` then, **plus the 2 then under `commands/`**,
 counted alike, reachable alike. **Both denominators have moved since** — the library consolidated to 13
-(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l`) and `commands/` holds 3 (`ls commands/`) — so
-read the 71 as the measurement that established the rule, not as today's inventory. **The rule is what
-survives the denominators:** the loader counts both directories alike.
+(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 13, re-run #286) and `commands/` holds 3
+(`ls commands/` → `autonomy-off.md autonomy-on.md new-issue.md`, re-run #286) — so read the 71 as the
+measurement that established the rule, not as today's inventory. **The rule is what survives the
+denominators:** the loader counts both directories alike.
 
 **2 · DECLARATION is what registers a skill. The root is only the default.**
 
@@ -211,7 +222,7 @@ skill added and not declared does not exist to the model, and nothing else anywh
 |---|---|---|
 | what it is | a file a human **types**, with arguments | a body of knowledge the model **reaches for** |
 | declares `argument-hint` | **yes** — it is what the human sees while typing | **no** |
-| lives in | `commands/<name>.md` | `skills/<family>/<name>/SKILL.md`, declared in `plugin.json` |
+| lives in | `commands/<name>.md` | `skills/<name>/SKILL.md` — one level, no families since #286 — declared in `plugin.json` |
 | invocable as `/plugin:<name>` | yes | yes |
 | reachable by the `Skill` tool | yes | yes |
 | preloadable via a persona's `skills:` | yes | yes |
@@ -230,7 +241,7 @@ loaded.** Nobody has revisited it — that is an open decision, not a settled on
 
 **That figure is the price at its measurement, not the price today, and the denominator is why.** The
 library has consolidated to **13** since (`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 13,
-the same figure the family headings below sum to), so the per-session cost is smaller by some amount
+the same figure the sections below list), so the per-session cost is smaller by some amount
 this file deliberately does not state. Re-measuring and publishing a current number would swap a
 checkable historical claim — 69 descriptions, one date, one command — for a current one sourced to a
 machine no reader and no gate can re-run. `tadeumendonca-io`'s `/architecture` gave the same figure the
@@ -238,10 +249,11 @@ same treatment for the same reason.
 
 ### Usage
 
-Plugin commands and skills are **namespaced under the plugin name**, with **no family segment** — the
-name is the file's own **innermost** directory (`skills/infrastructure/cloud-infrastructure/SKILL.md` → `cloud-infrastructure`). The family
-directory is for the human reading the library and is **not** part of any identifier. Type it and pass
-context after it (received as `$ARGUMENTS`):
+Plugin commands and skills are **namespaced under the plugin name**, and the name is the file's own
+**innermost** directory (`skills/cloud-infrastructure/SKILL.md` → `cloud-infrastructure`). Since #286
+that is also the ONLY directory — the tree is one level — but the rule was never about the tree's shape:
+the loader read the innermost name at every depth this library has had. Type it and pass context after
+it (received as `$ARGUMENTS`):
 
 ```
 /tadeumendonca-skills:backend posts
@@ -253,9 +265,10 @@ context after it (received as `$ARGUMENTS`):
 **without** a slash returns `Unknown command:`, while one **with** a slash is not recognised as a command
 at all — it falls through as ordinary prompt text and the model improvises a plausible answer. Every
 identifier this plugin published used to contain a slash. **None does now**, so a broken invocation
-fails loudly instead of silently. **The family directories coming back on #182 did not cost this**, which
-is the reason the identifiers were kept bare rather than re-qualified: the loader takes the innermost
-directory either way, so the tree regained a reading structure and the namespace did not change at all.
+fails loudly instead of silently. **Neither the family directories arriving on #182 nor their removal on
+#286 cost this**, which is the reason the identifiers were kept bare rather than re-qualified: the loader
+takes the innermost directory either way, so the tree has changed shape three times and the namespace has
+not changed once.
 
 ### Releasing a version
 
@@ -288,7 +301,29 @@ safe pin (no mid-development tags pollute the namespace).
 
 ## Command reference
 
-### principles (5) — the drift-reducer
+**13 skills, one directory each, at ONE level under `skills/` (#286)** — the owner's decision: *"o que
+eu quero é que todas skills estejam no mesmo nível hierárquico de diretórios."* **The headings below are
+a reading structure in this document and nothing else.** They were directories until #286 (`principles/`,
+`backend/`, `frontend/`, `infrastructure/`, `workflow/`), and the reason they were is recorded in the
+next paragraph rather than deleted, because it is a measurement and it is still true about the tree it
+was made on.
+
+**Why the directories existed, and why that reason lapsed.** They came back at #182 on the owner's call,
+for the human reading the library: a category teaches what a skill IS in a way an alphabetical list of
+**69** does not. That argument was about a denominator. The library is **13**
+(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 13), after `#229`/`#230`/`#231` consolidated
+21, 19 and 15 files into one skill each — so the pile the grouping protected a reader from no longer
+exists. **What did NOT change is the identifier**: the loader reads the innermost directory name at any
+depth, so `/tadeumendonca-skills:cloud-infrastructure` is the same string before and after, and this
+slice is a PATCH rather than a breaking change. Re-measured on #286 rather than inherited from #182 —
+one probe plugin, one skill body, only the depth varying:
+
+```
+claude --plugin-dir <probe> -p "/probeplug:probealpha"   # skills/fam/probealpha -> the nonce
+claude --plugin-dir <probe> -p "/probeplug:probealpha"   # skills/probealpha     -> the same nonce
+```
+
+### the harness and process skills — the drift-reducer
 
 The harness's **principles layer**: how the owner builds software, so an agent's behavior doesn't drift. Cross-cutting (applies to every repo), distinct from the per-component how-to skills. Canonical summary in the README's *engineering floor* section; deep validation via the subagent that **owns** the decision — `tech-lead` against the principles and the ADR library at design time, `quality-assurance` against the Definition of Done once it is built (`plan-reviewer`, named here until 2026-08-03, was retired outright and invoking it fails); irreversible-floor enforcement via the shipped PreToolUse guard (`hooks/`).
 
@@ -344,24 +379,24 @@ an irreversible act. See ADR-0013 for the full record.
 | `/quality-gates` | THIS loop's concrete Definition of Done AND the gate policy that proves it, as two clearly-headed parts of one file: the thesis, the actual DoD, the 100% functional-regression invariant, the gate tables per loop model (Part I) — plus the stack-agnostic thresholds (lint=0, unit coverage ≥85%, contract/E2E, dependency + secret scanning, SAST) formerly the standalone `coverage` skill, folded in at #257. The generic concept of what a DoD is and how to design one moved to `/definition-of-done` (#265) |
 | `/planning-poker` | SDLC-generic: consensus estimation with a team — the simultaneous-reveal mechanic, the owner's own reframe (the specific unit barely matters; the real payoff is a long-run team-velocity signal, not per-item accuracy), when the ceremony is worth it versus a coarser gut-call or t-shirt-size pass, the four named failure modes (anchoring, poker on a badly-scoped story, false-fast convergence, the empty ritual), and its explicit dependency on `/definition-of-ready`. Reference pattern — this repo's own loop runs no human estimation ceremony (#266) |
 
-### backend (1)
+### backend
 
-The prior one-per-concern layout (19 files) consolidated into a single skill, `backend` (#230) — the family
-directory itself is the skill (`skills/backend/SKILL.md`), same naming pattern the issue set for
+The prior one-per-concern layout (19 files) consolidated into a single skill, `backend` (#230) — the former family
+directory itself became the skill (`skills/backend/SKILL.md`), same naming pattern the issue set for
 `frontend` (#231). Curated per ADR-0011's own test — *"the more a technical skill reads like
 documentation about the technology, the less of a skill it is"* — applied with extra weight here
 because this is a **reference with no live consumer**: `tadeumendonca-io` retired the BFF-on-Lambda +
-DynamoDB + Cognito architecture this family documents; it is kept deliberately as a knowledge-transfer
+DynamoDB + Cognito architecture this skill documents; it is kept deliberately as a knowledge-transfer
 pattern, not a description of anything currently deployed.
 
 | Command | Purpose |
 |---|---|
 | `/backend` | Implement a BFF-on-Lambda backend end to end: the Hono modular monolith, cross-cutting middleware (errors, logging, metrics, tracing, audit, action types), Redis cache-aside, config/secrets, the generated OpenAPI contract + Postman tests, notifications, OG-image + bot-rendering, and the shared quality gate |
 
-### frontend (1)
+### frontend
 
 The prior one-per-concern layout (15 files) consolidated into a single skill, `frontend` (#231) — the
-family directory itself is the skill, same shape as `backend`. Live/active content, kept at full depth
+former family directory itself became the skill, same shape as `backend`. Live/active content, kept at full depth
 (unlike `backend`, this documents the current consumer's actual stack): framework-react (the only
 section with React/library snippets) → routing → state → api-client → authentication → authorization →
 forms → pagination → design-system → storybook → ux-states → markdown → seo → analytics → playwright.
@@ -370,7 +405,7 @@ forms → pagination → design-system → storybook → ux-states → markdown 
 |---|---|
 | `/frontend` | The React + Vite SPA end to end: bootstrap/providers, routing, state ownership, the typed BFF client, auth + cosmetic UI gating, forms, cursor pagination, the design system, Storybook, async UX states, markdown, SEO, GA4 analytics, and Playwright E2E |
 
-### infrastructure (1)
+### cloud-infrastructure
 
 The prior one-per-service layout (21 files) consolidated into a single skill, `cloud-infrastructure` (#229) — same
 consolidation pattern as `harness-engineering` (#224) and `devops` (#227): one section per AWS
@@ -384,9 +419,9 @@ explicitly as the CSP covered, since that's what all 21 source files documented.
 |---|---|
 | `/cloud-infrastructure` | AWS infrastructure end to end, one section per service: VPC, IAM, KMS, Secrets Manager, SSM, Cognito, WAF, DynamoDB, ElastiCache, S3, Lambda, API Gateway, CloudFront, ACM, Route53, SES, SNS, CloudWatch, CloudWatch RUM, CloudWatch X-Ray, and the Terraform setup that carries them all |
 
-### workflow (5)
+### DevOps and repo-practice skills
 
-DevOps tooling. `devops` is the umbrella (#227) — GitHub/CI-CD (OIDC, secrets/environments, the deploy workflows, the Issues backlog, the Claude Code GitHub App automation folded in at #256), Terraform Cloud as the state backend, branching per loop model, the permission model that keeps IaC pipeline-only, the numeric-SemVer tagging rules (`versioning`, folded in at #258 since the trigger workflows it describes are pipeline wiring, the same object as everything else in this skill), and the SonarCloud quality-gate mechanics (`sonarcloud`, folded in at #259 for the same reason — the CI step it wires is pipeline wiring, not a separate capability), all in one skill, preloaded by `developer` and `harness-lead`. Test runners live with their repo (the backend's Postman collection is a section of `/backend`, `/playwright` is standalone); the stack-agnostic gate policy that used to be its own skill (`coverage`, extracted at #230) is now a section of `/quality-gates` (`principles` family) — folded in at #257 once the two skills sat next to each other under near-identical names, still preloaded on every merge review regardless of stack because it travels with the skill every reviewing persona already carries; IaC checkov is in `/cloud-infrastructure`'s Terraform section. Architecturally-significant decisions are recorded via `documentation-standard`'s ADR section, split by domain (#223) — `adr` folded into `documentation-standard` at #260, as two clearly-headed parts of one file rather than two skills sharing a boundary that always needed a judgment call. Working-files and shell-command discipline — transversal across the whole roster, not DevOps-specific — is `command-hygiene`.
+DevOps tooling. `devops` is the umbrella (#227) — GitHub/CI-CD (OIDC, secrets/environments, the deploy workflows, the Issues backlog, the Claude Code GitHub App automation folded in at #256), Terraform Cloud as the state backend, branching per loop model, the permission model that keeps IaC pipeline-only, the numeric-SemVer tagging rules (`versioning`, folded in at #258 since the trigger workflows it describes are pipeline wiring, the same object as everything else in this skill), and the SonarCloud quality-gate mechanics (`sonarcloud`, folded in at #259 for the same reason — the CI step it wires is pipeline wiring, not a separate capability), all in one skill, preloaded by `developer` and `harness-lead`. Test runners live with their repo (the backend's Postman collection is a section of `/backend`, `/playwright` is standalone); the stack-agnostic gate policy that used to be its own skill (`coverage`, extracted at #230) is now a section of `/quality-gates` — folded in at #257 once the two skills sat next to each other under near-identical names, still preloaded on every merge review regardless of stack because it travels with the skill every reviewing persona already carries; IaC checkov is in `/cloud-infrastructure`'s Terraform section. Architecturally-significant decisions are recorded via `documentation-standard`'s ADR section, split by domain (#223) — `adr` folded into `documentation-standard` at #260, as two clearly-headed parts of one file rather than two skills sharing a boundary that always needed a judgment call. Working-files and shell-command discipline — transversal across the whole roster, not DevOps-specific — is `command-hygiene`.
 
 | Command | Purpose |
 |---|---|

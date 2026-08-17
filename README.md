@@ -412,7 +412,7 @@ Criterion 10's second half bounds it for false claims; the rest is accepted deli
 reviewer that freely re-grades another lens's findings recreates the reconciliation cost the single gate
 was built to avoid.
 
-## The skill library, whose domain each family is, and what is actually preloaded
+## The skill library, whose domain each skill is, and what is actually preloaded
 
 **Skills carry the conventions so the model does not re-invent them.** **13 skills + autonomy-on**,
 `autonomy-off` and `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
@@ -420,7 +420,7 @@ services, the frontend stack, the CI/CD wiring and the engineering principles. E
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
 "improve".
 
-**They are not shared evenly, and at family granularity the allocation cannot even be stated truthfully** — one skill belongs to a different persona than the rest of its family, which is a fact about that skill rather than about the family. So this is one table, the family is a column, and **each description is the skill's own first line of body rather than a paraphrase of it.**
+**They are not shared evenly, and the allocation is stated per skill because no coarser granularity could state it truthfully.** ~~At family granularity one skill belongs to a different persona than the rest of its family, which is a fact about that skill rather than about the family. So this is one table, the family is a column…~~ **Struck #286 — the families are gone and the tree is one level, thirteen directories.** The table was already per skill, which is why the flatten cost it one column rather than a redesign: what disappeared is the *inheritance* (`hooks/scripts/skills-table.py`'s map was per family with three exceptions beside it; it is now thirteen explicit lines, one per skill). **Each description is still the skill's own first line of body rather than a paraphrase of it.**
 
 **That column was headed *wielded by* until #172, and the rename is the point rather than a tidy-up.** It answers **whose mandate a convention falls under** — who is accountable for `dynamodb` being right. It does **not** answer *what does this persona have loaded*, and the two diverge sharply: under the old heading a reader had one column and no way to tell which question it was answering, so the curated preload below read as a contradiction of it rather than as a different fact.
 
@@ -542,17 +542,25 @@ universal preload, #224) is the
 largest single skill in the library and is carried by all six briefs. The two figures (billed vs.
 distinct) differ because several skills — `harness-engineering`, `command-hygiene`, `quality-gates`,
 `documentation-standard`, `devops` — are each carried by more than one persona: there is no dedupe, so each is
-billed once per persona and the library sees it once. Note what this table and
-the one below disagree about, deliberately: `developer` **preloads** two `principles`-family skills while
-the column below puts that family under the four judging personas. Both are true. The principles are the
-judges' ruler and the builder's floor; *whose domain* and *what is loaded* are different questions, which
-is exactly why they are now two lists rather than one contested column.
+billed once per persona and the library sees it once. Note what this list and
+the table below disagree about, deliberately: `developer` **preloads** `quality-gates` and
+`harness-engineering` while the table below puts both under the four judging personas. Both are true.
+The principles are the judges' ruler and the builder's floor; *whose domain* and *what is loaded* are
+different questions, which is exactly why they are two lists rather than one contested column.
 
-**Identifiers are the skill's own INNERMOST directory name** (`code-review`, for
-`skills/workflow/code-review/SKILL.md`) — the loader never reads the family segment, so the colon form
-that qualified it (`workflow:code-review`) does not resolve. That is a property of the loader rather than
-of the tree's shape, which is why it held through the library flattening on #164 and re-nesting on #182:
-the family is a directory again, for a human reading the library, and no identifier changed. Slash forms
+**Identifiers are the skill's own directory name** (`code-review`, for
+`skills/code-review/SKILL.md`). That has been true through every shape this tree has taken, and it is
+why none of the three moves changed a single invocation: flat (#164), nested under families (#182),
+flat again (#286). **Re-measured on #286 rather than inherited** — one probe plugin, one skill body,
+the identifier held fixed and only the directory depth changed:
+
+```
+claude --plugin-dir <probe> -p "/probeplug:probealpha"   # skills/fam/probealpha -> the nonce
+claude --plugin-dir <probe> -p "/probeplug:probealpha"   # skills/probealpha     -> the same nonce
+```
+
+So the colon form that qualified it (`workflow:code-review`) does not resolve, and never did — the
+loader reads the innermost directory and nothing above it. Slash forms
 do not resolve, there is no
 glob support, and there is no dedupe — two identifiers naming one file load it twice and bill it twice.
 A wrong identifier fails at **0 bytes of stderr**, which is why the check sits in CI rather than in the
@@ -561,31 +569,31 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library, by family: backend (1), frontend (1), infrastructure (1), principles (5), workflow (5).
+The library: 13 skills, one directory each, at one level under `skills/`.
 
-| skill | what it decides | family | whose domain |
-|---|---|---|---|
-| `backend` | Backend (BFF-on-Lambda) | `backend` | `developer` |
-| `frontend` | Frontend (React SPA) | `frontend` | `developer` |
-| `cloud-infrastructure` | Cloud infrastructure (AWS) | `infrastructure` | `developer` |
-| `definition-of-done` | Definition of Done — the ruler that decides when work stops | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
-| `definition-of-ready` | Definition of Ready — the bar a work item clears before it is buildable | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
-| `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
-| `planning-poker` | Planning Poker — consensus estimation, and what it is actually for | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
-| `quality-gates` | Quality gates — the definition of done and the concrete policy that proves it | `principles` | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
-| `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `workflow` | `developer` |
-| `command-hygiene` | Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched | `workflow` | `product-lead` · `tech-lead` · `harness-lead` · `developer` · `quality-assurance` |
-| `devops` | Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and | `workflow` | `developer` · `harness-lead` · `tech-lead` (#227) |
-| `documentation-standard` | Documentation — the general standard and the ADR practice | `workflow` | `developer` (Part I, general docs) · `tech-lead` · `harness-lead` — Part II, ADR practice split by domain (#223) |
-| `license` | Apply the repository licensing standard in any <project> repo. | `workflow` | `developer` |
+| skill | what it decides | whose domain |
+|---|---|---|
+| `backend` | Backend (BFF-on-Lambda) | `developer` |
+| `cloud-infrastructure` | Cloud infrastructure (AWS) | `developer` |
+| `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `developer` |
+| `command-hygiene` | Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched | `product-lead` · `tech-lead` · `harness-lead` · `developer` · `quality-assurance` |
+| `definition-of-done` | Definition of Done — the ruler that decides when work stops | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `definition-of-ready` | Definition of Ready — the bar a work item clears before it is buildable | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `devops` | Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and | `developer` · `harness-lead` · `tech-lead` (#227) |
+| `documentation-standard` | Documentation — the general standard and the ADR practice | `developer` (Part I, general docs) · `tech-lead` · `harness-lead` — Part II, ADR practice split by domain (#223) |
+| `frontend` | Frontend (React SPA) | `developer` |
+| `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `license` | Apply the repository licensing standard in any <project> repo. | `developer` |
+| `planning-poker` | Planning Poker — consensus estimation, and what it is actually for | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `quality-gates` | Quality gates — the definition of done and the concrete policy that proves it | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
 **Three things the table shows rather than asserts.** The builder is the only persona holding a build
-family — conventions exist for building, and one persona builds. `workflow` is the only family that
-splits, and it splits for a reason: `documentation-standard`'s ADR practice (Part II, merged in from the
-former standalone `adr` skill at #260) belongs to the two writers of the records, split by domain
-(#223), not to a single default author, while its general-docs half (Part I) stays the builder's. And
-**the gate's** domain is `principles` and nothing else,
-because its questions are answered from the diff and the running system, not from this repo's
-conventions.
+skill — `backend`, `frontend`, `cloud-infrastructure` — because conventions exist for building, and one
+persona builds. `documentation-standard` is the only skill that splits between personas, and it splits
+for a reason: its ADR practice (Part II, merged in from the former standalone `adr` skill at #260)
+belongs to the two writers of the records, split by domain (#223), not to a single default author,
+while its general-docs half (Part I) stays the builder's. And **the gate's** domain is the process
+skills and nothing else, because its questions are answered from the diff and the running system, not
+from this repo's conventions.
 
 **What the table still does not assert, and it is the same limit the rename made visible.** The `whose
 domain` column is hand-maintained, in `hooks/scripts/skills-table.py`'s `WIELDER` map — it is a fact
@@ -882,8 +890,8 @@ by hand:
 
 | resource type | ships? | where | how it takes effect |
 |---|---|---|---|
-| **Skills** | yes — **13** | `skills/<family>/[<name>/]SKILL.md`, each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
-| **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-family-is-and-what-is-actually-preloaded) |
+| **Skills** | yes — **13** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
+| **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **6 subagent personas** | `agents/*.md` (`developer`, `harness-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `writer`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 6** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`) — automatic, no invocation |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
@@ -1021,8 +1029,9 @@ the tag from [the releases page](https://github.com/tedeuxx/tadeumendonca-skills
 `vX.Y.Z` tag is cut by the release workflow and never mid-development, so any tag is a safe pin. The
 `ref` is the lockfile.
 
-Invoke a skill as `<plugin>:<skill>` — the skill's own name, with no family segment, since the library
-is flat — passing context as arguments:
+Invoke a skill as `<plugin>:<skill>` — the skill's own directory name, which is what the loader reads
+at any depth (measured, #286) and what it read when the library was nested too — passing context as
+arguments:
 
 ```
 /tadeumendonca-skills:cloud-infrastructure staging

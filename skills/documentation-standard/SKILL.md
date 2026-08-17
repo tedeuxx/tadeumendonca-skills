@@ -11,7 +11,7 @@ Write or review docs for any `<project>` repo following the platform's documenta
 where a doc lives. Part II is *the governed artifact* — an Architecture Decision Record: MADR format,
 the significance gate that decides whether one is owed at all, the methodology/product library split,
 numbering and status, and the current-codebase rule that replaced supersede-never-delete (#281,
-[ADR-0020](../../../docs/adr/0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)). They
+[ADR-0020](../../docs/adr/0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)). They
 were two separate skills until #260, on the owner's own call, made **after** he was shown that the split
 was legitimate rather than accidental — general
 docs describe a *system*, an ADR records *one decision that was made about it*, and neither collapses
@@ -209,13 +209,13 @@ fact** — the old rule's own text argued from preservation value and never stat
 worth pointing at: it is written in the owner's published voice on the platform's own architecture page,
 in its `status` / `superseded-by` bullet, which says in as many words that the record of a retired
 architecture *reads as an instruction* and is the cheapest way to make an agent rebuild something that
-was cut on purpose. [ADR-0020](../../../docs/adr/0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)
+was cut on purpose. [ADR-0020](../../docs/adr/0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)
 quotes that clause verbatim. The old rule says *mark it*; this one says the marker is not enough,
 because the file is still there to be inferred from, and an agent loading a decision library reads
 **bodies**, not status lines. *Accepted cost:* the reasoning of a reversal is no longer preserved at length. Disposition 2 is
 what keeps the part of it that was load-bearing; disposition 1's row is what keeps the absence
 deliberate. **The decision and its rejected options are recorded in
-[ADR-0020](../../../docs/adr/0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)** — this
+[ADR-0020](../../docs/adr/0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)** — this
 section is the operative wording, that record is the argument, including the correction that the
 significance arm which fires is *sets a cross-cutting pattern* and not *alters a previously-recorded
 decision* (supersede-never-delete was never itself recorded as an ADR).

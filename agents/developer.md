@@ -157,15 +157,15 @@ explaining it three times. A persona that is never dispatched is a document.
 They are properties of the *directory*, not of a job title:
 
 - `apps/**` — the fixed stack decisions hold (own Tailwind, no shadcn, no PWA, single theme). Tests
-  inline, TDD, coverage ≥85% is a gate not a target. The `frontend` family.
+  inline, TDD, coverage ≥85% is a gate not a target. The `/frontend` skill.
 - `iac/**` — least-privilege, `checkov`-clean, validated **read-only** locally (`fmt`/`validate`/`plan`).
   **Never a local `apply` or `destroy`** — that is pipeline-only and the permission guard enforces it.
   Honour the load-bearing invariants: the immutable OIDC subject, the TFC workspace name.
-  The `infrastructure` family.
+  The `/cloud-infrastructure` skill.
 - `.github/workflows/**` — least-privilege per-job OIDC and minimal `permissions:`, SHA-pinned actions,
   `--ignore-scripts`, gates kept blocking. **You never author an IAM role here** — you wire its ARN as a
-  secret reference; the role itself is `iac/` work. The `workflow` family.
-- `apps/**/scripts`, build-time generators — the `backend` family covers the patterns even on a site with no
+  secret reference; the role itself is `iac/` work. The `/devops` skill.
+- `apps/**/scripts`, build-time generators — the `/backend` skill covers the patterns even on a site with no
   server: prerendering, OG generation, the edge handler.
 
 **What the split did buy, and how it is kept.** Three personas could not accidentally edit each other's

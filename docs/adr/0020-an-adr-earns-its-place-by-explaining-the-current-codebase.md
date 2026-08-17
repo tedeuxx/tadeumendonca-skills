@@ -8,7 +8,7 @@
 - **Supersedes / superseded by:** — . It supersedes no record. The rule it replaces,
   *supersede-never-delete*, was **never recorded as an ADR** in this library: it had no
   `Decision outcome` anywhere in `docs/adr/`, living instead in
-  `skills/workflow/documentation-standard/SKILL.md` (Part II) and in the index prose of this library's
+  `skills/documentation-standard/SKILL.md` (Part II) and in the index prose of this library's
   own `README.md`, and being **cited as settled** by live records. **That set is stated by its
   criterion, never by a count** — the two readings give different sets and both are needed:
   - **Citing `supersede-never-delete` by name: two.** ADR-0019's rejected option 3, *"this repo's own
@@ -126,7 +126,7 @@ correction is carried here rather than quietly fixed.
 ## Decision outcome
 
 Chosen: **option 1**, in the wording that now lives in
-`skills/workflow/documentation-standard/SKILL.md` under the heading *"A record earns its place by
+`skills/documentation-standard/SKILL.md` under the heading *"A record earns its place by
 explaining the CURRENT codebase"* — the skill is the operative text; this record is the decision and its
 argument.
 
@@ -216,7 +216,7 @@ deletion. So this record changes what happens next; it deletes nothing today.
     it happened:** it is the first instance *inside* the convention written to stop it. The heading was
     quoted verbatim, as the rule asks — and it was the wrong heading. **Quoting a heading pins a region
     only if it is the region the cited content sits in**, not the nearest one that describes it; the
-    rule's operative wording in `skills/workflow/documentation-standard/SKILL.md` now says so.
+    rule's operative wording in `skills/documentation-standard/SKILL.md` now says so.
 - **The disposition-1 row has no defined home in *this* library yet.** The skill mandates a row in the
   library's `README.md` History table; `-io`'s library has such a table and this one has only an index
   table. Left open deliberately — the deletion set here is empty, so the first executor is in `-io`, and
@@ -227,7 +227,7 @@ deletion. So this record changes what happens next; it deletes nothing today.
 - [#281](https://github.com/tedeuxx/tadeumendonca-skills/issues/281) — the Issue this record executes;
   [#282](https://github.com/tedeuxx/tadeumendonca-skills/pull/282) is the implementing MR, which carries
   the standard's text and this record together.
-- `skills/workflow/documentation-standard/SKILL.md` — Part II; the operative wording, under the heading
+- `skills/documentation-standard/SKILL.md` — Part II; the operative wording, under the heading
   *"A record earns its place by explaining the CURRENT codebase"*.
 - [ADR-0001](./0001-adopt-madr-adrs.md) — adopts the practice this record amends the disposition half of;
   ADR-0001 records MADR, the two libraries and the light significance gate, and is **not** where
