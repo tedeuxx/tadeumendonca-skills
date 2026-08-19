@@ -74,8 +74,16 @@ on:
       # union is built from the variables rather than from memory. It goes red here now rather than
       # waiting for a reviewer, which is what all five previous occurrences depended on.
       - ".claude/**"
-      # `.github/**` is the SIXTH occurrence, and the first one the gate-coverage check produced
-      # BEFORE the miss could ship rather than after someone measured it. The citation-resolution
+      # `.github/**` is the EIGHTH occurrence, and the first one the gate-coverage check produced
+      # BEFORE the miss could ship rather than after someone measured it. It was numbered SIXTH when
+      # written, which collided with the `skills/**` entry above: the sequence is repo-wide, not
+      # per-file, and the sixth is the one recorded in `hooks-test.yml`'s own header — `commands/**`
+      # missing from that filter, caught by `quality-assurance` on PR #178 and fixed at `1ceb507`,
+      # whose message states it outright (*"a mistake this repo has now made SIX times; docs-test.yml's
+      # header enumerates the first five, and the sixth is recorded below in its own words"*). The
+      # seventh is `skills/**` above, added hours later the same day at `f1ca0ed` (#164). So the
+      # ordinals in this file read FOURTH, FIFTH, SEVENTH, EIGHTH with the sixth living in the other
+      # workflow — a gap on the page, not a gap in the count. The citation-resolution
       # assertions added on #283 scan every tracked `.md`/`.sh`/`.yml`/`.json`/`.py`, and decision-record
       # citations are measured live in four `.github/ISSUE_TEMPLATE/*.yml` files and in
       # `.github/workflows/claude-code-review.yml`. Those files were in the scan set and matched no glob

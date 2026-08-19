@@ -2178,8 +2178,18 @@ fi
 # EVERY CITATION OF A DECISION RECORD RESOLVES (#283, slice 1).
 #
 # WHY THIS EXISTS, AND WHY IT LANDS BEFORE THE CHANGE IT MUST CATCH. This repo's decision library is
-# cited ~795 times — measured at 1e9baf3: 202 occurrences in path form and 593 in the prose form
-# `ADR-` + four digits. Nothing anywhere resolved ONE of them. `grep -i link` over this file returned
+# cited ~800 times. Measured at `aa7a7d4` — this slice's base commit, so the figures are re-derivable
+# from any checkout without one — over the same extension set the scan set below uses:
+#
+#   git grep -Ioh -E '0[0-9]{3}-[a-z0-9-]+\.md' aa7a7d4 \
+#       -- '*.md' '*.sh' '*.yml' '*.yaml' '*.json' '*.py' | wc -l   ->  203   (path form)
+#   git grep -Ioh -E 'ADR-0[0-9]{3}'            aa7a7d4 \
+#       -- '*.md' '*.sh' '*.yml' '*.yaml' '*.json' '*.py' | wc -l   ->  599   (prose form)
+#
+# An earlier draft of this header attributed 202/593 to `1e9baf3`, which is not a valid object name in
+# this repository — a provenance a reader cannot check out, in the block whose whole thesis is that an
+# unresolvable reference must fail loudly. Caught by `quality-assurance` on #289 (B1). Both figures were
+# re-derived above rather than re-attributed. Nothing anywhere resolved ONE of them. `grep -i link` over this file returned
 # zero hits before this block; the nearest instrument, `skills-resolve.test.sh`, resolves skill
 # identifiers and says nothing about `docs/`.
 #
@@ -2192,7 +2202,8 @@ fi
 #
 # THE GATE IS DELIBERATELY WIDER THAN `docs/adr/`. It resolves EVERY relative markdown link in every
 # tracked `.md`, not only the ones naming a record. Measured before it was written: 198 such links, 0
-# broken — so the widening costs nothing today and covers the whole class instead of the instance. A
+# broken — 199 as this ships, the extra one being the destination this slice re-wrapped so that it is a
+# link at all — so the widening costs nothing today and covers the whole class instead of the instance. A
 # gate scoped to the one thing that is about to break is a gate that has to be re-scoped every time
 # something else does.
 #
@@ -2205,10 +2216,15 @@ fi
 #     scheduled cross-repo check; neither is built, and neither is in this slice. Read the green as
 #     "no citation INSIDE this repository dangles" and nothing wider.
 #     THE SHARP EDGE, MEASURED RATHER THAN IMAGINED: a prose citation of the OTHER library whose number
-#     collides with a live record here passes green while naming the wrong library. One exists today —
-#     the record on the merge precondition cites that repo's third record, and this library also has a
-#     third record. The number-based exemption below cannot see it, because the number is not foreign.
-#     Nothing here will ever catch that class; only a qualifier in the prose would.
+#     collides with a live record here is resolved LOCALLY and passes green, without the check ever
+#     establishing that the two are the same record. One such citation exists today — the record on the
+#     merge precondition cites that repo's third record, and this library also has a third record. Be
+#     precise about what is wrong with it, because the first draft of this note was not: that citation
+#     is CORRECT — its prose says "the consuming repo's" and its destination is an absolute URL into
+#     that repo — so what passes vacuously is the CHECK, not the citation. The exposure is the next one,
+#     written without either disambiguator. The number-based exemption below cannot see either case,
+#     because the number is not foreign. Nothing here will ever catch that class; only a qualifier in
+#     the prose would.
 #   ANCHORS ARE NOT RESOLVED. `](./README.md#some-heading)` is checked as far as `README.md`; whether
 #     that heading exists is not checked. Heading text is prose and drifts constantly, and a check that
 #     is wrong more often than it is right is one the loop learns to silence.
@@ -2244,7 +2260,7 @@ done <<< "$CITATION_MD_FILES"
 
 if [ "$links_checked" -eq 0 ]; then
   bad "citation resolution — not ONE relative markdown link was found across the tracked *.md set, and
-      there were 198 when this was written. Either every relative link left the repo — in which case
+      there were 199 when this was written. Either every relative link left the repo — in which case
       delete this block in the same commit — or the extraction broke and this assertion is vacuous."
 elif [ -z "$link_problems" ]; then
   ok "citation resolution — all $links_checked relative markdown links resolve from their citing file's directory"
@@ -2263,33 +2279,64 @@ fi
 # lines would have made that case RESOLVE and go green — the extractor would repair a link the renderer
 # does not, and the gate would certify a citation that is broken on the published surface.
 #
-# ONE PRE-EXISTING OCCURRENCE IS DECLARED BELOW rather than fixed here. It was found BY this gate, in
-# the slice that built it, and its fix is an edit to a record body — reserved for #283's reconciliation
-# slice, which is the only slice authorised to touch `docs/adr/`. The declaration is self-cleaning: a
-# file listed here that no longer wraps a destination, or that wraps a second one, fails.
-WRAPPED_DEST_EXPECTED="docs/adr/0002-agentic-dev-loop-architecture.md"
+# THE EXPECTED COUNT IS ZERO EVERYWHERE, AND THERE IS NO EXEMPTION LIST. One pre-existing occurrence
+# existed when this block was written — `docs/adr/0002-…md:1295`, found BY this gate in the slice that
+# built it — and the first draft DECLARED it in a `WRAPPED_DEST_EXPECTED` list rather than repairing it,
+# on the reasoning that a record body belongs to #283's reconciliation slice.
+#
+# THE DECLARATION IS GONE BECAUSE IT COULD NOT SURVIVE THE OPERATION IT WAS WAITING FOR. It named a
+# file, and `CITATION_MD_FILES` is built from `git ls-files`, so renaming or deleting that file removes
+# it from the scan set entirely and `[ -r "$file" ]` skips the stale entry in silence: the exemption
+# stops being verified and this check goes GREEN on a declaration that no longer refers to anything.
+# Measured by `quality-assurance` on #289 by renaming exactly that record — check 2 stayed green while
+# checks 1 and 3 reddened. Folding `0002` is precisely what the reconciliation slice does, so the
+# declaration's one self-cleaning arm was blind in the only direction it was ever going to be used.
+# The wrap is therefore repaired in the same slice (re-wrapping a paragraph changes no decision, no word
+# and no meaning), the list is deleted rather than relocated, and the expected count is a constant zero
+# with nothing to go stale.
+#
+# WHAT THE DECLARATION WAS ALSO DOING, AND WHAT REPLACES IT. An expected-count-of-one entry was this
+# check's only proof that the DETECTOR works: a repo with zero wrapped destinations and a broken
+# extractor look identical from here, so "expected 0 everywhere" is a green that can prove nothing.
+# Deleting the entry without replacing that property would have traded a stale-exemption hole for a
+# vacuity hole. So the detector is run first against a SYNTHETIC wrapped destination that is part of
+# this file rather than part of the library — it cannot go stale when a record moves, and it fails
+# loudly the moment the pattern stops matching the thing it is named for.
+# The synthetic names NO real record, deliberately: a live number written here would register as a
+# citation to check 4 below and couple this probe to a record slice 3 may move.
+wrap_detector=$(printf '%s\n' 'a citation [some record](./a-destination-split-' \
+                              'across-a-newline.md) that renders as literal text' \
+                | grep -cE '\]\([^)]*$' || true)
 
 wrap_problems=""
+wrap_files_checked=0
 while IFS= read -r file; do
   [ -z "$file" ] && continue
   [ -r "$file" ] || continue
   rel="${file#"$ROOT"/}"
+  wrap_files_checked=$((wrap_files_checked + 1))
   wraps=$(grep -cE '\]\([^)]*$' "$file" 2>/dev/null || true)
-  expected=0
-  case " $WRAPPED_DEST_EXPECTED " in *" $rel "*) expected=1 ;; esac
-  [ "$wraps" = "$expected" ] && continue
+  [ "$wraps" = "0" ] && continue
   wrap_problems="$wrap_problems
-    $rel: $wraps line-wrapped link destination(s), expected $expected"
+    $rel: $wraps line-wrapped link destination(s), expected 0"
 done <<< "$CITATION_MD_FILES"
 
-if [ -z "$wrap_problems" ]; then
-  ok "citation resolution — no markdown link destination wraps a line, beyond the one declared pre-existing occurrence"
+if [ "$wrap_detector" != "1" ]; then
+  bad "citation resolution — the line-wrap DETECTOR does not detect: a synthetic wrapped destination
+      matched $wrap_detector times, expected exactly 1. Every result from this check is vacuous until
+      that is true, including a green one. Fix the pattern, do not delete this guard."
+elif [ "$wrap_files_checked" -eq 0 ]; then
+  bad "citation resolution — the wrap check opened NOT ONE tracked *.md file, so its green means only
+      that it scanned nothing. Either the repository has no markdown left — in which case delete this
+      block in the same commit — or CITATION_MD_FILES stopped being populated."
+elif [ -z "$wrap_problems" ]; then
+  ok "citation resolution — no markdown link destination wraps a line, across $wrap_files_checked tracked *.md files"
 else
   bad "citation resolution — a markdown link destination is split across a newline:$wrap_problems
       A destination containing a line break is NOT parsed as a link. It renders as literal text with the
       path visible, so the citation is broken on the published surface while resolving fine to any
-      line-joining tool. Re-wrap the paragraph so the destination sits on one line. If you FIXED the
-      declared occurrence, remove it from WRAPPED_DEST_EXPECTED in the same commit."
+      line-joining tool. Re-wrap the paragraph so the destination sits on one line. There is no
+      exemption list to add it to, deliberately — see the note above this check."
 fi
 
 # ── 3 · every repo-root-relative record path resolves ────────────────────────────────────────────
@@ -2321,7 +2368,7 @@ done <<< "$CITATION_FILES"
 
 if [ "$paths_checked" -eq 0 ]; then
   bad "citation resolution — not one repo-root-relative record path was found across the tracked scan
-      set, and there were 14 when this was written. Either the form fell out of use — delete this block
+      set, and there were 12 when this was written. Either the form fell out of use — delete this block
       in the same commit — or the extraction broke."
 elif [ -z "$path_problems" ]; then
   ok "citation resolution — all $paths_checked repo-root-relative record paths resolve"
@@ -2349,9 +2396,27 @@ fi
 # re-wrap, while the number is the thing that is actually foreign. Declaring them here is what turns a
 # cross-repo citation into a deliberate, reviewable act instead of an accident that reads as local.
 #
-# THE DECLARATION IS SELF-CLEANING. A number declared foreign that later EXISTS in this library is a
-# stale exemption hiding a real check, so it fails. That is the arm that keeps this list from becoming
-# the quiet allowlist every exemption list eventually becomes.
+# THE DECLARATION IS SELF-CLEANING IN TWO DIRECTIONS, NOT ONE.
+#   * A number declared foreign that later EXISTS in this library is a stale exemption hiding a real
+#     check, so it fails. That is the arm that keeps this list from becoming the quiet allowlist every
+#     exemption list eventually becomes.
+#   * A number declared foreign that NOTHING in this repo cites any more is an exemption with no
+#     subject: it exempts nothing, nobody will ever notice it, and the next reader takes it as evidence
+#     that a cross-repo citation exists when it does not. It fails too. This is the direction
+#     `WRAPPED_DEST_EXPECTED` did not have and could not have (a filename leaves the scan set when the
+#     file moves; a NUMBER cannot), and it is the reason this exemption is by number and that one was
+#     deleted outright rather than repaired. Added on #289 from `quality-assurance`'s advisory A4.
+#
+# WHAT NEITHER ARM CAN SEE, said plainly rather than left to be discovered: the record could be deleted
+# in the OTHER repository, and a local typo that happens to land on a declared number is exempted
+# exactly like a real cross-repo citation. Both need a working tree this suite does not have, or a
+# qualifier in the prose that nothing writes today.
+#
+# AND THE COMMENTS IN THIS FILE MUST NOT SPELL THE DECLARED NUMBERS OUT in the prose form, which is why
+# the sentence above says "a declared number" rather than naming one. A `ADR-nnnn` token written here
+# is a citation like any other to the loop below: it would register as a sighting and keep an exemption
+# alive after its last real citing site was removed — this block defeating its own second arm from
+# inside its own documentation.
 FOREIGN_ADR_NUMBERS="0023 0043"
 
 foreign_problems=""
@@ -2362,6 +2427,7 @@ for num in $FOREIGN_ADR_NUMBERS; do
     $num is declared FOREIGN but ${1#"$ROOT"/} exists here now — the exemption is hiding a real check"
 done
 
+foreign_seen=""
 prose_problems=""
 prose_checked=0
 while IFS= read -r file; do
@@ -2370,7 +2436,12 @@ while IFS= read -r file; do
   while IFS= read -r tok; do
     [ -z "$tok" ] && continue
     num="${tok##*-}"
-    case " $FOREIGN_ADR_NUMBERS " in *" $num "*) continue ;; esac
+    case " $FOREIGN_ADR_NUMBERS " in
+      *" $num "*)
+        case " $foreign_seen " in *" $num "*) : ;; *) foreign_seen="$foreign_seen $num" ;; esac
+        continue
+        ;;
+    esac
     prose_checked=$((prose_checked + 1))
     set -- "$CITATION_ADR_DIR/$num"-*.md
     [ -f "$1" ] && continue
@@ -2379,13 +2450,25 @@ while IFS= read -r file; do
   done <<< "$(grep -ohE 'ADR-0[0-9]{3}' "$file" 2>/dev/null | sort -u || true)"
 done <<< "$CITATION_FILES"
 
+for num in $FOREIGN_ADR_NUMBERS; do
+  case " $foreign_seen " in
+    *" $num "*) continue ;;
+  esac
+  foreign_problems="$foreign_problems
+    $num is declared FOREIGN and NOTHING in this repo cites it any more — the exemption has no subject"
+done
+
 if [ "$prose_checked" -eq 0 ]; then
   bad "citation resolution — not one prose 'ADR-nnnn' citation was found across the tracked scan set,
-      and there were 593 occurrences over 20 distinct numbers when this was written. The extraction
+      and there were 599 occurrences over 22 distinct numbers when this was written — 20 checked here
+      and 2 declared foreign below, measured with the command in this block's header. The extraction
       broke and every check in this block is vacuous."
 elif [ -n "$foreign_problems" ]; then
   bad "citation resolution — the foreign-number exemption is stale:$foreign_problems
-      Remove the number from FOREIGN_ADR_NUMBERS so its citations are checked against this library."
+      An exemption is only honest while it is still earned. If the number now names a record HERE,
+      remove it from FOREIGN_ADR_NUMBERS so its citations are checked against this library; if nothing
+      cites it any more, remove it because it exempts nothing and reads as evidence of a cross-repo
+      citation that no longer exists."
 elif [ -z "$prose_problems" ]; then
   ok "citation resolution — every prose ADR citation names a live record ($prose_checked distinct file/number pairs; $(printf '%s\n' $FOREIGN_ADR_NUMBERS | wc -l | tr -d ' ') numbers declared foreign and NOT checked)"
 else
