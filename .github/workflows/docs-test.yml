@@ -79,8 +79,11 @@ on:
       # written, which collided with the `skills/**` entry above: the sequence is repo-wide, not
       # per-file, and the sixth is the one recorded in `hooks-test.yml`'s own header — `commands/**`
       # missing from that filter, caught by `quality-assurance` on PR #178 and fixed at `1ceb507`,
-      # whose message states it outright (*"a mistake this repo has now made SIX times; docs-test.yml's
-      # header enumerates the first five, and the sixth is recorded below in its own words"*). The
+      # whose `hooks-test.yml` HEADER EDIT states it outright (*"a mistake this repo has now made SIX
+      # times; `docs-test.yml`'s header enumerates the first five, and the sixth is recorded below in
+      # its own words"*) — that commit's MESSAGE does not carry the sentence, and an earlier form of
+      # this comment attributed it there (`quality-assurance` on #289, B5: `git log -1 --format=%B
+      # 1ceb507 | grep -c "SIX times"` -> 0; the same grep over `hooks-test.yml` -> 1). The
       # seventh is `skills/**` above, added hours later the same day at `f1ca0ed` (#164). So the
       # ordinals in this file read FOURTH, FIFTH, SEVENTH, EIGHTH with the sixth living in the other
       # workflow — a gap on the page, not a gap in the count. The citation-resolution

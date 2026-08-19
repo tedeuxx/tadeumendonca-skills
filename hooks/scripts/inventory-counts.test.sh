@@ -2304,9 +2304,33 @@ fi
 # loudly the moment the pattern stops matching the thing it is named for.
 # The synthetic names NO real record, deliberately: a live number written here would register as a
 # citation to check 4 below and couple this probe to a record slice 3 may move.
+#
+# AND THE PROBE MUST BE THE SAME EXPRESSION AS THE SCAN, NOT A SECOND COPY OF IT. The first form of
+# this guard spelled the pattern out twice — once here, once in the loop below — so the probe proved
+# only that ITS OWN copy matched. Measured by `quality-assurance` on #289 (B4): mutating the SCANNING
+# literal alone to a non-matching string left the suite fully green (60 passed, 0 failed) with check 2
+# asserting nothing, while mutating the probe's literal reddened. That is precisely the vacuity hole the
+# deleted `WRAPPED_DEST_EXPECTED` entry used to close — reintroduced by the change that closed the
+# stale-exemption one. A single variable used in both places is what makes "the detector works" a
+# statement about the detector that actually runs; keep it that way, and never inline the pattern back
+# into either site.
+#
+# THE SHARED THING IS THE FUNCTION, NOT ONLY THE PATTERN, AND THE DIFFERENCE IS MEASURABLE. Hoisting
+# the regex alone closes the drift between two copies of the PATTERN and leaves the drift between two
+# copies of the INVOCATION: with a bare `grep -cE "$wrap_re"` at each site, replacing the scan's
+# reference with any non-matching literal was measured going fully green again (60 passed, 0 failed)
+# while the probe stayed satisfied. Routing both through one function removes that too, so the probe
+# exercises the exact expression the 48-file scan runs, argument for argument.
+# WHAT REMAINS, NAMED RATHER THAN IMPLIED: deleting the call at the scan site — replacing
+# `count_wrapped_destinations` with anything that prints `0` — is still green, and no guard inside this
+# file can see it. That is assertion DELETION, visible in a diff, not the silent drift between two
+# copies that this block exists to prevent; the distinction is the honest scope of the claim above.
+wrap_re='\]\([^)]*$'
+count_wrapped_destinations() { grep -cE "$wrap_re" || true; }
+
 wrap_detector=$(printf '%s\n' 'a citation [some record](./a-destination-split-' \
                               'across-a-newline.md) that renders as literal text' \
-                | grep -cE '\]\([^)]*$' || true)
+                | count_wrapped_destinations)
 
 wrap_problems=""
 wrap_files_checked=0
@@ -2315,7 +2339,7 @@ while IFS= read -r file; do
   [ -r "$file" ] || continue
   rel="${file#"$ROOT"/}"
   wrap_files_checked=$((wrap_files_checked + 1))
-  wraps=$(grep -cE '\]\([^)]*$' "$file" 2>/dev/null || true)
+  wraps=$(count_wrapped_destinations < "$file")
   [ "$wraps" = "0" ] && continue
   wrap_problems="$wrap_problems
     $rel: $wraps line-wrapped link destination(s), expected 0"
