@@ -317,13 +317,19 @@ An assertion did not fail, it **disappeared**, and because the totals stayed pla
 have surfaced it. Every arm in that block and in the numbering block now emits its own verdict, which
 is why the same mutation reports one more failure than it did.
 
-**And the same defect was found twice more, in the round that fixed it, which is why the passing total
-moved again — `57 → 58 → 60`.** The sweep that cleared the rest of the file re-read its own reasoning
-instead of mutating it, and re-reading is not evidence: the flag-class chain and the shallow-clone guard
-were both suppressing computable verdicts, and both were found by planting a defect and watching for the
-line that never came. **The number to carry away is not 60. It is that a sweep's conclusion is worth
-exactly as much as the mutations behind it**, and that the arms it clears must be re-cleared the same
-way each time the file grows.
+**And the same defect was found three more times, in the round that fixed the first two, which is why
+the passing total moved again — `57 → 58 → 60`.** The sweep that cleared the rest of the file re-read its
+own reasoning instead of mutating it, and re-reading is not evidence: the flag-class chain, the
+skill-descriptions chain and the roster block's shallow-clone guard were all suppressing computable
+verdicts, and all three were found by planting a defect and watching for the line that never came.
+**The two moves have different causes, and only two of the three fixes are in the second one.**
+`57 → 58` is the earlier round splitting the prose-citation arm and the numbering pair apart;
+`58 → 60` is the flag-class and skill-descriptions splits, one verdict each. The roster fix added
+**none** — measured on a clean tree, that block emits four verdicts before it and four after — and that
+makes it the sharper case rather than the weaker one: the verdict it recovered disappears only on a
+shallow clone, so no total could ever have moved to announce it. **The number to carry away is not 60.
+It is that a sweep's conclusion is worth exactly as much as the mutations behind it**, and that the arms
+it clears must be re-cleared the same way each time the file grows.
 
 **What is still discipline and not enforcement, stated exactly.** The row's **existence** and its
 **destination** are gated; the row's **honesty** is not, and the **fold** is not. Nothing reads whether

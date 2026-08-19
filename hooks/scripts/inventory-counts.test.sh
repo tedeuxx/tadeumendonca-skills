@@ -37,8 +37,13 @@
 # both vacuous, so both must redden.
 #
 # This rule is stated HERE, once, rather than only beside the blocks that were repaired. It was written
-# into two blocks first (#283 slice 2) and a third chain 1,050 lines away carried the same defect
-# untouched — the sweep that cleared it had re-read its own justification instead of mutating it.
+# into two blocks first (#283 slice 2), and THREE more chains elsewhere in this file carried the same
+# defect untouched — the sweep that cleared them had re-read its own justification instead of mutating
+# them. NO DISTANCE IS PUBLISHED, and the withdrawal is the finding: the earlier form said "1,050 lines
+# away" without saying away from WHAT. The only reading that resolves gives 1,066 — the rule text at
+# 5650793:2495 to the flag-class chain at 5650793:1429 — and both line numbers move on the next edit,
+# so the figure could not stay true and could not be checked without restating its own endpoints. What
+# the sentence needs is that none of the three sat anywhere near the blocks the sweep opened.
 # THE TEST OF A CLEARED CHAIN IS A MUTATION, NOT A REASON: plant a defect only the lower arm can catch,
 # run this suite, and check that the lower arm emits a line. A reason that survives re-reading is not
 # evidence.
@@ -1089,8 +1094,8 @@ roster_retired_alt=$(printf '%s\n' "$roster_retired" | grep -v '^$' | paste -sd'
 # which only ONE — assertion 2, the stale-enumeration scan — reads the retired set at all. Assertions 1
 # and 1b derive from `agents/*.md` and are fully computable on a shallow clone, and they DISAPPEARED
 # with it: measured, a `git clone --depth 1` of this branch with `\`writer\`` unbackticked throughout
-# `agents/developer.md` reports `60 passed, 1 failed` — byte-identical to the clean shallow run — while
-# the same defect on a full clone is caught (`63 passed, 1 failed`, assertion 1b red). A real defect in
+# `agents/developer.md` reports `59 passed, 1 failed` — byte-identical to the clean shallow run — while
+# the same defect on a full clone is caught (`62 passed, 1 failed`, assertion 1b red). A real defect in
 # a live brief, invisible, because an unrelated guard fired above it. See THE CHAINING RULE in the
 # header: a shallow clone makes the RETIRED-set scan uncomputable and nothing else here.
 if [ "$roster_n" -lt 2 ]; then
@@ -1610,9 +1615,9 @@ else
   #
   # It was `elif` above the whole block until #283 slice 2's re-sweep, and that lost real findings:
   # measured, holding `skills/license/` out of the tree AND deleting the `description:` line from
-  # `skills/frontend/SKILL.md` reports ONLY the shortfall (`54 passed, 7 failed`) — the L1 defect, in a
+  # `skills/frontend/SKILL.md` reports ONLY the shortfall (`53 passed, 7 failed`) — the L1 defect, in a
   # file that IS in the truncated set and IS parseable, emits nothing. The same defect alone on a full
-  # tree is caught (`63 passed, 1 failed`, L1 red).
+  # tree is caught (`62 passed, 1 failed`, L1 red).
   #
   # BUT THE ORIGINAL CHAIN WAS NOT MERELY WRONG, AND THAT IS WHY THE FIX IS NOT A PLAIN SPLIT. L1/L2/L3
   # are UNIVERSALS over the scan set — `all $desc_count parse` — so a green printed over a truncated set
