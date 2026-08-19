@@ -186,8 +186,15 @@ deletion. So this record changes what happens next; it deletes nothing today.
 
   ```
   mv docs/adr/0002-agentic-dev-loop-architecture.md <elsewhere>
-  bash hooks/scripts/inventory-counts.test.sh        →  58 passed, 5 failed
+  bash hooks/scripts/inventory-counts.test.sh        →  60 passed, 5 failed
   ```
+
+  The **five reds** are what the claim turns on and they are unchanged: four citation arms (relative
+  link, repo-root path, stale foreign exemption, prose token) and the numbering arm. The **passing**
+  total moved from 58 to 60 in this same MR's second review round, which added two verdicts by
+  splitting two more suppressed arms apart; it is restated here rather than left at the figure the
+  round-1 fix measured, because a published number that silently drifts is the defect this record's
+  own amendment is about.
 
   **What survives the strike, and it is the half that still binds:** the row's **honesty** and the
   **fold** are still prose and still inherit zero enforcement. The gate reads that a row exists and
@@ -357,16 +364,68 @@ A multi-line `~~(.*?)~~` scan over every tracked `.md` and `.sh` was run against
 **missed the file's one genuine struck block entirely**. The cause is the residual this amendment
 already names one paragraph up, one level higher: that file *teaches* the strike convention, so it
 writes the marker as literal prose (`` (`~~…~~`) ``, and a bare `` `~~` `` inside a sentence about a
-regex), and an odd count of markers mis-pairs every span after it. A file that discusses the notation
-cannot be parsed for the notation, and no cheap published one-liner survives that. Verified by counting
-the markers per line rather than by inference: `grep -n -o '~~' skills/documentation-standard/SKILL.md`
-→ lines 76 and 255 carry two each, lines 258, 285 and 292 carry one each.
+regex), and an odd count of markers mis-pairs every span after it. Verified by counting the markers per
+line rather than by inference: `grep -n -o '~~' skills/documentation-standard/SKILL.md` → lines 76 and
+255 carry two each, lines 258, 285 and 292 carry one each.
 
-**This paragraph does the same thing to this record, and it is named rather than avoided.** Quoting the
-instrument requires writing the marker, so this file now carries an odd number of markers too. It
-changes nothing about how the record **renders** — every marker here sits inside a code span, so no
-strikethrough opens — and it changes nothing about any gate, since none of them parses spans. It
-changes only what a future naive scanner would compute over this file, which is the whole finding.
+**A stronger instrument was then built rather than argued about, and it HALF works — which is a narrower
+claim than this paragraph carried into review.** It said *no cheap published one-liner survives that*,
+and that was over-claimed. The three mis-pairing markers just enumerated — the two on line 255 and the
+one on 258 — are precisely the ones the sentence above quotes as sitting **inside backtick code spans**,
+so a scan that strips inline code spans and fenced blocks *before* pairing does fix that file: its
+remaining four markers (76 twice, 285, 292) pair correctly, and the scan reports no citation there at
+all, phantom or otherwise. It also finds **both** of the hand-verified sites named below.
+
+**Where it still fails is a shell script, and the reason is that markdown's rules do not apply there.**
+`hooks/scripts/inventory-counts.test.sh` writes the marker thirty times in prose comments quoting this
+repo's own struck records — `grep -o '~~' hooks/scripts/inventory-counts.test.sh | wc -l` → **30** — and
+a markdown parser has no licence to treat backticks in shell comments as code spans. The pairing there is
+unsound, and the scan emits phantom citations out of it. The same instrument also flags **this record**
+as suspect, for the reason the next paragraph measures.
+
+**So the impossibility claim is withdrawn, and what replaces it is narrower and worse-shaped.** The
+instrument that works on markdown is a ~50-line script, not a one-liner: it cannot be published inline
+beside a figure, which is what this repo's rule requires of a measured number, and no gate would run it,
+which is what this repo's rule requires before a measurement instrument is kept rather than discarded. It
+was therefore discarded, and every number in this section is one a published command reproduces.
+**The figure stays withdrawn not because no instrument exists, but because the instrument that exists
+cannot ship beside it** — a different reason than the one published in review, and the difference is
+worth more than the figure was.
+
+**This paragraph does the same thing to this record, and both halves of what it used to say about that
+were false.** It claimed this file carried an **odd** number of markers and that **every** marker here
+sits inside a code span. Measured at the head that published it: **sixteen** markers — even — and two of
+them were the accepted-cost bullet **this same MR struck four paragraphs up**, which is a real rendering
+strikethrough and not a code span. A false, checkable claim about markers, in the paragraph whose whole
+subject is a false, checkable claim about markers.
+
+**Re-derived here, with the command, and the command's own marker counted in the total it reports:**
+
+    grep -n -o '~~' docs/adr/0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md
+
+**Eighteen markers**, at lines 140 (two), 175, 179, 344 (two), 353 (two), 357 (two), 362 (two), 366
+(three), 368, 381 and 404. Two of the eighteen — 381 and 404 — are the commands this correction
+publishes, so the total is **partly a product of correcting it.** That is the self-reference this
+paragraph is about, measured now instead of asserted.
+
+**What each of the eighteen actually does, since the earlier claim got that wrong too.** Fifteen sit
+inside inline code spans and one (line 404) inside the indented code block above, so all sixteen render
+as literal text. **Exactly two are bare — lines 175 and 179** — the accepted-cost bullet struck earlier
+in this record, which is the file's one and only rendering strikethrough. *"Every marker here sits
+inside a code span"* was false the moment that bullet was struck, in the commit that wrote both.
+
+**What survives is the finding, and it survives intact.** A naive pairer still mis-parses this record.
+Taken in document order the first seven pairs land where they should — the accepted-cost strike at
+175/179 among them — and then the eighth pairs the **third marker on line 366 with the one on 368**, and
+the ninth pairs **381 with 404**, producing two spans that are not spans. Neither contains an `ADR-nnnn`
+token, so neither yields a phantom citation *here* — luck about this file's wording, not a property of
+the instrument. Nothing about how the record **renders** changes, and no gate parses spans; what changes
+is only what a future scanner would compute over this file, which was always the whole finding.
+
+**The line numbers above are the fragile part and are named as such.** They are correct at this commit
+and any edit above line 140 invalidates every one of them — which is precisely why this record's own
+citation convention is *quote the clause, not the line number*, and why the numbers here are published
+only because the subject genuinely is positional. Re-run the command; do not trust the list.
 
 **What is claimed, and it is hand-verified rather than measured:** the struck citations found by either
 instrument all name records that are **live**, so the question has never been forced. Two are certain

@@ -298,7 +298,7 @@ at head, on the tree in place:
 
 ```
 mv docs/adr/0002-agentic-dev-loop-architecture.md <elsewhere>
-bash hooks/scripts/inventory-counts.test.sh        →  58 passed, 5 failed
+bash hooks/scripts/inventory-counts.test.sh        →  60 passed, 5 failed
 ```
 
 Four of those five are the **citation** gate (#283 slice 1): the relative link and the repo-root path
@@ -315,7 +315,15 @@ the composition was not. The prose-citation arm reported **neither `PASS` nor `F
 stale-exemption arm in the same `if/elif` chain, so a red above it meant its verdict was never reached.
 An assertion did not fail, it **disappeared**, and because the totals stayed plausible no count could
 have surfaced it. Every arm in that block and in the numbering block now emits its own verdict, which
-is why the same mutation reports one more failure and one more pass than it did.
+is why the same mutation reports one more failure than it did.
+
+**And the same defect was found twice more, in the round that fixed it, which is why the passing total
+moved again — `57 → 58 → 60`.** The sweep that cleared the rest of the file re-read its own reasoning
+instead of mutating it, and re-reading is not evidence: the flag-class chain and the shallow-clone guard
+were both suppressing computable verdicts, and both were found by planting a defect and watching for the
+line that never came. **The number to carry away is not 60. It is that a sweep's conclusion is worth
+exactly as much as the mutations behind it**, and that the arms it clears must be re-cleared the same
+way each time the file grows.
 
 **What is still discipline and not enforcement, stated exactly.** The row's **existence** and its
 **destination** are gated; the row's **honesty** is not, and the **fold** is not. Nothing reads whether
