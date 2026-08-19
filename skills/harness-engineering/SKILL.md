@@ -21,9 +21,15 @@ machine, labels and inner loop work once a mode is chosen, not the mode itself.
 Most teams point an AI coding tool at an unchanged process and write code faster inside it. Agent Harness
 Engineering inverts that: **the loop itself — how a change travels from intent to live, and
 every gate and guard along the way — is the thing you engineer.** The code is the output of a
-well-built loop, not the point. Run with **Claude Code and Kiro** as the hands, its spine is
-**agent-led verification, human-residual**: the agent proves "done" mechanically; the human is left
-only the irreversible/architectural residual.
+well-built loop, not the point. Its spine is **agent-led verification, human-residual**: the agent
+proves "done" mechanically; the human is left only the irreversible/architectural residual.
+
+**The discipline is portable; this package is not the discipline.** Nothing about the design is
+specific to one tool — the owner runs the same kind of work with Claude Code in public and with Kiro
+internally, which is what lets him tell the model apart from the setup around it. But **this plugin is
+the Claude Code implementation of it, and ships no Kiro carrier** — no configuration, no directory, no
+gate. Read a reimplementation against another harness as work someone would have to do, not as
+something installed here.
 
 The honest claim it makes (and the one it does **not**): *a development loop that turns AI-native
 techniques into production-ready software* — **not** agents running in production at scale. The
