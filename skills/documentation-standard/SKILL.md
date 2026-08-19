@@ -157,15 +157,16 @@ projects — folding product decisions into it would leak one project's choices 
 
 - **Numbering:** zero-padded sequential **per library** (`0001`, `0002`, …). Filename `NNNN-kebab-title.md`.
 - **Status lifecycle:** `proposed → accepted → superseded` (or `rejected`). A design starts `proposed`; the human's ratification makes it `accepted`.
-- **Disposition of a reversed decision:** see the next section — the record's `status` field is the criterion, and the disposition is one of three.
+- **Disposition of a record that is leaving:** see the next section — one of **four**. For a *reversed* decision the record's `status` field is the criterion (dispositions 1–3); a decision that is still **in force** and merely relocating is disposition 4, absorption, where `status` says nothing because the record is still `accepted` right up to the deletion.
 
 ### A record earns its place by explaining the CURRENT codebase
 
 **The rule.** An ADR is kept because it explains the codebase that exists now. A whole-file record whose
 entire subject is a component that was switched off does not — and it does not merely fail to help, it
 actively harms, because a later reader (human, and above all an agent loading a decision library) infers
-architecture from it. The disposition of a reversed decision is one of three, and the record's **`status`
-field is the criterion — never its filename**:
+architecture from it. **A record leaves this library only as one of four dispositions, never as an
+absence.** For a *reversed* decision the choice among the first three is made on the record's **`status`
+field — never its filename**:
 
 1. **Delete the record; keep a History row.** *(Default, for a record whose whole subject is a component
    that no longer exists.)* `git rm` the file and leave one row in the library's `README.md` History
@@ -186,8 +187,69 @@ field is the criterion — never its filename**:
    the History row is then the only artifact, which is why it is mandatory and not a nicety.
 3. **Keep the file** where the record is not about a retired component at all: a **`proposed`** record
    (it explains an *intended* codebase, and its status already says so), and an **`accepted`** record
-   whose mechanism has no instances yet (a current convention, merely unexercised). Scope the rule to
-   **reversed** decisions, never to *unbuilt* or *unexercised* ones.
+   whose mechanism has no instances yet (a current convention, merely unexercised). Scope dispositions
+   1 and 2 to **reversed** decisions, never to *unbuilt* or *unexercised* ones.
+4. **Absorb the record into the document that governs what it decided; keep a History row naming the
+   destination.** *(For a record whose decision is **still in force** and is merely moving.)* This is
+   the disposition dispositions 1–3 do not cover, and the gap was real: they are keyed on a **reversal**,
+   so a live decision being relocated into a capability document matched none of them — `## What this
+   replaced` is the wrong heading for a decision nothing replaced, and a row reading "superseded by" is
+   simply false. See *"Absorption is a different act from reversal"* below for the preconditions, which
+   are **stricter** than disposition 1's, not looser.
+
+### Absorption is a different act from reversal
+
+**The reader's question is different, and that is what sets the preconditions.** A reversed record
+leaves a reader asking *"was this ever decided?"* — a question a one-line row answers completely, and
+the trail may end there. An absorbed record leaves a reader asking *"where is this decision now?"* —
+and that reader is still **bound** by it. A row that ends the trail is a correct disposition for a
+reversal and a **broken** one for an absorption.
+
+So both of disposition 1's compensations are tightened:
+
+- **The History row is mandatory and so is its destination.** Row form: the **bare four-digit number**,
+  one line naming what was decided, and a **relative markdown link to where the decision lives now**.
+  A row with no destination is not this disposition.
+- **There is no "nowhere to fold" case, so the fold is unconditional.** Under disposition 2 the fold is
+  mandatory only *wherever there is a fold target*, and disposition 1's row covers a reversal whose
+  replacement is a pivot rather than a record. Absorption has a target **by construction** — the
+  destination is the whole reason the record is moving. **No destination, no deletion.**
+- **What must arrive at the destination, and what may be dropped.** Arriving: the decision as it
+  currently binds, the **rejected options that are still live** (the paths a future reader must not
+  relitigate — half the argument, which is why this practice chose MADR over Nygard's leaner form), and
+  the consequences still being paid. Droppable, deliberately: superseded narrative, round-by-round
+  defect archaeology, and struck amendments that no longer bind anything. **The fold is lossy by
+  instruction.** Left unsaid, "absorb" reads as "append", and a capability document assembled by
+  concatenation is one no fresh context can afford to read — which defeats the reason the absorption
+  was worth doing.
+
+**Where the record "is not an ADR at all", the destination is the code, not another record.** The
+reasoning moves next to the thing it governs — a test, a config, the function it constrains — and the
+History row links there. The link is a path like any other, so the same row form and the same check
+apply; nothing special is needed for this bucket.
+
+**Why the row is written `0008` and never with an `ADR-` prefix.** The prose arm of the citation gate
+asserts that every `ADR-nnnn` token in a tracked file names a **live** record, and it does not except
+this table. Measured, by running the gate's own two regexes over both row forms: the bare
+`| 0008 | … |` matches **neither**; the same row written with the prefix matches the **prose** arm. The
+bare form is what lets the row name a dead record without the row itself reading as a live citation to
+the next agent that loads the library.
+
+**A consequence worth knowing before you write about this rule.** The gate cannot tell a *citation* from
+a *discussion of the citation form* — it greps the token, not the sentence around it. So a document
+teaching this rule cannot illustrate it with a concrete prefixed number: the moment the record in the
+example is absorbed, the teaching text goes red and the "fix" is to edit an example that was never
+wrong. Write the rule with the `nnnn` placeholder and keep concrete numbers to the **bare** form, which
+nothing scans. This paragraph is the reason the one above reads the way it does.
+
+**What the gate holds, and what it cannot.** `hooks/scripts/inventory-counts.test.sh` asserts that every
+number this library has issued is either a live record or a History row that names a destination — in
+both directions, and against a **declared ceiling** rather than the highest surviving file, because a
+deletion at the top of the sequence leaves no gap to find. That makes the absorption **visible and
+attributable**. It does **not** read the destination's content: a row pointing at a document that never
+received the decision passes exactly like one pointing at a document that did. **Whether the fold was
+lossless is a reviewer's judgement and there is no instrument for it** — do not let the green stand in
+for that read.
 
 **This rule is about whole records, not about sentences inside a live one.** Within an `accepted` record
 the convention is unchanged and **load-bearing**: **amend by appending, strike in place (`~~…~~`), never
@@ -220,16 +282,35 @@ section is the operative wording, that record is the argument, including the cor
 significance arm which fires is *sets a cross-cutting pattern* and not *alters a previously-recorded
 decision* (supersede-never-delete was never itself recorded as an ADR).
 
-**Nothing enforces the deletion rule** — unlike the strike convention above, which at least one
+~~**Nothing enforces the deletion rule** — unlike the strike convention above, which at least one
 assertion reads in part. Measured on this repo, on a full scratch copy of the tree including `.git`:
 `rm docs/adr/0002-agentic-dev-loop-architecture.md` — the library's largest record, cited by name from
 several others — then `bash hooks/scripts/inventory-counts.test.sh` → **`69 passed, 0 failed`**,
-identical to the control run on the unmutated copy. (The `.git` directory has to travel with the copy:
-without it two assertions fail for an unrelated reason — a shallow-history guard — which is a different
-red, not this one.) No hook, workflow or settings file asserts anything about the ADR library's shape,
-so the largest record in it can vanish with every gate green. This rule is a **discipline, not an
-enforcement** — including the History row and the fold, which are prose too and inherit the same zero
-enforcement. They land in the same MR as the deletion, where a reviewer can still see both halves.
+identical to the control run on the unmutated copy. No hook, workflow or settings file asserts anything
+about the ADR library's shape, so the largest record in it can vanish with every gate green. This rule
+is a **discipline, not an enforcement** — including the History row and the fold, which are prose too
+and inherit the same zero enforcement.~~
+
+**Struck (#283).** It was true when written and is not true now, and the enforcement arrived in two
+slices for a reason worth keeping: the deletion rule went unenforced only while **the deletion set was
+empty**, and #283 takes it from zero to roughly fourteen in one reconciliation. The same mutation, run
+at head, on the tree in place:
+
+```
+mv docs/adr/0002-agentic-dev-loop-architecture.md <elsewhere>
+bash hooks/scripts/inventory-counts.test.sh        →  57 passed, 4 failed
+```
+
+Three of those four are the **citation** gate (#283 slice 1) — the relative link, the record path and
+the prose `ADR-nnnn` forms each stop resolving. The fourth is the **record-numbering** gate (#283
+slice 2), which is the one that does not depend on anybody citing the record: it keys on the number, so
+it catches the deletion of a record nothing cites at all — the case the citation gate is blind to by
+construction, and the case an absorbed record is most likely to be.
+
+**What is still discipline and not enforcement, stated exactly.** The row's **existence** and its
+**destination** are gated; the row's **honesty** is not, and the **fold** is not. Nothing reads whether
+the destination document actually received the decision. Those halves land in the same MR as the
+deletion, where a reviewer can still see both — which is where they stay.
 
 **Where a "this is not live" disclaimer belongs.** In the artifact's **body**, above the fold — not in a
 skill's `description:` frontmatter, which is gated as a *trigger* (length, single line, `Use when`, no
@@ -278,6 +359,7 @@ not against its criterion is an anecdote about the members, shaped like a fact a
 - [ ] Committed **in the same MR** as the change it justifies (no decision drift — the docs move with the code).
 - [ ] Every citation of another record quotes the **clause or heading**, never a line number.
 - [ ] If the MR **deletes** a reversed record: the History row is written and the `## What this replaced` fold has landed in the superseding record, in this same MR — both are preconditions, not follow-ups.
+- [ ] If the MR **absorbs** a record whose decision is still in force: the destination carries the decision, its still-live rejected options and its remaining consequences; the History row is written with the **bare** number and a relative link to that destination; every inbound citation moved in this same MR. No destination, no deletion.
 
 ### Pros & cons (of the ADR practice)
 

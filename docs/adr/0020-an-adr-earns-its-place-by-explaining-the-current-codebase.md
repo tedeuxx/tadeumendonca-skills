@@ -222,6 +222,98 @@ deletion. So this record changes what happens next; it deletes nothing today.
   table. Left open deliberately — the deletion set here is empty, so the first executor is in `-io`, and
   inventing a table with nothing to put in it is the shape this repo tries hardest to avoid.
 
+## Amended 2026-08-19 — a fourth disposition (**absorption**), and option 4's deferral is discharged
+
+Appended rather than rewritten, per the convention this record leaves explicitly unchanged for live
+records. Driven by [#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283), slice 2. Nothing
+above is struck: every word of the reversal rule stands, and this amendment adds the case it does not
+reach.
+
+**The gap, in this record's own words.** *Decision outcome* states a boundary as part of the decision:
+*"It is scoped to reversed decisions, never to unbuilt or unexercised ones."* #283 relocates roughly
+fourteen records whose decisions are **still in force** — they are neither reversed, nor unbuilt, nor
+unexercised, and dispositions 1–3 are keyed on a reversal at every joint. Disposition 2's
+`## What this replaced` is the wrong heading for a decision nothing replaced, and disposition 1's row
+would assert a supersession that did not happen. The rule did not merely fail to cover them; **applied
+literally it would have produced false rows.**
+
+**Disposition 4 — absorption.** A record whose decision is still binding may be deleted when that
+decision **moves into the document that governs the thing it decides** — a capability document, or, for
+the "is not an ADR at all" bucket, the code the reasoning constrains. The operative wording is in
+`skills/documentation-standard/SKILL.md` under the heading
+*"Absorption is a different act from reversal"*; this is the decision and its argument.
+
+**Its preconditions are stricter than disposition 1's, and the reason is the reader's question.** A
+reversed record leaves a reader asking *"was this ever decided?"*, which a one-line row answers
+completely — the trail may end there. An absorbed record leaves a reader asking *"where is this decision
+now?"*, and that reader is **still bound by it**. So: the row is mandatory **and so is a destination
+link**; and the fold is **unconditional**, because absorption has a target by construction — there is no
+"nowhere to fold" case for disposition 1's row to catch. **No destination, no deletion.**
+
+**The fold is lossy by instruction.** What arrives at the destination is the decision as it currently
+binds, the rejected options still live, and the consequences still being paid; superseded narrative,
+defect archaeology and no-longer-binding struck amendments are dropped. Stated because the alternative
+is not neutral: unsaid, "absorb" reads as "append", and this library's records average about **28 KB**.
+Pinned to this amendment's base commit rather than to head, because a figure measured over a set that
+includes the file stating it moves every time the sentence is edited:
+
+```
+git ls-tree -l c52aa4f -- docs/adr/ \
+  | awk '$5 ~ /\/0[0-9][0-9][0-9]-/ {n++; s+=$4} END {print n, s, int(s/n)}'
+  →  20 records, 572390 bytes, 28619 avg
+```
+
+So a capability assembled by concatenation lands at a size
+the fresh agent context this practice exists to serve cannot afford to read. That is a real cost of the
+consolidation and it is booked here rather than discovered at record nine.
+
+**Considered option 4 is no longer deferred, because its stated premise is gone.** It was deferred on
+*"the deletion set in this library is empty today, so the gate would have nothing to run against here"*.
+#283 takes that set from zero to roughly fourteen. The gate is now built, in
+`hooks/scripts/inventory-counts.test.sh`: **every number this library has issued is either a live record
+or a History row naming a destination**, asserted in both directions.
+
+**Why it keys on a declared ceiling rather than the highest surviving record — the ADR-0008 question,
+answered.** A ceiling derived from the files that exist cannot see a deletion at the **top** of the
+sequence: the derived maximum simply moves down and no gap appears. A declared constant closes that
+case, costs one line per new record, and **fails closed** — adding a record without raising it turns the
+gate red and the message says what to do. Measured, both directions: moving the top record out with the
+constant in place reddens; adding a record without raising it reddens.
+
+**What the gate does not hold, said plainly.** It never reads the destination's **content**. A row
+pointing at a document that never received the decision passes exactly like one pointing at a document
+that did. The gate makes an absorption **visible and attributable**; whether it was **lossless** has no
+instrument and stays a reviewer's judgement. Two layers, each holding what it can: this gate catches a
+deletion **nothing cites** (which the citation gate is blind to by construction, having nothing left to
+dangle), and slice 1's citation gate catches the inbound references. The same layering decides the row's
+form — the retired number is written **bare** (`0008`), never with an `ADR-` prefix, because the prose
+citation arm asserts every `ADR-nnnn` token names a live record and does not except this table.
+Measured, running the gate's own two regexes over both row forms: the bare form matches **neither**, the
+prefixed form matches the **prose** arm.
+
+**A residual that arrived with the fix, and it is the gate's, not this rule's.** The prose arm greps the
+token and not the sentence around it, so it cannot distinguish a **citation** from a **discussion of the
+citation form**. A document teaching this row rule therefore cannot carry a concrete prefixed example —
+when the record in the example is itself absorbed, the teaching text goes red and the obvious repair is
+to edit an example that was never wrong. Cheap mitigation, taken: write the rule with the `nnnn`
+placeholder and keep concrete numbers bare. No mitigation is proposed on the gate side; an exemption for
+"this looks like an example" would be a hole shaped exactly like the failure the gate exists to catch.
+
+**This record's own "no defined home yet" cost is now half-closed.** Its cost list says the
+disposition-1 row *"has no defined home in this library yet"* and declines to invent a table with
+nothing in it. That restraint is kept: the gate **requires no table while the retired set is empty**, and
+looks for a row only once a number is missing. What is now defined is the row's **form and heading**, so
+the first executor creates the table rather than designing it.
+
+**Left open, and deliberately not decided here: whether a citation inside a struck (`~~…~~`) span must
+still resolve.** This repo strikes rather than deletes, so #283's reconciliation will strike prose
+containing `ADR-nnnn` tokens naming records it removes, and slice 1's gate has no strike-awareness —
+measured, four struck citations exist today and all point at live records, so the question has never
+been forced. It is the owner's, it is being asked separately, and **nothing in this amendment presupposes
+either answer**: the row form above is a positive requirement about the row and is correct whichever way
+the strike question goes. If struck citations are exempted, one sentence is added there — that the row is
+not the only place a retired number may appear — and nothing else in this amendment changes.
+
 ## Links
 
 - [#281](https://github.com/tedeuxx/tadeumendonca-skills/issues/281) — the Issue this record executes;

@@ -2504,5 +2504,131 @@ else
       FOREIGN_ADR_NUMBERS above and say which repository in the comment."
 fi
 
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+# EVERY NUMBER THIS LIBRARY HAS ISSUED IS EITHER A LIVE RECORD OR AN ACCOUNTED-FOR ROW (#283, slice 2).
+#
+# WHAT THIS IS THE ENFORCEMENT OF. ADR-0020 made a History row mandatory when a REVERSED record is
+# deleted, and said so in the record's own accepted-cost list: "Nothing enforces any of this —
+# measured, not assumed." Its considered option 4 (build a gate) was deferred, not rejected, on one
+# stated premise — "The deletion set in this library is EMPTY today, so the gate would have nothing to
+# run against here." #283 removes that premise: it takes the deletion set from zero to roughly
+# fourteen, and those fourteen are not reversals at all. They are live decisions being ABSORBED into a
+# capability document. The row is the only artifact that says the absorption was authorised, and until
+# this block existed nothing observed whether one was written.
+#
+# WHY THE ROW NEEDS A GATE WHEN THE CITATION BLOCK ABOVE ALREADY EXISTS. The citation block catches a
+# deletion INDIRECTLY and only for a record something still cites: remove a record and its ~90 prose
+# citations go red. That is most of the library and it is not all of it. A record cited nowhere — a
+# late, narrow one, which is exactly the kind most likely to be absorbed — is deleted in perfect
+# silence today, and the citation gate stays green because there is nothing left to dangle. This block
+# closes that case by keying on the NUMBER rather than on who cites it.
+#
+# THE TWO LAYERS, AND WHICH CONTROL EACH CAN HOLD (ADR-0008's question, answered for this rule):
+#   - THIS block asserts a row EXISTS for every retired number and that the row NAMES a destination.
+#   - The relative-link check above resolves that destination, because the row's link is a relative
+#     markdown link in a tracked `.md` like any other. It is deliberately NOT re-resolved here: one
+#     resolver, not two that can disagree.
+#   - The prose check above is what forbids the retired number being written as `ADR-nnnn` anywhere,
+#     including in the row itself. That is why the row form declared in
+#     `skills/documentation-standard/SKILL.md` is a BARE four-digit number: measured, `| 0008 | … |`
+#     matches neither citation regex, and the same row written with an `ADR-` prefix matches the prose
+#     one. The row can name a dead record precisely because it does not name it in the form a reader
+#     would follow. The prefixed form is DESCRIBED rather than quoted here on purpose — the prose arm
+#     greps the token, not the sentence, so a literal example in this comment would go red the day the
+#     record it names is absorbed, and the obvious repair would be to edit an example that was correct.
+#
+# WHAT ONLY A HUMAN CAN CHECK, SAID PLAINLY SO THE GREEN IS NOT READ AS MORE THAN IT IS. Nothing here
+# reads the destination's CONTENT. A row pointing at a capability document that does not actually carry
+# the absorbed decision, its live rejected options and its consequences passes this gate exactly like
+# one that does. The gate makes the absorption VISIBLE and ATTRIBUTABLE; whether it was LOSSLESS is a
+# reviewer's judgement and there is no instrument for it. Do not let this green stand in for that read.
+#
+# WHY A DECLARED HIGH-WATER CONSTANT RATHER THAN max(live). Deriving the ceiling from the files that
+# exist cannot see a deletion at the TOP of the sequence: remove the highest record and the derived max
+# simply moves down by one, no gap appears, and the number is silently free to be reused later — which
+# the citation block's own header already names as its worst residual ("A REDIRECT IS NOT A
+# RESOLUTION"). A declared ceiling closes that case completely. It costs one line per new record, and
+# forgetting to bump it fails CLOSED: the high-water check below goes red and says what to do.
+ADR_HIGH_WATER=20
+
+adr_live_count=0
+adr_max=0
+while IFS= read -r adr_file; do
+  [ -z "$adr_file" ] && continue
+  adr_base="$(basename "$adr_file")"
+  adr_num="${adr_base%%-*}"
+  case "$adr_num" in
+    ''|*[!0-9]*) continue ;;
+  esac
+  adr_live_count=$((adr_live_count + 1))
+  adr_n=$((10#$adr_num))
+  [ "$adr_n" -gt "$adr_max" ] && adr_max="$adr_n"
+done <<< "$(ls "$CITATION_ADR_DIR"/0*.md 2>/dev/null)"
+
+# The History section, if it exists at all. It deliberately does NOT exist while the retired set is
+# empty — ADR-0020 declined to invent a table with nothing to put in it, and this gate does not force
+# one: with no gaps, nothing below looks for a row.
+adr_history_rows=""
+if [ -r "$CITATION_ADR_DIR/README.md" ]; then
+  adr_history_rows="$(awk '/^## History/{h=1;next} /^## /{h=0} h' "$CITATION_ADR_DIR/README.md")"
+fi
+
+adr_gap_problems=""
+adr_gaps_checked=0
+adr_n=1
+while [ "$adr_n" -le "$ADR_HIGH_WATER" ]; do
+  adr_padded="$(printf '%04d' "$adr_n")"
+  set -- "$CITATION_ADR_DIR/$adr_padded"-*.md
+  if [ -f "$1" ]; then
+    adr_n=$((adr_n + 1))
+    continue
+  fi
+  adr_gaps_checked=$((adr_gaps_checked + 1))
+  adr_row="$(printf '%s\n' "$adr_history_rows" | grep -E "^\| *$adr_padded *\|" || true)"
+  if [ -z "$adr_row" ]; then
+    adr_gap_problems="$adr_gap_problems
+    $adr_padded — no record file, and no '| $adr_padded |' row under '## History' in docs/adr/README.md"
+  elif ! printf '%s' "$adr_row" | grep -q '](\./'; then
+    adr_gap_problems="$adr_gap_problems
+    $adr_padded — has a History row, but the row names NO destination (no relative '](./…)' link)"
+  fi
+  adr_n=$((adr_n + 1))
+done
+
+# The reverse direction: a row for a number that is still live. Either the deletion was reverted and
+# the row was left behind, or the number was reissued — and a reissued number under an old row is the
+# redirect hazard, wearing the artifact that is supposed to prevent it.
+while IFS= read -r adr_row; do
+  [ -z "$adr_row" ] && continue
+  adr_rn="$(printf '%s' "$adr_row" | sed -n 's/^| *\([0-9][0-9][0-9][0-9]\) *|.*/\1/p')"
+  [ -z "$adr_rn" ] && continue
+  set -- "$CITATION_ADR_DIR/$adr_rn"-*.md
+  [ -f "$1" ] || continue
+  adr_gap_problems="$adr_gap_problems
+    $adr_rn — has a History row AND a live record file; one of the two is wrong"
+done <<< "$adr_history_rows"
+
+if [ "$adr_live_count" -eq 0 ]; then
+  bad "record numbering — NOT ONE record file was found in docs/adr/, and there were 20 when this was
+      written. The enumeration broke and every check in this block is vacuous."
+elif [ "$adr_max" -gt "$ADR_HIGH_WATER" ]; then
+  bad "record numbering — the highest live record is $adr_max but ADR_HIGH_WATER is $ADR_HIGH_WATER.
+      A record was added without raising the ceiling. Raise ADR_HIGH_WATER in this file to $adr_max in
+      the same commit as the new record; until then a deletion at the top of the sequence is invisible
+      to this gate."
+elif [ "$adr_gaps_checked" -ne $((ADR_HIGH_WATER - adr_live_count)) ]; then
+  bad "record numbering — the scan reports $adr_gaps_checked retired number(s) but $ADR_HIGH_WATER
+      issued minus $adr_live_count live is $((ADR_HIGH_WATER - adr_live_count)). The range scan did not
+      run over the range it claims, so its per-number verdicts mean nothing."
+elif [ -n "$adr_gap_problems" ]; then
+  bad "record numbering — a number this library issued is accounted for by nothing:$adr_gap_problems
+      A record leaves this library ONLY as a disposition, never as an absence. Write the row under
+      '## History' in docs/adr/README.md — bare four-digit number, what was decided, and a relative
+      link to where the decision now lives — in the SAME commit as the deletion. A deletion with no row
+      is not a disposition; it is a gap, and a gap is indistinguishable from a mistake."
+else
+  ok "record numbering — $adr_live_count live records, ceiling $ADR_HIGH_WATER, $adr_gaps_checked retired number(s), each carrying a History row that names a destination"
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
