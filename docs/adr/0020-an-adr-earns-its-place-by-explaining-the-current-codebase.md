@@ -172,11 +172,35 @@ deletion. So this record changes what happens next; it deletes nothing today.
 - **The reasoning of a reversal is no longer preserved at length.** This is the real price, and the
   fold only recovers the part that still shapes the current design. `git log` retains the deleted file,
   but a record that requires archaeology is, for the reading consumer, gone.
-- **Nothing enforces any of this — measured, not assumed.** A record was deleted outright from a scratch
-  copy of this tree and the full suite still reported `69 passed, 0 failed`. No hook, workflow or
-  settings file asserts anything about the ADR library's shape. The History row and the fold are prose
-  too and inherit the same zero enforcement; the only compensating control is that both halves land in
-  the same MR, where a reviewer can see them.
+- ~~**Nothing enforces any of this — measured, not assumed.** A record was deleted outright from a
+  scratch copy of this tree and the full suite still reported `69 passed, 0 failed`. No hook, workflow
+  or settings file asserts anything about the ADR library's shape. The History row and the fold are
+  prose too and inherit the same zero enforcement; the only compensating control is that both halves
+  land in the same MR, where a reviewer can see them.~~
+
+  **Struck 2026-08-19 by this record's own amendment below** — the one clause in this list the
+  amendment reaches, and it is struck rather than left standing because the sentence *"No hook,
+  workflow or settings file asserts anything about the ADR library's shape"* is **false at head**: the
+  amendment's own gate is that assertion. It was true when written and stayed true exactly as long as
+  the deletion set was empty. The same mutation at head, on the tree in place:
+
+  ```
+  mv docs/adr/0002-agentic-dev-loop-architecture.md <elsewhere>
+  bash hooks/scripts/inventory-counts.test.sh        →  60 passed, 5 failed
+  ```
+
+  The **five reds** are what the claim turns on and they are unchanged: four citation arms (relative
+  link, repo-root path, stale foreign exemption, prose token) and the numbering arm. The **passing**
+  total moved from 58 to 60 in this same MR's second review round, which added two verdicts by
+  splitting two more suppressed arms apart; it is restated here rather than left at the figure the
+  round-1 fix measured, because a published number that silently drifts is the defect this record's
+  own amendment is about.
+
+  **What survives the strike, and it is the half that still binds:** the row's **honesty** and the
+  **fold** are still prose and still inherit zero enforcement. The gate reads that a row exists and
+  that it names a destination; nothing reads whether the destination received the decision. Both halves
+  still land in the same MR, where a reviewer can still see them, and that is still the only control
+  over the part that is not gated.
 - **The first real execution is in `tadeumendonca-io`, and it reddens a gate there.**
   `apps/fed/src/components/AdrTable.test.tsx` asserts `inLibrary > 5` over records with
   `status === 'superseded'`, and that library has **8** such records
@@ -221,6 +245,209 @@ deletion. So this record changes what happens next; it deletes nothing today.
   library's `README.md` History table; `-io`'s library has such a table and this one has only an index
   table. Left open deliberately — the deletion set here is empty, so the first executor is in `-io`, and
   inventing a table with nothing to put in it is the shape this repo tries hardest to avoid.
+
+## Amended 2026-08-19 — a fourth disposition (**absorption**), and option 4's deferral is discharged
+
+Appended rather than rewritten, per the convention this record leaves explicitly unchanged for live
+records. Driven by [#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283), slice 2. **Every
+word of the reversal rule stands** — the decision, its preconditions and its two scope boundaries are
+untouched, and this amendment adds the case they do not reach. **Exactly one clause above is struck by
+it, and it is a cost rather than a rule:** the *"nothing enforces any of this"* bullet, whose second
+sentence (*"No hook, workflow or settings file asserts anything about the ADR library's shape"*) this
+amendment's own gate makes false in the same MR. The strike is in place, in that list, with the
+re-measurement beside it.
+
+**The gap, in this record's own words.** *Decision outcome* states a boundary as part of the decision:
+*"It is scoped to reversed decisions, never to unbuilt or unexercised ones."* #283 relocates roughly
+fourteen records whose decisions are **still in force** — they are neither reversed, nor unbuilt, nor
+unexercised, and dispositions 1–3 are keyed on a reversal at every joint. Disposition 2's
+`## What this replaced` is the wrong heading for a decision nothing replaced, and disposition 1's row
+would assert a supersession that did not happen. The rule did not merely fail to cover them; **applied
+literally it would have produced false rows.**
+
+**Disposition 4 — absorption.** A record whose decision is still binding may be deleted when that
+decision **moves into the document that governs the thing it decides** — a capability document, or, for
+the "is not an ADR at all" bucket, the code the reasoning constrains. The operative wording is in
+`skills/documentation-standard/SKILL.md` under the heading
+*"Absorption is a different act from reversal"*; this is the decision and its argument.
+
+**Its preconditions are stricter than disposition 1's, and the reason is the reader's question.** A
+reversed record leaves a reader asking *"was this ever decided?"*, which a one-line row answers
+completely — the trail may end there. An absorbed record leaves a reader asking *"where is this decision
+now?"*, and that reader is **still bound by it**. So: the row is mandatory **and so is a destination
+link**; and the fold is **unconditional**, because absorption has a target by construction — there is no
+"nowhere to fold" case for disposition 1's row to catch. **No destination, no deletion.**
+
+**The fold is lossy by instruction.** What arrives at the destination is the decision as it currently
+binds, the rejected options still live, and the consequences still being paid; superseded narrative,
+defect archaeology and no-longer-binding struck amendments are dropped. Stated because the alternative
+is not neutral: unsaid, "absorb" reads as "append", and this library's records average about **28 KB**.
+Pinned to this amendment's base commit rather than to head, because a figure measured over a set that
+includes the file stating it moves every time the sentence is edited:
+
+```
+git ls-tree -l c52aa4f -- docs/adr/ \
+  | awk '$5 ~ /\/0[0-9][0-9][0-9]-/ {n++; s+=$4} END {print n, s, int(s/n)}'
+  →  20 records, 572390 bytes, 28619 avg
+```
+
+So a capability assembled by concatenation lands at a size
+the fresh agent context this practice exists to serve cannot afford to read. That is a real cost of the
+consolidation and it is booked here rather than discovered at record nine.
+
+**Considered option 4 is no longer deferred, because its stated premise is gone.** It was deferred on
+*"the deletion set in this library is empty today, so the gate would have nothing to run against here"*.
+#283 takes that set from zero to roughly fourteen. The gate is now built, in
+`hooks/scripts/inventory-counts.test.sh`: **every number this library has issued is either a live record
+or a History row naming a destination**, asserted in both directions.
+
+**Why it keys on a declared ceiling rather than the highest surviving record — the ADR-0008 question,
+answered.** A ceiling derived from the files that exist cannot see a deletion at the **top** of the
+sequence: the derived maximum simply moves down and no gap appears. A declared constant closes the
+**accidental** form of that case — the top record removed with the constant left alone — costs one line
+per new record, and **fails closed**: adding a record without raising it turns the gate red and the
+message says what to do. Measured, both directions: moving the top record out with the constant in
+place reddens; adding a record without raising it reddens.
+
+**It does not close the deliberate form, and no declared constant can.** Measured: lowering the
+constant in the same edit as the deletion returns the arm to green
+(`PASS — 19 live records, ceiling 19, 0 retired`). Recorded because the accidental case is the one
+worth closing and a reader will otherwise price this control by the stronger claim — which the gate's
+own comment made (*"closes that case completely"*) until this MR's review measured it and corrected the
+word rather than the control.
+
+**What the gate does not hold, said plainly.** It never reads the destination's **content**. A row
+pointing at a document that never received the decision passes exactly like one pointing at a document
+that did. The gate makes an absorption **visible and attributable**; whether it was **lossless** has no
+instrument and stays a reviewer's judgement. Two layers, each holding what it can: this gate catches a
+deletion **nothing cites** (which the citation gate is blind to by construction, having nothing left to
+dangle), and slice 1's citation gate catches the inbound references. The same layering decides the row's
+form — the retired number is written **bare** (`0008`), never with an `ADR-` prefix, because the prose
+citation arm asserts every `ADR-nnnn` token names a live record and does not except this table.
+Measured, running the gate's own two regexes over both row forms: the bare form matches **neither**, the
+prefixed form matches the **prose** arm.
+
+**A residual that arrived with the fix, and it is the gate's, not this rule's.** The prose arm greps the
+token and not the sentence around it, so it cannot distinguish a **citation** from a **discussion of the
+citation form**. A document teaching this row rule therefore cannot carry a concrete prefixed example —
+when the record in the example is itself absorbed, the teaching text goes red and the obvious repair is
+to edit an example that was never wrong. Cheap mitigation, taken: write the rule with the `nnnn`
+placeholder and keep concrete numbers bare. No mitigation is proposed on the gate side; an exemption for
+"this looks like an example" would be a hole shaped exactly like the failure the gate exists to catch.
+
+**This record's own "no defined home yet" cost is now half-closed.** Its cost list says the
+disposition-1 row *"has no defined home in this library yet"* and declines to invent a table with
+nothing in it. That restraint is kept: the gate **requires no table while the retired set is empty**, and
+looks for a row only once a number is missing. What is now defined is the row's **form and heading**, so
+the first executor creates the table rather than designing it.
+
+**Left open, and deliberately not decided here: whether a citation inside a struck (`~~…~~`) span must
+still resolve.** This repo strikes rather than deletes, so #283's reconciliation will strike prose
+containing citations of the records it removes, and slice 1's gate has no strike-awareness.
+
+**No count of the affected sites is published, and the withdrawal is itself the finding.** An earlier
+form of this paragraph said *"four struck citations exist today"* without the command that produced it,
+against this repo's own rule that a measured number ships with its command or not at all. Both the
+figure and the instrument were then falsified in review, and the instrument fails worse than the review
+found — re-derived here rather than inherited. The Issue's line-level
+`git grep -E '~~[^~]*ADR-0[0-9]{3}'` counts any line carrying a `~~` and, anywhere later on it, a
+token, whether or not the token is inside the span. Run at this head it returns **five** hits, and
+**exactly one** is a token inside a strike: `hooks/scripts/permission-guard.sh:961`. In the other four
+the token sits **outside** the struck span — `docs/adr/README.md` lines 19, 41 and 43, and
+`docs/proposals/agentic-dev-loop.md:227`, where `~~Product ownership stays human.~~` closes before
+`(ADR-0002)` begins. So the command's hit count is not the population under any reading, and the four
+it over-counted are not the same four the withdrawn figure named.
+
+**A span-aware replacement was written and falsified too, which is why nothing replaces the figure.**
+A multi-line `~~(.*?)~~` scan over every tracked `.md` and `.sh` was run against this tree: in
+`skills/documentation-standard/SKILL.md` it reported two citations inside a span that is not a span and
+**missed the file's one genuine struck block entirely**. The cause is the residual this amendment
+already names one paragraph up, one level higher: that file *teaches* the strike convention, so it
+writes the marker as literal prose (`` (`~~…~~`) ``, and a bare `` `~~` `` inside a sentence about a
+regex), and an odd count of markers mis-pairs every span after it. Verified by counting the markers per
+line rather than by inference: `grep -n -o '~~' skills/documentation-standard/SKILL.md` → lines 76 and
+255 carry two each, lines 258, 285 and 292 carry one each.
+
+**A stronger instrument was then built rather than argued about, and it HALF works — which is a narrower
+claim than this paragraph carried into review.** It said *no cheap published one-liner survives that*,
+and that was over-claimed. The three mis-pairing markers just enumerated — the two on line 255 and the
+one on 258 — are precisely the ones the sentence above quotes as sitting **inside backtick code spans**,
+so a scan that strips inline code spans and fenced blocks *before* pairing does fix that file: its
+remaining four markers (76 twice, 285, 292) pair correctly, and the scan reports no citation there at
+all, phantom or otherwise. It also finds **both** of the hand-verified sites named below.
+
+**Where it still fails is a shell script, and the reason is that markdown's rules do not apply there.**
+`hooks/scripts/inventory-counts.test.sh` writes the marker thirty times in prose comments quoting this
+repo's own struck records — `grep -o '~~' hooks/scripts/inventory-counts.test.sh | wc -l` → **30** — and
+a markdown parser has no licence to treat backticks in shell comments as code spans. The pairing there is
+unsound, and the scan emits phantom citations out of it. The same instrument also flags **this record**
+as suspect, for the reason the next paragraph measures.
+
+**So the impossibility claim is withdrawn, and what replaces it is narrower and worse-shaped.** The
+instrument that works on markdown is a ~50-line script, not a one-liner: it cannot be published inline
+beside a figure, which is what this repo's rule requires of a measured number, and no gate would run it,
+which is what this repo's rule requires before a measurement instrument is kept rather than discarded. It
+was therefore discarded, and every number in this section is one a published command reproduces.
+**The figure stays withdrawn not because no instrument exists, but because the instrument that exists
+cannot ship beside it** — a different reason than the one published in review, and the difference is
+worth more than the figure was.
+
+**This paragraph does the same thing to this record, and both halves of what it used to say about that
+were false.** It claimed this file carried an **odd** number of markers and that **every** marker here
+sits inside a code span. Measured at the head that published it: **sixteen** markers — even — and two of
+them were the accepted-cost bullet **this same MR struck four paragraphs up**, which is a real rendering
+strikethrough and not a code span. A false, checkable claim about markers, in the paragraph whose whole
+subject is a false, checkable claim about markers.
+
+**Re-derived here, with the command, and the command's own marker counted in the total it reports:**
+
+    grep -n -o '~~' docs/adr/0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md
+
+**Eighteen markers**, at lines 140 (two), 175, 179, 344 (two), 353 (two), 357 (two), 362 (two), 366
+(three), 368, 381 and 404. Two of the eighteen — 381 and 404 — are the commands this correction
+publishes, so the total is **partly a product of correcting it.** That is the self-reference this
+paragraph is about, measured now instead of asserted.
+
+**What each of the eighteen actually does, since the earlier claim got that wrong too.** Fifteen sit
+inside inline code spans and one (line 404) inside the indented code block above, so all sixteen render
+as literal text. **Exactly two are bare — lines 175 and 179** — the accepted-cost bullet struck earlier
+in this record, which is the file's one and only rendering strikethrough. *"Every marker here sits
+inside a code span"* was false the moment that bullet was struck, in the commit that wrote both.
+
+**What survives is the finding, and it survives intact.** A naive pairer still mis-parses this record.
+Taken in document order the first seven pairs land where they should — the accepted-cost strike at
+175/179 among them — and then the eighth pairs the **third marker on line 366 with the one on 368**, and
+the ninth pairs **381 with 404**, producing two spans that are not spans. Neither contains an `ADR-nnnn`
+token, so neither yields a phantom citation *here* — luck about this file's wording, not a property of
+the instrument. Nothing about how the record **renders** changes, and no gate parses spans; what changes
+is only what a future scanner would compute over this file, which was always the whole finding.
+
+**The line numbers above are the fragile part and are named as such.** They are correct at this commit
+and any edit above line 140 invalidates every one of them — which is precisely why this record's own
+citation convention is *quote the clause, not the line number*, and why the numbers here are published
+only because the subject genuinely is positional. Re-run the command; do not trust the list.
+
+**What is claimed, and it is hand-verified rather than measured:** the struck citations found by either
+instrument all name records that are **live**, so the question has never been forced. Two are certain
+because they were read in place, and both records they name exist: `hooks/scripts/permission-guard.sh`
+— span opening at line 961, citing ADR-0004 on that same line — and
+`skills/harness-engineering/SKILL.md` — span opening at line 501, citing ADR-0011 two lines later at
+503, which is exactly why a line-level grep cannot see it. The population is not claimed to be
+complete, and whoever executes the owner's answer must enumerate it by reading rather than by running a
+grep.
+
+**One thing the review of that figure did settle, and it widens the question rather than the count:**
+the struck block in `skills/documentation-standard/SKILL.md` (lines 285–292 at this head) cites a
+record by **path** on line 287, not in the `ADR-nnnn` prose form — which is why neither instrument
+above lists it and why the path arm is one of the five that reddens when that record is moved out of
+the tree. So the open question reaches all three citation
+forms slice 1 gates — relative link, repo-root path, prose token — and an answer scoped to the prose
+form alone would leave two arms unaddressed.
+
+It is the owner's question, it is being asked separately, and **nothing in this amendment presupposes
+either answer**: the row form above is a positive requirement about the row and is correct whichever way
+the strike question goes. If struck citations are exempted, one sentence is added there — that the row is
+not the only place a retired number may appear — and nothing else in this amendment changes.
 
 ## Links
 

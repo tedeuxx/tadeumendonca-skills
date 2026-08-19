@@ -26,6 +26,28 @@
 #     the persona count is checked only where it describes `agents/`. Said explicitly because "the
 #     counts are pinned" would otherwise be read as covering those two.
 #
+# ── THE CHAINING RULE — read this before adding an arm ANYWHERE in this file ────────────────────────
+#
+# Chain conditions with `elif` ONLY where the failing condition makes the next verdict genuinely
+# UNCOMPUTABLE — an extraction that returned nothing cannot be judged, so it is a GUARD. Never chain
+# two ASSERTIONS merely because they share a subject heading: the first one's `bad` returns, and the
+# second emits neither `PASS` nor `FAIL`. The assertion does not fail — it DISAPPEARS, while the totals
+# stay plausible, which is why no count will ever surface it. Give each assertion its own `if`, and
+# repeat the vacuity guard in each rather than borrowing the neighbour's: a broken extraction makes
+# both vacuous, so both must redden.
+#
+# This rule is stated HERE, once, rather than only beside the blocks that were repaired. It was written
+# into two blocks first (#283 slice 2), and THREE more chains elsewhere in this file carried the same
+# defect untouched — the sweep that cleared them had re-read its own justification instead of mutating
+# them. NO DISTANCE IS PUBLISHED, and the withdrawal is the finding: the earlier form said "1,050 lines
+# away" without saying away from WHAT. The only reading that resolves gives 1,066 — the rule text at
+# 5650793:2495 to the flag-class chain at 5650793:1429 — and both line numbers move on the next edit,
+# so the figure could not stay true and could not be checked without restating its own endpoints. What
+# the sentence needs is that none of the three sat anywhere near the blocks the sweep opened.
+# THE TEST OF A CLEARED CHAIN IS A MUTATION, NOT A REASON: plant a defect only the lower arm can catch,
+# run this suite, and check that the lower arm emits a line. A reason that survives re-reading is not
+# evidence.
+#
 # Run: bash hooks/scripts/inventory-counts.test.sh
 
 set -uo pipefail
@@ -1066,12 +1088,20 @@ roster_retired=$(comm -23 <(printf '%s\n' "$roster_deleted" | grep -v '^$' || tr
 roster_live_alt=$(printf '%s\n' "$roster_live" | paste -sd'|' - | tr -d ' ')
 roster_retired_alt=$(printf '%s\n' "$roster_retired" | grep -v '^$' | paste -sd'|' - | tr -d ' ')
 
+# THE SHALLOW-CLONE GUARD SITS WITH THE ONE ASSERTION IT GUARDS, NOT AT THE TOP OF THE BLOCK.
+#
+# It was `elif [ -z "$roster_retired_alt" ]` here until #283 slice 2's re-sweep, above FOUR verdicts of
+# which only ONE — assertion 2, the stale-enumeration scan — reads the retired set at all. Assertions 1
+# and 1b derive from `agents/*.md` and are fully computable on a shallow clone, and they DISAPPEARED
+# with it: measured, a `git clone --depth 1` of this branch with `\`writer\`` unbackticked throughout
+# `agents/developer.md` reports `59 passed, 1 failed` — byte-identical to the clean shallow run — while
+# the same defect on a full clone is caught (`62 passed, 1 failed`, assertion 1b red). A real defect in
+# a live brief, invisible, because an unrelated guard fired above it. See THE CHAINING RULE in the
+# header: a shallow clone makes the RETIRED-set scan uncomputable and nothing else here.
 if [ "$roster_n" -lt 2 ]; then
   bad "roster membership — only $roster_n persona file(s) found under agents/; the assertions below would be trivial"
-elif [ -z "$roster_retired_alt" ]; then
-  bad "roster membership — NO retired persona could be derived from git history. On a shallow clone \`git log --diff-filter=D\` returns nothing and every absence check below passes vacuously. Restore \`fetch-depth: 0\` on the checkout in .github/workflows/docs-test.yml"
 else
-  ok "roster membership — $roster_n live personas, $(printf '%s\n' "$roster_retired" | grep -c . || true) retired, both derived"
+  ok "roster membership — $roster_n live personas derived from agents/"
 
   # SCAN SET: the tracked-file set already derived for the floor-claim scan, minus `*.test.sh`.
   #
@@ -1274,8 +1304,12 @@ else
     done <<< "$(grep -nE "\`($roster_retired_alt)\`" "$file" 2>/dev/null || true)"
   done <<< "$roster_scan_files"
 
-  if [ -z "$roster_stale" ]; then
-    ok "roster membership — no line enumerating the roster names a persona without a file in agents/"
+  # The shallow-clone guard, moved down from the top of the block to sit with the ONE assertion whose
+  # input it is. An empty RETIRED set makes this scan vacuous and nothing else here vacuous.
+  if [ -z "$roster_retired_alt" ]; then
+    bad "roster membership — NO retired persona could be derived from git history, so this scan is vacuous: an absence check over an empty set of names is green for no reason at all. On a shallow clone \`git log --diff-filter=D\` returns nothing. Restore \`fetch-depth: 0\` on the checkout in .github/workflows/docs-test.yml"
+  elif [ -z "$roster_stale" ]; then
+    ok "roster membership — $(printf '%s\n' "$roster_retired" | grep -c . || true) retired personas derived from history, and no line enumerating the roster names one of them"
   else
     bad "roster membership — these lines list the CURRENT roster and include a persona that has no file:$roster_stale
       A persona was renamed or removed and this enumeration was not. The count did not move, so nothing else here could see it.
@@ -1426,20 +1460,52 @@ guard_class="$(grep -oE '\((-R|--repo)[^)]*\)' "$ROOT/hooks/scripts/permission-g
 wip_classes="$(grep -oE '\((-R|--repo)[^)]*\)' "$ROOT/hooks/scripts/wip-guard.sh")"
 wip_count="$(printf '%s' "$wip_classes" | grep -c . || true)"
 
+# TWO SUBJECTS, TWO INDEPENDENT VERDICTS — see THE CHAINING RULE in this file's header.
+#
+# HOW MANY copies wip-guard.sh carries and WHETHER they match permission-guard.sh are different
+# assertions, and they were one `if/elif` chain until #283 slice 2's re-review. A wrong count returned
+# `bad` from the second arm, so the drift comparison below it was never reached and emitted NEITHER
+# `PASS` NOR `FAIL`. Measured, not argued: mutating wip-guard.sh with two independent defects at once —
+# the trigger's flag segment deleted (count 2 → 1) and the extraction's class drifted (`=` dropped) —
+# reported ONLY `carries 1 copies of the class` at `62 passed, 1 failed`. The drift was real, present,
+# and computable from a one-element list, and no verdict said so.
+#
+# This is the same defect as 4a/4b in the citation block and as the numbering pair, and it shipped in
+# the SWEEP that fixed those two: the sweep cleared this chain by re-reading its own justification
+# instead of mutating it. A reason that survives re-reading is not evidence.
+#
+# The vacuity guard is repeated in both arms rather than shared, for the reason the header gives: a
+# permission-guard.sh with no class at all makes BOTH verdicts vacuous, so both must redden.
+
+# ── how many copies wip-guard.sh carries ──
 if [ -z "$guard_class" ]; then
-  bad "flag class — permission-guard.sh no longer contains the shared -R/--repo class this asserts on.
+  bad "flag class — permission-guard.sh no longer contains the shared -R/--repo class this asserts on,
+      so the copy count below cannot be judged against anything.
       If it was deliberately reshaped, reshape this assertion with it — do not delete it: the drift it
       catches is the one that already happened once."
 elif [ "$wip_count" -ne 2 ]; then
   bad "flag class — wip-guard.sh carries $wip_count copies of the class, expected 2 (trigger + extraction).
       A copy that disappeared is a parse that silently narrowed."
+else
+  ok "flag class — wip-guard.sh carries both copies of the -R/--repo class (trigger + extraction)"
+fi
+
+# ── and whether they are the SAME class as permission-guard.sh's ──
+# Judged over whatever copies exist, deliberately, rather than only when the count is right: a copy that
+# went missing AND a copy that drifted are two defects, and the second must not wait on the first being
+# repaired. `wip_classes` empty is the one state where this is genuinely uncomputable — an empty list has
+# nothing to compare — so it is a guard here rather than a silent pass.
+if [ -z "$guard_class" ] || [ -z "$wip_classes" ]; then
+  bad "flag class — the -R/--repo class could not be extracted from
+      $([ -z "$guard_class" ] && printf 'permission-guard.sh ')$([ -z "$wip_classes" ] && printf 'wip-guard.sh ')— nothing was
+      found to compare, so a green here would be an artifact of the break and not a finding."
 elif printf '%s\n' "$wip_classes" | grep -qvxF -- "$guard_class"; then
   bad "flag class — wip-guard.sh and permission-guard.sh parse the repo flag DIFFERENTLY.
       permission-guard: $guard_class
       wip-guard:        $(printf '%s' "$wip_classes" | tr '\n' ' ')
       One of them is a spelling behind. That is how \`gh -R=owner/x pr create\` turned wip-guard off."
 else
-  ok "flag class — both hooks parse -R/--repo with the identical class, in all 3 places"
+  ok "flag class — every copy in wip-guard.sh parses -R/--repo with permission-guard.sh's identical class"
 fi
 
 # ---------------------------------------------------------------------------------------------------
@@ -1544,13 +1610,36 @@ if [ -z "$published_skills" ]; then
   bad "skill descriptions — no published skill count could be read out of the inventory documents, so the
       floor below has nothing to compare against and every assertion in this block would run unbounded.
       Either the figure stopped being published or its phrasing left the pattern; restore one of them."
-elif [ "$scanned_skills" -lt "$expected_skills" ]; then
-  bad "skill descriptions — the scan found $scanned_skills file(s) across skills/ and commands/, and the repo publishes
+else
+  # THE SHORTFALL IS ITS OWN VERDICT, AND IT WITHHOLDS THE GREENS BELOW RATHER THAN SUPPRESSING THEM.
+  #
+  # It was `elif` above the whole block until #283 slice 2's re-sweep, and that lost real findings:
+  # measured, holding `skills/license/` out of the tree AND deleting the `description:` line from
+  # `skills/frontend/SKILL.md` reports ONLY the shortfall (`53 passed, 7 failed`) — the L1 defect, in a
+  # file that IS in the truncated set and IS parseable, emits nothing. The same defect alone on a full
+  # tree is caught (`62 passed, 1 failed`, L1 red).
+  #
+  # BUT THE ORIGINAL CHAIN WAS NOT MERELY WRONG, AND THAT IS WHY THE FIX IS NOT A PLAIN SPLIT. L1/L2/L3
+  # are UNIVERSALS over the scan set — `all $desc_count parse` — so a green printed over a truncated set
+  # is a false claim about coverage, which is the #164 defect this guard was built for and is recorded
+  # above verbatim (`PASS skill descriptions L1 — all 2 parse...`). Splitting naively would restore it.
+  #
+  # So the shortfall governs the direction where it is genuinely unsound and no further: the PASS. A
+  # problem found in the truncated set is a TRUE finding about a real file and still reports; a clean
+  # sweep of a truncated set is not reported as clean. Both directions are red while the set is short,
+  # deliberately — the same reading as the duplicated vacuity guards elsewhere in this file.
+  scan_short=""
+  if [ "$scanned_skills" -lt "$expected_skills" ]; then
+    scan_short="the scan set is short by $((expected_skills - scanned_skills)) file(s)"
+    bad "skill descriptions — the scan found $scanned_skills file(s) across skills/ and commands/, and the repo publishes
       $published_skills skill(s) plus $typed_cmds typed command(s) = $expected_skills. Every assertion in this block is
-      anchored on that set, so it is now covering LESS than the library and would still print PASS.
+      anchored on that set, so it is now covering LESS than the library and its GREENS are withheld below.
       If the library MOVED, repoint the scan in this same commit. If files were deliberately removed,
       the published figure moves with them — and then this goes green because the shrink is on record."
-else
+  else
+    ok "skill descriptions — the scan set covers all $expected_skills files the repo publishes ($published_skills skills + $typed_cmds typed commands), so the levels below quantify over the whole library"
+  fi
+
   # --- LEVEL 1: presence and parse, zero judgement ------------------------------------------------
   # Length bounds are a FLOOR AND A CEILING, NOT A QUALITY METRIC, and the standard says so in those
   # words. 120 is below anything that can carry an act, an object and a `Use when`; 500 is above the
@@ -1764,17 +1853,24 @@ else
                   | grep -v '^$' || true)"
   done <<< "$SKILL_FILES"
 
-  if [ -z "$l1_problems" ]; then
-    ok "skill descriptions L1 — all $desc_count parse, are one line, are $DESC_MIN-$DESC_MAX chars, and argument-hint is on exactly: $ARG_HINT_ALLOWED"
-  else
+  if [ -n "$l1_problems" ]; then
     bad "skill descriptions L1 — presence/parse:$l1_problems"
+  elif [ -n "$scan_short" ]; then
+    bad "skill descriptions L1 — the $desc_count file(s) scanned all parse, but $scan_short, so 'all of them' is not a
+      claim about the library. The green is WITHHELD rather than printed over a truncated set. Fix the
+      shortfall above and this reports on its own."
+  else
+    ok "skill descriptions L1 — all $desc_count parse, are one line, are $DESC_MIN-$DESC_MAX chars, and argument-hint is on exactly: $ARG_HINT_ALLOWED"
   fi
 
-  if [ -z "$l2_problems" ]; then
-    ok "skill descriptions L2 — all $desc_count are triggers, not titles (Use when present, no '(concept)', no stem opener, every '(see X)' resolves)"
-  else
+  if [ -n "$l2_problems" ]; then
     bad "skill descriptions L2 — a description is written as a TITLE rather than a TRIGGER:$l2_problems
       A title names the artifact; a trigger names the situation. See the standard on #166."
+  elif [ -n "$scan_short" ]; then
+    bad "skill descriptions L2 — the $desc_count description(s) scanned are all triggers, but $scan_short, so the
+      green is WITHHELD: it would read as coverage of the library rather than of a truncated set."
+  else
+    ok "skill descriptions L2 — all $desc_count are triggers, not titles (Use when present, no '(concept)', no stem opener, every '(see X)' resolves)"
   fi
 
   # --- NO CONSUMER-SPECIFIC REFERENCE, ANYWHERE IN A SKILL FILE (#167) ---------------------------
@@ -1944,10 +2040,13 @@ delivery|devops harness-engineering
 
   if [ "$cluster_members" -eq 0 ]; then
     bad "skill descriptions L3 — the cluster table parsed as EMPTY; this assertion did NOT run"
-  elif [ -z "$cluster_problems" ]; then
-    ok "skill descriptions L3 — all $cluster_members clustered skills name a rival, and every naming is mutual (addition to a cluster is NOT covered — see the note above)"
-  else
+  elif [ -n "$cluster_problems" ]; then
     bad "skill descriptions L3 — cluster disambiguation:$cluster_problems"
+  elif [ -n "$scan_short" ]; then
+    bad "skill descriptions L3 — the $cluster_members clustered skill(s) scanned all name a rival, but $scan_short, so
+      the green is WITHHELD: a cluster member missing from the scan set cannot be judged at all."
+  else
+    ok "skill descriptions L3 — all $cluster_members clustered skills name a rival, and every naming is mutual (addition to a cluster is NOT covered — see the note above)"
   fi
 fi
 
@@ -2482,19 +2581,51 @@ for num in $FOREIGN_ADR_NUMBERS; do
     $num is declared FOREIGN and NOTHING in this repo cites it any more — the exemption has no subject"
 done
 
-if [ "$prose_checked" -eq 0 ]; then
-  bad "citation resolution — not one prose 'ADR-nnnn' citation was found across the tracked scan set,
-      and there were 599 occurrences over 22 distinct numbers when this was written — 20 checked here
-      and 2 declared foreign below, measured with the command in this block's header. The extraction
-      broke and every check in this block is vacuous."
+# TWO SUBJECTS, TWO INDEPENDENT VERDICTS — AND THEY WERE ONE `if/elif` CHAIN UNTIL #283 SLICE 2.
+#
+# The exemption's honesty and the prose citations' resolution are different assertions about different
+# things, and they were chained: a stale exemption returned `bad` from the second arm, so the prose
+# verdict below it was never reached and emitted NEITHER `PASS` NOR `FAIL`. An assertion did not fail
+# — it DISAPPEARED, while the totals stayed plausible, which is why no count would ever have surfaced
+# it. That is this repo's signature defect (a check that silently stops checking) and it shipped inside
+# the slice whose whole subject was that class. `quality-assurance` found it by toggling
+# FOREIGN_ADR_NUMBERS on a mutated tree and watching the prose arm reappear.
+#
+# THE RULE THIS BLOCK NOW FOLLOWS is THE CHAINING RULE in this file's header, which is stated there
+# rather than here so an arm added at line 1400 meets it too — this block is where it was learned, not
+# where it applies. Each `if` below therefore repeats its own vacuity guard rather than borrowing its
+# neighbour's — a broken extraction reddens BOTH, which is the correct reading, since both are vacuous.
+
+# ── 4a · the foreign-number exemption is still earned, in both directions ──
+if [ "$prose_checked" -eq 0 ] && [ -z "$foreign_seen" ]; then
+  bad "citation resolution — the foreign-number exemption cannot be judged: not one 'ADR-nnnn' token of
+      any kind was found across the tracked scan set, foreign or local. The extraction broke, so an
+      exemption reading as unused below would be an artifact of the break and not a finding."
 elif [ -n "$foreign_problems" ]; then
   bad "citation resolution — the foreign-number exemption is stale:$foreign_problems
       An exemption is only honest while it is still earned. If the number now names a record HERE,
       remove it from FOREIGN_ADR_NUMBERS so its citations are checked against this library; if nothing
       cites it any more, remove it because it exempts nothing and reads as evidence of a cross-repo
       citation that no longer exists."
+elif [ -z "${FOREIGN_ADR_NUMBERS//[[:space:]]/}" ]; then
+  # AN EMPTY EXEMPTION LIST IS NOT THE SAME GREEN, and it was reported as one: `wc -l` over an empty
+  # list returns 1, because `printf '%s\n' ''` emits one blank line. The PASS read "each of the 1
+  # numbers declared foreign" while nothing was declared at all — a universal quantified over an empty
+  # set, wearing a count that was an artifact of the idiom. `grep -c .` is the counting idiom used
+  # everywhere else in this file for exactly this reason; the empty case is now its own sentence.
+  ok "citation resolution — NO number is declared foreign, so there is no exemption to keep earned. Every 'ADR-nnnn' token in the tracked scan set is checked against this library, which is the state to prefer"
+else
+  ok "citation resolution — each of the $(printf '%s\n' $FOREIGN_ADR_NUMBERS | grep -c . || true) numbers declared foreign is still cited here and still names no record in this library"
+fi
+
+# ── 4b · every prose `ADR-nnnn` names a live record ──
+if [ "$prose_checked" -eq 0 ]; then
+  bad "citation resolution — not one prose 'ADR-nnnn' citation was found across the tracked scan set,
+      and there were 599 occurrences over 22 distinct numbers when this was written — 20 checked here
+      and 2 declared foreign below, measured with the command in this block's header. The extraction
+      broke and this check is vacuous."
 elif [ -z "$prose_problems" ]; then
-  ok "citation resolution — every prose ADR citation names a live record ($prose_checked distinct file/number pairs; $(printf '%s\n' $FOREIGN_ADR_NUMBERS | wc -l | tr -d ' ') numbers declared foreign and NOT checked)"
+  ok "citation resolution — every prose ADR citation names a live record ($prose_checked distinct file/number pairs; $(printf '%s\n' $FOREIGN_ADR_NUMBERS | grep -c . || true) numbers declared foreign and NOT checked)"
 else
   bad "citation resolution — a prose citation names a record that does not exist:$prose_problems
       This is the form that degrades WORST. A dangling relative link at least 404s when a human clicks
@@ -2502,6 +2633,163 @@ else
       nothing renders, errors or warns. If the record was folded elsewhere, every citation of it moves
       in the SAME commit. If it names a record in another repository, declare its number in
       FOREIGN_ADR_NUMBERS above and say which repository in the comment."
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+# EVERY NUMBER THIS LIBRARY HAS ISSUED IS EITHER A LIVE RECORD OR AN ACCOUNTED-FOR ROW (#283, slice 2).
+#
+# WHAT THIS IS THE ENFORCEMENT OF. ADR-0020 made a History row mandatory when a REVERSED record is
+# deleted, and said so in the record's own accepted-cost list: "Nothing enforces any of this —
+# measured, not assumed." Its considered option 4 (build a gate) was deferred, not rejected, on one
+# stated premise — "The deletion set in this library is EMPTY today, so the gate would have nothing to
+# run against here." #283 removes that premise: it takes the deletion set from zero to roughly
+# fourteen, and those fourteen are not reversals at all. They are live decisions being ABSORBED into a
+# capability document. The row is the only artifact that says the absorption was authorised, and until
+# this block existed nothing observed whether one was written.
+#
+# WHY THE ROW NEEDS A GATE WHEN THE CITATION BLOCK ABOVE ALREADY EXISTS. The citation block catches a
+# deletion INDIRECTLY and only for a record something still cites: remove a record and its ~90 prose
+# citations go red. That is most of the library and it is not all of it. A record cited nowhere — a
+# late, narrow one, which is exactly the kind most likely to be absorbed — is deleted in perfect
+# silence today, and the citation gate stays green because there is nothing left to dangle. This block
+# closes that case by keying on the NUMBER rather than on who cites it.
+#
+# THE TWO LAYERS, AND WHICH CONTROL EACH CAN HOLD (ADR-0008's question, answered for this rule):
+#   - THIS block asserts a row EXISTS for every retired number and that the row NAMES a destination.
+#   - The relative-link check above resolves that destination, because the row's link is a relative
+#     markdown link in a tracked `.md` like any other. It is deliberately NOT re-resolved here: one
+#     resolver, not two that can disagree.
+#   - The prose check above is what forbids the retired number being written as `ADR-nnnn` anywhere,
+#     including in the row itself. That is why the row form declared in
+#     `skills/documentation-standard/SKILL.md` is a BARE four-digit number: measured, `| 0008 | … |`
+#     matches neither citation regex, and the same row written with an `ADR-` prefix matches the prose
+#     one. The row can name a dead record precisely because it does not name it in the form a reader
+#     would follow. The prefixed form is DESCRIBED rather than quoted here on purpose — the prose arm
+#     greps the token, not the sentence, so a literal example in this comment would go red the day the
+#     record it names is absorbed, and the obvious repair would be to edit an example that was correct.
+#
+# WHAT ONLY A HUMAN CAN CHECK, SAID PLAINLY SO THE GREEN IS NOT READ AS MORE THAN IT IS. Nothing here
+# reads the destination's CONTENT. A row pointing at a capability document that does not actually carry
+# the absorbed decision, its live rejected options and its consequences passes this gate exactly like
+# one that does. The gate makes the absorption VISIBLE and ATTRIBUTABLE; whether it was LOSSLESS is a
+# reviewer's judgement and there is no instrument for it. Do not let this green stand in for that read.
+#
+# WHY A DECLARED HIGH-WATER CONSTANT RATHER THAN max(live). Deriving the ceiling from the files that
+# exist cannot see a deletion at the TOP of the sequence: remove the highest record and the derived max
+# simply moves down by one, no gap appears, and the number is silently free to be reused later — which
+# the citation block's own header already names as its worst residual ("A REDIRECT IS NOT A
+# RESOLUTION"). A declared ceiling closes the ACCIDENTAL case — the top record removed with the
+# constant left alone, which is the shape a real absorption takes. It does not close a DELIBERATE one,
+# and no declared constant can: measured, lowering the constant in the same edit as the deletion
+# re-greens the arm. The claim here read "closes that case completely" until #283 slice 2's re-review
+# measured it; the word is corrected rather than the control, because the accidental case is the one
+# worth closing and this is still a strict improvement on max(live).
+# It costs one line per new record, and forgetting to bump it fails CLOSED: the ceiling check below
+# goes red and says what to do.
+ADR_HIGH_WATER=20
+
+adr_live_count=0
+adr_max=0
+while IFS= read -r adr_file; do
+  [ -z "$adr_file" ] && continue
+  adr_base="$(basename "$adr_file")"
+  adr_num="${adr_base%%-*}"
+  case "$adr_num" in
+    ''|*[!0-9]*) continue ;;
+  esac
+  adr_live_count=$((adr_live_count + 1))
+  adr_n=$((10#$adr_num))
+  [ "$adr_n" -gt "$adr_max" ] && adr_max="$adr_n"
+done <<< "$(ls "$CITATION_ADR_DIR"/0*.md 2>/dev/null)"
+
+# The History section, if it exists at all. It deliberately does NOT exist while the retired set is
+# empty — ADR-0020 declined to invent a table with nothing to put in it, and this gate does not force
+# one: with no gaps, nothing below looks for a row.
+adr_history_rows=""
+if [ -r "$CITATION_ADR_DIR/README.md" ]; then
+  adr_history_rows="$(awk '/^## History/{h=1;next} /^## /{h=0} h' "$CITATION_ADR_DIR/README.md")"
+fi
+
+# The range the gap scan actually runs over. It is the DECLARED ceiling, except that a record numbered
+# above it raises it for this scan only — so a stale constant reddens its own arm below WITHOUT taking
+# the accounted-for verdict down with it. Chaining those two (the constant's arm above the row arm in
+# one `if/elif`) is what hid a missing History row behind an unbumped constant until #283 slice 2.
+adr_ceiling_scanned="$ADR_HIGH_WATER"
+[ "$adr_max" -gt "$adr_ceiling_scanned" ] && adr_ceiling_scanned="$adr_max"
+
+adr_gap_problems=""
+adr_gaps_checked=0
+adr_n=1
+while [ "$adr_n" -le "$adr_ceiling_scanned" ]; do
+  adr_padded="$(printf '%04d' "$adr_n")"
+  set -- "$CITATION_ADR_DIR/$adr_padded"-*.md
+  if [ -f "$1" ]; then
+    adr_n=$((adr_n + 1))
+    continue
+  fi
+  adr_gaps_checked=$((adr_gaps_checked + 1))
+  adr_row="$(printf '%s\n' "$adr_history_rows" | grep -E "^\| *$adr_padded *\|" || true)"
+  if [ -z "$adr_row" ]; then
+    adr_gap_problems="$adr_gap_problems
+    $adr_padded — no record file, and no '| $adr_padded |' row under '## History' in docs/adr/README.md"
+  elif ! printf '%s' "$adr_row" | grep -q '](\./'; then
+    adr_gap_problems="$adr_gap_problems
+    $adr_padded — has a History row, but the row names NO destination (no relative '](./…)' link)"
+  fi
+  adr_n=$((adr_n + 1))
+done
+
+# The reverse direction: a row for a number that is still live. Either the deletion was reverted and
+# the row was left behind, or the number was reissued — and a reissued number under an old row is the
+# redirect hazard, wearing the artifact that is supposed to prevent it.
+while IFS= read -r adr_row; do
+  [ -z "$adr_row" ] && continue
+  adr_rn="$(printf '%s' "$adr_row" | sed -n 's/^| *\([0-9][0-9][0-9][0-9]\) *|.*/\1/p')"
+  [ -z "$adr_rn" ] && continue
+  set -- "$CITATION_ADR_DIR/$adr_rn"-*.md
+  [ -f "$1" ] || continue
+  adr_gap_problems="$adr_gap_problems
+    $adr_rn — has a History row AND a live record file; one of the two is wrong"
+done <<< "$adr_history_rows"
+
+# TWO SUBJECTS AGAIN, TWO INDEPENDENT VERDICTS. The declared ceiling being current and every issued
+# number being accounted for are different assertions, and they were one `if/elif` chain in this
+# block's first form: a record added without bumping the constant reddened the ceiling arm and the
+# accounted-for arm below it emitted NOTHING, so a History row missing at the same time was invisible
+# until someone bumped the constant. Same defect as 4a/4b above, in the block that shipped alongside it.
+# The vacuity guard is repeated in both rather than shared, for the same reason it is there.
+
+# ── every issued number is a live record or an accounted-for row ──
+if [ "$adr_live_count" -eq 0 ]; then
+  bad "record numbering — NOT ONE record file was found in docs/adr/, and there were 20 when this was
+      written. The enumeration broke and the accounted-for scan is vacuous."
+elif [ "$adr_gaps_checked" -ne $((adr_ceiling_scanned - adr_live_count)) ]; then
+  bad "record numbering — the scan reports $adr_gaps_checked retired number(s) but $adr_ceiling_scanned
+      issued minus $adr_live_count live is $((adr_ceiling_scanned - adr_live_count)). The range scan did
+      not run over the range it claims — two files sharing a number will do this — so its per-number
+      verdicts mean nothing."
+elif [ -n "$adr_gap_problems" ]; then
+  bad "record numbering — a number this library issued is accounted for by nothing:$adr_gap_problems
+      A record leaves this library ONLY as a disposition, never as an absence. Write the row under
+      '## History' in docs/adr/README.md — bare four-digit number, what was decided, and a relative
+      link to where the decision now lives — in the SAME commit as the deletion. A deletion with no row
+      is not a disposition; it is a gap, and a gap is indistinguishable from a mistake."
+else
+  ok "record numbering — $adr_live_count live records, ceiling $adr_ceiling_scanned, $adr_gaps_checked retired number(s), each carrying a History row that names a destination"
+fi
+
+# ── the declared ceiling is current ──
+if [ "$adr_live_count" -eq 0 ]; then
+  bad "record numbering — the declared ceiling cannot be judged: NOT ONE record file was found in
+      docs/adr/. The enumeration broke, so ADR_HIGH_WATER has nothing to be compared against."
+elif [ "$adr_max" -gt "$ADR_HIGH_WATER" ]; then
+  bad "record numbering — the highest live record is $adr_max but ADR_HIGH_WATER is $ADR_HIGH_WATER.
+      A record was added without raising the ceiling. Raise ADR_HIGH_WATER in this file to $adr_max in
+      the same commit as the new record; until then a deletion at the top of the sequence is invisible
+      to this gate. The accounted-for arm above scanned to $adr_ceiling_scanned regardless, so its
+      verdict stands on its own and is not waiting on this repair."
+else
+  ok "record numbering — the declared ceiling $ADR_HIGH_WATER is at or above the highest live record $adr_max"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
