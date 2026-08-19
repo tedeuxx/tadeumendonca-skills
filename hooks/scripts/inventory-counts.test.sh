@@ -864,6 +864,30 @@ while IFS= read -r -d '' rel; do
 $ROOT/$rel"
 done < <(git -C "$ROOT" ls-files -z -- '*.md' '*.sh' 2>/dev/null)
 
+# ── THE CITATION SCAN SET, DEFINED HERE AND USED AT THE END OF THIS FILE ─────────────────────────
+# Declared next to `FLOOR_CLAIM_FILES` rather than beside the assertions that consume it, for one
+# reason: the gate-coverage check below unions every source this suite reads, and a set defined AFTER
+# that check is a set the check cannot see. That is precisely the hole its own comment describes — the
+# scan set derived in one place, the coverage list maintained in another, and nobody diffing them.
+# Defining it above the consumer makes the union mechanical instead of remembered.
+#
+# THE EXTENSION LIST IS WIDER THAN `FLOOR_CLAIM_FILES`, and deliberately so. That set is `*.md`/`*.sh`
+# because every layer that has drifted on a permission CLAIM is prose. A decision-record citation is a
+# different population: they are measured today in `.claude-plugin/plugin.json`, in four
+# `.github/ISSUE_TEMPLATE/*.yml` files and in `.github/workflows/claude-code-review.yml`. Narrowing to
+# markdown and shell would have left six files carrying live citations outside the gate built for them.
+CITATION_FILES=""
+while IFS= read -r -d '' rel; do
+  CITATION_FILES="$CITATION_FILES
+$ROOT/$rel"
+done < <(git -C "$ROOT" ls-files -z -- '*.md' '*.sh' '*.yml' '*.yaml' '*.json' '*.py' 2>/dev/null)
+
+CITATION_MD_FILES=""
+while IFS= read -r -d '' rel; do
+  CITATION_MD_FILES="$CITATION_MD_FILES
+$ROOT/$rel"
+done < <(git -C "$ROOT" ls-files -z -- '*.md' 2>/dev/null)
+
 if ! command -v jq >/dev/null 2>&1 || [ ! -r "$SETTINGS" ]; then
   bad "floor claims — floor unreadable (jq or $SETTINGS); this assertion did NOT run"
 else
@@ -1309,6 +1333,7 @@ else
     # like `$ROOT/commands/$r_fam/…` — and a check wrong more often than right is one the loop
     # learns to silence, which is the failure this repo has already rejected once.
     scanned_files="$FLOOR_CLAIM_FILES
+$CITATION_FILES
 $SETTINGS
 $HOOKS_JSON
 $WORKFLOW
@@ -2147,6 +2172,229 @@ else
   bad "published invocations — an install-and-invoke example names something that is not there:$inv_problems
       A wrong identifier CARRYING A SLASH is not reported as unknown: it falls through as prompt text and
       the model answers it anyway. A stale example here produces a confident wrong answer, not an error."
+fi
+
+# ---------------------------------------------------------------------------------------------------
+# EVERY CITATION OF A DECISION RECORD RESOLVES (#283, slice 1).
+#
+# WHY THIS EXISTS, AND WHY IT LANDS BEFORE THE CHANGE IT MUST CATCH. This repo's decision library is
+# cited ~795 times — measured at 1e9baf3: 202 occurrences in path form and 593 in the prose form
+# `ADR-` + four digits. Nothing anywhere resolved ONE of them. `grep -i link` over this file returned
+# zero hits before this block; the nearest instrument, `skills-resolve.test.sh`, resolves skill
+# identifiers and says nothing about `docs/`.
+#
+# That was tolerable only while no record had ever been removed, which was literally true: the deletion
+# set in this library was EMPTY. The reconciliation this gate was built for takes it from empty to
+# roughly fourteen in one slice. A relative link to a deleted record 404s on GitHub and errors nowhere;
+# a prose citation of a deleted record still READS as a valid reference to an agent and points at
+# nothing. Both are silent, which is the whole problem — the failure and the absence of a gate have the
+# same appearance.
+#
+# THE GATE IS DELIBERATELY WIDER THAN `docs/adr/`. It resolves EVERY relative markdown link in every
+# tracked `.md`, not only the ones naming a record. Measured before it was written: 198 such links, 0
+# broken — so the widening costs nothing today and covers the whole class instead of the instance. A
+# gate scoped to the one thing that is about to break is a gate that has to be re-scoped every time
+# something else does.
+#
+# ── WHAT IT DOES NOT COVER, SAID PLAINLY SO A GREEN IS NOT READ AS MORE THAN IT IS ───────────────
+#
+#   CROSS-REPO CITATIONS ARE NOT CHECKED, AND CANNOT BE FROM HERE. `tadeumendonca-io` cites this
+#     library's records, and this repo cites that one's. This suite has one working tree and no
+#     business cloning another, so a green here says nothing about whether a record removed in this
+#     repo is still cited in that one. That direction needs a gate in the consuming repo, or a
+#     scheduled cross-repo check; neither is built, and neither is in this slice. Read the green as
+#     "no citation INSIDE this repository dangles" and nothing wider.
+#     THE SHARP EDGE, MEASURED RATHER THAN IMAGINED: a prose citation of the OTHER library whose number
+#     collides with a live record here passes green while naming the wrong library. One exists today —
+#     the record on the merge precondition cites that repo's third record, and this library also has a
+#     third record. The number-based exemption below cannot see it, because the number is not foreign.
+#     Nothing here will ever catch that class; only a qualifier in the prose would.
+#   ANCHORS ARE NOT RESOLVED. `](./README.md#some-heading)` is checked as far as `README.md`; whether
+#     that heading exists is not checked. Heading text is prose and drifts constantly, and a check that
+#     is wrong more often than it is right is one the loop learns to silence.
+#   THE PROSE FORM IS CHECKED FOR EXISTENCE, NOT FOR AIM. A citation naming a live record that says
+#     something other than what the citing sentence claims passes here. That is a reader's job.
+#   A REDIRECT IS NOT A RESOLUTION. If a record is deleted and a file of the same name is later added
+#     for a different decision, every old citation goes green while pointing at new content.
+
+CITATION_ADR_DIR="$ROOT/docs/adr"
+
+# ── 1 · every relative markdown link resolves from the CITING file's own directory ───────────────
+link_problems=""
+links_checked=0
+while IFS= read -r file; do
+  [ -z "$file" ] && continue
+  [ -r "$file" ] || continue
+  link_dir="$(dirname "$file")"
+  while IFS= read -r target; do
+    [ -z "$target" ] && continue
+    case "$target" in
+      http://*|https://*|mailto:*|'#'*|'<'*) continue ;;
+    esac
+    # Strip a `#fragment` (anchors are out of scope, see the header) and a ` "title"` suffix.
+    target="${target%%#*}"
+    target="${target%% *}"
+    [ -z "$target" ] && continue
+    links_checked=$((links_checked + 1))
+    [ -e "$link_dir/$target" ] && continue
+    link_problems="$link_problems
+    ${file#"$ROOT"/} -> $target"
+  done <<< "$(grep -ohE '\]\([^)]+\)' "$file" 2>/dev/null | sed -E 's/^\]\(//; s/\)$//' || true)"
+done <<< "$CITATION_MD_FILES"
+
+if [ "$links_checked" -eq 0 ]; then
+  bad "citation resolution — not ONE relative markdown link was found across the tracked *.md set, and
+      there were 198 when this was written. Either every relative link left the repo — in which case
+      delete this block in the same commit — or the extraction broke and this assertion is vacuous."
+elif [ -z "$link_problems" ]; then
+  ok "citation resolution — all $links_checked relative markdown links resolve from their citing file's directory"
+else
+  bad "citation resolution — a relative markdown link points at a file that does not exist:$link_problems
+      This fails SILENTLY for every reader: GitHub renders the link and returns 404 on the click, and
+      nothing in this repo errors. If a record was removed, every citation of it moves in the SAME
+      commit — that is the rule this block exists to make mechanical."
+fi
+
+# ── 2 · no markdown link destination WRAPS A LINE ────────────────────────────────────────────────
+#
+# WHY THIS IS A SEPARATE ASSERTION AND NOT A SMARTER EXTRACTOR. A CommonMark inline link destination
+# may not contain a line break, so `[text](./some-` + newline + `rest.md)` is not a link at all: it
+# renders as literal text, with the parenthesised path shown to the reader. Teaching check 1 to join
+# lines would have made that case RESOLVE and go green — the extractor would repair a link the renderer
+# does not, and the gate would certify a citation that is broken on the published surface.
+#
+# ONE PRE-EXISTING OCCURRENCE IS DECLARED BELOW rather than fixed here. It was found BY this gate, in
+# the slice that built it, and its fix is an edit to a record body — reserved for #283's reconciliation
+# slice, which is the only slice authorised to touch `docs/adr/`. The declaration is self-cleaning: a
+# file listed here that no longer wraps a destination, or that wraps a second one, fails.
+WRAPPED_DEST_EXPECTED="docs/adr/0002-agentic-dev-loop-architecture.md"
+
+wrap_problems=""
+while IFS= read -r file; do
+  [ -z "$file" ] && continue
+  [ -r "$file" ] || continue
+  rel="${file#"$ROOT"/}"
+  wraps=$(grep -cE '\]\([^)]*$' "$file" 2>/dev/null || true)
+  expected=0
+  case " $WRAPPED_DEST_EXPECTED " in *" $rel "*) expected=1 ;; esac
+  [ "$wraps" = "$expected" ] && continue
+  wrap_problems="$wrap_problems
+    $rel: $wraps line-wrapped link destination(s), expected $expected"
+done <<< "$CITATION_MD_FILES"
+
+if [ -z "$wrap_problems" ]; then
+  ok "citation resolution — no markdown link destination wraps a line, beyond the one declared pre-existing occurrence"
+else
+  bad "citation resolution — a markdown link destination is split across a newline:$wrap_problems
+      A destination containing a line break is NOT parsed as a link. It renders as literal text with the
+      path visible, so the citation is broken on the published surface while resolving fine to any
+      line-joining tool. Re-wrap the paragraph so the destination sits on one line. If you FIXED the
+      declared occurrence, remove it from WRAPPED_DEST_EXPECTED in the same commit."
+fi
+
+# ── 3 · every repo-root-relative record path resolves ────────────────────────────────────────────
+#
+# The form a shell script, a workflow or a prose sentence uses when it names a record without linking
+# it. It is not a markdown link, so check 1 never sees it, and it breaks exactly as silently.
+#
+# THE LEADING-BOUNDARY GROUP IS LOAD-BEARING, AND IT WAS EARNED ON THIS BLOCK'S FIRST RUN. Without it
+# the pattern matches the tail of an ABSOLUTE URL into the consuming repo's library — one exists today,
+# in the record on the merge precondition, pointing at that repo's third record over https. The
+# substring is identical to a local path and the file is correctly absent here, so the gate reddened on
+# a citation that is right. Requiring the match to start at a line boundary or after a character that
+# cannot continue a path keeps the check on paths this repo can actually resolve. Cross-repo URLs are
+# out of scope by construction — see the header.
+path_problems=""
+paths_checked=0
+while IFS= read -r file; do
+  [ -z "$file" ] && continue
+  [ -r "$file" ] || continue
+  while IFS= read -r tok; do
+    [ -z "$tok" ] && continue
+    paths_checked=$((paths_checked + 1))
+    [ -f "$ROOT/$tok" ] && continue
+    path_problems="$path_problems
+    ${file#"$ROOT"/} names $tok — no such record"
+  done <<< "$(grep -ohE '(^|[^/[:alnum:]._-])docs/adr/0[0-9]{3}-[a-z0-9-]+\.md' "$file" 2>/dev/null \
+              | sed -E 's#^.*(docs/adr/)#\1#' || true)"
+done <<< "$CITATION_FILES"
+
+if [ "$paths_checked" -eq 0 ]; then
+  bad "citation resolution — not one repo-root-relative record path was found across the tracked scan
+      set, and there were 14 when this was written. Either the form fell out of use — delete this block
+      in the same commit — or the extraction broke."
+elif [ -z "$path_problems" ]; then
+  ok "citation resolution — all $paths_checked repo-root-relative record paths resolve"
+else
+  bad "citation resolution — a record is named by path and the file is not there:$path_problems
+      This form is invisible to a link checker and to a reader skimming for brackets. It is the form a
+      GATE uses when it couples itself to a record by filename, so a stale one can silently change what
+      a gate decides."
+fi
+
+# ── 4 · every prose `ADR-` + number names a live record ──────────────────────────────────────────
+#
+# SCOPE: REPO-WIDE, over every tracked file in the citation set, and NOT narrowed to a file class.
+# The alternative considered was to assert it only in `docs/adr/` and `agents/`, on the theory that
+# those are where citations are load-bearing. Measured, that theory is wrong: the prose form appears in
+# `README.md`, `CLAUDE.md`, all six agent briefs, five skill files, four hook scripts, three issue
+# templates, two workflows and `plugin.json`. There is no file class where a dangling citation is
+# harmless, because the consumer of this form is an AGENT reading whatever file it was handed, and the
+# failure is that the citation still looks valid. A narrower scope would have to justify which readers
+# deserve a dangling reference, and there is no such answer.
+#
+# THE FOREIGN LIST IS THE ONE EXEMPTION, AND IT IS THE CROSS-REPO BLIND SPOT MADE VISIBLE. Six
+# citations in this repo name records in `tadeumendonca-io`'s library, which this suite cannot open.
+# They are declared by NUMBER rather than by site: a site list would be six entries drifting on every
+# re-wrap, while the number is the thing that is actually foreign. Declaring them here is what turns a
+# cross-repo citation into a deliberate, reviewable act instead of an accident that reads as local.
+#
+# THE DECLARATION IS SELF-CLEANING. A number declared foreign that later EXISTS in this library is a
+# stale exemption hiding a real check, so it fails. That is the arm that keeps this list from becoming
+# the quiet allowlist every exemption list eventually becomes.
+FOREIGN_ADR_NUMBERS="0023 0043"
+
+foreign_problems=""
+for num in $FOREIGN_ADR_NUMBERS; do
+  set -- "$CITATION_ADR_DIR/$num"-*.md
+  [ -f "$1" ] || continue
+  foreign_problems="$foreign_problems
+    $num is declared FOREIGN but ${1#"$ROOT"/} exists here now — the exemption is hiding a real check"
+done
+
+prose_problems=""
+prose_checked=0
+while IFS= read -r file; do
+  [ -z "$file" ] && continue
+  [ -r "$file" ] || continue
+  while IFS= read -r tok; do
+    [ -z "$tok" ] && continue
+    num="${tok##*-}"
+    case " $FOREIGN_ADR_NUMBERS " in *" $num "*) continue ;; esac
+    prose_checked=$((prose_checked + 1))
+    set -- "$CITATION_ADR_DIR/$num"-*.md
+    [ -f "$1" ] && continue
+    prose_problems="$prose_problems
+    ${file#"$ROOT"/} cites $tok — no record numbered $num in docs/adr/"
+  done <<< "$(grep -ohE 'ADR-0[0-9]{3}' "$file" 2>/dev/null | sort -u || true)"
+done <<< "$CITATION_FILES"
+
+if [ "$prose_checked" -eq 0 ]; then
+  bad "citation resolution — not one prose 'ADR-nnnn' citation was found across the tracked scan set,
+      and there were 593 occurrences over 20 distinct numbers when this was written. The extraction
+      broke and every check in this block is vacuous."
+elif [ -n "$foreign_problems" ]; then
+  bad "citation resolution — the foreign-number exemption is stale:$foreign_problems
+      Remove the number from FOREIGN_ADR_NUMBERS so its citations are checked against this library."
+elif [ -z "$prose_problems" ]; then
+  ok "citation resolution — every prose ADR citation names a live record ($prose_checked distinct file/number pairs; $(printf '%s\n' $FOREIGN_ADR_NUMBERS | wc -l | tr -d ' ') numbers declared foreign and NOT checked)"
+else
+  bad "citation resolution — a prose citation names a record that does not exist:$prose_problems
+      This is the form that degrades WORST. A dangling relative link at least 404s when a human clicks
+      it; a dangling 'ADR-nnnn' reads to an agent as a valid reference to a decision, forever, and
+      nothing renders, errors or warns. If the record was folded elsewhere, every citation of it moves
+      in the SAME commit. If it names a record in another repository, declare its number in
+      FOREIGN_ADR_NUMBERS above and say which repository in the comment."
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
