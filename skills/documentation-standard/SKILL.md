@@ -298,14 +298,24 @@ at head, on the tree in place:
 
 ```
 mv docs/adr/0002-agentic-dev-loop-architecture.md <elsewhere>
-bash hooks/scripts/inventory-counts.test.sh        →  57 passed, 4 failed
+bash hooks/scripts/inventory-counts.test.sh        →  58 passed, 5 failed
 ```
 
-Three of those four are the **citation** gate (#283 slice 1) — the relative link, the record path and
-the prose `ADR-nnnn` forms each stop resolving. The fourth is the **record-numbering** gate (#283
+Four of those five are the **citation** gate (#283 slice 1): the relative link and the repo-root path
+stop resolving, the prose `ADR-nnnn` form stops resolving, and the **foreign-number exemption goes
+stale** — `0002` was the only file citing one of the two declared foreign numbers, so removing it
+leaves an exemption with nothing left to exempt. The fifth is the **record-numbering** gate (#283
 slice 2), which is the one that does not depend on anybody citing the record: it keys on the number, so
 it catches the deletion of a record nothing cites at all — the case the citation gate is blind to by
 construction, and the case an absorbed record is most likely to be.
+
+**This paragraph read `57 passed, 4 failed` and named a set of arms that included one which never ran,
+until #283 slice 2's review, and the correction is worth more than the number.** The count was real;
+the composition was not. The prose-citation arm reported **neither `PASS` nor `FAIL`** on that run — it sat below the
+stale-exemption arm in the same `if/elif` chain, so a red above it meant its verdict was never reached.
+An assertion did not fail, it **disappeared**, and because the totals stayed plausible no count could
+have surfaced it. Every arm in that block and in the numbering block now emits its own verdict, which
+is why the same mutation reports one more failure and one more pass than it did.
 
 **What is still discipline and not enforcement, stated exactly.** The row's **existence** and its
 **destination** are gated; the row's **honesty** is not, and the **fold** is not. Nothing reads whether

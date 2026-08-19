@@ -2482,17 +2482,43 @@ for num in $FOREIGN_ADR_NUMBERS; do
     $num is declared FOREIGN and NOTHING in this repo cites it any more — the exemption has no subject"
 done
 
-if [ "$prose_checked" -eq 0 ]; then
-  bad "citation resolution — not one prose 'ADR-nnnn' citation was found across the tracked scan set,
-      and there were 599 occurrences over 22 distinct numbers when this was written — 20 checked here
-      and 2 declared foreign below, measured with the command in this block's header. The extraction
-      broke and every check in this block is vacuous."
+# TWO SUBJECTS, TWO INDEPENDENT VERDICTS — AND THEY WERE ONE `if/elif` CHAIN UNTIL #283 SLICE 2.
+#
+# The exemption's honesty and the prose citations' resolution are different assertions about different
+# things, and they were chained: a stale exemption returned `bad` from the second arm, so the prose
+# verdict below it was never reached and emitted NEITHER `PASS` NOR `FAIL`. An assertion did not fail
+# — it DISAPPEARED, while the totals stayed plausible, which is why no count would ever have surfaced
+# it. That is this repo's signature defect (a check that silently stops checking) and it shipped inside
+# the slice whose whole subject was that class. `quality-assurance` found it by toggling
+# FOREIGN_ADR_NUMBERS on a mutated tree and watching the prose arm reappear.
+#
+# THE RULE THIS BLOCK NOW FOLLOWS, and the one to apply to any arm added here later: chain conditions
+# ONLY where the failing condition makes the next verdict genuinely UNCOMPUTABLE (an extraction that
+# returned nothing cannot be judged). Never chain two assertions merely because they share a subject
+# heading. Each `if` below therefore repeats its own vacuity guard rather than borrowing its
+# neighbour's — a broken extraction reddens BOTH, which is the correct reading, since both are vacuous.
+
+# ── 4a · the foreign-number exemption is still earned, in both directions ──
+if [ "$prose_checked" -eq 0 ] && [ -z "$foreign_seen" ]; then
+  bad "citation resolution — the foreign-number exemption cannot be judged: not one 'ADR-nnnn' token of
+      any kind was found across the tracked scan set, foreign or local. The extraction broke, so an
+      exemption reading as unused below would be an artifact of the break and not a finding."
 elif [ -n "$foreign_problems" ]; then
   bad "citation resolution — the foreign-number exemption is stale:$foreign_problems
       An exemption is only honest while it is still earned. If the number now names a record HERE,
       remove it from FOREIGN_ADR_NUMBERS so its citations are checked against this library; if nothing
       cites it any more, remove it because it exempts nothing and reads as evidence of a cross-repo
       citation that no longer exists."
+else
+  ok "citation resolution — each of the $(printf '%s\n' $FOREIGN_ADR_NUMBERS | wc -l | tr -d ' ') numbers declared foreign is still cited here and still names no record in this library"
+fi
+
+# ── 4b · every prose `ADR-nnnn` names a live record ──
+if [ "$prose_checked" -eq 0 ]; then
+  bad "citation resolution — not one prose 'ADR-nnnn' citation was found across the tracked scan set,
+      and there were 599 occurrences over 22 distinct numbers when this was written — 20 checked here
+      and 2 declared foreign below, measured with the command in this block's header. The extraction
+      broke and this check is vacuous."
 elif [ -z "$prose_problems" ]; then
   ok "citation resolution — every prose ADR citation names a live record ($prose_checked distinct file/number pairs; $(printf '%s\n' $FOREIGN_ADR_NUMBERS | wc -l | tr -d ' ') numbers declared foreign and NOT checked)"
 else
@@ -2547,8 +2573,14 @@ fi
 # exist cannot see a deletion at the TOP of the sequence: remove the highest record and the derived max
 # simply moves down by one, no gap appears, and the number is silently free to be reused later — which
 # the citation block's own header already names as its worst residual ("A REDIRECT IS NOT A
-# RESOLUTION"). A declared ceiling closes that case completely. It costs one line per new record, and
-# forgetting to bump it fails CLOSED: the high-water check below goes red and says what to do.
+# RESOLUTION"). A declared ceiling closes the ACCIDENTAL case — the top record removed with the
+# constant left alone, which is the shape a real absorption takes. It does not close a DELIBERATE one,
+# and no declared constant can: measured, lowering the constant in the same edit as the deletion
+# re-greens the arm. The claim here read "closes that case completely" until #283 slice 2's re-review
+# measured it; the word is corrected rather than the control, because the accidental case is the one
+# worth closing and this is still a strict improvement on max(live).
+# It costs one line per new record, and forgetting to bump it fails CLOSED: the ceiling check below
+# goes red and says what to do.
 ADR_HIGH_WATER=20
 
 adr_live_count=0
@@ -2573,10 +2605,17 @@ if [ -r "$CITATION_ADR_DIR/README.md" ]; then
   adr_history_rows="$(awk '/^## History/{h=1;next} /^## /{h=0} h' "$CITATION_ADR_DIR/README.md")"
 fi
 
+# The range the gap scan actually runs over. It is the DECLARED ceiling, except that a record numbered
+# above it raises it for this scan only — so a stale constant reddens its own arm below WITHOUT taking
+# the accounted-for verdict down with it. Chaining those two (the constant's arm above the row arm in
+# one `if/elif`) is what hid a missing History row behind an unbumped constant until #283 slice 2.
+adr_ceiling_scanned="$ADR_HIGH_WATER"
+[ "$adr_max" -gt "$adr_ceiling_scanned" ] && adr_ceiling_scanned="$adr_max"
+
 adr_gap_problems=""
 adr_gaps_checked=0
 adr_n=1
-while [ "$adr_n" -le "$ADR_HIGH_WATER" ]; do
+while [ "$adr_n" -le "$adr_ceiling_scanned" ]; do
   adr_padded="$(printf '%04d' "$adr_n")"
   set -- "$CITATION_ADR_DIR/$adr_padded"-*.md
   if [ -f "$1" ]; then
@@ -2608,18 +2647,22 @@ while IFS= read -r adr_row; do
     $adr_rn — has a History row AND a live record file; one of the two is wrong"
 done <<< "$adr_history_rows"
 
+# TWO SUBJECTS AGAIN, TWO INDEPENDENT VERDICTS. The declared ceiling being current and every issued
+# number being accounted for are different assertions, and they were one `if/elif` chain in this
+# block's first form: a record added without bumping the constant reddened the ceiling arm and the
+# accounted-for arm below it emitted NOTHING, so a History row missing at the same time was invisible
+# until someone bumped the constant. Same defect as 4a/4b above, in the block that shipped alongside it.
+# The vacuity guard is repeated in both rather than shared, for the same reason it is there.
+
+# ── every issued number is a live record or an accounted-for row ──
 if [ "$adr_live_count" -eq 0 ]; then
   bad "record numbering — NOT ONE record file was found in docs/adr/, and there were 20 when this was
-      written. The enumeration broke and every check in this block is vacuous."
-elif [ "$adr_max" -gt "$ADR_HIGH_WATER" ]; then
-  bad "record numbering — the highest live record is $adr_max but ADR_HIGH_WATER is $ADR_HIGH_WATER.
-      A record was added without raising the ceiling. Raise ADR_HIGH_WATER in this file to $adr_max in
-      the same commit as the new record; until then a deletion at the top of the sequence is invisible
-      to this gate."
-elif [ "$adr_gaps_checked" -ne $((ADR_HIGH_WATER - adr_live_count)) ]; then
-  bad "record numbering — the scan reports $adr_gaps_checked retired number(s) but $ADR_HIGH_WATER
-      issued minus $adr_live_count live is $((ADR_HIGH_WATER - adr_live_count)). The range scan did not
-      run over the range it claims, so its per-number verdicts mean nothing."
+      written. The enumeration broke and the accounted-for scan is vacuous."
+elif [ "$adr_gaps_checked" -ne $((adr_ceiling_scanned - adr_live_count)) ]; then
+  bad "record numbering — the scan reports $adr_gaps_checked retired number(s) but $adr_ceiling_scanned
+      issued minus $adr_live_count live is $((adr_ceiling_scanned - adr_live_count)). The range scan did
+      not run over the range it claims — two files sharing a number will do this — so its per-number
+      verdicts mean nothing."
 elif [ -n "$adr_gap_problems" ]; then
   bad "record numbering — a number this library issued is accounted for by nothing:$adr_gap_problems
       A record leaves this library ONLY as a disposition, never as an absence. Write the row under
@@ -2627,7 +2670,21 @@ elif [ -n "$adr_gap_problems" ]; then
       link to where the decision now lives — in the SAME commit as the deletion. A deletion with no row
       is not a disposition; it is a gap, and a gap is indistinguishable from a mistake."
 else
-  ok "record numbering — $adr_live_count live records, ceiling $ADR_HIGH_WATER, $adr_gaps_checked retired number(s), each carrying a History row that names a destination"
+  ok "record numbering — $adr_live_count live records, ceiling $adr_ceiling_scanned, $adr_gaps_checked retired number(s), each carrying a History row that names a destination"
+fi
+
+# ── the declared ceiling is current ──
+if [ "$adr_live_count" -eq 0 ]; then
+  bad "record numbering — the declared ceiling cannot be judged: NOT ONE record file was found in
+      docs/adr/. The enumeration broke, so ADR_HIGH_WATER has nothing to be compared against."
+elif [ "$adr_max" -gt "$ADR_HIGH_WATER" ]; then
+  bad "record numbering — the highest live record is $adr_max but ADR_HIGH_WATER is $ADR_HIGH_WATER.
+      A record was added without raising the ceiling. Raise ADR_HIGH_WATER in this file to $adr_max in
+      the same commit as the new record; until then a deletion at the top of the sequence is invisible
+      to this gate. The accounted-for arm above scanned to $adr_ceiling_scanned regardless, so its
+      verdict stands on its own and is not waiting on this repair."
+else
+  ok "record numbering — the declared ceiling $ADR_HIGH_WATER is at or above the highest live record $adr_max"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
