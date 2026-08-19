@@ -1292,9 +1292,9 @@ mechanical for this persona (rules 5d and 7b's catch-alls), not a new hook or a 
 latter was considered and rejected on the record already made at `agents/quality-assurance.md:100-102`
 (the `security`/`Edit(.claude/**)` failure). `harness-lead` also gains a durable, posted verdict
 (ADR-0006's shape) and a real Issue for its harness proposals (`loop`-typed), with `ready` on a
-`loop`-typed Issue now an **owner-only** transition — closing the question [ADR-0012](./0012-issue-type-
-is-the-routing-axis-and-is-exclusive.md) named and left open (*"whether `loop` items should ever reach
-`ready` autonomously the way `product` items can"*).
+`loop`-typed Issue now an **owner-only** transition — closing the question
+[ADR-0012](./0012-issue-type-is-the-routing-axis-and-is-exclusive.md) named and left open (*"whether
+`loop` items should ever reach `ready` autonomously the way `product` items can"*).
 
 **What is unchanged:** the roster count (still five), tier 1's membership, the merge authority (still
 `quality-assurance` alone, rule 7b), and the reason `harness-lead` was created in the first place —
