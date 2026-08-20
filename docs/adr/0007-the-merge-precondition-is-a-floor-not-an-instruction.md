@@ -9,12 +9,12 @@
   recorded it as self-enforced)
 - **Date:** 2026-08-03
 - **Deciders:** owner (ratifies) · `quality-assurance` and `security` (both subject to it)
-- **Supersedes / superseded by:** **reverses [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s rejected option 2** (gating `gh pr merge` on the marker's existence), answering that rejection on its own terms
-- **Driven by:** the drift recorded in [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md), #135 and #136; opened after an owner-requested assessment of which harness mechanism each rule belongs in
+- **Supersedes / superseded by:** **reverses [ADR-0006](./0006-verification-and-its-artifacts.md)'s rejected option 2** (gating `gh pr merge` on the marker's existence), answering that rejection on its own terms
+- **Driven by:** the drift recorded in [ADR-0006](./0006-verification-and-its-artifacts.md), #135 and #136; opened after an owner-requested assessment of which harness mechanism each rule belongs in
 
 ## Context & problem
 
-[ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md) fixed the right half of a problem: a verdict owed to another persona now exists as a **comment on the PR** rather than as prose in an orchestrator's context, so it can be read rather than relayed.
+[ADR-0006](./0006-verification-and-its-artifacts.md) fixed the right half of a problem: a verdict owed to another persona now exists as a **comment on the PR** rather than as prose in an orchestrator's context, so it can be read rather than relayed.
 
 It did not fix the other half. **The rule that reads that artifact is itself prose**, living in `agents/quality-assurance.md` — an instruction to a model, executed by the same model it constrains, in a file that model also edits.
 
@@ -80,7 +80,7 @@ Chosen: **the hook on `gh pr merge`**, because the act is one ADR-0004 already p
 
 **The markers carry an author check, and this is a trust class neither existing hook takes.** This repository is **public**, so PR comments are **world-writable**: a precondition testing only the marker line, the verdict literal and the head SHA can be satisfied by a drive-by account. That is not the impersonation residue ADR-0006 records — a trusted party writing with the right token — it is an untrusted stranger, and `wip-guard.sh` reads only repo-controlled metadata.
 
-The filter is `author.login` plus **`authorAssociation: OWNER`, and nothing wider**. That set is chosen here, not inherited: this repo's Merge Request Definition of Done carries no such idiom, and the consuming repo's own third record, [trunk-based, single environment](https://github.com/tedeuxx/tadeumendonca-io/blob/main/docs/adr/0003-trunk-based-single-environment.md), admits `OWNER` alone. (Both were written as a prefixed citation of number 0003 until 2026-08-19 — two different records under one token, in one sentence, which is the collision the citation gate's own header names as unresolvable from here. The local half is now [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s *Merge Request Definition of Done* section; the cross-repo half is named by title so nothing reads it as local.) It is also right on the merits — these markers are written by the harness with the token it already holds, so the party to recognise is the account that runs it.
+The filter is `author.login` plus **`authorAssociation: OWNER`, and nothing wider**. That set is chosen here, not inherited: this repo's Merge Request Definition of Done carries no such idiom, and the consuming repo's own third record, [trunk-based, single environment](https://github.com/tedeuxx/tadeumendonca-io/blob/main/docs/adr/0003-trunk-based-single-environment.md), admits `OWNER` alone. (Both were written as a prefixed citation of number 0003 until 2026-08-19 — two different records under one token, in one sentence, which is the collision the citation gate's own header names as unresolvable from here. The local half is now [ADR-0006](./0006-verification-and-its-artifacts.md)'s *Merge Request Definition of Done* section; the cross-repo half is named by title so nothing reads it as local.) It is also right on the merits — these markers are written by the harness with the token it already holds, so the party to recognise is the account that runs it.
 
 **Two constraints inherited rather than rediscovered**, both already paid for by the existing hooks: collapse quoted spans before matching the command, or a commit message quoting `gh pr merge` triggers a network round-trip; and match the marker on the **first line only**, never "contains" — the literal appears in both persona files, in this ADR, and in every review comment discussing it.
 
@@ -149,8 +149,8 @@ The page bounds **count, not bytes** — a stranger cannot choose how many comme
 - **Two mechanisms now encode part of one rule** — the hook (artifacts present and current) and the persona file (what they mean). That is the split this ADR argues for, but it is still a seam, and a change to the marker shape must move both.
 
 ## Links
-- [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md) — the verdict as artifact; this ADR enforces what that one made readable, and reverses its rejected option 2
-- The Definition of Done this gate reviews against — record 0003 until 2026-08-19, now the *Merge Request Definition of Done* section of [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md). **Not the source of the author-and-association idiom**, and this hook checks no ratification rule.
+- [ADR-0006](./0006-verification-and-its-artifacts.md) — the verdict as artifact; this ADR enforces what that one made readable, and reverses its rejected option 2
+- The Definition of Done this gate reviews against — record 0003 until 2026-08-19, now the *Merge Request Definition of Done* section of [ADR-0006](./0006-verification-and-its-artifacts.md). **Not the source of the author-and-association idiom**, and this hook checks no ratification rule.
 - [ADR-0004](./0004-autonomy-and-permission-model.md) — the permission floor and `permission-guard.sh`, whose decided rule places a push to the trunk behind a hook. *That record's contract header reads "Fails OPEN (allows) on any parse error" — it has no fail-closed rule, and the claim that it did was struck from `wip-guard.sh` on 2026-08-02 with a measured falsifier.*
 - #136 — pinning marker literals to each persona's canonical set. Load-bearing for the hook slice rather than merely adjacent.
 - #134 — the marker's retirement mechanism, unsolved; a hook reading markers depends on that question having an answer.
@@ -211,7 +211,7 @@ the non-obvious part and the reason it is written down:
 
 > The decision was always justified by **drift**, not impersonation — *"against a party doing its honest
 > best with a wrong rule, a hook buys exactly what the artifact does not: **it is not reading the
-> rule**."* [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s fourth amendment
+> rule**."* [ADR-0006](./0006-verification-and-its-artifacts.md)'s fourth amendment
 > records that the gate-reads-gate check has lost its subject and the remaining verdict is now
 > **self-enforced**. A self-enforced precondition is precisely the configuration this record exists to
 > object to.

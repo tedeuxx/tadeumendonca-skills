@@ -57,7 +57,7 @@ Observed, not hypothetical: four such defects in one MR (`tadeumendonca-io#81`),
 1. **A `product-owner` persona, advisory, triggered from `critical-reviewer`** (chosen) — a fresh
    context whose ruler is the owner's private positioning source. *Trade-off:* a second context per
    content MR, and its trigger is an instruction inside another persona rather than a mechanism.
-2. **Extend the DoD ([ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md), the record
+2. **Extend the DoD ([ADR-0006](./0006-verification-and-its-artifacts.md), the record
    that carries it since record 0003 was absorbed on 2026-08-19) and give `critical-reviewer` the
    positioning mandate** — *strongest
    rejected alternative*, and it wins on the axis option 1 is weakest: `critical-reviewer` already runs
@@ -476,7 +476,7 @@ criterion"* — and nothing else in it. That amendment's mandate, capability gua
 > decided that a gate **must** relay the copy verdict, so the criterion now reads **returned AND its
 > text is on the PR** — a return into the orchestrator's context, where it dies, satisfies nothing.
 > The decision, its scope, its accepted cost and the measurement behind it are in
-> [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s third 2026-08-04 amendment;
+> [ADR-0006](./0006-verification-and-its-artifacts.md)'s third 2026-08-04 amendment;
 > the criterion's operative text is in `agents/quality-assurance.md`, which is where it lives and which
 > is the only place to read it. **Item 2's second half is untouched** — a claim the reviewer can itself
 > falsify still fails the criterion whatever the lens returned, and it is the residual that carries the
@@ -1393,6 +1393,6 @@ as a stopgap) — both outside this ADR's write scope.
 
 ## Links
 - Driven by ADR-0001 (ADRs are the brain this depends on) · the DoD is
-  [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s *Merge Request Definition of
+  [ADR-0006](./0006-verification-and-its-artifacts.md)'s *Merge Request Definition of
   Done* section, absorbed there from record 0003 on 2026-08-19 · autonomy/tool-scoping is
   ADR-0004 · full design in `docs/proposals/agentic-dev-loop.md`.

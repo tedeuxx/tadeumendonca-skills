@@ -33,7 +33,7 @@ Two further problems compound the naming gap:
    an Issue executable (`agents/tech-lead.md`, `agents/product-lead.md`), it applies the ADR-0012 routing
    label (`product`/`content`/`loop`) that decides which review path an Issue takes, it commits and
    pushes on behalf of every dispatch, and — per ADR-0006's own measured evidence
-   (`docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md:523`, citing `-io`#338) — it has, at
+   (`docs/adr/0006-verification-and-its-artifacts.md:523`, citing `-io`#338) — it has, at
    least once, decided **not** to dispatch a review lens although the trigger for it had already fired:
    *"the trigger fires and it has NOT been dispatched."* None of that is written down as a duty list; it
    is inferred from scattered mentions.
@@ -104,7 +104,7 @@ ever targets it.
 - Applies the ADR-0012 routing label (`product`/`content`/`loop`) that determines an Issue's review path.
 - Decides, in the moment, whether a given review specialist needs dispatching at all — a real judgment
   call already exercised at least once, measured on `-io`#338: the copy-lens trigger fired and the lens
-  was not dispatched at all (`docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md:523`),
+  was not dispatched at all (`docs/adr/0006-verification-and-its-artifacts.md:523`),
   with no owner sign-off and no gate on it today.
 
 **Boundary — stated precisely, in two parts, because it is not one uniform thing:**
@@ -140,7 +140,7 @@ ever targets it.
     failure shape than "decides the irreversible" — it is an **invisible omission**, and it is not a
     hypothetical one: ADR-0006's own measurement of `-io`#338 records exactly this — the copy-lens
     trigger fired and *"the trigger fires and it has NOT been dispatched"*
-    (`docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md:523`). `README.md:259` already
+    (`docs/adr/0006-verification-and-its-artifacts.md:523`). `README.md:259` already
     names the consequence generally ("an undispatched lens fails silently and looks identical to a clean
     one"), but the existing one-line boundary (`README.md:150`) is scoped to deploy-class acts and does
     not cover it. This record names the dispatch-omission judgment as the boundary's blind spot
@@ -219,7 +219,7 @@ way ADR-0004 and ADR-0005 book obligations onto later work rather than dischargi
 - [ADR-0002](./0002-agentic-dev-loop-architecture.md) — cited, not amended: the actor this record names
   is the one ADR-0002 calls "the main loop" (`ADR-0002:812` uses "main agent"); this record narrows
   nothing ADR-0002 decided, it converges the vocabulary ADR-0002 helped originate.
-- [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md) — cited: its own measured
+- [ADR-0006](./0006-verification-and-its-artifacts.md) — cited: its own measured
   evidence (`-io`#338, `:523`) is the real instance — not a hypothetical — of the orchestrator omitting a
   dispatch that this record's fifth duty and boundary discussion rely on.
 - [ADR-0008](./0008-which-layer-carries-a-control.md) — cited: the discipline of stating what a layer
@@ -230,7 +230,7 @@ way ADR-0004 and ADR-0005 book obligations onto later work rather than dischargi
 - [ADR-0012](./0012-issue-type-is-the-routing-axis-and-is-exclusive.md) — cited: already names the
   ungated-relabeling question as open, and already uses "orchestrator" in prose (`:39`); this record does
   not re-decide either point.
-- `README.md:150,177,193,259` · `docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md:523`
+- `README.md:150,177,193,259` · `docs/adr/0006-verification-and-its-artifacts.md:523`
   · `hooks/scripts/permission-guard.sh:118` · `hooks/scripts/permission-guard.test.sh:143,221-228,336` ·
   `.claude/settings.json:51,54` · `hooks/scripts/inventory-counts.test.sh` (the comment *"A rule that
   lives only in CLAUDE.md does not reach a subagent"*) — the measurements this record is built on, each

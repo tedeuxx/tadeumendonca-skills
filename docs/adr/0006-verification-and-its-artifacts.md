@@ -1,4 +1,15 @@
-# 0006. A verdict one persona owes another is an artifact on the PR, not a relayed claim
+# 0006. Verification and its artifacts
+
+**This record is the capability document for `verification-and-its-artifacts`.** It was titled *A
+verdict one persona owes another is an artifact on the PR, not a relayed claim*, and filed as
+`0006-a-verdict-owed-to-another-persona-is-an-artifact.md`, until 2026-08-20 — when the owner decided
+that an anchor is named for its **capability** rather than for the decision that originated it
+([#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283), part 3 slice S3). The originating
+decision is unchanged and is the body below; what changed is that this file stopped being named after
+one of the decisions it holds once it began holding more than one. The number did not move, so every
+`ADR-0006` citation in either repository is unaffected; the **filename** did, and every path-form
+citation of it was rewritten in the same commit as the rename — which the citation gate asserts, so
+the claim is checkable rather than reported (`bash hooks/scripts/inventory-counts.test.sh`).
 
 - **Capability:** verification-and-its-artifacts
 - **Status:** accepted · **amended 2026-08-03** (both gatekeepers granted `Write`; the load-bearing

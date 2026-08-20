@@ -6,7 +6,7 @@
 - **Deciders:** the owner
 - **Driven by:** [ADR-0002](./0002-agentic-dev-loop-architecture.md), and the Merge Request Definition of
   Done — record 0003 until 2026-08-19, now a section of
-  [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)
+  [ADR-0006](./0006-verification-and-its-artifacts.md)
 
 ## Context & problem
 The goal is to reduce the human's per-item approvals for delimited/roadmap work **without** giving up the
@@ -22,7 +22,7 @@ enforce it so it isn't just a promise an agent can break.
 1. **DoD classification + per-persona tool-scoping** (chosen) — the `critical-reviewer` approves **and
    merges** the **safe class** (docs, deps, test-only, in-pattern refactor, in-pattern implementation of an
    already-approved spec/ADR) once the DoD
-   ([ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s *Merge Request Definition of
+   ([ADR-0006](./0006-verification-and-its-artifacts.md)'s *Merge Request Definition of
    Done* section) is green; the **boundary class** (architecture,
    contracts, `iac/`, positioning/public content, any ADR change, anything irreversible) always escalates
    to the human. Enforced mechanically: build specialists have **no merge tool**; the reviewer has **no
@@ -39,7 +39,7 @@ merge; a reviewer *cannot* edit), reinforced by the existing global permission f
 (`apply`/`destroy`/`--force`/`rm -rf`/secrets/`--dangerously-skip-permissions` denied + the `PreToolUse`
 guard hook, unchanged). Significance always pulls a merge from the subagent — the *significance beats
 in-pattern* resolution of the DoD, in
-[ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md).
+[ADR-0006](./0006-verification-and-its-artifacts.md).
 
 ## Consequences
 **Good**
@@ -57,7 +57,7 @@ in-pattern* resolution of the DoD, in
 
 The *Decision outcome* above claimed the classification is "mechanically enforced … a specialist *cannot*
 merge." Half of that held and half was a promise. **The reviewer-has-no-edit-tool half was real** (its
-agent definition grants no Write/Edit — since [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s
+agent definition grants no Write/Edit — since [ADR-0006](./0006-verification-and-its-artifacts.md)'s
 2026-08-03 amendment it holds a scratchpad-scoped `Write` for composing its verdict body, and still no
 `Edit`, so the *cannot edit code* half this sentence rests on is unchanged). **The no-merge-tool half was not:** merging goes through
 `gh pr merge`, and the consuming repo's committed `.claude/settings.json` allowlists `Bash(gh pr merge:*)`
@@ -305,7 +305,7 @@ wall. What differs is the **shape**, and it needs one sentence rather than a new
   > is the whole of it.** As written above, 5e left the denied persona's *finding* with no assured route
   > to the PR: the deny message said `quality-assurance` would carry it, and at the time nothing had
   > decided that it would. The owner has now decided it —
-  > [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s **third 2026-08-04
+  > [ADR-0006](./0006-verification-and-its-artifacts.md)'s **third 2026-08-04
   > amendment**: the merging gate **must** quote the copy verdict verbatim under its own marker, and
   > criterion 10 is unsatisfied until the text is on the PR. **So the consequence this rule created is
   > no longer an open gap.**
@@ -557,7 +557,7 @@ a bug and works around it, which is the failure mode this record exists to preve
 
 ## Links
 - Driven by ADR-0002 and the Merge Request Definition of Done (record 0003, absorbed 2026-08-19 into
-  [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)) · consumed per project via
+  [ADR-0006](./0006-verification-and-its-artifacts.md)) · consumed per project via
   committed `.claude/settings.json` · the global
   floor + guard hook are described in the plugin's `/principles/permissions-and-environments` · amended
   (2026-07-25) to add the agent-scoped merge gate (rule 7b in `permission-guard.sh`), closing #77 ·
@@ -571,7 +571,7 @@ a bug and works around it, which is the failure mode this record exists to preve
   wrapped form, **neither is a sandbox** — and that the hook's *"settings.json is the authoritative
   backstop"* claim is inverted for wrapped commands (owner-accepted cost) · appended (2026-08-04) to
   record that rule 5e's orphaned consequence is closed by
-  [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s decided relay, and the
+  [ADR-0006](./0006-verification-and-its-artifacts.md)'s decided relay, and the
   obligation a persona-keyed publication deny carries from now on · **the layering half of the second
   2026-08-04 amendment is superseded by [ADR-0008](./0008-which-layer-carries-a-control.md)** — its
   *"the hook, not the floor, stops them"* sentence because it was **false when written** (an empirical

@@ -199,7 +199,7 @@ that, **say so as the finding** — an unanchored review is the defect, and revi
 the intake failed.
 
 The **Merge Request Definition of Done** (methodology
-[ADR-0006](../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md), section *The Merge
+[ADR-0006](../docs/adr/0006-verification-and-its-artifacts.md), section *The Merge
 Request Definition of Done*, absorbed there from record 0003 on 2026-08-19; full checklist in
 [README.md](../README.md)) is the *how* of proving the two things this gate exists for:
 that the Issue was delivered, and that merging will not break what is already running. Every criterion

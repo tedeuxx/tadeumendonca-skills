@@ -235,7 +235,7 @@ does not show that any of them matches a task.
   than right trains the loop to silence it*, which is the reason option 3 is refused rather than
   deferred; and the Merge Request Definition of Done, whose *decision recorded* criterion is what
   made this record's absence a blocking finding — record 0003 until 2026-08-19, now a section of
-  [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md).
+  [ADR-0006](./0006-verification-and-its-artifacts.md).
 - **Evidence re-derived at `596481e`, not relayed:** `git grep -c "^description:" 593886b~1 -- commands/`
   → two files, against 75 today, for the 73-with-no-frontmatter figure; and a scan of the 75
   frontmatter blocks for the **112** pointers, **zero** dangling, and the **four** duplicated stems

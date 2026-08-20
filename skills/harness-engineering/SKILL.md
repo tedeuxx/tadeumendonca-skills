@@ -180,7 +180,7 @@ owner works that decision out with; it does not make it.
 **`blocked` is orthogonal, not a sixth step.** It can attach at any point and returns the item to
 wherever it was.
 
-**Since [ADR-0006](../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)** the
+**Since [ADR-0006](../../docs/adr/0006-verification-and-its-artifacts.md)** the
 `reviewed` row's artifact is real — the gatekeeper posts a marker comment carrying the head SHA it
 read, so a verdict on a moved head fails loudly instead of reading as approval. Until 2026-08-04 that
 verdict was checked by a second gatekeeper (`security`) before merge; `security` was absorbed into
@@ -327,7 +327,7 @@ reads to the agent as delivery and to the owner as stopping.**
    requirement of the Issue met?*) and production (*can this cause a problem in production?*). Both
    are labelled per finding. The gatekeeper posts its verdict to the PR before returning — a
    `<!-- gatekeeper-verdict: … -->` comment carrying the head SHA it read
-   ([ADR-0006](../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)). A relay
+   ([ADR-0006](../../docs/adr/0006-verification-and-its-artifacts.md)). A relay
    from the invoking context is a notification, never the authority.
 
 ### Always true

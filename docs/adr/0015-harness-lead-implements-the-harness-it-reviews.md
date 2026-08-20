@@ -323,7 +323,7 @@ ship a persona whose own brief still describes a tool it now has as one it doesn
   question this ADR closes (S7, `loop`-ready autonomy) and for the separate-dispatches mitigation the
   owner already named there as the shape a future capability decision should take; also the source of
   `(product OR loop) AND ready`, which Corollary 4 narrows for `loop` specifically.
-- [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md) — the shape Corollary 3's marker
+- [ADR-0006](./0006-verification-and-its-artifacts.md) — the shape Corollary 3's marker
   follows (Issue-comment, not a relayed claim), and the precedent for referencing a commit SHA rather
   than a PR head where a PR may not yet exist.
 - [ADR-0008](./0008-which-layer-carries-a-control.md) — cited for the routing test Corollary 1's rejected
