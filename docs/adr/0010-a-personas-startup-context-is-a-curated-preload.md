@@ -1,5 +1,6 @@
 # 0010. A persona's startup context is a **curated preload** — each brief declares the skills it loads in full, nothing else in the library reaches it, and the identifiers are asserted in CI because a wrong one is silent
 
+- **Capability:** skills-and-preload
 - **Status:** accepted
 - **Date:** 2026-08-10
 - **Deciders:** the owner (he ordered the curation ahead of the directory split on [#172](https://github.com/tedeuxx/tadeumendonca-skills/issues/172), and ratified the five lists by labelling the Issue `ready`); curated and recorded by `tech-lead`; ordering and cross-surface half closed by `product-lead`

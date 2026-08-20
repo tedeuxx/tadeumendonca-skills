@@ -1,5 +1,6 @@
 # 0001. Adopt MADR Architecture Decision Records
 
+- **Capability:** decision-library
 - **Status:** accepted
 - **Date:** 2026-07-22
 - **Deciders:** the owner (ratified); this is the bootstrap ADR

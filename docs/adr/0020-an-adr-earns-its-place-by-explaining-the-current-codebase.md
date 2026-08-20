@@ -1,5 +1,6 @@
 # 0020. An ADR earns its place by explaining the **current** codebase
 
+- **Capability:** decision-library
 - **Status:** accepted
 - **Date:** 2026-08-15
 - **Deciders:** the owner (decision); written by `harness-lead` per

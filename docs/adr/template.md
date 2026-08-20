@@ -1,5 +1,6 @@
 # NNNN. <short decision title>
 
+- **Capability:** <one of the closed set in README.md> <!-- the capability document this record belongs to -->
 - **Status:** proposed <!-- proposed | accepted | superseded by ADR-XXXX | rejected -->
 - **Date:** YYYY-MM-DD
 - **Deciders:** <who> <!-- the owner decides; tech-lead owns the RECORD and writes it -->

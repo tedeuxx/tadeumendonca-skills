@@ -1,5 +1,6 @@
 # 0008. Which layer carries a control — the hook is authoritative, the deny list is the direct-form floor, and the authoritative layer fails open
 
+- **Capability:** permissions
 - **Status:** accepted
 - **Date:** 2026-08-04
 - **Deciders:** the owner

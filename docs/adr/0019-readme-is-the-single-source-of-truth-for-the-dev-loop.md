@@ -1,5 +1,6 @@
 # 0019. README.md is the single source of truth for the dev-loop documentation
 
+- **Capability:** decision-library
 - **Status:** accepted
 - **Date:** 2026-08-14
 - **Deciders:** owner (decision), harness-lead (record)

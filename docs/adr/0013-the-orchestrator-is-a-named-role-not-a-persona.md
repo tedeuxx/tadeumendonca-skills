@@ -1,5 +1,6 @@
 # 0013. The orchestrator is a named role — one term, listed duties, a stated boundary — not a persona
 
+- **Capability:** roster-and-dev-loop
 - **Status:** accepted
 - **Date:** 2026-08-12
 - **Deciders:** owner (ratifies) · tech-lead (writes the record)
@@ -37,7 +38,7 @@ Two further problems compound the naming gap:
    *"the trigger fires and it has NOT been dispatched."* None of that is written down as a duty list; it
    is inferred from scattered mentions.
 2. **The one place a boundary is stated (`README.md:150`) is not the orchestrator's own loaded context.**
-   `hooks/scripts/inventory-counts.test.sh:1397` states the general rule this record must obey: *"A rule
+   `hooks/scripts/inventory-counts.test.sh` states the general rule this record must obey: *"A rule
    that lives only in CLAUDE.md does not reach a subagent: CLAUDE.md is the MAIN agent's context, and a
    persona's context is its own brief."* Read the other way: CLAUDE.md **is** the orchestrator's own
    context, loaded every session, and README.md is not loaded as anyone's context automatically. A
@@ -75,8 +76,8 @@ dispatchable persona it structurally is not?**
    produced a distinguishable-but-unlabelled term in `ADR-0012:39` (`orchestrator`) beside the guard's own
    `main agent` and the README's `main session` — the drift is active, not hypothetical, and every new
    file picks a spelling ad hoc. And the one existing boundary statement lives in a file
-   (`README.md:150`) the actor it describes never loads, which `inventory-counts.test.sh:1397`'s own
-   stated rule says makes it non-reaching. Status quo is not neutral; it is "keep the decorative
+   (`README.md:150`) the actor it describes never loads, which `inventory-counts.test.sh`'s own stated
+   rule — *"a persona's context is its own brief"* — says makes it non-reaching. Status quo is not neutral; it is "keep the decorative
    definition and the naming drift."
 
 3. **Give it a full `agents/*.md` persona brief, as a sixth roster member.** *Why not:* every persona in
@@ -231,7 +232,8 @@ way ADR-0004 and ADR-0005 book obligations onto later work rather than dischargi
   not re-decide either point.
 - `README.md:150,177,193,259` · `docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md:523`
   · `hooks/scripts/permission-guard.sh:118` · `hooks/scripts/permission-guard.test.sh:143,221-228,336` ·
-  `.claude/settings.json:51,54` · `hooks/scripts/inventory-counts.test.sh:1397` — the measurements this
-  record is built on, each cited at the site it was verified.
+  `.claude/settings.json:51,54` · `hooks/scripts/inventory-counts.test.sh` (the comment *"A rule that
+  lives only in CLAUDE.md does not reach a subagent"*) — the measurements this record is built on, each
+  cited at the site it was verified.
 - Driven by a `harness-lead` pre-implementation stress test (six scenarios; no Issue — filed and
   closed within tier 1 as a methodology-library decision).

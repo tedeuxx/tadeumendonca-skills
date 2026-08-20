@@ -1,5 +1,6 @@
 # 0017. ADR authorship is split by domain — `tech-lead` writes product/system records, `harness-lead` writes loop/machinery records
 
+- **Capability:** decision-library
 - **Status:** accepted
 - **Date:** 2026-08-13
 - **Deciders:** the owner, decided directly in conversation, 2026-08-13; recorded here per this record's

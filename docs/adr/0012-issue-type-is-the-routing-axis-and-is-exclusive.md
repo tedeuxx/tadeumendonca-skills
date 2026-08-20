@@ -1,6 +1,7 @@
 # 0012. The dev-loop has THREE issue types — `product` / `content` / `loop` — and they are the
 **ROUTING axis, exclusive**, not the granularity axis; four corollaries follow from making that true
 
+- **Capability:** intake-and-routing
 - **Status:** accepted
 - **Date:** 2026-08-12
 - **Deciders:** the owner (four decisions below, each a direct ruling); written by `tech-lead`;

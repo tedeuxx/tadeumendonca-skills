@@ -1089,8 +1089,11 @@ fi
 #    it was a PASSWORD — a required prefix token, after which any path on disk is reachable.
 #
 #    WHY THE RULE IS NOT "FORBID THE WILDCARD". That was the previous answer and it is a real one; it
-#    is written out at `inventory-counts.test.sh:461-464`, which also says a future need "should arrive
-#    as a deliberate change to THIS assertion, reviewed, rather than as a quiet line in the floor."
+#    is written out in `inventory-counts.test.sh`, in the comment above its shell-wildcard assertion,
+#    which also says a future need "should arrive as a deliberate change to THIS assertion, reviewed,
+#    rather than as a quiet line in the floor." (The line locator this cited, `:461-464`, was stale and
+#    pointed at unrelated code; replaced 2026-08-19, #283 slice 1, per `documentation-standard`'s
+#    "cite the clause, not the line".)
 #    This is that change. Forbidding the wildcard restores the friction the scratch work exists to
 #    remove — one frozen absolute path per probe, and agents generate distinct paths.
 #

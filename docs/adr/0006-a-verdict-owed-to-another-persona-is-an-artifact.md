@@ -1,5 +1,6 @@
 # 0006. A verdict one persona owes another is an artifact on the PR, not a relayed claim
 
+- **Capability:** verification-and-its-artifacts
 - **Status:** accepted · **amended 2026-08-03** (both gatekeepers granted `Write`; the load-bearing
   `--body-file` question inside *Consequences* is closed) · **amended 2026-08-04** (the closing open
   question's premise is falsified — `marketing-lead` no longer exists and the copy lens now holds
