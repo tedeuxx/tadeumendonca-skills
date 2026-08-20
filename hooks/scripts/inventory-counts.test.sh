@@ -2292,14 +2292,23 @@ fi
 #     "no citation INSIDE this repository dangles" and nothing wider.
 #     THE SHARP EDGE, MEASURED RATHER THAN IMAGINED: a prose citation of the OTHER library whose number
 #     collides with a live record here is resolved LOCALLY and passes green, without the check ever
-#     establishing that the two are the same record. One such citation exists today — the record on the
-#     merge precondition cites that repo's third record, and this library also has a third record. Be
-#     precise about what is wrong with it, because the first draft of this note was not: that citation
-#     is CORRECT — its prose says "the consuming repo's" and its destination is an absolute URL into
-#     that repo — so what passes vacuously is the CHECK, not the citation. The exposure is the next one,
-#     written without either disambiguator. The number-based exemption below cannot see either case,
-#     because the number is not foreign. Nothing here will ever catch that class; only a qualifier in
-#     the prose would.
+#     establishing that the two are the same record. ~~One such citation exists today — the record on the
+#     merge precondition cites that repo's third record, and this library also has a third record.~~
+#     STRUCK #283 SLICE S2: NEITHER HALF IS TRUE ANY MORE, and the way it stopped being true is the
+#     point. This library's third record was ABSORBED into the verification anchor and deleted, so (a)
+#     there is no local record for a cross-repo citation of that number to collide with, and (b) the
+#     citation in the merge-precondition record was rewritten to name the consuming repo's record by
+#     TITLE rather than by number — because once the local record is gone, the prefixed form no longer
+#     resolves locally and reddens the arm below, on a citation that is correct. The exemption list
+#     could not take it: declaring the number foreign would have exempted a number this library has
+#     ITSELF retired, so a leftover local citation of the dead record would then pass green. That is a
+#     real hole in the number-based exemption and it has no cheap repair — the list keys on a number,
+#     and a number can be foreign and retired-here at the same time.
+#     The rest of the note stands and is why this paragraph is kept: what passed vacuously was the
+#     CHECK, not the citation; the exposure is the NEXT such citation, written with no disambiguator in
+#     the prose. Nothing here will ever catch that class. There are ZERO instances in the tree today
+#     (the only one was rewritten by this slice), which means this hazard is now documented and
+#     unexercised — read that as "no example to learn from", not as "closed".
 #   ANCHORS ARE NOT RESOLVED. `](./README.md#some-heading)` is checked as far as `README.md`; whether
 #     that heading exists is not checked. Heading text is prose and drifts constantly, and a check that
 #     is wrong more often than it is right is one the loop learns to silence.

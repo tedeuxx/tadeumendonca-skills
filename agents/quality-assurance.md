@@ -198,7 +198,9 @@ not because you restrain yourself but because there is nothing to anchor it to.
 that, **say so as the finding** — an unanchored review is the defect, and reviewing it anyway hides that
 the intake failed.
 
-The **Merge Request Definition of Done** (methodology ADR-0003; full checklist in
+The **Merge Request Definition of Done** (methodology
+[ADR-0006](../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md), section *The Merge
+Request Definition of Done*, absorbed there from record 0003 on 2026-08-19; full checklist in
 [README.md](../README.md)) is the *how* of proving the two things this gate exists for:
 that the Issue was delivered, and that merging will not break what is already running. Every criterion
 is objective — verify each with **evidence** (a command's real output, a line in the diff), never with

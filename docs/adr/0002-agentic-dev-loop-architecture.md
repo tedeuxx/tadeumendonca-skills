@@ -57,7 +57,9 @@ Observed, not hypothetical: four such defects in one MR (`tadeumendonca-io#81`),
 1. **A `product-owner` persona, advisory, triggered from `critical-reviewer`** (chosen) — a fresh
    context whose ruler is the owner's private positioning source. *Trade-off:* a second context per
    content MR, and its trigger is an instruction inside another persona rather than a mechanism.
-2. **Extend the DoD (ADR-0003) and give `critical-reviewer` the positioning mandate** — *strongest
+2. **Extend the DoD ([ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md), the record
+   that carries it since record 0003 was absorbed on 2026-08-19) and give `critical-reviewer` the
+   positioning mandate** — *strongest
    rejected alternative*, and it wins on the axis option 1 is weakest: `critical-reviewer` already runs
    on **every** MR, so the trigger problem disappears. Rejected because it requires giving the merging
    persona read access to the **private** `.brand/` source. That persona has `Bash`, merges, and writes
@@ -1390,5 +1392,7 @@ as a stopgap) — both outside this ADR's write scope.
   why the boundary class still escalates to a human (ADR-0004).
 
 ## Links
-- Driven by ADR-0001 (ADRs are the brain this depends on) · the DoD is ADR-0003 · autonomy/tool-scoping is
+- Driven by ADR-0001 (ADRs are the brain this depends on) · the DoD is
+  [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s *Merge Request Definition of
+  Done* section, absorbed there from record 0003 on 2026-08-19 · autonomy/tool-scoping is
   ADR-0004 · full design in `docs/proposals/agentic-dev-loop.md`.

@@ -4,7 +4,9 @@
 - **Status:** accepted
 - **Date:** 2026-07-22
 - **Deciders:** the owner
-- **Driven by:** [ADR-0002](./0002-agentic-dev-loop-architecture.md), [ADR-0003](./0003-mr-definition-of-done.md)
+- **Driven by:** [ADR-0002](./0002-agentic-dev-loop-architecture.md), and the Merge Request Definition of
+  Done — record 0003 until 2026-08-19, now a section of
+  [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)
 
 ## Context & problem
 The goal is to reduce the human's per-item approvals for delimited/roadmap work **without** giving up the
@@ -19,7 +21,9 @@ enforce it so it isn't just a promise an agent can break.
 ## Considered options
 1. **DoD classification + per-persona tool-scoping** (chosen) — the `critical-reviewer` approves **and
    merges** the **safe class** (docs, deps, test-only, in-pattern refactor, in-pattern implementation of an
-   already-approved spec/ADR) once the DoD (ADR-0003) is green; the **boundary class** (architecture,
+   already-approved spec/ADR) once the DoD
+   ([ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s *Merge Request Definition of
+   Done* section) is green; the **boundary class** (architecture,
    contracts, `iac/`, positioning/public content, any ADR change, anything irreversible) always escalates
    to the human. Enforced mechanically: build specialists have **no merge tool**; the reviewer has **no
    edit tool**. The plugin defines the model; the project's committed settings consume it. *Trade-off:* the
@@ -33,7 +37,9 @@ Chosen: **classified autonomy, mechanically enforced.** The safe class self-merg
 boundary escalates. Tool-scoping makes the classification a capability boundary (a specialist *cannot*
 merge; a reviewer *cannot* edit), reinforced by the existing global permission floor
 (`apply`/`destroy`/`--force`/`rm -rf`/secrets/`--dangerously-skip-permissions` denied + the `PreToolUse`
-guard hook, unchanged). Significance always pulls a merge from the subagent (ADR-0003).
+guard hook, unchanged). Significance always pulls a merge from the subagent — the *significance beats
+in-pattern* resolution of the DoD, in
+[ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md).
 
 ## Consequences
 **Good**
@@ -550,7 +556,9 @@ a bug and works around it, which is the failure mode this record exists to preve
 **Accepted cost, named rather than solved:** nothing mechanical asserts that a skill's prose description of a decision still matches the ADR it describes. This amendment records the one incident that surfaced; it is not a standing check.
 
 ## Links
-- Driven by ADR-0002, ADR-0003 · consumed per project via committed `.claude/settings.json` · the global
+- Driven by ADR-0002 and the Merge Request Definition of Done (record 0003, absorbed 2026-08-19 into
+  [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)) · consumed per project via
+  committed `.claude/settings.json` · the global
   floor + guard hook are described in the plugin's `/principles/permissions-and-environments` · amended
   (2026-07-25) to add the agent-scoped merge gate (rule 7b in `permission-guard.sh`), closing #77 ·
   amended (2026-08-02) to record where mechanism belongs and where a skill carries the rule instead

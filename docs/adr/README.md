@@ -49,15 +49,47 @@ measured false rather than merely doubted.** That row was published anchored on
 weakest boundary in the set — separate *"because 0002 is already the largest record in the library by a
 wide margin"*. Both halves of that failed:
 
-- **The consolidated document was not going to be the largest.** Summing each capability's records as
-  they stand, `controls-and-enforcement` was already the larger of the two:
+- **The taxonomy leak below is what carries this bullet. The SIZE comparison that used to carry it was
+  false, and it is corrected here rather than swapped.** ~~*"Summing each capability's records as they
+  stand, `controls-and-enforcement` was already the larger of the two"* — 152,559 against 149,589.~~
+  **Struck 2026-08-19 (#283, slice S2).** The roster command summed `0002 + 0013 + 0015` **only** — it
+  omitted `0012`, `0014` and `0019`, the three records *the same commit* moved into that capability. So
+  it compared a **pre**-fold roster against a **post**-fold controls set, which is the defect class this
+  Issue has been chasing throughout: **the base moved under the figure**, and the figure kept reading as
+  though it had not. Re-derived over the set that actually shipped — and **pinned to a named commit**,
+  for a reason the next two lines pay for:
 
-      wc -c docs/adr/0004*.md docs/adr/0007*.md docs/adr/0008*.md docs/adr/0018*.md   # 152559 total
-      wc -c docs/adr/0002*.md docs/adr/0013*.md docs/adr/0015*.md                     # 149589 total
+      wc -c docs/adr/0004*.md docs/adr/0007*.md docs/adr/0008*.md docs/adr/0018*.md   # 153725 total
+      wc -c docs/adr/0002*.md docs/adr/0012*.md docs/adr/0013*.md docs/adr/0014*.md docs/adr/0015*.md docs/adr/0019*.md   # 199925 total
+      # both at 448c506. Neither set contains a file this slice edits (git diff --name-only 448c506
+      # -> 0006 and this README only), so a bare wc -c in the working tree returns the same totals.
+      # To re-read a single file immune to any working tree: git cat-file -s 448c506:<path>
 
-  So a size objection that admitted the seventh name had to admit an eighth splitting the larger
-  document, and nobody proposed one. **"By a wide margin" was also wrong at record grain** — 0002 is
-  about 1.5× 0008, the next largest, not a different order.
+  **`roster-and-dev-loop` is 1.30× `controls-and-enforcement` and is the largest document this
+  reconciliation produces** — the opposite of what the struck sentence said, and the conclusion is
+  unchanged by the correction below.
+
+  **These two figures were published wrong once, and the failure is the same one this bullet exists to
+  name — its third instance, committed by the correction itself.** They read 152,611 and 199,626 until
+  2026-08-20: measured at `main`, **before** this reconciliation's own edits to 0002, 0004 and 0007, and
+  then published inside the commit that made those edits. **The base moved under the figure again.**
+  Only the digits were wrong; the ratio moved 1.31× → 1.30× and the conclusion survived.
+
+  **The standing rule this earns, because S3 and S4 will meet it:** a `wc -c` figure taken over files a
+  slice is itself editing is stale the moment it is committed, whatever the author intends. Either pin
+  it to a named commit and say which — the form above — or take the measurement **last**, after the
+  slice's final edit. A live command with no ref beside it is not reproducible; it is only *currently*
+  true, which is indistinguishable from wrong the next time anyone runs it.
+
+  Note the original controls figure also did not reproduce its own then-published number (152,611, not
+  152,559, a 52-byte drift); only the roster half was wrong by composition.
+
+  **What this changes and what it does not.** It does **not** reverse the six-name call — the taxonomy
+  leak in the next bullet carries that on its own, and the size argument was always the weaker of the
+  two. What it changes is what this table may claim: a size objection admitting a seventh name would
+  now have to admit an eighth splitting **roster**, not controls, and nobody has proposed one.
+  **"By a wide margin" was also wrong at record grain** — 0002 is about 1.5× 0008, the next largest,
+  not a different order — and that half of the correction stands unchanged.
 - **The taxonomy leaked in both directions, with named artifacts.**
   [0002](./0002-agentic-dev-loop-architecture.md) carries a section headed *"Decision — the intake
   chain, and what each link buys"* — intake's defining mechanism, living in the roster anchor. And
@@ -73,7 +105,10 @@ Folded: 0012 and 0014 join 0013, 0015 and 0019 under `roster-and-dev-loop`, anch
 about **200 KB**:
 
     wc -c docs/adr/0002*.md docs/adr/0012*.md docs/adr/0013*.md docs/adr/0014*.md docs/adr/0015*.md docs/adr/0019*.md
-    # 199621 total
+    # 199925 total    ← at 448c506, the pinned base above. Published as 199621 until 2026-08-19
+    #                   (off by 5), then as 199626 until 2026-08-20 — that second figure was measured
+    #                   before this reconciliation's own edits to 0002, and is the same base-moved-under-
+    #                   the-figure defect the bullet above records.
 
 That is an **upper bound on the inputs, not a prediction of the document** — [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)'s
 disposition 4 makes the fold *lossy by instruction*, so what arrives is the decision as it currently
@@ -83,8 +118,9 @@ the content does not have.
 
 **The field assigns a record to a document; it does not promise the document is self-contained.** This
 is named because the strongest objection to `verification-and-its-artifacts` is a *completeness* one,
-and completeness does not resolve into a move. Reading only [0003](./0003-mr-definition-of-done.md) and
-[0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md), a reader does not learn who holds
+and completeness does not resolve into a move. Reading only
+[0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md) — which since 2026-08-19 is that
+whole capability, record 0003 having been absorbed into it — a reader does not learn who holds
 the gate, that the merge precondition is mechanically a floor, or that a harness diff is boundary-class
 absent a `harness-lead` verdict marker. All three were examined for relocation and **none of them
 moves**:
@@ -166,7 +202,6 @@ change is good is a check, and checks are `verification-and-its-artifacts`.
 |---|---|---|
 | [0001](./0001-adopt-madr-adrs.md) | Adopt MADR Architecture Decision Records | accepted |
 | [0002](./0002-agentic-dev-loop-architecture.md) | Agentic dev-loop architecture (per-task subagents, ADRs-as-brain) | accepted · amended 2026-07-23 (`product-owner`; then `product-manager` · `analytics` · `debugger`) · **amended 2026-07-24** (amendment #3 — roster reshape: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master`; owner-ratified, implementation sequenced per #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger is a fail-closed rule, not a path list) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; DoD criterion 10; the lenses self-classify severity) · **amended 2026-08-02** (amendment #7 — roster 19 → 6 on a new criterion: a persona exists only where conflict is wanted) · **amended 2026-08-02** (amendment #8 — the intake chain; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite) · **amended 2026-08-04** (amendment #9 — `marketing-lead` merges into `product-lead`, roster 6 → 5; the blocking-truth clause carries across explicitly, the capability floor behind it does not) · **appended 2026-08-04** (amendment #9's accepted cost is **closed** — the remedy it pre-committed to, a tool grant, is struck in favour of an `agent_type`-keyed deny that keeps `Bash` and removes publishing; the `/architecture` obligation is booked in ADR-0004) · **appended 2026-08-04** (amendment #6 item 2's summary of criterion 10 is **superseded** — the criterion no longer passes on *"the lens returned a verdict"*; see ADR-0006's third 2026-08-04 amendment. Its second half, the reviewer's own falsifiability clause, stands) · **amended 2026-08-04** (amendment #10 — **`harness-lead` joins tier 1**, the owner's pair on the machinery: advisory, pre-implementation, gates nothing, standing rule *every scenario ships with how to verify it or is labelled a hypothesis*. **`security` is absorbed into `quality-assurance`**, which holds two lenses in one pass and labels every finding with its lens — owner's decision, reaffirmed after objection, for fewer profiles reconciling one result on the same MR. **The roster is still five and two members changed.** Four costs booked, the structural one being that **nobody now observes the gate that signs the merge**, which is why the merged persona did not inherit `Edit`. The persona criterion widens from *conflict wanted* to **four reasons**, with **reconciliation cost paid within a tier**. Amendment #9's *"both approvals are still required"* is **struck** — a record describing a control as stronger than it is. And the rule the gap leaves behind: **a count is not an identity**, since swapping one persona for another held `inventory-counts` at five and every gate stayed green. **An omission, not a policy** — the previous roster change amended four records in the same commit) · **amended 2026-08-12** (amendment #11 — Decision 1's *"advisory, pre-implementation"* clause is **struck** rather than rewritten, on the owner's reversal: `harness-lead` gains an implementer role over [ADR-0015](./0015-harness-lead-implements-the-harness-it-reviews.md). The **merge** and **MR-review** clauses of Decision 1 stand verbatim and unchanged — `harness-lead` still never merges and never gates an MR; only its pre-build-only limit is reversed) |
-| [0003](./0003-mr-definition-of-done.md) | Merge Request Definition of Done | accepted |
 | [0004](./0004-autonomy-and-permission-model.md) | Autonomy & permission model (classes, tool-scoping) | accepted · **amended 2026-07-25** (the agent-scoped merge gate — rule 7b — makes "only the reviewer merges" mechanically true, #77) · **amended 2026-08-02** (where mechanism belongs and where a skill carries the rule instead; the accurate `agent_type` property is *cannot claim*, not *cannot obtain* — these rules enforce **routing**, #125) · **amended 2026-08-03** (the main agent's ASK on `gh issue create` is removed — visible-by-construction versus invisible; the subagent deny is untouched) · **amended 2026-08-04** (per-persona scoping now has a **second** surface — an `agent_type`-keyed deny in the floor alongside the `tools:` frontmatter; effective capability is the grant *minus* the denials; books the obligation on `tadeumendonca-io`'s `/architecture`) · **appended 2026-08-04** (5e's orphaned consequence is closed by ADR-0006's decided relay — the *act* still has no destination, the *content* now does, and the separation the rule buys is exactly as wide as before; a persona-keyed publication deny must name the receiver of that persona's output in the same MR) · **amended 2026-08-04, second** (what each layer of the floor actually stops — the deny list holds the direct form, the hook holds the wrapped form, **neither is a sandbox**; its layering half is superseded by [ADR-0008](./0008-which-layer-carries-a-control.md), and **its opening decision — *"`Bash(bash:*)` and `Bash(sh:*)` stay in the committed floor"* — is superseded in place later the same day**: the owner took the interpreter class out of `allow` (`14d7b43`, `786437c`) once plain string concatenation showed a fourth patch to the unwrap regex buys a spelling and not the class. Non-containment stays accepted; `node`/`python3` stay granted, which is why removing the rest is a change to what is *free*, not to what is *contained*) |
 | [0005](./0005-plugin-auto-versions-on-merge.md) | The plugin auto-versions on every merge; adoption is the consumer's opt-in | accepted · **amended 2026-08-10** (adds the *which part* axis for one case the record left to `CLAUDE.md`: **a follow-on PATCH may carry the remainder of a break whose first half already shipped under a MAJOR** — [#164](https://github.com/tedeuxx/tadeumendonca-skills/issues/164)'s split travelling on top of `1.0.0`, decided by the owner and **recorded as an interpretation**, with both readings kept and neither provable from the tree: *one contract change cut halfway* (chosen — the rename rule was **satisfied at `1.0.0`, not waived**; `7590a14` carried no content, it was an announcement) against *two separate breaks* (`#174` removed four commands, the split renames sixty-nine). **The additive escape is explicitly unavailable** — `commands/` holds 2 files, `skills/` 69, and the names change — so on the second reading this is a knowing deviation. Affordability is a **circumstance, not a rule**: the one consumer is pinned per-version in `installed_plugins.json` and a pin is a lockfile; any future appeal must re-derive the consumer set. Books the capability change the number does not carry (**`Skills (2)` → `Skills (71)`, +9,919 always-on tok/session**, relayed from #182) and weighs the **second renamed surface** — `skills:` preload identifiers go family-qualified → bare — as **fact-strengthening but part-neutral**, since its only author today is `agents/**` here and `skills-resolve.test.sh` assertion 5 reddens on the old form. **Rules on the release-note obligation:** `quality-assurance`'s proposed assertion belongs **nowhere in its proposed form** — `version-main.yml:57-91` **generates** the whole body from commit subjects with `--no-merges`, so no one authors notes, the PR title never appears, the first line is a section heading (`### 🐛 Fixes` for this branch) and the check would fire after the tag is pushed, which ADR-0008 routes to the wrong layer; a follow-up may re-specify it at **PR time on commit subjects**, not pre-approved. What keeps the obligation alive is named as weak on purpose: a post-publish `gh release edit --notes-file`, with the pull-in-the-interval cost booked. Rejected: `2.0.0` (with the cost of being wrong stated) · a MINOR (asserts a compatibility that is false — it buys signal by making the number lie) · hand-authored notes (the generator overwrites unconditionally). **The trigger decision, the auto-patch model and every original consequence stand unchanged**) |
 | [0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md) | A verdict one persona owes another is an artifact on the PR, not a relayed claim | accepted · **amended 2026-08-03** (both gatekeepers granted a scratchpad-scoped `Write`; the load-bearing `--body-file` question inside *Consequences* is closed — measured: a ~60-line verdict posted with every backtick hand-stripped) · **amended 2026-08-04** (the *closing* open question's premise is falsified by ADR-0002 amendment #9 — `marketing-lead` no longer exists and the copy lens now holds `Bash`; the hole it named survives) · **amended 2026-08-04, second** (rule 5e now stands behind the copy lens's identifier-only rule, which **prices** the third-marker question rather than settling it; flags that 5e's deny message cites this record for a relay mechanism it does not name) · **amended 2026-08-04, third** (**the closing open question is CLOSED** — a gate **may** relay another persona's verdict and, where a criterion waits on it and the floor denies that persona every route to publish, **must**; `quality-assurance` quotes the copy verdict **verbatim under its own marker** and criterion 10 upgrades from *returned* to *returned and quoted*. Accepted cost: the carrier merges, so attribution is weaker than a first-party artifact and selective quoting has no detector. The **multiplier objection survives** and is now the standing reason not to revive the third marker. Evidence: the alternative was measured at **five omissions in one session**. Relaying `security`'s approval or the owner's ratification remains forbidden) · **amended 2026-08-04, fourth** (**the gate-reads-gate verification has lost its subject** — `security` is absorbed per ADR-0002 amendment #10, so the remaining verdict is posted by the party that merges and **read by nobody**. The artifact survives and still closes *omission*; **confirmation** is gone, and *"verified"* should not be written of the remaining gate. The exclusion list loses `security`'s approval as an entry and keeps its principle — **authority versus record** — with the owner's ratification now its only member. The relay decision and the multiplier objection are untouched). **The decision itself is unchanged by all five.** |
@@ -208,3 +243,25 @@ force moves into the document that governs it. It is the only disposition whose 
 a **destination** — no destination, no deletion — and it is the one this library's own reconciliation
 runs on. **This applies to whole
 records only**: inside a live record, amend by appending and strike in place, never rewrite — unchanged.
+
+## History
+
+**A record leaves this library only as a disposition, never as an absence.** Every number this library
+has issued is either a live record in the table above or a row here, and
+`hooks/scripts/inventory-counts.test.sh` asserts that **in both directions** — a missing number with no
+row reddens, and a row for a number that is still live reddens too — against a declared ceiling rather
+than the highest surviving file, because a deletion at the *top* of the sequence leaves no gap to find.
+
+**The number is written bare, never with an `ADR-` prefix**, and that is mechanical rather than
+stylistic: the same gate's prose arm asserts every `ADR-nnnn` token in a tracked file names a **live**
+record, and it does not except this table. A prefixed row would name a dead record in exactly the form a
+reader — or an agent — would follow.
+
+**What the gate cannot check, so that this table's green is not over-read:** it never opens the
+destination. A row pointing at a document that never received the decision passes exactly like one
+pointing at a document that did. Whether the fold was **lossless** is a reviewer's judgement and there
+is no instrument for it.
+
+| # | what it decided | where the decision lives now |
+|---|---|---|
+| 0003 | The Merge Request Definition of Done — the pacted, objective ruler the gate reviews against; its safe/boundary classification of who may merge; the three pacted resolutions (significance beats in-pattern, coverage ≥ 85%, the approval hook); and the rule that adjacent debt is named in a review and never filed | [0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md) — section *The Merge Request Definition of Done (absorbed 2026-08-19, record 0003)*. Absorbed under [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)'s fourth disposition on [#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283), slice S2 |

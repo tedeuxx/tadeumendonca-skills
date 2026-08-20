@@ -14,10 +14,12 @@
   unchanged by all five** — ~~the relay is an addition alongside the two first-party markers, never a
   substitute for either.~~ **Corrected by the fourth amendment:** there is now **one** first-party
   marker, and the relay is an addition alongside it. That it is never a substitute is what did not
-  change.
+  change. **Absorbed record 0003 on 2026-08-19** (#283) — this file is the capability document for
+  `verification-and-its-artifacts`, and the Merge Request Definition of Done is now a section of it.
 - **Date:** 2026-08-02
 - **Deciders:** the owner
-- **Driven by:** [ADR-0003](./0003-mr-definition-of-done.md), [ADR-0004](./0004-autonomy-and-permission-model.md)
+- **Driven by:** the Merge Request Definition of Done — record 0003 until 2026-08-19, absorbed into this
+  document below — and [ADR-0004](./0004-autonomy-and-permission-model.md)
 
 ## Context & problem
 
@@ -45,9 +47,15 @@ gate approved — and a relay is the one thing this loop already refuses to trus
    reviewed` row named *"their verdicts on the PR"* — in the column whose entire job is to answer *what
    records that this happened*.
 
-**And the standard was inverted.** [ADR-0003](./0003-mr-definition-of-done.md)'s amendment established
-that the owner's ratification is verified from the PR itself and that *a relay is a notification, never
-the authority*. A gatekeeper's veto was held to a weaker standard than the owner's ratification — and
+**And the standard was inverted.** The loop already held that the owner's ratification is verified from
+the PR itself and that *a relay is a notification, never the authority* — the rule this record then made
+mechanical, and which `/harness-engineering` states in its inner-loop section. (This sentence attributed
+that rule to a *"2026-07-29 amendment"* of record 0003 until 2026-08-20. The amendment is real; the
+number was a **cross-repo collision** — it belongs to the consuming repo's third record,
+[trunk-based delivery, single environment](https://github.com/tedeuxx/tadeumendonca-io/blob/main/docs/adr/0003-trunk-based-single-environment.md),
+not to this library's 0003 — see *A citation that resolved to another library* below.) A gatekeeper's
+veto was held to a weaker standard
+than the owner's ratification — and
 the veto fires on **every** MR while the ratification fires only on the boundary class.
 
 ## Decision drivers
@@ -120,7 +128,8 @@ the veto fires on **every** MR while the ratification fires only on the boundary
 5. **A GitHub review approval instead of a comment.** *Why not:* GitHub refuses a review approval from
    the PR's own author, and every PR here is authored by the same token the gatekeepers run under, so
    the mechanism is unavailable rather than merely awkward. A comment carries the same information on
-   the same surface with the same verification path already proven by ADR-0003.
+   the same surface with the same verification path the Definition of Done had already proven (record
+   0003, absorbed into this document below).
 
 ## Decision outcome
 
@@ -415,8 +424,11 @@ transport for findings the gate must then apply. Two things stay first-party onl
 - **`security`'s approval.** The merge precondition is satisfied by `security`'s own marker at the
   current head, verified with `gh pr view`. A relay of it remains exactly what this record was written
   to refuse.
-- **The owner's ratification** ([ADR-0003](./0003-mr-definition-of-done.md)'s 2026-07-29 amendment). *A
-  relay is a notification, never the authority* stands verbatim.
+- **The owner's ratification.** *A relay is a notification, never the authority* stands verbatim. (This
+  bullet cited a *"2026-07-29 amendment"* of record 0003 until 2026-08-20. Both the rule and the
+  amendment are real; the **number** was the defect — it names the consuming repo's
+  [trunk-based delivery, single environment](https://github.com/tedeuxx/tadeumendonca-io/blob/main/docs/adr/0003-trunk-based-single-environment.md),
+  not this library's 0003 — see *A citation that resolved to another library* below.)
 
 The discriminator is **authority versus record**. A verdict that *permits an act* must be first-party,
 because the party that benefits from the permission must not be the party that reports it. A verdict
@@ -622,15 +634,168 @@ trivial and there is still nowhere to put it.
   relay of it remains exactly what this record was written to refuse"* has **no referent**; the persona
   is gone. **The discriminator is untouched** — *authority versus record*, a verdict that **permits an
   act** must be first-party, a verdict that **supplies findings a gate then judges** may be carried. The
-  owner's ratification (ADR-0003's 2026-07-29 amendment) remains in the list and is now its only member,
+  owner's ratification remains in the list and is now its only member,
   which makes the general form load-bearing rather than illustrative: the next authority-bearing verdict
   is covered by the rule and not by an enumeration that would have had to be edited again.
 - **The impersonation limit** is unchanged and unreachable from here.
 
+## The Merge Request Definition of Done (absorbed 2026-08-19, record 0003)
+
+**What this section is.** Record 0003 held the Definition of Done this gate reviews against. Its
+decision is still in force — it is not reversed, not superseded, not unbuilt — so it is **absorbed**
+into this document under [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)'s
+fourth disposition, and the `## History` row in [the index](./README.md) names this document as its
+destination. Driven by [#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283), slice S2.
+
+**The fold is lossy by instruction, and the drops are listed rather than left to be noticed** — see
+*What this fold dropped* at the end of this section. What arrives is the decision as it currently binds,
+the rejected options still live, and the consequences still being paid.
+
+### Context — why a Definition of Done exists at all
+
+A reviewer with no explicit, agreed ruler reviews by **taste**, which reintroduces exactly the
+subjectivity an isolated reviewing context exists to remove. The DoD must be **pacted** and
+**objective**, or the gate is worthless. That argument is why this capability is named *verification and
+its artifacts* rather than either half alone: a check with no ruler and a check with no artifact fail
+the same way — nothing outside the checker's own head says it happened.
+
+### Decision drivers
+
+- Every criterion is mechanically checkable or evidence-cited — no "looks fine".
+- It classifies **who may merge**, which is the autonomy hinge
+  ([ADR-0004](./0004-autonomy-and-permission-model.md)).
+- It scales to the slice type: a docs slice is not a feature slice.
+
+### The decision, as it currently binds
+
+**The DoD of `docs/proposals/agentic-dev-loop.md` §6**, with three pacted resolutions:
+
+- **Significance beats in-pattern** — a change crossing a significance boundary always leaves the safe
+  class, even when it looks routine. Safety over convenience.
+- **Coverage ≥ 85%** — the plugin's default. A project may raise it, never lower it.
+- **The approval hook** — the owner approves once, on the spec or the Issue; the slices implementing it
+  are born safe-class. This is the join between one approval and downstream autonomy.
+
+Its hard gates: a thin slice, traceability to an Issue, tests proportional to the slice type with
+coverage at or above the threshold, all gates green with real evidence, an ADR wherever a significance
+boundary is crossed, observability, no doc drift, conventional commits, and the security posture — plus
+the **safe/boundary classification** that decides who merges.
+
+**Adjacent debt is named, never filed and never fixed inline** (owner directive, 2026-07-30). Gate 1
+originally read *"adjacent debt → an Issue, never fixed inline"*, and the instruction was not being
+violated — it was being followed: in one session the queue grew by 19 issues net, roughly 13 of them
+born inside a review of something else. Nobody decided that work should exist; the loop decided and
+asked afterwards, and the queue stopped describing the product and started describing how hard the
+agents had looked at it. **Only the owner opens work.** What *enforces* that today is
+[ADR-0004](./0004-autonomy-and-permission-model.md)'s rule, not this one's: every subagent except
+`developer` is denied `gh issue create`, and for the main agent the rule is instructed rather than
+enforced.
+
+### The rejected options, still live
+
+1. **Subjective reviewer judgement** — reintroduces bias, two reviewers disagree, nothing is auditable.
+2. **No DoD at all** — the gate has nothing to review against, so autonomy cannot be granted safely.
+
+Both are kept because they are the paths a future reader must not relitigate: an argument for softening
+a criterion is usually one of these two wearing a narrower coat.
+
+### The consequences still being paid
+
+**Good**
+- The gate has an objective, auditable ruler, so its verdicts are trustworthy rather than taste.
+- Tests scale to slice type, so a docs PR is not blocked demanding an E2E it does not need.
+
+**Bad / accepted**
+- Ongoing discipline: every significant MR carries its ADR, every feature carries its regression.
+- The significance test is objective in form and still a judgement call at the margins.
+- **A finding in a verdict is ephemeral where an Issue is not.** On a merged PR the report has no reader
+  afterwards, so some real findings are lost. That is the trade, and it is preferred to a backlog that
+  grows by working.
+
+### The generic concept is a separate artifact
+
+What a Definition of Done *is* — what makes a criterion well-formed, the common shapes, the four failure
+modes — is `/definition-of-done` (#265). This section records **this loop's own** pacted DoD and its
+safe/boundary classification: one concrete instance of that concept, never a restatement of it. The full
+checklist is `docs/proposals/agentic-dev-loop.md` §6.
+
+### A citation that resolved to another library, stated rather than repaired quietly
+
+**This record cited a "2026-07-29 amendment" of record 0003 four times. The amendment exists — in the
+consuming repo, not in this one.** It is the second amendment of `tadeumendonca-io`'s third record,
+[trunk-based delivery, single environment](https://github.com/tedeuxx/tadeumendonca-io/blob/main/docs/adr/0003-trunk-based-single-environment.md),
+whose §1 carries verbatim the rule the four sites hung on it: *"The relay is a notification that a
+comment exists; it is never the authority."* **The defect was the number, not the referent** — two
+different records under one token, which is the same collision `0007` records for the `authorAssociation`
+citation in this same fold, and it is named there in the form this section now matches. This library's
+0003, *The Merge Request Definition of Done*, carried exactly one amendment, dated 2026-07-30, about
+adjacent debt — so the token pointed at a real record that had never held the rule.
+
+**The record published a falsifier for this, and the falsifier was scoped to the wrong universe.** It
+was the first command below, whose pathspec confines it to *this* repository: it answers *"is this
+amendment here?"* and was read as answering *"does this amendment exist?"* — a real command attached to
+a question it does not answer. Both halves are published now, because the pair is the finding:
+
+    # this library — the amendment is genuinely not here, and the scan is not vacuous
+    git log --all --oneline -S'2026-07-29' -- 'docs/adr/0003-*'   # no commit, ever
+    git log --all --oneline               -- 'docs/adr/0003-*'   # 10 commits
+
+    # the consuming repo — where it actually is
+    grep -n "Amendment (2026-07-29)" ../tadeumendonca-io/docs/adr/0003-trunk-based-single-environment.md
+    # 48:## Amendment (2026-07-29) — how a ratification is proven, and what no longer needs one
+
+The local pathspec is a **glob** rather than the record's full filename, deliberately: the file is gone
+at head, and spelling it out would be a repo-root-relative citation of a deleted record — which the
+citation gate catches, correctly, and which is the same example trap in the path form that the row rule
+already names in the prose form.
+
+**The non-vacuity count published above read `3` until 2026-08-20, and it is corrected in place rather
+than quietly.** `3` is what `--diff-filter=A` returns; the command printed beside it carries no such
+filter and returns `10`. A number measured with a narrower filter than the command published next to it
+is this section's own subject one layer down — the falsifier was right, the digit beside it answered a
+different command — and it shipped one line below the paragraph correcting the same shape.
+
+**The rule's ownership, corrected with the number.** The claim the four sites carried is live, and this
+record made it mechanical **for a verdict owed between personas** — the consuming repo's amendment had
+already mechanised it for the owner's own ratification, so this record extended the rule to a second
+case rather than originating it. The consuming repo's amendment is dated
+2026-07-29 and this record 2026-08-02, which is what this record's own *Context* means by *"The loop
+already held that…"*. A statement that the rule *"is this record's own decision"* stood here until
+2026-08-20 and was wrong in the same direction as the number it was defending.
+
+The four sites now name the rule and, where they name its source, name the consuming repo's record **by
+title**, never by prefixed number — the number is the thing that collided. This is the failure the
+citation gate names in its own header and cannot catch — *the prose form is checked for existence, not
+for aim* — with a sharper edge than the header describes: an unresolvable token can be **wrong in two
+opposite directions**, dangling (nothing behind it) or colliding (the wrong thing behind it), and a
+repair that assumes the first produces a confident falsehood where the second was true. It surfaced only
+because the record had to be read end to end in order to fold it, and then only because a reviewer ran
+the falsifier against the other repo. It is the reason the aim of a re-pointed citation is a reviewer's
+read in this batch and not a green.
+
+**The PR body and the commit message of the fold that introduced this section state that no such
+amendment ever existed.** The PR body has been corrected; **the commit message cannot be** — it is
+immutable under this repo's no-squash, no-rewrite convention, and rewriting a pushed history to hide a
+falsified claim would cost more than the claim does. Read `refactor(adr): fold 0003 into 0006` against
+this section, which supersedes it.
+
+### What this fold dropped
+
+- **The two struck blocks inside the 2026-07-30 amendment** — the blanket `gh issue create` deny, and the
+  "no `agent_type` exemption" justification — together with the round-by-round correction narrative
+  around them. Both are struck history of a rule whose current form is
+  [ADR-0004](./0004-autonomy-and-permission-model.md)'s; neither binds anything now.
+- **The named accepted gap for the raw-API issue-creating route.** Not merely superseded — **false at
+  head**: `hooks/scripts/permission-guard.sh` rule 5f (2026-08-04) denies a `gh api` call carrying a
+  write indicator, and that file's own comment marks the gap CLOSED. Carrying it forward would have
+  moved a stale claim into a live document.
+- **The record's own `Links` block**, whose pointers are folded into the sentences that use them.
+
 ## Links
 - [ADR-0002](./0002-agentic-dev-loop-architecture.md) amendment #10 — the roster change that removed the
   reading party; the four costs of the absorption are recorded there, cost 3 being this one
-- Makes [ADR-0003](./0003-mr-definition-of-done.md)'s two-gatekeeper requirement checkable rather than
-  instructed; reuses the verification shape its 2026-07-29 amendment established for the owner's
-  ratification · applies [ADR-0004](./0004-autonomy-and-permission-model.md)'s 2026-08-02 amendment
+- Makes the Definition of Done's two-gatekeeper requirement checkable rather than instructed, and reuses
+  the verification shape already established for the owner's ratification — that DoD was record 0003
+  and is now the section *The Merge Request Definition of Done (absorbed 2026-08-19, record 0003)* of
+  this document · applies [ADR-0004](./0004-autonomy-and-permission-model.md)'s 2026-08-02 amendment
   (routing not capability; skills where a hook buys nothing) · closes #128.

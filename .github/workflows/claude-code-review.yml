@@ -15,7 +15,10 @@ jobs:
     # ~~Skip the develop→main release/promotion PR (huge diff, nothing new to review) — auto-review
     # only PRs that target develop, where it adds value.~~ THAT CONDITION WAS `base.ref != 'main'`,
     # AND IT NEVER ONCE EVALUATED TRUE HERE. It was written for a GitFlow repo with a long-lived
-    # `develop`; this repo is trunk-based (methodology ADR-0003), so every PR targets `main` and the
+    # `develop`; this repo is trunk-based (`CLAUDE.md`, "Releasing a version" — this comment cited the
+    # methodology library's record 0003 until 2026-08-19, which was that library's Definition of Done
+    # and never a branching decision; the trunk-based record carrying that number is the CONSUMING
+    # repo's), so every PR targets `main` and the
     # job reported `skipping` on every run since it was added. Struck rather than deleted, because a
     # deleted condition reads as though nothing was ever wrong.
     #
