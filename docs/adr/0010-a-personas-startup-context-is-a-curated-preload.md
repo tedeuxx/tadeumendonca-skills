@@ -31,7 +31,7 @@ Three facts compose into one hole:
    path, but `CLAUDE_PLUGIN_ROOT` is unset inside a subagent shell, so there is no path to read.~~
 
    **FALSIFIED — marker placed 2026-08-12; the measurement is
-   [ADR-0011](./0011-a-skill-exists-to-be-assigned-to-a-profile.md)'s, in its *Context*, where the
+   [ADR-0011](./0011-skills-and-preload.md)'s, in its *Context*, where the
    command and the date live.** The `CLAUDE_PLUGIN_ROOT` half stands. What does not is the inference:
    **an unset environment variable is not the absence of a path.** Claude Code appends a
    `…/plugins/cache/<marketplace>/<plugin>/<version>/bin` entry to `PATH`, from which the library root is

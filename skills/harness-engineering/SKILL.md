@@ -355,7 +355,7 @@ for is a **judgement**, and who supplies it depends on the class:
 
 *Significance beats in-pattern:* when the class is unclear, it is boundary. And **the gate never
 merges an expansion of its own authority**, whatever the diff looks like — see
-[ADR-0011](../../docs/adr/0011-a-skill-exists-to-be-assigned-to-a-profile.md) for the record of
+[ADR-0011](../../docs/adr/0011-skills-and-preload.md) for the record of
 this clause drifting out of `agents/quality-assurance.md` and back in.
 
 This framing above is the corrected one — an earlier prose restatement of it, in the retired
@@ -501,7 +501,7 @@ handing the residual to a human. The deep-dive component skills tell you *how* t
 this tells you *how to decide* while you do. Today that means three reference skills — `/backend`,
 `/frontend` and `/cloud-infrastructure`. ~~Today that means the per-service families under
 `skills/backend/*`, `skills/frontend/*` and `skills/infrastructure/*`; per
-[ADR-0011](../../docs/adr/0011-a-skill-exists-to-be-assigned-to-a-profile.md)'s 2026-08-13
+[ADR-0011](../../docs/adr/0011-skills-and-preload.md)'s 2026-08-13
 amendment these are consolidating into single reference skills … **not yet built as of this writing**,
 so read the family directories as they stand until that consolidation lands.~~ **Struck: it is built.**
 #229/#230/#231 consolidated 21, 19 and 15 files into one skill each, and #286 removed the family

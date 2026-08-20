@@ -5,7 +5,7 @@
 - **Date:** 2026-08-12
 - **Deciders:** the owner decides; written by `tech-lead`, at intake on [#192](https://github.com/tedeuxx/tadeumendonca-skills/issues/192), ahead of the first file that needs the category (per ADR-0011's own instruction: *"settle it on the first file that needs the category, then apply consistently"*)
 - **Supersedes / superseded by:** —
-- **Driven by:** [#192](https://github.com/tedeuxx/tadeumendonca-skills/issues/192), executing [ADR-0011](./0011-a-skill-exists-to-be-assigned-to-a-profile.md)'s disposition 3
+- **Driven by:** [#192](https://github.com/tedeuxx/tadeumendonca-skills/issues/192), executing [ADR-0011](./0011-skills-and-preload.md)'s disposition 3
 
 ## Context & problem
 
@@ -83,7 +83,7 @@ so the mechanism has to be settled once, before it is re-litigated per file.
 
 Chosen: **option 1.** Move the file to `docs/archive/<family>/<name>.md` (`git mv`, preserving history),
 drop its entry from `plugin.json`'s `skills` array, and prepend a one-line provenance note — *"Archived
-`<date>`, disposition per #192 / [ADR-0011](./0011-a-skill-exists-to-be-assigned-to-a-profile.md). Formerly
+`<date>`, disposition per #192 / [ADR-0011](./0011-skills-and-preload.md). Formerly
 `skills/<family>/<name>/SKILL.md`; not loaded by the plugin."* No machine-read flag is needed on the file
 itself: nothing computes over it once it is outside `skills/` — the directory boundary alone is what the
 gate needs, and the provenance line is for a human who lands on the file directly.
@@ -124,7 +124,7 @@ established for the live tree is not lost on the way out.
 
 ## Links
 
-- [ADR-0011](./0011-a-skill-exists-to-be-assigned-to-a-profile.md) — names the `archive` disposition and
+- [ADR-0011](./0011-skills-and-preload.md) — names the `archive` disposition and
   the mechanism facts (registration via `plugin.json`'s `skills` array; the deferred reverse assertion)
   this record resolves against.
 - [#192](https://github.com/tedeuxx/tadeumendonca-skills/issues/192) — the intake Issue executing ADR-0011's

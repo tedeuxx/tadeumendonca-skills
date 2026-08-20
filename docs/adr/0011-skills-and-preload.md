@@ -1,4 +1,17 @@
-# 0011. A skill exists to be **ASSIGNED to a profile in the loop's roster** — *to which profile is this assigned, and why?* is the operative test, and a skill assigned to nobody has no reason to exist whatever its quality; what it standardises is a **behaviour**, transversal, persisting across sessions
+# 0011. Skills and preload
+
+**This record is the capability document for `skills-and-preload`.** It was titled *A skill exists to be
+ASSIGNED to a profile in the loop's roster — "to which profile is this assigned, and why?" is the
+operative test, and a skill assigned to nobody has no reason to exist whatever its quality; what it
+standardises is a behaviour, transversal, persisting across sessions*, and filed as
+`0011-a-skill-exists-to-be-assigned-to-a-profile.md`, until 2026-08-20 — when the owner's #283 ruling
+that an anchor is named for its **capability** rather than for the decision that originated it reached
+this capability ([#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283), part 3 slice S5).
+The originating decision — a skill exists to be assigned to a profile — is unchanged and is the body
+below. What changed is that this file stopped being named after one of the decisions it holds, because
+the same slice absorbed three more records into it. The number did not move, so every `ADR-0011`
+citation in either repository is unaffected; the **filename** did, and every path-form citation of it
+was rewritten in the same commit as the rename.
 
 - **Capability:** skills-and-preload
 - **Status:** accepted · amended 2026-08-13 (a fifth disposition, scoped to the three technical
