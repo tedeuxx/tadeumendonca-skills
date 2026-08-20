@@ -1226,6 +1226,14 @@ nothing and never claimed to.
   merge`; rule 7b routes that merge to the gate persona and asserts nothing about a verdict.
 - **The fifteen-review-round footnote** pointing at PR #138 for the superseded framings. The PR is still
   there; nothing binds on the pointer.
+- **The seven-entry perimeter table and its struck-and-re-struck history** — the interpreter-class floor
+  entries (`bash`, `sh`, `perl`, `ruby` and the rest) that the record's 2026-08-04 amendment measured
+  moving out of `allow` and back, commit by commit. **Added to this list on 2026-08-20 (#283 slice S4);
+  it was dropped in S3's fold and this list did not say so**, which made the list one entry short of its
+  own standard — a `What this fold dropped` section that omits a drop is exactly the failure the section
+  exists to prevent. What binds survives above: the perimeter is **non-containment**, and removing the
+  interpreter spellings changed what is *free*, not what is *contained*. The commit-by-commit
+  archaeology does not, and is re-readable at `448c506` if anyone needs it.
 - **The `Considered options` restatement of the chosen option as option 1.**
 - **The record's own `Links` list**, whose live members are folded into this document's cross-references.
 
