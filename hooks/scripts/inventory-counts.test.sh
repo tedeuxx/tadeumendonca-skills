@@ -734,65 +734,39 @@ else
     #     here. That is the third time in this file's history that this assertion was one spelling short,
     #     and the lesson is identical each time: the shape was right, the CHARACTER SET was a guess.
     #
-    #     AND ONE NAMED EXCEPTION, because the owner chose to keep the wildcard rather than restore the
-    #     friction.
+    #     ~~AND ONE NAMED EXCEPTION~~ — `Bash(bash .scratch/*)`, kept by the owner (option A,
+    #     2026-08-07) and excused here by two `grep -qF` calls against **record 0008** by FILENAME.
+    #     The number is written BARE throughout this note, never prefixed and never as a path: 0008 is
+    #     absorbed later in #283, and the prefixed and path forms are the two the citation gate resolves
+    #     against live records. Writing either here would re-create, inside the note explaining why the
+    #     coupling was wrong, a citation that the fold has to move.
+    #     **THE EXCEPTION AND ITS MACHINERY ARE DELETED, 2026-08-19 (#283 slice 1) — deleted, not
+    #     repointed.** Four struck paragraphs of its history went with it; what they recorded is
+    #     compressed into the two paragraphs below, because the lesson is about this file and the
+    #     archaeology was about an allow entry that no longer exists.
     #
-    #     ~~`Bash(bash .scratch/*)` is permitted HERE ONLY BECAUSE `permission-guard.sh` rule 9 denies a
-    #     `..` segment in a script path handed to a shell — which is what makes `.scratch/` an actual
-    #     directory rather than a required prefix token. The matcher cannot express that; a hook can;
-    #     that is the standing rule for the next rule, applied.~~
+    #     IT WAS NOT MERELY DEAD, WHICH IS THE PART WORTH KEEPING. The entry it excused left the floor
+    #     at #245 (`grep -n 'scratch' .claude/settings.json` -> no output), but both greps still matched
+    #     record 0008, so the exception branch stayed LIVE and this assertion printed *"one shell
+    #     wildcard, UNBOUNDED and recorded as such"* by that record's name while `allow` held five
+    #     exact-match `bash` entries and no wildcard at all. A green describing a grant that does not
+    #     exist is this suite's own failure mode, one layer up, and no count would ever have surfaced it
+    #     — the arm passed, it just passed a sentence about a different floor.
     #
-    #     ~~THE EXCEPTION IS TIED TO ITS JUSTIFICATION, not asserted alongside it. If rule 9 is deleted
-    #     or renamed, the exception STOPS APPLYING and the entry is flagged again. An exception that
-    #     outlives its reason is this workspace's most repeated defect — a claim corrected where someone
-    #     quoted it and standing where nobody did — and it is not going to be introduced deliberately in
-    #     the assertion whose whole subject is that a comment cannot hold a control.~~
-    #
-    #     **BOTH PARAGRAPHS STRUCK 2026-08-07 — they survived UNMARKED for two rounds while the sentence
-    #     below corrected them, so a reader met the false claim first and the correction second.** The
-    #     second is false twice over: the exception is gated on two `grep -qF` calls against ADR-0008 and
-    #     NOTHING HERE READS THE GUARD, so deleting rule 9 does not flag anything. Found at round 4 by
-    #     sweeping SEMANTICS rather than a word — neither paragraph contains any form of "bound", so
-    #     three inflection sweeps could not reach them.
-    #     ~~THE EXCEPTION IS TIED TO RULE 9.~~ **STRUCK 2026-08-07, the same day, by round 2 of the same
-    #     gate.** Rule 9 does not bound anything: `bash .scratch/.""./.""./other/x` reaches out of the
-    #     directory with NO `..` adjacency anywhere in the string, so no character class can catch it.
-    #     Tying the exception to rule 9 made this assertion print *"bounded by permission-guard rule 9"*
-    #     — a false green, which is worse than the red it replaced.
-    #
-    #     AND THE OLD TIE FAILED IN THE UNSAFE DIRECTION, which is the part worth keeping. It grepped a
-    #     PHRASE from the deny message. Measured by the gate: comment out rule 9's code and the phrase
-    #     survives in the comment, so the exception kept applying with no rule behind it — and commenting
-    #     out is exactly what a bisect or a revert-in-place does. A phrase is a spelling; that is the
-    #     week's lesson, arrived at from a fourth direction.
-    #
-    #     WHAT IT IS TIED TO NOW: the RECORD, because under the owner's decision (option A, 2026-08-07)
-    #     there is no mechanism to tie to. The wildcard is kept and what it IS gets written down —
-    #     `bash <any path on disk>` — in ADR-0008, the record that owns "which layer carries a control".
-    #     So the exception applies only while the ADR names this entry. Delete the record and the entry
-    #     is flagged again, which is the correct coupling: under option A the record IS the control.
-    #
-    #     This is deliberately a document check, and it is weaker than a behaviour check. It is chosen
-    #     because the thing being asserted is a DECISION, and a decision has no runtime behaviour to
-    #     probe. Where a mechanism exists, tie to the mechanism by executing it — never by grepping for
-    #     a sentence about it.
-    guard_has_rule9=""
-    if grep -qF -- 'Bash(bash .scratch/*)' "$ROOT/docs/adr/0008-which-layer-carries-a-control.md" 2>/dev/null \
-       && grep -qF -- 'any path on disk' "$ROOT/docs/adr/0008-which-layer-carries-a-control.md" 2>/dev/null; then
-      guard_has_rule9="yes"
-    fi
+    #     AND IT IS DELETED RATHER THAN REPOINTED because the coupling itself is the defect: #283 folds
+    #     record 0008 into the `controls-and-enforcement` capability document, and a gate tied to a
+    #     record BY FILENAME is exactly the coupling that fold breaks silently. (That capability was
+    #     called `permissions` until 2026-08-19; the rename is why this sentence changed, and it is
+    #     itself a small instance of the coupling being described.) The durable lesson, nowhere else:
+    #     where a mechanism exists, tie to the mechanism by EXECUTING it, never by grepping for a
+    #     sentence about it. This exception was tied first to a hook rule that could not bound it, then
+    #     to a phrase in a deny message that survived commenting the rule out, then to a record — three
+    #     ties, green throughout. A document check is weaker than a behaviour check every time.
     wildcard_shells="$(printf '%s\n' "$allow_entries" \
       | grep -E "^Bash\(([^)]*[/[:space:]])?(bash|sh|zsh|ksh|dash)([[:space:]][^)]*)?[:/]\*\)$" || true)"
-    if [ -n "$guard_has_rule9" ]; then
-      wildcard_shells="$(printf '%s\n' "$wildcard_shells" | grep -vxF -- 'Bash(bash .scratch/*)' || true)"
-    fi
     wildcard_shells="$(printf '%s' "$wildcard_shells" | grep -v '^[[:space:]]*$' || true)"
     if [ -z "$wildcard_shells" ]; then
-      if [ -n "$guard_has_rule9" ]; then
-        ok "permission floor — one shell wildcard, UNBOUNDED and recorded as such in ADR-0008 (owner's option A)"
-      else
-        ok "permission floor — no shell-interpreter allow entry ends in a wildcard"
-      fi
+      ok "permission floor — no shell-interpreter allow entry ends in a wildcard"
     else
       bad "permission floor — a shell-interpreter entry ends in a wildcard, which permits an unbounded suffix: $wildcard_shells
       A path prefix is a STRING prefix, not a directory scope: '<allowed-prefix>/../../../tmp/x.sh' carries it.
@@ -803,7 +777,9 @@ else
       The empty quoted span has no '..' adjacency at all, which is why no pattern reaches it and why the property survives.
       Use exact-match entries (one per script). DO NOT reach for a hook rule: rule 9 was written to bound this directory and
       CANNOT — a lexical instrument cannot decide a filesystem property. If you add an exception here, tie it to a RECORD that
-      states the accepted grant, as the one above is tied."
+      states the accepted grant AND tie it to a mechanism you can execute. The one exception this file
+      once carried was tied to a record by filename, printed a green describing a grant that had already
+      left the floor, and was deleted at #283 slice 1 rather than repointed."
     fi
   fi
 fi
@@ -2791,6 +2767,163 @@ elif [ "$adr_max" -gt "$ADR_HIGH_WATER" ]; then
 else
   ok "record numbering — the declared ceiling $ADR_HIGH_WATER is at or above the highest live record $adr_max"
 fi
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+# EVERY RECORD DECLARES A CAPABILITY, AND EVERY DECLARED NAME IS IN THE CLOSED SET (#283, slice 1).
+#
+# WHAT THE FIELD IS FOR. #283 reconciles this library from twenty records into a small number of
+# CAPABILITY DOCUMENTS — the count is NOT written here, deliberately, because the set is published in
+# docs/adr/README.md and read from there below. An earlier revision of this comment said "seven" and
+# the set is now six; a comment carrying a copy of a number the same file derives two hundred lines
+# later is the second-source-of-truth failure this whole arm exists to gate against, committed in the
+# gate. `Capability` is the field that says which document a record belongs to — so "this slice
+# closes capability X" is auditable from the tree rather than asserted in a PR body, and so a
+# twenty-first record has to answer "which capability?" before it can exist. It is declared as a bullet
+# in the record's own header list, immediately above `- **Status:**`, which is the one header line
+# present at a predictable position in all twenty (`Status` is the FIRST bullet in every record;
+# `Date`, `Deciders` and `Driven by` all wrap across lines in at least one).
+#
+# WHY A CLOSED SET AND NOT A FREE-TEXT FIELD. The entry rule this batch reformulates refuses a record
+# that duplicates a capability already documented. A free-text field cannot refuse anything: a new
+# record invents a new name and the rule reads as satisfied. The refusal lives in the SET, ratified
+# once by the owner, and this gate is what makes it closed rather than advisory. Widening it stays
+# allowed — as a visible edit to a published list, in the same diff as the record that needs it.
+#
+# WHAT THIS DOES NOT CHECK, said plainly so the green is not read as more than it is:
+#   - Nothing here judges whether a record is in the RIGHT capability. A record declaring
+#     `controls-and-enforcement` while deciding something about the roster passes. The mapping is a
+#     reviewer's read, and there is no instrument for it. Two of this batch's own re-filings —
+#     0012/0014 out of the retired `intake-and-routing`, and 0019 out of `decision-library` — were
+#     found by reading, which is what "no instrument" costs stated concretely.
+#   - NO COLLISION ARM SHIPS HERE — no assertion that two records declare different capabilities. That
+#     is deliberate and it is a NAMED RESIDUAL, not an oversight: several records legitimately share
+#     one name from this slice until that capability's fold lands, so a collision arm would be red for
+#     the whole batch. It ships in the closing slice. Until then a duplicate is permitted and nothing
+#     says so.
+#   - The set's own membership is a decided list, derived from nothing. A name that should never have
+#     been in it passes, and so does a record correctly declaring it. Demonstrated rather than
+#     asserted: `intake-and-routing` sat in this set, gated and green, for the whole interval between
+#     the two commits of #283 slice 1 — and it was retired for a reason no assertion here could ever
+#     have raised.
+#
+# NO COUNT IS PUBLISHED BESIDE THE SET IN docs/adr/README.md, and that is a choice this file's whole
+# subject argues for: a prose count next to the table is a second source of truth for the same fact,
+# and this suite exists because that arrangement rots. The count below is DERIVED from the table and
+# printed in the verdict, so there is nothing to keep in step — which is why dropping a row from the
+# set needed no edit anywhere in the assertion logic, only in the two comments that had spelled the
+# number out.
+
+CAP_INDEX="$CITATION_ADR_DIR/README.md"
+
+# The set, read from the one place it is published. The extraction is deliberately narrow — a table row
+# under '## Capabilities' whose first cell is a backticked kebab name — so prose in that section cannot
+# enter the set by accident, and a name written outside the table is not in it.
+cap_set=""
+if [ -r "$CAP_INDEX" ]; then
+  cap_set="$(awk '/^## Capabilities/{c=1;next} /^## /{c=0} c' "$CAP_INDEX" \
+    | sed -n 's/^| *`\([a-z][a-z0-9-]*\)` *|.*/\1/p')"
+fi
+cap_set_count="$(printf '%s\n' "$cap_set" | grep -c . || true)"
+cap_set_dupes="$(printf '%s\n' "$cap_set" | grep -v '^[[:space:]]*$' | sort | uniq -d || true)"
+# The DISTINCT count is what 5c's verdict quotes. `cap_set_count` counts ROWS, which is what the
+# vacuity guards need — an unparsed table and a table of duplicates are different failures — but a row
+# count would let 5c print "in the closed set of 8" over a set holding seven names and one repeat.
+# Measured: that is exactly what it printed before this line existed (#283 slice 1, mutation MUT-5).
+cap_set_distinct="$(printf '%s\n' "$cap_set" | grep -v '^[[:space:]]*$' | sort -u | grep -c . || true)"
+
+cap_records_scanned=0
+cap_names_checked=0
+cap_missing=""
+cap_multi=""
+cap_unknown=""
+while IFS= read -r cap_file; do
+  [ -z "$cap_file" ] && continue
+  [ -r "$cap_file" ] || continue
+  cap_records_scanned=$((cap_records_scanned + 1))
+  cap_rel="${cap_file#"$ROOT"/}"
+  cap_decls="$(grep -c '^- \*\*Capability:\*\* ' "$cap_file" || true)"
+  if [ "$cap_decls" -eq 0 ]; then
+    cap_missing="$cap_missing
+    $cap_rel — no '- **Capability:** <name>' line in the header list"
+    continue
+  fi
+  if [ "$cap_decls" -gt 1 ]; then
+    cap_multi="$cap_multi
+    $cap_rel — declares $cap_decls capabilities; a record belongs to exactly one"
+    continue
+  fi
+  cap_name="$(sed -n 's/^- \*\*Capability:\*\* *\([a-z][a-z0-9-]*\)[[:space:]]*$/\1/p' "$cap_file")"
+  if [ -z "$cap_name" ]; then
+    cap_unknown="$cap_unknown
+    $cap_rel — the Capability line does not parse as a single kebab-case name"
+    continue
+  fi
+  cap_names_checked=$((cap_names_checked + 1))
+  if printf '%s\n' "$cap_set" | grep -qxF -- "$cap_name"; then
+    :
+  else
+    cap_unknown="$cap_unknown
+    $cap_rel — declares '$cap_name', which is not in the closed set in docs/adr/README.md"
+  fi
+done <<< "$(ls "$CITATION_ADR_DIR"/0*.md 2>/dev/null)"
+
+# THREE SUBJECTS, THREE INDEPENDENT VERDICTS, each repeating its own vacuity guard rather than
+# borrowing a neighbour's — THE CHAINING RULE in this file's header, applied to arms that did not exist
+# when it was written. The three claims are genuinely different: the set parsing says nothing about
+# whether records declare, a record with no field says nothing about the set, and membership is
+# uncomputable without both. Chaining any two would make one of them DISAPPEAR rather than fail.
+
+# ── 5a · the closed set itself parses, is non-empty, and repeats no name ──
+if [ ! -r "$CAP_INDEX" ]; then
+  bad "capability set — docs/adr/README.md is not readable, so the closed set could not be read at all.
+      The membership verdict below is uncomputable, not green."
+elif [ "$cap_set_count" -eq 0 ]; then
+  bad "capability set — NO capability name parsed out of the '## Capabilities' section of
+      docs/adr/README.md. Either the section is gone, or its table stopped matching the row form this
+      gate reads: first cell a backticked kebab name. An empty set would let the membership arm below
+      pass every record trivially, which is the direction this guard exists to close."
+elif [ -n "$cap_set_dupes" ]; then
+  bad "capability set — a name appears more than once in the closed set:
+    $(printf '%s' "$cap_set_dupes")
+      The set is the artifact the entry rule refuses against. A repeated row makes its size a claim
+      nobody can trust and hides whichever of the two descriptions is the wrong one."
+else
+  ok "capability set — $cap_set_distinct distinct capability names declared in docs/adr/README.md"
+fi
+
+# ── 5b · every record declares exactly one capability ──
+if [ "$cap_records_scanned" -eq 0 ]; then
+  bad "record capability — NOT ONE record file was found in docs/adr/, and there were 20 when this was
+      written. The enumeration broke and the declaration check is vacuous."
+elif [ -n "$cap_missing$cap_multi" ]; then
+  bad "record capability — a record does not declare exactly one capability:$cap_missing$cap_multi
+      Add '- **Capability:** <name>' to the header list, immediately above '- **Status:**', naming one
+      of the capabilities published in docs/adr/README.md. A record belonging to no capability document
+      has nowhere to be folded and nothing for the entry rule to refuse it against."
+else
+  ok "record capability — all $cap_records_scanned records declare exactly one capability"
+fi
+
+# ── 5c · every declared capability is in the closed set ──
+if [ "$cap_names_checked" -eq 0 ]; then
+  bad "record capability — not one parseable capability name was extracted from any record, so
+      membership was never tested against anything. With no name to check, a naive form of this arm
+      reports success over an empty scan; it reports the break instead. 5b above says which records."
+elif [ "$cap_set_count" -eq 0 ]; then
+  bad "record capability — the closed set is empty or unparsed, so membership is uncomputable. Every
+      declared name would 'fail' for the same reason, which is a fact about the set and not about any
+      record; 5a above says what to repair."
+elif [ -n "$cap_unknown" ]; then
+  bad "record capability — a record declares a capability that is not in the closed set:$cap_unknown
+      The set in docs/adr/README.md is closed and decided once for the whole library. A record that
+      needs a name not on the list is either mis-filed, or it is the visible widening of a published
+      list — which is a decision, taken in the same diff, not a spelling. (This message said 'the
+      owner ratified it' until 2026-08-19. The owner ratified the SHAPE — an anchor keeps its number
+      and filename; the NAMES were decided inside the loop. A refusal message that overstates who is
+      behind the rule makes disagreeing with a name look like disagreeing with the owner.)"
+else
+  ok "record capability — all $cap_names_checked declared capabilities are in the closed set of $cap_set_distinct"
+fi
+
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

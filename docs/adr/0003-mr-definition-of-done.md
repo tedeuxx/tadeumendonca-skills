@@ -1,5 +1,6 @@
 # 0003. The Merge Request Definition of Done
 
+- **Capability:** verification-and-its-artifacts
 - **Status:** accepted
 - **Date:** 2026-07-22
 - **Deciders:** the owner

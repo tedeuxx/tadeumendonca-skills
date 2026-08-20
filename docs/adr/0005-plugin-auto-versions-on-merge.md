@@ -1,5 +1,6 @@
 # 0005. The plugin auto-versions on every merge; adoption is the consumer's opt-in
 
+- **Capability:** plugin-distribution
 - **Status:** accepted
 - **Date:** 2026-07-23
 - **Deciders:** the owner

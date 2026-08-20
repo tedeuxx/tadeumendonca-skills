@@ -1,6 +1,7 @@
 # 0014. A task is an Issue **child** — its own Issue, its own branch, its own PR, with `Parent: #N` in
 its body — not a checkbox on the story
 
+- **Capability:** roster-and-dev-loop
 - **Status:** accepted
 - **Date:** 2026-08-12
 - **Deciders:** owner (ratifies) · tech-lead (writes the record)

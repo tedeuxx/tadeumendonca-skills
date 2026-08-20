@@ -1,5 +1,6 @@
 # 0009. A skill's `description` is a **trigger**, not a title — the canonical form every skill is written to, and an enforcement boundary that refuses a quality score
 
+- **Capability:** skills-and-preload
 - **Status:** accepted
 - **Date:** 2026-08-09
 - **Deciders:** the owner (the standard is his, posted as [#166's closing comment](https://github.com/tedeuxx/tadeumendonca-skills/issues/166#issuecomment-5232005136) and ratified by labelling the Issue `ready`); drafted by `harness-lead`; recorded by `tech-lead`

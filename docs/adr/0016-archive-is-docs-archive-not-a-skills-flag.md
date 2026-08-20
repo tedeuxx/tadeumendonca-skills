@@ -1,5 +1,6 @@
 # 0016. A skill's `archive` disposition is a **file move to `docs/archive/`**, not a frontmatter flag left inside `skills/`
 
+- **Capability:** skills-and-preload
 - **Status:** accepted
 - **Date:** 2026-08-12
 - **Deciders:** the owner decides; written by `tech-lead`, at intake on [#192](https://github.com/tedeuxx/tadeumendonca-skills/issues/192), ahead of the first file that needs the category (per ADR-0011's own instruction: *"settle it on the first file that needs the category, then apply consistently"*)

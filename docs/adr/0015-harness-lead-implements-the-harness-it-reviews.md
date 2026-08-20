@@ -2,6 +2,7 @@
 loop gains `Write`/`Edit` under the same "cannot merge" mitigation that already holds `tech-lead`, and the
 proposal/build split becomes a real, owner-gated boundary rather than a convention
 
+- **Capability:** roster-and-dev-loop
 - **Status:** accepted
 - **Date:** 2026-08-12
 - **Deciders:** the owner (the reversal itself, and each `DECISION`/`DECISION REQUIRED` point below);

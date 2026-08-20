@@ -1,5 +1,6 @@
 # 0011. A skill exists to be **ASSIGNED to a profile in the loop's roster** — *to which profile is this assigned, and why?* is the operative test, and a skill assigned to nobody has no reason to exist whatever its quality; what it standardises is a **behaviour**, transversal, persisting across sessions
 
+- **Capability:** skills-and-preload
 - **Status:** accepted · amended 2026-08-13 (a fifth disposition, scoped to the three technical
   families — `cloud-infrastructure`/`backend`/`frontend` consolidation, per-family, curated on the owner's preferred
   pattern rather than exhaustive merge; the process-family four-way framework is untouched)
@@ -531,9 +532,24 @@ generic, well-written passage that changes nothing.
   the **argument for what a persona does not carry** (ADR-0010's best property is that each exclusion is
   argued in the brief that suffers it).
 - **The CI assertions that currently assert the duplication would assert nothing.**
-  `hooks/scripts/inventory-counts.test.sh:1410` requires every brief to name `<repo-root>/.scratch/`
+  ~~`hooks/scripts/inventory-counts.test.sh:1410` requires every brief to name `<repo-root>/.scratch/`
   literally, and `:1418` requires it to override the harness's own `/tmp` instruction. **If that rule
-  moves into a skill, `:1410` goes red on the correct tree.** Rewriting it to assert the string *in the
+  moves into a skill, `:1410` goes red on the correct tree.**~~ **STRUCK 2026-08-19 (#283 slice 1) —
+  every concrete fact in those two sentences has since changed, and the line locators were pointing at
+  unrelated code long before anyone noticed.** What is true at this writing: the assertion requires each
+  brief to name **the session scratchpad**, not `<repo-root>/.scratch/`, since #245 retired that
+  directory; the `/tmp`-override assertion does not exist at all any more (`grep -n 'tmp'
+  hooks/scripts/inventory-counts.test.sh` returns four comment lines and no assertion); and `:1410` and
+  `:1418` now land in the gate-coverage block, which has nothing to do with either. **The locators are
+  replaced with the assertion's own verdict string** — *"agent brief — … names the session scratchpad
+  as where its working files go"* — per `documentation-standard`'s *cite the clause, not the line*.
+  **The prediction itself was answered, and the answer is worth more than the prediction:** the rule's
+  full statement DID move into a skill (`command-hygiene`, #225) and the brief assertion did **not** go
+  red — because the brief kept a one-line naming of the destination and the assertion was re-keyed to
+  that naming rather than to the retired path. So the swap was not free and was not fatal either: what
+  survived is a check that the rule REACHES each brief, which is the property the paragraph below says
+  must not be given up, bought with one sentence per brief rather than with the whole rule duplicated
+  six times. Rewriting it to assert the string *in the
   skill* is worse than leaving it: it would prove the text exists and stop proving it **reaches** any
   persona, because a skill can exist and be preloaded by nobody — which is this record's whole subject.
   **What must replace it, and this is a precondition of any extraction rather than a follow-up:** an

@@ -1,5 +1,6 @@
 # 0018. Permission entries have three states, and absent is not one of them
 
+- **Capability:** controls-and-enforcement
 - **Status:** accepted
 - **Date:** 2026-08-13
 - **Deciders:** owner (decision), harness-lead (record — bootstrapping note below)
