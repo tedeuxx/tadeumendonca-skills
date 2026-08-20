@@ -171,7 +171,7 @@ So **two published surfaces rename, not one.** Weighed, since it could cut eithe
   5 rejects a family-qualified identifier by name and cites #164 in the failure text, which converts the
   loader's silent 0-byte failure into a red build.
 - **The residual cost is real and belongs to a future consumer, not to this repo.** A persona brief
-  written elsewhere against a family-qualified identifier fails at **0 bytes of stderr** (ADR-0010), and
+  written elsewhere against a family-qualified identifier fails at **0 bytes of stderr** ([ADR-0011](./0011-skills-and-preload.md), its *A persona's startup context is a curated preload (absorbed 2026-08-20, record 0010)* section), and
   the only instrument that can see it lives here. That is an argument for the announcement, not for the
   number.
 

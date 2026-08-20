@@ -17,7 +17,7 @@
     *`README.md` is the single source of truth for the dev-loop narrative (absorbed 2026-08-20, record
     0019)* section of [ADR-0002](./0002-roster-and-dev-loop.md) — and ADR-0011's *"Struck rather
     than deleted, per this repo's supersede-never-delete convention"*.
-  - **Citing the `supersede-*` family: five.** Those two, plus ADR-0010's *"Struck rather than deleted,
+  - **Citing the `supersede-*` family: five.** Those two, plus record 0010's *"Struck rather than deleted,
     per this practice's supersede-never-rewrite rule"*, ADR-0002's *"the rule is
     supersede-never-rewrite"* and record 0016's *"ADR-0011's own supersede-not-rewrite rule"* — the
     last of which is now a clause of the *The `archive` disposition is a file move to `docs/archive/`,
@@ -27,7 +27,7 @@
 
   Only **one** citation anywhere in that family is about the arm this record replaces — record 0019's,
   which is an argument against `git rm`-ing a **whole file**. **The other four — ADR-0002's own
-  *"the rule is supersede-never-rewrite"*, ADR-0010's, ADR-0011's and record 0016's — each justify a strike
+  *"the rule is supersede-never-rewrite"*, record 0010's, ADR-0011's and record 0016's — each justify a strike
   inside a live record**, which this
   record leaves explicitly unchanged. All four are correct as they stand and are **not** to be swept.
   Enumerate them without the hyphenated name, since every one of them is line-wrapped across a hyphen:
