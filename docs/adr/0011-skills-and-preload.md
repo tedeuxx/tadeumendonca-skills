@@ -758,6 +758,87 @@ This applies to **all three** consolidated skills alike — `cloud-infrastructur
   `skills:` — but whether any of them is nonetheless small enough or central enough to warrant a preload
   slot on `developer` is a separate call this amendment does not make.
 
+## The `archive` disposition is a file move to `docs/archive/`, not a frontmatter flag (absorbed 2026-08-20, record 0016)
+
+**Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):
+record 0016's decision is still in force and is moving into the document that governs the capability it
+belongs to.** Decided by the owner and written by `tech-lead` on 2026-08-12, at intake on
+[#192](https://github.com/tedeuxx/tadeumendonca-skills/issues/192), executing **disposition 3 of this
+record's own four** — which is why it belongs here rather than anywhere else: it does not decide a new
+capability, it settles what one of the dispositions this record named actually *is*. Its History row is
+in [the index](./README.md).
+
+### The decision, as it currently binds
+
+**An archived skill is `git mv`d to `docs/archive/<family>/<name>.md` and dropped from
+`.claude-plugin/plugin.json`'s `skills` array.** It carries a one-line provenance note at the top —
+*"Archived `<date>`, disposition per #192 / ADR-0011. Formerly `skills/<family>/<name>/SKILL.md`; not
+loaded by the plugin."* No machine-read flag goes on the file: once it is outside `skills/`, nothing
+computes over it, and the directory boundary is the whole of what the gate needs. The `<family>`
+segment is kept in the archive path so the human-readable grouping the live tree used at the time is
+not lost on the way out.
+
+**Why the boundary is a directory and not a flag, in one property:** the reverse assertion this record's
+*Consequences* section deferred — *every `SKILL.md` under `skills/` is declared in `plugin.json`* —
+becomes writable, with **no per-file exception list to maintain**, because the scope is `skills/` and an
+archived file is not in it. A flag would make that assertion permanently unwritable without a growing
+carve-out that every future contributor to the gate has to rediscover.
+
+**Two mechanism facts this record supplies and that decision rests on**, both stated in the body above:
+registration is `plugin.json`'s explicit `skills` array, so an entry not listed there is not loaded, not
+counted in `Skills (N)` and not reachable by the model's own discovery; and
+`hooks/scripts/inventory-counts.test.sh` gates the tree bidirectionally, with the reverse direction
+rooted at `skills/`.
+
+### The rejected options that are still live
+
+1. **A frontmatter flag (`status: archived`) left at `skills/<family>/<name>/SKILL.md`.** Rejected
+   because it solves token cost and loading identically — both are gated by the `plugin.json` array —
+   and buys nothing against the reverse assertion, which stays blocked for as long as the file is still
+   a `SKILL.md` under `skills/`. This is the option a future reader is most likely to re-propose,
+   because on the axis most people are looking at (cost) it is exactly as good.
+2. **A separate plugin.** Rejected as disproportionate: a second marketplace entry, a second version
+   cadence and a second install step for consumers, for what is overflow from the equipment list rather
+   than a second product. Nothing about the archived content requires independent versioning.
+3. **Leave the file in place, drop it from `plugin.json`, mark nothing.** Rejected because an
+   undeclared, unmarked file is indistinguishable from one simply forgotten from the array — the exact
+   failure this record exists to stop recurring silently.
+
+### Consequences still being paid
+
+- **Every archived file needs an inbound-reference check before the move lands.** A live skill still
+  saying `(see routing)` after `routing` is archived points at a 404 in the published tree. Per-file
+  audit work, not automatic.
+- **The path changes**, so any prior citation of `skills/<family>/<name>/SKILL.md` breaks. Accepted
+  because nothing outside this repo consumes these files by path — the consumer-facing surface is the
+  invocation name, which an archived file stops having.
+- **`docs/archive/` is a top-level convention `documentation-standard` still does not name.** It was to
+  be added there as a one-line addendum once the first files landed; that is an open obligation, not a
+  discharged one.
+- **No reverse path back to `skills/` is defined.** If a disposition is reconsidered — an archived file
+  turns out to anchor a behaviour after all — whether that is a `git mv` back or a fresh file is left to
+  the record that reopens it, *"since ADR-0011's own supersede-not-rewrite rule already governs how a
+  disposition decision is reversed."* **That clause is kept verbatim rather than compressed**, because
+  [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) enumerates it by
+  quotation as one of the live citations of the `supersede-*` family that justify a strike inside a live
+  record — dropping it would have left that enumeration pointing at text this fold had deleted, which is
+  the failure mode a fold is most likely to cause and least likely to notice.
+
+### What this fold dropped
+
+- **The `Context & problem` restatement of this record's own disposition list**, which quoted four
+  clauses of the body above back at it.
+- **The `Decision drivers` section**, four bullets each of which is the argument for one of the rejected
+  options above and says nothing the rejection does not.
+- **The MADR restatement of option 1 as an option.** Option 1 is the decision; stating it twice was
+  structure, not content.
+- **The record's line-locator citations** — `hooks/scripts/inventory-counts.test.sh`'s find expression
+  quoted as a runnable `grep` with its output. The gate's scan root is still `skills/`, but a quoted
+  command that pins another file's shape is the class `documentation-standard`'s *cite the clause, not
+  the line* rule postdates, and it is dropped rather than re-pinned.
+- **Its cross-citations of this record as a separate document**, which are now intra-document
+  references.
+
 ## Links
 
 - Driving Issue [#183](https://github.com/tedeuxx/tadeumendonca-skills/issues/183) — the owner's
