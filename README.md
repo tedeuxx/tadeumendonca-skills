@@ -228,15 +228,15 @@ irreversible act) the earlier diagram showed.
 
 **`loop` is a shorter path, but not for the reason an earlier draft of this figure claimed.** It is not
 gate-free at intake — a `loop`-typed Issue still needs `ready` before anything builds against it, and
-`/autonomy-on`'s own queue predicate is `(product OR loop) AND ready` ([ADR-0012](./docs/adr/0012-issue-type-is-the-routing-axis-and-is-exclusive.md)),
+`/autonomy-on`'s own queue predicate is `(product OR loop) AND ready` ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md)),
 so it can be drained the same mechanical way a `product` story can. What is actually different: `ready`
-on a `loop` Issue is an **owner-only** transition ([ADR-0015](./docs/adr/0015-harness-lead-implements-the-harness-it-reviews.md),
+on a `loop` Issue is an **owner-only** transition ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md),
 Corollary 4) rather than the two leads reconciling between themselves, and its own tier 2 is
 `harness-lead`, building what it just stress-tested. **Tier 3 is not skipped — its lens is.** Every
 lane, `loop` included, still merges through `MR --> QA --> M`: rule 7b denies `gh pr merge` to every
 `agent_type` but `quality-assurance`, unconditionally, so a harness-lead-built change is no exception.
 What differs is what `quality-assurance` checks there — `agents/quality-assurance.md`'s harness-diff
-criterion (ADR-0015 Corollary 2) means a diff touching `hooks/**`, `agents/**`, `skills/**`, `commands/**`
+criterion ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md), record 0015's Corollary 2) means a diff touching `hooks/**`, `agents/**`, `skills/**`, `commands/**`
 or `.claude/**` is gated on the presence of a `harness-lead` verdict marker, not on the full two-lens
 Definition of Done — the DoD review already happened, in tier 1, before the build.
 
@@ -661,7 +661,7 @@ is the one category where an agent amending the record would be amending its own
 
 ## The branch model the loop runs on
 
-**Two levels: one branch per story, one branch per task.** Per [ADR-0014](./docs/adr/0014-a-task-is-an-issue-child-not-a-checkbox.md),
+**Two levels: one branch per story, one branch per task.** Per [ADR-0002](./docs/adr/0002-roster-and-dev-loop.md),
 a task is an Issue **child** — its own Issue, `Parent: #N` in its body, its own branch, its own pull
 request — not a checkbox on the story's issue. Each level is independently reviewable: the pull request
 the gate reviews is the unit that has product meaning, at whichever level it sits, story or task.

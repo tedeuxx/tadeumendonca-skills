@@ -1,7 +1,19 @@
-# 0002. Agentic dev-loop architecture — per-task subagents, ADRs as the durable brain
+# 0002. Roster and dev-loop — who exists in the loop, what each actor is for, and how work moves
+through them
+
+**This is the `roster-and-dev-loop` capability document.** It was titled *Agentic dev-loop architecture
+— per-task subagents, ADRs as the durable brain* until 2026-08-20, when the owner's decision that an
+anchor is named for its capability ([#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283))
+reached this record. **The number is unchanged; the filename is not.** On the same day it absorbed
+records **0012, 0013, 0014, 0015 and 0019** under
+[ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)'s fourth disposition —
+each of those decisions is still in force and has moved into the document that governs the capability it
+belongs to. Their History rows are in [the index](./README.md).
 
 - **Capability:** roster-and-dev-loop
-- **Status:** accepted · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite) · **amended 2026-08-04** (amendment #9 — `marketing-lead` merges into `product-lead`; the roster drops 6 → 5; the blocking-truth clause is carried across explicitly, and the capability floor that backed it is not) · **amended 2026-08-04** (amendment #10 — `harness-lead` joins tier 1 as the owner's pair on the machinery, advisory and pre-implementation; `security` is **absorbed** into `quality-assurance`, which now holds two lenses in one pass and labels every finding with its lens. The roster is still **five** and **two of its members changed**. The persona criterion widens from *conflict wanted* to **four reasons**, with reconciliation cost paid **within** a tier. Amendment #9's *"both approvals are still required"* is **struck**. Books the rule that produced the gap: **a count is not an identity**) · **amended 2026-08-13** (amendment #13 — `writer` joins tier 2 as a content-scoped second builder; the roster grows 5 → 6; it satisfies none of the four reasons and is named plainly as an owner override; `permission-guard.sh` rule 5e inverted from a denylist to an allowlist to contain it; the `Write`/`Edit` observability gap is accepted in writing rather than closed mechanically)
+- **Status:** accepted · **absorbed records 0012, 0013, 0014, 0015 and 0019 on 2026-08-20** (#283 slice
+  S4 — all five were `accepted`; none was `proposed`, so the open question record 0007's absorption
+  raised does not arise here) · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite) · **amended 2026-08-04** (amendment #9 — `marketing-lead` merges into `product-lead`; the roster drops 6 → 5; the blocking-truth clause is carried across explicitly, and the capability floor that backed it is not) · **amended 2026-08-04** (amendment #10 — `harness-lead` joins tier 1 as the owner's pair on the machinery, advisory and pre-implementation; `security` is **absorbed** into `quality-assurance`, which now holds two lenses in one pass and labels every finding with its lens. The roster is still **five** and **two of its members changed**. The persona criterion widens from *conflict wanted* to **four reasons**, with reconciliation cost paid **within** a tier. Amendment #9's *"both approvals are still required"* is **struck**. Books the rule that produced the gap: **a count is not an identity**) · **amended 2026-08-13** (amendment #13 — `writer` joins tier 2 as a content-scoped second builder; the roster grows 5 → 6; it satisfies none of the four reasons and is named plainly as an owner override; `permission-guard.sh` rule 5e inverted from a denylist to an allowlist to contain it; the `Write`/`Edit` observability gap is accepted in writing rather than closed mechanically)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
 - **Driven by:** [ADR-0001](./0001-adopt-madr-adrs.md), `docs/proposals/agentic-dev-loop.md`
@@ -636,10 +648,11 @@ amendment since it shipped.
 harness. It is a **derived** document: this ADR library remains authoritative, and where the two
 disagree the ADR wins.
 
-**Superseded 2026-08-14, per [ADR-0019](./0019-readme-is-the-single-source-of-truth-for-the-dev-loop.md).**
-`README.md` is now that home; `docs/dev-loop-design.md` is retired to a pointer stub rather than kept as
-a second document claiming the same authority. This ADR library is still what governs where the two, and
-where this note and ADR-0019 disagree, ADR-0019 — the later record — wins on this specific question.
+**Superseded 2026-08-14 — see this document's *`README.md` is the single source of truth for the dev-loop
+narrative (absorbed 2026-08-20, record 0019)* section.** `README.md` is now that home;
+`docs/dev-loop-design.md` is retired to a pointer stub rather than kept as a second document claiming the
+same authority. This ADR library is still what governs; where this note and that section disagree, the
+2026-08-14 decision — the later one — wins on this specific question.
 
 ## Amendment (2026-08-02, eighth) — the gate can only be as objective as the issue is complete
 
@@ -1112,9 +1125,9 @@ missed once, not that records are written afterwards here.
 ### Decision 1 — `harness-lead` exists, tier 1, advisory, ~~pre-implementation~~
 
 **Struck 2026-08-12 by the eleventh amendment, below** — the owner reversed the pre-implementation-only
-constraint; `harness-lead` now also implements the harness changes it stress-tests, under
-[ADR-0015](./0015-harness-lead-implements-the-harness-it-reviews.md). The persona's existence, its
-tier, and every other clause in this Decision stand unchanged.
+constraint; `harness-lead` now also implements the harness changes it stress-tests, under this document's
+*`harness-lead` implements the harness it reviews (absorbed 2026-08-20, record 0015)* section. The
+persona's existence, its tier, and every other clause in this Decision stand unchanged.
 
 The owner is the CEO of this initiative **and acts as its harness engineer**. `harness-lead` is
 their pair in the second role and only there: it is dispatched on a proposal about the machinery —
@@ -1281,8 +1294,8 @@ pre-implementation"* and its body states *"It gates nothing. It does not review 
 merge, does not open work."* The **merge** and **MR-review** clauses stand verbatim — unchanged by this
 amendment, and re-verified as still true (`hooks/scripts/permission-guard.sh:136`'s catch-all still
 denies `gh pr merge` to this persona). The **pre-implementation** clause is struck: the owner reversed it
-on 2026-08-12, and `harness-lead` now also builds the harness changes it stress-tests, under
-[ADR-0015](./0015-harness-lead-implements-the-harness-it-reviews.md).
+on 2026-08-12, and `harness-lead` now also builds the harness changes it stress-tests, under this
+document's *`harness-lead` implements the harness it reviews (absorbed 2026-08-20, record 0015)* section.
 
 **Why struck rather than silently widened:** amendment #10's own framing — *"a persona exists only where
 conflict is wanted"* widened, that same day, to *"a persona exists for one of four reasons"* — was struck
@@ -1291,15 +1304,18 @@ is [...] is the direction that fails open."* The same rule applies here in the o
 *"pre-implementation"* standing after the owner reversed it would describe the persona as **weaker** than
 it now is, which fails the reader just as surely as the earlier case failed the control.
 
-**What changed, precisely, per ADR-0015:** `agents/harness-lead.md:4` gains `Write, Edit`, mirroring
+**What changed, precisely, per this document's *`harness-lead` implements the harness it reviews
+(absorbed 2026-08-20, record 0015)* section:** `agents/harness-lead.md:4` gains `Write, Edit`, mirroring
 `agents/tech-lead.md:4`'s unscoped grant; the mitigation is the same "cannot merge" floor already
 mechanical for this persona (rules 5d and 7b's catch-alls), not a new hook or a path-scoped deny — the
 latter was considered and rejected on the record already made at `agents/quality-assurance.md:100-102`
 (the `security`/`Edit(.claude/**)` failure). `harness-lead` also gains a durable, posted verdict
 (ADR-0006's shape) and a real Issue for its harness proposals (`loop`-typed), with `ready` on a
-`loop`-typed Issue now an **owner-only** transition — closing the question
-[ADR-0012](./0012-issue-type-is-the-routing-axis-and-is-exclusive.md) named and left open (*"whether
-`loop` items should ever reach `ready` autonomously the way `product` items can"*).
+`loop`-typed Issue now an **owner-only** transition — closing the question the routing decision named
+and left open (*"whether `loop` items should ever reach `ready` autonomously the way `product` items
+can"*). Both now live in this document: see its *Issue type is the routing axis, and it is exclusive
+(absorbed 2026-08-20, record 0012)* and *`harness-lead` implements the harness it reviews (absorbed
+2026-08-20, record 0015)* sections, the latter's **Corollary 4**.
 
 **What is unchanged:** the roster count (still five), tier 1's membership, the merge authority (still
 `quality-assurance` alone, rule 7b), and the reason `harness-lead` was created in the first place —
@@ -1380,7 +1396,9 @@ their own.
 
 **Named as consequent work, not done here:** the cross-repo staleness list #187 names (`-io`'s drift
 check, generated manifest, harness-source test, architecture-diagram test, both locale editions of the
-architecture page) and ADR-0012's own S5 resolution (route `content` Issues to `writer`, not `developer`
+architecture page) and the routing decision's own S5 resolution — now this document's *Issue type is the
+routing axis, and it is exclusive (absorbed 2026-08-20, record 0012)* section, **Corollary 3** (route
+`content` Issues to `writer`, not `developer`
 as a stopgap) — both outside this ADR's write scope.
 
 ## Consequences
@@ -1393,6 +1411,361 @@ as a stopgap) — both outside this ADR's write scope.
 - Orchestration overhead and token cost — spawn a specialist only when a slice genuinely spans its domain.
 - Same-model review has a ceiling: a fresh context removes *authorship* bias, not *model* bias — which is
   why the boundary class still escalates to a human (ADR-0004).
+
+## Issue type is the routing axis, and it is exclusive (absorbed 2026-08-20, record 0012)
+
+**Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):
+record 0012's decision is still in force and is moving into the document that governs the capability it
+belongs to.** Decided by the owner on 2026-08-12, driven by
+[#184](https://github.com/tedeuxx/tadeumendonca-skills/issues/184) — his own statement that *"temos
+issues de 3 tipos, cada um deles é roteado para família de agentes diferente"*. Written by `tech-lead`,
+with a `harness-lead` pre-implementation stress test of eight scenarios behind it. Its History row is in
+[the index](./README.md).
+
+### The decision, as it currently binds (record 0012)
+
+**An Issue has exactly one type, and the type is the ROUTING axis: `product` · `content` · `loop`.** The
+type decides which profiles take part at intake, who builds, and whether a gate runs at all. It is *not*
+the granularity axis — story/task/proposal is a different question, and the mechanism side of it is
+decided in *A task is an Issue child, not a checkbox (absorbed 2026-08-20, record 0014)* below.
+
+Three corollaries are part of the decision rather than consequences of it, because the routing axis is
+not real without them.
+
+**Corollary 1 (record 0012) — the `/autonomy-on` queue predicate is `(product OR loop) AND ready`.**
+The predicate was `product` only. Measured at the time against this repo's own backlog, 12 of 13 open
+Issues carried `product` and every one of them was harness/loop-class work, so making `loop` real and
+exclusive without widening the predicate would have **silently emptied the drainer in the one repo whose
+purpose is the loop** — reporting "0 issues" rather than erroring, which is worse than a crash because
+nothing signals the miss.
+
+**Corollary 2 (record 0012) — the three types are exclusive: one Issue, one type.** `commands/new-issue.md`'s
+label step is a single choice, not "apply either or both". Dual-labelled Issues in `tadeumendonca-io`
+are a migration, not a state to preserve.
+
+**Corollary 3 (record 0012) — `content` gets a mechanical builder.** Once type is exclusive, a pure-`content`
+Issue can no longer ride `product`'s build path. Measured: **2 of 13** pure-`content` Issues in `-io` had
+ever closed, against **6 of 8** dual-labelled ones — 15% against 75%. The owner overrode
+[#161](https://github.com/tedeuxx/tadeumendonca-skills/issues/161)'s own *"measure before adding a
+persona"* precondition and created `writer` ([#187](https://github.com/tedeuxx/tadeumendonca-skills/issues/187)),
+recorded as an override rather than smoothed over. The persona's own design is #187's, and its addition
+to the roster is amendment #13 of this document.
+
+**Why `loop` passes the test `type:*` failed.** This repo retired `type:*`/`phase:*`/`priority:*`/`semver:*`
+on a stated rule — *something must QUERY a label* — and `loop` satisfies it **because of Corollary 1**:
+`(product OR loop) AND ready` is a real query against a real label. That is what makes `loop` different
+from vocabulary added by fiat, and it is the sentence to check first if anyone proposes a sixth label.
+
+### The rejected options that are still live (record 0012)
+
+- **Type as the GRANULARITY axis — story / task / proposal.** *Deferred, not rejected on merits.* It is
+  the natural reading of "type" in most trackers, and it answers a different question than the one this
+  tree already had half-built in prose. Adopting it as *the* type axis would have left the existing
+  `product`/`content`/`loop` routing either undocumented or double-encoded under another name. It remains
+  available as a second, orthogonal axis; nothing here forecloses it.
+- **Non-exclusive co-application** — the incumbent, and the reason exclusivity had to be decided rather
+  than assumed: the label table already implied the label decides merge class, while the gate in fact
+  decides class from what the diff touches. Exclusivity narrows the leak; it does not close it.
+
+### Consequences still being paid (record 0012)
+
+- **Relabeling is ungated for every persona.** `Bash(gh issue edit:*)` and `Bash(gh label:*)` sit in the
+  committed `allow`, unscoped to `agent_type`, and neither guard script keys on either command. Under this
+  decision **any subagent can move an Issue into the `loop` lane with one command** — a lane that reaches
+  the owner directly. Left an **open question**, not a silently accepted cost, because closing it is a
+  *which layer can carry this control* question and belongs to
+  [ADR-0004](./0004-controls-and-enforcement.md), not to a routing record. Reaffirmed twice since, in the
+  two sections below.
+- **The exclusivity migration in `tadeumendonca-io` has no owner named.** The rule is stated; no
+  individual Issue is decided by it.
+- **Corollary 3 is an explicit override of a precondition the loop itself set.** #161 stays open as the
+  calibration Issue rather than being closed by #187 shipping.
+
+## The orchestrator is a named role, not a persona (absorbed 2026-08-20, record 0013)
+
+**Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):
+record 0013's decision is still in force and is moving into the document that governs the capability it
+belongs to.** Decided by the owner on 2026-08-12, written by `tech-lead`, driven by a `harness-lead`
+pre-implementation stress test of six scenarios; no Issue — a methodology-library decision filed and
+closed at tier 1. Its History row is in [the index](./README.md).
+
+### The decision, as it currently binds (record 0013)
+
+**"Orchestrator" is the one term for the actor that talks to the owner and dispatches every subagent.**
+It is explicitly **not** an `agents/*.md` persona: it is not dispatchable, it is the dispatcher, no `Task`
+invocation ever targets it, and it satisfies none of the four reasons a persona exists (amendment #10 of
+this document). The term converges five live spellings — `orchestrator`, `main session`, `main loop`,
+`main agent`, `invoking context` — for **new** writing only; nothing in the tree was renamed.
+
+**Duties, named together:**
+
+- Dispatches every persona; no persona talks to another persona directly.
+- Commits and pushes on the loop's behalf.
+- Applies the `ready` label that makes an Issue executable, once the intake leads have closed its
+  description.
+- Applies the routing label (`product`/`content`/`loop`) decided in *Issue type is the routing axis, and
+  it is exclusive (absorbed 2026-08-20, record 0012)* above.
+- Decides, in the moment, whether a given review specialist needs dispatching at all — a real judgment
+  call, exercised at least once against a trigger that had already fired.
+
+**The boundary, in two honest parts rather than one:**
+
+- **Mechanically enforced, for exactly two acts — merge and direct push to the trunk.**
+  `hooks/scripts/permission-guard.sh` leaves `agent_type` **empty** for the main agent by design, and
+  rules 7 (trunk push) and 7b (merge) fire against that empty value. Asserted in
+  `permission-guard.test.sh` under the case name `"main agent (no agent_type) cannot merge"` and again
+  under `"THE SAME THREE FOR THE MAIN AGENT"`, the latter added 2026-08-03 specifically to cover the
+  orchestrator alongside `developer`. This **corrects a suspicion the driving dispatch carried**: the
+  guard is not blind to the orchestrator for irreversible acts.
+- **Not enforced, and not claimed to be.** Two named instances: **label application**, which is the
+  ungated-relabeling gap the record above already books; and **the dispatch-omission judgment call**,
+  which is a different failure shape than *"decides the irreversible"* — an omission nobody can see
+  happened or didn't, not a decision on an irreversible act. Recording the gap beside the duty is the
+  discipline [ADR-0004](./0004-controls-and-enforcement.md) established for a control claimed stronger
+  than it is.
+
+**Naming safety, verified rather than assumed:** `inventory-counts.test.sh` asserts none of the five
+terms as literal strings, and `permission-guard.test.sh` uses *"main agent"* only inside human-readable
+test descriptions — its assertions key on the empty `agent_type` value, never on the term. Converging on
+"orchestrator" breaks no assertion in either suite. **Not** checked against every `.md` file in the tree;
+that residual is named, not certified closed.
+
+### The rejected options that are still live (record 0013)
+
+- **A full `agents/*.md` persona brief, as a roster member.** Every persona in `agents/` is a dispatch
+  target with its own context window and `tools:` scoping. The orchestrator is dispatched by nobody, needs
+  no fresh context from itself, and a brief nobody dispatches is read by nobody — so it would not even
+  solve the naming drift it was proposed for.
+- **Leaving it undefined.** Status quo is not neutral: it is *keep the decorative definition and the
+  five-way drift*, in which every new file picks a spelling ad hoc.
+
+### Consequences still being paid (record 0013)
+
+- **Nothing in the existing tree was renamed.** The four other spellings remain live in
+  `permission-guard.sh`, its test suite and several `agents/*.md` files. A sweep is its own slice.
+- **The label-scoping gap is named, not closed.** Anyone reading this section as *"the orchestrator is now
+  the exclusive, gated actor for `ready`/routing labels"* is reading a claim it explicitly does not make.
+- **The dispatch-omission blind spot has no gate.** Naming it did not make it detectable; an undispatched
+  lens still looks identical to a clean run.
+
+## A task is an Issue child, not a checkbox (absorbed 2026-08-20, record 0014)
+
+**Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):
+record 0014's decision is still in force and is moving into the document that governs the capability it
+belongs to.** Decided by the owner on 2026-08-12, written by `tech-lead`, driven by a `harness-lead`
+pre-implementation stress test of five scenarios; no Issue — a methodology-library decision filed and
+closed at tier 1. Its History row is in [the index](./README.md).
+
+### The decision, as it currently binds (record 0014)
+
+**A task is an Issue CHILD — its own Issue, its own branch, its own PR, with `Parent: #N` in the body.**
+It is not a checkbox on the story. This resolved a live contradiction rather than designing something
+new: `agents/developer.md`'s task-filing rule already read as though a task were a real Issue with its
+own MR, while `wip-guard.sh`'s own struck prose had measured the checkbox model as the one that actually
+ran — **not one task branch across roughly ninety**.
+
+**A task inherits the parent story's routing type and readiness, and carries no label of its own.** A
+task is a decomposition of already-routed, already-ratified work, not a new intake decision; an
+independent type would let one story's work scatter across routing lanes mid-execution, and an
+independent `ready` would make the leads re-close an already-closed description once per task. This is a
+judgement call, recorded as the owner's ruling and open to revisiting if a task-heavy workflow shows the
+inherited model does not scale.
+
+**It ships restrictive: the sibling-file exemption is NOT rebuilt.** `wip-guard.sh`'s surviving overlap
+rule denies a new PR touching a file an open PR by the same author already touches, with no
+story/parent carve-out in executable code. Two sibling tasks under one story that would touch the same
+file are **blocked** until a later slice rebuilds the exemption. The reasoning is that the retired
+two-level implementation carried four separate defects, so a temporarily-restrictive guard fails **safe**
+— denying legitimate work loudly at the `gh pr create` call — rather than failing open and silently
+reintroducing a bug class already caught four times. **The one non-negotiable for whoever rebuilds it:**
+the test fixture must be a **mixed open set carrying a fieldless entry first**, since that is the shape
+the fourth historical defect could not be caught by.
+
+### The rejected options that are still live (record 0014)
+
+- **Task remains a checkbox on the story Issue** — the incumbent. The zero-in-ninety measurement is
+  **evidence of absence-of-instruction, not evidence the model fails once instructed**, and that reading
+  is the more defensible one; the record picked it rather than staying neutral. The checkbox is rejected
+  anyway on an independent driver: it has no MR, so the brief and the Definition of Done already in force
+  cannot describe it, and rewriting them backward throws away the review granularity a task-level gate
+  buys.
+- **Reinstating hook-side `Parent: #N` verification.** The retired mechanism records four
+  correct-in-sequence fixes and was deleted afterward anyway — not because the fixes were wrong but
+  because **intent is not recoverable from a command string**. A fabricated `Parent: #187` is exactly as
+  unverifiable by grep as a fabricated checkbox reference was, so a real parent Issue does not reopen the
+  question. The cheap alternative that *does* work is a reviewer running `gh issue view <parent> --json
+  labels` itself.
+
+### Consequences still being paid (record 0014)
+
+- **Sibling tasks touching the same file are blocked** until the exemption is rebuilt — a real capability
+  loss, named rather than hidden.
+- **No task-level label means a task cannot be independently paused or re-scoped** without touching the
+  parent. If that matters in practice it is a reason to revisit the inheritance ruling, not a defect.
+- **`quality-assurance` has no sibling-PR awareness.** Once two sibling task PRs land, the second's diff
+  can read as unexplained drift with nothing in the gate's brief telling it to look for a sibling first.
+- **Every task is now a full slice with its own review overhead** — a heavier mechanism than a checkbox,
+  chosen because the checkbox model measurably never got used, not because it is cheaper.
+
+## `harness-lead` implements the harness it reviews (absorbed 2026-08-20, record 0015)
+
+**Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):
+record 0015's decision is still in force and is moving into the document that governs the capability it
+belongs to.** Decided by the owner on 2026-08-12, written by `tech-lead`, with a `harness-lead`
+pre-implementation stress test **of this proposal about itself** (six findings, F1–F6). It reverses
+amendment #10's *"advisory, pre-implementation"* framing — struck in place there as amendment #11, not
+rewritten. Its History row is in [the index](./README.md).
+
+### The decision, as it currently binds (record 0015)
+
+**`harness-lead` holds unscoped `Write, Edit` — the exact set `tech-lead` already carries — mitigated
+purely by "cannot merge".** No new hook, no path-scoped deny. Six corollaries are part of the decision
+because the capability is not safe without them.
+
+**Corollary 1 (record 0015) — the capability shape, and nothing new in the hook layer.** Rule 7b denies
+`gh pr merge` to every `agent_type` but `quality-assurance`, and rule 5d denies `gh issue create` to
+every subagent but `developer`; `harness-lead` is caught by both catch-alls before and after the grant,
+so **neither rule changed**. No new `PreToolUse` matcher is needed, and `tech-lead`'s own unscoped grant
+is the proof: `hooks/hooks.json` registers `PreToolUse` on the `Bash` matcher only, so `Edit` and `Write`
+are invisible to the hook layer for **every** persona that holds them.
+
+**Corollary 2 (record 0015) — the harness-diff criterion.** `quality-assurance`'s boundary-class list
+gains: *a diff touching `hooks/**`, `agents/**`, `skills/**`, `commands/**` or `.claude/**` requires a
+`harness-lead` verdict marker present on the PR before it may classify as safe or merge; absent that
+marker the diff is boundary class regardless of what else it does.* This closes a gap that existed
+independently of the grant — before it, nothing stopped a harness change merging with zero `harness-lead`
+involvement.
+
+**Corollary 3 (record 0015) — the durable verdict.** `harness-lead`'s output becomes an
+`<!-- harness-lead-verdict: … -->` comment following [ADR-0006](./0006-verification-and-its-artifacts.md)'s
+shape, referenced against **a commit SHA of the repo state reviewed** rather than a PR head SHA, because
+a harness scenario is frequently reviewed before any PR exists. `harness-lead` is deliberately **not**
+denied `gh pr comment`: rule 5e's argument is the irreversibility of paraphrasing PRIVATE material
+(`.brand/`) into a public comment, and this persona's object is machinery already published in this repo.
+What has never been drawn is the **other** direction — what it should not be allowed to post — and none is
+proposed, because no private-material class in its domain is known to exist and inventing one to close a
+hypothetical gap is the shape this persona is itself instructed to distrust.
+
+**Corollary 4 (record 0015) — `loop`-typed `ready` is an OWNER-ONLY transition**, never applied by any
+dispatch including `harness-lead`'s own. This is what converts *"separate Issue for proposal versus
+build"* from a convention into an actual gate: a proposal dispatch may file findings, but nothing lets
+the same or a later dispatch move that Issue to `ready` and start building without the owner having read
+the artifact. `product`-typed `ready` is unchanged — the two leads, per the routing record above.
+
+**Corollary 5 (record 0015) — harness proposals enter the tracker as real Issues**, `loop`-typed and
+carrying the verdict marker. This is forced by Corollary 4, not an independent decision: an owner-only
+`ready` gate has nothing to attach to without an Issue to hold the label. **Who files is unchanged** —
+`harness-lead` stays denied `gh issue create`, so the orchestrator files it, asked, per *Review does not
+open work*. Nothing about *only the owner opens work* is loosened.
+
+**Corollary 6 (record 0015) — the two execution-defect bugs travel with the grant.** The brief instructed
+using a `Write` tool its own frontmatter did not grant, and its working-files section was silent about
+the same gap. Both are fixed in the same commit as the `tools:` line, because there is no intermediate
+state in which the bug exists and the grant does not.
+
+### The rejected options that are still live (record 0015)
+
+- **A path-scoped `Edit`/`Write` deny for what `harness-lead` may not touch.** *Already measured not to
+  hold*: `security` discovered that `Edit(.claude/**)` does not hold **by editing that file while
+  believing it was blocked**. Re-verified independently — `PreToolUse` fires on the `Bash` matcher only,
+  so a path-scoped deny on `Edit(...)` has no enforcement layer to sit in even in principle. Proposing it
+  again would be proposing a control this repo has already spent a review round proving inert.
+- **Advisory only, forever.** Beyond the owner's reversal, the structural argument is amendment #10's own
+  cost: *nothing enforces a dispatch, and an undispatched lens is indistinguishable from a clean one.*
+  Advisory-only findings already failed silently with no artifact behind them; an implementer at least
+  produces a PR the gate reviews.
+- **Routing `loop` to `harness-lead` alone for both proposing and building in one dispatch** — named in
+  the routing record above so it is not silently reintroduced. The owner's mitigation is that proposal and
+  build ship as **separate dispatches under separate Issues**, which Corollary 4 is the mechanism for.
+
+### Consequences still being paid (record 0015)
+
+- **`harness-lead` reviews and builds the same object.** This is the identical *"nobody observes the gate
+  that signs the merge"* shape `quality-assurance` accepted when `security` merged into it (amendment #10,
+  Decision 2). Mitigated the same way — it cannot merge — not by a second internal reviewer. A real
+  reduction in independence, traded against the advisory-only model's own failure.
+- **`loop`-ready is owner-only BY INSTRUCTION, not by floor enforcement.** Corollary 4's gate is exactly
+  as strong as the owner's habit of reading the artifact first — the same caveat this document already
+  carries for relabeling generally. Left open rather than pretended closed.
+- **A second persona now holds an unscoped `Write, Edit` grant mitigated purely by "cannot merge."** The
+  mitigation is now load-bearing for two personas instead of one, so a future defect in rule 7b's
+  catch-all would compromise both at once.
+
+## `README.md` is the single source of truth for the dev-loop narrative (absorbed 2026-08-20, record 0019)
+
+**Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):
+record 0019's decision is still in force and is moving into the document that governs the capability it
+belongs to.** Decided by the owner on 2026-08-14, written by `harness-lead`, driven by
+[#261](https://github.com/tedeuxx/tadeumendonca-skills/issues/261). Its History row is in
+[the index](./README.md).
+
+### The decision, as it currently binds (record 0019)
+
+**`README.md` is the single canonical source for the dev-loop's narrative description, and
+`docs/dev-loop-design.md` is a pointer stub at its existing path.** This record **amends this document's
+own** *"where the design now lives, harness-agnostically"* note, added in amendment #7, which had named
+`docs/dev-loop-design.md` as that home. The pointer target is what changed; nothing else amendment #7
+decided is touched.
+
+The README absorbed what the design doc carried at greater depth and the README did not — the Definition
+of Done at issue-requirement grain, the intake-formalism argument (why the gate's ruler must be external,
+the two-round budget, parallel-not-serial dispatch), and a *what travels if this design moves to another
+harness* section carrying the essential/incidental/known-weak split. Content that was merely redundant —
+the roster narrative, the branch diagrams — was **not** duplicated a second time, either because the
+README's version was already more current or because a better-homed file already carried it.
+
+**The rule underneath, which is the reusable half:** two documents claiming the same authority at similar
+depth is worse than one document at full depth. A reader has no rule for which is current, and nothing
+forces them to be edited together, so they will drift.
+
+### The rejected options that are still live (record 0019)
+
+- **Keep the design doc canonical and thin the README** — #261's own original framing, reversed by the
+  owner mid-session. A thin README defers dense content to a second document, which is the two-sources
+  problem with the authority assignment flipped rather than resolved.
+- **`git rm` the design doc outright.** Its canonical URL is quoted in its own header as the citable
+  target for import into another harness. A 404 where a redirect could stand costs a reader nothing to
+  avoid. ~~And this repo's supersede-never-delete convention already answers the question.~~ **That
+  second clause was struck 2026-08-15**: the convention was replaced by
+  [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md). The rejection stands
+  on the surviving reason, which was always the load-bearing one — **and ADR-0020 does not reach this
+  file anyway**, being scoped to ADR records, which a redirect stub is not.
+
+### Consequences still being paid (record 0019)
+
+- **The README is the longest document in the repo by a wide margin**, and a reader wanting only "how do I
+  install this plugin" has more to scroll past.
+- **The portable framing is now one hop from the content.** A machine or reader following the raw
+  canonical URL gets a redirect notice, not the design — worse than the URL resolving directly, accepted
+  because `git rm` is worse still.
+
+## What this fold dropped
+
+Per [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md), absorption is
+**lossy by instruction**: what arrives is the decision as it currently binds, the rejected options still
+live, and the consequences still being paid. Dropped from the five records above, deliberately:
+
+- **Every *"consequent work, out of scope here"* item that has since been discharged.** All five records
+  were written under a `docs/adr/**`-only write scope and each named edits it could not make — the
+  `/autonomy-on` predicate, `new-issue.md`'s label step, `quality-assurance`'s boundary-class criterion,
+  `harness-lead`'s frontmatter and its two brief bugs, `dev-loop/SKILL.md`'s tracker rule, the README's
+  checkbox sentence. Those edits landed. A list of obligations that were met is archaeology; the ones that
+  are **not** met survive above as consequences.
+- **The five-spelling census in record 0013** — the file-and-line inventory of `orchestrator` / `main
+  session` / `main loop` / `main agent` / `invoking context`. The decision it produced is above; the
+  inventory was a snapshot of a tree that has moved twice since.
+- **Record 0012's 2026-08-13 amendment** — the retired-label archaeology (34 Issues, 29 unlabelled, 11 of
+  15 labels never applied to anything, and the correction of an earlier figure that mixed an Issue-only
+  population with a PR-inclusive one). The rule it earned — *something must QUERY a label* — is stated
+  above; the census of a vocabulary that no longer exists is not.
+- **Record 0014's four-defect narrative of the retired `wip-guard.sh` two-level rule**, in detail. What
+  binds is kept: the exemption is not rebuilt, and the fixture shape any rebuild must use.
+- **Record 0015's F1–F6 finding-by-finding attribution**, and the line locators every record used
+  (`agents/quality-assurance.md:714-718`, `permission-guard.sh:135,136`, and roughly forty more).
+  `documentation-standard`'s *cite the clause, not the line* rule postdates all five, and carrying dead
+  locators forward would import a citation form this library has since ruled against.
+- **Each record's own `Considered options` restatement of the chosen option as option 1**, and each
+  record's `Links` list, whose live members are folded into this document's cross-references.
 
 ## Links
 - Driven by ADR-0001 (ADRs are the brain this depends on) · the DoD is

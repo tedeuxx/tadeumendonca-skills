@@ -12,17 +12,20 @@
   `skills/documentation-standard/SKILL.md` (Part II) and in the index prose of this library's
   own `README.md`, and being **cited as settled** by live records. **That set is stated by its
   criterion, never by a count** — the two readings give different sets and both are needed:
-  - **Citing `supersede-never-delete` by name: two.** ADR-0019's rejected option 3, *"this repo's own
-    convention (supersede-never-delete) already answers the question"*, and ADR-0011's *"Struck rather
+  - **Citing `supersede-never-delete` by name: two.** Record 0019's rejected option 3, *"this repo's own
+    convention (supersede-never-delete) already answers the question"* — since 2026-08-20 the
+    *`README.md` is the single source of truth for the dev-loop narrative (absorbed 2026-08-20, record
+    0019)* section of [ADR-0002](./0002-roster-and-dev-loop.md) — and ADR-0011's *"Struck rather
     than deleted, per this repo's supersede-never-delete convention"*.
   - **Citing the `supersede-*` family: five.** Those two, plus ADR-0010's *"Struck rather than deleted,
     per this practice's supersede-never-rewrite rule"*, ADR-0002's *"the rule is
     supersede-never-rewrite"* and ADR-0016's *"ADR-0011's own supersede-not-rewrite rule"*. All five
     records are `accepted`.
 
-  Only **one** citation anywhere in that family is about the arm this record replaces — ADR-0019's,
-  which is an argument against `git rm`-ing a **whole file**. **The other four — ADR-0002's,
-  ADR-0010's, ADR-0011's and ADR-0016's — each justify a strike inside a live record**, which this
+  Only **one** citation anywhere in that family is about the arm this record replaces — record 0019's,
+  which is an argument against `git rm`-ing a **whole file**. **The other four — ADR-0002's own
+  *"the rule is supersede-never-rewrite"*, ADR-0010's, ADR-0011's and ADR-0016's — each justify a strike
+  inside a live record**, which this
   record leaves explicitly unchanged. All four are correct as they stand and are **not** to be swept.
   Enumerate them without the hyphenated name, since every one of them is line-wrapped across a hyphen:
   `git grep -n -E "supersede[- ]?never|supersede-not" -- docs/adr/`.
@@ -186,7 +189,7 @@ deletion. So this record changes what happens next; it deletes nothing today.
   the deletion set was empty. The same mutation at head, on the tree in place:
 
   ```
-  mv docs/adr/0002-agentic-dev-loop-architecture.md <elsewhere>
+  mv docs/adr/0002-roster-and-dev-loop.md <elsewhere>
   bash hooks/scripts/inventory-counts.test.sh        →  60 passed, 5 failed
   ```
 
@@ -464,6 +467,7 @@ not the only place a retired number may appear — and nothing else in this amen
   rejected here for *records*, on the asymmetry stated in considered option 3.
 - [ADR-0017](./0017-adr-authorship-is-split-by-domain-not-tech-lead-exclusive.md) — the authorship split
   under which this is `harness-lead`'s record to write.
-- [ADR-0019](./0019-readme-is-the-single-source-of-truth-for-the-dev-loop.md) — cites the replaced
-  convention in its rejected option 3; amended by appending on 2026-08-15 rather than rewritten, per the
+- [ADR-0002](./0002-roster-and-dev-loop.md) — its *`README.md` is the single source of truth for the
+  dev-loop narrative (absorbed 2026-08-20, record 0019)* section cites the replaced convention in its
+  rejected option 3; amended by appending on 2026-08-15 rather than rewritten, per the
   convention this record leaves explicitly unchanged for live records.

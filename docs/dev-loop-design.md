@@ -3,12 +3,12 @@
 **Superseded 2026-08-14 (#261).** README.md is now the single source of truth for the dev-loop
 documentation — its own state machine, roster, gate model, intake formalism, Definition of Done and
 portability notes. This file's content was merged there rather than kept as a second, parallel source;
-see [ADR-0019](./adr/0019-readme-is-the-single-source-of-truth-for-the-dev-loop.md) for the record of that
+see [ADR-0002](./adr/0002-roster-and-dev-loop.md) for the record of that
 decision.
 
 This file is kept as a redirect, not deleted, for one reason: anyone who bookmarked or linked the old
 canonical URL below deserves to land somewhere that says what happened, rather than a 404. That is the
-reason ADR-0019 gave and it is unaffected by #281, which replaced this platform's deletion convention for
+reason ADR-0002 gave and it is unaffected by #281, which replaced this platform's deletion convention for
 **ADR records** — a class this file is not in.
 
 **Read the current, canonical version at:**

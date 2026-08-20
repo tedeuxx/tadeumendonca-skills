@@ -23,7 +23,7 @@ is enforced or merely instructed* is the absorbed 0007 section — **the one par
 - **Status:** accepted
 - **Date:** 2026-07-22
 - **Deciders:** the owner
-- **Driven by:** [ADR-0002](./0002-agentic-dev-loop-architecture.md), and the Merge Request Definition of
+- **Driven by:** [ADR-0002](./0002-roster-and-dev-loop.md), and the Merge Request Definition of
   Done — record 0003 until 2026-08-19, now a section of
   [ADR-0006](./0006-verification-and-its-artifacts.md)
 
@@ -248,7 +248,7 @@ confirmed: making the main agent return early reddens exactly those three and no
 ## Amendment (2026-08-04) — the frontmatter is not the only place a capability is expressed
 
 **The question this settles was the owner's, and it was asked the other way round.** After
-[ADR-0002](./0002-agentic-dev-loop-architecture.md)'s amendment #9 gave the merged copy lens `Bash`, the
+[ADR-0002](./0002-roster-and-dev-loop.md)'s amendment #9 gave the merged copy lens `Bash`, the
 open item was whether that **inherited grant should be visible from this record**, which decides
 per-persona tool-scoping in principle and deliberately enumerates no concrete grant. The earlier ruling
 was that it belonged in 0002, with the roster change that caused it. **That ruling stands for the

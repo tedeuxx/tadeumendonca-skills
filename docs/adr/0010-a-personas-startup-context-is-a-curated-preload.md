@@ -67,7 +67,7 @@ starts, the skill is simply absent, and nothing distinguishes a typo from a deli
 ## Decision drivers
 
 - **The context window is the constraint the roster is already built around.** It is one of the four
-  reasons a persona may exist at all ([ADR-0002](./0002-agentic-dev-loop-architecture.md), tenth
+  reasons a persona may exist at all ([ADR-0002](./0002-roster-and-dev-loop.md), tenth
   amendment). A preload spends that budget before the persona reads a single line of the work, so the
   list is bounded by **bytes, not by count**.
 - **An exclusion is a deprivation, so it must be argued rather than defaulted to.** This is the driver
@@ -238,7 +238,7 @@ without being the loader — it catches a broken reference, not a broken loader.
 - [#177](https://github.com/tedeuxx/tadeumendonca-skills/pull/177) — *`Skill` is not grantable through
   `tools:`*, which removed [#171](https://github.com/tedeuxx/tadeumendonca-skills/issues/171)'s inert
   grant and is the measurement that makes option 2 untenable.
-- [ADR-0002](./0002-agentic-dev-loop-architecture.md) — **cited, not amended.** Its four-reason rule
+- [ADR-0002](./0002-roster-and-dev-loop.md) — **cited, not amended.** Its four-reason rule
   explains why the roster is five; curating what those five preload does not change why any of them
   exists, and the context-window reason is one of the four this record leans on.
 - [ADR-0009](./0009-a-skill-description-is-a-trigger-not-a-title.md) — **cited, not amended.** It owns

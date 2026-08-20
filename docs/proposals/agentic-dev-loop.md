@@ -15,12 +15,12 @@ recorded here (the roster reshapes, the merges, `plan-reviewer`'s retirement) wa
 proposal as it stood on 2026-07-22**, not as the loop's current shape.
 
 **The current, single source of truth for the dev-loop design is [README.md](../../README.md)**
-(ratified by [ADR-0019](../adr/0019-readme-is-the-single-source-of-truth-for-the-dev-loop.md),
+(ratified by [ADR-0002](../adr/0002-roster-and-dev-loop.md),
 2026-08-14, superseding the intermediate consolidation this same document had briefly pointed
 readers to, `docs/dev-loop-design.md` — now itself a redirect stub for the same reason this file is
 being marked one). For the decisions this proposal was ratified into, read
 [ADR-0001](../adr/0001-adopt-madr-adrs.md) (adopt MADR),
-[ADR-0002](../adr/0002-agentic-dev-loop-architecture.md) (the dev-loop architecture, including every
+[ADR-0002](../adr/0002-roster-and-dev-loop.md) (the dev-loop architecture, including every
 roster amendment since),
 [ADR-0006](../adr/0006-verification-and-its-artifacts.md)'s *Merge Request Definition
 of Done* section (record 0003 until it was absorbed there on 2026-08-19), and

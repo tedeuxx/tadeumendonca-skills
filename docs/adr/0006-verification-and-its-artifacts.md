@@ -19,7 +19,7 @@ the claim is checkable rather than reported (`bash hooks/scripts/inventory-count
   identifier-only rule) · **amended 2026-08-04, third** (**the closing open question is CLOSED** — a
   gate may relay another persona's verdict, and for the copy lens it must; criterion 10 upgrades from
   *returned* to *returned and quoted*) · **amended 2026-08-04, fourth** (`security` is absorbed into
-  `quality-assurance` per [ADR-0002](./0002-agentic-dev-loop-architecture.md) amendment #10, so **the
+  `quality-assurance` per [ADR-0002](./0002-roster-and-dev-loop.md) amendment #10, so **the
   gate-reads-gate verification has no subject** — the artifact survives and still closes *omission*, the
   **confirmation** does not, and the remaining verdict is self-enforced). **The decision itself is
   unchanged by all five** — ~~the relay is an addition alongside the two first-party markers, never a
@@ -290,7 +290,7 @@ Booked here as a real cost of closing the question, in the same terms this ADR u
 
 ## Amendment (2026-08-04) — the closing open question's premise is gone; the question is not
 
-**What changed outside this record.** [ADR-0002](./0002-agentic-dev-loop-architecture.md)'s ninth
+**What changed outside this record.** [ADR-0002](./0002-roster-and-dev-loop.md)'s ninth
 amendment merged `marketing-lead` into `product-lead`. The persona named in the open question above no
 longer exists, and the copy mandate now lives in a persona declaring
 `tools: Read, Grep, Glob, Bash`.
@@ -350,7 +350,7 @@ rule** — cite `positioning.md §X, bullet N`, never the line — *"is now an i
 behind it."* **It has one.** `permission-guard` gains **rule 5e**, an `agent_type`-keyed deny on
 `gh pr comment` / `gh issue comment` / `gh issue create` for `*:product-lead`, so the persona that reads
 the private, gitignored positioning source cannot itself publish to a public PR. The decision and its cost are recorded in
-[ADR-0002](./0002-agentic-dev-loop-architecture.md)'s amendment #9, where the loosening was booked; the
+[ADR-0002](./0002-roster-and-dev-loop.md)'s amendment #9, where the loosening was booked; the
 mechanism class is recorded in [ADR-0004](./0004-controls-and-enforcement.md). It is noted here
 because it **moves this record's open question**, in both directions.
 
@@ -600,7 +600,7 @@ makes it attributable.
 
 ## Amendment (2026-08-04, fourth) — the verification direction has lost its subject; the artifact survives, the check does not
 
-**Cause:** [ADR-0002](./0002-agentic-dev-loop-architecture.md)'s amendment #10 — `security` is absorbed
+**Cause:** [ADR-0002](./0002-roster-and-dev-loop.md)'s amendment #10 — `security` is absorbed
 into `quality-assurance`. **The decision this record makes is unchanged**: a verdict owed to another
 persona is still an artifact on the PR, still carries the head SHA it read, still is never a relayed
 claim. What changed is that **one half of its mechanism no longer has a second party**, and that half
@@ -806,7 +806,7 @@ this section, which supersedes it.
 - **The record's own `Links` block**, whose pointers are folded into the sentences that use them.
 
 ## Links
-- [ADR-0002](./0002-agentic-dev-loop-architecture.md) amendment #10 — the roster change that removed the
+- [ADR-0002](./0002-roster-and-dev-loop.md) amendment #10 — the roster change that removed the
   reading party; the four costs of the absorption are recorded there, cost 3 being this one
 - Makes the Definition of Done's two-gatekeeper requirement checkable rather than instructed, and reuses
   the verification shape already established for the owner's ratification — that DoD was record 0003

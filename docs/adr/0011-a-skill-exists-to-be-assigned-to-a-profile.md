@@ -773,7 +773,7 @@ This applies to **all three** consolidated skills alike — `cloud-infrastructur
 - [ADR-0005](./0005-plugin-auto-versions-on-merge.md)`:146-149` — the `Skills (2)` → `Skills (71)`
   measurement, relayed from #182 and cited rather than re-derived: **this record could not re-derive it**,
   since the pre-#182 state no longer exists in a running loader.
-- [ADR-0002](./0002-agentic-dev-loop-architecture.md) — **cited, not amended.** The context window as one
+- [ADR-0002](./0002-roster-and-dev-loop.md) — **cited, not amended.** The context window as one
   of the four reasons a persona exists is the driver every option above is priced against.
 - **Evidence re-derived on this branch, not relayed:** the project-agnostic lint (0 hits); `argument-hint`
   (2 under `commands/`, 0 under `skills/`); the 14 process skills and the ten `skills:` entries; the

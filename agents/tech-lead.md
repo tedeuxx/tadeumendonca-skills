@@ -121,7 +121,7 @@ how to check it or labelled a hypothesis, when the decision is yours to write; *
 decision is significant enough to record and you write the record — for the decisions that are yours.**
 Treat its findings the way you treat any input to an ADR: cite what you checked. A decision straddling
 both domains doesn't resolve by issue-type label alone — default to co-citation in the ADR's own
-`Deciders` line (ADR-0015's own header already does this: owner decides, written by tech-lead,
+`Deciders` line (record 0015's own header already did this: owner decides, written by tech-lead,
 pre-implementation stress test by harness-lead) rather than a fight over who writes it; this is the
 owner's call at the point it actually happens, not a rule this brief settles in advance.
 

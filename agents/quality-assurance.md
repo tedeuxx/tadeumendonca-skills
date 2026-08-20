@@ -140,7 +140,7 @@ is built**, on a proposal, never on a diff.
 What that means for you, concretely, because the tempting misreading is that cost 3 above is now
 partly repaid:
 
-- **ADR-0015 Corollary 3 decides `harness-lead` will post a durable verdict marker**
+- **ADR-0002's record 0015 Corollary 3 decides `harness-lead` will post a durable verdict marker**
   (`<!-- harness-lead-verdict: ... -->`, posted via `gh issue comment`/`gh pr comment` — a `Bash`
   call this persona was never denied, independent of whether it also holds `Write`/`Edit`). Check for
   the marker STRING ITSELF, not a proxy: `grep -n "harness-lead-verdict" agents/harness-lead.md`
@@ -426,7 +426,8 @@ The hard gates, each to be confirmed:
    slice changes no behaviour; a static site has no runtime telemetry), so the reader can disagree. A
    criterion answered `n/a → pass` every time is not gating anything.
 7. **No doc drift** — affected docs/ADRs updated in the same MR. **Before flagging cross-task drift as a
-   finding, check for a sibling task** (ADR-0014 S5): a task under a parent story may reference doc
+   finding, check for a sibling task** (ADR-0002, record 0014's *`quality-assurance` has no sibling-PR
+   awareness* consequence): a task under a parent story may reference doc
    updates a sibling task carries instead. Run `gh issue view <parent> --json body` for the parent story
    and look for sibling-task references before treating an update named-but-absent-here as drift.
 8. **History hygiene** — conventional-commit subjects; a real merge commit, never squash.
@@ -742,7 +743,7 @@ accompany the fix.
   **a change to the loop's own rules** — the state table, an ADR that governs the loop, this file's own
   classification logic, or any other artifact that decides how work is decided.
   You **never merge** these — approve-pending-human and hand the go/no-go up.
-- **The harness-diff criterion (ADR-0015 Corollary 2):** a diff touching `hooks/**`, `agents/**`,
+- **The harness-diff criterion (ADR-0002, record 0015's Corollary 2):** a diff touching `hooks/**`, `agents/**`,
   `skills/**`, `commands/**`, or `.claude/**` requires a `harness-lead` verdict marker present on the
   PR before it may classify as safe or merge. Absent that marker, the diff is boundary class regardless
   of what else it does.

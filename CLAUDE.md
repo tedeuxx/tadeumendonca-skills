@@ -335,7 +335,7 @@ The **agentic dev-loop** (methodology ADRs `docs/adr/`, design in `README.md`): 
 
 **The 2026-08-04 merge is a different argument and is recorded as one.** `marketing-lead` → `product-lead`, on the owner's decision: **the product IS the site and the site IS his professional presence** — one object, one lead — and fewer lead profiles means fewer agent outputs to reconcile at review time. The clause he ratified, which is not optional: the copy lens keeps a **BLOCKING veto on published claims**. `product-lead` was purely advisory; the merged persona is advisory on order, scope and craft, and **blocking on the truth of anything published**. It returns the two classes separately and labelled, because the split used to be structural (two personas) and is now a discipline of how the report is written.
 
-The shape, and the harness-agnostic design (#261, [ADR-0019](./docs/adr/0019-readme-is-the-single-source-of-truth-for-the-dev-loop.md)) is in
+The shape, and the harness-agnostic design (#261, [ADR-0002](./docs/adr/0002-roster-and-dev-loop.md)) is in
 [`README.md`](./README.md), the single canonical source since `docs/dev-loop-design.md` was retired to a
 pointer stub:
 
@@ -355,11 +355,11 @@ Two rules the owner set for the loop, above every persona's own checklist: **it 
 
 The lesson worth keeping: **a persona earns its place by generating a disagreement someone needs to hear**, not by completing an org chart. A mandate with no trigger is a document; a persona with no counterpart is a handoff. `harness-lead` is not the exception it looks like — its counterpart is **the owner**, wearing the harness-engineer hat, which is the one role in this loop that had nobody to argue with.
 
-**The orchestrator is the main session itself — one name, not a sixth persona** (ADR-0013). It is not
+**The orchestrator is the main session itself — one name, not a sixth persona** (ADR-0002). It is not
 dispatchable: no `Task` invocation ever targets it, and it satisfies none of the four reasons a persona
 exists (amendment #10 above). Its **duties**: dispatches every persona (no persona talks to another
 directly); commits and pushes on the loop's behalf; applies the `ready` label once the two intake leads
-have closed an Issue's description; applies the ADR-0012 routing label (`product`/`content`/`loop`); and
+have closed an Issue's description; applies the ADR-0002 routing label (`product`/`content`/`loop`); and
 decides, in the moment, whether a given review specialist needs dispatching at all — a real judgment
 call, not a formality.
 
@@ -369,7 +369,7 @@ merge and direct push to the trunk — `hooks/scripts/permission-guard.sh` leave
 **Not enforced, and not claimed to be:** label application — `gh issue edit`/`gh label` sit in the global
 allow, unscoped to who calls them — and the dispatch-omission judgment call, which is a different failure
 shape than "decides the irreversible": an omission nobody can see happened or didn't, not a decision on
-an irreversible act. See ADR-0013 for the full record.
+an irreversible act. See ADR-0002 for the full record.
 
 | Command | Purpose |
 |---|---|

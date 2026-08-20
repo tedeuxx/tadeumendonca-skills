@@ -11,7 +11,8 @@
 # Read it before proposing branch-level decomposition again: it was tried, it was correct, and
 # it came out for a reason that is a measurement rather than an opinion.
 #
-# **#195 (2026-08-12): the SIBLING-TASK EXEMPTION named as consequent work in ADR-0014 S1 is now
+# **#195 (2026-08-12): the SIBLING-TASK EXEMPTION named as consequent work in ADR-0002 (record 0014,
+# its "It ships restrictive" clause) is now
 # implemented** — see "SIBLING-TASK EXEMPTION" near the overlap loop below. This is NOT the
 # retired two-level story model above: it does not diverge branches, does not count stories, and
 # reuses none of that design. It answers one narrower question at the point of overlap — do the
@@ -220,14 +221,14 @@ mine="$(git diff --name-only "$merge_base" HEAD 2>/dev/null || true)"
 # blocking. Either way there is nothing to intersect.
 [ -z "$mine" ] && exit 0
 
-# ── SIBLING-TASK EXEMPTION (ADR-0014 S1) ─────────────────────────────────────────────
+# ── SIBLING-TASK EXEMPTION (ADR-0002, record 0014) ───────────────────────────────────
 #
 # Two sibling task PRs under the SAME parent story are permitted to overlap: they are
 # the decomposition the leads already ratified once, not a stale queue about to conflict.
 # Everything else in this file's overlap rule stays exactly as it was — this only turns
 # an otherwise-denied collision into an allow when both sides trace to the same parent.
 #
-# "Same parent" per ADR-0014 / agents/developer.md's task-filing rule: an Issue's body
+# "Same parent" per ADR-0002 record 0014 / agents/developer.md's task-filing rule: an Issue's body
 # carries a `Parent: #N` line. Two issues are siblings if they name the same #N, or if
 # one OF THEM IS #N and the other names it. Reduced to one comparison: each side's
 # ROOT is its own Parent if it has one, else its own issue number — two sides are

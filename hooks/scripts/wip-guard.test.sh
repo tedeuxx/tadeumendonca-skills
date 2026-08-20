@@ -385,7 +385,7 @@ stub_gh "$ONE" "$THEIRS"
 stub_git "$MINE_OVERLAPS"
 check DENY  "no branch fields: overlap holds" "gh pr create --title x"
 
-echo "--- SIBLING TASKS (ADR-0014 S1): same parent story permits the overlap ---"
+echo "--- SIBLING TASKS (ADR-0002, record 0014): same parent story permits the overlap ---"
 #
 # Dedicated stubs, not the shared stub_gh/stub_git: this exercises `gh issue view` and
 # `git rev-parse --abbrev-ref HEAD`, which the shared stubs never answer (both fall
@@ -435,7 +435,7 @@ PATH="$STUBDIR:$REAL_PATH"
 set_issue() { printf '%s' "$2" > "$STUB_ISSUES/$1.txt"; }
 rm -f "$STUB_ISSUES"/*.txt
 
-# Case 1: both sides name the SAME explicit parent — the plain reading of ADR-0014's rule.
+# Case 1: both sides name the SAME explicit parent — the plain reading of ADR-0002 record 0014's rule.
 set_issue 200 ''
 set_issue 201 'Parent: #200'
 set_issue 202 'Parent: #200'
@@ -446,7 +446,7 @@ export STUB_PRFILES="$THEIRS"
 check ALLOW "same explicit Parent: #N on both sides" "gh pr create --title x"
 
 # Case 2: MY branch IS the parent story itself, and theirs names it. The other half of
-# ADR-0014's "OR one IS the parent" clause — Case 1 alone would miss it.
+# ADR-0002 record 0014's "OR one IS the parent" clause — Case 1 alone would miss it.
 export STUB_MY_BRANCH='product/issue-200-parent-story'
 check ALLOW "mine IS the parent, theirs names it" "gh pr create --title x"
 
