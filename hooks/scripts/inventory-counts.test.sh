@@ -754,8 +754,10 @@ else
     #     — the arm passed, it just passed a sentence about a different floor.
     #
     #     AND IT IS DELETED RATHER THAN REPOINTED because the coupling itself is the defect: #283 folds
-    #     record 0008 into the permissions capability document, and a gate tied to a record BY FILENAME is
-    #     exactly the coupling that fold breaks silently. The durable lesson, which lives nowhere else:
+    #     record 0008 into the `controls-and-enforcement` capability document, and a gate tied to a
+    #     record BY FILENAME is exactly the coupling that fold breaks silently. (That capability was
+    #     called `permissions` until 2026-08-19; the rename is why this sentence changed, and it is
+    #     itself a small instance of the coupling being described.) The durable lesson, nowhere else:
     #     where a mechanism exists, tie to the mechanism by EXECUTING it, never by grepping for a
     #     sentence about it. This exception was tied first to a hook rule that could not bound it, then
     #     to a phrase in a deny message that survived commenting the rule out, then to a record — three
@@ -2768,8 +2770,12 @@ fi
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
 # EVERY RECORD DECLARES A CAPABILITY, AND EVERY DECLARED NAME IS IN THE CLOSED SET (#283, slice 1).
 #
-# WHAT THE FIELD IS FOR. #283 reconciles this library from twenty records into seven CAPABILITY
-# DOCUMENTS. `Capability` is the field that says which document a record belongs to — so "this slice
+# WHAT THE FIELD IS FOR. #283 reconciles this library from twenty records into a small number of
+# CAPABILITY DOCUMENTS — the count is NOT written here, deliberately, because the set is published in
+# docs/adr/README.md and read from there below. An earlier revision of this comment said "seven" and
+# the set is now six; a comment carrying a copy of a number the same file derives two hundred lines
+# later is the second-source-of-truth failure this whole arm exists to gate against, committed in the
+# gate. `Capability` is the field that says which document a record belongs to — so "this slice
 # closes capability X" is auditable from the tree rather than asserted in a PR body, and so a
 # twenty-first record has to answer "which capability?" before it can exist. It is declared as a bullet
 # in the record's own header list, immediately above `- **Status:**`, which is the one header line
@@ -2783,21 +2789,28 @@ fi
 # allowed — as a visible edit to a published list, in the same diff as the record that needs it.
 #
 # WHAT THIS DOES NOT CHECK, said plainly so the green is not read as more than it is:
-#   - Nothing here judges whether a record is in the RIGHT capability. A record declaring `permissions`
-#     while deciding something about the roster passes. The mapping is a reviewer's read, and there is
-#     no instrument for it.
+#   - Nothing here judges whether a record is in the RIGHT capability. A record declaring
+#     `controls-and-enforcement` while deciding something about the roster passes. The mapping is a
+#     reviewer's read, and there is no instrument for it. Two of this batch's own re-filings —
+#     0012/0014 out of the retired `intake-and-routing`, and 0019 out of `decision-library` — were
+#     found by reading, which is what "no instrument" costs stated concretely.
 #   - NO COLLISION ARM SHIPS HERE — no assertion that two records declare different capabilities. That
-#     is deliberate and it is a NAMED RESIDUAL, not an oversight: four records legitimately share
-#     `permissions` from this slice until the permissions fold lands, so a collision arm would be red
-#     for the whole batch. It ships in the closing slice. Until then a duplicate is permitted and
-#     nothing says so.
-#   - The set's own membership is a ratified list, derived from nothing. A name that should never have
-#     been in it passes, and so does a record correctly declaring it.
+#     is deliberate and it is a NAMED RESIDUAL, not an oversight: several records legitimately share
+#     one name from this slice until that capability's fold lands, so a collision arm would be red for
+#     the whole batch. It ships in the closing slice. Until then a duplicate is permitted and nothing
+#     says so.
+#   - The set's own membership is a decided list, derived from nothing. A name that should never have
+#     been in it passes, and so does a record correctly declaring it. Demonstrated rather than
+#     asserted: `intake-and-routing` sat in this set, gated and green, for the whole interval between
+#     the two commits of #283 slice 1 — and it was retired for a reason no assertion here could ever
+#     have raised.
 #
 # NO COUNT IS PUBLISHED BESIDE THE SET IN docs/adr/README.md, and that is a choice this file's whole
-# subject argues for: a prose "seven" next to a seven-row table is a second source of truth for the
-# same fact, and this suite exists because that arrangement rots. The count below is DERIVED from the
-# table and printed in the verdict, so there is nothing to keep in step.
+# subject argues for: a prose count next to the table is a second source of truth for the same fact,
+# and this suite exists because that arrangement rots. The count below is DERIVED from the table and
+# printed in the verdict, so there is nothing to keep in step — which is why dropping a row from the
+# set needed no edit anywhere in the assertion logic, only in the two comments that had spelled the
+# number out.
 
 CAP_INDEX="$CITATION_ADR_DIR/README.md"
 
@@ -2901,9 +2914,12 @@ elif [ "$cap_set_count" -eq 0 ]; then
       record; 5a above says what to repair."
 elif [ -n "$cap_unknown" ]; then
   bad "record capability — a record declares a capability that is not in the closed set:$cap_unknown
-      The set in docs/adr/README.md is closed and the owner ratified it. A record that needs a name not
-      on the list is either mis-filed, or it is the visible widening of a published list — which is a
-      decision, taken in the same diff, not a spelling."
+      The set in docs/adr/README.md is closed and decided once for the whole library. A record that
+      needs a name not on the list is either mis-filed, or it is the visible widening of a published
+      list — which is a decision, taken in the same diff, not a spelling. (This message said 'the
+      owner ratified it' until 2026-08-19. The owner ratified the SHAPE — an anchor keeps its number
+      and filename; the NAMES were decided inside the loop. A refusal message that overstates who is
+      behind the rule makes disagreeing with a name look like disagreeing with the owner.)"
 else
   ok "record capability — all $cap_names_checked declared capabilities are in the closed set of $cap_set_distinct"
 fi

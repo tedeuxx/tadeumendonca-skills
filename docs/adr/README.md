@@ -10,10 +10,17 @@ Practice and template: [`/documentation-standard`](../../skills/documentation-st
 ## Capabilities
 
 **Every record declares a `Capability` in its header, and the value must be one of the names below.**
-The set is **closed** — ratified once by the owner, not derived per record — and
+The set is **closed** — decided once for the whole library, not derived per record — and
 `hooks/scripts/inventory-counts.test.sh` reddens on a record declaring a name that is not here.
 Widening it is allowed and is meant to be *visible*: a row added to this table, in the same diff as the
 record that needs it, rather than a name invented in a header where nobody would see it.
+
+**Who decided the set, stated exactly, because this line claimed more than it held.** It read *"ratified
+once by the owner"*. The owner ratified the **shape** — that a capability document keeps its anchor's
+number and filename — on [#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283). **The names
+themselves, and this revision of them, were decided inside the loop and are not owner-ratified.** The
+set is closed by the gate either way; what is *not* true is that disagreeing with a name means
+disagreeing with the owner. It is reversible at the cost of one table and one field per record.
 
 **What the field is for.** [#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283) reconciles
 this library into one **capability document** per name below. The anchor keeps its number and its
@@ -23,40 +30,134 @@ rule, made mechanical instead of asserted.
 
 | capability | anchor | what belongs in it | what does not |
 |---|---|---|---|
-| `roster-and-dev-loop` | [0002](./0002-agentic-dev-loop-architecture.md) | Who exists in the loop and what each actor is for — the personas, the tiers, the reasons a persona exists at all, the orchestrator, and which actor may implement or gate which class of work. | How a *particular* piece of work is classified or ordered (`intake-and-routing`), and what must be true before it merges (`verification-and-its-artifacts`). |
-| `intake-and-routing` | [0012](./0012-issue-type-is-the-routing-axis-and-is-exclusive.md) | How work enters the loop and where it is sent — issue types and their exclusivity, the `ready` transition, and the shape a unit of work takes (Issue, child task, branch, PR). | Who acts once it is routed (`roster-and-dev-loop`), and whether the result is acceptable (`verification-and-its-artifacts`). |
-| `verification-and-its-artifacts` | [0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md) | What "done" means and what observable artifact proves a check actually ran — the Definition of Done, the gate's lenses, and the rule that a verdict owed to another actor is a posted artifact rather than a relayed claim. | What an actor is *permitted* to do once it has decided — merge, push, write (`permissions`). |
-| `permissions` | [0004](./0004-autonomy-and-permission-model.md) | What any actor may do without asking, what is denied outright, and **which layer can carry a given control** — the autonomy classes, the allow/ask/deny states, the guard hook, and the merge precondition as a floor rather than an instruction. | Whether a specific change is safe (`verification-and-its-artifacts`), and who is making it (`roster-and-dev-loop`). |
+| `roster-and-dev-loop` | [0002](./0002-agentic-dev-loop-architecture.md) | Who exists in the loop and what each actor is for — the personas, the tiers, the reasons a persona exists at all, the orchestrator, and which actor may implement or gate which class of work — **and how work moves through them**: the issue types and their exclusivity, the `ready` transition, the shape a unit of work takes (Issue, child task, branch, PR), and where the loop's own canonical narrative description lives. | What must be true before a change may merge, and what artifact proves a check actually ran (`verification-and-its-artifacts`). Whether the act is permitted at all, and by what (`controls-and-enforcement`). |
+| `verification-and-its-artifacts` | [0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md) | What "done" means and what observable artifact proves a check actually ran — the Definition of Done and its criteria, the gate's two lenses, and the rule that a verdict owed to another actor is a posted artifact rather than a relayed claim. | **Who** holds the gate, and which actor may implement or gate a class of work (`roster-and-dev-loop`). **Whether** a rule is mechanically enforced rather than instructed, and what an actor is permitted to do once it has decided (`controls-and-enforcement`). |
+| `controls-and-enforcement` | [0004](./0004-autonomy-and-permission-model.md) | Whether an act may be performed at all, and by what — the autonomy classes and the allow/ask/deny states, the committed floor and the guard hook, **which layer can carry a given control**, and the systems outside the agent's shell (a branch protection, a repository setting, pipeline-only apply) that authorise an act regardless of any agent-facing rule. | Whether a specific change is *good* — that is a check, not a control (`verification-and-its-artifacts`) — and who is making it (`roster-and-dev-loop`). |
 | `skills-and-preload` | [0011](./0011-a-skill-exists-to-be-assigned-to-a-profile.md) | What a skill is and when one earns its place, how it is described so a model reaches for it, what a persona preloads into a fresh context, and where a file goes when it stops being a skill. | Which personas exist to be preloaded into (`roster-and-dev-loop`). |
-| `decision-library` | [0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) | How this library itself works — the record format, who authors one, when a record earns its place, how it leaves, and where the canonical documentation of the loop lives. | Any decision the records are *about*. This capability is the shelf, not what is on it. |
+| `decision-library` | [0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) | How this library itself works — the record format, who authors one, when a record earns its place, and how it leaves. | Any decision the records are *about* — **including where a document that is not a record lives**. This capability is the shelf, not what is on it. |
 | `plugin-distribution` | [0005](./0005-plugin-auto-versions-on-merge.md) | How the harness reaches a consumer — versioning, publishing, the marketplace, and what a consumer opts into and when. | How the plugin's contents are decided (`skills-and-preload`). |
 
-**No count is published beside this table, deliberately.** A prose "seven" next to a seven-row table is
-a second source of truth for one fact, and this repository's own gate exists because that arrangement
-rots. The count is derived from the table and printed in the gate's verdict instead.
+**No count is published beside this table, deliberately.** A prose count next to the table is a second
+source of truth for one fact, and this repository's own gate exists because that arrangement rots. The
+count is derived from the table and printed in the gate's verdict instead. This paragraph used to spell
+the number out while making that argument — it read *"a prose 'seven' next to a seven-row table"* — and
+the table has since lost a row, which is the demonstration rather than a counter-example.
+
+**The set held a seventh name, `intake-and-routing`, and the argument that kept it separate was
+measured false rather than merely doubted.** That row was published anchored on
+[0012](./0012-issue-type-is-the-routing-axis-and-is-exclusive.md) and named, in this section, as the
+weakest boundary in the set — separate *"because 0002 is already the largest record in the library by a
+wide margin"*. Both halves of that failed:
+
+- **The consolidated document was not going to be the largest.** Summing each capability's records as
+  they stand, `controls-and-enforcement` was already the larger of the two:
+
+      wc -c docs/adr/0004*.md docs/adr/0007*.md docs/adr/0008*.md docs/adr/0018*.md   # 152559 total
+      wc -c docs/adr/0002*.md docs/adr/0013*.md docs/adr/0015*.md                     # 149589 total
+
+  So a size objection that admitted the seventh name had to admit an eighth splitting the larger
+  document, and nobody proposed one. **"By a wide margin" was also wrong at record grain** — 0002 is
+  about 1.5× 0008, the next largest, not a different order.
+- **The taxonomy leaked in both directions, with named artifacts.**
+  [0002](./0002-agentic-dev-loop-architecture.md) carries a section headed *"Decision — the intake
+  chain, and what each link buys"* — intake's defining mechanism, living in the roster anchor. And
+  [0012](./0012-issue-type-is-the-routing-axis-and-is-exclusive.md)'s *Corollary 3* is the decision
+  that **created the `writer` persona** — the roster's newest member, decided inside the routing
+  record. A boundary that neither document respects is not a boundary a reader can use. (Both are
+  cited by heading rather than by line, per `documentation-standard`'s *cite the clause, not the
+  line* — the same rule whose breach 94ea0fe repaired in seven places.)
+
+Folded: 0012 and 0014 join 0013, 0015 and 0019 under `roster-and-dev-loop`, anchored on 0002.
+
+**What that costs, published rather than argued away.** The inputs to the loop document now sum to
+about **200 KB**:
+
+    wc -c docs/adr/0002*.md docs/adr/0012*.md docs/adr/0013*.md docs/adr/0014*.md docs/adr/0015*.md docs/adr/0019*.md
+    # 199621 total
+
+That is an **upper bound on the inputs, not a prediction of the document** — [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)'s
+disposition 4 makes the fold *lossy by instruction*, so what arrives is the decision as it currently
+binds and not the archaeology. The honest statement of the cost is that this will be the longest
+document in the set and its remedy is **sections inside it**, not a second capability drawn on a line
+the content does not have.
+
+**The field assigns a record to a document; it does not promise the document is self-contained.** This
+is named because the strongest objection to `verification-and-its-artifacts` is a *completeness* one,
+and completeness does not resolve into a move. Reading only [0003](./0003-mr-definition-of-done.md) and
+[0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md), a reader does not learn who holds
+the gate, that the merge precondition is mechanically a floor, or that a harness diff is boundary-class
+absent a `harness-lead` verdict marker. All three were examined for relocation and **none of them
+moves**:
+
+- **Who holds the gate** is roster content by the table above — *which actor may implement or gate which
+  class of work*. Not misfiled; a pointer, which the *what does not* column now carries in both
+  directions.
+- **[0007](./0007-the-merge-precondition-is-a-floor-not-an-instruction.md) stays under
+  `controls-and-enforcement`.** What it decides is whether a rule is mechanically enforced or merely
+  instructed, and that is the enforcement question, not the *done* question. This is the boundary a
+  reader is most likely to cross in the wrong direction, which is why it is item 1 of the list below
+  rather than quietly resolved by moving the record to where it reads more naturally.
+- **[0015](./0015-harness-lead-implements-the-harness-it-reviews.md)'s Corollary 2 is verification
+  *behaviour* derived from a roster *decision*, and `Capability` is single-valued** — the gate parses
+  exactly one name per record and reddens on two (`hooks/scripts/inventory-counts.test.sh`, the *record
+  capability* arm: *"a record belongs to exactly one"*). A record therefore cannot be split across two
+  documents by declaration, and the corollary travels with its record into the loop document.
+
+**One thing is genuinely misplaced, and it is content rather than a record.**
+[0002](./0002-agentic-dev-loop-architecture.md) renders DoD criterion 10 across eleven lines — the
+verification document's subject, inside the roster anchor. It is tolerable only because that passage
+already marks itself: *"this ADR's rendering of criterion 10 is a **summary**, not the text"*, naming
+`agents/quality-assurance.md` as the only place to read the operative wording. **That is the convention
+the folds should follow:** a capability document may restate a neighbour's content only where it marks
+the restatement as a summary and names where the operative text lives. **It is a convention and not a
+gate** — nothing detects an unmarked copy, and none is proposed, because *"is this paragraph a summary
+of something that lives elsewhere"* has no mechanical form. Said plainly so the next reader does not
+mistake the marked case for an enforced one.
 
 **Three boundaries in this set were a judgement call rather than a reading, and they are named here so
 disagreeing with one is cheap:**
 
-1. **`intake-and-routing` versus `roster-and-dev-loop`.** Intake *is* part of the loop's state machine,
-   and a defensible set would hold six names with intake inside the loop capability. It is separate
-   because [0002](./0002-agentic-dev-loop-architecture.md) is already the largest record in the library
-   by a wide margin and a reader asking *"what type is this Issue?"* is not reading a roster. That is a
-   **size** argument doing a **taxonomy** argument's job, and it is the weakest boundary here.
-2. **`permissions` versus `verification-and-its-artifacts`.** *The merge precondition is a floor, not an
-   instruction* reads as a statement about verification and is filed under permissions, because what it
-   decides is whether a rule is mechanically enforced — a permission-layer question. A reader looking
-   for it under verification will not find it.
-3. **`skills-and-preload` versus `decision-library`.** *A skill's `archive` disposition is a file move*
+1. **`controls-and-enforcement` versus `verification-and-its-artifacts`.** *The merge precondition is a
+   floor, not an instruction* reads as a statement about verification and is filed under enforcement,
+   because what it decides is whether a rule is mechanically enforced rather than instructed. **The
+   rename below narrowed this discomfort without removing it** — "enforcement" names the question that
+   record answers, where "permissions" did not — but a reader looking for the merge precondition under
+   verification still will not find it.
+2. **`skills-and-preload` versus `decision-library`.** *A skill's `archive` disposition is a file move*
    is about where a retired artifact goes, which is the shape of a documentation-architecture decision;
-   it is filed under skills because the artifact it retires is a skill.
+   it is filed under skills because the artifact it governs is a skill. That is
+   [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)'s own filing rule —
+   a decision belongs to *"the document that governs the thing it decides"* — and it is the same rule
+   that moves 0019 out of `decision-library` in the next paragraph. One rule, two answers, which is
+   what makes it a rule rather than a preference.
+3. **`roster-and-dev-loop` holds a record about a file.**
+   [0019](./0019-readme-is-the-single-source-of-truth-for-the-dev-loop.md) decides that `README.md` is
+   the single source of truth for the dev-loop documentation. It was published under `decision-library`,
+   against that capability's own exclusion — *the shelf, not what is on it* — since `README.md` is not
+   part of this library. Applying ADR-0020's rule instead: the thing 0019 governs is the loop's
+   narrative description, so it belongs to the document that governs the loop. `decision-library`'s
+   *"what belongs in it"* lost the clause *"and where the canonical documentation of the loop lives"*,
+   which existed only to admit this record. **The residual discomfort, stated:** the `roster` half of
+   the name does not cover a decision about a file's role; the `dev-loop` half does, and that is the
+   whole of why the name still holds.
 
-**And one name is doing more work than a name should.** `permissions` absorbs *which layer carries a
-control*, which is a general design question — it is asked about label scoping, about gates, about hooks
-that hold no permission at all — and filing it under permissions makes it read narrower than it is. The
-capability document is expected to carry that question as a **named section** so it can be cited
-directly; if it does not, the name is wrong and the set should change here rather than the citation
-being bent.
+**One name was doing more work than a name should, and it has been changed rather than compensated
+for.** `permissions` absorbed *which layer carries a control*, and [0008](./0008-which-layer-carries-a-control.md)'s
+third layer is not about agent permissions at all — it routes controls to *"a CI trigger, a cloud IAM
+policy, a branch protection, a repository setting"*, none of which any allow/ask/deny entry can express.
+The set now publishes **`controls-and-enforcement`**, with the autonomy classes as one instance of a
+control rather than the category. Rejected: `enforcement-layers`, because *layer* is a word 0008 spends
+under a deliberate discipline — the **authoritative layer** is internal to this workspace, the
+**authorising system** is not — and a capability named for it would collide with that distinction on
+the record that draws it. **The previous compensation is withdrawn:** the earlier text obliged the
+capability document to carry the layer question as a citable named section *"or the name is wrong"*.
+The name was wrong, and a citation convention is not a treatment for that. A named section is still
+good practice; it is no longer the thing standing in for a correct name.
+
+**What the new name must not absorb.** *Control* is a wide enough word to swallow a gate and a label,
+so the discriminator is in the table's *what does not* column and is repeated here: a control decides
+whether an act may be performed **at all, independent of whether the change is any good**. Whether the
+change is good is a check, and checks are `verification-and-its-artifacts`.
 
 ## The records
 

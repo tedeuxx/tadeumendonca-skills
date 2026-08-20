@@ -1,6 +1,6 @@
 # 0004. Autonomy & permission model — classes + tool-scoping
 
-- **Capability:** permissions
+- **Capability:** controls-and-enforcement
 - **Status:** accepted
 - **Date:** 2026-07-22
 - **Deciders:** the owner

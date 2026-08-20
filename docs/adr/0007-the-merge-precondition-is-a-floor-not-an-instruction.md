@@ -1,6 +1,6 @@
 # 0007. The merge precondition is a floor, not an instruction
 
-- **Capability:** permissions
+- **Capability:** controls-and-enforcement
 - **Status:** proposed · **amended 2026-08-04** (the precondition is **one** marker, not two — `security`
   is absorbed into `quality-assurance` per [ADR-0002](./0002-agentic-dev-loop-architecture.md) amendment
   #10. Status is **unchanged**: the hook is unimplemented, so nothing running is affected. The decision,
