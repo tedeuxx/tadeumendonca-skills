@@ -195,13 +195,15 @@ deletion. So this record changes what happens next; it deletes nothing today.
 
   ```
   mv docs/adr/0002-roster-and-dev-loop.md <elsewhere>
-  bash hooks/scripts/inventory-counts.test.sh        →  60 passed, 5 failed
+  bash hooks/scripts/inventory-counts.test.sh        →  65 passed, 5 failed
   ```
 
   The **five reds** are what the claim turns on and they are unchanged: four citation arms (relative
   link, repo-root path, stale foreign exemption, prose token) and the numbering arm. The **passing**
   total moved from 58 to 60 in this same MR's second review round, which added two verdicts by
-  splitting two more suppressed arms apart; it is restated here rather than left at the figure the
+  splitting two more suppressed arms apart, **and from 60 to 65 across #283's folding slices** — S3
+  added arm 4c, S5 added arm 4d, and the rest is the suite growing around them. Re-performed at S5's
+  head rather than inherited. It is restated here rather than left at the figure the
   round-1 fix measured, because a published number that silently drifts is the defect this record's
   own amendment is about.
 

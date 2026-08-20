@@ -188,11 +188,19 @@ expect the same shape rather than treat a green suite as one.
 
 **Second: the arithmetic inverted, and the inversion is the finding rather than a cost.** The record's
 own figures — **79,261 B billed across five personas, 14.2% of the library** — were measured against a
-71-file `commands/` tree. Re-derived at this slice's head, over six personas and thirteen skills:
+71-file `commands/` tree. Re-derived over six personas and thirteen skills, **pinned to `1018be1`, this
+slice's base**, because the slice edits two of the seven preloaded files and a live figure over them is
+stale the moment it is committed:
 
-    # per agents/*.md, sum wc -c over skills/<id>/SKILL.md for each entry in its skills: list
-    → 23 entries · 7 distinct files · 144,602 B distinct · 484,372 B billed across six dispatches
-    git ls-tree -r -l HEAD -- skills | awk '{s+=$4; n+=1} END {print n, s}'   # 13 428212
+    # per agents/*.md at 1018be1, sum `git cat-file -s <ref>:skills/<id>/SKILL.md`
+    # for each entry in that brief's `skills:` list
+    → 23 entries · 7 distinct files · 144,650 B distinct · 484,660 B billed across six dispatches
+    git ls-tree -r -l 1018be1 -- skills | awk '{s+=$4; n+=1} END {print n, s}'   # 13 428260
+
+**Taking it live first is how the drift was caught rather than published:** the same measurement in the
+working tree mid-slice returned 144,602 / 484,372, forty-eight bytes per file lighter, because a commit
+earlier in this very slice had already rewritten a path citation inside two preloaded skills. That is
+the *base moved under the figure* defect, in its smallest form, inside the paragraph warning about it.
 
 **The preloaded set is now about a third of everything the library publishes, and the bill across one
 round of dispatches exceeds the entire library as it stood when the decision was taken.** That is not
@@ -340,12 +348,12 @@ reader — or an agent — would follow.
 **What the gate cannot check, so that this table's green is not over-read — and it is a SMALLER
 residual than this paragraph claimed until 2026-08-20:** the destination's **existence** *is* gated.
 Point a row's destination at a file that does not exist and the citation-resolution arm reddens —
-**`68 passed, 1 failed`, re-measured at S4's final commit rather than inherited.** The mutation is one
+**`69 passed, 1 failed`, re-performed at S5's head rather than inherited.** The mutation is one
 edit and restores itself:
 
     # in docs/adr/README.md, ONE History row: change its destination link's target
     # filename to one that does not exist, leaving the link syntax intact.
-    bash hooks/scripts/inventory-counts.test.sh    # FAIL citation resolution … ; 68 passed, 1 failed
+    bash hooks/scripts/inventory-counts.test.sh    # FAIL citation resolution … ; 69 passed, 1 failed
     # Written as a description rather than a literal before/after pair, and that is the
     # SECOND thing this mutation teaches: the citation arm scans markdown links in every
     # tracked .md file and does not know an indented code block from prose, so spelling
@@ -355,7 +363,10 @@ edit and restores itself:
 taken at S3 *before* arm 4c landed in the same commit, so the suite it described was one arm smaller
 than the suite that shipped. It is corrected rather than struck because the residual it illustrates is
 unchanged; only the tally moved, and a tally is exactly the kind of figure this file's own rule says to
-take **last**. What is genuinely unchecked is the destination's **content**: a row
+take **last**. **It moved once more at S5** — 68 → 69 — for the same reason and in the same shape: that
+slice added arm 4d, so the tally beside an unchanged residual drifted by one again. **Two slices in a
+row is not a coincidence, it is the property of the figure**: any slice that adds an arm stales it, and
+nothing reads it, so the only thing that keeps it true is a slice choosing to re-perform the mutation. What is genuinely unchecked is the destination's **content**: a row
 pointing at a document that never received the decision passes exactly like one pointing at a document
 that did. Whether the fold was **lossless** is a reviewer's judgement and there is no instrument for it.
 ~~it never opens the destination~~ — struck because it **understated** the gate, which is the direction

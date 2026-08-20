@@ -941,15 +941,16 @@ is recorded here, and no test holds it.
 **The lists at this head, re-derived rather than carried** — the record's own table named five personas
 and ten entries against a `commands/<family>/<name>.md` tree, and none of those identifiers exists now:
 
-    # scratchpad script: for each agents/*.md, sum wc -c over skills/<id>/SKILL.md for its skills: list
-    developer 5 entries 102,320 B · tech-lead 5 / 109,687 · harness-lead 4 / 98,576
-    quality-assurance 4 / 82,660 · product-lead 3 / 51,120 · writer 2 / 40,009
-    → 23 entries, 7 distinct files, 144,602 B distinct, 484,372 B billed across six dispatches
+    # for each agents/*.md at 1018be1, sum `git cat-file -s 1018be1:skills/<id>/SKILL.md`
+    # over that brief's `skills:` list. PINNED, because this slice edits two of the seven files.
+    developer 5 entries 102,368 B · tech-lead 5 / 109,735 · harness-lead 4 / 98,624
+    quality-assurance 4 / 82,708 · product-lead 3 / 51,168 · writer 2 / 40,057
+    → 23 entries, 7 distinct files, 144,650 B distinct, 484,660 B billed across six dispatches
 
-    git ls-tree -r -l HEAD -- skills | awk '{s+=$4; n+=1} END {print n, s}'   # 13 428212
+    git ls-tree -r -l 1018be1 -- skills | awk '{s+=$4; n+=1} END {print n, s}'   # 13 428260
 
 **Read that against the record's own figures before drawing a conclusion from it: 79,261 B billed and
-14.2% of the library, against 484,372 B and a distinct set that is now a third of everything published.**
+14.2% of the library, against 484,660 B and a distinct set that is now a third of everything published.**
 The consolidation of 55 files into three and of the process layer into `harness-engineering`,
 `devops` and `quality-gates` moved the unit, so this is not six personas being greedier than five — it
 is the same curation applied to files an order of magnitude larger. **Whether that is still the right
