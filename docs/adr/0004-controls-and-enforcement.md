@@ -565,6 +565,257 @@ a bug and works around it, which is the failure mode this record exists to preve
 
 **Accepted cost, named rather than solved:** nothing mechanical asserts that a skill's prose description of a decision still matches the ADR it describes. This amendment records the one incident that surfaced; it is not a standing check.
 
+## The merge precondition is a floor, not an instruction — **`proposed`, not `accepted`** (absorbed 2026-08-20, record 0007)
+
+**Read the status before the decision.** Record 0007 was `proposed` when it was absorbed and this
+section inherits that status: **the hook it decides is unimplemented.** Nothing in the running system
+behaves the way this section describes, and nothing is wrong today because of that. Everything below is
+a design that was reasoned to a conclusion and never built.
+
+> **The disposition this fold used is not the one ADR-0020 wrote for it, and that is a finding rather
+> than a liberty.** Disposition 4 is scoped to *"a record whose decision is **still in force** and is
+> merely moving"*; disposition 3 keeps a **`proposed`** record on the grounds that *"it explains an
+> intended codebase, and its status already says so"*, and scopes deletion *"to **reversed** decisions,
+> never to *unbuilt* or *unexercised* ones."* A `proposed` record being **absorbed** matches neither
+> clause: it is not reversed, and it is not in force. **The set of four dispositions has a gap exactly
+> here**, and the gap is not academic — one of the twenty records in this library sits in it.
+>
+> **What was done, and why:** absorbed, with the status carried into the heading and this paragraph,
+> because disposition 3's *reason* is preservation of the reasoning and absorption preserves it
+> verbatim in a live document, while leaving 0007 as a file would mean `controls-and-enforcement` is
+> two files and the reconciliation does not close. **What was not done:** ADR-0020 and
+> `documentation-standard` Part II were **not** amended to widen disposition 4. That edit belongs to
+> the `decision-library` slice, which owns that document, and making it here would put a
+> decision-library decision inside a controls slice. **The owner's call, named rather than assumed:**
+> whether disposition 4 reads *"still in force"* or *"still current — in force, or proposed and not
+> withdrawn."*
+
+**Decided (as a proposal) 2026-08-03, amended 2026-08-04.** Deciders: the owner ratifies; the gate is
+subject to it. Its History row is in [the index](./README.md).
+
+### The problem, and it is the reason this section is in this document rather than in verification
+
+[ADR-0006](./0006-verification-and-its-artifacts.md) fixed the right half: a verdict owed to another
+persona exists as a **comment on the PR** rather than as prose in an orchestrator's context, so it can
+be read rather than relayed. It did not fix the other half. **The rule that reads that artifact is
+itself prose**, living in `agents/quality-assurance.md` — an instruction to a model, executed by the
+same model it constrains, in a file that model also edits.
+
+That is measured, not hypothetical. In a single day three drifts shipped in the vocabulary this rule
+depends on: a persona file offered a verdict literal it never defined and the merging gate checked
+against it; the same file carried a *third* vocabulary three sections below its own marker template, and
+that was the one that actually fired (a verdict line posted reading `CLEAN`, which the reading gate
+cannot parse); and `quality-assurance`'s own marker offered `APPROVED` while the set it defines is
+`APPROVE-AND-MERGE` / `APPROVE-PENDING-HUMAN` / `REQUEST-CHANGES`. **All three were found by reading.
+None could have been found by a check, and re-introducing any of them today goes green.**
+
+> **The deeper point, and it is the sentence that makes this a `controls-and-enforcement` decision:**
+> the strongest rule in the loop is enforced by the weakest mechanism available. **Whether a rule is
+> mechanically enforced or merely instructed is the enforcement question, not the *done* question** —
+> which is why this section lives here and not in `verification-and-its-artifacts`. It is also the
+> boundary in this library's capability set that a reader is most likely to cross in the wrong
+> direction.
+
+### The mechanisms, and why they are not interchangeable
+
+| mechanism | runs | can deny | sees |
+| --- | --- | --- | --- |
+| **hook** (`hooks.json` + script) | outside the model, on a tool call | **yes** | the tool call and live system state |
+| **settings permission** | outside the model, on a matcher | yes | the command string only |
+| **agent** (`agents/*.md`) | as a model, fresh context | no — it decides | whatever it reads |
+| **skill / command** | as context, on invocation | no | whatever it is given |
+| **`CLAUDE.md`** | as always-on context | no | static text |
+
+**And the merge belongs in the hook row under the rule this record's own body already decided** — *if
+the act cannot be undone it needs a hook, and a push to the trunk escapes git*. A `gh pr merge` **is**
+that push; rule 7b's deny message says so in its own words. What a later merge fixes is the *site*,
+which is a different object from the act: the deploy has fired, the release is cut, and an OG scraper
+has pinned the card it first fetched.
+
+### The decision, as proposed
+
+**A `PreToolUse` hook on `gh pr merge` that denies a merge lacking the gatekeeper's marker.** The hook
+reads the PR's comments and head, **discards every comment not authored by `OWNER`**, and denies unless
+`quality-assurance`'s marker parses, carries a verdict literal from that persona's canonical set, and
+records the current `headRefOid`.
+
+**This reverses [ADR-0006](./0006-verification-and-its-artifacts.md)'s rejected option 2 on that
+record's own terms, and the reversal is the argument worth keeping.** 0006 rejected gating rule 7b
+because *"a hook buys the same guarantee as the artifact — a context willing to fabricate the comment is
+a context that would equally spawn the gate and ignore its verdict."* **That argument is about
+impersonation and it is correct about impersonation.** It does not reach **drift**, which is a different
+failure and the one that has fired. A gate publishing an unparseable verdict literal is fabricating
+nothing; it dispatched, read the comment, and applied a vocabulary its own file contradicted. Against a
+party doing its honest best with a wrong rule, a hook buys exactly what the artifact does not: **it is
+not reading the rule.**
+
+**Scoped to the markers; the ratification half stays prose deliberately.** Safe-versus-boundary is a
+judgement the hook cannot derive. It would have to demand ratification on every merge — deleting the
+safe class — or take the class from the constrained party, putting the protection at its weakest exactly
+where drift is most dangerous.
+
+### What the hook does when it cannot answer — the table, which is the operative half
+
+| the check | outcome |
+| --- | --- |
+| **a tool it needs is absent** (`gh`, `jq`) | **deny**, emitted by a path that does not use the missing tool, evaluated **after** the command is known to be a merge and **before** either question below |
+| **ran, and the answer is negative** — the marker is absent, its verdict literal is outside the canonical set, or its head does not match | **deny.** This *is* a verdict, and it is the one the hook exists to enforce |
+| **could not run, and no outsider could have caused it** — no network, `gh` unauthenticated, credentials rejected | **ask.** An answer we could not get is not a verdict, and it is not a licence either |
+| **could not run, and an outsider could have caused it** — deadline fired, short response, degraded `authorAssociation`, an API error | **deny.** Ask is the owner's attention, and attention a stranger can summon on demand is a resource this loop rations |
+
+**Two questions, asked in order, after the tool row.** *Did the check reach an answer?* If it did, the
+answer decides. If it did not: *could someone outside the trust boundary have caused this?* Proven not,
+**ask**; otherwise — including **cannot be shown either way** — **deny**. The cause lists are examples,
+not an enumeration; the hook sees an error signal, not its causability, so the unlabelled remainder
+denies.
+
+**The ordering is a conjunction, and stating only one half reopens the hole on the other side:**
+
+> 1. **Merge detection is itself performed without the tool whose absence it reports** — so the tool row
+>    is reachable when that tool is gone.
+> 2. **The tool row fires only once the command is known to be a merge** — so a missing tool never denies
+>    unrelated Bash calls.
+
+Both halves are needed. *Before either question* alone is not enough: merge detection reads
+`.tool_input.command` **with `jq`**, so an implementer who parses first, detects, then checks tools has
+satisfied that phrasing — and with `jq` absent the parse yields nothing, the hook exits, the tool row
+never evaluates, and nothing emitted reads as **allow**. *Before any parse* alone is worse: an absent
+`gh` would then deny every Bash call in every consuming repo, and an absent `gh` is ordinary.
+**`wip-guard.sh` and `permission-guard.sh` both parse with `jq` first and reach `command -v` afterwards,
+so the local idiom is the wrong order here** and an implementer copying the file beside them lands in
+the hole.
+
+> **The general rule, worth more than the instance: a control cannot depend on the thing whose failure
+> it exists to report.** Three instances of it here — the emitter (`ask()` and `deny()` both build their
+> JSON with `jq`), the deadline (which must be enforced without `timeout(1)`, absent on this platform),
+> and merge detection — and each was found only after the previous one was fixed.
+
+### The trust class this takes and neither existing hook does
+
+This repository is **public**, so PR comments are **world-writable**. A precondition testing only the
+marker line, the verdict literal and the head SHA can be satisfied by a drive-by account. That is not
+the impersonation residue 0006 records — a trusted party writing with the right token — it is an
+untrusted stranger, and `wip-guard.sh` reads only repo-controlled metadata.
+
+The filter is `author.login` plus **`authorAssociation: OWNER`, and nothing wider.** That set is chosen
+here rather than inherited: this repository's Merge Request Definition of Done carries no such idiom, and
+the consuming repository's own third record,
+[trunk-based delivery, single environment](https://github.com/tedeuxx/tadeumendonca-io/blob/main/docs/adr/0003-trunk-based-single-environment.md),
+admits `OWNER` alone.
+
+**An incomplete read denies.** `gh pr view --json comments` returns a bounded page, and on a public
+repository the comment count is attacker-controlled, so a stranger who cannot forge a marker can still
+push the markers outside the window. Both outcomes had to be chosen deliberately:
+
+> **A stranger may be able to cost the loop a wedge. A stranger may never be able to cost it a merge.**
+
+So a read that **did not find the marker** denies, whatever the reason, and a **degraded
+`authorAssociation` fails to DISCARD, not to allow** — a filter that cannot establish authorship must
+exclude the comment, never admit it.
+
+> **And the general form, which binds any future control of this shape: any branch of a control that
+> does not deny, reachable by an untrusted party, is a published bypass.** Every cause routed to `ask`
+> has to be checked against it.
+
+**The read is bounded and the deadline is separate from the page.** The hook fetches a fixed-size page,
+never paginates, and holds its own deadline strictly below the `timeout` its `hooks.json` entry declares.
+The page bounds **count, not bytes** — a stranger cannot choose how many comments are read, and nothing
+stops them making the ones inside the window large — which is why the deadline is a requirement rather
+than a refinement. **The hook reads each persona's canonical verdict set from the persona file at
+runtime** rather than holding a copy, so *"the copy went stale"* is not a state that exists.
+
+### The rejected options that are still live
+
+1. **Keep it prose, and pin each persona's marker literals to its own canonical verdict set (#136).**
+   *Why not:* it is worth doing and it is not this. The assertion proves the **file says** the right
+   thing; it cannot prove the **gate did** the right thing at merge time, and a gate that reads a
+   perfectly consistent file and merges anyway is exactly the failure mode. **Load-bearing rather than
+   adjacent**, because the decision has the hook read the canonical set from the persona file at runtime.
+2. **A `settings.json` deny on `gh pr merge`.** *Why not:* it deletes the safe class, which is the
+   mechanism that makes the loop flow. The owner's 2026-07-30 decision moved reader-facing work *out* of
+   the boundary class precisely to stop spending his attention on in-pattern merges.
+3. **The same hook, but `ask` instead of `deny`.** **Partially adopted, and the split is the decision** —
+   a missing tool denies before either question; `ask` **only** where the check could not run *and* no
+   outsider could have caused that. *Why not for everything:* a hook that asks on every merge converts
+   the safe class into a prompt.
+4. **Gate the COMMENT rather than the merge** — 0006's own option 3, denying a `gh pr comment` whose body
+   carries a marker naming a persona the caller is not running as. *Why not, narrowly:* it never fires
+   when there is nothing to forge, and both the observed failure (omission) and this record's target
+   (drift) forge nothing. **It is a complement to the author filter, not an alternative** — a stranger's
+   comment never passes through the harness at all, so it defends a different door.
+5. **A required GitHub status check.** *Why not:* the markers are comments, so the check would be posted
+   by the same token the gate writes with, inheriting the impersonation residue without gaining the
+   interception. It also only works where branch protection does, and `main` here is the working branch.
+
+### Consequences still being paid
+
+**Good** — the precondition would hold even when the gate misreads its own file, which is the observed
+failure; a marker with an unparseable verdict would stop the merge instead of being interpreted; and the
+rule would gain a single mechanical definition instead of existing as prose in one persona file and
+being *described* in another, where the two can disagree without either being wrong.
+
+**Bad / accepted, and these are what an implementer inherits:**
+
+- **A second network-dependent `PreToolUse` hook on every Bash call.** The hook must exit before any
+  network work when the command is not a merge; ~99% of calls are not merges.
+- **The kill sits above this hook.** `hooks.json` kills a hook at its declared `timeout`, and a killed
+  hook emits no decision, which the harness treats as **allow**. The deadline requirement means the hook
+  has already answered when the kill arrives — the path is bounded, not removed.
+- **The one path that still ends in a merge nobody checked is UNBACKED, unlike its sibling's.**
+  `permission-guard.sh` can afford a missed deny because the settings `deny` list is its named backstop.
+  This hook has none: `Bash(gh pr merge:*)` sits in the consuming repository's **allow** list, so it
+  degrades to rule **7b** alone.
+- **The fallback floor has a hole this hook reproduces.** A raw `gh api … PUT …/merges` is not matched by
+  rule 7b, and this hook matches the same surface — `gh pr merge` — so one command form walks past
+  **both** at once.
+- **A stranger retains one effect, and it is a wedge rather than a merge.** Comment volume can push the
+  markers out of the fetched window, which denies.
+- **The impersonation residue is unchanged and the filter does not reach it.** The token the harness runs
+  with **is** the owner's, so the author filter separates outsiders from the harness, never the harness
+  from itself.
+- **The measured cost 0006 recorded for this option is real and inherited** — the PR-number parsing a
+  bare `gh pr merge` needs, which is rule 5d's four rounds and eighty deleted lines. This reverses that
+  rejection on the impersonation-versus-drift argument, **not** by claiming the parsing got cheaper.
+- **Two mechanisms now encode part of one rule** — the hook (artifacts present and current) and the
+  persona file (what they mean). That is the split this argues for, and it is still a seam: a change to
+  the marker shape must move both.
+- **"Floor" is a term of art in this repository** for `permission-guard`'s irreversible set, and this
+  hook is not that. The absorbed title carries the stronger word without the caveat.
+
+### The 2026-08-04 amendment, and why it makes the case stronger rather than weaker
+
+`security` was absorbed into `quality-assurance`, so **the precondition is ONE marker, not two.** Every
+*"both markers"* in the original reads *the marker*, and **only the count changes** — the author filter,
+the four-row outcome table, the ordering conjunction, the bounded read, the deadline, the emitter
+constraint and the prose-ratification scope are all untouched.
+
+What changes in **kind** is the part worth carrying: the hook is now checking the merging gate's own
+marker, and only that. Before, one of the two markers came from a party that does **not** merge, so at
+least one input to the precondition came from outside the party the precondition binds. **That property
+is gone**, and 0006's fourth amendment records that the remaining verdict is now **self-enforced** — a
+self-enforced precondition is precisely the configuration this section exists to object to. Stated
+plainly because the opposite reading is available and wrong: *"one gatekeeper, so half the precondition,
+so half the point."* Half the markers, and the remaining one is the one nobody else checks.
+
+**The cost that got worse:** with two markers, a self-fabricating gate had to fabricate a verdict
+attributed to a persona it was not. With one, the marker it must produce is its own. Against **drift**
+the hook still works; against a gate that decides to post an approval it does not mean, this buys
+nothing and never claimed to.
+
+### What this fold dropped
+
+- **The expired falsifier and its correction narrative.** The record carried `grep gatekeeper-verdict
+  hooks/` as proof the hook was unimplemented, then a block explaining that the command started
+  returning hits from `session-wip.sh` — a **reader**, not a denier — and that the proxy had broken. The
+  lesson (*a grep for a string was standing in for the existence of a control*) is real, but it is
+  archaeology about one falsifier. **What replaces it is the check that still works, stated once:** to
+  verify the hook is still unimplemented, look for a hook that returns a `deny` decision on `gh pr
+  merge`; rule 7b routes that merge to the gate persona and asserts nothing about a verdict.
+- **The fifteen-review-round footnote** pointing at PR #138 for the superseded framings. The PR is still
+  there; nothing binds on the pointer.
+- **The `Considered options` restatement of the chosen option as option 1.**
+- **The record's own `Links` list**, whose live members are folded into this document's cross-references.
+
 ## Permission entries have three states, and absent is not one (absorbed 2026-08-20, record 0018)
 
 **Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):

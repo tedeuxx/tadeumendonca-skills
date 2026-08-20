@@ -145,7 +145,8 @@ expect 'APPROVE-AND-MERGE renders silently' absent 'quality-assurance returned'
 rm -rf "$root"
 
 # VERDICT DRIFT — a literal the gate's own persona does not define. Reporting it is the point:
-# this is the failure ADR-0007 was opened for, and rendering it as "fine" hides the one thing
+# this is the failure the merge-precondition decision was opened for (record 0007 until 2026-08-20;
+# now ADR-0004's own section), and rendering it as "fine" hides the one thing
 # that check exists to see. `APPROVED` is the real historical example — the marker template
 # carried it while the verdict set said APPROVE-AND-MERGE.
 setup

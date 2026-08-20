@@ -1259,14 +1259,16 @@ unless somebody says otherwise.
   than being tidy-up: **it describes a control as stronger than it is**, which is the direction that
   fails open.
 - **ADR-0006** — its verification direction has lost its subject. Amended there.
-- **ADR-0007** — its precondition counts two markers. Amended there. It is status `proposed` and
+- **The merge precondition** — record 0007 until 2026-08-20, now
+  [ADR-0004](./0004-controls-and-enforcement.md)'s *The merge precondition is a floor, not an
+  instruction* section. Its precondition counts two markers. Amended there. It is status `proposed` and
   unimplemented (`grep gatekeeper-verdict hooks/` returns nothing), so **nothing breaks today**; what
   would have broken is the slice that implemented it against this record.
   > **The parenthetical expired 2026-08-05.** That `grep` now hits `session-wip.sh` and its suite — a
   > SessionStart *reader* that annotates a PR with no verdict on its current head, deciding nothing.
-  > ADR-0007's deny hook is still unimplemented; only the command that proved it is gone. Superseded
-  > in place at [ADR-0007](./0007-the-merge-precondition-is-a-floor-not-an-instruction.md), with the
-  > reason the proxy broke: a grep for a *string* stood in for the existence of a *control*.
+  > The deny hook is still unimplemented; only the command that proved it is gone. The check that still
+  > works is in the absorbed section: look for a hook that returns a `deny` decision on `gh pr merge`.
+  > The reason the proxy broke: a grep for a *string* stood in for the existence of a *control*.
 
 Roster: **five** — `product-lead`, `tech-lead`, `harness-lead` (tier 1) · `developer` (tier 2) ·
 `quality-assurance` (tier 3). The count is unchanged from amendment #9 **and two of the five members

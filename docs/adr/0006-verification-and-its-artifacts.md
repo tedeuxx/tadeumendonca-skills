@@ -335,8 +335,10 @@ than rediscovering them:
   identifier-only output rule (`positioning.md §X, bullet N`) is the containment, and it is now an
   instruction with no capability behind it.
 
-**A narrower observation, and it cuts the other way.** [ADR-0007](./0007-the-merge-precondition-is-a-floor-not-an-instruction.md)'s
-hook reads *each persona's canonical verdict set from the persona file at runtime* — for
+**A narrower observation, and it cuts the other way.** The proposed merge-precondition hook — record 0007
+until 2026-08-20, now [ADR-0004](./0004-controls-and-enforcement.md)'s *The merge precondition is a
+floor, not an instruction* section —
+reads *each persona's canonical verdict set from the persona file at runtime* — for
 `quality-assurance` and `security` only. It has no dependency on the lead roster, so the roster merge
 does not touch it. But it is the reason a third marker would be more than documentation: the mechanism
 that would enforce one already exists and is shaped to be extended.
@@ -522,7 +524,8 @@ are **not** restated there and here in full, per this record's existing rule tha
 third thing to keep true.
 
 **The floor does not enforce it, and that is unchanged rather than newly conceded.**
-[ADR-0007](./0007-the-merge-precondition-is-a-floor-not-an-instruction.md)'s hook reads the two
+The proposed merge-precondition hook — [ADR-0004](./0004-controls-and-enforcement.md)'s *The merge
+precondition is a floor, not an instruction* section, record 0007 until 2026-08-20 — reads the two
 gatekeepers' markers and their head SHAs; it cannot tell a `quality-assurance` comment that quotes a
 copy verdict from one that does not. The relay therefore fails closed **by instruction**, exactly like
 the rest of criterion 10 and like the *"cannot post, does not merge"* rule above it. Stated so nobody
