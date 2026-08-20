@@ -233,8 +233,9 @@ does not show that any of them matches a task.
   **#164 remains open and remains deliberately not pre-empted.**
 - Related: [ADR-0008](./0008-which-layer-carries-a-control.md) for *a check that is wrong more often
   than right trains the loop to silence it*, which is the reason option 3 is refused rather than
-  deferred; and [ADR-0003](./0003-mr-definition-of-done.md), whose *decision recorded* criterion is what
-  made this record's absence a blocking finding.
+  deferred; and the Merge Request Definition of Done, whose *decision recorded* criterion is what
+  made this record's absence a blocking finding — record 0003 until 2026-08-19, now a section of
+  [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md).
 - **Evidence re-derived at `596481e`, not relayed:** `git grep -c "^description:" 593886b~1 -- commands/`
   → two files, against 75 today, for the 73-with-no-frontmatter figure; and a scan of the 75
   frontmatter blocks for the **112** pointers, **zero** dangling, and the **four** duplicated stems

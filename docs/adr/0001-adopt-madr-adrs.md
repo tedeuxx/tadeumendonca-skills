@@ -61,4 +61,5 @@ packages into the plugin for reuse. The practice is defined in `/workflow/adr`; 
 ## Links
 - Proposal: `docs/proposals/agentic-dev-loop.md` (splits into ADR-0001..0004 on acceptance)
 - Practice: `/workflow/adr` · Template: `docs/adr/template.md`
-- Next: ADR-0002 (dev-loop architecture), ADR-0003 (MR Definition of Done), ADR-0004 (autonomy model)
+- Next: ADR-0002 (dev-loop architecture), record 0003 (MR Definition of Done — absorbed 2026-08-19 into
+  [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)), ADR-0004 (autonomy model)

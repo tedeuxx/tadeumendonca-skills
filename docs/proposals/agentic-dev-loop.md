@@ -4,7 +4,7 @@
   README.md (2026-08-14, #262)
 - **Date:** 2026-07-22
 - **Scope:** `tadeumendonca-skills` (the plugin — the reusable machine) consumed by `tadeumendonca-io` and future projects
-- **On acceptance, splits into methodology ADRs:** ADR-0001 (adopt MADR), ADR-0002 (agentic dev-loop architecture), ADR-0003 (MR Definition of Done), ADR-0004 (autonomy & permission model)
+- **On acceptance, splits into methodology ADRs:** ADR-0001 (adopt MADR), ADR-0002 (agentic dev-loop architecture), record 0003 (MR Definition of Done — absorbed 2026-08-19 into [ADR-0006](../adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)), ADR-0004 (autonomy & permission model)
 
 **Archived 2026-08-14 (#262).** This proposal's own `Status:` field said "Proposed (awaiting
 ratification)" long after it was in fact ratified — the four methodology ADRs it names above
@@ -22,7 +22,8 @@ being marked one). For the decisions this proposal was ratified into, read
 [ADR-0001](../adr/0001-adopt-madr-adrs.md) (adopt MADR),
 [ADR-0002](../adr/0002-agentic-dev-loop-architecture.md) (the dev-loop architecture, including every
 roster amendment since),
-[ADR-0003](../adr/0003-mr-definition-of-done.md) (the MR Definition of Done), and
+[ADR-0006](../adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s *Merge Request Definition
+of Done* section (record 0003 until it was absorbed there on 2026-08-19), and
 [ADR-0004](../adr/0004-autonomy-and-permission-model.md) (autonomy & the permission model).
 
 **Kept below, in full, as a historical record — not rewritten.** Anyone who bookmarked or linked into
@@ -303,7 +304,9 @@ evidence-cited** — subjective criteria reintroduce the bias the isolated revie
 ### 6.1 Every MR must satisfy
 1. **Scope — thin vertical slice, end-to-end value.** One slice; no unrelated changes; adjacent debt is
    **named in the review, never filed and never fixed inline** — only the owner opens work
-   (amended 2026-07-30; see ADR-0003).
+   (amended 2026-07-30; see [ADR-0006](../adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s
+   *Merge Request Definition of Done* section, which carries that amendment since record 0003 was
+   absorbed on 2026-08-19).
 2. **Traceability.** References its backlog **Issue**; if it implements a spec, the spec's acceptance
    criteria are covered by **E2E user-story journeys**.
 3. **Tests proportional to slice type.** Unit/integration alongside code, coverage **≥85%**. Slice that
@@ -337,7 +340,8 @@ reviewer wrong. A finding naming no criterion is **advisory**: reported, never a
 suppress findings; it stops *good observation* and *merge blocker* from being the same thing.
 
 *Why this is here and not only in the persona:* §6 is **the pact**. A rule that lives only in the
-reviewer's own file is the reviewer reviewing by taste, which is what ADR-0003 exists to prevent — and
+reviewer's own file is the reviewer reviewing by taste, which is what the Definition of Done exists to
+prevent — and
 for one commit that is exactly what happened: criterion 10 was added to `agents/quality-assurance.md`
 while this list still said nine.
 
@@ -407,7 +411,7 @@ drift only if nobody ever states which side of it a persona is on.
 
 1. **ADR practice** — the MADR template/skill in the plugin + both `docs/adr/` libraries. `[ADR-0001]`
 2. **This loop architecture** — personas × per-task instances, ADRs-as-brain, orchestrator. `[ADR-0002]`
-3. **The MR DoD** — §6, the pacted ruler. `[ADR-0003]`
+3. **The MR DoD** — §6, the pacted ruler. `record 0003`, absorbed 2026-08-19 into `[ADR-0006]`
 4. **Autonomy & permission model** — §7, tool-scoping + classes. `[ADR-0004]`
 5. **The subagents**, one persona per slice — **materialized lazily**: a persona is *defined* in this
    proposal cheaply (a markdown entry), but *built* only as work demands it, in leverage order —
