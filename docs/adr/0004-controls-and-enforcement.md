@@ -6,9 +6,18 @@ permission model — classes + tool-scoping*, and filed as `0004-autonomy-and-pe
 decision that originated it ([#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283), part 3
 slice S3). The originating decision — classified autonomy, mechanically enforced — is unchanged and is
 the body below. What changed is that this file stopped being named after one of the decisions it holds,
-because the same slice that renamed it absorbed three more records into it. The number did not move, so
-every `ADR-0004` citation in either repository is unaffected; the **filename** did, and every path-form
-citation of it was rewritten in the same commit as the rename.
+because the same slice absorbed **records 0007, 0008 and 0018** into it, under
+[ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)'s fourth disposition.
+The number did not move, so every `ADR-0004` citation in either repository is unaffected; the
+**filename** did, and every path-form citation of it was rewritten in the same commit as the rename.
+
+**Read this document in four layers, because they answer four different questions and were four records
+until 2026-08-20.** *Who may do what without asking* is the body and its amendments below — the autonomy
+classes, the per-persona scoping, and where a mechanism is worth building at all. *Which layer can carry
+a given control* is the absorbed 0008 section, and it is the one a reader is most often sent to by name.
+*What state a permission entry may be in* is the absorbed 0018 section. *Whether the merge precondition
+is enforced or merely instructed* is the absorbed 0007 section — **the one part of this document that is
+`proposed`, not `accepted`**, which its own heading says.
 
 - **Capability:** controls-and-enforcement
 - **Status:** accepted
