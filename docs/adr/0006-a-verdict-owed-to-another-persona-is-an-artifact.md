@@ -738,7 +738,7 @@ a question it does not answer. Both halves are published now, because the pair i
 
     # this library — the amendment is genuinely not here, and the scan is not vacuous
     git log --all --oneline -S'2026-07-29' -- 'docs/adr/0003-*'   # no commit, ever
-    git log --all --oneline               -- 'docs/adr/0003-*'   # 3 commits
+    git log --all --oneline               -- 'docs/adr/0003-*'   # 10 commits
 
     # the consuming repo — where it actually is
     grep -n "Amendment (2026-07-29)" ../tadeumendonca-io/docs/adr/0003-trunk-based-single-environment.md
@@ -749,8 +749,16 @@ at head, and spelling it out would be a repo-root-relative citation of a deleted
 citation gate catches, correctly, and which is the same example trap in the path form that the row rule
 already names in the prose form.
 
+**The non-vacuity count published above read `3` until 2026-08-20, and it is corrected in place rather
+than quietly.** `3` is what `--diff-filter=A` returns; the command printed beside it carries no such
+filter and returns `10`. A number measured with a narrower filter than the command published next to it
+is this section's own subject one layer down — the falsifier was right, the digit beside it answered a
+different command — and it shipped one line below the paragraph correcting the same shape.
+
 **The rule's ownership, corrected with the number.** The claim the four sites carried is live, and this
-record made it **mechanical** — but it did not originate it. The consuming repo's amendment is dated
+record made it mechanical **for a verdict owed between personas** — the consuming repo's amendment had
+already mechanised it for the owner's own ratification, so this record extended the rule to a second
+case rather than originating it. The consuming repo's amendment is dated
 2026-07-29 and this record 2026-08-02, which is what this record's own *Context* means by *"The loop
 already held that…"*. A statement that the rule *"is this record's own decision"* stood here until
 2026-08-20 and was wrong in the same direction as the number it was defending.
