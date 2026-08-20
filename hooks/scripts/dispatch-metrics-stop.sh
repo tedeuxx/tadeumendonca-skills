@@ -42,9 +42,10 @@
 #   REWORK ROUNDS      — NOT transcript-derivable, confirmed on #209: one subagent dispatch is one
 #                       continuous transcript, not a sequence of review/revise cycles. A rework round
 #                       is a GitHub-side fact — how many times `quality-assurance` (or `harness-lead`,
-#                       per ADR-0002) posted REQUEST-CHANGES on the PR before it merged — so this hook
-#                       reads it from the PR's own gatekeeper-verdict / harness-lead-verdict comments
-#                       (the ADR-0006 / ADR-0002 markers, already the durable record of that fact)
+#                       per ADR-0002, record 0015) posted REQUEST-CHANGES on the PR before it merged —
+#                       so this hook reads it from the PR's own gatekeeper-verdict /
+#                       harness-lead-verdict comments (the ADR-0006 / ADR-0002 record 0015 markers,
+#                       already the durable record of that fact)
 #                       rather than reinventing a counter. Only computed when this dispatch's own
 #                       agent_type is one of those two gatekeeper personas, and only when an open PR
 #                       already exists for the branch — both are cheap, targeted `gh` reads, not a
@@ -52,7 +53,7 @@
 #
 # ── MARKER CONVENTION ────────────────────────────────────────────────────────────────────────────
 # `<!-- dispatch-metrics: <agent_type> #<issue> -->`, the same greppable-HTML-comment shape as
-# `gatekeeper-verdict` (ADR-0006) and `harness-lead-verdict` (ADR-0002) — chosen for consistency
+# `gatekeeper-verdict` (ADR-0006) and `harness-lead-verdict` (ADR-0002, record 0015) — chosen for consistency
 # with those two rather than invented fresh, and deliberately a DIFFERENT literal so a grep for one
 # marker family never accidentally matches the other two, which carry go/no-go authority this one
 # does not.

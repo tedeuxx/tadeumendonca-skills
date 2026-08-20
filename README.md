@@ -231,7 +231,7 @@ gate-free at intake — a `loop`-typed Issue still needs `ready` before anything
 `/autonomy-on`'s own queue predicate is `(product OR loop) AND ready` ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md)),
 so it can be drained the same mechanical way a `product` story can. What is actually different: `ready`
 on a `loop` Issue is an **owner-only** transition ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md),
-Corollary 4) rather than the two leads reconciling between themselves, and its own tier 2 is
+record 0015's Corollary 4) rather than the two leads reconciling between themselves, and its own tier 2 is
 `harness-lead`, building what it just stress-tested. **Tier 3 is not skipped — its lens is.** Every
 lane, `loop` included, still merges through `MR --> QA --> M`: rule 7b denies `gh pr merge` to every
 `agent_type` but `quality-assurance`, unconditionally, so a harness-lead-built change is no exception.
