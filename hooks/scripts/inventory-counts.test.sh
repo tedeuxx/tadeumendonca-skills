@@ -2718,12 +2718,62 @@ while [ "$adr_n" -le "$adr_ceiling_scanned" ]; do
   fi
   adr_gaps_checked=$((adr_gaps_checked + 1))
   adr_row="$(printf '%s\n' "$adr_history_rows" | grep -E "^\| *$adr_padded *\|" || true)"
+  # THE ROW IS READ BY COLUMN, NOT AS A STRING, AND THIS ARM WAS WEAK UNTIL 2026-08-20 (#283 slice S3).
+  #
+  # It used to ask whether the WHOLE ROW contained a `](./` anywhere. That passes on a row whose
+  # destination column is EMPTY, because the row's own authority citation — the disposition record it
+  # is written under — is itself a relative link two columns to the left. Measured at the time it was
+  # written: with the destination stripped and the authority citation left alone, the suite stayed
+  # green. It was left alone then on the honest ground that ONE History row is not a sample; #283
+  # slice S3 supplies rows two, three and four, so it is closed here rather than carried.
+  #
+  # The row's shape is fixed by `skills/documentation-standard/SKILL.md` and by the table's own header:
+  # `| <bare number> | what it decided | where the decision lives now |`. A markdown table row splits
+  # on `|` into a leading empty field, the three columns, and a trailing empty field — five fields.
+  # Selecting field 4 by NUMBER is position-based, which this repo distrusts; it is defensible here
+  # and only here because the position is not a coordinate in a file that can be edited above it, it
+  # is the table's declared arity, and the arity is asserted first. A row that is not five fields is
+  # reported as malformed rather than silently read at the wrong offset.
+  #
+  # AND SELECTING THE COLUMN IS NOT ENOUGH — MEASURED, NOT REASONED, AND THE FIRST TRY WAS WRONG.
+  # Column-selection alone was written first and then MUTATED: strip the destination link from the
+  # third column and leave the row's own authority citation (the disposition record it was deleted
+  # under) where it sits, IN THAT SAME COLUMN, and the suite stayed 68/0. The weakness the old
+  # whole-row grep had was not caused by the link being in another column; it is caused by the column
+  # containing TWO links with different jobs. Reading the column was a better-shaped check that
+  # asserted the same nothing, which is the exact failure this file exists to catch, committed inside
+  # the fix for it.
+  #
+  # WHAT CLOSES IT: the destination must be the column's FIRST content. The row form is
+  # `<destination link> — <where inside it> . Absorbed under <authority> …`, so requiring the column
+  # to BEGIN with a relative markdown link separates the two links by position without naming either
+  # of them. It hardcodes no record number — a check spelled "the link that is not 0020" would rot
+  # the day the disposition record moves, which is precisely the class of coupling #283 slice 1
+  # deleted from this file.
+  #
+  # WHAT IT STILL CANNOT DO, unchanged: it does not open the destination. A row pointing at a document
+  # that never received the decision passes exactly like one pointing at a document that did.
+  adr_row_fields="$(printf '%s' "$adr_row" | awk -F'|' '{print NF}')"
+  adr_row_dest="$(printf '%s' "$adr_row" | awk -F'|' 'NF>=4 {print $4}')"
   if [ -z "$adr_row" ]; then
     adr_gap_problems="$adr_gap_problems
     $adr_padded — no record file, and no '| $adr_padded |' row under '## History' in docs/adr/README.md"
-  elif ! printf '%s' "$adr_row" | grep -q '](\./'; then
+  elif [ "${adr_row_fields:-0}" -ne 5 ]; then
     adr_gap_problems="$adr_gap_problems
-    $adr_padded — has a History row, but the row names NO destination (no relative '](./…)' link)"
+    $adr_padded — has a History row with $adr_row_fields '|'-separated fields, not the 5 a three-column
+    row produces. The row is malformed, so its columns cannot be read at all"
+  elif ! printf '%s' "$adr_row_dest" | grep -Eq '^[[:space:]]*\[[^]]+\]\(\./'; then
+    adr_gap_problems="$adr_gap_problems
+    $adr_padded — has a History row whose DESTINATION column (the third) does not BEGIN with a
+    relative '[…](./…)' link. The destination is the column's first content, before the '— section …'
+    and before the 'Absorbed under …' authority citation. A relative link later in the same column is
+    not enough: measured, the authority citation alone satisfies a check that only asks whether the
+    column contains one somewhere, which is how a stripped destination shipped green"
+  elif [ -z "$(printf '%s' "$adr_row" | awk -F'|' '{print $3}' | tr -d '[:space:]')" ]; then
+    adr_gap_problems="$adr_gap_problems
+    $adr_padded — has a History row whose middle column is EMPTY. The row must say what was decided;
+    a number and a destination with nothing between them answers 'where did it go' and not 'was this
+    ever decided', which is the question the row exists for"
   fi
   adr_n=$((adr_n + 1))
 done
