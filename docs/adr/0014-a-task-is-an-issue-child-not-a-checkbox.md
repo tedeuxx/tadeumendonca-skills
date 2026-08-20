@@ -231,7 +231,7 @@ tasks touching the same file are blocked until it is. Not edited here.
 
 ## Links
 
-- [ADR-0004](./0004-autonomy-and-permission-model.md) — cited: the *"mechanism where the act is
+- [ADR-0004](./0004-controls-and-enforcement.md) — cited: the *"mechanism where the act is
   irreversible, skills where the rule is a judgement"* principle this record's S2 decision rests on, and
   the amendment recording why hook-side parent verification was deleted rather than perfected.
 - [ADR-0012](./0012-issue-type-is-the-routing-axis-and-is-exclusive.md) — cited: names this exact

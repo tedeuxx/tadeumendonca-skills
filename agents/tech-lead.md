@@ -126,7 +126,7 @@ pre-implementation stress test by harness-lead) rather than a fight over who wri
 owner's call at the point it actually happens, not a rule this brief settles in advance.
 
 **One thing to notice about it rather than assume**, because it bears on the significance test you
-apply: ADR-0008's question — *which layer can actually carry this control, and can that layer hold it?* —
+apply: ADR-0004's question — *which layer can actually carry this control, and can that layer hold it?* —
 is its standing question, not a new obligation on you. When an ADR you are writing asserts that a rule
 is enforced, that is the assertion worth checking before it is recorded, because a record claiming a
 control is stronger than it is fails in the direction nobody notices.

@@ -196,7 +196,7 @@ generator, read at `.github/workflows/version-main.yml:57-91` rather than assume
   `### 🐛 Fixes`, and the rename appears third, under `### ♻️ Refactoring`, as *"the library moves to a
   flat skills/"* — which does not say that an invocation name changed.
 - The check would also run **after** the bump has pushed and tagged, where a red build stops nothing and
-  repairs nothing. Per [ADR-0008](./0008-which-layer-carries-a-control.md), that is the wrong layer: the
+  repairs nothing. Per [ADR-0004](./0004-controls-and-enforcement.md), that is the wrong layer: the
   only layer that can carry it is the one where a subject line is still editable, which is **PR time**.
 
 **A follow-up may hold a re-specified version of it** — asserted against the **commit subjects** of a PR

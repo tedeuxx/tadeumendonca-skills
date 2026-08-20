@@ -4,7 +4,7 @@
   README.md (2026-08-14, #262)
 - **Date:** 2026-07-22
 - **Scope:** `tadeumendonca-skills` (the plugin — the reusable machine) consumed by `tadeumendonca-io` and future projects
-- **On acceptance, splits into methodology ADRs:** ADR-0001 (adopt MADR), ADR-0002 (agentic dev-loop architecture), record 0003 (MR Definition of Done — absorbed 2026-08-19 into [ADR-0006](../adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)), ADR-0004 (autonomy & permission model)
+- **On acceptance, splits into methodology ADRs:** ADR-0001 (adopt MADR), ADR-0002 (agentic dev-loop architecture), record 0003 (MR Definition of Done — absorbed 2026-08-19 into [ADR-0006](../adr/0006-verification-and-its-artifacts.md)), ADR-0004 (autonomy & permission model)
 
 **Archived 2026-08-14 (#262).** This proposal's own `Status:` field said "Proposed (awaiting
 ratification)" long after it was in fact ratified — the four methodology ADRs it names above
@@ -22,9 +22,9 @@ being marked one). For the decisions this proposal was ratified into, read
 [ADR-0001](../adr/0001-adopt-madr-adrs.md) (adopt MADR),
 [ADR-0002](../adr/0002-agentic-dev-loop-architecture.md) (the dev-loop architecture, including every
 roster amendment since),
-[ADR-0006](../adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s *Merge Request Definition
+[ADR-0006](../adr/0006-verification-and-its-artifacts.md)'s *Merge Request Definition
 of Done* section (record 0003 until it was absorbed there on 2026-08-19), and
-[ADR-0004](../adr/0004-autonomy-and-permission-model.md) (autonomy & the permission model).
+[ADR-0004](../adr/0004-controls-and-enforcement.md) (autonomy & the permission model).
 
 **Kept below, in full, as a historical record — not rewritten.** Anyone who bookmarked or linked into
 this document deserves to find out what happened to it, not to read stale content as if it still
@@ -304,7 +304,7 @@ evidence-cited** — subjective criteria reintroduce the bias the isolated revie
 ### 6.1 Every MR must satisfy
 1. **Scope — thin vertical slice, end-to-end value.** One slice; no unrelated changes; adjacent debt is
    **named in the review, never filed and never fixed inline** — only the owner opens work
-   (amended 2026-07-30; see [ADR-0006](../adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s
+   (amended 2026-07-30; see [ADR-0006](../adr/0006-verification-and-its-artifacts.md)'s
    *Merge Request Definition of Done* section, which carries that amendment since record 0003 was
    absorbed on 2026-08-19).
 2. **Traceability.** References its backlog **Issue**; if it implements a spec, the spec's acceptance

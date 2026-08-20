@@ -33,7 +33,7 @@ Two further problems compound the naming gap:
    an Issue executable (`agents/tech-lead.md`, `agents/product-lead.md`), it applies the ADR-0012 routing
    label (`product`/`content`/`loop`) that decides which review path an Issue takes, it commits and
    pushes on behalf of every dispatch, and — per ADR-0006's own measured evidence
-   (`docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md:523`, citing `-io`#338) — it has, at
+   (`docs/adr/0006-verification-and-its-artifacts.md:523`, citing `-io`#338) — it has, at
    least once, decided **not** to dispatch a review lens although the trigger for it had already fired:
    *"the trigger fires and it has NOT been dispatched."* None of that is written down as a duty list; it
    is inferred from scattered mentions.
@@ -104,7 +104,7 @@ ever targets it.
 - Applies the ADR-0012 routing label (`product`/`content`/`loop`) that determines an Issue's review path.
 - Decides, in the moment, whether a given review specialist needs dispatching at all — a real judgment
   call already exercised at least once, measured on `-io`#338: the copy-lens trigger fired and the lens
-  was not dispatched at all (`docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md:523`),
+  was not dispatched at all (`docs/adr/0006-verification-and-its-artifacts.md:523`),
   with no owner sign-off and no gate on it today.
 
 **Boundary — stated precisely, in two parts, because it is not one uniform thing:**
@@ -133,14 +133,14 @@ ever targets it.
     duties it just listed as the orchestrator's — the `ready` label and the routing label — are, today,
     equally reachable by any actor, and choosing to list them as duties here without saying so would let
     this record read as more settled than the mechanism it describes. Recording the gap alongside the
-    duty is the same discipline ADR-0008 established for a control claimed stronger than it is: the
+    duty is the same discipline ADR-0004 established for a control claimed stronger than it is: the
     failure that matters is the one nobody notices, and a record is the place that notices get written
     down.
   - **The dispatch-omission judgment call.** Deciding not to dispatch a review specialist is a different
     failure shape than "decides the irreversible" — it is an **invisible omission**, and it is not a
     hypothetical one: ADR-0006's own measurement of `-io`#338 records exactly this — the copy-lens
     trigger fired and *"the trigger fires and it has NOT been dispatched"*
-    (`docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md:523`). `README.md:259` already
+    (`docs/adr/0006-verification-and-its-artifacts.md:523`). `README.md:259` already
     names the consequence generally ("an undispatched lens fails silently and looks identical to a clean
     one"), but the existing one-line boundary (`README.md:150`) is scoped to deploy-class acts and does
     not cover it. This record names the dispatch-omission judgment as the boundary's blind spot
@@ -170,7 +170,7 @@ because this record's write access is `docs/adr/**` only.
    at all and depends entirely on CLAUDE.md.
 2. **Close, or explicitly re-affirm as an accepted-but-unclosed cost, the `gh issue edit` / `gh label`
    scoping gap.** This record names the gap; it does not decide whether it is worth closing. That is a
-   which-layer-carries-this-control question (ADR-0008), not a naming one, and belongs in its own record
+   which-layer-carries-this-control question (ADR-0004), not a naming one, and belongs in its own record
    once someone picks it up — most plausibly `tech-lead` at a future intake, or `harness-lead` if it
    is scoped as a harness change.
 3. **Add "(via orchestrator)" to the `MR --> QA` edge label in `README.md:177`.** The diagram's
@@ -193,7 +193,7 @@ way ADR-0004 and ADR-0005 book obligations onto later work rather than dischargi
   not, and has not been since 2026-08-03.
 - The part of the boundary that is **not** enforced (label scoping) and the part that is a different
   failure shape entirely (dispatch omission) are named as such, rather than silently absorbed into the
-  existing one-line sentence — avoiding the exact failure ADR-0008 exists to catch: a record asserting a
+  existing one-line sentence — avoiding the exact failure ADR-0004 exists to catch: a record asserting a
   control is stronger than it is.
 
 **Bad / accepted costs**
@@ -219,10 +219,10 @@ way ADR-0004 and ADR-0005 book obligations onto later work rather than dischargi
 - [ADR-0002](./0002-agentic-dev-loop-architecture.md) — cited, not amended: the actor this record names
   is the one ADR-0002 calls "the main loop" (`ADR-0002:812` uses "main agent"); this record narrows
   nothing ADR-0002 decided, it converges the vocabulary ADR-0002 helped originate.
-- [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md) — cited: its own measured
+- [ADR-0006](./0006-verification-and-its-artifacts.md) — cited: its own measured
   evidence (`-io`#338, `:523`) is the real instance — not a hypothetical — of the orchestrator omitting a
   dispatch that this record's fifth duty and boundary discussion rely on.
-- [ADR-0008](./0008-which-layer-carries-a-control.md) — cited: the discipline of stating what a layer
+- [ADR-0004](./0004-controls-and-enforcement.md) — cited: the discipline of stating what a layer
   actually enforces versus what it is assumed to enforce, applied here to the orchestrator's boundary.
 - [ADR-0010](./0010-a-personas-startup-context-is-a-curated-preload.md) and
   [ADR-0011](./0011-a-skill-exists-to-be-assigned-to-a-profile.md) — cited: the "a definition that is not
@@ -230,7 +230,7 @@ way ADR-0004 and ADR-0005 book obligations onto later work rather than dischargi
 - [ADR-0012](./0012-issue-type-is-the-routing-axis-and-is-exclusive.md) — cited: already names the
   ungated-relabeling question as open, and already uses "orchestrator" in prose (`:39`); this record does
   not re-decide either point.
-- `README.md:150,177,193,259` · `docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md:523`
+- `README.md:150,177,193,259` · `docs/adr/0006-verification-and-its-artifacts.md:523`
   · `hooks/scripts/permission-guard.sh:118` · `hooks/scripts/permission-guard.test.sh:143,221-228,336` ·
   `.claude/settings.json:51,54` · `hooks/scripts/inventory-counts.test.sh` (the comment *"A rule that
   lives only in CLAUDE.md does not reach a subagent"*) — the measurements this record is built on, each

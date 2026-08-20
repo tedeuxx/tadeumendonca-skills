@@ -209,7 +209,12 @@ So both of disposition 1's compensations are tightened:
 
 - **The History row is mandatory and so is its destination.** Row form: the **bare four-digit number**,
   one line naming what was decided, and a **relative markdown link to where the decision lives now**.
-  A row with no destination is not this disposition.
+  A row with no destination is not this disposition. **All three columns are non-empty, and the third
+  column BEGINS with the destination link** — before any *"— section …"* pointer and before the
+  *"Absorbed under …"* authority citation. That ordering is not style: it is what lets a gate tell the
+  destination from the authority when both are relative links in the same cell. Measured on 2026-08-20,
+  before it was required: strip the destination from a row and leave the authority citation, and a
+  check that merely asks whether the column *contains* a relative link stays green.
 - **There is no "nowhere to fold" case, so the fold is unconditional.** Under disposition 2 the fold is
   mandatory only *wherever there is a fold target*, and disposition 1's row covers a reversal whose
   replacement is a pivot rather than a record. Absorption has a target **by construction** — the

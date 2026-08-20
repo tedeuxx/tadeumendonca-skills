@@ -119,7 +119,7 @@ preload: **the model must decide to go and read, and a dispatch that fails to de
   The one that cannot reject a plausible candidate settles no argument.
 - **The context window is the constraint the roster is built around** (ADR-0002, tenth amendment). Any
   definition that implies a preload is spending that budget before the persona reads a line of the work.
-- **A rule that reaches nobody is not a control.** ADR-0008's standing question applies to this record as
+- **A rule that reaches nobody is not a control.** ADR-0004's standing question applies to this record as
   much as to a hook: which layer can carry *"every persona follows this"*, and can it hold it?
 - **Duplication has no comparator.** Two statements of one practice, in two files, with nothing comparing
   them, drift — measured above, not hypothesised.
@@ -457,7 +457,7 @@ name a cloud provider, runtime, framework or datastore outside a marked example.
 
 The owner asked for this recorded *"para não termos esse problema novamente."* **This record does not, by
 itself, prevent it.** Saying so is the repo's own standard: a rule with no mechanism is a document, and
-ADR-0008's routing question applies to this record as much as to a hook.
+ADR-0004's routing question applies to this record as much as to a hook.
 
 **What exists today:** `hooks/scripts/skills-resolve.test.sh` asserts the association in **one
 direction** — every identifier in a `skills:` list resolves to a tracked file. **Nothing asserts the
@@ -469,7 +469,7 @@ and be consumed by nobody, with every gate green. **That is precisely how 62 fil
 already parses both trees. **It would fail on 62 of 69 files today.**
 
 **Whether that assertion should exist is a decision this record does NOT make**, and the reason is
-ADR-0008's: a check that arrives already red on 90% of its subject is a check that gets silenced, and
+ADR-0004's: a check that arrives already red on 90% of its subject is a check that gets silenced, and
 ADR-0009's first amendment records this repo paying exactly that price once. It is only writable **after**
 the review the owner ordered, not before — so the honest sequence is *review, then assert*, and the
 assertion is the thing that makes the review stick rather than a substitute for it.
@@ -767,7 +767,7 @@ This applies to **all three** consolidated skills alike — `cloud-infrastructur
   and does not reach a ~5 KB transversal skill, which is a re-scoping rather than a falsification. Its
   **Context item 2 is falsified** (the plugin root is derivable from `PATH`; command in Context above),
   and that clause **owes an amendment this record does not write**, for the reasons stated there.
-- [ADR-0008](./0008-which-layer-carries-a-control.md) — **cited, not amended.** Its routing question is
+- [ADR-0004](./0004-controls-and-enforcement.md) — **cited, not amended.** Its routing question is
   why the replacement assertion above must key on the association rather than on the text, and why a
   preload is recorded here as a cost-reducer rather than as a control.
 - [ADR-0005](./0005-plugin-auto-versions-on-merge.md)`:146-149` — the `Skills (2)` → `Skills (71)`

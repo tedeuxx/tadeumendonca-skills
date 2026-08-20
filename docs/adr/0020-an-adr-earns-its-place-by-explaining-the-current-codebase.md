@@ -108,7 +108,7 @@ correction is carried here rather than quietly fixed.
    **computes over the directory boundary** — `inventory-counts.test.sh` scans `skills/` and an archived
    file is outside it, so the move changes behaviour. **Nothing keys on the `docs/adr/` boundary**, so
    moving a record out of it changes no gate's outcome. Machinery does read the directory — the same
-   suite greps two literal strings out of `docs/adr/0008-which-layer-carries-a-control.md` **by path**,
+   suite greps two literal strings out of `docs/adr/0004-controls-and-enforcement.md` **by path**,
    and `docs-test.yml` carries `docs/**` in its `paths:` filter precisely so the floor-claim assertion,
    which scans every tracked `.md`, starts on an ADR edit — and that makes the why-not **stronger**: an
    archived record is still scanned by that assertion, still a full-length body describing a dead
@@ -302,7 +302,7 @@ consolidation and it is booked here rather than discovered at record nine.
 `hooks/scripts/inventory-counts.test.sh`: **every number this library has issued is either a live record
 or a History row naming a destination**, asserted in both directions.
 
-**Why it keys on a declared ceiling rather than the highest surviving record — the ADR-0008 question,
+**Why it keys on a declared ceiling rather than the highest surviving record — the ADR-0004 question,
 answered.** A ceiling derived from the files that exist cannot see a deletion at the **top** of the
 sequence: the derived maximum simply moves down and no gap appears. A declared constant closes the
 **accidental** form of that case — the top record removed with the constant left alone — costs one line

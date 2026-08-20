@@ -103,7 +103,7 @@ explicitly rather than leaving the axis unexamined.
 - **Validating a loop/gate change** — pair it with `tech-lead` (design-time, against the principles
   and the ADR library) and `quality-assurance` (code-time, against the Definition of Done).
 - **Proposing a change to the MACHINERY** — dispatch `harness-lead` before implementing it. Its
-  standing question is [ADR-0008](../../docs/adr/0008-which-layer-carries-a-control.md)'s — *which
+  standing question is [ADR-0004](../../docs/adr/0004-controls-and-enforcement.md)'s — *which
   layer can actually carry this control, and can that layer hold it?* Since
   [ADR-0015](../../docs/adr/0015-harness-lead-implements-the-harness-it-reviews.md) it may also
   implement the harness changes it stress-tests (never merging, never gating an MR of its own — rule
@@ -180,7 +180,7 @@ owner works that decision out with; it does not make it.
 **`blocked` is orthogonal, not a sixth step.** It can attach at any point and returns the item to
 wherever it was.
 
-**Since [ADR-0006](../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)** the
+**Since [ADR-0006](../../docs/adr/0006-verification-and-its-artifacts.md)** the
 `reviewed` row's artifact is real — the gatekeeper posts a marker comment carrying the head SHA it
 read, so a verdict on a moved head fails loudly instead of reading as approval. Until 2026-08-04 that
 verdict was checked by a second gatekeeper (`security`) before merge; `security` was absorbed into
@@ -327,7 +327,7 @@ reads to the agent as delivery and to the owner as stopping.**
    requirement of the Issue met?*) and production (*can this cause a problem in production?*). Both
    are labelled per finding. The gatekeeper posts its verdict to the PR before returning — a
    `<!-- gatekeeper-verdict: … -->` comment carrying the head SHA it read
-   ([ADR-0006](../../docs/adr/0006-a-verdict-owed-to-another-persona-is-an-artifact.md)). A relay
+   ([ADR-0006](../../docs/adr/0006-verification-and-its-artifacts.md)). A relay
    from the invoking context is a notification, never the authority.
 
 ### Always true
@@ -360,7 +360,7 @@ this clause drifting out of `agents/quality-assurance.md` and back in.
 This framing above is the corrected one — an earlier prose restatement of it, in the retired
 `dev-loop` skill this file replaces, said the opposite (*"auto-merging to `main` is never in-pattern
 here"*) and went stale against
-[ADR-0004](../../docs/adr/0004-autonomy-and-permission-model.md)'s classified-autonomy decision
+[ADR-0004](../../docs/adr/0004-controls-and-enforcement.md)'s classified-autonomy decision
 without anyone noticing until the two disagreed in front of an agent (#62). That incident, and the
 decision-currency lesson it carries, is recorded as ADR-0004's 2026-08-13 amendment rather than
 re-told here — this section states only the current, corrected rule.

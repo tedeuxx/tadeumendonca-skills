@@ -440,11 +440,11 @@ check_agent DENY "tadeumendonca-skills:writer" "issue create"     "gh issue crea
 check_agent ALLOW "tadeumendonca-skills:writer" "listing PRs"     "gh pr list --state open"
 check_agent ALLOW "tadeumendonca-skills:writer" "viewing an issue" "gh issue view 173"
 
-echo "--- rule 5e: an unlisted persona defaults to DENY, not ALLOW (#187, ADR-0018) ---"
+echo "--- rule 5e: an unlisted persona defaults to DENY, not ALLOW (#187, ADR-0004) ---"
 # The falsifier the inversion exists to satisfy: a persona nobody remembered to add to the allow side
 # must NOT post by default. Before #187 this fell through ALLOW for anything not literally named
-# `product-lead` — the exact "absent is not a state" shape ADR-0018 records for the AWS floor, now
-# closed here too.
+# `product-lead` — the exact "absent is not a state" shape ADR-0004's own section records for the AWS
+# floor (record 0018 until 2026-08-20, absorbed there), now closed here too.
 check_agent DENY "tadeumendonca-skills:some-future-persona" "unlisted persona, pr comment" "gh pr comment 149 --body b"
 check_agent DENY "tadeumendonca-skills:some-future-persona" "unlisted persona, issue create" "gh issue create --title x --body y"
 
@@ -525,7 +525,7 @@ echo "--- rule 9: a script path handed to a shell must not traverse ---"
 # spelling stays denied — and it is deliberately left in place as the executable record that a green
 # suite proved nothing about the property everyone believed it proved. Eighteen cases, all passing,
 # against a rule that bounded nothing. **Do not cite a passing case here as evidence of containment.**
-# The containment is not here; under the owner's option A (2026-08-07) there is none, and ADR-0008
+# The containment is not here; under the owner's option A (2026-08-07) there is none, and ADR-0004
 # carries the accepted cost.
 check DENY  "traversal out of the prefix"    "bash .scratch/../../tadeumendonca-io/VERSION"
 check DENY  "traversal, one level"           "bash .scratch/../x.sh"
@@ -555,7 +555,7 @@ check ALLOW "git stash"                      "git stash list"
 # DELIBERATELY ALLOWED, and the honest half of this rule: `node` is in `allow` UNINSPECTED, so this
 # reaches every file rule 9 just denied, one interpreter over. Rule 9 does not narrow the agent's
 # REACH by a single act — it narrows what ONE ENTRY CLAIMS. Asserting ALLOW here keeps that priced
-# rather than quietly believed closed; ADR-0008 owns the gap.
+# rather than quietly believed closed; ADR-0004 owns the gap.
 #
 # ~~THE INTERPRETER SET IS `python3`, `node`, `npx`, `npm` — FOUR, NOT SIX.~~ **STRUCK at round 5, one
 # round after it was written to correct "six". It is false as a statement about REACH, which is the
@@ -572,8 +572,9 @@ check ALLOW "git stash"                      "git stash list"
 #
 # THE CAUSE, AND IT IS THE RECORD'S OWN SUBJECT. Both corrections enumerated interpreter NAMES. The
 # question is ENTRIES THAT CAN REACH AN INTERPRETER, and that is NOT ENUMERABLE — a closed list
-# answering an open grammar. ADR-0008's 2026-08-04 amendment already forbids recording a control of
-# this shape as *closed*; that is the rule this broke, twice, in the MR that cites it.
+# answering an open grammar. ADR-0004's "Which layer carries a control" section already forbids
+# recording a control of this shape as *closed* (under *Two rules this decision earned*); that is the
+# rule this broke, twice, in the MR that cites it.
 #
 # The proof it is method rather than oversight: rule 9's own `awk` block, thirty lines from the
 # enumeration that omitted it, LISTS `command` AS A WRAPPER. The counter-example was in the same file,
@@ -849,7 +850,7 @@ echo "--- ANSI-C escape decoding is NOT covered, and these are the witnesses ---
 # │                                                                                                 │
 # │ It is a TRIPWIRE, not a proof: it exists so that a future widening of the unwrap — one that      │
 # │ starts matching these — shows up as a test someone has to look at, instead of as a silent        │
-# │ behaviour change. That distinction is the whole subject of ADR-0008, and it is written here      │
+# │ behaviour change. That distinction is the whole subject of ADR-0004, and it is written here      │
 # │ rather than there because here is where someone reads the case.                                 │
 # └─────────────────────────────────────────────────────────────────────────────────────────────────┘
 #
@@ -895,12 +896,12 @@ check DENY  "control: the trunk push, unescaped"  "bash -c \$'git push origin ma
 # One section used to cover four interpreters as "an accepted gap that reaches ALLOW". The HOOK treats
 # all four identically — it is silent for every one — but the FLOOR no longer does, so the sentence
 # describing the consequence was true of two of them and false of the other two. **Two different things
-# were wearing one heading**, which is exactly what ADR-0008 says a record must not do. The assertions
+# were wearing one heading**, which is exactly what ADR-0004 says a record must not do. The assertions
 # never moved; only the prose was wrong, and nothing could have gone red to say so.
 
-echo "--- the interpreter perimeter is an ACCEPTED gap, priced in ADR-0008 ---"
+echo "--- the interpreter perimeter is an ACCEPTED gap, priced in ADR-0004 ---"
 # `python3` and `node` are in the floor's `allow` — pre-existing on `main`, weighed, and priced by
-# ADR-0008 as accepted non-containment. So for these two the hook's silence really does mean the
+# ADR-0004 as accepted non-containment. So for these two the hook's silence really does mean the
 # command runs, and that is the decision rather than an oversight: the unwrap does not chase them
 # because a regex cannot parse two more languages, and pretending to would be the "mechanism the file
 # claims and does not run" defect.

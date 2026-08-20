@@ -57,7 +57,7 @@ Observed, not hypothetical: four such defects in one MR (`tadeumendonca-io#81`),
 1. **A `product-owner` persona, advisory, triggered from `critical-reviewer`** (chosen) — a fresh
    context whose ruler is the owner's private positioning source. *Trade-off:* a second context per
    content MR, and its trigger is an instruction inside another persona rather than a mechanism.
-2. **Extend the DoD ([ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md), the record
+2. **Extend the DoD ([ADR-0006](./0006-verification-and-its-artifacts.md), the record
    that carries it since record 0003 was absorbed on 2026-08-19) and give `critical-reviewer` the
    positioning mandate** — *strongest
    rejected alternative*, and it wins on the axis option 1 is weakest: `critical-reviewer` already runs
@@ -476,7 +476,7 @@ criterion"* — and nothing else in it. That amendment's mandate, capability gua
 > decided that a gate **must** relay the copy verdict, so the criterion now reads **returned AND its
 > text is on the PR** — a return into the orchestrator's context, where it dies, satisfies nothing.
 > The decision, its scope, its accepted cost and the measurement behind it are in
-> [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s third 2026-08-04 amendment;
+> [ADR-0006](./0006-verification-and-its-artifacts.md)'s third 2026-08-04 amendment;
 > the criterion's operative text is in `agents/quality-assurance.md`, which is where it lives and which
 > is the only place to read it. **Item 2's second half is untouched** — a claim the reviewer can itself
 > falsify still fails the criterion whatever the lens returned, and it is the residual that carries the
@@ -1008,7 +1008,7 @@ The public `/architecture` page on `tadeumendonca-io` describes `product-lead` a
 hook keyed to it**. `security` flagged the coupling before that page shipped. The obligation this
 creates on the io side — what is actually falsified, what merely misleads, and why the existing
 inventory check does not fire — is written up in
-[ADR-0004](./0004-autonomy-and-permission-model.md)'s 2026-08-04 amendment, with the mechanism that
+[ADR-0004](./0004-controls-and-enforcement.md)'s 2026-08-04 amendment, with the mechanism that
 causes it. **It is not fixed by this slice**: the page is a different repository, and this record is
 where the debt is booked, not paid.
 
@@ -1141,7 +1141,7 @@ imaginative. Each was a mechanical fact somebody could have measured in seconds,
 - a repo's `settings.json` is **not loaded** in a session rooted elsewhere, so twelve denies were inert
   the moment they were committed.
 
-**ADR-0008's question is its standing mandate** — *which layer carries a control, and can that layer
+**ADR-0004's question is its standing mandate** — *which layer carries a control, and can that layer
 hold it?* That record was written because nobody owned the question. Someone does now.
 
 **The name is not decoration, and the suite is what decided it.** The first draft was `harness-lead`.
@@ -1259,14 +1259,16 @@ unless somebody says otherwise.
   than being tidy-up: **it describes a control as stronger than it is**, which is the direction that
   fails open.
 - **ADR-0006** — its verification direction has lost its subject. Amended there.
-- **ADR-0007** — its precondition counts two markers. Amended there. It is status `proposed` and
+- **The merge precondition** — record 0007 until 2026-08-20, now
+  [ADR-0004](./0004-controls-and-enforcement.md)'s *The merge precondition is a floor, not an
+  instruction* section. Its precondition counts two markers. Amended there. It is status `proposed` and
   unimplemented (`grep gatekeeper-verdict hooks/` returns nothing), so **nothing breaks today**; what
   would have broken is the slice that implemented it against this record.
   > **The parenthetical expired 2026-08-05.** That `grep` now hits `session-wip.sh` and its suite — a
   > SessionStart *reader* that annotates a PR with no verdict on its current head, deciding nothing.
-  > ADR-0007's deny hook is still unimplemented; only the command that proved it is gone. Superseded
-  > in place at [ADR-0007](./0007-the-merge-precondition-is-a-floor-not-an-instruction.md), with the
-  > reason the proxy broke: a grep for a *string* stood in for the existence of a *control*.
+  > The deny hook is still unimplemented; only the command that proved it is gone. The check that still
+  > works is in the absorbed section: look for a hook that returns a `deny` decision on `gh pr merge`.
+  > The reason the proxy broke: a grep for a *string* stood in for the existence of a *control*.
 
 Roster: **five** — `product-lead`, `tech-lead`, `harness-lead` (tier 1) · `developer` (tier 2) ·
 `quality-assurance` (tier 3). The count is unchanged from amendment #9 **and two of the five members
@@ -1356,7 +1358,8 @@ direct public posting, so it needed the identical mechanical boundary.
 
 1. **`permission-guard.sh` rule 5e inverted from a denylist to an allowlist.** The old form named only
    `product-lead` to deny; probed, `agent_type=…:writer` fell through ALLOW — the exact "absent is not a
-   state" shape ADR-0018 later names for the AWS floor, found here first. The new form allowlists the
+   state" shape [ADR-0004](./0004-controls-and-enforcement.md)'s *Permission entries have three states,
+   and absent is not one* section later names for the AWS floor, found here first. The new form allowlists the
    personas cleared to post directly (`developer`, `tech-lead`, `harness-lead`, `quality-assurance`, the
    main agent) and denies everything else by default, `writer` included, so a future private-material-
    reading persona is contained automatically rather than needing to be remembered.
@@ -1393,6 +1396,6 @@ as a stopgap) — both outside this ADR's write scope.
 
 ## Links
 - Driven by ADR-0001 (ADRs are the brain this depends on) · the DoD is
-  [ADR-0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md)'s *Merge Request Definition of
+  [ADR-0006](./0006-verification-and-its-artifacts.md)'s *Merge Request Definition of
   Done* section, absorbed there from record 0003 on 2026-08-19 · autonomy/tool-scoping is
   ADR-0004 · full design in `docs/proposals/agentic-dev-loop.md`.

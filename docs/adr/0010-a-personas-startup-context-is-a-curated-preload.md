@@ -75,7 +75,7 @@ starts, the skill is simply absent, and nothing distinguishes a typo from a deli
 - **A gate must not acquire a second ruler.** `quality-assurance`'s brief states its ruler is external —
   the requirements the leads agreed and the DoD — and that taste has no route to a blocker. What is
   preloaded into it is therefore a decision about what it is allowed to grade against.
-- **A silent failure needs a layer that can report it.** [ADR-0008](./0008-which-layer-carries-a-control.md)'s
+- **A silent failure needs a layer that can report it.** [ADR-0004](./0004-controls-and-enforcement.md)'s
   standing question — *which layer can carry this control, and can that layer hold it?* — answers itself
   here: the runtime **cannot**, because it has no way to surface a 0-byte failure.
 - **The tree moves under the identifiers.** [#164](https://github.com/tedeuxx/tadeumendonca-skills/issues/164)
@@ -167,7 +167,7 @@ dispatch pays for its own copy.
   one goes red.
 
 **The identifier mechanics and the CI assertion are part of this decision, not a second one.** They are
-the mechanism the preload depends on and the layer that holds its failure. Per ADR-0008's routing test
+the mechanism the preload depends on and the layer that holds its failure. Per ADR-0004's routing test
 the control cannot sit in the runtime — a 0-byte failure has no reporter — so
 `hooks/scripts/skills-resolve.test.sh` asserts, for every `agents/*.md`: the `skills:` key is present;
 every identifier resolves to a **tracked** file; no `/`; no `*`; no duplicate identifier and no two
@@ -245,7 +245,7 @@ without being the loader — it catches a broken reference, not a broken loader.
   *how a skill is discovered* — the `description` as the matcher's trigger. A `skills:` preload
   **bypasses discovery entirely**: the file is injected whether or not any description would have
   matched. Adjacent, not a correction, and the two mechanisms load the same files by different routes.
-- [ADR-0008](./0008-which-layer-carries-a-control.md) — **cited, not amended.** Its routing test is why
+- [ADR-0004](./0004-controls-and-enforcement.md) — **cited, not amended.** Its routing test is why
   the resolver assertion is in CI and not in the runtime.
 - [`docs/proposals/agentic-dev-loop.md:253`](../proposals/agentic-dev-loop.md) — the **universal floor**,
   rejected as option 3. The proposal is left as written; this pointer is what stops it reading as

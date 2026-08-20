@@ -7,7 +7,7 @@
 # from a deliberate omission. Forever. That is the worst shape a defect can take in this harness: a
 # capability silently absent, in a field whose whole purpose is to grant it.
 #
-# ADR-0008 asks which layer can carry a control and whether that layer can HOLD it. The runtime cannot:
+# ADR-0004 asks which layer can carry a control and whether that layer can HOLD it. The runtime cannot:
 # it has no way to report the failure. So the control sits here, where it can be evaluated, and the
 # failure is a red build instead of a silence.
 #
