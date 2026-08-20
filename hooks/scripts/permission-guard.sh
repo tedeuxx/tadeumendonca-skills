@@ -76,7 +76,7 @@
 # had a direct spelling at all — the merge gate (7b), composition (8), `gh api` writes (5f), the
 # persona-keyed rules (5c/5d/5e), and rule 7's bare-`git push`-while-HEAD-is-main branch. For those
 # there is no floor entry to retain and nothing behind this file. **The set the floor does not bound
-# contains the merge gate**, which is the sharpest way to hold the point. See ADR-0008.
+# contains the merge gate**, which is the sharpest way to hold the point. See ADR-0004.
 #
 # ── THE FAIL-OPEN CONTRACT, AND WHY IT SURVIVED THE INVERSION ────────────────────────────────────
 # Contract: receives the PreToolUse JSON on stdin; denies by printing a permissionDecision JSON and
@@ -227,13 +227,13 @@ cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
 #         bash -c $'gh pr \x6derge 145 --merge'   → ALLOW  (no decision, from any layer)
 #
 #     Listing the class when the fix covered one member is **the fourth time in this batch a record
-#     over-claimed its own coverage** — and it shipped inside the commit that added ADR-0008, which
+#     over-claimed its own coverage** — and it shipped inside the commit that added ADR-0004, which
 #     exists to stop precisely this. The lesson is not "add `\xNN` to the regex": `\155`, `\e`, `\cX`
 #     and plain concatenation (`$'r'"m -rf /x"`, no escapes at all) are all still there, and each patch
 #     to a thrice-patched matcher buys one spelling. Where it now sits is the honest bucket:
 #   NOT COVERED, DELIBERATELY: the other interpreters. `python3 -c`, `perl -e`, `ruby -e`, `node -e`
 #     and `eval` reach the same acts and are NOT chased — a regex cannot parse four more languages,
-#     and pretending to would be the "mechanism the file claims and does not run" defect. ADR-0008
+#     and pretending to would be the "mechanism the file claims and does not run" defect. ADR-0004
 #     prices this as accepted non-containment; the suite asserts they ALLOW, so the gap is visible
 #     rather than merely absent.
 #   NOT PROVABLE EITHER WAY: everything nobody has tried — and, named explicitly because it was once
@@ -247,7 +247,7 @@ cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
 #     **A regex over a shell grammar is not provably complete**, so the honest claim is always *these
 #     spellings, measured* — never *the class*. If you extend this, add the spelling to the suite and
 #     re-measure; do not upgrade the adjective. And prefer removing the class from the FLOOR over
-#     extending this regex — ADR-0008's argument applied to this rule: a matcher patched a fourth time
+#     extending this regex — ADR-0004's argument applied to this rule: a matcher patched a fourth time
 #     closes a spelling; removing the allow entry closes the class. That is what actually happened
 #     here: the interpreter entries that made a wrapped payload reachable came out of `allow`.
 #
@@ -1110,7 +1110,7 @@ fi
 #    restores `perl` and `ruby` after both were removed by name — so anything this rule denies in a
 #    shell spelling remains reachable one interpreter over. This rule does not narrow the agent's REACH
 #    by a single act. ~~It narrows what ONE ENTRY CLAIMS.~~ **It does not do that either** — the entry's
-#    claim is fixed by the record, above. That gap is ADR-0008's priced, accepted one; it is not closed
+#    claim is fixed by the record, above. That gap is ADR-0004's priced, accepted one; it is not closed
 #    as closed.
 #
 #    Reads `$cmd`, not `$bare`: `$bare` collapses quoted spans, so `bash '.scratch/../x'` would arrive

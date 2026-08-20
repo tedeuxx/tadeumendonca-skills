@@ -103,7 +103,7 @@ explicitly rather than leaving the axis unexamined.
 - **Validating a loop/gate change** — pair it with `tech-lead` (design-time, against the principles
   and the ADR library) and `quality-assurance` (code-time, against the Definition of Done).
 - **Proposing a change to the MACHINERY** — dispatch `harness-lead` before implementing it. Its
-  standing question is [ADR-0008](../../docs/adr/0008-which-layer-carries-a-control.md)'s — *which
+  standing question is [ADR-0004](../../docs/adr/0004-controls-and-enforcement.md)'s — *which
   layer can actually carry this control, and can that layer hold it?* Since
   [ADR-0015](../../docs/adr/0015-harness-lead-implements-the-harness-it-reviews.md) it may also
   implement the harness changes it stress-tests (never merging, never gating an MR of its own — rule

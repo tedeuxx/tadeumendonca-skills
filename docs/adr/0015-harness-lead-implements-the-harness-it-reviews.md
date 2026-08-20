@@ -91,7 +91,7 @@ corollary this record calls out explicitly below rather than assuming.
        → "matcher": "Bash"   (the only PreToolUse matcher in the file)
 
    `PreToolUse` fires on the `Bash` matcher only, so a path-scoped `deny` on `Edit(...)` has no
-   enforcement layer to sit in even in principle — it would be exactly the control ADR-0008 calls a
+   enforcement layer to sit in even in principle — it would be exactly the control ADR-0004 calls a
    claim stronger than the layer can carry. Proposing it again for `harness-lead` would be proposing
    a control this repo has already spent a review round proving inert.
 
@@ -202,7 +202,7 @@ change, applied at the one type this ADR concerns.
 
 **Consequent work, out of scope here:** whether the transition should also be enforced at the floor (a
 `gh label` guard keyed on issue type, the same open question ADR-0012 and ADR-0013 already named and left
-unresolved for `product`) is a which-layer-can-carry-this-control question (ADR-0008), not decided again
+unresolved for `product`) is a which-layer-can-carry-this-control question (ADR-0004), not decided again
 here. Today it is owner-only **by instruction**, the same footing `harness-lead`'s own "never posts"
 rule stood on before this record examined it — named as a cost below, not silently upgraded to enforced.
 
@@ -262,7 +262,7 @@ ship a persona whose own brief still describes a tool it now has as one it doesn
   no veto"*, said of `harness-lead`) — becomes false once Corollary 3 ships. Named alongside the
   `:714-718` boundary-class edit already owed (Corollary 2), not a separate item.
 - **Whether `loop`-ready should also be floor-enforced**, beyond instruction (Corollary 4) — a
-  which-layer question left to ADR-0008's own test, not resolved by fiat here.
+  which-layer question left to ADR-0004's own test, not resolved by fiat here.
 - **The actual `agents/harness-lead.md` frontmatter edit and the two sentence fixes** (Corollaries 1
   and 6) — named precisely, not executed; this record's write scope is `docs/adr/**`.
 - **Whether `harness-lead` should also gain a merge role.** It does not, under any reading here —
@@ -326,7 +326,7 @@ ship a persona whose own brief still describes a tool it now has as one it doesn
 - [ADR-0006](./0006-verification-and-its-artifacts.md) — the shape Corollary 3's marker
   follows (Issue-comment, not a relayed claim), and the precedent for referencing a commit SHA rather
   than a PR head where a PR may not yet exist.
-- [ADR-0008](./0008-which-layer-carries-a-control.md) — cited for the routing test Corollary 1's rejected
+- [ADR-0004](./0004-controls-and-enforcement.md) — cited for the routing test Corollary 1's rejected
   option (2) fails on (no hook layer exists for `Edit`/`Write` at all) and for the open which-layer
   question Corollary 4's floor-enforcement point defers rather than answers.
 - `agents/quality-assurance.md:100-102` — re-verified: the `security`/`Edit(.claude/**)` failure that

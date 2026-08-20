@@ -133,7 +133,7 @@ ever targets it.
     duties it just listed as the orchestrator's — the `ready` label and the routing label — are, today,
     equally reachable by any actor, and choosing to list them as duties here without saying so would let
     this record read as more settled than the mechanism it describes. Recording the gap alongside the
-    duty is the same discipline ADR-0008 established for a control claimed stronger than it is: the
+    duty is the same discipline ADR-0004 established for a control claimed stronger than it is: the
     failure that matters is the one nobody notices, and a record is the place that notices get written
     down.
   - **The dispatch-omission judgment call.** Deciding not to dispatch a review specialist is a different
@@ -170,7 +170,7 @@ because this record's write access is `docs/adr/**` only.
    at all and depends entirely on CLAUDE.md.
 2. **Close, or explicitly re-affirm as an accepted-but-unclosed cost, the `gh issue edit` / `gh label`
    scoping gap.** This record names the gap; it does not decide whether it is worth closing. That is a
-   which-layer-carries-this-control question (ADR-0008), not a naming one, and belongs in its own record
+   which-layer-carries-this-control question (ADR-0004), not a naming one, and belongs in its own record
    once someone picks it up — most plausibly `tech-lead` at a future intake, or `harness-lead` if it
    is scoped as a harness change.
 3. **Add "(via orchestrator)" to the `MR --> QA` edge label in `README.md:177`.** The diagram's
@@ -193,7 +193,7 @@ way ADR-0004 and ADR-0005 book obligations onto later work rather than dischargi
   not, and has not been since 2026-08-03.
 - The part of the boundary that is **not** enforced (label scoping) and the part that is a different
   failure shape entirely (dispatch omission) are named as such, rather than silently absorbed into the
-  existing one-line sentence — avoiding the exact failure ADR-0008 exists to catch: a record asserting a
+  existing one-line sentence — avoiding the exact failure ADR-0004 exists to catch: a record asserting a
   control is stronger than it is.
 
 **Bad / accepted costs**
@@ -222,7 +222,7 @@ way ADR-0004 and ADR-0005 book obligations onto later work rather than dischargi
 - [ADR-0006](./0006-verification-and-its-artifacts.md) — cited: its own measured
   evidence (`-io`#338, `:523`) is the real instance — not a hypothetical — of the orchestrator omitting a
   dispatch that this record's fifth duty and boundary discussion rely on.
-- [ADR-0008](./0008-which-layer-carries-a-control.md) — cited: the discipline of stating what a layer
+- [ADR-0004](./0004-controls-and-enforcement.md) — cited: the discipline of stating what a layer
   actually enforces versus what it is assumed to enforce, applied here to the orchestrator's boundary.
 - [ADR-0010](./0010-a-personas-startup-context-is-a-curated-preload.md) and
   [ADR-0011](./0011-a-skill-exists-to-be-assigned-to-a-profile.md) — cited: the "a definition that is not

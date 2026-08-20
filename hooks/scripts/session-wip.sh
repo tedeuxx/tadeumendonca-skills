@@ -66,9 +66,11 @@ MARKER='<!-- gatekeeper-verdict: quality-assurance -->'
 #
 # Reading the literal is expressible where reading prose would not be: the verdict set is a
 # CLOSED ENUMERATION of three, defined in `agents/quality-assurance.md` under *Your verdict —
-# exactly one of*, and the marker template is a projection of that same set. ADR-0008's first
-# 2026-08-04 amendment, section 2, draws exactly this line — a control over a closed set the
-# author wrote may be recorded as closed; one over a caller-controlled grammar may not.
+# exactly one of*, and the marker template is a projection of that same set. ADR-0004's
+# "Which layer carries a control" section draws exactly this line, under *Two rules this decision
+# earned* — a control over a closed set the author wrote may be recorded as closed; one over a
+# caller-controlled grammar may not. (That was record 0008's first 2026-08-04 amendment until
+# 2026-08-20, when the record was absorbed.)
 #
 # An UNRECOGNISED literal is reported rather than passed over. That is verdict drift — a gate
 # posting a word its own persona does not define — and it is the failure the merge-precondition

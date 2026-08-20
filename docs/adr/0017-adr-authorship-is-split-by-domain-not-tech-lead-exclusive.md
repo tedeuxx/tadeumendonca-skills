@@ -73,7 +73,7 @@ this repo's own rule that a decision and the record of it land together.
 - **A straddling decision has no mechanical resolution**, only a convention (co-citation in `Deciders`).
   This is named explicitly rather than solved, per #223's own scope — inventing a rule for a case that
   hasn't happened yet risks getting it wrong in the abstract.
-- **Role-stacking compounds further for `harness-lead`.** It already stacks proposer/reviewer (ADR-0008)
+- **Role-stacking compounds further for `harness-lead`.** It already stacks proposer/reviewer (ADR-0004)
   and implementer (ADR-0015) on harness changes it reviews; authoring the justifying ADR for its own
   harness change adds a third role on the same object. Accepted, same shape as ADR-0015's own accepted
   cost, not newly introduced by this record — named here so it isn't silently inherited.

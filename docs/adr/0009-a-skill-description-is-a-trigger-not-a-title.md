@@ -45,7 +45,7 @@ them covers the description field, the trigger form, or the cluster rule.**
   subjects; no per-file rule can make a member distinguishable from its neighbours.
 - **An enforcement mechanism that is wrong more often than right gets silenced.** This library has
   already recorded that cost once, for a hook that guessed intent from a command string
-  ([ADR-0008](./0008-which-layer-carries-a-control.md)). Any check proposed here inherits it.
+  ([ADR-0004](./0004-controls-and-enforcement.md)). Any check proposed here inherits it.
 
 ## Considered options
 
@@ -149,7 +149,7 @@ the tree flattens under #164, 112 pointers rot at once.**
 
 > **This record does not resolve that tension and must not.** #164 is undecided, and a record that
 > pre-empted it would be deciding the tree's shape as a side effect of deciding a sentence's
-> punctuation — the failure ADR-0008 exists to name. What is decided here is the **form as it stands**
+> punctuation — the failure ADR-0004 exists to name. What is decided here is the **form as it stands**
 > and the fact that its cost is **known and dated**. Whichever way #164 goes, this section is
 > **amended**, not rewritten: a flattening MR owes an amendment here, and it is cheap only if it is
 > written at the time.
@@ -231,7 +231,7 @@ does not show that any of them matches a task.
   scoping reasoning is preserved in the amendment below rather than deleted, because a scope
   deliberately chosen and later discharged is a different thing from a scope that was always this.
   **#164 remains open and remains deliberately not pre-empted.**
-- Related: [ADR-0008](./0008-which-layer-carries-a-control.md) for *a check that is wrong more often
+- Related: [ADR-0004](./0004-controls-and-enforcement.md) for *a check that is wrong more often
   than right trains the loop to silence it*, which is the reason option 3 is refused rather than
   deferred; and the Merge Request Definition of Done, whose *decision recorded* criterion is what
   made this record's absence a blocking finding — record 0003 until 2026-08-19, now a section of
@@ -254,7 +254,7 @@ rewritten. What changed is not the reasoning; it is the reasoning's precondition
 the check: the bodies were dirty, and a file-wide assertion would have turned the suite red against work
 nobody had scheduled — one slice becoming five, and a gate arriving already failing. This library has
 already recorded what an enforcement mechanism that cannot be satisfied costs
-([ADR-0008](./0008-which-layer-carries-a-control.md)): it gets silenced, and a silenced check still
+([ADR-0004](./0004-controls-and-enforcement.md)): it gets silenced, and a silenced check still
 looks like coverage. So the scope was drawn where the check could be **green and honest on the same
 day**.
 
@@ -360,7 +360,7 @@ inside itself: **a green that was never observed to go red is not a gate.**
   [#167](https://github.com/tedeuxx/tadeumendonca-skills/issues/167) — the bodies cleaned and the ban
   widened. The *"frontmatter-scoped"* wording in **Decision outcome** and in **Links** above is
   superseded by this amendment.
-- **Narrows no claim in [ADR-0008](./0008-which-layer-carries-a-control.md)** and leans on it twice: for
+- **Narrows no claim in [ADR-0004](./0004-controls-and-enforcement.md)** and leans on it twice: for
   *why the original scope was narrow* (§1) and for the standing refusal to call a pattern-matching
   control *closed* — §3 states what the widened check scans and how it matches, not that consumer
   leakage is now impossible.
@@ -495,7 +495,7 @@ why the rule is not a decision worth a record: it is the *absence* of one, held 
   *"four stems occur in two families each"* paragraph and the four-superseded-descriptions bullet above
   are superseded by this amendment.
 - **#164 remains open** and steps 2–6 remain deliberately not pre-empted, per the refusal in §2.
-- Related: [ADR-0008](./0008-which-layer-carries-a-control.md) for *a measurement to re-derive rather
+- Related: [ADR-0004](./0004-controls-and-enforcement.md) for *a measurement to re-derive rather
   than a verdict to read*, which is why §1 ships the command and both figures instead of one corrected
   number.
 - **Evidence re-derived at `78f4e5b`, not relayed:** the two commands in §1, each run against

@@ -402,7 +402,7 @@ building that case.*~~
 > Measured at `f797cc6`: `node -e …` and `python3 -c …` draw no decision from any layer and are
 > allow-listed, so a payload wrapped in **those** reaches ALLOW, not ASK. Unqualified, the sentence
 > claimed the class was closed; what actually closed is its **default spelling**, which is exactly the
-> distinction the rest of this amendment is at pains to draw. Same correction as ADR-0008's third
+> distinction the rest of this amendment is at pains to draw. Same correction as ADR-0004's third
 > 2026-08-04 amendment, in the other record, found the same way.
 >
 > **What changed between the two decisions was evidence, not preference — and this is the transferable
@@ -430,7 +430,7 @@ building that case.*~~
 > for the decision it accompanied and would now steer a reader away from the decision the owner actually
 > holds. **Non-containment is still accepted** (`node -e`, `python3 -c` remain granted and
 > `permission-guard.sh` deliberately does not chase them) — so what was narrowed is which spellings are
-> free, not what the perimeter contains. The architecture is [ADR-0008](./0008-which-layer-carries-a-control.md);
+> free, not what the perimeter contains. The architecture is [ADR-0004](./0004-controls-and-enforcement.md);
 > its second 2026-08-04 amendment carries the measurement.
 
 **What raised it.** The batch that committed this floor ratified the principle *a control expressed as
@@ -504,7 +504,7 @@ is `bash`.~~
 > gatekeepers and into a record the owner ratified.
 >
 > The layering conclusion this passage was reaching for is now decided rather than observed — see
-> [ADR-0008](./0008-which-layer-carries-a-control.md), which makes the hook the authoritative layer by
+> [ADR-0004](./0004-controls-and-enforcement.md), which makes the hook the authoritative layer by
 > decision and books the fail-open cost the section below describes.
 
 ### The load-bearing sentence: the layering is inverted from what the hook claims
@@ -531,7 +531,7 @@ correcting the hook's header comment is a `hooks/` change and not this record's 
 > the owner decided the architecture rather than letting a third instance be recorded as a fourth
 > property. **The hook is the authoritative layer; the settings `deny` list is the floor for the direct
 > form; the authoritative layer fails open and that cost is accepted in the owner's name.** The record
-> is [ADR-0008](./0008-which-layer-carries-a-control.md), which also carries the two rejected options
+> is [ADR-0004](./0004-controls-and-enforcement.md), which also carries the two rejected options
 > and the standing rule for the next control. This section stands as the observation that led to it.
 
 ### Why decision 1's principle survives this
@@ -564,6 +564,407 @@ a bug and works around it, which is the failure mode this record exists to preve
 **Resolution.** The stale sentence was struck in `dev-loop`'s own text (*"That was written before ADR-0004's classified autonomy and contradicted `quality-assurance`'s own definition… What the merge asks for is a judgement, and who supplies it depends on the class"*) and the corrected framing — safe class merges itself once both lenses are green, boundary class never does, unclear-is-boundary — is now carried in exactly one place: `skills/harness-engineering/SKILL.md`'s *"The merge is the go/no-go"* section, which cites this ADR directly rather than re-deriving the rule in its own words. Consolidating three principle skills into one (`harness-engineering`) removes the specific duplication that let this drift happen; it does not remove the general risk of a future skill restating an ADR's decision in fresh prose that can then drift.
 
 **Accepted cost, named rather than solved:** nothing mechanical asserts that a skill's prose description of a decision still matches the ADR it describes. This amendment records the one incident that surfaced; it is not a standing check.
+
+## Which layer carries a control (absorbed 2026-08-20, record 0008)
+
+**Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):
+record 0008's decision is in force and is moving into the document that governs its capability.**
+Decided by the owner on 2026-08-04, driven by the permission audit of that day and the ~150-probe sweep
+that closed it. **It supersedes the layering claim in this record's own second 2026-08-04 amendment**
+(*"the settings `deny` list is the hard backstop"*, inherited from `permission-guard.sh`'s header) — a
+supersession that is now internal to one document, which is the clearest single argument for the fold.
+Its History row is in [the index](./README.md).
+
+**This is the section a reader is sent to by name.** `agents/harness-lead.md` cites this decision as
+that persona's standing question — *which layer carries a control, and can that layer hold it?* — and it
+is a general design question asked about gates, labels and hooks that hold no permission at all, not
+only about permissions. The capability's name is `controls-and-enforcement` rather than `permissions`
+for exactly that reason.
+
+### The problem: an architecture that changed three times in one day, and nobody was deciding it
+
+The permission floor had always been described as **defence in depth with the static layer underneath**.
+`permission-guard.sh` said it twice in its own header, and this record's body repeated it. Every rule
+added to the hook was added on that understanding: the hook is the *smart* layer, the deny list is the
+*dumb but unfailing* one, and the hook may fail open because something is behind it.
+
+On 2026-08-04 that stopped being true for a substantial and growing set of controls, three separate
+times, **none of the three being a decision about the floor's architecture**:
+
+1. **Wrapped.** The settings matcher reads a command *prefix*. The prefix of `bash -c 'rm -rf /x'` is
+   `bash`. So **every** prefix-matched `deny` entry is unreachable in wrapped form for as long as any
+   wrapper is allow-listed — a property of the matcher rather than of the entry, which is why the
+   routing reason outlives the entry that first demonstrated it. **It has a live instance today, not
+   only a historical one:** the shell wrappers came back out of `allow`, but `node -e` and `python3 -c`
+   remain allow-listed by design and draw no decision from any layer.
+2. **`gh api`'s read/write split.** `-f`/`-F` switch the request to POST with no `--method` present, so
+   **no prefix separates a read from a write.** A blanket `Bash(gh api:*)` deny removed reads the loop
+   itself performs, and the control moved to the hook (rule 5f).
+3. **Allow entries shadowing deny entries.** `Bash(git -C:*)` is in `allow`, and a prefix deny on
+   `git clean -f` cannot see `git -C <path> clean -f`. **This one is live in the floor as it stands** —
+   `-C` *is* how the multi-repo loop addresses the other repository, so no convention change removes it,
+   unlike the `gh -R` half, which was removed by moving the flag after the subcommand.
+
+> **The pattern is what demanded a decision, not the instances.** Each migration was locally correct,
+> each was made by someone solving a different problem, and the header sentence describing the
+> architecture was in none of the three diffs. **A property that can be inverted as a side effect is not
+> a property; it is an accident that has not been contradicted yet.**
+
+### The decision, as it currently binds
+
+> **Direct form → the settings `deny` list. Wrapped, composed, semantic, or shadowed by an `allow` entry
+> → `permission-guard.sh`.** The hook is the **authoritative** layer. The deny list is a floor for the
+> spelling a caller produces by default, **not a backstop behind the hook**.
+
+**The four routing reasons, stated identically here and in `permission-guard.sh`'s header** so the two
+cannot drift into two different rules:
+
+1. **Wrapped** — `bash -c '<payload>'`. The prefix is the shell; the payload is invisible to the matcher.
+2. **Composed** — `&&`, `||`, `;`, `$( )`, backticks, a `VAR=x` prefix. The matcher reads one prefix and
+   cannot decompose the rest.
+3. **Semantic** — the act is not in the string. `git push` lands on the trunk or not depending on the
+   checked-out branch; `gh api` reads or writes depending on whether `-f` is present.
+4. **Shadowed by an `allow`.** The general form is the one worth quoting, because it is why this class is
+   systematically underestimated:
+
+   > **An `allow` entry does not weaken one `deny`; it weakens every `deny` for the same tool, at once,
+   > and silently.**
+
+And the property that goes with it, stated because it is the half a reader will otherwise assume away:
+
+> **The authoritative layer fails open.** On a parse error, a missing `jq`, or a malformed payload,
+> `permission-guard.sh` emits no decision — and for every control it is the only layer of, that is an
+> open door rather than a degraded one. **Accepted, in the owner's name.**
+
+### The rejected options that are still live
+
+1. **Make the hook fail closed**, so the authoritative layer's failure mode matches its status. *Why
+   not, and the reason is a failure that has already happened rather than a prediction:* with `jq` off
+   `PATH`, `permission-guard.sh` returns nothing for a `git push origin main` payload, because
+   extraction fails before any rule runs and `deny()` itself needs `jq` to emit. **Under fail-closed
+   that same broken `jq` denies every `Bash` call in the session — including the ones that would
+   diagnose and repair it.** The agent is wedged and the only route out goes through the owner, at the
+   moment he is least able to see why. A control that converts a missing dependency into an outage of
+   the whole loop costs more than the window it closes.
+2. **Pattern-list every spelling back into the floor.** *Why not — measured, not predicted:* the
+   ~150-probe sweep of 2026-08-04 found **nine** spellings nobody had listed, across rules that had
+   already been swept once for exactly this (`gh --repo=o/r pr merge`, `gh -Ro/r pr merge`, the same two
+   against `secret set`, `gh api -ftitle=x`, `git -C <path> clean -fd`, `git -C <path> push --tags`,
+   `gh -R o/r repo delete`, `gh -R o/r workflow run`). **A floor that depends on how the caller
+   punctuated is not a floor.** Enumeration does not converge; each fix leaves the next spelling open,
+   and the list's *appearance* of coverage is worse than a shorter list that claims less.
+
+### Why this is not a weakening of the principle it looks like it weakens
+
+Stated explicitly, because the batch that produced it also ratified *a control expressed as absence is
+not a control* — which this record's absorbed 0018 section generalises. **That principle is untouched.**
+It was about `gh api` being **unlisted** — never denied, merely absent — and therefore erased by a single
+`Bash(gh *)` wildcard in an unreviewed 82-entry local overlay. **An explicit `deny` still beats every
+`allow` for the direct form.** Nothing here removes or narrows a `deny`. What changed is **which layer
+carries the semantic cases**, and it changed because those cases are **inexpressible in the other
+layer** — there was no version of the floor that held them.
+
+### Consequences still being paid
+
+**Good** — the layering is **decided**, so the next migration is a choice against a written rule rather
+than a side effect nobody records; the fail-open cost is visible where the controls live; and reviewers
+get a test they can apply to a diff without judgement: *can a prefix express this?* If no, the floor is
+the wrong layer and adding it there is theatre.
+
+**Bad / accepted:**
+
+- **The authoritative layer fails open, and the set of controls it alone carries only grows** — see the
+  third-layer amendment below, which supplies the one mechanism that shrinks it.
+- **The floor now reads as broader than it is.** A reader of `.claude/settings.json` sees `rm -rf` in
+  four spellings and infers containment. It contains the direct form only, and this section is the only
+  place that says so.
+- **Neither layer is a sandbox, and the perimeter model does not claim one.** Arbitrary code execution is
+  granted **deliberately** inside the perimeter — `node -e` and `python3 -c` are allow-listed and
+  `permission-guard.sh`'s header books them, with `perl -e`, `ruby -e` and `eval`, as **NOT COVERED,
+  DELIBERATELY**. These controls exist for the irreversible/public boundary and for process integrity,
+  never for containment.
+
+#### The accepted cost that makes this architecture degrade quietly — *the retained floor entry*
+
+Named separately because it is the one a reader will remove **correctly by every other measure**, and
+because it is what bounds the fail-open cost above.
+
+**When a control migrates to the hook, its floor entry stays.** `bash -c 'rm -rf /x'` needs the hook, but
+a plain `rm -rf /x` is still stopped by a layer that cannot fail open.
+
+> **The floor entry is not a duplicate of the hook rule. It is the fail-closed half of a two-layer
+> control.** Deleting it converts a control that survives a broken `jq` into one that does not.
+
+**The bound covers less than the architecture, and this is the sharper half.** Retention bounds the cost
+for controls that **migrated**. It does nothing for controls **born in the hook**, which never had a
+direct form to fall back to: rule 7b (the merge gate), rule 8 (composition), rule 5f (`gh api` writes),
+rules 5c/5d/5e (who may open work, who may publish), and rule 7's bare-`git push`-on-`main` branch. For
+those a broken `jq` is a **total** hole. The concrete instance, since it is the one that matters most:
+`Bash(gh pr merge:*)` is in `allow` and the merge gate exists **only** in the hook, so with `jq` missing
+the main agent can merge a PR with no decision from any layer — verified by probe with `jq` stubbed.
+**So the retained floor entry bounds the migrated set only, and the set it does not bound contains the
+gate.**
+
+**And it is true only by convention.** Nothing verifies that a migrated control kept its floor entry, and
+nothing would notice its removal. The removal reads *correct*: a deny list with a semantic layer behind
+it is exactly where an entry looks redundant. **Considered and rejected:** a test asserting *"every hook
+rule has a corresponding floor entry"* is writable, but it requires a mapping between two files nobody
+maintains — hook rules are numbered by lineage and matched by regex, floor entries are literal prefixes,
+and the correspondence is one-to-many in both directions — and it would go **red on the correct act**,
+since adding a hook rule for something the floor never denied is most of them. **A check that is wrong
+more often than right trains the loop to silence it.** So the cost stands unclosed, with the reason
+stated; what holds it is this paragraph, the matching header sentence, and a reviewer who reads either
+before deleting a deny entry.
+
+### The standing consequence — the sentence a future reader needs
+
+> **Any control a prefix cannot express belongs in the hook by construction.** And **every such
+> migration removes one more thing the fail-open cost is bounded by** — so the price of the hook's
+> fail-open contract is not fixed; it is paid again, slightly higher, each time a rule moves.
+
+Two obligations follow, cheap only if done at the time:
+
+- **A migration into the hook is an amendment to this section**, not a comment in the rule. Three
+  undocumented migrations in one day is what made the decision necessary.
+- **A rule that a prefix CAN express stays in the floor.** Moving it for tidiness spends the fail-open
+  budget for nothing. `claude mcp` is the worked example: no flag convention sits between the words and
+  no `allow` entry shadows it, so the prefix matcher sees every spelling and the hook would add exactly
+  zero.
+
+### Two rules this decision earned, both about what a record may claim
+
+**1 · *Record the derivation, not the count.*** Reached independently three times in one day by three
+parties solving three different problems.
+
+> **A derived count in prose is a claim with no owner. The derivation is the thing that stays true.**
+
+So a number is given only to convey magnitude, never as the thing to check against, and it ships with
+the command that produced it. This section's own counts are written that way: it names the `allow`
+entries that cause the shadowing and the `deny` entries they shadow, so a reader who finds a different
+number has the **method** to see why rather than a contradiction to report.
+`jq -r '.permissions.allow[]' .claude/settings.json`, read against the `deny` list, is that method.
+
+**2 · *Closed* is not a word a pattern-over-a-grammar control may use about itself.** Earned on three
+occurrences inside one batch, each the same move — measure some spellings, report the class. The third
+was the sharpest: the unwrap step's header said the wrapped class was *"closed by the unwrap step
+below"*, and re-measuring by piping payloads at the committed script found `bash -c $'…'` (ANSI-C
+quoting the quote-strip does not know) and `bash --norc -c '…'` (an option run before `-c`, which the
+unwrap regex did not admit) both reaching **ALLOW** — including for `git push origin main` and
+`gh pr merge`.
+
+> **A control implemented as a pattern over a grammar may be recorded as *"these spellings, measured
+> this way, on this date"* — never as *"closed"*.** The class it must cover is every string the grammar
+> admits; the evidence available is always a finite sample. *Closed* asserts the first and is only ever
+> backed by the second, so it is **not a claim the author is in a position to make**, however careful
+> the sweep.
+
+**It binds this section too.** The rejected option above refuses enumeration because *"enumeration does
+not converge"* — which is a fact about the technique, not about the layer that lost the argument, and it
+applies equally to the hook.
+
+**What it costs, stated rather than absorbed, because this is a trade:** every such record gets longer
+and less quotable, and a record nobody quotes is a record nobody applies — this library has already lost
+a header sentence to exactly that. The reader must check a measurement instead of reading a verdict. And
+**it removes the stopping rule**: *closed* is what tells a sweep when to stop probing, and *"these
+spellings"* never does, so the stopping point moves back to judgement, which is the thing the formalism
+was bought to replace. **No remedy is proposed for that, and it is the strongest argument against the
+rule.** What holds it is that the alternative was measured wrong three times in one day, and a stopping
+rule that stops early is worse than none, because it stops **and** reports coverage.
+
+**The narrow scope, so this is not a ban on plain sentences.** It applies to controls that match a
+**pattern against a caller-controlled string** — the settings prefix matcher and the hook's regexes. A
+control over a **closed, enumerable** domain may still be recorded as closed: `agent_type` keys take
+finitely many values a rule can list, so *"every non-`developer` persona is denied"* is a provable claim
+about a set. **The test is whether the adversary picks from a set the author wrote or from a grammar** —
+which is also why the absorbed 0018 section above may state its three states as closed.
+
+### The rule that a floor entry's record is spread across files no removal commit opens
+
+Earned when three commits removed seven `allow` entries and left the narrative asserting them, in the
+present tense, framed as measurement. The cause was established by toggling rather than inferred: each
+removal commit was scoped to the file it removed from plus the narrative adjacent to it, and **no commit
+re-grepped the entry's name across the tree**. The drift sat exactly, and only, at the sites those
+commits did not open.
+
+> **Removing or adding a floor entry is a change to at least five artifacts, and the name of the entry is
+> the only thing that finds them all.** The entry lives in `.claude/settings.json`; its justification
+> lives in this document, in `permission-guard.sh`'s header, in the ADR index, and in the assertions in
+> `inventory-counts.test.sh` and `permission-guard.test.sh`. **Grep the literal entry string across the
+> tree before the commit, not the directory you are editing.**
+
+This belongs to this decision rather than to a record of its own because it is **this architecture
+restated as an obligation**: the reason the justification is spread across five artifacts is that the
+floor holds only the direct form while the hook and the records carry everything else. A layering that
+divides a control across layers divides its record across files by the same cut.
+
+**The mechanical half exists** — an assertion in `inventory-counts.test.sh` that no tracked file asserts
+an allow entry the floor does not contain. **What it cannot reach, stated as a known bound:** it matches
+a literal entry string, so it finds `Bash(bash:*)` in prose and does not find *"the interpreter class
+stays in `allow`"*, which asserts the same thing with no entry name in it. **It closes the spelling, not
+the class** — which is rule 2 above applied to the remedy for the problem rule 2 was written about.
+
+### A path in an `allow` entry is a string prefix, not a directory scope
+
+Recorded because the spelling suggests otherwise and a reader will infer a scope that is not there.
+Measured against the floor and the hook: a path prefix carries through traversal, quoting, escaping and
+symlink resolution while reaching any file on disk, and there is no `..` adjacency in the spellings that
+work — so **no widening of a character class finds them**. Nothing bounds such an entry: not the matcher,
+which cannot express a directory, and not `permission-guard.sh`, which deliberately does not resolve
+quoting, escaping or symlinks. Any guard rule against the naive spelling is a **speed bump**, and is
+recorded as one.
+
+**And the reach argument is stated in the only form a single probe can settle**, because that is the only
+form available over a grammar:
+
+> **At least one `allow` entry reaches an arbitrary interpreter, so reach is already unbounded.**
+
+Measured 2026-08-07: **`command perl -e 'print 1'` runs with no decision from any layer**, via
+`Bash(command:*)`, although neither `perl` nor `ruby` is itself in `allow`. **One witness settles it.**
+`Bash(awk:*)`, `Bash(find:*)`, `Bash(sed:*)`, `node` and `python3` are four more routes, and **this list
+is not the set** — closing any member of it restores no bound, because the question is *which allow
+entries can reach an interpreter*, a property of an open grammar rather than a list of names.
+*"More entries than anyone has enumerated"* is a claim about **enumeration effort** with no falsifier;
+the existential form above has exactly one, and it is cheap.
+
+### The third layer: ask which SYSTEM authorises the act (2026-08-08)
+
+Raised by `harness-lead` on `-io`#402, where `terraform apply` was reachable from a `workflow_dispatch`
+against a caller-chosen tree. **The routing decision, the fail-open acceptance and the retained-floor-
+entry cost are untouched; this extends the routing test.**
+
+**The worked example is this decision's sharpest, because the rule already existed.** Rule 5g's
+`gh workflow run` deny landed 2026-08-04 and its message names the exact risk verbatim — *"it can reach
+`terraform apply` without the merge that is supposed to authorise it"*. **The rule named the risk
+correctly and the risk stayed live for five days**, until it was closed **in the workflow file**
+(`github.event_name == 'push'` on the apply job) — in neither of this decision's two layers. That is not
+a failure of rule 5g. It is a fact about what rule 5g **can** bind: **one caller's terminal in one
+session.** The GitHub UI, a PAT, a session with a different settings root, or any of the interpreter
+routes above reach the same dispatch with rule 5g never consulted.
+
+**This decision divided controls between two layers. There is a third**, and it went unnamed not because
+no control needed it but because the question *which system authorises the act* had never been asked — so
+controls of exactly that shape were routed here **implicitly**, and the routing was invisible. Three
+already in this repository:
+
+| control | workspace rule | the system that actually authorises it |
+|---|---|---|
+| direct push to the trunk | hook rule 7, floor `Bash(git push origin main)` | **branch protection** on `main` — **asserted, not measured**: the protection API is denied to the agent |
+| merging with squash | hook rule 7b, floor `Bash(gh pr merge --squash:*)` | a **repository setting** — measured `squashMergeAllowed: false`, so the act is already foreclosed where it is decided |
+| `terraform apply` from a laptop | hook rule 2 | **Terraform Cloud** pipeline-only apply, plus an AWS OIDC trust only CI can assume |
+
+> **Ask which SYSTEM authorises the act, before asking which layer of this workspace can see it.** Where
+> the act is authorised by a system outside the agent's shell — a CI trigger, a cloud IAM policy, a
+> branch protection, a repository setting — **that system's own configuration is the AUTHORISING SYSTEM,
+> and that is where the control belongs.** Route the control there, **keep the workspace rule**, and
+> record it as what it then is: a **convenience refusal for the agent**, not the control.
+>
+> **Keeping it is part of the rule, not an afterthought.** Reclassifying a speed bump is not removing it
+> — the agent's shell is still one of the routes, and a refusal that costs nothing is worth having on it.
+> This sentence exists because the general form without it is the sentence someone would quote while
+> deleting a hook rule that had just been correctly re-described.
+
+**A word this decision spends, which the third layer must not overload.** Everywhere above,
+*authoritative* answers a question **internal to this workspace** — hook versus floor. The layer named
+here answers a different question, **which system authorises the act at all**, so it is called the
+**authorising system** and never *the authoritative layer*. A control has both at once: `terraform
+apply`'s authoritative *workspace* layer is the hook, and its *authorising system* is Terraform Cloud.
+
+**Two statements above are narrowed by that distinction, and the second is the one that matters:**
+
+- **Fail-open does not travel to the third layer.** *"The authoritative layer fails open"* is a fact
+  about `permission-guard.sh` and stays exactly true of it. A branch protection, a repository setting and
+  a pipeline-only apply do not emit no decision on a malformed payload. **So routing a control to its
+  authorising system is the only move here that takes it out of the fail-open blast radius.**
+- **The set the hook alone carries no longer only grows.** *"…and the set of controls it alone carries
+  only grows"* was true while there were two layers, because migration only ever ran floor → hook. **The
+  third layer is the first mechanism that shrinks it:** route the control to its authorising system,
+  keep the workspace rule, and the control leaves the hook-alone set while the speed bump stays. A
+  reader who takes *only grows* as still unqualified learns that migration is monotonically expensive
+  and misses the one move that stops the meter.
+
+#### The obligation this puts on a crude deny
+
+> **A deny that stands in for a capability must name the capability in its own comment.** Crudeness is
+> not a defect to apologise for — it is the honest shape when the act is not in the string — but a rule
+> whose *name* is narrower than its *purpose* reads as precision and is filed as coverage.
+
+**And the two words that must not be fused.** The proposal that produced this said *"the floor's correct
+move is the crude, fail-closed deny"*. Both nouns are wrong, and the confusion is the exact one this
+decision exists to prevent: these rules are **hook** rules, not floor rules; and the hook is the layer
+that **fails open**. What is fail-closed about them is their **predicate** — they deny the whole class
+rather than attempting to distinguish inside it — which is a property of the rule's logic, not of the
+layer's failure mode. **Calling a hook rule fail-closed is the "hard backstop" sentence being re-derived
+from scratch**, four days after this decision was taken to strike it. So: **crude in predicate,
+fail-open in layer, and the record must say both.**
+
+#### The sibling reviewer test — *can the hook SEE this?*
+
+> **`permission-guard.sh` receives `.tool_input.command` and the root `agent_type`. Nothing else exists
+> to it.** A value that can travel on **stdin**, in a file the command reads, in an environment variable,
+> or in a later interactive prompt is invisible to a `PreToolUse` hook however clever the matcher is.
+
+**Its scope, measured rather than asserted, because the obvious reading of it is wrong.** Piped at the
+guard, `gh workflow run deploy.yml --json` **denies** (rule 5g) — the test does not defeat that rule,
+because the *act* is in the command string and only the *inputs* are outside it. **What it forecloses is
+a rule someone would otherwise propose:** a value-level refusal such as *"deny `gh workflow run` only
+when it carries `apply_infra=true`"*. That rule is unwritable at this layer, and the reason is not
+matcher cleverness — the value need never appear in `.tool_input.command` at all. **A design constraint
+on future rules, not a defect in existing ones.**
+
+#### The one finding that errs OPEN — recorded, not decided
+
+**Rule 5e is the one command-level proxy that fails in the direction nobody notices, and this is by
+probe rather than by reading.** Its predicate matches `gh pr comment`, `gh issue comment` and `gh issue
+create`. `Bash(gh pr edit:*)` and `Bash(gh issue edit:*)` are both in the committed `allow` list, so a
+persona 5e exists to keep off public surfaces reaches the same public surface through a sibling
+subcommand the rule does not name. **5e's own comment claims "all three subcommands it names are
+genuinely its own", which is true and is not the same claim as coverage.**
+
+**Deliberately not decided here.** Before adding `pr edit` to 5e's predicate, ask whether **enumerating
+sibling subcommands converges** — the rejected option above says it does not — and note that 5e's
+argument is about a **capability**, which points at the tool grant rather than at a longer regex.
+Naming that as the open question is what a record can honestly do; choosing between them is the owner's.
+
+### The open question this section inherits
+
+This record's own 2026-08-02 amendment decides *mechanism where the act is irreversible, skills where
+the rule is a judgement*, and records an unresolved objection: **the rule is stated on reversibility
+while its evidence is about expressibility**, and the two come apart (`inventory-counts` gates an
+entirely reversible property and is one of the harness's highest-yield mechanisms). **This section is
+stated on expressibility throughout** — it is the axis on which floor-versus-hook actually divides. That
+is not an answer to the amendment's question; it is a second data point for it, on a different pair of
+layers. **Both are now in one document, which is the fold's most concrete gain here**: the question and
+its second data point were two files and a cross-citation, and a reader had to hold both open to see
+that they were the same question.
+
+### What this fold dropped
+
+**All of it is defect archaeology about states the floor passed through in one day, and none of it
+binds.** Named individually so a reader can go and find it in git rather than wonder whether it was
+lost:
+
+- **The whole perimeter table and its two amendments** — a seven-row before/overlay/after comparison of
+  `allow` entries, struck and re-struck twice as three commits in the same batch put five interpreter
+  wrappers in and took them all back out again. The **judgement** it argued survives above (the
+  perimeter is non-containment, deliberately); the **tense war** does not. Its own method note says the
+  overlay it measured is gitignored and truncated, so its middle column can no longer be re-derived.
+- **The shadowed-entry counts** (ten `gh` entries, four `git` entries) and their re-derivation, which
+  the section that publishes *record the derivation, not the count* had itself already marked stale.
+  **The derivation is kept; the numbers are not** — which is that rule applied to its own record.
+- **The `Bash(bash .scratch/*)` amendment in full.** The entry it prices was removed at #245, so it
+  prices a grant that no longer exists. **What survived it is the general half**, kept above: a path in
+  an allow entry is a string prefix, and the one-witness form of the reach argument.
+- **The 2026-08-04 `-C`-form illustration** and its 2026-08-12 correction — a removed illustration, not
+  a falsified claim, and its point ("for these the hook is already the only layer") is stated directly
+  above instead.
+- **The four-days-versus-five-days correction** on how long rule 5g's named risk stayed live, and the
+  `-S`-versus-`-G` instrument lesson under it. **Five days is carried; the archaeology of how four got
+  published is not** — the general form of that lesson is the *record the derivation* rule above.
+- **The re-derivation of `harness-lead`'s four-proxy classification.** Its conclusion — *the test above
+  is the thing to check against, not the number four* — is the derivation rule again, and the classified
+  rules are named where they matter.
+- **The record's own `Links` and evidence lists**, whose live members are folded into this document's
+  cross-references.
 
 ## The merge precondition is a floor, not an instruction — **`proposed`, not `accepted`** (absorbed 2026-08-20, record 0007)
 
@@ -917,7 +1318,7 @@ one place in this repository where the principle is mechanically enforced rather
   record that rule 5e's orphaned consequence is closed by
   [ADR-0006](./0006-verification-and-its-artifacts.md)'s decided relay, and the
   obligation a persona-keyed publication deny carries from now on · **the layering half of the second
-  2026-08-04 amendment is superseded by [ADR-0008](./0008-which-layer-carries-a-control.md)** — its
+  2026-08-04 amendment is superseded by [ADR-0004](./0004-controls-and-enforcement.md)** — its
   *"the hook, not the floor, stops them"* sentence because it was **false when written** (an empirical
   check that sampled one rule and generalised), and its *"recorded as a known property, not scheduled as
   a fix"* disposition because the owner has since decided the architecture · appended (2026-08-04) to
@@ -927,7 +1328,7 @@ one place in this repository where the principle is mechanically enforced rather
   `786437c`): the owner took the interpreter class out of `allow` once plain string concatenation
   (`$'r'"m -rf /x"`, no escapes) showed that a fourth patch to the unwrap regex buys a spelling and not
   the class. Non-containment stays accepted and `node`/`python3` stay granted; the measurement is in
-  [ADR-0008](./0008-which-layer-carries-a-control.md)'s second 2026-08-04 amendment.** · amended
+  [ADR-0004](./0004-controls-and-enforcement.md)'s second 2026-08-04 amendment.** · amended
   (2026-08-13) to record #62 — a retired principles skill's own prose restatement of this ADR's
   safe/boundary merge decision went stale independently and stated the opposite rule, closing the gap
   on `harness-engineering`'s consolidation.

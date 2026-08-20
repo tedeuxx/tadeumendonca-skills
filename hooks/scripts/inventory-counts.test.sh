@@ -651,16 +651,16 @@ else
       fi
     done
 
-    # 2 — python3 and node must BE in `allow`. ADR-0008 prices these as accepted non-containment, and
+    # 2 — python3 and node must BE in `allow`. ADR-0004 prices these as accepted non-containment, and
     #     `permission-guard.test.sh` asserts their silence as a PRICED gap rather than a hole. If they
     #     were removed, that section would be describing a floor that no longer exists — and an
     #     absence-only check would go green on it, which is a different floor than the one recorded.
     for interp in python3 node; do
       hit="$(printf '%s\n' "$allow_entries" | grep -E "^Bash\($interp([[:space:]]|:)" || true)"
       if [ -n "$hit" ]; then
-        ok "permission floor — '$interp' present in allow, as ADR-0008 prices it"
+        ok "permission floor — '$interp' present in allow, as ADR-0004 prices it"
       else
-        bad "permission floor — '$interp' is NO LONGER in allow; ADR-0008 and permission-guard.test.sh both describe it as a priced, accepted gap. Update those records or restore the entry — do not leave them describing a floor that is gone"
+        bad "permission floor — '$interp' is NO LONGER in allow; ADR-0004 and permission-guard.test.sh both describe it as a priced, accepted gap. Update those records or restore the entry — do not leave them describing a floor that is gone"
       fi
     done
 
@@ -736,8 +736,8 @@ else
     #
     #     ~~AND ONE NAMED EXCEPTION~~ — `Bash(bash .scratch/*)`, kept by the owner (option A,
     #     2026-08-07) and excused here by two `grep -qF` calls against **record 0008** by FILENAME.
-    #     The number is written BARE throughout this note, never prefixed and never as a path: 0008 is
-    #     absorbed later in #283, and the prefixed and path forms are the two the citation gate resolves
+    #     The number is written BARE throughout this note, never prefixed and never as a path: 0008 was
+    #     absorbed on 2026-08-20 (#283 slice S3), and the prefixed and path forms are the two the citation gate resolves
     #     against live records. Writing either here would re-create, inside the note explaining why the
     #     coupling was wrong, a citation that the fold has to move.
     #     **THE EXCEPTION AND ITS MACHINERY ARE DELETED, 2026-08-19 (#283 slice 1) — deleted, not
@@ -753,9 +753,12 @@ else
     #     exist is this suite's own failure mode, one layer up, and no count would ever have surfaced it
     #     — the arm passed, it just passed a sentence about a different floor.
     #
-    #     AND IT IS DELETED RATHER THAN REPOINTED because the coupling itself is the defect: #283 folds
-    #     record 0008 into the `controls-and-enforcement` capability document, and a gate tied to a
-    #     record BY FILENAME is exactly the coupling that fold breaks silently. (That capability was
+    #     AND IT IS DELETED RATHER THAN REPOINTED because the coupling itself is the defect: #283 folded
+    #     record 0008 into the `controls-and-enforcement` capability document on 2026-08-20 — and the
+    #     anchor's own FILENAME changed in the same slice, from `0004-autonomy-and-permission-model.md`
+    #     to `0004-controls-and-enforcement.md`. A gate tied to a
+    #     record BY FILENAME is exactly the coupling that fold breaks silently, and this slice moved
+    #     both ends of it at once, which is the strongest available evidence that deleting was right. (That capability was
     #     called `permissions` until 2026-08-19; the rename is why this sentence changed, and it is
     #     itself a small instance of the coupling being described.) The durable lesson, nowhere else:
     #     where a mechanism exists, tie to the mechanism by EXECUTING it, never by grepping for a
@@ -828,7 +831,8 @@ fi
 # scan set omitted `docs/`, and `docs/adr/` is the ONLY layer the defect was left in — the commit that
 # found it records that the hook header had already been re-tensed and "only the ADR layer was left
 # behind". Measured, same line, same head: `Bash(perl:*) is in allow` FIRES in `agents/` and passes
-# GREEN in `docs/adr/0008`. So the check covered every layer that had self-corrected and none of the
+# GREEN in `docs/adr/0008` (that record was absorbed into `0004-controls-and-enforcement.md` on
+# 2026-08-20; the measurement is dated and is left as it was taken). So the check covered every layer that had self-corrected and none of the
 # one that had drifted. `docs/` is now in the set below, and adding it cost no prose churn — the sweep
 # had already made the ADR layer honest, so the suite stayed green. A generic "files it does not scan"
 # is a reassurance; an enumerated scan set is a bound.
@@ -1191,7 +1195,7 @@ else
   # ── WHAT THIS DELIBERATELY DOES **NOT** ASSERT, so the green is not read as more ─────────────
   # It does not reach `commands/`, `docs/` or the hook scripts. Measured on the current head, requiring
   # every-peer THERE would fire on fifteen files that legitimately mention two or three personas —
-  # `skills/code-review/SKILL.md` naming the two gates, `docs/adr/0008` naming the two it is about.
+  # `skills/code-review/SKILL.md` naming the two gates, `docs/adr/0004` naming the two it is about.
   # Those are correct prose, and a check that reddens correct prose is the cry-wolf failure this file
   # already books once. The bound is written into assertion 2's own comment below; between the two,
   # `agents/` is covered by MEMBERSHIP and everything else by the weaker threshold, and neither is
@@ -2639,7 +2643,7 @@ fi
 # silence today, and the citation gate stays green because there is nothing left to dangle. This block
 # closes that case by keying on the NUMBER rather than on who cites it.
 #
-# THE TWO LAYERS, AND WHICH CONTROL EACH CAN HOLD (ADR-0008's question, answered for this rule):
+# THE TWO LAYERS, AND WHICH CONTROL EACH CAN HOLD (ADR-0004's question, answered for this rule):
 #   - THIS block asserts a row EXISTS for every retired number and that the row NAMES a destination.
 #   - The relative-link check above resolves that destination, because the row's link is a relative
 #     markdown link in a tracked `.md` like any other. It is deliberately NOT re-resolved here: one

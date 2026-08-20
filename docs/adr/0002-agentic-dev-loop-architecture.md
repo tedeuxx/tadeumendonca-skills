@@ -1141,7 +1141,7 @@ imaginative. Each was a mechanical fact somebody could have measured in seconds,
 - a repo's `settings.json` is **not loaded** in a session rooted elsewhere, so twelve denies were inert
   the moment they were committed.
 
-**ADR-0008's question is its standing mandate** — *which layer carries a control, and can that layer
+**ADR-0004's question is its standing mandate** — *which layer carries a control, and can that layer
 hold it?* That record was written because nobody owned the question. Someone does now.
 
 **The name is not decoration, and the suite is what decided it.** The first draft was `harness-lead`.

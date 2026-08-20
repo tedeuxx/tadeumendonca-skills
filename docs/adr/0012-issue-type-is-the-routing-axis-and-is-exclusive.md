@@ -195,7 +195,7 @@ a different decision than the routing-axis question this record makes.
   a lane that (per `README.md:181-182`) skips tier 3 entirely and reaches the owner directly. Making
   `loop` a real, exclusive, high-consequence lane raises the cost of that gap without closing it. **Left
   as an open question rather than a silently accepted cost**, because closing it is a *which-layer-can-
-  carry-this-control* question (ADR-0008), not a routing decision, and belongs in its own record or a
+  carry-this-control* question (ADR-0004), not a routing decision, and belongs in its own record or a
   `harness-lead` dispatch — not invented here to make this ADR read as more finished than it is.
 - **Corollary 2's migration is real work with no owner named here.** The 8 dual-labelled issues in
   `tadeumendonca-io` need a human or lead decision per issue; this record does not make those 8 decisions.
@@ -279,7 +279,7 @@ renamed for consistency rather than dropped.
   `dev-loop`/`quality-assurance` boundary-class drift this decision does not repair.
 - ADR-0002 (tenth amendment) — cited for *reconciliation cost is paid within a tier*, the driver behind
   naming rather than resolving S7.
-- ADR-0008 — cited for *which layer can carry a control*, the reason S3 is left an open question rather
+- ADR-0004 — cited for *which layer can carry a control*, the reason S3 is left an open question rather
   than resolved here.
 - **Evidence re-derived on this branch, not relayed:** `gh label list` (5 project labels, no `loop`);
   `gh issue list --state all --limit 30` (12 of 13 open issues carry `product`); `commands/autonomy-on.md:15`
