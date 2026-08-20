@@ -56,15 +56,33 @@ wide margin"*. Both halves of that failed:
   omitted `0012`, `0014` and `0019`, the three records *the same commit* moved into that capability. So
   it compared a **pre**-fold roster against a **post**-fold controls set, which is the defect class this
   Issue has been chasing throughout: **the base moved under the figure**, and the figure kept reading as
-  though it had not. Re-derived at this head, over the set that actually shipped:
+  though it had not. Re-derived over the set that actually shipped — and **pinned to a named commit**,
+  for a reason the next two lines pay for:
 
-      wc -c docs/adr/0004*.md docs/adr/0007*.md docs/adr/0008*.md docs/adr/0018*.md   # 152611 total
-      wc -c docs/adr/0002*.md docs/adr/0012*.md docs/adr/0013*.md docs/adr/0014*.md docs/adr/0015*.md docs/adr/0019*.md   # 199626 total
+      wc -c docs/adr/0004*.md docs/adr/0007*.md docs/adr/0008*.md docs/adr/0018*.md   # 153725 total
+      wc -c docs/adr/0002*.md docs/adr/0012*.md docs/adr/0013*.md docs/adr/0014*.md docs/adr/0015*.md docs/adr/0019*.md   # 199925 total
+      # both at 448c506. Neither set contains a file this slice edits (git diff --name-only 448c506
+      # -> 0006 and this README only), so a bare wc -c in the working tree returns the same totals.
+      # To re-read a single file immune to any working tree: git cat-file -s 448c506:<path>
 
-  **`roster-and-dev-loop` is 1.31× `controls-and-enforcement` and is the largest document this
-  reconciliation produces** — the opposite of what the struck sentence said. Note the controls figure
-  also did not reproduce its own published number (152,611, not 152,559, a 52-byte drift); only the
-  roster half was wrong by composition.
+  **`roster-and-dev-loop` is 1.30× `controls-and-enforcement` and is the largest document this
+  reconciliation produces** — the opposite of what the struck sentence said, and the conclusion is
+  unchanged by the correction below.
+
+  **These two figures were published wrong once, and the failure is the same one this bullet exists to
+  name — its third instance, committed by the correction itself.** They read 152,611 and 199,626 until
+  2026-08-20: measured at `main`, **before** this reconciliation's own edits to 0002, 0004 and 0007, and
+  then published inside the commit that made those edits. **The base moved under the figure again.**
+  Only the digits were wrong; the ratio moved 1.31× → 1.30× and the conclusion survived.
+
+  **The standing rule this earns, because S3 and S4 will meet it:** a `wc -c` figure taken over files a
+  slice is itself editing is stale the moment it is committed, whatever the author intends. Either pin
+  it to a named commit and say which — the form above — or take the measurement **last**, after the
+  slice's final edit. A live command with no ref beside it is not reproducible; it is only *currently*
+  true, which is indistinguishable from wrong the next time anyone runs it.
+
+  Note the original controls figure also did not reproduce its own then-published number (152,611, not
+  152,559, a 52-byte drift); only the roster half was wrong by composition.
 
   **What this changes and what it does not.** It does **not** reverse the six-name call — the taxonomy
   leak in the next bullet carries that on its own, and the size argument was always the weaker of the
@@ -87,7 +105,10 @@ Folded: 0012 and 0014 join 0013, 0015 and 0019 under `roster-and-dev-loop`, anch
 about **200 KB**:
 
     wc -c docs/adr/0002*.md docs/adr/0012*.md docs/adr/0013*.md docs/adr/0014*.md docs/adr/0015*.md docs/adr/0019*.md
-    # 199626 total    ← re-derived 2026-08-19; published as 199621 until then, off by 5
+    # 199925 total    ← at 448c506, the pinned base above. Published as 199621 until 2026-08-19
+    #                   (off by 5), then as 199626 until 2026-08-20 — that second figure was measured
+    #                   before this reconciliation's own edits to 0002, and is the same base-moved-under-
+    #                   the-figure defect the bullet above records.
 
 That is an **upper bound on the inputs, not a prediction of the document** — [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)'s
 disposition 4 makes the fold *lossy by instruction*, so what arrives is the decision as it currently
@@ -243,4 +264,4 @@ is no instrument for it.
 
 | # | what it decided | where the decision lives now |
 |---|---|---|
-| 0003 | The Merge Request Definition of Done — the pacted, objective ruler the gate reviews against; its safe/boundary classification of who may merge; the three pacted resolutions (significance beats in-pattern, coverage ≥ 85%, the approval hook); and the rule that adjacent debt is named in a review and never filed [0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md) — section *The Merge Request Definition of Done (absorbed 2026-08-19, record 0003)*. Absorbed under [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)'s fourth disposition on [#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283), slice S2 |
+| 0003 | The Merge Request Definition of Done — the pacted, objective ruler the gate reviews against; its safe/boundary classification of who may merge; the three pacted resolutions (significance beats in-pattern, coverage ≥ 85%, the approval hook); and the rule that adjacent debt is named in a review and never filed | [0006](./0006-a-verdict-owed-to-another-persona-is-an-artifact.md) — section *The Merge Request Definition of Done (absorbed 2026-08-19, record 0003)*. Absorbed under [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)'s fourth disposition on [#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283), slice S2 |

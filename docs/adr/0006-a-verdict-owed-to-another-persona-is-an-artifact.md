@@ -50,8 +50,11 @@ gate approved — and a relay is the one thing this loop already refuses to trus
 **And the standard was inverted.** The loop already held that the owner's ratification is verified from
 the PR itself and that *a relay is a notification, never the authority* — the rule this record then made
 mechanical, and which `/harness-engineering` states in its inner-loop section. (This sentence attributed
-that rule to a *"2026-07-29 amendment"* of record 0003 until 2026-08-19; no such amendment ever existed
-— see *A citation this fold could not honour* below.) A gatekeeper's veto was held to a weaker standard
+that rule to a *"2026-07-29 amendment"* of record 0003 until 2026-08-20. The amendment is real; the
+number was a **cross-repo collision** — it belongs to the consuming repo's third record,
+[trunk-based delivery, single environment](https://github.com/tedeuxx/tadeumendonca-io/blob/main/docs/adr/0003-trunk-based-single-environment.md),
+not to this library's 0003 — see *A citation that resolved to another library* below.) A gatekeeper's
+veto was held to a weaker standard
 than the owner's ratification — and
 the veto fires on **every** MR while the ratification fires only on the boundary class.
 
@@ -422,8 +425,10 @@ transport for findings the gate must then apply. Two things stay first-party onl
   current head, verified with `gh pr view`. A relay of it remains exactly what this record was written
   to refuse.
 - **The owner's ratification.** *A relay is a notification, never the authority* stands verbatim. (This
-  bullet cited a *"2026-07-29 amendment"* of record 0003 until 2026-08-19; the rule is real, the
-  attribution was not — see *A citation this fold could not honour* below.)
+  bullet cited a *"2026-07-29 amendment"* of record 0003 until 2026-08-20. Both the rule and the
+  amendment are real; the **number** was the defect — it names the consuming repo's
+  [trunk-based delivery, single environment](https://github.com/tedeuxx/tadeumendonca-io/blob/main/docs/adr/0003-trunk-based-single-environment.md),
+  not this library's 0003 — see *A citation that resolved to another library* below.)
 
 The discriminator is **authority versus record**. A verdict that *permits an act* must be first-party,
 because the party that benefits from the permission must not be the party that reports it. A verdict
@@ -714,26 +719,57 @@ modes — is `/definition-of-done` (#265). This section records **this loop's ow
 safe/boundary classification: one concrete instance of that concept, never a restatement of it. The full
 checklist is `docs/proposals/agentic-dev-loop.md` §6.
 
-### A citation this fold could not honour, stated rather than repaired quietly
+### A citation that resolved to another library, stated rather than repaired quietly
 
-**This record cited a "2026-07-29 amendment" of record 0003 four times, and no such amendment ever
-existed.** The claim hung on it — that the owner's ratification is verified from the PR itself, and that
-*a relay is a notification, never the authority* — is live, and it is **this** record's own decision,
-restated in `/harness-engineering`'s inner-loop section. Only the attribution was false: record 0003
-carried exactly one amendment, dated 2026-07-30, about adjacent debt.
+**This record cited a "2026-07-29 amendment" of record 0003 four times. The amendment exists — in the
+consuming repo, not in this one.** It is the second amendment of `tadeumendonca-io`'s third record,
+[trunk-based delivery, single environment](https://github.com/tedeuxx/tadeumendonca-io/blob/main/docs/adr/0003-trunk-based-single-environment.md),
+whose §1 carries verbatim the rule the four sites hung on it: *"The relay is a notification that a
+comment exists; it is never the authority."* **The defect was the number, not the referent** — two
+different records under one token, which is the same collision `0007` records for the `authorAssociation`
+citation in this same fold, and it is named there in the form this section now matches. This library's
+0003, *The Merge Request Definition of Done*, carried exactly one amendment, dated 2026-07-30, about
+adjacent debt — so the token pointed at a real record that had never held the rule.
 
+**The record published a falsifier for this, and the falsifier was scoped to the wrong universe.** It
+was the first command below, whose pathspec confines it to *this* repository: it answers *"is this
+amendment here?"* and was read as answering *"does this amendment exist?"* — a real command attached to
+a question it does not answer. Both halves are published now, because the pair is the finding:
+
+    # this library — the amendment is genuinely not here, and the scan is not vacuous
     git log --all --oneline -S'2026-07-29' -- 'docs/adr/0003-*'   # no commit, ever
-    git log --all --oneline               -- 'docs/adr/0003-*'   # 3 commits, so the scan is not vacuous
+    git log --all --oneline               -- 'docs/adr/0003-*'   # 3 commits
 
-The pathspec is a **glob** rather than the record's full filename, deliberately: the file is gone at
-head, and spelling it out would be a repo-root-relative citation of a deleted record — which the
+    # the consuming repo — where it actually is
+    grep -n "Amendment (2026-07-29)" ../tadeumendonca-io/docs/adr/0003-trunk-based-single-environment.md
+    # 48:## Amendment (2026-07-29) — how a ratification is proven, and what no longer needs one
+
+The local pathspec is a **glob** rather than the record's full filename, deliberately: the file is gone
+at head, and spelling it out would be a repo-root-relative citation of a deleted record — which the
 citation gate catches, correctly, and which is the same example trap in the path form that the row rule
 already names in the prose form.
 
-The four sites now name the rule rather than a date that never existed. This is the failure the citation
-gate names in its own header and cannot catch — *the prose form is checked for existence, not for aim* —
-and it surfaced only because the record had to be read end to end in order to fold it. It is also the
-reason the aim of a re-pointed citation is a reviewer's read in this batch and not a green.
+**The rule's ownership, corrected with the number.** The claim the four sites carried is live, and this
+record made it **mechanical** — but it did not originate it. The consuming repo's amendment is dated
+2026-07-29 and this record 2026-08-02, which is what this record's own *Context* means by *"The loop
+already held that…"*. A statement that the rule *"is this record's own decision"* stood here until
+2026-08-20 and was wrong in the same direction as the number it was defending.
+
+The four sites now name the rule and, where they name its source, name the consuming repo's record **by
+title**, never by prefixed number — the number is the thing that collided. This is the failure the
+citation gate names in its own header and cannot catch — *the prose form is checked for existence, not
+for aim* — with a sharper edge than the header describes: an unresolvable token can be **wrong in two
+opposite directions**, dangling (nothing behind it) or colliding (the wrong thing behind it), and a
+repair that assumes the first produces a confident falsehood where the second was true. It surfaced only
+because the record had to be read end to end in order to fold it, and then only because a reviewer ran
+the falsifier against the other repo. It is the reason the aim of a re-pointed citation is a reviewer's
+read in this batch and not a green.
+
+**The PR body and the commit message of the fold that introduced this section state that no such
+amendment ever existed.** The PR body has been corrected; **the commit message cannot be** — it is
+immutable under this repo's no-squash, no-rewrite convention, and rewriting a pushed history to hide a
+falsified claim would cost more than the claim does. Read `refactor(adr): fold 0003 into 0006` against
+this section, which supersedes it.
 
 ### What this fold dropped
 
