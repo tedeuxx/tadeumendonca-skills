@@ -293,10 +293,14 @@ stylistic: the same gate's prose arm asserts every `ADR-nnnn` token in a tracked
 record, and it does not except this table. A prefixed row would name a dead record in exactly the form a
 reader — or an agent — would follow.
 
-**What the gate cannot check, so that this table's green is not over-read:** it never opens the
-destination. A row pointing at a document that never received the decision passes exactly like one
-pointing at a document that did. Whether the fold was **lossless** is a reviewer's judgement and there
-is no instrument for it.
+**What the gate cannot check, so that this table's green is not over-read — and it is a SMALLER
+residual than this paragraph claimed until 2026-08-20:** the destination's **existence** *is* gated.
+Point a row's destination at a file that does not exist and the citation-resolution arm reddens
+(measured: `67 passed, 1 failed`). What is genuinely unchecked is the destination's **content**: a row
+pointing at a document that never received the decision passes exactly like one pointing at a document
+that did. Whether the fold was **lossless** is a reviewer's judgement and there is no instrument for it.
+~~it never opens the destination~~ — struck because it **understated** the gate, which is the direction
+that matters: a residual published wider than it is teaches a reader to distrust a check that works.
 
 | # | what it decided | where the decision lives now |
 |---|---|---|

@@ -2624,6 +2624,74 @@ else
       FOREIGN_ADR_NUMBERS above and say which repository in the comment."
 fi
 
+# ── 4c · NO RECORD LINKS TO ITSELF (#283 slice S3, blocking finding B1) ──
+#
+# THE CLASS THIS EXISTS FOR, WHICH IS NOT THE FIVE LINES THAT PRODUCED IT. A fold turns every
+# cross-record citation of the absorbed record into an INTRA-record one, and the mechanical
+# `ADR-<old>` → `ADR-<new>` substitution that performs the fold cannot know it. Everywhere outside the
+# absorbing document the substitution is right; inside it, "cite the other record" had to become "cite
+# the section below", and a substitution has no way to tell those apart. #283 has three more folds to
+# run (S4, S5, S6) and S4 alone absorbs five records into 0002, which already cites every one of them.
+#
+# WHY 4a/4b ARE STRUCTURALLY BLIND TO IT. Both ask *does this identifier name a LIVE record*. After a
+# fold it does — the target is the absorbing document, which is exactly the file the citation sits in.
+# The sweep is not weak here, it is answering a different question. That is the boundary of what a
+# resolution check can be, and it is why this arm asks a relational question instead: not "does the
+# target exist" but "is the target the document making the citation".
+#
+# WHY THE LINK FORM AND NOT THE BARE PROSE TOKEN — MEASURED, and the measurement is the whole design.
+# Two candidate spellings were run over the library at head:
+#
+#   narrow  awk '… index($0, "[ADR-" n "](./")'   →  0 hits at head, 5 hits at 6259e53 (exactly B1)
+#   wide    awk '… index($0, "ADR-" n)'           →  13 hits at head, across 5 records, ALL legitimate
+#
+# The wide form matches a record naming its own number in prose — "every `ADR-0004` citation is
+# unaffected" (0004:11), "same correction as ADR-0004's third amendment" (0004:414) — which is normal,
+# correct writing. It would arrive RED on a clean tree, and this file's own floor is that a check that
+# arrives red is a check that gets silenced. The narrow form is a LINK: a markdown reference whose
+# destination is the file it is written in, which is never something a writer means. Zero false
+# positives over the whole library, and it caught every one of B1's five.
+#
+# WHAT IT DOES NOT CATCH, PRICED RATHER THAN CLAIMED. B1's sharp half was that two of the five named a
+# section title that is AMBIGUOUS inside the merged document — both records carried an "Amendment
+# (2026-08-04, second)". That half is NOT gateable and this arm does not pretend to it. Duplicate
+# headings inside one record are the normal state of a folded document, not a defect: measured at head,
+# 10 duplicated headings across 0002 and 0004, and every one is structurally entailed (each absorbed
+# section carries its own "What this fold dropped", "Consequences still being paid", "The rejected
+# options that are still live"). An arm forbidding them would be red and WRONG. And the pointer itself
+# is a heading quoted in prose — there is no machine-readable relation between the sentence and the
+# section for a check to verify. What this arm buys against that residual is indirect and real: it
+# forces every one of those pointers to be AUTHORED rather than substituted, and the ambiguity is
+# visible to whoever writes the sentence.
+selfcite_problems=""
+selfcite_checked=0
+for selfcite_file in "$CITATION_ADR_DIR"/[0-9][0-9][0-9][0-9]-*.md; do
+  [ -r "$selfcite_file" ] || continue
+  selfcite_base="${selfcite_file##*/}"
+  selfcite_n="${selfcite_base%%-*}"
+  selfcite_checked=$((selfcite_checked + 1))
+  selfcite_hits="$(grep -n -F "[ADR-$selfcite_n](./" "$selfcite_file" | cut -d: -f1 | tr '\n' ' ' || true)"
+  [ -z "${selfcite_hits//[[:space:]]/}" ] && continue
+  selfcite_problems="$selfcite_problems
+    docs/adr/$selfcite_base — links to ITSELF as '[ADR-$selfcite_n](./…)' at line(s): $selfcite_hits"
+done
+
+if [ "$selfcite_checked" -eq 0 ]; then
+  bad "citation resolution — the self-citation scan found NO record files in docs/adr/, and there were
+      16 when this was written. The enumeration broke and this check is vacuous."
+elif [ -n "$selfcite_problems" ]; then
+  bad "citation resolution — a record cites itself by number:$selfcite_problems
+      This is what a fold's mechanical 'ADR-<old>' → 'ADR-<new>' substitution produces inside the
+      ABSORBING document, and no resolution check above can see it: the target is live, it is simply
+      the file doing the citing. Two of these are worse than circular — where both records carried a
+      section with the same title, the sentence now names a real and DIFFERENT section of its own file
+      and sends a reader several hundred lines from the text it promises. Replace each with an
+      intra-document pointer that quotes the absorbed section's heading verbatim ('this document's
+      *<heading>* section'), never a link back to this file and never a bare amendment date."
+else
+  ok "citation resolution — no record links to itself ($selfcite_checked records scanned for '[ADR-nnnn](./…)' naming their own number)"
+fi
+
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
 # EVERY NUMBER THIS LIBRARY HAS ISSUED IS EITHER A LIVE RECORD OR AN ACCOUNTED-FOR ROW (#283, slice 2).
 #
@@ -2751,13 +2819,51 @@ while [ "$adr_n" -le "$adr_ceiling_scanned" ]; do
   # the day the disposition record moves, which is precisely the class of coupling #283 slice 1
   # deleted from this file.
   #
-  # WHAT IT STILL CANNOT DO, unchanged: it does not open the destination. A row pointing at a document
-  # that never received the decision passes exactly like one pointing at a document that did.
+  # WHAT IT STILL CANNOT DO, STATED SMALLER THAN IT WAS (#283 slice S3, advisory A5). The residual was
+  # published here, in the index and in the PR body as "nothing opens the destination", and that
+  # UNDERSTATES the gate: point a row's destination at a file that does not exist and the separate
+  # citation-resolution arm above reddens (measured: `67 passed, 1 failed`). The destination's
+  # EXISTENCE is gated. What is genuinely unchecked is its CONTENT — a row pointing at a document that
+  # never received the decision passes exactly like one pointing at a document that did.
+  #
+  # AND ONE MORE, PRICED RATHER THAN CLOSED (advisory A1). The destination is separated from the row's
+  # own authority citation BY POSITION, and position is authored: strip the destination and place the
+  # `[ADR-0020](./0020-…)` authority link FIRST in the same column, and this check passes on a row with
+  # no destination. Closing it needs the check to know WHICH link is the destination, and every cheap
+  # discriminator available is a hardcoded record number — the coupling #283 slice 1 deleted from this
+  # file, reintroduced to close a case reachable only by writing the column backwards against the house
+  # form. Priced, not closed: the exposure is one row form nobody writes, and the `ok()` line below now
+  # states what the arm checks rather than what it wishes it checked.
+  # THE MULTIPLICITY GUARD IS FIRST, AND IT IS FIRST BECAUSE THIS ARM FAILED OPEN WITHOUT IT (#283
+  # slice S3, blocking finding B2). `grep` returns EVERY matching row, so two rows for one number made
+  # `adr_row_fields` the two-line string "5\n5"; `[ "5\n5" -ne 5 ]` is not a comparison, it is a shell
+  # ERROR — `[` exits 2 with 'integer expression expected' on stderr, the `elif` chain evaluates as
+  # not-taken, no problem is recorded, and the arm printed PASS. `68 passed, 0 failed`, exit 0, with the
+  # only evidence on a stream nothing reads. An arm that falls through to PASS on a shell error fails
+  # OPEN, and this file's whole subject is that a green proving nothing is worse than a red.
+  #
+  # WHY A COUNT GUARD AND NOT `set -e` / `set -o pipefail`. `set -e` would abort the run at the first
+  # non-zero anywhere, and this suite is built to keep going and TALLY — it would convert one malformed
+  # row into "the suite died", losing every verdict after it. The defect is not that errors are
+  # tolerated; it is that a value with unbounded arity was fed to a scalar test. Bound the arity at the
+  # source, next to the `grep` that produces it, where the reason is visible.
+  #
+  # WHY IT IS ALSO THE RIGHT ASSERTION ON ITS OWN TERMS, not merely a crash guard: a retired number has
+  # exactly ONE disposition. Two rows can name two different destinations, and nothing downstream would
+  # choose between them. Note the capability arm below already does exactly this (`cap_decls -gt 1`) —
+  # the pattern was in this same file and this arm did not apply it.
+  adr_row_count="$(printf '%s\n' "$adr_history_rows" | grep -cE "^\| *$adr_padded *\|" || true)"
   adr_row_fields="$(printf '%s' "$adr_row" | awk -F'|' '{print NF}')"
   adr_row_dest="$(printf '%s' "$adr_row" | awk -F'|' 'NF>=4 {print $4}')"
   if [ -z "$adr_row" ]; then
     adr_gap_problems="$adr_gap_problems
     $adr_padded — no record file, and no '| $adr_padded |' row under '## History' in docs/adr/README.md"
+  elif [ "${adr_row_count:-0}" -ne 1 ]; then
+    adr_gap_problems="$adr_gap_problems
+    $adr_padded — has $adr_row_count History rows under '## History' in docs/adr/README.md, not 1. A
+    retired number has exactly ONE disposition, so it gets exactly one row; two rows can name two
+    different destinations and nothing here could choose between them. Delete the duplicate — do not
+    reconcile them into a row that says both"
   elif [ "${adr_row_fields:-0}" -ne 5 ]; then
     adr_gap_problems="$adr_gap_problems
     $adr_padded — has a History row with $adr_row_fields '|'-separated fields, not the 5 a three-column
@@ -2814,7 +2920,7 @@ elif [ -n "$adr_gap_problems" ]; then
       link to where the decision now lives — in the SAME commit as the deletion. A deletion with no row
       is not a disposition; it is a gap, and a gap is indistinguishable from a mistake."
 else
-  ok "record numbering — $adr_live_count live records, ceiling $adr_ceiling_scanned, $adr_gaps_checked retired number(s), each carrying a History row that names a destination"
+  ok "record numbering — $adr_live_count live records, ceiling $adr_ceiling_scanned, $adr_gaps_checked retired number(s), each carrying exactly one History row whose destination column begins with a relative link"
 fi
 
 # ── the declared ceiling is current ──

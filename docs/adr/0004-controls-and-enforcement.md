@@ -439,8 +439,10 @@ building that case.*~~
 > for the decision it accompanied and would now steer a reader away from the decision the owner actually
 > holds. **Non-containment is still accepted** (`node -e`, `python3 -c` remain granted and
 > `permission-guard.sh` deliberately does not chase them) — so what was narrowed is which spellings are
-> free, not what the perimeter contains. The architecture is [ADR-0004](./0004-controls-and-enforcement.md);
-> its second 2026-08-04 amendment carries the measurement.
+> free, not what the perimeter contains. The architecture is this document's *Which layer carries a
+> control (absorbed 2026-08-20, record 0008)* section; the measurement is the `jq -r
+> '.permissions.allow[]' .claude/settings.json` check in the *Superseded 2026-08-04, later the same day*
+> block at the head of this amendment.
 
 **What raised it.** The batch that committed this floor ratified the principle *a control expressed as
 absence is not a control* — and in the same diff allowlisted `Bash(bash:*)` / `Bash(sh:*)` alongside the
@@ -512,9 +514,9 @@ is `bash`.~~
 > covering the rules it tested.** The claim's confident phrasing is what carried it past two
 > gatekeepers and into a record the owner ratified.
 >
-> The layering conclusion this passage was reaching for is now decided rather than observed — see
-> [ADR-0004](./0004-controls-and-enforcement.md), which makes the hook the authoritative layer by
-> decision and books the fail-open cost the section below describes.
+> The layering conclusion this passage was reaching for is now decided rather than observed — see this
+> document's *Which layer carries a control (absorbed 2026-08-20, record 0008)* section, which makes the
+> hook the authoritative layer by decision and books the fail-open cost the section below describes.
 
 ### The load-bearing sentence: the layering is inverted from what the hook claims
 
@@ -540,8 +542,9 @@ correcting the hook's header comment is a `hooks/` change and not this record's 
 > the owner decided the architecture rather than letting a third instance be recorded as a fourth
 > property. **The hook is the authoritative layer; the settings `deny` list is the floor for the direct
 > form; the authoritative layer fails open and that cost is accepted in the owner's name.** The record
-> is [ADR-0004](./0004-controls-and-enforcement.md), which also carries the two rejected options
-> and the standing rule for the next control. This section stands as the observation that led to it.
+> is this document's *Which layer carries a control (absorbed 2026-08-20, record 0008)* section, which
+> also carries the two rejected options and the standing rule for the next control. This section stands
+> as the observation that led to it.
 
 ### Why decision 1's principle survives this
 
@@ -1327,7 +1330,8 @@ one place in this repository where the principle is mechanically enforced rather
   record that rule 5e's orphaned consequence is closed by
   [ADR-0006](./0006-verification-and-its-artifacts.md)'s decided relay, and the
   obligation a persona-keyed publication deny carries from now on · **the layering half of the second
-  2026-08-04 amendment is superseded by [ADR-0004](./0004-controls-and-enforcement.md)** — its
+  2026-08-04 amendment is superseded by this document's *Which layer carries a control (absorbed
+  2026-08-20, record 0008)* section** — its
   *"the hook, not the floor, stops them"* sentence because it was **false when written** (an empirical
   check that sampled one rule and generalised), and its *"recorded as a known property, not scheduled as
   a fix"* disposition because the owner has since decided the architecture · appended (2026-08-04) to
@@ -1336,8 +1340,9 @@ one place in this repository where the principle is mechanically enforced rather
   `Bash(sh:*)` stay in the committed floor"* — is superseded in place later the same day (`14d7b43`,
   `786437c`): the owner took the interpreter class out of `allow` once plain string concatenation
   (`$'r'"m -rf /x"`, no escapes) showed that a fourth patch to the unwrap regex buys a spelling and not
-  the class. Non-containment stays accepted and `node`/`python3` stay granted; the measurement is in
-  [ADR-0004](./0004-controls-and-enforcement.md)'s second 2026-08-04 amendment.** · amended
+  the class. Non-containment stays accepted and `node`/`python3` stay granted; the measurement is the
+  `jq -r '.permissions.allow[]' .claude/settings.json` check in the *Superseded 2026-08-04, later the
+  same day* block at the head of that same amendment.** · amended
   (2026-08-13) to record #62 — a retired principles skill's own prose restatement of this ADR's
   safe/boundary merge decision went stale independently and stated the opposite rule, closing the gap
   on `harness-engineering`'s consolidation.
