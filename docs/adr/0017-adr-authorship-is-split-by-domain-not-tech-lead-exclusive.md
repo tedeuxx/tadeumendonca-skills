@@ -12,7 +12,7 @@
 
 `agents/tech-lead.md` stated `tech-lead` as the sole ADR author for both libraries — product/system
 architecture and the plugin's own methodology — regardless of which persona actually held the decision
-being recorded. `docs/adr/README.md`'s own ADR-0012 row already named the cost this caused, unprompted:
+being recorded. `docs/adr/README.md`'s own row for record 0012 already named the cost this caused, unprompted:
 *"the `README.md` diagram correction owed (`loop` needs to route to both `harness-lead` and `tech-lead`,
 not the single edge drawn today, since `tech-lead` is the sole ADR author and `loop` issues are the ones
 most likely to produce one)"*. Routing followed authorship, not stake — a `loop`-typed decision pulled
@@ -27,10 +27,12 @@ drift from that principle, not an application of it.
 
 - **Authorship should follow who holds the decision, not default to one persona regardless of domain.**
 - **Mechanically, nothing blocks this.** `agents/harness-lead.md`'s tool grant (`Read, Grep, Glob, Bash,
-  Write, Edit`) is already unscoped and identical in shape to `tech-lead`'s, from ADR-0015 — `docs/adr/**`
+  Write, Edit`) is already unscoped and identical in shape to `tech-lead`'s, from record 0015 — now
+  [ADR-0002](./0002-roster-and-dev-loop.md)'s *`harness-lead` implements the harness it reviews
+  (absorbed 2026-08-20, record 0015)* section. `docs/adr/**`
   is already reachable. What was missing was brief language, not permission.
 - **A decision that straddles both domains needs a resolution that doesn't require a fight each time.**
-  ADR-0015's own header already models the shape: `Deciders: the owner; written by tech-lead;
+  Record 0015's own header already modelled the shape: `Deciders: the owner; written by tech-lead;
   pre-implementation stress test by harness-lead` — joint involvement, one named author, decided per
   case.
 
@@ -63,7 +65,7 @@ this repo's own rule that a decision and the record of it land together.
 
 **Good**
 - `loop`-typed intake no longer pulls `tech-lead` in by default — a real fix to the routing cost
-  ADR-0012's own row already named, not just a corrected diagram.
+  record 0012's own row already named, not just a corrected diagram.
 - `harness-lead` gains the `adr` skill in its preload (a narrow, deliberate second exception to its
   otherwise-empty `skills:` list, alongside `harness-engineering`) — it is a format/process standard, not
   a description of `harness-lead`'s own machinery, so it does not reopen the staleness concern that keeps
@@ -74,8 +76,8 @@ this repo's own rule that a decision and the record of it land together.
   This is named explicitly rather than solved, per #223's own scope — inventing a rule for a case that
   hasn't happened yet risks getting it wrong in the abstract.
 - **Role-stacking compounds further for `harness-lead`.** It already stacks proposer/reviewer (ADR-0004)
-  and implementer (ADR-0015) on harness changes it reviews; authoring the justifying ADR for its own
-  harness change adds a third role on the same object. Accepted, same shape as ADR-0015's own accepted
+  and implementer (record 0015) on harness changes it reviews; authoring the justifying ADR for its own
+  harness change adds a third role on the same object. Accepted, same shape as that record's own accepted
   cost, not newly introduced by this record — named here so it isn't silently inherited.
 - **Not verified**: whether any `tadeumendonca-io` product-library ADR was ever authored by anyone but
   `tech-lead` — outside this record's read scope (a different repo); a clean precedent there would
@@ -94,9 +96,11 @@ exercises the authority it is granting, say so explicitly rather than let it pas
 ## Links
 
 - [#223](https://github.com/tedeuxx/tadeumendonca-skills/issues/223) — the Issue this record closes.
-- [ADR-0015](./0015-harness-lead-implements-the-harness-it-reviews.md) — the `Deciders`-line co-citation
-  shape this record reuses for straddling decisions.
-- [ADR-0012](./0012-issue-type-is-the-routing-axis-and-is-exclusive.md) — the record whose own routing
-  row named the authorship-coupling cost this decision corrects.
+- [ADR-0002](./0002-roster-and-dev-loop.md) — the capability document that absorbed records 0012 and
+  0015 on 2026-08-20. Its *`harness-lead` implements the harness it reviews (absorbed 2026-08-20,
+  record 0015)* section is the `Deciders`-line co-citation shape this record reuses for straddling
+  decisions; its *Issue type is the routing axis, and it is exclusive (absorbed 2026-08-20, record
+  0012)* section is the routing decision whose own index row named the authorship-coupling cost this
+  decision corrects.
 - `agents/tech-lead.md`, `agents/harness-lead.md`, `skills/workflow/adr/SKILL.md` — updated in the same
   slice as this record.

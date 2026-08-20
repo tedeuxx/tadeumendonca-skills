@@ -85,7 +85,7 @@ The whole assessment collapses into one question, asked once per rule the change
 > and judges"*, the rule has no state. It will be applied inconsistently, and — worse — inconsistently
 > *and silently*, because there is nothing to audit.
 
-This rule was itself earned by a failure of exactly this shape ([ADR-0002](../../docs/adr/0002-agentic-dev-loop-architecture.md)
+This rule was itself earned by a failure of exactly this shape ([ADR-0002](../../docs/adr/0002-roster-and-dev-loop.md)
 amendment #8): an intake chain shipped with nothing in the tracker able to say whether a description
 had been closed, one day after being written. **Keep the remedy to one bit.** Do not add a state that
 duplicates something already observable — an open PR already says "in progress." Prefer the smallest
@@ -105,7 +105,7 @@ explicitly rather than leaving the axis unexamined.
 - **Proposing a change to the MACHINERY** — dispatch `harness-lead` before implementing it. Its
   standing question is [ADR-0004](../../docs/adr/0004-controls-and-enforcement.md)'s — *which
   layer can actually carry this control, and can that layer hold it?* Since
-  [ADR-0015](../../docs/adr/0015-harness-lead-implements-the-harness-it-reviews.md) it may also
+  [ADR-0002](../../docs/adr/0002-roster-and-dev-loop.md) it may also
   implement the harness changes it stress-tests (never merging, never gating an MR of its own — rule
   7b's catch-all and rule 5d's catch-all are unchanged by that ADR).
 
@@ -152,10 +152,11 @@ this is the canonical statement, and both briefs point here rather than restate 
 **`harness-lead` is not a link in that chain, deliberately.** It shares the leads' tier and takes no
 part in closing a story's description — its object is the machinery this loop runs on, not the
 product the loop builds. It is dispatched on a **proposal about the loop itself**, before anything is
-built, and per ADR-0015 that proposal now enters the tracker as a `loop`-typed Issue — filed by the
+built, and per ADR-0002 that proposal now enters the tracker as a `loop`-typed Issue — filed by the
 orchestrator on its naming (`harness-lead` itself remains denied `gh issue create`). `loop`-typed
-`ready` is an **owner-only** label transition (ADR-0015 Corollary 4), never applied by any dispatch —
-see ADR-0015 for the corollaries in full (durable verdict marker, the harness-diff criterion, the
+`ready` is an **owner-only** label transition (ADR-0002, record 0015's Corollary 4), never applied by any
+dispatch — see that record's section in full for the six corollaries (durable verdict marker, the
+harness-diff criterion, the
 proposal/build dispatch separation).
 
 *Where the two chains meet.* A change to *how work is decided* — this skill, the states table, an
@@ -169,11 +170,11 @@ owner works that decision out with; it does not make it.
 | → **filed** | all | the owner, alone | the Issue exists |
 | filed → **ready** | `product` | both leads, closing the description together | **`ready` label** |
 | filed → **ready** | `content` | `product-lead`, alone | **`ready` label** |
-| filed → **ready** | `loop` | the owner, alone — not the leads (ADR-0015 Corollary 4) | **`ready` label** |
+| filed → **ready** | `loop` | the owner, alone — not the leads (ADR-0002, record 0015's Corollary 4) | **`ready` label** |
 | ready → **in progress** | `product` · `content` | `developer` | an open PR |
-| ready → **in progress** | `loop` | `harness-lead` (ADR-0015 Corollary 1) | an open PR |
+| ready → **in progress** | `loop` | `harness-lead` (ADR-0002, record 0015's Corollary 1) | an open PR |
 | in progress → **reviewed** | `product` · `content` | `quality-assurance`, against the full two-lens DoD | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
-| in progress → **reviewed** | `loop` | `quality-assurance`, checking for a `harness-lead` verdict marker rather than the full two-lens DoD (ADR-0015 Corollary 2) | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
+| in progress → **reviewed** | `loop` | `quality-assurance`, checking for a `harness-lead` verdict marker rather than the full two-lens DoD (ADR-0002, record 0015's Corollary 2) | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
 | reviewed → **closed** | all | `quality-assurance` (safe) · the owner (boundary) | the merge, and for boundary the owner's ratifying comment |
 | **any → blocked → back** | all | anyone, on discovering it waits on the owner or on something outside the loop | **`blocked` label** |
 
@@ -184,7 +185,7 @@ wherever it was.
 `reviewed` row's artifact is real — the gatekeeper posts a marker comment carrying the head SHA it
 read, so a verdict on a moved head fails loudly instead of reading as approval. Until 2026-08-04 that
 verdict was checked by a second gatekeeper (`security`) before merge; `security` was absorbed into
-`quality-assurance` ([ADR-0002](../../docs/adr/0002-agentic-dev-loop-architecture.md) amendment
+`quality-assurance` ([ADR-0002](../../docs/adr/0002-roster-and-dev-loop.md) amendment
 #10 — the rationale for that merge lives there, not here), so the posting rule is now
 **self-enforced**: nothing verifies it but the persona itself.
 
@@ -204,7 +205,7 @@ label is auditable and attributable, not proven.
 | `reader-facing` | the diff will change words or images a reader sees | the owner or the leads | which lens the gate dispatches — **a signal, never a gate** |
 
 `product` / `content` / `loop` are exclusive per
-[ADR-0012](../../docs/adr/0012-issue-type-is-the-routing-axis-and-is-exclusive.md), which is the
+[ADR-0002](../../docs/adr/0002-roster-and-dev-loop.md), which is the
 citation for *why* — routing, not a re-argument here. **The test a label has to pass: something must
 QUERY it.** A label nobody reads is decoration that ages, which is why the retired vocabulary
 (`type:*`, `phase:*`, `priority:*`, `semver:*`, `status:blocked`) stays retired — each failed that
@@ -487,7 +488,7 @@ reverse this by the same route: an explicit owner decision, recorded the same wa
 
 **Named residual: the policy above and the mechanism disagree.** `hooks/scripts/wip-guard.sh` still
 denies a second PR only on file **overlap**, not on a raw count — the mechanism
-[ADR-0002](../../docs/adr/0002-agentic-dev-loop-architecture.md)'s twelfth amendment (2026-08-13)
+[ADR-0002](../../docs/adr/0002-roster-and-dev-loop.md)'s twelfth amendment (2026-08-13)
 describes, unchanged by this correction. So today the hook permits a second, disjoint PR that this
 written policy now forbids. Follow the written policy regardless of what the hook allows; closing the
 gap is a `wip-guard.sh` change, not a docs one, and is not this skill's job to make.

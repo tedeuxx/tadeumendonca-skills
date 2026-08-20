@@ -40,7 +40,7 @@ body:
     id: parent
     attributes:
       label: "Parent (if this is a task, not a story)"
-      description: "Parent: #N — a task is an Issue child, per ADR-0014. Leave blank for a story-level Issue."
+      description: "Parent: #N — a task is an Issue child, per ADR-0002. Leave blank for a story-level Issue."
       placeholder: "#N"
     validations:
       required: false

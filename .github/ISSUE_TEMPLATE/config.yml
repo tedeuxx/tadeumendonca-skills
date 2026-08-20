@@ -2,4 +2,4 @@ blank_issues_enabled: false
 contact_links:
   - name: The intake process this mirrors
     url: https://github.com/tedeuxx/tadeumendonca-skills/blob/main/commands/new-issue.md
-    about: Read this before filing directly — the three types are exclusive routing labels (ADR-0012), not independently optional.
+    about: Read this before filing directly — the three types are exclusive routing labels (ADR-0002), not independently optional.

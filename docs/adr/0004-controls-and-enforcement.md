@@ -23,7 +23,7 @@ is enforced or merely instructed* is the absorbed 0007 section — **the one par
 - **Status:** accepted
 - **Date:** 2026-07-22
 - **Deciders:** the owner
-- **Driven by:** [ADR-0002](./0002-agentic-dev-loop-architecture.md), and the Merge Request Definition of
+- **Driven by:** [ADR-0002](./0002-roster-and-dev-loop.md), and the Merge Request Definition of
   Done — record 0003 until 2026-08-19, now a section of
   [ADR-0006](./0006-verification-and-its-artifacts.md)
 
@@ -248,7 +248,7 @@ confirmed: making the main agent return early reddens exactly those three and no
 ## Amendment (2026-08-04) — the frontmatter is not the only place a capability is expressed
 
 **The question this settles was the owner's, and it was asked the other way round.** After
-[ADR-0002](./0002-agentic-dev-loop-architecture.md)'s amendment #9 gave the merged copy lens `Bash`, the
+[ADR-0002](./0002-roster-and-dev-loop.md)'s amendment #9 gave the merged copy lens `Bash`, the
 open item was whether that **inherited grant should be visible from this record**, which decides
 per-persona tool-scoping in principle and deliberately enumerates no concrete grant. The earlier ruling
 was that it belonged in 0002, with the roster change that caused it. **That ruling stands for the
@@ -1226,6 +1226,14 @@ nothing and never claimed to.
   merge`; rule 7b routes that merge to the gate persona and asserts nothing about a verdict.
 - **The fifteen-review-round footnote** pointing at PR #138 for the superseded framings. The PR is still
   there; nothing binds on the pointer.
+- **The seven-entry perimeter table and its struck-and-re-struck history** — the interpreter-class floor
+  entries (`bash`, `sh`, `perl`, `ruby` and the rest) that the record's 2026-08-04 amendment measured
+  moving out of `allow` and back, commit by commit. **Added to this list on 2026-08-20 (#283 slice S4);
+  it was dropped in S3's fold and this list did not say so**, which made the list one entry short of its
+  own standard — a `What this fold dropped` section that omits a drop is exactly the failure the section
+  exists to prevent. What binds survives above: the perimeter is **non-containment**, and removing the
+  interpreter spellings changed what is *free*, not what is *contained*. The commit-by-commit
+  archaeology does not, and is re-readable at `448c506` if anyone needs it.
 - **The `Considered options` restatement of the chosen option as option 1.**
 - **The record's own `Links` list**, whose live members are folded into this document's cross-references.
 

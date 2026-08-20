@@ -100,7 +100,7 @@ earn it is `/definition-of-ready`). It does not mean the Issue exists.
   the form the owner answers in one line.
 
 Also apply exactly one type, required: **`product`**, **`content`**, or **`loop`** — the three types are
-exclusive routing labels, not independently optional (ADR-0012). Also apply **`reader-facing`** if a
+exclusive routing labels, not independently optional (ADR-0002). Also apply **`reader-facing`** if a
 reader sees anything; **`blocked`**
 only if something concrete is in the way, and **name what** — a `blocked` label whose blocker is not
 written down reads as *waiting on the owner* forever. (#166 carried one for over a week after its stated

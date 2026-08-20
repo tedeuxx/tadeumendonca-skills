@@ -99,7 +99,7 @@ platform — a fresh, per-task agent context cannot remember prior decisions, so
 Without ADRs, isolated contexts re-decide and drift; with them, every context stays coherent with what
 was already pacted. This is why the ADR library is the substrate the rest of the dev-loop stands on (see
 `README.md`, the current single source of truth for the dev-loop design — the former
-`docs/proposals/agentic-dev-loop.md` is now a superseded historical record, per ADR-0019).
+`docs/proposals/agentic-dev-loop.md` is now a superseded historical record, per ADR-0002).
 
 ### When to write one — the significance test (the light gate)
 
@@ -289,7 +289,7 @@ decision* (supersede-never-delete was never itself recorded as an ADR).
 
 ~~**Nothing enforces the deletion rule** — unlike the strike convention above, which at least one
 assertion reads in part. Measured on this repo, on a full scratch copy of the tree including `.git`:
-`rm docs/adr/0002-agentic-dev-loop-architecture.md` — the library's largest record, cited by name from
+`rm docs/adr/0002-roster-and-dev-loop.md` — the library's largest record, cited by name from
 several others — then `bash hooks/scripts/inventory-counts.test.sh` → **`69 passed, 0 failed`**,
 identical to the control run on the unmutated copy. No hook, workflow or settings file asserts anything
 about the ADR library's shape, so the largest record in it can vanish with every gate green. This rule
@@ -302,7 +302,7 @@ empty**, and #283 takes it from zero to roughly fourteen in one reconciliation. 
 at head, on the tree in place:
 
 ```
-mv docs/adr/0002-agentic-dev-loop-architecture.md <elsewhere>
+mv docs/adr/0002-roster-and-dev-loop.md <elsewhere>
 bash hooks/scripts/inventory-counts.test.sh        →  60 passed, 5 failed
 ```
 
