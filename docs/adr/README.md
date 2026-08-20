@@ -311,8 +311,23 @@ reader — or an agent — would follow.
 
 **What the gate cannot check, so that this table's green is not over-read — and it is a SMALLER
 residual than this paragraph claimed until 2026-08-20:** the destination's **existence** *is* gated.
-Point a row's destination at a file that does not exist and the citation-resolution arm reddens
-(measured: `67 passed, 1 failed`). What is genuinely unchecked is the destination's **content**: a row
+Point a row's destination at a file that does not exist and the citation-resolution arm reddens —
+**`68 passed, 1 failed`, re-measured at S4's final commit rather than inherited.** The mutation is one
+edit and restores itself:
+
+    # in docs/adr/README.md, ONE History row: change its destination link's target
+    # filename to one that does not exist, leaving the link syntax intact.
+    bash hooks/scripts/inventory-counts.test.sh    # FAIL citation resolution … ; 68 passed, 1 failed
+    # Written as a description rather than a literal before/after pair, and that is the
+    # SECOND thing this mutation teaches: the citation arm scans markdown links in every
+    # tracked .md file and does not know an indented code block from prose, so spelling
+    # the mutated link out here reddens the very arm the paragraph is describing.
+
+**The figure published here until 2026-08-20 was `67 passed, 1 failed`, and it was stale on arrival** —
+taken at S3 *before* arm 4c landed in the same commit, so the suite it described was one arm smaller
+than the suite that shipped. It is corrected rather than struck because the residual it illustrates is
+unchanged; only the tally moved, and a tally is exactly the kind of figure this file's own rule says to
+take **last**. What is genuinely unchecked is the destination's **content**: a row
 pointing at a document that never received the decision passes exactly like one pointing at a document
 that did. Whether the fold was **lossless** is a reviewer's judgement and there is no instrument for it.
 ~~it never opens the destination~~ — struck because it **understated** the gate, which is the direction

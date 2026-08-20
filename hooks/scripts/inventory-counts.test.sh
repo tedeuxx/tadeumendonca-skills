@@ -2822,7 +2822,10 @@ while [ "$adr_n" -le "$adr_ceiling_scanned" ]; do
   # WHAT IT STILL CANNOT DO, STATED SMALLER THAN IT WAS (#283 slice S3, advisory A5). The residual was
   # published here, in the index and in the PR body as "nothing opens the destination", and that
   # UNDERSTATES the gate: point a row's destination at a file that does not exist and the separate
-  # citation-resolution arm above reddens (measured: `67 passed, 1 failed`). The destination's
+  # citation-resolution arm above reddens: `68 passed, 1 failed`, re-measured at #283 slice S4's final
+  # commit. The figure published here until then was `67 passed, 1 failed`, taken at S3 BEFORE arm 4c
+  # landed in the same commit — stale on arrival, which is why a tally beside a residual is taken LAST
+  # or not at all. The destination's
   # EXISTENCE is gated. What is genuinely unchecked is its CONTENT — a row pointing at a document that
   # never received the decision passes exactly like one pointing at a document that did.
   #
