@@ -24,7 +24,7 @@ being marked one). For the decisions this proposal was ratified into, read
 roster amendment since),
 [ADR-0006](../adr/0006-verification-and-its-artifacts.md)'s *Merge Request Definition
 of Done* section (record 0003 until it was absorbed there on 2026-08-19), and
-[ADR-0004](../adr/0004-autonomy-and-permission-model.md) (autonomy & the permission model).
+[ADR-0004](../adr/0004-controls-and-enforcement.md) (autonomy & the permission model).
 
 **Kept below, in full, as a historical record — not rewritten.** Anyone who bookmarked or linked into
 this document deserves to find out what happened to it, not to read stale content as if it still

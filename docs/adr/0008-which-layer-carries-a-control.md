@@ -4,7 +4,7 @@
 - **Status:** accepted
 - **Date:** 2026-08-04
 - **Deciders:** the owner
-- **Supersedes / superseded by:** supersedes the layering claim in [ADR-0004](./0004-autonomy-and-permission-model.md)'s second 2026-08-04 amendment (*"the settings `deny` list is the hard backstop"*, inherited from `permission-guard.sh`'s own header)
+- **Supersedes / superseded by:** supersedes the layering claim in [ADR-0004](./0004-controls-and-enforcement.md)'s second 2026-08-04 amendment (*"the settings `deny` list is the hard backstop"*, inherited from `permission-guard.sh`'s own header)
 - **Driven by:** the permission audit of 2026-08-04 and the ~150-probe sweep that closed it (`4842ecd`, `745d949`)
 
 ## Context & problem
@@ -502,7 +502,7 @@ strike would enter into the library a state nothing ever occupied.
 ### The rule this earns — *the entry is one file, the record of it is five*
 
 The cause was established by toggling rather than inferred. `git show --stat cb9a2f3` is three files;
-`git log 8f48a4f..cb9a2f3 -- docs/adr/0008-which-layer-carries-a-control.md docs/adr/0004-autonomy-and-permission-model.md hooks/scripts/permission-guard.sh`
+`git log 8f48a4f..cb9a2f3 -- docs/adr/0008-which-layer-carries-a-control.md docs/adr/0004-controls-and-enforcement.md hooks/scripts/permission-guard.sh`
 stops at `786437c`. **Each removal commit was scoped to the file it removed from plus the narrative
 adjacent to it, and no commit re-grepped the entry's name across the tree.** The drift sits exactly, and
 only, at the sites those commits did not open.
@@ -859,7 +859,7 @@ Naming that as the open question is what this record can honestly do; choosing b
 owner's.
 
 ## Links
-- Supersedes the layering claim in [ADR-0004](./0004-autonomy-and-permission-model.md)'s second
+- Supersedes the layering claim in [ADR-0004](./0004-controls-and-enforcement.md)'s second
   2026-08-04 amendment (both the *"the hook, not the floor, stops them"* sentence, superseded in place
   there for the separate reason that it was **false when written**, and the *"recorded as a known
   property, not scheduled as a fix"* disposition) · related to ADR-0004's 2026-08-02 amendment (mechanism

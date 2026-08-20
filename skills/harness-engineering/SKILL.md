@@ -360,7 +360,7 @@ this clause drifting out of `agents/quality-assurance.md` and back in.
 This framing above is the corrected one — an earlier prose restatement of it, in the retired
 `dev-loop` skill this file replaces, said the opposite (*"auto-merging to `main` is never in-pattern
 here"*) and went stale against
-[ADR-0004](../../docs/adr/0004-autonomy-and-permission-model.md)'s classified-autonomy decision
+[ADR-0004](../../docs/adr/0004-controls-and-enforcement.md)'s classified-autonomy decision
 without anyone noticing until the two disagreed in front of an agent (#62). That incident, and the
 decision-currency lesson it carries, is recorded as ADR-0004's 2026-08-13 amendment rather than
 re-told here — this section states only the current, corrected rule.

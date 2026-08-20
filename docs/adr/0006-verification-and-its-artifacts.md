@@ -30,7 +30,7 @@ the claim is checkable rather than reported (`bash hooks/scripts/inventory-count
 - **Date:** 2026-08-02
 - **Deciders:** the owner
 - **Driven by:** the Merge Request Definition of Done — record 0003 until 2026-08-19, absorbed into this
-  document below — and [ADR-0004](./0004-autonomy-and-permission-model.md)
+  document below — and [ADR-0004](./0004-controls-and-enforcement.md)
 
 ## Context & problem
 
@@ -234,7 +234,7 @@ They are not competing; they are consecutive, and the shape they share is the re
 either amendment speaks:
 
 > **Both holes were priced in the same currency — a tool grant — and this ADR routed both to the same
-> decider, the owner, under [ADR-0004](./0004-autonomy-and-permission-model.md).** The *Consequences*
+> decider, the owner, under [ADR-0004](./0004-controls-and-enforcement.md).** The *Consequences*
 > hole is the gatekeepers' missing `Write`; the *Open question* hole is the copy lens's withheld `Bash`.
 
 What happened to them, in the order it happened, is the point:
@@ -349,7 +349,7 @@ behind it."* **It has one.** `permission-guard` gains **rule 5e**, an `agent_typ
 `gh pr comment` / `gh issue comment` / `gh issue create` for `*:product-lead`, so the persona that reads
 the private, gitignored positioning source cannot itself publish to a public PR. The decision and its cost are recorded in
 [ADR-0002](./0002-agentic-dev-loop-architecture.md)'s amendment #9, where the loosening was booked; the
-mechanism class is recorded in [ADR-0004](./0004-autonomy-and-permission-model.md). It is noted here
+mechanism class is recorded in [ADR-0004](./0004-controls-and-enforcement.md). It is noted here
 because it **moves this record's open question**, in both directions.
 
 - **Against the third marker.** It requires the copy lens to *post*, and posting is now exactly what the
@@ -674,7 +674,7 @@ the same way — nothing outside the checker's own head says it happened.
 
 - Every criterion is mechanically checkable or evidence-cited — no "looks fine".
 - It classifies **who may merge**, which is the autonomy hinge
-  ([ADR-0004](./0004-autonomy-and-permission-model.md)).
+  ([ADR-0004](./0004-controls-and-enforcement.md)).
 - It scales to the slice type: a docs slice is not a feature slice.
 
 ### The decision, as it currently binds
@@ -698,7 +698,7 @@ violated — it was being followed: in one session the queue grew by 19 issues n
 born inside a review of something else. Nobody decided that work should exist; the loop decided and
 asked afterwards, and the queue stopped describing the product and started describing how hard the
 agents had looked at it. **Only the owner opens work.** What *enforces* that today is
-[ADR-0004](./0004-autonomy-and-permission-model.md)'s rule, not this one's: every subagent except
+[ADR-0004](./0004-controls-and-enforcement.md)'s rule, not this one's: every subagent except
 `developer` is denied `gh issue create`, and for the main agent the rule is instructed rather than
 enforced.
 
@@ -795,7 +795,7 @@ this section, which supersedes it.
 - **The two struck blocks inside the 2026-07-30 amendment** — the blanket `gh issue create` deny, and the
   "no `agent_type` exemption" justification — together with the round-by-round correction narrative
   around them. Both are struck history of a rule whose current form is
-  [ADR-0004](./0004-autonomy-and-permission-model.md)'s; neither binds anything now.
+  [ADR-0004](./0004-controls-and-enforcement.md)'s; neither binds anything now.
 - **The named accepted gap for the raw-API issue-creating route.** Not merely superseded — **false at
   head**: `hooks/scripts/permission-guard.sh` rule 5f (2026-08-04) denies a `gh api` call carrying a
   write indicator, and that file's own comment marks the gap CLOSED. Carrying it forward would have
@@ -808,5 +808,5 @@ this section, which supersedes it.
 - Makes the Definition of Done's two-gatekeeper requirement checkable rather than instructed, and reuses
   the verification shape already established for the owner's ratification — that DoD was record 0003
   and is now the section *The Merge Request Definition of Done (absorbed 2026-08-19, record 0003)* of
-  this document · applies [ADR-0004](./0004-autonomy-and-permission-model.md)'s 2026-08-02 amendment
+  this document · applies [ADR-0004](./0004-controls-and-enforcement.md)'s 2026-08-02 amendment
   (routing not capability; skills where a hook buys nothing) · closes #128.

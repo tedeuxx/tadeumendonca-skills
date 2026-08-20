@@ -1008,7 +1008,7 @@ The public `/architecture` page on `tadeumendonca-io` describes `product-lead` a
 hook keyed to it**. `security` flagged the coupling before that page shipped. The obligation this
 creates on the io side — what is actually falsified, what merely misleads, and why the existing
 inventory check does not fire — is written up in
-[ADR-0004](./0004-autonomy-and-permission-model.md)'s 2026-08-04 amendment, with the mechanism that
+[ADR-0004](./0004-controls-and-enforcement.md)'s 2026-08-04 amendment, with the mechanism that
 causes it. **It is not fixed by this slice**: the page is a different repository, and this record is
 where the debt is booked, not paid.
 

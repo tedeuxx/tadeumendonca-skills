@@ -1,4 +1,14 @@
-# 0004. Autonomy & permission model — classes + tool-scoping
+# 0004. Controls and enforcement
+
+**This record is the capability document for `controls-and-enforcement`.** It was titled *Autonomy &
+permission model — classes + tool-scoping*, and filed as `0004-autonomy-and-permission-model.md`, until
+2026-08-20 — when the owner decided that an anchor is named for its **capability** rather than for the
+decision that originated it ([#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283), part 3
+slice S3). The originating decision — classified autonomy, mechanically enforced — is unchanged and is
+the body below. What changed is that this file stopped being named after one of the decisions it holds,
+because the same slice that renamed it absorbed three more records into it. The number did not move, so
+every `ADR-0004` citation in either repository is unaffected; the **filename** did, and every path-form
+citation of it was rewritten in the same commit as the rename.
 
 - **Capability:** controls-and-enforcement
 - **Status:** accepted

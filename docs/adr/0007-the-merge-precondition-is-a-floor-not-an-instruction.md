@@ -151,7 +151,7 @@ The page bounds **count, not bytes** — a stranger cannot choose how many comme
 ## Links
 - [ADR-0006](./0006-verification-and-its-artifacts.md) — the verdict as artifact; this ADR enforces what that one made readable, and reverses its rejected option 2
 - The Definition of Done this gate reviews against — record 0003 until 2026-08-19, now the *Merge Request Definition of Done* section of [ADR-0006](./0006-verification-and-its-artifacts.md). **Not the source of the author-and-association idiom**, and this hook checks no ratification rule.
-- [ADR-0004](./0004-autonomy-and-permission-model.md) — the permission floor and `permission-guard.sh`, whose decided rule places a push to the trunk behind a hook. *That record's contract header reads "Fails OPEN (allows) on any parse error" — it has no fail-closed rule, and the claim that it did was struck from `wip-guard.sh` on 2026-08-02 with a measured falsifier.*
+- [ADR-0004](./0004-controls-and-enforcement.md) — the permission floor and `permission-guard.sh`, whose decided rule places a push to the trunk behind a hook. *That record's contract header reads "Fails OPEN (allows) on any parse error" — it has no fail-closed rule, and the claim that it did was struck from `wip-guard.sh` on 2026-08-02 with a measured falsifier.*
 - #136 — pinning marker literals to each persona's canonical set. Load-bearing for the hook slice rather than merely adjacent.
 - #134 — the marker's retirement mechanism, unsolved; a hook reading markers depends on that question having an answer.
 
