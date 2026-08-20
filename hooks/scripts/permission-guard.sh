@@ -671,7 +671,8 @@ fi
 # denied for — and probing `agent_type=…:writer` against the OLD form (`case ... *:product-lead) deny
 # ;; esac`, everything else falls through ALLOW) found it posts straight through with no decision at
 # all. Naming every persona that must NOT post, one at a time, is the same "absent is not a state"
-# failure ADR-0018 records for the AWS floor: a new persona that reads private material and is simply
+# failure ADR-0004's "Permission entries have three states, and absent is not one" section records for
+# the AWS floor (record 0018 until 2026-08-20, absorbed there): a new persona that reads private material and is simply
 # never added to this list posts by default, silently. The fix is deny-unless-cleared: name the
 # personas ALLOWED to post directly, and anything else — including a future persona nobody remembered
 # to list here — denies by default.
@@ -686,7 +687,7 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
     *:writer)
       deny "Blocked: \`writer\` writes nothing to a public surface directly. It reads the private positioning layer (\`.brand/\`) to draft — the same shape \`product-lead\` is denied for, and for the same reason: a paraphrase of private material in a public comment is not revertible by deleting the comment. Drafts go through \`Write\`/\`Edit\` onto tracked files (\`content/blog/**\`, site copy, a social-post draft) for the owner's review, never straight to \`gh pr comment\`/\`gh issue comment\`/\`gh issue create\`. agent_type='${agent_type}'." ;;
     *)
-      deny "Blocked: agent_type='${agent_type}' is not on this rule's allowlist for posting directly (\`gh pr comment\`/\`gh issue comment\`/\`gh issue create\`). New personas default to DENY here — deliberately, per ADR-0018's 'absent is not a state' — until someone decides they belong on the allow side above and adds them by name. If this SHOULD be allowed, that is a decision to make explicitly, not a gap to route around." ;;
+      deny "Blocked: agent_type='${agent_type}' is not on this rule's allowlist for posting directly (\`gh pr comment\`/\`gh issue comment\`/\`gh issue create\`). New personas default to DENY here — deliberately, per ADR-0004's 'absent is not a state' — until someone decides they belong on the allow side above and adds them by name. If this SHOULD be allowed, that is a decision to make explicitly, not a gap to route around." ;;
   esac
 fi
 

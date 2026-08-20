@@ -1356,7 +1356,8 @@ direct public posting, so it needed the identical mechanical boundary.
 
 1. **`permission-guard.sh` rule 5e inverted from a denylist to an allowlist.** The old form named only
    `product-lead` to deny; probed, `agent_type=…:writer` fell through ALLOW — the exact "absent is not a
-   state" shape ADR-0018 later names for the AWS floor, found here first. The new form allowlists the
+   state" shape [ADR-0004](./0004-controls-and-enforcement.md)'s *Permission entries have three states,
+   and absent is not one* section later names for the AWS floor, found here first. The new form allowlists the
    personas cleared to post directly (`developer`, `tech-lead`, `harness-lead`, `quality-assurance`, the
    main agent) and denies everything else by default, `writer` included, so a future private-material-
    reading persona is contained automatically rather than needing to be remembered.

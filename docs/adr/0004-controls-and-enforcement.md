@@ -565,6 +565,89 @@ a bug and works around it, which is the failure mode this record exists to preve
 
 **Accepted cost, named rather than solved:** nothing mechanical asserts that a skill's prose description of a decision still matches the ADR it describes. This amendment records the one incident that surfaced; it is not a standing check.
 
+## Permission entries have three states, and absent is not one (absorbed 2026-08-20, record 0018)
+
+**Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):
+record 0018's decision is still in force and is moving into the document that governs the capability it
+belongs to.** Decided by the owner on 2026-08-13, driven by
+[#163](https://github.com/tedeuxx/tadeumendonca-skills/issues/163). Its History row is in
+[the index](./README.md).
+
+### The decision, as it currently binds
+
+**A permission entry is in one of three states, and there is no fourth:**
+
+| state | means |
+|---|---|
+| `deny` | never, at any price |
+| `ask` | not without me — **currently non-functional in this harness**, see the cost below |
+| `allow` | pre-authorised |
+
+**Absent is not a state.** An entry that is in none of the three lists is not a decision; it is the
+*omission* of one, and it resolves to whatever the nearest broader `allow` pattern says, silently.
+
+The practical form, which is what a future request shaped like #163's runs into: **"let this specific
+case through without opening the whole class" cannot be spelled by deleting a `deny` and stopping.** It
+has to become an actual `allow` — if the class is judged safe to pre-authorise unconditionally — or stay
+`deny`. There is no third resting place that also counts as a decision.
+
+This **generalises** the narrower finding the body of this record already carried — *a control expressed
+as absence is not a control*, earned on `gh api` being unlisted rather than denied — from one measured
+case into a stated principle. It is **orthogonal to** the *which layer carries a control* section below:
+that one decides which layer holds a control, this one decides which state an entry in the static layer
+may be in.
+
+### The rejected options, each on a measured failure — kept because a future request will re-open them
+
+1. **A fourth state, "absent", used deliberately for the unitary case.** Rejected on three properties it
+   lacks that `deny` has, and all three are the same property from different angles — **absence is not
+   observable as a decision, so it cannot be audited as one**:
+   - it is erasable by a broader `allow` added anywhere, silently (this workspace already carried
+     **15** such unreviewed entries in local overlays when #163 measured it);
+   - a removed `deny` and an entry that never existed are **indistinguishable in the file**, so the
+     decision leaves no record that it was made;
+   - it does not survive `settings.local.json`, which accumulates by clicking and is never reviewed.
+
+2. **Migrate the unitary case into `permissions.ask`.** Rejected on a **measurement, not a principle**,
+   and this is the one a later reader is most likely to want to re-run. #163's test, executed
+   2026-08-13: move `Bash(aws cloudfront create-invalidation:*)` from `deny` to an `ask` entry in **both**
+   the committed project file and the global user-scope file, then run the command as a live tool call.
+   **Result: no permission prompt — the command executed directly**, reaching real AWS auth and failing
+   only on an expired session token, meaning no permission layer intercepted the call at all.
+
+   > **This is a falsification, not a rejection on the merits, and it is dated.** `ask` is a real state
+   > in the model and does not work through this configuration surface in the Claude Code version tested.
+   > It is falsified **until re-measured against a newer version**, and re-measuring it is the cheap move
+   > for anyone who wants the state back.
+
+### Consequences still being paid
+
+- **`ask` is vocabulary with no working implementation.** Any decision that would have used it is stuck
+  choosing between `deny` and `allow` until the measurement above is re-run and comes back different.
+- **The `deny`/`ask`/`allow` triple is a closed, enumerable domain**, which is why it may be stated as
+  closed at all — see the *pattern over a grammar* rule in the absorbed 0008 section below, which forbids
+  exactly that word for controls matching a caller-controlled string. The distinction is deliberate and
+  the two sections do not contradict each other.
+- **This record does not resolve #163's own remaining concrete action** — removing the duplicated AWS
+  `deny` entries from the unversioned, self-protected global `~/.claude/settings.json`. That is an
+  owner-executed step with no PR, gate or record, orthogonal to the vocabulary decided here.
+
+### Where this decision is live in the tree, so the section is checkable rather than descriptive
+
+`permission-guard.sh`'s rule 5e applies it by name: an unlisted persona defaults to **DENY**, on the
+grounds that *absent is not a state*, and `permission-guard.test.sh` asserts that default. That is the
+one place in this repository where the principle is mechanically enforced rather than merely stated.
+
+### What this fold dropped
+
+- **The bootstrapping note.** Record 0018 carried a paragraph explaining that it was written directly
+  rather than by a dispatched `harness-lead`, because the plugin was disabled for that phase. It is
+  archaeology about how one record came to be written, and it binds nothing.
+- **The `Considered options` framing of option 1 as an option.** Option 1 *is* the decision; restating it
+  twice was MADR structure, not content.
+- **The record's cross-citation of 0008 as a separate record**, which is now a cross-reference inside one
+  document.
+
 ## Links
 - Driven by ADR-0002 and the Merge Request Definition of Done (record 0003, absorbed 2026-08-19 into
   [ADR-0006](./0006-verification-and-its-artifacts.md)) · consumed per project via

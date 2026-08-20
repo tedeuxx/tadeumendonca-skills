@@ -440,11 +440,11 @@ check_agent DENY "tadeumendonca-skills:writer" "issue create"     "gh issue crea
 check_agent ALLOW "tadeumendonca-skills:writer" "listing PRs"     "gh pr list --state open"
 check_agent ALLOW "tadeumendonca-skills:writer" "viewing an issue" "gh issue view 173"
 
-echo "--- rule 5e: an unlisted persona defaults to DENY, not ALLOW (#187, ADR-0018) ---"
+echo "--- rule 5e: an unlisted persona defaults to DENY, not ALLOW (#187, ADR-0004) ---"
 # The falsifier the inversion exists to satisfy: a persona nobody remembered to add to the allow side
 # must NOT post by default. Before #187 this fell through ALLOW for anything not literally named
-# `product-lead` — the exact "absent is not a state" shape ADR-0018 records for the AWS floor, now
-# closed here too.
+# `product-lead` — the exact "absent is not a state" shape ADR-0004's own section records for the AWS
+# floor (record 0018 until 2026-08-20, absorbed there), now closed here too.
 check_agent DENY "tadeumendonca-skills:some-future-persona" "unlisted persona, pr comment" "gh pr comment 149 --body b"
 check_agent DENY "tadeumendonca-skills:some-future-persona" "unlisted persona, issue create" "gh issue create --title x --body y"
 
