@@ -241,7 +241,9 @@ without being the loader — it catches a broken reference, not a broken loader.
 - [ADR-0002](./0002-roster-and-dev-loop.md) — **cited, not amended.** Its four-reason rule
   explains why the roster is five; curating what those five preload does not change why any of them
   exists, and the context-window reason is one of the four this record leans on.
-- [ADR-0009](./0009-a-skill-description-is-a-trigger-not-a-title.md) — **cited, not amended.** It owns
+- Record 0009 — **cited, not amended**; absorbed on 2026-08-20 into
+  [ADR-0011](./0011-skills-and-preload.md)'s *A skill's `description` is a trigger, not a title
+  (absorbed 2026-08-20, record 0009)* section. It owns
   *how a skill is discovered* — the `description` as the matcher's trigger. A `skills:` preload
   **bypasses discovery entirely**: the file is injected whether or not any description would have
   matched. Adjacent, not a correction, and the two mechanisms load the same files by different routes.

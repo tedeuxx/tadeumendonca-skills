@@ -25,8 +25,9 @@ was rewritten in the same commit as the rename.
 ## Context & problem
 
 The library has **69 skills** and no written definition of what a skill *is*. Every other property of it
-is recorded — how a description is written ([ADR-0009](./0009-a-skill-description-is-a-trigger-not-a-title.md)),
-how one reaches a persona ([ADR-0010](./0010-a-personas-startup-context-is-a-curated-preload.md)) — and
+is recorded — how a description is written (record 0009, absorbed into this document on 2026-08-20 as
+its *A skill's `description` is a trigger, not a title* section), how one reaches a persona
+([ADR-0010](./0010-a-personas-startup-context-is-a-curated-preload.md)) — and
 the thing those two records are about was left to be inferred from the folder it sits in. The definition
 below was arrived at in conversation and existed nowhere in the tree.
 
@@ -103,7 +104,8 @@ the world it described has changed under it.
   before [#182](https://github.com/tedeuxx/tadeumendonca-skills/pull/182) moved the tree from
   `commands/<family>/<name>.md` to `skills/<name>/SKILL.md`, and **`Skills (71)`** after — booked in
   [ADR-0005](./0005-plugin-auto-versions-on-merge.md)`:146-149` at +9,919 always-on tokens per session.
-  So ADR-0009's 69 dense trigger descriptions had **no consumer** for as long as they existed.
+  So the 69 dense trigger descriptions record 0009's standard produced — now this document's *A skill's
+  `description` is a trigger, not a title* section — had **no consumer** for as long as they existed.
 
 One correction the record owes to itself, stated here and deliberately **not** written as an amendment:
 **[ADR-0010](./0010-a-personas-startup-context-is-a-curated-preload.md)'s Context item 2 — *"there is no
@@ -483,7 +485,9 @@ already parses both trees. **It would fail on 62 of 69 files today.**
 
 **Whether that assertion should exist is a decision this record does NOT make**, and the reason is
 ADR-0004's: a check that arrives already red on 90% of its subject is a check that gets silenced, and
-ADR-0009's first amendment records this repo paying exactly that price once. It is only writable **after**
+this record's own *A skill's `description` is a trigger, not a title (absorbed 2026-08-20, record 0009)*
+section records this repo paying exactly that price once, in the paragraph beginning *"One scoping
+decision inside that boundary"*. It is only writable **after**
 the review the owner ordered, not before — so the honest sequence is *review, then assert*, and the
 assertion is the thing that makes the review stick rather than a substitute for it.
 
@@ -758,6 +762,125 @@ This applies to **all three** consolidated skills alike — `cloud-infrastructur
   `skills:` — but whether any of them is nonetheless small enough or central enough to warrant a preload
   slot on `developer` is a separate call this amendment does not make.
 
+## A skill's `description` is a trigger, not a title (absorbed 2026-08-20, record 0009)
+
+**Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):
+record 0009's decision is still in force and is moving into the document that governs the capability it
+belongs to.** The standard is the owner's, posted as [#166](https://github.com/tedeuxx/tadeumendonca-skills/issues/166)'s
+closing comment and ratified by labelling that Issue `ready`; drafted by `harness-lead`, recorded by
+`tech-lead` on 2026-08-09. Its History row is in [the index](./README.md).
+
+**Why it belongs here and not in a record of its own:** this document decides *what a skill is and who
+it is for*; the `description` field is the only channel through which a skill reaches the reader this
+record calls the model's own discovery. It is behaviour of `skills-and-preload`, not a capability.
+
+### The decision, as it currently binds
+
+**The `description` field is the matcher's, not the reader's.** A title answers *what is this?*; a
+trigger answers *I am doing this — are you it?* The canonical form:
+
+    <ACT> <CONCRETE OBJECT> <WHERE, in nouns rather than folders>.
+    Use when <situation 1>, <situation 2>, or <situation 3>.
+    Not for <neighbouring situation> (see <rival>)[, or <another> (see <rival2>)].
+
+The seven constraints that make two authors converge, each with the reason it exists:
+
+| # | rule | why |
+|---|---|---|
+| 1 | Open on **act + object**, never the filename | the first tokens are the discriminating ones |
+| 2 | **The layer lives in the nouns, never the folder** — *"in a React SPA"*, *"in Terraform"* | the folder disappears when the tree flattens; the description must survive that alone |
+| 3 | **Technology proper nouns come from the body** | every token is then checkable against the file — this is what stops keyword salad |
+| 4 | **`Use when` is mandatory**, 2–3 situations in task language | the clause that converts a title into a trigger, and **the only one that cannot be satisfied by accident** |
+| 5 | **`Not for … (see X)` is mandatory** for any file in a cluster | disambiguation is a property of the set |
+| 6 | **Generic placeholders** — never a real consumer path | the repo's project-agnostic rule, on a published surface |
+| 7 | **One physical line**, no unquoted `:`, no markdown, no `$ARGUMENTS` | a description that is not one line is read whole by YAML and half by every check |
+
+**The cluster rule:** every member of a cluster that competes on an overlapping subject **names its
+separating axis in its own description and names at least one rival by name, mutually**. Three axes
+cover the library: **use vs provision · which surface · decide vs implement vs verify.**
+
+**The enforcement boundary, deliberately partial, and it is the second half of this decision.** Gated:
+frontmatter presence and parse, `description` present and non-empty, one physical line, length bounds,
+the literal `Use when`, the consumer-path ban (whole-file since
+[PR #169](https://github.com/tedeuxx/tadeumendonca-skills/pull/169)), no `(concept)`, no description
+opening with its own stem, `argument-hint` on the typed commands and nowhere else, cluster symmetry, and
+every `(see X)` resolving to a file. **Refused: any quality score.**
+
+**One scoping decision inside that boundary is kept because the body of this record cites it.** The
+consumer-path ban shipped **frontmatter-scoped** rather than whole-file, deliberately: the bodies were
+dirty, and a file-wide assertion would have turned the suite red against work nobody had scheduled — a
+gate arriving already failing. An enforcement mechanism that cannot be satisfied gets silenced, and a
+silenced check still looks like coverage, so the scope was drawn where the check could be **green and
+honest on the same day**. PR #169 then cleaned the bodies to zero and widened the assertion to the whole
+file, mutation-proven rather than read. **This is the instance this record's *Consequences* section
+points at** when it declines to write the reverse assertion — *every `SKILL.md` is named in some
+`skills:` list* — before the review that would make it satisfiable.
+
+**Live at this head, re-measured rather than carried** — the record's own figures were taken against a
+75-file, six-cluster tree that #229/#230/#231 and #286 no longer produce:
+
+    bash hooks/scripts/inventory-counts.test.sh | grep -i 'skill descriptions'
+    → scan set 16 files (13 skills + 3 typed commands) · L1, L2, L3 all PASS · 4 clustered skills
+
+### The rejected options that are still live
+
+1. **Reuse the existing first body line as the `description`** — zero authoring, one generator change.
+   Rejected because those first lines *are* the defect: they are titles, and they answer the question
+   the matcher does not ask. The two objects are also mechanically different sizes — the README's
+   generated inventory column is capped at 150 characters and a description to this standard runs
+   300–500, so every one would be cut mid-clause. A field that is both the table cell and the matcher's
+   input serves neither.
+2. **Score description quality** — keyword count, noun density, embedding similarity between the
+   description and the body. **Refused by name so nobody rebuilds it:** all three pass on keyword salad,
+   which is the exact betrayal this standard exists to prevent. A description stuffed with body nouns
+   and naming no situation scores well on every one of them. **Buying a green that is achievable by the
+   failure mode is worse than having no check**, because it converts an open question into a reported
+   answer. This is the option a later reader is most likely to re-propose, because it is the only one
+   that would put a mechanism on the half that decides whether the field works.
+
+### Consequences still being paid
+
+- **The premise is unverified, and every benefit claimed for this standard is conditional on it.** That
+  model-invoked loading matches on `description`, and that a description written this way is the one
+  that fires, is asserted nowhere in this repo. The standard's own instrument for it is **not an
+  assertion but a dispatch** — roughly ten real task sentences run against the library to see which
+  skill each one matches — and **it has never been run.** An unverified premise recorded as verified is
+  the defect this library is about; this bullet is the record refusing to commit it about itself.
+- **The authorial half has no gate and never will.** Whether the situation named is the *right* one,
+  whether the nouns are the ones a real task would contain, whether `Not for` points at the *nearest*
+  rival, and whether the description is *true about the body* — the only mechanisms available for those
+  are the ones rejected option 2 above refuses. A green means the shape is right, never that the
+  sentence is good.
+- **The cluster table is hand-maintained and cannot catch an ADDITION.** Deletion and rename go red; a
+  new file dropped into a cluster nobody adds to the table stays uncovered, **on purpose** — deriving
+  cluster membership from paths would be the refused quality score in another shape.
+- **Every skill now carries two independently authored descriptions** — the `description` field and the
+  first body line, which `hooks/scripts/skills-table.py` publishes as column 2 of the README's skill
+  table. They can drift from each other and from the body, and the gate keys on cells 1 and 3 only.
+  Mutation-proven when it was found: replacing a row's cell 2 with a fabricated sentence left the suite
+  fully green. **A consequence of rejecting option 1 that the original record failed to book**, and
+  still open.
+- **The gate's runtime grew**, unevenly — roughly a minute on macOS from process-spawn cost, about eight
+  seconds on the CI runner where the gate actually decides anything.
+
+### What this fold dropped
+
+- **The plain-path deviation and both of its amendments' arguments about it.** The record upheld
+  `see backend/stem` over a bare `` see `stem` ``, first because four stems were ambiguous across
+  families and then, when #174 dissolved that, on the two weaker reasons. **The whole tension is dead:
+  the tree has one level since #286 and every live pointer is a bare stem** — the spelling the record
+  said would become available and did. What survives is constraint 2, which is in the table above.
+- **Every figure taken against the 75-file tree** — 2 of 75 carrying a description, 73 with no
+  frontmatter, 112 (or 110) `(see X)` pointers, 31 → 27 cluster members, the four merged pairs, the
+  `485b97e` and `78f4e5b` greps. Each was true of a tree that no longer exists, and none of them binds
+  anything. The live measurement is in the decision above, with its command.
+- **The family-choice rule of the second amendment's §4** — which family keeps a merged file — together
+  with its no-ADR ruling. Its subject was abolished by the flattening it predicted.
+- **The §4 bound about `<project>-pwa` asserting one two-repo topology.** It was ruled out of scope by
+  the record itself and belongs to a content question the owner has never opened.
+- **The record's line-locator and commit-pinned citations**, per `documentation-standard`'s *cite the
+  clause, not the line*.
+
 ## The `archive` disposition is a file move to `docs/archive/`, not a frontmatter flag (absorbed 2026-08-20, record 0016)
 
 **Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):
@@ -849,7 +972,9 @@ rooted at `skills/`.
   `developer`-carries-no-technical-standard finding (§B3) — that last one **narrowed here on
   measurement**: `developer` carries none, but the library is not wholly unassigned on the technical
   axis, since `backend/coverage` is assigned to `quality-assurance`.
-- [ADR-0009](./0009-a-skill-description-is-a-trigger-not-a-title.md) — **cited, not amended.** It owns
+- **Record 0009 — cited, not amended, when this record was written; absorbed into it on 2026-08-20** as
+  the *A skill's `description` is a trigger, not a title (absorbed 2026-08-20, record 0009)* section
+  above. It owned
   *how a skill is discovered*; this record owns *what a skill is*. Its standard was executed well —
   69/69 descriptions carry `Use when`, 67/69 carry `Not for` — and the only thing this record adds is
   that it had **no consumer** until #182, and that the **bodies** were not converted with the fields:

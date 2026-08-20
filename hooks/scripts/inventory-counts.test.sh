@@ -1801,7 +1801,8 @@ else
     # cannot see it, and the green says nothing is wrong.
     #
     # THAT IS THE THIRD INSTANCE OF THIS SLICE'S OWN SUBJECT, and it had reached a PERMANENT record:
-    # ADR-0009 lists "every `(see X)` resolving to a file" as gated. The ADR was accurate about the
+    # record 0009 listed "every `(see X)` resolving to a file" as gated — now the trigger-description
+    # section of ADR-0011. The record was accurate about the
     # intent and wrong about the coverage — the same shape as the one-line comment that described a
     # check nobody had implemented, and as `skills-table.py` claiming the first line. A filter that
     # silently drops what it cannot parse is indistinguishable from a filter that found nothing.
@@ -1813,7 +1814,8 @@ else
     # made the family segment optional — would have accepted it and then failed on the file check with
     # a message about a missing file rather than about a stale spelling. Two targets are legal: a
     # library skill at `skills/<stem>/SKILL.md`, and one of the two typed commands at
-    # `commands/<stem>.md`, which point at each other legitimately (ADR-0009 documents them as the only
+    # `commands/<stem>.md`, which point at each other legitimately (the trigger-description section of
+    # ADR-0011, absorbed from record 0009, documents them as the only
     # such files).
     while IFS= read -r ref; do
       [ -z "$ref" ] && continue
