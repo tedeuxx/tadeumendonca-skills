@@ -976,7 +976,72 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
     deny "Blocked: never squash-merge. Use a real merge commit ('gh pr merge --merge') — per-commit history is the record of how the change was reached, and a squash discards it irreversibly once it is on the trunk."
   fi
   case "$agent_type" in
-    *:quality-assurance) : ;;  # the reviewer IS the merge gate — allow it through
+    *:quality-assurance)
+      # 7c. THE CALLER IS ALREADY PROVEN — this check is about WHETHER ITS OWN VERDICT SAYS SO,
+      # on the PR's CURRENT head. ADR-0004's "The merge precondition is a floor, not an instruction"
+      # section proposed exactly this: the strongest rule in this loop (a merge requires a clean gate
+      # verdict posted as an artifact) was, before this rule, enforced only by prose in
+      # `agents/quality-assurance.md` — read and executed by the same model it constrains. Three
+      # vocabulary drifts shipped in that rule in one day (`ADVISORY-ONLY`, `CLEAN`, `APPROVED`, none
+      # a literal the reviewing gate defines) and none could have been caught by a check. This turns
+      # "did I actually post APPROVE-AND-MERGE for the code that is here now?" into a precondition the
+      # model cannot satisfy by recall — only by the artifact on the PR actually saying so.
+      #
+      # NAMED LIMIT, STATED HERE SO THE CONTROL IS NOT OVERCLAIMED (ADR-0004's "Which layer carries a
+      # control" section — 0008 in this table until it was absorbed there on 2026-08-20): this narrows what rule
+      # 7b already restricted (only `*:quality-assurance` may call `gh pr merge` at all) — it adds
+      # nothing against a DIFFERENT caller, because 7b already denies every other one. And it has
+      # ZERO reach over a human merging via the GitHub UI or a personal terminal outside this session
+      # — the dominant real-world merge path on this platform (measured: PR #293's `mergedBy` was the
+      # owner's own account, not a session tool call, while REQUEST-CHANGES sat on its current head).
+      # That gap is not this layer's to close; no hook can see a browser click.
+      #
+      # THE JQ LITERAL-EXTRACTION BELOW IS DUPLICATED FROM session-wip.sh's verdict_suffix(), ON
+      # PURPOSE — a hook cannot source code out of another hook (wip-guard.sh's own `gh_repo_flag`
+      # precedent, that file's line ~142). `inventory-counts.test.sh` asserts the two copies stay
+      # byte-identical, the same way it already does for `gh_repo_flag`, so a marker-format change in
+      # one cannot silently leave the other reading a shape that no longer exists.
+      #
+      # FAILS OPEN, matching this file's own stated policy at its header ("Fails OPEN … on any parse
+      # error, a missing jq, or no network"): no `gh`/`jq` on PATH, or an empty/unreadable response,
+      # degrades to 7b's identity check alone — this sub-rule adds nothing, denies nothing, and the
+      # merge proceeds exactly as it did before this rule existed. An unavailable answer is not a
+      # finding, the same distinction session-wip.sh's own comment makes for the same read.
+      qa_ref="$(printf '%s' "$bare" | sed -E 's/^.*[[:space:]]pr[[:space:]]+merge[[:space:]]*//')"
+      qa_ref="${qa_ref%% *}"
+      case "$qa_ref" in -*|'') qa_ref="" ;; esac
+      qa_repo="$(printf '%s' "$bare" | sed -nE 's/^gh[[:space:]]+(-R|--repo)[[:space:]=]+([^[:space:]]+)[[:space:]]+pr[[:space:]]+merge.*/\2/p')"
+      qa_pr_json=""
+      if command -v gh >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+        if [ -n "$qa_repo" ]; then
+          qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --repo "$qa_repo" --json headRefOid,comments 2>/dev/null || true)"
+        else
+          qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --json headRefOid,comments 2>/dev/null || true)"
+        fi
+      fi
+      if [ -n "$qa_pr_json" ]; then
+        # ── BEGIN duplicated from session-wip.sh's verdict_suffix() — keep byte-identical ──
+        qa_verdict="$(printf '%s' "$qa_pr_json" | jq -r --arg m '<!-- gatekeeper-verdict: quality-assurance -->' '
+    def literal($lines; $m):
+      ($lines | index($m)) as $i
+      | if $i == null then "" else ($lines[$i + 1] // "" | gsub("^\\s+|\\s+$"; "")) end;
+    (.headRefOid // "") as $h
+    | if $h == "" then ""
+      else [ .comments[]?
+             | select((.authorAssociation // "") as $a
+                      | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
+             | .body // ""
+             | select(contains($m)) | select(contains($h))
+             | literal(split("\n"); $m) ]
+           | if length == 0 then "none" else .[-1] end
+      end' 2>/dev/null || true)"
+        # ── END duplicated from session-wip.sh's verdict_suffix() ──
+        case "$qa_verdict" in
+          APPROVE-AND-MERGE|'') : ;;  # clear to merge, OR the read produced nothing — fail open
+          *) deny "Blocked: the last quality-assurance verdict on this PR's CURRENT head is '${qa_verdict}', not APPROVE-AND-MERGE — so this merge does not match its own review record (ADR-0004). This is not a caller problem: rule 7b already confirms you are quality-assurance. It means either the head moved since that verdict was posted, the verdict was never re-posted after a later round, or the literal drifted from the one 'Your verdict — exactly one of' in your own brief defines. Post a correct APPROVE-AND-MERGE verdict against the CURRENT head before merging — or, for boundary class, never call this tool: hand the go/no-go to the human." ;;
+        esac
+      fi
+      ;;
     *) deny "Blocked: merging a PR is the deploy and the quality-assurance's act, not the main agent's (ADR-0004). Route it through the quality-assurance subagent — invoke it with the human's go, and it performs the merge (approve-and-merge the safe class, or after your ratification for the boundary class). agent_type='${agent_type:-<main agent>}'." ;;
   esac
 fi

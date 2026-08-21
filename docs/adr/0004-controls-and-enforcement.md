@@ -978,12 +978,86 @@ lost:
 - **The record's own `Links` and evidence lists**, whose live members are folded into this document's
   cross-references.
 
-## The merge precondition is a floor, not an instruction — **`proposed`, not `accepted`** (absorbed 2026-08-20, record 0007)
+## The merge precondition is a floor, not an instruction — **`accepted`** (absorbed 2026-08-20, record 0007; a narrower version implemented 2026-08-20)
 
-**Read the status before the decision.** Record 0007 was `proposed` when it was absorbed and this
+~~**Read the status before the decision.** Record 0007 was `proposed` when it was absorbed and this
 section inherits that status: **the hook it decides is unimplemented.** Nothing in the running system
 behaves the way this section describes, and nothing is wrong today because of that. Everything below is
-a design that was reasoned to a conclusion and never built.
+a design that was reasoned to a conclusion and never built.~~ **No longer true — see "What actually
+shipped" immediately below, before the design that follows it.** The design below was reasoned to a
+conclusion first and only PARTLY built; read the implementation note before crediting the running
+system with everything this section describes.
+
+### What actually shipped, and how it differs from the design below — read this first
+
+**`hooks/scripts/permission-guard.sh` rule 7c** (right after rule 7b's caller-identity check) denies
+`gh pr merge` when the last `quality-assurance` verdict comment on the PR does not read
+`APPROVE-AND-MERGE` **for the PR's current `headRefOid`**. It is real, it runs on every `gh pr merge`
+tool call in every session, and it is mutation-tested (`hooks/scripts/permission-guard.test.sh`, section
+"rule 7c") against every row of the table below that it actually implements.
+
+**It implements exactly one row of the four-row outcome table below — "ran, and the answer is
+negative" — and none of the other three.** Naming the gap precisely, so nothing here is credited with
+more than it does:
+
+- **NARROWER SURFACE, on purpose.** The design below is a standalone control reachable by *any* caller.
+  What shipped sits **behind rule 7b**, which already restricts `gh pr merge` to the `quality-assurance`
+  agent_type alone — an unforgeable, harness-stamped property, not something an untrusted party can
+  claim. So 7c adds nothing against a *different* caller (7b already denies every one); it closes a
+  narrower, still-real gap: **the one caller allowed to merge at all, drifting from its own posted
+  verdict** — the exact vocabulary-drift failure this section's "The problem" subsection below measures.
+  It does not implement "a `PreToolUse` hook on `gh pr merge` that denies a merge lacking the
+  gatekeeper's marker" as its own freestanding control; it implements that check conditioned on 7b
+  already having passed.
+- **FAILS OPEN on a missing tool, not closed.** The table below requires **deny** when `gh`/`jq` are
+  absent. What shipped **allows** — matching `permission-guard.sh`'s own stated, file-wide policy
+  ("Fails OPEN … on any parse error, a missing `jq`, or no network," this file's own header) rather than
+  carving an exception into it. The reasoning for the deviation, not merely the fact of it: the design's
+  fail-closed table row is argued from a threat an untrusted party can trigger at will against a control
+  reachable by anyone; behind 7b, the only party who can even reach this branch is the harness-stamped
+  reviewer, so a transient `gh`/network outage does not hand an outsider anything — it would, if anything,
+  block a genuinely clean safe-class merge until the tooling recovers. **Named, not resolved:** this is a
+  judgement call the owner may want to override; flipping the two `: ;;`/`*)` arms in rule 7c's final
+  `case` statement is the entire diff required to make it fail closed instead.
+- **NO `ask` outcome, and none is possible without reintroducing a mechanism this file removed.** The
+  table's third row routes an unattributable failure to `ask`; `permission-guard.sh`'s `ask()` helper was
+  **deleted 2026-08-03** (this file's own comment above rule 5d), before this fold happened. Building the
+  `ask` row back in means re-adding a helper this file's history explicitly argues against restoring
+  without a fresh reason. Not attempted here.
+- **NO explicit deadline, no bounded read.** The design requires the hook to "hold its own deadline
+  strictly below the `timeout` its `hooks.json` entry declares," separately from `hooks.json`'s own kill.
+  Rule 7c has no such deadline: an unresponsive `gh pr view` is bounded only by `hooks.json`'s outer
+  timeout, whose kill this section's own "Consequences still being paid" list already names as degrading
+  to **allow** — so on that one failure shape, 7c inherits the exact residual the design already priced
+  for its own full version, not a new one.
+- **THE AUTHOR FILTER IS WIDER than this design specifies, inherited rather than chosen.** "The trust
+  class this takes" subsection below is explicit: `authorAssociation: OWNER`, **and nothing wider**. Rule
+  7c reuses `session-wip.sh`'s `verdict_suffix()` jq program **verbatim** (deliberately — see the code
+  comment at its call site, and `inventory-counts.test.sh`'s new byte-identity assertion), and that
+  program — already shipped, already the reader every open-PR queue notice relies on — filters on
+  `["OWNER","MEMBER","COLLABORATOR"]`. This is a **pre-existing discrepancy between this design and the
+  code ADR-0006 already shipped**, not one introduced by this slice; reusing rather than forking it means
+  7c inherits it rather than fixing it silently. Narrowing `session-wip.sh`'s own filter is a decision
+  about already-shipped, already-tested code and is out of this slice's scope — named here so it is not
+  lost.
+- **The literal is hardcoded, not read from the persona file at runtime.** The design below says the hook
+  "reads each persona's canonical verdict set from the persona file at runtime." Rule 7c checks the
+  literal `APPROVE-AND-MERGE` directly, matching what `session-wip.sh` already does and what this file's
+  own later "Which layer carries a control" section (absorbed above) already reasons is correct for a
+  **closed set the author wrote**, rather than a caller-controlled grammar — so this is not a shortcut
+  taken against the design's advice; it is the design's advice, updated by later reasoning in the same
+  document, applied consistently with the one control that already existed.
+
+**The gap this leaves completely unclosed, named because the record that motivated this slice measured
+it directly rather than assumed it:** this hook has **zero reach over a human merging via the GitHub UI
+or a personal terminal outside a Claude Code session** — no `PreToolUse` hook fires there, by
+construction; the mechanism only intercepts tool calls a session issues. Measured on
+[#293](https://github.com/tedeuxx/tadeumendonca-skills/pull/293): `mergedBy` was the owner's own GitHub
+account, `is_bot: false`, while `REQUEST-CHANGES` sat on the PR's current head — the exact shape a
+mechanically-clean rule 7c would have denied *had it been invoked through a session tool call*, and did
+not touch at all, because the merge did not go through one. **That is not a defect in what shipped; it is
+the honest boundary of what a `PreToolUse` hook is.** Nothing proposed anywhere in this document, built or
+not, closes it — a browser click is not a tool call, in this or any future revision of this control.
 
 > **The disposition this fold used is not the one ADR-0020 wrote for it, and that is a finding rather
 > than a liberty.** Disposition 4 is scoped to *"a record whose decision is **still in force** and is
