@@ -1072,6 +1072,141 @@ gated, the raw API call is a named gap.)
 floor lives [above](#the-engineering-floor-the-whole-library-encodes) rather than in a file of its own —
 a floor behind a click is a floor nobody reads.
 
+## Run it in Kiro — the Power export, and what that format cannot carry
+
+**The same repository is also a [Kiro](https://kiro.dev) Power**, installable through Kiro's own native
+path with no manual copying. In Kiro: **Powers** → **Add Custom Power** → **Import power from GitHub**,
+then enter
+
+```
+https://github.com/tedeuxx/tadeumendonca-skills/tree/main/powers/tadeumendonca-skills
+```
+
+**The `/tree/<branch>/<path>` form is required, not decorative.** Kiro parses the branch and the
+sub-path out of the URL and sparse-checks-out that one directory; a bare repository URL resolves the
+package root to the repository root, where there is no Kiro manifest. Kiro's own docs state the rule
+that makes the sub-path legal: *"Each power must have a valid `plugin.json` or `POWER.md` file at its
+package root. A single repository can contain multiple powers, each in its own directory."*
+([kiro.dev/docs/powers/installation/](https://kiro.dev/docs/powers/installation/)) That is why the two
+distributions do not collide — the repository root stays a Claude Code plugin, and
+`powers/tadeumendonca-skills/` is a Kiro package root beside it.
+
+**The export is generated, never hand-maintained.** `hooks/scripts/kiro-power-build.py` writes it from
+the same `skills/` tree the Claude Code manifest declares, and `hooks/scripts/kiro-power.test.sh`
+re-runs the generator into a temporary directory and diffs it against what is committed — so the two
+trees cannot drift, in either direction, without CI going red. The conversion is not a copy: **none of
+the 13 source skills carries a `name:` key** (`grep -c '^name:' skills/*/SKILL.md` → `0` for all
+thirteen), because Claude Code derives the identifier from the directory, while Kiro validates
+`name` **and** `description` in the frontmatter. The generator synthesises it, and rewrites the
+library's relative `../../docs/adr/…` link targets to absolute URLs, which are the only form that still
+resolves once Kiro has copied a skill into `~/.kiro/powers/`.
+
+### What each format can carry — the element-by-element gap
+
+**Measured 2026-08-21** against **Kiro 0.12.333** (`CFBundleShortVersionString`, `kiroAgent`
+extension `0.3.721`; `product.json` reports `quality: stable`, built 2026-06-10) and the docs as
+published that day. **This ages, and faster than most things
+written here** — Kiro's Power format changed in **IDE `1.0.288`, 7 Aug 2026** (*"Install powers aligned
+with the open Agent Plugin format from a local folder or GitHub URL"*), from the `POWER.md` era to the
+[Agent Plugins](https://agent-plugins.org) spec, so treat every row below as a dated reading rather
+than a standing property. **The measured build predates that release by two months, and its number is
+not comparable to it** — `0.12.333` and `1.0.288` are not the same series, so the dates are what a
+reader can compare, not the version strings.
+
+| this repo ships | Claude Code plugin format | Kiro Power format |
+|---|---|---|
+| `skills/` — 13 `SKILL.md` guides | declared in `.claude-plugin/plugin.json`'s `skills` array | **carried** — `skills/<name>/SKILL.md` under the package root, discovered by walking the tree. The one element that ports and installs cleanly |
+| `agents/` — 6 persona briefs with `tools:` / `skills:` frontmatter | shipped and loaded | **not exported, and that is this repo's choice rather than a measured limit of the format** — see the scoping note under the table. Kiro *has* a per-subagent mechanism — `.kiro/agents/*.md` with `tools`/`excludedTools` and a `permissions.rules[]` block that compiles to Cedar policy and parses shell with tree-sitter — and a Kiro user hand-authors it today. Whether a Power *could* install into it is **not measured here** |
+| `hooks/` — the `PreToolUse` permission guard and the loop's session hooks | registered by `hooks/hooks.json` on install; the guard denies the irreversible floor | **not exported — and whether a mechanism exists at all depends on which Kiro you mean.** See the CLI/IDE split below; it is not a footnote |
+| `commands/` — 3 typed commands with `argument-hint` | `/plugin:<name>`, arguments interpolated as `$ARGUMENTS` | the corresponding element is **steering**. Kiro's own packaging command names `dev.kiro/` alongside `skills/`, but the 2026-08-07 changelog describes the format as bundling *"skills and MCP"* and does not name steering — **that ambiguity is unresolved here and is stated rather than guessed at**. Not exported in this slice |
+| `mcp.json` | — | carried (optional). This repo ships none |
+| `.claude-plugin/marketplace.json` | the marketplace a consumer adds once, then installs and updates from | **a difference, not a limitation.** Kiro installs straight from a GitHub URL; there is no marketplace indirection to be missing |
+
+**Scoping the "not exported" rows, because the third authoring of this claim got the SUPPORT wrong while
+the measurement was right.** The rows above say what this repository exports and why it chose to. They do
+**not** say what a current Kiro build would accept, and the distinction is not pedantry — it is the whole
+defect. *What is a choice, needing no external ground:* the enforcement layer is Claude-Code-shaped
+(`hooks.json`, `PreToolUse` matchers, an `agent_type` the harness stamps), and porting it is work nobody
+has done. *What is measured, and about exactly one build:* the copy allow-list quoted further down —
+`POWER.md`, `mcp.json`, `steering/` — was read out of **0.12.333**, a build that does not implement the
+Agent Plugins format at all. It is evidence about a pre-support installer and it is cited only there.
+*What is NOT measured and is claimed in neither direction:* whether an installer at or above **`1.0.288`**
+carries `agents/`, `hooks/` or `commands/`. Settling it needs a build this repository does not have. Left
+open, in the same words the `commands/`-to-steering row uses — **stated rather than guessed at** — because
+the previous two attempts to close it by reaching for a source are struck above.
+
+**What the manifests themselves say, since the table above is about files and this is about schemas —
+and what that does NOT establish.** The Agent Plugins 1.0.0 manifest schema requires exactly `$schema`
+and `name`, declares `"additionalProperties": false`, and carries no
+`skills` array (Kiro walks the directory instead). ~~so there is no key to smuggle a persona or a hook
+through~~ — **struck 2026-08-21, and it is the second time this inference was published.** The schema's
+`properties` includes `extensions`: an object keyed by reverse-domain namespace, `"additionalProperties":
+{"type": "object"}`, described as *"Client-specific manifest data … Agent Plugins assigns no semantics to
+namespace object contents."* That is an open, arbitrary-content, explicitly client-specific channel —
+exactly the thing the struck clause said the closed schema ruled out. **The schema does not decide what a
+Power can carry; the installer's copy allow-list does.** The pattern worth carrying away is not the wrong
+sentence but the reach: a true conclusion, and
+twice a corroborating source that did not support it. Claude Code's manifest is the opposite shape:
+an explicit `skills` array is what registers a skill, and omitting one makes the skill invisible to the
+model's own discovery.
+
+### Kiro CLI and Kiro IDE are different targets, and the difference is a silent one
+
+**A Kiro agent definition carries a `hooks` field** with `agentSpawn`, `userPromptSubmit`,
+`preToolUse`, `postToolUse` and `stop` events, and the reference says of `preToolUse` in as many
+words: *"Can block the tool use."* That is a real counterpart to what `permission-guard.sh` does. It is
+also marked **"(CLI only - IDE ignores this field)"** — both strings verified directly against
+[kiro.dev/docs/custom-agents/configuration-reference/](https://kiro.dev/docs/custom-agents/configuration-reference/)
+on 2026-08-21.
+
+**So the IDE accepts a configuration carrying blocking hooks and silently does not run them.** That is
+the worst failure shape in this whole comparison and the reason it is a heading rather than a row: not
+a missing feature, which announces itself, but a config that *looks* complete and enforces nothing —
+the exact defect this repo's own floor names, *presenting a prompt-level instruction as an
+enforcement*. Anyone porting the guard must know which Kiro they are porting to before they start.
+
+Two things about it are **not** settled here and are named rather than guessed:
+
+- **Exit-code semantics for the CLI's blocking hook are unverified.** The IDE-side experiment path was
+  read as exit-code based; whether the CLI agent-hooks path uses the same convention is not something
+  this reading establishes.
+- **Nothing below was exercised live.** Every Kiro claim in this section is read out of the shipped
+  bundle and the published docs. The Kiro install on the machine that measured it has no authenticated
+  session, so no rule was observed denying anything.
+
+**One open question from the original evaluation is closed, in Kiro's favour.** The `skills:` preload
+key this repo's persona briefs use was recorded as having "no observed carrier" on Kiro. It has one:
+an agent definition's `resources` field accepts `skill://` URIs, and the reference's own example is
+`skill://.kiro/skills/**/SKILL.md`. The per-persona curation ADR-0011 describes is expressible there.
+
+**The honest conclusion, which is narrower than "Kiro users get the skills".** What a Kiro user
+installs from this repository is the **knowledge** layer of this harness and none of its
+**enforcement** layer. That distinction is the whole thesis of the repo — *every guarantee is
+mechanical or it is not real* — so shipping the advice without the denies is worth saying out loud
+rather than leaving a reader to discover. **That is a statement about this export, and it is true
+whatever a current installer would accept** — it is what this repository built. What it is *not* is a
+measured limit of the Power format at `1.0.288`+, which nothing here establishes in either direction (see
+the scoping note under the table above). Separately and certainly: the `permissions.rules[]` mechanism is
+a genuine content-level deny, comparable in kind to `permission-guard.sh`, and it is reachable **by hand**
+by a Kiro user today.
+
+**One caveat that is larger than the rest, and it is measured rather than inferred.** On this
+machine's build — `0.12.333`, `stable`, built 2026-06-10, two months before the `1.0.288` release that
+added the format — the Power installer's own copy allow-list is `POWER.md`,
+`mcp.json` and `steering/`, and the string `plugin.json` does not occur even once in the extension's
+821,906-line bundle. That build therefore does not implement the Agent Plugins format at all: it would
+report a successful install of this Power and copy **nothing**.
+
+**And the conclusion rests on the execution path, not merely on the absent string** — which is a
+stronger statement of the same fact and was proved by `quality-assurance` on PR #306 rather than
+inferred here. `copyPowerFiles` iterates the two allow-lists and **swallows `ENOENT`**: `if
+(error.code !== "ENOENT") { throw error; }`. Nothing in this export matches either list, so every copy
+misses, every miss is silently absorbed, and the install reports success over an empty directory. The
+failure is not merely undetected — it is *actively* discarded by the installer. The export is built to the **current
+documented** format, which is what kiro.dev tells third parties to author; a build old enough to
+predate it will install it empty rather than fail loudly. **Verify against your own Kiro version before
+relying on it.**
+
 ## What travels if this design moves to another harness
 
 This repository is the **Claude Code** implementation. Nothing about the *design* it implements is

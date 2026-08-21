@@ -244,3 +244,110 @@ this repo has already paid for.
   checks.
 - **`1.0.0` now reads as covering more than it shipped.** Its release notes describe #174; the record that
   it was also the announcement for the split lives only here and in #164.
+
+## Amendment (2026-08-21) — a SECOND distribution target, and only the knowledge layer travels to it
+
+**Deciders:** the owner (*"quero manter compatibilidade tanto com kiro como claudecode com seus
+mecanismos nativos"*) · pre-implementation stress test and implementation by `agents-lead` · Issue #287.
+
+### 1 · What changed
+
+This repository is now installable by **two** harnesses through **two** native mechanisms, from one
+tree, at the same time:
+
+- **Claude Code** — unchanged. `.claude-plugin/marketplace.json` + `.claude-plugin/plugin.json` with its
+  `skills` array. Nothing in this amendment touches that path.
+- **Kiro** — a **Power** at `powers/tadeumendonca-skills/`, installed from the Powers panel via
+  *Add Custom Power → Import power from GitHub* against
+  `https://github.com/tedeuxx/tadeumendonca-skills/tree/main/powers/tadeumendonca-skills`.
+
+The two do not collide because Kiro resolves a **package root**, not a repository root — its docs state
+*"Each power must have a valid `plugin.json` or `POWER.md` file at its package root. A single repository
+can contain multiple powers, each in its own directory."* So the repository root remains a Claude Code
+plugin and a sibling directory is a Kiro package.
+
+### 2 · Decision drivers
+
+- The owner's ask is compatibility with **both native mechanisms**, not a single artifact both read.
+  There is no such artifact: the two manifests share no schema (the Agent Plugins 1.0.0 manifest
+  declares `"additionalProperties": false` and has no `skills` key at all), and hiding the seam behind
+  an adapter would conceal which half is enforced.
+- A **second distribution surface is a distribution decision**, which is why this is an amendment to the
+  `plugin-distribution` record rather than a new one.
+- The export must be **installable from the repository as it stands**, because Kiro's installer clones a
+  ref and reads files. There is no build step it could run.
+
+### 3 · Considered options
+
+1. **Generate the Kiro package into a committed sibling directory, gated by a regeneration diff**
+   (chosen). *Trade-off:* generated output in the tree, which is a second copy of every skill and
+   therefore a drift risk. Accepted because the risk is fully removed by the gate — `kiro-power.test.sh`
+   re-runs the generator into a temp dir and diffs — and because the consumer leaves no alternative.
+2. **Hand-maintain a parallel Kiro-shaped tree.** *Why not:* two sources of truth for the same 13
+   documents, and the formats are **not** the same, which makes hand-maintenance actively wrong rather
+   than merely tedious — measured, **none** of the 13 source files carries the `name:` key Kiro
+   validates, and five distinct relative ADR links break at the new depth.
+3. **Generate on demand, do not commit.** *Why not:* it is not installable. Kiro fetches files from a
+   clone; an artifact that only exists after someone runs a script is an artifact no Kiro user can
+   install.
+4. **Make the repository root itself the Kiro package** (root `plugin.json` + the existing `skills/`,
+   zero duplication). *Why not, and it is the closest call on this list:* it is genuinely elegant — the
+   two manifests live at different paths and neither harness reads the other's — but it installs from a
+   **bare** repo URL only, puts a second manifest at the root of a repo whose root is already a
+   published surface, and leaves nowhere to state the Power's own scope. Rejected on legibility, not on
+   mechanics; the mechanics would have worked.
+
+### 4 · Decision outcome
+
+Option 1. `hooks/scripts/kiro-power-build.py` projects `skills/` into the Agent Plugins format —
+synthesising the `name` frontmatter key from the directory, rewriting relative links to absolute
+`blob/main` URLs, and authoring a Kiro-specific manifest `description` rather than reusing the Claude
+Code one, which describes personas and hooks the Power does not ship.
+`hooks/scripts/kiro-power.test.sh` gates it in both directions and runs in `hooks-test.yml`.
+`.bumpversion.toml` bumps the second manifest in lockstep, so a release cannot leave the Kiro package on
+a version that no longer exists.
+
+### 5 · Consequences
+
+**Good**
+- A second harness installs this library through its own native path, with no manual copying and no
+  intermediate packaging.
+- The two trees **cannot** drift: a change to either side reddens the same assertion.
+- The projection is where the format differences are stated once and mechanically, instead of thirteen
+  times by hand.
+
+**Bad / accepted costs**
+- **Only the knowledge layer travels, and that is a CHOICE this amendment takes rather than a limit it
+  measured.** `agents/`, `hooks/` and `commands/` are not exported because the enforcement layer is
+  Claude-Code-shaped and porting it is work nobody has done. **Whether an installer at or above
+  `1.0.288` would carry them is not measured and is claimed in neither direction** — the only installer
+  read here belongs to a build predating that format, so it is evidence about a pre-support build and
+  is cited only as that. Either way, what a Kiro user installs is the advice without the denies — worth
+  naming plainly in a repository whose thesis is *every guarantee is mechanical or it is not real*,
+  which is why the README carries the element-by-element gap rather than a footnote.
+  *(Scoped 2026-08-21 on `quality-assurance`'s B4, PR #306: the claim was first published attributing
+  the limit to a docs page, then to the manifest schema, then — correctly measured but wrongly
+  scoped — to a build that cannot install this package. The third failure is the instructive one: a
+  real measurement offered as the ground for a claim about a different object.)*
+- **Generated output is committed**, which is a shape this repo otherwise avoids. Forced by the
+  consumer, not chosen.
+- **Nothing here was exercised live.** Every Kiro claim is read from the shipped bundle and the
+  published docs; the Kiro install used to measure them has no authenticated session, so no install was
+  observed succeeding. **The strongest form of this residual:** on the build measured (0.12.333,
+  `stable`) the Power installer's copy allow-list is `POWER.md` / `mcp.json` / `steering/` and the
+  string `plugin.json` does not occur in the extension bundle at all — that build would report a
+  successful install and copy nothing. The export targets the **current documented** format on purpose;
+  an older build fails soft rather than loud, and the README says so.
+- **The measurement ages fast.** Kiro's Power format changed on 2026-08-07. Every claim here is dated
+  2026-08-21 and should be re-measured, not re-stamped.
+
+### 6 · What is deliberately NOT decided here
+
+**The direct-copy install into a user's own `.kiro/`** — converting `agents/` to Kiro agent definitions
+with `permissions.rules[]`, `commands/` to steering, and shipping a hash-verified copy script — is a
+separate decision and is not taken by this amendment. It rests on capability that has **not** been
+exercised (no live deny observed), and it turns on a distinction this amendment's own scope does not
+need: Kiro's agent `hooks` field can block, and is marked *"CLI only - IDE ignores this field"*, so the
+same configuration is an enforcement on one target and inert on the other. Deciding that in the same
+record as a skills-only export would put an unverified enforcement claim inside a verified distribution
+one.

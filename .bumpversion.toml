@@ -15,3 +15,13 @@ filename = "VERSION"
 filename = ".claude-plugin/plugin.json"
 search = '"version": "{current_version}"'
 replace = '"version": "{new_version}"'
+
+# The Kiro Power's own manifest. A SECOND distribution surface means a second place the version is
+# published to a consumer, and it is not derived from the first at install time — Kiro reads this file
+# out of a clone. Left off this list, a release would bump VERSION and the Claude Code manifest and
+# leave the Kiro package advertising a version that no longer exists, with every other gate green.
+# `kiro-power.test.sh` asserts both halves: that this entry exists, and that the two versions agree.
+[[tool.bumpversion.files]]
+filename = "powers/tadeumendonca-skills/plugin.json"
+search = '"version": "{current_version}"'
+replace = '"version": "{new_version}"'
