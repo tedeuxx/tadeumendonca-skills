@@ -782,8 +782,8 @@ in `/devops`. This is the pointer, not the copy.
 
 ## The hooks, and what they refuse
 
-Claude Code exposes **31 hook events**. This repo wires **three**, and the picture draws all of them so the
-unused surface is visible rather than unmentioned — the three in use are filled, the other twenty-eight are
+Claude Code exposes **31 hook events**. This repo wires **four**, and the picture draws all of them so the
+unused surface is visible rather than unmentioned — the four in use are filled, the other twenty-seven are
 not. `Stop` joined 2026-08-20 (#294) — it sits in the deny-capable group with `PreToolUse`, but the hook
 wired to it never uses that half; see the row below.
 
