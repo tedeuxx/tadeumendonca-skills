@@ -13,7 +13,7 @@ belongs to. Their History rows are in [the index](./README.md).
 - **Capability:** roster-and-dev-loop
 - **Status:** accepted · **absorbed records 0012, 0013, 0014, 0015 and 0019 on 2026-08-20** (#283 slice
   S4 — all five were `accepted`; none was `proposed`, so the open question record 0007's absorption
-  raised does not arise here) · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite) · **amended 2026-08-04** (amendment #9 — `marketing-lead` merges into `product-lead`; the roster drops 6 → 5; the blocking-truth clause is carried across explicitly, and the capability floor that backed it is not) · **amended 2026-08-04** (amendment #10 — `harness-lead` joins tier 1 as the owner's pair on the machinery, advisory and pre-implementation; `security` is **absorbed** into `quality-assurance`, which now holds two lenses in one pass and labels every finding with its lens. The roster is still **five** and **two of its members changed**. The persona criterion widens from *conflict wanted* to **four reasons**, with reconciliation cost paid **within** a tier. Amendment #9's *"both approvals are still required"* is **struck**. Books the rule that produced the gap: **a count is not an identity**) · **amended 2026-08-13** (amendment #13 — `writer` joins tier 2 as a content-scoped second builder; the roster grows 5 → 6; it satisfies none of the four reasons and is named plainly as an owner override; `permission-guard.sh` rule 5e inverted from a denylist to an allowlist to contain it; the `Write`/`Edit` observability gap is accepted in writing rather than closed mechanically)
+  raised does not arise here) · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite) · **amended 2026-08-04** (amendment #9 — `marketing-lead` merges into `product-lead`; the roster drops 6 → 5; the blocking-truth clause is carried across explicitly, and the capability floor that backed it is not) · **amended 2026-08-04** (amendment #10 — `harness-lead` joins tier 1 as the owner's pair on the machinery, advisory and pre-implementation; `security` is **absorbed** into `quality-assurance`, which now holds two lenses in one pass and labels every finding with its lens. The roster is still **five** and **two of its members changed**. The persona criterion widens from *conflict wanted* to **four reasons**, with reconciliation cost paid **within** a tier. Amendment #9's *"both approvals are still required"* is **struck**. Books the rule that produced the gap: **a count is not an identity**) · **amended 2026-08-13** (amendment #13 — `writer` joins tier 2 as a content-scoped second builder; the roster grows 5 → 6; it satisfies none of the four reasons and is named plainly as an owner override; `permission-guard.sh` rule 5e inverted from a denylist to an allowlist to contain it; the `Write`/`Edit` observability gap is accepted in writing rather than closed mechanically) · **amended 2026-08-21** (amendment #14 — `product-lead`'s boundary is `tadeumendonca-io`; consolidates #295/#296/#297: inside `-skills` it may BLOCK on a false published claim and RECOMMEND, advisory-only, on communication, but may not comment on `-skills`'s functioning; `loop`-typed non-dispatch (#295) is a corollary of this rule, not a parallel clause; the labelling discipline (#296) generalises to every advisory finding, not only `loop`-typed ones; enforcement is prose-only, confirmed against Claude Code's own hooks documentation — no hook layer can observe or refuse a `Task` dispatch)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
 - **Driven by:** [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) —
@@ -1403,6 +1403,118 @@ architecture page) and the routing decision's own S5 resolution — now this doc
 routing axis, and it is exclusive (absorbed 2026-08-20, record 0012)* section, **Corollary 3** (route
 `content` Issues to `writer`, not `developer`
 as a stopgap) — both outside this ADR's write scope.
+
+## Amendment (2026-08-21, fourteenth) — `product-lead`'s boundary is `tadeumendonca-io`; inside `-skills` it may block on falsity and recommend on communication, never prescribe configuration
+
+**Consolidates three `loop`-typed intakes from the same session (#295, #296, #297) into one decision,
+because the owner closed all three with one framing rather than three.** Each Issue reasoned toward its
+own recommendation from a different door; the owner's closing words collapse the doors into a single
+rule, so this amendment states the rule once rather than as three patched-together findings.
+
+### The three questions, and the owner's answers, verbatim
+
+**#295 — which axis routes `loop`-typed intake, repository or issue type?** Asked directly, he chose
+**"Eixo TIPO (recomendado)"**. `product-lead` was never routed to `loop` intake by the type axis
+(`README.md`, `/architecture`); the two observed dispatches (#287, #291) were a substitution nothing in
+the axis licensed. This amendment does not need to re-decide that axis — it is decided — but the
+composition below makes the non-dispatch a **consequence** of the boundary rather than an independent
+routing rule, which is the correction to how #295 itself was framed (see *What #295 becomes*, below).
+
+**#296 — does `product-lead`'s career/positioning half stay inside one persona, or split back out?**
+Shown the orchestrator's proposed resolution — reinforce the existing BLOCKING/ADVISORY labelling
+discipline and change nothing else — the owner **rejected it**: *"eu acho que vc deveria fazer o
+product-lead nao se manifestar sobre funcionamento do -skills, somente fazer recomendacoes sobre a
+comunicacao da solucao. isso que acho que falta."* Asked as a direct follow-up whether the composition's
+load-bearing clause — the BLOCKING veto on published falsity, carried across from `marketing-lead` by
+amendment #9 — survives that narrowing, he chose **"Mantém o BLOCKING só pra falsidade
+(recomendado)"**: the veto stays, unscoped; everything else about **how** a `-skills` solution is
+communicated becomes advisory-only, never blocking.
+
+**#297 — does the narrowing bind `product-lead` alone, or the whole `-io`→`-skills` door (the 7-instance
+population #297 measured, including non-`product-lead` actors like `critical-reviewer` and the owner
+himself)?** Unprompted, closing the Issue in one line: **"a boundary do product lead é o -io."** The
+owner scoped the rule to the **persona**, not the door — #202's `critical-reviewer` repair and #328's
+owner-originated rename are unaffected by this amendment; nothing here constrains any actor but
+`product-lead`.
+
+### The rule, stated once
+
+**`product-lead`'s home, full mandate (product + market/positioning), and dispatch surface are
+`tadeumendonca-io`.** When its work reaches `-skills` — through a `product`/`content`-typed `-io` Issue
+whose resolution lands as a `-skills` commit (#297's Door 3), or through the copy lens reviewing a
+`-skills` PR's own prose (#297's Door 2, untouched by this amendment) — its authority over `-skills`
+narrows to exactly two things:
+
+1. **It may BLOCK** — the existing truth veto (amendment #9), unchanged in force and unscoped by object —
+   when a claim `-skills` publishes to a reader is **FALSE**. This is not a new veto; it is the same one,
+   stated here to survive the narrowing rather than be read as repealed by it.
+2. **It may RECOMMEND, advisory-only, never blocking** — on how a `-skills` solution is **communicated**:
+   wording, clarity, whether a reader can follow it, tone, the structure of an explanation. It may **not**
+   comment on, or have any standing to influence, `-skills`'s **functioning** — machinery, hooks,
+   permission logic, agent-brief mandates, gate mechanics; anything that is *how the harness works* rather
+   than *how a claim about the harness reads*.
+
+**Worked examples, because the line is meant to be self-applied without re-deriving this reasoning:**
+
+- The marketplace `plugin.json` `description` asserts a capability the plugin does not have → **may
+  block** (falsity about a published surface).
+- A hook's branching logic is wrong (e.g. it denies a case it should allow) → **may not comment** — that
+  is functioning, `harness-lead`'s object, per ADR-0004's *Which layer carries a control* section.
+- The wording of an error message a guard hook emits is confusing → **may recommend** — communication,
+  advisory.
+- A persona brief's trigger rule (the shape #202 rewrote, the sharpest instance #297 measured) → **may
+  not comment** — functioning, whatever door the finding arrives through.
+
+### What #295 becomes — a corollary, not a parallel clause
+
+**If `product-lead` does not comment on functioning at all, it has nothing to contribute to `loop`-typed
+intake, which is about machinery decisions.** So *"`product-lead` is not dispatched on `loop`-typed
+Issues in `-skills`"* — #295's own recommendation — follows from this amendment's boundary rule rather
+than needing independent justification. `loop`-typed intake continues to close through `harness-lead`
+and `tech-lead` (`README.md`, `/architecture`, unchanged by this amendment); `product-lead`'s absence
+from that chain is now explained by what it is, not asserted as a separate routing carve-out.
+
+### What #296 becomes — a general discipline, not a `loop`-specific one
+
+**The labelling-discipline finding (`BLOCKING:`/`ADVISORY:`, `BLOCKING: none` stated explicitly) is not
+primarily about `loop`-typed work** — that door is closed by the corollary above. It is a **general
+requirement for every advisory recommendation this persona returns, in any context**: ordering and craft
+findings in `-io`'s `product`/`content` intake, and the narrow communication-only lane inside `-skills`
+this amendment creates. `agents/product-lead.md`'s existing *"The report format"* section already states
+this; it is unchanged and is not weakened by this amendment — the two `-skills` dispatches that violated
+it (#287, #291) are exactly the two instances that motivated writing the boundary down at all.
+
+### Enforcement — stated plainly, once, because every other clause in this batch gets the same treatment
+
+**This is prose in a brief, with no mechanical enforcement, and #297's own comment thread confirms this
+against the primary source rather than merely failing to find a counter-example:** the official Claude
+Code hooks documentation states `SubagentStart` **cannot block** a dispatch — informational only — and
+`SubagentStop` can only force a subagent's own continuation, after it already ran, never refuse the
+decision to dispatch it. `hooks/hooks.json` registers `PreToolUse` on the `Bash` matcher only, so no
+hook observes a `Task` dispatch at all. **There is no wider registration that would close this** — it is
+not a configuration gap, it is the documented ceiling of the mechanism. This amendment converts an
+unloaded rule (two Issue bodies, session memory — the exact shape that let #287 and #291 happen) into a
+**loaded** one (`agents/product-lead.md`, preloaded on every dispatch); that is the whole of what it buys,
+and it is stated as a ceiling rather than implied to be stronger.
+
+### What this amendment does NOT change
+
+- **The composition decided by amendment #9** — `product-lead` still holds both halves, product and
+  market/positioning, as one persona over one object (the owner's presence). #296 asked whether to split
+  the persona back apart and the owner declined; this amendment narrows what the persona may say about
+  one specific object (`-skills`'s machinery), not what the persona *is*.
+- **The BLOCKING veto's force or scope elsewhere.** Unchanged in `-io`, unchanged on `-skills` prose
+  reviewed through the copy lens (#297 Door 2), unchanged as the mechanism amendment #9 carried across.
+- **Door 2** (the copy lens reviewing `-skills` PR prose at merge review) and **the residual doors** #297
+  measured that are not `product-lead` (`critical-reviewer`, the owner). Both are outside this amendment's
+  scope by the owner's own #297 answer.
+
+### A cross-repo staleness this amendment creates and does not close
+
+`tadeumendonca-io`'s `/architecture` republishes this repo's roster table and, in prose, describes
+`product-lead`'s mandate — potentially in terms this amendment narrows for the `-skills` object
+specifically. This ADR cannot edit that page; the staleness is named in the PR that carries this
+amendment rather than silently left for a later discovery.
 
 ## Consequences
 **Good**
