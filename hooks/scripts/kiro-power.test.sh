@@ -196,6 +196,58 @@ $rel"
   fi
 fi
 
+# --- the export README cites no origin but this repository's own --------------------------------
+# CONVERTS A COMMENT INTO A GATE. The generator carries a standing instruction to its next author not
+# to reach for another external source to ground the "what this Power does not ship" paragraph — the
+# claim has now been published wrong three times, each time by reaching. That instruction was PROSE,
+# in the repository whose own test is *"if this guarantee failed right now, would something stop me,
+# or only my memory?"* The answer was memory. This is the something.
+#
+# MEASURED AGAINST THE ACTUAL HISTORY RATHER THAN ASSUMED, which is what decided it was worth adding:
+#   * at `ab6c5c7` (form 1) the README carried `https://kiro.dev/docs/powers/`   -> this goes RED
+#   * at `2ccb402` (form 2) it carried `https://agent-plugins.org/schemas/...`   -> this goes RED
+#   * at head it carries two URLs, both under this repository                    -> GREEN
+# Two of the three published defects would have been stopped by one assertion nobody had to remember.
+#
+# WHAT IT DOES NOT CATCH, said plainly so nobody reads the green as more than it is: form 3 cited a
+# CORRECT measurement of the wrong build and carried no URL at all. A URL is a proxy for reaching
+# outward, not the act itself, so this narrows the class rather than closing it. The judgement — *is
+# this source about the same object as the claim it is carrying?* — has no instrument and stays with
+# the reviewer.
+#
+# IT IS DELIBERATELY STRICT. A future author with a legitimate external link must edit the generator's
+# template AND this assertion, and argue for it in the MR. That friction is the feature: the three
+# defects above were each one author deciding alone that one more source would help.
+PKG_README="$POWER/README.md"
+OWN_ORIGIN="https://github.com/tedeuxx/tadeumendonca-skills"
+if [ ! -r "$PKG_README" ]; then
+  bad "README origin — $PKG_README is unreadable; this assertion did NOT run"
+else
+  readme_urls="$(grep -oE 'https?://[^ )"<>]+' "$PKG_README" | sort -u)"
+  if [ -z "$readme_urls" ]; then
+    bad "README origin — the export README carries NO URL at all, not even the install URL a Kiro user has to paste; this assertion would pass vacuously"
+  else
+    foreign=""
+    while IFS= read -r url; do
+      [ -z "$url" ] && continue
+      case "$url" in
+        "$OWN_ORIGIN"*) ;;
+        *) foreign="$foreign
+    $url" ;;
+      esac
+    done <<< "$readme_urls"
+    if [ -z "$foreign" ]; then
+      ok "README origin — every URL in the export README is under this repository's own origin ($(printf '%s\n' "$readme_urls" | wc -l | tr -d ' ') URLs)"
+    else
+      bad "README origin — the export README cites an origin that is not this repository:$foreign
+    This file's claims about what a Power can carry have been published wrong three times, each time by
+    reaching for an external source that did not support them. Ground it on what this package CHOOSES to
+    ship, or measure the installer of a named build and say which build. See the standing instruction in
+    hooks/scripts/kiro-power-build.py."
+    fi
+  fi
+fi
+
 # --- the release wiring declares the Kiro manifest ----------------------------------------------
 # Asserted against `.bumpversion.toml` and NOT merely against the version equality above, because the
 # two fail at different moments. The equality goes red only AFTER a release has already shipped the
@@ -204,6 +256,73 @@ if grep -qF 'powers/tadeumendonca-skills/plugin.json' "$ROOT/.bumpversion.toml";
   ok "release wiring — .bumpversion.toml bumps the Kiro manifest in lockstep"
 else
   bad "release wiring — .bumpversion.toml does not list powers/tadeumendonca-skills/plugin.json; a release would leave the Kiro package on a stale version"
+fi
+
+# --- the generator refuses an output root whose `skills/` it did not write -----------------------
+# THE ONLY RECURSIVE DELETE IN THIS SLICE, and it is driven by a caller-supplied path. `main()` takes
+# the output root from `sys.argv[1]` and rebuilds `<root>/skills` from scratch, so invoking it as
+# `python3 hooks/scripts/kiro-power-build.py .` from the repository root — the way every other script
+# here is run — makes that path the SOURCE LIBRARY. Measured before the guard existed, in a disposable
+# copy: 13 skills destroyed, one empty directory left, and the run THEN died reading a file it had
+# just deleted. The destruction precedes the error, so nothing downstream can save it.
+#
+# WHY IT IS ASSERTED HERE RATHER THAN LEFT TO THE PERMISSION FLOOR. `permission-guard.sh` denies
+# `rm -rf` by reading a command string. This is `python3 <a repo script> <a path>`, which it allows,
+# and the deletion happens inside the process — a repo script routing around the mechanical control
+# this repository's whole thesis rests on. A destructive script whose guard has no test is that thesis
+# stated and not applied.
+#
+# THE ASSERTION RUNS AGAINST A DISPOSABLE MIRROR, NOT AGAINST `$ROOT`, and that is not fastidiousness.
+# The generator resolves its own source tree from `__file__`, so the only way to make it point at a
+# library is to give it one. Pointing it at the real repository would mean a test that DESTROYS the
+# library on the exact run where it fails — the failure mode inverted, and by far the worst possible
+# shape for a regression test to have.
+mirror="$(mktemp -d)"
+trap 'rm -rf "$tmp" "$mirror"' EXIT
+mkdir -p "$mirror/hooks/scripts"
+cp -R "$ROOT/skills" "$mirror/skills"
+cp -R "$ROOT/.claude-plugin" "$mirror/.claude-plugin"
+cp "$GENERATOR" "$mirror/hooks/scripts/kiro-power-build.py"
+mirror_before="$(find "$mirror/skills" -name SKILL.md | wc -l | tr -d ' ')"
+if [ "$mirror_before" -lt 1 ]; then
+  bad "destructive-argument refusal — the disposable mirror holds no SKILL.md, so the generator would have nothing to destroy; this assertion did NOT run"
+else
+  refusal="$(python3 "$mirror/hooks/scripts/kiro-power-build.py" "$mirror" 2>&1)"
+  refusal_rc=$?
+  mirror_after="$(find "$mirror/skills" -name SKILL.md | wc -l | tr -d ' ')"
+  if [ "$mirror_after" -ne "$mirror_before" ]; then
+    bad "destructive-argument refusal — pointing the generator at a repository root DELETED source skills ($mirror_before -> $mirror_after). Restore the guard in kiro-power-build.py's safe_skills_out()."
+  elif [ "$refusal_rc" -eq 0 ]; then
+    bad "destructive-argument refusal — pointing the generator at a repository root exited 0 instead of refusing; it must fail loudly, not silently do something else: $refusal"
+  else
+    ok "destructive-argument refusal — an output root whose skills/ is the source library is refused, non-zero, with nothing deleted"
+  fi
+fi
+
+# --- ...and the refusal does not block the workflow it protects ----------------------------------
+# ITS OWN `if`, and it is not a restatement of the one above. A guard that refuses EVERYTHING passes
+# the assertion above perfectly, and the only thing that would notice is a maintainer regenerating the
+# committed export by hand — which no gate here does, since the regeneration diff at the top of this
+# file always writes into a FRESH temporary directory and so never exercises the delete-then-rebuild
+# path at all. The real maintenance invocation overwrites a directory that already has content in it.
+# This asserts that case, against a COPY of the committed export so the repository is never written to.
+regen="$(mktemp -d)"
+trap 'rm -rf "$tmp" "$mirror" "$regen"' EXIT
+cp -R "$POWER/." "$regen/"
+if [ ! -f "$regen/plugin.json" ]; then
+  bad "regeneration over prior output — the copy of the committed export is missing plugin.json; this assertion did NOT run"
+else
+  regen_out="$(python3 "$GENERATOR" "$regen" 2>&1)"
+  regen_rc=$?
+  if [ "$regen_rc" -ne 0 ]; then
+    bad "regeneration over prior output — the generator REFUSED to rebuild its own committed export: $regen_out
+    The safety guard is over-broad: it now blocks the one invocation a maintainer actually makes."
+  elif ! regen_diff="$(diff -r "$regen" "$POWER" 2>&1)"; then
+    bad "regeneration over prior output — rebuilding on top of the committed export did not reproduce it:
+$regen_diff"
+  else
+    ok "regeneration over prior output — the generator rebuilds its own export in place and reproduces it exactly"
+  fi
 fi
 
 # --- CI can actually start this gate -------------------------------------------------------------
@@ -266,7 +385,18 @@ else
       while IFS= read -r glob; do
         [ -z "$glob" ] && continue
         case "$glob" in
-          */\*\*) [ "${rel#"${glob%\*\*}"}" != "$rel" ] && matched=yes ;;
+          */\*\*)
+            # `skills/**` covers BOTH a read of a file under `skills/` AND a read of the directory
+            # `skills` itself — reading a directory is reading its contents, and a PR that changes
+            # anything in it starts the workflow either way. The second test was missing, and it
+            # reported `skills` and `.claude-plugin` as uncovered when both are in the filter and
+            # always were. That is the shape this assertion is least able to afford: a FALSE RED on
+            # the arm written to catch false greens teaches the next reader to widen the filter (or
+            # to narrow what the suite reads) to silence it, which is the defect, applied as a fix.
+            prefix="${glob%\*\*}"
+            [ "${rel#"$prefix"}" != "$rel" ] && matched=yes
+            [ "$rel" = "${prefix%/}" ] && matched=yes
+            ;;
           *)      case "$rel" in "$glob"|"$glob"/*) matched=yes ;; esac ;;
         esac
         [ -n "$matched" ] && break

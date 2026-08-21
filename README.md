@@ -1116,11 +1116,24 @@ reader can compare, not the version strings.
 | this repo ships | Claude Code plugin format | Kiro Power format |
 |---|---|---|
 | `skills/` — 13 `SKILL.md` guides | declared in `.claude-plugin/plugin.json`'s `skills` array | **carried** — `skills/<name>/SKILL.md` under the package root, discovered by walking the tree. The one element that ports and installs cleanly |
-| `agents/` — 6 persona briefs with `tools:` / `skills:` frontmatter | shipped and loaded | **no channel.** Kiro *has* a per-subagent mechanism — `.kiro/agents/*.md` with `tools`/`excludedTools` and a `permissions.rules[]` block that compiles to Cedar policy and parses shell with tree-sitter — but a Power cannot install into it. A Kiro user hand-authors it |
-| `hooks/` — the `PreToolUse` permission guard and the loop's session hooks | registered by `hooks/hooks.json` on install; the guard denies the irreversible floor | **no channel — and whether a mechanism exists at all depends on which Kiro you mean.** See the CLI/IDE split below; it is not a footnote |
+| `agents/` — 6 persona briefs with `tools:` / `skills:` frontmatter | shipped and loaded | **not exported, and that is this repo's choice rather than a measured limit of the format** — see the scoping note under the table. Kiro *has* a per-subagent mechanism — `.kiro/agents/*.md` with `tools`/`excludedTools` and a `permissions.rules[]` block that compiles to Cedar policy and parses shell with tree-sitter — and a Kiro user hand-authors it today. Whether a Power *could* install into it is **not measured here** |
+| `hooks/` — the `PreToolUse` permission guard and the loop's session hooks | registered by `hooks/hooks.json` on install; the guard denies the irreversible floor | **not exported — and whether a mechanism exists at all depends on which Kiro you mean.** See the CLI/IDE split below; it is not a footnote |
 | `commands/` — 3 typed commands with `argument-hint` | `/plugin:<name>`, arguments interpolated as `$ARGUMENTS` | the corresponding element is **steering**. Kiro's own packaging command names `dev.kiro/` alongside `skills/`, but the 2026-08-07 changelog describes the format as bundling *"skills and MCP"* and does not name steering — **that ambiguity is unresolved here and is stated rather than guessed at**. Not exported in this slice |
 | `mcp.json` | — | carried (optional). This repo ships none |
 | `.claude-plugin/marketplace.json` | the marketplace a consumer adds once, then installs and updates from | **a difference, not a limitation.** Kiro installs straight from a GitHub URL; there is no marketplace indirection to be missing |
+
+**Scoping the "not exported" rows, because the third authoring of this claim got the SUPPORT wrong while
+the measurement was right.** The rows above say what this repository exports and why it chose to. They do
+**not** say what a current Kiro build would accept, and the distinction is not pedantry — it is the whole
+defect. *What is a choice, needing no external ground:* the enforcement layer is Claude-Code-shaped
+(`hooks.json`, `PreToolUse` matchers, an `agent_type` the harness stamps), and porting it is work nobody
+has done. *What is measured, and about exactly one build:* the copy allow-list quoted further down —
+`POWER.md`, `mcp.json`, `steering/` — was read out of **0.12.333**, a build that does not implement the
+Agent Plugins format at all. It is evidence about a pre-support installer and it is cited only there.
+*What is NOT measured and is claimed in neither direction:* whether an installer at or above **`1.0.288`**
+carries `agents/`, `hooks/` or `commands/`. Settling it needs a build this repository does not have. Left
+open, in the same words the `commands/`-to-steering row uses — **stated rather than guessed at** — because
+the previous two attempts to close it by reaching for a source are struck above.
 
 **What the manifests themselves say, since the table above is about files and this is about schemas —
 and what that does NOT establish.** The Agent Plugins 1.0.0 manifest schema requires exactly `$schema`
@@ -1131,8 +1144,8 @@ through~~ — **struck 2026-08-21, and it is the second time this inference was 
 {"type": "object"}`, described as *"Client-specific manifest data … Agent Plugins assigns no semantics to
 namespace object contents."* That is an open, arbitrary-content, explicitly client-specific channel —
 exactly the thing the struck clause said the closed schema ruled out. **The schema does not decide what a
-Power can carry; the installer's copy allow-list does**, and that is where the "no channel" rows above are
-grounded. The pattern worth carrying away is not the wrong sentence but the reach: a true conclusion, and
+Power can carry; the installer's copy allow-list does.** The pattern worth carrying away is not the wrong
+sentence but the reach: a true conclusion, and
 twice a corroborating source that did not support it. Claude Code's manifest is the opposite shape:
 an explicit `skills` array is what registers a skill, and omitting one makes the skill invisible to the
 model's own discovery.
@@ -1170,9 +1183,12 @@ an agent definition's `resources` field accepts `skill://` URIs, and the referen
 installs from this repository is the **knowledge** layer of this harness and none of its
 **enforcement** layer. That distinction is the whole thesis of the repo — *every guarantee is
 mechanical or it is not real* — so shipping the advice without the denies is worth saying out loud
-rather than leaving a reader to discover. It is a limit of the **Power format**, not of Kiro: the
-`permissions.rules[]` mechanism is a genuine content-level deny, comparable in kind to
-`permission-guard.sh`, and it is reachable by hand. What has no channel is the **distribution** of it.
+rather than leaving a reader to discover. **That is a statement about this export, and it is true
+whatever a current installer would accept** — it is what this repository built. What it is *not* is a
+measured limit of the Power format at `1.0.288`+, which nothing here establishes in either direction (see
+the scoping note under the table above). Separately and certainly: the `permissions.rules[]` mechanism is
+a genuine content-level deny, comparable in kind to `permission-guard.sh`, and it is reachable **by hand**
+by a Kiro user today.
 
 **One caveat that is larger than the rest, and it is measured rather than inferred.** On this
 machine's build — `0.12.333`, `stable`, built 2026-06-10, two months before the `1.0.288` release that

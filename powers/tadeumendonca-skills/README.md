@@ -26,18 +26,26 @@ copy nothing, so the steps above can appear to work and leave you with an empty 
 **Ships:** the skills — 13 dense, project-agnostic engineering guides.
 
 **Does not ship:** the harness's persona briefs (`agents/`), its `PreToolUse` permission hooks
-(`hooks/`) or its merge gates. **The evidence for that is one directly observed fact, and this
-paragraph deliberately stops there:** the Power installer's copy allow-list in the Kiro build measured
-below is `POWER.md`, `mcp.json` and `steering/`, and none of those four is in it. What a Power can
-carry is decided by what the installer copies.
+(`hooks/`) or its merge gates. **This export carries the knowledge layer and not the enforcement layer
+BY CHOICE**, which is a fact about this package and needs no reading of anybody else's installer: the
+enforcement layer is Claude-Code-shaped — `hooks.json`, `PreToolUse` matchers, `agent_type` — and
+porting it to another harness is work nobody has done, not a file anybody forgot to copy.
 
-Two earlier forms of this paragraph reached past that for a corroborating source — a docs page, then
-the manifest schema — and both were wrong about the source while right about the conclusion. They are
-not restated here, and no replacement source is offered in their place.
+**Whether a Kiro build that implements the Agent Plugins format WOULD carry those directories is not
+measured here, and is claimed in neither direction.** The only installer this repository has read is
+the one in the build named under "One caveat" below, whose copy allow-list is `POWER.md`, `mcp.json`
+and `steering/` — and that same build does not implement this format at all, so its allow-list is
+evidence about a pre-support build and nothing more. Settling the question needs a build at or above
+the release named below; this repository does not have one. That is stated rather than guessed at,
+the same way the `commands/`-to-steering ambiguity is stated in the root README.
 
-That is a limit of what the installer accepts, not an omission here, and it is stated so that nobody
-installs this expecting the enforcement layer. The full harness is the Claude Code plugin at the
-repository root.
+Two earlier forms of this paragraph reached for a corroborating source — a docs page, then the
+manifest schema — and both were wrong about the source while right about the conclusion. A third form
+kept a correct measurement but applied it to the wrong build. None is restated here, and no
+replacement source is offered in their place.
+
+What matters for a reader is unchanged either way: **install this expecting the skills, not the
+denies.** The full harness is the Claude Code plugin at the repository root.
 
 ## One caveat, and it is larger than the rest
 

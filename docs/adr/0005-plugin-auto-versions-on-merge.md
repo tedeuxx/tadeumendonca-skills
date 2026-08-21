@@ -317,10 +317,18 @@ a version that no longer exists.
   times by hand.
 
 **Bad / accepted costs**
-- **Only the knowledge layer travels.** `agents/`, `hooks/` and `commands/` have no Power channel.
-  What a Kiro user installs is the advice without the denies — worth naming plainly in a repository
-  whose thesis is *every guarantee is mechanical or it is not real*, which is why the README carries the
-  element-by-element gap rather than a footnote.
+- **Only the knowledge layer travels, and that is a CHOICE this amendment takes rather than a limit it
+  measured.** `agents/`, `hooks/` and `commands/` are not exported because the enforcement layer is
+  Claude-Code-shaped and porting it is work nobody has done. **Whether an installer at or above
+  `1.0.288` would carry them is not measured and is claimed in neither direction** — the only installer
+  read here belongs to a build predating that format, so it is evidence about a pre-support build and
+  is cited only as that. Either way, what a Kiro user installs is the advice without the denies — worth
+  naming plainly in a repository whose thesis is *every guarantee is mechanical or it is not real*,
+  which is why the README carries the element-by-element gap rather than a footnote.
+  *(Scoped 2026-08-21 on `quality-assurance`'s B4, PR #306: the claim was first published attributing
+  the limit to a docs page, then to the manifest schema, then — correctly measured but wrongly
+  scoped — to a build that cannot install this package. The third failure is the instructive one: a
+  real measurement offered as the ground for a claim about a different object.)*
 - **Generated output is committed**, which is a shape this repo otherwise avoids. Forced by the
   consumer, not chosen.
 - **Nothing here was exercised live.** Every Kiro claim is read from the shipped bundle and the

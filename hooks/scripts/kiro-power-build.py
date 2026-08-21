@@ -47,19 +47,33 @@ gate above exists to remove.
 
 WHAT THIS FILE DOES NOT DO, said plainly so the export is not read as more than it is:
 
-  * `agents/`, `hooks/`, `commands/` and `.claude/settings.json` are NOT exported. GROUNDED ON ONE
-    DIRECTLY OBSERVED FACT AND NOTHING ELSE: the installed Kiro build's own Power copy allow-list is
-    `POWER.md`, `mcp.json` and `steering/`, and none of those four is in it. That is the layer that
-    decides what a Power can carry on a machine, and it was read out of the shipped bundle.
-    THIS CLAIM HAS NOW BEEN WRONG TWICE, BOTH TIMES IN THE SAME WAY — reaching past that observation
+  * `agents/`, `hooks/`, `commands/` and `.claude/settings.json` are NOT exported. THE GROUND FOR
+    THAT IS A CHOICE, NOT A MEASUREMENT OF KIRO, and the difference is the whole of the correction
+    below: the enforcement layer is Claude-Code-shaped (`hooks.json`, `PreToolUse` matchers, an
+    `agent_type` the harness stamps), and porting it is work nobody has done. WHETHER A BUILD
+    IMPLEMENTING THE AGENT PLUGINS FORMAT WOULD CARRY THEM IS NOT MEASURED AND IS NOT CLAIMED HERE
+    IN EITHER DIRECTION.
+    The one installer this repository has read — copy allow-list `POWER.md`, `mcp.json`, `steering/`
+    — belongs to a build that does not implement this format at all, so it is evidence about a
+    PRE-SUPPORT build and it is cited only there, under the README's "One caveat".
+    THIS CLAIM HAS NOW BEEN WRONG THREE TIMES. Twice in the same way — reaching past that observation
     for a second source that reads as corroboration and is not. Form 1 attributed it to
     kiro.dev/docs/powers/ "listing them as unsupported"; that page returns HTTP 200 and contains none
     of those terms. Form 2 attributed it to the Agent Plugins 1.0.0 manifest schema requiring exactly
     `$schema` and `name` under `"additionalProperties": false`, "so there is no key a persona, a hook
     or a permission rule could be carried in" — but that schema's `properties` includes `extensions`,
     an open object keyed by reverse-domain namespace whose contents the spec assigns no semantics to,
-    which is precisely such a key. Both times the conclusion held and the ground did not. DO NOT ADD
-    A THIRD SOURCE HERE. If the allow-list stops being the evidence, re-measure the allow-list.
+    which is precisely such a key. Both times the conclusion held and the ground did not.
+    Form 3 was a DIFFERENT failure and worth telling apart, because it survived the fix for the first
+    two: it dropped the bad second source and kept the good first one — the measured allow-list —
+    without noticing that the measurement is scoped to a build the same document says cannot install
+    this package. A correct measurement, offered as the ground for a claim about a DIFFERENT
+    installer. The self-check that catches it is not "is this source real?" but "is this source about
+    the same object as the claim it is carrying?"
+    DO NOT ADD A FOURTH SOURCE HERE. The export ships skills by CHOICE; that needs no external
+    ground, and it is the whole of what the README now asserts. If someone acquires a build at or
+    above the release named in the README, measure THAT installer's allow-list and say which build it
+    came from — do not re-cite this one.
     The Power ships the KNOWLEDGE layer of this harness and none of its ENFORCEMENT layer. The
     package README this file writes says so above the fold, because a reader who installs it and
     assumes otherwise has been misled by us, not by Kiro.
@@ -115,6 +129,73 @@ EXTRA_KEYWORDS = [
 def skill_names():
     """Every skill directory, one level under `skills/`, sorted. The ONLY shape (#286)."""
     return sorted(p.parent.name for p in SKILLS.glob("*/SKILL.md"))
+
+
+def safe_skills_out(out):
+    """Return `out/skills`, or refuse — the only recursive delete in this file happens on that path.
+
+    WHY THIS EXISTS, and it was found by EXECUTION rather than by reading. `main()` takes the output
+    root from `sys.argv[1]` and rebuilds `out/skills` from scratch, which means a `shutil.rmtree`.
+    Invoked as `python3 hooks/scripts/kiro-power-build.py .` from the repository root — a plausible
+    mis-invocation, since every other script here is run from the root — `out/skills` IS `skills/`.
+    Measured in a disposable copy: the 13 source skills were destroyed, one empty directory was left,
+    and the run THEN died with `FileNotFoundError` reading a file it had just deleted. The failure
+    arrives after the destruction, so there is no point at which the crash could have saved anything.
+
+    THE PERMISSION FLOOR CANNOT SEE THIS. `permission-guard.sh` denies `rm -rf` by inspecting a
+    command string; this is `python3 <a repo script> <a path>`, which it allows, and the deletion
+    happens inside the process. That is this repository's own thesis pointed at itself — *every
+    guarantee is mechanical or it is not real* — so the guard belongs here, adjacent to the hazard,
+    and not in a layer that structurally cannot hold it.
+
+    TWO CHECKS, and the second is the general one:
+
+      1. **Never delete the source library.** Stated as an identity so it holds regardless of what
+         anything else in this file does, and so it survives a later change to check 2's marker.
+         `out == ROOT` is the demonstrated case; `out` at or inside `skills/` is refused with it,
+         because writing the export there would also break this file's own read-only invariant.
+      2. **Never recursively delete a `skills/` tree this generator did not write.** Check 1 is
+         keyed to THIS repository and the hazard is not: `... build.py ~` deletes `~/skills`, and
+         `... build.py ../<some other repo>` deletes that repo's. So the rmtree is allowed only into
+         an output root that is absent, empty, or already a package this generator produced —
+         identified by its own manifest's `name`. The rule is the general one: this file deletes only
+         its own prior output.
+
+    ACCEPTED COST of check 2, stated rather than discovered later: an export whose `plugin.json` was
+    deleted by hand, or a run interrupted between the rmtree and the manifest write, refuses instead
+    of self-healing and needs the directory removed manually. That is the correct direction to fail
+    for a recursive delete, and the message says which state was found.
+    """
+    out = out.resolve()
+    src = SKILLS.resolve()
+    skills_out = out / "skills"
+
+    if skills_out == src or out == src or src in out.parents:
+        raise SystemExit(
+            f"refusing to write the export to {out}: that would recursively delete the source "
+            f"library at {src}. The output root is the PACKAGE root (default: {DEFAULT_OUT}), not "
+            f"the repository root — run the generator with no argument."
+        )
+
+    if skills_out.exists():
+        manifest = out / "plugin.json"
+        produced_by_us = False
+        if manifest.is_file():
+            try:
+                produced_by_us = (
+                    json.loads(manifest.read_text(encoding="utf-8")).get("name")
+                    == json.loads(CLAUDE_MANIFEST.read_text(encoding="utf-8"))["name"]
+                )
+            except (OSError, ValueError):
+                produced_by_us = False
+        if not produced_by_us:
+            raise SystemExit(
+                f"refusing to delete {skills_out}: it exists, and {out} carries no plugin.json "
+                f"naming this Power, so this generator did not write it. This file deletes only its "
+                f"own prior output. Remove the directory by hand if that is really what you want."
+            )
+
+    return skills_out
 
 
 def split_frontmatter(text):
@@ -216,18 +297,26 @@ copy nothing, so the steps above can appear to work and leave you with an empty 
 **Ships:** the skills — {count} dense, project-agnostic engineering guides.
 
 **Does not ship:** the harness's persona briefs (`agents/`), its `PreToolUse` permission hooks
-(`hooks/`) or its merge gates. **The evidence for that is one directly observed fact, and this
-paragraph deliberately stops there:** the Power installer's copy allow-list in the Kiro build measured
-below is `POWER.md`, `mcp.json` and `steering/`, and none of those four is in it. What a Power can
-carry is decided by what the installer copies.
+(`hooks/`) or its merge gates. **This export carries the knowledge layer and not the enforcement layer
+BY CHOICE**, which is a fact about this package and needs no reading of anybody else's installer: the
+enforcement layer is Claude-Code-shaped — `hooks.json`, `PreToolUse` matchers, `agent_type` — and
+porting it to another harness is work nobody has done, not a file anybody forgot to copy.
 
-Two earlier forms of this paragraph reached past that for a corroborating source — a docs page, then
-the manifest schema — and both were wrong about the source while right about the conclusion. They are
-not restated here, and no replacement source is offered in their place.
+**Whether a Kiro build that implements the Agent Plugins format WOULD carry those directories is not
+measured here, and is claimed in neither direction.** The only installer this repository has read is
+the one in the build named under "One caveat" below, whose copy allow-list is `POWER.md`, `mcp.json`
+and `steering/` — and that same build does not implement this format at all, so its allow-list is
+evidence about a pre-support build and nothing more. Settling the question needs a build at or above
+the release named below; this repository does not have one. That is stated rather than guessed at,
+the same way the `commands/`-to-steering ambiguity is stated in the root README.
 
-That is a limit of what the installer accepts, not an omission here, and it is stated so that nobody
-installs this expecting the enforcement layer. The full harness is the Claude Code plugin at the
-repository root.
+Two earlier forms of this paragraph reached for a corroborating source — a docs page, then the
+manifest schema — and both were wrong about the source while right about the conclusion. A third form
+kept a correct measurement but applied it to the wrong build. None is restated here, and no
+replacement source is offered in their place.
+
+What matters for a reader is unchanged either way: **install this expecting the skills, not the
+denies.** The full harness is the Claude Code plugin at the repository root.
 
 ## One caveat, and it is larger than the rest
 
@@ -263,7 +352,7 @@ def main():
     # Rebuilt from scratch every run. A skill RENAMED at the source would otherwise leave its old
     # directory behind, and a stale skill in the export is the drift this whole file exists to
     # prevent — invisible to a forward-only check, and shipped to a consumer as if current.
-    skills_out = out / "skills"
+    skills_out = safe_skills_out(out)
     if skills_out.exists():
         shutil.rmtree(skills_out)
     out.mkdir(parents=True, exist_ok=True)
