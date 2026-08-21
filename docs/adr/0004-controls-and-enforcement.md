@@ -587,7 +587,7 @@ that closed it. **It supersedes the layering claim in this record's own second 2
 supersession that is now internal to one document, which is the clearest single argument for the fold.
 Its History row is in [the index](./README.md).
 
-**This is the section a reader is sent to by name.** `agents/harness-lead.md` cites this decision as
+**This is the section a reader is sent to by name.** `agents/agents-lead.md` cites this decision as
 that persona's standing question — *which layer carries a control, and can that layer hold it?* — and it
 is a general design question asked about gates, labels and hooks that hold no permission at all, not
 only about permissions. The capability's name is `controls-and-enforcement` rather than `permissions`
@@ -840,7 +840,7 @@ the existential form above has exactly one, and it is cheap.
 
 ### The third layer: ask which SYSTEM authorises the act (2026-08-08)
 
-Raised by `harness-lead` on `-io`#402, where `terraform apply` was reachable from a `workflow_dispatch`
+Raised by `agents-lead` on `-io`#402, where `terraform apply` was reachable from a `workflow_dispatch`
 against a caller-chosen tree. **The routing decision, the fail-open acceptance and the retained-floor-
 entry cost are untouched; this extends the routing test.**
 
@@ -972,7 +972,7 @@ lost:
 - **The four-days-versus-five-days correction** on how long rule 5g's named risk stayed live, and the
   `-S`-versus-`-G` instrument lesson under it. **Five days is carried; the archaeology of how four got
   published is not** — the general form of that lesson is the *record the derivation* rule above.
-- **The re-derivation of `harness-lead`'s four-proxy classification.** Its conclusion — *the test above
+- **The re-derivation of `agents-lead`'s four-proxy classification.** Its conclusion — *the test above
   is the thing to check against, not the number four* — is the derivation rule again, and the classified
   rules are named where they matter.
 - **The record's own `Links` and evidence lists**, whose live members are folded into this document's
@@ -1387,7 +1387,7 @@ one place in this repository where the principle is mechanically enforced rather
 ### What this fold dropped
 
 - **The bootstrapping note.** Record 0018 carried a paragraph explaining that it was written directly
-  rather than by a dispatched `harness-lead`, because the plugin was disabled for that phase. It is
+  rather than by a dispatched `agents-lead`, because the plugin was disabled for that phase. It is
   archaeology about how one record came to be written, and it binds nothing.
 - **The `Considered options` framing of option 1 as an option.** Option 1 *is* the decision; restating it
   twice was MADR structure, not content.

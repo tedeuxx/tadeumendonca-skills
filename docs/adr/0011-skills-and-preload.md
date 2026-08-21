@@ -18,7 +18,7 @@ was rewritten in the same commit as the rename.
   families — `cloud-infrastructure`/`backend`/`frontend` consolidation, per-family, curated on the owner's preferred
   pattern rather than exhaustive merge; the process-family four-way framework is untouched)
 - **Date:** 2026-08-11
-- **Deciders:** the owner (he arrived at the definition across a conversation and ordered it recorded; his sentences are quoted verbatim and unparaphrased in *Decision outcome*); written by `tech-lead`; measurement input from `harness-lead` on [#183](https://github.com/tedeuxx/tadeumendonca-skills/issues/183), cited per finding below
+- **Deciders:** the owner (he arrived at the definition across a conversation and ordered it recorded; his sentences are quoted verbatim and unparaphrased in *Decision outcome*); written by `tech-lead`; measurement input from `agents-lead` on [#183](https://github.com/tedeuxx/tadeumendonca-skills/issues/183), cited per finding below
 - **Supersedes / superseded by:** —
 - **Driven by:** [#183](https://github.com/tedeuxx/tadeumendonca-skills/issues/183)
 
@@ -73,7 +73,7 @@ class**, and ***the gate never merges an expansion of its own authority*** — w
 `agents/quality-assurance.md:714-716` (`new architecture`, `contract/schema change`, `creates or changes
 an ADR's decision`). The one persona that applies the class is `quality-assurance`, and **its list does
 not contain *a change to the loop's own rules*.** A slice implementing this Issue is a change to the
-loop's own rules. Found by `harness-lead` on #183 §2; the grep above was re-run here.~~
+loop's own rules. Found by `agents-lead` on #183 §2; the grep above was re-run here.~~
 
 **FALSIFIED — marker placed 2026-08-13, closed by [#224](https://github.com/tedeuxx/tadeumendonca-skills/issues/224)/[#237](https://github.com/tedeuxx/tadeumendonca-skills/pull/237).**
 The drift this paragraph reports no longer exists: `skills/principles/dev-loop/SKILL.md` was folded into
@@ -119,7 +119,7 @@ An unset environment variable is not the absence of a path. The plugin root is d
 entry Claude Code appends to `PATH`, and a persona holding `Read` and `Bash` can read the library from
 disk. That makes every exclusion under record 0010 a **deferral** rather than the *"real deprivation"*
 that record calls it. **Why no amendment when this was written:** it was a correction to another
-record's premise, not part of this decision; one decision per ADR; and `harness-lead` was mid-audit on
+record's premise, not part of this decision; one decision per ADR; and `agents-lead` was mid-audit on
 exactly that clause, so a correction written from the citing side risked two records disagreeing about
 the same measurement. **What stopped the false premise reading as current was a falsification marker
 placed IN record 0010, at the clause itself** — its Context item 2, struck, linked forward here, and
@@ -169,13 +169,13 @@ that fails to decide fails silently.**
    Cost of keeping it: **20,777 B of duplicated operating hygiene**, re-derived here, and one more
    divergence per edit that touches four files instead of five.
 
-       for a in developer product-lead tech-lead quality-assurance harness-lead; do
+       for a in developer product-lead tech-lead quality-assurance agents-lead; do
          f=agents/$a.md
          w=$(awk '/^## Working files/{p=1} p&&/^---$/{exit} p' $f | wc -c)
          c=$(awk '/^## Command hygiene/{p=1} p&&/^---$/{exit} p' $f | wc -c)
          printf "%-20s wf=%5d ch=%5d\n" "$a" "$w" "$c"; done
        → developer 1310/3121 · product-lead 1290/3613 · tech-lead 1310/2553
-         quality-assurance 858/3045 · harness-lead 1079/2598      sum = 20,777
+         quality-assurance 858/3045 · agents-lead 1079/2598      sum = 20,777
 
 3. **A universal floor — every persona preloads all of `skills/principles/*`.** *Why not:* **rejected
    already, and the rejection stands** (record 0010's option 3, now the second rejected option of this
@@ -192,7 +192,7 @@ that fails to decide fails silently.**
    ruler must be external. **What this record does correct is the object that arithmetic was priced
    against**, not the arithmetic: a skill holding only the transversal operating rules is ~5 KB — about
    **6.5%** of the floor — so **record 0010's figure does not reach a small transversal skill and should not
-   be cited against one.** `harness-lead` measured centralising the hygiene rows as roughly
+   be cited against one.** `agents-lead` measured centralising the hygiene rows as roughly
    **byte-neutral** (~20,777 B inline today against ~25,000 B billed across five). **The case for this
    definition is correctness, not saving** — a *"we saved bytes"* framing is falsifiable in one command
    and would be false.
@@ -358,7 +358,7 @@ The roster is **five profiles**. The library is **69 skills**. The assignment be
 | `quality-assurance` | 3 | `verification-and-gates` · `coverage` · `sonarcloud` |
 | `tech-lead` | 3 | `adr` · `engineering-philosophy` · `documentation-standard` |
 | `product-lead` | 1 | `new-issue` — **a command, which must go** (corollary 1), leaving the list empty |
-| `harness-lead` | 0 | `skills: []` |
+| `agents-lead` | 0 | `skills: []` |
 
 **Seven distinct skills are assigned. Sixty-two are not — 90% of the library.** Of the 14 process
 skills, **8 are assigned to nobody**, `dev-loop` among them.
@@ -413,15 +413,15 @@ perfectly generic, perfectly accurate, and still leave every agent doing exactly
 under-covered — one brief out of five:
 
     grep -c squash agents/*.md
-    → quality-assurance 2 ; developer 0 ; product-lead 0 ; tech-lead 0 ; harness-lead 0
+    → quality-assurance 2 ; developer 0 ; product-lead 0 ; tech-lead 0 ; agents-lead 0
 
 **That is correct scoping, not a gap.** `quality-assurance` is the only persona that merges; `developer`
-never merges, both leads are advisory, `harness-lead` merges nothing. A merge-spelling rule belongs
+never merges, both leads are advisory, `agents-lead` merges nothing. A merge-spelling rule belongs
 in exactly one brief and is in exactly one. **Centralising it would push a rule binding one persona into
 five contexts — the mirror image of the defect this record exists to fix.** A criterion that visibly
 rejects a plausible candidate is worth more than one that only admits, and the repeated-behaviour framing
 got this case wrong where the transversality test gets it right. (Correction supplied by
-`harness-lead` on #183 §4; the count above was re-run here.)
+`agents-lead` on #183 §4; the count above was re-run here.)
 
 The operational form of test 2: **if changing a persona's mandate would change the rule, it is not
 transversal.**
@@ -606,7 +606,7 @@ generic, well-written passage that changes nothing.
 
 Stated so nobody reads the definition as having settled them:
 
-- **Whether the workload-mirroring files are rewritten or cut.** `harness-lead` sized the set at
+- **Whether the workload-mirroring files are rewritten or cut.** `agents-lead` sized the set at
   roughly **50 guides against 19 standards or rescuable standards** on #183 §B2, by a normative-vocabulary
   proxy it verified at the extremes by reading and labelled a **hypothesis in the middle band**. Its own
   recommendation is *rewrite, not cut* for `coverage`, `iam`, `dynamodb`, `authorization`,
@@ -626,7 +626,7 @@ Stated so nobody reads the definition as having settled them:
   not decided.
 - **The removal of `new-issue` from `agents/product-lead.md`**, and what — if anything — that list holds
   instead. This record states the rule it violates.
-- **Whether `harness-lead`'s `skills: []` should change.** Record 0010 argued it on three grounds and at
+- **Whether `agents-lead`'s `skills: []` should change.** Record 0010 argued it on three grounds and at
   least one of them ("your object is not in that directory") does not survive the current tree, since
   `skills/principles/permissions-and-environments/SKILL.md` documents `hooks/permission-guard.sh` by
   name. Re-arguing that list is a decision about a persona, not about what a skill is.
@@ -777,7 +777,7 @@ This applies to **all three** consolidated skills alike — `cloud-infrastructur
 **Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):
 record 0009's decision is still in force and is moving into the document that governs the capability it
 belongs to.** The standard is the owner's, posted as [#166](https://github.com/tedeuxx/tadeumendonca-skills/issues/166)'s
-closing comment and ratified by labelling that Issue `ready`; drafted by `harness-lead`, recorded by
+closing comment and ratified by labelling that Issue `ready`; drafted by `agents-lead`, recorded by
 `tech-lead` on 2026-08-09. Its History row is in [the index](./README.md).
 
 **Why it belongs here and not in a record of its own:** this document decides *what a skill is and who
@@ -915,7 +915,7 @@ from an oversight.
 
 **The spelling is load-bearing in one specific way:** an **explicit empty list** is a decision and an
 **absent key** is the same glyph as a dropped one, so the resolver requires the key on every persona
-and a missing one goes red. `harness-lead` held `skills: []` under exactly that rule until #224–#227
+and a missing one goes red. `agents-lead` held `skills: []` under exactly that rule until #224–#227
 gave it four entries; the rule is unchanged by that.
 
 **The identifier mechanics are part of this decision, not a second one**, because the preload depends
@@ -943,7 +943,7 @@ and ten entries against a `commands/<family>/<name>.md` tree, and none of those 
 
     # for each agents/*.md at 1018be1, sum `git cat-file -s 1018be1:skills/<id>/SKILL.md`
     # over that brief's `skills:` list. PINNED, because this slice edits two of the seven files.
-    developer 5 entries 102,368 B · tech-lead 5 / 109,735 · harness-lead 4 / 98,624
+    developer 5 entries 102,368 B · tech-lead 5 / 109,735 · agents-lead 4 / 98,624
     quality-assurance 4 / 82,708 · product-lead 3 / 51,168 · writer 2 / 40,057
     → 23 entries, 7 distinct files, 144,650 B distinct, 484,660 B billed across six dispatches
 
@@ -1124,7 +1124,7 @@ rooted at `skills/`.
 
 - Driving Issue [#183](https://github.com/tedeuxx/tadeumendonca-skills/issues/183) — the owner's
   definition, his genericity constraint, **his closing assignment clause (the operative test above, and
-  the order to review all 69 skills against it)**, and `harness-lead`'s reassessment and two addenda,
+  the order to review all 69 skills against it)**, and `agents-lead`'s reassessment and two addenda,
   which are the source of the drift finding (§2), the `--squash` correction (§4), the `argument-hint`
   property (§7), the standard/guide sizing (§B2) and the
   `developer`-carries-no-technical-standard finding (§B3) — that last one **narrowed here on

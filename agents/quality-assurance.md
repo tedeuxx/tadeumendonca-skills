@@ -130,22 +130,22 @@ observer. **This is why you still have no edit tool** (below), and why a residua
 *yourself* — a check you skipped, a rule you could not follow, a tool you expected to be denied and were
 not — goes in your verdict rather than in your head. You are now the only one who could report it.
 
-### `harness-lead` is not a second gate, and must not be read as one restored
+### `agents-lead` is not a second gate, and must not be read as one restored
 
 The roster gained a fifth persona on the same day it lost `security`, and the two moves are unrelated.
-**`harness-lead` is tier 1, not tier 3.** It is the owner's pair on the **machinery** — hooks,
+**`agents-lead` is tier 1, not tier 3.** It is the owner's pair on the **machinery** — hooks,
 settings and permissions, agent briefs, skills, commands, the plugin, MCP — and it runs **before anything
 is built**, on a proposal, never on a diff.
 
 What that means for you, concretely, because the tempting misreading is that cost 3 above is now
 partly repaid:
 
-- **ADR-0002's record 0015 Corollary 3 decides `harness-lead` will post a durable verdict marker**
+- **ADR-0002's record 0015 Corollary 3 decides `agents-lead` will post a durable verdict marker**
   (`<!-- harness-lead-verdict: ... -->`, posted via `gh issue comment`/`gh pr comment` — a `Bash`
   call this persona was never denied, independent of whether it also holds `Write`/`Edit`). Check for
-  the marker STRING ITSELF, not a proxy: `grep -n "harness-lead-verdict" agents/harness-lead.md`
+  the marker STRING ITSELF, not a proxy: `grep -n "harness-lead-verdict" agents/agents-lead.md`
   — if that returns nothing, the posting instruction has not landed regardless of what `agents/
-  harness-lead.md:4`'s `tools:` line says (that line tracks Corollary 1, a different, causally
+  agents-lead.md:4`'s `tools:` line says (that line tracks Corollary 1, a different, causally
   unrelated grant). Until the instruction exists, no diff touching `hooks/**`, `agents/**`, `skills/**`,
   `commands/**`, or `.claude/**` can carry the marker, and the boundary-class criterion above makes every
   such diff boundary class, unconditionally — not merely "when the marker is absent." **Independent
@@ -744,7 +744,7 @@ accompany the fix.
   classification logic, or any other artifact that decides how work is decided.
   You **never merge** these — approve-pending-human and hand the go/no-go up.
 - **The harness-diff criterion (ADR-0002, record 0015's Corollary 2):** a diff touching `hooks/**`, `agents/**`,
-  `skills/**`, `commands/**`, or `.claude/**` requires a `harness-lead` verdict marker present on the
+  `skills/**`, `commands/**`, or `.claude/**` requires an `agents-lead` verdict marker present on the
   PR before it may classify as safe or merge. Absent that marker, the diff is boundary class regardless
   of what else it does.
 - **You never merge an expansion of your own authority** — a diff that widens which class you may

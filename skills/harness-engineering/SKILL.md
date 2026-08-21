@@ -102,7 +102,7 @@ explicitly rather than leaving the axis unexamined.
   discipline from the people in it.
 - **Validating a loop/gate change** — pair it with `tech-lead` (design-time, against the principles
   and the ADR library) and `quality-assurance` (code-time, against the Definition of Done).
-- **Proposing a change to the MACHINERY** — dispatch `harness-lead` before implementing it. Its
+- **Proposing a change to the MACHINERY** — dispatch `agents-lead` before implementing it. Its
   standing question is [ADR-0004](../../docs/adr/0004-controls-and-enforcement.md)'s — *which
   layer can actually carry this control, and can that layer hold it?* Since
   [ADR-0002](../../docs/adr/0002-roster-and-dev-loop.md) it may also
@@ -149,18 +149,18 @@ this is the canonical statement, and both briefs point here rather than restate 
 > **Only then is the issue executable.** `developer` does not pick up an issue whose description is
 > not closed.
 
-**`harness-lead` is not a link in that chain, deliberately.** It shares the leads' tier and takes no
+**`agents-lead` is not a link in that chain, deliberately.** It shares the leads' tier and takes no
 part in closing a story's description — its object is the machinery this loop runs on, not the
 product the loop builds. It is dispatched on a **proposal about the loop itself**, before anything is
 built, and per ADR-0002 that proposal now enters the tracker as a `loop`-typed Issue — filed by the
-orchestrator on its naming (`harness-lead` itself remains denied `gh issue create`). `loop`-typed
+orchestrator on its naming (`agents-lead` itself remains denied `gh issue create`). `loop`-typed
 `ready` is an **owner-only** label transition (ADR-0002, record 0015's Corollary 4), never applied by any
 dispatch — see that record's section in full for the six corollaries (durable verdict marker, the
 harness-diff criterion, the
 proposal/build dispatch separation).
 
 *Where the two chains meet.* A change to *how work is decided* — this skill, the states table, an
-ADR that governs the loop — is still a **boundary** decision for the owner. `harness-lead` is who the
+ADR that governs the loop — is still a **boundary** decision for the owner. `agents-lead` is who the
 owner works that decision out with; it does not make it.
 
 ## The states
@@ -172,9 +172,9 @@ owner works that decision out with; it does not make it.
 | filed → **ready** | `content` | `product-lead`, alone | **`ready` label** |
 | filed → **ready** | `loop` | the owner, alone — not the leads (ADR-0002, record 0015's Corollary 4) | **`ready` label** |
 | ready → **in progress** | `product` · `content` | `developer` | an open PR |
-| ready → **in progress** | `loop` | `harness-lead` (ADR-0002, record 0015's Corollary 1) | an open PR |
+| ready → **in progress** | `loop` | `agents-lead` (ADR-0002, record 0015's Corollary 1) | an open PR |
 | in progress → **reviewed** | `product` · `content` | `quality-assurance`, against the full two-lens DoD | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
-| in progress → **reviewed** | `loop` | `quality-assurance`, checking for a `harness-lead` verdict marker rather than the full two-lens DoD (ADR-0002, record 0015's Corollary 2) | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
+| in progress → **reviewed** | `loop` | `quality-assurance`, checking for an `agents-lead` verdict marker rather than the full two-lens DoD (ADR-0002, record 0015's Corollary 2) | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
 | reviewed → **closed** | all | `quality-assurance` (safe) · the owner (boundary) | the merge, and for boundary the owner's ratifying comment |
 | **any → blocked → back** | all | anyone, on discovering it waits on the owner or on something outside the loop | **`blocked` label** |
 

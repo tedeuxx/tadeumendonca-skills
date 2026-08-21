@@ -1,5 +1,5 @@
 name: Loop
-description: The loop's own machinery — a hook, an agent brief, a skill, a command, the permission floor, the plugin manifest. Routes to harness-lead + tech-lead intake.
+description: The loop's own machinery — a hook, an agent brief, a skill, a command, the permission floor, the plugin manifest. Routes to agents-lead + tech-lead intake.
 labels: ["loop"]
 body:
   - type: markdown
@@ -7,7 +7,7 @@ body:
       value: |
         Only the owner opens work. This template exists so `/new-issue` (and a human filing directly)
         close the same description the two-lead intake produces — see `commands/new-issue.md` for the
-        full process this mirrors. Loop-typed intake is `harness-lead` alone (standing rule) — see
+        full process this mirrors. Loop-typed intake is `agents-lead` alone (standing rule) — see
         `/harness-engineering`.
   - type: textarea
     id: request
@@ -30,10 +30,10 @@ body:
   - type: textarea
     id: intake
     attributes:
-      label: harness-lead intake
+      label: agents-lead intake
       description: |
         The scenarios a proposed change does not cover, each with how to check it or labelled a
-        hypothesis, per `harness-lead`'s own mandate. `tech-lead` co-cites only if the decision
+        hypothesis, per `agents-lead`'s own mandate. `tech-lead` co-cites only if the decision
         straddles a product/system-architecture stake.
     validations:
       required: false
@@ -59,7 +59,7 @@ body:
     id: intake-stamp
     attributes:
       label: Intake stamp
-      description: "Date and the main SHA harness-lead read, once the description closes."
+      description: "Date and the main SHA agents-lead read, once the description closes."
       placeholder: "YYYY-MM-DD, <sha>"
     validations:
       required: false

@@ -112,7 +112,7 @@ Write (or amend) an ADR when a change crosses a **significant boundary** — obj
 
 Otherwise, no ADR — a routine in-pattern change declares "no ADR" and moves on. Authorship is split by
 domain (#223): `tech-lead` flags the need at intake and writes the record for product/system-architecture
-decisions; `harness-lead` does the same for pure loop/harness/machinery decisions. `quality-assurance`
+decisions; `agents-lead` does the same for pure loop/harness/machinery decisions. `quality-assurance`
 verifies on the MR that a significance-crossing change references one, regardless of which of the two
 authored it. (`adr-author` named here until 2026-08-03 was absorbed into `tech-lead`; the further split
 from `tech-lead`-exclusive to domain-based landed 2026-08-13 — whoever holds the decision writes it, in
@@ -122,7 +122,7 @@ default.)
 **Decision & trade-off:** a *light* gate (significance-triggered), not a *strong* one (ADR for every
 change). Trade-off: a light gate can miss a decision that only looks routine — and the test is applied at
 two moments, which the sentence here denied until 2026-08-03. **The domain-holding lead applies it at
-intake, before the build, and writes the record** (`agents/tech-lead.md` and `agents/harness-lead.md`
+intake, before the build, and writes the record** (`agents/tech-lead.md` and `agents/agents-lead.md`
 each state this for their own domain); **`quality-assurance` verifies on the MR** that a
 significance-crossing change references one, whoever authored it. That is what the persona contracts say
 today, and it is checkable there. A strong gate would never miss one but taxes every trivial change and

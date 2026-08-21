@@ -41,7 +41,7 @@
 #
 #   REWORK ROUNDS      — NOT transcript-derivable, confirmed on #209: one subagent dispatch is one
 #                       continuous transcript, not a sequence of review/revise cycles. A rework round
-#                       is a GitHub-side fact — how many times `quality-assurance` (or `harness-lead`,
+#                       is a GitHub-side fact — how many times `quality-assurance` (or `agents-lead`,
 #                       per ADR-0002, record 0015) posted REQUEST-CHANGES on the PR before it merged —
 #                       so this hook reads it from the PR's own gatekeeper-verdict /
 #                       harness-lead-verdict comments (the ADR-0006 / ADR-0002 record 0015 markers,
@@ -179,7 +179,7 @@ fi
 # ── rework rounds — GitHub-side, gatekeeper dispatches only ─────────────────────────────────────
 rework_rounds="n/a (not a gatekeeper dispatch)"
 case "$agent_type" in
-  quality-assurance|harness-lead)
+  quality-assurance|agents-lead)
     pr_number="$(gh pr list --repo "$repo" --head "$branch" --state all --json number --limit 1 \
       --jq '.[0].number // empty' 2>/dev/null || true)"
     if [ -n "$pr_number" ]; then

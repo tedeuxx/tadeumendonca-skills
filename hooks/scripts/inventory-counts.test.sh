@@ -16,7 +16,7 @@
 #
 #   - It asserts the numbers, never the prose around them. A README describing the wrong thing in the
 #     right quantity passes. NARROWED 2026-08-04 and only for the roster: `security` was swapped for
-#     `harness-lead` in one slice, the count held at five, and every assertion in this file stayed
+#     `agents-lead` in one slice, the count held at five, and every assertion in this file stayed
 #     green through it. The "roster's MEMBERSHIP" block below now checks WHICH personas are named, not
 #     just how many exist. It is the only inventory here with that property — the skill and hook
 #     inventories are still counts plus a name list, and nothing checks membership of a family.
@@ -516,14 +516,14 @@ done
 # EXPECTED VALUE IS DERIVED, never written here: `agents/*-lead.md`. A merge that removes a lead file
 # reddens this in the same commit, which is the property the whole file is built on.
 #
-# `harness-lead.md` IS EXCLUDED, and this is a naming collision, not a re-widened scope. Issue #216
+# `agents-lead.md` IS EXCLUDED, and this is a naming collision, not a re-widened scope. Issue #216
 # renamed the harness persona's file to end in `-lead` for tier-equality prose ("the owner's pair on
 # the MACHINERY — same tier as the leads"), and CLAUDE.md is explicit that it is NOT one of "the two
 # leads": those are `product-lead` and `tech-lead`, the two who close an Issue's description and are
 # addressed together as "the two leads" throughout this repo's prose. A bare `*-lead.md` glob cannot
 # tell the two apart by name alone, so the exclusion is spelled out here rather than left to a suffix
 # match that would otherwise silently promote every future `*-lead.md` file into this count.
-lead_files=$(find "$ROOT/agents" -maxdepth 1 -name '*-lead.md' -type f ! -name 'harness-lead.md' | wc -l | tr -d ' ')
+lead_files=$(find "$ROOT/agents" -maxdepth 1 -name '*-lead.md' -type f ! -name 'agents-lead.md' | wc -l | tr -d ' ')
 case "$lead_files" in
   1) lead_word=one ;;   2) lead_word=two ;;   3) lead_word=three ;;
   4) lead_word=four ;;  5) lead_word=five ;;  6) lead_word=six ;;
@@ -1037,7 +1037,7 @@ fi
 
 # --- the roster's MEMBERSHIP, not its cardinality ----------------------------------------------
 #
-# THE DEFECT: `security` was deleted from `agents/` and `harness-lead` was added in the same slice.
+# THE DEFECT: `security` was deleted from `agents/` and `agents-lead` was added in the same slice.
 # The roster count held at five. Every assertion above it — `"$agents subagent personas"`, the EVERY-
 # occurrence sweep, the lead-count word, the gate-coverage diff — stayed green through a change that
 # **swapped one persona for another**, and `docs/adr/0002` was left enumerating a roster that no longer
@@ -1135,7 +1135,7 @@ else
   #
   # WHAT THAT LEAVES UNCHECKED, said plainly. `plugin.json` and `marketplace.json` publish the count too
   # and are NOT selected: they are not in the md/sh scan set, and they state the roster as prose
-  # ("one fullstack developer", "a harness-lead") rather than in the backticked form this pattern
+  # ("one fullstack developer", "an agents-lead") rather than in the backticked form this pattern
   # reads. Their count is asserted above; their membership is not asserted anywhere. Matching bare words
   # there would make `developer` — an ordinary English noun — pass on any sentence at all, which is a
   # green for the wrong reason rather than coverage.
@@ -1511,6 +1511,33 @@ else
 fi
 
 # ---------------------------------------------------------------------------------------------------
+# THE THIRD DUPLICATED LITERAL, AND WHY IT MUST NOT BE RENAMED: `agents-lead`#291 kept the exact
+# marker string `harness-lead-verdict` unchanged when the persona that produces it was renamed from
+# `harness-lead` to `agents-lead`, on the argument that every marker already posted to a GitHub
+# comment is unrewritable — renaming the string would make every prior verdict invisible to both
+# consumers below, with no red anywhere to say so. That decision makes this a DELIBERATE, DOCUMENTED
+# inconsistency (the producer's own filename no longer matches the string it emits) rather than an
+# oversight, and #291 requires a test pinning it — this is that test. It does not assert the marker
+# is well-formed, only that all three sites that must agree on its spelling still do.
+marker_producer="$(grep -c 'harness-lead-verdict' "$ROOT/agents/agents-lead.md" 2>/dev/null || true)"
+marker_qa="$(grep -c 'harness-lead-verdict' "$ROOT/agents/quality-assurance.md" 2>/dev/null || true)"
+marker_metrics="$(grep -c 'harness-lead-verdict' "$ROOT/hooks/scripts/dispatch-metrics-stop.sh" 2>/dev/null || true)"
+if [ -z "$marker_producer" ] || [ "$marker_producer" = "0" ] || \
+   [ -z "$marker_qa" ] || [ "$marker_qa" = "0" ] || \
+   [ -z "$marker_metrics" ] || [ "$marker_metrics" = "0" ]; then
+  bad "marker literal — the exact string \`harness-lead-verdict\` was not found in one or more of the
+      three sites that must agree on it: agents/agents-lead.md (producer, $marker_producer hits),
+      agents/quality-assurance.md (consumer, $marker_qa hits), hooks/scripts/dispatch-metrics-stop.sh
+      (consumer, $marker_metrics hits). A spelling drift here is a boundary-class review that never
+      reaches the PR, and a metrics hook that silently stops counting rework rounds."
+else
+  ok "marker literal — \`harness-lead-verdict\` is spelled identically across its producer
+      (agents/agents-lead.md) and both consumers (agents/quality-assurance.md,
+      hooks/scripts/dispatch-metrics-stop.sh) — kept unrenamed on purpose across the agents-lead
+      rename (#291), since prior GitHub comments carrying it cannot be rewritten"
+fi
+
+# ---------------------------------------------------------------------------------------------------
 # EVERY SKILL CARRIES A `description` WRITTEN TO INDEX, NOT A TITLE (#166).
 #
 # WHY THIS IS AN INVENTORY CONCERN AT ALL. Commands were merged into skills, and model-invoked loading
@@ -1518,7 +1545,7 @@ fi
 # `description` is now part of what this repo PUBLISHES — the same class as a count on the README, and
 # it rots the same way: nothing about adding a skill makes anyone write a trigger sentence for it.
 #
-# THE STANDARD IS harness-lead's, ON #166, AND THESE ARE ITS THREE LEVELS. What is asserted here is
+# THE STANDARD IS agents-lead's, ON #166, AND THESE ARE ITS THREE LEVELS. What is asserted here is
 # deliberately only the mechanical half. The standard names the authorial half explicitly — whether the
 # situation named is the RIGHT one, whether the technology nouns are the ones a real task would contain,
 # whether `Not for` points at the NEAREST rival, and whether the description is TRUE about the body —
@@ -1530,7 +1557,7 @@ fi
 # THE OBVIOUS REPAIR FOR THE MOVE IS THE ONE THAT BREAKS THIS BLOCK SILENTLY, and it was measured before
 # it could ship. Repointing `find` at `skills/` alone restores the file SET and destroys the file KEY:
 # every path is `skills/<stem>/SKILL.md`, so a basename stem is the string SKILL for all 69, and the two
-# assertions below that are keyed on the stem stop meaning anything. `harness-lead` mutated the
+# assertions below that are keyed on the stem stop meaning anything. `agents-lead` mutated the
 # source to prove it — a stem-opener added to `routing`'s description, `argument-hint:` deleted from
 # `autonomy-on` — and BOTH SURVIVED, under a PASS line asserting the property just removed. Zero reds.
 #
@@ -1566,7 +1593,7 @@ fm_block() {
 
 # ── THE VACUITY GUARD IS A FLOOR, NOT AN EMPTINESS TEST ─────────────────────────────────────────────
 # IT USED TO FIRE ONLY ON ZERO, AND ZERO IS NOT HOW THIS SCAN LOSES ITS SUBJECT. Measured by
-# `harness-lead` on #164 against a simulation of the flat `skills/` layout: `find $ROOT/commands`
+# `agents-lead` on #164 against a simulation of the flat `skills/` layout: `find $ROOT/commands`
 # returns TWO files, the suite prints `38 passed, 10 failed`, and all ten reds are elsewhere — the
 # counts, the README table, the loop-engineering tripwire. Meanwhile the three controls anchored on
 # this file set print, in these words:
@@ -2064,7 +2091,7 @@ fi
 # #164 flattened the library; the sentence is re-tensed rather than left describing a form the tree no
 # longer contains.)
 #
-# WHY IT IS WORTH A BLOCK, in `harness-lead`'s words on #164: it is "the only place where a break is
+# WHY IT IS WORTH A BLOCK, in `agents-lead`'s words on #164: it is "the only place where a break is
 # both silent AND consequential". A wrong skill identifier fails at ZERO BYTES OF STDERR without
 # `--debug-file` — measured — so a persona told to consult a name that no longer resolves reaches for
 # nothing and reports nothing. The failure is indistinguishable from a deliberate omission, forever.
