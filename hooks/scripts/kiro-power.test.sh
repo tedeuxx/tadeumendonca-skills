@@ -207,14 +207,82 @@ else
 fi
 
 # --- CI can actually start this gate -------------------------------------------------------------
-# THE UNION-OF-WHAT-THE-SUITE-READS RULE, which this repo has now got wrong eight times (see
-# `docs-test.yml`'s header for the enumeration). This suite reads `powers/**`, so a PR that edits ONLY
-# the export must be able to start the workflow that runs it — otherwise the gate is green on exactly
-# the change it exists to catch and never red afterwards.
-if grep -qF '"powers/**"' "$ROOT/.github/workflows/hooks-test.yml"; then
-  ok "gate coverage — hooks-test.yml's paths filter includes powers/**"
+# THE UNION-OF-WHAT-THE-SUITE-READS RULE, which this repo has now got wrong ten times (see
+# `docs-test.yml`'s header for the enumeration). A PR that edits ONLY a file this suite reads must be
+# able to start the workflow that runs it — otherwise the gate is green on exactly the change it
+# exists to catch and never red afterwards.
+#
+# ── WHY THIS ASSERTION WAS WIDENED, AND WHAT WIDENING DID AND DID NOT BUY ─────────────────────────
+# It shipped as a single hardcoded `grep -qF '"powers/**"'` against this workflow, and it PASSED on
+# the PR that introduced the tenth occurrence — because the tree it added was read by a DIFFERENT
+# suite (`inventory-counts`) in a DIFFERENT workflow (`docs-test.yml`), which the hardcoded form could
+# not see. That is one real defect and it is fixed in `docs-test.yml`, not here.
+#
+# What is fixed HERE is the OTHER half, which nothing had looked at: the hardcoded form checked ONE of
+# the seven paths this suite reads and said nothing about the other six. Three of them were genuinely
+# uncovered — `VERSION`, `.bumpversion.toml` and `.claude-plugin/plugin.json` — so a PR deleting the
+# Kiro entry from `.bumpversion.toml` could not start the suite whose release-wiring assertion exists
+# to catch exactly that. The narrow form was green while the hole it was written for was open three
+# times over.
+#
+# THE SET IS DERIVED FROM THIS FILE, NOT RESTATED IN IT. Restating it is the duplication that produced
+# every previous occurrence: the scan set maintained in one place, the filter in another, nobody
+# diffing them. `inventory-counts.test.sh` considered and REJECTED a self-grep for its own scan set,
+# and the rejection was correct THERE and does not transfer here — its paths are interpolated
+# (`$ROOT/commands/$r_fam/…`) and its real scan set is dynamic (`git ls-files`), so a self-grep would
+# have been a heuristic wrong more often than right. This suite's paths are literal, and truncating at
+# the first interpolation yields a PREFIX that is exactly what a `**` glob has to match anyway.
+#
+# WHAT THIS STILL DOES NOT CLOSE, stated so the eleventh occurrence is not a surprise: this checks
+# THIS suite against ITS OWN workflow. The cross-suite direction — "some other suite also reads the
+# tree I just added" — is not derivable by grep, because the suite most likely to read it derives its
+# scan set from `git ls-files` and contains the literal string `powers` nowhere. That direction is
+# covered structurally rather than by an assertion: `inventory-counts`'s scan set is every tracked
+# `.md`/`.sh`/`.yml`/`.json`/`.py`, so any new tree holding one of those extensions reddens ITS
+# gate-coverage arm without anyone telling it the tree exists. The residual is a new tree holding NONE
+# of those extensions and read by a suite other than its own — which is not hypothetical: a `.toml`
+# file is invisible to that scan set today, which is how `.bumpversion.toml` stayed uncovered.
+#
+# ONE-DIRECTION, deliberately, for the same reason `inventory-counts` gives: filter ⊅ read set is a
+# hole; filter ⊃ read set is a workflow that occasionally runs with nothing to say.
+HOOKS_WORKFLOW="$ROOT/.github/workflows/hooks-test.yml"
+SELF="$ROOT/hooks/scripts/kiro-power.test.sh"
+if [ ! -r "$HOOKS_WORKFLOW" ] || [ ! -r "$SELF" ]; then
+  bad "gate coverage — $HOOKS_WORKFLOW or $SELF unreadable; this assertion did NOT run"
 else
-  bad "gate coverage — hooks-test.yml does not filter on powers/**; a PR touching only the export would start no gate"
+  wf_globs="$(sed -n '/^  *paths:/,/^[^ #]/p' "$HOOKS_WORKFLOW" | sed -nE 's/^ *- "(.*)"$/\1/p')"
+  # Truncated at the first character a path literal cannot contain, so an interpolated path
+  # contributes its literal prefix rather than dropping out of the set entirely.
+  suite_reads="$(grep -oE '\$ROOT/[A-Za-z0-9_./-]*' "$SELF" | sed 's|^\$ROOT/||' | sort -u)"
+  if [ -z "$wf_globs" ]; then
+    bad "gate coverage — no paths: globs parsed from hooks-test.yml; the file changed shape and this assertion did NOT run"
+  elif [ -z "$suite_reads" ]; then
+    bad "gate coverage — the read set derived from this suite is EMPTY; this assertion would pass vacuously"
+  else
+    uncovered=""
+    while IFS= read -r rel; do
+      [ -z "$rel" ] && continue
+      matched=""
+      while IFS= read -r glob; do
+        [ -z "$glob" ] && continue
+        case "$glob" in
+          */\*\*) [ "${rel#"${glob%\*\*}"}" != "$rel" ] && matched=yes ;;
+          *)      case "$rel" in "$glob"|"$glob"/*) matched=yes ;; esac ;;
+        esac
+        [ -n "$matched" ] && break
+      done <<< "$wf_globs"
+      [ -z "$matched" ] && uncovered="$uncovered
+    $rel"
+    done <<< "$suite_reads"
+
+    if [ -z "$uncovered" ]; then
+      ok "gate coverage — every path this suite reads is matched by hooks-test.yml's paths: filter ($(printf '%s\n' "$suite_reads" | wc -l | tr -d ' ') paths)"
+    else
+      bad "gate coverage — these paths are READ by this suite but cannot START its workflow:$uncovered
+      A PR touching only such a file can introduce the defect this suite exists to catch and never run it.
+      Add the path to .github/workflows/hooks-test.yml's paths: filter — do not narrow what the suite reads."
+    fi
+  fi
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"

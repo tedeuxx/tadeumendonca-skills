@@ -97,6 +97,21 @@ on:
       # It SUPERSEDES the narrower `.github/workflows/docs-test.yml` entry that used to sit here (that
       # entry existed so the gate re-runs when this filter itself changes; `.github/**` covers it).
       - ".github/**"
+      # `powers/**` is the TENTH occurrence, and it is the first one this repo caught BEFORE the merge
+      # rather than after — `inventory-counts.test.sh`'s gate-coverage assertion went red on the PR
+      # that introduced the export, naming all 14 files. The gate worked; the build report read
+      # `73/0` off a run it had not re-taken and published a red suite as green, which is a REPORTING
+      # defect on top of the filter one and is worth separating from it.
+      #
+      # THE CAUSE IS THE HEADER'S CAUSE, ONE LAYER OVER. `kiro-power.test.sh` shipped its own
+      # gate-coverage assertion for `hooks-test.yml` — the workflow ITS suite runs in — and that
+      # assertion passed. The tree it added was also read by a DIFFERENT suite in a DIFFERENT
+      # workflow, and nothing asserted that pair. Per-suite coverage of one's own workflow is
+      # necessary and is not sufficient: what closes the class is that `inventory-counts` derives its
+      # scan set from `git ls-files` and therefore sees every new tracked `.md`/`.sh`/`.yml`/`.json`/
+      # `.py` in the repo without being told the tree exists. That is why this line is a one-line fix
+      # and not a new instrument.
+      - "powers/**"
 
 permissions:
   contents: read

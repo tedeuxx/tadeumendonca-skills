@@ -1166,7 +1166,14 @@ rather than leaving a reader to discover. It is a limit of the **Power format**,
 machine's build — 0.12.333, `stable` — the Power installer's own copy allow-list is `POWER.md`,
 `mcp.json` and `steering/`, and the string `plugin.json` does not occur even once in the extension's
 821,906-line bundle. That build therefore does not implement the Agent Plugins format at all: it would
-report a successful install of this Power and copy **nothing**. The export is built to the **current
+report a successful install of this Power and copy **nothing**.
+
+**And the conclusion rests on the execution path, not merely on the absent string** — which is a
+stronger statement of the same fact and was proved by `quality-assurance` on PR #306 rather than
+inferred here. `copyPowerFiles` iterates the two allow-lists and **swallows `ENOENT`**: `if
+(error.code !== "ENOENT") { throw error; }`. Nothing in this export matches either list, so every copy
+misses, every miss is silently absorbed, and the install reports success over an empty directory. The
+failure is not merely undetected — it is *actively* discarded by the installer. The export is built to the **current
 documented** format, which is what kiro.dev tells third parties to author; a build old enough to
 predate it will install it empty rather than fail loudly. **Verify against your own Kiro version before
 relying on it.**

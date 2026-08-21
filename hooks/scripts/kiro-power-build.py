@@ -48,8 +48,14 @@ gate above exists to remove.
 WHAT THIS FILE DOES NOT DO, said plainly so the export is not read as more than it is:
 
   * `agents/`, `hooks/`, `commands/` and `.claude/settings.json` are NOT exported, because Kiro's
-    Power format has no channel for them. kiro.dev/docs/powers/ lists custom subagents, hooks and
-    permission rules as unsupported, and the installed stable build's own copy allow-list confirms it.
+    Power format has no channel for them. GROUNDED ON THE FORMAT, NOT ON A DOCS PAGE: the Agent
+    Plugins 1.0.0 manifest schema requires exactly `$schema` and `name` and declares
+    `"additionalProperties": false`, so there is no key a persona, a hook or a permission rule could
+    be carried in; and the installed stable build's own Power copy allow-list — `POWER.md`,
+    `mcp.json`, `steering/` — carries none of them either. An earlier form of this comment attributed
+    the point to kiro.dev/docs/powers/ "listing them as unsupported"; that page returns HTTP 200 and
+    contains none of those terms, so the attribution was false while the conclusion was true. Both
+    replacements above were verified directly.
     The Power ships the KNOWLEDGE layer of this harness and none of its ENFORCEMENT layer. The
     package README this file writes says so above the fold, because a reader who installs it and
     assumes otherwise has been misled by us, not by Kiro.
@@ -203,11 +209,32 @@ repository root, where there is no Kiro manifest.
 **Ships:** the skills — {count} dense, project-agnostic engineering guides.
 
 **Does not ship:** the harness's persona briefs (`agents/`), its `PreToolUse` permission hooks
-(`hooks/`) or its merge gates. Kiro's Power format has no distribution channel for any of them —
-[kiro.dev/docs/powers/](https://kiro.dev/docs/powers/) lists custom subagents, hooks and permission
-rules as unsupported. That is a limit of the format, not an omission here, and it is stated so that
-nobody installs this expecting the enforcement layer. The full harness is the Claude Code plugin at the
-repository root.
+(`hooks/`) or its merge gates. Kiro's Power format has no distribution channel for any of them, and
+that is read off the format itself rather than off a documentation page:
+
+- the [Agent Plugins 1.0.0 manifest schema](https://agent-plugins.org/schemas/1.0.0/plugin.schema.json)
+  requires exactly `$schema` and `name` and declares `"additionalProperties": false` — so there is no
+  key a persona, a hook or a permission rule could be carried in;
+- and the installed Kiro build's own Power copy allow-list is `POWER.md`, `mcp.json` and `steering/`,
+  which carries none of them either.
+
+That is a limit of the format, not an omission here, and it is stated so that nobody installs this
+expecting the enforcement layer. The full harness is the Claude Code plugin at the repository root.
+
+## One caveat, and it is larger than the rest
+
+**Measured, not inferred, and it decides whether this Power installs at all.** On the Kiro build this
+export was measured against — **0.12.333, `stable`** — the Power installer's copy allow-list is
+`POWER.md`, `mcp.json` and `steering/`, the string `plugin.json` does not occur once in the extension's
+821,906-line bundle, and the copy routine **swallows the missing-file error** rather than raising it.
+That build does not implement the Agent Plugins format at all: it would report a **successful install
+of this Power and copy nothing** — a silent total failure, not a partial one.
+
+This export is built to the **currently documented** format, which is what kiro.dev tells third-party
+authors to produce. A build old enough to predate it installs this empty rather than failing loudly.
+**Verify against your own Kiro version before relying on it:** after installing, confirm that
+`~/.kiro/powers/tadeumendonca-skills/skills/` actually contains {count} directories. If it is empty,
+your build predates the format and nothing here is loaded.
 """
 
 

@@ -57,6 +57,20 @@ on:
       # ninth occurrence of the miss this header enumerates and the one the export's own drift risk
       # depends on. The suite asserts this entry exists, so removing it goes red instead of quiet.
       - "powers/**"
+      # The next three were added when `kiro-power.test.sh`'s gate-coverage assertion was widened from
+      # one hardcoded glob to the DERIVED union of every path that suite reads. The narrow form checked
+      # `powers/**` and passed while these three were uncovered — so the assertion written to close this
+      # class was itself green with the class open three times over. Each is a real falsifier:
+      #   * `.bumpversion.toml`   — the release-wiring assertion reads it. Drop the Kiro manifest entry
+      #     and a release leaves the Power advertising a version that does not exist; without this line
+      #     the PR doing so starts no gate. It is also the sharp case: `.toml` is in NO suite's
+      #     `git ls-files` scan set, so nothing else in this repo would ever have noticed it.
+      #   * `VERSION`             — the version-lockstep assertion compares it against the manifest.
+      #   * `.claude-plugin/**`   — the forward-export assertion reads the `skills` array out of
+      #     `plugin.json`; a skill removed there alone falsifies the export and must start this gate.
+      - ".bumpversion.toml"
+      - "VERSION"
+      - ".claude-plugin/**"
       - ".github/workflows/hooks-test.yml"
 
 permissions:
