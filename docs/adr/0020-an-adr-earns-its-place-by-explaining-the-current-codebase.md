@@ -3,9 +3,10 @@
 - **Capability:** decision-library
 - **Status:** accepted
 - **Date:** 2026-08-15
-- **Deciders:** the owner (decision); written by `harness-lead` per
-  [ADR-0017](./0017-adr-authorship-is-split-by-domain-not-tech-lead-exclusive.md) — a pure
-  loop/documentation-practice decision with no product-architecture consequence
+- **Deciders:** the owner (decision); written by `harness-lead` under the ADR-authorship domain split
+  — record 0017, absorbed 2026-08-20 into this document's own *ADR authorship is split by domain
+  (absorbed 2026-08-20, record 0017)* section below — a pure loop/documentation-practice decision with
+  no product-architecture consequence
 - **Supersedes / superseded by:** — . It supersedes no record. The rule it replaces,
   *supersede-never-delete*, was **never recorded as an ADR** in this library: it had no
   `Decision outcome` anywhere in `docs/adr/`, living instead in
@@ -79,8 +80,8 @@ correction is carried here rather than quietly fixed.
 - **The reader at risk is an agent, and it reads bodies.** Any remedy that lives only in a status field
   or a filename is invisible to the consumer whose misreading is the cost.
 - **A deliberate absence and a silent one must not look identical.** Whatever replaces the file has to
-  answer *"was this ever decided?"* — otherwise the change is indistinguishable from the drift ADR-0001
-  was adopted to stop.
+  answer *"was this ever decided?"* — otherwise the change is indistinguishable from the drift record
+  0001 was adopted to stop.
 - **Some reversals are only intelligible against what they replaced.** Deleting the retired record
   without capturing that context is a net loss of information, not a cleanup.
 - **The `status` field is the only trustworthy criterion.** `-io`'s library already contains a record
@@ -460,6 +461,132 @@ either answer**: the row form above is a positive requirement about the row and 
 the strike question goes. If struck citations are exempted, one sentence is added there — that the row is
 not the only place a retired number may appear — and nothing else in this amendment changes.
 
+## Amended 2026-08-20 — the `proposed`-record gap is named here, not resolved
+
+Appended rather than rewritten, per this record's own convention. Driven by
+[#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283), slice S6. The 2026-08-19 amendment
+above states, as part of the decision, that disposition 4 is scoped to *"a record whose decision is
+still in force"* — and every fold through slice S5 used that reading. **Slice S3 already put weight on
+the other reading, and this document never said so.** It absorbed record 0007 — `proposed`, not
+`accepted`, at the time — into [ADR-0004](./0004-controls-and-enforcement.md), and that document's own
+*"The merge precondition is a floor, not an instruction — **`proposed`, not `accepted`**
+(absorbed 2026-08-20, record 0007)"* section states, in its own words, that the case matches **neither**
+disposition 3 (which keeps a `proposed` record precisely because it is `proposed`) nor disposition 4 (as
+worded here). It records the choice made without amending either this document or
+`documentation-standard` to cover it:
+
+> *"The disposition this fold used is not the one ADR-0020 wrote for it, and that is a finding rather
+> than a liberty. […] The set of four dispositions has a gap exactly here, and the gap is not academic
+> — one of the twenty records in this library sits in it. […] The owner's call, named rather than
+> assumed: whether disposition 4 reads 'still in force' or 'still current — in force, or proposed and
+> not withdrawn.'"*
+
+**This amendment does not answer that question.** Slice S6 was asked to make the gap visible in the
+document that owns the four dispositions, without deciding it on the owner's behalf — deciding it here
+would be the same shape this repo's own reviewer discipline is instructed to be suspicious of: a fold
+quietly resolving a question it was only asked to carry forward.
+
+> **TODO (owner decision, not this slice's to make):** does disposition 4 (absorption) read *"a decision
+> still in force"* — admitting only `accepted` records with no unbuilt mechanism, the reading every fold
+> through S5 used and the reading this record's own wording still states — or does it read *"still
+> current — in force, or `proposed` and not withdrawn"*, which would retroactively describe what S3
+> already did to record 0007? Until the owner answers, record 0007's absorption stands as an exception
+> applied under the existing wording, not as evidence the wording already covers it.
+
+**Both readings leave the four dispositions themselves untouched by this amendment.** Nothing above
+changes what disposition 1, 2, 3 or 4 says; it only makes the open question findable from the document a
+reader consults first, rather than only discoverable inside ADR-0004's own record-0007 section.
+
+## MADR ADRs are adopted, in two libraries, behind a light significance gate (absorbed 2026-08-20, record 0001)
+
+**Disposition 4: record 0001's decision is still in force and is moving into the document that governs
+the capability it belongs to** — in this one case, its own capability document, because record 0001 is
+this library's bootstrap ADR: the decision that this practice, and this document's own disposition rules,
+exist at all. Deciders: the owner (ratified); this is the bootstrap ADR. Its History row is in
+[the index](./README.md).
+
+### The decision, as it currently binds (record 0001)
+
+**MADR-format ADRs, in two libraries (methodology here, product per consuming repo), behind a light
+significance gate.** An ADR is owed only when a change crosses a significance boundary — touches
+`iac/`, changes a public contract, alters a previously-recorded decision, introduces a new
+dependency/tool-class, or sets a cross-cutting pattern — not for every routine change. The practice is
+defined operationally in `skills/documentation-standard/SKILL.md` Part II (the successor to the
+`/workflow/adr` skill this record originally named); the template is `docs/adr/template.md`. MADR is
+chosen over Nygard's leaner 4-section form specifically because the *considered options and their
+trade-offs* are half the value for a proof-of-engineering product — Nygard's form drops them.
+
+### The rejected options that are still live (record 0001)
+
+- **Nygard's leaner 4-section ADRs.** *Why not:* drops the considered-options / trade-off section, which
+  is half the argument this practice exists to preserve.
+- **Keep decisions in `CLAUDE.md` + memory (status quo).** *Why not:* exactly the dispersion that
+  produced the drift this record was written to stop — decisions scattered across commits, config,
+  memory and `.brand/`, none loadable as a discrete record by a fresh per-task context.
+
+### Consequences still being paid (record 0001)
+
+- **An ADR per significant decision is ongoing work**, and the significance test needs judgment —
+  mitigated by both domain-holding leads applying it at intake (per record 0017's authorship split,
+  the *ADR authorship is split by domain* section below) and `quality-assurance` verifying on the MR.
+- **Two libraries mean a reader consults two places**, and an occasional "where does this belong?" call.
+- **MADR is verbose**; a small-but-significant decision can feel over-documented.
+
+## ADR authorship is split by domain — `tech-lead` writes product/system records, `harness-lead` writes loop/machinery records (absorbed 2026-08-20, record 0017)
+
+**Disposition 4: record 0017's decision is still in force and is moving into the document that governs
+the capability it belongs to.** Decided by the owner, directly in conversation, 2026-08-13; recorded per
+this section's own bootstrapping note below. Driven by
+[#223](https://github.com/tedeuxx/tadeumendonca-skills/issues/223). Its History row is in
+[the index](./README.md).
+
+### The decision, as it currently binds (record 0017)
+
+**`tech-lead` authors ADRs for product/system-architecture decisions**, including methodology decisions
+with product-architecture consequence; **`harness-lead` authors ADRs for pure loop/harness/machinery
+decisions** — which is why this very document, a pure loop/documentation-practice decision, is
+`harness-lead`'s to write (see the bootstrapping note below for the one time that rule was not
+followed). Authorship follows whoever holds the decision, not a single default persona regardless of
+domain — the coupling this record corrects. A decision that straddles both domains has no mechanical
+resolution: it is named in the `Deciders` line of the record itself, co-citing both personas, mirroring
+the shape record 0015's own header already used (now
+[ADR-0002](./0002-roster-and-dev-loop.md)'s *`harness-lead` implements the harness it reviews (absorbed
+2026-08-20, record 0015)* section).
+
+### The rejected options that are still live (record 0017)
+
+- **Keep `tech-lead` as sole author, fix only the routing table that cited it as the reason.** *Why
+  not:* treats the symptom (a stale diagram/routing edge) without touching the cause (authorship not
+  following stake) — the next `loop`-typed decision would reproduce the same pull toward `tech-lead` for
+  the same reason.
+- **Give every persona ADR-authoring capability for its own domain** (`product-lead`, `developer`,
+  `quality-assurance` too). *Why not:* no evidence any of those three actually originate
+  architecturally-significant decisions of their own that aren't already covered by `product-lead`'s
+  advisory-only role or `quality-assurance`'s gate role — inventing authorship capability for a class of
+  decision that doesn't exist yet.
+
+### Consequences still being paid (record 0017)
+
+- **A straddling decision has no mechanical resolution**, only a convention (co-citation in the
+  `Deciders` line) — named explicitly rather than solved, since inventing a rule for a case that hadn't
+  happened yet risked getting it wrong in the abstract.
+- **Role-stacking compounds further for `harness-lead`.** It already stacks proposer/reviewer
+  ([ADR-0004](./0004-controls-and-enforcement.md)) and implementer
+  ([ADR-0002](./0002-roster-and-dev-loop.md)'s absorbed record 0015) on harness changes it reviews;
+  authoring the justifying ADR for its own harness change adds a third role on the same object.
+- **Not verified:** whether any `tadeumendonca-io` product-library ADR was ever authored by anyone but
+  `tech-lead` — outside this record's read scope (a different repo); its absence doesn't weaken this
+  decision, since the product library's own author convention is unaffected by it.
+
+### Bootstrapping note (record 0017)
+
+Under the rule this record itself establishes, it was `harness-lead`'s to write — a pure loop/machinery
+decision about the harness's own authorship convention. It was instead authored directly by the owner
+and the orchestrating session while the plugin was temporarily disabled for a batch of self-referential
+harness changes (2026-08-13), with no `harness-lead` persona dispatched. Recorded here rather than let
+pass silently: whichever persona (or, in this case, no persona) drafts a record that exercises the
+authority it is granting should say so explicitly.
+
 ## Links
 
 - [#281](https://github.com/tedeuxx/tadeumendonca-skills/issues/281) — the Issue this record executes;
@@ -467,14 +594,13 @@ not the only place a retired number may appear — and nothing else in this amen
   the standard's text and this record together.
 - `skills/documentation-standard/SKILL.md` — Part II; the operative wording, under the heading
   *"A record earns its place by explaining the CURRENT codebase"*.
-- [ADR-0001](./0001-adopt-madr-adrs.md) — adopts the practice this record amends the disposition half of;
-  ADR-0001 records MADR, the two libraries and the light significance gate, and is **not** where
-  supersede-never-delete was decided.
+- Record 0001 and record 0017 — both absorbed into **this document** on 2026-08-20
+  ([#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283) slice S6), so what used to be two
+  outbound links are now the *MADR ADRs are adopted…* and *ADR authorship is split by domain…* sections
+  above, not cross-file references.
 - [ADR-0011](./0011-skills-and-preload.md), its *The `archive` disposition is a file move to
   `docs/archive/`, not a frontmatter flag (absorbed 2026-08-20, record 0016)* section — the archive
   mechanism for *skills*, rejected here for *records*, on the asymmetry stated in considered option 3.
-- [ADR-0017](./0017-adr-authorship-is-split-by-domain-not-tech-lead-exclusive.md) — the authorship split
-  under which this is `harness-lead`'s record to write.
 - [ADR-0002](./0002-roster-and-dev-loop.md) — its *`README.md` is the single source of truth for the
   dev-loop narrative (absorbed 2026-08-20, record 0019)* section cites the replaced convention in its
   rejected option 3; amended by appending on 2026-08-15 rather than rewritten, per the

@@ -16,7 +16,9 @@ belongs to. Their History rows are in [the index](./README.md).
   raised does not arise here) · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite) · **amended 2026-08-04** (amendment #9 — `marketing-lead` merges into `product-lead`; the roster drops 6 → 5; the blocking-truth clause is carried across explicitly, and the capability floor that backed it is not) · **amended 2026-08-04** (amendment #10 — `harness-lead` joins tier 1 as the owner's pair on the machinery, advisory and pre-implementation; `security` is **absorbed** into `quality-assurance`, which now holds two lenses in one pass and labels every finding with its lens. The roster is still **five** and **two of its members changed**. The persona criterion widens from *conflict wanted* to **four reasons**, with reconciliation cost paid **within** a tier. Amendment #9's *"both approvals are still required"* is **struck**. Books the rule that produced the gap: **a count is not an identity**) · **amended 2026-08-13** (amendment #13 — `writer` joins tier 2 as a content-scoped second builder; the roster grows 5 → 6; it satisfies none of the four reasons and is named plainly as an owner override; `permission-guard.sh` rule 5e inverted from a denylist to an allowlist to contain it; the `Write`/`Edit` observability gap is accepted in writing rather than closed mechanically)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
-- **Driven by:** [ADR-0001](./0001-adopt-madr-adrs.md), `docs/proposals/agentic-dev-loop.md`
+- **Driven by:** [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) —
+  absorbed record 0001 (MADR adoption, the two libraries, the light significance gate) on 2026-08-20 —
+  `docs/proposals/agentic-dev-loop.md`
 
 ## Context & problem
 The dev-loop needs to (a) optimize the context window, (b) eliminate the authorship bias that appears when
@@ -44,7 +46,8 @@ three properties are achievable.
 ## Decision outcome
 Chosen: **per-task subagent contexts**. A subagent is an *autonomous context specific to a task*, not a
 standing employee. Because a fresh context cannot remember prior decisions by construction, the ADR
-libraries (ADR-0001) are what make the isolation safe — without them, isolation is a drift machine. The
+libraries (record 0001, now [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md))
+are what make the isolation safe — without them, isolation is a drift machine. The
 roster (20 personas covering a common SDLC — 22 since the two 2026-07-23 amendments below, and **26 once the third amendment is ratified**) is defined in the plugin; each project enables the subset its
 blast-radius justifies, and personas are materialized lazily as work demands. Full detail:
 `docs/proposals/agentic-dev-loop.md`.
@@ -1768,7 +1771,8 @@ live, and the consequences still being paid. Dropped from the five records above
   record's `Links` list, whose live members are folded into this document's cross-references.
 
 ## Links
-- Driven by ADR-0001 (ADRs are the brain this depends on) · the DoD is
+- Driven by record 0001 (ADRs are the brain this depends on), now
+  [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) · the DoD is
   [ADR-0006](./0006-verification-and-its-artifacts.md)'s *Merge Request Definition of
   Done* section, absorbed there from record 0003 on 2026-08-19 · autonomy/tool-scoping is
   ADR-0004 · full design in `docs/proposals/agentic-dev-loop.md`.

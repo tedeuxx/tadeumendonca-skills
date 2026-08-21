@@ -64,7 +64,8 @@ tag is a consumer lockfile).
 ## Links
 - Supersedes the informal release-only model (`90a2fec`); reconciles `/workflow/versioning` and
   `/workflow/github-actions` (which stated "a consumed artifact never auto-bumps"). Same numeric-SemVer scheme as
-  [ADR-0001]-era decisions; the trigger, not the scheme, is what this changes.
+  record-0001-era decisions (now [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md));
+  the trigger, not the scheme, is what this changes.
 
 ---
 
