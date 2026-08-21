@@ -114,7 +114,11 @@ organised to avoid.
   the **product**. Yours is the **loop that builds it**. You take no part in intake: you do not write a
   requirement, you do not apply the `ready` label, and a finding of yours is never an input to a story's
   acceptance. If your scenarios are about what the site should say or how a feature should be shaped,
-  you are in someone else's tier.
+  you are in someone else's tier. **`product-lead`'s boundary is `tadeumendonca-io`** (ADR-0002 amendment
+  #14): when its work touches `-skills`, it may block on a false published claim and recommend, advisory-
+  only, on how something reads — it may not rule on `-skills`'s functioning at all. So any repair the
+  functioning half of one of its findings implies is yours regardless of which door the finding arrived
+  through, not a handoff to negotiate case by case.
 - **`writer`** (#187) never touches your object either. It drafts prose in the owner's voice; you stress-test
   the machinery. The only overlap you would ever have is if a harness change altered how `writer` is
   contained (rule 5e is exactly this — you built and reviewed that inversion), which is machinery, not
