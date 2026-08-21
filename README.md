@@ -1104,10 +1104,14 @@ resolves once Kiro has copied a skill into `~/.kiro/powers/`.
 ### What each format can carry — the element-by-element gap
 
 **Measured 2026-08-21** against **Kiro 0.12.333** (`CFBundleShortVersionString`, `kiroAgent`
-extension `0.3.721`) and the docs as published that day. **This ages, and faster than most things
-written here** — Kiro's Power format changed on 2026-08-07, from the `POWER.md` era to the
+extension `0.3.721`; `product.json` reports `quality: stable`, built 2026-06-10) and the docs as
+published that day. **This ages, and faster than most things
+written here** — Kiro's Power format changed in **IDE `1.0.288`, 7 Aug 2026** (*"Install powers aligned
+with the open Agent Plugin format from a local folder or GitHub URL"*), from the `POWER.md` era to the
 [Agent Plugins](https://agent-plugins.org) spec, so treat every row below as a dated reading rather
-than a standing property.
+than a standing property. **The measured build predates that release by two months, and its number is
+not comparable to it** — `0.12.333` and `1.0.288` are not the same series, so the dates are what a
+reader can compare, not the version strings.
 
 | this repo ships | Claude Code plugin format | Kiro Power format |
 |---|---|---|
@@ -1118,10 +1122,18 @@ than a standing property.
 | `mcp.json` | — | carried (optional). This repo ships none |
 | `.claude-plugin/marketplace.json` | the marketplace a consumer adds once, then installs and updates from | **a difference, not a limitation.** Kiro installs straight from a GitHub URL; there is no marketplace indirection to be missing |
 
-**What the manifests themselves say, since the table above is about files and this is about schemas.**
-The Agent Plugins 1.0.0 manifest schema requires exactly `$schema` and `name`, and declares
-`"additionalProperties": false` — so there is no key to smuggle a persona or a hook through, and no
-`skills` array either (Kiro walks the directory instead). Claude Code's manifest is the opposite shape:
+**What the manifests themselves say, since the table above is about files and this is about schemas —
+and what that does NOT establish.** The Agent Plugins 1.0.0 manifest schema requires exactly `$schema`
+and `name`, declares `"additionalProperties": false`, and carries no
+`skills` array (Kiro walks the directory instead). ~~so there is no key to smuggle a persona or a hook
+through~~ — **struck 2026-08-21, and it is the second time this inference was published.** The schema's
+`properties` includes `extensions`: an object keyed by reverse-domain namespace, `"additionalProperties":
+{"type": "object"}`, described as *"Client-specific manifest data … Agent Plugins assigns no semantics to
+namespace object contents."* That is an open, arbitrary-content, explicitly client-specific channel —
+exactly the thing the struck clause said the closed schema ruled out. **The schema does not decide what a
+Power can carry; the installer's copy allow-list does**, and that is where the "no channel" rows above are
+grounded. The pattern worth carrying away is not the wrong sentence but the reach: a true conclusion, and
+twice a corroborating source that did not support it. Claude Code's manifest is the opposite shape:
 an explicit `skills` array is what registers a skill, and omitting one makes the skill invisible to the
 model's own discovery.
 
@@ -1163,7 +1175,8 @@ rather than leaving a reader to discover. It is a limit of the **Power format**,
 `permission-guard.sh`, and it is reachable by hand. What has no channel is the **distribution** of it.
 
 **One caveat that is larger than the rest, and it is measured rather than inferred.** On this
-machine's build — 0.12.333, `stable` — the Power installer's own copy allow-list is `POWER.md`,
+machine's build — `0.12.333`, `stable`, built 2026-06-10, two months before the `1.0.288` release that
+added the format — the Power installer's own copy allow-list is `POWER.md`,
 `mcp.json` and `steering/`, and the string `plugin.json` does not occur even once in the extension's
 821,906-line bundle. That build therefore does not implement the Agent Plugins format at all: it would
 report a successful install of this Power and copy **nothing**.
