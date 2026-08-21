@@ -117,7 +117,7 @@ for agent in $agent_files; do
 
   # --- the key must be PRESENT, even when the answer is "none" -----------------------------------
   # An ABSENT `skills:` key and a DELIBERATELY EMPTY one are the same glyph to every reader and to
-  # this test. `harness-lead` genuinely preloads nothing, and that is a decision worth publishing;
+  # this test. `agents-lead` genuinely preloads nothing, and that is a decision worth publishing;
   # if absence were accepted here, a persona whose list was dropped in an edit would be indistinguish-
   # able from it. So the key is required and `skills: []` is how "none" is spelled.
   if ! printf '%s\n' "$frontmatter" | grep -qE '^skills:'; then

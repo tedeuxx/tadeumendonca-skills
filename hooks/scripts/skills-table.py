@@ -60,16 +60,16 @@ SKILLS = ROOT / "skills"
 # and the exception list is gone — the same information, one indirection fewer, and thirteen lines that
 # each say what they mean.
 DEVELOPER = "`developer`"
-JUDGES = "`product-lead` · `tech-lead` · `harness-lead` · `quality-assurance`"
+JUDGES = "`product-lead` · `tech-lead` · `agents-lead` · `quality-assurance`"
 WIELDER = {
     "backend": DEVELOPER,
     "cloud-infrastructure": DEVELOPER,
     "code-review": DEVELOPER,
-    "command-hygiene": "`product-lead` · `tech-lead` · `harness-lead` · `developer` · `quality-assurance`",
+    "command-hygiene": "`product-lead` · `tech-lead` · `agents-lead` · `developer` · `quality-assurance`",
     "definition-of-done": JUDGES,
     "definition-of-ready": JUDGES,
-    "devops": "`developer` · `harness-lead` · `tech-lead` (#227)",
-    "documentation-standard": "`developer` (Part I, general docs) · `tech-lead` · `harness-lead` — Part II, ADR practice split by domain (#223)",
+    "devops": "`developer` · `agents-lead` · `tech-lead` (#227)",
+    "documentation-standard": "`developer` (Part I, general docs) · `tech-lead` · `agents-lead` — Part II, ADR practice split by domain (#223)",
     "frontend": DEVELOPER,
     "harness-engineering": JUDGES,
     "license": DEVELOPER,

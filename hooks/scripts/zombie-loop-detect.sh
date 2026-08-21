@@ -9,7 +9,8 @@
 # loop can go zombie for an entire session before anything notices. #294's own incident: the
 # orchestrator narrated a dispatch ("Vou despachar o harness-lead...") and ended the turn without
 # making the tool call. No hook fired, because no hook was watching a TURN ending — only a
-# SESSION starting.
+# SESSION starting. (Quoted verbatim — the persona was still `harness-lead` when #294 happened;
+# renamed to `agents-lead` at #291, after this incident.)
 #
 # `Stop` fires at the end of every main-agent turn, which is the failure's own boundary: if a
 # gate verdict is outstanding when the turn ends, THIS is the moment to say so, one turn late
@@ -50,10 +51,10 @@
 # THIS READS ONLY THE `gatekeeper-verdict` MARKER, NOT `harness-lead-verdict`, DELIBERATELY. The
 # intake brief's own prose names both, but only `gatekeeper-verdict` carries the closed
 # three-literal enumeration (`agents/quality-assurance.md`, "Your verdict — exactly one of"); the
-# `harness-lead-verdict` marker (ADR-0002's "harness-lead implements the harness it reviews"
+# `harness-lead-verdict` marker (ADR-0002's "agents-lead implements the harness it reviews"
 # section, absorbed record 0015) carries a free-text headline conclusion, not one of the three
 # literals, and per that same section's Corollary 2 it is `quality-assurance` that posts the
-# actual `gatekeeper-verdict` gating a `loop`-typed PR — the harness-lead marker is an input to
+# actual `gatekeeper-verdict` gating a `loop`-typed PR — the agents-lead marker is an input to
 # that verdict, not a second gate this hook needs to read independently.
 #
 # ── DEBOUNCE, AND WHERE THE MARKER FILE LIVES ───────────────────────────────────────────────────

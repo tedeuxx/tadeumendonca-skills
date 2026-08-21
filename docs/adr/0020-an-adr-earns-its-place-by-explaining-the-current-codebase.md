@@ -3,7 +3,7 @@
 - **Capability:** decision-library
 - **Status:** accepted
 - **Date:** 2026-08-15
-- **Deciders:** the owner (decision); written by `harness-lead` under the ADR-authorship domain split
+- **Deciders:** the owner (decision); written by `agents-lead` under the ADR-authorship domain split
   — record 0017, absorbed 2026-08-20 into this document's own *ADR authorship is split by domain
   (absorbed 2026-08-20, record 0017)* section below — a pure loop/documentation-practice decision with
   no product-architecture consequence
@@ -532,7 +532,7 @@ trade-offs* are half the value for a proof-of-engineering product — Nygard's f
 - **Two libraries mean a reader consults two places**, and an occasional "where does this belong?" call.
 - **MADR is verbose**; a small-but-significant decision can feel over-documented.
 
-## ADR authorship is split by domain — `tech-lead` writes product/system records, `harness-lead` writes loop/machinery records (absorbed 2026-08-20, record 0017)
+## ADR authorship is split by domain — `tech-lead` writes product/system records, `agents-lead` writes loop/machinery records (absorbed 2026-08-20, record 0017)
 
 **Disposition 4: record 0017's decision is still in force and is moving into the document that governs
 the capability it belongs to.** Decided by the owner, directly in conversation, 2026-08-13; recorded per
@@ -543,14 +543,14 @@ this section's own bootstrapping note below. Driven by
 ### The decision, as it currently binds (record 0017)
 
 **`tech-lead` authors ADRs for product/system-architecture decisions**, including methodology decisions
-with product-architecture consequence; **`harness-lead` authors ADRs for pure loop/harness/machinery
+with product-architecture consequence; **`agents-lead` authors ADRs for pure loop/harness/machinery
 decisions** — which is why this very document, a pure loop/documentation-practice decision, is
-`harness-lead`'s to write (see the bootstrapping note below for the one time that rule was not
+`agents-lead`'s to write (see the bootstrapping note below for the one time that rule was not
 followed). Authorship follows whoever holds the decision, not a single default persona regardless of
 domain — the coupling this record corrects. A decision that straddles both domains has no mechanical
 resolution: it is named in the `Deciders` line of the record itself, co-citing both personas, mirroring
 the shape record 0015's own header already used (now
-[ADR-0002](./0002-roster-and-dev-loop.md)'s *`harness-lead` implements the harness it reviews (absorbed
+[ADR-0002](./0002-roster-and-dev-loop.md)'s *`agents-lead` implements the harness it reviews (absorbed
 2026-08-20, record 0015)* section).
 
 ### The rejected options that are still live (record 0017)
@@ -570,7 +570,7 @@ the shape record 0015's own header already used (now
 - **A straddling decision has no mechanical resolution**, only a convention (co-citation in the
   `Deciders` line) — named explicitly rather than solved, since inventing a rule for a case that hadn't
   happened yet risked getting it wrong in the abstract.
-- **Role-stacking compounds further for `harness-lead`.** It already stacks proposer/reviewer
+- **Role-stacking compounds further for `agents-lead`.** It already stacks proposer/reviewer
   ([ADR-0004](./0004-controls-and-enforcement.md)) and implementer
   ([ADR-0002](./0002-roster-and-dev-loop.md)'s absorbed record 0015) on harness changes it reviews;
   authoring the justifying ADR for its own harness change adds a third role on the same object.
@@ -580,10 +580,10 @@ the shape record 0015's own header already used (now
 
 ### Bootstrapping note (record 0017)
 
-Under the rule this record itself establishes, it was `harness-lead`'s to write — a pure loop/machinery
+Under the rule this record itself establishes, it was `agents-lead`'s to write — a pure loop/machinery
 decision about the harness's own authorship convention. It was instead authored directly by the owner
 and the orchestrating session while the plugin was temporarily disabled for a batch of self-referential
-harness changes (2026-08-13), with no `harness-lead` persona dispatched. Recorded here rather than let
+harness changes (2026-08-13), with no `agents-lead` persona dispatched. Recorded here rather than let
 pass silently: whichever persona (or, in this case, no persona) drafts a record that exercises the
 authority it is granting should say so explicitly.
 

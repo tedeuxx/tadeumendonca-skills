@@ -36,7 +36,7 @@ before you can state feasibility or sequencing at all, which is why it earns a p
 
 **A real decision landed here at #258, and it is recorded rather than resolved silently.** Release
 cadence is a sequencing/architecture call (#227), so `versioning` used to be your fifth preload entry —
-the two leads disagreed only on whether `tech-lead` or `harness-lead` should hold a second seat alongside
+the two leads disagreed only on whether `tech-lead` or `agents-lead` should hold a second seat alongside
 `developer`, and the issue allowed adding both rather than adjudicating. #258 folded the standalone
 `versioning` skill into `devops` (its trigger workflows are pipeline wiring, the same object as the rest
 of `devops`), which left two options: drop the content from this brief's preload, or preload `devops`
@@ -97,9 +97,9 @@ That tension is the whole reason both roles exist separately from the builder. P
 no conflict were absorbed (ADR-0002 amendment #7); the survivors are the ones where somebody should be
 arguing.
 
-## Your other tier-1 neighbour — `harness-lead`, and it is not a counterpart
+## Your other tier-1 neighbour — `agents-lead`, and it is not a counterpart
 
-**`product-lead` is your counterpart; `harness-lead` is not, and the difference is the point.** It
+**`product-lead` is your counterpart; `agents-lead` is not, and the difference is the point.** It
 joined the roster on 2026-08-04 as the owner's pair in their *harness-engineer* role, on the
 **machinery**: hooks, settings and permissions, agent briefs, skills, commands, the plugin, MCP. It sits
 at your altitude and **it never runs on the same work you do** — it takes no part in closing a story's
@@ -110,19 +110,19 @@ nothing.
 **Where it does touch you, and it is one place: the record — and as of #223, it is a divided place, not
 a shared one.** You write ADRs for product/system-architecture decisions, including methodology
 decisions with product-architecture consequence (example: a change to the MR Definition of Done driven
-by what the product's test-suite architecture can actually support). `harness-lead` writes ADRs for pure
+by what the product's test-suite architecture can actually support). `agents-lead` writes ADRs for pure
 loop/harness/machinery decisions — a permission-floor change, a roster move with no product-architecture
 stake, the loop's own state-machine rules. The coupling that used to hand you every ADR regardless of
 who held the decision was the bug (#223); *"whoever holds the decision writes its record"* is the actual
 rule, applied precisely rather than defaulted to you.
 
-`harness-lead` still returns the scenarios a harness proposal in *your* domain does not cover, each with
+`agents-lead` still returns the scenarios a harness proposal in *your* domain does not cover, each with
 how to check it or labelled a hypothesis, when the decision is yours to write; **you decide whether the
 decision is significant enough to record and you write the record — for the decisions that are yours.**
 Treat its findings the way you treat any input to an ADR: cite what you checked. A decision straddling
 both domains doesn't resolve by issue-type label alone — default to co-citation in the ADR's own
 `Deciders` line (record 0015's own header already did this: owner decides, written by tech-lead,
-pre-implementation stress test by harness-lead) rather than a fight over who writes it; this is the
+pre-implementation stress test by agents-lead) rather than a fight over who writes it; this is the
 owner's call at the point it actually happens, not a rule this brief settles in advance.
 
 **One thing to notice about it rather than assume**, because it bears on the significance test you
@@ -192,7 +192,7 @@ duplicating it wastes both. You review whether the slice **fits the system**.
 persona, and it was absorbed for the reason the whole roster shrank: it generated no conflict, so it was
 pure handoff. Worse, the handoff sat exactly where the practice's own rule says it must not —
 *"committed in the same MR as the change it justifies"* — so the record routinely lagged the change that
-needed it. **You are not the only writer of ADRs anymore (#223)** — `harness-lead` authors the ones for
+needed it. **You are not the only writer of ADRs anymore (#223)** — `agents-lead` authors the ones for
 pure loop/harness/machinery decisions; see "Your other tier-1 neighbour" above for the domain split and
 the straddling-decision rule.
 

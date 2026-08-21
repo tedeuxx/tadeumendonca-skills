@@ -158,7 +158,7 @@ flowchart TB
 
   subgraph T1L["TIER 1 · loop — the machinery itself"]
     direction LR
-    HR["harness-lead"]
+    HR["agents-lead"]
     TLL["tech-lead"]
   end
 
@@ -171,13 +171,13 @@ flowchart TB
     direction LR
     DEV["developer<br/>product — one branch, ticking the task list"]
     WRT["writer<br/>content — drafts prose, contained like product-lead (rule 5e)"]
-    HRB["harness-lead<br/>loop — builds what it stress-tests"]
+    HRB["agents-lead<br/>loop — builds what it stress-tests"]
   end
 
   MR{{"MERGE REQUEST · ONE per story, to main"}}
 
   subgraph T3["TIER 3 · GATE — fresh context, no authorship bias"]
-    QA["quality-assurance<br/>product · content — two lenses in one pass<br/>loop — checks the harness-lead verdict marker"]
+    QA["quality-assurance<br/>product · content — two lenses in one pass<br/>loop — checks the agents-lead verdict marker"]
   end
 
   M{{"merge to main = the deploy<br/>a real merge commit, never a squash"}}
@@ -216,7 +216,7 @@ flowchart TB
 **Three lanes, one hub — not one box per tier.** Tier 1's composition is not a single box wearing three
 labels; it is three lanes, and the issue's type decides which one it enters. `product` closes through the
 two leads that disagree by design; `content` closes through the lens that holds the owner's voice alone;
-`loop` closes through **both** `harness-lead` and `tech-lead` — the persona that stress-tests the
+`loop` closes through **both** `agents-lead` and `tech-lead` — the persona that stress-tests the
 machinery and the persona that would write the ADR it produces, since a `loop` issue is the kind most
 likely to need one. All three lanes converge on the same orchestrator: **the orchestrator is the hub every
 lane passes through**, not a station one tier dispatches through.
@@ -232,12 +232,12 @@ gate-free at intake — a `loop`-typed Issue still needs `ready` before anything
 so it can be drained the same mechanical way a `product` story can. What is actually different: `ready`
 on a `loop` Issue is an **owner-only** transition ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md),
 record 0015's Corollary 4) rather than the two leads reconciling between themselves, and its own tier 2 is
-`harness-lead`, building what it just stress-tested. **Tier 3 is not skipped — its lens is.** Every
+`agents-lead`, building what it just stress-tested. **Tier 3 is not skipped — its lens is.** Every
 lane, `loop` included, still merges through `MR --> QA --> M`: rule 7b denies `gh pr merge` to every
-`agent_type` but `quality-assurance`, unconditionally, so a harness-lead-built change is no exception.
+`agent_type` but `quality-assurance`, unconditionally, so an agents-lead-built change is no exception.
 What differs is what `quality-assurance` checks there — `agents/quality-assurance.md`'s harness-diff
 criterion ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md), record 0015's Corollary 2) means a diff touching `hooks/**`, `agents/**`, `skills/**`, `commands/**`
-or `.claude/**` is gated on the presence of a `harness-lead` verdict marker, not on the full two-lens
+or `.claude/**` is gated on the presence of an `agents-lead` verdict marker, not on the full two-lens
 Definition of Done — the DoD review already happened, in tier 1, before the build.
 
 **No persona talks to another persona** — every dispatch still goes through the orchestrator; what changed
@@ -252,12 +252,12 @@ orchestrator.
 |---|---|---|
 | **product-lead** | 1 · intake | what to build and why · the reader · the market · the copy lens |
 | **tech-lead** | 1 · intake | architecture direction · sequencing · **writes product/system ADRs** |
-| **harness-lead** | 1 · intake | the machinery — the scenarios a harness proposal misses, before it is built · **writes loop/machinery ADRs** |
+| **agents-lead** | 1 · intake | the machinery — the scenarios a harness proposal misses, before it is built · **writes loop/machinery ADRs** |
 | **developer** | 2 · build | the slice end to end — app, infrastructure and pipeline |
 | **quality-assurance** | 3 · gate | the Definition of Done, **and** whether this can cause a problem in production · **holds the merge** |
 
 **The owner appears twice on purpose** — *human-residual* is where the loop opens and where the
-undelegatable part comes back. **`harness-lead` sits in tier 1** because a harness proposal is closed
+undelegatable part comes back. **`agents-lead` sits in tier 1** because a harness proposal is closed
 the same way a story is: before anything is built.
 
 **A fresh context is the whole point.** The gate has not read the conversation that produced the work, so
@@ -338,7 +338,7 @@ document.**
   effects of a configuration change are invisible from inside the change — a deny written for a tool no
   hook can see, a glob scoped to the wrong root, a persona left running a brief that predates the merge
   it is reviewing. Each was found by accident, after implementation, and each cost review rounds in
-  tokens and wall-clock. `harness-lead` exists to move that discovery **before** the build, and its
+  tokens and wall-clock. `agents-lead` exists to move that discovery **before** the build, and its
   standing rule is the one that decides whether it is worth dispatching: **every scenario ships with how
   to verify it, or is labelled a hypothesis.** A persona that speculates about a harness produces twenty
   plausible failure modes and no way to sort them.
@@ -493,7 +493,7 @@ them.
   universal preloads — the same reasoning as `tech-lead`'s addition above: this persona performs the act
   the skill defines (closing a description to the point it earns `ready`) at every dispatch, not
   occasionally.
-- **`harness-lead` — 78,885 B** — `harness-engineering` · `documentation-standard` · `command-hygiene` ·
+- **`agents-lead` — 78,885 B** — `harness-engineering` · `documentation-standard` · `command-hygiene` ·
   `devops`. `harness-engineering` was the one exception to what used to be `skills: []`; the other three
   followed for reasons its own brief states (`documentation-standard`'s Part II — the ADR practice
   formerly the standalone `adr` skill, folded in at #260 — for loop/harness ADRs since #223,
@@ -504,7 +504,7 @@ them.
   it is harmless: nothing in Part I describes machinery this brief owns, so there is nothing new to go
   stale. `versioning` used to be a fifth entry here;
   #258 folded it into `devops`, so the entry disappeared and the content travels inside the skill already
-  loaded. **`definition-of-ready` was deliberately NOT added here** — `harness-lead` takes no part in
+  loaded. **`definition-of-ready` was deliberately NOT added here** — `agents-lead` takes no part in
   closing a `product`/`content` description (`/harness-engineering`, *Intake*); it is dispatched on
   `loop`-typed proposals only, where `ready` is an owner-only transition it never performs. It remains
   the persona most exposed to staleness, a real tension a frozen
@@ -545,9 +545,9 @@ persona (see above), and grew `quality-gates` by 763 B via its own repointing pa
 entry for `product-lead` and `tech-lead` specifically — see each bullet above for why those two and not
 the other four — and grew `harness-engineering` itself by 661 B via its own cross-reference edit, which
 moved every persona's total by that amount since all six carry it. #260 folded `adr` into
-`documentation-standard`, which changed the `tech-lead` and `harness-lead` totals and
+`documentation-standard`, which changed the `tech-lead` and `agents-lead` totals and
 the library-wide distinct/billed figures; #259 folded `sonarcloud` into `devops` before that, changing
-four of the six totals — `developer`, `harness-lead` and `tech-lead` via `devops`'s growth, and
+four of the six totals — `developer`, `agents-lead` and `tech-lead` via `devops`'s growth, and
 `quality-assurance` via the `sonarcloud`→`devops` swap decided above.)
 `harness-engineering` (33,412 B, the
 universal preload, #224) is the
@@ -588,16 +588,16 @@ The library: 13 skills, one directory each, at one level under `skills/`.
 | `backend` | Backend (BFF-on-Lambda) | `developer` |
 | `cloud-infrastructure` | Cloud infrastructure (AWS) | `developer` |
 | `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `developer` |
-| `command-hygiene` | Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched | `product-lead` · `tech-lead` · `harness-lead` · `developer` · `quality-assurance` |
-| `definition-of-done` | Definition of Done — the ruler that decides when work stops | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
-| `definition-of-ready` | Definition of Ready — the bar a work item clears before it is buildable | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
-| `devops` | Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and | `developer` · `harness-lead` · `tech-lead` (#227) |
-| `documentation-standard` | Documentation — the general standard and the ADR practice | `developer` (Part I, general docs) · `tech-lead` · `harness-lead` — Part II, ADR practice split by domain (#223) |
+| `command-hygiene` | Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched | `product-lead` · `tech-lead` · `agents-lead` · `developer` · `quality-assurance` |
+| `definition-of-done` | Definition of Done — the ruler that decides when work stops | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
+| `definition-of-ready` | Definition of Ready — the bar a work item clears before it is buildable | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
+| `devops` | Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and | `developer` · `agents-lead` · `tech-lead` (#227) |
+| `documentation-standard` | Documentation — the general standard and the ADR practice | `developer` (Part I, general docs) · `tech-lead` · `agents-lead` — Part II, ADR practice split by domain (#223) |
 | `frontend` | Frontend (React SPA) | `developer` |
-| `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `license` | Apply the repository licensing standard in any <project> repo. | `developer` |
-| `planning-poker` | Planning Poker — consensus estimation, and what it is actually for | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
-| `quality-gates` | Quality gates — the definition of done and the concrete policy that proves it | `product-lead` · `tech-lead` · `harness-lead` · `quality-assurance` |
+| `planning-poker` | Planning Poker — consensus estimation, and what it is actually for | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
+| `quality-gates` | Quality gates — the definition of done and the concrete policy that proves it | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 **Three things the table shows rather than asserts.** The builder is the only persona holding a build
 skill — `backend`, `frontend`, `cloud-infrastructure` — because conventions exist for building, and one
 persona builds. `documentation-standard` is the only skill that splits between personas, and it splits
@@ -913,7 +913,7 @@ by hand:
 |---|---|---|---|
 | **Skills** | yes — **13** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
-| **Agents** | yes — **6 subagent personas** | `agents/*.md` (`developer`, `harness-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `writer`) | dispatched by name via `Task` |
+| **Agents** | yes — **6 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `writer`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 7** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`) — automatic, no invocation |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
