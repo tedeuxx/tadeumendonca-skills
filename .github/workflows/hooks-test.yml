@@ -48,6 +48,15 @@ on:
       - "agents/**"
       - "skills/**"
       - "commands/**"
+      # `powers/**` — the Kiro Power export, for `kiro-power.test.sh`, and it is the SAME union rule
+      # stated in the header rather than a new consideration. That suite reads THREE trees: the
+      # generator and itself under `hooks/**`, the source library under `skills/**`, and the committed
+      # export here. Either side can falsify it — edit a source skill and the export goes stale; edit
+      # the export by hand and it stops matching the generator — so both must be able to START this
+      # workflow. Without this line a PR that touches only the export runs no gate at all, which is the
+      # ninth occurrence of the miss this header enumerates and the one the export's own drift risk
+      # depends on. The suite asserts this entry exists, so removing it goes red instead of quiet.
+      - "powers/**"
       - ".github/workflows/hooks-test.yml"
 
 permissions:
@@ -74,3 +83,6 @@ jobs:
 
       - name: Assert every hook script is committed executable
         run: bash hooks/scripts/hooks-executable.test.sh
+
+      - name: Assert the Kiro Power export matches its generator
+        run: bash hooks/scripts/kiro-power.test.sh

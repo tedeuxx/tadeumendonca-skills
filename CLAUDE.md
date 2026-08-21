@@ -164,6 +164,16 @@ marketplace update`). For **local skill authoring** (test edits to this repo, un
 The skills are **generic** (`<project>` / `<apex-domain>` placeholders) — Claude substitutes the
 real values per project (in `tadeumendonca-io/iac`, they become `var.project` / `var.apex_domain`).
 
+**`powers/` is a SECOND distribution surface and is GENERATED — never edit it (#287).** It holds the
+Kiro Power export (`powers/tadeumendonca-skills/`), written from `skills/` by
+`hooks/scripts/kiro-power-build.py` and gated by `hooks/scripts/kiro-power.test.sh`, which regenerates
+into a temp directory and diffs. Editing the export by hand turns that gate red; edit
+`skills/<name>/SKILL.md` and regenerate. **It carries the skills and nothing else** — Kiro's Power
+format has no channel for `agents/`, `hooks/` or `commands/`, so the export is this harness's knowledge
+layer without its enforcement layer. The element-by-element gap, its measurement date and the Kiro
+CLI-vs-IDE distinction are in [`README.md`](./README.md), and the decision is ADR-0005's 2026-08-21
+amendment.
+
 ### What is a command and what is a skill — three rules, and only one of them is a mechanism
 
 This took a full session to arrive at and was written down nowhere. **Measured, not read from docs.**
