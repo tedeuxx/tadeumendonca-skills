@@ -1,4 +1,17 @@
-# 0011. A skill exists to be **ASSIGNED to a profile in the loop's roster** — *to which profile is this assigned, and why?* is the operative test, and a skill assigned to nobody has no reason to exist whatever its quality; what it standardises is a **behaviour**, transversal, persisting across sessions
+# 0011. Skills and preload
+
+**This record is the capability document for `skills-and-preload`.** It was titled *A skill exists to be
+ASSIGNED to a profile in the loop's roster — "to which profile is this assigned, and why?" is the
+operative test, and a skill assigned to nobody has no reason to exist whatever its quality; what it
+standardises is a behaviour, transversal, persisting across sessions*, and filed as
+`0011-a-skill-exists-to-be-assigned-to-a-profile.md`, until 2026-08-20 — when the owner's #283 ruling
+that an anchor is named for its **capability** rather than for the decision that originated it reached
+this capability ([#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283), part 3 slice S5).
+The originating decision — a skill exists to be assigned to a profile — is unchanged and is the body
+below. What changed is that this file stopped being named after one of the decisions it holds, because
+the same slice absorbed three more records into it. The number did not move, so every `ADR-0011`
+citation in either repository is unaffected; the **filename** did, and every path-form citation of it
+was rewritten in the same commit as the rename.
 
 - **Capability:** skills-and-preload
 - **Status:** accepted · amended 2026-08-13 (a fifth disposition, scoped to the three technical
@@ -12,8 +25,9 @@
 ## Context & problem
 
 The library has **69 skills** and no written definition of what a skill *is*. Every other property of it
-is recorded — how a description is written ([ADR-0009](./0009-a-skill-description-is-a-trigger-not-a-title.md)),
-how one reaches a persona ([ADR-0010](./0010-a-personas-startup-context-is-a-curated-preload.md)) — and
+is recorded — how a description is written (record 0009, absorbed into this document on 2026-08-20 as
+its *A skill's `description` is a trigger, not a title* section), how one reaches a persona
+(record 0010, absorbed the same day as its *A persona's startup context is a curated preload* section) — and
 the thing those two records are about was left to be inferred from the folder it sits in. The definition
 below was arrived at in conversation and existed nowhere in the tree.
 
@@ -90,28 +104,38 @@ the world it described has changed under it.
   before [#182](https://github.com/tedeuxx/tadeumendonca-skills/pull/182) moved the tree from
   `commands/<family>/<name>.md` to `skills/<name>/SKILL.md`, and **`Skills (71)`** after — booked in
   [ADR-0005](./0005-plugin-auto-versions-on-merge.md)`:146-149` at +9,919 always-on tokens per session.
-  So ADR-0009's 69 dense trigger descriptions had **no consumer** for as long as they existed.
+  So the 69 dense trigger descriptions record 0009's standard produced — now this document's *A skill's
+  `description` is a trigger, not a title* section — had **no consumer** for as long as they existed.
 
 One correction the record owes to itself, stated here and deliberately **not** written as an amendment:
-**[ADR-0010](./0010-a-personas-startup-context-is-a-curated-preload.md)'s Context item 2 — *"there is no
+**record 0010's Context item 2 — *"there is no
 path to read"* — is false**, and I re-derived both halves in the shell that wrote this record:
 
-    printenv CLAUDE_PLUGIN_ROOT              → exit=1        (ADR-0010 is right about this)
+    printenv CLAUDE_PLUGIN_ROOT              → exit=1        (record 0010 is right about this)
     printenv PATH | tr ':' '\n' | grep 'plugins/cache'
     → /Users/…/.claude/plugins/cache/tadeumendonca/tadeumendonca-skills/0.4.56/bin
 
 An unset environment variable is not the absence of a path. The plugin root is derivable from the `bin`
 entry Claude Code appends to `PATH`, and a persona holding `Read` and `Bash` can read the library from
-disk. That makes every exclusion under ADR-0010 a **deferral** rather than the *"real deprivation"* that
-record calls it. **Why no amendment here:** it is a correction to that record's premise, not part of this
-decision; one decision per ADR; and `harness-lead` is mid-audit on exactly that clause, so a
-correction written from this side risks two records disagreeing about the same measurement. **What stops
-the false premise reading as current is a falsification marker placed IN ADR-0010, at the clause itself**
-— its Context item 2, struck, linked forward here, and naming which of its own conclusions the
-falsification makes contested. This paragraph is not that pointer and was published claiming to be one;
-it is the measurement the marker points at. **The full amendment is still owed to ADR-0010, and a marker
-is not an amendment.** Note the difference in kind before anyone treats disk access as a substitute for
-preload: **the model must decide to go and read, and a dispatch that fails to decide fails silently.**
+disk. That makes every exclusion under record 0010 a **deferral** rather than the *"real deprivation"*
+that record calls it. **Why no amendment when this was written:** it was a correction to another
+record's premise, not part of this decision; one decision per ADR; and `harness-lead` was mid-audit on
+exactly that clause, so a correction written from the citing side risked two records disagreeing about
+the same measurement. **What stopped the false premise reading as current was a falsification marker
+placed IN record 0010, at the clause itself** — its Context item 2, struck, linked forward here, and
+naming which of its own conclusions the falsification makes contested. This paragraph is not that
+pointer and was published claiming to be one; it is the measurement the marker points at. **The full
+amendment is still owed, and a marker is not an amendment.** Note the difference in kind before anyone
+treats disk access as a substitute for preload: **the model must decide to go and read, and a dispatch
+that fails to decide fails silently.**
+
+> **Where that obligation stands after 2026-08-20.** Record 0010 was absorbed into this document as its
+> *A persona's startup context is a curated preload (absorbed 2026-08-20, record 0010)* section, so both
+> reasons for deferring the amendment — one decision per ADR, and a correction authored from a citing
+> side — no longer apply: there is one document and no citing side. **The obligation itself is
+> unchanged and is stated once, in that section's *The open amendment* subsection**, rather than twice
+> in two places pointing at each other. The fold does not discharge it; re-arguing the option-1-versus-2
+> outcome on a corrected premise is the owner's call.
 
 ## Decision drivers
 
@@ -154,9 +178,10 @@ preload: **the model must decide to go and read, and a dispatch that fails to de
          quality-assurance 858/3045 · harness-lead 1079/2598      sum = 20,777
 
 3. **A universal floor — every persona preloads all of `skills/principles/*`.** *Why not:* **rejected
-   already, and the rejection stands** ([ADR-0010](./0010-a-personas-startup-context-is-a-curated-preload.md),
-   option 3). It allocates by **family** where the cost is **bytes**. Re-derived at the library's current
-   location — ADR-0010's `76,490 B` was measured on `commands/` before the #182 move:
+   already, and the rejection stands** (record 0010's option 3, now the second rejected option of this
+   document's *A persona's startup context is a curated preload (absorbed 2026-08-20, record 0010)*
+   section). It allocates by **family** where the cost is **bytes**. Re-derived at the library's current
+   location — record 0010's `76,490 B` was measured on `commands/` before the #182 move:
 
        find skills/principles -name SKILL.md -exec wc -c {} +
        → dev-loop 38,541 · permissions-and-environments 11,129 · loop-engineering 10,880
@@ -166,7 +191,7 @@ preload: **the model must decide to go and read, and a dispatch that fails to de
    `quality-assurance` `engineering-philosophy`, **a ruler with no falsifier**, to the one persona whose
    ruler must be external. **What this record does correct is the object that arithmetic was priced
    against**, not the arithmetic: a skill holding only the transversal operating rules is ~5 KB — about
-   **6.5%** of the floor — so **ADR-0010's figure does not reach a small transversal skill and should not
+   **6.5%** of the floor — so **record 0010's figure does not reach a small transversal skill and should not
    be cited against one.** `harness-lead` measured centralising the hygiene rows as roughly
    **byte-neutral** (~20,777 B inline today against ~25,000 B billed across five). **The case for this
    definition is correctness, not saving** — a *"we saved bytes"* framing is falsifiable in one command
@@ -470,7 +495,9 @@ already parses both trees. **It would fail on 62 of 69 files today.**
 
 **Whether that assertion should exist is a decision this record does NOT make**, and the reason is
 ADR-0004's: a check that arrives already red on 90% of its subject is a check that gets silenced, and
-ADR-0009's first amendment records this repo paying exactly that price once. It is only writable **after**
+this record's own *A skill's `description` is a trigger, not a title (absorbed 2026-08-20, record 0009)*
+section records this repo paying exactly that price once, in the paragraph beginning *"One scoping
+decision inside that boundary"*. It is only writable **after**
 the review the owner ordered, not before — so the honest sequence is *review, then assert*, and the
 assertion is the thing that makes the review stick rather than a substitute for it.
 
@@ -529,7 +556,7 @@ generic, well-written passage that changes nothing.
 - **A brief that becomes a pointer stops reading as a mandate.** The mandate — what a persona is for,
   what it may not do, who it argues with — must stay in the brief, in prose, because it is read in a
   fresh context with no other source. So must every persona-specific **exception** to a shared rule, and
-  the **argument for what a persona does not carry** (ADR-0010's best property is that each exclusion is
+  the **argument for what a persona does not carry** (record 0010's best property is that each exclusion is
   argued in the brief that suffers it).
 - **The CI assertions that currently assert the duplication would assert nothing.**
   ~~`hooks/scripts/inventory-counts.test.sh:1410` requires every brief to name `<repo-root>/.scratch/`
@@ -599,7 +626,7 @@ Stated so nobody reads the definition as having settled them:
   not decided.
 - **The removal of `new-issue` from `agents/product-lead.md`**, and what — if anything — that list holds
   instead. This record states the rule it violates.
-- **Whether `harness-lead`'s `skills: []` should change.** ADR-0010 argued it on three grounds and at
+- **Whether `harness-lead`'s `skills: []` should change.** Record 0010 argued it on three grounds and at
   least one of them ("your object is not in that directory") does not survive the current tree, since
   `skills/principles/permissions-and-environments/SKILL.md` documents `hooks/permission-guard.sh` by
   name. Re-arguing that list is a decision about a persona, not about what a skill is.
@@ -640,7 +667,7 @@ Issue, and this amendment is the first record to draw its consequence out fully.
    see the note below) are reference material: consulted by manual `Read` when a persona judges it
    relevant to the slice in front of it, not something whose *absence from every dispatch* would let
    behaviour drift the way an unloaded workflow rule does. Forcing 55 files into a preload was never on
-   the table (ADR-0010 already rejected the universal-floor shape on cost grounds); the live question was
+   the table (record 0010 already rejected the universal-floor shape on cost grounds); the live question was
    whether they should stay 55 separately-assigned files or become something else.
 
 4. **Given reference-only status, consolidation is the more usable shape.** If a persona reaches these
@@ -745,6 +772,354 @@ This applies to **all three** consolidated skills alike — `cloud-infrastructur
   `skills:` — but whether any of them is nonetheless small enough or central enough to warrant a preload
   slot on `developer` is a separate call this amendment does not make.
 
+## A skill's `description` is a trigger, not a title (absorbed 2026-08-20, record 0009)
+
+**Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):
+record 0009's decision is still in force and is moving into the document that governs the capability it
+belongs to.** The standard is the owner's, posted as [#166](https://github.com/tedeuxx/tadeumendonca-skills/issues/166)'s
+closing comment and ratified by labelling that Issue `ready`; drafted by `harness-lead`, recorded by
+`tech-lead` on 2026-08-09. Its History row is in [the index](./README.md).
+
+**Why it belongs here and not in a record of its own:** this document decides *what a skill is and who
+it is for*; the `description` field is the only channel through which a skill reaches the reader this
+record calls the model's own discovery. It is behaviour of `skills-and-preload`, not a capability.
+
+### The decision, as it currently binds
+
+**The `description` field is the matcher's, not the reader's.** A title answers *what is this?*; a
+trigger answers *I am doing this — are you it?* The canonical form:
+
+    <ACT> <CONCRETE OBJECT> <WHERE, in nouns rather than folders>.
+    Use when <situation 1>, <situation 2>, or <situation 3>.
+    Not for <neighbouring situation> (see <rival>)[, or <another> (see <rival2>)].
+
+The seven constraints that make two authors converge, each with the reason it exists:
+
+| # | rule | why |
+|---|---|---|
+| 1 | Open on **act + object**, never the filename | the first tokens are the discriminating ones |
+| 2 | **The layer lives in the nouns, never the folder** — *"in a React SPA"*, *"in Terraform"* | the folder disappears when the tree flattens; the description must survive that alone |
+| 3 | **Technology proper nouns come from the body** | every token is then checkable against the file — this is what stops keyword salad |
+| 4 | **`Use when` is mandatory**, 2–3 situations in task language | the clause that converts a title into a trigger, and **the only one that cannot be satisfied by accident** |
+| 5 | **`Not for … (see X)` is mandatory** for any file in a cluster | disambiguation is a property of the set |
+| 6 | **Generic placeholders** — never a real consumer path | the repo's project-agnostic rule, on a published surface |
+| 7 | **One physical line**, no unquoted `:`, no markdown, no `$ARGUMENTS` | a description that is not one line is read whole by YAML and half by every check |
+
+**The cluster rule:** every member of a cluster that competes on an overlapping subject **names its
+separating axis in its own description and names at least one rival by name, mutually**. Three axes
+cover the library: **use vs provision · which surface · decide vs implement vs verify.**
+
+**The enforcement boundary, deliberately partial, and it is the second half of this decision.** Gated:
+frontmatter presence and parse, `description` present and non-empty, one physical line, length bounds,
+the literal `Use when`, the consumer-path ban (whole-file since
+[PR #169](https://github.com/tedeuxx/tadeumendonca-skills/pull/169)), no `(concept)`, no description
+opening with its own stem, `argument-hint` on the typed commands and nowhere else, cluster symmetry, and
+every `(see X)` resolving to a file. **Refused: any quality score.**
+
+**One scoping decision inside that boundary is kept because the body of this record cites it.** The
+consumer-path ban shipped **frontmatter-scoped** rather than whole-file, deliberately: the bodies were
+dirty, and a file-wide assertion would have turned the suite red against work nobody had scheduled — a
+gate arriving already failing. An enforcement mechanism that cannot be satisfied gets silenced, and a
+silenced check still looks like coverage, so the scope was drawn where the check could be **green and
+honest on the same day**. PR #169 then cleaned the bodies to zero and widened the assertion to the whole
+file, mutation-proven rather than read. **This is the instance this record's *Consequences* section
+points at** when it declines to write the reverse assertion — *every `SKILL.md` is named in some
+`skills:` list* — before the review that would make it satisfiable.
+
+**Live at this head, re-measured rather than carried** — the record's own figures were taken against a
+75-file, six-cluster tree that #229/#230/#231 and #286 no longer produce:
+
+    bash hooks/scripts/inventory-counts.test.sh | grep -i 'skill descriptions'
+    → scan set 16 files (13 skills + 3 typed commands) · L1, L2, L3 all PASS · 4 clustered skills
+
+### The rejected options that are still live
+
+1. **Reuse the existing first body line as the `description`** — zero authoring, one generator change.
+   Rejected because those first lines *are* the defect: they are titles, and they answer the question
+   the matcher does not ask. The two objects are also mechanically different sizes — the README's
+   generated inventory column is capped at 150 characters and a description to this standard runs
+   300–500, so every one would be cut mid-clause. A field that is both the table cell and the matcher's
+   input serves neither.
+2. **Score description quality** — keyword count, noun density, embedding similarity between the
+   description and the body. **Refused by name so nobody rebuilds it:** all three pass on keyword salad,
+   which is the exact betrayal this standard exists to prevent. A description stuffed with body nouns
+   and naming no situation scores well on every one of them. **Buying a green that is achievable by the
+   failure mode is worse than having no check**, because it converts an open question into a reported
+   answer. This is the option a later reader is most likely to re-propose, because it is the only one
+   that would put a mechanism on the half that decides whether the field works.
+
+### Consequences still being paid
+
+- **The premise is unverified, and every benefit claimed for this standard is conditional on it.** That
+  model-invoked loading matches on `description`, and that a description written this way is the one
+  that fires, is asserted nowhere in this repo. The standard's own instrument for it is **not an
+  assertion but a dispatch** — roughly ten real task sentences run against the library to see which
+  skill each one matches — and **it has never been run.** An unverified premise recorded as verified is
+  the defect this library is about; this bullet is the record refusing to commit it about itself.
+- **The authorial half has no gate and never will.** Whether the situation named is the *right* one,
+  whether the nouns are the ones a real task would contain, whether `Not for` points at the *nearest*
+  rival, and whether the description is *true about the body* — the only mechanisms available for those
+  are the ones rejected option 2 above refuses. A green means the shape is right, never that the
+  sentence is good.
+- **The cluster table is hand-maintained and cannot catch an ADDITION.** Deletion and rename go red; a
+  new file dropped into a cluster nobody adds to the table stays uncovered, **on purpose** — deriving
+  cluster membership from paths would be the refused quality score in another shape.
+- **Every skill now carries two independently authored descriptions** — the `description` field and the
+  first body line, which `hooks/scripts/skills-table.py` publishes as column 2 of the README's skill
+  table. They can drift from each other and from the body, and the gate keys on cells 1 and 3 only.
+  Mutation-proven when it was found: replacing a row's cell 2 with a fabricated sentence left the suite
+  fully green. **A consequence of rejecting option 1 that the original record failed to book**, and
+  still open.
+- **The gate's runtime grew**, unevenly — roughly a minute on macOS from process-spawn cost, about eight
+  seconds on the CI runner where the gate actually decides anything.
+
+### What this fold dropped
+
+- **The plain-path deviation and both of its amendments' arguments about it.** The record upheld
+  `see backend/stem` over a bare `` see `stem` ``, first because four stems were ambiguous across
+  families and then, when #174 dissolved that, on the two weaker reasons. **The whole tension is dead:
+  the tree has one level since #286 and every live pointer is a bare stem** — the spelling the record
+  said would become available and did. What survives is constraint 2, which is in the table above.
+- **Every figure taken against the 75-file tree** — 2 of 75 carrying a description, 73 with no
+  frontmatter, 112 (or 110) `(see X)` pointers, 31 → 27 cluster members, the four merged pairs, the
+  `485b97e` and `78f4e5b` greps. Each was true of a tree that no longer exists, and none of them binds
+  anything. The live measurement is in the decision above, with its command.
+- **The family-choice rule of the second amendment's §4** — which family keeps a merged file — together
+  with its no-ADR ruling. Its subject was abolished by the flattening it predicted.
+- **The §4 bound about `<project>-pwa` asserting one two-repo topology.** It was ruled out of scope by
+  the record itself and belongs to a content question the owner has never opened.
+- **The record's line-locator and commit-pinned citations**, per `documentation-standard`'s *cite the
+  clause, not the line*.
+
+## A persona's startup context is a curated preload (absorbed 2026-08-20, record 0010)
+
+**Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):
+record 0010's decision is still in force and is moving into the document that governs the capability it
+belongs to.** Decided by the owner on 2026-08-10 — he ordered the curation ahead of the directory split
+on [#172](https://github.com/tedeuxx/tadeumendonca-skills/issues/172) and ratified the lists by
+labelling that Issue `ready`; curated and recorded by `tech-lead`, implemented in
+[PR #178](https://github.com/tedeuxx/tadeumendonca-skills/pull/178). Its History row is in
+[the index](./README.md).
+
+**This is the section this document was always going to need**, and the body above says so: the record
+carries an explicit *cited, not amended* entry for 0010, plus a correction it declined to write into it.
+That correction is now **inside one file**, which changes where it is owed but not whether — see *The
+open amendment* below.
+
+### The decision, as it currently binds
+
+**A persona's `skills:` frontmatter list is the complete set of library files it can reach, and each
+brief carries the argument for what it leaves out** — because an exclusion is not a deferral of reading
+but a decision about what the persona can see at all, and an unargued exclusion is indistinguishable
+from an oversight.
+
+**The spelling is load-bearing in one specific way:** an **explicit empty list** is a decision and an
+**absent key** is the same glyph as a dropped one, so the resolver requires the key on every persona
+and a missing one goes red. `harness-lead` held `skills: []` under exactly that rule until #224–#227
+gave it four entries; the rule is unchanged by that.
+
+**The identifier mechanics are part of this decision, not a second one**, because the preload depends
+on them and every way of getting them wrong fails at **0 bytes of stderr**: identifiers are
+colon-separated (`plugin:` and `<plugin-name>:` prefixes are accepted and stripped; a bare stem resolves
+tree-wide), **slash forms do not resolve**, **there is no glob support**, and **there is no dedupe** —
+two identifiers naming one file inject it twice and bill it twice. The persona simply starts without the
+skill, and nothing distinguishes a typo from a deliberate omission.
+
+**So the control sits in CI, and that placement is the decision's own answer to
+[ADR-0004](./0004-controls-and-enforcement.md)'s standing question.** The runtime *cannot* carry it — it
+has no way to surface a 0-byte failure. `hooks/scripts/skills-resolve.test.sh` asserts, for every
+`agents/*.md`: the `skills:` key is present; every identifier resolves to a **tracked** file; no `/`; no
+`*`; no duplicate identifier and no two identifiers resolving to one path; a bare identifier matches
+exactly one file; plus two anti-vacuous guards. **The suite reads TWO trees and either side can falsify
+it** — an edited identifier is caught by `agents/**` in `hooks-test.yml`'s path filter, a renamed or
+deleted *target* only by a glob over the library, so `agents/**`, `commands/**` and `skills/**` are all
+in the filter and the record's original single-entry claim was a third of the control.
+
+**What the assertion does not cover, plainly: whether a list is the RIGHT one.** That is judgement, it
+is recorded here, and no test holds it.
+
+**The lists at this head, re-derived rather than carried** — the record's own table named five personas
+and ten entries against a `commands/<family>/<name>.md` tree, and none of those identifiers exists now:
+
+    # for each agents/*.md at 1018be1, sum `git cat-file -s 1018be1:skills/<id>/SKILL.md`
+    # over that brief's `skills:` list. PINNED, because this slice edits two of the seven files.
+    developer 5 entries 102,368 B · tech-lead 5 / 109,735 · harness-lead 4 / 98,624
+    quality-assurance 4 / 82,708 · product-lead 3 / 51,168 · writer 2 / 40,057
+    → 23 entries, 7 distinct files, 144,650 B distinct, 484,660 B billed across six dispatches
+
+    git ls-tree -r -l 1018be1 -- skills | awk '{s+=$4; n+=1} END {print n, s}'   # 13 428260
+
+**Read that against the record's own figures before drawing a conclusion from it: 79,261 B billed and
+14.2% of the library, against 484,660 B and a distinct set that is now a third of everything published.**
+The consolidation of 55 files into three and of the process layer into `harness-engineering`,
+`devops` and `quality-gates` moved the unit, so this is not six personas being greedier than five — it
+is the same curation applied to files an order of magnitude larger. **Whether that is still the right
+trade is a live question this fold does not answer**, and it is the one a reader should take from the
+arithmetic rather than a verdict.
+
+### The rejected options that are still live
+
+1. **Preload nothing and rely on on-demand access.** Rejected as *"the on-demand access does not
+   exist"* — `Skill` is not grantable through `tools:`
+   ([#177](https://github.com/tedeuxx/tadeumendonca-skills/pull/177) removed the inert grant), and
+   `CLAUDE_PLUGIN_ROOT` exits 1 in a subagent shell. **Half of that rejection is falsified and the half
+   that survives is the important one** — see *The open amendment* below. It is kept in the set because
+   it was the incumbent, and because it looked like a deferral for exactly as long as the inert grant
+   was believed to work.
+2. **A universal floor — every persona loads the whole principles layer.** Rejected because it allocates
+   by **family** and a preload paid in bytes cannot be allocated by family; and because it would hand
+   `quality-assurance` a principles document, which is a ruler with no falsifier attached, to a persona
+   whose findings must each name a criterion and a falsifier. **Both halves survive, but the first was
+   re-scoped by the body of this record**: the arithmetic was priced against all of `principles/*`
+   (76,059 B ×5) and does not reach a small transversal skill. The second reason is untouched, and it
+   is the one that still refuses the option.
+3. **Preload the whole library into every persona** — stated so the range is visible; rejected against a
+   driver that treats the context window as a first-class constraint, and because it inverts the point
+   of having distinct personas at all.
+
+### Consequences still being paid
+
+- **The curation has no falsifier and never will.** The gate proves an identifier resolves; nothing
+  proves the list is right. The only instrument is a persona reporting that an omission bit it.
+- **A `skills:` list is static — there is no per-dispatch top-up.** The named bite was `developer` on a
+  CI slice without the pipeline skill; that specific one closed when `devops` entered its list, but the
+  class did not.
+- **The repo publishes two allocations of skills to personas** — *whose domain*, hand-maintained in
+  `skills-table.py`'s `WIELDER` map, and *what is preloaded*, checked — and they visibly disagree.
+  Reconciling them into one column was the alternative and was rejected: it would delete true
+  information to fix what is a heading problem.
+- **The roster column on the consumer's architecture page is not delivered by this decision**
+  ([`tadeumendonca-io#413`](https://github.com/tedeuxx/tadeumendonca-io/issues/413)). Until it is
+  generated **and** covered by the drift check, no *verified* claim should be published about it.
+
+### The open amendment — carried across the fold, not closed by it
+
+Record 0010's **Context item 2** was struck on 2026-08-12 with a falsification marker rather than an
+amendment. The struck claim: *"Nothing tells a persona where the library is on disk"* — the
+`CLAUDE_PLUGIN_ROOT` half of it stands, but the inference does not, because Claude Code appends a
+plugin-cache `bin` entry to `PATH` from which the library root is derivable, and a persona holding
+`Read` and `Bash` can read the library from disk. **The measurement is this record's own, in its
+*Context & problem* section above.**
+
+The strike carried its own reason, and it is kept verbatim because
+[ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) quotes it as one of the
+live citations of the `supersede-*` family that justify a strike **inside** a live record: *"Struck
+rather than deleted, per this practice's supersede-never-rewrite rule: this is the premise anyone who
+acted on this record read, and it must stay legible."* Nothing about the whole-record disposition this
+fold performs touches that convention.
+
+**What that costs, restated because it is the live part:** the *"every exclusion is a real deprivation,
+not a deferral"* sentence rests on the struck clause and is therefore **contested, not current**. Under
+the corrected premise an exclusion is a **deferral** — and the difference cuts the other way rather than
+being a formality: the model must *decide* to go and read, a dispatch that fails to decide fails
+silently, and nothing in the tree tells any persona where to look.
+
+**Two records deferred this amendment to each other, and the fold removes the reason both gave.** This
+record declined to write it into 0010 — one decision per ADR, and a correction authored from the citing
+side risks two records disagreeing about one measurement. 0010 accepted that and recorded the amendment
+as still owed to itself. **Both halves of that arrangement are gone: there is one document now, and no
+citing side.** What is *not* gone is the decision the amendment would re-argue — the option-1-versus-2
+outcome, on a premise that changed — and **that is an owner's call, not a fold's.** It is carried here
+as an explicitly open obligation so the next reader finds one statement of it instead of two records
+pointing at each other.
+
+### What this fold dropped
+
+- **The `Decision drivers` section**, five bullets each of which is the argument for one rejected option
+  or for the CI placement, both of which are stated above where they bind.
+- **Every figure taken against the `commands/` tree** — 71 files / 449,205 B, the ten-entry table and
+  its eight blob sizes, 63,647 B distinct against 79,261 B billed, the 76,490 B floor. Kept only as the
+  comparison the live measurement above is read against, and only in that one paragraph.
+- **The `backend:coverage` misdescribed-stem cost.** That file stopped existing when the gate policy
+  folded into `quality-gates` at #257; the cost was paid by the consolidation, not carried.
+- **The twelve-mutation narrative from PR #178**, including which three found resolver defects. The
+  assertions they proved are live in `skills-resolve.test.sh` and the archaeology binds nothing.
+- **The record's line-locator citations** — `docs/proposals/agentic-dev-loop.md:253`, `:251`, `:260`,
+  and the `:130` split pointer — per `documentation-standard`'s *cite the clause, not the line*. The
+  proposal pointer survives in prose in the rejected-option above, which is what stopped that document
+  reading as instruction in the first place.
+
+## The `archive` disposition is a file move to `docs/archive/`, not a frontmatter flag (absorbed 2026-08-20, record 0016)
+
+**Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):
+record 0016's decision is still in force and is moving into the document that governs the capability it
+belongs to.** Decided by the owner and written by `tech-lead` on 2026-08-12, at intake on
+[#192](https://github.com/tedeuxx/tadeumendonca-skills/issues/192), executing **disposition 3 of this
+record's own four** — which is why it belongs here rather than anywhere else: it does not decide a new
+capability, it settles what one of the dispositions this record named actually *is*. Its History row is
+in [the index](./README.md).
+
+### The decision, as it currently binds
+
+**An archived skill is `git mv`d to `docs/archive/<family>/<name>.md` and dropped from
+`.claude-plugin/plugin.json`'s `skills` array.** It carries a one-line provenance note at the top —
+*"Archived `<date>`, disposition per #192 / ADR-0011. Formerly `skills/<family>/<name>/SKILL.md`; not
+loaded by the plugin."* No machine-read flag goes on the file: once it is outside `skills/`, nothing
+computes over it, and the directory boundary is the whole of what the gate needs. The `<family>`
+segment is kept in the archive path so the human-readable grouping the live tree used at the time is
+not lost on the way out.
+
+**Why the boundary is a directory and not a flag, in one property:** the reverse assertion this record's
+*Consequences* section deferred — *every `SKILL.md` under `skills/` is declared in `plugin.json`* —
+becomes writable, with **no per-file exception list to maintain**, because the scope is `skills/` and an
+archived file is not in it. A flag would make that assertion permanently unwritable without a growing
+carve-out that every future contributor to the gate has to rediscover.
+
+**Two mechanism facts this record supplies and that decision rests on**, both stated in the body above:
+registration is `plugin.json`'s explicit `skills` array, so an entry not listed there is not loaded, not
+counted in `Skills (N)` and not reachable by the model's own discovery; and
+`hooks/scripts/inventory-counts.test.sh` gates the tree bidirectionally, with the reverse direction
+rooted at `skills/`.
+
+### The rejected options that are still live
+
+1. **A frontmatter flag (`status: archived`) left at `skills/<family>/<name>/SKILL.md`.** Rejected
+   because it solves token cost and loading identically — both are gated by the `plugin.json` array —
+   and buys nothing against the reverse assertion, which stays blocked for as long as the file is still
+   a `SKILL.md` under `skills/`. This is the option a future reader is most likely to re-propose,
+   because on the axis most people are looking at (cost) it is exactly as good.
+2. **A separate plugin.** Rejected as disproportionate: a second marketplace entry, a second version
+   cadence and a second install step for consumers, for what is overflow from the equipment list rather
+   than a second product. Nothing about the archived content requires independent versioning.
+3. **Leave the file in place, drop it from `plugin.json`, mark nothing.** Rejected because an
+   undeclared, unmarked file is indistinguishable from one simply forgotten from the array — the exact
+   failure this record exists to stop recurring silently.
+
+### Consequences still being paid
+
+- **Every archived file needs an inbound-reference check before the move lands.** A live skill still
+  saying `(see routing)` after `routing` is archived points at a 404 in the published tree. Per-file
+  audit work, not automatic.
+- **The path changes**, so any prior citation of `skills/<family>/<name>/SKILL.md` breaks. Accepted
+  because nothing outside this repo consumes these files by path — the consumer-facing surface is the
+  invocation name, which an archived file stops having.
+- **`docs/archive/` is a top-level convention `documentation-standard` still does not name.** It was to
+  be added there as a one-line addendum once the first files landed; that is an open obligation, not a
+  discharged one.
+- **No reverse path back to `skills/` is defined.** If a disposition is reconsidered — an archived file
+  turns out to anchor a behaviour after all — whether that is a `git mv` back or a fresh file is left to
+  the record that reopens it, *"since ADR-0011's own supersede-not-rewrite rule already governs how a
+  disposition decision is reversed."* **That clause is kept verbatim rather than compressed**, because
+  [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) enumerates it by
+  quotation as one of the live citations of the `supersede-*` family that justify a strike inside a live
+  record — dropping it would have left that enumeration pointing at text this fold had deleted, which is
+  the failure mode a fold is most likely to cause and least likely to notice.
+
+### What this fold dropped
+
+- **The `Context & problem` restatement of this record's own disposition list**, which quoted four
+  clauses of the body above back at it.
+- **The `Decision drivers` section**, four bullets each of which is the argument for one of the rejected
+  options above and says nothing the rejection does not.
+- **The MADR restatement of option 1 as an option.** Option 1 is the decision; stating it twice was
+  structure, not content.
+- **The record's line-locator citations** — `hooks/scripts/inventory-counts.test.sh`'s find expression
+  quoted as a runnable `grep` with its output. The gate's scan root is still `skills/`, but a quoted
+  command that pins another file's shape is the class `documentation-standard`'s *cite the clause, not
+  the line* rule postdates, and it is dropped rather than re-pinned.
+- **Its cross-citations of this record as a separate document**, which are now intra-document
+  references.
+
 ## Links
 
 - Driving Issue [#183](https://github.com/tedeuxx/tadeumendonca-skills/issues/183) — the owner's
@@ -755,13 +1130,17 @@ This applies to **all three** consolidated skills alike — `cloud-infrastructur
   `developer`-carries-no-technical-standard finding (§B3) — that last one **narrowed here on
   measurement**: `developer` carries none, but the library is not wholly unassigned on the technical
   axis, since `backend/coverage` is assigned to `quality-assurance`.
-- [ADR-0009](./0009-a-skill-description-is-a-trigger-not-a-title.md) — **cited, not amended.** It owns
+- **Record 0009 — cited, not amended, when this record was written; absorbed into it on 2026-08-20** as
+  the *A skill's `description` is a trigger, not a title (absorbed 2026-08-20, record 0009)* section
+  above. It owned
   *how a skill is discovered*; this record owns *what a skill is*. Its standard was executed well —
   69/69 descriptions carry `Use when`, 67/69 carry `Not for` — and the only thing this record adds is
   that it had **no consumer** until #182, and that the **bodies** were not converted with the fields:
   `grep -rlF 'Context: $ARGUMENTS' --include=SKILL.md skills | wc -l` → **67**, a slash-command
   substitution in files a model may load without anyone typing a name.
-- [ADR-0010](./0010-a-personas-startup-context-is-a-curated-preload.md) — **cited, not amended**, on both
+- **Record 0010 — cited, not amended, when this record was written; absorbed into it on 2026-08-20** as
+  the *A persona's startup context is a curated preload (absorbed 2026-08-20, record 0010)* section
+  above, where the amendment named at the end of this entry is now stated as an open obligation. On both
   counts and deliberately. Its **rejection of the universal floor stands** — re-derived at 76,059 B ×5,
   and its second reason is untouched — but that arithmetic was priced against **all of `principles/*`**
   and does not reach a ~5 KB transversal skill, which is a re-scoping rather than a falsification. Its

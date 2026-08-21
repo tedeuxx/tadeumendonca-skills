@@ -303,8 +303,14 @@ at head, on the tree in place:
 
 ```
 mv docs/adr/0002-roster-and-dev-loop.md <elsewhere>
-bash hooks/scripts/inventory-counts.test.sh        →  60 passed, 5 failed
+bash hooks/scripts/inventory-counts.test.sh        →  65 passed, 5 failed
 ```
+
+**The passing total is re-measured at each folding slice's head, never carried.** It read `60` until
+2026-08-20; the five reds have not moved, and the five extra greens are arms the same reconciliation
+added — 4c at slice S3 (*no record links to itself*) and 4d at S5 (*no index row cites its own record*),
+plus the suite growing around them. A figure of this shape ages every time the suite does, which is why
+the composition below is what the claim rests on and the tally is not.
 
 Four of those five are the **citation** gate (#283 slice 1): the relative link and the repo-root path
 stop resolving, the prose `ADR-nnnn` form stops resolving, and the **foreign-number exemption goes

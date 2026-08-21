@@ -1801,7 +1801,8 @@ else
     # cannot see it, and the green says nothing is wrong.
     #
     # THAT IS THE THIRD INSTANCE OF THIS SLICE'S OWN SUBJECT, and it had reached a PERMANENT record:
-    # ADR-0009 lists "every `(see X)` resolving to a file" as gated. The ADR was accurate about the
+    # record 0009 listed "every `(see X)` resolving to a file" as gated — now the trigger-description
+    # section of ADR-0011. The record was accurate about the
     # intent and wrong about the coverage — the same shape as the one-line comment that described a
     # check nobody had implemented, and as `skills-table.py` claiming the first line. A filter that
     # silently drops what it cannot parse is indistinguishable from a filter that found nothing.
@@ -1813,7 +1814,8 @@ else
     # made the family segment optional — would have accepted it and then failed on the file check with
     # a message about a missing file rather than about a stale spelling. Two targets are legal: a
     # library skill at `skills/<stem>/SKILL.md`, and one of the two typed commands at
-    # `commands/<stem>.md`, which point at each other legitimately (ADR-0009 documents them as the only
+    # `commands/<stem>.md`, which point at each other legitimately (the trigger-description section of
+    # ADR-0011, absorbed from record 0009, documents them as the only
     # such files).
     while IFS= read -r ref; do
       [ -z "$ref" ] && continue
@@ -2690,6 +2692,85 @@ elif [ -n "$selfcite_problems" ]; then
       *<heading>* section'), never a link back to this file and never a bare amendment date."
 else
   ok "citation resolution — no record links to itself ($selfcite_checked records scanned for '[ADR-nnnn](./…)' naming their own number)"
+fi
+
+# ── 4d · NO INDEX ROW LINKS TO ITS OWN RECORD (#283 slice S5) ────────────────────────────────────
+#
+# WHAT THIS CHECKS, AND WHY ITS NAME IS NARROWER THAN THE CLASS IT COMES FROM. Arm 4c above asks the
+# same relational question inside a RECORD's own file. This asks it inside the index: a row of
+# `docs/adr/README.md`'s `## The records` table whose first cell is `[00N]` must not cite `ADR-00N`
+# in the link form anywhere else in that row. Nothing more. The class it comes from — a fold's
+# mechanical `ADR-<old>` → `ADR-<new>` substitution collapsing two distinct referents into one — is
+# WIDER than this arm, and the arm is deliberately not named for it. Three of the four collapses S4
+# produced were caught by reading, not by any instrument, and calling this "the collapse gate" would
+# convert a green over one form into a green that reads as coverage of all of them.
+#
+# WHY THE INDEX NEEDS ITS OWN ARM AT ALL. 4c enumerates `docs/adr/[0-9][0-9][0-9][0-9]-*.md`, so the
+# index is not in its scan set — the README is not a record. Yet the index is where a fold's
+# substitution does the most damage per site: each row is one long line carrying that record's whole
+# amendment history, so a link that used to name an absorbed sibling ("its layering half is superseded
+# by [ADR-nnnn](./nnnn-…)", where nnnn was the sibling) becomes a link to the row's own record and the
+# referent is simply gone — the exact site this arm found at 1018be1, in the 0004 row, left there by
+# S3. The sentence still parses, the link still resolves, and 4a/4b stay green because the target is
+# live. Written with the `nnnn` placeholder deliberately: the concrete number was the absorbed record's,
+# so spelling it here would have reddened 4b the moment that record stopped existing — which is
+# precisely what happened when this comment was first written, one run before this sentence replaced it.
+#
+# MEASURED BEFORE BUILDING IT, on this library at 1018be1, both candidate spellings:
+#
+#   narrow  the link form `[ADR-00N](./`      →  1 hit: row 0004  (a REAL defect, inherited from S3)
+#   wide    the bare token `ADR-00N`          →  2 hits: rows 0004 and 0011
+#
+# The wide form's extra hit is row 0011's *"using ADR-0011's own documentation-versus-standard test"* —
+# prose, a record's row naming its own number as the subject of a sentence, no referent lost and
+# nothing to repair. Same result as 4c's own measurement one arm above, for the same reason: the bare
+# token is a legitimate way to write about a record, the LINK form is a pointer whose destination is
+# the thing doing the pointing, which is never what a writer means. Building the wide form would have
+# meant shipping an arm that is red on correct prose, and this file's floor is that an arm arriving red
+# is an arm that gets silenced. The narrow form arrives green **only because the S5 commit that adds it
+# also repairs row 0004** — it did not arrive green on its own, which is the strongest thing that can
+# be said for it and is why it is recorded here rather than in a commit message.
+#
+# WHAT IT DOES NOT CATCH, PRICED. (a) The bare-token collapse in a row, per the measurement above.
+# (b) A collapse into a row that is NOT the target's own — the third form named in PR #299 §10b, which
+# no standing arm can see, since the sentence reads fluently and the link resolves to a live record.
+# (c) Section-grain aim: a row pointing at the right record and the wrong section leaves this arm and
+# the whole suite green. All three travel to S6 unchanged.
+rowcite_problems=""
+rowcite_checked=0
+rowcite_index="$CITATION_ADR_DIR/README.md"
+if [ -r "$rowcite_index" ]; then
+  while IFS= read -r rowcite_line; do
+    [ -z "$rowcite_line" ] && continue
+    rowcite_n="${rowcite_line#*| \[}"
+    rowcite_n="${rowcite_n%%\]*}"
+    case "$rowcite_n" in
+      [0-9][0-9][0-9][0-9]) ;;
+      *) continue ;;
+    esac
+    rowcite_checked=$((rowcite_checked + 1))
+    case "$rowcite_line" in
+      *"[ADR-$rowcite_n](./"*)
+        rowcite_problems="$rowcite_problems
+    docs/adr/README.md — the '$rowcite_n' row links to ITS OWN record as '[ADR-$rowcite_n](./…)'" ;;
+    esac
+  done <<< "$(grep -n '^| \[[0-9][0-9][0-9][0-9]\](\./' "$rowcite_index" || true)"
+fi
+
+if [ "$rowcite_checked" -eq 0 ]; then
+  bad "citation resolution — the index self-citation scan found NO record rows in docs/adr/README.md,
+      and there were 11 when this was written. Either the '## The records' table changed shape or the
+      file moved; this check is vacuous until the enumeration is repaired."
+elif [ -n "$rowcite_problems" ]; then
+  bad "citation resolution — an index row cites its own record:$rowcite_problems
+      A row summarises ONE record, so a link inside it naming that same record points a reader at the
+      row they are already reading and the referent the sentence needed is lost. This is what a fold's
+      'ADR-<old>' → 'ADR-<new>' substitution produces in the index, and every resolution arm above
+      stays green on it because the target is a live record. Replace it with a bare 'record 00nn'
+      naming the ABSORBED record — unqualified is resolvable here, and only here, because the row's
+      first column already establishes which document is being described."
+else
+  ok "citation resolution — no index row links to its own record ($rowcite_checked rows scanned in docs/adr/README.md for '[ADR-nnnn](./…)' naming the row's own number)"
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════

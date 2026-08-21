@@ -235,8 +235,9 @@ The distinction is gated, not conventional.
 
 **The cost this makes visible, measured on 2026-08-10 against the 69 descriptions the library held
 then:** those 69 totalled ~28 KB and became **always-on**, about **+9,919 tokens per session**
-(`Skills (2)` ≈ 1,444 tok → `Skills (71)` ≈ 11,363 tok). ADR-0009 made those descriptions dense
-deliberately; **that decision was free while nothing loaded them and stopped being free once they
+(`Skills (2)` ≈ 1,444 tok → `Skills (71)` ≈ 11,363 tok). The trigger-description standard — record 0009
+until 2026-08-20, now a section of [ADR-0011](./docs/adr/0011-skills-and-preload.md) — made those
+descriptions dense deliberately; **that decision was free while nothing loaded them and stopped being free once they
 loaded.** Nobody has revisited it — that is an open decision, not a settled one.
 
 **That figure is the price at its measurement, not the price today, and the denominator is why.** The

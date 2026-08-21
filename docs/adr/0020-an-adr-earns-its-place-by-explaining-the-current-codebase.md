@@ -17,14 +17,17 @@
     *`README.md` is the single source of truth for the dev-loop narrative (absorbed 2026-08-20, record
     0019)* section of [ADR-0002](./0002-roster-and-dev-loop.md) — and ADR-0011's *"Struck rather
     than deleted, per this repo's supersede-never-delete convention"*.
-  - **Citing the `supersede-*` family: five.** Those two, plus ADR-0010's *"Struck rather than deleted,
+  - **Citing the `supersede-*` family: five.** Those two, plus record 0010's *"Struck rather than deleted,
     per this practice's supersede-never-rewrite rule"*, ADR-0002's *"the rule is
-    supersede-never-rewrite"* and ADR-0016's *"ADR-0011's own supersede-not-rewrite rule"*. All five
-    records are `accepted`.
+    supersede-never-rewrite"* and record 0016's *"ADR-0011's own supersede-not-rewrite rule"* — the
+    last of which is now a clause of the *The `archive` disposition is a file move to `docs/archive/`,
+    not a frontmatter flag (absorbed 2026-08-20, record 0016)* section of
+    [ADR-0011](./0011-skills-and-preload.md), kept verbatim through that fold **because this
+    enumeration quotes it**. All five records were `accepted`.
 
   Only **one** citation anywhere in that family is about the arm this record replaces — record 0019's,
   which is an argument against `git rm`-ing a **whole file**. **The other four — ADR-0002's own
-  *"the rule is supersede-never-rewrite"*, ADR-0010's, ADR-0011's and ADR-0016's — each justify a strike
+  *"the rule is supersede-never-rewrite"*, record 0010's, ADR-0011's and record 0016's — each justify a strike
   inside a live record**, which this
   record leaves explicitly unchanged. All four are correct as they stand and are **not** to be swept.
   Enumerate them without the hyphenated name, since every one of them is line-wrapped across a hyphen:
@@ -106,8 +109,10 @@ correction is carried here rather than quietly fixed.
    fraction of content describing systems that do not exist, and that fraction is loaded, cited and
    rendered like the rest.
 
-3. **Move the retired record to `docs/archive/`, as [ADR-0016](./0016-archive-is-docs-archive-not-a-skills-flag.md)
-   does for skills, rather than deleting it.** *Why not:* ADR-0016's mechanism works because something
+3. **Move the retired record to `docs/archive/`, as the skills-archive mechanism does for skills, rather
+   than deleting it** — record 0016, now the *The `archive` disposition is a file move to
+   `docs/archive/`, not a frontmatter flag (absorbed 2026-08-20, record 0016)* section of
+   [ADR-0011](./0011-skills-and-preload.md). *Why not:* that mechanism works because something
    **computes over the directory boundary** — `inventory-counts.test.sh` scans `skills/` and an archived
    file is outside it, so the move changes behaviour. **Nothing keys on the `docs/adr/` boundary**, so
    moving a record out of it changes no gate's outcome. Machinery does read the directory — the same
@@ -190,13 +195,15 @@ deletion. So this record changes what happens next; it deletes nothing today.
 
   ```
   mv docs/adr/0002-roster-and-dev-loop.md <elsewhere>
-  bash hooks/scripts/inventory-counts.test.sh        →  60 passed, 5 failed
+  bash hooks/scripts/inventory-counts.test.sh        →  65 passed, 5 failed
   ```
 
   The **five reds** are what the claim turns on and they are unchanged: four citation arms (relative
   link, repo-root path, stale foreign exemption, prose token) and the numbering arm. The **passing**
   total moved from 58 to 60 in this same MR's second review round, which added two verdicts by
-  splitting two more suppressed arms apart; it is restated here rather than left at the figure the
+  splitting two more suppressed arms apart, **and from 60 to 65 across #283's folding slices** — S3
+  added arm 4c, S5 added arm 4d, and the rest is the suite growing around them. Re-performed at S5's
+  head rather than inherited. It is restated here rather than left at the figure the
   round-1 fix measured, because a published number that silently drifts is the defect this record's
   own amendment is about.
 
@@ -463,8 +470,9 @@ not the only place a retired number may appear — and nothing else in this amen
 - [ADR-0001](./0001-adopt-madr-adrs.md) — adopts the practice this record amends the disposition half of;
   ADR-0001 records MADR, the two libraries and the light significance gate, and is **not** where
   supersede-never-delete was decided.
-- [ADR-0016](./0016-archive-is-docs-archive-not-a-skills-flag.md) — the archive mechanism for *skills*,
-  rejected here for *records*, on the asymmetry stated in considered option 3.
+- [ADR-0011](./0011-skills-and-preload.md), its *The `archive` disposition is a file move to
+  `docs/archive/`, not a frontmatter flag (absorbed 2026-08-20, record 0016)* section — the archive
+  mechanism for *skills*, rejected here for *records*, on the asymmetry stated in considered option 3.
 - [ADR-0017](./0017-adr-authorship-is-split-by-domain-not-tech-lead-exclusive.md) — the authorship split
   under which this is `harness-lead`'s record to write.
 - [ADR-0002](./0002-roster-and-dev-loop.md) — its *`README.md` is the single source of truth for the
