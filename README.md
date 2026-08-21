@@ -312,8 +312,20 @@ document.**
 - **The orchestrator is a relay, and relays distort.** A verdict reaches the owner through a summary
   someone wrote — which is why gatekeeper verdicts are posted as artifacts on the pull request, and why
   approvals and ratifications are read from the artifact rather than from the relay.
-- **Nothing enforces a dispatch.** No check, job or hook requires that a lens ran, so an undispatched
-  lens fails silently and looks identical to a clean one.
+- ~~**Nothing enforces a dispatch.** No check, job or hook requires that a lens ran, so an undispatched
+  lens fails silently and looks identical to a clean one.~~ **Struck 2026-08-20 (#294).** Still true
+  of *omission* — no check, job or hook requires that a lens ran, and a dispatch that never happens is
+  not a tool call, so no hook can intercept it. What changed: the loop can also go zombie on
+  **narration** — the orchestrator asserting a dispatch in prose without making the tool call, which is
+  strictly worse than silence because it defeats the human reading the turn. `zombie-loop-detect.sh` (a
+  `Stop` hook) now surfaces this, one turn after the turn that went zombie: it reads the same
+  `gatekeeper-verdict` artifact `session-wip.sh` already read at `SessionStart`, moved to fire at the
+  end of every main-agent turn instead — the failure's own boundary. It is detection, not prevention,
+  and it reads loop state only (a closed three-literal enumeration the gate's own persona defines),
+  never prose — it cannot distinguish "narrated but not attempted" from "attempted and errored", and it
+  catches nothing during intake, before a PR exists, or a narrated dispatch of a lens denied `gh pr
+  comment` (whose absence stays unobservable by construction). See the hooks section above for the full
+  design.
 - **Personas can run on a stale brief.** A merged change to a persona does not reach a session until the
   installed build catches up, and a subagent cannot see the notice that says so.
 - **Work no brief claims runs the default path anyway.** Nothing detects *"this is not my kind of work"* —
@@ -770,9 +782,10 @@ in `/devops`. This is the pointer, not the copy.
 
 ## The hooks, and what they refuse
 
-Claude Code exposes **31 hook events**. This repo wires **two**, and the picture draws all of them so the
-unused surface is visible rather than unmentioned — the two in use are filled, the other twenty-nine are
-not.
+Claude Code exposes **31 hook events**. This repo wires **three**, and the picture draws all of them so the
+unused surface is visible rather than unmentioned — the three in use are filled, the other twenty-eight are
+not. `Stop` joined 2026-08-20 (#294) — it sits in the deny-capable group with `PreToolUse`, but the hook
+wired to it never uses that half; see the row below.
 
 **The split that matters is not used-versus-unused, it is whether an event can deny at all.** A control
 placed on an observe-only event looks like enforcement and is not, and that mistake stays invisible until
@@ -790,7 +803,7 @@ flowchart LR
     E3["UserPromptExpansion"]:::idle
     E4["PermissionRequest"]:::idle
     E5["PermissionDenied"]:::idle
-    E6["Stop"]:::idle
+    E6["Stop"]
     E7["ConfigChange"]:::idle
   end
 
@@ -811,6 +824,7 @@ flowchart LR
   H4["session-plugin-version"]
   H5["dispatch-metrics-start"]
   H6["dispatch-metrics-stop"]
+  H7["zombie-loop-detect"]
 
   E1 --> H1
   E1 --> H2
@@ -818,8 +832,9 @@ flowchart LR
   O1 --> H4
   O4 --> H5
   O4 --> H6
+  E6 --> H7
 
-  class E1,O1,O4 used
+  class E1,O1,O4,E6 used
 ```
 
 | event | when it fires | denies? | hooks wired here | purpose |
@@ -828,11 +843,11 @@ flowchart LR
 | **`SessionStart`** | a session begins or resumes | no | `session-wip`, `session-plugin-version` | inject the open queue, and warn when the installed build is not the merged one |
 | **`SubagentStart`** | a subagent is dispatched | no | `dispatch-metrics-start` | best-effort dependency probe only — see below; does not post |
 | **`SubagentStop`** | a subagent finishes | no | `dispatch-metrics-stop` | log rework rounds, time, output size and token cost for the dispatch as a structured Issue comment (#209) |
+| **`Stop`** | the main agent's turn ends | **yes, but this hook never uses that half** | `zombie-loop-detect` | detect (never prevent) an outstanding gate verdict left unaddressed at turn end — one turn late instead of one session late (#294) |
 | `UserPromptSubmit` | a prompt is submitted, before processing | **yes** | — | |
 | `UserPromptExpansion` | a typed command expands, before it reaches the model | **yes** | — | |
 | `PermissionRequest` | a call needs a permission decision | **yes** | — | |
 | `PermissionDenied` | a call is denied by the classifier | **yes** | — | |
-| `Stop` | the model finishes responding | **yes** | — | |
 | `ConfigChange` | a configuration file changes mid-session | **yes** | — | |
 | `PostToolUse` · `PostToolUseFailure` · `PostToolBatch` | after a call succeeds, fails, or a parallel batch resolves | no | — | |
 | `SessionEnd` · `Setup` · `Notification` · `MessageDisplay` | session teardown · one-time prep · notification · message render | no | — | |
@@ -870,9 +885,15 @@ logs the four benchmarking metrics the owner asked for on #209 — rework rounds
 output-size proxy — as a structured comment on the Issue the dispatch worked, deriving them from
 `agent_transcript_path` (a per-dispatch JSONL transcript, separate from the main session's own) and from
 the PR's own gatekeeper-verdict markers rather than pasting any raw dispatch text. `dispatch-metrics-start`
-does not post; it only warns, once, if `jq` is missing and the Stop hook therefore cannot capture
-anything this session — see `hooks/scripts/dispatch-metrics-stop.sh` for the full design record,
-including why this is one comment per dispatch rather than one comment updated per Issue.
+does not post; it only warns, once, if `jq` is missing and the `SubagentStop` hook (`dispatch-metrics-stop`)
+therefore cannot capture anything this session — see `hooks/scripts/dispatch-metrics-stop.sh` for the full
+design record, including why this is one comment per dispatch rather than one comment updated per Issue.
+`zombie-loop-detect` is a *second, independent reader* of the same ADR-0006 `gatekeeper-verdict` artifact
+`session-wip` already reads, wired to `Stop` instead of `SessionStart` so an outstanding REQUEST-CHANGES or
+APPROVE-PENDING-HUMAN verdict surfaces one turn late rather than one session late; it never parses prose,
+only loop state, and it never blocks — `additionalContext` only, debounced to once per (PR, head SHA) per
+session via a marker file under the checkout's own `.git/` — see
+`hooks/scripts/zombie-loop-detect.sh` for the full design record and what it deliberately cannot catch.
 
 **There used to be a fifth hook here, `session-scratch`, sweeping a repo-root `.scratch/` directory —
 retired at #245.** It existed to guarantee nothing survived into a new session, on the belief that a
@@ -893,7 +914,7 @@ by hand:
 | **Skills** | yes — **13** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **6 subagent personas** | `agents/*.md` (`developer`, `harness-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `writer`) | dispatched by name via `Task` |
-| **Hooks** | yes — **`hooks.json` registers 6** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`) — automatic, no invocation |
+| **Hooks** | yes — **`hooks.json` registers 7** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`) — automatic, no invocation |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
 | LSP servers | **no** | — | no `.lsp.json` |

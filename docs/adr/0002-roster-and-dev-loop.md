@@ -1660,8 +1660,35 @@ that residual is named, not certified closed.
   `permission-guard.sh`, its test suite and several `agents/*.md` files. A sweep is its own slice.
 - **The label-scoping gap is named, not closed.** Anyone reading this section as *"the orchestrator is now
   the exclusive, gated actor for `ready`/routing labels"* is reading a claim it explicitly does not make.
-- **The dispatch-omission blind spot has no gate.** Naming it did not make it detectable; an undispatched
-  lens still looks identical to a clean run.
+- ~~**The dispatch-omission blind spot has no gate.** Naming it did not make it detectable; an
+  undispatched lens still looks identical to a clean run.~~ **Struck 2026-08-20 (#294) — narrower now,
+  not closed.** #294's own incident was not omission: the orchestrator narrated a dispatch ("Vou
+  despachar o `harness-lead`...") in its user-facing turn and ended the turn without making the `Task`
+  call. Nothing recorded the difference — no hook, no comment, no error — until the owner noticed the
+  loop had stalled. That is a **worse** failure than silent omission, because it defeats the one
+  mitigation this loop actually relied on (the human reading the turn) by telling them the thing is
+  underway.
+
+  **What changed:** `hooks/scripts/zombie-loop-detect.sh`, a `Stop` hook, reads the same fact
+  `session-wip.sh` already computed at `SessionStart` — whether the current branch's open PR carries a
+  `gatekeeper-verdict` comment reading `REQUEST-CHANGES` or `APPROVE-PENDING-HUMAN` on its current head
+  — but at the end of **every turn** rather than only at session start. `Stop` is the only event whose
+  trigger is "a turn ended", which is the failure's own boundary; `PreToolUse` and `SubagentStart`/
+  `SubagentStop` were eliminated mechanically, since each fires only in the case that is NOT the
+  failure (a tool call or a dispatch that never happened leaves nothing for any of them to see —
+  confirmed 2026-08-20 against the primary hooks documentation: `SubagentStart` is informational-only
+  and cannot deny a dispatch; `SubagentStop` fires only after one already ran).
+
+  **What is still true, and is the reason this is struck rather than deleted.** This is detection, one
+  turn late instead of one session late — not prevention, and no layer in this architecture can prevent
+  a tool call that is never made. It never parses prose: it cannot tell "narrated but not attempted"
+  from "attempted and errored", only that loop state (a closed three-literal enumeration the gate's own
+  persona defines) says something is outstanding. **The blind spot narrows, it does not close**: still
+  uncaught are narration with no loop-state footprint at all ("I'll update the README" and then not
+  doing it), anything during intake before a PR exists, and a narrated dispatch of a lens denied `gh pr
+  comment` by `permission-guard.sh` rule 5e (`product-lead`) — its absence stays unobservable by
+  construction. Full design record, mutation-checked debounce and cost-bounding: `hooks/scripts/
+  zombie-loop-detect.sh`'s own header, and `README.md`'s hooks section.
 
 ## A task is an Issue child, not a checkbox (absorbed 2026-08-20, record 0014)
 
