@@ -15,6 +15,46 @@ GUARD="$(cd "$(dirname "$0")" && pwd)/permission-guard.sh"
 pass=0
 fail=0
 
+# A `gh` STUB ON PATH, FOR THE WHOLE SUITE — rule 7c reads the PR's own verdict comment via a real
+# `gh pr view` call, and nothing else in this file executes `gh` at all (every other rule is a pure
+# string match). Without a stub, every existing "the reviewer merges" ALLOW case below would either
+# hit the real network (this repo is public, so `gh pr view 149` might even resolve to a REAL PR) or
+# fail silently into 7c's fail-open path — either way the suite's result would depend on what GitHub
+# currently holds, which is exactly what session-wip.test.sh's own header says a suite must not do.
+#
+# THE DEFAULT FIXTURE IS "CLEAN": current head `stubbed-head`, one OWNER comment carrying the marker,
+# APPROVE-AND-MERGE, against that same head. Every pre-existing ALLOW case for the reviewer relies on
+# this default without saying so — it is what keeps them asserting what they always asserted (identity
+# is sufficient) now that a second condition (the verdict) sits behind it. Dedicated cases below swap
+# the stub to prove the SECOND condition independently, then restore this default.
+GH_STUB_DIR="$(mktemp -d)"
+cat > "$GH_STUB_DIR/gh" <<'STUB'
+#!/bin/sh
+# Static stub: always serves the fixture file, regardless of PR ref/repo args — the ref/repo
+# PARSING itself is exercised separately (see the "rule 7c" section's arg-logging variant below).
+if [ "$1 $2" = "pr view" ]; then
+  cat "$(dirname "$0")/fixture.json" 2>/dev/null
+fi
+exit 0
+STUB
+chmod +x "$GH_STUB_DIR/gh"
+# jq builds the fixture — same reason session-wip.test.sh's add_pr_view() does: hand-rolled JSON
+# string escaping is exactly the kind of "obviously correct" code this repo's own standard distrusts.
+write_gh_fixture() { # head · verdict-literal-or-empty ('' = no comments at all)
+  head="$1"; verdict="$2"
+  if [ -z "$verdict" ]; then
+    jq -n --arg h "$head" '{headRefOid:$h, comments:[]}' > "$GH_STUB_DIR/fixture.json"
+  else
+    body="<!-- gatekeeper-verdict: quality-assurance -->
+${verdict}
+head: ${head}"
+    jq -n --arg h "$head" --arg b "$body" \
+      '{headRefOid:$h, comments:[{authorAssociation:"OWNER", body:$b}]}' > "$GH_STUB_DIR/fixture.json"
+  fi
+}
+write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE"
+export PATH="$GH_STUB_DIR:$PATH"
+
 # THREE outcomes, not two. The suite used to classify by `grep '"deny"'` and call everything else
 # ALLOW — so when rule 5c started returning `ask`, a test asserting ALLOW would have passed on it and a
 # test asserting ASK could not have been written at all. A harness that cannot see a decision cannot
@@ -154,6 +194,94 @@ check_agent DENY  "tadeumendonca-skills:tech-lead"        "the OTHER lead cannot
 # The nearest miss worth pinning: the persona that WROTE the PR is the one with a motive to merge it.
 check_agent DENY  "tadeumendonca-skills:developer"        "the author of the PR cannot merge it"      "gh pr merge 149 --merge"
 check_agent DENY  "Explore"                               "a built-in subagent cannot merge either"   "gh pr merge 149 --merge"
+
+echo "--- rule 7c: identity alone is not enough — the merge must match its OWN posted verdict, on the CURRENT head ---"
+# ADR-0004's "The merge precondition is a floor, not an instruction" section: the caller-identity check
+# above (7b) proves WHO is merging; it says nothing about whether that caller's own verdict, sitting on
+# the PR right now, actually says APPROVE-AND-MERGE for the code that is there. Every case in THIS
+# section holds agent_type at quality-assurance — 7b already passed — and varies only the fixture.
+write_gh_fixture "stubbed-head" "REQUEST-CHANGES"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "own REQUEST-CHANGES on the current head blocks the merge" "gh pr merge 149 --merge"
+write_gh_fixture "stubbed-head" "APPROVE-PENDING-HUMAN"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "own APPROVE-PENDING-HUMAN blocks it too — boundary never merges" "gh pr merge 149 --merge"
+# STALE HEAD: the verdict is APPROVE-AND-MERGE, but against a SHA that is no longer the PR's head — a
+# later, unreviewed commit landed after the verdict was posted. This is the exact failure ADR-0006 was
+# written for: a verdict on a superseded head must not read as approval of what is there now.
+jq -n '{headRefOid:"new-head-after-verdict", comments:[{authorAssociation:"OWNER", body:"<!-- gatekeeper-verdict: quality-assurance -->\nAPPROVE-AND-MERGE\nhead: old-head-the-verdict-was-for"}]}' \
+  > "$GH_STUB_DIR/fixture.json"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "a clean verdict on a SUPERSEDED head does not count" "gh pr merge 149 --merge"
+write_gh_fixture "stubbed-head" ""
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "no comments at all — nothing was ever posted"        "gh pr merge 149 --merge"
+# VOCABULARY DRIFT — the exact failure the record's Context section names: three drifted literals shipped
+# in one day (ADVISORY-ONLY, CLEAN, APPROVED), none of them the word this brief defines. An unrecognised
+# literal must not read as clearance any more than a wrong one does.
+write_gh_fixture "stubbed-head" "APPROVED"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "a drifted literal ('APPROVED') is not APPROVE-AND-MERGE" "gh pr merge 149 --merge"
+# THE MATCHING CASE, restated explicitly here rather than only inherited from the suite's default
+# fixture — so this section proves the ALLOW path too, not only every DENY path.
+write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "own APPROVE-AND-MERGE on the current head is required, and here it is" "gh pr merge 149 --merge"
+# SQUASH IS STILL DENIED FIRST, even against a clean verdict — proving the two checks are independent
+# rather than the squash rule silently subsumed by this one.
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "squash denied even with a clean verdict (independent of 7c)" "gh pr merge 149 --squash"
+
+# FAIL OPEN: no `gh` on PATH at all. This sub-rule must add NOTHING — the merge proceeds exactly as it
+# did before 7c existed, per this file's own stated policy at its header (fails open on no network / no
+# `gh` / no `jq`). Proven by removing gh specifically (not jq — jq is real, only gh is absent), against
+# the SAME agent_type/command that a REQUEST-CHANGES fixture would otherwise deny, so a bug that made
+# the fail-open path itself deny could not hide behind an unrelated ALLOW.
+write_gh_fixture "stubbed-head" "REQUEST-CHANGES"
+NOGH_7C="$(mktemp -d)"
+REAL_PATH_7C="$PATH"
+PATH="$NOGH_7C:/usr/bin:/bin"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "no gh on PATH: 7c cannot check, so it adds nothing (fails open)" "gh pr merge 149 --merge"
+PATH="$REAL_PATH_7C"
+rm -rf "$NOGH_7C"
+
+# THE PR REF AND --repo/-R VALUE ARE ACTUALLY PARSED OUT OF THE COMMAND, not assumed — an
+# arg-logging stub replaces the fixture-serving one just for this check, so the assertion is on
+# what 7c ASKED FOR rather than on what a fixture happened to return regardless of the ask.
+GH_LOG="$GH_STUB_DIR/args.log"
+cat > "$GH_STUB_DIR/gh" <<'STUB'
+#!/bin/sh
+printf '%s\n' "$*" >> "__GH_LOG__"
+if [ "$1 $2" = "pr view" ]; then
+  printf '{"headRefOid":"h","comments":[]}\n'
+fi
+exit 0
+STUB
+sed -i.bak "s#__GH_LOG__#$GH_LOG#" "$GH_STUB_DIR/gh"
+rm -f "$GH_STUB_DIR/gh.bak"
+chmod +x "$GH_STUB_DIR/gh"
+
+assert_gh_call() { # description · expected-args-line · command
+  rm -f "$GH_LOG"
+  jq -n --arg c "$3" --arg a "tadeumendonca-skills:quality-assurance" \
+    '{tool_input:{command:$c}, agent_type:$a}' | bash "$GUARD" >/dev/null 2>&1
+  got="$(cat "$GH_LOG" 2>/dev/null || true)"
+  if [ "$got" = "$2" ]; then
+    pass=$((pass + 1)); printf 'ok    ARGS   %s\n' "$1"
+  else
+    fail=$((fail + 1)); printf 'FAIL  ARGS   %s\n      want: %s\n      got:  %s\n' "$1" "$2" "${got:-<none>}"
+  fi
+}
+assert_gh_call "explicit numeric ref, no --repo"        "pr view 149 --json headRefOid,comments"                "gh pr merge 149 --merge"
+assert_gh_call "no ref: falls to current-branch PR"     "pr view --json headRefOid,comments"                    "gh pr merge --merge"
+assert_gh_call "--repo, space form"                      "pr view 149 --repo owner/repo --json headRefOid,comments" "gh --repo owner/repo pr merge 149 --merge"
+assert_gh_call "-R, space form"                          "pr view 149 --repo owner/repo --json headRefOid,comments" "gh -R owner/repo pr merge 149 --merge"
+assert_gh_call "--repo=, no space"                       "pr view 149 --repo owner/repo --json headRefOid,comments" "gh --repo=owner/repo pr merge 149 --merge"
+
+# Restore the fixture-serving stub and the suite-wide default clean fixture for every case below
+# that still expects the reviewer's identity alone to be sufficient (relies on the default fixture).
+cat > "$GH_STUB_DIR/gh" <<'STUB'
+#!/bin/sh
+if [ "$1 $2" = "pr view" ]; then
+  cat "$(dirname "$0")/fixture.json" 2>/dev/null
+fi
+exit 0
+STUB
+chmod +x "$GH_STUB_DIR/gh"
+write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE"
 
 echo "--- rule 7b: only 'pr merge' is gated; the rest of the loop is untouched for everyone ---"
 check       ALLOW "main agent may open a PR"          "gh pr create --fill"
@@ -986,6 +1114,7 @@ check ALLOW "plain rm"                      "rm /some/path"
 check ALLOW "a word merely ENDING in rm"    "npm run confirm -r -f"
 
 rm -rf "$FEAT"
+rm -rf "$GH_STUB_DIR"
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

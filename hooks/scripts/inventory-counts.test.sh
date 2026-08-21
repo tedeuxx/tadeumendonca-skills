@@ -1489,6 +1489,28 @@ else
 fi
 
 # ---------------------------------------------------------------------------------------------------
+# THE SAME PRECEDENT, FOR A SECOND DUPLICATED LITERAL: rule 7c (permission-guard.sh) re-checks the
+# gatekeeper-verdict marker at merge time, and session-wip.sh's verdict_suffix() reads it to annotate
+# the open-PR queue. Both need the SAME jq literal-extraction + SHA/author-matching program, and a
+# hook cannot source code out of another hook — same reason wip-guard.sh carries its own copy of
+# `gh_repo_flag` rather than importing permission-guard.sh's. Anchored on `def literal` through the
+# `if length == 0 …` line, which is the whole selection pipeline; a drift here is exactly the shape
+# that let `gh -R=owner/x pr create` slip past wip-guard for a week on the OTHER duplicated literal.
+guard_literal="$(grep -A11 'def literal(\$lines; \$m):' "$ROOT/hooks/scripts/permission-guard.sh" 2>/dev/null || true)"
+wip_literal="$(grep -A11 'def literal(\$lines; \$m):' "$ROOT/hooks/scripts/session-wip.sh" 2>/dev/null || true)"
+if [ -z "$guard_literal" ] || [ -z "$wip_literal" ]; then
+  bad "verdict literal — the jq extraction block could not be found in
+      $([ -z "$guard_literal" ] && printf 'permission-guard.sh ')$([ -z "$wip_literal" ] && printf 'session-wip.sh ')— nothing was
+      found to compare, so a green here would be an artifact of the break and not a finding."
+elif [ "$guard_literal" != "$wip_literal" ]; then
+  bad "verdict literal — permission-guard.sh's rule 7c and session-wip.sh's verdict_suffix() read the
+      gatekeeper-verdict marker DIFFERENTLY. One of them is a spelling behind — this is how the merge
+      gate and the queue notice would disagree about which verdict a PR actually carries."
+else
+  ok "verdict literal — rule 7c's copy is byte-identical to session-wip.sh's verdict_suffix()"
+fi
+
+# ---------------------------------------------------------------------------------------------------
 # EVERY SKILL CARRIES A `description` WRITTEN TO INDEX, NOT A TITLE (#166).
 #
 # WHY THIS IS AN INVENTORY CONCERN AT ALL. Commands were merged into skills, and model-invoked loading
