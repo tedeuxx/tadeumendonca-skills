@@ -1,14 +1,17 @@
 # Proposal: the agentic dev-loop
 
-- **Status:** Superseded — ratified into ADR-0001 through ADR-0004; superseded as a design document by
+- **Status:** Superseded — ratified into record 0001 (adopt MADR — absorbed 2026-08-20 into
+  [ADR-0020](../adr/0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)) through
+  ADR-0004; superseded as a design document by
   README.md (2026-08-14, #262)
 - **Date:** 2026-07-22
 - **Scope:** `tadeumendonca-skills` (the plugin — the reusable machine) consumed by `tadeumendonca-io` and future projects
-- **On acceptance, splits into methodology ADRs:** ADR-0001 (adopt MADR), ADR-0002 (agentic dev-loop architecture), record 0003 (MR Definition of Done — absorbed 2026-08-19 into [ADR-0006](../adr/0006-verification-and-its-artifacts.md)), ADR-0004 (autonomy & permission model)
+- **On acceptance, splits into methodology ADRs:** record 0001 (adopt MADR — absorbed 2026-08-20 into
+  [ADR-0020](../adr/0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)), ADR-0002 (agentic dev-loop architecture), record 0003 (MR Definition of Done — absorbed 2026-08-19 into [ADR-0006](../adr/0006-verification-and-its-artifacts.md)), ADR-0004 (autonomy & permission model)
 
 **Archived 2026-08-14 (#262).** This proposal's own `Status:` field said "Proposed (awaiting
 ratification)" long after it was in fact ratified — the four methodology ADRs it names above
-(ADR-0001 through ADR-0004) landed within days of this document, and every subsequent amendment
+(record 0001 through ADR-0004) landed within days of this document, and every subsequent amendment
 recorded here (the roster reshapes, the merges, `plan-reviewer`'s retirement) was tracked in
 `CLAUDE.md`, `README.md` and the ADR library instead, not here. This document still names
 `plan-reviewer`, a persona retired outright — read that and every other detail below as **the
@@ -19,7 +22,9 @@ proposal as it stood on 2026-07-22**, not as the loop's current shape.
 2026-08-14, superseding the intermediate consolidation this same document had briefly pointed
 readers to, `docs/dev-loop-design.md` — now itself a redirect stub for the same reason this file is
 being marked one). For the decisions this proposal was ratified into, read
-[ADR-0001](../adr/0001-adopt-madr-adrs.md) (adopt MADR),
+[ADR-0020](../adr/0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md)'s *MADR ADRs are
+adopted, in two libraries, behind a light significance gate (absorbed 2026-08-20, record 0001)* section
+(adopt MADR),
 [ADR-0002](../adr/0002-roster-and-dev-loop.md) (the dev-loop architecture, including every
 roster amendment since),
 [ADR-0006](../adr/0006-verification-and-its-artifacts.md)'s *Merge Request Definition
@@ -409,7 +414,7 @@ drift only if nobody ever states which side of it a persona is on.
 
 ## 10. Build sequence (each slice → its own ADR + Issue)
 
-1. **ADR practice** — the MADR template/skill in the plugin + both `docs/adr/` libraries. `[ADR-0001]`
+1. **ADR practice** — the MADR template/skill in the plugin + both `docs/adr/` libraries. `record 0001`, absorbed 2026-08-20 into `[ADR-0020]`
 2. **This loop architecture** — personas × per-task instances, ADRs-as-brain, orchestrator. `[ADR-0002]`
 3. **The MR DoD** — §6, the pacted ruler. `record 0003`, absorbed 2026-08-19 into `[ADR-0006]`
 4. **Autonomy & permission model** — §7, tool-scoping + classes. `[ADR-0004]`
@@ -438,6 +443,7 @@ drift only if nobody ever states which side of it a persona is on.
 
 ## 12. What this proposal needs
 
-Ratification of §6 (the DoD) and the roster/sequence. On acceptance it splits into ADR-0001..0004 and
+Ratification of §6 (the DoD) and the roster/sequence. On acceptance it splits into record 0001
+(absorbed 2026-08-20 into ADR-0020) through ADR-0004 and
 the build proceeds slice by slice — the loop practicing itself: decision → ADR → thin slice → gates →
 merge.
