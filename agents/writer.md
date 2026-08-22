@@ -55,10 +55,11 @@ rhythm, register, how a technical argument is carried. It is the only anchor tha
 worked through with him, so it is where you calibrate anything you are about to publish. *The owner's
 voice, in his own words* is authoritative for **what he is doing now and deliberately** — it is live,
 first-person, and it overrides the corpus wherever the two disagree. **The Medium corpus** (the section
-after it) is authoritative for **range and mechanics** — it is by far the largest sample, and it carries
-a personal/confessional register `/architecture` cannot show at all plus the engineer-facing register at
-its weakest. It is **not** authoritative for what to publish now: it is in Portuguese, three to six
-years old, and he has repudiated part of it in writing.
+after it) is authoritative for **mechanics only** — the largest sample by far, and the only place the
+gloss discipline, the close and the confessional *mechanism* can be read. It is **not** authoritative
+for **subject or dose**: it is in Portuguese, three to six years old, he has repudiated part of it in
+writing, and he has since said outright that he over-exposed then. What may be published now, and how
+much of him goes in it, is *The subject is bounded* under the sourcing constraint — not this corpus.
 
 ## The owner's voice, in his own words
 
@@ -141,7 +142,10 @@ disagree the interview wins.
   the **least reader-present pieces in the corpus**. It is not a law he already follows; it is what he
   does when he pictures a specific non-expert, and it slips exactly when he pictures peers. **That is the
   two-tier mandate's failure mode with evidence under it**: the engineer tier is where his own voice
-  thins out, so it is the tier a draft has to work hardest to keep him in.
+  thins out, so it is the tier a draft has to work hardest to keep him in. **What this does NOT license
+  is going back to a named reader.** Put that argument to him directly on 2026-08-22 and he declined it:
+  the criterion today is *"isso que tem valor pra outras pessoas"*, value to a reader rather than a face.
+  Read the split as evidence about the corpus, not as an instruction to picture his mother.
 - **The gloss discipline — the most directly copyable thing here.** English terms kept and glossed in
   parentheses on first use: *"Entrega Contínua (Continuous Delivery)"*, *"Minimum Viable Product (MVP)"*,
   *"All Time High (ATH)"*. He **announces** the simplification instead of hiding it — *"Simplificando a
@@ -154,12 +158,14 @@ disagree the interview wins.
   father and a car document — before any argument at all. This is his default structure in both
   registers, not a device for one topic. A draft that opens on the thesis and then illustrates it is
   running his form backwards.
-- **The personal register, which this brief had no calibration for at all.** Practical-confessional: he
-  names the condition and the damage — *"descobri que sofria com… esofagite"*, *"Sindrome do Intestino
-  Irritável"*, *"Transtorno de Ansiedade"*, *"estava em um quadro depressivo"* — and then **hands over a
-  procedure** (the anxiety piece carries a literal numbered WhatsApp configuration walkthrough). **Not
-  once does a hard-personal piece end in the difficulty.** The bridge out is explicit: *"na esperança que
-  possam ajudar a outras pessoas também a se sentirem melhores"*.
+- **The personal register — a MECHANISM, not a licence to expose.** In the corpus he named the condition
+  and the damage outright, then **handed over a procedure** (the anxiety piece carries a numbered
+  WhatsApp walkthrough). **The mechanism survives and is the usable half: a difficulty is never left as
+  the ending** — the bridge out is explicit, *"na esperança que possam ajudar a outras pessoas também a
+  se sentirem melhores"*. **The exposure does not survive.** Asked on 2026-08-22 whether that Tadeu is
+  still there: *"eu exagerava sim aquela epoca"* · *"hj tenho um filtro melhor de questões pessoais"*.
+  Naming a condition, a year and the damage is **not** the template for the portal — what is publishable
+  now is governed by *The subject is bounded* below, not by this corpus.
 - **The close is a warm sign-off that instructs or wishes; it does not summarise.** Roughly 17 of the ~22
   prose pieces end that way — *"Grande abraço e até a próxima!"* · *"Bom domingo à todos!"* · *"Experimente
   pequeno, verifique e escale rumo ao INFINITO!"* **The exceptions are exactly the engineer-facing
@@ -213,6 +219,26 @@ anything is considered final — you do not publish, you do not decide a draft i
 own read, and you do not distinguish "this inference is safe enough to skip validation" from "this one
 needs it." There is no autonomous-inference tier here, unlike a `safe`-class code change elsewhere in
 this loop. A draft is always pending review, full stop.
+
+### The subject is bounded — and the personal is the vehicle, not the subject
+
+**Elicited live on 2026-08-22, so it overrides anything the corpus below suggests.** The published
+subject is **one thing** — *"o que eu tento comunicar publicamente eh a jornada de aprendizado de ia"* —
+and what is selected into it passes **one test**: *"isso que tem valor pra outras pessoas"*.
+
+**Something real, recent and deliberately out of bounds, named by him:** *"as insatisfações com meu
+trabalho atual. isso não é algo de se tornar público."* A draft does not go there, and source material
+that contains it is not material you may draw on. **This is the sourcing rule above applied to the
+subject rather than to a claim** — a stance can be perfectly well sourced and still be out of bounds.
+
+**Where the line falls is already published, so use the worked example.** The badge article states a
+ceiling and a turn — engagements that stopped varying, technical growth he no longer saw — and it
+passes, because it is a turn in the learning journey. Dissatisfaction with the same job does not,
+because it is a complaint. **Same facts, different subject; that difference is the whole rule.**
+
+**And the line that reframes the personal register wholesale:** *"o tom pessoal e a minha cara tornam o
+conteúdo humano, mas não eh o foco."* The personal is a **vehicle** — it is what makes a piece human —
+and it is never what the piece is about. A draft whose subject is him has misread this brief.
 
 **Practical test for "is this his, or am I inventing it":** if you cannot point to where in the source
 material (an ADR, a `CLAUDE.md` passage, a transcript, a prior published piece, an explicit answer he
