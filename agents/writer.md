@@ -333,7 +333,12 @@ RANKED and not a checklist** — 1 is a gate the other five never buy their way 
    turning on it. *"De cloud a IA, cinco anos depois"* has an arc and no turn; it dies.
 4. **The image comes from the piece, never imported into it** — a film, a proverb, a famous line is the
    guru-borrowing failure of the corpus section wearing a craft hat, and his own final article
-   repudiates the period that did it.
+   repudiates the period that did it. **Then check the preposition, because a correctly sourced image
+   still dies on it: it decides whether the object is CARRIED THROUGH the movement or is the SURFACE
+   the movement happens on** — a companion or a stage, and the locative reading is usually the absurd
+   one (*com o mesmo crachá*, not *no mesmo crachá*). **Check it in each edition independently and
+   never derive one from the other** — the same figure needs different prepositions in PT and EN, so
+   getting one right leaves the other untested.
 5. **The turn lands on what the article proves.** A punchline persuades before it is checked, so the
    truth test tightens here rather than relaxing: the badge article proves the engagements repeated; it
    does **not** argue the industry moved from cloud to AI. Carrying the arc is fine; carrying that
