@@ -82,7 +82,7 @@ expect_in "$README" "$agents subagent personas" "agents/"
 # The root-level commands (autonomy-on.md) are counted SEPARATELY from the library, because that is
 # how both documents present them: "<N> skills + autonomy-on".
 #
-# ── THERE IS NO FAMILY. ONE LEVEL, THIRTEEN DIRECTORIES (#286) ────────────────────────────────────
+# ── THERE IS NO FAMILY. ONE LEVEL, FOURTEEN DIRECTORIES (#286) ────────────────────────────────────
 # The owner's decision, in his words: *"o que eu quero é que todas skills estejam no mesmo nível
 # hierárquico de diretórios."* Every skill is `skills/<name>/SKILL.md` and nothing groups them.
 #
@@ -170,7 +170,7 @@ done <<< "$(find "$ROOT/skills" -name 'SKILL.md' -type f 2>/dev/null | sort)"
 
 if [ -n "$misplaced" ]; then
   bad "skill tree shape — a SKILL.md is not at skills/<name>/SKILL.md:$misplaced
-      Since #286 the library is ONE level: thirteen directories under skills/, no families. A file at
+      Since #286 the library is ONE level: fourteen directories under skills/, no families. A file at
       any other depth is outside every count, table and resolver in this suite — and it still loads if
       plugin.json declares it, so nothing else would report it."
 else

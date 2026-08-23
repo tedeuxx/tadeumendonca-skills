@@ -17,10 +17,10 @@ path, at the same time:
 THE TWO FORMATS ARE NOT THE SAME FILE IN TWO PLACES. They differ mechanically, and the differences are
 the whole reason a copy would rot:
 
-  1. **Kiro's `SKILL.md` frontmatter requires `name` AND `description`. Not one of this repo's 13
+  1. **Kiro's `SKILL.md` frontmatter requires `name` AND `description`. Not one of this repo's 14
      source files carries `name`** — measured, `grep -c '^name:' skills/*/SKILL.md` returns 0 for all
-     thirteen. #287's intake called the two contracts "near-verbatim"; on this key it is simply wrong,
-     and a hand-copied tree would have shipped thirteen skills Kiro rejects or mis-keys. The generator
+     fourteen. #287's intake called the two contracts "near-verbatim"; on this key it is simply wrong,
+     and a hand-copied tree would have shipped fourteen skills Kiro rejects or mis-keys. The generator
      synthesises `name` from the directory, which is the same string Claude Code derives the
      identifier from, so the two harnesses agree on the name by construction rather than by care.
   2. **Relative links do not survive the move.** Five distinct `](../../docs/adr/...)` targets appear

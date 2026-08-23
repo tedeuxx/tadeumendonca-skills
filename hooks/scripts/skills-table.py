@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Emit the README's skill inventory table, derived from `skills/`.
 
-THERE IS NO FAMILY ANY MORE (#286). The tree is `skills/<name>/SKILL.md`, one level, thirteen
+THERE IS NO FAMILY ANY MORE (#286). The tree is `skills/<name>/SKILL.md`, one level, fourteen
 directories — the owner's decision: *"o que eu quero é que todas skills estejam no mesmo nível
 hierárquico de diretórios."* So this file no longer computes a family, no longer emits a family column,
 and the allocation map below is keyed on the SKILL rather than inherited from a group.
@@ -17,7 +17,7 @@ fallen to 13. That history is written up in `CLAUDE.md`, not re-argued here.
 
 WHAT THE FLATTEN COST THIS FILE, said rather than left to look free: allocation was a per-FAMILY map
 with three per-skill exceptions, which was compact and could not state the truth for those three. It is
-now thirteen explicit lines. That is more to maintain and it is exact — no skill inherits an owner from
+now fourteen explicit lines. That is more to maintain and it is exact — no skill inherits an owner from
 a directory it merely happens to sit in, and a NEW skill lands as `UNALLOCATED` (rendered `— none`)
 instead of quietly inheriting its neighbours', which `skills-resolve.test.sh`'s reverse assertion
 reddens on.
@@ -57,7 +57,7 @@ SKILLS = ROOT / "skills"
 # three exceptions beside it, because family granularity could not state the truth for those three
 # (`documentation-standard` splits by domain, `command-hygiene` is transversal, `devops` has three
 # holders). With no families left there is nothing to inherit from, so every skill states its own owner
-# and the exception list is gone — the same information, one indirection fewer, and thirteen lines that
+# and the exception list is gone — the same information, one indirection fewer, and fourteen lines that
 # each say what they mean.
 DEVELOPER = "`developer`"
 JUDGES = "`product-lead` · `tech-lead` · `agents-lead` · `quality-assurance`"
