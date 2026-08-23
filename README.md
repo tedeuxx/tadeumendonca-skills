@@ -1155,7 +1155,10 @@ the 14 source skills carries a `name:` key** (`grep -c '^name:' skills/*/SKILL.m
 fourteen), because Claude Code derives the identifier from the directory, while Kiro validates
 `name` **and** `description` in the frontmatter. The generator synthesises it, and rewrites the
 library's relative `../../docs/adr/…` link targets to absolute URLs, which are the only form that still
-resolves once Kiro has copied a skill into `~/.kiro/powers/`.
+resolves once Kiro has copied a skill into `~/.kiro/powers/installed/<power>/` (`getPowerDir()` in the
+`1.0.337` bundle — `getKiroPowersHome()` → `getInstalledDir()`, which appends `installed`, → the power
+name; ~~`~/.kiro/powers/`~~ here dropped the `installed` segment until #287's copy-lens round caught it,
+and the conclusion it supports — that the relative targets do not survive the copy — is unaffected).
 
 ### What each format can carry — the element-by-element gap
 
