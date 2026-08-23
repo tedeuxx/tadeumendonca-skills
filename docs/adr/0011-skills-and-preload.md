@@ -1183,6 +1183,34 @@ every consumer of this plugin, and to the generated Kiro export under `powers/`,
 a calibration rather than as a reusable ruler** — the shape is transferable, the content is not. That is
 stated here rather than discovered by a forker.
 
+### The exception is DISCHARGED (2026-08-23, #317) — and the falsifier is what discharged it
+
+**The second consumer is built.** `agents/content-reviewer.md` exists and preloads this skill, so
+`grep -rl published-voice agents/ | wc -l` returns **2** where the falsifier above records **1**. The
+exception was written with its own disproof attached — *"a second brief is what discharges the exception,
+and nothing but that discharges it"* — and that is exactly the condition that was met, in the next slice,
+which is the outcome the dated form was chosen to make checkable.
+
+**Two corrections this amendment's own text needs, and they are corrections rather than context.**
+`agents/writer.md`, named twice above as the file this content was extracted out of, **was renamed
+`agents/content-writer.md` in the same slice (#317)** — the path no longer resolves and the prose is left
+standing per this library's strike-never-rewrite convention, with the rename stated here once. And *"it
+does not decide what the reviewer is"* is now decided elsewhere and not here: its mandate, its tools, its
+containment under `permission-guard.sh` rule 5e, and its two-round bound are
+[ADR-0002](./0002-roster-and-dev-loop.md)'s seventeenth amendment, which is the roster's record and not
+the skill layer's.
+
+**What the discharge does NOT license.** Test 2 remains unamended, and *"extracted ahead of a decided
+second consumer"* stays an exception with a date on it rather than becoming a pattern to cite. The next
+single-consumer extraction argues itself from scratch; that this one came good is not evidence the class
+is safe, only that this instance was.
+
+**Something now gates the pairing that nothing gated when the exception was written.**
+`hooks/scripts/inventory-counts.test.sh` asserts the two briefs preload an **identical** skill list — so
+the shared-ruler property this amendment rests on reddens the build if it breaks, instead of degrading
+silently into two personas with two rulers. Its limit, stated because a green here is easy to over-read:
+it checks that the same file is loaded, never that either persona read it.
+
 ## Links
 
 - Driving Issue [#183](https://github.com/tedeuxx/tadeumendonca-skills/issues/183) — the owner's

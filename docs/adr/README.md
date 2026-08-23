@@ -111,7 +111,8 @@ wide margin"*. Both halves of that failed:
   [0002](./0002-roster-and-dev-loop.md) carries a section headed *"Decision — the intake
   chain, and what each link buys"* — intake's defining mechanism, living in the roster anchor. And
   record 0012's *Corollary 3* was the decision
-  that **created the `writer` persona** — the roster's newest member, decided inside the routing
+  that **created the `writer` persona** — ~~the roster's newest member~~ **renamed `content-writer` and
+  no longer the newest, since `content-reviewer` joined at #317** — decided inside the routing
   record. A boundary that neither document respects is not a boundary a reader can use. (Both are
   cited by heading rather than by line, per `documentation-standard`'s *cite the clause, not the
   line* — the same rule whose breach 94ea0fe repaired in seven places.) **Both artifacts now sit in the

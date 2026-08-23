@@ -209,13 +209,26 @@ that the Issue was delivered, and that merging will not break what is already ru
 is objective — verify each with **evidence** (a command's real output, a line in the diff), never with
 "looks fine". If you cannot check it, say so; do not assume it.
 
-**`writer` (#187) merges through you the same gate as `developer` — its diff is prose, not code, and
-that changes which DoD criteria apply, not whether the gate runs.** Coverage/lint/typecheck criteria are
-vacuous against a markdown draft; do not mark them "n/a" without saying why. What still applies in full:
-every requirement of the Issue met, and — since `writer` reads private material — that nothing in the
-diff looks like a paraphrase of `.brand/` content that should have stopped at a flagged question instead
-of a claim in the draft. `product-lead`'s truth-gating on the draft's *content* is separate from your
-gate on whether the *Issue* was delivered; both apply, neither substitutes for the other.
+**`content-writer` (#187, named `writer` until #317) merges through you the same gate as `developer` —
+its diff is prose, not code, and that changes which DoD criteria apply, not whether the gate runs.**
+Coverage/lint/typecheck criteria are vacuous against a markdown draft; do not mark them "n/a" without
+saying why. What still applies in full: every requirement of the Issue met, and — since
+`content-writer` reads private material — that nothing in the diff looks like a paraphrase of `.brand/`
+content that should have stopped at a flagged question instead of a claim in the draft.
+`product-lead`'s truth-gating on the draft's *content* is separate from your gate on whether the *Issue*
+was delivered; both apply, neither substitutes for the other.
+
+**`content-reviewer` (#317) is not a second gate and you must not treat its rounds as one.** It runs
+**before** the build is finished, on the draft, against `published-voice` alone; you run after, on the
+diff, against the Issue and against production. **What it changes for you is one checkable thing, not a
+judgement:** a `content` PR should carry `docs/content-review/<slug>.md` with at least one `## Round`
+section, and **never more than two** — `grep -c '^## Round' <file>` returns 1 or 2, and a 3 means the
+bound was overrun, which is a finding on your delivery lens. **A missing file is a finding too, and it
+is the likelier one**, because nothing mechanical dispatches the pair. **What is NOT yours: whether the
+findings in it were good, or whether the writer was right to drop an advisory one.** That is the pair's
+argument and it is bounded on purpose; re-litigating it from the gate is how a bounded review becomes an
+unbounded one at the last possible moment. The parallel to hold is `agents-lead`'s marker on a harness
+diff — you check that the artifact exists and reads against the right head, never that you agree with it.
 
 ## The production lens — what it obliges, and where `n/a` kills it
 

@@ -666,7 +666,8 @@ fi
 #     design and that is correct; an ALLOW here must never be.
 # `gh_repo_flag` is defined above rule 5f, which is the first rule that reads it — see the note there.
 #
-# INVERTED FROM A DENYLIST TO AN ALLOWLIST (#187, 2026-08-13). The `writer` persona reads `.brand/`
+# INVERTED FROM A DENYLIST TO AN ALLOWLIST (#187, 2026-08-13). The `writer` persona — renamed
+# `content-writer` at #317, so this paragraph narrates a name that no longer resolves — reads `.brand/`
 # (private positioning material) to draft public-facing prose — the same shape `product-lead` was
 # denied for — and probing `agent_type=…:writer` against the OLD form (`case ... *:product-lead) deny
 # ;; esac`, everything else falls through ALLOW) found it posts straight through with no decision at
@@ -684,8 +685,17 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
             # file, same as before.
     *:product-lead)
       deny "Blocked: \`product-lead\` writes nothing to a public surface. It reads the private positioning layer (\`.brand/\`) and \`gh pr comment\`/\`gh issue comment\`/\`gh issue create\` publish to a public repo — a paraphrase of that material in a comment is not revertible by deleting the comment. This restores the capability boundary the merged-away \`marketing-lead\` had (no Bash at all); reading the queue (\`gh pr list\`, \`gh issue list\`, \`gh pr view\`) is untouched. Return the finding in your verdict — it still reaches the PR: \`quality-assurance\` quotes your verdict there VERBATIM under its own marker, and its criterion 10 is not satisfied until that text is on the PR (owner decision 2026-08-04, recorded in ADR-0006). Say in your return that the finding needs to reach the PR, and write it so it can be quoted as it stands. agent_type='${agent_type}'." ;;
-    *:writer)
-      deny "Blocked: \`writer\` writes nothing to a public surface directly. It reads the private positioning layer (\`.brand/\`) to draft — the same shape \`product-lead\` is denied for, and for the same reason: a paraphrase of private material in a public comment is not revertible by deleting the comment. Drafts go through \`Write\`/\`Edit\` onto tracked files (\`content/blog/**\`, site copy, a social-post draft) for the owner's review, never straight to \`gh pr comment\`/\`gh issue comment\`/\`gh issue create\`. agent_type='${agent_type}'." ;;
+    *:content-writer)
+      deny "Blocked: \`content-writer\` writes nothing to a public surface directly. It reads the private positioning layer (\`.brand/\`) to draft — the same shape \`product-lead\` is denied for, and for the same reason: a paraphrase of private material in a public comment is not revertible by deleting the comment. Drafts go through \`Write\`/\`Edit\` onto tracked files (\`content/blog/**\`, site copy, a social-post draft) for the owner's review, never straight to \`gh pr comment\`/\`gh issue comment\`/\`gh issue create\`. agent_type='${agent_type}'." ;;
+    # `content-reviewer` (#317) is named EXPLICITLY rather than left to the `*)` catch-all below, and the
+    # difference is not cosmetic. The catch-all denies a persona nobody has decided about; naming this one
+    # records that the decision WAS made and which way it went, and it is the difference ADR-0004's
+    # "absent is not a state" section turns on — a deny by omission and a deny by decision are the same
+    # behaviour and different facts, and only one of them survives someone later reading the rule and
+    # assuming the gap was an oversight. It reads the same private layer for the same reason: it judges a
+    # draft sourced from `.brand/` against `published-voice`, so its findings quote that material back.
+    *:content-reviewer)
+      deny "Blocked: \`content-reviewer\` writes nothing to a public surface directly. It reads the private positioning layer (\`.brand/\`) to judge a draft against \`published-voice\`, so a finding of its own can quote that material — the same shape \`product-lead\` and \`content-writer\` are denied for, and not revertible by deleting the comment. Its round goes to a TRACKED file on the same branch (\`docs/content-review/<slug>.md\`, one \`## Round\` section per round, closed with \`CONTENT-REVIEW-FINDINGS\` or \`CONTENT-REVIEW-CLEAR\`) through \`Write\`/\`Edit\`, where it lands in the diff the owner already reads. That file is the artifact, not a workaround for this deny. agent_type='${agent_type}'." ;;
     *)
       deny "Blocked: agent_type='${agent_type}' is not on this rule's allowlist for posting directly (\`gh pr comment\`/\`gh issue comment\`/\`gh issue create\`). New personas default to DENY here — deliberately, per ADR-0004's 'absent is not a state' — until someone decides they belong on the allow side above and adds them by name. If this SHOULD be allowed, that is a decision to make explicitly, not a gap to route around." ;;
   esac

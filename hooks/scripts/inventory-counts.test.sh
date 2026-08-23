@@ -1690,6 +1690,73 @@ else
 fi
 
 # ---------------------------------------------------------------------------------------------------
+# THE CONTENT PAIR'S SHARED CONSTANTS (#317). Three arms, each its own verdict — the lesson #283's
+# re-sweep paid for twice is that a chained `elif` hides an assertion by never reaching it, and the
+# totals stay plausible while a check DISAPPEARS. Nothing here is chained.
+#
+# WHAT THIS GATES AND WHAT IT CANNOT. The pair's whole value is that both halves judge against ONE
+# ruler and stop on ONE mechanical condition. Both of those live in prose, in two files, and prose in
+# two files is this repo's most-paid-for defect class. So: the preload identity is asserted (arm A),
+# and the terminal literals are asserted present in both briefs with no third spelling anywhere (arm
+# B/C). What is NOT gated, and is a reviewer's read: whether a round file was actually written, whether
+# a finding really quoted a clause, and whether the writer dropped an advisory finding it should have
+# taken. No instrument reaches any of those, and a green here must not stand in for them.
+CP_W="$ROOT/agents/content-writer.md"
+CP_R="$ROOT/agents/content-reviewer.md"
+
+# ── ARM A: the pair preloads the SAME ruler ────────────────────────────────────────────────────────
+# Derived from the frontmatter of both files rather than written here, so the assertion is "identical"
+# and not "both contain published-voice" — a reviewer gaining a fourth skill the writer lacks is the
+# drift this exists to catch, and a containment check would pass straight through it.
+cp_w_skills="$(sed -n '/^skills:/,/^---$/p' "$CP_W" 2>/dev/null | sed -n 's/^  - //p' | sort)"
+cp_r_skills="$(sed -n '/^skills:/,/^---$/p' "$CP_R" 2>/dev/null | sed -n 's/^  - //p' | sort)"
+if [ -z "$cp_w_skills" ] || [ -z "$cp_r_skills" ]; then
+  bad "content pair — one or both briefs declared NO preloaded skills (content-writer: $(printf '%s' "$cp_w_skills" | grep -c . || true), content-reviewer: $(printf '%s' "$cp_r_skills" | grep -c . || true)). Either a brief was deleted or its frontmatter shape changed; an empty-vs-empty comparison would pass for no reason, which is why this arm exists ahead of the equality below."
+elif [ "$cp_w_skills" != "$cp_r_skills" ]; then
+  bad "content pair — the drafter and the reviewer no longer preload the same skills, so they no longer
+      judge against the same sentences. That identity IS the reason published-voice was extracted to a
+      skill (#316) and the reason the pair is worth its cost at all (#317).
+        content-writer:   $(printf '%s' "$cp_w_skills" | tr '\n' ' ')
+        content-reviewer: $(printf '%s' "$cp_r_skills" | tr '\n' ' ')
+      If one of them genuinely needs a skill the other must not have, that is a decision to record in
+      ADR-0002 and to state in both briefs — not a difference to leave standing here."
+else
+  ok "content pair — content-writer and content-reviewer preload an identical skill list ($(printf '%s' "$cp_w_skills" | tr '\n' ' '))"
+fi
+
+# ── ARM B: both terminal literals are named in BOTH briefs ─────────────────────────────────────────
+# The bound is only mechanical if the drafter recognises the same two strings the reviewer writes. A
+# literal known to one side is a terminal condition only that side can evaluate.
+cp_missing=""
+for lit in CONTENT-REVIEW-FINDINGS CONTENT-REVIEW-CLEAR; do
+  grep -qF -- "$lit" "$CP_W" 2>/dev/null || cp_missing="$cp_missing content-writer.md:$lit"
+  grep -qF -- "$lit" "$CP_R" 2>/dev/null || cp_missing="$cp_missing content-reviewer.md:$lit"
+done
+if [ -n "$cp_missing" ]; then
+  bad "content pair — a terminal literal is missing from a brief that must recognise it:$cp_missing
+      The round bound stops being mechanical the moment one side does not know the string the other
+      writes; it degrades to 'someone reads the file and judges', which is the state /harness-engineering
+      calls no state at all."
+else
+  ok "content pair — both terminal literals (CONTENT-REVIEW-FINDINGS, CONTENT-REVIEW-CLEAR) appear in both briefs"
+fi
+
+# ── ARM C: no THIRD literal has been invented ──────────────────────────────────────────────────────
+# The direction arm B is blind to, and it is the one quality-assurance's own verdict-set gate learned to
+# check: adding a spelling reddens nothing when the assertion only asks whether the known ones survive.
+# Scope is the two briefs plus the guard rule and the state table that quote them.
+cp_phantom="$(grep -rhoE 'CONTENT-REVIEW-[A-Z-]+' "$CP_W" "$CP_R" \
+  "$ROOT/hooks/scripts/permission-guard.sh" "$ROOT/skills/harness-engineering/SKILL.md" 2>/dev/null \
+  | sort -u | grep -vxE 'CONTENT-REVIEW-(FINDINGS|CLEAR)' || true)"
+if [ -n "${cp_phantom//[[:space:]]/}" ]; then
+  bad "content pair — a CONTENT-REVIEW-* literal exists that the pair does not define:$(printf '%s' "$cp_phantom" | tr '\n' ' ')
+      A third terminal spelling means the bound has two answers. Either the set changed — in which case
+      change it in both briefs, the guard message and the state table together — or this is drift."
+else
+  ok "content pair — no CONTENT-REVIEW-* literal outside the defined set of two, across both briefs, the guard rule and the state table"
+fi
+
+# ---------------------------------------------------------------------------------------------------
 # EVERY SKILL CARRIES A `description` WRITTEN TO INDEX, NOT A TITLE (#166).
 #
 # WHY THIS IS AN INVENTORY CONCERN AT ALL. Commands were merged into skills, and model-invoked loading
