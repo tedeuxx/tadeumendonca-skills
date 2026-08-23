@@ -159,6 +159,82 @@ else
   fi
 fi
 
+# --- the PUBLISHED FIGURE in the export agrees with the DECLARED skills array -------------------
+#
+# WHY THIS IS NOT COVERED BY THE REGENERATION DIFF ABOVE, which is the whole reason it exists. That
+# diff regenerates the export into a temp directory and compares it with `powers/`: it compares the
+# generator's output to ITSELF, so a number the generator INVENTS is reproduced identically on both
+# sides and the diff stays green. That is exactly what happened — the export published "13 dense
+# skills" while `skills/` held 14, for weeks, with this suite green throughout. The generator's own
+# comment (`kiro-power-build.py`, "THE SKILL COUNT IS DERIVED, NEVER TYPED") records the fix; this is
+# the gate that would have caught it on day one, and that catches the next author who re-types it.
+#
+# THE TWO OPERANDS ARE INDEPENDENTLY MAINTAINED, and that is the whole value — an assertion whose
+# two sides come from one expression cannot fail:
+#
+#   LEFT  — the integer as it is PUBLISHED, read as prose out of the committed export files
+#           (`powers/tadeumendonca-skills/plugin.json`'s `description`, and two sentences in that
+#           package's `README.md`). It is written by the generator from its own `skills/*/SKILL.md`
+#           glob, and it changes only when someone regenerates the export.
+#   RIGHT — `len(.skills)` in `.claude-plugin/plugin.json`: the array a HUMAN edits by hand when a
+#           skill is added or removed, and which nothing in the generator reads for this purpose
+#           (`build_manifest()` takes `name`, `version`, `author`, `homepage`, `repository` and
+#           `license` from that file — never the count).
+#
+# So the two sides drift apart on the failure that actually happens here: a skill added to the tree
+# and declared, with the export not regenerated; a skill added to the tree and exported, with the
+# array not updated; or the sentence re-typed with a constant. None of those moves both numbers.
+#
+# THREE ASSERTIONS, THREE `if`s — the same figure is published in three sentences and each can rot on
+# its own. Chaining them would let the first `bad` swallow the other two verdicts (see the chaining
+# rule in this file's header). Each carries its own extraction and its own vacuity guard: a regex
+# that matches NOTHING is a FAIL, not a skip, because a sentence that changed shape is how a gate
+# like this one silently stops reading anything.
+POWER_README="$POWER/README.md"
+declared_n="$(python3 -c 'import json,sys;print(len(json.load(open(sys.argv[1]))["skills"]))' "$CLAUDE_MANIFEST" 2>/dev/null)"
+
+if ! printf '%s' "$declared_n" | grep -qE '^[0-9]+$'; then
+  bad "published figure (manifest) — could not read len(.skills) out of .claude-plugin/plugin.json"
+else
+  pub_manifest_n="$(python3 -c 'import json,re,sys;m=re.search(r"reference: ([0-9]+) dense", json.load(open(sys.argv[1]))["description"]);print(m.group(1) if m else "")' "$MANIFEST" 2>/dev/null)"
+  if [ -z "$pub_manifest_n" ]; then
+    bad "published figure (manifest) — powers/tadeumendonca-skills/plugin.json's description no longer publishes a figure matching 'reference: <n> dense'; the sentence changed shape and this gate stopped reading it"
+  elif [ "$pub_manifest_n" != "$declared_n" ]; then
+    bad "published figure (manifest) — the Kiro manifest description publishes $pub_manifest_n skills, .claude-plugin/plugin.json declares $declared_n. One of the two is stale, and the fix differs: if the tree changed and the export was not rebuilt, run 'python3 hooks/scripts/kiro-power-build.py'; if the tree changed and the array was not updated, edit the skills array in .claude-plugin/plugin.json."
+  else
+    ok "published figure (manifest) — the Kiro description publishes $pub_manifest_n, matching the $declared_n declared skills"
+  fi
+fi
+
+if ! printf '%s' "$declared_n" | grep -qE '^[0-9]+$'; then
+  bad "published figure (README ships) — could not read len(.skills) out of .claude-plugin/plugin.json"
+else
+  pub_ships_n="$(grep -oE 'the skills — [0-9]+ dense' "$POWER_README" 2>/dev/null | grep -oE '[0-9]+' | head -n 1)"
+  if [ -z "$pub_ships_n" ]; then
+    bad "published figure (README ships) — the package README no longer publishes a figure matching 'the skills — <n> dense'; the sentence changed shape and this gate stopped reading it"
+  elif [ "$pub_ships_n" != "$declared_n" ]; then
+    bad "published figure (README ships) — the package README says it ships $pub_ships_n skills, .claude-plugin/plugin.json declares $declared_n. One of the two is stale, and the fix differs: if the tree changed and the export was not rebuilt, run 'python3 hooks/scripts/kiro-power-build.py'; if the tree changed and the array was not updated, edit the skills array in .claude-plugin/plugin.json."
+  else
+    ok "published figure (README ships) — the package README publishes $pub_ships_n, matching the $declared_n declared skills"
+  fi
+fi
+
+# The third sentence is the one a READER ACTS ON — the README tells them to confirm that their own
+# `~/.kiro/powers/installed/.../skills/` holds this many directories. A wrong number here does not
+# merely misdescribe the package; it makes a correct install look broken, or a broken one look fine.
+if ! printf '%s' "$declared_n" | grep -qE '^[0-9]+$'; then
+  bad "published figure (README verify step) — could not read len(.skills) out of .claude-plugin/plugin.json"
+else
+  pub_dirs_n="$(grep -oE 'contains [0-9]+ directories' "$POWER_README" 2>/dev/null | grep -oE '[0-9]+' | head -n 1)"
+  if [ -z "$pub_dirs_n" ]; then
+    bad "published figure (README verify step) — the package README no longer publishes a figure matching 'contains <n> directories'; the sentence changed shape and this gate stopped reading it"
+  elif [ "$pub_dirs_n" != "$declared_n" ]; then
+    bad "published figure (README verify step) — the README's verify step tells a reader to expect $pub_dirs_n directories, .claude-plugin/plugin.json declares $declared_n. One of the two is stale, and the fix differs: if the tree changed and the export was not rebuilt, run 'python3 hooks/scripts/kiro-power-build.py'; if the tree changed and the array was not updated, edit the skills array in .claude-plugin/plugin.json."
+  else
+    ok "published figure (README verify step) — the verify step expects $pub_dirs_n directories, matching the $declared_n declared skills"
+  fi
+fi
+
 # --- every exported skill satisfies Kiro's OWN frontmatter contract ----------------------------
 # `name` AND `description`. Not one of the 14 SOURCE files carries `name` — Claude Code derives the
 # identifier from the directory instead — so this is the property the generator ADDS, and the one a
