@@ -193,14 +193,20 @@ state added is about the LABEL VOCABULARY and is unchanged**: nothing here is qu
 opposite of `ready`'s: the round is visible only to someone reading the diff, so a `content` PR that
 skipped the pair looks exactly like one whose rounds were clear until you open the file list.
 
-**`product-lead` keeps `content` intake and loses `content` craft — and the split is a call, not a
-reading.** The owner's decision was about the **drafting flow** — it is quoted verbatim in ADR-0002's
-seventeenth amendment and is not restated here — and it does not by itself say what happens to the
-`ready` transition. Two facts decided that: nobody else in the roster
-orders a `content` queue or judges what it is worth to the reader, and its **BLOCKING truth veto on
-published claims survives untouched** — it simply fires at the merge gate, relayed by
-`quality-assurance` under criterion 10, rather than inside a round. **Only the craft opinion left.** If
-that reading is wrong, the row above is where to correct it.
+**`product-lead` keeps `content` intake and loses `content` craft — and the split holds because the two
+acts have different OBJECTS.** **Intake judges the ISSUE** (worth doing, against what else, bounded how);
+**a drafting round judges the PROSE**. The owner's decision — quoted verbatim in ADR-0002's seventeenth
+amendment, not restated here — removed this persona from the flow that produces prose, and the act that
+decides whether the Issue should exist never enters that flow. ~~The split is a call, not a reading.~~
+**Struck at #317: the copy lens supplied that reason on review, so this no longer rests on a judgement
+flagged as unsupported.** Reinforcing it: nobody else in the roster orders a `content` queue or judges
+what it is worth to the reader.
+
+**Its BLOCKING truth veto on published claims survives untouched** — it fires at the merge gate, relayed
+by `quality-assurance` under criterion 10, rather than inside a round. **Only the craft opinion left, and
+what that costs is WHEN those checks land, not WHETHER they run:** they arrive on a finished draft
+instead of inside a round where acting on them costs a paragraph. If the reading is still wrong, the row
+above is where to correct it.
 
 **Since [ADR-0006](https://github.com/tedeuxx/tadeumendonca-skills/blob/main/docs/adr/0006-verification-and-its-artifacts.md)** the
 `reviewed` row's artifact is real — the gatekeeper posts a marker comment carrying the head SHA it

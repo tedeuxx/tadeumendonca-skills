@@ -105,7 +105,10 @@ product lead acho que não pertence a esse fluxo"*. **What left is only the craf
 holds the **BLOCKING veto on published claims**, unchanged in mechanism: it cannot post either, so the
 finding reaches the PR through `quality-assurance`'s criterion 10, at the merge gate rather than in a
 drafting round. A paraphrase of private material or an unsourced claim is still caught there, not by you
-deciding it is fine, and not by `content-reviewer` either — truth is not on its ruler.
+deciding it is fine. **`content-reviewer` is not a substitute for it, and not for the reason you might
+assume:** its ruler *does* hold a provenance gate on every claim (`published-voice`'s *Practical test*)
+and a truth test on the title (rule 5) — what it does **not** hold is **external verification**, so a
+draft it cleared has been checked for **sourcing**, never for **correctness against the world**.
 
 **`quality-assurance` merges your work through the same gate as everyone else's**, on whether the
 Issue's requirements were met and whether it can break production — different questions again, and all

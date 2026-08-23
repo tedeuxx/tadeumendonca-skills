@@ -1901,19 +1901,63 @@ recurring deviation in this roster is precisely a reader inferring more from thi
   post, so it reaches the PR the way it always has: `quality-assurance` quotes the verdict verbatim
   under criterion 10 (ADR-0006). What changed is **when** it fires — at the merge gate rather than
   inside a drafting round — not whether.
-- **Its `content` intake survives**: it still applies `ready` alone.
+- **Its `content` intake survives**: it still **decides** `ready` alone. ~~applies~~ — corrected on the
+  copy lens's advisory, and the word mattered by exactly one step: `agents/product-lead.md` says *"You
+  do not apply labels; hand the label to the invoking context"*, and the orchestrator holds label
+  application (`CLAUDE.md`). *Decides* is the true claim; *applies* would have had this persona touching
+  the tracker, and the brief would have contradicted itself two hundred lines apart.
 
-**The intake half is a judgement call, not a reading of the owner's words, and is recorded as one.** He
-spoke about the drafting flow. Two facts decided the rest: nobody else in the roster orders a `content`
-queue or judges what a piece is worth to the reader, and amendment #14 already scopes this persona's
-boundary to the consuming site — which is where `content` ships. If that reading is wrong, the row in
+**The intake half survives on a reason, not on a gap in the owner's words — and the reason is that the
+two acts have different OBJECTS.** ~~It is a judgement call, not a reading of the owner's words, and is
+recorded as one.~~ **Struck: the copy lens supplied the missing support**, which is what the flag was
+asking for rather than a hedge to keep. **Intake judges the ISSUE** — is this worth doing, against what
+else, bounded how. **A drafting round judges the PROSE.** The owner's decision removed this persona from
+the flow that produces prose; it says nothing about the act that decides whether the Issue should exist,
+because that act never enters that flow. Amendment #14 points the same way: this persona's boundary is
+the consuming site, which is where `content` ships. If the reading is still wrong, the row in
 `/harness-engineering`'s state table is the single place to correct it.
 
-**A consequence worth naming:** `content-reviewer`'s ruler is the voice and **truth is not on it**. A
-draft can be perfectly in-voice and make a false claim, and between the draft and `product-lead`'s veto
-at the gate there is now nothing that would catch it. That was also true before this amendment — the
-drafter never gated its own truth either — but the pair's existence invites the wrong inference that a
-reviewed draft has been fact-checked. It has not.
+**What is actually lost is WHEN its craft checks run, not WHETHER they run.** Criterion 10 still fires
+at the merge gate, so nothing it would have said goes unsaid — it arrives on a **finished draft**
+instead of inside a round where acting on it costs a paragraph. That is the whole of the cost, and it is
+smaller than "a lens was removed" and larger than "nothing changed".
+
+**Four things `published-voice` does not cover at all, now unread until the merge gate.** They are the
+concrete content of the paragraph above and the reason it is a cost rather than an inconvenience:
+**cross-surface staleness** (a claim true on one surface and stale on another), **evidence proximity**
+(a claim whose support sits too far from it to be found), **the machine/ATS read** (how a piece parses
+to something that is not a human), and **durability** (a claim that dates badly).
+
+### A consequence worth naming — corrected, and the correction is the useful part
+
+~~`content-reviewer`'s ruler is the voice and **truth is not on it**. A draft can be perfectly in-voice
+and make a false claim, and between the draft and `product-lead`'s veto at the gate there is now nothing
+that would catch it.~~
+
+**STRUCK as FALSE against the file this amendment names, on a BLOCKING finding from the copy lens.** It
+is struck rather than deleted because the way it was wrong is operational: a `content-reviewer` loads
+`published-voice` **and** would have read here that truth is not on its ruler — so it would have declined
+a finding its own ruler explicitly authorises. The unsourced claim then goes unraised in round one, where
+it costs a sentence, and arrives at the merge gate, where it holds the merge. **That is the cost this
+pair was built to remove, reintroduced by a clause about it** — and the second copy sat in
+`agents/product-lead.md`, which is preloaded on every dispatch, so the false statement was in the
+operative surface and not only in the record.
+
+**What is true.** `published-voice` carries **two** truth rules, both binding and both quotable:
+
+- **A provenance gate on every claim in the draft** — its *sourcing constraint*, the *Practical test*:
+  *"if you cannot point to where in the source material … a claim, a number or a stance comes from, it
+  does not go in the draft as his."*
+- **A truth test on the title** — rule 5: *"the truth test tightens here rather than relaxing … carrying
+  that thesis is a **false claim** in the most quoted line of the piece."* The ruler uses those words.
+
+**What it does not carry is EXTERNAL VERIFICATION** — no check against the code, no cross-surface
+contradiction check, no durability check, no positioning-rule check.
+
+**The inference this paragraph exists to make survives the correction and gets sharper:** a reviewed
+draft has been checked for **sourcing**, never for **correctness against the world**. `product-lead`'s
+veto at the merge gate is still the only thing that does the latter, and a reader who takes two clear
+rounds as a fact-check has read the wrong guarantee off a real one.
 
 ### The rename rode in this slice, and the argument is arithmetic
 

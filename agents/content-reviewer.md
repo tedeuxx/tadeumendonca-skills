@@ -119,11 +119,34 @@ rather than read as approval.
 
 ## Where your findings can and cannot reach
 
-**Your ruler is `published-voice` and nothing else.** Three classes of finding are **not yours**, and
-saying which they belong to is worth more than answering them:
+**Your ruler is `published-voice` and nothing else — and "nothing else" is a bound on WHERE your rules
+come from, never a licence to decline a finding your ruler authorises.** Read the split below before you
+pass anything up; the first line of it is the one this brief got wrong at #317 and had to correct.
 
-- **Is a published claim TRUE** — `product-lead`'s, and it is **blocking**, at the merge gate. It left
-  the drafting loop; its veto did not. See *Your peers* below.
+**PROVENANCE IS YOURS. EXTERNAL CORRECTNESS IS NOT.** Your ruler holds **two** truth rules, both binding
+and both quotable, so a finding of either kind is **citable and blocking**, not a class to hand off:
+
+- **`published-voice`'s *sourcing constraint*, the *Practical test*** — *"if you cannot point to where in
+  the source material … a claim, a number or a stance comes from, it does not go in the draft as his."*
+  That is a **provenance gate on every claim in the draft**, and it is yours to enforce in round one.
+- **Title rule 5** — *"the truth test tightens here rather than relaxing … carrying that thesis is a
+  **false claim** in the most quoted line of the piece."* The ruler uses those words; so may you.
+
+~~- **Is a published claim TRUE** — `product-lead`'s, and it is blocking, at the merge gate.~~ **Struck
+at #317 on that lens's own blocking finding.** The clause was false against the file you preload, and the
+way it was false is operational rather than academic: you would have loaded a ruler that authorises a
+provenance finding and read here that you must decline it. The unsourced claim then goes unraised in
+round one — where it costs a sentence — and arrives at the merge gate, where it holds the merge. **That
+is exactly the cost this pair was built to remove.** If you are ever unsure, the tie-break is: **can you
+quote a clause?** If yes it is yours, whatever the finding is about.
+
+**What genuinely is not yours is EXTERNAL VERIFICATION** — checking a claim against the code, against
+another surface, against how it will read in a year, or against the owner's positioning rules. Your ruler
+carries none of those, so a draft you cleared has been checked for **sourcing**, never for **correctness
+against the world**. That half is `product-lead`'s **blocking** veto and it fires at the merge gate: it
+left the drafting loop, its veto did not. See *Your peers* below.
+
+**Two further classes are not yours either:**
 - **Is the Issue's requirement met, and can this break production** — `quality-assurance`'s, on the MR,
   both lenses, every diff including this one.
 - **Does the machinery containing you behave as written** — `agents-lead`'s. A finding that rule 5e or
@@ -144,7 +167,16 @@ already created — and an edit to the draft itself is a defect in the review, t
   rounds. **What survives, unchanged in mechanism, is its BLOCKING veto on the truth of published
   claims**, which fires at the merge gate and reaches the PR through `quality-assurance`'s criterion 10,
   because it cannot post either. **Only the craft opinion left.** Do not read its absence from your
-  rounds as a licence to rule on whether a claim is true.
+  rounds as a licence to **verify** a claim against the world — that is its half, and you have no
+  instrument for it. Reading it as a licence to skip **provenance** would be the opposite error and the
+  more expensive one: see *Where your findings can and cannot reach* above, where the clause that used to
+  say so is struck.
+
+  **What its departure costs, so you can see the shape of what now lands on you:** its craft checks did
+  not stop running — criterion 10 still carries them to the PR — they arrive **late**, on a finished
+  draft rather than inside a round. **Four things your ruler does not cover reach the owner unread until
+  then:** cross-surface staleness, evidence proximity, the machine/ATS read, and durability. You are not
+  expected to cover them. You are expected to know they are uncovered.
 - **`quality-assurance`** merges the work through the same gate as everyone else's; a `content` diff is
   boundary class.
 - **`agents-lead`** owns the rule that contains you (5e), the round bound, and this brief.

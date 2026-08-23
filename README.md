@@ -514,7 +514,7 @@ them.
   `loop`-typed proposals only, where `ready` is an owner-only transition it never performs. It remains
   the persona most exposed to staleness, a real tension a frozen
   preload creates that its own brief names as a residual rather than resolves.
-- **`content-writer` — 73,883 B** — `harness-engineering` · `command-hygiene` · `published-voice`.
+- **`content-writer` — 74,367 B** — `harness-engineering` · `command-hygiene` · `published-voice`.
   Renamed from `writer` at #317; the figure moved for one reason and it is not the rename, which costs
   nothing — `harness-engineering` grew in the same slice, by the state-machine rows this pair required.
   **`published-voice` (29,117 B) is not an addition to this brief, it is a relocation out of it:** the
@@ -532,7 +532,7 @@ them.
   and `wc -c` at this head returns **29,117**. The file was not edited between the two, so the published
   number was wrong when it shipped — a 22-byte miss, invisible because nothing gates a byte figure. It
   is corrected here and named rather than silently overwritten.
-- **`content-reviewer` — 73,883 B** — `harness-engineering` · `command-hygiene` · `published-voice`.
+- **`content-reviewer` — 74,367 B** — `harness-engineering` · `command-hygiene` · `published-voice`.
   **Byte-identical to `content-writer`'s, because the list is identical — and that identity is the
   design rather than a copy-paste.** The pair
   is only worth its cost if both halves judge against one file; giving the reviewer a skill the writer
@@ -563,11 +563,11 @@ where `quality-assurance` at least *applies* a concrete instance of the concept 
 here even touches this skill's subject at any dispatch. It stays reachable the same way every
 non-preloaded skill is: typed as `/planning-poker`, or via the `Skill` tool on demand.
 
-**619,642 B as billed across the seven, 180,100 B distinct — 38.8% of the library (463,710 B across 14
+**623,030 B as billed across the seven, 180,584 B distinct — 38.9% of the library (464,194 B across 14
 skills; `find skills -name SKILL.md | xargs wc -c`), and the largest preload is `tech-lead`'s at
-115,167 B, with `developer` second at 108,218 B.** **Read the five per-persona figures above this
+115,651 B, with `developer` second at 108,702 B.** **Read the five per-persona figures above this
 paragraph as measured at an earlier head and NOT re-derived here** — they moved when
-`harness-engineering` grew (33,412 → 36,492 → 38,735 B) on merges that published no figure, and
+`harness-engineering` grew (33,412 → 36,492 → 39,219 B) on merges that published no figure, and
 reconciling them is its own slice rather than a side effect of adding a persona. Only the content
 pair's two figures and this aggregate were re-measured at this head, because those are the ones this
 diff falsifies.
