@@ -1120,6 +1120,69 @@ rooted at `skills/`.
 - **Its cross-citations of this record as a separate document**, which are now intra-document
   references.
 
+## Amendment (2026-08-23) — extraction ahead of a decided second consumer, and why that is an exception rather than a new class
+
+**Status: accepted. Decided by the owner; written by `agents-lead`, which stress-tested the extraction
+before it was built and raised the blocker this amendment discharges.**
+
+**What was built.** `skills/published-voice/SKILL.md` — the calibration of the owner's published voice,
+extracted out of `agents/writer.md`: the three anchors and their precedence, the goal/filter/byproduct
+block, the journey rule and its two corollaries, his voice in his own words, the 26-article Medium
+corpus and the half not to reproduce, the sourcing constraint and the subject bound, the six ranked
+title criteria, and the teaser rules for a social post pointing at a piece.
+
+**The blocker, stated before the discharge, because it is the whole reason this amendment exists.** The
+operative form of test 2 above is *"if changing a persona's mandate would change the rule, it is not
+transversal."* At the moment of extraction that content bound **one** persona: change `writer`'s mandate
+and every rule in the file changes with it. On the test as written, the extraction fails, and the honest
+disposition would have been to leave the content in the brief.
+
+**Why it is extracted anyway.** The owner has **decided the second consumer**: a content **reviewer**,
+so a draft's bar is raised before it reaches him — *"eu preciso ter um content-writer e um
+content-reviewer para melhorar a barra do texto antes de cair para minha revisão"* — with his own
+sequencing, *"antes de transformá-lo em content-writer"*, skills first. The extraction is therefore
+recorded as **"extracted ahead of a decided second consumer"**: an exception with a named decision
+behind it and a date on it, not a category.
+
+**And the extraction is what makes the pair a pair.** A drafter and a reviewer reading two copies of a
+rule produce two opinions; reading one file, they produce a **conflict**, which is the only reason
+[ADR-0002](./0002-roster-and-dev-loop.md) admits a second persona at all. The line the split was drawn
+on, and it is the operative half of this amendment: **every rule a reviewer may raise a finding against
+belongs in the skill.** A ranked or terminal rule left in a brief hands the future reviewer a ruler with
+no stopping condition.
+
+### The option rejected, and it was the tempting one
+
+**Amend test 2 to admit a class of single-consumer skills.** Rejected, and not narrowly. Test 2 exists
+to stop a rule binding one persona from being pushed into five contexts — this record's own `--squash`
+worked case. A class would make that rejection unavailable in every future argument, in exchange for
+one file today. The exception costs a dated paragraph; the class costs the criterion.
+
+### What this does NOT decide, and what would falsify the exception
+
+- **It does not weaken test 2.** The test is unamended and still governs every other candidate. This is
+  one file, with one decision behind it, dated.
+- **It is not a token argument, and must not be repeated as one.** `Skill` is not grantable through
+  `tools:` (§ *A persona's startup context is a curated preload*), and there is no on-demand channel
+  inside a subagent, so a preloaded skill is **exactly as always-on** as the brief text it replaces —
+  and the skill's `description` becomes always-on in every session that loads the library, which is a
+  small net **increase**. The gain is a shared ruler, not a smaller context.
+- **The falsifier is the second consumer.** If the content reviewer is not built, this file is a
+  single-consumer skill with an expired justification, and the disposition then is to fold it back into
+  the brief rather than to leave the exception standing. `grep -rl published-voice agents/ | wc -l` → 1
+  today; a second brief is what discharges the exception, and nothing but that discharges it.
+- **It does not decide what the reviewer is.** Its mandate, its tools, its containment and whether it
+  gates or advises are a separate decision on separate evidence.
+
+### The cost accepted
+
+The skill library is published for reuse and may name nothing that exists in exactly one project
+(`hooks/scripts/inventory-counts.test.sh`, *consumer references*). This file's subject is one person's
+voice, and its evidence is his Portuguese quotes and a hand count of his own blog. **So it ships to
+every consumer of this plugin, and to the generated Kiro export under `powers/`, as a worked example of
+a calibration rather than as a reusable ruler** — the shape is transferable, the content is not. That is
+stated here rather than discovered by a forker.
+
 ## Links
 
 - Driving Issue [#183](https://github.com/tedeuxx/tadeumendonca-skills/issues/183) — the owner's

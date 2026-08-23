@@ -160,9 +160,9 @@ else
 fi
 
 # --- every exported skill satisfies Kiro's OWN frontmatter contract ----------------------------
-# `name` AND `description`. Not one of the 13 SOURCE files carries `name` — Claude Code derives the
+# `name` AND `description`. Not one of the 14 SOURCE files carries `name` — Claude Code derives the
 # identifier from the directory instead — so this is the property the generator ADDS, and the one a
-# hand-copied tree would have got wrong on all thirteen at once.
+# hand-copied tree would have got wrong on all fourteen at once.
 if [ -z "$exported" ]; then
   bad "kiro frontmatter — no exported skills to check (see the reverse-export failure above)"
 else

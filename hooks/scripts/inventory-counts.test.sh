@@ -82,7 +82,7 @@ expect_in "$README" "$agents subagent personas" "agents/"
 # The root-level commands (autonomy-on.md) are counted SEPARATELY from the library, because that is
 # how both documents present them: "<N> skills + autonomy-on".
 #
-# ── THERE IS NO FAMILY. ONE LEVEL, THIRTEEN DIRECTORIES (#286) ────────────────────────────────────
+# ── THERE IS NO FAMILY. ONE LEVEL, FOURTEEN DIRECTORIES (#286) ────────────────────────────────────
 # The owner's decision, in his words: *"o que eu quero é que todas skills estejam no mesmo nível
 # hierárquico de diretórios."* Every skill is `skills/<name>/SKILL.md` and nothing groups them.
 #
@@ -170,11 +170,61 @@ done <<< "$(find "$ROOT/skills" -name 'SKILL.md' -type f 2>/dev/null | sort)"
 
 if [ -n "$misplaced" ]; then
   bad "skill tree shape — a SKILL.md is not at skills/<name>/SKILL.md:$misplaced
-      Since #286 the library is ONE level: thirteen directories under skills/, no families. A file at
+      Since #286 the library is ONE level: fourteen directories under skills/, no families. A file at
       any other depth is outside every count, table and resolver in this suite — and it still loads if
       plugin.json declares it, so nothing else would report it."
 else
   ok "skill tree shape — all $total skills sit at skills/<name>/SKILL.md, one level, no families"
+fi
+
+# --- NO SKILL CARRIES A `name:` FRONTMATTER KEY ------------------------------------------------
+#
+# THE INVARIANT IS PUBLISHED IN THREE PLACES AND WAS ASSERTED IN NONE, until #316. `README.md` states
+# it with its own command beside it, and `hooks/scripts/kiro-power-build.py`'s docstring states it as
+# the DESIGN PREMISE for synthesising `name` from the directory — the whole reason the Kiro export is
+# a projection rather than a copy. Claude Code derives the identifier from the directory too, so a
+# `name:` key here is at best inert and at worst a second source of truth for the same string.
+#
+# HOW IT SHIPPED, because the cause is live rather than a one-off slip. A persona brief
+# (`agents/<name>.md`) DOES carry `name:`, and #316 extracted brief prose into a new skill — copying
+# the frontmatter shape along with the content. That is the exact move the remaining steps of the
+# content-flow reconfiguration will keep making, so the next occurrence is likelier than the first.
+#
+# WHY THIS ONE IS SAFE TO GATE AND THE SPELLED-OUT-COUNT SWEEP IS NOT (the sibling arm proposed on
+# #316 and deliberately NOT built): there is exactly ONE correct value here — zero, for every skill —
+# so the check cannot redden on correct content. A sweep for the WORD "thirteen" cannot make that
+# claim: the same token is legitimate in an ordinal, a SHA-pinned measurement, a past-tense
+# counterfactual and an accepted ADR that may not be rewritten, and telling those from live drift is
+# a judgement about TENSE that no grep performs. Gating it would need an exemption list — an
+# enumeration inside the file written to catch stale enumerations, this suite's signature defect.
+#
+# WHAT IT DOES NOT CATCH: a `name:` that is CORRECT (equal to the directory). It is still refused,
+# deliberately — the property is "the identifier has one source", not "the key happens to agree".
+named=""
+named_scanned=0
+while IFS= read -r d; do
+  [ -z "$d" ] && continue
+  f="$d/SKILL.md"
+  [ -f "$f" ] || continue
+  named_scanned=$((named_scanned + 1))
+  # Frontmatter only: a `name:` at column 0 in the BODY is prose, not a key. The block is the span
+  # between the first two `---` lines, which is how every other reader in this file scopes it.
+  if awk '/^---$/{n++; next} n==1' "$f" | grep -q '^name:'; then
+    named="$named
+    ${f#"$ROOT"/} — carries a 'name:' key in its frontmatter"
+  fi
+done <<< "$SKILL_DIRS"
+
+if [ "$named_scanned" -eq 0 ]; then
+  bad "skill frontmatter — no skill files were scanned; this assertion did NOT run"
+elif [ -n "$named" ]; then
+  bad "skill frontmatter — a skill declares 'name:', which no skill in this library may:$named
+      Claude Code derives the identifier from the DIRECTORY, and kiro-power-build.py synthesises
+      'name' from it for the Kiro export — so the key is a second source of truth for a string that
+      already has one. Delete the line. README.md and kiro-power-build.py's docstring both publish
+      this absence as an invariant; leaving the key makes both false."
+else
+  ok "skill frontmatter — none of the $named_scanned skills carries a 'name:' key (the identifier's one source is the directory)"
 fi
 
 # --- the declared skills array -----------------------------------------------------------------
