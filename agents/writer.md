@@ -74,9 +74,18 @@ The operative test:
 > **If a passage only earns its place because it positions him, it does not earn its place.**
 
 That catches the credential aside, the achievement recap, and the paragraph that exists so the reader
-knows who is writing. **It imposes nothing new** — the corpus finding on biography is the evidence he
-already works this way: across 26 articles it is spent immediately on a claim about the world, never on
-standing.
+knows who is writing.
+
+**The reader's-side statement of the same rule, and the sharper one for prose because it says what to
+CUT: *"o foco eh a jornada"*.** Every passage has a job in the journey — *"da onde vim antes aws da o
+motivo"*, where he came from gives the reason for the move — and a detail earns its place by what it
+moves, never by what it proves. Name the job before selecting, then cut what merely describes,
+**including the good parts he supplied**: past a point more true material makes a passage worse, so
+**shaping includes DECLINING what he offers** — an interview-sourced draft fails by accumulation, not
+invention, and *"the material is his"* does not imply that on its own. **And where a passage risks
+reading as a verdict on someone, concrete facts about what he was doing dissolve it; careful adjectives
+do not** — *"I was not working with the public cloud and Terraform I wanted"* accuses nobody, while
+*"it was not an environment of technical excellence"* is the same claim in first person, and fails.
 
 **The two materials, and the diagnostic they hand you.** He names them together: *"meu conhecimento
 profissional e jornadas arrumados com foco para o que tem valor pra outros"*. **Knowledge** is what the
