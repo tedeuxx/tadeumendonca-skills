@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 13 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 14 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -426,7 +426,7 @@ was built to avoid.
 
 ## The skill library, whose domain each skill is, and what is actually preloaded
 
-**Skills carry the conventions so the model does not re-invent them.** **13 skills + autonomy-on**,
+**Skills carry the conventions so the model does not re-invent them.** **14 skills + autonomy-on**,
 `autonomy-off` and `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
@@ -437,8 +437,9 @@ and its trade-off*, not just the rule — because a rule without its reason is o
 **That column was headed *wielded by* until #172, and the rename is the point rather than a tidy-up.** It answers **whose mandate a convention falls under** — who is accountable for `dynamodb` being right. It does **not** answer *what does this persona have loaded*, and the two diverge sharply: under the old heading a reader had one column and no way to tell which question it was answering, so the curated preload below read as a contradiction of it rather than as a different fact.
 
 **Reconciling the two into one column was the alternative, and it was rejected.** Across the six
-briefs the `skills:` lists total **23 preload entries** (`harness-engineering`'s universal preload,
-#224, is what pushed this above the ten it used to be), resolving to **seven distinct files, all seven
+briefs the `skills:` lists total **24 preload entries** (`harness-engineering`'s universal preload,
+#224, is what pushed this above the ten it used to be; `published-voice` is the twenty-fourth,
+preloaded by `writer` alone), resolving to **eight distinct files, all eight
 of them rows in this table.** Against 67 rows, making the column mean *preloaded by* would still print
 "— none" against **60 of them**, `dynamodb`, `vpc` and `cloudfront` among them: publishing, on the
 document a forker reads first, that no persona is responsible for nine tenths of the library. That is
@@ -509,7 +510,16 @@ them.
   `loop`-typed proposals only, where `ready` is an owner-only transition it never performs. It remains
   the persona most exposed to staleness, a real tension a frozen
   preload creates that its own brief names as a residual rather than resolves.
-- **`writer` — 39,326 B** — `harness-engineering` · `command-hygiene`
+- **`writer` — 71,611 B** — `harness-engineering` · `command-hygiene` · `published-voice`.
+  **`published-voice` (29,139 B) is not an addition to this brief, it is a relocation out of it:** the
+  voice calibration, the corpus evidence, the sourcing constraint, the ranked title criteria and the
+  teaser rules were brief prose and are now a skill, so what this persona reads is very nearly what it
+  read before. **It is not sold as a token saving and is not one** — `Skill` is not grantable through
+  `tools:` (#177) and there is no on-demand channel inside a subagent, so a preloaded skill is exactly
+  as always-on as the brief text it replaces, and the skill's `description` is additionally always-on
+  in every session that loads the library. What the move buys is that the drafter and the reviewer that
+  reads its drafts judge against **the same sentences** — the second consumer being the content
+  reviewer the owner has decided on and not yet built (ADR-0011's 2026-08-23 amendment).
 
 **`definition-of-done` (15,255 B, #265) is deliberately preloaded by NO persona.** Argued rather than
 assumed, unlike `definition-of-ready`'s addition to `product-lead` and `tech-lead` above: those two
@@ -530,9 +540,13 @@ where `quality-assurance` at least *applies* a concrete instance of the concept 
 here even touches this skill's subject at any dispatch. It stays reachable the same way every
 non-preloaded skill is: typed as `/planning-poker`, or via the `Skill` tool on demand.
 
-**442,258 B as billed across the six, 124,911 B distinct — 30.6% of the library (408,521 B across 13
-skills; `find skills -name SKILL.md | xargs wc -c`), and no persona over 102 KB (`developer`, still the
-largest at 101,637 B — see its bullet above for the 763 B, #265-driven delta).**
+**532,017 B as billed across the six, 177,828 B distinct — 38.5% of the library (461,438 B across 14
+skills; `find skills -name SKILL.md | xargs wc -c`), and the largest brief is `tech-lead` at 112,873 B,
+with `developer` second at 105,924 B.** **Read the five per-persona figures above this paragraph as
+measured at an earlier head and NOT re-derived here** — they moved when `harness-engineering` grew
+(33,412 → 36,492 B) on merges that published no figure, and reconciling them is its own slice rather
+than a side effect of adding one skill. Only `writer`'s figure and this aggregate were re-measured at
+this head, because those are the two this diff falsifies.
 (All figures measured
 directly — `wc -c` per file listed above — rather than carried forward from an earlier count, as the LAST
 step against the final committed state; #266 added `planning-poker` as a new skill, preloaded by no
@@ -581,7 +595,7 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library: 13 skills, one directory each, at one level under `skills/`.
+The library: 14 skills, one directory each, at one level under `skills/`.
 
 | skill | what it decides | whose domain |
 |---|---|---|
@@ -597,6 +611,7 @@ The library: 13 skills, one directory each, at one level under `skills/`.
 | `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `license` | Apply the repository licensing standard in any <project> repo. | `developer` |
 | `planning-poker` | Planning Poker — consensus estimation, and what it is actually for | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
+| `published-voice` | The owner's published voice — the shared ruler | `writer` — and the content reviewer that is decided and not yet built |
 | `quality-gates` | Quality gates — the definition of done and the concrete policy that proves it | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 **Three things the table shows rather than asserts.** The builder is the only persona holding a build
 skill — `backend`, `frontend`, `cloud-infrastructure` — because conventions exist for building, and one
@@ -917,7 +932,7 @@ by hand:
 
 | resource type | ships? | where | how it takes effect |
 |---|---|---|---|
-| **Skills** | yes — **13** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
+| **Skills** | yes — **14** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **6 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `writer`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 7** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`) — automatic, no invocation |
@@ -1101,8 +1116,8 @@ distributions do not collide — the repository root stays a Claude Code plugin,
 the same `skills/` tree the Claude Code manifest declares, and `hooks/scripts/kiro-power.test.sh`
 re-runs the generator into a temporary directory and diffs it against what is committed — so the two
 trees cannot drift, in either direction, without CI going red. The conversion is not a copy: **none of
-the 13 source skills carries a `name:` key** (`grep -c '^name:' skills/*/SKILL.md` → `0` for all
-thirteen), because Claude Code derives the identifier from the directory, while Kiro validates
+the 14 source skills carries a `name:` key** (`grep -c '^name:' skills/*/SKILL.md` → `0` for all
+fourteen), because Claude Code derives the identifier from the directory, while Kiro validates
 `name` **and** `description` in the frontmatter. The generator synthesises it, and rewrites the
 library's relative `../../docs/adr/…` link targets to absolute URLs, which are the only form that still
 resolves once Kiro has copied a skill into `~/.kiro/powers/`.
@@ -1121,7 +1136,7 @@ reader can compare, not the version strings.
 
 | this repo ships | Claude Code plugin format | Kiro Power format |
 |---|---|---|
-| `skills/` — 13 `SKILL.md` guides | declared in `.claude-plugin/plugin.json`'s `skills` array | **carried** — `skills/<name>/SKILL.md` under the package root, discovered by walking the tree. The one element that ports and installs cleanly |
+| `skills/` — 14 `SKILL.md` guides | declared in `.claude-plugin/plugin.json`'s `skills` array | **carried** — `skills/<name>/SKILL.md` under the package root, discovered by walking the tree. The one element that ports and installs cleanly |
 | `agents/` — 6 persona briefs with `tools:` / `skills:` frontmatter | shipped and loaded | **not exported, and that is this repo's choice rather than a measured limit of the format** — see the scoping note under the table. Kiro *has* a per-subagent mechanism — `.kiro/agents/*.md` with `tools`/`excludedTools` and a `permissions.rules[]` block that compiles to Cedar policy and parses shell with tree-sitter — and a Kiro user hand-authors it today. Whether a Power *could* install into it is **not measured here** |
 | `hooks/` — the `PreToolUse` permission guard and the loop's session hooks | registered by `hooks/hooks.json` on install; the guard denies the irreversible floor | **not exported — and whether a mechanism exists at all depends on which Kiro you mean.** See the CLI/IDE split below; it is not a footnote |
 | `commands/` — 3 typed commands with `argument-hint` | `/plugin:<name>`, arguments interpolated as `$ARGUMENTS` | the corresponding element is **steering**. Kiro's own packaging command names `dev.kiro/` alongside `skills/`, but the 2026-08-07 changelog describes the format as bundling *"skills and MCP"* and does not name steering — **that ambiguity is unresolved here and is stated rather than guessed at**. Not exported in this slice |

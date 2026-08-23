@@ -74,6 +74,7 @@ WIELDER = {
     "harness-engineering": JUDGES,
     "license": DEVELOPER,
     "planning-poker": JUDGES,
+    "published-voice": "`writer` — and the content reviewer that is decided and not yet built",
     "quality-gates": JUDGES,
 }
 

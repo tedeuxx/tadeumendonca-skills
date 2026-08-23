@@ -187,8 +187,8 @@ meet a library and a control surface in the same pile — the owner's reason, in
 a contaminação na leitura do repositório por humanos se tudo ficar no mesmo lugar."* **The loader does
 not distinguish them.** **Measured on 2026-08-10**, `claude plugin details` on the split tree reported
 **`Skills (71)`** — the 69 the library held under `skills/` then, **plus the 2 then under `commands/`**,
-counted alike, reachable alike. **Both denominators have moved since** — the library consolidated to 13
-(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 13, re-run #286) and `commands/` holds 3
+counted alike, reachable alike. **Both denominators have moved since** — the library consolidated to 14
+(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 14, re-run 2026-08-23) and `commands/` holds 3
 (`ls commands/` → `autonomy-off.md autonomy-on.md new-issue.md`, re-run #286) — so read the 71 as the
 measurement that established the rule, not as today's inventory. **The rule is what survives the
 denominators:** the loader counts both directories alike.
@@ -254,7 +254,7 @@ descriptions dense deliberately; **that decision was free while nothing loaded t
 loaded.** Nobody has revisited it — that is an open decision, not a settled one.
 
 **That figure is the price at its measurement, not the price today, and the denominator is why.** The
-library has consolidated to **13** since (`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 13,
+library has consolidated to **14** since (`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 14,
 the same figure the sections below list), so the per-session cost is smaller by some amount
 this file deliberately does not state. Re-measuring and publishing a current number would swap a
 checkable historical claim — 69 descriptions, one date, one command — for a current one sourced to a
@@ -315,7 +315,7 @@ safe pin (no mid-development tags pollute the namespace).
 
 ## Command reference
 
-**13 skills, one directory each, at ONE level under `skills/` (#286)** — the owner's decision: *"o que
+**14 skills, one directory each, at ONE level under `skills/` (#286)** — the owner's decision: *"o que
 eu quero é que todas skills estejam no mesmo nível hierárquico de diretórios."* **The headings below are
 a reading structure in this document and nothing else.** They were directories until #286 (`principles/`,
 `backend/`, `frontend/`, `infrastructure/`, `workflow/`), and the reason they were is recorded in the
@@ -324,8 +324,8 @@ was made on.
 
 **Why the directories existed, and why that reason lapsed.** They came back at #182 on the owner's call,
 for the human reading the library: a category teaches what a skill IS in a way an alphabetical list of
-**69** does not. That argument was about a denominator. The library is **13**
-(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 13), after `#229`/`#230`/`#231` consolidated
+**69** does not. That argument was about a denominator. The library is **14**
+(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 14), after `#229`/`#230`/`#231` consolidated
 21, 19 and 15 files into one skill each — so the pile the grouping protected a reader from no longer
 exists. **What did NOT change is the identifier**: the loader reads the innermost directory name at any
 depth, so `/tadeumendonca-skills:cloud-infrastructure` is the same string before and after, and this
@@ -444,6 +444,24 @@ DevOps tooling. `devops` is the umbrella (#227) — GitHub/CI-CD (OIDC, secrets/
 | `/command-hygiene` | Where scratch files go, one atomic Bash call, the `gh --repo` flag position, `--body-file` always — preloaded by all 6 personas |
 | `/code-review` | Author-side completeness pass before opening the MR: anticipates both gates, verifies the DoD with evidence |
 | `/license` | Licensing standard: MIT `LICENSE` + manifest license field in every repo |
+
+### the content skills — the ruler two personas share
+
+One skill, and it exists to be **shared** rather than to be complete. `published-voice` holds every rule
+a piece of published prose is judged against; `agents/writer.md` holds what that persona *is* and may do.
+The split is the point: the drafter and the **content reviewer the owner has decided on and not yet
+built** must judge against the same sentences, or the pair produces two opinions instead of a conflict.
+
+**It is an acknowledged exception to ADR-0011's transversality test** — *if changing a persona's mandate
+would change the rule, it is not transversal* — taken as *"extracted ahead of a decided second
+consumer"* and recorded as such in ADR-0011's 2026-08-23 amendment, rather than as a new class of
+single-consumer skill. **It is not a token saving and is not sold as one:** a preloaded skill is exactly
+as always-on for a subagent as the brief text it replaces, and its `description` is additionally
+always-on in every session that loads the library.
+
+| Command | Purpose |
+|---|---|
+| `/published-voice` | The ruler for anything published in the owner's voice: the three anchors and their precedence, the goal/filter/byproduct block, the journey rule and its two corollaries, his voice in his own words, the 26-article Medium corpus and the half not to reproduce, the sourcing constraint and the subject bound, the six ranked title criteria, and the teaser rules for a LinkedIn/X post that points at a piece |
 
 ---
 
