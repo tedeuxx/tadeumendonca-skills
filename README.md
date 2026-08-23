@@ -1284,7 +1284,7 @@ function createHooksCapabilities() {
 }
 ```
 
-**And it blocks, on exit code 2, on `PreToolUse` — the same convention `permission-guard.sh` uses.**
+**And it blocks, on exit code 2, on `PreToolUse`.**
 The outcome function maps trigger × exit code to a frozen outcome record:
 
 ```js
