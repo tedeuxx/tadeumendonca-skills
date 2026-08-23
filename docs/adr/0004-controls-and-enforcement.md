@@ -1347,6 +1347,100 @@ nothing and never claimed to.
 - **The `Considered options` restatement of the chosen option as option 1.**
 - **The record's own `Links` list**, whose live members are folded into this document's cross-references.
 
+### Amendment (2026-08-23) — the fail-open had a third door, and it was the one the house tells you to use
+
+**The decision is unchanged: rule 7c still fails open.** What changes is the argument recorded for it,
+because a premise it rested on was measured false.
+
+**What the record claimed.** The *"FAILS OPEN on a missing tool, not closed"* bullet above justifies the
+deviation from the four-row table on the grounds that *"behind 7b, the only party who can even reach this
+branch is the harness-stamped reviewer, so a transient `gh`/network outage does not hand an outsider
+anything — it would, if anything, block a genuinely clean safe-class merge until the tooling recovers."*
+Every cause it names is **environmental**: a missing tool, a transient outage, no network. The bullet is
+the whole of the recorded argument, and it enumerates the ways the check can fail to run.
+
+**The enumeration was incomplete, and the missing member is the hook's own parser.** Rule 7c's repo
+extraction was anchored `^gh <flag> <value> pr merge` — the `-R`/`--repo` flag **before** the subcommand
+and nowhere else. Measured by piping both spellings into the hook with an arg-logging `gh` stub:
+
+```
+gh --repo owner/repo pr merge 479 --merge   ->  qa_repo=owner/repo  ->  gh pr view 479 --repo owner/repo …
+gh pr merge 479 --repo owner/repo           ->  qa_repo=<empty>     ->  gh pr view 479 …        (cwd repo)
+```
+
+and with `REQUEST-CHANGES` sitting on the named PR's current head, the second spelling came out
+**ALLOW**. No outage, no missing tool, no unauthenticated `gh` — a well-formed command that `gh` accepts,
+issued by the harness-stamped reviewer, reaching the fail-open through the extractor rather than through
+the environment.
+
+**And the losing spelling is the one this platform MANDATES.** `skills/command-hygiene/SKILL.md`: *"Target
+another repo with `gh <subcommand> --repo <owner/repo>`, never `gh -R <owner/repo> <subcommand>`."* That
+rule is right about its own subject — a flag before the subcommand changes the allowlist prefix — and it
+is preloaded by all six personas, `quality-assurance` included. **So the strongest control in this loop
+was off for the exact spelling every persona is instructed to write.** A fail-open reached by a malformed
+command and a fail-open reached by the mandated command are not the same trade, and only the first is
+what the bullet above priced.
+
+**Worse than "no answer", in the ordinary case.** The record reasons about the fail-open as *degrading to
+7b alone*, which is what happens when the read returns nothing. That is the benign shape. The likelier
+shape is that `gh pr view 479` **succeeds** against whatever repo the working directory resolves to and
+returns a **different PR #479**, with its own head and its own verdict — which the hook then reads with a
+straight face. An answer about the wrong subject is not an absent answer, and nothing in the outcome table
+above has a row for it.
+
+**The fix, and what it covers.** The extraction now uses `wip-guard.sh`'s position-agnostic shape with
+`gh_repo_flag`'s character class, verbatim: `-R`/`--repo`, value attached, `=`-joined or space-separated,
+on **either** side of the subcommand. The repo flag is also stripped before the positional ref is read, so
+a flag placed between `merge` and the ref no longer redirects 7c to the current branch's PR.
+
+**Why the fail-open stays open, stated as what makes it safe *now* rather than as what made it safe
+before.** The bullet's argument is sound for the causes it names, and those are now the only causes left:
+the parse path that bypassed it is closed, so reaching the fail-open again requires an actual `gh`/`jq`
+absence, an actual outage, or a genuinely unparseable command — none of which an outsider can trigger
+behind 7b, and each of which would otherwise block a clean safe-class merge with no override available to
+the one persona allowed to perform it. **What closing it would cost, named so the choice is real:** a
+network blip during a merge would deny `quality-assurance`'s only irreversible act, with no second caller
+authorised to retry it, and the honest recovery would be the owner merging in the browser — the one path
+this hook has **zero reach over** (measured on PR #293, above). A fail-closed rule whose failure mode is
+*"do it by hand, unchecked"* is not a stronger control.
+
+**The generalisation, which is the part worth more than the instance.** *A fail-open's safety argument is
+an argument about the causes that can reach it, and the parser that decides whether the check runs at all
+is one of those causes.* The four-row table above enumerates outcomes **after** the check has been aimed;
+it has no row for *the check was aimed at the wrong thing*, and it cannot acquire one, because a hook
+cannot know it mis-parsed. So the obligation falls on the extractor, and the way it is discharged is
+convergence rather than care: three different spellings of the same flag lived in `permission-guard.sh`
+at once — the shared `gh_repo_flag`, a copy at rule 5c one character behind, and 7c's own. Both suites
+were green on all three, because `inventory-counts.test.sh` compared `wip-guard.sh`'s copies to
+`permission-guard.sh`'s **first** class and never compared that file's copies to **each other**. It does
+now, as its own independently-reported arm.
+
+> **A retraction, recorded because the way it was caught is the point.** The first version of this
+> amendment — and the code comment and commit message shipped with it — claimed the rule 5c copy was a
+> **second live fail-open**: that `gh -R=owner/x issue create` matched nothing and the subagent issue
+> gate was off for that spelling. **That is false.** Rule 5c uses the class in a **matcher**, inside an
+> optional group followed by a greedy `[^[:space:]]+`, so the drifted class matches `-R`, the space
+> class matches empty, and the value class swallows `=owner/x` whole. Measured over all six spellings:
+> identical behaviour. The divergence there was **latent, not live**.
+>
+> It was written from the shape of the defect next door rather than from a measurement, it read
+> plausibly, and it survived the review of its own diff. What caught it was **mutating the class back
+> and watching the four new behavioural assertions stay green** — a claimed fail-open that no test
+> could see. This document's own standing rule (*"an assertion that cannot fail"*) applied to a claim
+> in the record rather than to a line of code.
+>
+> **What survives the retraction, and it is the more useful finding:** the same characters are harmless
+> in a matcher and a fail-open in an extractor — the capture boundary lands inside the value and the
+> `=` leaks into the slug, which is exactly what took `wip-guard.sh` off for a week and one of the two
+> things 7c got wrong. So the copies are converged **because position decides whether a spelling is
+> latent or live**, and no reviewer should have to re-derive which position a given copy is in. That is
+> the argument for the intra-file arm; "there were two holes" never was.
+This is the *"Which layer carries a control"* question asked one level down: not *can this layer hold the
+control*, but *can this layer still see the act it is holding a control over*.
+
+**Deciders:** the owner ratifies; written by `agents-lead` (authorship split by domain — this is loop
+machinery). Pre-implementation reproduction and mutation-check by the same, in the slice that fixed it.
+
 ## Permission entries have three states, and absent is not one (absorbed 2026-08-20, record 0018)
 
 **Disposition 4 of [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md):

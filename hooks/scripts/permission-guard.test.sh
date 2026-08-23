@@ -283,6 +283,83 @@ assert_gh_call "--repo, space form"                      "pr view 149 --repo own
 assert_gh_call "-R, space form"                          "pr view 149 --repo owner/repo --json headRefOid,comments" "gh -R owner/repo pr merge 149 --merge"
 assert_gh_call "--repo=, no space"                       "pr view 149 --repo owner/repo --json headRefOid,comments" "gh --repo=owner/repo pr merge 149 --merge"
 
+# ── FLAG POSITION MUST NOT MATTER (2026-08-23) ──────────────────────────────────────────────────────────
+# The five cases above all put the flag BEFORE the subcommand, and the extractor they were written
+# against was anchored to exactly that (`^gh <flag> <value> pr merge`). The spelling this platform's
+# own `command-hygiene` skill MANDATES — "Target another repo with `gh <subcommand> --repo
+# <owner/repo>`, never `gh -R <owner/repo> <subcommand>`" — is the one it could not parse, so `qa_repo`
+# came out EMPTY and 7c read whatever repo the cwd resolved to. Measured before the fix, with this
+# same arg-logging stub: `gh pr merge 479 --repo owner/repo` logged `pr view 479 --json …` — no
+# `--repo` at all.
+#
+# THE ATTACHED PRE-SUBCOMMAND FORM (`-Rowner/repo`) IS HERE TOO, and it is not a bonus: the old
+# extractor required at least one separator character (`[[:space:]=]+`), so a spelling `gh` accepts
+# and rule 7b's own matcher already recognised fell through the extraction below it. Same defect,
+# same rule, opposite side of the subcommand.
+assert_gh_call "--repo AFTER the subcommand (the mandated spelling)" "pr view 149 --repo owner/repo --json headRefOid,comments" "gh pr merge 149 --repo owner/repo"
+assert_gh_call "-R AFTER the subcommand"                 "pr view 149 --repo owner/repo --json headRefOid,comments" "gh pr merge 149 -R owner/repo"
+assert_gh_call "--repo= AFTER the subcommand"            "pr view 149 --repo owner/repo --json headRefOid,comments" "gh pr merge 149 --repo=owner/repo"
+assert_gh_call "-R attached, AFTER the subcommand"       "pr view 149 --repo owner/repo --json headRefOid,comments" "gh pr merge 149 -Rowner/repo"
+assert_gh_call "-R attached, BEFORE the subcommand"      "pr view 149 --repo owner/repo --json headRefOid,comments" "gh -Rowner/repo pr merge 149 --merge"
+assert_gh_call "-R= attached, BEFORE the subcommand"     "pr view 149 --repo owner/repo --json headRefOid,comments" "gh -R=owner/repo pr merge 149 --merge"
+# THE REF SURVIVES A REPO FLAG PLACED BEFORE IT. Now that the flag may legally follow the subcommand,
+# `--repo` would otherwise be handed to the ref extractor, which drops any token starting with `-` and
+# falls back to the CURRENT BRANCH's PR — a different PR, read with a straight face. The guard strips
+# the flag/value pair before reading the ref; this is what says so.
+assert_gh_call "repo flag between 'merge' and the ref"   "pr view 149 --repo owner/repo --json headRefOid,comments" "gh pr merge --repo owner/repo 149 --merge"
+# AND THE WINNING SPELLINGS STILL WIN — the five cases above this block are unchanged and still run.
+# Restated here only because a fix that quietly traded one position for the other would look identical
+# in a suite that only ever asserted the new one.
+assert_gh_call "no repo flag at all still infers from cwd" "pr view 149 --json headRefOid,comments"  "gh pr merge 149 --merge"
+
+# ── AND THE DENY ACTUALLY FIRES THROUGH THE PREVIOUSLY-LOSING SPELLING ────────────────────────────
+# THIS IS THE ASSERTION THE SECTION EXISTED WITHOUT. Everything above proves what 7c *asked gh for*;
+# nothing proved that a stale or missing verdict, reached through the mandated spelling, still DENIES.
+# It could not have: the suite-wide stub serves its fixture regardless of which repo was asked for, so
+# a DENY case written against it would have passed on the broken extractor too — the fixture would
+# have been served either way. That is a test that cannot fail, this workspace's own recurring defect.
+#
+# SO THE STUB HERE IS REPO-AWARE, and the two fixtures are chosen so the two failure directions are
+# distinguishable:
+#   asked WITH --repo owner/repo -> REQUEST-CHANGES  (the real PR's real verdict)   -> must DENY
+#   asked WITHOUT it             -> APPROVE-AND-MERGE (the cwd repo's unrelated PR) -> would ALLOW
+# Mutate the extractor back to the `^gh …` anchor and these go RED, for the right reason: the guard
+# read the wrong repo and cleared the merge on somebody else's verdict.
+cat > "$GH_STUB_DIR/gh" <<'STUB'
+#!/bin/sh
+d="$(dirname "$0")"
+prev=""; want=""
+for a in "$@"; do
+  [ "$prev" = "--repo" ] && want="$a"
+  prev="$a"
+done
+if [ "$1 $2" = "pr view" ]; then
+  if [ "$want" = "owner/repo" ]; then cat "$d/fixture.json"; else cat "$d/fixture-cwd.json"; fi
+fi
+exit 0
+STUB
+chmod +x "$GH_STUB_DIR/gh"
+jq -n '{headRefOid:"h", comments:[{authorAssociation:"OWNER", body:"<!-- gatekeeper-verdict: quality-assurance -->\nREQUEST-CHANGES\nhead: h"}]}' \
+  > "$GH_STUB_DIR/fixture.json"
+jq -n '{headRefOid:"h", comments:[{authorAssociation:"OWNER", body:"<!-- gatekeeper-verdict: quality-assurance -->\nAPPROVE-AND-MERGE\nhead: h"}]}' \
+  > "$GH_STUB_DIR/fixture-cwd.json"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "REQUEST-CHANGES denies through '--repo' AFTER the subcommand — the mandated spelling" "gh pr merge 149 --repo owner/repo --merge"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "REQUEST-CHANGES denies through '-R' after the subcommand"                             "gh pr merge 149 -R owner/repo --merge"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "REQUEST-CHANGES denies through '--repo=' after the subcommand"                        "gh pr merge 149 --repo=owner/repo --merge"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "REQUEST-CHANGES denies through '-R' attached, before the subcommand"                  "gh -Rowner/repo pr merge 149 --merge"
+# THE CONTROL FOR THE FOUR ABOVE. Same stub, same repo-aware fixtures, the spelling that ALREADY
+# worked — so a fix that merely made every path deny (by, say, dropping the repo argument entirely)
+# is not what turned them green. And the negative control: no repo flag at all reads the cwd repo's
+# clean verdict and ALLOWs, which is what proves the stub is actually discriminating on the argument
+# rather than serving one fixture to everybody.
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "REQUEST-CHANGES still denies through '--repo' BEFORE the subcommand"                  "gh --repo owner/repo pr merge 149 --merge"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "no repo flag: the cwd repo's own clean verdict clears it (the stub discriminates)"    "gh pr merge 149 --merge"
+# A MISSING verdict through the mandated spelling, not only a stale one — the 'none' arm of the same
+# rule, which is what a PR that was never reviewed at all looks like.
+jq -n '{headRefOid:"h", comments:[]}' > "$GH_STUB_DIR/fixture.json"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "NO verdict at all denies through the mandated spelling too" "gh pr merge 149 --repo owner/repo --merge"
+rm -f "$GH_STUB_DIR/fixture-cwd.json"
+
 # Restore the fixture-serving stub and the suite-wide default clean fixture for every case below
 # that still expects the reviewer's identity alone to be sufficient (relies on the default fixture).
 cat > "$GH_STUB_DIR/gh" <<'STUB'
@@ -339,6 +416,27 @@ check_agent DENY  "tadeumendonca-skills:quality-assurance" "a REVIEWER still can
 # persona that exists, and deliberately at a NON-gate one, so the "not only reviewers" half is still
 # covered now that there is a single reviewer.
 check_agent DENY  "tadeumendonca-skills:agents-lead"  "an advisory lens cannot file"      "gh issue create --title t --body 'Parent: #122'"
+# EVERY REPO-FLAG SPELLING, because this rule's own flag class was a SPELLING BEHIND the shared one
+# (2026-08-23): it read `-R[[:space:]]*` where `gh_repo_flag` reads `-R[[:space:]=]*`. The `-R <space>`
+# form was the only one ever covered here (see the developer ALLOW case above); these are the four
+# that were not.
+#
+# THESE FOUR DO NOT GO RED ON THE DRIFTED CLASS, AND THE COMMENT SAYS SO RATHER THAN IMPLYING
+# OTHERWISE. The diff that added them claimed the drift was a live fail-open — `gh -R=owner/x issue
+# create` slipping past the gate. Mutating the class back left all four GREEN, and a direct probe over
+# all six spellings showed why: this rule MATCHES with the class inside an optional group followed by
+# a greedy `[^[:space:]]+`, so `-R` matches, `[[:space:]]*` matches empty, and the value class eats
+# `=owner/x` whole. Nothing was open. The claim was written from the shape of the defect in rule 7c
+# instead of from a measurement.
+#
+# THEY ARE KEPT ANYWAY, on their own merit rather than the retracted one: this rule's spelling
+# coverage was genuinely untested beyond `-R <space>`, and these pin it. What guards the class itself
+# is `inventory-counts.test.sh`'s intra-file arm, which DID redden on that mutation — the right layer
+# for a defect that is latent in this position and a fail-open in an extracting one.
+check_agent DENY  "tadeumendonca-skills:agents-lead"  "…behind -R=, the spelling that used to slip past" "gh -R=owner/repo issue create --title t --body b"
+check_agent DENY  "tadeumendonca-skills:agents-lead"  "…behind -R attached"                              "gh -Rowner/repo issue create --title t --body b"
+check_agent DENY  "tadeumendonca-skills:agents-lead"  "…behind --repo="                                  "gh --repo=owner/repo issue create --title t --body b"
+check_agent DENY  "tadeumendonca-skills:agents-lead"  "…behind --repo, space form"                       "gh --repo owner/repo issue create --title t --body b"
 # ~~The main loop is unaffected: it still ASKS. The owner answers, per issue, as before.~~
 # **CHANGED 2026-08-03 — the main loop falls through too.** A subagent's `gh issue create` is invisible
 # (unattended, reported only if the agent chooses to); the main agent's is visible by construction —
