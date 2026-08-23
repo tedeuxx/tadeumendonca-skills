@@ -137,8 +137,10 @@ that proves nothing is worse than a red.
 
 ## The roster, and what each tier holds
 
-`agents/` holds **6 subagent personas** — three tiers, the owner at both ends, and the work units they
-hand each other.
+`agents/` holds **7 subagent personas** — three tiers, the owner at both ends, and the work units they
+hand each other. The seventh is `content-reviewer` (#317), and it is the roster's **first pair**: it
+exists to argue with `content-writer` (renamed from `writer` in the same slice) against one shared
+ruler, which is reason #1 of the four — *disagreement is wanted*.
 
 ```mermaid
 flowchart TB
@@ -170,7 +172,7 @@ flowchart TB
   subgraph T2["TIER 2 · BUILD"]
     direction LR
     DEV["developer<br/>product — one branch, ticking the task list"]
-    WRT["writer<br/>content — drafts prose, contained like product-lead (rule 5e)"]
+    WRT["content-writer ⇄ content-reviewer<br/>content — drafts prose, then at most two rounds against<br/>one shared ruler; both contained like product-lead (rule 5e)"]
     HRB["agents-lead<br/>loop — builds what it stress-tests"]
   end
 
@@ -436,10 +438,12 @@ and its trade-off*, not just the rule — because a rule without its reason is o
 
 **That column was headed *wielded by* until #172, and the rename is the point rather than a tidy-up.** It answers **whose mandate a convention falls under** — who is accountable for `dynamodb` being right. It does **not** answer *what does this persona have loaded*, and the two diverge sharply: under the old heading a reader had one column and no way to tell which question it was answering, so the curated preload below read as a contradiction of it rather than as a different fact.
 
-**Reconciling the two into one column was the alternative, and it was rejected.** Across the six
-briefs the `skills:` lists total **24 preload entries** (`harness-engineering`'s universal preload,
-#224, is what pushed this above the ten it used to be; `published-voice` is the twenty-fourth,
-preloaded by `writer` alone), resolving to **eight distinct files, all eight
+**Reconciling the two into one column was the alternative, and it was rejected.** Across the seven
+briefs the `skills:` lists total **27 preload entries** (`grep -h '^  - ' agents/*.md | wc -l`;
+`harness-engineering`'s universal preload, #224, is what pushed this above the ten it used to be;
+`published-voice` is carried by the content pair and by nobody else, which is now **two** briefs rather
+than the one it was extracted from), resolving to **eight distinct files
+(`grep -h '^  - ' agents/*.md | sort -u | wc -l`), all eight
 of them rows in this table.** Against 67 rows, making the column mean *preloaded by* would still print
 "— none" against **60 of them**, `dynamodb`, `vpc` and `cloudfront` among them: publishing, on the
 document a forker reads first, that no persona is responsible for nine tenths of the library. That is
@@ -510,16 +514,35 @@ them.
   `loop`-typed proposals only, where `ready` is an owner-only transition it never performs. It remains
   the persona most exposed to staleness, a real tension a frozen
   preload creates that its own brief names as a residual rather than resolves.
-- **`writer` — 71,611 B** — `harness-engineering` · `command-hygiene` · `published-voice`.
-  **`published-voice` (29,139 B) is not an addition to this brief, it is a relocation out of it:** the
+- **`content-writer` — 73,883 B** — `harness-engineering` · `command-hygiene` · `published-voice`.
+  Renamed from `writer` at #317; the figure moved for one reason and it is not the rename, which costs
+  nothing — `harness-engineering` grew in the same slice, by the state-machine rows this pair required.
+  **`published-voice` (29,117 B) is not an addition to this brief, it is a relocation out of it:** the
   voice calibration, the corpus evidence, the sourcing constraint, the ranked title criteria and the
   teaser rules were brief prose and are now a skill, so what this persona reads is very nearly what it
   read before. **It is not sold as a token saving and is not one** — `Skill` is not grantable through
   `tools:` (#177) and there is no on-demand channel inside a subagent, so a preloaded skill is exactly
   as always-on as the brief text it replaces, and the skill's `description` is additionally always-on
   in every session that loads the library. What the move buys is that the drafter and the reviewer that
-  reads its drafts judge against **the same sentences** — the second consumer being the content
-  reviewer the owner has decided on and not yet built (ADR-0011's 2026-08-23 amendment).
+  reads its drafts judge against **the same sentences** — ~~the second consumer being the content
+  reviewer the owner has decided on and not yet built (ADR-0011's 2026-08-23 amendment)~~ **and that
+  second consumer is now built (#317), which is what closes the named exception rather than leaving it
+  standing.**
+  *A correction this diff makes rather than inherits:* the figure published here at #316 was **29,139 B**
+  and `wc -c` at this head returns **29,117**. The file was not edited between the two, so the published
+  number was wrong when it shipped — a 22-byte miss, invisible because nothing gates a byte figure. It
+  is corrected here and named rather than silently overwritten.
+- **`content-reviewer` — 73,883 B** — `harness-engineering` · `command-hygiene` · `published-voice`.
+  **Byte-identical to `content-writer`'s, because the list is identical — and that identity is the
+  design rather than a copy-paste.** The pair
+  is only worth its cost if both halves judge against one file; giving the reviewer a skill the writer
+  does not have would hand it a second ruler, which is exactly what the extraction at #316 existed to
+  prevent. **What is withheld is argued the same way as everywhere else on this list:** `quality-gates`
+  is the ruler for code and this persona reads prose; `documentation-standard` governs repository
+  documentation, a different register; `devops` describes machinery it never touches. **The round
+  protocol is stated in this brief and not in `content-writer`'s**, which carries only the four rules
+  that bind the drafter — a deliberate asymmetry, because two copies of a protocol is the failure the
+  ruler extraction was performed to avoid, one layer down.
 
 **`definition-of-done` (15,255 B, #265) is deliberately preloaded by NO persona.** Argued rather than
 assumed, unlike `definition-of-ready`'s addition to `product-lead` and `tech-lead` above: those two
@@ -540,13 +563,25 @@ where `quality-assurance` at least *applies* a concrete instance of the concept 
 here even touches this skill's subject at any dispatch. It stays reachable the same way every
 non-preloaded skill is: typed as `/planning-poker`, or via the `Skill` tool on demand.
 
-**532,017 B as billed across the six, 177,828 B distinct — 38.5% of the library (461,438 B across 14
-skills; `find skills -name SKILL.md | xargs wc -c`), and the largest brief is `tech-lead` at 112,873 B,
-with `developer` second at 105,924 B.** **Read the five per-persona figures above this paragraph as
-measured at an earlier head and NOT re-derived here** — they moved when `harness-engineering` grew
-(33,412 → 36,492 B) on merges that published no figure, and reconciling them is its own slice rather
-than a side effect of adding one skill. Only `writer`'s figure and this aggregate were re-measured at
-this head, because those are the two this diff falsifies.
+**619,642 B as billed across the seven, 180,100 B distinct — 38.8% of the library (463,710 B across 14
+skills; `find skills -name SKILL.md | xargs wc -c`), and the largest preload is `tech-lead`'s at
+115,167 B, with `developer` second at 108,218 B.** **Read the five per-persona figures above this
+paragraph as measured at an earlier head and NOT re-derived here** — they moved when
+`harness-engineering` grew (33,412 → 36,492 → 38,735 B) on merges that published no figure, and
+reconciling them is its own slice rather than a side effect of adding a persona. Only the content
+pair's two figures and this aggregate were re-measured at this head, because those are the ones this
+diff falsifies.
+
+**A caveat on the aggregate that the previous head's version of this paragraph did not carry, and
+should have.** The billed total and the two "largest" figures are derived from **all seven** briefs,
+including the five whose own bullets are declared stale one paragraph up — so this line is re-measured
+while the numbers it sits beside are not, and a reader diffing the bullets against the total will not
+be able to reconcile them. That is the honest state and not a defect introduced here: the alternative
+is to publish an aggregate assembled from figures known to be wrong. It is stated so nobody spends a
+session discovering it. The command that settles all of them in one run, which is what a reconciling
+slice should use rather than seven `wc -c` calls:
+`grep -h '^  - ' agents/*.md | sort | uniq -c` for the counts, and per-persona
+`sed -n '/^skills:/,/^---/p' agents/<name>.md` piped into `wc -c` over the named `skills/*/SKILL.md`.
 (All figures measured
 directly — `wc -c` per file listed above — rather than carried forward from an earlier count, as the LAST
 step against the final committed state; #266 added `planning-poker` as a new skill, preloaded by no
@@ -611,7 +646,7 @@ The library: 14 skills, one directory each, at one level under `skills/`.
 | `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `license` | Apply the repository licensing standard in any <project> repo. | `developer` |
 | `planning-poker` | Planning Poker — consensus estimation, and what it is actually for | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
-| `published-voice` | The owner's published voice — the shared ruler | `writer` — and the content reviewer that is decided and not yet built |
+| `published-voice` | The owner's published voice — the shared ruler | `content-writer` · `content-reviewer` — the pair it was extracted for (#317) |
 | `quality-gates` | Quality gates — the definition of done and the concrete policy that proves it | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 **Three things the table shows rather than asserts.** The builder is the only persona holding a build
 skill — `backend`, `frontend`, `cloud-infrastructure` — because conventions exist for building, and one
@@ -934,7 +969,7 @@ by hand:
 |---|---|---|---|
 | **Skills** | yes — **14** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
-| **Agents** | yes — **6 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `writer`) | dispatched by name via `Task` |
+| **Agents** | yes — **7 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 7** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`) — automatic, no invocation |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |

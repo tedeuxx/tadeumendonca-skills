@@ -1811,6 +1811,168 @@ not this persona's. That lens has not been dispatched on this amendment and shou
 consequence specifically — not on the loop mechanics, which are outside its boundary (amendment #14).
 
 
+## Amendment (2026-08-23, seventeenth) — the content pair: `writer` becomes `content-writer`, `content-reviewer` joins, and `product-lead` leaves the drafting flow
+
+**The owner's ask, verbatim:** *"eu preciso ter um content-writer e um content-reviewer para melhorar a
+barra do texto antes de cair para minha revisão."* Two further decisions from the same conversation,
+also verbatim: *"o product lead acho que não pertence a esse fluxo"*, and the sequencing
+*"antes de transformá-lo em content-writer"* — skills first, then the pair. Step 1 landed at #316
+(`skills/published-voice/SKILL.md`); this amendment records step 2.
+
+### The roster is seven, and the seventh is the first true PAIR
+
+`content-reviewer` exists on **reason #1 of the four** in amendment #10 — *disagreement is wanted*.
+Every other persona added since that rule was written satisfied one of the other three;
+`content-reviewer` is the first added because someone should be arguing with someone, and the someone is
+`content-writer`. That is also what makes it cheap for the tier the rule cares about: **reconciliation
+cost is paid within a tier, not across tiers**, and both halves sit in tier 2, on the same Issue, with
+one ruler between them.
+
+**A pair is only worth its cost if both halves judge against the same sentences.** Two personas reading
+two copies of a rule produce two opinions and a handoff; two reading one file produce a conflict. That
+is why #316 extracted the ruler *before* this slice rather than alongside it, and why the identity of
+the two `skills:` lists is now **gated** rather than asserted (`hooks/scripts/inventory-counts.test.sh`,
+the *content pair* arms — a reviewer gaining a fourth skill the writer lacks reddens the build).
+
+### The three blockers this amendment closes, and the one it does not
+
+`agents-lead`'s pre-implementation review of the pair (#316) found three load-bearing pieces unbuilt and
+said the pair was not ready. Re-tested here:
+
+1. **No ruler.** Closed at #316. It was the stated precondition and it is the only one that was closed
+   before this slice began.
+2. **No round bound.** Closed here: **at most two rounds, and there is no round three.** A cap, not a
+   target — a draft leaves the pair after round two whatever its state.
+3. **No terminal condition.** Closed here, and mechanically rather than as "when it is good": the
+   reviewer closes each round with exactly one of `CONTENT-REVIEW-FINDINGS` or `CONTENT-REVIEW-CLEAR`,
+   and the pair is terminal on the first `CLEAR` **or** on the existence of a second `## Round` section,
+   whichever comes first. A section count and two strings; nobody judges that it is over.
+4. **No artifact recording a drafting round.** Closed here — see below — and it is the one whose closure
+   is weakest, which is stated rather than glossed.
+
+**What is NOT closed: nothing dispatches the pair.** No hook, label or gate causes a `content` Issue to
+reach `content-reviewer`, so an undispatched review and a clean one are indistinguishable from outside
+the diff. `quality-assurance` gains the cheapest available mitigation — *a `content` PR should carry a
+review file with one or two `## Round` sections* — and that is **detection at the gate, one step late,
+never prevention**. It is the same shape as `agents-lead`'s own undispatched-lens cost and is accepted
+on the same terms.
+
+### The artifact — a tracked file, and why not a comment
+
+`content-reviewer` reads the private positioning layer to judge a draft sourced from it, so **rule 5e
+denies it every posting route**, exactly as it denies `product-lead` and `content-writer`. It is named
+in that rule **explicitly** rather than left to the `*)` catch-all: a deny by omission and a deny by
+decision are the same behaviour and different facts, and only one of them survives a later reader
+assuming the gap was an oversight — ADR-0004's *"absent is not a state"*, applied to a persona nobody
+had yet decided about versus one somebody has.
+
+**The round therefore lands in `docs/content-review/<slug>.md`, on the branch, in the diff.** This was
+`agents-lead`'s own cheapest answer at #316 and it survives the ruler's arrival intact — a finding that
+quotes a clause is *more* compressible than free prose, which makes the file smaller, not less
+necessary. Three properties earn it over the comment it cannot post: it is in the diff the owner already
+reads, it survives the session, and the round count is `grep -c '^## Round'`.
+
+**`docs/` and not the content directory, deliberately.** A `.review.md` beside an article is a file a
+site's content loader may glob and publish — the one irreversible act the whole containment exists to
+prevent.
+
+**What the artifact does not buy, stated plainly:** it is visible only to someone opening the file list.
+It is not queryable from the tracker, and that is on purpose — see the state below.
+
+### The state machine was wrong for nine days, and this fixes it
+
+`/harness-engineering`'s state table named **`developer`** as the builder for a `content` Issue. That
+was false from amendment #13 (2026-08-13) onward — `developer`'s own brief has said it does not build
+`content` since #187 — and nothing reddened, because no gate reads that table. The row now names
+`content-writer`, and a `drafted` sub-state is added for `content` only.
+
+**`drafted` adds NO label.** The restraint amendment #8 earned — *keep the remedy to one bit* — is about
+the label vocabulary, and it is unchanged: `ready` is still the only state this loop added to the
+tracker. `drafted` is recorded by a file already in the branch's diff, which satisfies *what observable
+artifact says this rule was applied* without making the tracker learn a sixth word. Its cost is the
+inverse of `ready`'s and is the same one named above: not queryable from outside the PR.
+
+### `product-lead` leaves the drafting flow — and what survives is not craft
+
+**Only the craft opinion left.** Two things did not move an inch, and both are recorded here because the
+recurring deviation in this roster is precisely a reader inferring more from this sentence than it says:
+
+- **Its BLOCKING veto on the truth of published claims survives, unchanged in mechanism.** It cannot
+  post, so it reaches the PR the way it always has: `quality-assurance` quotes the verdict verbatim
+  under criterion 10 (ADR-0006). What changed is **when** it fires — at the merge gate rather than
+  inside a drafting round — not whether.
+- **Its `content` intake survives**: it still applies `ready` alone.
+
+**The intake half is a judgement call, not a reading of the owner's words, and is recorded as one.** He
+spoke about the drafting flow. Two facts decided the rest: nobody else in the roster orders a `content`
+queue or judges what a piece is worth to the reader, and amendment #14 already scopes this persona's
+boundary to the consuming site — which is where `content` ships. If that reading is wrong, the row in
+`/harness-engineering`'s state table is the single place to correct it.
+
+**A consequence worth naming:** `content-reviewer`'s ruler is the voice and **truth is not on it**. A
+draft can be perfectly in-voice and make a false claim, and between the draft and `product-lead`'s veto
+at the gate there is now nothing that would catch it. That was also true before this amendment — the
+drafter never gated its own truth either — but the pair's existence invites the wrong inference that a
+reviewed draft has been fact-checked. It has not.
+
+### The rename rode in this slice, and the argument is arithmetic
+
+`writer` → `content-writer` produces **zero** behavioural change and touches ~20 tracked files plus the
+generated `powers/` tree, an asserted `agent_type` literal in `permission-guard.test.sh`, and a
+roster-membership gate that needs the new name in four documents and the old one struck. **Standalone
+that is a slice whose entire content is a sweep.** Riding here, it is free: adding `content-reviewer`
+already forces every one of those surfaces open, because the membership assertion requires each of the
+seven briefs to name all six peers. Paying the sweep twice buys nothing, and shipping a pair whose two
+names do not say they are a pair buys less than nothing.
+
+**The cost, since it is not zero:** `writer` becomes a retired persona in git history, so every line
+that enumerates the current roster and still names it is now stale by construction. The membership gate
+catches those; a line naming it *alone* is below that gate's threshold and is caught by nothing, which
+is why the surviving mentions are struck or tense-marked by hand rather than swept.
+
+### The defect class this slice was most exposed to, and what was done differently
+
+The `-skills` build immediately before this one (#316) copied a **persona brief's** frontmatter shape
+(`name:`) onto a **skill**, and the gate caught it only because a new arm was added in the same PR.
+**This slice creates two personas from one, which is the same copy at a larger radius.** What was done
+differently: the reviewer brief was **written**, not duplicated — no line of `content-writer.md` was
+copied into it — and the one thing the two are *supposed* to share, the `skills:` list, is the thing now
+gated for **identity** rather than for containment. The asymmetry is deliberate everywhere else: the
+round protocol is stated in the reviewer's brief and only its four binding rules in the writer's, so
+there is no second copy to drift.
+
+### Costs, named
+
+- **Two more personas to keep coherent.** Every roster change now edits seven briefs, not six, and the
+  membership gate makes that mandatory rather than optional. Accepted: mandatory is why it is coherent.
+- **Nothing dispatches the pair** (above). Detection at the gate, one turn late, never prevention.
+- **The round bound and the terminal literals are prose in two files.** The literals are gated for
+  spelling and for a phantom third; **whether a round file was written, whether a finding really quoted
+  a clause, and whether the writer was right to drop an advisory finding are gated by nothing** and are
+  a reviewer's read. A green on the content-pair arms must not stand in for any of them.
+- **A `content` slice is now longer** — draft, review, revise, review — for a class of work whose
+  merge-to-deploy path has no preview. The cap is what bounds this, and two rounds was chosen over three
+  for exactly that reason.
+- **`product-lead` keeps two roles in `content` and loses one**, which is a harder sentence to hold than
+  "it left". Accepted as the price of not moving a blocking truth veto that nothing else in the roster
+  can hold.
+
+### The `-io` consequence, named and not touched
+
+`tadeumendonca-io` carries a `harness.json` that states this roster; a persona count moving 6 → 7 and a
+persona name changing falsifies it. **That repo is out of scope for this MR** and nothing here edits it
+— the same treatment amendment #15 gave the `harness-lead` → `agents-lead` rename, for the same reason:
+a cross-repo sweep inside a roster change is how one slice becomes two half-finished ones. It is a
+follow-up the owner opens, or does not.
+
+**Deciders:** the owner (the decision, and the three verbatim quotes above), written by `agents-lead`
+per the domain split (#223) — this is a loop/machinery decision whose mechanical half is a guard rule
+and three gate arms. **One half of it is not this persona's:** what `content-reviewer` may raise a
+finding *about* is a judgement on published craft, which is `product-lead`'s object. That lens has not
+been dispatched on this amendment and should be, on the *craft-opinion-leaves* clause specifically — not
+on the round mechanics, which are outside its boundary (amendment #14).
+
+
 ## Consequences
 **Good**
 - Context efficiency and authorship-bias elimination fall out of per-task isolation.

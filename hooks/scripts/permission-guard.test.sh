@@ -667,16 +667,33 @@ check_agent ALLOW "tadeumendonca-skills:product-lead" "reading a PR's comments" 
 # commit message ABOUT the act. Same trap, asserted rather than assumed.
 check_agent ALLOW "tadeumendonca-skills:product-lead" "a message mentioning the act" "git commit -m 'gh pr comment notes'"
 
-echo "--- rule 5e: writer is contained the same way, and for the same reason (#187) ---"
-# `writer` reads `.brand/` to draft, exactly the shape `product-lead` was denied for — inverted from a
-# denylist to an allowlist at #187 specifically so a new private-material-reading persona defaults to
-# DENY rather than needing to be remembered.
-check_agent DENY "tadeumendonca-skills:writer" "pr comment"       "gh pr comment 149 --body 'draft text'"
-check_agent DENY "tadeumendonca-skills:writer" "issue comment"    "gh issue comment 149 --body 'draft text'"
-check_agent DENY "tadeumendonca-skills:writer" "issue create"     "gh issue create --title x --body y"
-# Drafting itself is untouched — writer's route is Write/Edit onto tracked files, not this rule's concern.
-check_agent ALLOW "tadeumendonca-skills:writer" "listing PRs"     "gh pr list --state open"
-check_agent ALLOW "tadeumendonca-skills:writer" "viewing an issue" "gh issue view 173"
+echo "--- rule 5e: the content pair is contained the same way, and for the same reason (#187, #317) ---"
+# `content-writer` reads `.brand/` to draft, exactly the shape `product-lead` was denied for — inverted
+# from a denylist to an allowlist at #187 specifically so a new private-material-reading persona defaults
+# to DENY rather than needing to be remembered.
+check_agent DENY "tadeumendonca-skills:content-writer" "pr comment"       "gh pr comment 149 --body 'draft text'"
+check_agent DENY "tadeumendonca-skills:content-writer" "issue comment"    "gh issue comment 149 --body 'draft text'"
+check_agent DENY "tadeumendonca-skills:content-writer" "issue create"     "gh issue create --title x --body y"
+# Drafting itself is untouched — its route is Write/Edit onto tracked files, not this rule's concern.
+check_agent ALLOW "tadeumendonca-skills:content-writer" "listing PRs"     "gh pr list --state open"
+check_agent ALLOW "tadeumendonca-skills:content-writer" "viewing an issue" "gh issue view 173"
+# THE OLD NAME MUST NOT STILL CLEAR THE RULE, and this is the case a rename is most likely to leave
+# behind: `*:writer` was a live case arm until #317. It now falls to the `*)` catch-all, which denies —
+# so both the old and the new spelling deny, and this assertion cannot tell them apart on the verdict
+# alone. It is kept anyway, because the failure it guards is the OPPOSITE direction: someone restoring
+# an `*:writer)` arm, or a matcher written loosely enough that `content-writer` and `writer` are one
+# case. A same-verdict assertion is weak; a missing one is nothing.
+check_agent DENY "tadeumendonca-skills:writer" "the RETIRED name still denies (catch-all)" "gh pr comment 149 --body x"
+# `content-reviewer` (#317) reads the same private layer to judge a draft against it, and is named in the
+# rule explicitly rather than reaching the catch-all — so this is a decision under test, not a default.
+check_agent DENY "tadeumendonca-skills:content-reviewer" "pr comment"       "gh pr comment 149 --body 'round 1'"
+check_agent DENY "tadeumendonca-skills:content-reviewer" "issue comment"    "gh issue comment 149 --body 'round 1'"
+check_agent DENY "tadeumendonca-skills:content-reviewer" "issue create"     "gh issue create --title x --body y"
+# Reading the queue is untouched for it too — the round file is written with Write/Edit, and reading the
+# PR it belongs to must not be collateral of the posting deny.
+check_agent ALLOW "tadeumendonca-skills:content-reviewer" "listing PRs"     "gh pr list --state open"
+check_agent ALLOW "tadeumendonca-skills:content-reviewer" "viewing an issue" "gh issue view 173"
+check_agent ALLOW "tadeumendonca-skills:content-reviewer" "diffing a PR"     "gh pr diff 149"
 
 echo "--- rule 5e: an unlisted persona defaults to DENY, not ALLOW (#187, ADR-0004) ---"
 # The falsifier the inversion exists to satisfy: a persona nobody remembered to add to the allow side

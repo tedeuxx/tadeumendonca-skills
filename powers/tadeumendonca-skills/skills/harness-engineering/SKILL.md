@@ -170,10 +170,12 @@ owner works that decision out with; it does not make it.
 |---|---|---|---|
 | → **filed** | all | the owner, alone | the Issue exists |
 | filed → **ready** | `product` | both leads, closing the description together | **`ready` label** |
-| filed → **ready** | `content` | `product-lead`, alone | **`ready` label** |
+| filed → **ready** | `content` | `product-lead`, alone — **intake only**; it takes no part in the drafting rounds (ADR-0002, seventeenth amendment) | **`ready` label** |
 | filed → **ready** | `loop` | the owner, alone — not the leads (ADR-0002, record 0015's Corollary 4) | **`ready` label** |
-| ready → **in progress** | `product` · `content` | `developer` | an open PR |
+| ready → **in progress** | `product` | `developer` | an open PR |
+| ready → **in progress** | `content` | `content-writer` — **not `developer`**, which has never been dispatched at a draft (ADR-0002, thirteenth amendment; this row said `developer` until #317 and was wrong for nine days) | an open PR |
 | ready → **in progress** | `loop` | `agents-lead` (ADR-0002, record 0015's Corollary 1) | an open PR |
+| in progress → **drafted** | `content` only | `content-reviewer`, at most **two** rounds against `published-voice` (ADR-0002, seventeenth amendment) | **`docs/content-review/<slug>.md` on the branch** — one `## Round` section per round, each closed with `CONTENT-REVIEW-FINDINGS` or `CONTENT-REVIEW-CLEAR`; terminal on the first `CLEAR` or the second section, whichever comes first |
 | in progress → **reviewed** | `product` · `content` | `quality-assurance`, against the full two-lens DoD | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
 | in progress → **reviewed** | `loop` | `quality-assurance`, checking for an `agents-lead` verdict marker rather than the full two-lens DoD (ADR-0002, record 0015's Corollary 2) | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
 | reviewed → **closed** | all | `quality-assurance` — safe **and** boundary since 2026-08-23 (ADR-0002 amendment #16) · the owner only on the four surviving holds | the merge, plus the verdict literal that authorised it (`APPROVE-AND-MERGE` or `APPROVE-AND-MERGE-BOUNDARY`); on a hold, the owner's ratifying comment |
@@ -181,6 +183,24 @@ owner works that decision out with; it does not make it.
 
 **`blocked` is orthogonal, not a sixth step.** It can attach at any point and returns the item to
 wherever it was.
+
+**`drafted` adds NO label, and that is why it is allowed to exist (#317).** It is a `content`-only
+sub-state between *in progress* and *reviewed*, and the only thing that records it is a file already in
+the branch's diff — so the *"what observable artifact says this rule was applied"* test is satisfied
+without the tracker learning a sixth word. **The restraint stated below about `ready` being the only
+state added is about the LABEL VOCABULARY and is unchanged**: nothing here is queryable with
+`gh issue list --label`, deliberately, because nothing outside the PR needs to query it. Its cost is the
+opposite of `ready`'s: the round is visible only to someone reading the diff, so a `content` PR that
+skipped the pair looks exactly like one whose rounds were clear until you open the file list.
+
+**`product-lead` keeps `content` intake and loses `content` craft — and the split is a call, not a
+reading.** The owner's decision was about the **drafting flow** — it is quoted verbatim in ADR-0002's
+seventeenth amendment and is not restated here — and it does not by itself say what happens to the
+`ready` transition. Two facts decided that: nobody else in the roster
+orders a `content` queue or judges what it is worth to the reader, and its **BLOCKING truth veto on
+published claims survives untouched** — it simply fires at the merge gate, relayed by
+`quality-assurance` under criterion 10, rather than inside a round. **Only the craft opinion left.** If
+that reading is wrong, the row above is where to correct it.
 
 **Since [ADR-0006](https://github.com/tedeuxx/tadeumendonca-skills/blob/main/docs/adr/0006-verification-and-its-artifacts.md)** the
 `reviewed` row's artifact is real — the gatekeeper posts a marker comment carrying the head SHA it
