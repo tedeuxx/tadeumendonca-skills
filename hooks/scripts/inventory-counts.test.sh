@@ -1488,6 +1488,39 @@ else
   ok "flag class — every copy in wip-guard.sh parses -R/--repo with permission-guard.sh's identical class"
 fi
 
+# ── AND WITHIN permission-guard.sh ITSELF, which is where the drift actually was (2026-08-23) ────────────
+# The two arms above compare wip-guard.sh against permission-guard.sh's FIRST class and stop there.
+# Measured at origin/main, that was a blind spot big enough to hold two live fail-opens: the same grep
+# pointed at permission-guard.sh alone returned THREE DIFFERENT classes —
+#
+#   `gh_repo_flag` (the shared definition)   (-R[[:space:]=]*|--repo[[:space:]=]*)   correct
+#   rule 5c, `gh issue create`               (-R[[:space:]]*|--repo[[:space:]=]*)    `-R=x` slipped past
+#   rule 7c, the merge-verdict extraction    (-R|--repo)                             plus a `^gh` anchor
+#
+# — and BOTH suites were green, because nothing compared a file's copies to each other. The 5c copy
+# turned the subagent issue gate off for `gh -R=owner/x issue create`; the 7c copy turned the merge
+# gate's verdict check off for `gh pr merge N --repo owner/x`, which is the spelling `command-hygiene`
+# MANDATES. A rule defeated by following the instructions.
+#
+# THIS IS DELIBERATELY THE SAME SHAPE AS THE ARMS ABOVE and not a cleverer one: emit every copy, and
+# report any that is not the first. The first is `gh_repo_flag`'s own definition, which is the class
+# every rule interpolates when it does not hand-roll one — so "identical to the first" is exactly
+# "identical to the shared class".
+guard_classes="$(grep -oE '\((-R|--repo)[^)]*\)' "$ROOT/hooks/scripts/permission-guard.sh")"
+if [ -z "$guard_class" ] || [ -z "$guard_classes" ]; then
+  bad "flag class — no -R/--repo class could be extracted from permission-guard.sh, so its copies
+      cannot be compared to each other. A green here would be an artifact of the break."
+elif printf '%s\n' "$guard_classes" | grep -qvxF -- "$guard_class"; then
+  bad "flag class — permission-guard.sh parses the repo flag DIFFERENTLY in different rules.
+      shared class: $guard_class
+      all copies:   $(printf '%s' "$guard_classes" | tr '\n' ' ')
+      A hand-rolled copy that is a spelling behind is a rule that is OFF for that spelling, silently.
+      That is how rule 5c missed 'gh -R=owner/x issue create' and rule 7c missed
+      'gh pr merge N --repo owner/x' — the spelling command-hygiene tells every persona to use."
+else
+  ok "flag class — every copy inside permission-guard.sh parses -R/--repo with the identical class"
+fi
+
 # ---------------------------------------------------------------------------------------------------
 # THE SAME PRECEDENT, FOR A SECOND DUPLICATED LITERAL: rule 7c (permission-guard.sh) re-checks the
 # gatekeeper-verdict marker at merge time, and session-wip.sh's verdict_suffix() reads it to annotate

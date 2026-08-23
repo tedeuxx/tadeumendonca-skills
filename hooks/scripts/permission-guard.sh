@@ -813,7 +813,35 @@ fi
 #     prefix that only knows `gh issue create`. And matched on `$bare`, AFTER quoted spans are collapsed —
 #     the suite caught the first version denying `git commit -m 'gh issue create notes'`, which is a
 #     message about the act, not the act.
-if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]]*|--repo[[:space:]=]*)[^[:space:]]+)?[[:space:]]+issue[[:space:]]+create'; then
+#     THE FLAG CLASS HERE WAS A SPELLING BEHIND THE SHARED ONE — `-R[[:space:]]*` where
+#     `gh_repo_flag` reads `-R[[:space:]=]*` — and converging it is HYGIENE, NOT A FIX (2026-08-23).
+#
+#     ~~`gh -R=owner/x issue create` matched NOTHING and the whole subagent issue gate was off for
+#     that spelling.~~ **FALSE, struck the same day it was written, and struck rather than deleted
+#     because of HOW it was caught.** It was written from the shape of the defect next door (rule 7c,
+#     below) instead of from a measurement, it read plausibly, and it survived review of its own diff.
+#     What caught it was mutating this line back and watching the four new `-R=`/`-Rx`/`--repo=`
+#     assertions in `permission-guard.test.sh` stay GREEN — a claimed fail-open with no test able to
+#     see it, which is the one shape this repo treats as disqualifying.
+#
+#     WHY IT IS EQUIVALENT HERE, WHICH IS THE PART WORTH KEEPING. This rule uses the class in a
+#     MATCHER, inside an OPTIONAL group, followed by a greedy `[^[:space:]]+`. Against `-R=owner/x`
+#     the drifted class matches `-R`, `[[:space:]]*` matches empty, and the value class then swallows
+#     `=owner/x` whole. Both spellings match; nothing was open. Measured over all six spellings.
+#
+#     SO THE DIVERGENCE WAS LATENT, NOT LIVE — and latent is still worth closing, because it goes live
+#     the moment the class is used to EXTRACT rather than to match: the capture boundary then lands
+#     inside the value and the `=` leaks into the slug. That is exactly what it did in `wip-guard.sh`
+#     (`gh pr list -R =owner/x` failed to resolve, and the guard exited ALLOWING the create), and it
+#     is one of the two things rule 7c got wrong below. The same characters, harmless in one position
+#     and a fail-open in the other, is why the copies are converged rather than each judged on its own
+#     merits.
+#
+#     Found because the flag-class grep `inventory-counts.test.sh` already ran ACROSS the two hooks,
+#     pointed at this ONE file, returned three different classes at three rules. (That grep is not
+#     quoted here on purpose — a comment carrying the pattern would itself read as a fourth copy.)
+#     It now asserts they are identical within this file, not only across the two hooks.
+if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]=]*|--repo[[:space:]=]*)[^[:space:]]+)?[[:space:]]+issue[[:space:]]+create'; then
   if [ -n "$agent_type" ]; then
     # 5d. DECOMPOSING IS NOT OPENING (#122, gitflow-single-env). One narrow exception, and the
     #     distinction it rests on is real rather than a convenience:
@@ -1007,10 +1035,49 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
       # degrades to 7b's identity check alone — this sub-rule adds nothing, denies nothing, and the
       # merge proceeds exactly as it did before this rule existed. An unavailable answer is not a
       # finding, the same distinction session-wip.sh's own comment makes for the same read.
-      qa_ref="$(printf '%s' "$bare" | sed -E 's/^.*[[:space:]]pr[[:space:]]+merge[[:space:]]*//')"
+      # THE REPO FLAG IS READ POSITION-AGNOSTICALLY, and that is a FIX, not a widening (2026-08-23).
+      #
+      # The extraction here used to be anchored `^gh <flag> <value> pr merge` — the flag BEFORE the
+      # subcommand and nowhere else. Measured, by piping both spellings into this hook with an
+      # arg-logging `gh` stub:
+      #
+      #   gh --repo owner/repo pr merge 479   ->  qa_repo=owner/repo     -> reads the right PR
+      #   gh pr merge 479 --repo owner/repo   ->  qa_repo=<empty>        -> falls back to the cwd repo
+      #
+      # and with a REQUEST-CHANGES verdict sitting on the named PR, the second spelling came out
+      # **ALLOW** — the fail-open below, reached by a command `gh` accepts and this platform's own
+      # `command-hygiene` skill MANDATES ("Target another repo with `gh <subcommand> --repo
+      # <owner/repo>`, never `gh -R <owner/repo> <subcommand>`", that file's own wording). A control
+      # defeated by following the instructions is not a parsing bug with a security consequence; it is
+      # a control that was off for the everyday spelling, which is why the fail-open argument below
+      # does not cover it and never did.
+      #
+      # THE CLASS IS `gh_repo_flag`'s, VERBATIM, and the extraction shape is `wip-guard.sh`'s — the
+      # `.*[[:space:]]` prefix rather than a `^gh` anchor. That convergence is the whole point: this
+      # file carried THREE spellings of the same flag (the shared class at the `gh_repo_flag`
+      # definition, a drifted one at rule 5c, and this one), each parsed differently, and the two
+      # drifted copies were both a fail-open. `inventory-counts.test.sh` now asserts every copy in
+      # this file is identical, in the same shape it already asserted across the two hooks — so a
+      # fourth spelling cannot be introduced in silence.
+      #
+      # NOT COVERED, DELIBERATELY: an unquoted `--repo` appearing inside a flag VALUE (`--body` and
+      # friends are collapsed by `$bare` before this line, so it takes a contrived command to reach),
+      # and `--repository`, which no `gh` subcommand accepts. Both degrade to an unresolvable slug,
+      # which lands on the fail-open — i.e. on the behaviour that was already there.
+      #
+      # THE REPO FLAG IS STRIPPED BEFORE THE REF IS READ. Now that the flag may legally follow the
+      # subcommand, `gh pr merge --repo owner/repo 479` would otherwise hand `--repo` to the ref
+      # extractor, which drops it and silently reads the CURRENT BRANCH's PR instead of 479. Removing
+      # the flag/value pair first cannot make any other spelling worse.
+      # NAMED RESIDUAL, not fixed here: any OTHER value-taking flag placed before the positional ref
+      # (`gh pr merge -t "subject" 479`) still misdirects the ref the same way. Its blast radius is
+      # much smaller than the repo case — it falls back to the current branch's PR, which under WIP=1
+      # is almost always the PR being merged — and a general fix is a token-level argv parser, not a
+      # regex. It is a finding for the owner, not a silent gap.
+      qa_ref="$(printf '%s' "$bare" | sed -E -e 's/[[:space:]](-R[[:space:]=]*|--repo[[:space:]=]*)[^[:space:]]+/ /g' -e 's/^.*[[:space:]]pr[[:space:]]+merge[[:space:]]*//')"
       qa_ref="${qa_ref%% *}"
       case "$qa_ref" in -*|'') qa_ref="" ;; esac
-      qa_repo="$(printf '%s' "$bare" | sed -nE 's/^gh[[:space:]]+(-R|--repo)[[:space:]=]+([^[:space:]]+)[[:space:]]+pr[[:space:]]+merge.*/\2/p')"
+      qa_repo="$(printf '%s' "$bare" | sed -nE 's/.*[[:space:]](-R[[:space:]=]*|--repo[[:space:]=]*)([^[:space:]]+).*/\2/p')"
       qa_pr_json=""
       if command -v gh >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
         if [ -n "$qa_repo" ]; then
