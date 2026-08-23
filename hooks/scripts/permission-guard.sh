@@ -1036,9 +1036,27 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
            | if length == 0 then "none" else .[-1] end
       end' 2>/dev/null || true)"
         # ── END duplicated from session-wip.sh's verdict_suffix() ──
+        # TWO merge-authorising literals since 2026-08-22, not one (ADR-0002 amendment #16, ADR-0004's
+        # "Rule 7c accepts two merge-authorising literals" section). The owner retired the
+        # hold-for-owner rule on boundary-class merges — with a single environment there is no preview
+        # to hold for, so holding the merge delayed publication without producing anything to inspect.
+        # `APPROVE-AND-MERGE-BOUNDARY` is the boundary class's own clearance: the gate merges it and
+        # the owner reviews live, after deploy.
+        #
+        # THE LITERALS ARE SPELLED OUT, NEVER GLOBBED. `APPROVE-AND-MERGE*` would match both — and
+        # would also match `APPROVE-AND-MERGED`, `APPROVE-AND-MERGE-LATER` and every future drift,
+        # which is the exact class of failure this rule was built to catch (ADR-0004 measured three
+        # drifted literals shipping in one day). A closed set the author wrote stays closed.
+        #
+        # `APPROVE-PENDING-HUMAN` STILL BLOCKS, and it still means something: it is now the verdict
+        # for the four holds that survive the retirement — an expansion of the gate's own authority,
+        # a harness diff with no agents-lead marker, anything in `iac/` (where the merge APPLIES and
+        # the PR's own plan is the preview the single-environment argument says does not exist), and
+        # an explicit lens ESCALATE. See `agents/quality-assurance.md`'s "Classify — who may merge"
+        # section for the list this hook is the floor under.
         case "$qa_verdict" in
-          APPROVE-AND-MERGE|'') : ;;  # clear to merge, OR the read produced nothing — fail open
-          *) deny "Blocked: the last quality-assurance verdict on this PR's CURRENT head is '${qa_verdict}', not APPROVE-AND-MERGE — so this merge does not match its own review record (ADR-0004). This is not a caller problem: rule 7b already confirms you are quality-assurance. It means either the head moved since that verdict was posted, the verdict was never re-posted after a later round, or the literal drifted from the one 'Your verdict — exactly one of' in your own brief defines. Post a correct APPROVE-AND-MERGE verdict against the CURRENT head before merging — or, for boundary class, never call this tool: hand the go/no-go to the human." ;;
+          APPROVE-AND-MERGE|APPROVE-AND-MERGE-BOUNDARY|'') : ;;  # clear to merge, OR the read produced nothing — fail open
+          *) deny "Blocked: the last quality-assurance verdict on this PR's CURRENT head is '${qa_verdict}', which is neither APPROVE-AND-MERGE (safe class) nor APPROVE-AND-MERGE-BOUNDARY (boundary class, merged by the gate since ADR-0002 amendment #16) — so this merge does not match its own review record (ADR-0004). This is not a caller problem: rule 7b already confirms you are quality-assurance. It means either the head moved since that verdict was posted, the verdict was never re-posted after a later round, or the literal drifted from the one 'Your verdict — exactly one of' in your own brief defines. Post a correct verdict against the CURRENT head before merging — or, if this is one of the four holds that survive (an expansion of your own authority, a harness diff with no agents-lead marker, anything in iac/, or a lens ESCALATE), never call this tool: APPROVE-PENDING-HUMAN and hand the go/no-go to the human." ;;
         esac
       fi
       ;;

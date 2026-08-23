@@ -71,7 +71,11 @@ Follow `/harness-engineering`. Nothing here relaxes it:
 - WIP is bounded per `/harness-engineering` — read it there rather than trusting a restatement, and
   note the guard enforcing it may lag the rule (`product-lead` carries the caveat).
 - Every gate green with real evidence, and the `quality-assurance` on every PR. It merges the safe
-  class and escalates the boundary class; a green CI is not a substitute for it.
+  class ~~and escalates the boundary class~~ **and the boundary class, escalating only the four holds
+  named in `agents/quality-assurance.md` (ADR-0002 amendment #16)**; a green CI is not a substitute
+  for it. **What that changes for an autonomous run:** a content or loop slice no longer parks waiting
+  for the owner — it ships, and the owner reviews it live. So the thing to surface at the next natural
+  break is *what went live*, not *what is waiting*.
 - `product-lead` on reader-facing copy, long-form prose included — it holds the copy lens since
   `marketing-lead` merged into it (2026-08-04), and its **truth findings block**. **Nothing enforces this
   dispatch** — no check, job or hook — so an undispatched lens fails silently. Where the repo's guide

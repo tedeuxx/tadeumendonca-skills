@@ -668,8 +668,14 @@ anything changed, and leaves the reader who acted on the old value with no way t
 the claim, follow it with what replaced it, and keep the reasoning — the reasoning outlives the rule it
 was written for.
 
-**And an ADR that decides *how work is decided* is boundary class**: it goes to the owner, because that
-is the one category where an agent amending the record would be amending its own mandate.
+**And an ADR that decides *how work is decided* is boundary class.** ~~it goes to the owner, because that
+is the one category where an agent amending the record would be amending its own mandate.~~ **Restated
+2026-08-23:** the gate now merges the boundary class ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md)
+amendment #16), so "boundary class" no longer carries this to the owner on its own. The reason in the
+struck clause is the one that survives, and it survives *as its own rule* rather than as a class: **a
+diff that would amend the gate's own mandate goes to the owner**, unconditionally — the first of the
+four holds the amendment leaves standing. An ADR about the loop that does not touch the gate's mandate
+is merged by the gate like anything else.
 
 ## The branch model the loop runs on
 

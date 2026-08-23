@@ -991,10 +991,45 @@ system with everything this section describes.
 ### What actually shipped, and how it differs from the design below — read this first
 
 **`hooks/scripts/permission-guard.sh` rule 7c** (right after rule 7b's caller-identity check) denies
-`gh pr merge` when the last `quality-assurance` verdict comment on the PR does not read
-`APPROVE-AND-MERGE` **for the PR's current `headRefOid`**. It is real, it runs on every `gh pr merge`
+`gh pr merge` when the last `quality-assurance` verdict comment on the PR does not read one of its
+**two merge-authorising literals** — `APPROVE-AND-MERGE` or `APPROVE-AND-MERGE-BOUNDARY` — **for the
+PR's current `headRefOid`**. It is real, it runs on every `gh pr merge`
 tool call in every session, and it is mutation-tested (`hooks/scripts/permission-guard.test.sh`, section
 "rule 7c") against every row of the table below that it actually implements.
+
+> **The second literal arrived 2026-08-23** with [ADR-0002](./0002-roster-and-dev-loop.md)'s sixteenth
+> amendment, which retired the hold-for-owner rule on boundary-class merges. That amendment holds the
+> decision and its counter-argument; what belongs **here** is the enforcement consequence, and it is
+> not cosmetic: **before the amendment, rule 7c would have refused every merge the new mandate
+> authorises**, because the boundary class never produced the one literal this rule accepted. A
+> mandate change that stops at the persona file is a mandate the floor denies.
+>
+> **Two things about the shape of the fix, both of which are this document's subject rather than
+> 0002's:**
+>
+> - **The accepted set is an enumeration, never a glob.** `APPROVE-AND-MERGE*` would have covered both
+>   literals in one pattern and also cleared `APPROVE-AND-MERGED`, `APPROVE-AND-MERGE-LATER` and every
+>   future prefix-sharing drift — re-opening precisely the failure this rule exists to close, inside
+>   the rule that closes it. The suite asserts the anti-glob case with its own fixture. This is the
+>   *"Which layer carries a control"* section's rule applied again: a control over **a closed set the
+>   author wrote** may be recorded as closed, and the way you keep it closed is by writing the members
+>   down.
+> - **The vocabulary itself is now gated, which it was not.** This document's *"The problem"*
+>   subsection below measures three verdict-literal drifts shipping in one day, every one found by
+>   reading and none findable by a check. Adding a fourth literal widens that surface, so
+>   `hooks/scripts/inventory-counts.test.sh` gained two independently-reported arms: `session-wip.sh`
+>   must recognise **every** literal `agents/quality-assurance.md` defines, and rule 7c must authorise
+>   a merge on **no** literal outside that list. The set is parsed from the persona file, not restated
+>   in the test.
+>
+> **What the new arm does NOT assert, stated so the green is not over-read:** it checks for *phantoms*
+> in rule 7c (a literal the guard merges on that the brief does not define), not for *omissions* (a
+> merge-authorising literal the brief defines that the guard rejects). The asymmetry is deliberate —
+> the guard legitimately rejects `APPROVE-PENDING-HUMAN` and `REQUEST-CHANGES`, so the completeness
+> direction cannot be expressed without encoding *which* literals authorise a merge, which would make
+> the test a second source of truth for the very thing it is checking. That direction is covered
+> instead by `permission-guard.test.sh`'s own ALLOW case for the boundary literal, which is where a
+> behavioural assertion belongs.
 
 **It implements exactly one row of the four-row outcome table below — "ran, and the answer is
 negative" — and none of the other three.** Naming the gap precisely, so nothing here is credited with
@@ -1042,7 +1077,7 @@ more than it does:
   lost.
 - **The literal is hardcoded, not read from the persona file at runtime.** The design below says the hook
   "reads each persona's canonical verdict set from the persona file at runtime." Rule 7c checks the
-  literal `APPROVE-AND-MERGE` directly, matching what `session-wip.sh` already does and what this file's
+  literals directly (`APPROVE-AND-MERGE`, and `APPROVE-AND-MERGE-BOUNDARY` since 2026-08-23), matching what `session-wip.sh` already does and what this file's
   own later "Which layer carries a control" section (absorbed above) already reasons is correct for a
   **closed set the author wrote**, rather than a caller-controlled grammar — so this is not a shortcut
   taken against the design's advice; it is the design's advice, updated by later reasoning in the same
@@ -1093,7 +1128,8 @@ depends on: a persona file offered a verdict literal it never defined and the me
 against it; the same file carried a *third* vocabulary three sections below its own marker template, and
 that was the one that actually fired (a verdict line posted reading `CLEAN`, which the reading gate
 cannot parse); and `quality-assurance`'s own marker offered `APPROVED` while the set it defines is
-`APPROVE-AND-MERGE` / `APPROVE-PENDING-HUMAN` / `REQUEST-CHANGES`. **All three were found by reading.
+`APPROVE-AND-MERGE` / `APPROVE-PENDING-HUMAN` / `REQUEST-CHANGES` (the set as it stood then;
+`APPROVE-AND-MERGE-BOUNDARY` joined it on 2026-08-23). **All three were found by reading.
 None could have been found by a check, and re-introducing any of them today goes green.**
 
 > **The deeper point, and it is the sentence that makes this a `controls-and-enforcement` decision:**

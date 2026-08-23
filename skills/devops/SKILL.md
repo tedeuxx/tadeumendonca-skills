@@ -367,7 +367,10 @@ so it is the go/no-go"* — true about the merge, wrong about the mechanism, and
 permission rule is structural: whether a merge needs the human depends on the **class** of the change,
 and a permission matcher reads a command string — `gh pr merge 331 --merge` looks identical whether the
 diff is a typo fix or a Terraform change. So **the classification is the gate, and `quality-assurance`
-holds it**: it merges the safe class once both lenses are green, never the boundary class. This is a
+holds it**: it merges the safe class once both lenses are green, ~~never the boundary class~~ **and, since
+2026-08-23 (ADR-0002 amendment #16), the boundary class too under a distinct verdict literal — holding only
+four named exceptions, of which `iac/` is one, so nothing in this skill's pipeline-only rule is loosened by
+it**. This is a
 persona-level guarantee, not a mechanical one — accepted deliberately, which is why the irreversible
 floor stays in Deny rather than moving to this layer.
 
