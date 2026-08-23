@@ -26,9 +26,12 @@ the whole reason a copy would rot:
   2. **Relative links do not survive the move.** Five distinct `](../../docs/adr/...)` targets appear
      across the library. From `skills/<name>/SKILL.md` they resolve; from
      `powers/tadeumendonca-skills/skills/<name>/SKILL.md` they resolve two directories too high, and
-     once Kiro has COPIED the skill into `~/.kiro/powers/<power>/` they do not resolve at all — the
-     ADR library is not there. They are rewritten to absolute `blob/main` URLs, which is the only
-     form that is correct in both the repo and the install location.
+     once Kiro has COPIED the skill into `~/.kiro/powers/installed/<power>/` they do not resolve at
+     all — the ADR library is not there. They are rewritten to absolute `blob/main` URLs, which is
+     the only form that is correct in both the repo and the install location. (The install path is
+     `getPowerDir()` in the `1.0.337` bundle: `getKiroPowersHome()` -> `getInstalledDir()`, which
+     appends `installed`, -> the power name. It read `~/.kiro/powers/<power>/` here until #287's
+     review caught the missing segment.)
   3. **The two manifests share no schema.** Claude Code's carries a `skills` array; the Agent Plugins
      1.0.0 manifest schema (`https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) declares
      `"additionalProperties": false` and has no `skills` property at all — Kiro discovers skills by
@@ -50,12 +53,27 @@ WHAT THIS FILE DOES NOT DO, said plainly so the export is not read as more than 
   * `agents/`, `hooks/`, `commands/` and `.claude/settings.json` are NOT exported. THE GROUND FOR
     THAT IS A CHOICE, NOT A MEASUREMENT OF KIRO, and the difference is the whole of the correction
     below: the enforcement layer is Claude-Code-shaped (`hooks.json`, `PreToolUse` matchers, an
-    `agent_type` the harness stamps), and porting it is work nobody has done. WHETHER A BUILD
-    IMPLEMENTING THE AGENT PLUGINS FORMAT WOULD CARRY THEM IS NOT MEASURED AND IS NOT CLAIMED HERE
-    IN EITHER DIRECTION.
-    The one installer this repository has read — copy allow-list `POWER.md`, `mcp.json`, `steering/`
-    — belongs to a build that does not implement this format at all, so it is evidence about a
-    PRE-SUPPORT build and it is cited only there, under the README's "One caveat".
+    `agent_type` the harness stamps), and porting it is work nobody has done.
+    ~~WHETHER A BUILD IMPLEMENTING THE AGENT PLUGINS FORMAT WOULD CARRY THEM IS NOT MEASURED AND IS
+    NOT CLAIMED HERE IN EITHER DIRECTION. The one installer this repository has read — copy
+    allow-list `POWER.md`, `mcp.json`, `steering/` — belongs to a build that does not implement this
+    format at all.~~
+    STRUCK 2026-08-23 (#287): IT IS MEASURED NOW, and the answer splits in two. Read out of the
+    INSTALLED Kiro `1.0.337` bundle (`quality: stable`, built 2026-08-18) — a BUNDLE READING, not a
+    live install; nothing below was observed loading, activating or denying anything:
+      - TRANSPORT — yes. `isAgentPluginDir` -> `copyAgentPluginFiles` ->
+        `copyDirectoryFiltered(..., AGENT_PLUGIN_EXCLUDED_DIRS)` with
+        `AGENT_PLUGIN_EXCLUDED_DIRS = new Set([".git"])`. One exclusion. `agents/` and `hooks/`
+        would arrive on disk.
+      - ACTIVATION — no. The loader's filename constants are exactly `plugin.json`, `mcp.json`,
+        `skills`/`SKILL.md` and `dev.kiro`. Nothing walks `agents/`, `hooks/` or `commands/`, and
+        `~/.kiro/powers/` is never scanned for a persona or a hook.
+    THAT SPLIT IS WHY THE OMISSION IS NOW A REASON AND NOT ONLY A PREFERENCE: a copied-but-never-read
+    directory sitting next to skills that DO load reads as installed, which is this repo's own named
+    failure shape — presenting a prompt-level instruction as an enforcement. A missing directory
+    announces itself; an inert one does not.
+    The `0.12.333` allow-list is KEPT, struck, under the README's "One caveat" — it stays true about
+    that pre-support build and is cited only there.
     THIS CLAIM HAS NOW BEEN WRONG THREE TIMES. Twice in the same way — reaching past that observation
     for a second source that reads as corroboration and is not. Form 1 attributed it to
     kiro.dev/docs/powers/ "listing them as unsupported"; that page returns HTTP 200 and contains none
@@ -73,7 +91,12 @@ WHAT THIS FILE DOES NOT DO, said plainly so the export is not read as more than 
     DO NOT ADD A FOURTH SOURCE HERE. The export ships skills by CHOICE; that needs no external
     ground, and it is the whole of what the README now asserts. If someone acquires a build at or
     above the release named in the README, measure THAT installer's allow-list and say which build it
-    came from — do not re-cite this one.
+    came from — do not re-cite this one. THAT INSTRUCTION WAS FOLLOWED on 2026-08-23: the `1.0.337`
+    reading above names its build, and the `0.12.333` reading is kept struck rather than re-cited.
+    The standing instruction now points one step further out — the bundle reading is still not a live
+    one, and what would settle it is ten minutes of an authenticated Kiro login: Powers -> Add Custom
+    Power -> Import power from local folder, with sentinel files planted in `agents/` and `hooks/`,
+    then read `~/.kiro/powers/` for what ARRIVED and the agent's behaviour for what ACTIVATED.
     The Power ships the KNOWLEDGE layer of this harness and none of its ENFORCEMENT layer. The
     package README this file writes says so above the fold, because a reader who installs it and
     assumes otherwise has been misled by us, not by Kiro.
@@ -97,17 +120,34 @@ SCHEMA_URL = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
 BLOB_BASE = "https://github.com/tedeuxx/tadeumendonca-skills/blob/main/"
 
 # The Kiro manifest's `description` is AUTHORED HERE rather than copied from `.claude-plugin/
-# plugin.json`, and the difference is not cosmetic. That one describes a Claude Code harness — six
-# personas, PreToolUse hooks that deny the irreversible floor — none of which this Power ships,
-# because Kiro's format carries no channel for any of it. Reusing it would put a false inventory in
-# the first field a Kiro user reads. This one describes what actually installs.
-KIRO_DESCRIPTION = (
-    "The knowledge layer of a public agent-harness reference: 13 dense, opinionated engineering "
-    "skills covering AWS infrastructure, React/Vite frontends, BFF-on-Lambda backends, CI/CD, the "
-    "development loop and its quality gates. Written project-agnostically with <project> / "
-    "<apex-domain> placeholders. This Power ships skills only — the harness's personas, permission "
-    "hooks and merge gates have no Kiro distribution channel and are not included."
-)
+# plugin.json`, and the difference is not cosmetic. That one describes a Claude Code harness —
+# personas, PreToolUse hooks that deny the irreversible floor — none of which this Power ships.
+# Reusing it would put a false inventory in the first field a Kiro user reads. This one describes
+# what actually installs.
+#
+# THE SKILL COUNT IS DERIVED, NEVER TYPED, and the reason is a defect this file shipped. It read
+# "13 dense skills" while `skills/` held 14, and `kiro-power.test.sh` was green throughout: that
+# gate regenerates into a temp directory and diffs it against `powers/`, so it compares the
+# generator's output to itself and a wrong constant is reproduced identically on both sides. A
+# regenerate-and-diff gate can see drift between two trees; it is structurally blind to a claim
+# the generator invents. So the number comes from the same `names` list that produces the exported
+# directories and the keyword set — one source, and moving a skill moves the sentence.
+def kiro_description(skill_count):
+    return (
+        f"The knowledge layer of a public agent-harness reference: {skill_count} dense, opinionated "
+        "engineering skills covering AWS infrastructure, React/Vite frontends, BFF-on-Lambda "
+        "backends, CI/CD, the development loop and its quality gates. Written project-agnostically "
+        "with <project> / <apex-domain> placeholders. This Power ships skills only — the harness's "
+        "personas, permission hooks and merge gates are deliberately not exported."
+    )
+
+# WHY THE SENTENCE STOPS THERE. It used to close with "…and Kiro's Power loader reads none of them
+# from a package in any case" — true as measured against `1.0.337`, and still stated in the README,
+# where the version it was measured on and the bundle-reading bound travel with it. This field does
+# not have that room: it renders as a marketplace card with no date, no version and no bound, so the
+# one half of the sentence that ages the moment Kiro ships its next build would age there unattended.
+# What survives is a fact about THIS package — what it exports — which needs no measurement of
+# anybody else's software to stand behind.
 
 # Activation keywords. Derived from the skill directory names plus a small fixed set naming the
 # domains a developer would actually type, since Kiro matches these against conversation text and
@@ -260,7 +300,7 @@ def build_manifest(names):
         "$schema": SCHEMA_URL,
         "name": claude["name"],
         "version": claude["version"],
-        "description": KIRO_DESCRIPTION,
+        "description": kiro_description(len(names)),
         "author": {"name": claude["author"]["name"]},
         "homepage": claude["homepage"],
         "repository": claude["repository"],
@@ -276,6 +316,14 @@ This directory is the **Kiro Power** package root for
 [`tedeuxx/tadeumendonca-skills`](https://github.com/tedeuxx/tadeumendonca-skills). It is **generated**
 from the repository's own `skills/` tree and gated by `hooks/scripts/kiro-power.test.sh`; editing it by
 hand will turn that gate red. Edit `skills/<name>/SKILL.md` at the repository root instead.
+
+> **What changed since an earlier release of this file.** Earlier releases said the question of
+> whether a Kiro build implementing the Agent Plugins format would carry `agents/` and `hooks/` was
+> unmeasured and claimed in neither direction. It is measured now — against Kiro `1.0.337`, on
+> 2026-08-23 — and the answer splits in two: **transport yes, activation no** (see *What this ships*
+> below). The struck text and the full round-by-round history are kept at the source, in the
+> repository's own [`README.md`](https://github.com/tedeuxx/tadeumendonca-skills/blob/main/README.md).
+> This file is regenerated and republished on every merge, so it carries current claims only.
 
 ## Install
 
@@ -302,44 +350,61 @@ BY CHOICE**, which is a fact about this package and needs no reading of anybody 
 enforcement layer is Claude-Code-shaped — `hooks.json`, `PreToolUse` matchers, `agent_type` — and
 porting it to another harness is work nobody has done, not a file anybody forgot to copy.
 
-**Whether a Kiro build that implements the Agent Plugins format WOULD carry those directories is not
-measured here, and is claimed in neither direction.** The only installer this repository has read is
-the one in the build named under "One caveat" below, whose copy allow-list is `POWER.md`, `mcp.json`
-and `steering/` — and that same build does not implement this format at all, so its allow-list is
-evidence about a pre-support build and nothing more. Settling the question needs a build at or above
-the release named below; this repository does not have one. That is stated rather than guessed at,
-the same way the `commands/`-to-steering ambiguity is stated in the root README.
+**Whether a Kiro build implementing the Agent Plugins format WOULD carry those directories has two
+halves, with opposite answers.** Read out of the installed Kiro **`1.0.337`** (`quality: stable`,
+bundle built 2026-08-18):
 
-Two earlier forms of this paragraph reached for a corroborating source — a docs page, then the
-manifest schema — and both were wrong about the source while right about the conclusion. A third form
-kept a correct measurement but applied it to the wrong build. None is restated here, and no
-replacement source is offered in their place.
+- **Transport — yes.** The installer branches on whether the package holds a `plugin.json`. If it
+  does, it copies the whole tree with a single exclusion (`.git`). `agents/` and `hooks/` would
+  arrive on disk.
+- **Activation — no.** The loader's filename constants are exactly `plugin.json`, `mcp.json`,
+  `skills`/`SKILL.md` and `dev.kiro`. Nothing walks `agents/`, `hooks/` or `commands/`, and
+  `~/.kiro/powers/` is never scanned for a persona or a hook.
 
-What matters for a reader is unchanged either way: **install this expecting the skills, not the
-denies.** The full harness is the Claude Code plugin at the repository root.
+**Keep those two words apart, because the gap between them is why omitting the enforcement layer is a
+reason and not only a preference.** A directory that is copied but never read sits next to skills that
+*do* load, and reads as installed. A missing directory announces itself; an inert one does not.
+
+**This is a bundle reading, not a live install.** Nothing above was observed loading, activating or
+denying anything: no Power has ever been installed from this repository. What would settle it is ten
+minutes of an authenticated Kiro session — *Powers → Add Custom Power → Import power from local
+folder*, with sentinel files planted in `agents/` and `hooks/` — then reading
+`~/.kiro/powers/installed/` for what **arrived** and the agent's behaviour for what **activated**.
+
+So, whichever half you care about: **install this expecting the skills, not the denies.** The full
+harness is the Claude Code plugin at the repository root.
 
 ## One caveat, and it is larger than the rest
 
-**Measured, not inferred, and it decides whether this Power installs at all.** On the Kiro build this
-export was measured against — **`0.12.333`, `quality: stable`, built 2026-06-10** — the Power
-installer's copy allow-list is `POWER.md`, `mcp.json` and `steering/`, the string `plugin.json` does
-not occur once in the extension's 821,906-line bundle, and the copy routine **swallows the
-missing-file error** rather than raising it. That build does not implement the Agent Plugins format at
-all: it would report a **successful install of this Power and copy nothing** — a silent total failure,
-not a partial one.
+**Measured, not inferred — and measured by reading the shipped Kiro bundle, not by running a live
+install.** Every claim here comes from the installed Kiro **`1.0.337`** (`quality: stable`, bundle
+built 2026-08-18) as a file on disk; **nothing in this README was observed installing, loading or
+denying anything.** That build **does** implement the Agent Plugins format: `plugin.json` occurs in
+the bundle, the installer recognises a package that carries one, and the legacy copy allow-list
+(`POWER.md`, `mcp.json`, `steering/`) is the `else` branch it no longer takes for this package. This
+caveat decides whether the Power installs at all, so read it as a bundle reading you should confirm
+against your own build — the check is at the end of this section.
+
+**A build predating the format installs this empty and says it succeeded.** On the older
+`0.12.333` build (`quality: stable`, built 2026-06-10) the copy allow-list is the legacy one above,
+the string `plugin.json` does not occur in the extension bundle at all, and the copy routine
+**swallows the missing-file error** rather than raising it — so it reports a **successful install of
+this Power and copies nothing**: a silent total failure, not a partial one. That swallow is
+**unchanged at `1.0.337`**; it was never fixed, it merely stopped applying to *this* package on a
+build new enough to recognise it.
 
 **The version to compare yourself against is not that one — it is the release that added the format.**
 Kiro's public changelog dates Agent Plugin support to **IDE `1.0.288`, 7 Aug 2026**: *"Install powers
-aligned with the open Agent Plugin format from a local folder or GitHub URL."* The measured build
-above predates that release by two months, and it is quoted here as the concrete evidence of what a
+aligned with the open Agent Plugin format from a local folder or GitHub URL."* The `0.12.333` build
+predates that release by two months, and it is quoted here as the concrete evidence of what a
 pre-support build does, not as a threshold you can compare a version string to — the two numbers are
 not from the same series, so only the named release and the dates are comparable.
 
-This export is built to that format. A build older than the release above installs this empty rather
-than failing loudly.
 **Verify against your own Kiro version before relying on it:** after installing, confirm that
-`~/.kiro/powers/tadeumendonca-skills/skills/` actually contains {count} directories. If it is empty,
-your build predates the format and nothing here is loaded.
+`~/.kiro/powers/installed/tadeumendonca-skills/skills/` contains {count} directories. The `installed/`
+segment is not optional and the last segment is the power name, which Kiro derives from the final
+path component of the URL above. If that directory does not exist or is empty, your build predates the
+format and nothing here is loaded.
 """
 
 

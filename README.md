@@ -1155,26 +1155,50 @@ the 14 source skills carries a `name:` key** (`grep -c '^name:' skills/*/SKILL.m
 fourteen), because Claude Code derives the identifier from the directory, while Kiro validates
 `name` **and** `description` in the frontmatter. The generator synthesises it, and rewrites the
 library's relative `../../docs/adr/…` link targets to absolute URLs, which are the only form that still
-resolves once Kiro has copied a skill into `~/.kiro/powers/`.
+resolves once Kiro has copied a skill into `~/.kiro/powers/installed/<power>/` (`getPowerDir()` in the
+`1.0.337` bundle — `getKiroPowersHome()` → `getInstalledDir()`, which appends `installed`, → the power
+name; ~~`~/.kiro/powers/`~~ here dropped the `installed` segment until #287's copy-lens round caught it,
+and the conclusion it supports — that the relative targets do not survive the copy — is unaffected).
 
 ### What each format can carry — the element-by-element gap
 
-**Measured 2026-08-21** against **Kiro 0.12.333** (`CFBundleShortVersionString`, `kiroAgent`
-extension `0.3.721`; `product.json` reports `quality: stable`, built 2026-06-10) and the docs as
-published that day. **This ages, and faster than most things
-written here** — Kiro's Power format changed in **IDE `1.0.288`, 7 Aug 2026** (*"Install powers aligned
-with the open Agent Plugin format from a local folder or GitHub URL"*), from the `POWER.md` era to the
-[Agent Plugins](https://agent-plugins.org) spec, so treat every row below as a dated reading rather
-than a standing property. **The measured build predates that release by two months, and its number is
-not comparable to it** — `0.12.333` and `1.0.288` are not the same series, so the dates are what a
-reader can compare, not the version strings.
+**Re-measured 2026-08-23** against **Kiro `1.0.337`** — `quality: stable`, bundle built
+`2026-08-18`, `kiroAgent` extension `1.0.653`. Publish the number with the command that produced it:
+
+```bash
+/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" /Applications/Kiro.app/Contents/Info.plist
+python3 -c "import json;d=json.load(open('/Applications/Kiro.app/Contents/Resources/app/product.json'));print(d['version'],d['quality'],d['date'])"
+python3 -c "import json;print(json.load(open('/Applications/Kiro.app/Contents/Resources/app/extensions/kiro.kiro-agent/package.json'))['version'])"
+```
+
+~~**Measured 2026-08-21** against **Kiro 0.12.333** (`kiroAgent` extension `0.3.721`, built
+2026-06-10). The measured build predates the `1.0.288` release by two months, and its number is not
+comparable to it — `0.12.333` and `1.0.288` are not the same series.~~ **Superseded by the re-date
+above, and it mattered more than an ordinary refresh:** `0.12.333` predated the Agent Plugins format
+entirely, so every row below was a reading of an installer that could not install this export at all.
+`1.0.337` implements it. The rows are re-derived, not restamped.
+
+**The date is what a reader can compare, and this still ages faster than most things written here** —
+Kiro's Power format changed in **IDE `1.0.288`, 7 Aug 2026** (*"Install powers aligned with the open
+Agent Plugin format from a local folder or GitHub URL"*), from the `POWER.md` era to the
+[Agent Plugins](https://agent-plugins.org) spec. Treat every row below as a dated reading of one
+build rather than a standing property of the format.
+
+**Nothing in this section was exercised live, and that bound has not moved.** Every claim here is
+read out of the shipped bundle and the published docs. The Kiro install on the measuring machine has
+no authenticated session and has never installed a Power (`ls ~/.kiro/powers/registries/` → empty), so
+no rule was observed loading, activating or denying anything. **What would settle it is small and
+specific:** ten minutes of an authenticated login, *Powers → Add Custom Power → Import power from
+local folder* pointed at `powers/tadeumendonca-skills/` with sentinel files planted in `agents/` and
+`hooks/`, then reading `~/.kiro/powers/` for what arrived and the agent's own behaviour for what
+activated. Until that happens, read *measured* below as **measured in the bundle**.
 
 | this repo ships | Claude Code plugin format | Kiro Power format |
 |---|---|---|
 | `skills/` — 14 `SKILL.md` guides | declared in `.claude-plugin/plugin.json`'s `skills` array | **carried** — `skills/<name>/SKILL.md` under the package root, discovered by walking the tree. The one element that ports and installs cleanly |
-| `agents/` — 6 persona briefs with `tools:` / `skills:` frontmatter | shipped and loaded | **not exported, and that is this repo's choice rather than a measured limit of the format** — see the scoping note under the table. Kiro *has* a per-subagent mechanism — `.kiro/agents/*.md` with `tools`/`excludedTools` and a `permissions.rules[]` block that compiles to Cedar policy and parses shell with tree-sitter — and a Kiro user hand-authors it today. Whether a Power *could* install into it is **not measured here** |
-| `hooks/` — the `PreToolUse` permission guard and the loop's session hooks | registered by `hooks/hooks.json` on install; the guard denies the irreversible floor | **not exported — and whether a mechanism exists at all depends on which Kiro you mean.** See the CLI/IDE split below; it is not a footnote |
-| `commands/` — 3 typed commands with `argument-hint` | `/plugin:<name>`, arguments interpolated as `$ARGUMENTS` | the corresponding element is **steering**. Kiro's own packaging command names `dev.kiro/` alongside `skills/`, but the 2026-08-07 changelog describes the format as bundling *"skills and MCP"* and does not name steering — **that ambiguity is unresolved here and is stated rather than guessed at**. Not exported in this slice |
+| `agents/` — 7 persona briefs with `tools:` / `skills:` frontmatter | shipped and loaded | **not exported — and now for a measured reason, not only a chosen one. Transport yes, activation no.** The installer would copy the directory (see *Transport is not activation* below); the loader has no key, path or walk that reads it. Kiro *has* a per-subagent mechanism — `.kiro/agents/*.md` with `tools`/`excludedTools` and a `permissions.rules[]` block that compiles to Cedar policy and parses shell with tree-sitter — but it is **workspace** configuration a Kiro user hand-authors, not something a Power installs into |
+| `hooks/` — the `PreToolUse` permission guard and the loop's session hooks | registered by `hooks/hooks.json` on install; the guard denies the irreversible floor | **not exported — same shape: transport yes, activation no.** `hooks/hooks.json` is Claude-Code-shaped and nothing in the Power loader looks for it. The IDE *does* have a real blocking `preToolUse` mechanism at this build (see below — that finding reversed), but it is reached through workspace/agent configuration, not through a Power |
+| `commands/` — 3 typed commands with `argument-hint` | `/plugin:<name>`, arguments interpolated as `$ARGUMENTS` | the corresponding element is **steering**, and the 2026-08-21 ambiguity is now **closed**: the loader resolves `dev.kiro/steering/` (and `dev.kiro/INSTRUCTIONS.md`) inside a package root, so steering is carried by the format. `commands/` at the repo root is not that path and is not read. Still not exported in this slice — a typed-command surface with `$ARGUMENTS` has no steering equivalent, so this would be a rewrite rather than a copy |
 | `mcp.json` | — | carried (optional). This repo ships none |
 | `.claude-plugin/marketplace.json` | the marketplace a consumer adds once, then installs and updates from | **a difference, not a limitation.** Kiro installs straight from a GitHub URL; there is no marketplace indirection to be missing |
 
@@ -1186,10 +1210,38 @@ defect. *What is a choice, needing no external ground:* the enforcement layer is
 has done. *What is measured, and about exactly one build:* the copy allow-list quoted further down —
 `POWER.md`, `mcp.json`, `steering/` — was read out of **0.12.333**, a build that does not implement the
 Agent Plugins format at all. It is evidence about a pre-support installer and it is cited only there.
-*What is NOT measured and is claimed in neither direction:* whether an installer at or above **`1.0.288`**
-carries `agents/`, `hooks/` or `commands/`. Settling it needs a build this repository does not have. Left
-open, in the same words the `commands/`-to-steering row uses — **stated rather than guessed at** — because
-the previous two attempts to close it by reaching for a source are struck above.
+~~*What is NOT measured and is claimed in neither direction:* whether an installer at or above
+**`1.0.288`** carries `agents/`, `hooks/` or `commands/`. Settling it needs a build this repository
+does not have.~~ **Closed 2026-08-23 (#287): the build arrived, and the answer is that the question
+had two halves with opposite answers.** See the next subsection. The reason it was worth leaving open
+rather than guessing stands — the previous two attempts to close it by reaching for a source are
+struck above, and the source that finally settled it was the installed binary rather than a document.
+
+#### Transport is not activation, and this is the distinction the old question was missing
+
+**Asking "does a Power carry `agents/`?" gets a misleading answer because it merges two mechanisms
+that this build keeps separate.** Read out of `1.0.337`'s `kiro.kiro-agent` bundle:
+
+- **Transport — yes, the whole tree.** The installer branches on whether the source directory holds a
+  `plugin.json` (`isAgentPluginDir`). If it does, it calls `copyAgentPluginFiles`, which is
+  `copyDirectoryFiltered(sourcePath, destPath, AGENT_PLUGIN_EXCLUDED_DIRS)` with
+  `AGENT_PLUGIN_EXCLUDED_DIRS = new Set([".git"])`. **One exclusion, and it is `.git`.** Everything
+  else in the package root is copied, `agents/` and `hooks/` included. The legacy `copyPowerFiles`
+  with its `ALLOWED_FILES = ["POWER.md", "mcp.json"]` still exists in the same file and is the `else`
+  branch, taken only for a package with no `plugin.json`.
+- **Activation — no.** The loader's own filename constants are exactly `plugin.json`, `mcp.json`,
+  `skills` + `SKILL.md`, and `dev.kiro` (resolving `dev.kiro/steering/` and
+  `dev.kiro/INSTRUCTIONS.md`). Nothing enumerates or walks `agents/`, `hooks/` or `commands/`, and
+  `~/.kiro/powers/` is not scanned for a persona or a hook by any path. The manifest's own known-field
+  set is `name`, `displayName`, `version`, `description`, `author`, `homepage`, `repository`,
+  `license`, `keywords`, `extensions` — an unknown key is logged as *"not part of the Agent Plugins
+  manifest and was ignored"*.
+
+**This is exactly why shipping `agents/` would be worse than not shipping it.** Copied-but-never-read
+is the failure shape this repo's floor names by name — *presenting a prompt-level instruction as an
+enforcement*. A missing directory announces itself; a directory sitting in `~/.kiro/powers/` next to
+skills that *do* load reads as installed. The export omits them deliberately, and the measurement is
+what turns that from a preference into a reason.
 
 **What the manifests themselves say, since the table above is about files and this is about schemas —
 and what that does NOT establish.** The Agent Plugins 1.0.0 manifest schema requires exactly `$schema`
@@ -1215,20 +1267,59 @@ also marked **"(CLI only - IDE ignores this field)"** — both strings verified 
 [kiro.dev/docs/custom-agents/configuration-reference/](https://kiro.dev/docs/custom-agents/configuration-reference/)
 on 2026-08-21.
 
-**So the IDE accepts a configuration carrying blocking hooks and silently does not run them.** That is
-the worst failure shape in this whole comparison and the reason it is a heading rather than a row: not
-a missing feature, which announces itself, but a config that *looks* complete and enforces nothing —
-the exact defect this repo's own floor names, *presenting a prompt-level instruction as an
-enforcement*. Anyone porting the guard must know which Kiro they are porting to before they start.
+~~**So the IDE accepts a configuration carrying blocking hooks and silently does not run them.** That
+is the worst failure shape in this whole comparison and the reason it is a heading rather than a row.
+Anyone porting the guard must know which Kiro they are porting to before they start.~~
 
-Two things about it are **not** settled here and are named rather than guessed:
+**Struck 2026-08-23 (#287) — reversed at `1.0.337`, and it was stale in the PERMISSIVE direction,
+which is the direction that matters.** It understated the IDE. The docs sentence quoted above is still
+what kiro.dev publishes; the shipped IDE bundle disagrees with it, and the bundle is what runs.
+`1.0.337`'s `kiro.kiro-agent` registers a hooks capability **unconditionally** — no experiment flag,
+no gate, and notably it sits in the same capability array as a neighbour that *is* conditional
+(`...hasDiagnosticsSupport ? [createGetDiagnosticsCapability(policyCheck)] : []`), so the absence of a
+condition here is a choice rather than an oversight:
 
-- **Exit-code semantics for the CLI's blocking hook are unverified.** The IDE-side experiment path was
-  read as exit-code based; whether the CLI agent-hooks path uses the same convention is not something
-  this reading establishes.
-- **Nothing below was exercised live.** Every Kiro claim in this section is read out of the shipped
-  bundle and the published docs. The Kiro install on the machine that measured it has no authenticated
-  session, so no rule was observed denying anything.
+```js
+function createHooksCapabilities() {
+  return [ { type: "other", key: "hooks",
+             value: { enabled: true, v2: true },
+             method: "_kiro/hooks/executeHook", handler: handleHookExecute } ];
+}
+```
+
+**And it blocks, on exit code 2, on `PreToolUse`.**
+The outcome function maps trigger × exit code to a frozen outcome record:
+
+```js
+const t27 = e18 === s6.UserPromptSubmit || e18 === s6.PreToolUse || e18 === s6.PreTaskExec;
+return o51 === 2 && t27 ? Ae2 : ... ;      // Ae2 = { sendStdout: false, sendStderr: true, block: true }
+```
+
+It reads a `hookSpecificOutput.permissionDecision === "ask"` JSON payload from stdout on a
+zero-exit `PreToolUse` as well — the shape of this repo's own guard protocol, not merely something
+adjacent to it.
+
+**What that changes, and what it does not.** It removes the *silent-no-op* hazard that made this a
+heading: an IDE hook that is configured does run and can deny. It does **not** make the guard portable
+by installing this Power — the hook must be reachable through workspace/agent configuration, and
+nothing in the Power loader registers one (see *Transport is not activation* above). So the porting
+work is unchanged in size; only the reason it is work has moved from *"the IDE ignores it"* to
+*"a Power has no channel to register it"*.
+
+Still **not** settled, and named rather than guessed:
+
+- **The CLI path is not re-read here.** The exit-code convention above was read out of the **IDE**
+  extension bundle. Whether the CLI agent-hooks path uses the same convention is still not something
+  this reading establishes, and the two are no longer safe to assume identical now that the IDE has
+  been measured diverging from its own documentation.
+- **Nothing here was exercised live.** Every Kiro claim in this section is read out of the shipped
+  bundle and the published docs — including the exit-code mapping, which was read, not fired. The
+  install on the measuring machine has no authenticated session and no Power has ever been installed
+  (`ls ~/.kiro/powers/registries/` → empty), so no rule was observed denying anything. What would
+  settle it is in the re-dating note above the table.
+- **Where the bundle and the docs disagree, this section now follows the bundle and says so.** That is
+  a change of posture worth flagging: the 2026-08-21 reading trusted a docs string over an unread
+  binary, and the binary is what reversed it.
 
 **One open question from the original evaluation is closed, in Kiro's favour.** The `skills:` preload
 key this repo's persona briefs use was recorded as having "no observed carrier" on Kiro. It has one:
@@ -1240,28 +1331,39 @@ installs from this repository is the **knowledge** layer of this harness and non
 **enforcement** layer. That distinction is the whole thesis of the repo — *every guarantee is
 mechanical or it is not real* — so shipping the advice without the denies is worth saying out loud
 rather than leaving a reader to discover. **That is a statement about this export, and it is true
-whatever a current installer would accept** — it is what this repository built. What it is *not* is a
-measured limit of the Power format at `1.0.288`+, which nothing here establishes in either direction (see
-the scoping note under the table above). Separately and certainly: the `permissions.rules[]` mechanism is
+whatever a current installer would accept** — it is what this repository built. ~~What it is *not* is a
+measured limit of the Power format at `1.0.288`+, which nothing here establishes in either direction.~~
+**Struck 2026-08-23 (#287): it now IS a measured limit as well as a choice, and the two are separable.**
+The *transport* is not a limit — the installer would copy `agents/` and `hooks/` verbatim. The
+*activation* is: the loader reads only `plugin.json`, `skills/`, `mcp.json` and `dev.kiro/`, so an
+enforcement layer shipped in a Power would arrive inert. See *Transport is not activation* above.
+Separately and certainly: the `permissions.rules[]` mechanism is
 a genuine content-level deny, comparable in kind to `permission-guard.sh`, and it is reachable **by hand**
 by a Kiro user today.
 
-**One caveat that is larger than the rest, and it is measured rather than inferred.** On this
-machine's build — `0.12.333`, `stable`, built 2026-06-10, two months before the `1.0.288` release that
-added the format — the Power installer's own copy allow-list is `POWER.md`,
-`mcp.json` and `steering/`, and the string `plugin.json` does not occur even once in the extension's
-821,906-line bundle. That build therefore does not implement the Agent Plugins format at all: it would
-report a successful install of this Power and copy **nothing**.
+**One caveat that was larger than the rest — and the build it was about is no longer the build here.**
+Kept rather than deleted, because it is the reason this export exists in the shape it does and because
+it is still exactly what happens on an older Kiro:
 
-**And the conclusion rests on the execution path, not merely on the absent string** — which is a
-stronger statement of the same fact and was proved by `quality-assurance` on PR #306 rather than
-inferred here. `copyPowerFiles` iterates the two allow-lists and **swallows `ENOENT`**: `if
-(error.code !== "ENOENT") { throw error; }`. Nothing in this export matches either list, so every copy
-misses, every miss is silently absorbed, and the install reports success over an empty directory. The
-failure is not merely undetected — it is *actively* discarded by the installer. The export is built to the **current
-documented** format, which is what kiro.dev tells third parties to author; a build old enough to
-predate it will install it empty rather than fail loudly. **Verify against your own Kiro version before
-relying on it.**
+~~On this machine's build — `0.12.333`, `stable`, built 2026-06-10, two months before the `1.0.288`
+release that added the format — the Power installer's own copy allow-list is `POWER.md`, `mcp.json`
+and `steering/`, and the string `plugin.json` does not occur even once in the extension's 821,906-line
+bundle. That build therefore does not implement the Agent Plugins format at all: it would report a
+successful install of this Power and copy **nothing**. And the conclusion rests on the execution path,
+not merely on the absent string — proved by `quality-assurance` on PR #306. `copyPowerFiles` iterates
+the two allow-lists and **swallows `ENOENT`**: `if (error.code !== "ENOENT") { throw error; }`.
+Nothing in this export matches either list, so every copy misses, every miss is silently absorbed, and
+the install reports success over an empty directory.~~
+
+**Superseded 2026-08-23 (#287) for the installed build, and the failure path it describes is still
+live for anyone below `1.0.288`.** At `1.0.337`, `plugin.json` occurs 14 times in the bundle
+(`grep -c "plugin.json" /Applications/Kiro.app/Contents/Resources/app/extensions/kiro.kiro-agent/dist/extension.js`
+→ `14`), `isAgentPluginDir` is what the installer branches on, and `copyPowerFiles` with its
+`POWER.md`/`mcp.json` allow-list has become the **legacy `else` branch** — reached only by a package
+with no `plugin.json`. This export has one, so it takes the Agent Plugins path. **The `ENOENT`-swallow
+is unchanged in that legacy branch**, so the silent-empty-install failure did not get fixed; it stopped
+applying to *this* package on a build new enough to recognise it. **Verify against your own Kiro
+version before relying on it** — that advice is the part of this caveat that did not age.
 
 ## What travels if this design moves to another harness
 

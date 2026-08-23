@@ -319,10 +319,12 @@ a version that no longer exists.
 **Bad / accepted costs**
 - **Only the knowledge layer travels, and that is a CHOICE this amendment takes rather than a limit it
   measured.** `agents/`, `hooks/` and `commands/` are not exported because the enforcement layer is
-  Claude-Code-shaped and porting it is work nobody has done. **Whether an installer at or above
+  Claude-Code-shaped and porting it is work nobody has done. ~~**Whether an installer at or above
   `1.0.288` would carry them is not measured and is claimed in neither direction** — the only installer
   read here belongs to a build predating that format, so it is evidence about a pre-support build and
-  is cited only as that. Either way, what a Kiro user installs is the advice without the denies — worth
+  is cited only as that.~~ **Struck 2026-08-23 — see the amendment below; it is measured, and the
+  answer splits transport from activation.** The decision this bullet records is unchanged: only the
+  knowledge layer travels, still by choice. Either way, what a Kiro user installs is the advice without the denies — worth
   naming plainly in a repository whose thesis is *every guarantee is mechanical or it is not real*,
   which is why the README carries the element-by-element gap rather than a footnote.
   *(Scoped 2026-08-21 on `quality-assurance`'s B4, PR #306: the claim was first published attributing
@@ -333,11 +335,16 @@ a version that no longer exists.
   consumer, not chosen.
 - **Nothing here was exercised live.** Every Kiro claim is read from the shipped bundle and the
   published docs; the Kiro install used to measure them has no authenticated session, so no install was
-  observed succeeding. **The strongest form of this residual:** on the build measured (0.12.333,
-  `stable`) the Power installer's copy allow-list is `POWER.md` / `mcp.json` / `steering/` and the
-  string `plugin.json` does not occur in the extension bundle at all — that build would report a
-  successful install and copy nothing. The export targets the **current documented** format on purpose;
-  an older build fails soft rather than loud, and the README says so.
+  observed succeeding. **This half of the residual is UNCHANGED at 2026-08-23** — the re-measurement
+  below is another bundle reading, not a live install. ~~**The strongest form of this residual:** on
+  the build measured (0.12.333, `stable`) the Power installer's copy allow-list is `POWER.md` /
+  `mcp.json` / `steering/` and the string `plugin.json` does not occur in the extension bundle at
+  all — that build would report a successful install and copy nothing.~~ **Struck 2026-08-23 as the
+  build this export is measured against, and KEPT as a finding** — it stays true of `0.12.333` and of
+  every build below `1.0.288`; the installed build is now `1.0.337`, where `plugin.json` *does* occur
+  and the legacy allow-list is the branch not taken for this package. The export targets the
+  **current documented** format on purpose; an older build fails soft rather than loud, and the README
+  says so.
 - **The measurement ages fast.** Kiro's Power format changed on 2026-08-07. Every claim here is dated
   2026-08-21 and should be re-measured, not re-stamped.
 
@@ -351,3 +358,42 @@ need: Kiro's agent `hooks` field can block, and is marked *"CLI only - IDE ignor
 same configuration is an enforcement on one target and inert on the other. Deciding that in the same
 record as a skills-only export would put an unverified enforcement claim inside a verified distribution
 one.
+
+## Amendment (2026-08-23) — the ground under one accepted cost was re-measured; the decision is unchanged
+
+**Nothing in the decision moves.** The export still carries the knowledge layer and not the enforcement
+layer, still by choice, and no option reconsidered here. What changes is the **ground** the 2026-08-21
+amendment gave for that cost, which the record's own last bullet asked for in as many words —
+*"re-measured, not re-stamped"*. Two clauses above are struck in place rather than rewritten.
+
+**What was re-measured.** The 2026-08-21 reading was taken against Kiro **`0.12.333`**, a build that
+predates the Agent Plugins format and therefore could not install this package at all. The installed
+build is now **`1.0.337`** (`quality: stable`, bundle built 2026-08-18), which does implement it.
+
+**What the re-measurement says, and it is why the old clause could not simply be updated:** the
+question *"would an installer carry `agents/` and `hooks/`?"* has two halves with **opposite** answers,
+and the old clause asked it as one. The full derivation, with the bundle symbols it was read from, is
+in [`README.md`](../../README.md)'s *"Transport is not activation, and this is the distinction the old
+question was missing"* section, cited by heading rather than by line per this repo's citation rule:
+
+- **Transport — yes.** The whole package tree is copied with `.git` as the sole exclusion.
+- **Activation — no.** No loader path enumerates or walks `agents/`, `hooks/` or `commands/`.
+
+**Why that strengthens this record's cost rather than softening it.** The accepted cost was *"the
+advice without the denies."* It is now worse-shaped than that sentence implied and better-grounded: an
+exported enforcement layer would **arrive on disk and never run**, sitting next to skills that do load.
+That is this repo's own named failure — *presenting a prompt-level instruction as an enforcement* — so
+the omission the 2026-08-21 amendment took as a preference is, at `1.0.337`, a measured reason.
+
+**The live-exercise residual is not discharged and is not claimed to be.** This is a bundle reading.
+No Power from this repository has ever been installed; nothing was observed loading, activating or
+denying. What would settle it is named in `README.md` and in the generator's own docstring: an
+authenticated session, *Powers → Add Custom Power → Import power from local folder*, sentinels planted
+in `agents/` and `hooks/`, then read `~/.kiro/powers/` for what arrived and the agent's behaviour for
+what activated.
+
+**Significance:** no arm of the significance test fires on this amendment on its own — it records no
+new decision, changes no contract and establishes no pattern. It is written because the record was
+carrying a **false ground** for a live cost, which the current-codebase rule treats as a defect in a
+live record rather than as a new decision. Authored by `agents-lead` per the domain split (#223): the
+subject is the harness's own distribution machinery.

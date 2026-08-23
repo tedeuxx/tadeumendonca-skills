@@ -171,11 +171,21 @@ into a temp directory and diffs. Editing the export by hand turns that gate red;
 `skills/<name>/SKILL.md` and regenerate. **It carries the skills and nothing else, by choice** — the
 enforcement layer is Claude-Code-shaped (`hooks.json`, `PreToolUse` matchers, an `agent_type` the harness
 stamps) and porting it is work nobody has done, so the export is this harness's knowledge layer without
-its enforcement layer. **Whether a Kiro build implementing the Agent Plugins format would carry
+its enforcement layer. ~~**Whether a Kiro build implementing the Agent Plugins format would carry
 `agents/`, `hooks/` or `commands/` is NOT measured and is claimed in neither direction** — the only
-installer this repo has read belongs to a build predating that format. The element-by-element gap, its measurement date and the Kiro
-CLI-vs-IDE distinction are in [`README.md`](./README.md), and the decision is ADR-0005's 2026-08-21
-amendment.
+installer this repo has read belongs to a build predating that format.~~ **Measured 2026-08-23 (#287)
+against Kiro `1.0.337` (`quality: stable`, bundle 2026-08-18), and the answer splits in two:
+transport yes, activation no.** The installer copies a package's whole tree minus `.git`
+(`AGENT_PLUGIN_EXCLUDED_DIRS = new Set([".git"])`), so `agents/` and `hooks/` would arrive; the loader
+resolves only `plugin.json`, `skills/`, `mcp.json` and `dev.kiro/`, and `~/.kiro/powers/` is never
+scanned for a persona or a hook — so they would arrive **inert**. **Keep the two words apart: that is
+the whole reason shipping `agents/` would be worse than not shipping it** — a missing directory
+announces itself, a copied-but-never-read one reads as installed, which is this repo's own named
+failure shape. **Read out of the shipped bundle, not from a live install** — nothing here was
+exercised in an authenticated Kiro session and no Power has ever been installed on the measuring
+machine. The command, the evidence, the element-by-element gap and the Kiro CLI-vs-IDE distinction are
+in [`README.md`](./README.md); the decision is ADR-0005's 2026-08-21 amendment, unchanged by this
+measurement.
 
 ### What is a command and what is a skill — three rules, and only one of them is a mechanism
 
