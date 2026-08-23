@@ -108,7 +108,14 @@ verdict_suffix() {
   case "$verdict" in
     '') : ;;                                   # unavailable — say nothing, per the contract above
     none) printf '%s' ' — NO quality-assurance verdict on the current head' ;;
-    APPROVE-AND-MERGE) : ;;                    # reviewed and clear; the listing has nothing to add
+    # BOTH merge-authorising literals render silently, and the second one is here for a reason the
+    # `*)` arm below makes sharp: an unlisted-but-legitimate literal does not degrade to silence, it
+    # is reported as a DEFECT IN THE GATE. So adding `APPROVE-AND-MERGE-BOUNDARY` to the verdict
+    # vocabulary (ADR-0002 amendment #15) without adding it here would have made every correctly-
+    # verdicted boundary PR read as a gate that posted a literal its own persona does not define.
+    # `inventory-counts.test.sh` now asserts this list against `agents/quality-assurance.md`'s own
+    # "Your verdict — exactly one of" section, so the next literal added there cannot land here late.
+    APPROVE-AND-MERGE|APPROVE-AND-MERGE-BOUNDARY) : ;;  # reviewed and clear; the listing has nothing to add
     APPROVE-PENDING-HUMAN|REQUEST-CHANGES)
       printf '%s' " — quality-assurance returned ${verdict} on the current head" ;;
     *) printf '%s' " — quality-assurance posted an UNRECOGNISED verdict on the current head: ${verdict}" ;;

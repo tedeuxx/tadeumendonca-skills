@@ -179,6 +179,12 @@ verdict="$(printf '%s' "$pr_view" | jq -r --arg m "$MARKER" '
 
 [ -z "$verdict" ] && exit 0
 
+# DELIBERATELY UNCHANGED by ADR-0002 amendment #15, and the reasoning is worth stating because the
+# amendment added a verdict literal. `APPROVE-AND-MERGE-BOUNDARY` falls to `*) exit 0` — it is a
+# CLEARANCE, not an outstanding verdict, so it is silent here exactly as `APPROVE-AND-MERGE` already
+# was. NAMED RESIDUAL, not closed here: neither clearance fires this notice when the PR is still open
+# at turn end, so "the gate cleared it and then did not merge it" is invisible to this hook. That gap
+# predates the amendment and is identical for both literals; closing it is a separate change.
 case "$verdict" in
   REQUEST-CHANGES|APPROVE-PENDING-HUMAN) : ;;
   *) exit 0 ;;

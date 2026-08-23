@@ -1511,6 +1511,75 @@ else
 fi
 
 # ---------------------------------------------------------------------------------------------------
+# THE VERDICT VOCABULARY ITSELF — the drift the byte-identity check above cannot see. That check proves
+# the two hooks READ the marker the same way; it says nothing about whether the SET OF LITERALS they
+# recognise matches the set `agents/quality-assurance.md` actually defines. ADR-0004's own Context
+# section measures that exact failure: three drifted literals shipped in one day (`ADVISORY-ONLY`,
+# `CLEAN`, `APPROVED`), each found by reading, none findable by a check. Adding a fourth literal
+# (`APPROVE-AND-MERGE-BOUNDARY`, ADR-0002 amendment #15) widens that surface rather than narrowing it,
+# which is why the check lands in the same diff as the literal.
+#
+# THE SOURCE OF TRUTH IS THE PERSONA FILE'S OWN "Your verdict — exactly one of" LIST, parsed from it —
+# not a set restated here, which would be a second source of truth for one fact and would rot exactly
+# the way the thing it is guarding rots.
+#
+# TWO ARMS, EACH EMITTING ITS OWN VERDICT (this file's own rule, earned at #283 slice 2: an arm that
+# shares a verdict with the one above it can DISAPPEAR rather than fail, and no total moves to say so).
+qa_verdicts="$(awk '/^## Your verdict — exactly one of/{f=1;next} f&&/^## /{exit} f&&/^- \*\*[A-Z][A-Z-]*\*\*/{gsub(/^- \*\*/,"");gsub(/\*\*.*$/,"");print}' \
+  "$ROOT/agents/quality-assurance.md" 2>/dev/null || true)"
+# CASE-PATTERN LINES ONLY, never a plain grep of the file. Both hooks now carry comments that NAME the
+# new literal, so a `grep -F` for it passes on a file where the literal was deleted from the case arm
+# and survives only in the prose explaining why it is there. Mutation-checked against exactly that.
+wip_patterns="$(awk '/^  case "\$verdict" in/{f=1} f{print} f&&/^  esac/{exit}' \
+  "$ROOT/hooks/scripts/session-wip.sh" 2>/dev/null \
+  | grep -oE "^[[:space:]]*[A-Z][A-Z'|-]*\)" | tr -d ' )' | tr '|' '\n' || true)"
+guard_accept="$(grep -oE "^[[:space:]]*[A-Z][A-Z'|-]*\) : ;;" "$ROOT/hooks/scripts/permission-guard.sh" 2>/dev/null \
+  | sed -E 's/\) : ;;$//' | tr -d ' ' | tr '|' '\n' | grep -v "^''$" || true)"
+
+if [ -z "$qa_verdicts" ] || [ -z "$wip_patterns" ]; then
+  bad "verdict vocabulary — nothing was extracted from
+      $([ -z "$qa_verdicts" ] && printf 'agents/quality-assurance.md ')$([ -z "$wip_patterns" ] && printf 'session-wip.sh ')— a green here would
+      be an artifact of the parse breaking, not a finding."
+else
+  missing_in_wip=""
+  while IFS= read -r v; do
+    [ -z "$v" ] && continue
+    printf '%s\n' "$wip_patterns" | grep -qx "$v" || missing_in_wip="${missing_in_wip} ${v}"
+  done <<EOF
+$qa_verdicts
+EOF
+  if [ -n "$missing_in_wip" ]; then
+    bad "verdict vocabulary — session-wip.sh's verdict_suffix() does not recognise:${missing_in_wip}.
+      Its \`*)\` arm does not degrade to silence — it reports 'an UNRECOGNISED verdict … a defect in the
+      gate rather than in the PR'. So a literal the gate correctly posts, missing from that case, turns
+      every correctly-verdicted PR into a false defect report in the open-PR queue notice."
+  else
+    ok "verdict vocabulary — session-wip.sh recognises every literal quality-assurance.md defines"
+  fi
+fi
+
+if [ -z "$qa_verdicts" ] || [ -z "$guard_accept" ]; then
+  bad "verdict vocabulary — rule 7c's accept arm could not be extracted from permission-guard.sh;
+      nothing was compared, so a green would be an artifact of the break."
+else
+  phantom=""
+  while IFS= read -r v; do
+    [ -z "$v" ] && continue
+    printf '%s\n' "$qa_verdicts" | grep -qx "$v" || phantom="${phantom} ${v}"
+  done <<EOF
+$guard_accept
+EOF
+  if [ -n "$phantom" ]; then
+    bad "verdict vocabulary — permission-guard.sh rule 7c AUTHORISES A MERGE on literal(s) that
+      agents/quality-assurance.md does not define:${phantom}. This is the drift that made rule 7c
+      necessary, now sitting inside rule 7c: the merge floor would clear a verdict the gate has no
+      way to post, so the only thing that could produce it is something other than the gate."
+  else
+    ok "verdict vocabulary — every literal rule 7c merges on is one quality-assurance.md defines"
+  fi
+fi
+
+# ---------------------------------------------------------------------------------------------------
 # THE THIRD DUPLICATED LITERAL, AND WHY IT MUST NOT BE RENAMED: `agents-lead`#291 kept the exact
 # marker string `harness-lead-verdict` unchanged when the persona that produces it was renamed from
 # `harness-lead` to `agents-lead`, on the argument that every marker already posted to a GitHub
