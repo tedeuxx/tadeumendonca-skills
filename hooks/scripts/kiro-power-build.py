@@ -97,17 +97,27 @@ SCHEMA_URL = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
 BLOB_BASE = "https://github.com/tedeuxx/tadeumendonca-skills/blob/main/"
 
 # The Kiro manifest's `description` is AUTHORED HERE rather than copied from `.claude-plugin/
-# plugin.json`, and the difference is not cosmetic. That one describes a Claude Code harness — six
-# personas, PreToolUse hooks that deny the irreversible floor — none of which this Power ships,
-# because Kiro's format carries no channel for any of it. Reusing it would put a false inventory in
-# the first field a Kiro user reads. This one describes what actually installs.
-KIRO_DESCRIPTION = (
-    "The knowledge layer of a public agent-harness reference: 13 dense, opinionated engineering "
-    "skills covering AWS infrastructure, React/Vite frontends, BFF-on-Lambda backends, CI/CD, the "
-    "development loop and its quality gates. Written project-agnostically with <project> / "
-    "<apex-domain> placeholders. This Power ships skills only — the harness's personas, permission "
-    "hooks and merge gates have no Kiro distribution channel and are not included."
-)
+# plugin.json`, and the difference is not cosmetic. That one describes a Claude Code harness —
+# personas, PreToolUse hooks that deny the irreversible floor — none of which this Power ships.
+# Reusing it would put a false inventory in the first field a Kiro user reads. This one describes
+# what actually installs.
+#
+# THE SKILL COUNT IS DERIVED, NEVER TYPED, and the reason is a defect this file shipped. It read
+# "13 dense skills" while `skills/` held 14, and `kiro-power.test.sh` was green throughout: that
+# gate regenerates into a temp directory and diffs it against `powers/`, so it compares the
+# generator's output to itself and a wrong constant is reproduced identically on both sides. A
+# regenerate-and-diff gate can see drift between two trees; it is structurally blind to a claim
+# the generator invents. So the number comes from the same `names` list that produces the exported
+# directories and the keyword set — one source, and moving a skill moves the sentence.
+def kiro_description(skill_count):
+    return (
+        f"The knowledge layer of a public agent-harness reference: {skill_count} dense, opinionated "
+        "engineering skills covering AWS infrastructure, React/Vite frontends, BFF-on-Lambda "
+        "backends, CI/CD, the development loop and its quality gates. Written project-agnostically "
+        "with <project> / <apex-domain> placeholders. This Power ships skills only — the harness's "
+        "personas, permission hooks and merge gates are deliberately not exported, and Kiro's Power "
+        "loader reads none of them from a package in any case."
+    )
 
 # Activation keywords. Derived from the skill directory names plus a small fixed set naming the
 # domains a developer would actually type, since Kiro matches these against conversation text and
@@ -260,7 +270,7 @@ def build_manifest(names):
         "$schema": SCHEMA_URL,
         "name": claude["name"],
         "version": claude["version"],
-        "description": KIRO_DESCRIPTION,
+        "description": kiro_description(len(names)),
         "author": {"name": claude["author"]["name"]},
         "homepage": claude["homepage"],
         "repository": claude["repository"],

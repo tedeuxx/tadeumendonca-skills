@@ -28,8 +28,27 @@ proves "done" mechanically; the human is left only the irreversible/architectura
 **The discipline is portable; this package is not the discipline.** Nothing about the design is
 specific to one tool — the owner runs the same kind of work with Claude Code in public and with Kiro
 internally, which is what lets him tell the model apart from the setup around it. But **this plugin is
-the Claude Code implementation of it, and ships no Kiro carrier** — no configuration, no directory, no
-gate. Read a reimplementation against another harness as work someone would have to do, not as
+the Claude Code implementation of it**, and what it ships to another harness is one layer of three.
+
+~~and ships no Kiro carrier — no configuration, no directory, no gate.~~ **Struck 2026-08-23 (#287).
+Two of those three were false, and the sentence is copied verbatim into the Kiro export — so a Kiro
+user read *"there is no carrier"* from inside the carrier.** It also erred in the permissive
+direction: it understated what ships, which is the half of a stale claim that misleads. There **is** a
+configuration and there **is** a directory — `powers/tadeumendonca-skills/`, a generated Agent Plugins
+package with its own `plugin.json`, installable from Kiro's own Powers panel.
+
+**"No gate" survives intact, and it is the load-bearing third.** What a Kiro user installs is the
+knowledge layer of this harness and none of its enforcement layer: no permission guard, no merge gate,
+no persona brief. That is a choice, not only a limit — but the limit is real and was measured on the
+installed build: the Power **installer** transports a package's whole tree (everything but `.git`),
+while the Power **loader** reads only `plugin.json`, `skills/`, `mcp.json` and `dev.kiro/`. So
+`agents/` and `hooks/` would arrive on disk and never activate, which is the reason not to ship them —
+an inert brief is worse than an absent one. **That reading is from the shipped bundle, not from a live
+install; the version, the commands and what was *not* exercised are in
+[`README.md`](https://github.com/tedeuxx/tadeumendonca-skills/blob/main/README.md)'s Kiro section**, which is where this claim is maintained rather than
+restated here.
+
+Read a reimplementation against another harness as work someone would have to do, not as
 something installed here.
 
 The honest claim it makes (and the one it does **not**): *a development loop that turns AI-native
