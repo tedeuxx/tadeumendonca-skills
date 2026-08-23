@@ -13,7 +13,7 @@ belongs to. Their History rows are in [the index](./README.md).
 - **Capability:** roster-and-dev-loop
 - **Status:** accepted · **absorbed records 0012, 0013, 0014, 0015 and 0019 on 2026-08-20** (#283 slice
   S4 — all five were `accepted`; none was `proposed`, so the open question record 0007's absorption
-  raised does not arise here) · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite) · **amended 2026-08-04** (amendment #9 — `marketing-lead` merges into `product-lead`; the roster drops 6 → 5; the blocking-truth clause is carried across explicitly, and the capability floor that backed it is not) · **amended 2026-08-04** (amendment #10 — `agents-lead` joins tier 1 as the owner's pair on the machinery, advisory and pre-implementation; `security` is **absorbed** into `quality-assurance`, which now holds two lenses in one pass and labels every finding with its lens. The roster is still **five** and **two of its members changed**. The persona criterion widens from *conflict wanted* to **four reasons**, with reconciliation cost paid **within** a tier. Amendment #9's *"both approvals are still required"* is **struck**. Books the rule that produced the gap: **a count is not an identity**) · **amended 2026-08-13** (amendment #13 — `writer` joins tier 2 as a content-scoped second builder; the roster grows 5 → 6; it satisfies none of the four reasons and is named plainly as an owner override; `permission-guard.sh` rule 5e inverted from a denylist to an allowlist to contain it; the `Write`/`Edit` observability gap is accepted in writing rather than closed mechanically) · **amended 2026-08-21** (amendment #14 — `product-lead`'s boundary is `tadeumendonca-io`; consolidates #295/#296/#297: inside `-skills` it may BLOCK on a false published claim and RECOMMEND, advisory-only, on communication, but may not comment on `-skills`'s functioning; `loop`-typed non-dispatch (#295) is a corollary of this rule, not a parallel clause; the labelling discipline (#296) generalises to every advisory finding, not only `loop`-typed ones; enforcement is prose-only, confirmed against Claude Code's own hooks documentation — no hook layer can observe or refuse a `Task` dispatch)
+  raised does not arise here) · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite) · **amended 2026-08-04** (amendment #9 — `marketing-lead` merges into `product-lead`; the roster drops 6 → 5; the blocking-truth clause is carried across explicitly, and the capability floor that backed it is not) · **amended 2026-08-04** (amendment #10 — `agents-lead` joins tier 1 as the owner's pair on the machinery, advisory and pre-implementation; `security` is **absorbed** into `quality-assurance`, which now holds two lenses in one pass and labels every finding with its lens. The roster is still **five** and **two of its members changed**. The persona criterion widens from *conflict wanted* to **four reasons**, with reconciliation cost paid **within** a tier. Amendment #9's *"both approvals are still required"* is **struck**. Books the rule that produced the gap: **a count is not an identity**) · **amended 2026-08-13** (amendment #13 — `writer` joins tier 2 as a content-scoped second builder; the roster grows 5 → 6; it satisfies none of the four reasons and is named plainly as an owner override; `permission-guard.sh` rule 5e inverted from a denylist to an allowlist to contain it; the `Write`/`Edit` observability gap is accepted in writing rather than closed mechanically) · **amended 2026-08-21** (amendment #14 — `product-lead`'s boundary is `tadeumendonca-io`; consolidates #295/#296/#297: inside `-skills` it may BLOCK on a false published claim and RECOMMEND, advisory-only, on communication, but may not comment on `-skills`'s functioning; `loop`-typed non-dispatch (#295) is a corollary of this rule, not a parallel clause; the labelling discipline (#296) generalises to every advisory finding, not only `loop`-typed ones; enforcement is prose-only, confirmed against Claude Code's own hooks documentation — no hook layer can observe or refuse a `Task` dispatch) · **amended 2026-08-23** (amendment #16 — the gate merges the boundary class, `content` included, under its own verdict literal `APPROVE-AND-MERGE-BOUNDARY`; the owner reviews live, after deploy. The argument is the loop model: under `trunk-single-env` there is no preview to hold for, so the hold bought a queue rather than an environment. The counter-argument is recorded rather than omitted — `tadeumendonca-io#479`, an article that reached production unreviewed after the gate had correctly refused to merge it. **Four holds survive**, none of them on the preview argument: an expansion of the gate's own authority, a harness diff with no `agents-lead` marker, anything in `iac/`, and a lens `ESCALATE`. Two of those were carried implicitly by the phrase *boundary class* and would have stopped working silently. `permission-guard.sh` rule 7c accepts two merge-authorising literals, spelled out rather than globbed; `session-wip.sh` learns the second; the verdict vocabulary is gated against the persona file for the first time. **This list omits amendments #11, #12 and #15** — a pre-existing gap found while numbering this one and deliberately not backfilled here, since a numbering slice is not a boundary-merge slice; all three are present in the record body)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
 - **Driven by:** [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) —
@@ -1647,6 +1647,170 @@ this PR. The two repos' pipelines are independent by this repo's own convention 
 `-io`'s own checkout sat on an unrelated feature branch during this build — a second, `-io`-scoped Issue
 is the right vehicle, not a cross-repo commit inside this one.
 
+## Amendment (2026-08-23, sixteenth) — the gate merges the boundary class; the owner reviews live, after deploy
+
+**Decided by the owner, unprompted, on being asked what the boundary hold was buying under a
+single-environment model.** In his words:
+
+> *"a partir do momento que só temos um ambiente, acho que a cláusula de boundary não se aplica."*
+
+**The decision.** `quality-assurance` merges the **boundary class** — `content` included — once its
+Definition of Done is fully green, under its own verdict literal `APPROVE-AND-MERGE-BOUNDARY`. The
+hold-for-owner rule on boundary-class merges is **retired**. The owner reviews live, after deploy.
+
+**The argument, restated because it is a property of the loop model rather than a preference.** Under
+`trunk-single-env` **merge is deploy**. Holding a boundary merge does not produce a staging copy to
+inspect; it produces a delay and a queue. The hold was priced as *"the owner gets to look first"* and
+what it actually bought was *"the owner gets to look later, from the same place, with the work parked
+in between."* **This reasoning does not transfer to `gitflow-multi-env`** — a repo with an integration
+branch does have somewhere to hold a change and look at it — and the amendment is deliberately not
+extended there. `skills/quality-gates/SKILL.md` carries the change inside its `trunk-single-env` gate
+table only, for exactly this reason.
+
+### The counter-argument, which was put to the owner before he decided, and is recorded rather than omitted
+
+**What the hold bought was the one moment the owner saw a change before the world did** — the only
+pre-publication check that exists in a single-environment model at all. This is not a hypothetical.
+**On 2026-08-21 an article reached production unreviewed by him**: the gate had returned
+`APPROVE-PENDING-HUMAN` and refused to merge, and the pull request was merged **23 minutes later by
+another actor**, with `reviews: []` (`tadeumendonca-io#479`). That is precisely the failure the retired
+clause was written for, and it is the strongest available evidence *against* retiring it — the clause
+fired correctly and something went around it.
+
+**And two consequences do not come back.** Published copy stays wrong until someone notices it, and an
+**OG card pinned by a scraper on first fetch is not recovered by a later correction** — both already
+documented on that same article. A revert restores the repository; it does not restore what a crawler
+cached or what a reader read.
+
+**The owner was shown all of this and decided anyway.** That is his call to make and it stands. This
+section exists because a record that hides what a decision cost is the defect this library was built to
+catch, and because the next person to reopen this question deserves the evidence rather than the
+conclusion.
+
+### The mechanical half — because a record describing an unenforced rule is the same defect
+
+`hooks/scripts/permission-guard.sh` **rule 7c** required the last `gatekeeper-verdict` at the PR's
+current `headRefOid` to read `APPROVE-AND-MERGE`. **Boundary class never produced that literal by
+design**, so the hook would have refused every merge this decision authorises. Left as prose, the
+amendment would have been inert *and* the loop would have looked broken rather than unimplemented.
+
+**What changed, and why it is a second literal rather than a widened first one:**
+
+- **Rule 7c accepts two merge-authorising literals**, `APPROVE-AND-MERGE` and
+  `APPROVE-AND-MERGE-BOUNDARY`, **spelled out and never globbed**. `APPROVE-AND-MERGE*` would have
+  satisfied both in one pattern and also cleared every future prefix-sharing drift — the exact class of
+  failure ADR-0004's *"The problem"* section measures (three drifted literals shipping in one day). The
+  suite asserts the anti-glob case directly with a fixture reading `APPROVE-AND-MERGE-LATER`.
+- **Reusing `APPROVE-AND-MERGE` for both classes was considered and rejected.** It needs no hook change
+  at all, which is its whole appeal. It was rejected because it deletes the class from the machine-
+  readable record: after it, nothing anywhere distinguishes *"the gate merged something the owner had
+  already seen"* from *"the gate merged something nobody outside the loop has seen yet"* — and the
+  owner's own decision is that he **reviews live, after deploy**, which he cannot do if nothing says
+  what to go and look at. A distinction that survives only in prose is one the next slice loses.
+- **`session-wip.sh` learns the second literal too**, and this is the second-order effect that would
+  have been invisible from inside the change. Its `verdict_suffix()` does **not** degrade an unknown
+  literal to silence — it reports *"an UNRECOGNISED verdict … a defect in the gate rather than in the
+  PR"*. Adding a literal to the vocabulary without adding it there would have made **every correctly-
+  verdicted boundary PR render as a defect in the gate** in the open-PR queue notice.
+- **`zombie-loop-detect.sh` is examined and deliberately unchanged.** The new literal falls through its
+  `*) exit 0` arm, which is correct: a clearance is not an outstanding verdict. **Named residual,
+  pre-existing and unchanged by this amendment:** neither clearance fires that notice when the PR is
+  still open at turn end, so *"the gate cleared it and then did not merge it"* is invisible to that
+  hook — identically for both literals.
+- **The verdict vocabulary gains a gate it never had.** `hooks/scripts/inventory-counts.test.sh` now
+  parses `agents/quality-assurance.md`'s own *"Your verdict — exactly one of"* list and asserts, in two
+  independently-reported arms, that `session-wip.sh` recognises **every** literal that list defines, and
+  that rule 7c authorises a merge on **no** literal outside it. The set is read from the persona file
+  rather than restated in the test, because a restated set is a second source of truth for one fact.
+  **Adding a fourth literal widens the drift surface ADR-0004 was written for**, which is why the check
+  lands in the same diff as the literal rather than after it.
+
+**What the hook layer still cannot do, unchanged and not overclaimed:** rule 7c has zero reach over a
+human merging in the GitHub UI or a terminal outside a session. That is how `tadeumendonca-io#479`
+happened, and nothing in this amendment touches it.
+
+### The four holds that survive, and why none of them survives on the preview argument
+
+**Read these as separate rules that happened to live inside "boundary class" until it stopped being a
+hold — not as the retired clause under another name.** On any of them the gate returns
+`APPROVE-PENDING-HUMAN`, does not merge, and hands the go/no-go up.
+
+1. **An expansion of the gate's own authority.** A diff that widens which class it may merge, removes a
+   boundary trigger, or otherwise loosens its own mandate. **This has nothing to do with environments**:
+   it is the one case where merging means the gate ratified its own mandate. The clause already existed
+   unconditionally (see [ADR-0011](./0011-skills-and-preload.md) for the record of it drifting out of
+   the persona file and back in); what changes is that it is now **load-bearing on its own** rather than
+   redundant with a class that also held. **This amendment is itself such a diff**, and is therefore
+   boundary class with hold 1 applying to it.
+2. **A harness diff carrying no `agents-lead` verdict marker** — Corollary 2 of the *"`agents-lead`
+   implements the harness it reviews"* section above. **Its old phrasing stopped working the moment
+   boundary became mergeable**: it read *"absent that marker the diff is boundary class regardless"*,
+   which was a hold only for as long as boundary was one. Left alone it would have bought nothing — a
+   harness diff with no harness review would have merged. It is restated as its own blocker. It is a
+   **missing reviewer**, the same shape as a missing gate, not a class.
+3. **Anything in `iac/`.** The merge *applies*, and a destroyed resource is not recovered by a revert —
+   irreversibility that escapes git, which is the permission model's own tolerance test. The single-
+   environment argument does not reach it, for a concrete reason rather than caution: **there is a
+   preview here**, the `terraform plan` posted on the pull request, and holding the merge is what lets a
+   human read it.
+4. **An explicit lens `ESCALATE`**, or a `BLOCKING` truth finding from `product-lead`. A lens has
+   exactly one path to the owner and it is wired through the class. Amendment #6's own correction is the
+   precedent: `ESCALATE` was first drafted routing only `BLOCKING` findings, so *"the one path the lens
+   has to the owner"* was *"wired to nothing."* Retiring the boundary hold without this would have
+   reproduced that defect from the other direction.
+
+### What the safe/boundary distinction still does
+
+**Stated explicitly, because a distinction that changes nothing should be retired rather than kept, and
+this library has retired several for exactly that reason.** After this amendment the split still
+decides three things:
+
+- **Which of the four holds can apply.** Every one of them is a boundary trigger; none is a safe one. A
+  slice classified safe cannot be held.
+- **Which verdict literal is posted** — so the merge record itself says whether anything shipped without
+  a pre-publication check. This is the fact the owner's *"I review live, after deploy"* depends on being
+  able to find.
+- **What the verdict must write down.** A boundary verdict states which trigger fired and what the owner
+  should go and look at live; a safe verdict does not.
+
+**What it no longer decides, outside the four holds, is who merges** — which was, until this amendment,
+the only thing most readers thought it decided.
+
+### Consequences
+
+**Good**
+- The queue stops forming behind the owner's availability on `content` and `loop` slices, which is where
+  it formed. Merge is deploy either way; the hold only moved when publication happened, not whether.
+- Four rules that were being carried implicitly by the phrase *"boundary class"* are now written as
+  rules. Two of them (holds 2 and 4) would have silently stopped working, and both were found by asking
+  what each trigger was actually buying rather than by reading the diff.
+- The verdict vocabulary is gated for the first time, in both directions, against the persona file that
+  defines it.
+
+**Bad / accepted costs**
+- **The pre-publication check is gone, and it was real.** `tadeumendonca-io#479` is the measured case.
+  Published copy stays wrong until noticed; a pinned OG card is not recovered by a correction.
+- **"The owner reviews live, after deploy" has no artifact.** This is the loop's own state-model rule
+  (*what observable artifact says this rule was applied?*) failing on the rule this amendment introduces.
+  Nothing records that the owner looked, and nothing surfaces to him that something boundary shipped —
+  `APPROVE-AND-MERGE-BOUNDARY` makes the fact **queryable**, which is strictly weaker than **delivered**.
+  **Named, not closed**: the cheapest closure would be a hook that reads merged PRs carrying that literal
+  and surfaces them at `SessionStart`, and it is not built here because building the notification for a
+  review nobody has yet skipped is speculative. If a boundary change is found to have shipped and gone
+  unreviewed, that is the trigger to build it.
+- **A fourth verdict literal is a wider drift surface**, mitigated by the new vocabulary gate rather than
+  eliminated by it. The gate cannot check that the literal *means* what the brief says it means.
+- **Four holds is more than the one line it replaces**, and a reader who learns "boundary means the owner
+  merges" now has to learn four exceptions instead. Accepted because the alternative — folding them back
+  into a class — is what made two of them stop working in the first place.
+
+**Deciders:** the owner (the decision), written by `agents-lead` per the domain split (#223) — this is a
+loop/machinery decision and the mechanical half is a hook change. **One half of it is not:** the price of
+retiring the hold is paid on published content in the owner's voice, which is `product-lead`'s object,
+not this persona's. That lens has not been dispatched on this amendment and should be, on the `content`
+consequence specifically — not on the loop mechanics, which are outside its boundary (amendment #14).
+
+
 ## Consequences
 **Good**
 - Context efficiency and authorship-bias elimination fall out of per-task isolation.
@@ -1655,8 +1819,12 @@ is the right vehicle, not a cross-repo commit inside this one.
 
 **Bad / accepted costs**
 - Orchestration overhead and token cost — spawn a specialist only when a slice genuinely spans its domain.
-- Same-model review has a ceiling: a fresh context removes *authorship* bias, not *model* bias — which is
-  why the boundary class still escalates to a human (ADR-0004).
+- Same-model review has a ceiling: a fresh context removes *authorship* bias, not *model* bias — ~~which is
+  why the boundary class still escalates to a human (ADR-0004).~~ **Struck 2026-08-23 (amendment #16):
+  the boundary class no longer escalates, so this cost is no longer mitigated by that route.** The
+  ceiling is unchanged and is now paid rather than deflected: on every class except the four surviving
+  holds, the only reader between a change and production is a fresh context of the same model. That is
+  the price the amendment's own counter-argument section states, seen from this list.
 
 ## Issue type is the routing axis, and it is exclusive (absorbed 2026-08-20, record 0012)
 
@@ -1813,7 +1981,7 @@ that residual is named, not certified closed.
   **What is still true, and is the reason this is struck rather than deleted.** This is detection, one
   turn late instead of one session late — not prevention, and no layer in this architecture can prevent
   a tool call that is never made. It never parses prose: it cannot tell "narrated but not attempted"
-  from "attempted and errored", only that loop state (a closed three-literal enumeration the gate's own
+  from "attempted and errored", only that loop state (a closed literal enumeration the gate's own
   persona defines) says something is outstanding. **The blind spot narrows, it does not close**: still
   uncaught are narration with no loop-state footprint at all ("I'll update the README" and then not
   doing it), anything during intake before a PR exists, and a narrated dispatch of a lens denied `gh pr

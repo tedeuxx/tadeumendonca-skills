@@ -65,7 +65,8 @@ MARKER='<!-- gatekeeper-verdict: quality-assurance -->'
 # when it is needed is worse than no control, because the reader has learnt to trust it.
 #
 # Reading the literal is expressible where reading prose would not be: the verdict set is a
-# CLOSED ENUMERATION of three, defined in `agents/quality-assurance.md` under *Your verdict —
+# CLOSED ENUMERATION of FOUR since 2026-08-23 (three before it), defined in
+# `agents/quality-assurance.md` under *Your verdict —
 # exactly one of*, and the marker template is a projection of that same set. ADR-0004's
 # "Which layer carries a control" section draws exactly this line, under *Two rules this decision
 # earned* — a control over a closed set the author wrote may be recorded as closed; one over a
@@ -111,7 +112,7 @@ verdict_suffix() {
     # BOTH merge-authorising literals render silently, and the second one is here for a reason the
     # `*)` arm below makes sharp: an unlisted-but-legitimate literal does not degrade to silence, it
     # is reported as a DEFECT IN THE GATE. So adding `APPROVE-AND-MERGE-BOUNDARY` to the verdict
-    # vocabulary (ADR-0002 amendment #15) without adding it here would have made every correctly-
+    # vocabulary (ADR-0002 amendment #16) without adding it here would have made every correctly-
     # verdicted boundary PR read as a gate that posted a literal its own persona does not define.
     # `inventory-counts.test.sh` now asserts this list against `agents/quality-assurance.md`'s own
     # "Your verdict — exactly one of" section, so the next literal added there cannot land here late.

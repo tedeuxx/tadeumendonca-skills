@@ -21,7 +21,8 @@
 # ── WHAT THIS DOES NOT DO, stated so nobody assumes otherwise ──────────────────────────────────
 # It never parses prose. It does not try to tell "narrated but not done" from "done" — it reads
 # LOOP STATE (the gatekeeper's own posted verdict against the PR's current head), which is a
-# closed three-literal enumeration the gate's own persona defines, not a caller-controlled
+# closed four-literal enumeration the gate's own persona defines (three until 2026-08-23,
+# when ADR-0002 amendment #16 added APPROVE-AND-MERGE-BOUNDARY), not a caller-controlled
 # grammar (ADR-0004's "Which layer carries a control" section — a control over a closed set the
 # author wrote may be recorded as closed; one over a caller-controlled grammar may not). This is
 # why it is buildable at all: a `Stop` hook cannot reliably distinguish narration from a tool
@@ -50,7 +51,7 @@
 #
 # THIS READS ONLY THE `gatekeeper-verdict` MARKER, NOT `harness-lead-verdict`, DELIBERATELY. The
 # intake brief's own prose names both, but only `gatekeeper-verdict` carries the closed
-# three-literal enumeration (`agents/quality-assurance.md`, "Your verdict — exactly one of"); the
+# closed literal enumeration (`agents/quality-assurance.md`, "Your verdict — exactly one of"); the
 # `harness-lead-verdict` marker (ADR-0002's "agents-lead implements the harness it reviews"
 # section, absorbed record 0015) carries a free-text headline conclusion, not one of the three
 # literals, and per that same section's Corollary 2 it is `quality-assurance` that posts the
@@ -179,7 +180,7 @@ verdict="$(printf '%s' "$pr_view" | jq -r --arg m "$MARKER" '
 
 [ -z "$verdict" ] && exit 0
 
-# DELIBERATELY UNCHANGED by ADR-0002 amendment #15, and the reasoning is worth stating because the
+# DELIBERATELY UNCHANGED by ADR-0002 amendment #16, and the reasoning is worth stating because the
 # amendment added a verdict literal. `APPROVE-AND-MERGE-BOUNDARY` falls to `*) exit 0` — it is a
 # CLEARANCE, not an outstanding verdict, so it is silent here exactly as `APPROVE-AND-MERGE` already
 # was. NAMED RESIDUAL, not closed here: neither clearance fires this notice when the PR is still open

@@ -176,7 +176,7 @@ owner works that decision out with; it does not make it.
 | ready → **in progress** | `loop` | `agents-lead` (ADR-0002, record 0015's Corollary 1) | an open PR |
 | in progress → **reviewed** | `product` · `content` | `quality-assurance`, against the full two-lens DoD | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
 | in progress → **reviewed** | `loop` | `quality-assurance`, checking for an `agents-lead` verdict marker rather than the full two-lens DoD (ADR-0002, record 0015's Corollary 2) | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
-| reviewed → **closed** | all | `quality-assurance` (safe) · the owner (boundary) | the merge, and for boundary the owner's ratifying comment |
+| reviewed → **closed** | all | `quality-assurance` — safe **and** boundary since 2026-08-23 (ADR-0002 amendment #16) · the owner only on the four surviving holds | the merge, plus the verdict literal that authorised it (`APPROVE-AND-MERGE` or `APPROVE-AND-MERGE-BOUNDARY`); on a hold, the owner's ratifying comment |
 | **any → blocked → back** | all | anyone, on discovering it waits on the owner or on something outside the loop | **`blocked` label** |
 
 **`blocked` is orthogonal, not a sixth step.** It can attach at any point and returns the item to
@@ -351,13 +351,39 @@ for is a **judgement**, and who supplies it depends on the class:
 - **Safe class** — docs, dependency bumps, tests, in-pattern implementation of an already-approved
   spec. **`quality-assurance` merges it**, once both of its lenses are green.
 - **Boundary class** — infrastructure and anything threatening continuity, a change to the loop's own
-  rules, publishing in the owner's voice. **The gate never merges these.** It approves pending the
-  human and hands the go/no-go up.
+  rules, publishing in the owner's voice. ~~**The gate never merges these.** It approves pending the
+  human and hands the go/no-go up.~~ **Struck 2026-08-23** ([ADR-0002](https://github.com/tedeuxx/tadeumendonca-skills/blob/main/docs/adr/0002-roster-and-dev-loop.md)
+  amendment #16, the owner's decision): **the gate merges these too**, under its own verdict literal
+  `APPROVE-AND-MERGE-BOUNDARY`, and **the owner reviews live, after deploy**. The argument is the loop
+  model itself — under `trunk-single-env` there is no preview to hold for, so holding the merge produced
+  no staging copy to inspect, only a queue. **Under `gitflow-multi-env` this reasoning does not
+  transfer** and this skill does not extend it there: a repo with an integration branch *does* have a
+  place to hold a change and look at it, which is the whole premise the retirement rests on.
 
-*Significance beats in-pattern:* when the class is unclear, it is boundary. And **the gate never
-merges an expansion of its own authority**, whatever the diff looks like — see
-[ADR-0011](https://github.com/tedeuxx/tadeumendonca-skills/blob/main/docs/adr/0011-skills-and-preload.md) for the record of
-this clause drifting out of `agents/quality-assurance.md` and back in.
+**Four holds survive, and none of them survives on the preview argument** — read them as separate rules
+that happen to have lived inside "boundary class" until it stopped being a hold, not as the retired
+clause under another name. On any of these the gate returns `APPROVE-PENDING-HUMAN` and does not merge:
+
+1. **An expansion of the gate's own authority** — a diff widening which class it may merge, removing a
+   boundary trigger, or otherwise loosening its own mandate. Unconditional, whatever the diff looks like;
+   see [ADR-0011](https://github.com/tedeuxx/tadeumendonca-skills/blob/main/docs/adr/0011-skills-and-preload.md) for the record of this clause drifting out
+   of `agents/quality-assurance.md` and back in, which is why it is restated in two places on purpose.
+2. **A harness diff carrying no `agents-lead` verdict marker** ([ADR-0002](https://github.com/tedeuxx/tadeumendonca-skills/blob/main/docs/adr/0002-roster-and-dev-loop.md),
+   record 0015's Corollary 2). It is a *missing reviewer*, not a class.
+3. **Anything in `iac/`** — the merge applies, a destroyed resource is not recovered by a revert, and
+   there *is* a preview here: the plan posted on the PR.
+4. **An explicit lens `ESCALATE`**, or a `BLOCKING` truth finding from `product-lead` — a lens has one
+   path to the owner and this is it.
+
+*Significance beats in-pattern:* when the class is unclear, it is boundary — which now means the gate
+merges it under the boundary literal rather than holding it, so **when what is unclear is whether one of
+the four holds applies, the conservative reading is that it does.**
+
+**What the safe/boundary split still decides, since a distinction that changes nothing should be retired
+rather than kept:** which of the four holds can apply (every one is a boundary trigger), which verdict
+literal is posted — so the merge record itself says whether anything shipped without a pre-publication
+check — and what the verdict must state. What it no longer decides, outside the four holds, is **who
+merges**.
 
 This framing above is the corrected one — an earlier prose restatement of it, in the retired
 `dev-loop` skill this file replaces, said the opposite (*"auto-merging to `main` is never in-pattern

@@ -1516,7 +1516,7 @@ fi
 # recognise matches the set `agents/quality-assurance.md` actually defines. ADR-0004's own Context
 # section measures that exact failure: three drifted literals shipped in one day (`ADVISORY-ONLY`,
 # `CLEAN`, `APPROVED`), each found by reading, none findable by a check. Adding a fourth literal
-# (`APPROVE-AND-MERGE-BOUNDARY`, ADR-0002 amendment #15) widens that surface rather than narrowing it,
+# (`APPROVE-AND-MERGE-BOUNDARY`, ADR-0002 amendment #16) widens that surface rather than narrowing it,
 # which is why the check lands in the same diff as the literal.
 #
 # THE SOURCE OF TRUTH IS THE PERSONA FILE'S OWN "Your verdict — exactly one of" LIST, parsed from it —

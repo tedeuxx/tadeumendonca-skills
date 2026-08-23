@@ -116,6 +116,13 @@ describes the code.
 touching `iac/` or the site's continuity, a change to the dev-loop's own rules, and publishing an article.
 *Significance beats in-pattern* — when the class is unclear, it is boundary.
 
+**What the class decides changed on 2026-08-23 (ADR-0002 amendment #16), so state it for the right
+reason.** `boundary` no longer means *the owner merges it*: the gate merges the boundary class too,
+under its own verdict literal, and the owner reviews live after deploy. It still selects which of the
+four surviving holds can apply, which literal ends up in the merge record, and what the verdict must
+write down. **Do not drop the field** — an Issue whose class is unstated is one whose merge record
+cannot say whether anything shipped unseen.
+
 ### 5 · Open it
 
 `gh issue create --body-file <path>`. **Always a file, never `--body`** — a multi-line body through

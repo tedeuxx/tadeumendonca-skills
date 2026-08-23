@@ -204,7 +204,7 @@ write_gh_fixture "stubbed-head" "REQUEST-CHANGES"
 check_agent DENY  "tadeumendonca-skills:quality-assurance" "own REQUEST-CHANGES on the current head blocks the merge" "gh pr merge 149 --merge"
 write_gh_fixture "stubbed-head" "APPROVE-PENDING-HUMAN"
 check_agent DENY  "tadeumendonca-skills:quality-assurance" "own APPROVE-PENDING-HUMAN blocks it too — the four surviving holds never merge" "gh pr merge 149 --merge"
-# THE SECOND MERGE-AUTHORISING LITERAL (ADR-0002 amendment #15). The owner retired the hold-for-owner
+# THE SECOND MERGE-AUTHORISING LITERAL (ADR-0002 amendment #16). The owner retired the hold-for-owner
 # rule on boundary-class merges — one environment, so holding the merge produced no preview, only a
 # queue — and the gate now clears the boundary class under its OWN literal, so the merge record still
 # says which class shipped without a pre-publication check. Both the ALLOW and the near-miss are

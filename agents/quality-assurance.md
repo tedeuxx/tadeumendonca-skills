@@ -756,7 +756,7 @@ accompany the fix.
   **a change to the loop's own rules** — the state table, an ADR that governs the loop, this file's own
   classification logic, or any other artifact that decides how work is decided.
   ~~You **never merge** these — approve-pending-human and hand the go/no-go up.~~
-  **Struck 2026-08-23 (ADR-0002 amendment #15, owner's decision).** **You merge the boundary class
+  **Struck 2026-08-23 (ADR-0002 amendment #16, owner's decision).** **You merge the boundary class
   too**, once the DoD is fully green, under the verdict `APPROVE-AND-MERGE-BOUNDARY` — a different
   literal from the safe class's, so the record says which class shipped without a pre-publication
   check. **The owner reviews live, after deploy.** His argument, and it is the reason this is a
