@@ -156,8 +156,85 @@ failure mode. *(The replacement edit is not in this slice — see* Consequences 
   argument-hint allow list, asserted in both directions) plus one manifest row in the consuming repo.
   Those edits belong with the command, not with the thing it projects.
 
+## Amendment, 2026-08-24 — the README claim contract, and the class that is EXECUTED
+
+**Driven by [#324](https://github.com/tedeuxx/tadeumendonca-skills/issues/324). Decided by the owner,
+who ratified the direction and left the mechanism to `agents-lead`; written by `agents-lead` under the
+same domain split as the record above.** It belongs to this capability rather than to
+`verification-and-its-artifacts` because its subject is **how this harness describes itself to a reader
+who does not run it** — the same object the registry has, one surface out: the README is the
+description a forker actually meets.
+
+**What was offered first, and why it was refuted before it was built.** The proposal was that the
+README has two halves — *inventory*, projected from `docs/blueprint-registry.md`, and *argument*, left
+authored. Measured, that split would have caught **none** of the three drift examples that justified
+the work: all three sat in the authored half, none was a numeric count, and
+`grep -c 'subagent personas\|14 skills' docs/blueprint-registry.md` → `0` says the registry does not
+hold the figures the README publishes anyway. Routing the README's counts through an authored
+intermediary would have been **worse than the status quo**, since the existing arms compare README
+against the **tree**.
+
+**The decision.** The defect class is **a claim published with no falsifier beside it**, not a number
+that disagrees with a directory listing. A README section may carry
+`<!-- claim id=NNNN class=CLASS -->`, and `docs/readme-claims.md` carries what would falsify it, in one
+of **four** classes:
+
+| class | falsifier | what the gate does |
+|---|---|---|
+| `DERIVED` | an existing arm of `inventory-counts.test.sh` | asserts the named arm exists as a **two-sided** assertion |
+| `VERIFIED` | a local, deterministic command plus its expected output | **runs it and compares** |
+| `MEASURED` | a command CI cannot run — network, or a foreign machine | shape only: a date and a fenced command |
+| `JUDGEMENT` | none, declared | refuses an entry that ships a falsifier anyway |
+
+**`VERIFIED` is the part that needed deciding, because running a command that came out of a markdown
+file is executing shell in CI.** Three containments, all gated rather than described: the command lives
+in `docs/readme-claims.md` and **never** in `README.md`, so an edit to the front door cannot introduce
+one; a **closed allow-list of pipeline-stage heads**, which deliberately excludes `awk` and `sed`
+because a head-only allow-list containing a general-purpose language contains nothing; and a
+**character allow-list**, so substitution, redirection and chaining are unreachable rather than
+forbidden one at a time.
+
+**`VERIFIED` and `MEASURED` split on where the command can run, never on how important the claim is.**
+A network command would redden on an API outage, and a red that fires for reasons unrelated to the
+claim teaches everyone to ignore red — which costs more than the claim was worth.
+
+### Consequences — bad, and accepted
+
+- **It binds a command to a NUMBER, never a number to a SENTENCE.** Nothing reads the prose around a
+  marker, so a section whose text contradicts its own entry is green. **Measured**: swapping a claim's
+  command for an unrelated one that returns the same value by accident
+  (`ls docs/adr/0*.md | wc -l` → `7`, the same as the persona count it replaced) left the suite at
+  `102 passed, 0 failed`. This is the registry's `propósito` residual one surface out, and it is why
+  the class markers are a **reviewer's instrument**, not a substitute for one.
+- **No resource bound.** No timeout and no output limit; a slow but well-formed command hangs CI.
+- **The class itself is authored.** Nothing stops a `VERIFIED`-able claim being filed `JUDGEMENT` to
+  avoid the work. Coverage makes an *unlabelled* section visible; it cannot make a *mislabelled* one
+  visible.
+- **It ships `partial` — 5 of 18 sections — and the declaration is gated in both directions**, so
+  `complete` with an unlabelled section reddens and `partial` with nothing unlabelled reddens too.
+  Padding to `complete` with thin `JUDGEMENT` markers is the failure the class set exists to prevent.
+
+### What the mechanism found, which is the argument for it
+
+Two claims live on `main` at `4ad4dfc`, with the suite `92 passed, 0 failed` through both:
+*"the gate's own verdict is read by nobody"* (two hooks read it) and *"the six personas above"* (there
+are seven). Both are corrected in the same slice. **Neither was found by a reviewer** — both fell out
+of authoring the class, because a `VERIFIED` marker cannot be written without running the command.
+
+**And two defects in the gate itself, found the same way — by mutating it, not by re-reading it.** The
+executing arm re-derived the containment instead of calling the refusing arm's predicate, so a command
+whose *head* had just been refused was run anyway; and the marker extraction emitted an empty leading
+field, which `read` strips because TAB is an IFS whitespace character, so the arm reddened on shifted
+columns and printed the class where the id belonged. Both are the shape this repository keeps paying
+for: **a reason that survives re-reading is not evidence**, and *failing closed with an unreadable
+message* is not the same as failing closed.
+
 ## Links
 
+- [#324](https://github.com/tedeuxx/tadeumendonca-skills/issues/324) — the claim-class contract, its
+  pre-implementation refutation of the inventory-projection design, and the owner's addition of the
+  `VERIFIED` class.
+- [`docs/readme-claims.md`](../readme-claims.md) — the claim registry, and the containment section.
 - [#313](https://github.com/tedeuxx/tadeumendonca-skills/issues/313) — the driving Issue, and the three
   pre-implementation verdicts that are this record's design work.
 - [ADR-0004](./0004-controls-and-enforcement.md) — *which layer carries a control*, the standing
