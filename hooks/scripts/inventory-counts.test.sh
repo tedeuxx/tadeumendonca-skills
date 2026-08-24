@@ -3955,7 +3955,20 @@ rc_marks="$(awk '
       id = substr(line, 1, 4)
       sub(/^[0-9][0-9][0-9][0-9] class=/, "", line)
       sub(/ *-->.*$/, "", line)
-      print sec "\t" id "\t" line
+      # sec+0, NEVER a bare sec: before the first heading it is UNSET, and awk prints that as an
+      # empty field. TAB is an IFS whitespace character, so the bash read below strips the leading
+      # empty field entirely and every column shifts by one. The arms still redden, but on the wrong
+      # value: measured, a marker moved above the first heading reported "JUDGEMENT — section 0005
+      # carries 0 markers", with the class where the id belongs. Failing closed with an unreadable
+      # message is not the same as failing closed.
+      # And assigned to a variable first. Written inline with a parenthesis, awk reads it as the start
+      # of a print argument LIST and the parse fails, which under the trailing "|| true" here produces
+      # an empty extraction. The vacuity guard in arm 1 is what caught that.
+      # NOTE FOR ANY FUTURE COMMENT IN THIS BLOCK: it sits inside a single-quoted shell string, so an
+      # apostrophe or a backtick here TERMINATES the awk program. That is how both of the above were
+      # introduced while being written down.
+      n = sec + 0
+      print n "\t" id "\t" line
   }
 ' "$README" 2>/dev/null || true)"
 
@@ -4216,6 +4229,38 @@ else
 fi
 
 # ── 7 · CONTAINMENT — every VERIFIED command is refusable before it is runnable ──
+#
+# ONE FUNCTION, CALLED BY BOTH ARM 7 AND ARM 8, and that is not a tidiness choice. The first form of
+# this block open-coded the three containments here and had arm 8 re-check only the CHARACTER class
+# before executing — so a command with a REFUSED HEAD was reddened by arm 7 and then RUN by arm 8.
+# Measured, before the fix, by swapping a claim's command for `sed -n 1p README.md | wc -l`: arm 7
+# said "head 'sed' is not in the allow-list" and arm 8 reported the value that command returned, which
+# it could only have got by running it. A containment that the executing arm re-derives independently
+# is two containments, and the weaker one is the one that decides.
+rc_contain_of() {   # prints the problems for one command; empty output means contained
+  local c="$1" residue stages stage h tok
+  residue="$(printf '%s' "$c" | LC_ALL=C tr -d "A-Za-z0-9 ._/*'\"|=:+,^#-")"
+  if [ -n "$residue" ]; then
+    printf '    character(s) outside the allow-list: [%s]\n' "$residue"
+    return 0                       # a command this dirty is not worth tokenising further
+  fi
+  for tok in $RC_BADTOKENS; do
+    case " $c " in
+      *" $tok "*|*" $tok")
+        printf "    the denied flag '%s'; the character allow-list cannot see a flag\n" "$tok" ;;
+    esac
+  done
+  stages="$(printf '%s' "$c" | tr '|' '\n')"
+  while IFS= read -r stage; do
+    h="$(printf '%s' "$stage" | awk '{print $1}')"
+    [ -z "$h" ] && continue
+    case " $RC_HEADS " in
+      *" $h "*) continue ;;
+    esac
+    printf "    pipeline stage head '%s' is not in the allow-list: %s\n" "$h" "$RC_HEADS"
+  done <<< "$stages"
+}
+
 rc_contain_problems=""
 rc_contained=0
 for rc_id in $rc_entry_ids; do
@@ -4227,29 +4272,11 @@ for rc_id in $rc_entry_ids; do
     continue
   fi
   rc_contained=$((rc_contained + 1))
-  rc_residue="$(printf '%s' "$rc_cmd" | LC_ALL=C tr -d "A-Za-z0-9 ._/*'\"|=:+,^#-")"
-  if [ -n "$rc_residue" ]; then
-    rc_contain_problems="$rc_contain_problems
-    $rc_id — command carries character(s) outside the allow-list: [$rc_residue]"
-    continue
-  fi
-  for rc_tok in $RC_BADTOKENS; do
-    case " $rc_cmd " in
-      *" $rc_tok "*|*" $rc_tok")
-        rc_contain_problems="$rc_contain_problems
-    $rc_id — command carries the denied flag '$rc_tok'; the character allow-list cannot see a flag" ;;
-    esac
-  done
-  rc_stages="$(printf '%s' "$rc_cmd" | tr '|' '\n')"
-  while IFS= read -r rc_stage; do
-    rc_head="$(printf '%s' "$rc_stage" | awk '{print $1}')"
-    [ -z "$rc_head" ] && continue
-    case " $RC_HEADS " in
-      *" $rc_head "*) continue ;;
-    esac
-    rc_contain_problems="$rc_contain_problems
-    $rc_id — pipeline stage head '$rc_head' is not in the allow-list: $RC_HEADS"
-  done <<< "$rc_stages"
+  rc_one="$(rc_contain_of "$rc_cmd")"
+  [ -z "$rc_one" ] && continue
+  rc_contain_problems="$rc_contain_problems
+    $rc_id — refused:
+$rc_one"
 done
 
 if [ "$rc_entry_count" -eq 0 ]; then
@@ -4284,8 +4311,9 @@ for rc_id in $rc_entry_ids; do
     $rc_id — 'expects' carries no backticked value, so the output has nothing to be compared against"
     continue
   fi
-  rc_residue="$(printf '%s' "$rc_cmd" | LC_ALL=C tr -d "A-Za-z0-9 ._/*'\"|=:+,^#-")"
-  [ -n "$rc_residue" ] && continue   # arm 7 already reddened; do not execute an uncontained command
+  # THE SAME predicate arm 7 refused on, not a re-derivation of it — see the comment on
+  # `rc_contain_of`. Arm 7 has already reddened; this is the gate that keeps it from being run anyway.
+  [ -n "$(rc_contain_of "$rc_cmd")" ] && continue
   rc_executed=$((rc_executed + 1))
   rc_out="$( (cd "$ROOT" && bash -c "$rc_cmd") 2>/dev/null \
     | tr '\n' ' ' | tr -s '[:space:]' ' ' | sed 's/^ *//; s/ *$//' )"
