@@ -559,11 +559,22 @@ and which a reader could easily infer from a floor that lists `rm -rf` four ways
 
 ### One sentence the floor was missing
 
-The same diff denies `Edit(.claude/**)` and `Write(.claude/**)` while itself modifying
-`.claude/settings.json`. **That is intended and is stated here so it reads as a decision rather than an
-oversight: the permission surface is owner-edited, and an agent proposes changes to it rather than
-applying them.** Without this sentence the first agent that needs an allowlist entry reads the denial as
-a bug and works around it, which is the failure mode this record exists to prevent.
+~~The same diff denies `Edit(.claude/**)` and `Write(.claude/**)` while itself modifying
+`.claude/settings.json`.~~ **Struck 2026-08-23 (#319) — the sentence overstated the control in two
+different ways at once, and the WEAKER half is the one worth naming.** Measured at head:
+`.claude/settings.json` carries `"ask": ["Edit(.claude/**)"]` and **no `Write` entry at all**. So the
+control is (a) an **ask**, not a deny — one notch weaker, a prompt rather than a refusal — and (b)
+**half-present**: `Write(.claude/**)` was never there, so a file created rather than edited under
+`.claude/` reaches no check on this layer. A record asserting a `deny` where an `ask` lives is exactly
+the shape this document's own *Which layer carries a control* section warns about: it stops the next
+reader from looking.
+
+**The decision the sentence was carrying is unchanged and is restated in its own terms:** the permission
+surface is owner-edited, and an agent proposes changes to it rather than applying them. Without that,
+the first agent that needs an allowlist entry reads the prompt as a bug and works around it, which is
+the failure mode this record exists to prevent. **What is corrected is only the claim about the
+mechanism**, and widening `ask` to `deny`, or adding the missing `Write` entry, is a floor change the
+owner makes — not something this amendment performs on its own authority.
 
 ## Amendment (2026-08-13) — two artifacts stated opposite rules about the same act, and neither was wrong on its own terms (#62)
 
@@ -1524,6 +1535,67 @@ one place in this repository where the principle is mechanically enforced rather
 - **The record's cross-citation of 0008 as a separate record**, which is now a cross-reference inside one
   document.
 
+## Amendment (2026-08-23) — a third control class: ROUTING, and the matcher that is an enumeration (#319)
+
+**The decision.** The main agent may not edit a repository directly. A `PreToolUse` guard
+(`hooks/scripts/orchestrator-write-guard.sh`) denies a file-writing call whose `agent_type` is empty
+and whose path resolves inside a **git working tree**; a `Stop` hook
+(`hooks/scripts/orchestrator-tool-census.sh`) reports the rest without deciding anything.
+
+**Why this is a new class rather than another floor entry, in this document's own vocabulary.** The
+floor denies what is IRREVERSIBLE. This denies what is REVERSIBLE, tracked and reviewable — and denies
+it anyway, because the harm is not the edit, it is that no persona's judgement and no gate keyed on a
+persona ever touched it. The four reasons a control cannot live in `.claude/settings.json` (this
+document's *Which layer carries a control* section) are joined by a fifth, and it is decisive here:
+**the permissions syntax has no caller dimension.** A path-scoped `deny` there hits `developer` exactly
+as hard as it hits the orchestrator. Any caller-keyed control is a hook by construction — the same
+reason rules 5c/5d/5e/7b were born in `permission-guard.sh` with no floor entry behind them.
+
+**Why a separate hook, not a rule in `permission-guard.sh`.** That script is registered on the `Bash`
+matcher and returns immediately when `.tool_input.command` is empty, which every file-writing payload
+is. Two matchers, two scripts, one concern each.
+
+**The measurement that changed the design, and it is the part worth carrying past this issue.** The
+control was specified with matcher `Edit|Write`. **A matcher is ANCHORED, not a substring search** —
+probe plugin, one variable at a time, 2026-08-23:
+
+| probe | result |
+|---|---|
+| matcher `rit` + a main-agent `Write` | did NOT fire; file created |
+| matcher `Write` + the identical call (control) | fired, denied, no file |
+| matcher `Edit\|Write` + a main-agent `NotebookEdit` | **did NOT fire; the notebook was mutated inside a git working tree** |
+| matcher `Edit\|Write\|MultiEdit\|NotebookEdit` + the identical call | fired, denied, notebook unchanged |
+
+`NotebookEdit` is a **deferred** tool in this build — listed by name, schema loaded on demand — which is
+why reading a session's initial tool list does not find it. And the payload key is `notebook_path`, not
+`file_path` (measured: `keys=["cell_id","new_source","notebook_path"]`), so a guard reading only
+`file_path` allows every NotebookEdit **even with the matcher naming it** — a second side door behind
+the first, which no matcher fix would have closed. **Therefore: a matcher is an enumeration and inherits
+every risk an enumeration has**, exactly like the pattern-lists this document already rejects on the
+`Bash` side. The mitigation is not a claim of completeness — it is that
+`hooks/scripts/orchestrator-write-guard.test.sh` asserts the registration itself, so narrowing the
+matcher goes red instead of quiet.
+
+**What is deliberately NOT mechanised, recorded so it reads as a decision.** Reads, `gh issue create`,
+and the `gh pr comment` / `gh issue comment` routes rule 5e allows the orchestrator. A hook sees `grep`
+and a path, never whether the answer was already in a subagent's return, so it cannot tell a justified
+read from a lazy one; and denying the comment routes would leave an intake finding with no durable
+artifact, since at intake there is frequently no PR and `product-lead` holds no `Write` at all. That
+half is a **habit**, observed by the census and enforced by nobody.
+
+**Named residual — the `Bash` side door, open and known.** `Bash(sed:*)` and `Bash(tee:*)` are in the
+committed allow list, so `sed -i` and `tee` reach a tracked file without passing this matcher. Closing
+it means resolving a path out of a shell command string, which is the SEMANTIC class this document says
+a pattern cannot hold — and a wrong guess there denies `developer`'s builds too, since the guard decides
+from the same string. It is left open and made **visible** instead: the census classifies those commands
+into its write/post class. `command > file` was already denied outright for every caller (#244), so the
+loudest spelling of this door was closed before this rule existed.
+
+**Accepted costs.** The guard fails open on a missing `jq`/`git`, like every other guard here. It is a
+routing rule the main loop can always satisfy by delegating, so it enforces routing and not capability —
+the same property rules 5d/7b have. And the census counts **attempts**: a denied call still appears in
+the transcript, which the notice states every time rather than pretending otherwise.
+
 ## Links
 - Driven by ADR-0002 and the Merge Request Definition of Done (record 0003, absorbed 2026-08-19 into
   [ADR-0006](./0006-verification-and-its-artifacts.md)) · consumed per project via
@@ -1557,4 +1629,9 @@ one place in this repository where the principle is mechanically enforced rather
   same day* block at the head of that same amendment.** · amended
   (2026-08-13) to record #62 — a retired principles skill's own prose restatement of this ADR's
   safe/boundary merge decision went stale independently and stated the opposite rule, closing the gap
-  on `harness-engineering`'s consolidation.
+  on `harness-engineering`'s consolidation · amended (2026-08-23) to add the **routing** control class
+  (`orchestrator-write-guard.sh` + `orchestrator-tool-census.sh`), the fifth reason a control cannot
+  live in the floor (**the permissions syntax has no caller dimension**), and the measurement that a
+  `matcher` is anchored — so `Edit|Write` left `NotebookEdit` open and a matcher is an enumeration;
+  the same amendment strikes this record's *"denies `Edit(.claude/**)` and `Write(.claude/**)`"*
+  sentence, which head refutes (`"ask": ["Edit(.claude/**)"]`, no `Write` entry), closing #319.
