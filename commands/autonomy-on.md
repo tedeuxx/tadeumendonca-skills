@@ -47,6 +47,35 @@ Per `/harness-engineering`, "Opening a session": **collect the pending owner dec
 whole queue and ask them as a batch, before choosing what to build.** One conversation unblocks
 everything at once; one question per slice produces one stall per slice.
 
+**In the same session-open report, read the open queue and name what is stale** — anything with no
+activity for weeks, and anything carrying no ADR-0002 routing label at all.
+
+Measured on 2026-08-23 in the consuming product repo — the criterion is *open, not labelled `content`,
+`updatedAt` on or before 2026-08-08* — with the command run from inside that repo:
+
+```
+gh issue list --state open --limit 100 --json number,updatedAt,labels
+```
+
+(The measurement itself was taken from this repo with `--repo <owner>/<product>` appended, which is the
+same query — the flagless form is published because it names no consumer.) **Five** issues meet it —
+**#380, #381, #385, #390, #127** — plus **#431**, opened 2026-08-13 with **no
+routing label at all**, which makes it invisible to every type-selecting query this loop runs, the queue
+above included. **`--limit 100` is part of the claim, not tidiness:** the default page is 30 against 32
+open issues, so the same command without it silently drops the tail — which is where stale items live.
+
+**Why the line belongs here and nowhere else.** Nothing in the loop reads the open queue: every
+`gh issue` call in `hooks/scripts/` is a write path. `/harness-engineering`'s *"Closing an issue is a
+step, with a criterion"* already specifies the pruning pass and gives it **no trigger** — a mandate with
+no trigger, which is the shape this repo names as a document rather than a mechanism. Naming staleness at
+session open is the trigger, and it is the cheapest one: the session is already reading the queue to pick
+a slice.
+
+**Named the honest way: this is prose, not a mechanism.** No hook fires it and no artifact records that it
+ran, so a session that skips it looks exactly like one that found nothing stale. A `SessionStart` reporter
+would close that, and it is deliberately not built here — the line is useful the day it lands, the
+reporter is a convenience over it.
+
 That is the timing. What follows is the exception path for what you *discover* mid-slice.
 
 ## When a slice hits an owner decision it did not expect

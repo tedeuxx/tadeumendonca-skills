@@ -54,7 +54,78 @@ Then say, in the Issue, one of three things:
 **Do not skip this because the request sounds small.** #346 was "two buttons look wrong" and the border
 turned out to encode route-vs-anchor by design.
 
-### 2 · Run the two-lead intake
+### 2 · If the ask is `content`-typed: interview the owner FIRST
+
+**Scope: `content` only.** A `product` or `loop` ask skips this step entirely and goes straight to the
+two-lead dispatch below. Nothing in it changes those two intakes.
+
+**Why it sits before the dispatch and not after it.** In the consuming product repo, `#503`'s body carries a section
+headed, literally, *"The one line for the owner"* — **two full lead dispatches were spent producing one
+question**, and the question was for the person who had the answer before either agent started. Asking it
+first collapses that: the leads then reconcile against a stated take instead of reconstructing one.
+
+**One required question. Ask it in these words:**
+
+> **What does this claim, and what do you want to say back?**
+
+Its **first clause** is the one `#503`'s own one line opens on — *"What does this video claim about how
+forward-deployed engineering is done…"* — reached only after both lenses had run. **The second half is not
+`#503`'s wording.** That Issue's one line is a three-way question, and the two clauses following its first
+are the leads reconstructing a position the owner already held; *"what do you want to say back"* is the
+generalisation of what that reconstruction was for, asked of him directly instead.
+
+**Then follow-ups — one at a time, and only while he is still answering.** The moment he stops, stop
+asking and open the Issue.
+
+- **Where in these two repos is there something that bears on it?** → ADR-0046 gate 1's input (*"Name the
+  artifact in these two repositories that proves the video's claim right or wrong"*). **The only follow-up
+  with a named downstream consumer**, which is why it is first.
+- **Does it still stand if you delete the video?** → ADR-0046 gate 2 (*"Delete the video. Is it still an
+  article?"*). Optional here — the leads can run this one themselves.
+- **Who is it for, and what should they do differently after reading it?** → `published-voice`'s goal and
+  filter: connection with the two personas is the goal, value to them is the filter.
+
+**Two standing owner constraints, both stated by him and both broken at least once:** **one question at a
+time**, and **no multiple choice**. A questionnaire is not an interview — four questions in one message is
+a form, and offering options to pick from decides the answer for him.
+
+**And it must not block the capture.** He is often mid-something else. **One line and stop still opens the
+Issue**: question 1 unblocks the machine, the rest only improve the piece. An interview that costs him a
+sitting is one he routes around inside a week, and then there is no interview at all.
+
+**Record his answer verbatim, quoted, as his words** — not paraphrased, not tidied, not translated.
+`published-voice`'s sourcing constraint is why: *"A draft shapes, cuts, structures and translates an
+experience, an opinion, or a result the owner already has. It never originates one."* The recorded take
+**is** the source `content-writer` cites for the stance, and a paraphrase is a stance with no attributable
+origin — which its brief forbids it from using.
+
+#### The marker — and recording the absence is the design, not the fallback
+
+Put one of exactly two forms in the Issue body. There is no third spelling, and a gate asserts that
+(`hooks/scripts/inventory-counts.test.sh`).
+
+```
+<!-- owner-take: supplied -->
+> «his sentence, verbatim»
+```
+
+```
+<!-- owner-take: not-supplied 2026-08-23 -->
+```
+
+**The second form is a first-class outcome, not a failure path.** Forcing a take means denying a capture
+at the worst possible moment — which is how a mechanism gets routed around inside a week, and a mechanism
+nobody uses records nothing. `not-supplied <date>` is a fact a later reader acts on: it says the question
+was asked and left open, and it dates the asking. Silence says neither.
+
+**The hole, stated here in the file where the rule lives and not only in the PR that shipped it: a model
+that never asks can write `not-supplied` and pass.** No layer closes that. The gate reads the literal, not
+the conversation; nothing in the harness can distinguish an interview that happened and got one line from
+an interview that never started. This is a discipline with a marker, not an enforcement — treat a
+`not-supplied` marker as a claim about the process, and claims about the process are exactly what this
+loop does not verify.
+
+### 3 · Run the two-lead intake
 
 Dispatch **`product-lead`** and **`tech-lead`**, in parallel, each on its own half. Brief them with what
 the search found, so neither re-derives it.
@@ -87,7 +158,7 @@ criterion 10 still requires the copy lens to have returned a verdict on any read
 the Issue as a disagreement — do not resolve it yourself. #166's route-vs-section split is the shape: the
 Issue is more useful carrying both arguments than carrying a resolution nobody ratified.
 
-### 3 · Label it honestly, and `ready` is not automatic
+### 4 · Label it honestly, and `ready` is not automatic
 
 **`ready` means the leads closed the description** (the SDLC-generic bar a description must clear to
 earn it is `/definition-of-ready`). It does not mean the Issue exists.
@@ -110,7 +181,7 @@ blocker had shipped.)
 tree it was closed against moves, and a reader in November needs to know whether August's closure still
 describes the code.
 
-### 4 · State the class
+### 5 · State the class
 
 **safe** or **boundary**, per the repo's guide, with the clause that decides it. Boundary is: anything
 touching `iac/` or the site's continuity, a change to the dev-loop's own rules, and publishing an article.
@@ -123,7 +194,7 @@ four surviving holds can apply, which literal ends up in the merge record, and w
 write down. **Do not drop the field** — an Issue whose class is unstated is one whose merge record
 cannot say whether anything shipped unseen.
 
-### 5 · Open it
+### 6 · Open it
 
 `gh issue create --body-file <path>`. **Always a file, never `--body`** — a multi-line body through
 `--body` loses every backtick to command substitution, silently, and this repo has paid for that four
