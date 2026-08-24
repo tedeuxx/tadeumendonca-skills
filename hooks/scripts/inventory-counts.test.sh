@@ -3894,5 +3894,492 @@ else
 fi
 
 
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+# THE README CLAIM CONTRACT (#324) — FOUR CLASSES, AND ONE OF THEM IS EXECUTED.
+#
+# WHAT THIS IS FOR. Every arm ABOVE this one asserts a COUNT: a number published in README.md or
+# CLAUDE.md against what the tree contains. Measured on #324, that is not where the drift was. All
+# three drift examples that justified this block sat in the AUTHORED half of the README and none was a
+# count — a relational claim ("read by nobody"), a number SPELLED OUT in prose ("the six personas
+# above"), and a dated measurement of a foreign machine. The suite was 92/0 green through every one.
+# The defect class is A CLAIM PUBLISHED WITH NO FALSIFIER BESIDE IT, and these arms gate the falsifier.
+#
+# THE SPLIT THAT MAKES IT EXECUTABLE SAFELY. `docs/readme-claims.md` holds the commands; README.md
+# holds only `<!-- claim id=NNNN class=CLASS -->`. So an edit to the front door — the file most likely
+# to be touched by someone not thinking about CI at all — CANNOT introduce a command this suite runs.
+# That is the first containment and the one that matters most; the head allow-list and the character
+# allow-list below are the second and third, and they are gated here rather than described in prose.
+#
+# WHAT THESE ARMS PROVABLY CANNOT HOLD, SAID BEFORE THE FIRST ASSERTION. They bind a COMMAND to a
+# NUMBER. They never bind a number to a SENTENCE — nothing here reads the prose around a marker, so a
+# section whose text contradicts its own entry passes green. That is the same residual the blueprint
+# registry states about `propósito`, one surface further out, and `docs/readme-claims.md` states it in
+# its own containment section. This comment is the third statement of it deliberately, because it is
+# the one a person editing the gate reads.
+#
+# WHY `MEASURED` EXISTS AT ALL RATHER THAN EVERYTHING BEING `VERIFIED`. A command that reaches the
+# network or a machine CI does not have would redden on an API outage or on a laptop nobody has, and a
+# red that fires for reasons unrelated to the claim teaches everyone to ignore red. `MEASURED` is a
+# SHAPE check — a date, and a fenced command adjacent — and its green means "dated and re-runnable by
+# someone with the machine", never "true".
+#
+# THE CHAINING RULE APPLIES HERE AS EVERYWHERE (see this file's header): each assertion gets its own
+# `if`, and each repeats its own vacuity guard rather than borrowing the neighbour's.
+
+RC_REG="$ROOT/docs/readme-claims.md"
+
+# The declared ceiling, same argument as ADR_HIGH_WATER and BP_HIGH_WATER above: derive it from the
+# entries that exist and an abandonment at the TOP of the sequence leaves no gap and frees the number
+# for reuse. Raising it is one line, in the same commit as the claim that needs it.
+RC_HIGH_WATER=5
+
+RC_CLASSES="VERIFIED MEASURED DERIVED JUDGEMENT"
+
+# CONTAINMENT 2 — the closed allow-list of command heads. `awk` and `sed` are deliberately ABSENT:
+# they are general-purpose languages, so a head-only allow-list containing them would contain nothing
+# (`sed -i` writes files, `awk`'s `system()` runs anything). A head is a meaningful unit of containment
+# only for programs whose flags are enumerable.
+RC_HEADS="grep find ls jq wc sort uniq head cat tr basename"
+
+# CONTAINMENT 3 — a character ALLOW-list, not a metacharacter denylist, so `$`, backtick, `;`, `&`,
+# `<`, `>`, `(`, `)`, `{`, `}`, backslash and `!` are unreachable rather than forbidden one at a time.
+# Plus a token denylist for the two heads whose FLAGS are the hole the character rule cannot see.
+RC_BADTOKENS="-exec -execdir -ok -okdir -delete -fls -fprint -fprintf"
+
+# section ordinal <TAB> id <TAB> class, one line per marker found in README.md.
+rc_marks="$(awk '
+  /^## / { sec++ }
+  /^<!-- claim id=[0-9][0-9][0-9][0-9] class=[A-Z]+ -->[[:space:]]*$/ {
+      line = $0
+      sub(/^<!-- claim id=/, "", line)
+      id = substr(line, 1, 4)
+      sub(/^[0-9][0-9][0-9][0-9] class=/, "", line)
+      sub(/ *-->.*$/, "", line)
+      print sec "\t" id "\t" line
+  }
+' "$README" 2>/dev/null || true)"
+
+rc_mark_ids="$(printf '%s\n' "$rc_marks" | awk -F'\t' 'NF==3 {print $2}' | sort -u | grep . || true)"
+rc_mark_count="$(printf '%s\n' "$rc_mark_ids" | grep -c . || true)"
+rc_sections="$(grep -c '^## ' "$README" || true)"
+
+# id <TAB> key <TAB> value, one line per field, ids taken from the `## NNNN · <name>` headings.
+rc_rows="$(awk '
+  /^## [0-9][0-9][0-9][0-9] · / { id = substr($0, 4, 4); next }
+  /^## /                        { id = ""; next }
+  /^- \*\*[^*]+:\*\* /          {
+      if (id == "") next
+      line = $0
+      sub(/^- \*\*/, "", line)
+      k = line; sub(/:\*\*.*$/, "", k)
+      v = line; sub(/^[^*]*:\*\* */, "", v)
+      print id "\t" k "\t" v
+  }
+' "$RC_REG" 2>/dev/null || true)"
+
+rc_entry_ids="$(printf '%s\n' "$rc_rows" | awk -F'\t' 'NF==3 {print $1}' | sort -u | grep . || true)"
+rc_entry_count="$(printf '%s\n' "$rc_entry_ids" | grep -c . || true)"
+
+rc_field()   { printf '%s\n' "$rc_rows" | awk -F'\t' -v i="$1" -v k="$2" '$1 == i && $2 == k {print $3}'; }
+rc_unback()  { printf '%s' "$1" | grep -oE '`[^`]+`' | head -1 | tr -d '`'; }
+rc_body()    { awk -v want="$1" '/^## /{sec++} sec==want' "$README" 2>/dev/null; }
+
+# ── 1 · marker and entry account for each other, in both directions ──
+rc_pair_problems=""
+for rc_id in $rc_mark_ids; do
+  printf '%s\n' "$rc_entry_ids" | grep -qx "$rc_id" && continue
+  rc_pair_problems="$rc_pair_problems
+    $rc_id — a README marker names it, and docs/readme-claims.md has no '## $rc_id · ' entry"
+done
+for rc_id in $rc_entry_ids; do
+  printf '%s\n' "$rc_mark_ids" | grep -qx "$rc_id" && continue
+  rc_pair_problems="$rc_pair_problems
+    $rc_id — an entry exists, and no README section carries '<!-- claim id=$rc_id … -->'"
+done
+
+if [ ! -r "$RC_REG" ]; then
+  bad "README claim contract — docs/readme-claims.md is not readable. Either the registry left the repo
+      — in which case delete this whole block in the same commit, and every marker in README.md with it
+      — or its path changed and all ten arms below are vacuous."
+elif [ "$rc_mark_count" -eq 0 ] && [ "$rc_entry_count" -eq 0 ]; then
+  bad "README claim contract — NOT ONE marker was parsed out of README.md and NOT ONE entry out of
+      docs/readme-claims.md, and there were 5 of each when this was written. An empty-against-empty
+      comparison passes for no reason, which is the direction this guard exists to close."
+elif [ "$rc_mark_count" -eq 0 ]; then
+  bad "README claim contract — $rc_entry_count entries exist and NOT ONE '<!-- claim id=NNNN class=… -->'
+      marker was found in README.md. Either every marker was stripped, or the marker form changed and
+      every arm keyed on it below is vacuous."
+elif [ -n "$rc_pair_problems" ]; then
+  bad "README claim contract — a marker and its entry do not account for each other:$rc_pair_problems
+      The id is the whole binding: README.md carries the claim, docs/readme-claims.md carries what
+      would falsify it, and neither is meaningful alone."
+else
+  ok "README claim contract — all $rc_mark_count markers and $rc_entry_count entries account for each other"
+fi
+
+# ── 2 · every marker sits inside a section, and no section carries two ──
+rc_place_problems=""
+while IFS=$'\t' read -r rc_sec rc_id rc_cls; do
+  [ -z "${rc_id:-}" ] && continue
+  if [ "${rc_sec:-0}" -eq 0 ]; then
+    rc_place_problems="$rc_place_problems
+    $rc_id — the marker sits above the first '## ' heading, so it labels no section"
+    continue
+  fi
+  rc_n="$(printf '%s\n' "$rc_marks" | awk -F'\t' -v s="$rc_sec" '$1 == s' | grep -c . || true)"
+  [ "$rc_n" -eq 1 ] && continue
+  rc_place_problems="$rc_place_problems
+    $rc_id — section $rc_sec carries $rc_n markers, not 1. A class is a property of one section"
+done <<< "$rc_marks"
+
+if [ "$rc_mark_count" -eq 0 ]; then
+  bad "README claim contract — marker placement is uncomputable: no marker was parsed at all (arm 1)."
+elif [ -n "$rc_place_problems" ]; then
+  bad "README claim contract — a marker is misplaced:$rc_place_problems
+      A marker goes on the line after the '## ' heading of the section it labels."
+else
+  ok "README claim contract — all $rc_mark_count markers sit in a distinct '## ' section"
+fi
+
+# ── 3 · the class is in the closed set, and the marker agrees with the entry ──
+rc_class_problems=""
+while IFS=$'\t' read -r rc_sec rc_id rc_cls; do
+  [ -z "${rc_id:-}" ] && continue
+  case " $RC_CLASSES " in
+    *" $rc_cls "*) : ;;
+    *) rc_class_problems="$rc_class_problems
+    $rc_id — class '$rc_cls' is not one of: $RC_CLASSES"
+       continue ;;
+  esac
+  rc_ecls="$(rc_field "$rc_id" class | head -1)"
+  [ "$rc_ecls" = "$rc_cls" ] && continue
+  rc_class_problems="$rc_class_problems
+    $rc_id — README says '$rc_cls', docs/readme-claims.md says '$rc_ecls'"
+done <<< "$rc_marks"
+
+if [ "$rc_mark_count" -eq 0 ]; then
+  bad "README claim contract — the class set could not be tested: no marker was parsed at all (arm 1)."
+elif [ -n "$rc_class_problems" ]; then
+  bad "README claim contract — a class is outside the set or disagrees with its entry:$rc_class_problems
+      The set is closed and it THROWS. A claim that needs a fifth class is a visible widening of a
+      published list, decided in the same diff, not a value invented in a marker nobody re-reads."
+else
+  ok "README claim contract — all $rc_mark_count markers declare a class in the closed set of 4, agreeing with their entry"
+fi
+
+# ── 4 · the fields an entry carries are the ones its class licenses ──
+#
+# The direction worth having is the NEGATIVE one: a JUDGEMENT entry shipping a command means somebody
+# had a falsifier and filed the claim as unfalsifiable anyway, which is the one abuse of the class set
+# that would otherwise be free.
+rc_field_problems=""
+for rc_id in $rc_entry_ids; do
+  rc_ecls="$(rc_field "$rc_id" class | head -1)"
+  rc_has_cmd="$(rc_field "$rc_id" command | grep -c . || true)"
+  rc_has_exp="$(rc_field "$rc_id" expects | grep -c . || true)"
+  rc_has_on="$(rc_field "$rc_id" on | grep -c . || true)"
+  rc_has_arm="$(rc_field "$rc_id" arm | grep -c . || true)"
+  rc_has_lim="$(rc_field "$rc_id" limit | grep -c . || true)"
+  [ "$rc_has_lim" -eq 1 ] || rc_field_problems="$rc_field_problems
+    $rc_id — carries $rc_has_lim 'limit' fields, not 1. Every class carries one: the limit is a
+    property of the claim, and it is the cell that ports to a harness nobody here has measured"
+  case "$rc_ecls" in
+    VERIFIED)
+      [ "$rc_has_cmd" -eq 1 ] && [ "$rc_has_exp" -eq 1 ] && [ "$rc_has_on" -eq 0 ] && [ "$rc_has_arm" -eq 0 ] && continue
+      rc_field_problems="$rc_field_problems
+    $rc_id — VERIFIED needs exactly one 'command' and one 'expects', and no 'on'/'arm'
+    (command:$rc_has_cmd expects:$rc_has_exp on:$rc_has_on arm:$rc_has_arm)" ;;
+    MEASURED)
+      [ "$rc_has_cmd" -eq 1 ] && [ "$rc_has_on" -eq 1 ] && [ "$rc_has_exp" -eq 0 ] && [ "$rc_has_arm" -eq 0 ] && continue
+      rc_field_problems="$rc_field_problems
+    $rc_id — MEASURED needs exactly one 'command' and one 'on', and no 'expects'/'arm'. An 'expects'
+    on a command nothing runs is a comparison that never happens, dressed as one that does
+    (command:$rc_has_cmd expects:$rc_has_exp on:$rc_has_on arm:$rc_has_arm)" ;;
+    DERIVED)
+      [ "$rc_has_arm" -eq 1 ] && [ "$rc_has_cmd" -eq 0 ] && [ "$rc_has_exp" -eq 0 ] && [ "$rc_has_on" -eq 0 ] && continue
+      rc_field_problems="$rc_field_problems
+    $rc_id — DERIVED needs exactly one 'arm' and nothing else. An arm already owns the fact; a second
+    command beside it is a second source of truth
+    (command:$rc_has_cmd expects:$rc_has_exp on:$rc_has_on arm:$rc_has_arm)" ;;
+    JUDGEMENT)
+      [ "$rc_has_cmd" -eq 0 ] && [ "$rc_has_exp" -eq 0 ] && [ "$rc_has_on" -eq 0 ] && [ "$rc_has_arm" -eq 0 ] && continue
+      rc_field_problems="$rc_field_problems
+    $rc_id — JUDGEMENT declares that NO falsifier exists, and this entry ships one
+    (command:$rc_has_cmd expects:$rc_has_exp on:$rc_has_on arm:$rc_has_arm). If there is a command,
+    the class is VERIFIED or MEASURED" ;;
+    *)
+      rc_field_problems="$rc_field_problems
+    $rc_id — entry declares class '$rc_ecls', which arm 3 should have caught; fields not judged" ;;
+  esac
+done
+
+if [ "$rc_entry_count" -eq 0 ]; then
+  bad "README claim contract — field licensing is uncomputable: no entry was parsed at all (arm 1)."
+elif [ -n "$rc_field_problems" ]; then
+  bad "README claim contract — an entry's fields do not match its class:$rc_field_problems"
+else
+  ok "README claim contract — all $rc_entry_count entries carry exactly the fields their class licenses"
+fi
+
+# ── 5 · every issued id is a live entry or exactly one tombstone ──
+rc_tomb_rows=""
+if [ -r "$RC_REG" ]; then
+  rc_tomb_rows="$(awk '/^## History/{h=1;next} /^## /{h=0} h' "$RC_REG")"
+fi
+
+rc_max=0
+for rc_id in $rc_entry_ids; do
+  rc_n=$((10#$rc_id))
+  [ "$rc_n" -gt "$rc_max" ] && rc_max=$rc_n
+done
+
+rc_ceiling="$RC_HIGH_WATER"
+[ "$rc_max" -gt "$rc_ceiling" ] && rc_ceiling="$rc_max"
+
+rc_gap_problems=""
+rc_n=1
+while [ "$rc_n" -le "$rc_ceiling" ]; do
+  rc_padded="$(printf '%04d' "$rc_n")"
+  if printf '%s\n' "$rc_entry_ids" | grep -qx "$rc_padded"; then
+    rc_n=$((rc_n + 1))
+    continue
+  fi
+  rc_rowcount="$(printf '%s\n' "$rc_tomb_rows" | grep -cE "^\| *$rc_padded *\|" || true)"
+  if [ "${rc_rowcount:-0}" -ne 1 ]; then
+    rc_gap_problems="$rc_gap_problems
+    $rc_padded — no live entry, and $rc_rowcount '| $rc_padded |' row(s) under '## History', not 1"
+  fi
+  rc_n=$((rc_n + 1))
+done
+
+if [ "$rc_entry_count" -eq 0 ]; then
+  bad "README claim contract — id accounting is uncomputable: no entry was parsed at all (arm 1)."
+elif [ "$rc_max" -gt "$RC_HIGH_WATER" ]; then
+  bad "README claim contract — the highest live id is $rc_max but RC_HIGH_WATER is $RC_HIGH_WATER. A
+      claim was added without raising the ceiling. Raise it in this file, in the same commit as the
+      entry; until then an abandonment at the top of the sequence is invisible here."
+elif [ -n "$rc_gap_problems" ]; then
+  bad "README claim contract — an id this registry issued is accounted for by nothing:$rc_gap_problems
+      An id leaves the registry ONLY as a tombstone, never as an absence. Retitling a section changes
+      nothing; deleting the section it labelled is what produces a tombstone."
+else
+  ok "README claim contract — $rc_entry_count live entries, ceiling $rc_ceiling, every issued id accounted for"
+fi
+
+# ── 6 · the coverage declaration, in BOTH directions ──
+#
+# `complete` with an unlabelled section reddens — the obvious direction. `partial` with NOTHING
+# unlabelled reddens too, and that is the direction worth having: labelling the last section is
+# precisely when nobody thinks to edit a table two hundred lines above it.
+rc_cov="$(awk '/^## Coverage/{c=1;next} /^## /{c=0} c' "$RC_REG" 2>/dev/null \
+  | sed -n 's/^| *`\([a-z][a-z-]*\)` *|[^|]*| *\([a-z]*\) *|.*/\1 \2/p' || true)"
+rc_cov_count="$(printf '%s\n' "$rc_cov" | grep -c . || true)"
+
+rc_unlabelled=0
+rc_s=1
+while [ "$rc_s" -le "${rc_sections:-0}" ]; do
+  printf '%s\n' "$rc_marks" | awk -F'\t' -v s="$rc_s" '$1 == s' | grep -q . \
+    || rc_unlabelled=$((rc_unlabelled + 1))
+  rc_s=$((rc_s + 1))
+done
+
+rc_cov_problems=""
+while IFS=' ' read -r rc_class rc_claim; do
+  [ -z "$rc_class" ] && continue
+  case "$rc_claim" in
+    complete)
+      [ "$rc_unlabelled" -eq 0 ] && continue
+      rc_cov_problems="$rc_cov_problems
+    $rc_class — declared complete, and $rc_unlabelled of $rc_sections '## ' sections carry no marker" ;;
+    partial)
+      [ "$rc_unlabelled" -gt 0 ] && continue
+      rc_cov_problems="$rc_cov_problems
+    $rc_class — declared partial, and every one of the $rc_sections sections carries a marker. Declare
+    it complete: an under-claiming declaration is exactly as misleading as an over-claiming one" ;;
+    *)
+      rc_cov_problems="$rc_cov_problems
+    $rc_class — claim '$rc_claim' is neither 'complete' nor 'partial'" ;;
+  esac
+done <<< "$rc_cov"
+
+if [ "$rc_cov_count" -eq 0 ]; then
+  bad "README claim contract — the table under '## Coverage' in docs/readme-claims.md is empty or
+      unparsed, so the reverse direction never ran. Without it, a section added to README.md and
+      classed nowhere is invisible."
+elif [ "${rc_sections:-0}" -eq 0 ]; then
+  bad "README claim contract — NOT ONE '## ' heading was counted in README.md, so every coverage class
+      would 'pass' for the same reason. That is a fact about the enumeration, not about the registry."
+elif [ -n "$rc_cov_problems" ]; then
+  bad "README claim contract — the coverage declaration and README.md disagree:$rc_cov_problems"
+else
+  ok "README claim contract — coverage holds in both directions: $rc_mark_count of $rc_sections sections labelled, $rc_unlabelled unlabelled, declared partial"
+fi
+
+# ── 7 · CONTAINMENT — every VERIFIED command is refusable before it is runnable ──
+rc_contain_problems=""
+rc_contained=0
+for rc_id in $rc_entry_ids; do
+  [ "$(rc_field "$rc_id" class | head -1)" = "VERIFIED" ] || continue
+  rc_cmd="$(rc_unback "$(rc_field "$rc_id" command | head -1)")"
+  if [ -z "$rc_cmd" ]; then
+    rc_contain_problems="$rc_contain_problems
+    $rc_id — the 'command' field carries no backticked command to contain"
+    continue
+  fi
+  rc_contained=$((rc_contained + 1))
+  rc_residue="$(printf '%s' "$rc_cmd" | LC_ALL=C tr -d "A-Za-z0-9 ._/*'\"|=:+,^#-")"
+  if [ -n "$rc_residue" ]; then
+    rc_contain_problems="$rc_contain_problems
+    $rc_id — command carries character(s) outside the allow-list: [$rc_residue]"
+    continue
+  fi
+  for rc_tok in $RC_BADTOKENS; do
+    case " $rc_cmd " in
+      *" $rc_tok "*|*" $rc_tok")
+        rc_contain_problems="$rc_contain_problems
+    $rc_id — command carries the denied flag '$rc_tok'; the character allow-list cannot see a flag" ;;
+    esac
+  done
+  rc_stages="$(printf '%s' "$rc_cmd" | tr '|' '\n')"
+  while IFS= read -r rc_stage; do
+    rc_head="$(printf '%s' "$rc_stage" | awk '{print $1}')"
+    [ -z "$rc_head" ] && continue
+    case " $RC_HEADS " in
+      *" $rc_head "*) continue ;;
+    esac
+    rc_contain_problems="$rc_contain_problems
+    $rc_id — pipeline stage head '$rc_head' is not in the allow-list: $RC_HEADS"
+  done <<< "$rc_stages"
+done
+
+if [ "$rc_entry_count" -eq 0 ]; then
+  bad "README claim contract — containment is uncomputable: no entry was parsed at all (arm 1)."
+elif [ "$rc_contained" -eq 0 ]; then
+  bad "README claim contract — NOT ONE VERIFIED command was extracted, and there were 2 when this was
+      written. Either every claim stopped being VERIFIED — which arm 4 would not catch, since it only
+      checks a class against its own fields — or the backtick form changed and arm 8 runs nothing."
+elif [ -n "$rc_contain_problems" ]; then
+  bad "README claim contract — a VERIFIED command is not containable:$rc_contain_problems
+      Three containments, and this arm is the last two: a closed allow-list of pipeline-stage heads,
+      and a character allow-list that puts substitution, redirection and chaining out of reach rather
+      than forbidding them one at a time. The first containment is structural — the command lives in
+      docs/readme-claims.md and never in README.md — and nothing in this arm can restore it."
+else
+  ok "README claim contract — all $rc_contained VERIFIED command(s) pass all three containments"
+fi
+
+# ── 8 · EXECUTION — the VERIFIED commands run, and their output is what was declared ──
+#
+# This is the arm the whole block exists for. It runs a command that came out of a markdown file, which
+# is why arm 7 sits above it and why arm 7 has its own vacuity guard rather than borrowing this one.
+rc_exec_problems=""
+rc_executed=0
+for rc_id in $rc_entry_ids; do
+  [ "$(rc_field "$rc_id" class | head -1)" = "VERIFIED" ] || continue
+  rc_cmd="$(rc_unback "$(rc_field "$rc_id" command | head -1)")"
+  rc_exp="$(rc_unback "$(rc_field "$rc_id" expects | head -1)")"
+  [ -z "$rc_cmd" ] && continue
+  if [ -z "$rc_exp" ]; then
+    rc_exec_problems="$rc_exec_problems
+    $rc_id — 'expects' carries no backticked value, so the output has nothing to be compared against"
+    continue
+  fi
+  rc_residue="$(printf '%s' "$rc_cmd" | LC_ALL=C tr -d "A-Za-z0-9 ._/*'\"|=:+,^#-")"
+  [ -n "$rc_residue" ] && continue   # arm 7 already reddened; do not execute an uncontained command
+  rc_executed=$((rc_executed + 1))
+  rc_out="$( (cd "$ROOT" && bash -c "$rc_cmd") 2>/dev/null \
+    | tr '\n' ' ' | tr -s '[:space:]' ' ' | sed 's/^ *//; s/ *$//' )"
+  [ "$rc_out" = "$rc_exp" ] && continue
+  rc_exec_problems="$rc_exec_problems
+    $rc_id — expected '$rc_exp', the command returned '$rc_out'
+    ($rc_cmd)"
+done
+
+if [ "$rc_entry_count" -eq 0 ]; then
+  bad "README claim contract — execution is uncomputable: no entry was parsed at all (arm 1)."
+elif [ "$rc_executed" -eq 0 ]; then
+  bad "README claim contract — NOT ONE VERIFIED command was executed, and there were 2 when this was
+      written. A green here would be a fact about the extraction, not about any claim in README.md."
+elif [ -n "$rc_exec_problems" ]; then
+  bad "README claim contract — a VERIFIED claim's command no longer returns what was declared:$rc_exec_problems
+      Re-run the command, decide whether the WORLD changed or the CLAIM was wrong, and fix the one that
+      is wrong — the prose in README.md as well as the 'expects' value, because nothing here reads the
+      prose and a corrected number beside an uncorrected sentence passes this arm."
+else
+  ok "README claim contract — all $rc_executed VERIFIED command(s) returned exactly what was declared"
+fi
+
+# ── 9 · MEASURED — the shape, and only the shape ──
+rc_meas_problems=""
+rc_measured=0
+while IFS=$'\t' read -r rc_sec rc_id rc_cls; do
+  [ "${rc_cls:-}" = "MEASURED" ] || continue
+  rc_measured=$((rc_measured + 1))
+  rc_on="$(rc_field "$rc_id" on | head -1)"
+  printf '%s' "$rc_on" | grep -qE '^20[0-9][0-9]-[01][0-9]-[0-3][0-9]$' \
+    || rc_meas_problems="$rc_meas_problems
+    $rc_id — 'on' is '$rc_on', not an ISO date. A measurement with no date is not re-runnable, it is
+    just a number somebody once saw"
+  rc_sbody="$(rc_body "$rc_sec")"
+  printf '%s\n' "$rc_sbody" | grep -q '^```' \
+    || rc_meas_problems="$rc_meas_problems
+    $rc_id — the section carries no fenced block. MEASURED means the command is published beside the
+    claim for someone with the machine to re-run; without the fence there is nothing to re-run"
+  printf '%s\n' "$rc_sbody" | grep -qE '20[0-9][0-9]-[01][0-9]-[0-3][0-9]' \
+    || rc_meas_problems="$rc_meas_problems
+    $rc_id — the section carries no ISO date, so a reader cannot tell how old the figures are"
+done <<< "$rc_marks"
+
+if [ "$rc_mark_count" -eq 0 ]; then
+  bad "README claim contract — the MEASURED shape check is uncomputable: no marker was parsed (arm 1)."
+elif [ "$rc_measured" -eq 0 ]; then
+  bad "README claim contract — NOT ONE MEASURED claim was found, and there was 1 when this was written.
+      Either the class fell out of use — which is a finding, since the claims it covers did not — or
+      the marker parse broke and this arm checked nothing."
+elif [ -n "$rc_meas_problems" ]; then
+  bad "README claim contract — a MEASURED section does not carry the shape its class requires:$rc_meas_problems
+      This arm asserts a date and a fence, and NOTHING about whether the figures are true. Read a green
+      as 'dated and re-runnable by someone with the machine', never as 'this claim holds'."
+else
+  ok "README claim contract — all $rc_measured MEASURED section(s) carry a date and a fenced command"
+fi
+
+# ── 10 · DERIVED — the named arm exists, as a TWO-SIDED assertion ──
+#
+# Requiring the label in both an `ok` and a `bad` branch is what makes `DERIVED` mean "an arm OWNS
+# this". An arm that can only pass owns nothing, and a label that survives only in a comment owns less.
+rc_der_problems=""
+rc_derived=0
+for rc_id in $rc_entry_ids; do
+  [ "$(rc_field "$rc_id" class | head -1)" = "DERIVED" ] || continue
+  rc_derived=$((rc_derived + 1))
+  rc_arm="$(rc_unback "$(rc_field "$rc_id" arm | head -1)")"
+  if [ -z "$rc_arm" ]; then
+    rc_der_problems="$rc_der_problems
+    $rc_id — the 'arm' field carries no backticked arm label"
+    continue
+  fi
+  rc_oks="$(grep -cF "ok \"$rc_arm" "$0" || true)"
+  rc_bads="$(grep -cF "bad \"$rc_arm" "$0" || true)"
+  [ "${rc_oks:-0}" -ge 1 ] && [ "${rc_bads:-0}" -ge 1 ] && continue
+  rc_der_problems="$rc_der_problems
+    $rc_id — arm '$rc_arm' appears in $rc_oks ok() and $rc_bads bad() call(s) in this file; DERIVED
+    requires at least one of each"
+done
+
+if [ "$rc_entry_count" -eq 0 ]; then
+  bad "README claim contract — the DERIVED check is uncomputable: no entry was parsed at all (arm 1)."
+elif [ "$rc_derived" -eq 0 ]; then
+  bad "README claim contract — NOT ONE DERIVED claim was found, and there was 1 when this was written.
+      With none, this arm reports success over an empty scan."
+elif [ -n "$rc_der_problems" ]; then
+  bad "README claim contract — a DERIVED claim names an arm that does not own it:$rc_der_problems
+      What this arm CANNOT check: that the named arm is the one that actually owns the section's claim.
+      A marker naming a real but unrelated arm passes here, and only a reviewer catches it."
+else
+  ok "README claim contract — all $rc_derived DERIVED claim(s) name a two-sided arm in this file"
+fi
+
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
