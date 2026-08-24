@@ -388,9 +388,17 @@ have closed an Issue's description; applies the ADR-0002 routing label (`product
 decides, in the moment, whether a given review specialist needs dispatching at all — a real judgment
 call, not a formality.
 
-Its **boundary is stated in two honest parts, not one.** Mechanically enforced, for exactly two acts:
-merge and direct push to the trunk — `hooks/scripts/permission-guard.sh` leaves the orchestrator's
-`agent_type` empty by design, and rules 7 (trunk push) and 7b (merge) fire against that empty value.
+Its **boundary is stated in two honest parts, not one.** Mechanically enforced, for ~~exactly two
+acts~~ **three**: merge and direct push to the trunk — `hooks/scripts/permission-guard.sh` leaves the
+orchestrator's `agent_type` empty by design, and rules 7 (trunk push) and 7b (merge) fire against that
+empty value — **and, since #319, editing a file inside a git working tree**
+(`hooks/scripts/orchestrator-write-guard.sh`, a second `PreToolUse` hook on the
+`Edit|Write|MultiEdit|NotebookEdit` matcher, keyed on the same empty `agent_type`). The third is a
+**routing** rule, not a floor one: the identical edit goes through the moment the persona that owns it
+makes it, and the session scratchpad stays open because it holds no repository. Its pair,
+`hooks/scripts/orchestrator-tool-census.sh` (`Stop`), reports the rest — write/post class separated
+from reads — and **gates nothing**; reads and the `gh …comment` routes rule 5e allows are deliberately
+left as a habit, not mechanised (ADR-0004's 2026-08-23 amendment).
 **Not enforced, and not claimed to be:** label application — `gh issue edit`/`gh label` sit in the global
 allow, unscoped to who calls them — and the dispatch-omission judgment call, which is a different failure
 shape than "decides the irreversible": an omission nobody can see happened or didn't, not a decision on

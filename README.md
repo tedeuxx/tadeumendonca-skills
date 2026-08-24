@@ -881,25 +881,29 @@ flowchart LR
   H5["dispatch-metrics-start"]
   H6["dispatch-metrics-stop"]
   H7["zombie-loop-detect"]
+  H8["orchestrator-write-guard"]
+  H9["orchestrator-tool-census"]
 
   E1 --> H1
   E1 --> H2
+  E1 --> H8
   O1 --> H3
   O1 --> H4
   O4 --> H5
   O4 --> H6
   E6 --> H7
+  E6 --> H9
 
   class E1,O1,O4,E6 used
 ```
 
 | event | when it fires | denies? | hooks wired here | purpose |
 |---|---|---|---|---|
-| **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard`, `wip-guard` | refuse the irreversible floor and a PR that overlaps an open one, *before* either happens |
+| **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard`, `wip-guard` (matcher `Bash`) · `orchestrator-write-guard` (matcher `Edit\|Write\|MultiEdit\|NotebookEdit`) | refuse the irreversible floor and a PR that overlaps an open one, *before* either happens — and refuse the main agent's own edits inside a git working tree, which is a ROUTING rule rather than a floor one (#319) |
 | **`SessionStart`** | a session begins or resumes | no | `session-wip`, `session-plugin-version` | inject the open queue, and warn when the installed build is not the merged one |
 | **`SubagentStart`** | a subagent is dispatched | no | `dispatch-metrics-start` | best-effort dependency probe only — see below; does not post |
 | **`SubagentStop`** | a subagent finishes | no | `dispatch-metrics-stop` | log rework rounds, time, output size and token cost for the dispatch as a structured Issue comment (#209) |
-| **`Stop`** | the main agent's turn ends | **yes, but this hook never uses that half** | `zombie-loop-detect` | detect (never prevent) an outstanding gate verdict left unaddressed at turn end — one turn late instead of one session late (#294) |
+| **`Stop`** | the main agent's turn ends | **yes, but neither hook uses that half** | `zombie-loop-detect`, `orchestrator-tool-census` | detect (never prevent) an outstanding gate verdict left unaddressed at turn end — one turn late instead of one session late (#294) — and report what the main agent did with its own hands, write/post class separated from reads (#319) |
 | `UserPromptSubmit` | a prompt is submitted, before processing | **yes** | — | |
 | `UserPromptExpansion` | a typed command expands, before it reaches the model | **yes** | — | |
 | `PermissionRequest` | a call needs a permission decision | **yes** | — | |
@@ -919,7 +923,13 @@ does not publish, so nine events have no stated blocking behaviour. Writing *no*
 the documentation does not support.
 
 **Two mechanics, measured rather than assumed.** A `matcher` scopes strictly to the tools it names —
-`"Bash"` never fires for `Edit` or `Write`, though those are matchable as `"Edit|Write"`. And
+`"Bash"` never fires for `Edit` or `Write`, though those are matchable as `"Edit|Write"`. **Strictly is
+the load-bearing word, and #319 measured how strict: the match is ANCHORED, not a substring search.**
+A matcher `"rit"` did not fire for `Write` (control: `"Write"` fired on the identical call), and
+`"Edit|Write"` did not fire for `NotebookEdit` — which is a real, deferred, file-writing tool in this
+build, and it mutated a file inside a git working tree with the guard registered and silent. So a
+matcher is an ENUMERATION and inherits every risk an enumeration has; `orchestrator-write-guard` names
+four tools, and its suite asserts the registration so narrowing it goes red rather than quiet. And
 `SessionStart`'s injected context reaches the main session but **not a subagent dispatched later**, which
 is how a persona ends up running against a brief the session already knows is stale.
 
@@ -951,6 +961,28 @@ only loop state, and it never blocks — `additionalContext` only, debounced to 
 session via a marker file under the checkout's own `.git/` — see
 `hooks/scripts/zombie-loop-detect.sh` for the full design record and what it deliberately cannot catch.
 
+`orchestrator-write-guard` and `orchestrator-tool-census` are one pair, and the split between them is
+the whole decision (#319). **The guard denies exactly one class**: a file-writing call whose
+`agent_type` is empty — the main agent — resolving to a path inside a **git working tree**. It is a
+routing rule, not a floor rule: the identical edit goes through the moment it is made by the persona
+that owns it (`developer`, `content-writer`, `agents-lead`), and any non-empty `agent_type` passes
+untouched, deliberately broader than an allowlist because a deny that caught the builder would stop
+the loop dead. The polarity is *deny by scope*, never *allow-list the exempt paths*: the session
+scratchpad — where PR bodies and verdict text are composed for `--body-file` — is exempt because it
+holds no repository, not because it is named, which keeps the rule correct when the harness moves its
+temp root. **The census gates nothing and cannot**: a `Stop` hook fires after the work happened. It
+reports the main agent's own tool calls as a named list, write/post separated from reads, `Bash`
+classified by the act it ran (`gh issue comment` is a post; `gh issue view` is a read) so the posting
+class is not empty by construction. Two costs, handled rather than inherited: it counts **attempts** —
+a denied call still appears, and the notice says so every time — and it would otherwise fire every
+turn, so only the write/post class can trigger it and only after three more such calls since the last
+notice in that session. **What is deliberately NOT mechanised, and must read as a decision rather than
+an omission:** reads, `gh issue create`, and the `gh pr comment` / `gh issue comment` routes rule 5e
+allows the orchestrator. A hook sees `grep` and a path, never whether the answer was already in a
+subagent's return; and denying the comment routes would leave an intake finding with no durable
+artifact, since at intake there is frequently no PR and `product-lead` holds no `Write` at all. That
+half is a **habit**, observed by the census and enforced by nobody.
+
 **There used to be a fifth hook here, `session-scratch`, sweeping a repo-root `.scratch/` directory —
 retired at #245.** It existed to guarantee nothing survived into a new session, on the belief that a
 repo-side scratch directory needed its own cleanup because nothing else would ever provide one. Scratch
@@ -970,7 +1002,7 @@ by hand:
 | **Skills** | yes — **14** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **7 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`) | dispatched by name via `Task` |
-| **Hooks** | yes — **`hooks.json` registers 7** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`) — automatic, no invocation |
+| **Hooks** | yes — **`hooks.json` registers 9** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `orchestrator-write-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`) — automatic, no invocation |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
 | LSP servers | **no** | — | no `.lsp.json` |
