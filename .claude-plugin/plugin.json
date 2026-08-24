@@ -1,7 +1,7 @@
 {
   "name": "tadeumendonca-skills",
   "description": "A Claude Code harness: 7 subagent personas — two leads that disagree by design (product-and-market, tech) and consolidate one demand, one fullstack developer, a content pair that argues against one shared ruler at most twice (a content-writer that drafts published prose in the owner's voice and a content-reviewer that may block only on a clause it can quote, both contained the same way as product-lead — neither posts to a public surface directly), one gatekeeper (a quality-assurance that holds the merge gate and reviews both technical delivery and whether the change can break production), and an agents-lead that stress-tests proposed changes to the harness itself and, per ADR-0002, may implement the harness changes it reviews (never merging, never gating an MR) — PreToolUse hooks that mechanically deny the irreversible floor (force-push, terraform apply, rm -rf, secret writes), and 14 generic skills for AWS infrastructure, React/Vite frontends and CI/CD (<project>/<apex-domain> placeholders).",
-  "version": "1.1.24",
+  "version": "1.1.25",
   "author": {
     "name": "Luiz Tadeu Mendonça"
   },
