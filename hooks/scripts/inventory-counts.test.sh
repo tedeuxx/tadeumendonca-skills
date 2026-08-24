@@ -3187,7 +3187,7 @@ fi
 # worth closing and this is still a strict improvement on max(live).
 # It costs one line per new record, and forgetting to bump it fails CLOSED: the ceiling check below
 # goes red and says what to do.
-ADR_HIGH_WATER=20
+ADR_HIGH_WATER=21
 
 adr_live_count=0
 adr_max=0
@@ -3388,10 +3388,12 @@ fi
 #
 # WHAT THE FIELD IS FOR. #283 reconciles this library from twenty records into a small number of
 # CAPABILITY DOCUMENTS — the count is NOT written here, deliberately, because the set is published in
-# docs/adr/README.md and read from there below. An earlier revision of this comment said "seven" and
-# the set is now six; a comment carrying a copy of a number the same file derives two hundred lines
-# later is the second-source-of-truth failure this whole arm exists to gate against, committed in the
-# gate. `Capability` is the field that says which document a record belongs to — so "this slice
+# docs/adr/README.md and read from there below. ~~An earlier revision of this comment said "seven" and
+# the set is now six~~ — and the correction earned its own correction at #313, which is the better
+# demonstration: the set grew again (`harness-blueprint`, ADR-0021), so the replacement number was
+# stale within days of being written to argue against stale numbers. NO COUNT IS WRITTEN HERE NOW. A
+# comment carrying a copy of a number the same file derives two hundred lines later is the
+# second-source-of-truth failure this whole arm exists to gate against, committed in the gate. `Capability` is the field that says which document a record belongs to — so "this slice
 # closes capability X" is auditable from the tree rather than asserted in a PR body, and so a
 # twenty-first record has to answer "which capability?" before it can exist. It is declared as a bullet
 # in the record's own header list, immediately above `- **Status:**`, which is the one header line
@@ -3538,6 +3540,357 @@ elif [ -n "$cap_unknown" ]; then
       behind the rule makes disagreeing with a name look like disagreeing with the owner.)"
 else
   ok "record capability — all $cap_names_checked declared capabilities are in the closed set of $cap_set_distinct"
+fi
+
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+# THE BLUEPRINT REGISTRY (#313) — BOTH DIRECTIONS, AND ONE HALF OF ONE COLUMN.
+#
+# WHAT THE REGISTRY IS. `docs/blueprint-registry.md` is an AUTHORED file describing this harness's
+# obligations as BEHAVIOURS — a row may span two rules of one file, several files, or none at all, and
+# one file may carry two rows. It is the artifact; `/blueprint` (unbuilt) is a projection over it.
+# Generation never writes it. The reason is ADR-0021's, in one line: a generator that can ASSIGN an id
+# can REASSIGN one, and the id is what a consuming project cites when it says "we implement 0003
+# differently". So the tree does not produce the table — these arms check that the table and the tree
+# still agree.
+#
+# WHAT THESE ARMS PROVABLY CANNOT HOLD, SAID BEFORE THE FIRST ASSERTION SO NO GREEN IS OVER-READ.
+# `propósito`, `descrição` and the reasoning inside `o que faz` are UNFALSIFIABLE by any instrument in
+# this repository. A row whose purpose went stale months ago passes every check below. The registry's
+# own body says so above its first row, and ADR-0021 records it as an accepted cost — this comment is
+# the third statement of it deliberately, because it is the one a person editing the gate reads.
+#
+# THE ONE GATEABLE HALF IS `citação` (arm 7): the carrier's OWN words about its OWN limit, asserted to
+# appear verbatim in the carrier. A quote is greppable; a paraphrase is not. It does NOT assert that
+# the quote is the RELEVANT limit, or that `o que não faz` is a fair reading of it.
+#
+# WHY THE COVERAGE DECLARATION IS GATED IN BOTH DIRECTIONS (arm 6). The registry declares, per element
+# class, whether it claims completeness. A class declared `complete` with an unclaimed element reddens
+# — that is the obvious direction. A class declared `partial` with NOTHING left unclaimed reddens too,
+# and that is the direction worth having: an under-claiming declaration is exactly as misleading as an
+# over-claiming one, and it is the one that would otherwise go stale in silence, since finishing the
+# last row of a class is precisely when nobody thinks to edit a table three hundred lines above it.
+#
+# THE CHAINING RULE APPLIES HERE AS EVERYWHERE (see this file's header): each assertion gets its own
+# `if`, and each repeats its own vacuity guard rather than borrowing the neighbour's.
+
+BP_REG="$ROOT/docs/blueprint-registry.md"
+
+# THE DECLARED CEILING, AND WHY IT IS A CONSTANT HERE RATHER THAN max(live) — the same argument the
+# record-numbering block above makes, for the same failure: derive the ceiling from the rows that exist
+# and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
+# frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
+# forgetting to fails CLOSED at arm 3b.
+BP_HIGH_WATER=33
+
+# The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
+# a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
+BP_TIPOS="refusal review record knowledge routing"
+
+# The seven fields every row carries. `nome` is not among them: it lives in the row's heading beside
+# the id, and the heading is what the parse keys on.
+BP_KEYS='tipo
+carrier
+descrição
+propósito
+o que faz
+o que não faz
+citação'
+
+# id<TAB>key<TAB>value, one line per field, ids taken from the `### NNNN · <nome>` headings. A field
+# bullet outside any row block is dropped rather than attributed to the previous row.
+bp_rows="$(awk '
+  /^### [0-9][0-9][0-9][0-9] · / { id = substr($0, 5, 4); next }
+  /^## /                         { id = ""; next }
+  /^- \*\*[^*]+:\*\* /           {
+      if (id == "") next
+      line = $0
+      sub(/^- \*\*/, "", line)
+      k = line; sub(/:\*\*.*$/, "", k)
+      v = line; sub(/^[^*]*:\*\* */, "", v)
+      print id "\t" k "\t" v
+  }
+' "$BP_REG" 2>/dev/null || true)"
+
+bp_ids="$(printf '%s\n' "$bp_rows" | awk -F'\t' 'NF==3 {print $1}' | sort -u | grep . || true)"
+bp_row_count="$(printf '%s\n' "$bp_ids" | grep -c . || true)"
+
+bp_field() { printf '%s\n' "$bp_rows" | awk -F'\t' -v i="$1" -v k="$2" '$1 == i && $2 == k {print $3}'; }
+
+# ── 1 · every row carries exactly one of each of the seven fields ──
+bp_field_problems=""
+for bp_id in $bp_ids; do
+  while IFS= read -r bp_key; do
+    [ -z "$bp_key" ] && continue
+    bp_n="$(bp_field "$bp_id" "$bp_key" | grep -c . || true)"
+    [ "$bp_n" -eq 1 ] && continue
+    bp_field_problems="$bp_field_problems
+    $bp_id — field '$bp_key' appears $bp_n time(s), not 1"
+  done <<< "$BP_KEYS"
+done
+
+if [ "$bp_row_count" -eq 0 ]; then
+  bad "blueprint registry — NOT ONE row was parsed out of docs/blueprint-registry.md, and there were 33
+      when this was written. Either the file left the repo — in which case delete this whole block in
+      the same commit — or the '### NNNN · <nome>' heading form changed and every arm below is vacuous."
+elif [ -n "$bp_field_problems" ]; then
+  bad "blueprint registry — a row does not carry the seven fields exactly once:$bp_field_problems
+      The labels are a parsing contract, not a heading style: tipo, carrier, descrição, propósito,
+      'o que faz', 'o que não faz', citação — each written as '- **<label>:** <value>'."
+else
+  ok "blueprint registry — all $bp_row_count rows carry the seven fields exactly once"
+fi
+
+# ── 2 · every declared tipo is in the closed set ──
+bp_tipo_problems=""
+for bp_id in $bp_ids; do
+  bp_tipo="$(bp_field "$bp_id" tipo | head -1)"
+  case " $BP_TIPOS " in
+    *" $bp_tipo "*) continue ;;
+  esac
+  bp_tipo_problems="$bp_tipo_problems
+    $bp_id — tipo '$bp_tipo' is not one of: $BP_TIPOS"
+done
+
+if [ "$bp_row_count" -eq 0 ]; then
+  bad "blueprint registry — the tipo set could not be tested: no row was parsed at all. Arm 1 says what
+      broke; with nothing to classify, a naive form of this arm reports success over an empty scan."
+elif [ -n "$bp_tipo_problems" ]; then
+  bad "blueprint registry — a row declares a tipo outside the closed set:$bp_tipo_problems
+      The set is closed and it THROWS. A behaviour that needs a sixth value is a visible widening of a
+      published list — decided, in the same diff, and argued on more than one row that rubbed against
+      it (ADR-0021 records the one strain known at authoring: two builder rows filed as routing)."
+else
+  ok "blueprint registry — all $bp_row_count rows declare a tipo in the closed set of 5"
+fi
+
+# ── 3a · every issued id is a live row or exactly one tombstone row ──
+#
+# Same shape, and deliberately the same shape, as the record-numbering block above: a number leaves the
+# registry only as a disposition, never as an absence. The tombstone table may legitimately be EMPTY —
+# nothing has been abandoned yet — which is why the scan looks for a row only when a number has no
+# live row to account for it.
+bp_tomb_rows=""
+if [ -r "$BP_REG" ]; then
+  bp_tomb_rows="$(awk '/^## History/{h=1;next} /^## /{h=0} h' "$BP_REG")"
+fi
+
+bp_max=0
+for bp_id in $bp_ids; do
+  bp_n=$((10#$bp_id))
+  [ "$bp_n" -gt "$bp_max" ] && bp_max=$bp_n
+done
+
+bp_ceiling_scanned="$BP_HIGH_WATER"
+[ "$bp_max" -gt "$bp_ceiling_scanned" ] && bp_ceiling_scanned="$bp_max"
+
+bp_gap_problems=""
+bp_n=1
+while [ "$bp_n" -le "$bp_ceiling_scanned" ]; do
+  bp_padded="$(printf '%04d' "$bp_n")"
+  if printf '%s\n' "$bp_ids" | grep -qx "$bp_padded"; then
+    bp_n=$((bp_n + 1))
+    continue
+  fi
+  bp_rowcount="$(printf '%s\n' "$bp_tomb_rows" | grep -cE "^\| *$bp_padded *\|" || true)"
+  bp_row="$(printf '%s\n' "$bp_tomb_rows" | grep -E "^\| *$bp_padded *\|" || true)"
+  bp_fields="$(printf '%s' "$bp_row" | awk -F'|' '{print NF}')"
+  if [ -z "$bp_row" ]; then
+    bp_gap_problems="$bp_gap_problems
+    $bp_padded — no live row, and no '| $bp_padded |' row under '## History' in the registry"
+  elif [ "${bp_rowcount:-0}" -ne 1 ]; then
+    bp_gap_problems="$bp_gap_problems
+    $bp_padded — has $bp_rowcount tombstone rows, not 1. An abandoned id has exactly one disposition"
+  elif [ "${bp_fields:-0}" -ne 5 ]; then
+    bp_gap_problems="$bp_gap_problems
+    $bp_padded — tombstone row has $bp_fields '|'-separated fields, not the 5 a three-column row
+    produces; its columns cannot be read at all"
+  elif [ -z "$(printf '%s' "$bp_row" | awk -F'|' '{print $3}' | tr -d '[:space:]')" ] \
+    || [ -z "$(printf '%s' "$bp_row" | awk -F'|' '{print $4}' | tr -d '[:space:]')" ]; then
+    bp_gap_problems="$bp_gap_problems
+    $bp_padded — tombstone row has an empty column. A row must say what the id obliged AND why the
+    obligation was abandoned; without the second, an abandonment is indistinguishable from a mistake"
+  fi
+  bp_n=$((bp_n + 1))
+done
+
+# The reverse direction: a tombstone for an id that is still live.
+while IFS= read -r bp_trow; do
+  [ -z "$bp_trow" ] && continue
+  bp_tn="$(printf '%s' "$bp_trow" | sed -n 's/^| *\([0-9][0-9][0-9][0-9]\) *|.*/\1/p')"
+  [ -z "$bp_tn" ] && continue
+  printf '%s\n' "$bp_ids" | grep -qx "$bp_tn" || continue
+  bp_gap_problems="$bp_gap_problems
+    $bp_tn — has a tombstone row AND a live row; one of the two is wrong"
+done <<< "$bp_tomb_rows"
+
+if [ "$bp_row_count" -eq 0 ]; then
+  bad "blueprint registry — id accounting is uncomputable: no row was parsed at all (arm 1)."
+elif [ -n "$bp_gap_problems" ]; then
+  bad "blueprint registry — an id the registry issued is accounted for by nothing:$bp_gap_problems
+      An id leaves the registry ONLY as a tombstone, never as an absence. A rename changes nome; a
+      consolidation changes carrier; NEITHER changes the id and neither produces a tombstone. Only an
+      abandoned obligation does."
+else
+  ok "blueprint registry — $bp_row_count live rows, ceiling $bp_ceiling_scanned, every issued id accounted for"
+fi
+
+# ── 3b · the declared ceiling is current ──
+if [ "$bp_row_count" -eq 0 ]; then
+  bad "blueprint registry — the declared ceiling cannot be judged: no row was parsed at all (arm 1),
+      so BP_HIGH_WATER has nothing to be compared against."
+elif [ "$bp_max" -gt "$BP_HIGH_WATER" ]; then
+  bad "blueprint registry — the highest live id is $bp_max but BP_HIGH_WATER is $BP_HIGH_WATER. A row
+      was added without raising the ceiling. Raise it in this file, in the same commit as the row;
+      until then an abandonment at the top of the sequence is invisible here."
+else
+  ok "blueprint registry — the declared ceiling $BP_HIGH_WATER is at or above the highest live id $bp_max"
+fi
+
+# ── 4 · every carrier resolves ──
+#
+# A carrier is one or more backticked repo-relative paths, or the literal `none` (a behaviour no file
+# carries — the format's own answer to "absent is a value, never a missing row") or `retired`.
+bp_carrier_problems=""
+bp_carriers_checked=0
+bp_claimed=""
+for bp_id in $bp_ids; do
+  bp_cval="$(bp_field "$bp_id" carrier | head -1)"
+  case "$bp_cval" in
+    none|retired) bp_carriers_checked=$((bp_carriers_checked + 1)); continue ;;
+  esac
+  bp_paths="$(printf '%s' "$bp_cval" | grep -oE '`[^`]+`' | tr -d '`' || true)"
+  if [ -z "$bp_paths" ]; then
+    bp_carrier_problems="$bp_carrier_problems
+    $bp_id — carrier names no backticked path and is neither 'none' nor 'retired'"
+    continue
+  fi
+  while IFS= read -r bp_path; do
+    [ -z "$bp_path" ] && continue
+    bp_carriers_checked=$((bp_carriers_checked + 1))
+    bp_claimed="$bp_claimed
+$bp_path"
+    [ -e "$ROOT/$bp_path" ] && continue
+    bp_carrier_problems="$bp_carrier_problems
+    $bp_id — carrier '$bp_path' does not exist"
+  done <<< "$bp_paths"
+done
+
+if [ "$bp_row_count" -eq 0 ]; then
+  bad "blueprint registry — carrier resolution is vacuous: no row was parsed at all (arm 1)."
+elif [ "$bp_carriers_checked" -eq 0 ]; then
+  bad "blueprint registry — not ONE carrier value was extracted across $bp_row_count rows. The backtick
+      form changed, or the field label did, and this assertion checked nothing."
+elif [ -n "$bp_carrier_problems" ]; then
+  bad "blueprint registry — a carrier does not resolve:$bp_carrier_problems
+      A row describes something that exists, or it says 'none' (no file carries this behaviour) or
+      'retired'. A carrier pointing at a deleted file is a row describing a harness nobody runs."
+else
+  ok "blueprint registry — all $bp_carriers_checked carrier value(s) resolve to a file, 'none' or 'retired'"
+fi
+
+# ── 5 · the reverse direction, per declared class ──
+bp_cov="$(awk '/^## Coverage/{c=1;next} /^## /{c=0} c' "$BP_REG" 2>/dev/null \
+  | sed -n 's/^| *`\([a-z][a-z-]*\)` *|[^|]*| *\([a-z]*\) *|.*/\1 \2/p' || true)"
+bp_cov_count="$(printf '%s\n' "$bp_cov" | grep -c . || true)"
+
+bp_elements_for() {
+  case "$1" in
+    persona) find "$ROOT/agents" -maxdepth 1 -name '*.md' -type f | sed "s|^$ROOT/||" ;;
+    command) find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | sed "s|^$ROOT/||" ;;
+    hook)    jq -r '.hooks | to_entries[] | .value[] | .hooks[] | .command' "$ROOT/hooks/hooks.json" 2>/dev/null \
+               | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort -u ;;
+    skill)   jq -r '.skills[]?' "$ROOT/.claude-plugin/plugin.json" 2>/dev/null \
+               | sed 's|^\./||; s|$|/SKILL.md|' ;;
+  esac
+}
+
+bp_cov_problems=""
+bp_cov_elements=0
+while IFS=' ' read -r bp_class bp_claim; do
+  [ -z "$bp_class" ] && continue
+  bp_unclaimed=""
+  while IFS= read -r bp_el; do
+    [ -z "$bp_el" ] && continue
+    bp_cov_elements=$((bp_cov_elements + 1))
+    printf '%s\n' "$bp_claimed" | grep -qxF "$bp_el" && continue
+    bp_unclaimed="$bp_unclaimed $bp_el"
+  done <<< "$(bp_elements_for "$bp_class")"
+  case "$bp_claim" in
+    complete)
+      [ -z "$bp_unclaimed" ] && continue
+      bp_cov_problems="$bp_cov_problems
+    $bp_class — declared complete, but no row claims:$bp_unclaimed" ;;
+    partial)
+      [ -n "$bp_unclaimed" ] && continue
+      bp_cov_problems="$bp_cov_problems
+    $bp_class — declared partial, but every element is claimed. Declare it complete: an under-claiming
+    declaration is exactly as misleading as an over-claiming one, and it is the one that goes stale in
+    silence, because finishing a class's last row is when nobody thinks to edit the coverage table" ;;
+    *)
+      bp_cov_problems="$bp_cov_problems
+    $bp_class — claim '$bp_claim' is neither 'complete' nor 'partial'" ;;
+  esac
+done <<< "$bp_cov"
+
+if [ "$bp_cov_count" -eq 0 ]; then
+  bad "blueprint registry — the coverage table under '## Coverage' is empty or unparsed, so the reverse
+      direction never ran. Without it, a mechanism added to the tree and described nowhere is invisible."
+elif [ "$bp_cov_elements" -eq 0 ]; then
+  bad "blueprint registry — the coverage table parsed $bp_cov_count class(es) and NOT ONE element was
+      enumerated from the tree. Every class would 'pass' for the same reason, which is a fact about the
+      enumeration and not about the registry."
+elif [ -n "$bp_cov_problems" ]; then
+  bad "blueprint registry — the coverage declaration and the tree disagree:$bp_cov_problems"
+else
+  ok "blueprint registry — coverage holds in both directions across $bp_cov_count class(es), $bp_cov_elements element(s) enumerated"
+fi
+
+# ── 6 · every citação appears verbatim in one of the row's carriers ──
+#
+# THE ONLY ARM HERE THAT TOUCHES THE CONTENT COLUMNS AT ALL, and it touches one half of one of them.
+# The value is either the literal 'no limit stated in the source' — a FINDING about the element, not a
+# filled cell — or a quote, from which the span between the first and last double quote is taken and
+# grepped, literally, in the carriers.
+bp_quote_problems=""
+bp_quotes_checked=0
+bp_unquoted=0
+for bp_id in $bp_ids; do
+  bp_cit="$(bp_field "$bp_id" citação | head -1)"
+  case "$bp_cit" in
+    *"no limit stated in the source"*) bp_unquoted=$((bp_unquoted + 1)); continue ;;
+  esac
+  bp_q="$(printf '%s' "$bp_cit" | sed -n 's/^[^"]*"\(.*\)"[^"]*$/\1/p')"
+  if [ -z "$bp_q" ]; then
+    bp_quote_problems="$bp_quote_problems
+    $bp_id — citação is neither a double-quoted span nor 'no limit stated in the source'"
+    continue
+  fi
+  bp_quotes_checked=$((bp_quotes_checked + 1))
+  bp_hit=0
+  bp_cval="$(bp_field "$bp_id" carrier | head -1)"
+  while IFS= read -r bp_path; do
+    [ -z "$bp_path" ] && continue
+    [ -r "$ROOT/$bp_path" ] || continue
+    grep -qF -- "$bp_q" "$ROOT/$bp_path" && bp_hit=1
+  done <<< "$(printf '%s' "$bp_cval" | grep -oE '`[^`]+`' | tr -d '`' || true)"
+  [ "$bp_hit" -eq 1 ] && continue
+  bp_quote_problems="$bp_quote_problems
+    $bp_id — citação does not appear verbatim in any of its carriers: $bp_q"
+done
+
+if [ "$bp_row_count" -eq 0 ]; then
+  bad "blueprint registry — citação verification is vacuous: no row was parsed at all (arm 1)."
+elif [ "$bp_quotes_checked" -eq 0 ]; then
+  bad "blueprint registry — NOT ONE citação was extracted as a quote across $bp_row_count rows. Either
+      every row now reads 'no limit stated in the source' — which is a finding of its own — or the
+      quoting form changed and the one gateable half of the content columns checks nothing."
+elif [ -n "$bp_quote_problems" ]; then
+  bad "blueprint registry — a citação does not appear in its carrier:$bp_quote_problems
+      The cell quotes the carrier's OWN words about its own limit. A quote is greppable and a
+      paraphrase is not, which is the entire reason this is the one content column with a gate."
+else
+  ok "blueprint registry — all $bp_quotes_checked citação(s) appear verbatim in a carrier; $bp_unquoted row(s) state no limit in their source"
 fi
 
 
