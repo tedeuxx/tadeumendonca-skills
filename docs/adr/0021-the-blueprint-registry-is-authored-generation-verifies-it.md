@@ -25,9 +25,17 @@ answer what the blueprint needs, because the thing a foreign reader must be able
 - *one demand is closed by two leads that disagree* is **two files at once**.
 
 A per-file field produces a file inventory with glosses. That is a real want with a real record behind
-it — `tadeumendonca-io`'s manifest publishes 17-plus rows of **identity and zero purposes**, and its own
-record deferred adding a purpose schema here — but it is a **different consumer with a different need**,
-and making the blueprint wait on it would be waiting on a sweep the blueprint does not use.
+it — `tadeumendonca-io`'s manifest publishes 17-plus rows of **identity and zero purposes**, and that
+repo's own **ADR-0043** deferred the purpose schema to here rather than rejecting it, in its own words
+(*"tadeumendonca-io"* is the consumer speaking, and *"that repo"* in the quote is this one):
+
+> Adding a description schema to the plugin so the gloss could be derived was considered and **deferred**,
+> not rejected: a hook's one-line purpose is a methodology fact and would sit legitimately in that repo.
+> It is deferred because introducing a schema there to serve one consumer's page is option 2's inversion in
+> a milder form, and because the drift it would close is small next to the drift this closes.
+
+But it is a **different consumer with a different need**, and making the blueprint wait on it would be
+waiting on a sweep the blueprint does not use.
 
 **Second: who produces the table?** The owner's constraint is that the artifact be *immutable enough to
 be effective* — a row must stay citable across versions and across harnesses. Generation from the tree
@@ -158,4 +166,7 @@ failure mode. *(The replacement edit is not in this slice — see* Consequences 
   content ruler is an acknowledged exception to.
 - [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) — the disposition
   rules and the declared-ceiling convention this registry reuses rather than reinvents.
+- [`tadeumendonca-io`'s ADR-0043](https://github.com/tedeuxx/tadeumendonca-io/blob/main/docs/adr/0043-harness-inventory-derived-from-plugin-repo.md)
+  — the foreign record whose deferral of the purpose schema is quoted in *Context & problem*, and the
+  consumer interest option 3 stays decoupled from. Its number belongs to the other library.
 - [The registry itself](../blueprint-registry.md).
