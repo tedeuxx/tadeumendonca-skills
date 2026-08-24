@@ -1757,6 +1757,74 @@ else
 fi
 
 # ---------------------------------------------------------------------------------------------------
+# THE `content` INTERVIEW'S OWNER-TAKE MARKER IS A CLOSED SET OF TWO.
+#
+# `commands/new-issue.md` step 2 interviews the owner before the two-lead dispatch and records the answer
+# — or its absence — as one of exactly two HTML-comment markers in the Issue body. The absence form is a
+# first-class outcome by design, because forcing a take means denying a capture at the worst moment, and a
+# mechanism that costs the owner a sitting is one he routes around.
+#
+# WHY A GATE AT ALL, given the marker is written into an Issue this suite never sees. It is written into
+# an Issue by a MODEL READING THIS FILE'S RULE, so what the gate can hold is the rule's own vocabulary: a
+# third spelling in the tree means the rule has two answers, and whichever the model reads last wins. That
+# is the same failure the CONTENT-REVIEW-* arm above exists for, and this arm is deliberately built on its
+# shape rather than a new one.
+#
+# WHAT IT DOES NOT HOLD, and no layer does: a model that never asks can write the not-supplied form and
+# pass. The gate reads the literal, never the conversation. `commands/new-issue.md` states that hole in
+# its own text; a green here is not evidence that an interview happened.
+#
+# SCAN SET is $CITATION_FILES — every tracked `.md`/`.sh`/`.yml`/`.yaml`/`.json`/`.py`. Wider than the two
+# files that legitimately carry the literal, on purpose: the drift this catches is a THIRD spelling
+# invented somewhere else (an agent brief, a hook message, a skill), which a scan narrowed to the file
+# that defines the set could never see.
+OT_RULE_FILE="$ROOT/commands/new-issue.md"
+
+# ── ARM A: both defined forms are PRESENT where the rule lives ─────────────────────────────────────
+# Without this, ARM B passes vacuously on a file that lost the marker block entirely — the phantom set is
+# empty when the whole rule is gone, which reads identical to a clean tree.
+if [ ! -r "$OT_RULE_FILE" ]; then
+  bad "owner-take marker — $OT_RULE_FILE is unreadable; both arms of this check did NOT run"
+else
+  ot_missing=""
+  for ot_lit in supplied not-supplied; do
+    grep -qF -- "owner-take: $ot_lit" "$OT_RULE_FILE" 2>/dev/null \
+      || ot_missing="$ot_missing $ot_lit"
+  done
+  if [ -n "$ot_missing" ]; then
+    bad "owner-take marker — a defined form is missing from commands/new-issue.md:$ot_missing
+      The set is two, and the absence form is not the fallback — it is the outcome that keeps the
+      interview from blocking a capture. A rule that names only the supplied form pushes a model to
+      record nothing when the owner is mid-something else, which is the state this marker replaced."
+  else
+    ok "owner-take marker — both defined forms (supplied, not-supplied) are present in commands/new-issue.md"
+  fi
+
+  # ── ARM B: no THIRD spelling anywhere in the tracked tree ────────────────────────────────────────
+  # The empty-set guard is not defensive noise: with no file arguments `grep` reads STDIN, so an empty
+  # scan set would not fail — it would HANG, or pass on nothing. Say so instead.
+  ot_phantom=""
+  if [ -z "${CITATION_FILES//[[:space:]]/}" ]; then
+    bad "owner-take marker — the citation scan set is EMPTY, so the closed-set arm did NOT run"
+    ot_scan_ran=0
+  else
+    ot_scan_ran=1
+    ot_phantom="$(grep -hoE 'owner-take:[[:space:]]*[a-z][a-z-]*' $CITATION_FILES 2>/dev/null \
+      | sort -u | grep -vxE 'owner-take:[[:space:]]*(supplied|not-supplied)' || true)"
+  fi
+  if [ "$ot_scan_ran" = "0" ]; then
+    :
+  elif [ -n "${ot_phantom//[[:space:]]/}" ]; then
+    bad "owner-take marker — a marker value exists that the rule does not define: $(printf '%s' "$ot_phantom" | tr '\n' ' ')
+      A third value means the closed set is not closed, and a later reader cannot tell a recorded
+      absence from an invented state. Either the set genuinely changed — change it in
+      commands/new-issue.md and here together — or this is drift."
+  else
+    ok "owner-take marker — no marker value outside the defined set of two, across every tracked .md/.sh/.yml/.yaml/.json/.py"
+  fi
+fi
+
+# ---------------------------------------------------------------------------------------------------
 # EVERY SKILL CARRIES A `description` WRITTEN TO INDEX, NOT A TITLE (#166).
 #
 # WHY THIS IS AN INVENTORY CONCERN AT ALL. Commands were merged into skills, and model-invoked loading
@@ -2772,8 +2840,10 @@ fi
 # failure is that the citation still looks valid. A narrower scope would have to justify which readers
 # deserve a dangling reference, and there is no such answer.
 #
-# THE FOREIGN LIST IS THE ONE EXEMPTION, AND IT IS THE CROSS-REPO BLIND SPOT MADE VISIBLE. Six
-# citations in this repo name records in `tadeumendonca-io`'s library, which this suite cannot open.
+# THE FOREIGN LIST IS THE ONE EXEMPTION, AND IT IS THE CROSS-REPO BLIND SPOT MADE VISIBLE. Several
+# citations in this repo name records in the consumer product's library, which this suite cannot open.
+# (The count that stood here was dropped rather than re-stamped when the list grew: it was a claim about
+# a SET, verified against its members and never against its criterion, and nothing re-runs it.)
 # They are declared by NUMBER rather than by site: a site list would be six entries drifting on every
 # re-wrap, while the number is the thing that is actually foreign. Declaring them here is what turns a
 # cross-repo citation into a deliberate, reviewable act instead of an accident that reads as local.
@@ -2799,7 +2869,7 @@ fi
 # is a citation like any other to the loop below: it would register as a sighting and keep an exemption
 # alive after its last real citing site was removed — this block defeating its own second arm from
 # inside its own documentation.
-FOREIGN_ADR_NUMBERS="0023 0043"
+FOREIGN_ADR_NUMBERS="0023 0043 0046"
 
 foreign_problems=""
 for num in $FOREIGN_ADR_NUMBERS; do
