@@ -189,8 +189,10 @@ of **four** classes:
 **`VERIFIED` is the part that needed deciding, because running a command that came out of a markdown
 file is executing shell in CI.** Three containments, all gated rather than described: the command lives
 in `docs/readme-claims.md` and **never** in `README.md`, so an edit to the front door cannot introduce
-one; a **closed allow-list of pipeline-stage heads**, which deliberately excludes `awk` and `sed`
-because a head-only allow-list containing a general-purpose language contains nothing; and a
+one; a **closed allow-list of pipeline-stage heads**, ~~which deliberately excludes `awk` and `sed`
+because a head-only allow-list containing a general-purpose language contains nothing~~ **— struck
+2026-08-24, see the amendment below: that criterion is too weak, and it is the one that admitted two
+heads that write files** — and a
 **character allow-list**, so substitution, redirection and chaining are unreachable rather than
 forbidden one at a time.
 
@@ -228,6 +230,57 @@ field, which `read` strips because TAB is an IFS whitespace character, so the ar
 columns and printed the class where the id belonged. Both are the shape this repository keeps paying
 for: **a reason that survives re-reading is not evidence**, and *failing closed with an unreadable
 message* is not the same as failing closed.
+
+### Amendment 2026-08-24 — the containment criterion was wrong, and the gate found it by executing it
+
+**The slice whose thesis is *a claim published with no falsifier beside it* shipped three sentences of
+exactly that.** The containment criterion above, the same claim in `docs/readme-claims.md`, and the
+comment above `RC_HEADS` in `hooks/scripts/inventory-counts.test.sh` all asserted a property of the
+allow-list that **nobody had tested**. It was found in review, by *running* the containment rather than
+reading it — which is precisely the instrument this record exists to install, turned on the record's own
+mechanism. **This is not an edge case that was found.** It is this ADR's defect class, committed inside
+the gate built to catch that defect class, and it is written down that way deliberately.
+
+**The escape.** `RC_HEADS` contained two heads that write files:
+
+```
+uniq README.md hooks/scripts/kiro-power.test.sh | wc -l
+```
+
+`uniq` writes its **second positional operand** — no flag, so nothing a denylist could hold, and every
+character inside the character allow-list. The gate reported *all three containments passed* and then
+overwrote another gate's test script (31614 bytes before, 109064 after), reddening only afterwards on
+the `expects` comparison. A command chosen to return the right number would have written the file and
+left the suite green. `sort` was the same defect wearing a flag (`-o`) — **and patching only the flag
+denylist would have caught `sort` and not `uniq`**, which is why the correction is to the criterion and
+not to the list.
+
+**The corrected criterion: flags AND positional operands enumerable, and every one of them read-only.**
+Not *"not a general-purpose language"* — that is a strictly weaker test and it is the one that failed.
+
+**Applying it to the remaining nine heads dropped two more, for two different reasons.** `find` was
+dropped because `-fprint0` writes and was *also* missing from the denylist, and because find's action
+set is implementation-dependent (BSD find has no `-fprint*`; GNU findutils and `bfs` do) with nothing
+pinning which binary CI runs — it was the only head whose safety rested on a denylist rather than on the
+allow-list, and it is the one that leaked. `jq` was dropped on the **operand** half rather than the write
+half: it cannot write a file, but its first positional is an expression in its own language, and
+`jq -n -r 'env.HOME'` reads the CI environment using not one character outside the allow-list, into a
+failure message that prints stdout. `grep`, `ls`, `wc`, `head`, `cat`, `tr` and `basename` pass, each
+checked against both halves; the per-head table is in
+[`docs/readme-claims.md`](../readme-claims.md), under *"The criterion a head must satisfy"*.
+
+**What now holds the criterion, since prose demonstrably did not.** Two arms, both two-sided:
+`RC_HEADS` is **pinned** (`RC_HEADS_PIN`), so adding or removing a head reddens the suite until a human
+re-applies the criterion in the same commit; and a **containment regression** feeds `rc_contain_of` the
+escapes it leaked plus the commands it must still accept, because a refusal-only table is satisfied by a
+containment that refuses everything. Neither arm can read a program's manual — **no gate can** — so what
+they buy is that the judgement is *forced and dated*, never that it is *made correctly*. That residual is
+the same shape as `propósito` and as the class marker itself, and it is stated here rather than left to
+be rediscovered.
+
+**One cost, paid rather than worked around.** Claim `0001` used `find`; its command is now
+`ls agents/*.md | wc -l`, which does not filter to regular files. A directory named `something.md` under
+`agents/` would be counted. Accepted, and recorded in the entry's own `limit`.
 
 ## Links
 

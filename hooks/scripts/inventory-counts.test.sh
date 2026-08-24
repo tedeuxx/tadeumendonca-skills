@@ -3935,16 +3935,74 @@ RC_HIGH_WATER=5
 
 RC_CLASSES="VERIFIED MEASURED DERIVED JUDGEMENT"
 
-# CONTAINMENT 2 — the closed allow-list of command heads. `awk` and `sed` are deliberately ABSENT:
-# they are general-purpose languages, so a head-only allow-list containing them would contain nothing
-# (`sed -i` writes files, `awk`'s `system()` runs anything). A head is a meaningful unit of containment
-# only for programs whose flags are enumerable.
-RC_HEADS="grep find ls jq wc sort uniq head cat tr basename"
+# CONTAINMENT 2 — the closed allow-list of command heads.
+#
+# THE CRITERION, CORRECTED (#325 gate round). This comment used to read "a head is a meaningful unit
+# of containment only for programs whose FLAGS are enumerable", and named `awk`/`sed` as the general-
+# purpose languages that fails against. That criterion was too weak in a way nothing here could see,
+# and the gate found it by EXECUTING this list rather than reading it:
+#
+#     uniq README.md hooks/scripts/kiro-power.test.sh | wc -l
+#
+# `uniq` writes its SECOND POSITIONAL OPERAND. There is no flag involved, so no denylist could hold
+# it, and every character is inside containment 3's allow-list. Arm 7 reported all three containments
+# passed and arm 8 overwrote another gate's test script — 31614 bytes before, 109064 after — reddening
+# afterwards only on the `expects` comparison. A command chosen to return the right number would have
+# written the file and left the suite green. `sort` was the same defect with a flag (`-o`).
+#
+# THE RULE IS THEREFORE: **flags AND POSITIONAL OPERANDS enumerable, and every one of them read-only.**
+# Not "not a general-purpose language" — that is a strictly weaker test, and it is the one that passed
+# `sort` and `uniq`. A head qualifies only if BOTH its option surface and its operand positions are a
+# finite, documented, read-only set.
+#
+# APPLIED TO EVERY HEAD, and four were dropped rather than patched:
+#   grep     PASS  — no option writes a file (`-f`, `--exclude-from` READ); operands are PATTERNS then
+#                    FILEs, all read. Measured against GNU grep 3.12, which is what ubuntu-latest runs.
+#   ls       PASS  — no write option; operands are paths, read.
+#   wc       PASS  — no write option; operands are files, read.
+#   head     PASS  — no write option; operands are files, read.
+#   cat      PASS  — no write option; operands are files, read.
+#   tr       PASS  — takes no file operand at all; operands are character SETs; stdin to stdout.
+#   basename PASS  — string manipulation; touches no file.
+#   sort     DROP  — `-o FILE` writes. A flag, and it was not in the denylist below.
+#   uniq     DROP  — writes its second positional operand. NO FLAG EXISTS to denylist.
+#   find     DROP  — `-fprint0 FILE` writes and was NOT in the denylist below (measured: a canary file
+#                    was replaced by a NUL-terminated path list). Its operands are read-only, so it
+#                    fails on flags alone — but the deeper reason it goes rather than gets patched is
+#                    that find's action set is IMPLEMENTATION-DEPENDENT (BSD find has no `-fprint*` at
+#                    all; GNU findutils and bfs do), and nothing pins which `find` is on PATH in CI. A
+#                    head whose enumeration is only correct against an unpinned binary is not
+#                    enumerable in the sense this criterion needs. It was the ONLY head whose safety
+#                    rested on a denylist rather than on the allow-list, and it is the one that leaked.
+#   jq       DROP  — cannot write a file (every output goes to stdout; `--rawfile`/`--slurpfile`/`-f`
+#                    all READ), so it is not the same escape class. It fails on the OPERAND half: its
+#                    first positional is an expression in jq's own language, which is exactly the
+#                    property `awk` and `sed` were excluded for. Measured: `jq -n -r 'env.HOME'` reads
+#                    the process environment and prints it, using NOT ONE character outside containment
+#                    3's allow-list — and arm 8's failure message prints the command's stdout, so a
+#                    claim authored this way puts a CI secret in the log on a deliberate mismatch.
+#
+# `awk` and `sed` remain absent for the reason they always were, now stated as a special case of the
+# corrected rule rather than as the rule itself.
+RC_HEADS="grep ls wc head cat tr basename"
 
 # CONTAINMENT 3 — a character ALLOW-list, not a metacharacter denylist, so `$`, backtick, `;`, `&`,
 # `<`, `>`, `(`, `)`, `{`, `}`, backslash and `!` are unreachable rather than forbidden one at a time.
-# Plus a token denylist for the two heads whose FLAGS are the hole the character rule cannot see.
-RC_BADTOKENS="-exec -execdir -ok -okdir -delete -fls -fprint -fprintf"
+#
+# THE TOKEN DENYLIST HAS NO LIVE CONSUMER AND IS KEPT ANYWAY, which needs saying rather than leaving
+# for someone to discover. Every token in it is a `find` action, and `find` just left RC_HEADS — so
+# nothing in the allow-list above can reach any of them today. It is retained as defence-in-depth for
+# exactly one scenario: a later slice re-adds `find`. The pin arm below forces that re-addition to be
+# deliberate; this list is what stops it being SILENTLY uncontained in the same breath. `-fprint0` is
+# added here because its absence is the second escape this round found, and leaving a known-incomplete
+# list behind as "dead anyway" is how it gets resurrected incomplete.
+#
+# `-o` IS DELIBERATELY NOT IN THIS LIST, and that is a decision rather than an oversight. It would have
+# caught `sort -o`, but `sort` is dropped, so it now guards nothing — while `grep -o` (only-matching) is
+# a legitimate, read-only flag on a head that PASSES the criterion. Adding `-o` buys no containment and
+# produces only false refusals. A denylist entry whose sole reachable effect is a false positive is
+# worse than an absent one.
+RC_BADTOKENS="-exec -execdir -ok -okdir -delete -fls -fprint -fprint0 -fprintf"
 
 # section ordinal <TAB> id <TAB> class, one line per marker found in README.md.
 rc_marks="$(awk '
@@ -4293,6 +4351,103 @@ elif [ -n "$rc_contain_problems" ]; then
       docs/readme-claims.md and never in README.md — and nothing in this arm can restore it."
 else
   ok "README claim contract — all $rc_contained VERIFIED command(s) pass all three containments"
+fi
+
+# ── 7a · THE PIN ON RC_HEADS ITSELF — two-sided ──
+#
+# Arm 7 asserts that the live claims fit the allow-list. NOTHING asserted anything about the allow-list
+# ITSELF, which is how `sort` and `uniq` sat in it from the first commit: adding a head was a one-word
+# edit with no verdict attached, and the criterion it had to satisfy lived only in a comment. This pin
+# makes the edit LOUD. It does not — and cannot — check that a head satisfies the criterion; no gate
+# can read a program's manual. What it buys is that the criterion gets RE-APPLIED BY A HUMAN, because
+# the suite goes red until the pin is updated in the same commit.
+#
+# Two-sided, and the second side is the one that would otherwise rot: a head ADDED to RC_HEADS and not
+# to the pin reddens, AND a head REMOVED from RC_HEADS while the pin still names it reddens. A one-
+# sided pin (only "everything in RC_HEADS is pinned") stays green forever after a deletion, which is
+# the failure shape this file names about high-water marks.
+RC_HEADS_PIN="basename cat grep head ls tr wc"
+
+rc_pin_problems=""
+for rc_h in $RC_HEADS; do
+  case " $RC_HEADS_PIN " in
+    *" $rc_h "*) continue ;;
+  esac
+  rc_pin_problems="$rc_pin_problems
+    '$rc_h' is in RC_HEADS and NOT in RC_HEADS_PIN — a head was added without the criterion being
+    re-applied. Read the criterion in the comment above RC_HEADS, apply it to '$rc_h' in writing, and
+    add it to the pin in the SAME commit."
+done
+for rc_h in $RC_HEADS_PIN; do
+  case " $RC_HEADS " in
+    *" $rc_h "*) continue ;;
+  esac
+  rc_pin_problems="$rc_pin_problems
+    '$rc_h' is in RC_HEADS_PIN and NOT in RC_HEADS — the pin has gone stale behind a removal."
+done
+
+if [ -z "$RC_HEADS" ] || [ -z "$RC_HEADS_PIN" ]; then
+  bad "README claim contract — the RC_HEADS pin is uncomputable: RC_HEADS or RC_HEADS_PIN is empty, so
+      both directions would pass over nothing."
+elif [ -n "$rc_pin_problems" ]; then
+  bad "README claim contract — the command-head allow-list and its pin disagree:$rc_pin_problems"
+else
+  ok "README claim contract — the command-head allow-list matches its pin in both directions ($RC_HEADS)"
+fi
+
+# ── 7b · THE CONTAINMENT REGRESSION — the refusals, and the acceptances that keep it honest ──
+#
+# THIS ARM EXISTS BECAUSE ARM 7 WAS GREEN ON AN ESCAPE. `rc_contain_of` was reasoned about and never
+# fed a hostile input, so the containment asserted a property nobody had tested — which is precisely
+# the defect class this whole block was built to gate, committed inside the gate itself.
+#
+# BOTH DIRECTIONS ARE MANDATORY. A refusal-only table is satisfied by a `rc_contain_of` that refuses
+# EVERYTHING, which would be green here and would silently stop arm 8 executing any claim at all
+# (arm 8 `continue`s past a refused command, and its own vacuity guard is the only thing that would
+# notice). The ACCEPT rows are what make the refusals mean something.
+rc_reg_problems=""
+rc_reg_checked=0
+while IFS=$'\t' read -r rc_want rc_probe; do
+  [ -z "${rc_want:-}" ] && continue
+  rc_reg_checked=$((rc_reg_checked + 1))
+  rc_verdict="$(rc_contain_of "$rc_probe")"
+  if [ "$rc_want" = "REFUSE" ] && [ -z "$rc_verdict" ]; then
+    rc_reg_problems="$rc_reg_problems
+    NOT REFUSED, and it must be: $rc_probe"
+  elif [ "$rc_want" = "ACCEPT" ] && [ -n "$rc_verdict" ]; then
+    rc_reg_problems="$rc_reg_problems
+    REFUSED, and it must not be: $rc_probe
+$rc_verdict"
+  fi
+done <<'RC_REGRESSION'
+REFUSE	uniq README.md hooks/scripts/kiro-power.test.sh | wc -l
+REFUSE	sort -o README.md docs/readme-claims.md
+REFUSE	find agents -maxdepth 1 -name *.md -fprint0 README.md
+REFUSE	jq -n -r env.HOME
+REFUSE	sed -n 1p README.md | wc -l
+REFUSE	awk END{print NR} README.md
+REFUSE	grep -delete pattern README.md
+REFUSE	cat README.md > /tmp/x
+REFUSE	ls agents | wc -l && rm -rf agents
+ACCEPT	ls agents/*.md | wc -l
+ACCEPT	grep -lF gatekeeper-verdict hooks/scripts/session-wip.sh hooks/scripts/zombie-loop-detect.sh | wc -l
+ACCEPT	grep -o pattern README.md | wc -l
+ACCEPT	cat README.md | tr -s a-z | wc -c
+RC_REGRESSION
+
+if [ "$rc_reg_checked" -lt 13 ]; then
+  bad "README claim contract — the containment regression is uncomputable: only $rc_reg_checked probe(s)
+      were read and there are 13 rows. The heredoc is TAB-separated; an editor that converted those tabs
+      to spaces empties every row's want/probe split and this arm passes over nothing."
+elif [ -n "$rc_reg_problems" ]; then
+  bad "README claim contract — the containment does not behave as published:$rc_reg_problems
+      The REFUSE rows are the escapes this containment has actually leaked or was measured to be able
+      to leak: \`uniq\` writing its second positional operand, \`sort -o\`, and \`find -fprint0\`. The
+      ACCEPT rows are the honesty half — without them a containment that refuses everything is green.
+      The \`grep -o\` row pins a DECISION: \`-o\` is deliberately absent from RC_BADTOKENS, because with
+      \`sort\` dropped it guards nothing and would only refuse a legitimate read-only grep flag."
+else
+  ok "README claim contract — containment regression: all $rc_reg_checked probes behave as published ($((rc_reg_checked - 4)) refused, 4 accepted)"
 fi
 
 # ── 8 · EXECUTION — the VERIFIED commands run, and their output is what was declared ──

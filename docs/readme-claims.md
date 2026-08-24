@@ -25,7 +25,7 @@ The rule, applied in that order:
 
 | the command reads | class |
 |---|---|
-| tracked files in this repository — `grep`, `find`, `ls`, `jq`, `wc` | `VERIFIED` |
+| tracked files in this repository — `grep`, `ls`, `wc`, `cat`, and the rest of the head allow-list below | `VERIFIED` |
 | the network — `gh issue list`, `gh pr list`, an HTTP fetch | `MEASURED` |
 | a machine CI does not have — the Kiro bundle, an AWS account, the owner's laptop | `MEASURED` |
 
@@ -43,19 +43,68 @@ being decoration:
    nothing else. This is the containment that matters most, because the README is the file most
    likely to be edited by someone who is not thinking about CI at all.
 2. **A closed allow-list of command heads.** Every stage of the pipeline must begin with one of:
-   `grep` · `find` · `ls` · `jq` · `wc` · `sort` · `uniq` · `head` · `cat` · `tr` · `basename`.
-   A head outside the set is refused before anything runs.
+   `grep` · `ls` · `wc` · `head` · `cat` · `tr` · `basename`. A head outside the set is refused
+   before anything runs. The set is itself **pinned two-sided** in the gate (`RC_HEADS_PIN`), so
+   adding a head reddens the suite until a human re-applies the criterion below in the same commit.
 3. **A character allow-list, not a metacharacter denylist.** The command must match
    `[A-Za-z0-9 ._/*'"|=:+,^#-]` end to end — so `$`, backtick, `;`, `&`, `<`, `>`, `(`, `)`, `{`, `}`,
    `\`, `!` and newline cannot appear at all. Command substitution, redirection and chaining are
-   unreachable rather than forbidden. Plus a token denylist for the two heads whose *flags* are the
-   hole: `-exec`, `-execdir`, `-ok`, `-okdir`, `-delete`, `-fls`, `-fprint`, `-fprintf`.
+   unreachable rather than forbidden. A token denylist (`-exec`, `-execdir`, `-ok`, `-okdir`,
+   `-delete`, `-fls`, `-fprint`, `-fprint0`, `-fprintf`) survives beside it with **no live consumer** —
+   every token is a `find` action and `find` is no longer an allowed head. It is kept only so that a
+   later slice re-adding `find` does not re-add it uncontained.
 
-**`awk` and `sed` are deliberately absent from the allow-list**, and their absence is the argument for
-the whole shape: they are general-purpose languages, so a head-only allow-list containing them would
-contain nothing (`sed -i` writes files, `awk`'s `system()` runs anything). A head is a meaningful unit
-of containment only for programs whose flags are enumerable, which is why rule 3 exists to cover the
-two — `find` and `grep` — where it nearly isn't.
+### The criterion a head must satisfy
+
+**Flags AND positional operands enumerable, and every one of them read-only.**
+
+**This sentence used to read differently, and the correction is the whole of what #325's gate round
+found.** The published rule was *"a head is a meaningful unit of containment only for programs whose
+**flags** are enumerable"*, with `awk` and `sed` named as the general-purpose languages it excludes and
+rule 3's token denylist described as covering *"the two — `find` and `grep` — where it nearly isn't"*.
+That is a strictly weaker test, and it is the one that let `sort` and `uniq` into the allow-list:
+
+```
+uniq README.md hooks/scripts/kiro-power.test.sh | wc -l
+```
+
+`uniq` writes its **second positional operand**. No flag is involved, so no denylist could ever have
+held it, and every character is inside rule 3's allow-list. The gate reported *all three containments
+passed* and then overwrote another gate's test script — 31614 bytes before, 109064 after — reddening
+only afterwards, on the `expects` comparison. **A command chosen to return the right number would have
+written the file and left the suite green.** `sort` was the same defect wearing a flag (`-o`).
+
+**The honest framing, because this slice's own thesis is *a claim published with no falsifier beside
+it*: the containment prose asserted a property nobody had tested, and it shipped three sentences of it.**
+The gate found it by *running* the containment — which is exactly the instrument this slice exists to
+install. It is not an edge case that was found; it is this slice's defect class, committed inside the
+mechanism built to catch that defect class.
+
+**Every remaining head was re-checked against the corrected criterion, and four were dropped:**
+
+| head | verdict | why |
+|---|---|---|
+| `grep` | **pass** | No option writes a file — `-f` and `--exclude-from` *read*. Operands are `PATTERNS` then `FILE...`, all read. Checked against GNU grep 3.12, the implementation `ubuntu-latest` runs. |
+| `ls` | **pass** | No write option; operands are paths, read. |
+| `wc` | **pass** | No write option; operands are files, read. |
+| `head` | **pass** | No write option; operands are files, read. |
+| `cat` | **pass** | No write option; operands are files, read. |
+| `tr` | **pass** | Takes no file operand at all — operands are character *sets*, stdin to stdout. |
+| `basename` | **pass** | String manipulation; touches no file. |
+| `sort` | **dropped** | `-o FILE` writes, and it was not in the token denylist. |
+| `uniq` | **dropped** | Writes its second positional operand. **No flag exists to denylist.** |
+| `find` | **dropped** | `-fprint0 FILE` writes and was *also* missing from the denylist — measured, a canary file replaced by a NUL-terminated path list. Its operands are read-only, so it fails on flags alone; but the reason it is dropped rather than patched is that find's action set is **implementation-dependent** (BSD find has no `-fprint*`; GNU findutils and `bfs` do) and nothing pins which `find` is on `PATH` in CI. It was the only head whose safety rested on a denylist rather than on the allow-list, and it is the one that leaked. |
+| `jq` | **dropped** | It cannot write a file — every output goes to stdout, and `--rawfile` / `--slurpfile` / `-f` all read — so this is not the same escape class. It fails the **operand** half: its first positional is an expression in jq's own language, which is the exact property `awk` and `sed` are excluded for. Measured: `jq -n -r 'env.HOME'` reads the process environment and prints it using **not one character outside rule 3's allow-list**, and the gate's failure message prints the command's stdout — so a claim authored that way puts a CI secret in the log on a deliberate mismatch. |
+
+**`awk` and `sed` remain absent** for the reason they always were — `sed -i` writes files, `awk`'s
+`system()` runs anything — now stated as a *special case* of the criterion above rather than as the
+criterion itself.
+
+**`-o` is deliberately NOT in the token denylist**, and that is a decision rather than an oversight.
+It would have caught `sort -o`, but `sort` is gone, so it now guards nothing — while `grep -o`
+(only-matching) is a legitimate read-only flag on a head that passes. Adding it buys no containment and
+produces only false refusals. The gate pins this decision with an `ACCEPT` row for `grep -o`, so a later
+slice adding `-o` reddens.
 
 **What the containment cannot hold**, named because this column is the most transferable thing here:
 
@@ -63,11 +112,12 @@ two — `find` and `grep` — where it nearly isn't.
   `expects`. Nothing reads the prose around the marker. A section whose sentence contradicts its own
   entry passes — the reviewer is the only instrument for that, exactly as `propósito` is unfalsifiable
   in `docs/blueprint-registry.md`.
-- **It does not bound resources.** No timeout, no output limit. `find / -name x` is refusable by rule
-  3 only because of what it *contains*, not because of what it *costs*; a slow but well-formed command
-  hangs CI and this file has no answer for it.
-- **`VERIFIED` reads the working tree, not the index.** An untracked file can change a `find` or
-  `grep -r` result, so a claim can be green locally and red in CI, or the reverse. Every command here
+- **It does not bound resources.** No timeout, no output limit. `grep -r x /` is refused by nothing
+  here — every character and its head are inside the allow-lists, and the criterion above is about
+  what a head can *write*, never about what it *costs*; a slow but well-formed command hangs CI and
+  this file has no answer for it.
+- **`VERIFIED` reads the working tree, not the index.** An untracked file can change a `grep -r` or a
+  glob result, so a claim can be green locally and red in CI, or the reverse. Every command here
   is scoped to a tracked directory to keep the window small; nothing enforces that it stays scoped.
 - **`DERIVED` asserts the arm exists, never that it is the arm that owns the claim.** A marker naming
   a real but unrelated arm passes.
@@ -115,9 +165,9 @@ text in an entry — storing it here would rebuild the coupling the ids exist to
 ## 0001 · what the repository ships, and how many personas preload from `skills/`
 
 - **class:** VERIFIED
-- **command:** `find agents -maxdepth 1 -name '*.md' -type f | wc -l`
+- **command:** `ls agents/*.md | wc -l`
 - **expects:** `7`
-- **limit:** It counts brief **files**, not personas the roster claims — a brief added and never registered anywhere still moves this number, and a persona described in prose with no file does not. It also says nothing about the section's actual assertion, which is that those briefs preload only paths under `skills/`; that half is unfalsified here.
+- **limit:** It counts brief **files**, not personas the roster claims — a brief added and never registered anywhere still moves this number, and a persona described in prose with no file does not. It also says nothing about the section's actual assertion, which is that those briefs preload only paths under `skills/`; that half is unfalsified here. The command was `find agents -maxdepth 1 -name '*.md' -type f | wc -l` until #325 dropped `find` from the head allow-list; `ls` with a glob is a slightly blunter instrument — it does not filter to regular files, so a *directory* named `something.md` under `agents/` would be counted. That is the whole of what changed, and it is accepted rather than worked around.
 
 ## 0002 · what travels to another harness, and who reads the gate's own verdict
 
