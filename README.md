@@ -1031,7 +1031,7 @@ ADR library lives at `docs/adr/`, is tracked in git, and travels with every clon
 repository reaches it by opening the directory. **Nothing loads it at runtime.** No hook in
 `hooks/hooks.json` reads it, no manifest references it, and no persona's `skills:` frontmatter names a
 `docs/` path — the seven personas above preload only files under `skills/`
-(`find agents -maxdepth 1 -name '*.md' -type f | wc -l` → **7**; claim `0001`). An agent reaches `docs/` the
+(`ls agents/*.md | wc -l` → **7**; claim `0001`). An agent reaches `docs/` the
 same way a human does: by choosing to read the path, not because the harness put it in front of them.
 That gap is why the decision records are read by *convention* (`tech-lead` writes them, the leads and the
 gate are told to consult them) rather than by *mechanism* — nothing here forces the read the way

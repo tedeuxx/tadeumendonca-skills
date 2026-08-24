@@ -112,6 +112,17 @@ slice adding `-o` reddens.
   `expects`. Nothing reads the prose around the marker. A section whose sentence contradicts its own
   entry passes — the reviewer is the only instrument for that, exactly as `propósito` is unfalsifiable
   in `docs/blueprint-registry.md`.
+
+  **This limit was paid on the very PR that wrote it down, within the hour — and the record is worth
+  more than the fix.** #325 changed claim `0001`'s command in this file (`find …` → `ls agents/*.md |
+  wc -l`, when `find` left the head allow-list) and left `README.md` publishing the superseded string
+  as that claim's live falsifier. **Both commands return `7`**, so the gate was green and correct:
+  it binds a command to a number, and the number never moved. What was false was the **attribution** —
+  the README handed a reader a falsifier this registry declares superseded, one line below a *Related*
+  entry telling them to read this file before trusting a number. **The mechanism behaved exactly as
+  documented; the documented blindness cost a review round on its own PR.** That is the strongest
+  evidence available that this limit is real and correctly stated, and it belongs here rather than in
+  a PR body nobody re-reads. A reviewer caught it. Nothing else could have.
 - **It does not bound resources.** No timeout, no output limit. `grep -r x /` is refused by nothing
   here — every character and its head are inside the allow-lists, and the criterion above is about
   what a head can *write*, never about what it *costs*; a slow but well-formed command hangs CI and
