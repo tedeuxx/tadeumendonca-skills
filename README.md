@@ -55,6 +55,8 @@ visible end to end, which is also why its scope is the honest bound on the libra
 
 ## The problem
 
+<!-- claim id=0005 class=JUDGEMENT -->
+
 Agentic development produces plausible work fast. The bottleneck moves: it is no longer *writing* the
 code, it is *trusting* it. And "trust" defaults to a human reading every diff, which puts the human
 back on the critical path the agent was supposed to clear.
@@ -427,6 +429,8 @@ reviewer that freely re-grades another lens's findings recreates the reconciliat
 was built to avoid.
 
 ## The skill library, whose domain each skill is, and what is actually preloaded
+
+<!-- claim id=0004 class=DERIVED -->
 
 **Skills carry the conventions so the model does not re-invent them.** **14 skills + autonomy-on**,
 `autonomy-off` and `new-issue`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
@@ -992,6 +996,8 @@ gone rather than adapted.
 
 ## What this repo ships — the platform's own resource taxonomy
 
+<!-- claim id=0001 class=VERIFIED -->
+
 A Claude Code plugin can export nine kinds of resource: Skills · Commands (legacy) · Agents · Hooks ·
 MCP servers · LSP servers · Monitors · Settings · Executables (`bin/`). This repo ships five of the
 nine and deliberately does not ship the other four — read straight off the tree below it, not counted
@@ -1024,7 +1030,8 @@ they are never in this repo's git history.
 ADR library lives at `docs/adr/`, is tracked in git, and travels with every clone — a human reading this
 repository reaches it by opening the directory. **Nothing loads it at runtime.** No hook in
 `hooks/hooks.json` reads it, no manifest references it, and no persona's `skills:` frontmatter names a
-`docs/` path — the six personas above preload only files under `skills/`. An agent reaches `docs/` the
+`docs/` path — the seven personas above preload only files under `skills/`
+(`ls agents/*.md | wc -l` → **7**; claim `0001`). An agent reaches `docs/` the
 same way a human does: by choosing to read the path, not because the harness put it in front of them.
 That gap is why the decision records are read by *convention* (`tech-lead` writes them, the leads and the
 gate are told to consult them) rather than by *mechanism* — nothing here forces the read the way
@@ -1161,6 +1168,8 @@ floor lives [above](#the-engineering-floor-the-whole-library-encodes) rather tha
 a floor behind a click is a floor nobody reads.
 
 ## Run it in Kiro — the Power export, and what that format cannot carry
+
+<!-- claim id=0003 class=MEASURED -->
 
 **The same repository is also a [Kiro](https://kiro.dev) Power**, installable through Kiro's own native
 path with no manual copying. In Kiro: **Powers** → **Add Custom Power** → **Import power from GitHub**,
@@ -1399,6 +1408,8 @@ version before relying on it** — that advice is the part of this caveat that d
 
 ## What travels if this design moves to another harness
 
+<!-- claim id=0002 class=VERIFIED -->
+
 This repository is the **Claude Code** implementation. Nothing about the *design* it implements is
 specific to Claude Code — the author's CV calls the discipline **AI-DLC & Agent Harness Engineering**,
 named that way because it is meant to be run with Claude Code **and** Kiro, or reimplemented against a
@@ -1443,9 +1454,17 @@ the next reviewer has to rediscover.
   than nodded through by one
 - **the production lens's `n/a` is enforced by phrasing, not by a check** — nothing catches a verdict
   that names axes it did not really examine
-- **the gate's own verdict is read by nobody** — see the note on the merged gatekeeper
-  [above](#what-the-model-buys-and-what-it-costs): the posting rule is self-enforced, and the artifact
-  closes omission without buying confirmation
+- **the gate's own verdict is read by two hooks and by no second gatekeeper** — `session-wip.sh` at
+  session start and `zombie-loop-detect.sh` at the end of every turn both match the marker, so an
+  outstanding verdict surfaces mechanically (`grep -lF gatekeeper-verdict hooks/scripts/session-wip.sh
+  hooks/scripts/zombie-loop-detect.sh | wc -l` → **2**; claim `0002`). What stays weak is the direction
+  neither hook can read: see the note on the merged gatekeeper
+  [above](#what-the-model-buys-and-what-it-costs) — the posting rule is self-enforced, so a marker that
+  was never posted is indistinguishable from a review that was never dispatched, and the artifact
+  closes omission without buying confirmation. ~~*read by nobody*~~ — **struck 2026-08-24**: it was
+  written before `zombie-loop-detect.sh` existed and stayed on the page after it landed, with every
+  gate green. It is the claim that motivated this contract, and it is left visible rather than
+  overwritten because the drift, not the sentence, is the finding
 - **a roster assertion written as a COUNT cannot see a substitution.** Swapping one persona for another
   holds the count constant, so a count-based check stays green through exactly the change it exists to
   catch — silently, which is worse than absent, because a green check reads as evidence. Assert
@@ -1489,6 +1508,10 @@ the React/Vite conventions are one context's answers. **Take the pattern, not th
 
 ## Related
 
+- **[`docs/readme-claims.md`](./docs/readme-claims.md)** — the claim registry. Some sections of this
+  file carry an invisible `<!-- claim id=NNNN class=… -->` marker; the registry says what would prove
+  that section wrong, and `hooks/scripts/inventory-counts.test.sh` runs the `VERIFIED` ones. Read it
+  before trusting a number here, and read its *containment* section before adding one.
 - **[tadeumendonca-io](https://github.com/tedeuxx/tadeumendonca-io)** — the site this plugin is
   consumed by, and the worked example of the loop. Its `docs/adr/` is the decision library.
 - [tadeumendonca.io/en/architecture](https://tadeumendonca.io/en/architecture) — the three pillars,
