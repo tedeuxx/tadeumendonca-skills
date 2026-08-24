@@ -59,7 +59,7 @@ turned out to encode route-vs-anchor by design.
 **Scope: `content` only.** A `product` or `loop` ask skips this step entirely and goes straight to the
 two-lead dispatch below. Nothing in it changes those two intakes.
 
-**Why it sits before the dispatch and not after it.** In the consuming product repo, `#503`'s body ends in a section
+**Why it sits before the dispatch and not after it.** In the consuming product repo, `#503`'s body carries a section
 headed, literally, *"The one line for the owner"* — **two full lead dispatches were spent producing one
 question**, and the question was for the person who had the answer before either agent started. Asking it
 first collapses that: the leads then reconcile against a stated take instead of reconstructing one.
@@ -68,8 +68,11 @@ first collapses that: the leads then reconcile against a stated take instead of 
 
 > **What does this claim, and what do you want to say back?**
 
-It is the empirically right one because it is the sentence #503 reduced *itself* to, after both lenses had
-run.
+Its **first clause** is the one `#503`'s own one line opens on — *"What does this video claim about how
+forward-deployed engineering is done…"* — reached only after both lenses had run. **The second half is not
+`#503`'s wording.** That Issue's one line is a three-way question, and the two clauses following its first
+are the leads reconstructing a position the owner already held; *"what do you want to say back"* is the
+generalisation of what that reconstruction was for, asked of him directly instead.
 
 **Then follow-ups — one at a time, and only while he is still answering.** The moment he stops, stop
 asking and open the Issue.

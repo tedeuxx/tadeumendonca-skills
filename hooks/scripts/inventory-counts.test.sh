@@ -48,6 +48,31 @@
 # run this suite, and check that the lower arm emits a line. A reason that survives re-reading is not
 # evidence.
 #
+# ── AND THEN VERIFY THE MUTATION LANDED, BEFORE YOU BELIEVE THE RESULT ──────────────────────────────
+#
+# A MUTATION PROBE THAT SILENTLY FAILS TO MUTATE PRODUCES A FALSE GREEN INDISTINGUISHABLE FROM A
+# WORKING GATE. This is the failure mode ABOVE the one the previous paragraph fixes: you did run a
+# mutation, so the "a reason is not evidence" rule is satisfied — and the clean result you got back is
+# still worthless, because the file was never changed. The two are indistinguishable from the exit
+# code alone, and the reassuring direction is the one you get for free.
+#
+# Measured here (#322 review): a probe planting a literal with
+#   perl -i -ne 'print; END{print "<literal>"}' <file>
+# reported a clean run of this suite. The gate had not passed — the probe had not fired. Under `-i`
+# perl's END block runs AFTER the in-place output handle is closed, so the appended literal went to
+# STDOUT and never entered the file. The suite was, correctly, reporting on an unmutated tree.
+#
+# SO THE STEP IS: after mutating and before running anything, READ THE FILE BACK and confirm the
+# defect is present — `grep -c` the planted literal, or `git diff --stat` the target. One command,
+# and it is the only thing separating "this arm holds" from "my editor no-opped". Confirm the same
+# way that the mutation is REVERTED afterwards; a probe left in place turns the next run's red into a
+# mystery.
+#
+# This generalises past this arm and past this file: it is a property of mutation testing, not of
+# anything specific here. It is written at the header rather than beside the one arm that caught it
+# for the same reason the chaining rule above is — the next person to mutate this suite will be
+# working somewhere else in it.
+#
 # Run: bash hooks/scripts/inventory-counts.test.sh
 
 set -uo pipefail
