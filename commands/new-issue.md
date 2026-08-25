@@ -1,5 +1,5 @@
 ---
-description: Capture a request as a GitHub Issue — search for the decision that already exists, run the two-lead intake, and open it with the description closed or with the reason it is not. Use when the owner describes something he wants, when work would otherwise start untracked, or when it is unclear whether a request reopens a settled decision. Not for executing issues already filed (see autonomy-on).
+description: Capture a request as a GitHub Issue — search for the decision that already exists, run the intake the issue's type routes to, and open it with the description closed or with the reason it is not. Use when the owner describes something he wants, when work would otherwise start untracked, or when it is unclear whether a request reopens a settled decision. Not for executing issues already filed (see autonomy-on).
 argument-hint: "<what you want, in your own words>"
 ---
 
@@ -56,13 +56,14 @@ turned out to encode route-vs-anchor by design.
 
 ### 2 · If the ask is `content`-typed: interview the owner FIRST
 
-**Scope: `content` only.** A `product` or `loop` ask skips this step entirely and goes straight to the
-two-lead dispatch below. Nothing in it changes those two intakes.
+**Scope: `content` only.** A `product` ask skips this step entirely and goes straight to the **two-lead**
+dispatch in step 3; a `loop` ask skips it and goes straight to the **`agents-lead`-alone** dispatch in the
+same step. Nothing in it changes either of those two intakes.
 
 **Why it sits before the dispatch and not after it.** In the consuming product repo, `#503`'s body carries a section
 headed, literally, *"The one line for the owner"* — **two full lead dispatches were spent producing one
 question**, and the question was for the person who had the answer before either agent started. Asking it
-first collapses that: the leads then reconcile against a stated take instead of reconstructing one.
+first collapses that: the `content` lens then judges against a stated take instead of reconstructing one.
 
 **One required question. Ask it in these words:**
 
@@ -81,7 +82,7 @@ asking and open the Issue.
   artifact in these two repositories that proves the video's claim right or wrong"*). **The only follow-up
   with a named downstream consumer**, which is why it is first.
 - **Does it still stand if you delete the video?** → ADR-0046 gate 2 (*"Delete the video. Is it still an
-  article?"*). Optional here — the leads can run this one themselves.
+  article?"*). Optional here — the intake lens can run this one itself.
 - **Who is it for, and what should they do differently after reading it?** → `published-voice`'s goal and
   filter: connection with the two personas is the goal, value to them is the filter.
 
@@ -125,18 +126,43 @@ an interview that never started. This is a discipline with a marker, not an enfo
 `not-supplied` marker as a claim about the process, and claims about the process are exactly what this
 loop does not verify.
 
-### 3 · Run the two-lead intake
+### 3 · Run the intake the TYPE routes to — branch before dispatching
 
-Dispatch **`product-lead`** and **`tech-lead`**, in parallel, each on its own half. Brief them with what
-the search found, so neither re-derives it.
+**Decide the type first (step 4's three exclusive labels), then dispatch. There is no default intake.**
+Who takes part is not this file's to state: the canonical wording is the `filed → **description closed**`
+rows of the states table in `/harness-engineering`, and this step **defers** to it rather than restating
+it. If this step and that table ever disagree, **the table wins and the disagreement is a finding** — two
+surfaces stating the same operative rule independently is precisely what produced eleven days of drift
+with nothing able to contradict either (#329).
+
+| the ask is | dispatch | in this file |
+|---|---|---|
+| **`product`** | `product-lead` **and** `tech-lead`, in parallel | 3a below |
+| **`content`** | `product-lead`, alone — after the step-2 interview | 3a below, its `product-lead` half only |
+| **`loop`** | **`agents-lead`, alone — never `tech-lead`, no exception** | 3b below |
+
+**Why the `loop` row is unconditional, stated here because this is the file that executes it.** The
+owner's ruling on #329 was one word — **"nunca"**. There is no straddling case and no test to apply at
+dispatch time. His reason, and it is the reason this row must not grow a qualifier: *almost every*
+machinery change can be described as having an architecture edge, so a loose exception does not stay
+loose — it becomes the default case, because the reading that admits it is always available. That is how
+the pairing came back once already, on 2026-08-13. **A rule with a judgement-call escape hatch is the
+escape hatch.**
+
+#### 3a · `product` and `content` — the lead intake
+
+Dispatch **`product-lead`** and **`tech-lead`**, in parallel, each on its own half — **`product-lead`
+alone when the type is `content`**. Brief them with what the search found, so neither re-derives it.
 
 - **`product-lead`** — is it worth building, where does it sit against the open queue, what is the thin
   first slice, and how would we know it worked. **Tell it explicitly that recommending *defer* or *drop*
   is a useful answer**, or it will optimise for agreeing with the request. **It also holds the market
   half** — positioning, voice, cross-surface coherence, the owner's career — since `marketing-lead`
   merged into it on 2026-08-04.
-- **`tech-lead`** — the data model, the contract, what it drags in, and whether a record is owed. It is
-  the only writer of ADRs; if it writes one, that file rides in the implementing MR, not here.
+- **`tech-lead`** — the data model, the contract, what it drags in, and whether a record is owed. It
+  writes the **product/system-architecture** ADRs — not every ADR: authorship is split by domain since
+  #223, and `agents-lead` writes the loop/machinery ones. If either writes one, that file rides in the
+  implementing MR, not here.
 
 **Which half of `product-lead` applies is a briefing instruction, not a dispatch decision.** This used to
 say *"dispatch the copy lens only if a reader would see anything, and skip it for pure infrastructure"*.
@@ -158,17 +184,42 @@ criterion 10 still requires the copy lens to have returned a verdict on any read
 the Issue as a disagreement — do not resolve it yourself. #166's route-vs-section split is the shape: the
 Issue is more useful carrying both arguments than carrying a resolution nobody ratified.
 
+#### 3b · `loop` — `agents-lead` alone
+
+Dispatch **`agents-lead`**, and dispatch nothing else. Brief it with what the search found. What it
+returns is its own mandate, not a lead's: **the scenarios the proposal does not cover, each with how to
+check it or labelled a hypothesis**, and a mitigation or the price of accepting each one.
+
+- **Do not dispatch `tech-lead` alongside it**, on any reading of the ask. See the ruling above.
+- **`product-lead` is not dispatched either.** Its boundary is the product (ADR-0002 amendment #14); on a
+  `loop` ask it may block only on a false *published* claim, which is a merge-gate act, not an intake one.
+- **`agents-lead` may be the record's author.** A `loop` decision significant enough to record is its ADR
+  to write (#223), and that file rides in the implementing MR, not here.
+- **It gates nothing and files nothing.** It holds no merge, opens no Issue, and its return is advice the
+  owner acts on — which is why the `ready` transition below is his alone on this lane.
+
 ### 4 · Label it honestly, and `ready` is not automatic
 
-**`ready` means the leads closed the description** (the SDLC-generic bar a description must clear to
-earn it is `/definition-of-ready`). It does not mean the Issue exists.
+**`ready` means the description is closed by whoever closes it on that lane** (the SDLC-generic bar a
+description must clear to earn it is `/definition-of-ready`). It does not mean the Issue exists, and
+**who closes it is per-type — the `filed → **description closed**` rows of `/harness-engineering`'s
+states table are canonical**:
 
-- **Both closed it and neither says stop** → apply `ready`.
-- **Any lead recommends defer or drop** → **do not apply `ready`.** Record the recommendation in the body
-  with its reason. An Issue carrying "the leads say don't build this" is a real artifact; the same Issue
-  labelled `ready` is a lie that `autonomy-on` will act on.
-- **A lead needs an owner decision to close its half** → no `ready`, and put the question in the body in
-  the form the owner answers in one line.
+- **`product`** — both leads closed it and neither says stop → apply `ready`.
+- **`content`** — `product-lead` closed it and does not say stop → apply `ready`. **`ready` on a
+  `content` Issue is not a queue**: the owner selects content one piece at a time, and `/autonomy-on`
+  excludes the lane deliberately.
+- **`loop`** — **`ready` is the owner's transition and nobody else's** (ADR-0002, record 0015's
+  Corollary 4). `agents-lead` closing the description does **not** earn the label; report to the owner
+  and let him apply it.
+
+And on every lane:
+
+- **Any dispatched persona recommends defer or drop** → **do not apply `ready`.** Record the
+  recommendation in the body with its reason. An Issue carrying "the intake says don't build this" is a
+  real artifact; the same Issue labelled `ready` is a lie that `autonomy-on` will act on.
+- **The intake needs an owner decision to close its half** → no `ready`, and put the question in the body
+  in the form the owner answers in one line.
 
 Also apply exactly one type, required: **`product`**, **`content`**, or **`loop`** — the three types are
 exclusive routing labels, not independently optional (ADR-0002). Also apply **`reader-facing`** if a
@@ -177,7 +228,7 @@ only if something concrete is in the way, and **name what** — a `blocked` labe
 written down reads as *waiting on the owner* forever. (#166 carried one for over a week after its stated
 blocker had shipped.)
 
-**Stamp the intake.** Record the date and the `main` SHA the leads read. A closed description ages: the
+**Stamp the intake.** Record the date and the `main` SHA whoever ran the intake read. A closed description ages: the
 tree it was closed against moves, and a reader in November needs to know whether August's closure still
 describes the code.
 
@@ -203,7 +254,7 @@ times in one session.
 ## What this command does NOT do
 
 - **It does not build anything.** It opens an Issue. `autonomy-on` picks it up.
-- **It does not decide.** The leads advise, the owner decides, and an Issue that resolves a disagreement
+- **It does not decide.** The intake advises, the owner decides, and an Issue that resolves a disagreement
   the owner has not seen is worse than one that surfaces it.
 - **It does not open work nobody asked for.** The owner invoked it; that is the authorization, and it is
   the whole reason this command can exist while *only the owner opens work* still holds.

@@ -4603,5 +4603,81 @@ else
       needles here in the same commit; if it is a deletion, it is the #328 defect recurring."
 fi
 
+# ---------------------------------------------------------------------------------------------------
+# THE LANE RELATION HAS ONE CANONICAL HOME, AND THE FILE THAT EXECUTES IT BRANCHES BY TYPE (#329).
+#
+# WHY THIS EXISTS. `loop`-typed intake has been `agents-lead` ALONE by standing rule since 2026-08-13.
+# For eleven days NINE live surfaces said otherwise or said nothing, and every gate in this repo was
+# green over it — because the rule was stated only in prose no assertion had ever read. The gravest
+# surface was `commands/new-issue.md`, the file the orchestrator EXECUTES: it dispatched the two-lead
+# intake unconditionally, and the string `agents-lead` appeared in it ZERO times. The practice survived
+# only because the orchestrator was overriding its own command file from memory, which is the failure
+# this suite exists to catch one layer down: not a wrong number, a wrong INSTRUCTION.
+#
+# WHAT THESE ARMS OWN: that the canonical rows still exist and still say `agents-lead` alone, and that
+# the executed command still branches by type instead of defaulting to one intake. Delete either and
+# this reddens.
+#
+# WHAT NO ARM CAN OWN, and the amendment says so too: that a DISPATCH obeyed them. Nothing observes a
+# dispatch. A `loop` Issue whose intake was run by both personas is indistinguishable, from the tracker
+# and from the diff, from one run correctly. These arms gate the PRESENCE OF A SENTENCE — and a sentence
+# is what the owner's ruling is.
+#
+# COST, taken deliberately: coupled to phrasing. Reword the rows or the branch and this goes red, and
+# whoever rewords edits the needles in the same commit — the same trade the second-limb arm above takes.
+LANE_SKILL="$ROOT/skills/harness-engineering/SKILL.md"
+LANE_CMD="$ROOT/commands/new-issue.md"
+
+# ── 1 · the canonical rows are in the states table, all three lanes, loop unconditional ──────────
+lane_rows=$(grep -cF -- '| filed → **description closed** |' "$LANE_SKILL" 2>/dev/null || true)
+lane_loop_needle='| `agents-lead`, **alone — `tech-lead` never co-signs this lane, with no exception**'
+if [ "${lane_rows:-0}" -ne 3 ]; then
+  bad "lane relation — skills/harness-engineering/SKILL.md carries $lane_rows 'filed → **description closed**'
+      rows, expected 3 (product · content · loop). These rows are the CANONICAL wording of who takes part
+      at intake (ADR-0002, nineteenth amendment); README.md and commands/new-issue.md both point HERE. A
+      lane with no row is a lane whose dispatch has no stated rule, which is #329 recurring."
+elif ! grep -qF -- "$lane_loop_needle" "$LANE_SKILL"; then
+  bad "lane relation — the \`loop\` row no longer states \`agents-lead\` alone with the unconditional
+      no-exception clause. Owner ruling 2026-08-25 (#329) was one word — \"nunca\". The clause is not
+      decoration: a loose exception becomes the default case, because the reading that admits it is
+      always available, and that is how the retired pairing walked back in on 2026-08-13."
+else
+  ok "lane relation — the states table carries all 3 'filed → **description closed**' rows, loop unconditional"
+fi
+
+# ── 2 · the file the orchestrator EXECUTES branches by type and names agents-lead ────────────────
+# Own `if`, own vacuity guard: a broken read of either file must redden both arms, not borrow arm 1's.
+lane_cmd_missing=""
+for lane_cmd_needle in \
+  '### 3 · Run the intake the TYPE routes to — branch before dispatching' \
+  '| **`loop`** | **`agents-lead`, alone — never `tech-lead`, no exception** |' \
+  '#### 3b · `loop` — `agents-lead` alone'
+do
+  grep -qF -- "$lane_cmd_needle" "$LANE_CMD" || lane_cmd_missing="$lane_cmd_missing
+    missing: \"$lane_cmd_needle\""
+done
+if [ ! -r "$LANE_CMD" ]; then
+  bad "lane relation — commands/new-issue.md is not readable; the branch cannot be checked at all"
+elif [ -n "$lane_cmd_missing" ]; then
+  bad "lane relation — commands/new-issue.md no longer branches the intake by issue type:$lane_cmd_missing
+      This is the file the orchestrator EXECUTES. Before #329 it dispatched the two-lead intake with no
+      branch anywhere in the step, and \`agents-lead\` appeared in it zero times. An unbranched step 3 is
+      not a documentation defect — it is a wrong dispatch instruction the loop will follow."
+else
+  ok "lane relation — commands/new-issue.md branches step 3 by type and routes loop to agents-lead alone"
+fi
+
+# ── 3 · README.md POINTS at the table rather than restating the rule ─────────────────────────────
+lane_ptr_needle='the `filed → **description closed**` rows of the states table in'
+if ! grep -qF -- "$lane_ptr_needle" "$README"; then
+  bad "lane relation — README.md no longer points at the canonical states-table rows. Owner ruling
+      2026-08-25 (#329): the table is canonical and the README is a POINTER. Two surfaces stating the
+      same operative rule independently is what produced eleven days of drift with nothing able to
+      contradict either — if the pointer went away because the rule was restated here, that is the
+      defect, not the fix."
+else
+  ok "lane relation — README.md points at the canonical states-table rows instead of restating them"
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

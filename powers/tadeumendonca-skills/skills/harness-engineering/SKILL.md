@@ -155,6 +155,10 @@ a second definition of what "ready" means as a concept. Read `/definition-of-rea
 bar (the checklist shape, the flagship failure of scope fragmented across issues, the relationship to
 estimation); read this section for how *this loop specifically* gets an Issue there.
 
+**The chain below is the `product` lane.** All three lanes are in the states table's
+`filed → **description closed**` rows, which are the canonical statement of who takes part on each —
+`content` closes through `product-lead` alone, `loop` through `agents-lead` alone.
+
 **The chain — see `agents/product-lead.md` and `agents/tech-lead.md` for the persona-level detail;
 this is the canonical statement, and both briefs point here rather than restate it:**
 
@@ -169,9 +173,10 @@ this is the canonical statement, and both briefs point here rather than restate 
 > **Only then is the issue executable.** `developer` does not pick up an issue whose description is
 > not closed.
 
-**`agents-lead` is not a link in that chain, deliberately.** It shares the leads' tier and takes no
-part in closing a story's description — its object is the machinery this loop runs on, not the
-product the loop builds. It is dispatched on a **proposal about the loop itself**, before anything is
+**`agents-lead` is not a link in that chain, deliberately — and it closes the `loop` lane's description
+alone.** The two are the same rule seen from either end: its object is the machinery this loop runs on,
+not the product the loop builds, so it takes no part in closing a **story's** description and is the only
+persona that closes a **`loop`** Issue's. It is dispatched on a **proposal about the loop itself**, before anything is
 built, and per ADR-0002 that proposal now enters the tracker as a `loop`-typed Issue — filed by the
 orchestrator on its naming (`agents-lead` itself remains denied `gh issue create`). `loop`-typed
 `ready` is an **owner-only** label transition (ADR-0002, record 0015's Corollary 4), never applied by any
@@ -188,6 +193,9 @@ owner works that decision out with; it does not make it.
 | transition | type | who acts | artifact that records it |
 |---|---|---|---|
 | → **filed** | all | the owner, alone | the Issue exists |
+| filed → **description closed** | `product` | `product-lead` **and** `tech-lead`, dispatched in parallel and reconciling between themselves | the closed description in the Issue body, plus the intake stamp |
+| filed → **description closed** | `content` | `product-lead`, **alone** — intake only, after the owner interview | the closed description in the Issue body, plus the intake stamp |
+| filed → **description closed** | `loop` | `agents-lead`, **alone — `tech-lead` never co-signs this lane, with no exception** (owner ruling 2026-08-25, #329: *"nunca"*) | the closed description in the Issue body, plus the intake stamp |
 | filed → **ready** | `product` | both leads, closing the description together | **`ready` label** |
 | filed → **ready** | `content` | `product-lead`, alone — **intake only**; it takes no part in the drafting rounds (ADR-0002, seventeenth amendment) | **`ready` label** |
 | filed → **ready** | `loop` | the owner, alone — not the leads (ADR-0002, record 0015's Corollary 4) | **`ready` label** |
@@ -202,6 +210,35 @@ owner works that decision out with; it does not make it.
 
 **`blocked` is orthogonal, not a sixth step.** It can attach at any point and returns the item to
 wherever it was.
+
+### The `filed → description closed` rows are the CANONICAL wording of the lane relation (#329)
+
+**This table is where *who takes part at intake* is stated, and every other surface points here.** Owner
+ruling, 2026-08-25: `README.md` keeps the narrative and points; `commands/new-issue.md` branches by type
+and **defers** to these rows for who; the ADR-0002 amendment records *where the wording lives and why*,
+not the wording. The reason is mechanical rather than editorial — **the README is prose no agent carries,
+and this skill is the universal preload every persona reads at the moment it acts.** A rule exists to be
+obeyed by whoever dispatches, and whoever dispatches reads the skill. **Putting the operative wording
+where nobody looks is how #329 happened.**
+
+**The three rows were ADDED, not edited.** The `filed → **ready**` rows below them were already right and
+are untouched — they record *who applies the label*, which is a different question from *who closes the
+description*, and conflating the two is why nothing in this file could answer the lane question before.
+On `loop` the two answers differ on purpose: `agents-lead` closes the description, **the owner alone
+applies `ready`** (ADR-0002, record 0015's Corollary 4).
+
+**Why the `loop` row carries no exception clause, and must not grow one.** The owner's ruling was one
+word — *"nunca"*. His argument, which is the load-bearing part: almost every machinery change can be
+described as having an architecture edge, so **a loose exception does not stay loose — it becomes the
+default case**, because the reading that admits it is always available. That is not hypothetical; it is
+how the retired pairing walked back in on 2026-08-13. **A rule with a judgement-call escape hatch is the
+escape hatch.**
+
+**What this does NOT enforce, said plainly so the rows are not read as a mechanism.** Nothing observes a
+dispatch. A `loop` Issue whose intake was run by both personas is indistinguishable, from the tracker and
+from the diff, from one run correctly — the artifact column names the closed description, and a
+description says nothing about who was asked. `hooks/scripts/inventory-counts.test.sh` asserts that these
+rows and the `new-issue.md` branch **exist and say this**; it cannot assert that anyone obeyed them.
 
 **`drafted` adds NO label, and that is why it is allowed to exist (#317).** It is a `content`-only
 sub-state between *in progress* and *reviewed*, and the only thing that records it is a file already in

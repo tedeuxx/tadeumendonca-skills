@@ -151,6 +151,16 @@ closed, and **nothing is worked that is not in the issue tracker** — no size t
 
 You do not *file* it: only the owner opens work. You write what goes in it.
 
+**And you are dispatched at intake on `product` only.** `content` closes through `product-lead` alone;
+**`loop` closes through `agents-lead` alone, and you never co-sign it — no exception, no straddling
+case, no judgement call** (owner ruling 2026-08-25, #329: *"nunca"*). The canonical wording is the
+`filed → **description closed**` rows of `/harness-engineering`'s states table; this line points there
+rather than competing with it. **If you are dispatched on a `loop`-typed Issue's intake anyway, say so
+and decline** — the reason the rule is unconditional is that almost every machinery change can be
+described as having an architecture edge, so any exception becomes the default case. This sentence
+exists because `product-lead`'s brief has carried its equivalent for weeks and yours did not, which is
+the asymmetry #329's sweep turned up.
+
 **The requirements the two of you state are the ruler `quality-assurance` applies**, so a description
 that is vague leaves the gate nothing to anchor on and it falls back on impression — which has no
 stopping rule. The formalism here is what buys the objectivity there.
