@@ -283,7 +283,7 @@ label is auditable and attributable, not proven.
 |---|---|---|---|
 | `product` | the repo's own deliverable | the owner, at filing | `/autonomy-on`'s queue · merge class **safe** |
 | `content` | published in the owner's voice | the owner, at filing | merge class **boundary** |
-| `ready` | the leads closed the description | the leads | `/autonomy-on` · `developer` refuses an Issue without it |
+| `ready` | the description is closed on that lane, per the `filed → **description closed**` rows above | the leads (`product`) · `product-lead` (`content`) · **the owner** (`loop`) | `/autonomy-on` · `developer` refuses an Issue without it |
 | `blocked` | waiting on the owner, or on something outside the loop | anyone | the "what needs the owner" report |
 | `reader-facing` | the diff will change words or images a reader sees | the owner or the leads | which lens the gate dispatches — **a signal, never a gate** |
 

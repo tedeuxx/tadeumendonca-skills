@@ -16,8 +16,13 @@ Open issues labelled **(`product` OR `loop`)** **and `ready`**. If the repo has 
 rather than draining every open issue — a command that silently redefines its own scope is worse than
 one that refuses.
 
-**`ready` means the leads closed the description** (`/harness-engineering`, *Intake*; the generic bar
-a description must clear to earn that label is `/definition-of-ready`). An Issue
+**`ready` means the description is closed by whoever closes it on that lane — and on `loop` it is the
+owner's transition alone** (~~"the leads closed the description"~~, struck 2026-08-25 (#329): that was
+true of `product` and of no other lane, in the file the loop executes). The canonical wording is
+`/harness-engineering`'s `filed → **description closed**` and `filed → **ready**` rows — `product`
+closes through both leads, `content` through `product-lead` alone, `loop` through `agents-lead` alone
+with the owner applying the label. The generic bar
+a description must clear to earn that label is `/definition-of-ready`. An Issue
 without it is in the tracker but not executable, and the right move is to say so and run the intake pass
 — not to build it and discover the missing requirement at the gate.
 

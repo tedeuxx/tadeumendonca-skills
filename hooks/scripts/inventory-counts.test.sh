@@ -4679,5 +4679,69 @@ else
   ok "lane relation — README.md points at the canonical states-table rows instead of restating them"
 fi
 
+# ── 4 · the lane relation is not re-GENERALISED — "the leads", unscoped, in an operative surface ──
+#
+# WHY A FOURTH ARM. Arms 1-3 key on the DEFECT's vocabulary: the pairing phrase, and the persona names.
+# Round 1 of #329 shipped with three surfaces still publishing the retired rule, and NEITHER key reached
+# any of them — because their defect is a GENERALISATION. "the leads" is not a pairing phrase and names
+# no persona, so it is invisible to both. The three were `agents/product-lead.md` (a preload, citing as
+# its authority the two surfaces the same MR had just reversed), `commands/autonomy-on.md` (the OTHER
+# file the orchestrator executes, four lines under a queue predicate that includes `loop`), and the
+# label table INSIDE the file the ruling designates canonical. Three instances in three files is a
+# class, not a coincidence: the cheapest way to restate a lane rule is to drop the lane.
+#
+# WHAT THIS ARM OWNS: both directions, per surface. The lane-scoped wording is PRESENT, and the retired
+# unscoped literal is ABSENT. The negative half is the one that survives a rewording — a future author
+# who rewrites the sentence loses the positive needle (and edits it here, same commit), but one who
+# re-generalises by pasting the old sentence back trips the negative needle whatever else changed.
+#
+# WHAT IT CANNOT OWN: an unscoped lane claim written in words nobody has used yet. This arm reads the
+# literals this repo has actually shipped; a NEW generalisation is a new needle, found the way these
+# three were — by a sweep whose key is not built from the defect's own vocabulary.
+LANE_PLEAD="$ROOT/agents/product-lead.md"
+lane_gen_missing=""
+for lane_gen_file in "$LANE_SKILL" "$AUTON" "$LANE_PLEAD"; do
+  [ -r "$lane_gen_file" ] || lane_gen_missing="$lane_gen_missing
+    unreadable: \"${lane_gen_file#$ROOT/}\""
+done
+if [ -n "$lane_gen_missing" ]; then
+  bad "lane relation — a surface carrying the lane-scoped \`ready\` wording cannot be read at all:$lane_gen_missing"
+else
+  # One needle per file, checked against THAT file only — a needle satisfied by the wrong surface is
+  # exactly the drift this arm exists to catch.
+  grep -qF -- '| `ready` | the description is closed on that lane, per the `filed → **description closed**` rows above | the leads (`product`) · `product-lead` (`content`) · **the owner** (`loop`) |' "$LANE_SKILL" \
+    || lane_gen_missing="$lane_gen_missing
+    missing: the label table's \`ready\` row in skills/harness-engineering/SKILL.md is no longer lane-scoped"
+  grep -qF -- '**`ready` means the description is closed by whoever closes it on that lane — and on `loop` it is the' "$AUTON" \
+    || lane_gen_missing="$lane_gen_missing
+    missing: commands/autonomy-on.md's \`ready\` sentence is no longer lane-scoped"
+  grep -qF -- 'through `agents-lead` **alone**' "$LANE_PLEAD" || lane_gen_missing="$lane_gen_missing
+    missing: agents/product-lead.md no longer closes its \`loop\` sentence on \`agents-lead\` alone"
+  # STRUCK OCCURRENCES ARE NOT HITS, and this is not a convenience — it is what makes the negative half
+  # compatible with this repo's strike convention. Both surfaces below keep the retired sentence visible
+  # inside `~~…~~` precisely because someone acted on it; a check that cannot tell `~~X~~` from X would
+  # force the correction to DELETE its own history to go green, which is the opposite of the convention.
+  # `grep -c` (never `-q`) after the strip: `-q` exits early, and under `pipefail` that SIGPIPEs `sed`
+  # and reports the pipeline as failed — i.e. it would report "clean" on exactly the files that are not.
+  for lane_gen_retired in \
+    'the leads closed the description' \
+    'through `agents-lead` and `tech-lead` without you'
+  do
+    for lane_gen_file in "$LANE_SKILL" "$AUTON" "$LANE_PLEAD"; do
+      lane_gen_hits=$(sed 's/~~[^~]*~~//g' "$lane_gen_file" | grep -cF -- "$lane_gen_retired" || true)
+      [ "${lane_gen_hits:-0}" -eq 0 ] || lane_gen_missing="$lane_gen_missing
+    RETIRED literal is live (not struck) in ${lane_gen_file#$ROOT/}: \"$lane_gen_retired\""
+    done
+  done
+  if [ -n "$lane_gen_missing" ]; then
+    bad "lane relation — an operative surface states who closes the description WITHOUT naming the lane:$lane_gen_missing
+      \"the leads\" is true of \`product\` and of no other lane. Unscoped, it is read by whoever dispatches
+      as the rule for all three — which is #329's defect surviving its own fix. If this is a deliberate
+      rewording, update the needles here in the same commit; if the retired literal is back, it is not."
+  else
+    ok "lane relation — the \`ready\` wording is lane-scoped in the canonical table, the executed command and the preload"
+  fi
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
