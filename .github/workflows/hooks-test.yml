@@ -101,6 +101,23 @@ jobs:
       - name: Run the orchestrator-tool-census suite
         run: bash hooks/scripts/orchestrator-tool-census.test.sh
 
+      - name: Run the premature-pr-link-detect suite
+        run: bash hooks/scripts/premature-pr-link-detect.test.sh
+
+      # TWO SUITES HAVE NEVER HAD A STEP HERE — `zombie-loop-detect.test.sh` and
+      # `session-plugin-version.test.sh`. Both were written mutation-checked and then left to be run by
+      # hand, which is a gate one forgotten habit away from absent: exactly the "a green that proves
+      # nothing" shape this repo names as the failure the harness discipline exists to catch, sitting in
+      # the directory that catches it for everything else. Found while adding the step above, because
+      # adding one meant reading the list. Both pass at head (25 and 27 assertions), so this closes the
+      # gap rather than opening a red. NAMED RATHER THAN FOLDED IN SILENTLY: this is adjacent to #327's
+      # subject, not part of it, and it is two lines rather than a slice.
+      - name: Run the zombie-loop-detect suite
+        run: bash hooks/scripts/zombie-loop-detect.test.sh
+
+      - name: Run the session-plugin-version suite
+        run: bash hooks/scripts/session-plugin-version.test.sh
+
       - name: Assert every hook script is committed executable
         run: bash hooks/scripts/hooks-executable.test.sh
 

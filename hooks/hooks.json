@@ -55,6 +55,11 @@
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/scripts/orchestrator-tool-census.sh",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/scripts/premature-pr-link-detect.sh",
+            "timeout": 15
           }
         ]
       }

@@ -2017,6 +2017,162 @@ been dispatched on this amendment and should be, on the *craft-opinion-leaves* c
 on the round mechanics, which are outside its boundary (amendment #14).
 
 
+## Amendment (2026-08-25, eighteenth) — a PR link is a summons, and the orchestrator sends one only when the remaining act is the owner's
+
+**The rule, in the owner's own words, and it ships as his sentence rather than as a paraphrase**
+([#327](https://github.com/tedeuxx/tadeumendonca-skills/issues/327)):
+
+> *"eu apenas quero receber links de PR quando tiver pronto para merge com todos check concluidos com
+> sucesso"*
+
+The condition is **conjunctive**: ready to merge **and** every check complete and successful. A PR whose
+pipeline is still running does not qualify however green it looks; a red pipeline is the loop's to fix
+without involving him.
+
+**Why the rule exists, and why it only became true recently.** A PR link in his hands reads as *something
+is waiting for me*, whatever sentence sits beside it — and that reading is correct in every loop where a
+human holds a merge class. This one stopped being such a loop at amendment #16: the gate merges the safe
+class **and** the boundary class itself, holding only the four named exceptions. So almost every open PR
+is one he has nothing to do with, and the link is an interruption with no act behind it. Four premature
+links in one session were four false alarms.
+
+**Mechanically, "ready for him" is one verdict literal, not a hold count.** `agents/quality-assurance.md`'s
+*"Your verdict — exactly one of"* enumerates four; exactly one means the remaining act is the owner's:
+**`APPROVE-PENDING-HUMAN`**. `REQUEST-CHANGES` is also non-merging and is **not** an owner summons — it
+routes to the builder. Naming the literal is checkable; naming *"one of the four holds fired"* is not.
+
+**The rule has a SECOND limb, and it is not mechanical — which is why it was nearly lost.** #327 states
+it in the same blockquote it labels *"the sharp form of the rule"*: a PR link also goes to him **when the
+ask is explicitly a decision he holds** (a title, a positioning call), *stated as that and not as a merge
+request*. Such a PR frequently carries **no gate verdict at its head at all**, so the verdict-literal test
+above classifies it as premature — the first limb alone is **stricter than the rule the owner wrote**, in
+the direction that withholds something he asked to keep. It shipped on no surface in the first round of
+this slice and was caught by the merge gate, not by any check; the operative wording now carries both
+limbs (`commands/autonomy-on.md`, *"Do not hand the owner a PR link he cannot act on"*). **The mechanical
+half deliberately implements only limb one** — *"is this ask a decision he holds"* is not knowable at any
+layer, and an attempt to make it so would be the theatre this record spends its length avoiding.
+
+**The rule is phrased about DIRECTING ATTENTION, not about the character sequence, and that is a
+measurement rather than a preference.** `gh pr create` prints the PR URL as its own stdout: measured on
+#327 against a real transcript, `tool_result` blocks carry the **identical five PR URLs at identical
+counts** as the assistant's prose blocks. A rule written against the string would forbid nothing — every
+PR the loop opens surfaces its own URL regardless — and would fail open exactly where it looked
+strictest. A URL the owner watched a tool emit is not a summons; one the orchestrator hands him is.
+
+### The enforcement, and the premise it corrects
+
+**The Issue's own central premise was false, and it is corrected here rather than carried forward.** It
+proposed recording this as a third unenforced orchestrator duty, on the reasoning that *"the
+orchestrator's user-facing text is not a tool call; no `PreToolUse` matcher sees it, no hook can read
+it."* The first clause is true and the second does not follow. Measured by `agents-lead` at intake, on
+Claude Code `2.1.245`: a `Stop` hook receives `transcript_path`; assistant `text` blocks sit in that file
+alongside the `tool_use` blocks `orchestrator-tool-census.sh` already reads; a live headless probe
+confirmed the turn's **final** text block is flushed by the time `Stop` fires; a real human turn is
+distinguishable from a tool return by the shape of `.message.content`; and the turn-scoped extraction
+costs **0.41 s** on the largest transcript on the machine (65 MB). **A control recorded as impossible is
+harder to revisit than one recorded as unbuilt**, because nobody re-measures an impossibility.
+
+`agents-lead`'s recommendation was *written now, detector deferred, trigger named*. **The owner overruled
+it**, in the same answer: *"esse o comportamento que quero que vc faca enforcement no harness config"*.
+So the detector ships with the rule.
+
+**What it is: `hooks/scripts/premature-pr-link-detect.sh`, a `Stop` hook.** It reads the turn's own
+assistant prose, extracts full PR URLs, and for each one asks three mechanical questions — is the PR
+open, has every check on its current head completed and succeeded, and is the gate's verdict at that head
+`APPROVE-PENDING-HUMAN`. Anything else is flagged with the reason. It keys on the URL's **own** PR number
+and passes `--repo` explicitly, rather than on `git branch --show-current` as `zombie-loop-detect.sh`
+does: a report naming one PR while checked out on another's branch would otherwise check the wrong PR.
+
+**It is detection, never prevention, in the same terms `zombie-loop-detect.sh` uses.** It fires after the
+text has already reached him. It cannot un-send a link; it makes the mistake visible one turn late
+instead of one session late. Every exit path is `exit 0`, `additionalContext` is the only mechanism, no
+`decision` field is ever emitted.
+
+**The hole is in the form the rule recommends, and it is written into the script header rather than left
+to be assumed away.** GitHub shares **one number space** between Issues and PRs, so a bare `#508` cannot
+be classified without a network call — and the bare number is exactly the substitute this rule tells the
+orchestrator to prefer. The hook matches full URLs only. **It polices the form the rule discourages and
+is blind to the form it endorses.** Not closable at this layer; widening it to `tool_result` blocks would
+fire on every legitimate `gh pr create` and is not a fix either.
+
+### The coupling this rule creates, recorded because the owner took the trade knowingly
+
+**Amendment #16 above already books, in its own *Bad / accepted costs*, that *"the owner reviews live,
+after deploy" has no artifact*** — nothing records that he looked, and nothing surfaces to him that
+something boundary shipped. It names the trigger for building one: *"If a boundary change is found to
+have shipped and gone unreviewed, that is the trigger to build it."*
+
+**The premature PR link was the informal substitute for that artifact.** Crude, and it interrupted him
+for things he could not act on — but it was the only way he learned something had shipped. **This rule
+removes it with nothing put in its place**, which makes that named residual bite, and it bites on
+published copy in his voice: the exact failure `tadeumendonca-io#479` already cost once and which
+amendment #16 records as its accepted price.
+
+**He was asked and scoped the replacement out.** The question put to him was *slice 1, or slice 1 plus
+the boundary-merge notification in the same slice*; he answered by restating the rule and asking for
+nothing else. So the notification — a `SessionStart` arm reading merged PRs carrying
+`APPROVE-AND-MERGE-BOUNDARY` — is **not built here, and is not deferred for lack of a design**. It is
+declined for now, on his call, with the cost stated. **This is written in these terms so that when it
+bites, nobody reconstructs it as an oversight.**
+
+### The rejected options
+
+- **Record it as a third unenforced orchestrator duty**, beside label application and the
+  dispatch-omission judgment call (record 0013's *"Not enforced, and not claimed to be"*). Rejected on
+  the measurement above: those two are genuinely unobservable and this one is not, so filing it with
+  them would have published a false impossibility into the document a future context reasons from.
+- **A `PreToolUse` deny on any command containing a PR URL.** Rejected mechanically: the orchestrator's
+  user-facing prose is not a tool call, so no `PreToolUse` matcher sees the act at all — and the calls it
+  *would* see are `gh pr create`, which must not be blocked.
+- **Put the operative wording in `skills/harness-engineering/SKILL.md`**, the universal preload.
+  Rejected as an **anti-placement**: `skills:` is `agents/*.md` frontmatter, and the actor this rule
+  governs is the orchestrator, which is not a persona and has no frontmatter. It would be always-on for
+  seven personas that never report to the owner and not always-on for the one actor that does.
+- **State it in `README.md` and here only.** Right home for the argument, wrong home for the wording:
+  neither file is loaded at runtime by anything.
+
+### Consequences
+
+**Good**
+- The rule is exported, reviewable and adoptable, which was the whole of the complaint.
+- Its enforcement is a gate rather than a habit, and its two holes are written down where a future
+  reader meets them before assuming coverage.
+
+**Bad / accepted costs**
+- **The boundary-merge notification is still absent, and this rule is what makes its absence expensive.**
+  Stated above at length; it is the highest-cost consequence of this amendment.
+- **Detection is one turn late, always.** No layer can prevent text that has already been emitted.
+- **The recommended form is unenforceable.** A bare `#NNN` is unclassifiable, so the discipline the rule
+  most wants is the one nothing checks.
+- **The detector will flag legitimate decision-ask links, and this is the rule's second limb being
+  unimplementable rather than a bug.** A PR whose ask is a decision the owner holds usually has no gate
+  verdict at its head, so the hook classifies it as premature and emits a notice. The failure is in the
+  **harmless direction only because the hook is detection-only**: the cost is a spurious notice in the
+  next turn's context, never a withheld link. Were this ever made preventive, this cost inverts into
+  suppressing exactly the links the owner asked to keep — which is a second, independent reason not to
+  make it preventive, beyond the one already stated above.
+- **A third independent reader of the `gatekeeper-verdict` marker.** `session-wip.sh`,
+  `zombie-loop-detect.sh` and now this one read the same artifact with the same extraction. Drift between
+  three readers is caught by a reviewer diffing three test files, not by any gate — the same trade
+  `zombie-loop-detect.sh`'s header already argued for, extended by one.
+- **`/autonomy-on` covers autonomy runs, and the defect can occur in any session.** Accepted rather than
+  duplicating the wording, which is what this document's own *`README.md` is the single source of truth
+  for the dev-loop narrative (absorbed 2026-08-20, record 0019)* section forbids — *two documents
+  claiming the same authority at similar depth is worse than one document at full depth*. If it recurs
+  outside autonomy mode the fix is a pointer line, not a second home.
+- **The orchestrator's private memory entry `feedback-show-pr-links-not-commands` instructs *showing* PR
+  links.** It is outside every repo and cannot be edited from inside one, so the narrowing it needs is
+  reported to the owner with the exact wording rather than performed. Until he makes it, the exported
+  rule and the unexported one disagree in the one place nobody can diff.
+
+**Deciders:** the owner (the rule, verbatim, and the instruction to enforce it), written by `agents-lead`
+per the domain split (#223) — this is a loop/machinery decision whose mechanical half is a hook and a
+gated suite. **One half of it is not this persona's:** the cost of removing the informal ship-notice is
+paid on published content in the owner's voice, which is `product-lead`'s object. That lens has not been
+dispatched on this amendment and should be, on the residual specifically — not on the hook mechanics,
+which are outside its boundary (amendment #14).
+
+
 ## Consequences
 **Good**
 - Context efficiency and authorship-bias elimination fall out of per-task isolation.

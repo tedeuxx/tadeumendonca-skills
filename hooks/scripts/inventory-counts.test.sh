@@ -3581,7 +3581,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=33
+BP_HIGH_WATER=34
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
@@ -4563,6 +4563,45 @@ else
   ok "README claim contract — all $rc_derived DERIVED claim(s) name a two-sided arm in this file"
 fi
 
+
+# ── The PR-link rule ships BOTH its limbs, or neither is the rule the owner wrote (#327/#328) ──
+#
+# WHY THIS IS AN ASSERTION AND NOT A PARAGRAPH. #327 stated the rule in two limbs. The first shipped
+# with a hook and a 32-assertion suite; the SECOND — "or when the ask is explicitly a decision he
+# holds … stated as that and not as a merge request" — reached no shipped surface at all, and every
+# gate in this repo was green over the omission. It was caught by the merge gate reading the Issue
+# against the diff, which is a human act nothing repeats. What shipped in its absence was a rule
+# STRICTER than the owner's, in the direction that withholds a link he asked to keep.
+#
+# WHAT THIS ARM OWNS: that the operative wording still contains the second limb. Deleting the
+# paragraph reddens here. That is the whole of it.
+#
+# WHAT IT EXPLICITLY DOES NOT OWN, and no arm can: that the hook DETECTS the case. It cannot — "is
+# this ask a decision he holds" is not mechanically knowable, the hook implements limb one only, and
+# an assertion pretending otherwise would be the theatre this suite exists to catch. This arm gates
+# the PRESENCE OF A SENTENCE, and a sentence is what limb two is.
+#
+# COST, taken deliberately: the check is coupled to a phrase, so rewording it goes red and whoever
+# rewords must edit this arm. That friction is the feature — the same argument the bare-`#NNN` arm in
+# `premature-pr-link-detect.test.sh` already makes. Change it deliberately, do not drift out of it.
+AUTON="$ROOT/commands/autonomy-on.md"
+limb2_missing=""
+for limb2_needle in \
+  'the ask is explicitly a decision he holds' \
+  'stated as that decision and not as a merge request' \
+  'The detector cannot tell this case from a violation'
+do
+  grep -qF -- "$limb2_needle" "$AUTON" || limb2_missing="$limb2_missing
+    missing: \"$limb2_needle\""
+done
+if [ -z "$limb2_missing" ]; then
+  ok "PR-link rule — commands/autonomy-on.md carries the second limb AND names the detector's blindness to it"
+else
+  bad "PR-link rule — commands/autonomy-on.md no longer states the rule the owner wrote:$limb2_missing
+      #327's rule has TWO limbs. Shipping only the first publishes a stricter rule than his, which
+      withholds a PR link carrying a decision he holds. If this is a deliberate rewording, update the
+      needles here in the same commit; if it is a deletion, it is the #328 defect recurring."
+fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
