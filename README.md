@@ -162,8 +162,7 @@ flowchart TB
 
   subgraph T1L["TIER 1 · loop — the machinery itself"]
     direction LR
-    HR["agents-lead"]
-    TLL["tech-lead"]
+    HR["agents-lead<br/>alone — tech-lead never co-signs this lane"]
   end
 
   US{{"USER STORY — the issue<br/>one description, both leads agreed · label: ready<br/>its TASK LIST is the decomposition<br/>product · content only"}}
@@ -194,7 +193,6 @@ flowchart TB
   NI -->|product| TL
   NI -->|content| PLC
   NI -->|loop| HR
-  NI -->|loop| TLL
 
   PL --> US
   TL --> US
@@ -203,7 +201,6 @@ flowchart TB
   AO --> ORCH
 
   HR --> ORCH
-  TLL --> ORCH
 
   ORCH -->|"product"| DEV
   ORCH -->|"content"| WRT
@@ -218,12 +215,27 @@ flowchart TB
 ```
 
 **Three lanes, one hub — not one box per tier.** Tier 1's composition is not a single box wearing three
-labels; it is three lanes, and the issue's type decides which one it enters. `product` closes through the
-two leads that disagree by design; `content` closes through the lens that holds the owner's voice alone;
-`loop` closes through **both** `agents-lead` and `tech-lead` — the persona that stress-tests the
+labels; it is three lanes, and the issue's type decides which one it enters. All three converge on the
+same orchestrator: **the orchestrator is the hub every lane passes through**, not a station one tier
+dispatches through.
+
+**Who closes a description on each lane is stated in ONE place, and it is not this one.** The canonical
+wording is the `filed → **description closed**` rows of the states table in
+[`skills/harness-engineering/SKILL.md`](./skills/harness-engineering/SKILL.md) — the file every persona
+preloads, read at the moment a dispatch is made. **This section is the narrative and points at it; the
+diagram above is a drawing of it.** Where the two disagree, the table wins.
+
+~~`loop` closes through **both** `agents-lead` and `tech-lead` — the persona that stress-tests the
 machinery and the persona that would write the ADR it produces, since a `loop` issue is the kind most
-likely to need one. All three lanes converge on the same orchestrator: **the orchestrator is the hub every
-lane passes through**, not a station one tier dispatches through.
+likely to need one.~~ **Struck 2026-08-25 (#329), and the way it survived is the finding, not the
+sentence.** `loop`-typed intake has been **`agents-lead` alone** by standing rule from 2026-08-13 on; this
+line went on stating the retired pairing for eleven days across nine surfaces, and nothing contradicted
+it because it was the **only** surface stating the rule at all. Owner ruling on the exception, in one
+word: **"nunca"** — `tech-lead` never co-signs this lane, with no straddling case and no judgement at
+dispatch time. `agents-lead` still writes the ADR a `loop` decision earns, per the #223 domain split;
+that never required a second persona at intake. **Struck rather than deleted because the paired default
+is what anyone reading this page for eleven days took away from it**, and because a rule that walked
+back in once will walk back in again unless the door is visible.
 
 **The owner↔orchestrator edge is drawn now, not left implicit.** The owner redirects, ratifies, answers a
 blocking question, and receives every relay through the orchestrator — an interaction that runs
@@ -688,7 +700,7 @@ effect of the phase actually happening.
 
 | phase | what records it | where |
 |---|---|---|
-| **intake** | the `ready` label | the issue — the two leads closed its description |
+| **intake** | the `ready` label | the issue — its description closed by whoever closes it **on that lane**, per the states table's `filed → description closed` rows; on `loop`, only the owner applies the label |
 | **decomposition** | the **task list** in the body | the issue, with the progress GitHub renders from it |
 | **build** | a linked branch, and `closes #N` | `gh issue develop` on one side, the PR on the other |
 | **gate** | the verdict, under its own marker | a comment on the PR, one hop from the issue |
@@ -713,8 +725,10 @@ is how a model reaches for the average of everything it has read. The skills ans
 what they decided, so an agent finds them by working rather than by being told to look.
 
 **And they are what the personas measure a decision against**, which makes the library an input to the
-loop rather than a description of it. `tech-lead` is its **only writer** — the party
-that holds architecture decisions is the party that records them — and both the intake leads and the gate
+loop rather than a description of it. **Authorship is split by domain (#223)** — `tech-lead` writes the
+product/system-architecture records, `agents-lead` the loop/machinery ones, because the party that holds
+a decision is the party that records it. ~~`tech-lead` is its **only writer**.~~ **Struck 2026-08-25
+(#329): that coupling is what #223 corrected, and it was still published here.** Both the intake and the gate
 read it: one to check that a proposal does not contradict a decision already taken, the other to check
 that what shipped is what was decided.
 

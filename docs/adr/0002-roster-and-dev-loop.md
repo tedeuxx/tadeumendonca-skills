@@ -2173,6 +2173,99 @@ dispatched on this amendment and should be, on the residual specifically — not
 which are outside its boundary (amendment #14).
 
 
+## Amendment (2026-08-25, nineteenth) — the lane relation has ONE home, and it is the states table
+
+**What this amendment records is WHERE the rule lives, not what the rule says.** That restraint is the
+decision, not a stylistic choice: a record that restates an operative rule becomes one more surface to
+keep true, and [#329](https://github.com/tedeuxx/tadeumendonca-skills/issues/329) is what nine surfaces
+stating one rule costs. The wording itself is in
+[`skills/harness-engineering/SKILL.md`](../../skills/harness-engineering/SKILL.md), in the states table's
+`filed → **description closed**` rows. Read it there.
+
+**Two owner rulings, both on 2026-08-25:**
+
+1. **Canonical home.** *"The states table in `skills/harness-engineering/SKILL.md` is canonical.
+   `README.md` becomes a pointer."*
+2. **The exception.** Asked whether `tech-lead` co-signs a `loop` intake by exception or never, the
+   answer was one word: ***"nunca"***.
+
+### What the defect was, and it is an OMISSION rather than a wrong sentence
+
+`loop`-typed intake has been `agents-lead` alone by standing rule since 2026-08-13. **This document never
+said so.** The *Issue type is the routing axis, and it is exclusive (absorbed 2026-08-20, record 0012)*
+section states *"The type decides which profiles take part at intake"* and then never enumerates the
+per-lane intake sets. That hole is why `README.md` became the only surface stating the relation, and why
+nothing contradicted it when it stated the retired pairing for eleven days. **There was nothing here to
+correct; there was something missing to add** — and what is added is the pointer, plus the enumeration's
+new home.
+
+### Why the mechanism layer wins over the narrative layer, reversing record 0019 for THIS class of rule
+
+The *`README.md` is the single source of truth for the dev-loop narrative (absorbed 2026-08-20, record
+0019)* section stands **for the narrative**, and is not disturbed. This rule is not narrative — it is an
+**instruction to whoever dispatches**. In the owner's terms:
+
+- the **README is prose that no agent carries**; nothing preloads it;
+- the **states table is mechanism**, and every persona preloads `harness-engineering`.
+
+**A rule exists to be obeyed by whoever dispatches, and whoever dispatches reads the skill.** Putting the
+operative wording where nobody looks is how #329 happened.
+
+### It does NOT disturb record 0015's rejected option, and this paragraph exists because it reads as if it does
+
+The *`agents-lead` implements the harness it reviews (absorbed 2026-08-20, record 0015)* section's
+rejected-options list contains:
+
+> *"**Routing `loop` to `agents-lead` alone** for both proposing and building in one dispatch — named in
+> the routing record above so it is not silently reintroduced."*
+
+**Read to the comma it rejects this amendment. Read whole it rejects something else entirely** — a single
+dispatch that *proposes and builds in one act*. That separation is untouched here: `agents-lead` closes
+the description at intake, the owner applies `ready`, and the build is a **second, separate** dispatch.
+It is the only place in either library where the string *"`agents-lead` alone"* appears, so anyone
+implementing this rule will meet it and must not argue the rule back out on it.
+
+### The rejected options
+
+- **State the wording in this record.** Rejected: it makes the record a fourth surface to keep true, which
+  is the failure being closed. The record points; it does not restate.
+- **Keep `README.md` canonical, per record 0019.** Rejected on the mechanism/narrative split above. The
+  cost taken: this is the first place record 0019's designation is narrowed by class rather than
+  followed, and a future reader must check *which class of rule* before citing it.
+- **Tighten the `tech-lead` exception instead of removing it.** Rejected by the owner, with the argument
+  that decides it: almost every machinery change can be described as having an architecture edge, so a
+  loose exception becomes the default case. It is not hypothetical — that is how the pairing returned on
+  2026-08-13. **A rule with a judgement-call escape hatch is the escape hatch.** An unconditional branch
+  is cheaper to implement *and* cheaper to obey.
+- **Add a lane anchor (a machine-readable fence) and gate the drawing against it.** Deferred, not
+  rejected. It is a real mechanism with its own design questions — fence count, vacuity guard,
+  both-direction assertion — and `agents-lead`'s intake measured the naive alternative dead: a prose
+  extractor over the states table returns the empty set for two of three lanes and would ship a vacuous
+  green. It gets its own Issue, opened by the owner.
+
+### Consequences
+
+- **Nothing observes a dispatch, and this amendment does not change that.** The gate added in this slice
+  asserts that the canonical rows and the `new-issue.md` branch **exist and say this**. Whether an intake
+  obeyed them is invisible to the tracker and to the diff — a `loop` Issue whose description was closed
+  by both personas looks exactly like one closed correctly. Stated as a residual, deliberately.
+- **Three GitHub label descriptions are corrected in the same slice, and nothing can ever sweep them.**
+  They are repo metadata, in no file and in no diff, reachable by no `git grep` in either tree. `-skills`'s
+  `loop` label carried both the retired pairing **and** a retired persona name (`harness-reviewer`); the
+  `ready` label in **both** repos described a rule true of one lane in three. This class of surface is why
+  eleven days was possible.
+- **The `-io` half is routed separately** — the tier-fence diagram, its `accDescr` (including a persona-box
+  **count** that an edit to the fence falsifies) and the regenerated `diagrams.json`. Not in this slice and
+  not this persona's object.
+- **One coupling accepted:** the new gate arms key on phrases. Rewording the canonical rows or the
+  `new-issue.md` branch reddens `inventory-counts.test.sh`, and whoever rewords must edit the arm in the
+  same commit. That friction is the feature — it is the same trade the second-limb arm in that suite
+  already takes.
+
+**Deciders:** the owner (both rulings, quoted above), written by `agents-lead` per the #223 domain split —
+this is a pure loop/machinery decision with no product-architecture stake, so no `tech-lead` co-citation is
+owed on its own terms, which is also what the decision itself says.
+
 ## Consequences
 **Good**
 - Context efficiency and authorship-bias elimination fall out of per-task isolation.

@@ -303,7 +303,10 @@ your authority over `-skills` narrows to exactly two things, and nothing else:
 **This is why you are not dispatched on `loop`-typed intake in `-skills` at all** — not a separate
 routing rule, but a direct consequence of the boundary above. `loop`-typed Issues are about `-skills`'s
 machinery; you have nothing to contribute there once functioning is out of scope, so the chain closes
-through `agents-lead` and `tech-lead` without you (`README.md`, `/architecture`).
+through `agents-lead` **alone** — ~~`agents-lead` and `tech-lead`~~ (struck 2026-08-25, #329: `tech-lead`
+never co-signs this lane, with no exception). The canonical wording is the
+`filed → **description closed**` rows of `/harness-engineering`'s states table, which is what this line
+points at; it previously cited `README.md` and `/architecture`, both of which now point there too.
 
 **The report-format discipline above (labelled `BLOCKING:`/`ADVISORY:`, `BLOCKING: none` stated
 explicitly) is not special to this boundary — it is the same rule you already follow everywhere, restated
@@ -319,9 +322,11 @@ non-negotiable sections, because nothing else is holding the line.
 
 ## The intake chain — and why your half of it decides whether the gate can be objective
 
-**The chain in full — owner generates demand, leads close the description, only then is it
-executable — is `/harness-engineering`'s canonical statement now (#224); this section is your half of
-it, not a restatement of the whole.** `developer` does not pick up an issue whose description is not
+**The chain in full — owner generates demand, the lane's own intake closes the description, only then is
+it executable — is `/harness-engineering`'s canonical statement now (#224); this section is your half of
+it, not a restatement of the whole.** **Your half is `product` (with `tech-lead`) and `content` (alone);
+`loop` closes through `agents-lead` alone and never reaches you** — the `filed → **description closed**`
+rows say which is which. `developer` does not pick up an issue whose description is not
 closed, and **nothing is worked that is not in the issue tracker** — no size threshold, no exceptions.
 
 You do not *file* it: only the owner opens work (`/harness-engineering`, *Review does not open work*).

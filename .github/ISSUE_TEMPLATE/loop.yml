@@ -1,14 +1,15 @@
 name: Loop
-description: The loop's own machinery — a hook, an agent brief, a skill, a command, the permission floor, the plugin manifest. Routes to agents-lead + tech-lead intake.
+description: The loop's own machinery — a hook, an agent brief, a skill, a command, the permission floor, the plugin manifest. Routes to agents-lead intake, alone.
 labels: ["loop"]
 body:
   - type: markdown
     attributes:
       value: |
         Only the owner opens work. This template exists so `/new-issue` (and a human filing directly)
-        close the same description the two-lead intake produces — see `commands/new-issue.md` for the
-        full process this mirrors. Loop-typed intake is `agents-lead` alone (standing rule) — see
-        `/harness-engineering`.
+        close the same description this lane's intake produces — see `commands/new-issue.md` step 3b for
+        the full process this mirrors. **Loop-typed intake is `agents-lead` alone, always** — the
+        canonical wording is the `filed → description closed` rows of `/harness-engineering`'s states
+        table. `ready` on this lane is the owner's transition and nobody else's.
   - type: textarea
     id: request
     attributes:
@@ -33,8 +34,8 @@ body:
       label: agents-lead intake
       description: |
         The scenarios a proposed change does not cover, each with how to check it or labelled a
-        hypothesis, per `agents-lead`'s own mandate. `tech-lead` co-cites only if the decision
-        straddles a product/system-architecture stake.
+        hypothesis, per `agents-lead`'s own mandate. `tech-lead` never co-signs this lane — owner
+        ruling, 2026-08-25, on #329: "nunca". No straddling case, no judgement call at dispatch time.
     validations:
       required: false
   - type: input
