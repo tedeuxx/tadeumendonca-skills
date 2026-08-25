@@ -248,6 +248,13 @@ Definition of Done — the DoD review already happened, in tier 1, before the bu
 is that the edge is now drawn for its full span (including the owner's side of it) rather than once for
 legibility.
 
+**And one duty on that owner↔orchestrator edge is about restraint rather than relay: the orchestrator
+hands the owner a PR link only when the remaining act is his** — ready to merge, every check complete and
+successful, which reads mechanically as `APPROVE-PENDING-HUMAN` at the PR's current head. The operative
+wording is his own sentence, in `commands/autonomy-on.md`'s *Reporting* section; the argument, the
+enforcement and the cost of the informal ship-notice it removes are
+[ADR-0002](./docs/adr/0002-roster-and-dev-loop.md)'s eighteenth amendment (#327).
+
 **`MR --> QA` reads "via orchestrator"** because the gate is dispatched, not self-triggered — the merge
 request reaches `quality-assurance` the same way every other piece of work reaches a persona: through the
 orchestrator.
@@ -887,6 +894,7 @@ flowchart LR
   H7["zombie-loop-detect"]
   H8["orchestrator-write-guard"]
   H9["orchestrator-tool-census"]
+  H10["premature-pr-link-detect"]
 
   E1 --> H1
   E1 --> H2
@@ -897,6 +905,7 @@ flowchart LR
   O4 --> H6
   E6 --> H7
   E6 --> H9
+  E6 --> H10
 
   class E1,O1,O4,E6 used
 ```
@@ -907,7 +916,7 @@ flowchart LR
 | **`SessionStart`** | a session begins or resumes | no | `session-wip`, `session-plugin-version` | inject the open queue, and warn when the installed build is not the merged one |
 | **`SubagentStart`** | a subagent is dispatched | no | `dispatch-metrics-start` | best-effort dependency probe only — see below; does not post |
 | **`SubagentStop`** | a subagent finishes | no | `dispatch-metrics-stop` | log rework rounds, time, output size and token cost for the dispatch as a structured Issue comment (#209) |
-| **`Stop`** | the main agent's turn ends | **yes, but neither hook uses that half** | `zombie-loop-detect`, `orchestrator-tool-census` | detect (never prevent) an outstanding gate verdict left unaddressed at turn end — one turn late instead of one session late (#294) — and report what the main agent did with its own hands, write/post class separated from reads (#319) |
+| **`Stop`** | the main agent's turn ends | **yes, but no hook here uses that half** | `zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect` | detect (never prevent) an outstanding gate verdict left unaddressed at turn end — one turn late instead of one session late (#294) — report what the main agent did with its own hands, write/post class separated from reads (#319) — and flag a PR link handed to the owner for a PR that is not open, green and `APPROVE-PENDING-HUMAN` (#327) |
 | `UserPromptSubmit` | a prompt is submitted, before processing | **yes** | — | |
 | `UserPromptExpansion` | a typed command expands, before it reaches the model | **yes** | — | |
 | `PermissionRequest` | a call needs a permission decision | **yes** | — | |
@@ -1008,7 +1017,7 @@ by hand:
 | **Skills** | yes — **14** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **7 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`) | dispatched by name via `Task` |
-| **Hooks** | yes — **`hooks.json` registers 9** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `orchestrator-write-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`) — automatic, no invocation |
+| **Hooks** | yes — **`hooks.json` registers 10** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `orchestrator-write-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`) — automatic, no invocation |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
 | LSP servers | **no** | — | no `.lsp.json` |

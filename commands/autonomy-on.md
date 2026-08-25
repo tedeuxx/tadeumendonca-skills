@@ -149,6 +149,47 @@ consecutive reports.
 the loop — no check reads it, and the human reading it cannot verify it. Every claim in one is a claim
 someone will act on.
 
+### Do not hand the owner a PR link he cannot act on
+
+**The rule is his sentence, and it ships as his sentence rather than as a paraphrase of it (#327):**
+
+> *"eu apenas quero receber links de PR quando tiver pronto para merge com todos check concluidos com
+> sucesso"*
+
+**The condition is CONJUNCTIVE**: *ready to merge* **and** *every check complete and successful*. A PR
+whose pipeline is still running does not qualify however green it looks so far; a red pipeline is the
+loop's to fix without involving him.
+
+**Mechanically, "ready for him" is one verdict literal, not a hold count.** `agents/quality-assurance.md`'s
+*"Your verdict — exactly one of"* enumerates four, and exactly one of them means the remaining act is
+the owner's: **`APPROVE-PENDING-HUMAN`**, posted when one of the four surviving holds fired.
+`REQUEST-CHANGES` is also non-merging and is emphatically *not* an owner summons — it routes to the
+builder. `APPROVE-AND-MERGE` and `APPROVE-AND-MERGE-BOUNDARY` are clearances the gate acts on itself
+(ADR-0002 amendment #16), which is why almost every open PR is one he has nothing to do with.
+
+**The rule is about DIRECTING HIS ATTENTION, not about the character sequence** — and the distinction is
+load-bearing rather than pedantic. `gh pr create` prints the PR URL as its own stdout: measured on #327,
+tool-result blocks carry the identical five PR URLs at identical counts as the prose blocks. A rule
+written against the string would forbid nothing and would fail open exactly where it looked strictest.
+A URL the owner watched a tool emit is not a summons; one you **hand** him is. Report **state** in
+prose — what shipped, what is in flight, what is blocked — and reach for a bare `#NNN` where an item
+needs naming.
+
+**What this rule removes, said plainly because he took the trade knowingly.** The premature PR link was
+the informal substitute for an artifact ADR-0002 amendment #16 already books as missing: *"the owner
+reviews live, after deploy" has no artifact*. Crude and noisy, but it was how he learned something had
+shipped. Removing it without a replacement makes that named residual bite, on published copy in his
+voice. The replacement — a boundary-merge notification — was scoped **out** of #327 on his own call.
+The argument is ADR-0002's eighteenth amendment.
+
+**Enforcement, and its exact limits.** `hooks/scripts/premature-pr-link-detect.sh` is a `Stop` hook that
+reads the turn's own assistant prose and flags a PR URL whose PR is not open-green-and-pending-human. It
+is **detection, never prevention** — it fires after the text has already reached him, so it makes the
+mistake visible in the same turn rather than a session later. And it matches **full URLs only**: GitHub
+shares one number space between Issues and PRs, so a bare `#508` cannot be classified without a network
+call. **The form this rule recommends is the form the hook cannot check.** Read a silent turn as
+"nothing was measured", never as "the rule was kept".
+
 ## Report in delivery, not in issues closed
 
 **Every session report states product slices against hygiene slices.** *"Ten issues closed"* sounded

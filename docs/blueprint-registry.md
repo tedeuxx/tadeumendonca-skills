@@ -198,6 +198,16 @@ declaration green is the failure this file's own `citação` rule exists to prev
 - **o que não faz:** It does not check that a decision *was* recorded — the significance gate is a judgement made at intake, by whichever lead holds the decision, and nothing enumerates the decisions that were never written down. Where a record is absorbed, the destination's **existence** is gated and its **content** is not: a row pointing at a document that never received the decision passes exactly like one pointing at a document that did.
 - **citação:** > "Whether the fold was **lossless** is a reviewer's judgement and there is no instrument for it."
 
+### 0034 · a link to a review artifact is a summons, and one is sent only when the act is the human's
+
+- **tipo:** record
+- **carrier:** `hooks/scripts/premature-pr-link-detect.sh`, `commands/autonomy-on.md`
+- **descrição:** A `Stop` hook reading the turn's own assistant prose for pull-request links, paired with the operative rule in the command that drains the backlog.
+- **propósito:** An agent that hands a human a link to a review artifact is **summoning** them, whatever the surrounding prose claims — a link in a hand reads as *something is waiting for me*. Whether that reading is right is a property of **where the harness put the merge authority**, not of the link: in a loop whose gate merges everything but a named exception list, almost every review link is unactionable, and in a loop that holds a whole class for a human, most of them are. **An adopter must recompute which case they are in before adopting this at all** — porting the narrow form into a harness that holds a class for its human would suppress exactly the links that human needs.
+- **o que faz:** Reads the assistant's own text for the turn that just ended, extracts links to review artifacts, and for each asks three mechanical questions of the artifact itself — is it still open, has every check on its current revision completed and succeeded, and does the gate's own verdict at that revision name the human as the remaining actor. Anything else is reported back into the next turn with the reason, once per (artifact, revision) per session.
+- **o que não faz:** **Detection, never prevention** — it fires after the text has already reached the human, so there is nothing left to refuse. It reads the agent's prose and never a tool's output, because the tool that opens the artifact prints the link itself and a rule written against the character sequence would forbid nothing while looking strictest. And it is **blind to the shorthand the rule recommends**: where a tracker shares one number space between issues and review artifacts, a bare number cannot be classified without a network call, so the form the rule endorses is the one nothing checks. **If the link the human relied on was their only signal that something shipped, suppressing it is a net loss until something replaces it — name the replacement, or accept in writing that there is none.**
+- **citação:** > "It polices the form the rule discourages and is blind to the form it endorses."
+
 ---
 
 ## `routing` — what work exists, what state it is in, who acts next
