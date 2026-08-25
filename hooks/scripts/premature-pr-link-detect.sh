@@ -62,6 +62,24 @@
 #   skipped, not flagged — an unclassifiable link is not a finding.
 # * `MAX_URLS` distinct URLs are examined per turn; a report listing more is examined only that far.
 #   One `gh pr view` per distinct URL is the cost, and an uncapped report is an uncapped bill.
+#   AND THE WORD "TURN" DEPENDS ON A HUMAN RECORD EXISTING. The awk pass below resets its buffer on
+#   each real human turn, so in an autonomous continuation that emits NO `user` record between turns
+#   the buffer spans the whole run and `MAX_URLS` becomes a PER-RUN cap, not a per-turn one: the
+#   fourth distinct URL of the run is never examined. This degrades toward SILENCE, never toward a
+#   wrong clearance — it is a usefulness limit, not a correctness one, and it is why an unexamined
+#   link and a compliant turn look identical from outside. Raising the cap trades bill for coverage
+#   and settles nothing about which of the two a silent turn was.
+#
+# ── AND THE ONE PLACE IT FAILS THE OTHER WAY: it fires on a link that is LEGITIMATE ─────────────
+# The rule has a second limb this hook does not implement and cannot: a PR link is also legitimate
+# when the ask is explicitly A DECISION THE OWNER HOLDS (a title, a positioning call), stated as that
+# and not as a merge request. Such a PR frequently has NO gate verdict at its head at all — the gate
+# has not run yet — so condition (3) above classifies it as premature and this hook emits a notice.
+# "Is this ask a decision he holds" is not knowable at any layer, and making it guessable would be
+# theatre. The cost is bounded by this being DETECTION ONLY: a spurious notice in the next turn's
+# context, never a withheld link. That bound is load-bearing — if this hook were ever made preventive
+# it would suppress exactly the links the owner asked to keep. See `commands/autonomy-on.md` and
+# ADR-0002's eighteenth amendment, both of which state the second limb in the operative wording.
 # * Silent on: no `jq`, no `gh`, no git dir, an unreadable transcript, `stop_hook_active`. Inherited
 #   from the sibling Stop hooks and correct — absence of a notice never means compliance.
 #

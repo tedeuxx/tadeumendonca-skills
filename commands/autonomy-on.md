@@ -167,6 +167,21 @@ the owner's: **`APPROVE-PENDING-HUMAN`**, posted when one of the four surviving 
 builder. `APPROVE-AND-MERGE` and `APPROVE-AND-MERGE-BOUNDARY` are clearances the gate acts on itself
 (ADR-0002 amendment #16), which is why almost every open PR is one he has nothing to do with.
 
+**A second case is legitimate, and it is the second limb of his own rule (#327).** A PR link also goes to
+him when **the ask is explicitly a decision he holds** — a title, a positioning call on a draft —
+**stated as that decision and not as a merge request.** It is not a summons because nothing is waiting on
+his approval to *merge*; what waits on him is the decision, and the link is where its object lives. Two
+things keep this narrow rather than a loophole. **The decision goes in the sentence, not in the PR** — an
+ask that reads *"here is the PR, take a look"* is a merge request wearing a question mark, and the limb
+above forbids it. And **such a PR very often has no gate verdict at its head at all**, because the gate
+has not run yet: which is precisely why the verdict-literal test cannot be the whole rule, and why the
+first limb alone would withhold something he asked to keep.
+
+**The detector cannot tell this case from a violation, and does not try.** *"Is this ask a decision he
+holds"* is not mechanically knowable at any layer, so `premature-pr-link-detect.sh` **will** flag a
+legitimate decision-ask link. It is detection-only, so the cost is a spurious notice in the next turn's
+context and never a withheld link. Read the notice, judge it, and carry on — a notice is not a verdict.
+
 **The rule is about DIRECTING HIS ATTENTION, not about the character sequence** — and the distinction is
 load-bearing rather than pedantic. `gh pr create` prints the PR URL as its own stdout: measured on #327,
 tool-result blocks carry the identical five PR URLs at identical counts as the prose blocks. A rule

@@ -2041,6 +2041,17 @@ links in one session were four false alarms.
 **`APPROVE-PENDING-HUMAN`**. `REQUEST-CHANGES` is also non-merging and is **not** an owner summons — it
 routes to the builder. Naming the literal is checkable; naming *"one of the four holds fired"* is not.
 
+**The rule has a SECOND limb, and it is not mechanical — which is why it was nearly lost.** #327 states
+it in the same blockquote it labels *"the sharp form of the rule"*: a PR link also goes to him **when the
+ask is explicitly a decision he holds** (a title, a positioning call), *stated as that and not as a merge
+request*. Such a PR frequently carries **no gate verdict at its head at all**, so the verdict-literal test
+above classifies it as premature — the first limb alone is **stricter than the rule the owner wrote**, in
+the direction that withholds something he asked to keep. It shipped on no surface in the first round of
+this slice and was caught by the merge gate, not by any check; the operative wording now carries both
+limbs (`commands/autonomy-on.md`, *"Do not hand the owner a PR link he cannot act on"*). **The mechanical
+half deliberately implements only limb one** — *"is this ask a decision he holds"* is not knowable at any
+layer, and an attempt to make it so would be the theatre this record spends its length avoiding.
+
 **The rule is phrased about DIRECTING ATTENTION, not about the character sequence, and that is a
 measurement rather than a preference.** `gh pr create` prints the PR URL as its own stdout: measured on
 #327 against a real transcript, `tool_result` blocks carry the **identical five PR URLs at identical
@@ -2133,6 +2144,13 @@ bites, nobody reconstructs it as an oversight.**
 - **Detection is one turn late, always.** No layer can prevent text that has already been emitted.
 - **The recommended form is unenforceable.** A bare `#NNN` is unclassifiable, so the discipline the rule
   most wants is the one nothing checks.
+- **The detector will flag legitimate decision-ask links, and this is the rule's second limb being
+  unimplementable rather than a bug.** A PR whose ask is a decision the owner holds usually has no gate
+  verdict at its head, so the hook classifies it as premature and emits a notice. The failure is in the
+  **harmless direction only because the hook is detection-only**: the cost is a spurious notice in the
+  next turn's context, never a withheld link. Were this ever made preventive, this cost inverts into
+  suppressing exactly the links the owner asked to keep — which is a second, independent reason not to
+  make it preventive, beyond the one already stated above.
 - **A third independent reader of the `gatekeeper-verdict` marker.** `session-wip.sh`,
   `zombie-loop-detect.sh` and now this one read the same artifact with the same extraction. Drift between
   three readers is caught by a reviewer diffing three test files, not by any gate — the same trade
