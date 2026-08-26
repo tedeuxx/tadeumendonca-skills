@@ -118,6 +118,13 @@ jobs:
       - name: Run the session-plugin-version suite
         run: bash hooks/scripts/session-plugin-version.test.sh
 
+      # Added with the hook itself (#326), in the same slice, deliberately: the two suites named in the
+      # comment above were written and then left to a habit for weeks, and a guard whose suite runs only
+      # by hand is the same "installed-looking and inert" shape this guard's own matcher measurement is
+      # about. Adding the hook and its CI step in different slices is how that gap opens.
+      - name: Run the dispatch-premise-guard suite
+        run: bash hooks/scripts/dispatch-premise-guard.test.sh
+
       - name: Assert every hook script is committed executable
         run: bash hooks/scripts/hooks-executable.test.sh
 

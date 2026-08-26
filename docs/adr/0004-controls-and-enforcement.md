@@ -1596,6 +1596,101 @@ routing rule the main loop can always satisfy by delegating, so it enforces rout
 the same property rules 5d/7b have. And the census counts **attempts**: a denied call still appears in
 the transcript, which the notice states every time rather than pretending otherwise.
 
+## Amendment (2026-08-25) — a control on the DISPATCH, and the rule is *classify the claim, not the actor* (#326)
+
+**Why this is an amendment here and not a new record, stated first because it is a judgement someone
+may disagree with.** It crosses the significance test on *establishes a cross-cutting pattern others
+will follow* — it is the first control this harness has placed on the dispatch tool, and it answers
+this document's own standing question (*which layer carries a control, and can that layer hold it?*)
+for a layer nothing had used. It is **not** a new capability: it is one more answer to the question
+this document exists to hold, and the controls capability was deliberately consolidated into one record
+on 2026-08-20. Splitting it back out would fragment the thing that consolidation fixed. The rejected
+options below are the part that had to be written down somewhere, and this is where the others live.
+
+**The decision.** A `PreToolUse` guard on matcher `Agent`
+(`hooks/scripts/dispatch-premise-guard.sh`) denies a dispatch whose brief stamps a repository state
+that is not true: a commit named as the brief's premise must be HEAD of the repository the brief's own
+citations resolve to, and a branch named alongside it must be the branch that repository is on.
+
+**The problem, measured rather than argued.** Two leads were dispatched on a brief citing
+`architecture.en.md:132` and stamped *"against `main` at `e92d62a`"*, while the tree sat on
+`feat/persona-membership-drift-detector-431`. Roughly 210k tokens were spent reviewing copy that had
+already been corrected. **The structural point is not that a human erred.** A dispatched actor
+*inherits* its brief's premise and cannot check it — it was not present when the measurement was taken
+— so the premise of a dispatch was a load-bearing claim that nothing in the loop ever read back. That
+is the same defect shape #329 recorded one layer up, and it is the shape the state-model rule in
+`harness-engineering` exists to catch: *what observable artifact says this was true?*
+
+**Why `PreToolUse` and not `Stop`.** Because this layer can **prevent**. A `Stop` hook would report the
+waste after it was paid for, which is the difference between a control and a receipt. This is the first
+place in this document where the preventive/detective split falls on the side of prevention for a
+non-floor concern.
+
+**The measurement that decided the matcher, and it is the trap worth carrying past this issue.**
+The dispatch tool is named **`Agent`**, not `Task`. Probe/control, headless, one variable:
+
+| probe | result |
+|---|---|
+| `PreToolUse` matcher `Agent` + a real subagent dispatch | fired; payload captured |
+| `PreToolUse` matcher `Task` + the identical dispatch | **fired zero times; the log stayed empty** |
+
+A `matcher` is a **regex**, so `"Task"` still matches `TaskCreate` — it would give a hook that fires on
+todo-list writes and never on a dispatch: **inert and installed-looking**, this repo's named failure
+shape and the exact one the previous amendment's `Edit|Write` measurement is about. The mitigation is
+the same one and it is not a claim of care: `dispatch-premise-guard.test.sh` asserts the registration,
+so the matcher going wrong goes red rather than quiet.
+
+**Two more properties of that payload shaped the design.** The full brief is in `.tool_input.prompt`,
+which is why the claim is legible at this layer at all. And `subagent_type` is **absent** when the model
+dispatches the default general-purpose agent, present only when it names a persona — so a guard keyed on
+the persona would silently skip a whole class of dispatch. Hence the rule this amendment is named for:
+**classify the claim, never the actor.** A brief carrying no premise is not checked and not blocked,
+whoever is being dispatched; a brief carrying one is checked, whoever is being dispatched. The
+general-purpose blind spot closes as a side effect rather than as a special case.
+
+### The rejected options that are still live
+
+**1 · Verify against `git -C "$cwd"`.** This was the pre-implementation review's own proposal and **the
+owner overruled it, correctly**. On the night this exists for, `cwd` was `tadeumendonca-skills` and the
+citations were `tadeumendonca-io`'s: a `cwd`-anchored guard catches the easy case and misses the real
+one. The repository is resolved from the **cited path** instead. Recorded because it is the cheaper
+implementation and will be proposed again — the reason it is wrong is not visible from inside it.
+
+**2 · Detect an *intake* dispatch and check only those.** Rejected: `product-lead` is dispatched for
+intake, for queue ordering and for a truth pass with the same `subagent_type` every time, so the only
+separator is prose. A hook that fired on every `product-lead` dispatch would be disabled within a week.
+
+**3 · Verify `file:line` citations too.** Rejected, and the exclusion is **declared** — in the deny text
+and in the script's header — rather than left silent. Whether a file says what a brief claims it says is
+prose-reading; a guard reaching for it fails open on the hard half and produces confident nonsense on
+the rest. **A control that catches half and names the half is worth more than one that reaches for
+everything and cannot say what it missed.** Passing this guard means the *tree* is what the brief says
+and nothing about whether the lines are.
+
+**4 · Warn instead of deny.** Rejected on the owner's decision: a warning at dispatch time is another
+end-of-turn report nobody acts on, and the whole value here is that the brief never runs.
+
+### Consequences still being paid
+
+- **A false positive blocks a dispatch**, which is the expensive direction, so every ambiguity resolves
+  toward allowing: a claim passes if it holds in **any** resolved candidate repository. The named false
+  positives are in the script's header rather than only here — chiefly a brief citing a **historical**
+  commit after one of the trigger keywords, which the guard cannot distinguish from a premise.
+- **The candidate set is a heuristic and is the weakest part.** The payload carries `cwd` and nothing
+  else about the workspace — measured: its top-level keys are `cwd`, `hook_event_name`,
+  `permission_mode`, `prompt_id`, `session_id`, `tool_input`, `tool_name`, `tool_use_id`,
+  `transcript_path`, with no additional-working-directory field. So candidates are `cwd`'s repository
+  plus sibling git trees, deduped **per repository** rather than per directory (this workspace carries
+  ~22 linked worktrees of one repo; without the dedupe any stale one could vouch for a premise nobody
+  measured). When the heuristic fails it falls back to `cwd` and the guard gets **quieter**, never
+  louder — a named false-negative, deliberately chosen over its opposite.
+- **It says nothing about a stale Issue**, and that limit is the sharper one. `product-lead`
+  independently found that three Issues in one session described work already done. That is not a
+  dispatch failure — those Issues were stale before any dispatch existed — so it is a different
+  mechanism at a different moment (pick-up, against the Issue) and is deliberately **not** absorbed
+  into this one.
+- **It reads committed state only.** A premise measured against a tree with uncommitted changes passes.
+
 ## Links
 - Driven by ADR-0002 and the Merge Request Definition of Done (record 0003, absorbed 2026-08-19 into
   [ADR-0006](./0006-verification-and-its-artifacts.md)) · consumed per project via
