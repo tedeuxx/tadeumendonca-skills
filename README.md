@@ -1023,16 +1023,26 @@ installed-looking, this repo's named failure shape — which is why the guard's 
 registration rather than trusting it. The repository is resolved **from the paths the brief cites, not
 from `cwd`**: on the night this exists for, `cwd` was `tadeumendonca-skills` and the citations were
 `tadeumendonca-io`'s, so a `cwd`-anchored check would have caught the easy case and missed the real
-one. And the scope is **SHA and branch only** — `file:line` citations are out, by decision and not by
-omission, because whether a file says what a brief claims it says is prose-reading; the deny text says
-so in its own words, so passing the guard means the *tree* is what the brief says and nothing about
-whether the lines are. It is keyed on the presence of a **claim**, never on which persona is being
-dispatched, which closes the general-purpose blind spot for free (`subagent_type` is absent from the
-payload when the model dispatches the default agent — measured, same probe). Named costs: a brief
-citing a **historical** commit after one of the trigger keywords is denied, and a brief genuinely about
-a linked worktree other than `cwd`'s is checked against its repository's main worktree — both loud,
-both diagnosable from the deny text, and both preferred to the silent direction where a forgotten
-worktree vouches for a premise nobody measured.
+one. And the scope is **one claim form** — a ref and the commit it is stamped at, together, where the
+ref resolves in the target repository. `file:line` citations are out, by decision and not by omission,
+because whether a file says what a brief claims it says is prose-reading; the deny text says so in its
+own words, so passing the guard means the *tree* is what the brief says and nothing about whether the
+lines are. It is keyed on the presence of a **claim**, never on which persona is being dispatched,
+which closes the general-purpose blind spot for free (`subagent_type` is absent from the payload when
+the model dispatches the default agent — measured, same probe).
+
+**A bare SHA is not a claim, and that correction came from a measurement, not from an opinion.** The
+first version of this guard also treated a SHA following a keyword as a premise. Run over **859 unique
+real dispatch briefs** from this repo's own transcripts, that grammar evaluated **41.2%** of them, and
+**8.0%** carried two or more distinct SHAs — so at least one claim in each was denied *whatever the
+tree was*. Two SHAs is not a mistake: it is the normal shape of a review brief, which names a
+merge-base and a head. A bare SHA is a **reference**; a premise says where you are. Narrowing to a
+ref-and-commit stamp, with the ref required to resolve, takes the same corpus to **9 briefs (1.0%),
+zero guaranteed denials, zero prose accidents** — and still catches both instances of the brief this
+guard exists for. Named costs that remain: a detached HEAD reads as a branch mismatch; a stale
+remote-tracking ref reads as a false stamp; a brief about a linked worktree other than `cwd`'s is
+checked against its repository's main worktree; and a **cross-repository brief is not checked at all**,
+because one stamp and two repositories leaves no fact that says which one it is about.
 
 **There used to be a fifth hook here, `session-scratch`, sweeping a repo-root `.scratch/` directory —
 retired at #245.** It existed to guarantee nothing survived into a new session, on the belief that a

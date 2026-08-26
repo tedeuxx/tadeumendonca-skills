@@ -1691,6 +1691,63 @@ end-of-turn report nobody acts on, and the whole value here is that the brief ne
   into this one.
 - **It reads committed state only.** A premise measured against a tree with uncommitted changes passes.
 
+### Correction (2026-08-26, at the merge gate) — the claim grammar was wrong, and the corpus was there all along
+
+**The first consequence above said the false-positive rate was unmeasurable against briefs not yet
+written. That was wrong, and the way it was wrong is the part worth keeping.** It was measurable
+against **859 briefs already written** — this repo's own transcripts — and nobody, including the
+review that specified this guard and the owner who ratified the deny, reached for them. The gate did,
+by transplanting the guard's own scanner verbatim over the corpus:
+
+| grammar | briefs evaluated | ≥2 distinct SHAs = at least one denial guaranteed |
+|---|---|---|
+| bare SHA **and** ref-and-SHA (as shipped at `312a14d`) | 354 / 859 = **41.2%** | 69 = **8.0%** |
+| ref-and-SHA only | 11 = 1.3% | 0 = 0.0% |
+| ref-and-SHA, **ref must resolve** in the target repository | 9 = **1.0%** | **0** |
+
+**This was a design fault, not a rate to tune,** and the owner said so of his own decision: two
+distinct SHAs cannot both be HEAD, so every brief in that 8.0% was guaranteed a denial whatever the
+tree was — and carrying two SHAs is *correct briefing*, because a review names a merge-base and a
+head. Confirmed live: *"Review PR 331 against its merge-base commit `f1de137`"* was denied.
+
+**The decision, and it is not a mitigation of the deny — it is a correction of what a premise IS.**
+A bare SHA is a **reference** (a merge-base, a PR head, a quoted verdict marker, a historical commit).
+A **premise** says where you are standing: a ref and the commit it is at, together. The deny stays;
+the grammar loses bare SHAs entirely. Two further findings from the same measurement:
+
+- **The ref must RESOLVE, which is a repository fact rather than a lexical guess.** Ref-and-SHA alone
+  still matched 2 of its 11 on sentence boundaries — *"…of awk. At `55ecf4c`…"*, *"…head 5 at
+  `6259e53`…"*. Requiring the token to be a ref in the target repository drops both and keeps all 9
+  real stamps, including both instances of the incident.
+- **The ref KIND decides what the stamp asserts.** A local branch asserts where the tree *is* (branch
+  and HEAD both checked — the incident's shape). A remote-tracking ref asserts only where that ref
+  points, and HEAD is deliberately **not** checked: 4 of the 9 real stamps are *"on `origin/main` at
+  `<sha>`"* issued from a feature branch, which is correct briefing that a HEAD requirement would have
+  denied every time.
+
+**Two measured holes in the attribution, both closed here, both the same defect at a wider scale than
+the one already recorded above.** The consequence about `~22` linked worktrees was right and
+incomplete: (1) a **second clone** of the same repository was measured vouching for a premise false of
+the tree being worked, because `git worktree list` is per-clone — the key is now `remote.origin.url`
+where there is one; (2) a bare `README.md` citation resolved to **seven** repositories, four of them
+unrelated forks, so under pass-if-any a claim needed to be true of one in seven. **A citation present
+in more than one repository distinguishes nothing and is now dropped**, and where the distinguishing
+citations name two or more repositories the guard **fails open** rather than guessing — a
+cross-repository brief is now a declared blind spot instead of a coin toss reported as a control.
+
+**Rejected here, and recorded because the owner put both on the table.** *Observe-only mode*
+(record what would have been denied, promote the second slice to first): rejected because the whole
+reason this ranked first was that it is **preventive**, and the corpus answered the question
+observe-only would have been collecting data to answer — the data already existed. *This layer cannot
+carry it*: rejected because the narrowed grammar catches the incident with zero guaranteed denials
+across 859 real briefs, which is the evidence that the layer can.
+
+**What this correction costs, stated so it is not read as a free win.** Coverage drops from 41.2% of
+briefs to 1.0%. Most dispatches are now unchecked, and every false-negative class above is larger than
+it was. That is the intended direction — a control that blocks correct briefing is not a control — but
+it means this guard catches one specific, cheaply-falsifiable mistake and nothing else, which is what
+the section heading in this document has said about every control here from the start.
+
 ## Links
 - Driven by ADR-0002 and the Merge Request Definition of Done (record 0003, absorbed 2026-08-19 into
   [ADR-0006](./0006-verification-and-its-artifacts.md)) · consumed per project via
