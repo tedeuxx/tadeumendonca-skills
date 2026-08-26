@@ -6,15 +6,31 @@ argument-hint: "[repo] (defaults to the current repo)"
 Drain the product backlog of `$ARGUMENTS` (default: the current repo), one slice at a time, through
 the full dev-loop, without asking permission for anything in-pattern.
 
-**Done means: no open issue outranks the cost of the session continuing.** See *Stop when* below for why
-the two earlier answers — *"the backlog is empty"* and *"nothing is left that can be advanced without the
-owner"* — were both wrong, and wrong in different directions.
+**Done means: the ACTIVE ITERATION'S pool is exhausted** (#326). See *Stop when* below for why the three
+earlier answers — *"the backlog is empty"*, *"nothing is left that can be advanced without the owner"*,
+and ~~*"no open issue outranks the cost of the session continuing"*~~ — were each wrong, and wrong in
+different directions. **The third was not wrong about the whole `ready` queue**, which is what it was
+written against; it stopped being the drain's condition when the drain stopped working that queue, and it
+survives as the question **planning** asks.
 
 ## The queue
 
-Open issues labelled **(`product` OR `loop`)** **and `ready`**. If the repo has no such label, say so and stop
+Open issues labelled **(`product` OR `loop`)** **and `ready`** — **and carrying the ACTIVE ITERATION'S
+milestone** (#326). If the repo has no such label, say so and stop
 rather than draining every open issue — a command that silently redefines its own scope is worse than
 one that refuses.
+
+**The active iteration is derived from the pool, never from a date, and the milestone name is never
+typed.** The canonical wording, the predicate, and the measurement behind the tracker object are
+`/harness-engineering`'s *The iteration is the unit of work* — read them there rather than trusting a
+restatement here. What this command owes on top of that is one line of its own:
+
+> **Report the count of `ready` items carrying NO milestone, from the same query, at session open.**
+
+Before #326, `ready` was sufficient to be worked. After it, `ready` is necessary and not sufficient — so
+**every `ready` item with no milestone silently stops being worked**, and the only thing standing between
+that and a queue going quietly dark is that somebody counted it. It is one extra filter on a query the
+session already runs, and it is a precondition of this scoping rather than a nicety.
 
 **`ready` means the description is closed by whoever closes it on that lane — and on `loop` it is the
 owner's transition alone** (~~"the leads closed the description"~~, struck 2026-08-25 (#329): that was
@@ -236,9 +252,39 @@ opportunistically.
 
 ## Stop when
 
-- **no open issue outranks the cost of continuing** — see below; or
+- **the active iteration's pool is exhausted** — mechanical, no judgment; or
 - a slice reveals the plan behind it was wrong — a boundary event, with what changed; or
 - the owner interrupts.
+
+~~**no open issue outranks the cost of continuing**~~ — **struck as the DRAIN's terminal condition at
+#326, and moved rather than retired.** It is now what **planning** asks: the criterion for admitting the
+next iteration's contents. See below for why both cannot be left standing.
+
+### Why exhaustion is terminal again, and why that is not a reversal of #103 (#326)
+
+**Two stop rules would otherwise disagree, and leaving both is the failure this file has already paid for
+twice.** A `ready` item in a later iteration can easily outrank the cost of continuing while the active
+iteration's pool is dry.
+
+**#103's argument does not reach an iteration's pool, and the distinction is the whole of it.** It
+retired *"drain until the unblocked queue is dry"* because **the backlog** grows faster than it drains —
+measured, +19 net in one session, roughly 13 of 32 born inside a review of something else. **An
+iteration's pool does not grow while it is drained**: its contents are fixed at planning, and findings
+route to the *next* iteration. So exhaustion is reachable **by construction** here, in a way it provably
+was not for the whole `ready` queue.
+
+**And this removes #103's own named residual rather than relocating it.** That section closes on
+*"that judgement is not mechanical"* — the honest admission that its terminal condition asks a human
+question of a machine. Under #326 the machine's condition is arithmetic (is the pool empty) and the
+judgement moves to **planning**, a stage where the owner is present and is already deciding exactly that.
+Strictly better than what it replaces; the reasoning below stays because it is how the next reader learns
+why two arithmetic conditions failed before either of them.
+
+**Exhaustion is no longer the end of the SESSION, only of the drain.** The closing ceremonies run against
+the exhausted iteration and the session's stop is the planning handoff, which is the owner's. Two
+consequences worth stating because nothing enforces either: an empty pool from a **mistyped** milestone is
+indistinguishable from a drained one (`/harness-engineering`, rule 1 — enumerate, never name), and a
+ceremony run over an iteration that never existed reads exactly like a completed iteration.
 
 ### Why the terminal condition changed (#103)
 

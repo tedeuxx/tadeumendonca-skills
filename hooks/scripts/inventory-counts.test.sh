@@ -4743,5 +4743,104 @@ else
   fi
 fi
 
+# ---------------------------------------------------------------------------------------------------
+# THE ITERATION IS THE UNIT OF WORK, AND ITS TWO NOT-OPTIONAL RULES ARE WRITTEN DOWN (#326).
+#
+# WHY THIS EXISTS. The owner decided on 2026-08-24 that the loop adopts iterations as the unit of work,
+# and the falsifier that opened the Issue matched NOTHING in commands/, skills/ or docs/adr/ — the rites
+# existed as knowledge and the axis did not exist at all. Two rules were imported as not-optional, and
+# each is not-optional because the source project shipped the alternative and measured it failing:
+#
+#   RULE 1 — the active iteration is derived from the POOL, never from a date. Their first cut selected
+#   "the iteration whose date range contains today", picked one with zero open items while real work sat
+#   one iteration away, and REPORTED NOTHING-TO-DO AS THOUGH IT WERE DONE.
+#   RULE 2 — the tracker object is chosen deliberately and WRITTEN DOWN. Rule 2 is discharged by a
+#   surface existing; these arms are what makes "written down" mean something a diff can lose.
+#
+# WHAT THESE ARMS OWN: that the canonical section still exists and still carries both rules, the
+# measurement behind the tracker object, and the state-model pass; and that the file the loop EXECUTES
+# scopes its queue to the active iteration and stops on exhaustion rather than on the retired judgment
+# condition. Delete or reword any of it and this reddens.
+#
+# WHAT NO ARM CAN OWN, and the amendment says so in the same words: that a SESSION obeyed any of it.
+# Every `gh issue` call in hooks/scripts/ is a write path — nothing in this harness reads the queue, so
+# a drain that ignored the milestone entirely is invisible to the tracker and to the diff. These arms
+# gate the PRESENCE OF A RULE. That is the whole claim.
+#
+# TWO INDEPENDENT `if` BLOCKS, EACH WITH ITS OWN VACUITY GUARD, DELIBERATELY. An arm that lives in an
+# `elif` under another arm emits NO verdict when the one above it goes red — an assertion that does not
+# fail but DISAPPEARS, which no passing total can surface. That defect was found five times in this file
+# by planting a mutation and watching for the line that never came; it is not repeated here.
+ITER_SKILL="$ROOT/skills/harness-engineering/SKILL.md"
+ITER_CMD="$ROOT/commands/autonomy-on.md"
+
+# ── 1 · the canonical section carries both rules, the measurement, and the state-model pass ──────
+iter_skill_missing=""
+if [ ! -r "$ITER_SKILL" ]; then
+  bad "iteration axis — skills/harness-engineering/SKILL.md is not readable; the canonical section
+      cannot be checked at all. This is the file every persona preloads, which is why the rule lives
+      here rather than in README.md prose no agent carries."
+else
+  for iter_needle in \
+    '## The iteration is the unit of work' \
+    '### Rule 1 — the active iteration is derived from the POOL, never from a date' \
+    '### Rule 2 — the tracker object is a MILESTONE, and this section is it being written down' \
+    'carries **four keys and' \
+    '### `loop`-typed items ARE iteration-assignable' \
+    '### The state-model pass — the axis adds NO label and NO state'
+  do
+    grep -qF -- "$iter_needle" "$ITER_SKILL" || iter_skill_missing="$iter_skill_missing
+    missing: \"$iter_needle\""
+  done
+  if [ -n "$iter_skill_missing" ]; then
+    bad "iteration axis — the canonical section no longer carries a load-bearing part of the rule:$iter_skill_missing
+      Rule 1 and Rule 2 were imported as NOT OPTIONAL, each because the source project measured the
+      alternative failing. The 'four keys' needle is the tracker object's own degradation — no command
+      available to this loop can read a milestone's open/closed state — and it is what stops someone
+      building a closing rule on an attribute that is not there. If this is a deliberate rewording,
+      update the needles in this file in the same commit."
+  else
+    ok "iteration axis — the canonical section carries both not-optional rules, the tracker measurement and the state-model pass"
+  fi
+fi
+
+# ── 2 · the file the loop EXECUTES scopes its pool and stops on exhaustion ───────────────────────
+#
+# BOTH DIRECTIONS, and the negative half is the one that survives a rewording. The retired terminal
+# condition must be ABSENT IN ITS BULLET FORM — not absent from the file, which would be wrong twice
+# over: the sentence is deliberately kept struck (`~~…~~`) under *Stop when* because someone acted on
+# it, and it is quoted again inside the #103 rationale, which is history and must not be swept. Keying
+# on the bullet is what tells a live rule from a preserved one, and it is why this arm does not reuse
+# the strip-then-grep shape the lane arms use.
+iter_cmd_missing=""
+if [ ! -r "$ITER_CMD" ]; then
+  bad "iteration axis — commands/autonomy-on.md is not readable; the executed pool and terminal
+      condition cannot be checked at all."
+else
+  for iter_cmd_needle in \
+    '**and carrying the ACTIVE ITERATION' \
+    '> **Report the count of `ready` items carrying NO milestone, from the same query, at session open.**' \
+    "- **the active iteration's pool is exhausted** — mechanical, no judgment; or"
+  do
+    grep -qF -- "$iter_cmd_needle" "$ITER_CMD" || iter_cmd_missing="$iter_cmd_missing
+    missing: \"$iter_cmd_needle\""
+  done
+  iter_retired='- **no open issue outranks the cost of continuing** — see below; or'
+  iter_retired_hits=$(grep -cF -- "$iter_retired" "$ITER_CMD" || true)
+  [ "${iter_retired_hits:-0}" -eq 0 ] || iter_cmd_missing="$iter_cmd_missing
+    RETIRED terminal condition is live again as a *Stop when* bullet: \"$iter_retired\""
+  if [ -n "$iter_cmd_missing" ]; then
+    bad "iteration axis — commands/autonomy-on.md no longer executes the iteration-scoped drain:$iter_cmd_missing
+      The queue predicate and the terminal condition are what the axis IS, operationally — the rest is
+      description. And the no-milestone count is a precondition of this scoping rather than a nicety:
+      \`ready\` was sufficient before #326 and is necessary-not-sufficient after it, so every \`ready\`
+      item with no milestone silently stops being worked and nothing else anywhere would say so.
+      Leaving BOTH terminal conditions standing is the shape this file has already paid for twice
+      (#97 → #103, and the exhaustion event itself)."
+  else
+    ok "iteration axis — commands/autonomy-on.md scopes the pool to the active iteration, counts the unassigned, and stops on exhaustion"
+  fi
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

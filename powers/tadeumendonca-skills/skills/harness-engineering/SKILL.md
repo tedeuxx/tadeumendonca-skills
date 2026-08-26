@@ -300,6 +300,182 @@ Issue was met, and those requirements are the leads' output — so the ruler the
 impression, which has no stopping rule. That objectivity is what the labels buy: they are how the
 chain above becomes checkable instead of merely believed.
 
+## The iteration is the unit of work
+
+**The pool a drain works is an ITERATION, not the whole `ready` queue.** Owner decision, 2026-08-24
+(#326). What the axis buys is stated narrowly on purpose: **a bounded pool and a reachable terminal
+condition.** `/autonomy-on` scoped by `ready` alone is unbounded for exactly the reason #103 retired
+*"drain until the queue is dry"* — the queue grows by working — and an iteration is the smallest thing
+that fixes a pool's contents at a moment the owner is present.
+
+**It buys no velocity on its own, and saying so is not a hedge.** A points-per-*iteration* series is only
+a rate when the iterations are the same length; a series over variable buckets is a burndown drawn as a
+trend, which on a repository whose thesis is rigor is a false claim with a chart attached. The rate
+metric that survives a variable bucket is **points per week** — a constant denominator, readable
+mid-iteration. The weight the rate needs is not built here; see *What is not built* below.
+
+### Rule 1 — the active iteration is derived from the POOL, never from a date
+
+**The active iteration is the oldest not-yet-closed iteration holding at least one eligible item.** Dates
+are metadata; they do not select. The rule is imported with its evidence: the source project first
+selected *"the iteration whose date range contains today"*, which picked an iteration with zero open
+items while real work sat one iteration away, and **the loop reported nothing-to-do as though it were
+done.**
+
+**That defect is reachable on this repository's own data today**, which is why the rule is adopted rather
+than admired. `tadeumendonca-skills` carries one milestone left over from the retired `phase:` taxonomy,
+`v0.2.0 Phase 1`, milestone number 1, holding four issues that are **all closed**:
+
+```
+gh issue list --repo <owner>/<repo> --state all --limit 200 --json number,state,milestone \
+  --jq '[.[]|select(.milestone!=null)|{number,state,m:.milestone.title}]'
+```
+
+A naive *"oldest"* rule selects it and drains nothing. The pool predicate skips it, because it selects
+from the items rather than from the milestones:
+
+```
+gh issue list --repo <owner>/<repo> --state open --limit 200 --json number,labels,milestone \
+  --jq '[.[]|select(.milestone!=null)
+          |select((.labels|map(.name)|index("ready"))
+                  and ((.labels|map(.name)|index("product")) or (.labels|map(.name)|index("loop"))))
+          |.milestone.number]|min'
+```
+
+**`--limit` is part of the predicate, not tidiness** — the default page is 30, and a pool query that
+silently truncates selects the wrong iteration and then reports a dry pool. Same failure class as the
+one above, one layer down.
+
+**Never type a milestone name into a query — enumerate, then select from what came back.** Measured:
+
+```
+gh issue list --repo <owner>/<repo> --milestone "nonexistent-probe" --limit 1
+→ (no output, exit 0)
+```
+
+**No error. An empty result is indistinguishable from a drained iteration.** Rule 1 protects against
+selecting the *wrong* iteration and does nothing about naming one that does not exist — and since
+exhaustion is no longer terminal (below), a typo does not stop the loop, it runs the closing ceremonies
+over an iteration that never held anything. **If a milestone name is ever typed into a query, that is
+the defect.**
+
+### Rule 2 — the tracker object is a MILESTONE, and this section is it being written down
+
+Both rules are imported as not-optional. Rule 2 is *"choose the object deliberately and write it down"*;
+what follows discharges it.
+
+**Milestones, and the choice is closer to a measurement than to a preference.** A GitHub Projects v2
+iteration field cannot be driven from inside this harness at all: `gh project field-create --data-type`
+accepts `{TEXT|SINGLE_SELECT|DATE|NUMBER}` and `ITERATION` is not in the set, `gh project list` fails on
+a missing `read:project` token scope, and the GraphQL escape hatch is denied by the global permission
+floor (`Bash(gh api:*)`). A milestone needs none of that: `gh issue edit --milestone`,
+`gh issue list --milestone` and `gh issue list --json milestone` are all allowlisted already.
+
+| requirement (#326) | milestone |
+|---|---|
+| one iteration per item | **yes**, and GitHub enforces it — an Issue has at most one milestone |
+| mark an iteration closed | **not readable from here** — see the degradation below |
+| aggregate a numeric weight per iteration | **no native field**; see *What is not built* |
+
+**The degradation, measured rather than inferred, and it is the one thing to know before trusting this
+object.** The `milestone` sub-object returned by `gh issue list --json milestone` carries **four keys and
+no `state`**:
+
+```
+gh issue list --repo <owner>/<repo> --state all --limit 200 --json number,milestone \
+  --jq '[.[]|select(.milestone!=null)]|.[0].milestone'
+→ {"description":"…","dueOn":null,"number":1,"title":"…"}
+```
+
+There is no `gh milestone` subcommand, and `state` is not among `gh issue list --json`'s available
+fields, so **no command available to this loop can read whether a milestone is open or closed.**
+Creating one and closing one are both owner acts in the browser.
+
+**Why that does not send the object back to the table, which is the honest form of this answer:** rule 1
+never reads `state`. The predicate above derives the active iteration from *items*, so the one attribute
+milestones cannot expose is the one attribute the design does not consult. What it does cost is the
+source document's *"the iteration closes automatically"* clause, which is therefore **not adopted** —
+closing is a click. The alternative is unlisting `Bash(gh api:*)` from the global floor, which is the
+line standing between every persona and the raw write API; one click per iteration is cheaper than
+reopening that door.
+
+### `loop`-typed items ARE iteration-assignable
+
+**Decided in this slice, not inherited — the source document explicitly refuses to answer it.** There,
+loop-typed items carry no iteration and sit outside the drained pool, so the question is only about where
+a retrospective's output lands. **Here the premise does not hold**: `/autonomy-on`'s queue is
+`(product OR loop) AND ready`, so an iteration-scoped pool with loop items unassignable does not orphan a
+ceremony's output — **it takes half the queue dark**. One list, one axis, one predicate.
+
+Cost, carried knowingly: planning must slot loop items, and `loop`-typed `ready` is the owner's
+transition alone — so he is already the critical path for exactly these items, and this adds one
+milestone assignment to a transition he already performs. It adds no new gate and no new actor.
+
+### The state-model pass — the axis adds NO label and NO state
+
+Per the standing rule, the axis was walked against issue types × states × role-per-transition rather than
+bolted on. **It changes one row's precondition and adds no vocabulary:**
+
+- **`ready → in progress`, all three types** — unchanged in who acts and what records it, with one added
+  precondition: the item is in the **active** iteration. The artifact is the **milestone assignment**,
+  which GitHub already stores, already returns on the ordinary query, and already permits only one of.
+  Nothing new is queryable, because nothing new needs to be.
+- **Every other row is untouched.** Intake, the gate, the merge and `blocked` are indifferent to which
+  iteration an item sits in.
+- **No sixth label.** The label vocabulary's own test is *something must query it*; a milestone is not a
+  label and the pool predicate reads it directly. Adding `iteration:N` beside a field GitHub already
+  enforces would duplicate an observable, which is the named anti-pattern.
+
+**Two transitions are genuinely new, and they are the ones with no artifact — so they get one.**
+*An iteration was planned* and *an iteration closed* are both events a milestone's own flag cannot record
+here (no readable `state`), and an event nothing records is applied inconsistently and silently.
+
+> **The planning artifact is an ITERATION ISSUE** — one Issue per iteration, opened by the owner at
+> planning, whose body is the **ordered** list of the items admitted. It records what was planned, in
+> what order (milestones carry no ordering field either), and it is **closed with a criterion** like any
+> other Issue, which is what records that the iteration closed.
+
+That reuses a primitive the loop already has rather than inventing a state: it is queryable, attributable,
+dated by GitHub, and it is the only place the owner's ordering can live at all.
+
+### What exhaustion means now
+
+**Exhausting the active iteration's pool is an internal transition, not the end of the session** — the
+closing ceremonies run, and the stop moves to the planning handoff, which is the owner's. See
+`/autonomy-on`'s *Stop when* for the operative wording and for how this settles against #103's judgment
+condition; it is stated once, there, rather than twice.
+
+### What this does NOT bound, said plainly
+
+**The iteration bounds the pool being drained. It does not bound the backlog, and it does not bound the
+NEXT iteration.** Findings from a slice land as Issues on the next iteration by design, and nothing stops
+that one growing without limit — the unboundedness is *moved*, not removed. **That is the intended
+shape rather than a leak:** #103's argument was never that a backlog must be small, it was that a *pool*
+whose contents grow while it drains has no terminal state. Planning is HITL and the owner composes, so
+the growth is bounded by a human deciding, which is the only place this loop has ever bounded anything
+that is a matter of worth rather than of arithmetic.
+
+**The residual, named because nothing catches it:** nothing bounds how many items the owner admits to one
+iteration, so an over-filled iteration reproduces the old unbounded drain inside one milestone. There is
+no mechanism for this and none is proposed — the signal is the metric (cycle time, and the count of items
+carried over), not a gate.
+
+### What is not built in this slice
+
+- **The numeric weight.** #326's third tracker requirement is **live, not void** — the owner ratified
+  estimation on 2026-08-24 in his own words (*"inteiro. estimar antes é positivo"*, recorded on the
+  Issue) — and a milestone has no numeric field of any kind. The designed carrier is a
+  **`sp:N` label per Fibonacci value**, summed by a script, because `gh label` and `gh issue edit` are
+  both already allowlisted and `gh issue list --json labels` reads them back. **Not built here**, and
+  until it is, every points-based metric starts at zero.
+- **The ceremonies.** REVIEW cannot run unattended in this harness — no MCP server is reachable from a
+  dispatched subagent, there is no non-production environment to sweep, and resumable state has no
+  durable home since #245. RETROSPECTIVE and PLANNING are dispatch-and-interview shapes, not mechanisms
+  in this file.
+- **Anything that observes an iteration.** No hook reads the queue: every `gh issue` call in
+  `hooks/scripts/` is a write path. This section is a rule the loop follows, and a gate asserts only that
+  the rule is **written**, never that a session obeyed it.
+
 ## Opening a session — decisions before work
 
 **Collect the pending owner decisions across the whole queue and ask them as a batch, before choosing
