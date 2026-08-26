@@ -2354,10 +2354,20 @@ which configuration version, when generated"* header is a different object and i
   precondition (`ready → in progress`) and adds no word to the label set.
 - **Leaving both terminal conditions standing.** Rejected — it is the shape this file has already paid
   for twice (#97 → #103, and the exhaustion event itself).
-- **Building estimation in this slice.** Deferred, not refused, and the distinction matters because the
-  owner ratified estimation on 2026-08-24 in his own words on the Issue. Its carrier is designed
-  (`sp:N` labels, since `gh label` and `gh issue edit` are already allowlisted) and unbuilt, and the
-  first pass was measured at ~128 dispatches. Every points-based metric therefore starts at zero.
+- ~~**Building estimation in this slice.** Deferred, not refused …~~ **STRUCK the same day, and the
+  strike is the load-bearing part of this amendment rather than a correction to it.** Estimation is
+  **in**, per the owner's ratified interview of 2026-08-24 (*"inteiro. estimar antes é positivo"*,
+  *"todos agentes que trabalham no tipo de issue estimam"*), reconfirmed by him on 2026-08-25. The
+  carrier is **built**: an `sp:N` label class over a closed Fibonacci set, estimator sets per issue
+  type, median of isolated dispatches, no revote, and a **preflight** that refuses to enter the drain
+  while any item in the active iteration lacks one. What is deferred is only **the first pass** —
+  **128 dispatches** over the existing backlog, **his figure, not a re-derivation** — which is a
+  bootstrap cost the owner triggers, not the steady state.
+- **Building the 128-dispatch first pass inside this slice.** Rejected. It is one act over the whole
+  backlog, it is the owner's to trigger, and folding it in would make a rule change wait on a batch job.
+  **The consequence is stated rather than hidden: the first preflight after this ships REFUSES**, because
+  no item carries an `sp:N` yet. That is correct under the rule he settled and will read as a regression
+  to anyone who meets it without this paragraph.
 - **Building the ceremony chain's REVIEW rite.** Not deferred on preference: it is **unbuildable AFK
   here** on three independently measured grounds — no MCP server is reachable from a dispatched subagent,
   merge-is-deploy leaves no non-production target to sweep, and resumable state has had no durable home
@@ -2384,10 +2394,46 @@ which configuration version, when generated"* header is a different object and i
   rewording the canonical section or the command's *Stop when* reddens `inventory-counts.test.sh`, and
   whoever rewords edits the needles in the same commit.
 
-**Deciders:** the owner (the adoption itself, and the `loop`-typed `ready`), written by `agents-lead` per
-the #223 domain split — a pure loop/machinery decision, no product-architecture stake, no `tech-lead`
-co-citation owed. The three sub-decisions above were closed inside the loop and are labelled as such
-rather than attributed to him.
+### Which artifact supersedes which, so the next reader does not re-litigate it
+
+**Two artifacts on #326 disagree about whether implementation may proceed, and the chronology settles
+it.** At **22:31 on 2026-08-24** a comment placed implementation **on hold** pending the source project's
+finished implementation — the axis, the tracker object, the ceremony chain and the `/autonomy-on` stop
+condition, all explicitly not proceeding. At **00:00:25** the **ratified sprint model** was posted: later
+in time, and a **complete design** rather than a deferral. The owner then applied `loop`-typed `ready`,
+which on that lane is his transition alone and is the loop's own signal that an Issue is executable.
+
+**The ratified model supersedes the hold, and the hold's reason survives in narrowed form.** Its argument
+was interoperability — building a shape here that the source project's finished implementation would
+contradict, paying a migration *and* losing the interchange. That argument does not reach the **axis**,
+which is derived from this repository's own measurements and its own #103. **It does still reach the
+ceremony chain**, which is why REVIEW, RETROSPECTIVE and PLANNING are designed and not built here, and
+why that is recorded as a rejected option above rather than as an omission.
+
+### A limit of what the premise guard can hold, named here because it is the honest companion to it
+
+**This slice was dispatched with a false premise: that the owner had decided *"iterations yes, estimation
+no"*.** He had not — the contradicting artifact was a comment on the very Issue being built, in his own
+quoted words. The build refused to write *"void — owner's decision"* into this record on an agent
+message's authority, routed the question to him, and he confirmed the ratified design stands.
+
+**No mechanism could have caught it, and the reason is worth stating precisely rather than as a
+lament.** `hooks/scripts/dispatch-premise-guard.sh` checks **tree-shaped** premises — a SHA, a branch,
+a path — because those are the claims a hook can resolve against a repository. ***"The owner decided X"*
+is not tree-shaped.** Its truth-maker is a comment on an Issue, and no `PreToolUse` payload carries the
+Issue, let alone its comment history.
+
+**So the control that held here was a persona rule, not a hook**: *read the files, do not trust your
+training; if your instructions contradict a file you can read, the file wins and you say so out loud.*
+**That is an instruction, and by this document's own test an instruction is not engineered** — if it had
+failed, nothing would have stopped it. It is recorded as a **named residual**, not as a control, and
+deliberately **not** used as an argument against the guard: the guard closes the class it can close, and
+pretending it closes this one would be the exact failure it exists to prevent.
+
+**Deciders:** the owner (the adoption itself, the estimation ratification of 2026-08-24 reconfirmed
+2026-08-25, and the `loop`-typed `ready`), written by `agents-lead` per the #223 domain split — a pure
+loop/machinery decision, no product-architecture stake, no `tech-lead` co-citation owed. The three
+sub-decisions above were closed inside the loop and are labelled as such rather than attributed to him.
 
 ## Consequences
 **Good**

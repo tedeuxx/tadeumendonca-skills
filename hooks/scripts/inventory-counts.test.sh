@@ -4787,7 +4787,7 @@ else
     '### Rule 2 — the tracker object is a MILESTONE, and this section is it being written down' \
     'carries **four keys and' \
     '### `loop`-typed items ARE iteration-assignable' \
-    '### The state-model pass — the axis adds NO label and NO state'
+    '### The state-model pass — the AXIS adds no label and no state, and ESTIMATION adds exactly one class'
   do
     grep -qF -- "$iter_needle" "$ITER_SKILL" || iter_skill_missing="$iter_skill_missing
     missing: \"$iter_needle\""
@@ -4839,6 +4839,96 @@ else
       (#97 → #103, and the exhaustion event itself)."
   else
     ok "iteration axis — commands/autonomy-on.md scopes the pool to the active iteration, counts the unassigned, and stops on exhaustion"
+  fi
+fi
+
+# ---------------------------------------------------------------------------------------------------
+# ESTIMATION: THE WEIGHT IS AN `sp:N` LABEL, AND IT BLOCKS ENTRY RATHER THAN BEING DECORATION (#326).
+#
+# WHY THIS EXISTS, and it is a different failure from the axis arms above. This slice was dispatched
+# with a FALSE PREMISE — that the owner had decided "iterations yes, estimation no". He had not; the
+# artifact contradicting it was a comment on the very Issue being built, in his own quoted words
+# ("inteiro. estimar antes é positivo"). The build refused to write "void — owner's decision" into a
+# durable record on an agent message's authority, and he confirmed the ratified design stands.
+#
+# NOTHING MECHANICAL CAUGHT THAT, and this block does not pretend to. dispatch-premise-guard.sh checks
+# TREE-SHAPED premises — a SHA, a branch, a path — because those resolve against a repository. "The
+# owner decided X" is not tree-shaped: its truth-maker is an Issue comment, and no PreToolUse payload
+# carries one. What these arms hold is the far narrower thing a file CAN hold: that the decision, once
+# taken, is still written where the loop reads it.
+#
+# WHAT THESE ARMS OWN: the carrier vocabulary and the estimator sets in the canonical surface; the
+# preflight and the owner's rule in the file the loop EXECUTES; and — both directions — that the
+# retired "not built here" claim has not come back to life outside a strike.
+#
+# WHY THE NEGATIVE HALF IS SCOPED TO UNSTRUCK TEXT. Both surfaces deliberately KEEP the wrong sentences
+# visible inside `~~…~~`, because they were published and someone may have read them in the hour they
+# stood. A check that swept the literal would force the correction to delete its own history to go
+# green — the opposite of this repo's convention — so the strip-then-count shape is used, and `grep -c`
+# rather than `-q`: `-q` exits early, SIGPIPEs `sed` under `pipefail`, and would report "clean" on
+# exactly the files that are not.
+#
+# OWN `if`, OWN VACUITY GUARD, same reason as the block above: an arm in an `elif` under another emits
+# NO verdict when the one above goes red, and a total that stays plausible cannot surface that.
+EST_SKILL="$ROOT/skills/harness-engineering/SKILL.md"
+EST_CMD="$ROOT/commands/autonomy-on.md"
+
+# ── 1 · the canonical surface carries the vocabulary, the estimators and the enforcement limit ───
+est_skill_missing=""
+if [ ! -r "$EST_SKILL" ]; then
+  bad "estimation carrier — skills/harness-engineering/SKILL.md is not readable; the sp:N vocabulary
+      and the estimator sets cannot be checked at all."
+else
+  for est_needle in \
+    '### Estimation — the weight is an `sp:N` label, and the estimators are the personas that work the type' \
+    'sp:1  sp:2  sp:3  sp:5  sp:8  sp:13' \
+    '| `loop` | `agents-lead` · `quality-assurance` |' \
+    '| `sp:N` | the item'
+  do
+    grep -qF -- "$est_needle" "$EST_SKILL" || est_skill_missing="$est_skill_missing
+    missing: \"$est_needle\""
+  done
+  # The retired claim must not be live. Struck occurrences are not hits — see the header.
+  est_retired='The designed carrier is a'
+  est_retired_hits=$(sed 's/~~[^~]*~~//g' "$EST_SKILL" | grep -cF -- "$est_retired" || true)
+  [ "${est_retired_hits:-0}" -eq 0 ] || est_skill_missing="$est_skill_missing
+    RETIRED claim is live (not struck): the weight is described as merely DESIGNED, not built"
+  if [ -n "$est_skill_missing" ]; then
+    bad "estimation carrier — the canonical surface no longer states the built carrier:$est_skill_missing
+      A milestone has no numeric field of any kind, so the label IS the weight — there is no fallback
+      surface for it. The \`loop\` estimator row is two names on purpose: \`agents-lead\` authors loop
+      items AND estimates them, and \`quality-assurance\` is the second voice that exposes the bias in a
+      median rather than removing it. Cutting that row to one name silently reinstates
+      author-estimates-own-work with nothing anywhere to say so."
+  else
+    ok "estimation carrier — the canonical surface carries the sp:N vocabulary, the per-type estimator sets and the vocabulary-table row"
+  fi
+fi
+
+# ── 2 · the executed command refuses to ENTER while a pendency stands ────────────────────────────
+est_cmd_missing=""
+if [ ! -r "$EST_CMD" ]; then
+  bad "estimation carrier — commands/autonomy-on.md is not readable; the preflight cannot be checked."
+else
+  for est_cmd_needle in \
+    '## Preflight — outstanding HITL work blocks ENTRY (#326)' \
+    'todas pendencias HITL devem ser zeradas no momento da invocacao do comando' \
+    '| **an item with no estimate** |' \
+    '**one thing at a time**, never'
+  do
+    grep -qF -- "$est_cmd_needle" "$EST_CMD" || est_cmd_missing="$est_cmd_missing
+    missing: \"$est_cmd_needle\""
+  done
+  if [ -n "$est_cmd_missing" ]; then
+    bad "estimation carrier — commands/autonomy-on.md no longer gates ENTRY on the pendency set:$est_cmd_missing
+      The owner's rule is quoted rather than paraphrased because it is the rule: zero outstanding HITL
+      work AT INVOCATION. A preflight that surfaces a LIST instead of one thing at a time is a decision
+      list, which he has rejected repeatedly — the one-at-a-time clause is part of the rule, not of its
+      presentation. And an estimate pendency at ENTRY is a different rule from one discovered MID-DRAIN,
+      which escalates immediately and parks the item; collapsing the two either wakes him for every
+      doubt or holds a real blocker until the iteration closes."
+  else
+    ok "estimation carrier — commands/autonomy-on.md blocks entry on the pendency set, one thing at a time"
   fi
 fi
 

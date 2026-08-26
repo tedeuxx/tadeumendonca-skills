@@ -62,6 +62,42 @@ The bias it exists to correct, said plainly because it is invisible from inside:
 by what flows without a human is correct for safety and backwards for prioritisation.** It once
 produced seventeen closed issues with not one from the owner's product queue.
 
+## Preflight — outstanding HITL work blocks ENTRY (#326)
+
+**Before the drain begins, the outstanding human-in-the-loop work on the active iteration must be zero.**
+The owner's rule, in his words:
+
+> *"todas pendencias HITL devem ser zeradas no momento da invocacao do comando"*
+
+**If any exists, the drain does not enter.** It surfaces what is missing — **one thing at a time**, never
+as a list — and waits. The one-at-a-time rule is not presentation: a batch of pendencies is a decision
+list, and he has said repeatedly that a decision list makes him rebuild the context for each item.
+
+**The classes, and what queries each:**
+
+| pendency | query |
+|---|---|
+| a description not closed on its lane | open, in the active iteration, **no `ready`** |
+| **an item with no estimate** | open, in the active iteration, **no `sp:` label** |
+| a decision pending on the owner | the **`blocked`** label — already queried by the *Reporting* section below |
+| an outstanding `APPROVE-PENDING-HUMAN` at the current head | `zombie-loop-detect.sh` already reads exactly this artifact at `Stop` — reuse it, do not build a second reader |
+
+**The estimate class is the one that is new**, and `/harness-engineering`'s *Estimation* section is where
+its vocabulary, its estimator sets per issue type and the median-of-isolated-dispatches rule live. Read
+them there; this is the gate, not a second definition.
+
+**Two things this preflight is not.** It is **not a mid-drain check** — a pendency discovered *during* the
+drain escalates immediately and the item is parked while the others continue, which is a different rule
+with a different reason (*"todo momento que estiver atuando AFK em dreno e tiver uma pendencia HITL voce
+deve escalar para mim o quanto antes"*). And it is **not a mechanism**: nothing fires it, nothing records
+that it ran, and a session that skipped it looks exactly like one that found the set empty.
+
+**What it will cost on its first real invocation, said now so it does not read as a regression later.**
+The estimate class is empty for every item in the backlog until the first estimation pass runs — the
+owner's, 128 dispatches, his figure. **So the first preflight after this ships refuses.** That is correct
+under the rule he settled, and it is a bootstrap cost paid once: from the second iteration on, the
+pendency set is bounded by that iteration's contents rather than by the whole backlog.
+
 ## Decisions first, then work
 
 Per `/harness-engineering`, "Opening a session": **collect the pending owner decisions across the

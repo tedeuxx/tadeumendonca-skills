@@ -286,13 +286,22 @@ label is auditable and attributable, not proven.
 | `ready` | the description is closed on that lane, per the `filed → **description closed**` rows above | the leads (`product`) · `product-lead` (`content`) · **the owner** (`loop`) | `/autonomy-on` · `developer` refuses an Issue without it |
 | `blocked` | waiting on the owner, or on something outside the loop | anyone | the "what needs the owner" report |
 | `reader-facing` | the diff will change words or images a reader sees | the owner or the leads | which lens the gate dispatches — **a signal, never a gate** |
+| `sp:N` | the item's estimated weight, one Fibonacci value from a closed set (#326) | the estimating personas for that type, median of an isolated dispatch each | `/autonomy-on`'s **preflight** (an item without one blocks entry) · the points-per-week aggregation |
 
 `product` / `content` / `loop` are exclusive per
 [ADR-0002](https://github.com/tedeuxx/tadeumendonca-skills/blob/main/docs/adr/0002-roster-and-dev-loop.md), which is the
 citation for *why* — routing, not a re-argument here. **The test a label has to pass: something must
 QUERY it.** A label nobody reads is decoration that ages, which is why the retired vocabulary
 (`type:*`, `phase:*`, `priority:*`, `semver:*`, `status:blocked`) stays retired — each failed that
-test or was superseded by one of the five above.
+test or was superseded by a row in the table above. ~~one of the five above~~ — **struck at #326**: the
+table gained `sp:N` and a prose count beside a table is a second source of truth for one fact, which is
+the arrangement this repository's own gate exists because it rots. The criterion is what selects the
+members; the number is derived by reading them.
+
+**`sp:N` is the first label admitted to this table since the vocabulary was cut**, and it was admitted on
+the test rather than around it: two things query it, and — unlike every candidate rejected here — no
+GitHub field carries the thing it records. That is the entry rule, and it is worth stating that a label
+class can pass it, or the table reads as closed when it is only strict.
 
 **Why the formalism is not ceremony.** `quality-assurance` consolidates that every requirement of the
 Issue was met, and those requirements are the leads' output — so the ruler the gate applies is
@@ -308,11 +317,16 @@ condition.** `/autonomy-on` scoped by `ready` alone is unbounded for exactly the
 *"drain until the queue is dry"* — the queue grows by working — and an iteration is the smallest thing
 that fixes a pool's contents at a moment the owner is present.
 
-**It buys no velocity on its own, and saying so is not a hedge.** A points-per-*iteration* series is only
-a rate when the iterations are the same length; a series over variable buckets is a burndown drawn as a
-trend, which on a repository whose thesis is rigor is a false claim with a chart attached. The rate
-metric that survives a variable bucket is **points per week** — a constant denominator, readable
-mid-iteration. The weight the rate needs is not built here; see *What is not built* below.
+**A points-per-*iteration* series is only a rate when the iterations are the same length**; a series over
+variable buckets is a burndown drawn as a trend, which on a repository whose thesis is rigor is a false
+claim with a chart attached. **The rate metric is therefore points per WEEK** — a constant denominator,
+immune to how long an iteration ran, and readable mid-iteration rather than only at close.
+
+~~The weight the rate needs is not built here; see *What is not built* below.~~ **Struck within the hour
+it stood, and struck rather than deleted because it was published and someone may have read it.** It was
+written under a premise handed to the build — *"iterations yes, estimation no"* — that the owner's own
+ratified interview of 2026-08-24 contradicts in his words: ***"inteiro. estimar antes é positivo."*** He
+confirmed on 2026-08-25 that the ratified design stands. **The weight IS built: see *Estimation* below.**
 
 ### Rule 1 — the active iteration is derived from the POOL, never from a date
 
@@ -411,20 +425,31 @@ Cost, carried knowingly: planning must slot loop items, and `loop`-typed `ready`
 transition alone — so he is already the critical path for exactly these items, and this adds one
 milestone assignment to a transition he already performs. It adds no new gate and no new actor.
 
-### The state-model pass — the axis adds NO label and NO state
+### The state-model pass — the AXIS adds no label and no state, and ESTIMATION adds exactly one class
 
-Per the standing rule, the axis was walked against issue types × states × role-per-transition rather than
-bolted on. **It changes one row's precondition and adds no vocabulary:**
+~~### The state-model pass — the axis adds NO label and NO state~~ — **the heading was struck within the
+hour it stood.** It was written under the premise that estimation was out, and it was true of the axis
+and false of the slice. **Corrected rather than deleted**, because a reader who took "no new vocabulary"
+from it would look for `sp:N` in the wrong place.
 
-- **`ready → in progress`, all three types** — unchanged in who acts and what records it, with one added
-  precondition: the item is in the **active** iteration. The artifact is the **milestone assignment**,
-  which GitHub already stores, already returns on the ordinary query, and already permits only one of.
-  Nothing new is queryable, because nothing new needs to be.
+Per the standing rule, both were walked against issue types × states × role-per-transition rather than
+bolted on:
+
+- **`ready → in progress`, all three types** — unchanged in who acts and what records it, with **two**
+  added preconditions: the item is in the **active** iteration, and it carries an `sp:N`. The first is
+  recorded by the **milestone assignment**, which GitHub already stores, already returns on the ordinary
+  query, and already permits only one of. The second is recorded by **the label itself**.
 - **Every other row is untouched.** Intake, the gate, the merge and `blocked` are indifferent to which
-  iteration an item sits in.
-- **No sixth label.** The label vocabulary's own test is *something must query it*; a milestone is not a
-  label and the pool predicate reads it directly. Adding `iteration:N` beside a field GitHub already
-  enforces would duplicate an observable, which is the named anti-pattern.
+  iteration an item sits in and to what it weighs.
+- **The AXIS adds no label**, and that restraint stands. The label vocabulary's own test is *something
+  must query it*; a milestone is not a label and the pool predicate reads it directly. Adding
+  `iteration:N` beside a field GitHub already enforces would duplicate an observable, which is the named
+  anti-pattern.
+- **ESTIMATION adds one class, `sp:N`, and it passes the same test rather than being exempted from it.**
+  Two things query it — the preflight (*open, in the active iteration, no `sp:` label*) and the
+  aggregation — and **no GitHub field carries a number**, so this duplicates nothing. It is the opposite
+  case to `iteration:N`, and the vocabulary table below records it as a class rather than as six labels,
+  because the six are one concept and a table listing them separately would be six rows nobody reads.
 
 **Two transitions are genuinely new, and they are the ones with no artifact — so they get one.**
 *An iteration was planned* and *an iteration closed* are both events a milestone's own flag cannot record
@@ -437,6 +462,66 @@ here (no readable `state`), and an event nothing records is applied inconsistent
 
 That reuses a primitive the loop already has rather than inventing a state: it is queryable, attributable,
 dated by GitHub, and it is the only place the owner's ordering can live at all.
+
+### Estimation — the weight is an `sp:N` label, and the estimators are the personas that work the type
+
+**Owner decision, ratified in interview 2026-08-24 and reconfirmed 2026-08-25**, in his words:
+
+> *"inteiro. estimar antes é positivo."*
+> *"todos agentes que trabalham no tipo de issue estimam"*
+
+**The carrier is a label, because a milestone has no numeric field of any kind** — title, description, due
+date, state, and nothing else. One label per Fibonacci value, closed set:
+
+```
+sp:1  sp:2  sp:3  sp:5  sp:8  sp:13
+```
+
+`gh label` and `gh issue edit` are both already allowlisted and `gh issue list --json labels` reads them
+back, so this needs **no permission change and no token scope** — the same test that chose the milestone
+over a Projects v2 field. Aggregation is one `jq` expression over the query the pool predicate already
+runs:
+
+```
+gh issue list --repo <owner>/<repo> --state all --limit 200 --json number,labels,milestone \
+  --jq '[.[]|select(.milestone!=null)|.labels[].name|select(startswith("sp:"))|ltrimstr("sp:")|tonumber]|add'
+```
+
+**Who estimates — the personas that work that type, each dispatched in ISOLATION, median recorded, no
+revote:**
+
+| type | estimators |
+|---|---|
+| `product` | `product-lead` · `tech-lead` · `developer` · `quality-assurance` |
+| `content` | `product-lead` · `content-writer` · `content-reviewer` · `quality-assurance` |
+| `loop` | `agents-lead` · `quality-assurance` |
+
+**Isolation costs nothing extra here and is not a new ceremony** — a subagent cannot see another's
+output, so independence is a property of dispatch rather than a discipline anyone must keep. It is the
+same property the two leads' parallel intake already relies on.
+
+**The author-estimates-his-own-work conflict is resolved without an exception, and that is why the `loop`
+row has two names rather than one.** `agents-lead` authors `loop` items *and* estimates them — but never
+alone: `quality-assurance` is the second voice, and it is the only persona in the roster whose whole
+discipline is a fresh context. **That does not remove the bias; it exposes it in a median of two**, which
+is the honest claim rather than the comfortable one.
+
+**Where the estimate is required.** An item with no `sp:N` is **outstanding HITL work**, and outstanding
+HITL work blocks the drain from entering — the owner's rule, *"todas pendencias HITL devem ser zeradas no
+momento da invocacao do comando"*. It is a **preflight**, not a mid-drain check: see `/autonomy-on`'s
+*Preflight* for the operative wording and the one-at-a-time surfacing rule, stated once, there.
+
+**What nothing enforces, said plainly.** Nothing constrains an item to exactly one `sp:` label, and
+nothing constrains the value to the six above — a single-select field would give both for free and is
+unreachable here. A gate can assert the **vocabulary is written down**; it cannot assert an item carries
+one and only one. Read a sum as a sum of what was applied, never as a sum of what was estimated.
+
+**The first pass is NOT this slice, and the figure is his rather than a re-derivation.** The whole backlog
+is estimated before the first iteration — **11 `product` + 20 `content` + 2 `loop` at head → 128
+dispatches**, once, accepted knowingly. That is its own slice and **the owner triggers it**: it is a
+bootstrap cost, not the steady state, and once an iteration exists the pendency set is bounded by that
+iteration's contents rather than by the backlog. Until it runs, every points-based series is empty — not
+wrong, empty, and a chart drawn over it would be inventing its own subject.
 
 ### What exhaustion means now
 
@@ -462,12 +547,12 @@ carried over), not a gate.
 
 ### What is not built in this slice
 
-- **The numeric weight.** #326's third tracker requirement is **live, not void** — the owner ratified
-  estimation on 2026-08-24 in his own words (*"inteiro. estimar antes é positivo"*, recorded on the
-  Issue) — and a milestone has no numeric field of any kind. The designed carrier is a
-  **`sp:N` label per Fibonacci value**, summed by a script, because `gh label` and `gh issue edit` are
-  both already allowlisted and `gh issue list --json labels` reads them back. **Not built here**, and
-  until it is, every points-based metric starts at zero.
+- ~~**The numeric weight.** … **Not built here**, and until it is, every points-based metric starts at
+  zero.~~ **STRUCK within the hour it stood.** #326's third tracker requirement was never void, and the
+  weight is **built** — see *Estimation* above for the `sp:N` vocabulary, the estimator sets and the
+  preflight. What is genuinely not in this slice is **the first pass**, 128 dispatches over the existing
+  backlog, which is the owner's to trigger. Until it runs the points series is **empty rather than
+  wrong**, and that distinction is the whole reason this bullet is corrected rather than left standing.
 - **The ceremonies.** REVIEW cannot run unattended in this harness — no MCP server is reachable from a
   dispatched subagent, there is no non-production environment to sweep, and resumable state has no
   durable home since #245. RETROSPECTIVE and PLANNING are dispatch-and-interview shapes, not mechanisms
