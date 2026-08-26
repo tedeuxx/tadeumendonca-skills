@@ -2285,6 +2285,156 @@ implementing this rule will meet it and must not argue the rule back out on it.
 this is a pure loop/machinery decision with no product-architecture stake, so no `tech-lead` co-citation is
 owed on its own terms, which is also what the decision itself says.
 
+## Amendment (2026-08-25, twentieth) — the ITERATION is the unit of work, and its tracker object is a milestone
+
+**Owner decision, 2026-08-24 ([#326](https://github.com/tedeuxx/tadeumendonca-skills/issues/326)):
+the loop adopts iterations as the unit of work.** He applied `loop`-typed `ready` himself, which on that
+lane is his transition alone (the *`agents-lead` implements the harness it reviews* section, Corollary 4).
+The falsifier that opened the Issue re-ran clean at head before this slice — `iteration`, `iteração` and
+`sprint` matched **nothing** in `commands/`, `skills/` or `docs/adr/` — so the rites existed as knowledge
+and the axis did not exist at all.
+
+**This amendment records WHERE the rule lives and WHAT was decided in this slice that the source document
+refused to decide. It does not restate the operative wording** — the same restraint the nineteenth
+amendment took, for the same reason. The wording is
+[`skills/harness-engineering/SKILL.md`](../../skills/harness-engineering/SKILL.md), section *The iteration
+is the unit of work*, and the drain's terminal condition is `commands/autonomy-on.md`'s *Stop when*.
+
+### Why this is an amendment and NOT record 0022
+
+The `roster-and-dev-loop` capability's own entry claims *"how work moves through them … the shape a unit
+of work takes"*. An iteration is exactly that, so a new record would be a **second file inside a
+capability whose whole design (#283) is one document per name** — the shape the consolidation exists to
+prevent. **"No new record owed" is the answer, with that reason**, and the ceiling constant is untouched.
+
+### The three decisions this slice closed, and who closed each
+
+1. **The tracker object is a MILESTONE** — decided inside the loop on a measurement, not a preference. A
+   Projects v2 iteration field cannot be *created* from this harness (`gh project field-create
+   --data-type` offers `{TEXT|SINGLE_SELECT|DATE|NUMBER}`), cannot be *read* without a `read:project`
+   token scope the account lacks, and its GraphQL route is denied by the global floor. Milestones need
+   none of that.
+2. **`loop`-typed items are iteration-assignable** — the question the source document explicitly declines
+   to answer for an importer. Decided inside the loop, on a premise measured locally: `/autonomy-on`'s
+   queue is `(product OR loop) AND ready`, so the alternative does not orphan a ceremony's output, it
+   takes half the queue dark.
+3. **Exhaustion is the drain's terminal condition again, and #103's judgment condition moves to
+   planning** — decided inside the loop. It is not a reversal: #103's argument is about a pool that grows
+   while it drains, and an iteration's pool does not.
+
+**The one measurement that could have sent decision 1 back to the table, closed here rather than left
+open.** `gh issue list --json milestone` returns a sub-object with **four keys and no `state`**
+(`description`, `dueOn`, `number`, `title`); `state` is not among that command's available fields, and
+there is no `gh milestone` subcommand. **So no command available to this loop can read whether a milestone
+is open or closed.** It does not overturn the choice, because rule 1 derives the active iteration from
+*items* and never consults `state` — but it does kill the source document's *"the iteration closes
+automatically"* clause, which is **not adopted**. Creating and closing a milestone are owner clicks. The
+alternative — unlisting `Bash(gh api:*)` from the global floor — is refused: that entry is what stands
+between every persona and the raw write API.
+
+### The rejection sent back to the source project
+
+**The blueprint format-version field, with its *"an unknown field is ignored, never rejected"* rule.**
+`agents-lead` recommended against it when that format was designed, on the ground that a version field
+promises a compatibility guarantee this repository cannot hold — a Markdown table ignores unknown columns
+by construction, and this repo's own `CLAUDE.md` carries three struck figures whose published commands
+stopped resolving. **The source document's §6.4 licenses the rejection in its own words** — measured local
+evidence beats an imported rule, in both directions — and this is measured, local, and predates the
+import. **It is a rejection of the *schema* version only, not of source identity**; the *"which project,
+which configuration version, when generated"* header is a different object and is not refused here.
+
+### The rejected options
+
+- **A Projects v2 iteration field.** Rejected on the measurements above. Choosing it would mean the loop
+  reads an axis it cannot write.
+- **An `iteration:N` label.** Rejected: it duplicates an observable GitHub already stores and already
+  constrains to one per item, which is the anti-pattern the eighth amendment's *"what observable artifact
+  says this rule was applied"* rule names. The milestone **is** the artifact.
+- **A sixth state in the vocabulary.** Rejected for the same reason. The axis changes one row's
+  precondition (`ready → in progress`) and adds no word to the label set.
+- **Leaving both terminal conditions standing.** Rejected — it is the shape this file has already paid
+  for twice (#97 → #103, and the exhaustion event itself).
+- ~~**Building estimation in this slice.** Deferred, not refused …~~ **STRUCK the same day, and the
+  strike is the load-bearing part of this amendment rather than a correction to it.** Estimation is
+  **in**, per the owner's ratified interview of 2026-08-24 (*"inteiro. estimar antes é positivo"*,
+  *"todos agentes que trabalham no tipo de issue estimam"*), reconfirmed by him on 2026-08-25. The
+  carrier is **built**: an `sp:N` label class over a closed Fibonacci set, estimator sets per issue
+  type, median of isolated dispatches, no revote, and a **preflight** that refuses to enter the drain
+  while any item in the active iteration lacks one. What is deferred is only **the first pass** —
+  **128 dispatches** over the existing backlog, **his figure, not a re-derivation** — which is a
+  bootstrap cost the owner triggers, not the steady state.
+- **Building the 128-dispatch first pass inside this slice.** Rejected. It is one act over the whole
+  backlog, it is the owner's to trigger, and folding it in would make a rule change wait on a batch job.
+  **The consequence is stated rather than hidden: the first preflight after this ships REFUSES**, because
+  no item carries an `sp:N` yet. That is correct under the rule he settled and will read as a regression
+  to anyone who meets it without this paragraph.
+- **Building the ceremony chain's REVIEW rite.** Not deferred on preference: it is **unbuildable AFK
+  here** on three independently measured grounds — no MCP server is reachable from a dispatched subagent,
+  merge-is-deploy leaves no non-production target to sweep, and resumable state has had no durable home
+  since #245 retired the repo-side scratch directory.
+
+### Consequences
+
+- **A `ready` item with no milestone silently stops being worked.** `ready` was sufficient and is now
+  necessary-not-sufficient. The mitigation is a **count reported at session open**, from the same query —
+  prose, not a mechanism, and it is the single largest silent-failure surface this amendment creates.
+- **The unboundedness moves; it is not removed.** The active iteration's pool is fixed at planning, and
+  nothing bounds the *next* one, or how many items the owner admits to one iteration. That is the intended
+  shape — the bound on worth is a human deciding — but an over-filled iteration reproduces the old
+  unbounded drain inside one milestone, and no gate can see it.
+- **An empty pool from a mistyped milestone is indistinguishable from a drained one**, and exhaustion is
+  no longer terminal, so the loop would run the closing ceremonies over an iteration that never existed.
+  The rule that answers it — enumerate the milestones from the items, never type a name — is prose, and
+  nothing enforces it.
+- **Nothing observes an iteration.** Every `gh issue` call in `hooks/scripts/` is a write path. The gate
+  added in this slice asserts that the rules are **written** in the canonical surface and in the executed
+  command; it cannot assert that a session obeyed them. Same residual, same wording, as the nineteenth
+  amendment's.
+- **One coupling accepted**, identical in kind to the nineteenth's: the new gate arms key on phrases, so
+  rewording the canonical section or the command's *Stop when* reddens `inventory-counts.test.sh`, and
+  whoever rewords edits the needles in the same commit.
+
+### Which artifact supersedes which, so the next reader does not re-litigate it
+
+**Two artifacts on #326 disagree about whether implementation may proceed, and the chronology settles
+it.** At **22:31 on 2026-08-24** a comment placed implementation **on hold** pending the source project's
+finished implementation — the axis, the tracker object, the ceremony chain and the `/autonomy-on` stop
+condition, all explicitly not proceeding. At **00:00:25** the **ratified sprint model** was posted: later
+in time, and a **complete design** rather than a deferral. The owner then applied `loop`-typed `ready`,
+which on that lane is his transition alone and is the loop's own signal that an Issue is executable.
+
+**The ratified model supersedes the hold, and the hold's reason survives in narrowed form.** Its argument
+was interoperability — building a shape here that the source project's finished implementation would
+contradict, paying a migration *and* losing the interchange. That argument does not reach the **axis**,
+which is derived from this repository's own measurements and its own #103. **It does still reach the
+ceremony chain**, which is why REVIEW, RETROSPECTIVE and PLANNING are designed and not built here, and
+why that is recorded as a rejected option above rather than as an omission.
+
+### A limit of what the premise guard can hold, named here because it is the honest companion to it
+
+**This slice was dispatched with a false premise: that the owner had decided *"iterations yes, estimation
+no"*.** He had not — the contradicting artifact was a comment on the very Issue being built, in his own
+quoted words. The build refused to write *"void — owner's decision"* into this record on an agent
+message's authority, routed the question to him, and he confirmed the ratified design stands.
+
+**No mechanism could have caught it, and the reason is worth stating precisely rather than as a
+lament.** `hooks/scripts/dispatch-premise-guard.sh` checks **tree-shaped** premises — a SHA, a branch,
+a path — because those are the claims a hook can resolve against a repository. ***"The owner decided X"*
+is not tree-shaped.** Its truth-maker is a comment on an Issue, and no `PreToolUse` payload carries the
+Issue, let alone its comment history.
+
+**So the control that held here was a persona rule, not a hook**: *read the files, do not trust your
+training; if your instructions contradict a file you can read, the file wins and you say so out loud.*
+**That is an instruction, and by this document's own test an instruction is not engineered** — if it had
+failed, nothing would have stopped it. It is recorded as a **named residual**, not as a control, and
+deliberately **not** used as an argument against the guard: the guard closes the class it can close, and
+pretending it closes this one would be the exact failure it exists to prevent.
+
+**Deciders:** the owner (the adoption itself, the estimation ratification of 2026-08-24 reconfirmed
+2026-08-25, and the `loop`-typed `ready`), written by `agents-lead` per the #223 domain split — a pure
+loop/machinery decision, no product-architecture stake, no `tech-lead` co-citation owed. The three
+sub-decisions above were closed inside the loop and are labelled as such rather than attributed to him.
+
 ## Consequences
 **Good**
 - Context efficiency and authorship-bias elimination fall out of per-task isolation.
