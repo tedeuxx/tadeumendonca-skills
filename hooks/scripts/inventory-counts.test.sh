@@ -4932,5 +4932,131 @@ else
   fi
 fi
 
+# ---------------------------------------------------------------------------------------------------
+# THE LANE ANCHOR: README.md's `roster:lanes` fence — one line per (issue type, tier) pair (#329).
+#
+# WHY IT IS GATED AT ALL. The fence is not a rule; the states table in
+# `skills/harness-engineering/SKILL.md` is. The fence is a machine-readable MIRROR of that table's
+# lane rows, published so a consumer (`tadeumendonca-io`'s `/architecture` page) can compare its own
+# prose against something a regex can read. A mirror nobody checks is a second source of truth, which
+# is the arrangement #329 was: one surface stating the lane relation, wrong, for eleven days.
+#
+# WHAT THESE ARMS OWN, EXACTLY — and each is its own `if` with its own vacuity guard, per THE CHAINING
+# RULE in the header:
+#
+#   A · exactly ONE fence, asserted as a COUNT and not as presence — on a FORECAST, and the tense is the
+#       point. NOTHING READS THIS FENCE TODAY: `roster:lanes` appears nowhere in `tadeumendonca-io`, and
+#       the reader that exists there (`rosterDispatchNames`, `apps/fed/scripts/harness-source.mjs`,
+#       called from `check-harness-drift.mjs`) matches a DIFFERENT marker, `roster:dispatch`, in that
+#       repo's own `CLAUDE.md`. It is the PRECEDENT this anchor is shaped to mirror, not a reader of
+#       these lines. The forecast: the consumer built for this anchor will mirror that reader, whose
+#       fence regex is lazy and non-global, so a second pair of markers would be silently read by
+#       nothing. Asserting the count closes that shape BEFORE a consumer inherits it — which is the only
+#       moment it is cheap. Presence would be green on the duplicate either way.
+#   B · the six (type, tier) keys are each present EXACTLY ONCE, and no arm is EMPTY. An empty arm is
+#       the vacuous-green shape this file books repeatedly — an extractor returning `[]` for a lane
+#       compares equal to "nothing missing" on the consumer's side.
+#   C · every id inside the fence resolves to a live `agents/<id>.md`.
+#
+# WHAT IS DELIBERATELY **NOT** ASSERTED, in three parts, so the green is not read as more than it is:
+#
+#   1. THE REVERSE OF C IS NOT MADE, AND WOULD BE FALSE. `quality-assurance` is tier 3 and gates all
+#      three lanes, so it is correctly absent from a six-line (type, tier) mirror. "Every live persona
+#      appears in the fence" would redden on correct content.
+#   2. FENCE-AGAINST-TABLE IS NOT ASSERTED, AND THE REASON IS MEASURED RATHER THAN ECONOMIC. The
+#      obvious third arm — fence ids ⊆ the backticked ids of the matching table row — was written and
+#      REJECTED: the `loop` intake row contains `` `tech-lead` `` inside the clause excluding it, and
+#      the `content` build row contains `` `developer` `` inside the clause excluding it. So a subset
+#      arm is green on exactly the two errors this anchor exists to catch, and red on nothing. That is
+#      the same negation trap that forced prose out of the fence, seen from the gate's side.
+#   3. THE PERSONA ASSIGNMENT IS NOT PINNED AS LITERALS. The six KEYS below are enumerated because they
+#      are structural — issue types × tiers, a shape that changes only when the state machine does. The
+#      NAMES on each line are not, because an enumeration of the roster inside the file written to
+#      catch stale enumerations is this suite's signature defect, booked twice already in the roster
+#      block above. What holds the names is arm C plus a human reading the diff.
+LANE_README="$ROOT/README.md"
+LANE_OPEN='<!-- roster:lanes -->'
+LANE_CLOSE='<!-- /roster:lanes -->'
+
+lane_n_open=$(grep -cxF -- "$LANE_OPEN" "$LANE_README" 2>/dev/null || true)
+lane_n_close=$(grep -cxF -- "$LANE_CLOSE" "$LANE_README" 2>/dev/null || true)
+lane_body=$(awk -v o="$LANE_OPEN" -v c="$LANE_CLOSE" '$0==o{f=1;next} $0==c{f=0} f' "$LANE_README" 2>/dev/null \
+  | grep -v '^```' | grep -v '^[[:space:]]*$' || true)
+lane_rows=$(printf '%s\n' "$lane_body" | grep -c . || true)
+
+# ── A · exactly one fence, both markers ─────────────────────────────────────────────────────────
+if [ "${lane_n_open:-0}" -eq 1 ] && [ "${lane_n_close:-0}" -eq 1 ]; then
+  ok "lane anchor — README.md carries exactly one roster:lanes fence (1 opening marker, 1 closing)"
+else
+  bad "lane anchor — README.md must carry EXACTLY ONE roster:lanes fence; found $lane_n_open opening and $lane_n_close closing marker(s).
+      Zero means the anchor is gone and every consumer comparing against it has nothing to compare.
+      Two means the consumer's regex reads the FIRST pair and ignores the rest, silently — which is
+      why this is a count and not a presence check."
+fi
+
+# ── B · six keys, each exactly once, none of them empty ─────────────────────────────────────────
+lane_expected='product tier1
+content tier1
+loop tier1
+product tier2
+content tier2
+loop tier2'
+if [ "${lane_rows:-0}" -eq 0 ]; then
+  bad "lane anchor — the roster:lanes fence extracted NO lines, so the arm checks below are vacuous.
+      An empty extraction compares equal to 'nothing wrong' on every set check that follows it."
+else
+  lane_arm_problems=""
+  while IFS= read -r lane_key; do
+    [ -z "$lane_key" ] && continue
+    lane_matched=$(printf '%s\n' "$lane_body" | awk -v k="$lane_key" '$1" "$2 == k')
+    lane_n=$(printf '%s\n' "$lane_matched" | grep -c . || true)
+    if [ "$lane_n" -ne 1 ]; then
+      lane_arm_problems="$lane_arm_problems
+    '$lane_key': $lane_n line(s), expected exactly 1"
+      continue
+    fi
+    lane_ids=$(printf '%s\n' "$lane_matched" | grep -ohE '`[a-z][a-z0-9-]*`' | tr -d '`' | sort -u | grep -c . || true)
+    [ "${lane_ids:-0}" -ge 1 ] || lane_arm_problems="$lane_arm_problems
+    '$lane_key': names NO persona — an EMPTY arm"
+  done <<< "$lane_expected"
+  if [ "$lane_rows" -ne 6 ]; then
+    lane_arm_problems="$lane_arm_problems
+    the fence holds $lane_rows line(s); the (issue type × tier) grid is 3 × 2 = 6"
+  fi
+  if [ -z "$lane_arm_problems" ]; then
+    ok "lane anchor — all 6 (issue type, tier) arms present exactly once, none of them empty"
+  else
+    bad "lane anchor — the roster:lanes fence does not cover the (issue type × tier) grid:$lane_arm_problems
+      An arm that is missing and an arm that is empty fail the SAME way on the consumer's side: the
+      extractor returns nothing for that lane, and nothing compares equal to 'nothing missing'. The
+      keys are two bare words — 'product tier1' — because the fence carries persona ids and nothing
+      else; a negation written into it would be pulled out as an id by any consumer that reads it."
+  fi
+fi
+
+# ── C · every id in the fence resolves to a live brief ──────────────────────────────────────────
+lane_all_ids=$(printf '%s\n' "$lane_body" | grep -ohE '`[a-z][a-z0-9-]*`' | tr -d '`' | sort -u | grep -v '^$' || true)
+if [ -z "${lane_all_ids//[[:space:]]/}" ]; then
+  bad "lane anchor — no persona id could be extracted from the roster:lanes fence, so the resolution
+      check is vacuous. Either the fence is gone, or its ids stopped being written in backticks — the
+      only form this repo uses for a persona reference, and the only one a consumer's extractor reads."
+else
+  lane_dead=""
+  while IFS= read -r lane_id; do
+    [ -z "$lane_id" ] && continue
+    [ -r "$ROOT/agents/$lane_id.md" ] && continue
+    lane_dead="$lane_dead
+    \`$lane_id\` is named in the fence and has NO file at agents/$lane_id.md"
+  done <<< "$lane_all_ids"
+  if [ -z "$lane_dead" ]; then
+    ok "lane anchor — every persona id in the fence resolves to a live agents/*.md ($(printf '%s\n' "$lane_all_ids" | grep -c .) distinct ids)"
+  else
+    bad "lane anchor — the fence dispatches a persona that does not exist:$lane_dead
+      This is the #329 defect in its mechanical form: a retired name left standing in the one surface
+      that states the lane relation. The count does not move when a persona is renamed, so nothing
+      else in this file can see it."
+  fi
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

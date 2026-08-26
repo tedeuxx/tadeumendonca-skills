@@ -225,6 +225,66 @@ wording is the `filed → **description closed**` rows of the states table in
 preloads, read at the moment a dispatch is made. **This section is the narrative and points at it; the
 diagram above is a drawing of it.** Where the two disagree, the table wins.
 
+### The lane anchor — a machine-readable mirror of those rows, and nothing else
+
+**The fence below is DERIVED from the states table cited above, and the table still wins.** It adds no
+rule and decides nothing; it exists so that a *consumer* has one side of a comparison that a regex can
+read. `tadeumendonca-io`'s `/architecture` page publishes the same lane relation in prose, and #329 was
+eleven days of that prose stating a retired pairing with nothing anywhere able to see the disagreement.
+This anchor is the **precondition** for the drift detector that closes that class; the detector itself is
+a separate slice in the consuming repo and is not built here.
+
+**One line per `(issue type, tier)` pair — six lines — carrying persona ids and nothing else.** No prose
+inside the fence, and that is the load-bearing constraint rather than a style choice. The canonical
+table's own `content` build row reads *"`content-writer` — **not `developer`**"*, and its `loop` intake
+row reads *"`agents-lead`, alone — `tech-lead` never co-signs this lane"*. Both sentences are correct
+English, and both name, in backticks, the persona the row exists to **exclude**. Any extractor tolerant
+enough to read those cells pulls `developer` into the `content` lane and `tech-lead` back into the `loop`
+lane — the precise two errors #329 was about. A negation is unparseable; the remedy is a format with
+nowhere to write one.
+
+**Exactly one fence — and the argument for it is a FORECAST, said in that tense because nothing reads
+this fence yet.** No consumer exists: `roster:lanes` appears nowhere in `tadeumendonca-io`
+(`grep -rln "roster:lanes"` there returns nothing), and the reader that *does* exist —
+`rosterDispatchNames` in `apps/fed/scripts/harness-source.mjs`, called from `check-harness-drift.mjs` —
+is pointed at that repo's own `CLAUDE.md` and matches a **different** marker, `roster:dispatch`. It is
+cited here as the **precedent this anchor is shaped to mirror**, not as anything that reads these lines.
+
+**The forecast is still the reason for the arm.** The consumer built for this anchor will mirror that
+existing reader, whose fence regex is lazy and non-global — so a *second* pair of markers would be
+silently read by nothing and reported by nothing. The gate asserts the fence **count** rather than its
+presence in order to close that failure shape **before** a consumer inherits it, which is the only moment
+it is cheap to close. Arm A is correct either way; what would be wrong is claiming the duplicate is being
+silently ignored today, when nothing is looking at all.
+
+<!-- roster:lanes -->
+```
+product tier1 `product-lead` `tech-lead`
+content tier1 `product-lead`
+loop tier1 `agents-lead`
+product tier2 `developer`
+content tier2 `content-writer` `content-reviewer`
+loop tier2 `agents-lead`
+```
+<!-- /roster:lanes -->
+
+**Tier 3 is absent on purpose, and it is not an omission to close later.** `quality-assurance` gates all
+three lanes, so a tier-3 line would repeat one name three times and carry no information a reader or a
+consumer could act on; what actually differs there is which lens it applies, which is prose. The
+consequence is stated so the green is not over-read: the gate below checks that every id in the fence
+resolves to a live brief, and **not** the reverse — *every live persona appears in the fence* would be a
+false assertion, because `quality-assurance` deliberately does not.
+
+**`tier1` / `tier2` in the keys name the LANE ROLE — intake and build — not a persona's roster tier.**
+The two coincide for most of the roster and come apart for one: `agents-lead` is roster **tier 1** in the
+table above and appears on `loop tier2`, because on the `loop` lane it both closes the description and
+builds. That is the ratified vocabulary (#329) and is not a defect to reconcile, but it is exactly the
+line a consumer author would misread, so read the keys as *(issue type, lane role)*.
+
+**`content tier2` carries two rows of the table rather than one.** `content-writer` is the
+`ready → **in progress**` actor and `content-reviewer` is `in progress → **drafted**`; the fence is keyed
+on tier, so both land on the build line — which is also how the diagram above draws them.
+
 ~~`loop` closes through **both** `agents-lead` and `tech-lead` — the persona that stress-tests the
 machinery and the persona that would write the ADR it produces, since a `loop` issue is the kind most
 likely to need one.~~ **Struck 2026-08-25 (#329), and the way it survived is the finding, not the

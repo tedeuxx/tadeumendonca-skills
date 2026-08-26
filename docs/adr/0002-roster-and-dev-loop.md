@@ -2256,11 +2256,25 @@ implementing this rule will meet it and must not argue the rule back out on it.
   loose exception becomes the default case. It is not hypothetical — that is how the pairing returned on
   2026-08-13. **A rule with a judgement-call escape hatch is the escape hatch.** An unconditional branch
   is cheaper to implement *and* cheaper to obey.
-- **Add a lane anchor (a machine-readable fence) and gate the drawing against it.** Deferred, not
-  rejected. It is a real mechanism with its own design questions — fence count, vacuity guard,
+- **Add a lane anchor (a machine-readable fence) and gate the drawing against it.** ~~Deferred, not
+  rejected.~~ **The ANCHOR half is built, 2026-08-26, as #329's third requirement; the "gate the drawing
+against it" half is NOT** — that is the consumer slice in `tadeumendonca-io`, a separate Issue, and
+nothing there reads this fence yet. Read the bullet's title as naming the whole option, of which one
+half has landed. The fence is in
+  [`README.md`](../../README.md), between the `roster:lanes` markers beside the tier diagram, and three
+  arms in `hooks/scripts/inventory-counts.test.sh` hold it (exactly one fence · six (type, tier) arms,
+  none empty · every id resolves to a live `agents/*.md`). **This does not move the canonical home and
+  is not a fourth surface stating the rule:** the fence is *derived* from the states table, carries
+  persona ids and no wording, and its own section says the table wins where they disagree. It is a real
+  mechanism with its own design questions — fence count, vacuity guard,
   both-direction assertion — and `agents-lead`'s intake measured the naive alternative dead: a prose
   extractor over the states table returns the empty set for two of three lanes and would ship a vacuous
-  green. It gets its own Issue, opened by the owner.
+  green. **Re-measured at build time from the other side, and the second reading is the sharper one:**
+  run over the two rows a tolerant extractor *can* read, it returns `tech-lead` for the `loop` intake
+  lane and `developer` for the `content` build lane — both pulled out of the clause that EXCLUDES them,
+  and both exactly the errors this anchor exists to catch. A wrong set is worse than an empty one, so
+  the fence carries no prose at all. ~~It gets its own Issue, opened by the owner.~~ **It did — #329,
+  reopened for it.**
 
 ### Consequences
 
