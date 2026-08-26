@@ -2257,7 +2257,10 @@ implementing this rule will meet it and must not argue the rule back out on it.
   2026-08-13. **A rule with a judgement-call escape hatch is the escape hatch.** An unconditional branch
   is cheaper to implement *and* cheaper to obey.
 - **Add a lane anchor (a machine-readable fence) and gate the drawing against it.** ~~Deferred, not
-  rejected.~~ **Built 2026-08-26, as #329's third requirement** — the fence is in
+  rejected.~~ **The ANCHOR half is built, 2026-08-26, as #329's third requirement; the "gate the drawing
+against it" half is NOT** — that is the consumer slice in `tadeumendonca-io`, a separate Issue, and
+nothing there reads this fence yet. Read the bullet's title as naming the whole option, of which one
+half has landed. The fence is in
   [`README.md`](../../README.md), between the `roster:lanes` markers beside the tier diagram, and three
   arms in `hooks/scripts/inventory-counts.test.sh` hold it (exactly one fence · six (type, tier) arms,
   none empty · every id resolves to a live `agents/*.md`). **This does not move the canonical home and

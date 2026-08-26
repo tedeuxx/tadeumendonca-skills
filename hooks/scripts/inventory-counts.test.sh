@@ -4944,9 +4944,15 @@ fi
 # WHAT THESE ARMS OWN, EXACTLY — and each is its own `if` with its own vacuity guard, per THE CHAINING
 # RULE in the header:
 #
-#   A · exactly ONE fence, asserted as a COUNT and not as presence. The consumer's regex
-#       (`ROSTER_FENCE`, `apps/fed/scripts/harness-source.mjs`) is lazy and non-global: a second pair of
-#       markers is read by nothing and reported by nothing. Presence would be green on the duplicate.
+#   A · exactly ONE fence, asserted as a COUNT and not as presence — on a FORECAST, and the tense is the
+#       point. NOTHING READS THIS FENCE TODAY: `roster:lanes` appears nowhere in `tadeumendonca-io`, and
+#       the reader that exists there (`rosterDispatchNames`, `apps/fed/scripts/harness-source.mjs`,
+#       called from `check-harness-drift.mjs`) matches a DIFFERENT marker, `roster:dispatch`, in that
+#       repo's own `CLAUDE.md`. It is the PRECEDENT this anchor is shaped to mirror, not a reader of
+#       these lines. The forecast: the consumer built for this anchor will mirror that reader, whose
+#       fence regex is lazy and non-global, so a second pair of markers would be silently read by
+#       nothing. Asserting the count closes that shape BEFORE a consumer inherits it — which is the only
+#       moment it is cheap. Presence would be green on the duplicate either way.
 #   B · the six (type, tier) keys are each present EXACTLY ONCE, and no arm is EMPTY. An empty arm is
 #       the vacuous-green shape this file books repeatedly — an extractor returning `[]` for a lane
 #       compares equal to "nothing missing" on the consumer's side.

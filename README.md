@@ -243,10 +243,19 @@ enough to read those cells pulls `developer` into the `content` lane and `tech-l
 lane — the precise two errors #329 was about. A negation is unparseable; the remedy is a format with
 nowhere to write one.
 
-**Exactly one fence.** The consumer's regex (`ROSTER_FENCE` in `apps/fed/scripts/harness-source.mjs`) is
-lazy and non-global, so a *second* pair of markers is read by nothing and reported by nothing. The gate
-therefore asserts the fence **count**, not its presence: a duplicate that silently wins or silently loses
-is the failure shape this anchor exists to remove, not one to reproduce inside it.
+**Exactly one fence — and the argument for it is a FORECAST, said in that tense because nothing reads
+this fence yet.** No consumer exists: `roster:lanes` appears nowhere in `tadeumendonca-io`
+(`grep -rln "roster:lanes"` there returns nothing), and the reader that *does* exist —
+`rosterDispatchNames` in `apps/fed/scripts/harness-source.mjs`, called from `check-harness-drift.mjs` —
+is pointed at that repo's own `CLAUDE.md` and matches a **different** marker, `roster:dispatch`. It is
+cited here as the **precedent this anchor is shaped to mirror**, not as anything that reads these lines.
+
+**The forecast is still the reason for the arm.** The consumer built for this anchor will mirror that
+existing reader, whose fence regex is lazy and non-global — so a *second* pair of markers would be
+silently read by nothing and reported by nothing. The gate asserts the fence **count** rather than its
+presence in order to close that failure shape **before** a consumer inherits it, which is the only moment
+it is cheap to close. Arm A is correct either way; what would be wrong is claiming the duplicate is being
+silently ignored today, when nothing is looking at all.
 
 <!-- roster:lanes -->
 ```
@@ -265,6 +274,12 @@ consumer could act on; what actually differs there is which lens it applies, whi
 consequence is stated so the green is not over-read: the gate below checks that every id in the fence
 resolves to a live brief, and **not** the reverse — *every live persona appears in the fence* would be a
 false assertion, because `quality-assurance` deliberately does not.
+
+**`tier1` / `tier2` in the keys name the LANE ROLE — intake and build — not a persona's roster tier.**
+The two coincide for most of the roster and come apart for one: `agents-lead` is roster **tier 1** in the
+table above and appears on `loop tier2`, because on the `loop` lane it both closes the description and
+builds. That is the ratified vocabulary (#329) and is not a defect to reconcile, but it is exactly the
+line a consumer author would misread, so read the keys as *(issue type, lane role)*.
 
 **`content tier2` carries two rows of the table rather than one.** `content-writer` is the
 `ready → **in progress**` actor and `content-reviewer` is `in progress → **drafted**`; the fence is keyed
