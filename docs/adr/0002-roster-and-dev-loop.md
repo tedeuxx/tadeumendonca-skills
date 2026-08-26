@@ -1493,9 +1493,28 @@ it (#287, #291) are exactly the two instances that motivated writing the boundar
 against the primary source rather than merely failing to find a counter-example:** the official Claude
 Code hooks documentation states `SubagentStart` **cannot block** a dispatch — informational only — and
 `SubagentStop` can only force a subagent's own continuation, after it already ran, never refuse the
-decision to dispatch it. `hooks/hooks.json` registers `PreToolUse` on the `Bash` matcher only, so no
+decision to dispatch it. ~~`hooks/hooks.json` registers `PreToolUse` on the `Bash` matcher only, so no
 hook observes a `Task` dispatch at all. **There is no wider registration that would close this** — it is
-not a configuration gap, it is the documented ceiling of the mechanism. This amendment converts an
+not a configuration gap, it is the documented ceiling of the mechanism.~~
+
+**STRUCK 2026-08-26 (#326) — the second sentence was false, and it is struck rather than deleted
+because a reader took a design conclusion from it: it is the sentence that argued the ceiling belonged
+to the mechanism rather than to this repo's configuration.** It was true of the `SubagentStart` /
+`SubagentStop` pair it was reasoning about, and the reasoning above it about those two events still
+holds. What it got wrong was generalising from them to *"no hook observes a dispatch"*: the dispatch
+tool is reached by `PreToolUse` like any other tool, and the tool is named **`Agent`**. Measured — a
+`PreToolUse` hook on matcher `Agent` captured the full brief on a real dispatch, while the identical
+run on matcher `Task` captured nothing at all, which is how the wrong name survived unexamined.
+
+**Falsifier, runnable:** `jq -r '.hooks.PreToolUse[].matcher' hooks/hooks.json` → `Bash`, `Agent`,
+`Edit|Write|MultiEdit|NotebookEdit`. If that returns `Bash` alone, the struck text is correct again.
+
+**What is now true, stated narrowly so it is not read as more than it is:** a `PreToolUse` hook on
+`Agent` can **deny** a dispatch, and one does — `hooks/scripts/dispatch-premise-guard.sh`, recorded in
+ADR-0004's 2026-08-25 amendment. It refuses a dispatch whose brief stamps a repository state that is
+not true. **It does not enforce a dispatch's SCOPE**, which is what this section is about: nothing
+mechanical decides whether a persona is being dispatched inside its lane. That half of the paragraph
+survives untouched. This amendment converts an
 unloaded rule (two Issue bodies, session memory — the exact shape that let #287 and #291 happen) into a
 **loaded** one (`agents/product-lead.md`, preloaded on every dispatch); that is the whole of what it buys,
 and it is stated as a ceiling rather than implied to be stronger.

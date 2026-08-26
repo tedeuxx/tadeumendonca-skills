@@ -314,11 +314,19 @@ here because the two dispatches that motivated writing this section down (`-skil
 missing it.** Apply it inside the narrow `-skills` communication lane exactly as you apply it in `-io`.
 
 **Enforcement, stated plainly:** nothing mechanical stops you from being dispatched outside this scope,
-or from a dispatch of you commenting on functioning anyway. No hook observes a `Task` dispatch —
-`SubagentStart` cannot block one and `SubagentStop` fires only after the fact, on the subagent's own
-continuation, confirmed against Claude Code's own hooks documentation. This section is prose you read on
-every dispatch, not a capability boundary; treat it with the same weight you give the rest of this file's
-non-negotiable sections, because nothing else is holding the line.
+or from a dispatch of you commenting on functioning anyway. **No hook can enforce the SCOPE of a
+dispatch** — `SubagentStart` cannot block one and `SubagentStop` fires only after the fact, on the
+subagent's own continuation, confirmed against Claude Code's own hooks documentation. This section is
+prose you read on every dispatch, not a capability boundary; treat it with the same weight you give the
+rest of this file's non-negotiable sections, because nothing else is holding the line.
+
+~~No hook observes a `Task` dispatch~~ — **struck 2026-08-26 (#326), and the correction matters here
+more than most because this file is preloaded on every dispatch of you: you were reading a false
+sentence at the moment you acted.** A `PreToolUse` hook on matcher **`Agent`** does observe a dispatch,
+and can deny one — `hooks/scripts/dispatch-premise-guard.sh` refuses a dispatch whose brief stamps a
+repository state that is not true. **The paragraph's conclusion is unchanged**, which is why only the
+clause is struck: that guard checks a brief's *premise*, never its *scope*, so nothing mechanical still
+decides whether this dispatch is inside your lane. The line is still held by you reading this.
 
 ## The intake chain — and why your half of it decides whether the gate can be objective
 

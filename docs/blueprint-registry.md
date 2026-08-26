@@ -144,6 +144,16 @@ declaration green is the failure this file's own `citação` rule exists to prev
 - **o que não faz:** **The mechanism and the written policy disagree, and the policy is the stricter of the two.** The hook bounds on file *overlap*; the loop's own rule has been one worktree, one branch, one open pull request since 2026-08-13, full stop. So the hook today permits a second, disjoint pull request that the policy forbids. Follow the policy; closing the gap is a change to this hook and is named as owed, not as done.
 - **citação:** > "The bound is FILE OVERLAP, not a count. ONE level, and there is no second."
 
+### 0035 · a dispatch is refused when the premise its brief states is not true
+
+- **tipo:** refusal
+- **carrier:** `hooks/scripts/dispatch-premise-guard.sh`
+- **descrição:** A `PreToolUse` guard on the dispatch tool, comparing a brief's stamped commit and branch against the repository the brief's own citations resolve to.
+- **propósito:** A dispatched actor inherits its brief's premise and cannot check it — it was not present when the measurement was taken. So a brief that cites one tree and stamps another spends a full review on a state that no longer exists, and nothing anywhere says so: measured once, two lead dispatches and roughly 210k tokens against copy that had already been corrected. The obligation is that **the premise of a dispatch is an object something reads back**, before the dispatch and not after, because after is a report with the bill already paid.
+- **o que faz:** Reads the brief out of the dispatch payload and extracts claims of ONE declared shape — a ref and the commit it is stamped at, together, where the ref resolves in the target repository. A local branch asserts where the tree *is* (branch and HEAD both checked); a remote-tracking ref asserts only where that ref points. The stamp is attributed to a single repository using only the brief's **distinguishing** citations — a path present in several repositories attributes nothing and is dropped — falling back to the caller's working directory when none distinguishes. A claim that fails there denies the call outright, naming the tree it read and what it found.
+- **o que não faz:** It checks the **tree**, never the lines: a `file:line` citation is out of scope by decision, since whether a file says what a brief claims is prose-reading and a guard that reached for it would fail open on exactly the half that matters. **A bare SHA is never checked** — a merge-base, a PR head or a quoted verdict marker is a reference, not a premise, and treating one as a premise denied 8.0% of 859 real briefs for no reason. A **cross-repository** brief is not checked at all: one stamp, two repositories, no fact available to attribute it, so a guess reported as a control would be worse than the declared gap. And it decides nothing about a **stale Issue** — the check lives at dispatch, against the brief; an Issue that described finished work was already stale before any dispatch happened, which is a different mechanism at a different moment.
+- **citação:** > "So passing this guard means the TREE is what the brief says, never that the LINES are."
+
 ---
 
 ## `record` — a durable artifact makes a decision or an event findable later

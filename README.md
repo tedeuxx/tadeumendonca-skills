@@ -909,10 +909,12 @@ flowchart LR
   H8["orchestrator-write-guard"]
   H9["orchestrator-tool-census"]
   H10["premature-pr-link-detect"]
+  H11["dispatch-premise-guard"]
 
   E1 --> H1
   E1 --> H2
   E1 --> H8
+  E1 --> H11
   O1 --> H3
   O1 --> H4
   O4 --> H5
@@ -926,7 +928,7 @@ flowchart LR
 
 | event | when it fires | denies? | hooks wired here | purpose |
 |---|---|---|---|---|
-| **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard`, `wip-guard` (matcher `Bash`) · `orchestrator-write-guard` (matcher `Edit\|Write\|MultiEdit\|NotebookEdit`) | refuse the irreversible floor and a PR that overlaps an open one, *before* either happens — and refuse the main agent's own edits inside a git working tree, which is a ROUTING rule rather than a floor one (#319) |
+| **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard`, `wip-guard` (matcher `Bash`) · `orchestrator-write-guard` (matcher `Edit\|Write\|MultiEdit\|NotebookEdit`) · `dispatch-premise-guard` (matcher `Agent`) | refuse the irreversible floor and a PR that overlaps an open one, *before* either happens — refuse the main agent's own edits inside a git working tree, which is a ROUTING rule rather than a floor one (#319) — and refuse a dispatch whose brief stamps a repository state that is not true, verified in the repository the brief's own citations resolve to rather than in `cwd` (#326) |
 | **`SessionStart`** | a session begins or resumes | no | `session-wip`, `session-plugin-version` | inject the open queue, and warn when the installed build is not the merged one |
 | **`SubagentStart`** | a subagent is dispatched | no | `dispatch-metrics-start` | best-effort dependency probe only — see below; does not post |
 | **`SubagentStop`** | a subagent finishes | no | `dispatch-metrics-stop` | log rework rounds, time, output size and token cost for the dispatch as a structured Issue comment (#209) |
@@ -1010,6 +1012,38 @@ subagent's return; and denying the comment routes would leave an intake finding 
 artifact, since at intake there is frequently no PR and `product-lead` holds no `Write` at all. That
 half is a **habit**, observed by the census and enforced by nobody.
 
+`dispatch-premise-guard` (#326) is the only hook wired to the **dispatch** tool, and it denies a
+dispatch whose brief stamps a repository state that is not true right now. It exists because two leads
+were once dispatched on a brief citing one tree and stamping another; the review ran to completion
+against copy that had already been corrected, and nothing in the loop could have said so — the premise
+of a dispatch was never an object anything read back. **Three properties are the whole design.** The
+matcher is **`Agent`**, not `Task`: measured on #326, a `PreToolUse` hook on `Task` captured nothing
+across a full dispatch while still matching `TaskCreate`, so it would have been inert and
+installed-looking, this repo's named failure shape — which is why the guard's own suite asserts the
+registration rather than trusting it. The repository is resolved **from the paths the brief cites, not
+from `cwd`**: on the night this exists for, `cwd` was `tadeumendonca-skills` and the citations were
+`tadeumendonca-io`'s, so a `cwd`-anchored check would have caught the easy case and missed the real
+one. And the scope is **one claim form** — a ref and the commit it is stamped at, together, where the
+ref resolves in the target repository. `file:line` citations are out, by decision and not by omission,
+because whether a file says what a brief claims it says is prose-reading; the deny text says so in its
+own words, so passing the guard means the *tree* is what the brief says and nothing about whether the
+lines are. It is keyed on the presence of a **claim**, never on which persona is being dispatched,
+which closes the general-purpose blind spot for free (`subagent_type` is absent from the payload when
+the model dispatches the default agent — measured, same probe).
+
+**A bare SHA is not a claim, and that correction came from a measurement, not from an opinion.** The
+first version of this guard also treated a SHA following a keyword as a premise. Run over **859 unique
+real dispatch briefs** from this repo's own transcripts, that grammar evaluated **41.2%** of them, and
+**8.0%** carried two or more distinct SHAs — so at least one claim in each was denied *whatever the
+tree was*. Two SHAs is not a mistake: it is the normal shape of a review brief, which names a
+merge-base and a head. A bare SHA is a **reference**; a premise says where you are. Narrowing to a
+ref-and-commit stamp, with the ref required to resolve, takes the same corpus to **9 briefs (1.0%),
+zero guaranteed denials, zero prose accidents** — and still catches both instances of the brief this
+guard exists for. Named costs that remain: a detached HEAD reads as a branch mismatch; a stale
+remote-tracking ref reads as a false stamp; a brief about a linked worktree other than `cwd`'s is
+checked against its repository's main worktree; and a **cross-repository brief is not checked at all**,
+because one stamp and two repositories leaves no fact that says which one it is about.
+
 **There used to be a fifth hook here, `session-scratch`, sweeping a repo-root `.scratch/` directory —
 retired at #245.** It existed to guarantee nothing survived into a new session, on the belief that a
 repo-side scratch directory needed its own cleanup because nothing else would ever provide one. Scratch
@@ -1031,7 +1065,7 @@ by hand:
 | **Skills** | yes — **14** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **3** (`autonomy-on`, `autonomy-off`, `new-issue`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **7 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`) | dispatched by name via `Task` |
-| **Hooks** | yes — **`hooks.json` registers 10** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `orchestrator-write-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`) — automatic, no invocation |
+| **Hooks** | yes — **`hooks.json` registers 11** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `orchestrator-write-guard`, `dispatch-premise-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`) — automatic, no invocation |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
 | LSP servers | **no** | — | no `.lsp.json` |
