@@ -2295,6 +2295,30 @@ half has landed. The fence is in
   same commit. That friction is the feature — it is the same trade the second-limb arm in that suite
   already takes.
 
+### Addendum (2026-08-26) — a TENTH surface, and it was the one written as an INSTRUCTION
+
+**This amendment's own sweep missed `skills/harness-engineering/SKILL.md`'s *When to reach for this
+discipline specifically* bullet**, which read *"pair it with `tech-lead` (design-time …) and
+`quality-assurance` (code-time …)"* — seventy-five lines above the canonical row this amendment
+installed saying `tech-lead` never co-signs that lane. **The same file stated both, in the universal
+preload, for thirteen days**, and arm 1 of the gate was green throughout because the row it reads was
+correct. Corrected here by strike, and gated by a fifth arm (positive: the strike is present; negative:
+the retired literal is not live anywhere in the file, struck spans stripped first).
+
+**Why the sweep missed it, and this is the transferable half.** Arms 1–4 and the round-1 sweep both key
+on surfaces that **state** the lane relation. This bullet does not state it — it **prescribes a
+dispatch**, in the register a persona is most likely to act on. *"Validating a loop/gate change"* and
+*"`loop` intake"* are the same act — the 2026-08-13 correction that established the rule was made on
+exactly such a dispatch — but nothing in the sentence says *intake*, *lane*, *`ready`* or *description*,
+so no vocabulary built from the defect reached it. **The lesson is the arm's own comment: sweep a
+rule's surfaces by what they INSTRUCT, not only by what they state.**
+
+**And it is the concrete instance of the rejected option this amendment already named.** *Tighten the
+`tech-lead` exception instead of removing it* was rejected on the argument that a loose exception
+becomes the default case. This bullet is that exception, surviving in the one file every persona
+carries: a reader wanting `tech-lead` on a machinery change did not have to argue for it, only to read
+the advice section instead of the table.
+
 **Deciders:** the owner (both rulings, quoted above), written by `agents-lead` per the #223 domain split —
 this is a pure loop/machinery decision with no product-architecture stake, so no `tech-lead` co-citation is
 owed on its own terms, which is also what the decision itself says.

@@ -120,8 +120,21 @@ explicitly rather than leaving the axis unexamined.
   not a hope).
 - **The human is asked too often**, or WIP is piling — the loop's *shape* needs tuning, not more
   discipline from the people in it.
-- **Validating a loop/gate change** — pair it with `tech-lead` (design-time, against the principles
-  and the ADR library) and `quality-assurance` (code-time, against the Definition of Done).
+- **Validating a loop/gate change** — ~~pair it with `tech-lead` (design-time, against the principles and the ADR library) and~~ `quality-assurance` (code-time, against the Definition of Done).
+  **Struck 2026-08-26 (#329), and this bullet is where the retired paired default survived its own
+  correction — in the universal preload, seventy-five lines above the row that says the opposite.**
+  `tech-lead` acts at **no** `loop` transition: read the `filed → **description closed**` rows in the
+  states table below, which are canonical — that lane closes through `agents-lead` **alone**, with no
+  exception (owner ruling 2026-08-25, one word: *"nunca"*). *Design-time validation of a loop change*
+  and *`loop` intake* are the same act — the 2026-08-13 correction that established the rule was made
+  on exactly such a dispatch — so this bullet was the judgement-call escape hatch ADR-0002's
+  nineteenth amendment rejected by name: **a rule with a judgement-call escape hatch is the escape
+  hatch**, and almost every machinery change can be described as having an architecture edge.
+  **What survives untouched:** `quality-assurance` at code-time, which is the `in progress →
+  **reviewed**` row — on the `loop` lane it checks for the `agents-lead` verdict marker rather than
+  running the full two-lens DoD (ADR-0002, record 0015's Corollary 2). Struck rather than deleted
+  because the pairing is what anyone reading this preload took away from it for thirteen days, and a
+  rule that walked back in once walks back in again unless the door stays visible.
 - **Proposing a change to the MACHINERY** — dispatch `agents-lead` before implementing it. Its
   standing question is [ADR-0004](https://github.com/tedeuxx/tadeumendonca-skills/blob/main/docs/adr/0004-controls-and-enforcement.md)'s — *which
   layer can actually carry this control, and can that layer hold it?* Since

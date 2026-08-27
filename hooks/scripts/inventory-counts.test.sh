@@ -4743,6 +4743,60 @@ else
   fi
 fi
 
+# ── 5 · the preload's own DISPATCH ADVICE does not re-prescribe `tech-lead` on a loop change ─────
+#
+# WHY A FIFTH ARM, when arms 1-4 already read this same file. Because each of them keys on a SURFACE
+# that states the lane relation, and this one does not state it — it PRESCRIBES A DISPATCH. Round 1 of
+# #329 corrected nine surfaces and left `skills/harness-engineering/SKILL.md`'s *When to reach for this
+# discipline specifically* bullet reading "pair it with `tech-lead` … and `quality-assurance`", seventy-
+# five lines above the canonical row saying `tech-lead` never co-signs that lane. The same file stated
+# both, in the preload every persona carries on every dispatch, for thirteen days. Arm 1 was green the
+# whole time: the row it reads was correct.
+#
+# WHAT THIS ARM OWNS, both directions. POSITIVE: the strike is present and says why. NEGATIVE: the
+# retired literal is not LIVE anywhere in the file — struck spans are stripped first, so the convention
+# that keeps the sentence visible does not have to fight the assertion that killed it. The negative half
+# is the one that survives a rewording, and it is the half that matters: a future author who pastes the
+# pairing back trips it whatever else changed.
+#
+# THE STRUCK SPAN IS ON ONE LINE ON PURPOSE, and it is a real constraint on whoever rewords it. The
+# stripper is `sed 's/~~[^~]*~~//g'`, which is LINE-oriented: a `~~` opened on one line and closed on
+# the next is not stripped, so a re-wrapped strike would read to this arm as a live occurrence and
+# redden on correct work. Keep the strike on its own single line.
+#
+# WHAT IT CANNOT OWN: a re-prescription written in words nobody has used yet — "loop the architect in",
+# "get a second lead on it". This arm reads the literal this repo actually shipped. A new phrasing is a
+# new needle, found the way this one was: by reading the file for what it INSTRUCTS, not for what it
+# states.
+lane_advice_problems=""
+if [ ! -r "$LANE_SKILL" ]; then
+  bad "lane relation — skills/harness-engineering/SKILL.md is not readable; the dispatch-advice arm
+      cannot be checked at all."
+else
+  for lane_advice_needle in \
+    '- **Validating a loop/gate change** — ~~pair it with `tech-lead`' \
+    '`tech-lead` acts at **no** `loop` transition'
+  do
+    grep -qF -- "$lane_advice_needle" "$LANE_SKILL" || lane_advice_problems="$lane_advice_problems
+    missing: \"$lane_advice_needle\""
+  done
+  # `grep -c`, never `-q`, after the strip — `-q` exits early, SIGPIPEs the `sed` under `pipefail`, and
+  # reports the pipeline as failed, i.e. reports "clean" on exactly the files that are not.
+  lane_advice_live=$(sed 's/~~[^~]*~~//g' "$LANE_SKILL" | grep -cF -- 'pair it with `tech-lead`' || true)
+  [ "${lane_advice_live:-0}" -eq 0 ] || lane_advice_problems="$lane_advice_problems
+    RETIRED literal is LIVE (not struck) in skills/harness-engineering/SKILL.md: \"pair it with \`tech-lead\`\""
+  if [ -n "$lane_advice_problems" ]; then
+    bad "lane relation — the preload prescribes a dispatch the canonical rows forbid:$lane_advice_problems
+      This file is the universal preload. A bullet telling whoever dispatches to pair a loop/gate change
+      with \`tech-lead\` is not a stale sentence — it is a wrong INSTRUCTION, and it outranks the table in
+      practice because it is the part written as advice. Owner ruling 2026-08-25 (#329) was \"nunca\";
+      \`tech-lead\` acts at no \`loop\` transition in the states table at all. If this is a deliberate
+      rewording, update the needles here in the same commit."
+  else
+    ok "lane relation — the preload's dispatch advice no longer pairs a loop/gate change with tech-lead"
+  fi
+fi
+
 # ---------------------------------------------------------------------------------------------------
 # THE ITERATION IS THE UNIT OF WORK, AND ITS TWO NOT-OPTIONAL RULES ARE WRITTEN DOWN (#326).
 #
