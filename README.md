@@ -316,59 +316,23 @@ exception. **What differs is that this lane answers for MORE there rather than l
 ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md), record 0015's Corollary 2) means a diff touching
 `hooks/**`, `agents/**`, `skills/**`, `commands/**` or `.claude/**` gets the same two-lens Definition of
 Done as any other diff, **plus** a requirement no other lane carries: an `agents-lead` verdict marker
-must be present on the PR before the gate may classify the diff safe or merge it, and absent that marker
-the diff is boundary class whatever else it does. **A reviewer that has to have been present, not a
-review that is skipped.**
+must be present on the PR before the gate may classify the diff safe or merge it. **A reviewer that has
+to have been present, not a review that is skipped.**
 
 ~~**Tier 3 is not skipped — its lens is.** … a diff touching `hooks/**`, `agents/**`, `skills/**`,
 `commands/**` or `.claude/**` is gated on the presence of an `agents-lead` verdict marker, not on the
 full two-lens Definition of Done — the DoD review already happened, in tier 1, before the build.~~
 
-**Struck #335, and both halves were wrong in different ways — struck rather than deleted because
-someone read it and `tadeumendonca-io` published a page from this section.** *The substitution:*
-Corollary 2's verb is **gains**, its object is the boundary-class list, the DoD is not an object in the
-sentence at all, and its stated purpose is **closing a gap** — which adds a control rather than removing
-one. *The justification, separately false on the DoD's own terms:* tier 1 on a `loop` Issue is
-`agents-lead` closing a **description**, and not one criterion in `skills/quality-gates/SKILL.md`'s
-Definition of Done — coverage green, regression added, lint and typecheck clean, observability
-instrumented, validated locally — has a subject that exists before the build. The corrected wording
-above is promoted verbatim from the consumer that published this claim, `tadeumendonca-io`'s
-`architecture.en.md`, rather than drafted fresh. **Dates rather than an elapsed count, because a
-duration published inside the diff that fixes it is stale the next day** —
-`git log --all --format='%h %ad %s' --date=short -S "rather than the full two-lens"` returns the
-substitution entering on **2026-08-12** (`867dcfc`), reaching the universal preload on **2026-08-13**
-(`e3ba039`) and the Kiro export on **2026-08-21** (`ab6c5c7`); the README half is `84e16ea`, also
-2026-08-12, and it was itself a correction of a worse claim that overshot into substitution.
-`skills/harness-engineering/SKILL.md` carried it in **two** places at head — the states table row and,
-since **2026-08-27** (`10764ef`, #329), a bullet under *"When to reach for this discipline
-specifically"* that restated it while correcting a different defect. **That second date needs a command
-of its own, and why is the whole point of this paragraph: the command published above does NOT return
-it.** The bullet phrases the substitution differently, so the literal that finds it is its own:
+**Struck #335.** It was live from 2026-08-12 to 2026-08-28 here and in the universal preload, and it was
+wrong twice over: Corollary 2 **adds** the marker to the gate's checks rather than substituting it for
+the DoD, and the justification was false on the DoD's own terms — tier 1 on a `loop` Issue closes a
+*description*, and every criterion in `skills/quality-gates/SKILL.md`'s Definition of Done has a subject
+that only exists after the build. **Struck here rather than corrected outright**, because
+`tadeumendonca-io` published a page from this section and a reader who took the old claim deserves to
+find out it changed; **corrected outright in `skills/harness-engineering/SKILL.md`**, where struck text
+is tokens every persona pays on every dispatch to read a rule that no longer holds. The corrected
+sentence is promoted verbatim from that consuming page rather than drafted fresh.
 
-```
-git log --all --format='%h %ad %s' --date=short \
-  -S 'it checks for the `agents-lead` verdict marker rather than'
-→ 68ca137 2026-08-28   (this repair — it REMOVES the string, so it matches too)
-→ 10764ef 2026-08-27   (the entry)
-```
-
-**Both lines are printed here rather than only the one being cited**, because `-S` counts occurrences
-changing in either direction: a reader who runs it and sees two commits where the text promised one has
-been given a reason to distrust the rest of the paragraph.
-
-**This date first shipped as 2026-08-26 and was wrong.** It was the one figure in this paragraph
-published *without* the command that produces it, sitting among four that had one — and the gate
-falsified it in a single command. **A number is not audited by the company it keeps.** Both places in
-the preload are corrected outright rather than struck — struck text in a preload is tokens every persona pays on every dispatch to
-read a rule that no longer holds, which is a cost this prose does not have.
-
-**A fourth surface carried the same claim with none of this vocabulary, which is why the sweep was run
-by the object and not by the words:** the `quality-assurance` node in the roster diagram above read
-*"loop — checks the agents-lead verdict marker"* against *"product · content — two lenses in one pass"*,
-stating the substitution without the phrase *"two-lens DoD"* appearing anywhere in it. **It is corrected
-outright rather than struck** — a node label is a caption in a drawing, with nowhere to put the
-correction beside the claim, which is the whole of what a strike is for. **This paragraph is that node's
-strike**, and it is placed here because this is the section the node illustrates.
 
 **No persona talks to another persona** — every dispatch still goes through the orchestrator; what changed
 is that the edge is now drawn for its full span (including the owner's side of it) rather than once for
@@ -1371,6 +1335,16 @@ resolves once Kiro has copied a skill into `~/.kiro/powers/installed/<power>/` (
 `1.0.337` bundle — `getKiroPowersHome()` → `getInstalledDir()`, which appends `installed`, → the power
 name; ~~`~/.kiro/powers/`~~ here dropped the `installed` segment until #287's copy-lens round caught it,
 and the conclusion it supports — that the relative targets do not survive the copy — is unaffected).
+
+**What that gate does NOT do, measured on #335 rather than reasoned about.** It compares the two trees;
+it says nothing about whether either is *correct*. Revert a claim in a source skill, regenerate, and
+both trees agree on the new wording — `kiro-power.test.sh` returns 18/0 and `inventory-counts.test.sh`
+returns 122/0, the whole suite green with a false claim back in the universal preload. The red it
+produces on a source-only edit is the **window** between editing and regenerating, and the regeneration
+this repo's own instructions require is what closes it. **So it is a drift check and not a content
+check**, and the distinction matters because #335's defect was a false sentence rather than a
+divergence: nothing in this suite reads what a skill asserts. Preload content is held by review alone.
+
 
 ### What each format can carry — the element-by-element gap
 
