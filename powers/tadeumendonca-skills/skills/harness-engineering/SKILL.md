@@ -131,8 +131,10 @@ explicitly rather than leaving the axis unexamined.
   nineteenth amendment rejected by name: **a rule with a judgement-call escape hatch is the escape
   hatch**, and almost every machinery change can be described as having an architecture edge.
   **What survives untouched:** `quality-assurance` at code-time, which is the `in progress →
-  **reviewed**` row — on the `loop` lane it checks for the `agents-lead` verdict marker rather than
-  running the full two-lens DoD (ADR-0002, record 0015's Corollary 2). Struck rather than deleted
+  **reviewed**` row — and on the `loop` lane it answers for **more** there rather than less: the same
+  two-lens DoD every other lane gets, **plus** an `agents-lead` verdict marker that must be present on
+  the PR before it may classify the diff safe or merge it (ADR-0002, record 0015's Corollary 2). **A
+  reviewer that has to have been present, not a review that is skipped.** Struck rather than deleted
   because the pairing is what anyone reading this preload took away from it for thirteen days, and a
   rule that walked back in once walks back in again unless the door stays visible.
 - **Proposing a change to the MACHINERY** — dispatch `agents-lead` before implementing it. Its
@@ -217,7 +219,7 @@ owner works that decision out with; it does not make it.
 | ready → **in progress** | `loop` | `agents-lead` (ADR-0002, record 0015's Corollary 1) | an open PR |
 | in progress → **drafted** | `content` only | `content-reviewer`, at most **two** rounds against `published-voice` (ADR-0002, seventeenth amendment) | **`docs/content-review/<slug>.md` on the branch** — one `## Round` section per round, each closed with `CONTENT-REVIEW-FINDINGS` or `CONTENT-REVIEW-CLEAR`; terminal on the first `CLEAR` or the second section, whichever comes first |
 | in progress → **reviewed** | `product` · `content` | `quality-assurance`, against the full two-lens DoD | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
-| in progress → **reviewed** | `loop` | `quality-assurance`, checking for an `agents-lead` verdict marker rather than the full two-lens DoD (ADR-0002, record 0015's Corollary 2) | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
+| in progress → **reviewed** | `loop` | `quality-assurance`, against the full two-lens DoD **exactly as on any other lane**, **plus** an `agents-lead` verdict marker that must be on the PR before it may classify the diff safe or merge it — absent that marker the diff is boundary class whatever else it does (ADR-0002, record 0015's Corollary 2). The marker is an **added** control, never a substitute for the DoD | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
 | reviewed → **closed** | all | `quality-assurance` — safe **and** boundary since 2026-08-23 (ADR-0002 amendment #16) · the owner only on the four surviving holds | the merge, plus the verdict literal that authorised it (`APPROVE-AND-MERGE` or `APPROVE-AND-MERGE-BOUNDARY`); on a hold, the owner's ratifying comment |
 | **any → blocked → back** | all | anyone, on discovering it waits on the owner or on something outside the loop | **`blocked` label** |
 

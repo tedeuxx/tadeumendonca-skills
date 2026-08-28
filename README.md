@@ -180,7 +180,7 @@ flowchart TB
   MR{{"MERGE REQUEST · ONE per story, to main"}}
 
   subgraph T3["TIER 3 · GATE — fresh context, no authorship bias"]
-    QA["quality-assurance<br/>product · content — two lenses in one pass<br/>loop — checks the agents-lead verdict marker"]
+    QA["quality-assurance<br/>product · content — two lenses in one pass<br/>loop — the same two lenses, PLUS the agents-lead verdict marker"]
   end
 
   M{{"merge to main = the deploy<br/>a real merge commit, never a squash"}}
@@ -308,13 +308,50 @@ gate-free at intake — a `loop`-typed Issue still needs `ready` before anything
 so it can be drained the same mechanical way a `product` story can. What is actually different: `ready`
 on a `loop` Issue is an **owner-only** transition ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md),
 record 0015's Corollary 4) rather than the two leads reconciling between themselves, and its own tier 2 is
-`agents-lead`, building what it just stress-tested. **Tier 3 is not skipped — its lens is.** Every
-lane, `loop` included, still merges through `MR --> QA --> M`: rule 7b denies `gh pr merge` to every
-`agent_type` but `quality-assurance`, unconditionally, so an agents-lead-built change is no exception.
-What differs is what `quality-assurance` checks there — `agents/quality-assurance.md`'s harness-diff
-criterion ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md), record 0015's Corollary 2) means a diff touching `hooks/**`, `agents/**`, `skills/**`, `commands/**`
-or `.claude/**` is gated on the presence of an `agents-lead` verdict marker, not on the full two-lens
-Definition of Done — the DoD review already happened, in tier 1, before the build.
+`agents-lead`, building what it just stress-tested. **Tier 3 is not skipped, and neither is its lens.**
+Every lane, `loop` included, still merges through `MR --> QA --> M`: rule 7b denies `gh pr merge` to
+every `agent_type` but `quality-assurance`, unconditionally, so an agents-lead-built change is no
+exception. **What differs is that this lane answers for MORE there rather than less** —
+`agents/quality-assurance.md`'s harness-diff criterion
+([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md), record 0015's Corollary 2) means a diff touching
+`hooks/**`, `agents/**`, `skills/**`, `commands/**` or `.claude/**` gets the same two-lens Definition of
+Done as any other diff, **plus** a requirement no other lane carries: an `agents-lead` verdict marker
+must be present on the PR before the gate may classify the diff safe or merge it, and absent that marker
+the diff is boundary class whatever else it does. **A reviewer that has to have been present, not a
+review that is skipped.**
+
+~~**Tier 3 is not skipped — its lens is.** … a diff touching `hooks/**`, `agents/**`, `skills/**`,
+`commands/**` or `.claude/**` is gated on the presence of an `agents-lead` verdict marker, not on the
+full two-lens Definition of Done — the DoD review already happened, in tier 1, before the build.~~
+
+**Struck #335, and both halves were wrong in different ways — struck rather than deleted because
+someone read it and `tadeumendonca-io` published a page from this section.** *The substitution:*
+Corollary 2's verb is **gains**, its object is the boundary-class list, the DoD is not an object in the
+sentence at all, and its stated purpose is **closing a gap** — which adds a control rather than removing
+one. *The justification, separately false on the DoD's own terms:* tier 1 on a `loop` Issue is
+`agents-lead` closing a **description**, and not one criterion in `skills/quality-gates/SKILL.md`'s
+Definition of Done — coverage green, regression added, lint and typecheck clean, observability
+instrumented, validated locally — has a subject that exists before the build. The corrected wording
+above is promoted verbatim from the consumer that published this claim, `tadeumendonca-io`'s
+`architecture.en.md`, rather than drafted fresh. **Dates rather than an elapsed count, because a
+duration published inside the diff that fixes it is stale the next day** —
+`git log --all --format='%h %ad %s' --date=short -S "rather than the full two-lens"` returns the
+substitution entering on **2026-08-12** (`867dcfc`), reaching the universal preload on **2026-08-13**
+(`e3ba039`) and the Kiro export on **2026-08-21** (`ab6c5c7`); the README half is `84e16ea`, also
+2026-08-12, and it was itself a correction of a worse claim that overshot into substitution.
+`skills/harness-engineering/SKILL.md` carried it in **two** places at head — the states table row and,
+since **2026-08-26** (`10764ef`, #329), a bullet under *"When to reach for this discipline
+specifically"* that restated it while correcting a different defect — and both are corrected outright
+rather than struck — struck text in a preload is tokens every persona pays on every dispatch to
+read a rule that no longer holds, which is a cost this prose does not have.
+
+**A fourth surface carried the same claim with none of this vocabulary, which is why the sweep was run
+by the object and not by the words:** the `quality-assurance` node in the roster diagram above read
+*"loop — checks the agents-lead verdict marker"* against *"product · content — two lenses in one pass"*,
+stating the substitution without the phrase *"two-lens DoD"* appearing anywhere in it. **It is corrected
+outright rather than struck** — a node label is a caption in a drawing, with nowhere to put the
+correction beside the claim, which is the whole of what a strike is for. **This paragraph is that node's
+strike**, and it is placed here because this is the section the node illustrates.
 
 **No persona talks to another persona** — every dispatch still goes through the orchestrator; what changed
 is that the edge is now drawn for its full span (including the owner's side of it) rather than once for
