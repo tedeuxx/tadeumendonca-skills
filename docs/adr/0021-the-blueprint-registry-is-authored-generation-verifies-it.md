@@ -282,6 +282,132 @@ be rediscovered.
 `ls agents/*.md | wc -l`, which does not filter to regular files. A directory named `something.md` under
 `agents/` would be counted. Accepted, and recorded in the entry's own `limit`.
 
+## Amendment, 2026-08-28 — `purpose:` is a plugin-side field, and it is NOT the registry's second source
+
+**Driven by [#313](https://github.com/tedeuxx/tadeumendonca-skills/issues/313), slice 1, reopened by the
+owner on 2026-08-28: «preciso tbm que priorize o comando blueprint para acelerarmos a reconciliacao com
+outros projetos de configuracao de harness que estou trabalhando».**
+
+**Deciders:** the owner (decision, and the reopening that put it at the front of the queue) · written by
+`agents-lead` per the domain split — this is a pure loop/machinery decision · **the consumer interest in
+`tadeumendonca-io` is co-cited and did not decide it**: that repo's manifest is what has carried
+identity-with-no-purpose since it was built, and its own record deferred the fix to here.
+
+**Why this is an amendment and not record 0022, stated because the Issue asked for a record.** Since
+[#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283) this library is **one document per
+capability name**, and the most recent decision of comparable size refused a new number on exactly that
+ground — ADR-0002's amendment #20: *"No new record, and the reason is the capability shape."* This
+capability's entry in [`docs/adr/README.md`](./README.md) claims *how this harness describes itself to a
+reader who does not run it*, which is what a `purpose:` field is for. A standalone record would have
+cost a new row in the closed capability table and a ceiling bump, to say something this document is
+already the home of. **If the owner wants the standalone record anyway, that is what it costs** — the
+decision below is unaffected either way.
+
+### The deferral this discharges, and why its reason lapsed
+
+`tadeumendonca-io`'s **ADR-0043** deferred the purpose schema to this repository rather than rejecting
+it. The clause, quoted in full in *Context & problem* above and reduced here to the half that lapsed:
+
+> …a hook's one-line purpose is a methodology fact and would sit legitimately in that repo. It is
+> deferred because introducing a schema there to serve **one consumer's page** is option 2's inversion
+> in a milder form…
+
+**The reason was the denominator, and the denominator moved.** The objection was never that the field
+was wrong; it was that a schema in the *producer* built to serve a single *consumer's* rendering
+inverts which repo is authoritative. `/blueprint` is a **second consumer, living in this repository**,
+and it is the one the owner has now put upstream of everything else — on
+[#343](https://github.com/tedeuxx/tadeumendonca-skills/issues/343) he declined to relax WIP=1 and named
+the precondition himself: *«ainda nao estamos com todos perfis e skills configurados que ainda vamos
+equalizar com meus outros projetos de harness»*. A field with two consumers, one of them local, is not
+an inversion. It is a plugin-side fact that two readers happen to want.
+
+**What the drift costs today, measured rather than asserted.** `tadeumendonca-io`'s
+`apps/fed/src/content/generated/harness.json` enumerates every element of this harness and carries
+`kind`, `id`, `file`, `event`, `matcher`, `enforcement` — identity, and no obligation:
+
+    python3 -c "import json;d=json.load(open('apps/fed/src/content/generated/harness.json'));\
+    print(len(d), sorted({k for r in d for k in r}))"
+    # 20 ['enforcement', 'event', 'file', 'id', 'kind', 'matcher', 'skills']
+
+Its generator says so in its own header. So the surface that publishes this harness to a reader can name
+every mechanism and cannot say what any of them is **for** — which is the one thing a reader on another
+harness needs, and the only thing no consumer can derive from the tree.
+
+### Decision
+
+**Every mechanism this plugin ships declares exactly one `purpose:` line, and every declaration names a
+mechanism that exists.** A mechanism is: a hook **registered in `hooks/hooks.json`**, a persona in
+`agents/`, a typed command in `commands/`, or a skill **declared in `.claude-plugin/plugin.json`** — 35
+at this record's date. The declaration is **positional**: line 2 of a hook script, immediately after the
+shebang; a frontmatter key in a markdown mechanism. Both directions are gated by three arms in
+`hooks/scripts/inventory-counts.test.sh` (`purpose (forward)`, `purpose (shape)`, `purpose (reverse)`).
+
+**`purpose:` is not `description:`, and the gate asserts they differ.** `description:` is a **trigger**
+addressed to the model — *when do I reach for this*. `purpose:` is an **obligation** addressed to an
+engineer on a harness nobody here has measured — *why does this exist, and what is lost without it*.
+The cheapest way to fill a new field is to paste the neighbouring one, so a byte-identical pair reddens.
+
+**The position is a measurement, not a preference.** `# purpose:` already occurred at column 0 in this
+tree as ordinary prose — `orchestrator-write-guard.sh` carried *"Both are denied on / purpose: a write
+into `.git/` escapes the diff entirely"*, a sentence wrapped so the token began a line. It was found by
+the new arm's first run, not by reading. **The prose was rewrapped rather than the gate exempted**,
+because position is what *this* suite reads and `^# purpose:` is what a naive consumer greps, and the
+whole point of the field is to be read by consumers nobody here controls.
+
+### This does NOT reverse considered option 3
+
+Option 3 above — *per-file `purpose:` frontmatter, as filed, the blueprint rendered from the file
+inventory* — stays rejected, for the reason given: a behaviour is not a property of one file, so a
+per-file field cannot produce the registry's rows. **What is adopted here is the field, not the row
+model.** The two coexist and are keyed differently on purpose:
+
+| | `docs/blueprint-registry.md` | `purpose:` |
+|---|---|---|
+| keyed on | a **behaviour** | a **file** |
+| a behaviour no file carries | has a row (`carrier: none`) | has no declaration, and must not |
+| a file carrying two behaviours | has two rows | has one declaration |
+| consumer | `/blueprint`, and a foreign harness | an identity inventory — `harness.json` today |
+
+**Nothing cross-checks the two, deliberately.** A gate tying them together would force one to be a
+projection of the other, which is the collapse they were separated to avoid — and it would recreate,
+between two files in one repo, exactly the inversion ADR-0043 refused between two repos.
+
+### Rejected option — leave the purposes as README prose
+
+**What it is:** the README already glosses most of these mechanisms in its hooks and roster sections.
+The purposes could have been curated there and left as prose, with no field, no frontmatter change and
+no gate.
+
+**Trade-off, and why not:** it is free to write and unusable to a consumer. A generator cannot extract a
+gloss from a narrative paragraph without inventing a parse of prose that nobody wrote to be parsed —
+which is a second, worse source of truth appearing the moment anyone tries. And it fails in the
+direction this repository has been wrong in before: nothing about adding a hook makes anyone open the
+README, so the omission is silent and the prose that *is* there ages against a tree that moved. The
+field costs one line per mechanism and one gate; the prose costs a sweep nobody schedules.
+
+### Consequences
+
+**Good**
+- The one fact an inventory consumer cannot derive from the tree now exists in the tree, gated.
+- `-io`'s ADR-0043 deferral is discharged, and the closure is on the producer's side where it belongs.
+- Slice 1 stands alone: it closes a drift that repository explicitly could not close, whether or not
+  `/blueprint` is ever built.
+
+**Bad / accepted costs**
+- **A purpose is unfalsifiable by grep, and the greens must not be read as more.** The arms assert
+  existence, position, length and non-duplication. A purpose describing what a mechanism was *meant* to
+  do rather than what it does passes all three. That is a reviewer's read, and it is the same residual
+  the registry already states about `propósito`.
+- **35 lines that must be maintained by hand**, and the field's value decays exactly as fast as they
+  go stale. The gate makes the *absence* loud and the *staleness* silent.
+- **Two purpose-shaped artifacts now exist in one repository**, and a reader meeting the second one
+  first has to be told they are keyed differently. The table above is that telling; nothing enforces
+  that anyone reads it.
+- **One purpose line is an honest disappointment and is written as one.**
+  `dispatch-metrics-start.sh` declares that it is *"deliberately close to a no-op"*, because that is
+  what the file does — its own header says every field it receives is recoverable at `SubagentStop`.
+  A field that let that row read as a capability would have been worse than no field.
+
 ## Links
 
 - [#324](https://github.com/tedeuxx/tadeumendonca-skills/issues/324) — the claim-class contract, its

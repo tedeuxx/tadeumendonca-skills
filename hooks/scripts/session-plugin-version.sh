@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# purpose: tell a starting session which build of this harness it is actually running and whether that build is behind the source, because every other gate verifies the source and none verifies the install
 # session-plugin-version.sh — SessionStart hook: tell the session which BUILD of this
 # harness it is actually running, and whether that build is behind the source.
 #

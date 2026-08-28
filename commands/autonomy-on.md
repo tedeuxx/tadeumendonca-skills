@@ -1,5 +1,6 @@
 ---
 description: Drain a repo's ready product backlog end to end without asking — pick, build, review and merge slices one at a time, stopping only where the owner's judgment is genuinely required. Use when the owner says to work the backlog or keep going, when several ready issues are queued, or when in-pattern work keeps stalling for permission. Not for capturing a new request (see new-issue).
+purpose: drain an iteration's ready pool without asking on in-pattern work, so the loop stops paying one stall per slice for permission it has already been given
 argument-hint: "[repo] (defaults to the current repo)"
 ---
 

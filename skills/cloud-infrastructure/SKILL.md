@@ -1,5 +1,6 @@
 ---
 description: Provision AWS infrastructure in Terraform end to end, one section per service — network, identity and encryption, the config/secrets bus, data stores and cache, storage, compute, API and CDN edge, certificates, DNS, email and event fan-out, and observability. Use when provisioning any AWS resource, choosing between two services, or tracing a cross-service reference. Not for the CI/CD pipeline that runs plan and apply, branching, or the permission model (see devops).
+purpose: hold the cloud scenario space - when to pick each service and what each choice costs - rather than the one configuration that happened to work
 ---
 
 # Cloud infrastructure (AWS)

@@ -1,6 +1,7 @@
 ---
 name: developer
 description: "Build a slice end-to-end — app, infrastructure and pipeline — implementing an approved spec with tests written inline as you go. The fullstack builder: replaces the former frontend-react, iac-terraform-aws and devops-cicd specialists, whose split created a handoff decision that was the reason none of them was ever dispatched. It owns the source globs — apps/**, iac/** and .github/workflows/**; it never merges (that gate is the quality-assurance's) and never applies infrastructure from a laptop."
+purpose: build a slice end to end in one context, because splitting the builder created a handoff decision that was the reason no specialist was ever dispatched
 tools: Read, Grep, Glob, Write, Edit, Bash
 skills:
   - code-review

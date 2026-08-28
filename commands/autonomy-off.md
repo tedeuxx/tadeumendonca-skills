@@ -1,5 +1,6 @@
 ---
 description: End autonomy mode — finish the in-flight slice to merge, start nothing new, then post a closing summary (merged/open/blocked, product vs. loop vs. content). Use when the owner wants the wheel back. Not for capturing a new request (see new-issue).
+purpose: hand the wheel back deliberately - finish what is in flight, start nothing new, and report what merged, what is open and what is blocked
 argument-hint: "[repo] (defaults to the current repo)"
 disable-model-invocation: true
 ---

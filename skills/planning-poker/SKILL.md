@@ -1,5 +1,6 @@
 ---
 description: Run a planning poker estimation round, or diagnose why one produced theater instead of signal. Use when sizing backlog items with a team, choosing between group-consensus estimation and a single person's gut call, or explaining why a session's numbers don't seem to influence anything downstream. Reference pattern only — this repo's own loop runs no human estimation ceremony (see harness-engineering).
+purpose: keep consensus estimation available as a reference pattern, and say plainly what it buys and when the ceremony is not worth running at all
 ---
 
 # Planning Poker — consensus estimation, and what it is actually for

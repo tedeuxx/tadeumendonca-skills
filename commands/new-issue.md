@@ -1,5 +1,6 @@
 ---
 description: Capture a request as a GitHub Issue — search for the decision that already exists, run the intake the issue's type routes to, and open it with the description closed or with the reason it is not. Use when the owner describes something he wants, when work would otherwise start untracked, or when it is unclear whether a request reopens a settled decision. Not for executing issues already filed (see autonomy-on).
+purpose: make filing the cheap path, because the owner is the only origin of work and untracked requests were the standing cost of that rule
 argument-hint: "<what you want, in your own words>"
 ---
 

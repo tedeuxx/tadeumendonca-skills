@@ -1,5 +1,6 @@
 ---
 description: "Judge or draft anything published in the owner's voice — articles, site copy, and LinkedIn/X teasers — against the calibration he ratified: the goal, the filter, the subject bound, the corpus evidence, the ranked title criteria and the teaser arc. Use when a piece is being drafted, or when a draft is being reviewed before it reaches him."
+purpose: give the drafting persona and the reviewing persona the same ruler, so the pair produces a conflict rather than two unrelated opinions
 ---
 
 # The owner's published voice — the shared ruler

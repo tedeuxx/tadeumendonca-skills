@@ -1,5 +1,6 @@
 ---
 description: Apply THIS loop's concrete Definition of Done and gate policy that proves it — the 100% regression invariant, the gate table per loop model, plus thresholds (lint/typecheck zero, coverage ≥85%, contract/E2E, dependency + secret scanning, SAST). Use when deciding if a slice ships, calibrating gates, or wiring CI. Not for the pre-merge pass (see code-review), Sonar mechanics (see devops), or what a DoD generically is and how to design one (see definition-of-done).
+purpose: state this loop's concrete Definition of Done and the gates that prove it, so done is asserted mechanically instead of judged in the moment
 ---
 
 # Quality gates — the definition of done and the concrete policy that proves it

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# purpose: keep the orchestrator out of a repository's working tree, so every edit passes through the persona that owns it and through the gates that key on a persona
 # orchestrator-write-guard.sh — PreToolUse guard on the FILE-WRITING tools: the orchestrator does not
 # edit a repository directly. It dispatches a persona that does.
 #
@@ -129,9 +130,15 @@ while [ ! -d "$dir" ]; do
 done
 [ -d "$dir" ] || exit 0
 
-# `rev-parse --git-dir` succeeds inside a work tree AND inside a `.git` directory. Both are denied on
-# purpose: a write into `.git/` escapes the diff entirely, which is a stronger version of the same
-# failure this rule exists for, not an exception to it.
+# `rev-parse --git-dir` succeeds inside a work tree AND inside a `.git` directory. Both are denied
+# deliberately — a write into `.git/` escapes the diff entirely, which is a stronger version of the
+# same failure this rule exists for, not an exception to it.
+#
+# (The word was "on purpose" until #313, wrapped so that "purpose:" began a line. `purpose:` is now a
+# DECLARED FIELD in this plugin, read at line 2 of every registered hook, and a naive consumer greps
+# `^# purpose:` rather than reading a position. One accidental column-0 occurrence in prose is enough
+# to hand that consumer two answers for a file that has one — so the sentence was rewrapped rather
+# than the gate loosened.)
 git -C "$dir" rev-parse --git-dir >/dev/null 2>&1 || exit 0
 
 reason="Denied: the orchestrator does not edit a repository directly — it dispatches the persona that owns the work.

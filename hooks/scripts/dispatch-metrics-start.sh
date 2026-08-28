@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# purpose: hold the SubagentStart registration deliberately close to a no-op, so the metrics pair is visible as a pair and no capability is inferred from the event merely being wired
 # dispatch-metrics-start.sh — SubagentStart hook, registered for symmetry with dispatch-metrics-stop.sh
 # and deliberately close to a no-op. Read this file before assuming it does more than it does (#209).
 #

@@ -1,5 +1,6 @@
 ---
 description: Run the author's own completeness pass before opening a merge request — every requirement marked met or unmet, every new assertion mutation-checked, what the change made false, alternative spellings of anything parsed, and the gates run with real output. Use when a slice is finished and not yet submitted, or when anticipating both the delivery and the can-this-break-production lens. Not for the definition of done itself (see quality-gates).
+purpose: make the author verify their own completeness before a gate does, so a merge request arrives carrying its evidence rather than its claims
 ---
 
 Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's review that comes after.

@@ -5112,5 +5112,196 @@ else
   fi
 fi
 
+# ---------------------------------------------------------------------------------------------------
+# EVERY MECHANISM DECLARES A `purpose:`, AND EVERY DECLARATION NAMES A MECHANISM (#313 slice 1).
+#
+# WHAT THE FIELD IS FOR, AND WHY IT IS NOT `description:`. `description:` is a TRIGGER, addressed to the
+# model: *when do I reach for this*. `purpose:` is an OBLIGATION, addressed to an engineer on a harness
+# nobody here has measured: *why does this mechanism exist, and what is lost if it is not reproduced*.
+# The two answer different questions and are asserted to differ, because the cheapest way to fill a new
+# field is to paste the neighbouring one — and a pasted trigger reads as a purpose to everything except
+# a reader who already knew.
+#
+# WHY IT IS GATED AT ALL. `tadeumendonca-io`'s `harness.json` is a drift-checked inventory of exactly
+# these elements and it carries IDENTITY ONLY — file, event, matcher, enforcement — because its
+# generator has no purpose to read. ADR-0043 there deferred adding one on the grounds that a schema
+# serving one consumer's page was an inversion; ADR-0021's 2026-08-28 amendment here records why that
+# reason lapsed — `/blueprint` is a second consumer, in the plugin's own repo. A field
+# nothing asserts would be back to prose in a month, and the failure would be silent in the direction
+# that matters: a mechanism added with no purpose looks exactly like one whose purpose is elsewhere.
+#
+# THE DECLARATION IS POSITIONAL, AND THAT IS A MEASUREMENT RATHER THAN A PREFERENCE. `# purpose:` at
+# column 0 already occurred in this tree as ORDINARY PROSE before the field existed:
+# `orchestrator-write-guard.sh` read "Both are denied on / purpose: a write into `.git/` escapes the
+# diff entirely" — a wrapped sentence putting the token at the start of a line, found by this arm's
+# first run rather than by reading. So a declaration is: line 2 of a hook script (immediately after
+# the shebang), or a `purpose:` key inside a markdown file's frontmatter fence.
+#
+# AND THE ACCIDENTAL OCCURRENCE WAS REWRAPPED RATHER THAN EXEMPTED, which is the half worth arguing.
+# Position is what THIS suite reads; `^# purpose:` is what a naive consumer greps, and the whole point
+# of the field is to be read by a consumer nobody here controls — `-io`'s generator today, a foreign
+# harness tomorrow. One stray column-0 occurrence hands that consumer two answers for a file that has
+# one. So the forward arm asserts BOTH: the declaration is at the declared position, and it is the
+# only line in the file that begins that way. A gate that tolerated the stray would be correct about
+# this repository and wrong about every reader of it.
+#
+# WHAT NO ARM BELOW CAN HOLD, said before the greens are read. A purpose is unfalsifiable by grep. The
+# suite asserts that one exists, that it is in the declared position, that it is long enough to be a
+# sentence and that it is not the description reworded. It cannot assert that it is TRUE of the file,
+# and a purpose describing what a hook was MEANT to do rather than what it does passes every arm here.
+# That is a reviewer's read, and it is the same residual `docs/blueprint-registry.md` already states
+# about `propósito`.
+#
+# AND THE REGISTRY IS NOT THIS FIELD'S SECOND SOURCE. `docs/blueprint-registry.md` is keyed on a
+# BEHAVIOUR — one row may span two rules of one file, three files, or none — and this field is keyed on
+# a FILE. A behaviour no file carries has a row and no `purpose:`; a file carrying two behaviours has
+# one `purpose:` and two rows. They are not two spellings of one claim and nothing here cross-checks
+# them, deliberately: a gate tying them together would force one to be a projection of the other, which
+# is precisely the collapse both were separated to avoid.
+
+purpose_fm() { awk 'NR==1 && $0 != "---" { exit } NR==1 { infm=1; next } infm && $0 == "---" { exit } infm' "$1"; }
+
+# The mechanism set, derived from FOUR independent sources and never from the purpose scan itself —
+# deriving it from what carries a purpose would assert `grep` against `grep`.
+purpose_hooks="$(grep -oE 'hooks/scripts/[a-z0-9-]+\.sh' "$ROOT/hooks/hooks.json" 2>/dev/null | sort -u || true)"
+purpose_md="$(
+  find "$ROOT/agents"   -maxdepth 1 -name '*.md' -type f 2>/dev/null | sed "s|^$ROOT/||"
+  find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f 2>/dev/null | sed "s|^$ROOT/||"
+  jq -r '.skills[]?' "$ROOT/.claude-plugin/plugin.json" 2>/dev/null | sed 's|^\./||; s|$|/SKILL.md|'
+)"
+purpose_md="$(printf '%s\n' "$purpose_md" | grep . | sort -u || true)"
+purpose_hooks_n="$(printf '%s\n' "$purpose_hooks" | grep -c . || true)"
+purpose_md_n="$(printf '%s\n' "$purpose_md" | grep -c . || true)"
+
+# ── 1 · FORWARD — every mechanism carries exactly one purpose, in the declared position ────────────
+if [ "$purpose_hooks_n" -lt 5 ] || [ "$purpose_md_n" -lt 20 ]; then
+  bad "purpose (forward) — the mechanism set did not enumerate ($purpose_hooks_n hook(s), $purpose_md_n markdown
+      mechanism(s)). Either hooks.json, agents/, commands/ or plugin.json's skills array stopped being
+      readable, or jq is unavailable. NOTHING WAS ASSERTED; a green here would have been an artifact of
+      the enumeration breaking, which is the direction this suite has been wrong in before."
+else
+  purpose_missing=""
+  while IFS= read -r h; do
+    [ -z "$h" ] && continue
+    if [ ! -r "$ROOT/$h" ]; then
+      purpose_missing="$purpose_missing
+    $h — registered in hooks.json and not readable"
+      continue
+    fi
+    if ! sed -n '2p' "$ROOT/$h" | grep -qE '^# purpose: .+'; then
+      purpose_missing="$purpose_missing
+    $h — line 2 is not '# purpose: <one line>'"
+    fi
+    n="$(grep -cE '^# purpose: ' "$ROOT/$h" || true)"
+    if [ "$n" -gt 1 ]; then
+      purpose_missing="$purpose_missing
+    $h — $n lines begin '# purpose: '; exactly one may, and it is line 2"
+    fi
+  done <<< "$purpose_hooks"
+  while IFS= read -r m; do
+    [ -z "$m" ] && continue
+    if [ ! -r "$ROOT/$m" ]; then
+      purpose_missing="$purpose_missing
+    $m — enumerated as a mechanism and not readable"
+      continue
+    fi
+    n="$(purpose_fm "$ROOT/$m" | grep -cE '^purpose: .+' || true)"
+    if [ "$n" -ne 1 ]; then
+      purpose_missing="$purpose_missing
+    $m — carries $n 'purpose:' key(s) in its frontmatter; exactly one is required"
+    fi
+  done <<< "$purpose_md"
+
+  if [ -z "$purpose_missing" ]; then
+    ok "purpose (forward) — all $((purpose_hooks_n + purpose_md_n)) mechanisms declare exactly one purpose in the declared position ($purpose_hooks_n hooks at line 2, $purpose_md_n frontmatter keys)"
+  else
+    bad "purpose (forward) — a mechanism this plugin ships declares no purpose, or declares two:$purpose_missing
+      Every hook registered in hooks.json, every persona in agents/, every command in commands/ and
+      every skill declared in plugin.json carries ONE 'purpose:' line. A hook declares it on line 2,
+      immediately after the shebang; a markdown mechanism declares it as a frontmatter key. This is the
+      one field an inventory consumer cannot derive from the tree — identity it can read, obligation it
+      cannot — so a mechanism without one is invisible to every consumer of the inventory."
+  fi
+fi
+
+# ── 2 · SHAPE — a purpose is a sentence, and it is not the description reworded ────────────────────
+purpose_shape_scanned=0
+purpose_shape=""
+while IFS= read -r h; do
+  [ -z "$h" ] && continue
+  [ -r "$ROOT/$h" ] || continue
+  v="$(sed -n '2p' "$ROOT/$h" | grep -E '^# purpose: ' | sed 's/^# purpose: //' || true)"
+  [ -n "$v" ] || continue
+  purpose_shape_scanned=$((purpose_shape_scanned + 1))
+  [ "${#v}" -ge 60 ] || purpose_shape="$purpose_shape
+    $h — the purpose is ${#v} characters; under 60 it is a label, not an obligation"
+done <<< "$purpose_hooks"
+while IFS= read -r m; do
+  [ -z "$m" ] && continue
+  [ -r "$ROOT/$m" ] || continue
+  front="$(purpose_fm "$ROOT/$m")"
+  v="$(printf '%s\n' "$front" | grep -E '^purpose: ' | head -1 | sed 's/^purpose: //')"
+  [ -n "$v" ] || continue
+  purpose_shape_scanned=$((purpose_shape_scanned + 1))
+  [ "${#v}" -ge 60 ] || purpose_shape="$purpose_shape
+    $m — the purpose is ${#v} characters; under 60 it is a label, not an obligation"
+  d="$(printf '%s\n' "$front" | grep -E '^description: ' | head -1 | sed 's/^description: //' | sed 's/^"//; s/"$//')"
+  if [ -n "$d" ] && [ "$v" = "$d" ]; then
+    purpose_shape="$purpose_shape
+    $m — the purpose is byte-identical to the description; they answer different questions"
+  fi
+done <<< "$purpose_md"
+
+if [ "$purpose_shape_scanned" -lt 20 ]; then
+  bad "purpose (shape) — only $purpose_shape_scanned purposes were read, which is fewer than this plugin
+      ships. The extraction broke; nothing was judged."
+elif [ -z "$purpose_shape" ]; then
+  ok "purpose (shape) — all $purpose_shape_scanned purposes are a sentence rather than a label, and none is the file's description pasted twice"
+else
+  bad "purpose (shape) — a purpose is not one:$purpose_shape
+      'description:' says WHEN to reach for the file; 'purpose:' says WHY the mechanism exists and what
+      is lost without it. A gate cannot tell a true purpose from a plausible one — that is a reviewer's
+      read — but it can refuse the two failures that need no judgement: a label, and a paste."
+fi
+
+# ── 3 · REVERSE — every declaration names a mechanism that exists ──────────────────────────────────
+# The direction that is silent all the way down. A hook DEREGISTERED from hooks.json, a skill dropped
+# from plugin.json's array, a brief moved out of agents/ — each leaves a file still declaring a purpose
+# for a mechanism this plugin no longer ships, and nothing else in this suite reads that file at all.
+purpose_declarers="$(
+  for f in "$ROOT"/hooks/scripts/*.sh; do
+    [ -r "$f" ] || continue
+    sed -n '2p' "$f" | grep -qE '^# purpose: ' && printf '%s\n' "${f#"$ROOT"/}"
+  done
+  for f in "$ROOT"/agents/*.md "$ROOT"/commands/*.md "$ROOT"/skills/*/SKILL.md; do
+    [ -r "$f" ] || continue
+    purpose_fm "$f" | grep -qE '^purpose: ' && printf '%s\n' "${f#"$ROOT"/}"
+  done
+)"
+purpose_declarers_n="$(printf '%s\n' "$purpose_declarers" | grep -c . || true)"
+purpose_set="$(printf '%s\n%s\n' "$purpose_hooks" "$purpose_md" | sort -u)"
+
+if [ "$purpose_declarers_n" -lt 20 ]; then
+  bad "purpose (reverse) — only $purpose_declarers_n files were found declaring a purpose, which is fewer
+      than this plugin ships. The scan lost its subject; the reverse direction did NOT run."
+else
+  purpose_orphans=""
+  while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    printf '%s\n' "$purpose_set" | grep -qxF "$f" && continue
+    purpose_orphans="$purpose_orphans
+    $f — declares a purpose and is not a mechanism this plugin ships"
+  done <<< "$purpose_declarers"
+  if [ -z "$purpose_orphans" ]; then
+    ok "purpose (reverse) — all $purpose_declarers_n declarations name a mechanism this plugin ships (a hook registered in hooks.json, a brief in agents/, a typed command, or a skill declared in plugin.json)"
+  else
+    bad "purpose (reverse) — a purpose is declared for something that is not a mechanism:$purpose_orphans
+      A file declaring a purpose is claiming to be an element of this harness. A test suite is not one;
+      a deregistered hook is not one any more; a skill dropped from plugin.json's array does not exist
+      to the model at all. Either the file is a mechanism and its registration is missing, or it is not
+      and the declaration is. Nothing else in this suite would say so."
+  fi
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

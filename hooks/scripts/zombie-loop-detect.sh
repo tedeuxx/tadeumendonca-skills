@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# purpose: surface an outstanding gate verdict at the end of the turn that ignored it, so a stalled loop is noticed one turn late rather than one session late
 # zombie-loop-detect.sh — Stop hook: surface an outstanding gate verdict at the END OF THE
 # TURN in which it went unaddressed, instead of waiting for the next SessionStart.
 #

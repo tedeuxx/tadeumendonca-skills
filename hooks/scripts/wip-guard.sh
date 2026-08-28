@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# purpose: bound work in progress at the PR boundary by file overlap, so a new slice cannot be opened against files an already-open PR is changing
 # wip-guard.sh — PreToolUse(Bash) guard bounding work-in-progress at the PR boundary.
 #
 # The bound is FILE OVERLAP, not a count. ONE level, and there is no second.

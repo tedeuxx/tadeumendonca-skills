@@ -1,5 +1,6 @@
 ---
 description: Build the React + Vite SPA end to end — bootstrap and providers, routing, state ownership (React Query / Zustand / the Cognito SDK), the typed BFF client, auth and cosmetic UI gating, forms, cursor pagination, the custom Tailwind design system and Storybook, async UX states, markdown rendering, SEO, GA4 analytics, and Playwright E2E. Use when building or reviewing any SPA feature. Not for the AWS resources it calls (see cloud-infrastructure) or the API it calls (see backend).
+purpose: carry the SPA stack end to end at one grain, so a feature and the cross-cutting shape around it are decided from the same place
 ---
 
 # Frontend (React SPA)
