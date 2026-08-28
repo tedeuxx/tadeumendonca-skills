@@ -237,18 +237,121 @@ check_agent ALLOW "tadeumendonca-skills:quality-assurance" "own APPROVE-AND-MERG
 # rather than the squash rule silently subsumed by this one.
 check_agent DENY  "tadeumendonca-skills:quality-assurance" "squash denied even with a clean verdict (independent of 7c)" "gh pr merge 149 --squash"
 
-# FAIL OPEN: no `gh` on PATH at all. This sub-rule must add NOTHING — the merge proceeds exactly as it
-# did before 7c existed, per this file's own stated policy at its header (fails open on no network / no
-# `gh` / no `jq`). Proven by removing gh specifically (not jq — jq is real, only gh is absent), against
-# the SAME agent_type/command that a REQUEST-CHANGES fixture would otherwise deny, so a bug that made
-# the fail-open path itself deny could not hide behind an unrelated ALLOW.
+echo "--- rule 7c, #341: an UNREADABLE verdict denies — one case per cause, never one batch mutation ---"
+# ~~FAIL OPEN: no `gh` on PATH at all. This sub-rule must add NOTHING — the merge proceeds exactly as
+# it did before 7c existed, per this file's own stated policy at its header (fails open on no network /
+# no `gh` / no `jq`).~~ **STRUCK 2026-08-28 (#341, owner: «deveria travar»).** The assertion below is
+# the same probe with the opposite expectation, and the strike is kept because the ALLOW it asserted
+# was a REAL, deliberate behaviour of this floor for weeks — a reader finding a merge that went through
+# on a flaky network needs to see that it was expected, not that the test was always this way.
+#
+# EVERY CAUSE GETS ITS OWN CASE AND ITS OWN VERDICT LINE, NEVER CHAINED. A batch mutation ("break the
+# read somehow") cannot attribute a red: four different repairs sit behind these four causes, and a
+# suite that collapses them tells whoever is fixing it nothing about which one moved.
+#
+# EVERY CASE HOLDS THE FIXTURE AT REQUEST-CHANGES ON PURPOSE. That is the verdict that would deny
+# ANYWAY if the read succeeded — so a bug that made these pass for the ordinary reason (the verdict was
+# bad) rather than the reason under test (the read was impossible) is invisible here. The
+# discrimination is supplied by the CLEARANCE CONTROLS at the end of this block, which run the same
+# code path with a readable APPROVE-AND-MERGE and must still ALLOW. Without them, "deny everything"
+# would be green.
+
+# CAUSE 1 — `gh` absent from PATH. `jq` is real and still reachable (it lives at /usr/bin/jq, which
+# stays on the trimmed PATH; the stub dir is what is dropped), so this isolates the missing CLIENT
+# from the missing PARSER — they are different branches with different messages.
 write_gh_fixture "stubbed-head" "REQUEST-CHANGES"
 NOGH_7C="$(mktemp -d)"
 REAL_PATH_7C="$PATH"
 PATH="$NOGH_7C:/usr/bin:/bin"
-check_agent ALLOW "tadeumendonca-skills:quality-assurance" "no gh on PATH: 7c cannot check, so it adds nothing (fails open)" "gh pr merge 149 --merge"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "cause 1 — no gh on PATH: the read cannot happen, so the merge is denied (#341)" "gh pr merge 149 --merge"
 PATH="$REAL_PATH_7C"
 rm -rf "$NOGH_7C"
+
+# CAUSE 2 — the API call FAILS. `gh` is present and runs; it writes its error to stderr and exits
+# non-zero with empty stdout, which is what an expired token, a rate limit or no network all look like
+# from inside this hook. The guard cannot distinguish them from each other and does not claim to — its
+# message names the whole set.
+GHFAIL_7C="$(mktemp -d)"
+cat > "$GHFAIL_7C/gh" <<'STUB'
+#!/bin/sh
+echo "error connecting to api.github.com" >&2
+exit 1
+STUB
+chmod +x "$GHFAIL_7C/gh"
+REAL_PATH_7C="$PATH"
+PATH="$GHFAIL_7C:$PATH"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "cause 2 — the API call fails (no network / expired auth / rate limit): denied (#341)" "gh pr merge 149 --merge"
+PATH="$REAL_PATH_7C"
+rm -rf "$GHFAIL_7C"
+
+# CAUSE 3 — the PR REFERENCE RESOLVES TO NOTHING. Distinguished from cause 2 by the stub itself, which
+# serves a real payload for PR 149 and nothing for any other ref, exactly as `gh` behaves on a number
+# with no pull request behind it. The ALLOW control on 149 through the SAME stub is what proves the
+# stub discriminates on the ref rather than simply failing at everything — without it, cause 3's DENY
+# would be indistinguishable from a broken stub.
+GHREF_7C="$(mktemp -d)"
+cat > "$GHREF_7C/gh" <<'STUB'
+#!/bin/sh
+for a in "$@"; do
+  if [ "$a" = "149" ]; then
+    printf '%s\n' '{"headRefOid":"h","comments":[{"authorAssociation":"OWNER","body":"<!-- gatekeeper-verdict: quality-assurance -->\nAPPROVE-AND-MERGE\nhead: h"}]}'
+    exit 0
+  fi
+done
+echo "GraphQL: Could not resolve to a PullRequest with the number of 999999." >&2
+exit 1
+STUB
+chmod +x "$GHREF_7C/gh"
+REAL_PATH_7C="$PATH"
+PATH="$GHREF_7C:$PATH"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "cause 3 — the PR ref resolves to no pull request: denied (#341)" "gh pr merge 999999 --merge"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "cause 3's control — the SAME stub clears PR 149, so the stub discriminates on the ref" "gh pr merge 149 --merge"
+PATH="$REAL_PATH_7C"
+rm -rf "$GHREF_7C"
+
+# CAUSE 4 — the response ARRIVES AND CARRIES NO HEAD. `gh` succeeds, the JSON parses, and the
+# extraction still yields the empty string, because there is no `headRefOid` to anchor a verdict to.
+# This is the arm that used to sit inside `APPROVE-AND-MERGE|APPROVE-AND-MERGE-BOUNDARY|''`, and it is
+# the one no PATH mutation can reach — it is only reachable through the PAYLOAD, which is why it is a
+# fixture case and not a stub case.
+jq -n '{comments:[{authorAssociation:"OWNER", body:"<!-- gatekeeper-verdict: quality-assurance -->\nAPPROVE-AND-MERGE\nhead: h"}]}' \
+  > "$GH_STUB_DIR/fixture.json"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "cause 4 — a response with no headRefOid: the empty read no longer reads as clearance (#341)" "gh pr merge 149 --merge"
+# THE SAME SHAPE WITH AN EXPLICITLY EMPTY HEAD, not merely an absent key — `.headRefOid // ""` treats
+# them alike and this is what says so, so a future extraction that starts distinguishing them cannot
+# silently re-open the hole for one of the two.
+jq -n '{headRefOid:"", comments:[{authorAssociation:"OWNER", body:"<!-- gatekeeper-verdict: quality-assurance -->\nAPPROVE-AND-MERGE\nhead: h"}]}' \
+  > "$GH_STUB_DIR/fixture.json"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "cause 4b — an EMPTY headRefOid denies the same way an absent one does" "gh pr merge 149 --merge"
+
+# THE CLEARANCE CONTROLS — WITHOUT THESE, "DENY EVERYTHING" PASSES EVERY CASE ABOVE. Both authorising
+# literals are re-asserted here, through the same code path #341 changed, because the whole risk of
+# closing a fail-open is shipping a floor that refuses the merge it was built to permit. They duplicate
+# the two ALLOW cases earlier in this section deliberately: those ran BEFORE the empty arm was split
+# out, and a control that does not sit next to the mutation is a control nobody re-runs.
+write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "clearance control — a readable APPROVE-AND-MERGE still merges after #341" "gh pr merge 149 --merge"
+write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE-BOUNDARY"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "clearance control — a readable APPROVE-AND-MERGE-BOUNDARY still merges after #341" "gh pr merge 149 --merge"
+
+# THE NAMED, UNFIXED CAUSE — `jq` ABSENT. This asserts the CURRENT, MEASURED behaviour, which is NOT
+# what #341 decided, and it is written as an assertion rather than a comment so that it goes RED the
+# day somebody fixes it and has to come here and read why.
+#
+# With `jq` off PATH the guard never reaches rule 7c at all: line ~114 parses `.tool_input.command`
+# with `jq` and `exit 0`s on the empty result, so ONE missing `jq` disables the ENTIRE floor — every
+# rule, not this arm. `deny()` is itself `jq -n`, so even the refusal could not be printed. That is a
+# different failure with a wider blast radius, explicitly excluded from #341's decision by the owner,
+# and it is NOT fixed here. It is named in the guard's header and in rule 7c's own comment.
+NOJQ_7C="$(mktemp -d)"
+ln -s "$(command -v gh 2>/dev/null || echo /bin/true)" "$NOJQ_7C/gh" 2>/dev/null || true
+REAL_PATH_7C="$PATH"
+PATH="$NOJQ_7C"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "NAMED GAP, not #341's fix: no jq disables the WHOLE floor at line ~114, so the merge still passes" "gh pr merge 149 --merge"
+PATH="$REAL_PATH_7C"
+rm -rf "$NOJQ_7C"
+
+write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE"
 
 # THE PR REF AND --repo/-R VALUE ARE ACTUALLY PARSED OUT OF THE COMMAND, not assumed — an
 # arg-logging stub replaces the fixture-serving one just for this check, so the assertion is on
