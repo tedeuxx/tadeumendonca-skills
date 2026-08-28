@@ -418,7 +418,10 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # The expected value moved 1 → 2 on 2026-08-04, when `commands/new-issue.md` shipped as a deliberate
 # second root-level ACTION command (autonomy-on turns the loop on; new-issue captures a request as an
 # Issue — both are things the owner invokes directly, neither belongs under a namespace), then 2 → 3 on
-# #165, when `commands/autonomy-off.md` shipped as the deliberate off-switch autonomy-on always lacked.
+# #165, when `commands/autonomy-off.md` shipped as the deliberate off-switch autonomy-on always lacked,
+# then 3 → 4 on #313 slice 2, when `commands/blueprint.md` shipped the harness export. The fourth is a
+# typed command for the same reason as the other three and for one more: its argument selects DIRECTION
+# (empty exports, text would import), which is a thing a human types and a model cannot be matched into.
 #
 # THE ASSERTION IS NOT WEAKER FOR HAVING BEEN BUMPED, and that is the whole reason it is a pinned
 # literal rather than a `-ge`. It exists to catch the ACCIDENTAL root command — a skill dropped one
@@ -434,10 +437,10 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # So the failure this now catches is a LIBRARY SKILL LANDING IN `commands/` — where it is typed-only,
 # never matched, and absent from every count and table in this file.
 root_cmds=$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
-if [ "$root_cmds" -eq 3 ]; then
-  ok "commands/ root — exactly three owner-typed commands (autonomy-on, autonomy-off, new-issue), as the docs enumerate"
+if [ "$root_cmds" -eq 4 ]; then
+  ok "commands/ root — exactly four owner-typed commands (autonomy-on, autonomy-off, new-issue, blueprint), as the docs enumerate"
 else
-  bad "commands/ root — $root_cmds file(s); the docs enumerate three owner-typed commands (autonomy-on, autonomy-off, new-issue).
+  bad "commands/ root — $root_cmds file(s); the docs enumerate four owner-typed commands (autonomy-on, autonomy-off, new-issue, blueprint).
       A library skill belongs in skills/<name>/SKILL.md — under commands/ it is absent from every count
       and table here, and from the per-family breakdown a reader actually opens."
 fi
@@ -1895,7 +1898,7 @@ skill_stem() {
   esac
 }
 
-ARG_HINT_ALLOWED="autonomy-on autonomy-off new-issue"   # the three the OWNER types; a model-invoked skill has no typed argument
+ARG_HINT_ALLOWED="autonomy-on autonomy-off new-issue blueprint"   # the four the OWNER types; a model-invoked skill has no typed argument
 
 # The frontmatter block, exclusive of its `---` fences. Empty for a file that has none, which is what
 # the presence assertion below reads.
@@ -3581,7 +3584,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=35
+BP_HIGH_WATER=36
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).

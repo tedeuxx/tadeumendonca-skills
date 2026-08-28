@@ -408,6 +408,82 @@ field costs one line per mechanism and one gate; the prose costs a sweep nobody 
   what the file does — its own header says every field it receives is recoverable at `SubagentStop`.
   A field that let that row read as a capability would have been worse than no field.
 
+## Amendment, 2026-08-28 — `/blueprint` exists, and its enforcement axis measures REFUSAL only
+
+**Driven by [#313](https://github.com/tedeuxx/tadeumendonca-skills/issues/313), slice 2, on the owner's
+priority ruling the same day: «preciso tbm que priorize o comando blueprint para acelerarmos a
+reconciliacao com outros projetos de configuracao de harness que estou trabalhando».**
+
+**Deciders:** the owner (priority, and the direction) · written by `agents-lead` per the domain split —
+a pure loop/machinery decision.
+
+### What landed, and the one check nobody performed twice
+
+`commands/blueprint.md` — the projection this record's *Consequences* deliberately left unbuilt. **This
+Issue had closed twice with `/blueprint` not existing**, both times because a slice merged and carried
+the Issue with it; nothing in the loop reads whether an Issue's promised artifact resolves, and a
+closing keyword cannot check a command. Until the closure gate lands, the check is manual and it is one
+line: `ls commands/` names the file, and an unknown sibling identifier is refused *by name*.
+
+Measured, probe against control, one variable:
+
+    claude --plugin-dir <root> -p "/tadeumendonca-skills:blueprintzz" --max-turns 1
+    → Unknown command: /tadeumendonca-skills:blueprintzz. Did you mean /tadeumendonca-skills:blueprint?
+
+**The control's suggestion is the evidence, not the probe's output.** A loader that had not registered
+the file could not have named it, and the run of the real identifier produced the document end to end.
+
+### The decision this slice makes: no fourth `enforcement` value
+
+The Issue left it open — *either add `acts` deliberately, or state in the format that the axis measures
+refusal only.* **Stated, not added**, and the reasoning is checkable in both directions.
+
+**The strain is real and has live instances at head, so this is not settled by the discomfort having
+gone away.** `hooks/scripts/dispatch-metrics-stop.sh:224` calls `gh issue comment` — it writes to a
+surface outside the repository and refuses nothing; `zombie-loop-detect.sh` and
+`orchestrator-tool-census.sh` are the same shape one step milder. The registry's whole `record` group
+acts and denies nothing. ADR-0043's *"one row sits uncomfortably here"* was about a hook deleted at
+#245, but the class it named did not leave with it.
+
+**Two reasons the value is not added anyway, both consumer-facing rather than aesthetic.** The axis is
+consumed by an inventory in the other repository that keys on it with a **closed set** and throws on an
+unknown key by design — a fourth value produced here does not inform that reader, it breaks it, and the
+red lands on an unrelated pull request over there. And the distinction `acts` would carry **is already
+carried by `tipo`**: an acting mechanism is `record`, a body of guidance is `knowledge`, and a column
+that re-expresses a distinction another column already makes is this repository's measured failure mode.
+
+**So the format says it in words instead**, and the export prints it above the rows: *the axis answers
+can this stop the actor before the act — read `documents` as "does not refuse", never as "does
+nothing".* **A named strain in an interchange format is information; a silently overloaded value is
+not.**
+
+### Consequences
+
+**Good**
+- The registry stops being a description of an artifact that did not exist. It is row `0036` now, and
+  the coverage arm holds the command class complete in both directions.
+- The export reads the tree at invocation and hardcodes no repository's names, so the half of this
+  Issue that is reusable by anyone who installs the plugin actually is.
+
+**Bad, and accepted**
+- **`0036` strains the closed `tipo` set the way `0018`/`0019` do, in the opposite direction.** Its
+  artifact is produced on demand and never persisted, which is not what `record`'s heading claims. It
+  is filed there on the reading that the currency header is what makes the document checkable later.
+  The set is not reopened on one row, and the strain is written into the registry beside it rather than
+  smoothed over.
+- **Nothing gates the export's content.** The suite asserts the command exists, is typed, declares a
+  purpose, and is claimed by a row whose quote resolves. It cannot assert that a rendered blueprint is
+  faithful to the registry, because the render is a model reading a file — the same residual this
+  record already states about `propósito`, one surface further out and one degree weaker.
+- **Three gates moved for one file, and one of them is in the other repository.** `root_cmds`,
+  `ARG_HINT_ALLOWED` and `BP_HIGH_WATER` are edited here; the consuming repo's manifest gains a command
+  row and its gate reddens on its next unrelated pull request until regenerated. That asymmetry is
+  ADR-0043's, booked there, and it is **not** repaired from this side.
+- **The import half remains unbuilt and is now refused with a reason rather than absent.** A non-empty
+  argument gets the format's own explanation of why parsing a document nobody foreign wrote proves
+  nothing. **Whether a foreign harness's configuration fits this schema is a hypothesis, in those
+  words** — there is one harness in evidence and it is ours.
+
 ## Links
 
 - [#324](https://github.com/tedeuxx/tadeumendonca-skills/issues/324) — the claim-class contract, its
