@@ -1531,6 +1531,32 @@ suite as the current behaviour under the label `NAMED GAP, not #341's fix`, so i
 somebody closes it. It is a different failure with a wider blast radius, it was excluded from #341's
 decision explicitly, and it is not fixed here.
 
+**And that last claim was FALSE when this record first made it — caught by the gate, not by its author,
+and recorded here because the shape is worth more than the fix.** The assertion set `PATH` to a
+directory holding a single `gh` symlink and then called the suite's ordinary helper — a helper that
+builds its payload with `jq -n` and launches the guard with `bash "$GUARD"`, **both resolved through
+that same emptied `PATH`.** So `jq` went missing from the *harness*, the guard was never launched, the
+empty output classified as ALLOW, and the case reported `ok` for a reason with no relation to the
+guard's behaviour. The gate proved it by simulating the repair — the parse branch denying instead of
+exiting 0 — and watching the assertion stay green.
+
+**The rule this yields, which generalises past this instance.** *Pinning a known-wrong behaviour is
+disciplined on three conditions: the gap is named in the assertion's own name, the reason is in the
+comment beside it, and **it actually reddens on repair**. The third is what does the work — without it
+the pattern is strictly worse than the comment it replaces, because a comment does not claim to be a
+check.* The correction has two parts, and the second is the transferable one:
+
+- **Remove one tool, not an environment.** The guard now runs under `env PATH=… bash "$GUARD"` against
+  a fixture holding symlinks to every external it reaches for (`bash`, `cat`, `grep`, `sed`, `awk`,
+  `tr`, `head`, `env`, `git`, `gh`) and **only** `jq` absent, while the harness keeps its own real
+  tools.
+- **Assert the EXIT CODE, because the expected observation is silence.** A guard that never launched
+  exits **127**; a guard that launched and allowed exits **0**; both emit nothing and both classify as
+  ALLOW. Where a test's expected result is *no output*, the absence of output cannot also be its
+  evidence that anything ran. Re-measured against both directions: the simulated repair reports
+  `DENY/rc0`, and deliberately dropping `bash` from the fixture — the original defect, reproduced —
+  reports `ALLOW/rc127`. The failure line names which of the two moved.
+
 **What the exception costs, since it is a cost this record twice declined to pay.** Rule 7c can now
 wedge the gatekeeper: with no network the one persona authorised to merge cannot merge, and no command
 it can run repairs that. The recovery is the owner merging in the browser — **the path this hook has

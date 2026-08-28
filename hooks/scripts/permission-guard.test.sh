@@ -343,12 +343,48 @@ check_agent ALLOW "tadeumendonca-skills:quality-assurance" "clearance control �
 # rule, not this arm. `deny()` is itself `jq -n`, so even the refusal could not be printed. That is a
 # different failure with a wider blast radius, explicitly excluded from #341's decision by the owner,
 # and it is NOT fixed here. It is named in the guard's header and in rule 7c's own comment.
+# ── THE ISOLATION IS THE HARD PART, AND THE FIRST VERSION OF IT WAS THE DEFECT ─────────────────────
+# ~~`PATH="$NOJQ_7C"`, a directory holding one `gh` symlink, then `check_agent`.~~ **That assertion
+# could not fail, and it was caught by the gate on PR #350 rather than by me.** `check_agent` builds
+# its payload with `jq -n` and launches the guard with `bash "$GUARD"` — BOTH resolved through the same
+# `PATH` the case had just emptied. So `jq` was missing from the HARNESS, not just from the guard; the
+# guard was never launched at all; the empty output classified as ALLOW; and the case reported `ok`
+# for a reason that had nothing to do with the guard's behaviour. **An assertion whose entire job was
+# to announce a future repair was itself the thing that could not observe one.**
+#
+# THE CORRECT SHAPE, and the two properties it has to have at once:
+#   1. the HARNESS keeps the real `jq`/`bash` — the payload is built and the guard is launched
+#      normally, outside the mutated environment;
+#   2. only the GUARD'S OWN process gets the `jq`-less `PATH`, via `env PATH=… bash "$GUARD"`, with
+#      every other external the guard reaches for (`bash`, `cat`, `grep`, `sed`, `awk`, `tr`, `head`,
+#      `env`, `git`, `gh`) symlinked in. Removing one tool means removing ONE tool.
+#
+# AND IT ASSERTS THE EXIT CODE, NOT ONLY THE VERDICT. This is the part that would have caught the
+# original defect on its own: a guard that never launched exits **127**, and a guard that launched and
+# allowed exits **0** — while both produce empty stdout and both classify as ALLOW. Silence is the
+# expected observation here, so silence cannot also be the evidence that anything ran.
 NOJQ_7C="$(mktemp -d)"
-ln -s "$(command -v gh 2>/dev/null || echo /bin/true)" "$NOJQ_7C/gh" 2>/dev/null || true
-REAL_PATH_7C="$PATH"
-PATH="$NOJQ_7C"
-check_agent ALLOW "tadeumendonca-skills:quality-assurance" "NAMED GAP, not #341's fix: no jq disables the WHOLE floor at line ~114, so the merge still passes" "gh pr merge 149 --merge"
-PATH="$REAL_PATH_7C"
+for t in bash cat grep sed awk tr head env git gh; do
+  p="$(command -v "$t" 2>/dev/null || true)"
+  [ -n "$p" ] && ln -s "$p" "$NOJQ_7C/$t"
+done
+[ -e "$NOJQ_7C/jq" ] && echo "BUG: the no-jq fixture contains jq"
+
+# One assertion, two conditions, one verdict line — the guard must have RUN (rc 0, not 127) and must
+# have emitted nothing (ALLOW). Chaining them would make a red unattributable, so the failure branch
+# prints which of the two moved.
+nojq_out="$(jq -n --arg c 'gh pr merge 149 --merge' --arg a 'tadeumendonca-skills:quality-assurance' \
+  '{tool_input:{command:$c}, agent_type:$a}' | env PATH="$NOJQ_7C" bash "$GUARD" 2>/dev/null)"
+nojq_rc=$?
+nojq_verdict="$(verdict "$nojq_out")"
+if [ "$nojq_rc" = "0" ] && [ "$nojq_verdict" = "ALLOW" ]; then
+  pass=$((pass + 1))
+  printf 'ok    %-6s %s\n' "ALLOW" "NAMED GAP, not #341's fix: no jq disables the WHOLE floor at line ~114 (guard RAN, rc=0, emitted nothing)"
+else
+  fail=$((fail + 1))
+  printf 'FAIL  want=ALLOW/rc0 got=%s/rc%s  %s\n' "$nojq_verdict" "$nojq_rc" \
+    "NAMED GAP: either the floor now denies on a missing jq (good — come read this comment and retire the case) or the guard never launched (rc=127 means the isolation is broken again)"
+fi
 rm -rf "$NOJQ_7C"
 
 write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE"
