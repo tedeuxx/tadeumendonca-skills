@@ -340,9 +340,26 @@ substitution entering on **2026-08-12** (`867dcfc`), reaching the universal prel
 (`e3ba039`) and the Kiro export on **2026-08-21** (`ab6c5c7`); the README half is `84e16ea`, also
 2026-08-12, and it was itself a correction of a worse claim that overshot into substitution.
 `skills/harness-engineering/SKILL.md` carried it in **two** places at head — the states table row and,
-since **2026-08-26** (`10764ef`, #329), a bullet under *"When to reach for this discipline
-specifically"* that restated it while correcting a different defect — and both are corrected outright
-rather than struck — struck text in a preload is tokens every persona pays on every dispatch to
+since **2026-08-27** (`10764ef`, #329), a bullet under *"When to reach for this discipline
+specifically"* that restated it while correcting a different defect. **That second date needs a command
+of its own, and why is the whole point of this paragraph: the command published above does NOT return
+it.** The bullet phrases the substitution differently, so the literal that finds it is its own:
+
+```
+git log --all --format='%h %ad %s' --date=short \
+  -S 'it checks for the `agents-lead` verdict marker rather than'
+→ 68ca137 2026-08-28   (this repair — it REMOVES the string, so it matches too)
+→ 10764ef 2026-08-27   (the entry)
+```
+
+**Both lines are printed here rather than only the one being cited**, because `-S` counts occurrences
+changing in either direction: a reader who runs it and sees two commits where the text promised one has
+been given a reason to distrust the rest of the paragraph.
+
+**This date first shipped as 2026-08-26 and was wrong.** It was the one figure in this paragraph
+published *without* the command that produces it, sitting among four that had one — and the gate
+falsified it in a single command. **A number is not audited by the company it keeps.** Both places in
+the preload are corrected outright rather than struck — struck text in a preload is tokens every persona pays on every dispatch to
 read a rule that no longer holds, which is a cost this prose does not have.
 
 **A fourth surface carried the same claim with none of this vocabulary, which is why the sweep was run
