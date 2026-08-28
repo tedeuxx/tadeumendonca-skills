@@ -180,7 +180,7 @@ flowchart TB
   MR{{"MERGE REQUEST · ONE per story, to main"}}
 
   subgraph T3["TIER 3 · GATE — fresh context, no authorship bias"]
-    QA["quality-assurance<br/>product · content — two lenses in one pass<br/>loop — checks the agents-lead verdict marker"]
+    QA["quality-assurance<br/>product · content — two lenses in one pass<br/>loop — the same two lenses, PLUS the agents-lead verdict marker"]
   end
 
   M{{"merge to main = the deploy<br/>a real merge commit, never a squash"}}
@@ -308,13 +308,31 @@ gate-free at intake — a `loop`-typed Issue still needs `ready` before anything
 so it can be drained the same mechanical way a `product` story can. What is actually different: `ready`
 on a `loop` Issue is an **owner-only** transition ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md),
 record 0015's Corollary 4) rather than the two leads reconciling between themselves, and its own tier 2 is
-`agents-lead`, building what it just stress-tested. **Tier 3 is not skipped — its lens is.** Every
-lane, `loop` included, still merges through `MR --> QA --> M`: rule 7b denies `gh pr merge` to every
-`agent_type` but `quality-assurance`, unconditionally, so an agents-lead-built change is no exception.
-What differs is what `quality-assurance` checks there — `agents/quality-assurance.md`'s harness-diff
-criterion ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md), record 0015's Corollary 2) means a diff touching `hooks/**`, `agents/**`, `skills/**`, `commands/**`
-or `.claude/**` is gated on the presence of an `agents-lead` verdict marker, not on the full two-lens
-Definition of Done — the DoD review already happened, in tier 1, before the build.
+`agents-lead`, building what it just stress-tested. **Tier 3 is not skipped, and neither is its lens.**
+Every lane, `loop` included, still merges through `MR --> QA --> M`: rule 7b denies `gh pr merge` to
+every `agent_type` but `quality-assurance`, unconditionally, so an agents-lead-built change is no
+exception. **What differs is that this lane answers for MORE there rather than less** —
+`agents/quality-assurance.md`'s harness-diff criterion
+([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md), record 0015's Corollary 2) means a diff touching
+`hooks/**`, `agents/**`, `skills/**`, `commands/**` or `.claude/**` gets the same two-lens Definition of
+Done as any other diff, **plus** a requirement no other lane carries: an `agents-lead` verdict marker
+must be present on the PR before the gate may classify the diff safe or merge it. **A reviewer that has
+to have been present, not a review that is skipped.**
+
+~~**Tier 3 is not skipped — its lens is.** … a diff touching `hooks/**`, `agents/**`, `skills/**`,
+`commands/**` or `.claude/**` is gated on the presence of an `agents-lead` verdict marker, not on the
+full two-lens Definition of Done — the DoD review already happened, in tier 1, before the build.~~
+
+**Struck #335.** It was live from 2026-08-12 to 2026-08-28 here and in the universal preload, and it was
+wrong twice over: Corollary 2 **adds** the marker to the gate's checks rather than substituting it for
+the DoD, and the justification was false on the DoD's own terms — tier 1 on a `loop` Issue closes a
+*description*, and every criterion in `skills/quality-gates/SKILL.md`'s Definition of Done has a subject
+that only exists after the build. **Struck here rather than corrected outright**, because
+`tadeumendonca-io` published a page from this section and a reader who took the old claim deserves to
+find out it changed; **corrected outright in `skills/harness-engineering/SKILL.md`**, where struck text
+is tokens every persona pays on every dispatch to read a rule that no longer holds. The corrected
+sentence is promoted verbatim from that consuming page rather than drafted fresh.
+
 
 **No persona talks to another persona** — every dispatch still goes through the orchestrator; what changed
 is that the edge is now drawn for its full span (including the owner's side of it) rather than once for
@@ -1317,6 +1335,16 @@ resolves once Kiro has copied a skill into `~/.kiro/powers/installed/<power>/` (
 `1.0.337` bundle — `getKiroPowersHome()` → `getInstalledDir()`, which appends `installed`, → the power
 name; ~~`~/.kiro/powers/`~~ here dropped the `installed` segment until #287's copy-lens round caught it,
 and the conclusion it supports — that the relative targets do not survive the copy — is unaffected).
+
+**What that gate does NOT do, measured on #335 rather than reasoned about.** It compares the two trees;
+it says nothing about whether either is *correct*. Revert a claim in a source skill, regenerate, and
+both trees agree on the new wording — `kiro-power.test.sh` returns 18/0 and `inventory-counts.test.sh`
+returns 122/0, the whole suite green with a false claim back in the universal preload. The red it
+produces on a source-only edit is the **window** between editing and regenerating, and the regeneration
+this repo's own instructions require is what closes it. **So it is a drift check and not a content
+check**, and the distinction matters because #335's defect was a false sentence rather than a
+divergence: nothing in this suite reads what a skill asserts. Preload content is held by review alone.
+
 
 ### What each format can carry — the element-by-element gap
 
