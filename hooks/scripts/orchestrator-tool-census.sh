@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# purpose: report at the end of a turn what the orchestrator did with its own hands, so the delegation habits nothing mechanises stay observable and therefore correctable
 # orchestrator-tool-census.sh — Stop hook: at the end of a turn, tell the owner WHAT the orchestrator
 # did with its own hands this session, as a named list, with the write/post class separated from the
 # reads.

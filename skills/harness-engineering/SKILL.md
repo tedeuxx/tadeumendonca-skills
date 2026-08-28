@@ -1,5 +1,6 @@
 ---
 description: Run any slice through the loop — intake, the state machine, the inner-loop steps — and apply the judgment (eleven principles, two tiers) behind every decision in it. Use when picking up a slice, proposing a change to the loop itself, or naming Agent Harness Engineering / AI-DLC in public writing. Not what "done" means (see quality-gates), the permission zones and CI/CD workflows (see devops), or the generic, SDLC-wide meaning of ready (see definition-of-ready).
+purpose: name and carry the loop itself - the state machine, the intake chain and the judgment inside it - as the one body of knowledge every profile shares
 ---
 
 Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state

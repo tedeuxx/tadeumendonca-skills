@@ -256,6 +256,20 @@ the two is what the file is *for*, and `hooks/scripts/inventory-counts.test.sh` 
 directions** — removing `argument-hint` from a typed command reddens, and adding one to a skill reddens.
 The distinction is gated, not conventional.
 
+**A second field is gated the same way and applies to BOTH columns — `purpose:` (#313).** Every
+mechanism this plugin ships — a hook **registered in `hooks/hooks.json`**, a persona in `agents/`, a
+typed command, a skill **declared in `plugin.json`** — carries exactly one `purpose:` line, and every
+declaration must name a mechanism that exists. **It is not `description:` and the gate asserts the two
+differ:** `description:` is a *trigger* addressed to the model (*when do I reach for this*), `purpose:`
+is an *obligation* addressed to an engineer on a harness nobody here has measured (*why does this exist,
+and what is lost without it*). **The declaration is positional** — line 2 of a hook script, a frontmatter
+key in a markdown mechanism — because `# purpose:` already occurred at column 0 as ordinary wrapped
+prose in this tree, found by the arm's first run. **No count is published here**, deliberately: the
+number moves with every mechanism added, and a prose figure beside a derived one is the arrangement this
+repo's own gate exists because it rots. The decision, the discharged `-io` deferral and the rejected
+option are ADR-0021's 2026-08-28 amendment; what the green does *not* mean — nothing can tell a true
+purpose from a plausible one — is stated in the gate's own header.
+
 **The cost this makes visible, measured on 2026-08-10 against the 69 descriptions the library held
 then:** those 69 totalled ~28 KB and became **always-on**, about **+9,919 tokens per session**
 (`Skills (2)` ≈ 1,444 tok → `Skills (71)` ≈ 11,363 tok). The trigger-description standard — record 0009

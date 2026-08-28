@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# purpose: hold the irreversible floor centrally, so every consuming repo inherits the same refusal without re-declaring it, and an act whose effect escapes git is refused whoever asks for it
 # permission-guard.sh — PreToolUse(Bash) guard shipped by tadeumendonca-skills.
 #
 # Enforces the model-agnostic, IRREVERSIBLE floor centrally, so every consuming repo inherits the same

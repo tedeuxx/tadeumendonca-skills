@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# purpose: say so when a turn handed the owner a pull-request link for a PR that is not ready to merge with every check concluded successfully
 # premature-pr-link-detect.sh — Stop hook: at the end of a turn, say so when the turn HANDED THE OWNER
 # a pull-request link for a PR that is not ready for him.
 #

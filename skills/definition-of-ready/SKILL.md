@@ -1,5 +1,6 @@
 ---
 description: Set the bar a work item must clear before a builder can pick it up, and recognize an item that looks ready but is not. Use when writing acceptance criteria, running intake on a story, sizing a backlog, or diagnosing why in-progress work keeps stalling on undecided scope. Not for what "done" means at delivery (see quality-gates), or this repo's own two-lead intake mechanism (see harness-engineering).
+purpose: set the bar a work item clears before a builder picks it up, so the gate at the other end has something external to itself to measure against
 ---
 
 # Definition of Ready — the bar a work item clears before it is buildable

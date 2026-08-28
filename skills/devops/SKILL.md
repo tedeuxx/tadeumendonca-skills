@@ -1,5 +1,6 @@
 ---
 description: Operate DevOps for a `<project>` repo — GitHub Actions, Terraform Cloud, branching, the pipeline-only IaC floor, numeric SemVer, the Claude Code GitHub App, and SonarCloud (setup, CI step, gate wiring). Use when wiring a pipeline, granting CI a role, cutting a release, bumping SemVer, or a Sonar gate is red. Not for Terraform config (see cloud-infrastructure), state machine (see harness-engineering), the gate list Sonar sits inside (see quality-gates), or the pre-merge pass (see code-review).
+purpose: hold the pipeline, the state backend, branching and the permission model in one place, so an infrastructure mutation has exactly one route and that route is CI
 ---
 
 Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and

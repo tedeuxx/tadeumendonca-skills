@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# purpose: log one structured record per dispatch onto the Issue it worked, so the loop can be measured later without raw dispatch text ever reaching a public surface
 # dispatch-metrics-stop.sh — SubagentStop hook: log the four benchmarking metrics the owner asked for
 # (#209) — rework rounds, time per state, findings per persona, token cost — as a structured comment
 # on the Issue the dispatch was working, without ever pasting raw dispatch input/output onto a public

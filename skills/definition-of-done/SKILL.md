@@ -1,5 +1,6 @@
 ---
 description: Design or evaluate a Definition of Done — the criteria a slice, release or project calls finished. Use when building a DoD from scratch, choosing its shape (fixed checklist, per-item-type criteria, automated gate), or diagnosing why review still reads as subjective. Not for this loop's own concrete DoD and gate thresholds (see quality-gates), or a work item's readiness to be built (see definition-of-ready).
+purpose: teach what makes a Definition of Done a ruler rather than a phrase, independently of any one project's gates
 ---
 
 # Definition of Done — the ruler that decides when work stops

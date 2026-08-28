@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# purpose: refuse a dispatch whose brief stamps a repository state that repository does not have, so a subagent never spends a whole context reviewing a premise that was already false
 # dispatch-premise-guard.sh — PreToolUse guard on the DISPATCH tool: a brief that stamps the state of a
 # repository is checked against that repository before the subagent runs.
 #

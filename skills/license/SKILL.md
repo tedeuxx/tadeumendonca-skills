@@ -1,5 +1,6 @@
 ---
 description: Apply the MIT licensing standard to a repo — the LICENSE file that gives it legal effect, the matching license field in every manifest, and keeping the copyright year current. Use when creating a repo, auditing license consistency across manifests, or weighing MIT against Apache-2.0 for its patent grant.
+purpose: make licensing a standard applied once per repo rather than a decision taken again in each one
 ---
 
 Apply the repository licensing standard in any <project> repo.

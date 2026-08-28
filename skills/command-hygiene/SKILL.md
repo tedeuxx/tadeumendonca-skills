@@ -1,5 +1,6 @@
 ---
 description: Apply the platform's working-files and shell discipline in any `<project>` repo — where scratch files go, one atomic Bash call per invocation, the `gh --repo` flag position, and `--body-file` for any multi-line PR/issue body. Use whenever a persona writes a working file, runs a shell command, or composes a PR/issue comment. Not for the loop's state machine (see harness-engineering) or what a merge verdict must contain (see quality-gates).
+purpose: state the working-file and shell discipline once, because the same procedure copied into every brief is exactly what a preloaded skill exists to remove
 ---
 
 Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched

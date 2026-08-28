@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# purpose: tell a starting session what is already open, so an inherited PR queue surfaces on its own instead of waiting for someone to remember to look
 # session-wip.sh — SessionStart hook: surface the open PR queue before work begins.
 #
 # The companion to wip-guard.sh, aimed at the other half of the same failure. The

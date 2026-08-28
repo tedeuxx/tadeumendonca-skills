@@ -1,5 +1,6 @@
 ---
 description: Write or review documentation for any <project> repo — general docs (README, architecture pages, diagram choice, Markdown + Mermaid only) AND Architecture Decision Records (MADR format, the significance gate, the methodology/product library split, numbering and status, and the current-codebase rule for a reversed decision). Use when adding a README or architecture page, choosing a diagram type, reviewing drifted docs, writing or superseding an ADR, or judging architectural significance.
+purpose: keep documentation diffable and decisions durable, so a fresh context can load what was already decided instead of re-deciding it
 ---
 
 # Documentation — the general standard and the ADR practice
