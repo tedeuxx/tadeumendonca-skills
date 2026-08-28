@@ -13,7 +13,7 @@ belongs to. Their History rows are in [the index](./README.md).
 - **Capability:** roster-and-dev-loop
 - **Status:** accepted · **absorbed records 0012, 0013, 0014, 0015 and 0019 on 2026-08-20** (#283 slice
   S4 — all five were `accepted`; none was `proposed`, so the open question record 0007's absorption
-  raised does not arise here) · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite) · **amended 2026-08-04** (amendment #9 — `marketing-lead` merges into `product-lead`; the roster drops 6 → 5; the blocking-truth clause is carried across explicitly, and the capability floor that backed it is not) · **amended 2026-08-04** (amendment #10 — `agents-lead` joins tier 1 as the owner's pair on the machinery, advisory and pre-implementation; `security` is **absorbed** into `quality-assurance`, which now holds two lenses in one pass and labels every finding with its lens. The roster is still **five** and **two of its members changed**. The persona criterion widens from *conflict wanted* to **four reasons**, with reconciliation cost paid **within** a tier. Amendment #9's *"both approvals are still required"* is **struck**. Books the rule that produced the gap: **a count is not an identity**) · **amended 2026-08-13** (amendment #13 — `writer` joins tier 2 as a content-scoped second builder; the roster grows 5 → 6; it satisfies none of the four reasons and is named plainly as an owner override; `permission-guard.sh` rule 5e inverted from a denylist to an allowlist to contain it; the `Write`/`Edit` observability gap is accepted in writing rather than closed mechanically) · **amended 2026-08-21** (amendment #14 — `product-lead`'s boundary is `tadeumendonca-io`; consolidates #295/#296/#297: inside `-skills` it may BLOCK on a false published claim and RECOMMEND, advisory-only, on communication, but may not comment on `-skills`'s functioning; `loop`-typed non-dispatch (#295) is a corollary of this rule, not a parallel clause; the labelling discipline (#296) generalises to every advisory finding, not only `loop`-typed ones; enforcement is prose-only, confirmed against Claude Code's own hooks documentation — no hook layer can observe or refuse a `Task` dispatch) · **amended 2026-08-23** (amendment #16 — the gate merges the boundary class, `content` included, under its own verdict literal `APPROVE-AND-MERGE-BOUNDARY`; the owner reviews live, after deploy. The argument is the loop model: under `trunk-single-env` there is no preview to hold for, so the hold bought a queue rather than an environment. The counter-argument is recorded rather than omitted — `tadeumendonca-io#479`, an article that reached production unreviewed after the gate had correctly refused to merge it. **Four holds survive**, none of them on the preview argument: an expansion of the gate's own authority, a harness diff with no `agents-lead` marker, anything in `iac/`, and a lens `ESCALATE`. Two of those were carried implicitly by the phrase *boundary class* and would have stopped working silently. `permission-guard.sh` rule 7c accepts two merge-authorising literals, spelled out rather than globbed; `session-wip.sh` learns the second; the verdict vocabulary is gated against the persona file for the first time. **This list omits amendments #11, #12 and #15** — a pre-existing gap found while numbering this one and deliberately not backfilled here, since a numbering slice is not a boundary-merge slice; all three are present in the record body)
+  raised does not arise here) · **amended 2026-07-23** (twice — the product/decision-support layer joins the roster) · **amended 2026-07-24** (amendment #3 — the roster reshapes: `product-owner` re-scoped, `brand-guardian`/`editor`/`recruiter`/`scrum-master` join; owner-ratified, implementation sequenced in follow-on slices per issue #69) · **amended 2026-07-29** (amendment #4 — the `brand-guardian` trigger becomes a fail-closed rule instead of a path list; `-io`#202) · **amended 2026-07-30** (amendment #5 — `product-manager` gets a trigger, discharging #68's debt for it; the reviewer's output gets a round budget) · **amended 2026-08-01** (amendment #6 — a finding blocks only by naming a criterion and a falsifier; the DoD grows criterion 10; the lenses self-classify severity; the round budget drops to two) · **amended 2026-08-02** (amendment #7 — the roster drops 19 → 6 on a new criterion: a persona exists only where conflict is wanted; three leads, one fullstack builder, two gatekeepers) · **amended 2026-08-02** (amendment #8 — the intake chain: nothing worked outside the tracker, the three leads close the issue's description, and those requirements become the gate's external ruler; both gatekeepers approve every MR in parallel; the builder delivers the E2E suite) · **amended 2026-08-04** (amendment #9 — `marketing-lead` merges into `product-lead`; the roster drops 6 → 5; the blocking-truth clause is carried across explicitly, and the capability floor that backed it is not) · **amended 2026-08-04** (amendment #10 — `agents-lead` joins tier 1 as the owner's pair on the machinery, advisory and pre-implementation; `security` is **absorbed** into `quality-assurance`, which now holds two lenses in one pass and labels every finding with its lens. The roster is still **five** and **two of its members changed**. The persona criterion widens from *conflict wanted* to **four reasons**, with reconciliation cost paid **within** a tier. Amendment #9's *"both approvals are still required"* is **struck**. Books the rule that produced the gap: **a count is not an identity**) · **amended 2026-08-13** (amendment #13 — `writer` joins tier 2 as a content-scoped second builder; the roster grows 5 → 6; it satisfies none of the four reasons and is named plainly as an owner override; `permission-guard.sh` rule 5e inverted from a denylist to an allowlist to contain it; the `Write`/`Edit` observability gap is accepted in writing rather than closed mechanically) · **amended 2026-08-21** (amendment #14 — `product-lead`'s boundary is `tadeumendonca-io`; consolidates #295/#296/#297: inside `-skills` it may BLOCK on a false published claim and RECOMMEND, advisory-only, on communication, but may not comment on `-skills`'s functioning; `loop`-typed non-dispatch (#295) is a corollary of this rule, not a parallel clause; the labelling discipline (#296) generalises to every advisory finding, not only `loop`-typed ones; enforcement is prose-only, ~~confirmed against Claude Code's own hooks documentation — no hook layer can observe or refuse a `Task` dispatch~~ **— that clause is STRUCK 2026-08-28 (#344): a `PreToolUse` hook on matcher `Agent` both observes and denies a dispatch, and `hooks/scripts/dispatch-premise-guard.sh` has done so since #326. What survives is narrower and still true: nothing mechanical enforces a dispatch's SCOPE. See this record's *"Correction (2026-08-28, #344) — the dispatch layer is observable and refusable, and the retraction never reached this record's own status line"* heading, inside the fourteenth amendment**) · **amended 2026-08-23** (amendment #16 — the gate merges the boundary class, `content` included, under its own verdict literal `APPROVE-AND-MERGE-BOUNDARY`; the owner reviews live, after deploy. The argument is the loop model: under `trunk-single-env` there is no preview to hold for, so the hold bought a queue rather than an environment. The counter-argument is recorded rather than omitted — `tadeumendonca-io#479`, an article that reached production unreviewed after the gate had correctly refused to merge it. **Four holds survive**, none of them on the preview argument: an expansion of the gate's own authority, a harness diff with no `agents-lead` marker, anything in `iac/`, and a lens `ESCALATE`. Two of those were carried implicitly by the phrase *boundary class* and would have stopped working silently. `permission-guard.sh` rule 7c accepts two merge-authorising literals, spelled out rather than globbed; `session-wip.sh` learns the second; the verdict vocabulary is gated against the persona file for the first time. **This list omits amendments #11, #12 and #15** — a pre-existing gap found while numbering this one and deliberately not backfilled here, since a numbering slice is not a boundary-merge slice; all three are present in the record body)
 - **Date:** 2026-07-22
 - **Deciders:** the owner
 - **Driven by:** [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) —
@@ -1519,6 +1519,67 @@ unloaded rule (two Issue bodies, session memory — the exact shape that let #28
 **loaded** one (`agents/product-lead.md`, preloaded on every dispatch); that is the whole of what it buys,
 and it is stated as a ceiling rather than implied to be stronger.
 
+### Correction (2026-08-28, #344) — the dispatch layer is observable and refusable, and the retraction never reached this record's own status line
+
+**#326 struck the false sentence where it was argued and left it standing where it is summarised.** The
+`- **Status:**` line above still carried *"enforcement is prose-only, confirmed against Claude Code's own
+hooks documentation — no hook layer can observe or refuse a `Task` dispatch"* for two days after the
+mechanism that falsifies it shipped. It is struck there now, in place. **The general shape is worth more
+than the instance: a record's index or status line is where a superseded rule survives longest, because
+nothing executes it** — the body gets re-read when the decision is revisited, the summary gets re-read
+by nobody and copied by everybody.
+
+**What the claim said, and how it was reached.** It was reached from **documentation**, not from a probe
+— that is stated in the paragraph above this one, in its own words (*"confirmed this against the primary
+source rather than merely failing to find a counter-example"*), and it is the reason the error was
+durable: the documentation it consulted describes `SubagentStart` and `SubagentStop`, and about those two
+events it was correct. The generalisation from *those two events cannot block* to *no layer can observe a
+dispatch* is what was never measured.
+
+**What falsifies it, by name and by matcher.** `hooks/scripts/dispatch-premise-guard.sh`, registered on
+matcher **`Agent`** under `PreToolUse` in `hooks/hooks.json`, and it **denies** — a live denial, not a
+capability claim: it refused a real dispatch on 2026-08-28 whose brief stamped `origin/main` at a commit
+belonging to the other repository in this workspace, which is the exact failure it was built for.
+**Runnable falsifier:** `jq -r '.hooks.PreToolUse[].matcher' hooks/hooks.json` → `Bash`, `Agent`,
+`Edit|Write|MultiEdit|NotebookEdit`.
+
+**The matcher asymmetry, which is the likely origin and the part that stops this recurring.**
+Probe against control, one variable, recorded in that guard's own header: matcher `"Agent"` **fired** on
+a real dispatch and captured the full payload; matcher `"Task"` on the identical dispatch **fired not
+once**. A true observation about one matcher name — `Task` sees nothing — generalised into a false claim
+about the layer. Worse than inert: a `matcher` is a regex, so `"Task"` matches `TaskCreate` and yields a
+hook that fires on todo-list writes and never on a dispatch — installed-looking and useless, this repo's
+named failure shape.
+
+**The measurement that makes dispatch gating IMPLEMENTABLE, which is what this correction is actually
+for.** From the same guard's header: the dispatch payload carries the full brief at
+`.tool_input.prompt`, and **`subagent_type` is present only when the model names a persona — it is
+ABSENT when it dispatches the default general-purpose agent.** So *deny on an absent or unsanctioned
+`subagent_type`* is a small, keyed-on-a-present-field hook, and the struck clause said it was impossible.
+**A reader deciding what to enforce needs the capability, not the retraction** — and the sprint that
+contains this correction also contains an owner instruction to add enforcement *"se necessário"* (#339),
+which is precisely the decision the struck clause would have made wrong in one of two expensive
+directions: rebuilding a control that already exists, or abandoning one that is available.
+
+**Two boundaries a reader must carry before assuming the dispatch layer is now covered.**
+
+- **The guard checks REPOSITORY state, never TRACKER state.** In one session it denied a dispatch over a
+  ref-and-commit pair and, in that same session, passed a brief whose claim about an Issue's contents was
+  false. A tree is resolvable from a `PreToolUse` payload; an Issue's comment history is not. This is the
+  same limit already recorded under this document's *"A limit of what the premise guard can hold, named
+  here because it is the honest companion to it"* heading, restated here because that heading is 900
+  lines away and a reader arriving at this correction will not have passed it.
+- **A bare SHA is deliberately not checked.** By the guard's own header, a merge-base, a PR head or a
+  quoted verdict marker is a **reference** rather than a premise; treating one as a premise denied 8.0%
+  of 859 real briefs for no reason. So the absence of a denial on a SHA-bearing brief is not evidence the
+  brief was verified.
+
+**What is NOT retracted, and the distinction is the whole of what this amendment's enforcement section
+was about.** Nothing mechanical decides whether a persona is being dispatched **inside its lane**.
+`Agent` can carry a scope control; none is built, and the fourteenth amendment's boundary rule remains
+prose in a loaded brief. *"Enforcement is prose-only"* is still true of **scope**; it was never true of
+the layer.
+
 ### What this amendment does NOT change
 
 - **The composition decided by amendment #9** — `product-lead` still holds both halves, product and
@@ -2278,7 +2339,11 @@ half has landed. The fence is in
 
 ### Consequences
 
-- **Nothing observes a dispatch, and this amendment does not change that.** The gate added in this slice
+- ~~**Nothing observes a dispatch, and this amendment does not change that.**~~ **Narrowed 2026-08-28
+  (#344): a dispatch IS observed — `hooks/scripts/dispatch-premise-guard.sh` on matcher `Agent` reads
+  every brief and denies on a false tree-shaped premise. What nothing observes is WHO was dispatched
+  against WHICH LANE, which is the only thing this bullet was ever about; the over-broad wording is
+  struck so it cannot be quoted as the general claim #344 retracts.** The gate added in this slice
   asserts that the canonical rows and the `new-issue.md` branch **exist and say this**. Whether an intake
   obeyed them is invisible to the tracker and to the diff — a `loop` Issue whose description was closed
   by both personas looks exactly like one closed correctly. Stated as a residual, deliberately.
