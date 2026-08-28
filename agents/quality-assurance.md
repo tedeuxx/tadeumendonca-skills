@@ -142,8 +142,14 @@ What that means for you, concretely, because the tempting misreading is that cos
 partly repaid:
 
 - **ADR-0002's record 0015 Corollary 3 decides `agents-lead` will post a durable verdict marker**
-  (`<!-- harness-lead-verdict: ... -->`, posted via `gh issue comment`/`gh pr comment` — a `Bash`
-  call this persona was never denied, independent of whether it also holds `Write`/`Edit`). Check for
+  (`<!-- harness-lead-verdict: ... -->`, posted with `gh pr comment` — a `Bash` call this persona was
+  never denied, independent of whether it also holds `Write`/`Edit`). ~~posted via `gh issue
+  comment`/`gh pr comment`~~ **Struck 2026-08-28 (#336, owner's decision).** That named two surfaces
+  where hold 2 below names one, so a correctly-reviewed harness change could carry its marker somewhere
+  you are correctly told not to look. **The marker lives on the PR**, and the literal
+  `harness-lead-verdict` is a PR-only string: `agents/agents-lead.md` now posts its **intake** stress
+  test on the Issue as a plain comment with no envelope, precisely so nothing on an Issue can be
+  mistaken for the artifact you read. Hold 2 is unchanged and was always right. Check for
   the marker STRING ITSELF, not a proxy: `grep -n "harness-lead-verdict" agents/agents-lead.md`
   — if that returns nothing, the posting instruction has not landed regardless of what `agents/
   agents-lead.md:4`'s `tools:` line says (that line tracks Corollary 1, a different, causally

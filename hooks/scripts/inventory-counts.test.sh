@@ -1718,6 +1718,38 @@ else
 fi
 
 # ---------------------------------------------------------------------------------------------------
+# THE MARKER'S SURFACE (#336). Spelling the literal identically is not enough: until 2026-08-28 the
+# producer instructed `gh issue comment` "where the proposal is still an Issue with no PR yet — which
+# is the common case", while the consumer's hold 2 requires the marker ON THE PR. Both files spelled
+# the string the same way and named DIFFERENT surfaces, so the arm above stayed green through a
+# contradiction that either blocks a properly-reviewed diff or quietly loosens hold 2 — and nothing
+# afterwards can tell which happened, because a verdict records the literal and not where it was read.
+# The owner's ruling (#336): a review artifact lives with the review, so the marker lives on the PR.
+#
+# THIS IS A DRIFT CHECK OVER A STRING, NOT A CONTENT CHECK, and the distinction is the whole of what
+# it is worth. It asserts both files still carry the one-surface sentence; it cannot assert either
+# means it, and it can never observe where a marker was actually posted. NO HOOK CAN: `command-hygiene`
+# requires every comment body to go through `--body-file`, so the marker text is never in the command
+# string a PreToolUse hook sees — a guard keyed on the literal would fire only on the inline `--body`
+# form this repo already forbids, i.e. it would be inert exactly where it would have to work.
+# Its own verdict, never chained onto the arm above (#283's lesson: an elif hides an assertion by
+# never reaching it, and the totals stay plausible while a check disappears).
+marker_surface_producer="$(grep -c 'marker lives on the PR' "$ROOT/agents/agents-lead.md" 2>/dev/null || true)"
+marker_surface_qa="$(grep -c 'marker lives on the PR' "$ROOT/agents/quality-assurance.md" 2>/dev/null || true)"
+if [ -z "$marker_surface_producer" ] || [ "$marker_surface_producer" = "0" ] || \
+   [ -z "$marker_surface_qa" ] || [ "$marker_surface_qa" = "0" ]; then
+  bad "marker surface — the one-surface sentence \`marker lives on the PR\` is missing from one or both
+      of the files that must agree on it: agents/agents-lead.md (producer, $marker_surface_producer
+      hits), agents/quality-assurance.md (consumer, $marker_surface_qa hits). Producer and consumer
+      naming different surfaces is #336's defect verbatim, and it is unattributable after the fact."
+else
+  ok "marker surface — producer (agents/agents-lead.md) and consumer (agents/quality-assurance.md)
+      both carry the one-surface sentence \`marker lives on the PR\` (#336). Drift check over a
+      string: it cannot tell whether either file means it, and no hook can observe where a marker
+      was actually posted, since --body-file keeps the text out of the command string"
+fi
+
+# ---------------------------------------------------------------------------------------------------
 # THE CONTENT PAIR'S SHARED CONSTANTS (#317). Three arms, each its own verdict — the lesson #283's
 # re-sweep paid for twice is that a chained `elif` hides an assertion by never reaching it, and the
 # totals stay plausible while a check DISAPPEARS. Nothing here is chained.

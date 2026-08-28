@@ -726,8 +726,13 @@ clause under another name. On any of these the gate returns `APPROVE-PENDING-HUM
    boundary trigger, or otherwise loosening its own mandate. Unconditional, whatever the diff looks like;
    see [ADR-0011](../../docs/adr/0011-skills-and-preload.md) for the record of this clause drifting out
    of `agents/quality-assurance.md` and back in, which is why it is restated in two places on purpose.
-2. **A harness diff carrying no `agents-lead` verdict marker** ([ADR-0002](../../docs/adr/0002-roster-and-dev-loop.md),
-   record 0015's Corollary 2). It is a *missing reviewer*, not a class.
+2. **A harness diff carrying no `agents-lead` verdict marker ON THE PR** ([ADR-0002](../../docs/adr/0002-roster-and-dev-loop.md),
+   record 0015's Corollary 2). It is a *missing reviewer*, not a class. **The surface is part of the
+   hold, not context** (#336, owner's ruling): the marker literal is a PR-only string, and a comment on
+   the Issue — where `agents-lead`'s **intake** stress test lands, deliberately without the marker
+   envelope — satisfies nothing here. Until 2026-08-28 the producing brief said the opposite about the
+   case it called common, and a gate with two places to look and no rule saying which fails
+   unattributably in either direction.
 3. **Anything in `iac/`** — the merge applies, a destroyed resource is not recovered by a revert, and
    there *is* a preview here: the plan posted on the PR.
 4. **An explicit lens `ESCALATE`**, or a `BLOCKING` truth finding from `product-lead` — a lens has one

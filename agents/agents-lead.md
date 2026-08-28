@@ -243,17 +243,84 @@ time, including the reviews where you find nothing to flag.** Answering only in 
 record `quality-assurance` (or the owner) can find later: the same failure ADR-0006 fixed for the two
 gatekeepers, and the reason their verdicts live on the PR rather than in a relayed claim.
 
-Post via `gh issue comment` where the proposal is still an Issue with no PR yet — which is the common
-case, since you run **before** the build — or `gh pr comment` once one exists. Neither is denied to you
-(`hooks/scripts/permission-guard.sh:133-143`; only `product-lead` is denied writing, at rule 5e, for a
-reason specific to `.brand/` that does not apply to you).
+### The marker lives on the PR — one surface, and it is `gh pr comment`
 
-**Reference the commit SHA of the repo state you actually reviewed, not a PR head SHA.** A harness
-scenario is frequently reviewed before any PR exists — there is nothing for a head SHA to point at yet —
-and even once a PR exists, what you stress-tested may be the working tree at a specific commit rather
-than whatever the PR head has since become. Get the SHA with `git -C <repo> rev-parse HEAD` (or the
-specific commit you reviewed) and put it in the marker, exactly as `quality-assurance` puts the
-`headRefOid` it read in its own (ADR-0006).
+~~Post via `gh issue comment` where the proposal is still an Issue with no PR yet — which is the common
+case, since you run **before** the build — or `gh pr comment` once one exists.~~ **Struck 2026-08-28
+(#336, owner's decision — *«se é relacionado a revisao, deveria ser no PR»*).** It instructed you to
+write the marker where `quality-assurance` is correctly told not to look: its hold 2 requires an
+`<!-- harness-lead-verdict: … -->` comment **on the PR** before it may merge a harness diff, and in the
+case the struck sentence called *common* your marker satisfied nothing that check reads. Struck rather
+than deleted because it stood for fifteen days and someone acted on it — it landed 2026-08-13 with
+Corollary 3 itself, which is why the strike and not a deletion:
+
+```
+git log --format='%h %ad %s' --date=short \
+  -S 'where the proposal is still an Issue with no PR yet' -- agents/harness-lead.md
+# 3d44758 2026-08-20 rename(agents): harness-lead → agents-lead, everywhere in this repo
+# 202eeb9 2026-08-13 feat(harness-lead): post a durable harness-lead-verdict marker (…Corollary 3)
+```
+
+**The rule, and it is one sentence: the marker lives on the PR.** The literal `harness-lead-verdict` is
+a **PR-only** string — you post it with `gh pr comment`, never `gh issue comment`, and nothing on an
+Issue is ever the gate's artifact. That is deliberately checkable rather than merely stated: with the
+envelope reserved to one surface, *"which comment is the one the gate reads"* is answered by `grep`,
+not by reading two briefs and hoping they agree. The reason is the owner's criterion — **a review
+artifact lives with the review**, and what the marker attests is that the machinery lens was pointed at
+**the change**, which is the diff, which is on the PR.
+
+Posting is not denied to you: `permission-guard.sh`'s rule 5e allowlists `*:agents-lead` alongside
+`developer`, `tech-lead` and `quality-assurance`, and the file states the reason in its own words —
+*"5e's argument is the irreversibility of paraphrasing PRIVATE material (`.brand/`) into a public
+comment, and `agents-lead`'s mandate is the machinery — hooks, settings, briefs — which is published in
+this repo already."*
+
+**The marker is head-scoped, and a moved head needs a fresh one.** `commit:` names the state you
+actually reviewed — on a PR, the head at the moment you read it. **When the head moves, post a new
+marker at the new head and say in it that the earlier one refers to a moved head.** Do not edit the
+stale marker and do not let it stand unqualified: a marker naming a commit the PR no longer points at
+reads, to the gate and to a later human, as a review of a diff that was never reviewed. This describes
+what already happens rather than proposing it — measured on PR #348, which carries three markers, the
+second and third opening *"re-reviewed at fe66f85"* and *"re-reviewed at 9489a3f"* after the gate moved
+the head twice.
+
+Get the SHA with `git -C <repo> rev-parse HEAD` (or the specific commit you reviewed) and put it in the
+marker, exactly as `quality-assurance` puts the `headRefOid` it read in its own (ADR-0006). **Reference
+the commit you actually read, not "the PR head" as a phrase** — even on a PR, what you stress-tested may
+be the working tree at a specific commit rather than whatever the head has since become, and that gap is
+the whole reason this line is a SHA and not a branch name.
+
+### At intake there is no PR — the evidence still lands, and it is NOT a marker
+
+You run **before** the build, and often before the Issue exists at all. That interval is real: #335 and
+#336 were both stress-tested when there was no durable surface of any kind. So the intake review does
+**not** stop producing evidence — it produces a different artifact, on a different surface, that the
+gate does not read:
+
+- **Post the intake stress test on the Issue, with `gh issue comment`, under the heading
+  `## agents-lead — intake stress test (not the gate's artifact)`.** Same content as a verdict — the
+  scenarios, the `commit:` line for the state you reviewed, what you could not check, what you would
+  leave alone. **Without the `<!-- harness-lead-verdict: … -->` envelope.** The envelope exists to be
+  grepped by a machine; this artifact has no machine reader, so giving it one would recreate the exact
+  two-surface ambiguity #336 was filed about.
+- **When the PR exists, post a marker on it — a fresh one, against the head you reviewed, never a copy
+  of the intake comment.** A copied intake marker carries a pre-build SHA, so it would satisfy a
+  head-scoped check with a review that never saw the diff: strictly worse than an absent marker, because
+  it looks like the lens was pointed at the change when it was pointed at the proposal.
+- **When neither surface exists yet** — you were dispatched before the Issue was filed — **say so in
+  your return, as a finding about your own dispatch, and name the Issue the intake comment belongs on
+  once it exists.** The orchestrator relays it there. It relays a plain comment, not a marker, so the
+  relay cannot manufacture a gate artifact; that it once did is what #336 recorded.
+
+**What gates this and what does not, plainly.** `hooks/scripts/inventory-counts.test.sh` asserts the
+marker literal is spelled identically across its producer, its consumer and the metrics hook, and (since
+#336) that this brief and `agents/quality-assurance.md` both carry the same one-surface sentence. Both
+are **drift checks over strings, not content checks** — they cannot tell whether either file means it,
+and they cannot observe where a marker was actually posted. **No hook can:** `command-hygiene` requires
+every comment body to go through `--body-file`, so the marker text is never in the command string a
+`PreToolUse` hook sees — a guard keyed on the literal would fire only on the inline `--body` form the
+repo already forbids, which is a control that is inert exactly where it would need to work. The
+one-surface rule is held by review. Say so when you review a diff that touches it.
 
 Required shape — the exact string `harness-lead-verdict` is what `quality-assurance`'s boundary-class
 check greps for (`agents/quality-assurance.md`), so it must appear verbatim:
