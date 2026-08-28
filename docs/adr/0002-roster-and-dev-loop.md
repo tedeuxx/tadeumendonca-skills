@@ -2538,6 +2538,113 @@ pretending it closes this one would be the exact failure it exists to prevent.
 loop/machinery decision, no product-architecture stake, no `tech-lead` co-citation owed. The three
 sub-decisions above were closed inside the loop and are labelled as such rather than attributed to him.
 
+## Amendment (2026-08-28, twenty-first) — the `agents-lead` verdict marker lives on the PR, and the intake review's evidence is a different artifact
+
+**The defect (#336).** `agents/agents-lead.md` instructed *"Post via `gh issue comment` where the
+proposal is still an Issue with no PR yet — **which is the common case, since you run before the
+build**"*, while `agents/quality-assurance.md`'s hold 2 requires *"an `<!-- harness-lead-verdict: … -->`
+comment **on the PR** before you may merge it."* **In the case the producing brief called common, a
+correctly-reviewed `loop` change carried its marker where the gate is correctly told not to look.**
+
+**Why that is worse than a nuisance, and it is the reason this got its own Issue rather than riding on
+#335: both outcomes are unattributable afterwards.** Either the gate blocks a properly-reviewed diff
+because it looked on the PR and found nothing, or it accepts an Issue comment and hold 2 quietly means
+something looser than it says. A verdict records the literal, never the surface it was read from, so
+nothing in the artifact distinguishes the two.
+
+**Measured, not read.** Issue #335 carries exactly one `harness-lead-verdict` comment (the intake one,
+relayed by the orchestrator after the Issue was filed); PR #348 carries three. The sets are disjoint:
+
+```
+gh issue view 335 --repo <owner>/<repo> --json comments \
+  --jq '[.comments[]|select((.body//"")|contains("harness-lead-verdict"))]|length'   # -> 1
+gh pr view 348 --repo <owner>/<repo> --json comments \
+  --jq '[.comments[]|select((.body//"")|contains("harness-lead-verdict"))]|length'   # -> 3
+```
+
+**Nothing bridges them, and nothing was ever going to.** `hooks/scripts/dispatch-metrics-stop.sh` reads
+the marker off `gh pr view "$pr_number" --json comments`, so the one mechanism that touches the string
+already assumes the PR; and nothing forces a `loop` PR to reference its Issue, so a PR → Issue
+resolution route would have no reliable edge to follow.
+
+### The decision
+
+**Decided by the owner on 2026-08-28, in one sentence — *«se é relacionado a revisao, deveria ser no
+PR»*.** The criterion, not just the answer: **a review artifact lives with the review.** What the marker
+attests is that the machinery lens was pointed at **the change**; the change is the diff; the diff is on
+the PR. `agents/quality-assurance.md`'s hold 2 is correct as written and did not move — **the producing
+brief is the half that gave way.**
+
+1. **The marker literal `harness-lead-verdict` is a PR-only string.** `agents-lead` posts it with
+   `gh pr comment`, never `gh issue comment`. The gate reads one surface, and reserving the envelope to
+   that surface is what makes *"which comment does the gate read"* answerable by `grep` rather than by
+   reading two briefs and hoping they agree.
+2. **The marker is head-scoped, and a moved head takes a fresh one** — the earlier marker is explicitly
+   named in the new one as referring to a moved head, never edited away. **This records behaviour that
+   already ran rather than proposing it:** PR #348's second and third markers open *"re-reviewed at
+   fe66f85"* and *"re-reviewed at 9489a3f"*, posted after the gate moved the head twice.
+3. **The intake review keeps producing evidence, on the Issue, WITHOUT the envelope** — heading
+   `## agents-lead — intake stress test (not the gate's artifact)`, same content and same `commit:`
+   line. The envelope exists to be machine-read; this artifact has no machine reader, so giving it one
+   would recreate the two-surface ambiguity being closed.
+4. **A PR marker is never a copy of an intake comment.** A copied marker carries a pre-build SHA, so it
+   would satisfy a head-scoped check with a review that never saw the diff — strictly worse than an
+   absent marker, because it *looks* like the lens was pointed at the change when it was pointed at the
+   proposal.
+5. **The case where neither surface exists yet is named rather than left uncovered.** `agents-lead`
+   reports it in its return as a finding about its own dispatch and names the Issue the intake comment
+   belongs on; the orchestrator relays a plain comment there. The relay therefore cannot manufacture a
+   gate artifact — which it did on #335, and which is what #336 recorded.
+
+**This is the second of the two shapes the Issue offered, with one deviation stated as such.** The
+Issue's second shape was *"the marker is carried forward — written wherever it can be at intake, and
+re-posted onto the PR"*. Carrying the **evidence** forward is adopted; carrying the **marker** forward
+is not, for the reason in item 4. The first shape — the intake review stops producing a marker at all —
+was rejected because it silently drops the intake review's evidence, which is the only artifact the
+stress-test half of a `loop` intake produces.
+
+### The rejected options that are still live
+
+- **A second marker literal for the intake artifact** (e.g. `harness-lead-intake`). It would be
+  mechanically unambiguous, and it was rejected because the same unambiguity is bought by *removing* an
+  envelope rather than by *adding* a string — and the added string would need its own gate arm, its own
+  spelling-drift risk, and a place in `dispatch-metrics-stop.sh`'s reader. Removing machinery beats
+  adding it when both reach the same state.
+- **A PR → Issue resolution route**, so an Issue-side marker could satisfy hold 2. This was the price of
+  the answer the owner did not choose. It is recorded here so it is not silently reintroduced: it has no
+  reliable edge to follow, since nothing forces a `loop` PR to reference its Issue.
+- **A hook that denies posting the marker to an Issue.** Measured inert before proposing: `command-hygiene`
+  requires every comment body to go through `--body-file`, so the marker text is never in the command
+  string a `PreToolUse` hook receives. Such a guard would fire only on the inline `--body` form this repo
+  already forbids — a control that works everywhere except where it is needed.
+
+### Consequences still being paid
+
+- **The one-surface rule is held by review, not by a mechanism, and this amendment does not pretend
+  otherwise.** `hooks/scripts/inventory-counts.test.sh` gains one arm asserting that
+  `agents/agents-lead.md` and `agents/quality-assurance.md` both carry the sentence *"marker lives on
+  the PR"*, mutation-verified in both directions. **It is a drift check over a string** — the same class
+  #335 found for the mirror gate — and it cannot tell whether either file means it, nor observe where a
+  marker was actually posted. By this document's own test (*would something stop me, or only my
+  memory?*), the rule is an **instruction**, and it is recorded as a named residual rather than as a
+  control.
+- **Historical Issue-side markers exist and are not rewritable.** #335's carries the envelope on an
+  Issue. The PR-only invariant binds forward, not backward, and a reader sweeping old comments will find
+  counter-examples that were correct under the rule of their day.
+- **The PR marker on a PR `agents-lead` itself built is a self-attestation.** That is unchanged by this
+  amendment — it is record 0015's own *"`agents-lead` reviews and builds the same object"* consequence —
+  but stating the marker's surface makes it more visible, and it should be read as *the lens was pointed
+  at this diff*, never as *an independent reviewer approved it*.
+
+**Deciders:** the owner (the surface, and the criterion behind it), written by `agents-lead` per the
+#223 domain split — a pure loop/machinery decision, no product-architecture stake, no `tech-lead`
+co-citation owed. The design choice between the Issue's two shapes, and the four sub-decisions above,
+were closed inside the loop and are labelled as such rather than attributed to him.
+
+**Explicitly out of scope, and still open:** Corollary 2's own text in this document still reads the
+retired *"absent that marker the diff is boundary class regardless"* form, ~980 lines from the amendment
+that corrected it. It is the citation every other surface points at, and it is its own slice.
+
 ## Consequences
 **Good**
 - Context efficiency and authorship-bias elimination fall out of per-task isolation.
@@ -2815,7 +2922,12 @@ involvement.
 **Corollary 3 (record 0015) — the durable verdict.** `agents-lead`'s output becomes an
 `<!-- harness-lead-verdict: … -->` comment following [ADR-0006](./0006-verification-and-its-artifacts.md)'s
 shape, referenced against **a commit SHA of the repo state reviewed** rather than a PR head SHA, because
-a harness scenario is frequently reviewed before any PR exists. `agents-lead` is deliberately **not**
+a harness scenario is frequently reviewed before any PR exists. **NARROWED 2026-08-28 by the
+twenty-first amendment (#336) on the owner's ruling: the marker comment lives on the PR and nowhere
+else** — the SHA clause above is untouched and still binds, but *"`agents-lead`'s output becomes an
+`<!-- harness-lead-verdict: … -->` comment"* no longer holds for the **intake** case this corollary's
+own *"before any PR exists"* was written about. There the output is a plain Issue comment with no
+envelope. `agents-lead` is deliberately **not**
 denied `gh pr comment`: rule 5e's argument is the irreversibility of paraphrasing PRIVATE material
 (`.brand/`) into a public comment, and this persona's object is machinery already published in this repo.
 What has never been drawn is the **other** direction — what it should not be allowed to post — and none is
