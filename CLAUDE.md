@@ -130,8 +130,8 @@ person can falsify it in one command instead of trusting the date.
 ## Installation (Claude Code plugin)
 
 This repo is a **Claude Code plugin + marketplace** — the native way to reuse skills across
-projects. The skill library lives in `skills/`, one directory per skill holding a `SKILL.md`, and the three
-commands a human types live in `commands/` (`autonomy-on`, `autonomy-off`, `new-issue`);
+projects. The skill library lives in `skills/`, one directory per skill holding a `SKILL.md`, and the four
+commands a human types live in `commands/` (`autonomy-on`, `autonomy-off`, `new-issue`, `blueprint`);
 `.claude-plugin/marketplace.json` is the catalog and
 `.claude-plugin/plugin.json` the manifest. **Nothing is published outside this git repo** — the
 marketplace is just a metadata file the consumer points at.
@@ -198,8 +198,8 @@ a contaminação na leitura do repositório por humanos se tudo ficar no mesmo l
 not distinguish them.** **Measured on 2026-08-10**, `claude plugin details` on the split tree reported
 **`Skills (71)`** — the 69 the library held under `skills/` then, **plus the 2 then under `commands/`**,
 counted alike, reachable alike. **Both denominators have moved since** — the library consolidated to 14
-(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 14, re-run 2026-08-23) and `commands/` holds 3
-(`ls commands/` → `autonomy-off.md autonomy-on.md new-issue.md`, re-run #286) — so read the 71 as the
+(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 14, re-run 2026-08-23) and `commands/` holds 4
+(`ls commands/` → `autonomy-off.md autonomy-on.md blueprint.md new-issue.md`, re-run #313 slice 2) — so read the 71 as the
 measurement that established the rule, not as today's inventory. **The rule is what survives the
 denominators:** the loader counts both directories alike.
 

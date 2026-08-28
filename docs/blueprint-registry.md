@@ -1,8 +1,9 @@
 # The blueprint registry — the obligations this harness holds, and what each one does not do
 
-**This file is the artifact.** It is **authored**, not generated. `/blueprint` — when it is built — is a
-*projection* of this file plus a fresh read of the tree; it renders, it never writes. The decision and
-its rejected options are recorded in
+**This file is the artifact.** It is **authored**, not generated. `/blueprint` (`commands/blueprint.md`,
+built at #313 slice 2) is a *projection* of this file plus a fresh read of the tree; it renders, it
+never writes — and it is row `0036` below, like every other mechanism this harness ships. The decision
+and its rejected options are recorded in
 [ADR-0021](./adr/0021-the-blueprint-registry-is-authored-generation-verifies-it.md).
 
 **A row is a BEHAVIOUR, not a file.** One behaviour may span two rules of one file (`0003`), two files
@@ -217,6 +218,22 @@ declaration green is the failure this file's own `citação` rule exists to prev
 - **o que faz:** Reads the assistant's own text for the turn that just ended, extracts links to review artifacts, and for each asks three mechanical questions of the artifact itself — is it still open, has every check on its current revision completed and succeeded, and does the gate's own verdict at that revision name the human as the remaining actor. Anything else is reported back into the next turn with the reason, once per (artifact, revision) per session.
 - **o que não faz:** **Detection, never prevention** — it fires after the text has already reached the human, so there is nothing left to refuse. It reads the agent's prose and never a tool's output, because the tool that opens the artifact prints the link itself and a rule written against the character sequence would forbid nothing while looking strictest. And it is **blind to the shorthand the rule recommends**: where a tracker shares one number space between issues and review artifacts, a bare number cannot be classified without a network call, so the form the rule endorses is the one nothing checks. **If the link the human relied on was their only signal that something shipped, suppressing it is a net loss until something replaces it — name the replacement, or accept in writing that there is none.**
 - **citação:** > "It polices the form the rule discourages and is blind to the form it endorses."
+
+### 0036 · the harness can state what it is to a reader who does not run it
+
+- **tipo:** record
+- **carrier:** `commands/blueprint.md`
+- **descrição:** A typed command that renders this registry, plus a fresh read of the tree, as one portable Markdown document stamped with the commit it describes.
+- **propósito:** A harness that can only be understood by running it cannot be **compared** to another one, and comparison is the whole reason to write any of this down. The obligation is that this harness's design leaves it in a form a reader on different machinery can evaluate — obligation first, mechanism as evidence — so that what ports (the obligation, the strategy, and above all the limit) is separable from what is local accident (our matcher, our event names, our directory layout).
+- **o que faz:** Reads identity at invocation from the four sources that *register* a mechanism rather than from a directory listing, reads the authored obligations from this file, and prints one document: a currency header (plugin, version, commit, tree state, and the commands that reproduce every count), the field contract, the residual this registry states about its own unfalsifiable cells, the rows grouped by `tipo` with a nullable carrier and an `enforcement` value, the coverage declaration **with a partial class's unclaimed elements named**, and an identity appendix as evidence.
+- **o que não faz:** It **renders and never writes** — no registry edit, no cached copy, nothing committed, so there is no exported artifact here to go stale. It cannot tell a true obligation from a plausible one; it carries this file's cells forward exactly, residual included, and a green anywhere in this suite says nothing about them. It **has no import half**: an argument is refused with the reason rather than parsed, because a parser exercised only against documents its own authors wrote passes by construction. And its `enforcement` axis measures **refusal only** — a mechanism that acts without refusing (a hook that posts a comment) is classed `documents`, which is a strain named in the format rather than resolved by a fourth value.
+- **citação:** > "Not the registry, not a cached copy of the output, not a scratch artifact."
+
+**The strain in `record`, named the same way `0018`/`0019`'s is.** The five values hold no `export`
+class, and `0036`'s artifact is produced **on demand and never persisted** — the opposite of the
+durability the `record` heading claims. It is filed `record` on the reading that the currency header is
+what makes the document findable-and-checkable later, which is true and is not the whole truth. The set
+is closed and is **not** reopened on one row.
 
 ---
 
