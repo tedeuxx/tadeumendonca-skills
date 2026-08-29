@@ -1309,7 +1309,7 @@ remedy and merely needed doing.
 
 **The rule stood for sixteen days with no recorded reason, and a rule whose reason is unwritten is one
 the next reader reverses on the first inconvenience.** #343 was opened to reverse it; the owner
-declined — *«por enquanto siga com a regra de wip»* (2026-08-29) — and re-scoped the item to this
+declined — *«por enquanto siga com a regra de wip»* (2026-08-28) — and re-scoped the item to this
 recording, on the ground that **a proposal to relax a rule whose purpose is unwritten cannot be
 evaluated.** What follows is written in three deliberately separated layers, because they are not
 equally strong and blending them is how a reconstruction becomes a citation.
@@ -1318,7 +1318,7 @@ equally strong and blending them is how a reconstruction becomes a citation.
 
 - **2026-08-13**, striking the disjoint-files exception: *"nao temos intencionalidade de trabalhar
   assim por enquanto."* A statement of intent. **No reason given, and none has been given since.**
-- **2026-08-29**, declining the reversal: WIP=1 continues; he wants to evaluate a proposal admitting
+- **2026-08-28**, declining the reversal: WIP=1 continues; he wants to evaluate a proposal admitting
   parallel work later; and the precondition he named is **not tooling** — the personas and skills are
   not yet equalised across his other harness projects.
 - **Earlier, on [#88](https://github.com/tedeuxx/tadeumendonca-skills/issues/88)**, rejecting a
@@ -1328,19 +1328,49 @@ equally strong and blending them is how a reconstruction becomes a citation.
   `wip-guard.sh` bounds file overlap and not a count.
 
 **These three do not compose into one purpose, and this record does not pretend they do.** #88 argues
-against a count; the 2026-08-13 correction imposes one; the 2026-08-29 answer keeps it while pointing
+against a count; the 2026-08-13 correction imposes one; the 2026-08-28 answer keeps it while pointing
 at an unrelated precondition. **Read layer 1 as the whole of the recorded intent. It is an intent, not
 a rationale.**
 
-**Layer 2 — what the rule demonstrably prevents, measured rather than reconstructed.** On 2026-08-29
-two slices ran **in one checkout** at the same time and neither agent was told. Both discovered it by
-accident: a reviewer's measurements landed against `main` rather than its branch, and a builder's
-fixes landed on the wrong branch's working tree. *(Source: the owner's own comment on #343, which is
-the artifact of record for it. It is a report, not something re-measured here.)*
+**Layer 2 — the failures the rule demonstrably catches, from EVIDENCE rather than reconstruction.**
+**Both items below are the owner's own report. Neither is an instrument reading, and this heading says
+so rather than borrowing the word "measured" from the section beneath it** — that section's two
+figures are measurements, these are not, and the distinction is the reason layer 2 is a layer at all.
+**Two instances, and the second is what stops the first being an anecdote:**
+
+- **2026-08-28 — two slices ran in ONE CHECKOUT** at the same time and neither agent was told. Both
+  discovered it by accident: a reviewer's measurements landed against `main` rather than its branch,
+  and a builder's fixes landed on the wrong branch's working tree.
+- **Earlier — a mutation probe left APPLIED to a source file in the product repo while THREE agents
+  shared ONE BRANCH.** A probe exists to be reverted; three writers on one tree meant nobody owned the
+  revert, and it stayed. *(The file is named in ADR-0002's twenty-fifth amendment rather than here —
+  this skill is published and project-agnostic, and a consumer path in it is a gated defect.)*
+
+*(Source for both: the owner's own comment on #343, which enumerates them as what this record must
+capture "from evidence rather than reconstruction". They are reports, not something re-measured here.)*
+
+**The second instance also shows why nothing could have caught either, and it is worth more than the
+first for that reason.** An uncommitted edit left applied to a shared working tree produces **no
+commit, no diff and no ref naming it.** Searched at head, across every ref, for a commit that ever
+introduced or removed the probe's own marker in that file:
+
+```
+git -C <product-repo> log --oneline --all -S "<the probe's marker>" -- <the file>
+→ (no output)
+```
+
+**Nothing, and the nothing is the finding rather than a gap in the search** — the probe was never
+committed, so no commit can carry it. **The failure class is invisible to git by construction**, and
+*"discovered by accident"* is therefore not carelessness; it is the only discovery route that exists.
+*(No count is published beside this. The first draft of this paragraph cited "twenty content commits"
+which was a `-20` display cap read as a total — the exact defect this repo publishes commands to
+prevent, caught by re-running the command without the limit.)*
 
 **Neither is a file-overlap failure, and that is the whole finding.** A shared *checkout* is not a
 shared *file*, so `wip-guard.sh` would have permitted both — it intersects path lists, and the two
-slices' path lists need not intersect at all for the tree underneath them to be one object.
+slices' path lists need not intersect at all for the tree underneath them to be one object. **On the
+`profile.ts` instance it is worse than permitted: three agents on one branch share one path list, so
+there is no second PR for the guard to intersect against at all.**
 
 **Layer 3 — what remains unrecorded, stated so nobody mistakes layer 2 for it.** Layer 2 says what the
 rule catches. It does **not** say what the owner wanted caught, and those are different claims. If the
@@ -1350,7 +1380,11 @@ close it** — which is precisely why the proposal he asked for is a different a
 
 #### `wip-guard.sh` does NOT enforce WIP=1, and a reader who thinks it does is wrong about what protects them
 
-**Two independent facts, both measured at head on 2026-08-29, and each one alone is enough.**
+**Two independent facts, both measured at head on 2026-08-29, and each one alone is enough.** *(The
+two dates in this section differ on purpose: an EVENT is dated from the artifact that reports it — the
+owner's comment on #343, `createdAt` 2026-08-28 — and a MEASUREMENT from the day it was run. A record
+that dates an event off the authoring session's clock post-dates its own source, which is how this
+section read for one round.)*
 
 **1 · Under WIP=1 the hook never runs its overlap check at all.** It reads
 `gh pr list --state open --author @me`, so with the previous PR already merged the list comes back
@@ -1379,14 +1413,14 @@ and `orchestrator-tool-census.sh` — so the harness knows the object exists; th
 about it.
 
 **And no version of this hook could be.** It is a `PreToolUse` on `gh pr create`, which is the *last*
-act of a slice. The 2026-08-29 collision did its damage during the build — a measurement read off the
+act of a slice. The 2026-08-28 collision did its damage during the build — a measurement read off the
 wrong branch, an edit written to the wrong tree — **hours before any PR was created**. A control that
 fires at the merge boundary cannot observe a failure that completes before the boundary is reached.
 That is a moment problem, not a matcher problem, and it is why the struck clause above was wrong to
 promise the gap away as a hook change.
 
 **So: WIP=1 is held by instruction and by nothing else.** By this loop's own test — *would something
-stop me, or only my memory?* — **it is not engineered**, and the 2026-08-29 collision is what that
+stop me, or only my memory?* — **it is not engineered**, and the 2026-08-28 collision is what that
 costs when the memory is a fresh context that never had it. Read the hook as protecting the **merge
 queue** from stale overlapping branches, and read WIP=1 as protecting the **working tree** from being
 two things at once. Different objects, different moments, and only one of them has a mechanism.

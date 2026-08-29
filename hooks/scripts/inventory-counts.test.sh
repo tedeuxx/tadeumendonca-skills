@@ -5637,6 +5637,10 @@ if [ ! -r "$WIP343_SKILL" ]; then
 else
   for wip343_needle in \
     '#### What WIP=1 is PROTECTING — recorded 2026-08-29 (#343), because it was never written down' \
+    'from EVIDENCE rather than reconstruction' \
+    'a mutation probe left APPLIED to' \
+    '**The failure class is invisible to git by construction**' \
+    'and a MEASUREMENT from the day it was run' \
     '**Layer 3 — what remains unrecorded, stated so nobody mistakes layer 2 for it.**' \
     '#### `wip-guard.sh` does NOT enforce WIP=1, and a reader who thinks it does is wrong about what protects them' \
     '**It bounds concurrency; it has never bounded a count per iteration, and across nine consecutive' \
@@ -5650,8 +5654,19 @@ else
   done
   if [ -n "$wip343_skill_missing" ]; then
     bad "wip-recording — the record of what WIP=1 protects lost a load-bearing part:$wip343_skill_missing
-      LAYER 3 is the one that matters most: without it the owner's quoted intent and the measured
-      failure blur into a single claim, and the record reads as a rationale he gave. He gave none —
+      FROM-EVIDENCE is layer 2's heading, and it read 'measured rather than reconstructed' for one
+      round — four lines above the sentence conceding the item was a REPORT, and while the record
+      claimed the carrier labelled it as one. A heading that overclaims is worse than a body that
+      does, because the body is what nobody re-reads. MUTATION-PROBE is the second of the two evidence
+      items the owner's own comment enumerates; without it layer 2 stands at n=1 exactly where it
+      concedes it has no instrument, and nothing would say an item was dropped. INVISIBLE-TO-GIT is
+      why neither item can ever be more than a report: an uncommitted edit on a shared tree leaves no
+      commit, no diff and no ref, so the absence of an instrument reading is a property of the failure
+      rather than a shortfall of the record. MEASUREMENT-FROM-THE-DAY is the dating rule this section
+      needed after nine dates were taken from the authoring session's clock and post-dated the owner
+      comment they cite; an event is dated from the artifact reporting it.
+      LAYER 3 is the one that matters most: without it the owner's quoted intent and the reported
+      failures blur into a single claim, and the record reads as a rationale he gave. He gave none —
       #88 rejects a count, the 2026-08-13 correction imposes one, the 2026-08-29 answer keeps it while
       naming an unrelated precondition. The TWO MEASUREMENT needles are what stop a reader inferring
       that \`wip-guard.sh\` enforces WIP=1: it lists only OPEN PRs, so under WIP=1 it never reaches its
@@ -5665,7 +5680,7 @@ else
       nothing and the null result reads as an absence rather than as a broken needle.
       If this is a deliberate rewording, update the needles in this file in the same commit."
   else
-    ok "wip-recording — the preload carries the three-layer record, both measurements, the moment-not-matcher reason and the held-by-instruction admission"
+    ok "wip-recording — the preload carries the three-layer record with both evidence items labelled reports, the dating rule, both measurements, the moment-not-matcher reason and the held-by-instruction admission"
   fi
 fi
 

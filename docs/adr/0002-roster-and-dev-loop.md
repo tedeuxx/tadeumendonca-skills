@@ -3044,7 +3044,7 @@ number is issued**, and this is written by `agents-lead`.
 **What the Issue asked for and what it became.** [#343](https://github.com/tedeuxx/tadeumendonca-skills/issues/343)
 was filed to **reverse** WIP=1 — the twelfth amendment names the route (*"an explicit owner decision,
 recorded the same way"*) — with the reversal's own precondition attached: the reason for the rule was
-never written down. **The owner declined the reversal on 2026-08-29** (*«por enquanto siga com a regra
+never written down. **The owner declined the reversal on 2026-08-28** (*«por enquanto siga com a regra
 de wip»*) and re-scoped the Issue himself to the recording half. So this amendment reverses nothing.
 It closes the twelfth amendment's residual on the only half that can be closed by a document, and
 corrects the twelfth amendment's claim about the other half.
@@ -3080,11 +3080,25 @@ checkout produce the same answer and it cannot distinguish them. Three sibling h
 `dispatch-premise-guard.sh`, `zombie-loop-detect.sh`, `orchestrator-tool-census.sh` — do reason about
 worktrees explicitly, so this is a property of this guard rather than of the harness.
 
-**A REPORT, not a measurement, and labelled as one in the carrier.** The 2026-08-29 collision — two
-slices in one checkout, a reviewer's measurements landing against `main`, a builder's fixes landing on
-the wrong branch's tree, both discovered by accident — is taken from the owner's own comment on #343.
-Nothing was re-derived from git here, and the carrier says so rather than borrowing the authority of
-the two figures above.
+**REPORTS, not measurements, and the carrier's own heading now says so.** The owner's comment on #343
+enumerates what this record must capture *"from evidence rather than reconstruction"*, and **both of its
+concrete instances are carried**: the **2026-08-28** collision — two slices in one checkout, a reviewer's
+measurements landing against `main`, a builder's fixes landing on the wrong branch's tree, both found by
+accident — and, **earlier, a mutation probe left applied to `apps/fed/src/data/profile.ts` while three
+agents shared one branch**. Nothing was re-derived from git, and layer 2's heading reads *"from EVIDENCE
+rather than reconstruction"* rather than *"measured"*, so it cannot borrow the authority of the two
+figures above. **It read *"measured rather than reconstructed"* for one round**, four lines above the
+sentence conceding it was a report — this document's own row-0007 defect, reproduced in a heading.
+
+**The second instance is why layer 2 is not n=1, and it carries the structural reason both are
+unmeasurable.** An uncommitted edit left applied to a shared working tree produces no commit, no diff
+and no ref naming it: `git log --oneline --all -S "MUTATION" -- apps/fed/src/data/profile.ts` at head
+returns **nothing**, because the probe was never committed and no commit can carry what was never
+committed. **The failure class is invisible to git by construction**, so the
+absence of an instrument reading is a property of the failure rather than a shortfall of this slice —
+and *"discovered by accident"* is the only discovery route that exists for it. On that instance the
+guard is worse than merely permissive: three agents on one branch share one path list, so there is no
+second PR to intersect against at all.
 
 ### Why no layer can carry it — [ADR-0004](./0004-controls-and-enforcement.md)'s standing question, answered
 
@@ -3092,7 +3106,7 @@ the two figures above.
 and twenty-fourth amendments' answers.** Those refused an enforcement because the *predicate* was
 unavailable to any layer. Here the predicate is trivially available — *is another agent already working
 in this checkout* — and the layer that would carry it is a `PreToolUse` on `gh pr create`, which is the
-**last** act of a slice. The 2026-08-29 failure completed during the build, hours earlier: a
+**last** act of a slice. The 2026-08-28 failure completed during the build, hours earlier: a
 measurement read off the wrong branch, an edit written to the wrong tree. **A control at the merge
 boundary cannot observe a failure that finishes before the boundary is reached.**
 
@@ -3111,7 +3125,7 @@ is the honest form and the one the struck clause failed to take.
    something this loop can argue past.
 3. **Reconstruct a single coherent purpose from the three owner statements.** Rejected, and this is the
    substantive call in the slice. #88 argues against a count, the 2026-08-13 correction imposes one,
-   and the 2026-08-29 answer keeps it while naming an unrelated precondition. A synthesis would read
+   and the 2026-08-28 answer keeps it while naming an unrelated precondition. A synthesis would read
    as his rationale while being the loop's — the substitution this document's own *Deciders* convention
    exists to prevent, which is why the line below labels each closed-inside-the-loop call as one.
 4. **Build the checkout lock.** Rejected as scope and as shape — see the layer walk above.
@@ -3134,13 +3148,27 @@ is the honest form and the one the struck clause failed to take.
   rule *catches*, not what the owner *wanted caught*. If the answer is *"I want to see every change as
   it happens"*, no isolation tooling satisfies it — and this record cannot close that.
 - **WIP=1 remains held by instruction alone.** By this loop's own test it is not engineered, and the
-  2026-08-29 collision is what that costs against a fresh context that never had the instruction. No
+  2026-08-28 collision is what that costs against a fresh context that never had the instruction. No
   mechanism is proposed and the gap is left named.
 - **The fourteen-PR figure ages.** It is a fact about this repository's recent history, not a property
   of the hook; the property is the `--state open` read, and the carrier states both so the conclusion
   does not expire with the sample.
-- **The collision is a report and can only ever be one.** It was discovered by accident, so there is no
-  instrument output behind it, and the carrier's honesty about that is the whole of the mitigation.
+- **Both instances are reports and can only ever be one.** They were discovered by accident, and the
+  second shows why: an uncommitted edit on a shared tree leaves no commit, no diff and no ref, so the
+  class is invisible to git by construction. The carrier's honesty about that is the whole of the
+  mitigation, and layer 2's heading is where it has to be visible.
+- **The record post-dated its own source for one round**, dating the owner's answer and the collision
+  from the authoring session's clock rather than from the comment reporting them (`createdAt`
+  2026-08-28). The rule that prevents it — **an event is dated from the artifact reporting it, a
+  measurement from the day it was run** — is now written in the carrier, where the next author meets
+  it. Nothing enforces it and no instrument can: a plausible date is indistinguishable from a true one
+  to every check in this repository.
+- **The review's enumeration of that defect was itself short, and the correction is the general one.**
+  It named nine occurrences; selected by the criterion above rather than by that list, the set is
+  **eleven** — the ninth-and-tenth being layer 1's own closing sentence in the carrier and the two
+  restatements in this library's index row, neither of which the enumeration reached. **No count is
+  published beside the rule**, deliberately: a count is a claim about a set, and it was the count that
+  was wrong both times. State the criterion, and let whoever needs the members re-derive them.
 - **The same phrase-keyed coupling as the last five amendments.** The new arm keys on sentences, so
   rewording reddens the gate and whoever rewords edits the needles in the same commit.
 - **Nothing observes WIP.** A session that ran two slices in one checkout and one that ran one are

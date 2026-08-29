@@ -47,6 +47,21 @@ assert: that the quote is the *relevant* limit, or that `o que não faz` is a fa
 filled cell — the carrier does not state what it declines to do, and someone should decide whether it
 should.
 
+**So the habit, because there is nowhere else to put it: when a clause in a CARRIER is struck or
+replaced, re-read every row describing that carrier before the same MR closes.** The `citação` is
+protected — it is quoted, so a strike makes it stop resolving and an arm catches that. **`o que não
+faz` is a PARAPHRASE, and a paraphrase of a sentence that has just been deleted still resolves
+perfectly, because there is nothing to resolve it against.** Measured on #343: `wip-guard.sh`'s row
+promised the policy/mechanism gap away as *a change to this hook and is named as owed, not as done*,
+which was the carrier's own struck clause restated in this file — the strike falsified it, and the
+whole suite stayed green. Only the author re-reading the row found it.
+
+**It is a habit and not a mechanism, and the reason is not cost.** Nothing here can compare a
+paraphrase to a source; that is the same sentence two paragraphs up, applied to the case where the
+source has moved rather than the case where it was always unfalsifiable. A per-row needle is available
+and does not converge — it pins the one row someone already noticed, which is the row that no longer
+needs pinning.
+
 ## Coverage — which classes this registry claims completeness over
 
 **`absent` is a value, never a missing row**, and the same rule applies one level up: an incomplete
