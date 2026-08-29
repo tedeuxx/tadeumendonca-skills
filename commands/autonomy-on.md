@@ -62,11 +62,27 @@ trigger, and the reviewer's output gets a budget"*; sequencing ownership is not 
 the top of the stated order requires `product-lead` to have returned a new order, or the session records
 that the order is unchanged."** Invoke it at session start; do not substitute a heuristic here.
 
-**The Issue's own proposed fix pointed somewhere else and was also wrong**, which is why the target is
-named by a grep rather than by recall: it proposed citing `agents/product-lead.md`, and
-`grep -rn "stated order" agents/ skills/ commands/` returns that file only at a **different** clause
-(the `PROCEED` verdict line). Two wrong locators for one sentence, in the same slice, is the argument
-for the rule rather than an anecdote against it.
+~~**The Issue's own proposed fix pointed somewhere else and was also wrong**: it proposed citing
+`agents/product-lead.md`, and `grep -rn "stated order" agents/ skills/ commands/` returns that file
+only at a different clause.~~ **Struck the same day it was written — the assertion was FALSE, and how
+it was reached matters more than that it was wrong.** `agents/product-lead.md` **does** carry the
+clause, under *What you own — the ordering half*: **"Starting work that is not the top of the stated
+order requires you to have returned a new order, or the session to record that the order is
+unchanged."** So **both** surfaces carry it, and the Issue's proposal was sound.
+
+**The cause is the finding: the clause WRAPS a line.** One line ends `…the top of the stated`, the next
+begins `order requires you…`. A line-oriented `grep` cannot match a phrase spanning two lines, so it
+returned nothing — **and a null result was read as an absence.** Use a falsifier that survives the
+wrap:
+
+```
+grep -rn -A1 "top of the stated" agents/product-lead.md
+```
+
+**The multiline shape is the reusable half, not the correction.** A passage arguing *cite the clause,
+not the line* had, as its own evidence, a line-based grep that missed a clause **because of a line**.
+The routing above is unaffected — amendment #5 genuinely does not decide sequencing ownership, and that
+citation stays retired.
 
 **What `product-lead` does NOT order: the `loop` block.** The owner's standing rule fixes it ahead of
 every `product` item at planning time. The canonical wording is `/harness-engineering`'s

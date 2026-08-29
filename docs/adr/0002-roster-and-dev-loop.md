@@ -2671,9 +2671,12 @@ item is the owner's transition alone** (record 0015's Corollary 4), so ranking `
 items and zero `loop` items of any kind.
 
 **The escape's real shape is narrower than it first reads, and this is where the honest limit sits.**
-This sprint produced a live instance the same day: position 6 (#341) needed the owner's go under the
-gate's hold 1, WIP=1 held, position 7's build could not open its PR, and the drain stopped until he
-answered. **The eligibility clause did not apply** — #341 was `ready` and already in progress. It covers
+This sprint produced a live instance the same day: position **5** (#341) needed the owner's go under
+the gate's hold 1, WIP=1 held, position **6**'s build (#337) could not open its PR, and the drain
+stopped until he answered. (Written as `6` and `7` on the first pass; the order of record reads
+`5 #341`, `6 #337`, `7 #339`. **The gate could show the claim disagreed with the milestone description
+and could not show it false** — the field is mutable and unversioned, which is this amendment's own
+weak-home consequence reproducing itself inside the slice that records it.) **The eligibility clause did not apply** — #341 was `ready` and already in progress. It covers
 an item that never *entered* the pool; it does not cover one that entered and stalled. For that, the
 escape is the one `/autonomy-on` already carries (cut the slice, write the question on the Issue, move
 on), and **WIP=1 is what converts the second case into a full stop** — a cost of WIP=1, not a defect in
@@ -2728,14 +2731,22 @@ finding is already asking for.**
 - **The order of record is unversioned where this loop can see it.** A milestone description can change
   with no artifact any persona or hook can diff, so *"the plan said loop first"* is a claim about a
   mutable field. Building the iteration Issue closes this and is not in this slice.
-- **A citation defect was fixed in passing and a second one was found in the fix.**
-  `commands/autonomy-on.md` cited ADR-0002 amendment #5 for sequencing ownership; #5's own header reads
-  *"`product-manager` gets a trigger, and the reviewer's output gets a budget"*. The Issue's proposed
-  replacement — `agents/product-lead.md` — is also wrong: `grep -rn "stated order" agents/ skills/
-  commands/` shows that file carrying only a `PROCEED` verdict line, while the live clause is in
-  `skills/harness-engineering/SKILL.md`'s *Opening a session — decisions before work*. **Two wrong
-  locators for one sentence inside one slice** is evidence for `documentation-standard`'s *cite the
-  clause, not the line*, not an anecdote against it.
+- **A citation defect was fixed in passing, and the attempt to discredit the Issue's replacement was
+  itself the defect.** `commands/autonomy-on.md` cited ADR-0002 amendment #5 for sequencing ownership;
+  #5's own header reads *"`product-manager` gets a trigger, and the reviewer's output gets a budget"*,
+  so that retirement stands and the routing to `skills/harness-engineering/SKILL.md`'s *Opening a
+  session — decisions before work* is correct. ~~The Issue's proposed replacement,
+  `agents/product-lead.md`, is also wrong — it carries only a `PROCEED` verdict line.~~ **Struck the
+  same day: that was FALSE.** That file carries the clause under *What you own — the ordering half*
+  (*"Starting work that is not the top of the stated order requires you to have returned a new order,
+  or the session to record that the order is unchanged."*), so **both** surfaces carry it and the
+  Issue was right. **The cause is the finding, and it is the reusable half: the clause WRAPS a line**,
+  so the published `grep -rn "stated order"` matched nothing and **a null result was read as an
+  absence.** The falsifier that survives the wrap is `grep -rn -A1 "top of the stated"
+  agents/product-lead.md`. A passage arguing *cite the clause, not the line* had, as its own evidence,
+  a line-based grep that missed a clause **because of a line** — which is an argument for
+  `documentation-standard`'s rule, not against it, and a standing warning that **a grep's silence is
+  evidence only once the pattern is known to survive the target's line breaks.**
 - **The synergy premise behind the rule is unmeasured, and stays that way.** *"Ganho de sinergia de
   processo"* is the owner's, and this harness has no instrument for it — so if the ordering ever costs
   more than it buys, there is no number to weigh it against. The metrics that would settle it already

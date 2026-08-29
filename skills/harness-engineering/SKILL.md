@@ -510,15 +510,24 @@ stall improvises an escape, and the standing rule is that the loop grinds work d
 on it.
 
 **Why that clause is not theoretical — a live instance from this sprint, and it is the escape's real
-shape rather than an invented one.** On 2026-08-28, position 6 (#341) needed the owner's go under the
-gate's hold 1; WIP=1 held; position 7's build was finished and could not open its PR; **the drain
-stopped until he answered.** Note what the eligibility clause does and does not buy there: #341 was
+shape rather than an invented one.** On 2026-08-28, position **5** (#341) needed the owner's go under
+the gate's hold 1; WIP=1 held; position **6**'s build (#337) was finished and could not open its PR;
+**the drain stopped until he answered.**
+
+Note what the eligibility clause does and does not buy there: #341 was
 `ready` and *in progress*, so it was in the pool and the escape did **not** apply. **The eligibility
 clause covers an item that never entered; it does not cover one that entered and then stalled** — for
 that, the escape is the one `/autonomy-on` already names (*"When a slice hits an owner decision it did
 not expect"*): write the question on the Issue, cut the slice to what can still finish, and move on.
 **WIP=1 is what turns the second case into a full stop**, and that is a deliberate cost of WIP=1, not a
 defect in this rule.
+
+*Those two position numbers read `6` and `7` when this section was first written, and the correction is
+a demonstration of the next subsection rather than a typo.* The order of record — `5 #341`, `6 #337`,
+`7 #339` — lives in the milestone description, so a reviewer could show the claim **disagreed** with
+that field but could not show it **false**: the field is mutable and unversioned, and nothing available
+here distinguishes a misremembered position from one edited afterwards. **The weak home below is not an
+abstract concern — this slice hit it inside itself.**
 
 **`ready` on a `loop` item is the owner's transition alone** (record 0015's Corollary 4), so a `loop` item
 awaiting `ready` is by construction awaiting him — which is exactly why the pool is scoped to `ready`
