@@ -1297,8 +1297,99 @@ reverse this by the same route: an explicit owner decision, recorded the same wa
 denies a second PR only on file **overlap**, not on a raw count — the mechanism
 [ADR-0002](../../docs/adr/0002-roster-and-dev-loop.md)'s twelfth amendment (2026-08-13)
 describes, unchanged by this correction. So today the hook permits a second, disjoint PR that this
-written policy now forbids. Follow the written policy regardless of what the hook allows; closing the
-gap is a `wip-guard.sh` change, not a docs one, and is not this skill's job to make.
+written policy now forbids. Follow the written policy regardless of what the hook allows; ~~closing the
+gap is a `wip-guard.sh` change, not a docs one, and is not this skill's job to make.~~ **Struck
+2026-08-29 (#343): it is true of the count half and FALSE of the half that actually cost something.**
+No change to `wip-guard.sh` can close the checkout gap, for the reason recorded immediately below —
+the hook fires at `gh pr create` and the failure happens hours earlier. Struck rather than deleted
+because it stood for sixteen days and it is the sentence that told every reader the gap had a known
+remedy and merely needed doing.
+
+#### What WIP=1 is PROTECTING — recorded 2026-08-29 (#343), because it was never written down
+
+**The rule stood for sixteen days with no recorded reason, and a rule whose reason is unwritten is one
+the next reader reverses on the first inconvenience.** #343 was opened to reverse it; the owner
+declined — *«por enquanto siga com a regra de wip»* (2026-08-29) — and re-scoped the item to this
+recording, on the ground that **a proposal to relax a rule whose purpose is unwritten cannot be
+evaluated.** What follows is written in three deliberately separated layers, because they are not
+equally strong and blending them is how a reconstruction becomes a citation.
+
+**Layer 1 — what the owner actually said, quoted and dated. It is thin, and saying so is the point.**
+
+- **2026-08-13**, striking the disjoint-files exception: *"nao temos intencionalidade de trabalhar
+  assim por enquanto."* A statement of intent. **No reason given, and none has been given since.**
+- **2026-08-29**, declining the reversal: WIP=1 continues; he wants to evaluate a proposal admitting
+  parallel work later; and the precondition he named is **not tooling** — the personas and skills are
+  not yet equalised across his other harness projects.
+- **Earlier, on [#88](https://github.com/tedeuxx/tadeumendonca-skills/issues/88)**, rejecting a
+  *count*: *"acho que nao faz sentido implementarmos wip, é contra produtivo. o que eu tava tentando
+  alcancar com ele é evitar uma penca de prs com merge complicado se ficam caducados."* **The stated
+  concern there was stale PRs rotting into conflicts, not concurrency** — which is why
+  `wip-guard.sh` bounds file overlap and not a count.
+
+**These three do not compose into one purpose, and this record does not pretend they do.** #88 argues
+against a count; the 2026-08-13 correction imposes one; the 2026-08-29 answer keeps it while pointing
+at an unrelated precondition. **Read layer 1 as the whole of the recorded intent. It is an intent, not
+a rationale.**
+
+**Layer 2 — what the rule demonstrably prevents, measured rather than reconstructed.** On 2026-08-29
+two slices ran **in one checkout** at the same time and neither agent was told. Both discovered it by
+accident: a reviewer's measurements landed against `main` rather than its branch, and a builder's
+fixes landed on the wrong branch's working tree. *(Source: the owner's own comment on #343, which is
+the artifact of record for it. It is a report, not something re-measured here.)*
+
+**Neither is a file-overlap failure, and that is the whole finding.** A shared *checkout* is not a
+shared *file*, so `wip-guard.sh` would have permitted both — it intersects path lists, and the two
+slices' path lists need not intersect at all for the tree underneath them to be one object.
+
+**Layer 3 — what remains unrecorded, stated so nobody mistakes layer 2 for it.** Layer 2 says what the
+rule catches. It does **not** say what the owner wanted caught, and those are different claims. If the
+purpose turns out to be *"I want to see every change as it happens"*, no amount of isolation tooling
+satisfies it and separate worktrees answer nothing. **That question is still open and only he can
+close it** — which is precisely why the proposal he asked for is a different artifact from this one.
+
+#### `wip-guard.sh` does NOT enforce WIP=1, and a reader who thinks it does is wrong about what protects them
+
+**Two independent facts, both measured at head on 2026-08-29, and each one alone is enough.**
+
+**1 · Under WIP=1 the hook never runs its overlap check at all.** It reads
+`gh pr list --state open --author @me`, so with the previous PR already merged the list comes back
+empty and the script exits at `[ -z "$open_prs" ] && exit 0` before computing a single path. Measured
+over the last fourteen merged PRs in this repo — the whole `sprint-01` `loop` block and its
+neighbours — **zero had any other PR of the same author open at their creation instant**:
+
+```
+gh pr list --repo <owner>/<repo> --state merged --limit 14 --json number,createdAt,mergedAt \
+  --jq '[.[]] as $p | [$p[] | .number as $n | .createdAt as $c
+        | {pr:$n, open_at_create: [$p[]
+            | select(.number != $n and .createdAt < $c and .mergedAt > $c)] | length}]'
+# → open_at_create: 0, fourteen times out of fourteen
+```
+
+**It bounds concurrency; it has never bounded a count per iteration, and across nine consecutive
+`loop` slices it did not fire once.** *(Bounds of the measurement: this repo only, the fourteen most
+recent merged PRs only, and `--author @me` scoping means a bot's PR is outside it either way.)*
+
+**2 · It is structurally blind to checkout identity, by construction and not by oversight.**
+`grep -c worktree hooks/scripts/wip-guard.sh` → **0**. It derives its own side from
+`git diff --name-only <merge-base> HEAD` in whatever directory it happens to run in, so two agents in
+one checkout produce the *same* answer and it cannot tell them apart. Three other hooks in this same
+directory *do* reason about worktrees explicitly — `dispatch-premise-guard.sh`, `zombie-loop-detect.sh`
+and `orchestrator-tool-census.sh` — so the harness knows the object exists; this guard simply is not
+about it.
+
+**And no version of this hook could be.** It is a `PreToolUse` on `gh pr create`, which is the *last*
+act of a slice. The 2026-08-29 collision did its damage during the build — a measurement read off the
+wrong branch, an edit written to the wrong tree — **hours before any PR was created**. A control that
+fires at the merge boundary cannot observe a failure that completes before the boundary is reached.
+That is a moment problem, not a matcher problem, and it is why the struck clause above was wrong to
+promise the gap away as a hook change.
+
+**So: WIP=1 is held by instruction and by nothing else.** By this loop's own test — *would something
+stop me, or only my memory?* — **it is not engineered**, and the 2026-08-29 collision is what that
+costs when the memory is a fresh context that never had it. Read the hook as protecting the **merge
+queue** from stale overlapping branches, and read WIP=1 as protecting the **working tree** from being
+two things at once. Different objects, different moments, and only one of them has a mechanism.
 
 ### Using this section
 
