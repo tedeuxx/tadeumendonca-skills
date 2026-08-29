@@ -493,6 +493,16 @@ have no row yet, named there with the reason.
 - **o que não faz:** **It is the ruler, not the role** — it says nothing about what either persona *is* or may do, which is deliberate and is what makes it shareable. It is also an acknowledged exception to the extraction test that governs this library, taken as *extracted ahead of a decided second consumer* and recorded as such rather than as a new class of skill. It is **not** a token saving and is not sold as one.
 - **citação:** > "This is the **ruler**, not the role."
 
+### 0039 · a session refuses to run while the guards it relies on cannot run
+
+- **tipo:** refusal
+- **carrier:** `hooks/scripts/preflight.sh`
+- **descrição:** A hook registered on two events — it blocks every prompt while a precondition of the registered guard set is absent, and reports the same finding at session start where a human sees it before typing.
+- **propósito:** Every other guard in this harness fails open on a missing dependency, and it fails open **silently**: the hook emits nothing and the harness reads that as *no decision*. One interpreter off the path disables an entire permission floor — the merge gate, the trunk-push floor, the irreversible-act denials, every persona boundary — while the session looks exactly like one whose floor is holding. The obligation is not to make the guards fail closed; it is to make a session that cannot enforce its floor refuse to run at all, so *degraded* stops being indistinguishable from *fine*.
+- **o que faz:** Derives what the floor needs rather than carrying a list — reads the hook registry for the scripts it registers, and those scripts for the interpreters they reach for, so a new hook's dependency becomes required with no edit here **wherever that hook declares it the same way** — a dependency reached for without that declaration contributes nothing, which is the derivation's blind spot rather than a gap in the registry. Refuses on three classes: an interpreter missing, a registered script absent or without its execute bit, and a **headless** session running with the static permission layer disabled, which it reads straight off its own payload. It names exactly one finding and how to fix it, counting the rest without listing them. It fails closed on its **own** bootstrap dependencies, alone in this harness, because a check that cannot read anything must not report a clean result.
+- **o que não faz:** It checks that a binary is present, never that it is **authenticated** — auth expires mid-session and a door check cannot see it, which is why the one rule that denies on an unreadable verdict stays a separate mechanism and is not subsumed here. It cannot observe whether a deny list was *loaded*; the session's permission mode is the closest thing the payload carries. It does not fire for a dispatched subagent. And if the hook registry never registered at all, this never runs — and its silence is indistinguishable from a clean pass, which is unfixable from inside a hook.
+- **citação:** > "A door that refuses is not a floor that holds: this stops a degraded session, it does not make any guard fail closed."
+
 ---
 
 ## History
