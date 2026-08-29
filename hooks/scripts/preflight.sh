@@ -120,8 +120,8 @@ IFS= read -r -d '' payload || true
 field() {
   local rest="$payload" key="$1" v
   case "$rest" in
-    *"\"$key\":"*)  v="${rest#*\"$key\":}" ;;
-    *"\"$key\" :"*) v="${rest#*\"$key\" :}" ;;
+    *"\"$key\":"*)  v="${rest#*\""$key"\":}" ;;
+    *"\"$key\" :"*) v="${rest#*\""$key"\" :}" ;;
     *) printf '' ; return 0 ;;
   esac
   v="${v#"${v%%[!  ]*}"}"          # drop leading spaces/tabs
@@ -158,7 +158,15 @@ bootstrap_missing="${bootstrap_missing# }"
 # The owner's instruction, verbatim: "Enumerate from the scripts, not from memory — a preflight that
 # checks a list somebody wrote down is a second source of truth that drifts away from the guards it
 # protects." So the scripts come out of hooks.json and the interpreters come out of those scripts.
-# Add a hook that needs `python3` and this starts requiring `python3` with no edit here.
+# Add a hook that DECLARES `python3` with `command -v` and this starts requiring `python3` with no edit
+# here.
+#
+# THE BLIND SPOT, NAMED BECAUSE THE CONSEQUENCE IS QUOTED ELSEWHERE WITHOUT THIS SENTENCE. The scan
+# reads a DECLARATION, not a call graph. A hook that reaches for `python3` with a bare call, with
+# `hash`, with `type`, or through `command -v "$var"` contributes NO requirement — the preflight stays
+# green and that hook still dies at runtime. Nothing here detects an undeclared dependency and nothing
+# can at this grain; what compensates is that every hook in this directory already opens with its
+# `command -v` probes, so a new one that does not is a review finding rather than a gate finding.
 registered=""
 if [ -z "$bootstrap_missing" ] && [ -r "$HOOKS_JSON" ]; then
   registered="$(grep -oE 'hooks/scripts/[A-Za-z0-9._-]+\.sh' "$HOOKS_JSON" | sort -u || true)"

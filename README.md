@@ -941,12 +941,23 @@ in `/devops`. This is the pointer, not the copy.
 
 ## The hooks, and what they refuse
 
-Claude Code exposes **31 hook events**. This repo wires **five**, and the picture draws all of them so the
-unused surface is visible rather than unmentioned — the five in use are filled, the other twenty-six are
-not. `Stop` joined 2026-08-20 (#294) — it sits in the deny-capable group with `PreToolUse`, but the hook
-wired to it never uses that half; see the row below. **`UserPromptSubmit` joined 2026-08-29 (#342), and it
-is the first event wired here for the sole reason that it can deny**: the preflight it carries had to
-refuse, `SessionStart` cannot, and no other event fires before a session does anything.
+Claude Code exposes **31 hook events**. This repo wires **six** — `PreToolUse`, `UserPromptSubmit`,
+`SessionStart`, `SubagentStart`, `SubagentStop`, `Stop` — and the picture draws all 31 so the unused
+surface is visible rather than unmentioned: the wired ones are filled, the other **twenty-five** are not.
+
+**Count the events in the table below, not the boxes in the drawing, and the difference is not a
+rounding.** The diagram collapses several events into one node — `SubagentStart · SubagentStop ·
+TeammateIdle` share a box — so it has **five** filled boxes against **six** wired events. This sentence
+read *"wires five"* until #342 and *"wires four"* before that, each time reading a node count as an event
+count, and each time asserting a partition of 31 that did not hold. The wired figure and its complement
+are now **derived from `hooks/hooks.json`** by `inventory-counts.test.sh` rather than counted by hand;
+**the 31 is not, and cannot be** — it is a property of Claude Code, not of this repo, so it is the one
+term in `6 + 25 = 31` with no falsifier on this side of the boundary.
+
+`Stop` joined 2026-08-20 (#294) — it sits in the deny-capable group with `PreToolUse`, but the hook
+wired to it never uses that half; see the row below. **`UserPromptSubmit` joined 2026-08-29 (#342), wired
+for nothing but its ability to refuse a prompt**: the preflight it carries had to refuse, `SessionStart`
+cannot, and no other **deny-capable** event fires before a session does anything.
 
 **The split that matters is not used-versus-unused, it is whether an event can deny at all.** A control
 placed on an observe-only event looks like enforcement and is not, and that mistake stays invisible until
@@ -1123,9 +1134,17 @@ a human sees it before typing. Wiring it the other way round would have produced
 as enforcement and is not, which is the mistake this whole section is organised around.
 
 **What it requires is DERIVED, never listed.** It reads `hooks.json` for the registered scripts and
-those scripts for the `command -v <x>` they reach for, so adding a hook that needs a new binary makes
-that binary required with no edit anywhere. A written-down list would be a second source of truth
-drifting away from the guards it protects — the owner said so explicitly when he ruled.
+those scripts for the `command -v <x>` they reach for, so adding a hook that **declares a new dependency
+with `command -v`** makes that binary required with no edit anywhere. A written-down list would be a
+second source of truth drifting away from the guards it protects — the owner said so explicitly when he
+ruled.
+
+**The condition is load-bearing and is the derivation's blind spot.** A hook that reaches for `python3`
+without a literal `command -v python3` — a bare call, `hash`, `type`, or `command -v "$var"` —
+contributes no requirement, and the preflight stays green while that hook dies at runtime. The
+derivation reads a **declaration**, not a call graph. Nothing detects an undeclared dependency, and
+nothing can at this grain; the compensating discipline is that every hook here already opens with its
+`command -v` probes, and a new one that does not is a review finding rather than a gate finding.
 
 **Three refusals and one report, and the split is where the composition risk was handled.** It blocks
 on a missing interpreter, on a registered script that is absent or not executable, and on a *headless*

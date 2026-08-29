@@ -2023,8 +2023,10 @@ the layer passes.
 ### The requirement set is derived, never listed
 
 The preflight reads `hooks.json` for the scripts it registers, and those scripts for the
-`command -v <x>` they reach for. Adding a hook that needs a new binary makes that binary required with
-no edit to the preflight. The owner's instruction was explicit — a written-down list is a second
+`command -v <x>` they reach for. Adding a hook that **declares** a new binary with `command -v` makes
+that binary required with no edit to the preflight. **A hook that reaches for one without declaring it
+that way — a bare call, `hash`, `type`, or `command -v "$var"` — contributes no requirement**, and that
+is the derivation's named blind spot: it reads a declaration, not a call graph. The owner's instruction was explicit — a written-down list is a second
 source of truth drifting away from the guards it protects — and the suite asserts the derivation by
 inventing a dependency in a scratch plugin and requiring the refusal to name a binary whose name
 appears nowhere in `preflight.sh`.

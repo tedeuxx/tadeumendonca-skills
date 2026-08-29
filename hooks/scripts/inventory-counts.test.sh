@@ -482,6 +482,97 @@ else
       bad "hooks/ — '$hook_name' is registered in hooks.json and appears nowhere in README.md"
     fi
   done < <(sed -nE 's#.*/hooks/scripts/([A-Za-z0-9._-]+)\.sh.*#\1#p' "$HOOKS_JSON")
+
+  # --- the EVENT count, which is a different number from both of the ones already pinned above ----
+  #
+  # THIS FILE'S OWN HEADER, TWENTY LINES UP, SAYS: "THE HOOKS WERE THE ONE INVENTORY NOBODY PINNED,
+  # and it cost a false claim on a public page." It then pinned two numbers — REGISTRATIONS (the
+  # `"command"` count) against DIAGRAM NODES (`H<n>[`) — and left a third unpinned in the same
+  # section of the same README: how many EVENTS are wired.
+  #
+  # All three are different, and the README asserted the wrong one as a partition of 31:
+  #
+  #   registrations   15   one per `"command"` entry — closure-artifact-guard and preflight twice each
+  #   diagram nodes   15   one box per registration, by construction of the arm above
+  #   FILLED nodes     5   the drawing collapses SubagentStart · SubagentStop · TeammateIdle into one
+  #   EVENTS wired     6   `jq '.hooks | keys | length'`
+  #
+  # The prose said "wires five … the other twenty-six", which is the FILLED-NODE count written as an
+  # event count, over a denominator of 31 events. It was "four" before #342 — wrong by one in the
+  # same way, for six days, while the event table 280 lines below bolded six events by name. Caught
+  # by the copy lens on the PR, not by this file, because nothing here read the prose.
+  #
+  # WHAT IS PINNED AND WHAT CANNOT BE. The wired figure and its complement are derived from
+  # hooks.json. The 31 is NOT derivable here — it is a property of Claude Code, not of this repo — so
+  # the arm reads it from the prose and checks only that the partition CLOSES. A reader who wants the
+  # 31 falsified has to go and count the platform's events; this asserts that whatever total the
+  # README claims, the two parts it splits into add up to it and the wired part is the true one.
+  #
+  # NUMBER WORDS, NOT DIGITS, because that is how this README writes counts and a gate should not
+  # force a house style. The map is a closed set; a figure outside it fails loudly rather than
+  # silently reading as zero.
+  ev_word_to_int() {
+    case "$1" in
+      zero) printf '0' ;;      one) printf '1' ;;        two) printf '2' ;;
+      three) printf '3' ;;     four) printf '4' ;;       five) printf '5' ;;
+      six) printf '6' ;;       seven) printf '7' ;;      eight) printf '8' ;;
+      nine) printf '9' ;;      ten) printf '10' ;;       eleven) printf '11' ;;
+      twelve) printf '12' ;;
+      twenty-one) printf '21' ;;   twenty-two) printf '22' ;;   twenty-three) printf '23' ;;
+      twenty-four) printf '24' ;;  twenty-five) printf '25' ;;  twenty-six) printf '26' ;;
+      twenty-seven) printf '27' ;; twenty-eight) printf '28' ;; twenty-nine) printf '29' ;;
+      *) printf '' ;;
+    esac
+  }
+
+  ev_actual="$(jq -r '.hooks | keys | length' "$HOOKS_JSON" 2>/dev/null || printf '')"
+  ev_total_claimed="$(sed -nE 's/.*\*\*([0-9]+) hook events\*\*.*/\1/p' "$README" | head -1)"
+  ev_wired_word="$(sed -nE 's/.*This repo wires \*\*([a-z-]+)\*\*.*/\1/p' "$README" | head -1)"
+  ev_unwired_word="$(sed -nE 's/.*the other \*\*([a-z-]+)\*\* are not.*/\1/p' "$README" | head -1)"
+  ev_wired="$(ev_word_to_int "$ev_wired_word")"
+  ev_unwired="$(ev_word_to_int "$ev_unwired_word")"
+
+  if [ -z "$ev_actual" ]; then
+    bad "hooks/ — the wired-EVENT count could not be read from hooks.json, so the three arms below
+      are checking nothing. Either jq is absent or the file stopped being an object keyed by event."
+  elif [ -z "$ev_wired" ]; then
+    bad "hooks/ — README's 'This repo wires **<word>**' did not parse, or the word is outside the
+      closed set this arm knows ('$ev_wired_word'). hooks.json wires $ev_actual event(s). A figure
+      this arm cannot read is a figure it cannot falsify, which is the state this whole block exists
+      to end."
+  elif [ "$ev_wired" != "$ev_actual" ]; then
+    bad "hooks/ — README says this repo wires '$ev_wired_word' ($ev_wired) event(s); hooks.json wires
+      $ev_actual: $(jq -r '.hooks | keys | join(", ")' "$HOOKS_JSON").
+      This is the count that was wrong twice — do not fix it by counting boxes in the diagram, which
+      collapses several events into one node and is a different number on purpose."
+  else
+    ok "hooks/ — README's wired-EVENT figure ('$ev_wired_word') matches hooks.json's $ev_actual event key(s)"
+  fi
+
+  # THE EMPTY-OPERAND GUARD IS NOT DEFENSIVE TIDINESS — IT IS THE ARM'S OWN MUTATION FINDING.
+  # The first draft read `elif [ -n "$ev_wired" ] && [ "$((…))" != … ]`, so an UNPARSEABLE wired
+  # figure fell through to the success branch and printed
+  #     ok  the event partition closes:  wired + 25 unwired = 31 claimed
+  # — a PASS line, with a blank where a number belongs, reporting a computation that never ran.
+  # Found by mutating the README's figure out of the parseable form and reading the output rather
+  # than the total (the total was red anyway, from the arm above, which is exactly how a verdict
+  # like this survives: the suite fails for a different reason and nobody reads the line). An arm
+  # that cannot compute must say so; it must never report the answer it did not reach.
+  if [ -z "$ev_total_claimed" ] || [ -z "$ev_unwired" ] || [ -z "$ev_wired" ]; then
+    bad "hooks/ — the event partition is UNCOMPUTABLE, so it is unchecked rather than passing:
+      total='$ev_total_claimed', wired word='$ev_wired_word', unwired word='$ev_unwired_word'.
+      The README states 'N hook events', 'This repo wires **<word>**' and 'the other **<word>** are
+      not'; at least one stopped matching. Restore the form or widen the word map — do not leave a
+      figure here that no arm can read."
+  elif [ "$((ev_wired + ev_unwired))" != "$ev_total_claimed" ]; then
+    bad "hooks/ — the event partition does not close: $ev_wired wired + $ev_unwired unwired
+      = $((ev_wired + ev_unwired)), against the $ev_total_claimed hook events the same sentence
+      claims. Both halves are stated in prose over a denominator this repo cannot derive, so a
+      partition that does not add up is the only signal available that one of them moved."
+  else
+    ok "hooks/ — the event partition closes: $ev_wired wired + $ev_unwired unwired = $ev_total_claimed claimed
+      (the $ev_total_claimed itself is a property of Claude Code and is deliberately NOT falsified here)"
+  fi
 fi
 
 # --- the career figure, which is why this file exists at all ----------------------------------
