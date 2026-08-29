@@ -503,6 +503,16 @@ have no row yet, named there with the reason.
 - **o que não faz:** It checks that a binary is present, never that it is **authenticated** — auth expires mid-session and a door check cannot see it, which is why the one rule that denies on an unreadable verdict stays a separate mechanism and is not subsumed here. It cannot observe whether a deny list was *loaded*; the session's permission mode is the closest thing the payload carries. It does not fire for a dispatched subagent. And if the hook registry never registered at all, this never runs — and its silence is indistinguishable from a clean pass, which is unfixable from inside a hook.
 - **citação:** > "A door that refuses is not a floor that holds: this stops a degraded session, it does not make any guard fail closed."
 
+### 0040 · a persona reaches only the MCP servers it was granted
+
+- **tipo:** refusal
+- **carrier:** `hooks/scripts/mcp-guard.sh`
+- **descrição:** A `PreToolUse` guard on the `mcp__.*` matcher, denying by default and allowing a named subset of one server's tools to one persona.
+- **propósito:** An MCP server is a capability the agent's own tool list does not describe and no other layer can see. Until this guard, the only thing standing between a dispatched persona and every MCP server configured on the machine was the `tools:` line in its own brief — a real gate, but a **single layer that holds by absence**: no brief says *"and no MCP"*, so deleting one line inherits everything. Measured, a subagent with no restriction enumerated roughly four hundred tools, including messaging and mail surfaces that act irreversibly and in public in the owner's name.
+- **o que faz:** Denies by default and allows by persona, the polarity the floor already uses for its agent-scoped rules, so a persona added later or a connector installed later starts denied and somebody decides by name. It matches the server segment rather than the full namespaced name, because the same server resolves under two spellings depending on whether the plugin or the consuming repository declared it. Within the one granted server it allows a **named read-only subset** and refuses the input-carrying tools — the narrowing the `tools:` frontmatter cannot express, since that layer grants whole servers only.
+- **o que não faz:** It does not touch the orchestrator, whose agent type is empty by design — the most capable context in the loop is the one with no MCP control at all, and that is a scope line rather than an oversight. It has no opinion about what a granted call does: the origin bound on the browser is Chrome's, not this hook's. And it cannot prove the harness still routes MCP calls to a hook — that was established by live probe, and if the routing regresses every assertion stays green while the backstop is gone.
+- **citação:** > "a layer that holds by ABSENCE"
+
 ---
 
 ## History

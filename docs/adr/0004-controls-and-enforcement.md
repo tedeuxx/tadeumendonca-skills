@@ -2087,6 +2087,358 @@ greps that would have settled it. **If hooks do not load in a container, every f
 gone at once and this control with it**, which is the worst possible resolution and the one worth
 measuring before an image is built.
 
+## Amendment (2026-08-29) — MCP is a control surface, and it was held by a single layer that holds by ABSENCE (#355)
+
+**Decided by:** the owner. Four statements, and the later ones narrow the earlier ones — recorded in
+order because the design changed under each: *«precisamos fazer o setup do nosso ambiente com chrome
+devtools»* · *«ele é a melhor ferramenta para fazermos review exploratorio do site automatizado»* ·
+***«varrer como uma regressao geral alto nivel da aplicacao integrada rodando»*** ·
+***«onde issues de layout, wording, coisas de revisao, podem ser pegas em uma ultima instancia»***.
+**Written by:** `agents-lead`, per the domain split (#223) — this is machinery.
+
+**The word *exploratory* did not survive, and the correction is load-bearing.** An exploration decides
+where to look and therefore needs a bound on its own scope; a **regression sweep** must instead COVER
+what exists, which turns the hard question from *"how does it stop"* into *"how is coverage proved"*.
+The first framing produced a design with a stated page budget. The second replaced it with a derived
+route list and two counts. Recorded rather than quietly rewritten, because a reader of the shipped
+brief will find no budget and should know it was removed on purpose.
+
+### What was asked, and the larger thing it uncovered
+
+The ask was a browser for a high-level regression sweep of the running application. The intake for #355 had
+already measured that no persona holds one: every brief's `tools:` list is `Read`/`Grep`/`Glob`/`Bash`
+and friends, with zero `mcp__*`, and neither repository carries a `.mcp.json`.
+
+**The second half of that measurement was wrong in a way that matters, and this amendment exists as
+much for the correction as for the capability.** "No `.mcp.json` in either repo" is true and is not the
+same claim as "no MCP servers are configured". Measured 2026-08-29, `~/.claude.json` carries
+**project-scoped** MCP servers for the consumer repository — `linkedin` (with a credential in `env`)
+and `instagram-collections` — declared in the user's own configuration rather than in any tracked file.
+A subagent dispatched there **with no `tools:` restriction** enumerated its own MCP surface and named
+roughly **400 tools**, including:
+
+```
+mcp__linkedin__send_message            mcp__linkedin__connect_with_person
+mcp__claude_ai_Gmail__send_message     mcp__claude_ai_Gmail__trash_thread
+mcp__claude_ai_Google_Drive__share_file
+mcp__claude_ai_Google_Calendar__delete_event
+```
+
+Every one of those is irreversible, credentialed, and lands in public in the owner's name. **This
+exposure predates the browser and predates this amendment; what changed is that somebody measured it.**
+
+### The measurements, because every claim here is one
+
+Probe against control, one variable at a time. `claude -p`, a dependency-free stdio MCP server
+returning a nonce, and a dispatched subagent asked to call it.
+
+| # | server declared in | subagent `tools:` | result |
+|---|---|---|---|
+| A | project `.mcp.json` | `Read, Grep, Glob` | `TOOL-NOT-AVAILABLE` |
+| B | project `.mcp.json` | `+ mcp__nonceprobe__nonce` | nonce returned |
+| C | **plugin** `.mcp.json` | *(no `tools:` line — inherits)* | nonce returned |
+| D | plugin `.mcp.json` | `+ mcp__plugin_<plugin>_<server>` *(server-scoped)* | nonce returned |
+| E | plugin `.mcp.json` | `Read` only | `TOOL-NOT-AVAILABLE` |
+| F | project `.mcp.json`, agent shipped by the **plugin** | `+ mcp__nonceprobe__nonce` | nonce returned |
+
+**A dispatched subagent does reach a project-declared MCP server**, which was the load-bearing premise
+of the whole change — if it did not, this buys nothing and must not ship. **The `tools:` list is the
+gate**, and it is tight: an agent granted exactly one MCP entry, dispatched in the repository where the
+~400 tools live, enumerated **one**.
+
+**Plugin-scoped servers namespace differently** — `mcp__plugin_<plugin>_<server>__<tool>` — and both
+spellings resolve from a plugin-shipped brief (D and F), which is why every artifact here matches both.
+
+### The fork: plugin-level, and what it gave up
+
+**Chosen: the server is declared by the PLUGIN** (`.mcp.json` at the plugin root), not per consuming
+repository.
+
+*Why.* The consumer of this capability is a **persona**, and personas ship in the plugin. The grant
+(`tools:` in `agents/product-lead.md`), the guard (`hooks/scripts/mcp-guard.sh`) and the declaration
+must all agree on one string. Put them in one repository and a gate can assert they agree — which it
+now does. Split them across two and nothing can: the failure when a brief names a server the repository
+does not declare is **silent**, the persona simply has no browser, and this harness's named failure
+shape is a control that reads as installed and is inert.
+
+*What it gave up, stated rather than minimised:*
+
+- **`tadeumendonca-skills` carries a browser it has no site for.** Measured: declaring the server costs
+  one lazily-spawned stdio process and **no Chrome** — a session in this repository enumerated all 29
+  tools with zero browser processes running. Chrome launches on first tool call, never at session start.
+- **Every marketplace consumer inherits the declaration.** Mitigated by making the origin bound an
+  environment variable with a **fail-closed default** (`${HARNESS_SWEEP_ORIGIN:-http://127.0.0.1:9/*}`
+  — port 9 is discard). Measured: `${VAR:-default}` expands in a plugin `.mcp.json`, the default applies
+  when unset and is overridden when set. A consumer who installs this and configures nothing gets a
+  browser that can reach nothing. **This also keeps the plugin project-agnostic**, which is a hard
+  principle here — no real domain appears in a tracked file.
+- **The rejected option is still live and cheap to take:** a consuming repository may declare its own
+  `chrome-devtools` server with its own bound, and the guard and brief both match the bare spelling
+  deliberately so that path works without touching the plugin.
+
+### Which layer can carry the control — the standing question, and the answer moved
+
+The `tools:` frontmatter is a real gate (probes A and E) but it is **one layer, and it holds by
+absence**: no brief says *"and no MCP"*; each names a tool list and MCP falls outside it. Delete that
+one line from any brief and the persona inherits everything above. A control with one layer and no
+backstop is the class this record exists to refuse.
+
+| layer | can it hold *"a subagent reaches only the servers its brief was granted"*? |
+|---|---|
+| `settings.json` `deny` | **no** — a tool-name matcher with no notion of *who* is asking, and the orchestrator must keep its servers |
+| `permission-guard.sh` | **no** — registered on the `Bash` matcher, reads `.tool_input.command`, which an MCP call does not have |
+| the brief's `tools:` list | **yes, and it is the only layer that held until now** — single, and holds by absence |
+| a `PreToolUse` hook on `mcp__.*` | **yes — measured, and this was the open question** |
+
+The open question was whether *any* hook can observe an MCP call. It can. A probe hook registered on
+matcher `mcp__.*` fired on a subagent's MCP tool call, received the fully-namespaced name in
+`.tool_name`, and its `deny` was honoured — the subagent reported back verbatim:
+
+```
+RAW: HOOK-DENIED-MCP tool_name=mcp__plugin_probe-plug_chrome-devtools__nonce
+```
+
+**So `hooks/scripts/mcp-guard.sh` is built**, deny-by-default and allow-by-persona, the same polarity as
+rule 5e and for the reason this record already states as *absent is not a state*: a persona added later,
+or a connector installed later, defaults to DENY and somebody decides by name. The inverse — listing the
+forbidden servers — would have to grow every time the owner installs a connector and would fail open in
+between.
+
+**The orchestrator is deliberately untouched.** `agent_type` is empty there and the guard exits without
+a decision.
+
+**State the reason precisely, because the obvious phrasing is wrong and was caught at the gate.** It is
+**not** that the act is smaller: `mcp__linkedin__send_message` is as irreversible and as public as the
+merge that rule 7c was made to fail *closed* over, and this guard is the only rule in this file that
+**fails open** on an act of that class. The distinguishing argument is different and it is the only one
+that holds — **the orchestrator IS the owner's own session.** A subagent is a delegate acting on a brief
+nobody reads in real time; the main context is the human at the keyboard, and denying it a connector he
+installed and invokes deliberately is not a floor, it is a malfunction. Rule 5e's whole shape rests on
+the same distinction, and the routing-class amendment (2026-08-23) is the precedent for calling it what
+it is rather than dressing it as a safety argument.
+
+**The residual stands as a residual:** the most capable context in the loop has no MCP control at all,
+and the reason is that it is not an agent boundary to enforce.
+
+### Who gets the browser, and why nobody else does
+
+**`product-lead`, alone.** Its object is what a reader meets on the consumer site, its scope boundary is
+already that repository, and it **cannot post** — rule 5e denies it `gh pr comment` / `gh issue comment`
+/ `gh issue create` — so a sweep finding reaches a PR only by being quoted in the gate's verdict. A
+sweep therefore cannot become the gate's artifact by accident. That is a property of containment that
+already existed, not something this change added.
+
+**The owner named the same persona independently** — *«potencialmente a melhor pessoa para isso fosse o
+product lead»* — and gave the reason that constrains the rest of the design: ***«ele tem a visao de
+proposito conectada a engenharia»***. It holds the purpose-view *with* enough engineering to know what a
+failed request was serving.
+
+Refused, each for a stated reason rather than by omission: **`quality-assurance`** (it is the gate; a
+browser there makes a taste-bearing observation into a merge blocker, which #355's intake
+settled against) · **`developer`** (authorship bias, and a builder's browser becomes a scripted check,
+which is a regression suite wearing the wrong name) · **`tech-lead`** (performance tracing is arguably
+its object; not this slice) · **`content-writer` / `content-reviewer`** (they judge prose, pre-publication)
+· **`agents-lead`** (its object is the machinery, not the site).
+
+### One persona holds BOTH halves, and the split was refused on the owner's reason
+
+The rite has a **mechanical** half (renders · no console errors · no failed requests · no missing images
+· the PDF downloads · both locales · phone and desktop) whose findings are **evidence**, and a
+**judgement** half (does the layout read right, does the copy read right) whose findings are **taste plus
+observation** and become Issues for the next iteration. **They are reported as two separate sections,
+always** — merging them makes the first invisible inside the second, and the first is the one that means
+someone has to act tonight.
+
+**The mechanical half is not a product judgement, so factoring it to another persona looked tidy. It was
+refused**: it would separate *seeing what broke* from *knowing what it was for*, which is precisely the
+pairing the owner named. *The cost of not splitting, stated:* the sweeper reads console and network
+output outside its native competence and may under-read noise a builder would recognise. **The
+compensation is that the mechanical half is a checklist with a count, not an opinion** — per route the
+evidence is present or it is not.
+
+### Coverage is DERIVED, and that is what makes the sweep checkable
+
+The route list is not typed into the brief. It is read from the consumer's own generator —
+`apps/fed/scripts/routes.mjs`, whose `localizedRoutes()` the sitemap and the prerender already consume,
+so a route that exists is in it by construction. Measured 2026-08-29: **18** targets across both
+locales, `{ locale, route, url }` each. **The brief carries the command, not the number.**
+
+A hardcoded list rots **silently** — it covers eight of nine and reports green. The report therefore
+leads with `routes emitted: N` / `routes visited: N`, and those being equal *is* the coverage claim.
+
+**Weighting toward the iteration is derivable and must not become scoping.** The owner: *«sendo ou nao
+parte de itens desenvolvidos no sprint atual, porem obviamente dando maior enfase as funcionalidades
+impactadas no sprint»*. Every emitted route gets the mechanical pass; weighting decides only where the
+judgement half spends attention. **A sweep that quietly skips untouched routes reports green over the
+half nobody looked at, and the untouched half is where a regression from an unrelated change lands.**
+
+### The judgement half has one ruler and openly lacks the other
+
+**Wording has a ruler**: `published-voice`, the same skill `content-writer` drafts against and
+`content-reviewer` judges against, with the distinction those personas already use — a finding that can
+**quote a clause** is a finding, one that cannot is a preference. Reused rather than reinvented.
+
+**Layout has none, and the brief says so** rather than inventing one. There is no document defining what
+"reads right" means at 390px, so a layout finding is observation labelled as taste, carrying its weight
+through being specific and reproducible. **A layout ruler invented at the moment it was needed would be
+the failure this record exists to refuse**, so the absence is recorded as an absence.
+
+### The sweep's own failure must be LOUD — the fail-open shape, arriving unwatched
+
+The rite runs at iteration close, which is exactly when nobody is watching, and a broken sweep's natural
+output is a clean-looking report. So the brief makes **FAILED** the required verdict whenever the route
+generator did not run or returned zero, the browser never started, `routes visited < routes emitted` for
+any reason, or the report could not be written. **This is an instruction in a brief and nothing enforces
+it** — no hook observes whether a dispatch produced a report at all, and that is named here rather than
+implied by the two counts.
+
+### Why this rite is the LAST sieve, mechanically
+
+Merge is deploy under `trunk-single-env`, and the held-draft state holds an **article** — a `draft` fact
+in front matter takes a post out of the index, sitemap, prerender and cards. **A layout change to a page
+has no held state and nothing to preview.** The owner's recorded rule for a page revision is that it is
+validated in production, *«pois preciso verificar layout junto não apenas texto»*.
+
+**The evidence is this session, twice.** A generated banner shipped off-centre with every containment
+assertion holding and the suite green; he found it on his phone. He found the vertical defect the same
+way after the fix. **Two layout defects, zero gates able to see either.**
+
+### What a persona with this can reach that it could not before — bounded, and the bounds measured
+
+`chrome-devtools-mcp@1.8.0`, version-pinned. It is **not** the `claude-in-chrome` integration the
+session already has: that is extension-based, session-scoped and not dispatchable, which is precisely
+why it could not serve this. They do not conflict — one is a `--chrome` session flag, the other an MCP
+server — but only one of them a subagent can reach.
+
+**The profile is the finding that decides the class.** By default this server drives a **persistent**
+profile at `$HOME/.cache/chrome-devtools-mcp/chrome-profile`, and `--autoConnect` / `--browserUrl` /
+`--wsEndpoint` would attach it to the owner's **running** Chrome — his cookies, his sessions, his
+logged-in accounts. **None of those is used.** The server runs `--isolated`, a temporary user-data-dir
+discarded when the browser closes, so it holds no session of his at any point. That is also the correct
+lens rather than merely the safe one: **the reader this site is for is not logged in as the owner.**
+
+**The origin bound is enforced by Chrome, not by instruction** — `--allowedUrlPattern`, which needs
+Chrome 149+; the machine runs 151. Measured, probe and control on the real browser:
+
+```
+new_page https://www.iana.org/   -> Error: Navigation to https://www.iana.org/ is blocked by blocklist/allowlist rules
+new_page https://example.com/    -> Page loaded successfully. Title: "Example Domain"
+```
+
+Telemetry is off in the same line (`--no-usage-statistics`, `--no-performance-crux`), because the
+defaults send usage data to Google and traced URLs to the CrUX API.
+
+### The second-order effect this dispatch existed to catch: a browser is an EGRESS route
+
+**Rule 5e denies `product-lead` public surfaces because it reads the private positioning layer**, and a
+paraphrase of that material into a public surface is not revertible. **A browser is a route to the
+outside that a read-only grant did not previously include** — a URL is a channel, and a navigation
+carries whatever is in it. Granting a browser to precisely the persona 5e contains is therefore not a
+neutral addition, and it would have been one had nobody asked.
+
+Two narrowings, and **neither closes it**:
+
+1. **The origin bound** means anything sendable goes to the owner's **own** domain rather than a third
+   party — materially different from posting to LinkedIn, and still not nothing: a query string lands in
+   his CloudFront logs.
+2. **The grant is a NAMED SUBSET of the server's tools, not the server.** `mcp-guard.sh` denies
+   `evaluate_script`, `fill`, `fill_form`, `type_text`, `upload_file`, `handle_dialog` and `drag` — the
+   input-carrying tools, none of which is needed to look at a page, and `evaluate_script` above all,
+   since arbitrary JS can compose and issue its own requests. What remains is a viewer.
+
+**This is a narrowing the `tools:` frontmatter cannot express** — it grants whole servers only — which
+is a second, independent reason the hook layer had to hold this control rather than the brief.
+
+**`click` is allowed with its cost stated:** a nav link and the PDF download are unreachable without it,
+and a click can submit a form somebody else's markup put on the page. Narrowing, not closure.
+
+### The supply chain of the server itself, and one measured correction
+
+Raised at the merge gate as an advisory: `npx -y chrome-devtools-mcp@1.8.0` is exact-version pinned,
+**but has no integrity pin and "cannot run `--ignore-scripts`."** The concern is right and **the second
+half of the premise is false, measured** — `npx --ignore-scripts -y chrome-devtools-mcp@1.8.0 --version`
+prints `1.8.0`, and the same flag was measured completing a real navigation end to end. It is adopted,
+so the install-script surface of the package and its transitive dependencies no longer executes.
+
+**It is asserted at position 0, not by membership, and that distinction is the assertion's whole value.**
+`npx` splits its own flags from the package specifier at the first non-flag argument, so a
+`--ignore-scripts` that drifts *after* `chrome-devtools-mcp@1.8.0` is handed to the **server** — where it
+is an unknown option rather than a protection. Measured: moving it one position past the specifier
+reddens the suite; a membership check would have stayed green through exactly that move.
+
+**What is still not closed: the integrity hash.** Exact-version pinning plus npm's prohibition on
+republishing a version is what stands in for it. A true integrity pin needs a lockfile, and **this
+repository has no `package.json` and no `package-lock.json`** — introducing an npm manifest into a
+repo that has none, to hold one dev-time dependency, is a larger change than the risk justifies here
+and is recorded as declined rather than overlooked.
+
+### Recording: a tracked file, because the sweeper cannot post
+
+Rule 5e is **unchanged** — no new posting route was opened. The sweep is written to
+`docs/iteration-sweep/<iteration>.md` in the consumer repository, reusing the route 5e's own deny
+message already prescribes and that `content-reviewer` already uses for its rounds.
+
+**Relaying findings through the orchestrator was refused**, on the ruling already made for the
+retrospective: relaying reintroduces the aggregation the isolation exists to prevent.
+
+**This required adding `Write` to `product-lead`, and that is a real widening.** It gained `Write` and
+**not** `Edit`, and `Write` refuses a file the persona has not read — so it cannot quietly modify
+existing copy — but **nothing scopes that grant to `docs/iteration-sweep/**`.** It is discipline.
+`content-reviewer` carries the identical unenforced shape for its own rounds file, so this matches a
+ratified precedent rather than inventing a hole; a path-scoping hook on the `Edit|Write` matcher is
+buildable (the matcher already exists for `orchestrator-write-guard.sh`) and is deliberately **not** in
+this slice.
+
+**Judgement findings become Issues for the next iteration and the OWNER opens them** — *Review does not
+open work* is unchanged, and the sweeper names them in the file and in its return.
+
+### Absent or broken: loud, and therefore NOT a preflight requirement
+
+Measured with a deliberately unreachable browser:
+
+```
+RAW: Browser was not found at the configured executablePath (/nonexistent/path/to/chrome)
+```
+
+The failure is a clear error at the point of use, not a silent degradation, so **Chrome is deliberately
+not added to `preflight.sh`'s refusal set.** Adding it would make the preflight refuse on every machine
+without Chrome — for a capability one persona uses occasionally — to catch a condition that already
+announces itself. The trade is stated the other way round in the rejected column: if a future sweep
+becomes load-bearing for a merge decision, that judgement changes, and it should be revisited then.
+
+### Consequences still being paid
+
+- **The one-persona-one-server grant is asserted in three files and gated across two.** The suite checks
+  the guard against `hooks.json`'s matcher and against `.mcp.json`'s server name and flags. It does
+  **not** check `agents/product-lead.md`'s `tools:` line against either — a brief that drops its MCP
+  entry loses the browser silently, and the guard would not notice because the guard only ever denies.
+- **Nothing proves the harness still routes `mcp__*` to a `PreToolUse` hook.** That was established by
+  live probe, and the suite feeds the guard a payload directly. If the routing regresses, every
+  assertion stays green and the backstop is gone. There is no assertion available in-repo that catches
+  it; the guard's header says so and this is the second place it is written down.
+- **The suite shipped wired into NO CI job, and the build report published it as a gate.** Found at the
+  merge gate by `grep -rn "mcp-guard.test.sh" .github/workflows/` returning nothing. It is this
+  amendment's own headline finding one layer up — a control that reads as installed and is inert — in
+  the layer that was supposed to hold the control. `hooks-test.yml`'s own comments already record two
+  prior instances and state the rule this broke: **add the hook and its CI step in the same slice.**
+  Fixed here. The `.mcp.json` entry added to `docs-test.yml`'s `paths:` one round earlier is explicitly
+  **not** that fix — it satisfies a gate-coverage arm while starting a job containing **zero**
+  occurrences of `mcp`, so the glob went green without gating the origin bound.
+- **"A sweep finding is advisory" is an instruction, not a mechanism.** `product-lead` holds one
+  blocking veto — the truth of a published claim — and nothing prevents a sweep observation being
+  dressed as one. The brief states the rule and states that nothing enforces it.
+- **`product-lead`'s `Write` is unscoped.** See the recording section above; it matches
+  `content-reviewer`'s existing shape, and the fix is a hook nobody has built.
+- **Nothing observes that a sweep ran, or that it reported FAILED honestly.** The two counts make a
+  short sweep visible *to a reader of the file*; no gate reads the file, and no hook knows the rite was
+  due. The iteration-close trigger is a habit, exactly as the loop-first composition rule is.
+- **Coverage is derived from the consumer's generator, which couples this rite to a file in the OTHER
+  repository.** If `localizedRoutes()` is renamed or moved, the sweep fails loudly (good) but the brief's
+  command goes stale (bad), and no gate in either repo asserts the two agree.
+- **The ~400-tool exposure is now contained for subagents and untouched for the orchestrator.** That is
+  a deliberate scope line, not an oversight, and it means the most capable context in the loop is the
+  one with no MCP control at all.
+
 ## Links
 - Driven by ADR-0002 and the Merge Request Definition of Done (record 0003, absorbed 2026-08-19 into
   [ADR-0006](./0006-verification-and-its-artifacts.md)) · consumed per project via
