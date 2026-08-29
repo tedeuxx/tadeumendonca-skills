@@ -635,6 +635,42 @@ act, like opening one — the permission floor leaves closing open everywhere, d
 work commits the owner's future attention, closing it releases attention already committed. But
 **propose the batch and the criteria**; do not close silently.
 
+### An Issue that promises an invocable artifact declares it, and does not close while it is missing
+
+**A closing keyword is not evidence.** `Closes #NNN` fires on merge and knows nothing about whether
+the thing the Issue promised exists. Measured (#337): **three Issues closed with their operable half
+unbuilt** — #313 shipped `docs/blueprint-registry.md` and closed with `/blueprint` non-existent, twice;
+#326 shipped the iteration rules and created none of the objects they operate on; #431 shipped a
+truth-fix against a ratified ask for a detector nobody built. Each was found because the owner asked.
+
+**So the promise is written into the Issue body as a field, at column 0**, and the field name is a
+parsing contract read literally by `hooks/scripts/closure-artifact-guard.sh`:
+
+```
+invocable: /blueprint                    a plugin identifier a reader can type
+invocable: hooks/scripts/detector.sh     a repo-relative path
+invocable: none                          this Issue promises nothing invocable
+invocable-waived: /blueprint <reason>    the promise was narrowed, and here is why
+```
+
+**Who writes it: the lane's own intake, when it closes the description** — the same act, no new state
+and no new label. `/none` is a real answer and the common one; the field exists so that *promised* and
+*promised nothing* stop looking alike.
+
+**What it buys, and the two facts that bound it — both measured, neither assumed.** A manual
+`gh issue close` on an Issue with an unmet declaration is **refused**. A close by closing keyword is
+**executed by the forge on merge**, so nothing in this harness can refuse it — that case is *reported*
+at the end of the turn instead, one turn late, exactly the class `zombie-loop-detect` is. And the
+promise is **declared, never derived**: deriving it from prose was measured over twenty closed Issues
+and produced eleven unresolved identifiers with **zero** true positives, which is a gate that reddens
+on honest work until someone loosens it into nothing.
+
+**The limit, stated wherever the rule is:** an Issue that declares nothing is invisible to the guard,
+and nothing mechanical forces the declaration. **The scope is Issues promising an invocable artifact
+and nothing wider** — a `content` Issue closes on a published article and a record Issue on a merged
+record; neither is this rule's business, and both answer `invocable: none` if they are closed by hand
+at all.
+
 ## Review does not open work
 
 **Only the owner decides what enters the queue.** A REVIEW never files: an agent that turns its own
