@@ -196,12 +196,17 @@ fi
 # ── 6 · SessionStart REPORTS and never blocks ───────────────────────────────────────────────────
 # Measured against the shipped bundle: SessionStart cannot deny. An arm that expected it to would be
 # asserting something the harness cannot do.
+# TWO arms, not one, and the split was found by mutating rather than by reading. The first draft
+# asserted "exits 0 even with a finding" using the interactive-bypass payload — whose finding is
+# REPORT-ONLY. So a mutation that made SessionStart exit 2 on a BLOCKING finding left this arm green:
+# the arm named the property and did not exercise it. The second arm below is the one that does.
 r="$(run "$P_SS_BYPASS")"
 if [ "${r%%|*}" = "0" ]; then
-  ok "SessionStart — exits 0 even with a finding (it cannot block; pretending otherwise is theatre)"
+  ok "SessionStart — exits 0 with a report-only finding"
 else
   bad "SessionStart — exited ${r%%|*}, expected 0"
 fi
+
 case "$r" in
   0*additionalContext*) ok "SessionStart — emits a SessionStart additionalContext payload" ;;
   *) bad "SessionStart — no additionalContext emitted for a reportable finding: $r" ;;
@@ -216,6 +221,15 @@ if [ "$r" = "0||" ]; then
   ok "SessionStart (control) — silent on a healthy tree"
 else
   bad "SessionStart (control) — emitted something on a healthy tree: $r"
+fi
+
+r="$(run "$P_SS_CLEAN" "$JQLESS")"
+if [ "${r%%|*}" = "0" ]; then
+  ok "SessionStart — exits 0 with a BLOCKING finding too (it cannot deny; pretending otherwise is theatre)"
+else
+  bad "SessionStart — exited ${r%%|*} on a blocking finding. Measured against the shipped bundle, a
+      SessionStart hook cannot deny: its blockingError becomes context text. A control that looks like
+      enforcement on an observe-only event is the exact defect this hook was placed to avoid."
 fi
 
 # ── 7 · THE NOTICE SURVIVES A MISSING jq, WHICH IS THE CASE IT EXISTS FOR ───────────────────────
