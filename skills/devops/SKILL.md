@@ -388,7 +388,13 @@ layer only adds autonomy. **Never `--dangerously-skip-permissions`.**
 **Enforcement = static deny + the guard hook.** Static allow/deny covers every case where the target is
 visible in the command string. The `PreToolUse` guard hook (`hooks/permission-guard.sh`, matcher `Bash`)
 is the backstop for the irreversible floor in every repo regardless of model — inspects the command
-string only, fails open on a parse error by design. **It is deliberately branch-agnostic**: no `git
+string only, fails open on a parse error by design. **One rule is excepted, and only one: the merge
+floor (rule 7c) fails CLOSED since 2026-08-28** — if it cannot READ the gatekeeper's verdict on the PR
+(no `gh`, no network, expired auth, a PR ref resolving to nothing), the merge is denied with a message
+naming which precondition was missing, rather than passing silently. The owner's rule for that case is
+*no readable verdict, no merge*, and the unblock is his. **Do not read that as the guard's general
+posture** — everything else here still fails open, and the criterion for the exception is that this one
+rule's degradation lands on the irreversible act itself. **It is deliberately branch-agnostic**: no `git
 branch`/`rev-parse` call, no environment-name matching, so the same hook is correct under both models —
 a branch-dependent rule belongs in the repo's own `settings.json`, never the shared hook.
 

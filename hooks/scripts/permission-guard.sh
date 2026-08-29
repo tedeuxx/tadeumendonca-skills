@@ -81,7 +81,25 @@
 #
 # ── THE FAIL-OPEN CONTRACT, AND WHY IT SURVIVED THE INVERSION ────────────────────────────────────
 # Contract: receives the PreToolUse JSON on stdin; denies by printing a permissionDecision JSON and
-# exiting 0. **Fails OPEN (allows) on any parse error, a missing `jq`, or no network.**
+# exiting 0. **Fails OPEN (allows) on any parse error, a missing `jq`, or no network — EXCEPT rule 7c,
+# the merge floor, which fails CLOSED since 2026-08-28 (#341).**
+#
+# ONE EXCEPTION, AND THE CRITERION FOR IT IS NOT "IMPORTANCE" — IT IS WHAT THE FAIL-OPEN LANDS ON.
+# Rule 7c is the only rule here whose degradation admits the IRREVERSIBLE act itself: it guards the
+# merge, and an unreadable verdict used to clear it silently. Every other control in this file degrades
+# into something still catchable downstream, so the wedging argument below still governs them. The
+# owner's decision (#341) was «deveria travar», asked about the merge floor and answered about the
+# merge floor — **do not read it as a licence to flip any other rule, here or in another hook.** That
+# generalisation is #342, a separate Issue with a separate decision that has not been taken.
+#
+# WHAT THE EXCEPTION COSTS, NAMED: rule 7c can now wedge the gatekeeper. With no network, the one
+# persona allowed to merge cannot merge, and no command it can run repairs that. That is the accepted
+# trade — a merge deferred costs a retry, a merge admitted costs the whole control — and the deny says
+# which precondition was missing so the human can see what to fix.
+#
+# AND ONE THING IT DOES NOT BUY: a missing `jq` still disables this ENTIRE file at line ~114 below,
+# before any rule runs, so 7c's own `jq` branch cannot fire. That is a different failure with a wider
+# blast radius, explicitly out of #341's scope, and it is unfixed. See rule 7c's own comment.
 #
 # ~~because settings.json `deny` is the authoritative backstop~~ — **that justification is GONE.** It was
 # the reason failing open was nearly free, and it stopped being true when the semantic cases migrated
@@ -1041,11 +1059,45 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
       # byte-identical, the same way it already does for `gh_repo_flag`, so a marker-format change in
       # one cannot silently leave the other reading a shape that no longer exists.
       #
-      # FAILS OPEN, matching this file's own stated policy at its header ("Fails OPEN … on any parse
+      # ── FAILS CLOSED SINCE 2026-08-28 (#341), AND IT IS THE ONLY RULE IN THIS FILE THAT DOES ──────
+      # ~~FAILS OPEN, matching this file's own stated policy at its header ("Fails OPEN … on any parse
       # error, a missing jq, or no network"): no `gh`/`jq` on PATH, or an empty/unreadable response,
       # degrades to 7b's identity check alone — this sub-rule adds nothing, denies nothing, and the
       # merge proceeds exactly as it did before this rule existed. An unavailable answer is not a
-      # finding, the same distinction session-wip.sh's own comment makes for the same read.
+      # finding, the same distinction session-wip.sh's own comment makes for the same read.~~
+      #
+      # **STRUCK on the owner's decision (#341): «deveria travar» — no readable verdict, no merge.**
+      # The argument is not that the fail-open reasoning above was wrong in general; it is that this
+      # arm is the one place where the fail-open lands on the IRREVERSIBLE act. Every other control in
+      # this file degrades into something a later step can still catch; this one degraded into a merge,
+      # and it did so EMITTING NOTHING — so a merge with no gate was indistinguishable, in the
+      # transcript and in the PR, from a merge with a clean one. The unblock is manual and the owner's.
+      #
+      # THE READ COLLAPSED TWO DIFFERENT FACTS INTO ONE EMPTY STRING, which is what made the fix a
+      # one-case split rather than an architecture change: *the read succeeded and found no verdict*
+      # (already denied, the `none` arm) and *the read never happened*. The second now has its own
+      # sentinel, `qa_unavailable`, set before the `case` is ever reached, and every branch of it —
+      # absent `gh`, absent `jq`, a failed API call, expired auth, a rate limit, a PR reference that
+      # resolves to nothing — denies with a message naming WHICH precondition was missing. A deny that
+      # is silent about why trades one invisible failure for another.
+      #
+      # WHAT THIS DOES **NOT** CHANGE, STATED SO THE SCOPE IS NOT READ WIDER THAN THE DECISION.
+      #   · The owner was asked about the MERGE FLOOR and answered about the merge floor. The rest of
+      #     this file, and every other hook in `hooks/scripts/` that asks the world a question, is
+      #     unchanged and still fails open. That generalisation is its own Issue (#342) with its own
+      #     decision, and it is deliberately not taken here.
+      #   · The file header's fail-open contract still governs everything else; it now names this arm
+      #     as its one exception rather than being quietly contradicted by it.
+      #
+      # THE `jq` BRANCH BELOW IS UNREACHABLE TODAY, AND IT IS WRITTEN ANYWAY — NAMED, NOT HIDDEN.
+      # A missing `jq` never gets this far: line ~114 parses `.tool_input.command` with `jq` and
+      # `exit 0`s on an empty result, so one absent `jq` disables the ENTIRE floor, not one arm of it.
+      # That is a different failure with a different blast radius, it was explicitly excluded from
+      # #341's decision, and it is not fixed here. Measured at this file's head: with `jq` off `PATH`
+      # this hook emits nothing at all and the merge proceeds. `deny()` itself is built on `jq -n`, so
+      # even the deny below could not be printed without it — closing this branch means changing how
+      # every rule in this file refuses, which is exactly the blast radius the owner did not decide.
+      # The branch stays because it is two lines and it is correct the moment line ~114 is fixed.
       # THE REPO FLAG IS READ POSITION-AGNOSTICALLY, and that is a FIX, not a widening (2026-08-23).
       #
       # The extraction here used to be anchored `^gh <flag> <value> pr merge` — the flag BEFORE the
@@ -1090,12 +1142,26 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
       case "$qa_ref" in -*|'') qa_ref="" ;; esac
       qa_repo="$(printf '%s' "$bare" | sed -nE 's/.*[[:space:]](-R[[:space:]=]*|--repo[[:space:]=]*)([^[:space:]]+).*/\2/p')"
       qa_pr_json=""
-      if command -v gh >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+      # `qa_unavailable` IS THE SENTINEL THE OLD `''` ARM DID NOT HAVE. Non-empty means "the read did
+      # not happen", and it carries the reason in the words the deny message needs — one string per
+      # cause, so the message attributes rather than shrugging.
+      qa_unavailable=""
+      if ! command -v gh >/dev/null 2>&1; then
+        qa_unavailable="the 'gh' CLI is not on PATH, so the verdict comment on the PR cannot be read at all"
+      elif ! command -v jq >/dev/null 2>&1; then
+        qa_unavailable="'jq' is not on PATH, so the verdict comment cannot be parsed"
+      else
         if [ -n "$qa_repo" ]; then
           qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --repo "$qa_repo" --json headRefOid,comments 2>/dev/null || true)"
         else
           qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --json headRefOid,comments 2>/dev/null || true)"
         fi
+        if [ -z "$qa_pr_json" ]; then
+          qa_unavailable="'gh pr view ${qa_ref:-<the current branch>}${qa_repo:+ --repo $qa_repo}' returned nothing — no network, missing or expired auth, a rate limit, or a PR reference that resolves to no pull request"
+        fi
+      fi
+      if [ -n "$qa_unavailable" ]; then
+        deny "Blocked: the merge floor could not READ your gate verdict, and since #341 that denies instead of passing — ${qa_unavailable}. This is NOT a finding about the PR: the floor is not saying your verdict is wrong, it is saying it could not confirm one exists on the current head, and the owner's rule for that case is 'no readable verdict, no merge'. Fix the precondition named above and run this again — check 'gh auth status', check the network, and check that the PR reference in this command names a real pull request in the intended repo. If it cannot be fixed from here, the unblock is manual and the owner's: hand him the PR and say which precondition was missing."
       fi
       if [ -n "$qa_pr_json" ]; then
         # ── BEGIN duplicated from session-wip.sh's verdict_suffix() — keep byte-identical ──
@@ -1132,8 +1198,16 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
         # the PR's own plan is the preview the single-environment argument says does not exist), and
         # an explicit lens ESCALATE. See `agents/quality-assurance.md`'s "Classify — who may merge"
         # section for the list this hook is the floor under.
+        # THE EMPTY CASE LEFT THIS ARM AT #341 AND NOW DENIES ON ITS OWN.
+        # ~~`APPROVE-AND-MERGE|APPROVE-AND-MERGE-BOUNDARY|'') : ;;  # … OR the read produced nothing — fail open~~
+        # `''` is NOT "no verdict" — that is `none`, and it has denied since 7c existed. `''` is what
+        # the extraction above returns when the response carried no `headRefOid`, or when `jq` itself
+        # failed on it: a THIRD flavour of "could not read", reached after `gh` answered, so
+        # `qa_unavailable` above never sees it. It gets its own arm and its own message, because a
+        # response with no head is a different repair from an absent `gh`.
         case "$qa_verdict" in
-          APPROVE-AND-MERGE|APPROVE-AND-MERGE-BOUNDARY|'') : ;;  # clear to merge, OR the read produced nothing — fail open
+          APPROVE-AND-MERGE|APPROVE-AND-MERGE-BOUNDARY) : ;;  # clear to merge — the two authorising literals, spelled out, never globbed
+          '') deny "Blocked: the merge floor read a response for this PR but could not determine its CURRENT head, so it cannot tell whether any verdict applies to the code that is there now — and since #341 an unreadable verdict denies rather than passing. Either 'gh pr view' returned a payload with no headRefOid (a partial or error response), or parsing it failed. Re-run 'gh pr view <ref> --json headRefOid,comments' by hand and see what comes back; if the PR is real and reachable, this is a finding about the tooling, not about your review. The unblock is manual and the owner's." ;;
           *) deny "Blocked: the last quality-assurance verdict on this PR's CURRENT head is '${qa_verdict}', which is neither APPROVE-AND-MERGE (safe class) nor APPROVE-AND-MERGE-BOUNDARY (boundary class, merged by the gate since ADR-0002 amendment #16) — so this merge does not match its own review record (ADR-0004). This is not a caller problem: rule 7b already confirms you are quality-assurance. It means either the head moved since that verdict was posted, the verdict was never re-posted after a later round, or the literal drifted from the one 'Your verdict — exactly one of' in your own brief defines. Post a correct verdict against the CURRENT head before merging — or, if this is one of the four holds that survive (an expansion of your own authority, a harness diff with no agents-lead marker, anything in iac/, or a lens ESCALATE), never call this tool: APPROVE-PENDING-HUMAN and hand the go/no-go to the human." ;;
         esac
       fi
