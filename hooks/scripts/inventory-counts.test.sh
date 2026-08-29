@@ -5640,6 +5640,7 @@ else
     'from EVIDENCE rather than reconstruction' \
     'a mutation probe left APPLIED to' \
     '**The failure class is invisible to git by construction**' \
+    'an EVENT is dated from the artifact that reports it' \
     'and a MEASUREMENT from the day it was run' \
     '**Layer 3 — what remains unrecorded, stated so nobody mistakes layer 2 for it.**' \
     '#### `wip-guard.sh` does NOT enforce WIP=1, and a reader who thinks it does is wrong about what protects them' \
@@ -5662,9 +5663,19 @@ else
       concedes it has no instrument, and nothing would say an item was dropped. INVISIBLE-TO-GIT is
       why neither item can ever be more than a report: an uncommitted edit on a shared tree leaves no
       commit, no diff and no ref, so the absence of an instrument reading is a property of the failure
-      rather than a shortfall of the record. MEASUREMENT-FROM-THE-DAY is the dating rule this section
-      needed after nine dates were taken from the authoring session's clock and post-dated the owner
-      comment they cite; an event is dated from the artifact reporting it.
+      rather than a shortfall of the record. THE DATING RULE IS TWO NEEDLES AND BOTH ARE REQUIRED,
+      because it is two clauses and only one of them ever failed. AN-EVENT-IS-DATED is the half that
+      prevents the defect actually paid for: dates taken from the authoring session's clock, post-dating
+      the very comment they cite. AND-A-MEASUREMENT is the half nobody would get wrong. For one round
+      only the second was needled, so the clause that carries the rule could be deleted with the whole
+      suite green — a presence check pointed at the half that never fails, which is precisely the row
+      0007 shape this slice exists to close, reproduced inside it. It was found by EXECUTION, not by
+      reading: delete the event clause alone and the arm passed.
+      A COROLLARY WORTH MORE THAN THE FIX. The mutation offered as proof of this arm (M9) deletes the
+      MEASUREMENT clause, so it reddened on the half that was never at risk and demonstrated nothing
+      about the half that was. A mutation that passes for the wrong reason is worse than an absent one,
+      because it is presented as evidence. When a needle covers a rule with more than one clause, mutate
+      EACH clause separately or say plainly which one the mutation proves.
       LAYER 3 is the one that matters most: without it the owner's quoted intent and the reported
       failures blur into a single claim, and the record reads as a rationale he gave. He gave none —
       #88 rejects a count, the 2026-08-13 correction imposes one, the 2026-08-29 answer keeps it while
@@ -5680,7 +5691,7 @@ else
       nothing and the null result reads as an absence rather than as a broken needle.
       If this is a deliberate rewording, update the needles in this file in the same commit."
   else
-    ok "wip-recording — the preload carries the three-layer record with both evidence items labelled reports, the dating rule, both measurements, the moment-not-matcher reason and the held-by-instruction admission"
+    ok "wip-recording — the preload carries the three-layer record with both evidence items labelled reports, BOTH clauses of the dating rule, both measurements, the moment-not-matcher reason and the held-by-instruction admission"
   fi
 fi
 

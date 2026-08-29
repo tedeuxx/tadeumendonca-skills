@@ -3163,12 +3163,16 @@ is the honest form and the one the struck clause failed to take.
   measurement from the day it was run** — is now written in the carrier, where the next author meets
   it. Nothing enforces it and no instrument can: a plausible date is indistinguishable from a true one
   to every check in this repository.
-- **The review's enumeration of that defect was itself short, and the correction is the general one.**
-  It named nine occurrences; selected by the criterion above rather than by that list, the set is
-  **eleven** — the ninth-and-tenth being layer 1's own closing sentence in the carrier and the two
-  restatements in this library's index row, neither of which the enumeration reached. **No count is
-  published beside the rule**, deliberately: a count is a claim about a set, and it was the count that
-  was wrong both times. State the criterion, and let whoever needs the members re-derive them.
+- **Every enumeration of that defect has been short, including this record's own, and that is the
+  finding rather than an aside.** The review named a set; the correction named a larger one and **got
+  its own arithmetic wrong** — two slots claimed, three items listed, and a fourth occurrence in this
+  amendment's own *Considered options* paragraph corrected in the same commit without appearing in
+  either list. **So no count is published beside the rule at all.** Selected by the criterion above —
+  *every date naming the owner's answer or the collision* — the members are mechanically re-derivable
+  by anyone, in either tree, at any head; the chewed total is the only part that was wrong, and it was
+  wrong every time it was stated. **This bullet is the one place in the round that did not follow the
+  rule the bullet above it states**, which is why it is written as a correction rather than as a
+  reflection.
 - **The same phrase-keyed coupling as the last five amendments.** The new arm keys on sentences, so
   rewording reddens the gate and whoever rewords edits the needles in the same commit.
 - **Nothing observes WIP.** A session that ran two slices in one checkout and one that ran one are
