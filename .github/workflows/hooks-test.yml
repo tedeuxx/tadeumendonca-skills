@@ -132,6 +132,13 @@ jobs:
       - name: Run the closure-artifact-guard suite
         run: bash hooks/scripts/closure-artifact-guard.test.sh
 
+      # Same rule again, in the same slice as the hook (#342). This one has a sharper reason than
+      # habit: `preflight.sh` is the only script here that can REFUSE A PROMPT, so a regression in it
+      # does not degrade a control — it wedges the session. A suite for that which runs only when
+      # somebody remembers is worse than none, because it reads as covered.
+      - name: Run the preflight suite
+        run: bash hooks/scripts/preflight.test.sh
+
       - name: Assert every hook script is committed executable
         run: bash hooks/scripts/hooks-executable.test.sh
 

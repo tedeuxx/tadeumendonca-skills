@@ -941,10 +941,12 @@ in `/devops`. This is the pointer, not the copy.
 
 ## The hooks, and what they refuse
 
-Claude Code exposes **31 hook events**. This repo wires **four**, and the picture draws all of them so the
-unused surface is visible rather than unmentioned — the four in use are filled, the other twenty-seven are
+Claude Code exposes **31 hook events**. This repo wires **five**, and the picture draws all of them so the
+unused surface is visible rather than unmentioned — the five in use are filled, the other twenty-six are
 not. `Stop` joined 2026-08-20 (#294) — it sits in the deny-capable group with `PreToolUse`, but the hook
-wired to it never uses that half; see the row below.
+wired to it never uses that half; see the row below. **`UserPromptSubmit` joined 2026-08-29 (#342), and it
+is the first event wired here for the sole reason that it can deny**: the preflight it carries had to
+refuse, `SessionStart` cannot, and no other event fires before a session does anything.
 
 **The split that matters is not used-versus-unused, it is whether an event can deny at all.** A control
 placed on an observe-only event looks like enforcement and is not, and that mistake stays invisible until
@@ -958,7 +960,7 @@ flowchart LR
   subgraph BLOCK["events that can DENY the action"]
     direction TB
     E1["PreToolUse"]
-    E2["UserPromptSubmit"]:::idle
+    E2["UserPromptSubmit"]
     E3["UserPromptExpansion"]:::idle
     E4["PermissionRequest"]:::idle
     E5["PermissionDenied"]:::idle
@@ -990,12 +992,16 @@ flowchart LR
   H11["dispatch-premise-guard"]
   H12["closure-artifact-guard<br/>(refuses a manual close)"]
   H13["closure-artifact-guard<br/>(reports one already closed)"]
+  H14["preflight<br/>(refuses a degraded session)"]
+  H15["preflight<br/>(reports at the door)"]
 
   E1 --> H1
   E1 --> H2
   E1 --> H8
   E1 --> H11
   E1 --> H12
+  E2 --> H14
+  O1 --> H15
   O1 --> H3
   O1 --> H4
   O4 --> H5
@@ -1005,17 +1011,17 @@ flowchart LR
   E6 --> H10
   E6 --> H13
 
-  class E1,O1,O4,E6 used
+  class E1,E2,O1,O4,E6 used
 ```
 
 | event | when it fires | denies? | hooks wired here | purpose |
 |---|---|---|---|---|
 | **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard`, `wip-guard` (matcher `Bash`) · `orchestrator-write-guard` (matcher `Edit\|Write\|MultiEdit\|NotebookEdit`) · `dispatch-premise-guard` (matcher `Agent`) · `closure-artifact-guard` (matcher `Bash`) | refuse the irreversible floor and a PR that overlaps an open one, *before* either happens — refuse the main agent's own edits inside a git working tree, which is a ROUTING rule rather than a floor one (#319) — refuse a dispatch whose brief stamps a repository state that is not true, verified in the repository the brief's own citations resolve to rather than in `cwd` (#326) — and refuse `gh issue close` on an Issue whose own body declares an invocable artifact that does not resolve in this tree (#337) |
-| **`SessionStart`** | a session begins or resumes | no | `session-wip`, `session-plugin-version` | inject the open queue, and warn when the installed build is not the merged one |
+| **`SessionStart`** | a session begins or resumes | no | `preflight`, `session-wip`, `session-plugin-version` | say at the door that the session is degraded and will be refused at the first prompt — inject the open queue — and warn when the installed build is not the merged one |
 | **`SubagentStart`** | a subagent is dispatched | no | `dispatch-metrics-start` | best-effort dependency probe only — see below; does not post |
 | **`SubagentStop`** | a subagent finishes | no | `dispatch-metrics-stop` | log rework rounds, time, output size and token cost for the dispatch as a structured Issue comment (#209) |
 | **`Stop`** | the main agent's turn ends | **yes, but no hook here uses that half** | `zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard` | detect (never prevent) an outstanding gate verdict left unaddressed at turn end — one turn late instead of one session late (#294) — report what the main agent did with its own hands, write/post class separated from reads (#319) — flag a PR link handed to the owner for a PR that is not open, green and `APPROVE-PENDING-HUMAN` (#327) — and report an Issue that is ALREADY closed with a declared invocable artifact missing, which is the only surface that reaches the closing-keyword route at all (#337) |
-| `UserPromptSubmit` | a prompt is submitted, before processing | **yes** | — | |
+| **`UserPromptSubmit`** | a prompt is submitted, before processing | **yes** | `preflight` | refuse to process anything while the guards' own preconditions are absent — an interpreter a registered hook reaches for missing from `PATH`, a registered script absent or without its execute bit, or a headless session running with the static deny layer off (#342) |
 | `UserPromptExpansion` | a typed command expands, before it reaches the model | **yes** | — | |
 | `PermissionRequest` | a call needs a permission decision | **yes** | — | |
 | `PermissionDenied` | a call is denied by the classifier | **yes** | — | |
@@ -1058,6 +1064,11 @@ does not degrade at all.
   landed on the irreversible act itself, and it landed silently. **The `jq` case above is NOT excepted
   and is the honest edge of this**: a missing `jq` disables the whole file before any rule runs, so the
   merge floor's own `jq` branch never fires. Everything else here still fails open, deliberately.
+  **What changed on 2026-08-29 (#342) is not that any of them fails closed — it is that the SESSION
+  does.** `preflight.sh` refuses at `UserPromptSubmit` while a precondition of the registered set is
+  absent, so the fail-open remains the design and the *silence* around it does not. Read the
+  exception list above as unchanged: one rule fails closed, the rest fail open, and now nothing is
+  supposed to reach them in that state.
 
 `permission-guard` denies the irreversible floor before the command runs. `wip-guard` refuses a pull
 request that touches files an open one already touches — the bound is file overlap, not a count, because
@@ -1098,6 +1109,41 @@ allows the orchestrator. A hook sees `grep` and a path, never whether the answer
 subagent's return; and denying the comment routes would leave an intake finding with no durable
 artifact, since at intake there is frequently no PR and `product-lead` holds no `Write` at all. That
 half is a **habit**, observed by the census and enforced by nobody.
+
+`preflight` is the newest and the only one that stops the session rather than an action (#342). Every
+other hook here fails open on a missing dependency and says nothing — `permission-guard.sh` reads its
+payload with `jq` and exits before rule 1 when `jq` is absent, so one binary off `PATH` silently
+disables the merge floor, the trunk-push floor, `terraform apply`, force-push, `rm -rf`, secret writes
+and every persona boundary at once. The owner ruled it **blocking**, in one word, with the cost named
+first. **Where it is registered was a measurement, not a preference**: `SessionStart` cannot deny — in
+the shipped bundle a `SessionStart` hook's `blockingError` is pushed into the session's context as
+*text*, and the event sits in that bundle's own non-blocking set — while `UserPromptSubmit` blocks for
+real. So the block lives at `UserPromptSubmit` and the *notice* lives at `SessionStart`, which is where
+a human sees it before typing. Wiring it the other way round would have produced a control that reads
+as enforcement and is not, which is the mistake this whole section is organised around.
+
+**What it requires is DERIVED, never listed.** It reads `hooks.json` for the registered scripts and
+those scripts for the `command -v <x>` they reach for, so adding a hook that needs a new binary makes
+that binary required with no edit anywhere. A written-down list would be a second source of truth
+drifting away from the guards it protects — the owner said so explicitly when he ruled.
+
+**Three refusals and one report, and the split is where the composition risk was handled.** It blocks
+on a missing interpreter, on a registered script that is absent or not executable, and on a *headless*
+session running with the static deny layer off (`permission_mode` = `bypassPermissions` and prompt
+`source` = `sdk`, both read straight off the payload). It only **reports** the same bypass when a human
+is present: blocking there would confiscate the mode a container factory needs and teach a bypass,
+and the person reading the warning is the person who typed the flag. **It deliberately does NOT block
+on the installed-versus-merged version drift**, though the Issue proposed it — that drift is the normal
+state of this repo (a release publishes on every merge), so refusing on it would refuse nearly every
+session, and `session-plugin-version` already reports it.
+
+**What it cannot catch, stated because a false reassurance is what it replaces.** `gh` on `PATH` is not
+`gh` authenticated, and auth expires mid-session — #341's fix, the merge floor denying when it cannot
+*read* the gatekeeper's verdict, is not subsumed by this and must not be. It cannot see whether the
+`deny` list was loaded; `permission_mode` is the closest observable. It does not fire for a dispatched
+subagent. And if `hooks.json` never registered at all — the container case nobody has measured — this
+file never runs, and its silence is indistinguishable from a clean pass. That last one is unfixable
+from inside a hook, by construction.
 
 `dispatch-premise-guard` (#326) is the only hook wired to the **dispatch** tool, and it denies a
 dispatch whose brief stamps a repository state that is not true right now. It exists because two leads
@@ -1178,7 +1224,7 @@ by hand:
 | **Skills** | yes — **14** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **4** (`autonomy-on`, `autonomy-off`, `new-issue`, `blueprint`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **7 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`) | dispatched by name via `Task` |
-| **Hooks** | yes — **`hooks.json` registers 13** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `orchestrator-write-guard`, `dispatch-premise-guard`, `closure-artifact-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **13 registrations over 12 scripts**: `closure-artifact-guard` is registered twice, on the two events its two arms need, and that is why the registration count is the honest number rather than a file count |
+| **Hooks** | yes — **`hooks.json` registers 15** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `orchestrator-write-guard`, `dispatch-premise-guard`, `closure-artifact-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **15 registrations over 13 scripts**: `closure-artifact-guard` and `preflight` are each registered twice, on the two events their two halves need, and that is why the registration count is the honest number rather than a file count |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
 | LSP servers | **no** | — | no `.lsp.json` |

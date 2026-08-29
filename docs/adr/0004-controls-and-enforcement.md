@@ -1952,6 +1952,139 @@ look identical from outside**. And the scope is deliberately narrow: Issues prom
 artifact, not every Issue type — a `content` Issue closes on a published article and a record Issue on a
 merged record, and neither is this control's business.
 
+## Amendment (2026-08-29) — the layer that can refuse a SESSION, and why the generalisation of #341 is not what it looked like (#342)
+
+**Decision: a `UserPromptSubmit` hook refuses to process anything while a precondition of the
+registered guard set is absent.** Carried by `hooks/scripts/preflight.sh`, registered twice — the
+refusal on `UserPromptSubmit`, the notice on `SessionStart`. The owner ruled it **blocking**, in one
+word — *«bloqueante»* — with the cost named to him first: a missing dependency and no work happens
+until it is fixed.
+
+### The problem #341 left open, and the shape it turned out to have
+
+The 2026-08-28 amendment made the merge floor fail **closed** and said in as many words that *"the
+generalisation across the rest of the guard set is #342 and is deliberately NOT taken here."* Taking
+it now, the generalisation is **not** *"make the other rules fail closed too"*, and that reframing is
+the substance of this amendment.
+
+The measured cause is upstream of every rule. `permission-guard.sh` reads its payload with `jq` and
+exits on an empty read, so **one missing binary disables every rule in the file before rule 1 is
+reached** — the merge floor's own new fail-closed branch included. Flipping arms inside a guard that
+never runs buys nothing. The failure is not per-rule; it is per-**session**, and the only control that
+can address a per-session failure is one that refuses the session.
+
+### Which layer can hold it — the standing question, and the answer was a measurement
+
+The Issue asks for a *startup* preflight. **`SessionStart` cannot deny.** Measured against the shipped
+bundle (Claude Code 2.1.251,
+`/opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe`):
+
+| event | what the bundle does with a hook that wants to stop things |
+|---|---|
+| `SessionStart` | a hook's `blockingError` is **pushed into the session's context messages** — it becomes text. The event sits in the bundle's own non-blocking set, alongside `Notification`, `SessionEnd`, `Setup`, `SubagentStart`, `PostToolUseFailure`. |
+| `UserPromptSubmit` | blocks for real: `getUserPromptSubmitHookBlockingMessage`, `"UserPromptSubmit operation blocked by hook:"`, `"blocked by a UserPromptSubmit hook"`, `"Prompt blocked: the UserPromptSubmit hooks did not run over the submitted text."` |
+
+This agrees with `README.md`'s own event table, which already published *denies? no* for
+`SessionStart`; the bundle read is the evidence behind that row rather than a second opinion. So the
+control splits by capability, not by preference: **the block lives where blocking works, the notice
+lives where a human reads it before typing.** Wiring it the other way round would have produced the
+exact defect that section of the README exists to name — a control on an observe-only event, which
+looks like enforcement and is not, and stays invisible until somebody tests it.
+
+**A property that was not asked for and is worth more than the door check.** `UserPromptSubmit`
+re-evaluates every turn, so a degradation appearing **mid-session** — `PATH` changed, a binary
+removed, a plugin update that lands a hook without its execute bit — is caught at the next prompt. A
+literal door check could not see any of that.
+
+### What blocks, and the two things that deliberately do not
+
+Blocking: an interpreter a registered hook reaches for is missing from `PATH`; a script `hooks.json`
+registers is absent or without its execute bit; a **headless** session running with the static deny
+layer off (`permission_mode` = `bypassPermissions` **and** prompt `source` = `sdk`, both read straight
+off the payload — the bundle documents `sdk` as *"non-interactive entrypoint (`-p` / Agent SDK)"*).
+
+**Reported, not blocked — the same bypass with a human present.** Blocking there would confiscate the
+one mode a headless worker fleet needs, and the person who would read the warning is the person who
+typed the flag that produced it.
+
+**Reported by another mechanism, and deliberately not made blocking here — the installed-versus-merged
+version drift**, which the Issue proposed as the third precondition. Measured at authoring time: the
+installed marketplace build was `1.1.35` against a source of `1.1.43`, and this repo publishes a
+release on **every** merge to `main`, so the install lagging the source is the **normal** state rather
+than the exceptional one. **A blocking control that fires routinely is not a stricter control; it is a
+control people learn to route around**, and a routed-around floor is worse than an honest warning.
+`session-plugin-version.sh` already reports this, and one fact deserves one reader.
+
+**That distinction is the general rule this amendment adds to the layer question**: before placing a
+control, ask not only *can this layer hold it* but *how often will it fire, and does the answer make
+holding it survivable*. A control whose trigger refills from ordinary work fails that test even when
+the layer passes.
+
+### The requirement set is derived, never listed
+
+The preflight reads `hooks.json` for the scripts it registers, and those scripts for the
+`command -v <x>` they reach for. Adding a hook that needs a new binary makes that binary required with
+no edit to the preflight. The owner's instruction was explicit — a written-down list is a second
+source of truth drifting away from the guards it protects — and the suite asserts the derivation by
+inventing a dependency in a scratch plugin and requiring the refusal to name a binary whose name
+appears nowhere in `preflight.sh`.
+
+### It fails CLOSED on its own bootstrap dependencies — alone in this harness
+
+`grep`, `awk` and `sort` are what the derivation itself needs. Without them the script cannot tell a
+healthy harness from an inert one, so it refuses rather than reporting clean. This is the only place
+here that fails closed on its own dependency, and it is defensible **because** it is the only one: it
+denies a prompt, never an irreversible act, and the repair is a `PATH` fix outside the session.
+
+**Its own first draft got this wrong and its own suite caught it.** The draft resolved its directory
+with `dirname` and read stdin with `cat`; on a `PATH` without coreutils it died at `dirname` and
+exited 0 — **failing open, reproducing the exact defect it exists to remove, inside the fix for it.**
+Payload parsing, stdin and directory resolution are now bash builtins. Recorded rather than quietly
+fixed, because it is the sharpest available evidence for why a dependency check must not depend on
+what it checks.
+
+### Consequences still being paid
+
+- **A false positive stops all work.** The owner accepted this. It is survivable only because every
+  blocking class has a repair **outside** the session; no in-session escape hatch exists, and none is
+  offered — an env-var bypass reachable only by relaunching costs the same as the fix and teaches the
+  wrong habit.
+- **A binary on `PATH` is not an authenticated one.** Auth expires mid-session and a preflight cannot
+  see it. #341's fix is **not** subsumed and must not be: that failure arrives at the irreversible act,
+  hours after this check passed.
+- **It cannot observe whether a deny list was LOADED.** A hook receives a payload, not the effective
+  permission set. `permission_mode` is the closest observable, which is why classes C and D read it
+  rather than reading `settings.json` — the file's presence answers a different question from the one
+  that matters.
+- **It does not fire for a dispatched subagent.** `UserPromptSubmit` is a main-thread event.
+- **If `hooks.json` never registered at all — the container case nobody has measured — this never runs,
+  and its silence is indistinguishable from a clean pass.** Unfixable from inside a hook, by
+  construction, and named rather than left to be discovered.
+
+### Rejected here
+
+**1 · A `SessionStart` block.** Not a preference — measured impossible, above.
+
+**2 · Blocking on version drift.** Rejected on the measurement above: it is the normal state, so the
+control would refuse nearly every session.
+
+**3 · Asserting `settings.json`'s `deny` array from disk.** Rejected as the wrong instrument. The file
+existing does not mean it was loaded, and a repo that legitimately has no such file — every consuming
+repo — would be refused. The payload's `permission_mode` answers the question the file only gestures at.
+
+**4 · An acknowledgement escape (`HARNESS_PREFLIGHT_BYPASS=…`).** Rejected: it is set outside the
+session, so it costs the same as the repair while converting a floor into a habit.
+
+### What is NOT decided here, and belongs to whoever builds the container
+
+Whether the plugin's `hooks.json` registers at all in a headless container run, and whether a
+tool-trust flag bypasses a project `settings.json` that IS loaded. Both were named in the Issue as
+load-bearing and unverified, and both remain so — the first is unmeasurable from inside a hook, and
+the second could not be read out of the bundle before the auto-mode classifier refused two of the
+greps that would have settled it. **If hooks do not load in a container, every floor in this repo is
+gone at once and this control with it**, which is the worst possible resolution and the one worth
+measuring before an image is built.
+
 ## Links
 - Driven by ADR-0002 and the Merge Request Definition of Done (record 0003, absorbed 2026-08-19 into
   [ADR-0006](./0006-verification-and-its-artifacts.md)) · consumed per project via
@@ -2002,4 +2135,11 @@ merged record, and neither is this control's business.
   mediates, measured on a week of closes that were all closing-keyword closes — and the two-surface
   split that follows from it (`closure-artifact-guard.sh`, refusing the manual route and detecting the
   automatic one), including the PR → Issue route the owner refused and the prose-derivation the
-  measurement killed, closing #337.
+  measurement killed, closing #337. · amended (2026-08-29) to record the layer that can refuse a
+  **session** rather than an act — a `UserPromptSubmit` hook (`preflight.sh`), chosen because
+  `SessionStart` cannot deny, measured against the shipped bundle — and to take the generalisation the
+  2026-08-28 amendment deferred, in the shape it turned out to have: **not** *make the other rules fail
+  closed*, since a missing `jq` exits the guard before any rule including the new fail-closed one, but
+  *refuse the session while the guard set's preconditions are absent*. The same amendment adds a rule to
+  the layer question — **how often a control fires decides whether the layer can survive holding it** —
+  and records the version-drift precondition as rejected on that rule, closing #342.
