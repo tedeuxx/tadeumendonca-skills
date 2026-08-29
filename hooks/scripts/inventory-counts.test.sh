@@ -5594,6 +5594,141 @@ else
 fi
 
 # ---------------------------------------------------------------------------------------------------
+# WHAT WIP=1 PROTECTS IS RECORDED, AND THE HOOK IS STATED NOT TO ENFORCE IT (#343).
+#
+# WHY THIS EXISTS. WIP=1 stood for sixteen days with no recorded reason. #343 was filed to REVERSE it;
+# the owner declined and re-scoped the Issue to the recording, on the ground that a proposal to relax a
+# rule whose purpose is unwritten cannot be evaluated. ADR-0002's twenty-fifth amendment is the record.
+#
+# WHAT THESE ARMS HOLD, AND IT IS ONLY EVER PRESENCE:
+#
+#   1. THE RECORDING IS IN THE UNIVERSAL PRELOAD, with its THREE-LAYER separation intact, the two
+#      measurements that say `wip-guard.sh` does not enforce WIP=1, the moment-not-matcher reason, and
+#      the plain statement that the rule is held by instruction alone.
+#   2. THE PORTABLE REGISTRY ROW no longer promises the gap away as a pending hook change — asserted in
+#      BOTH directions, since the false clause leaving is the half a presence check cannot see.
+#
+# WHY LAYER 3 IS THE LOAD-BEARING NEEDLE. Layers 1 and 2 are the owner's quoted words and the measured
+# failure. Layer 3 is the sentence saying they are NOT the same claim: what a rule CATCHES is not what
+# its author WANTED caught. Delete it and the record reads as a rationale the owner gave, which he did
+# not — the exact substitution the amendment rejected by name as its third considered option.
+#
+# WHY MOMENT-NOT-MATCHER IS ITS OWN NEEDLE. The twelfth amendment promised the gap away as a
+# `wip-guard.sh` change. That is false: the hook is a PreToolUse on `gh pr create`, the last act of a
+# slice, and the 2026-08-29 failure completed during the build. Without this sentence a later reader
+# re-derives the promise, because "the hook is too weak" is the available reading and it is wrong about
+# WHERE the weakness is.
+#
+# WHAT NO ARM CAN OWN. That any session obeyed WIP=1. Nothing captures how many agents shared a
+# checkout — that is the whole finding, not a gap in this file. A green here means the recording is
+# written down. That is the entire claim.
+#
+# TWO INDEPENDENT `if` BLOCKS, EACH WITH ITS OWN VACUITY GUARD: an arm nested under another emits NO
+# verdict when the one above it goes red.
+WIP343_SKILL="$ROOT/skills/harness-engineering/SKILL.md"
+WIP343_REG="$ROOT/docs/blueprint-registry.md"
+
+# ── 1 · the three-layer recording, the two measurements and the not-engineered admission ──
+wip343_skill_missing=""
+if [ ! -r "$WIP343_SKILL" ]; then
+  bad "wip-recording — skills/harness-engineering/SKILL.md is not readable; what WIP=1 protects cannot
+      be checked at all. This is the preload every persona carries, which is why the recording lives
+      here rather than in narrative prose."
+else
+  for wip343_needle in \
+    '#### What WIP=1 is PROTECTING — recorded 2026-08-29 (#343), because it was never written down' \
+    'from EVIDENCE rather than reconstruction' \
+    'a mutation probe left APPLIED to' \
+    '**The failure class is invisible to git by construction**' \
+    'an EVENT is dated from the artifact that reports it' \
+    'and a MEASUREMENT from the day it was run' \
+    '**Layer 3 — what remains unrecorded, stated so nobody mistakes layer 2 for it.**' \
+    '#### `wip-guard.sh` does NOT enforce WIP=1, and a reader who thinks it does is wrong about what protects them' \
+    '**It bounds concurrency; it has never bounded a count per iteration, and across nine consecutive' \
+    'grep -c worktree hooks/scripts/wip-guard.sh' \
+    'That is a moment problem, not a matcher problem' \
+    '**So: WIP=1 is held by instruction and by nothing else.**' \
+    'it is true of the count half and FALSE of the half that actually cost something.'
+  do
+    grep -qF -- "$wip343_needle" "$WIP343_SKILL" || wip343_skill_missing="$wip343_skill_missing
+    missing: \"$wip343_needle\""
+  done
+  if [ -n "$wip343_skill_missing" ]; then
+    bad "wip-recording — the record of what WIP=1 protects lost a load-bearing part:$wip343_skill_missing
+      FROM-EVIDENCE is layer 2's heading, and it read 'measured rather than reconstructed' for one
+      round — four lines above the sentence conceding the item was a REPORT, and while the record
+      claimed the carrier labelled it as one. A heading that overclaims is worse than a body that
+      does, because the body is what nobody re-reads. MUTATION-PROBE is the second of the two evidence
+      items the owner's own comment enumerates; without it layer 2 stands at n=1 exactly where it
+      concedes it has no instrument, and nothing would say an item was dropped. INVISIBLE-TO-GIT is
+      why neither item can ever be more than a report: an uncommitted edit on a shared tree leaves no
+      commit, no diff and no ref, so the absence of an instrument reading is a property of the failure
+      rather than a shortfall of the record. THE DATING RULE IS TWO NEEDLES AND BOTH ARE REQUIRED,
+      because it is two clauses and only one of them ever failed. AN-EVENT-IS-DATED is the half that
+      prevents the defect actually paid for: dates taken from the authoring session's clock, post-dating
+      the very comment they cite. AND-A-MEASUREMENT is the half nobody would get wrong. For one round
+      only the second was needled, so the clause that carries the rule could be deleted with the whole
+      suite green — a presence check pointed at the half that never fails, which is precisely the row
+      0007 shape this slice exists to close, reproduced inside it. It was found by EXECUTION, not by
+      reading: delete the event clause alone and the arm passed.
+      A COROLLARY WORTH MORE THAN THE FIX. The mutation offered as proof of this arm (M9) deletes the
+      MEASUREMENT clause, so it reddened on the half that was never at risk and demonstrated nothing
+      about the half that was. A mutation that passes for the wrong reason is worse than an absent one,
+      because it is presented as evidence. When a needle covers a rule with more than one clause, mutate
+      EACH clause separately or say plainly which one the mutation proves.
+      LAYER 3 is the one that matters most: without it the owner's quoted intent and the reported
+      failures blur into a single claim, and the record reads as a rationale he gave. He gave none —
+      #88 rejects a count, the 2026-08-13 correction imposes one, the 2026-08-29 answer keeps it while
+      naming an unrelated precondition. The TWO MEASUREMENT needles are what stop a reader inferring
+      that \`wip-guard.sh\` enforces WIP=1: it lists only OPEN PRs, so under WIP=1 it never reaches its
+      overlap loop, and it contains the word 'worktree' zero times, so two agents in one checkout are
+      indistinguishable to it. MOMENT-NOT-MATCHER is why no version of that hook could hold the gap —
+      it fires at \`gh pr create\` and the failure completes during the build. HELD-BY-INSTRUCTION is
+      the admission this loop's own test demands. And the LAST needle is the strike of the twelfth
+      amendment's remedy clause, which promised the gap away as a pending hook change.
+      NOTE ON THE NEEDLES THEMSELVES: every one is a SINGLE-LINE span, checked with \`grep -c -F\`
+      before being written here. \`grep -F\` is line-oriented, so a needle spanning a wrap matches
+      nothing and the null result reads as an absence rather than as a broken needle.
+      If this is a deliberate rewording, update the needles in this file in the same commit."
+  else
+    ok "wip-recording — the preload carries the three-layer record with both evidence items labelled reports, BOTH clauses of the dating rule, both measurements, the moment-not-matcher reason and the held-by-instruction admission"
+  fi
+fi
+
+# ── 2 · the portable registry row states the real limit, in BOTH directions ──
+#
+# THE NEGATIVE HALF IS NOT DECORATION. The row used to end "closing the gap is a change to this hook
+# and is named as owed, not as done" — a promise that the gap had a known remedy and merely needed
+# doing. A presence check cannot see a false sentence that stayed; only asserting its ABSENCE can.
+wip343_reg_problems=""
+if [ ! -r "$WIP343_REG" ]; then
+  bad "wip-recording — docs/blueprint-registry.md is not readable; the portable row for the WIP guard
+      cannot be checked. That row is what another harness reads, so a stale limit there travels."
+else
+  for wip343_reg_needle in \
+    '**It also never runs its own overlap check while that policy is obeyed**' \
+    'A shared *checkout* is not a shared *file*'
+  do
+    grep -qF -- "$wip343_reg_needle" "$WIP343_REG" || wip343_reg_problems="$wip343_reg_problems
+    missing: \"$wip343_reg_needle\""
+  done
+  wip343_dead='closing the gap is a change to this hook and is named as owed, not as done'
+  grep -qF -- "$wip343_dead" "$WIP343_REG" && wip343_reg_problems="$wip343_reg_problems
+    present again, and it is FALSE: \"$wip343_dead\""
+  if [ -n "$wip343_reg_problems" ]; then
+    bad "wip-recording — the portable registry row misstates what the WIP guard cannot do:$wip343_reg_problems
+      The two positive needles are the limits measured on 2026-08-29: the hook never reaches its
+      overlap loop while WIP=1 is obeyed (it lists only OPEN PRs), and it cannot see a shared checkout
+      at all. The negative needle is the clause that was struck — it promised the gap away as a hook
+      change, and no change to that hook can hold it, because it fires at pull-request creation while
+      the failure completes during the build. This row is the surface another harness adopts, so a
+      restored promise there is a false limit exported rather than a local staleness."
+  else
+    ok "wip-recording — the portable row states both measured limits and no longer promises the gap away as a hook change"
+  fi
+fi
+
+# ---------------------------------------------------------------------------------------------------
 # ESTIMATION: THE WEIGHT IS AN `sp:N` LABEL, AND IT BLOCKS ENTRY RATHER THAN BEING DECORATION (#326).
 #
 # WHY THIS EXISTS, and it is a different failure from the axis arms above. This slice was dispatched

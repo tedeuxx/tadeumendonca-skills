@@ -3031,6 +3031,161 @@ co-citation owed. The narrowing, the four refusals and the two deferrals were cl
 against the owner's stated intent, and are labelled as such rather than attributed to him. Driven by
 [#357](https://github.com/tedeuxx/tadeumendonca-skills/issues/357).
 
+## Amendment (2026-08-29, twenty-fifth) — WIP=1 stands, and what it protects is recorded: the working tree, which no hook in this harness observes
+
+**Why this is an amendment and not record 0022.** WIP=1 is the delivery discipline of *the shape a unit
+of work takes (Issue, child task, branch, PR)* — this capability's own index entry — and the twelfth
+amendment already records the WIP bound here. #283's design is **one document per capability name**, so
+a new number would create a second `roster-and-dev-loop` document, which is the arrangement
+reconciliation exists to remove. The twentieth and twenty-fourth amendments declined a new number on
+the same reasoning and are the precedent. **The #223 domain split governs WHO writes, not whether a
+number is issued**, and this is written by `agents-lead`.
+
+**What the Issue asked for and what it became.** [#343](https://github.com/tedeuxx/tadeumendonca-skills/issues/343)
+was filed to **reverse** WIP=1 — the twelfth amendment names the route (*"an explicit owner decision,
+recorded the same way"*) — with the reversal's own precondition attached: the reason for the rule was
+never written down. **The owner declined the reversal on 2026-08-28** (*«por enquanto siga com a regra
+de wip»*) and re-scoped the Issue himself to the recording half. So this amendment reverses nothing.
+It closes the twelfth amendment's residual on the only half that can be closed by a document, and
+corrects the twelfth amendment's claim about the other half.
+
+### The decision
+
+1. **WIP=1 stands, unchanged: one worktree, one in-flight branch, one open PR.** No reversal, and the
+   `ready` label was withheld on the reversal at the time the owner answered.
+2. **What the rule protects is recorded** in `skills/harness-engineering/SKILL.md`, section *What
+   WIP=1 is PROTECTING*, in **three separated layers** — the owner's quoted words, the measured
+   failure, and what is still unrecorded — because they are not equally strong and blending them turns
+   a reconstruction into a citation.
+3. **`wip-guard.sh` is stated, in the universal preload, NOT to enforce WIP=1.** Two independent
+   measurements carry it, and the section says plainly that the rule is held by instruction alone.
+4. **The twelfth amendment's remedy clause is struck** — *"closing the gap is a `wip-guard.sh` change,
+   not a docs one"* is true of the count half and false of the checkout half.
+5. **Nothing is enforced, and no new mechanism is proposed.** The one new gate arm asserts the
+   recording is **written**.
+
+### What was measured, and what is a report rather than a measurement
+
+**Measured at head, 2026-08-29.** `wip-guard.sh` reads `gh pr list --state open --author @me`, so
+under WIP=1 the predecessor is already merged, the list is empty, and the script exits before
+computing a single path. Across the fourteen most recent merged PRs in this repository — the whole
+`sprint-01` `loop` block and its neighbours — **not one had another PR of the same author open at its
+creation instant**, so the overlap loop never ran across nine consecutive `loop` slices. The command
+is published in the carrier beside the claim. *Bounds:* one repository, fourteen PRs, and `--author
+@me` excludes bot PRs by construction.
+
+**Measured, second and independent.** `grep -c worktree hooks/scripts/wip-guard.sh` → **0**. It derives
+its own side from `git diff --name-only` in whatever directory it runs in, so two agents in one
+checkout produce the same answer and it cannot distinguish them. Three sibling hooks —
+`dispatch-premise-guard.sh`, `zombie-loop-detect.sh`, `orchestrator-tool-census.sh` — do reason about
+worktrees explicitly, so this is a property of this guard rather than of the harness.
+
+**REPORTS, not measurements, and the carrier's own heading now says so.** The owner's comment on #343
+enumerates what this record must capture *"from evidence rather than reconstruction"*, and **both of its
+concrete instances are carried**: the **2026-08-28** collision — two slices in one checkout, a reviewer's
+measurements landing against `main`, a builder's fixes landing on the wrong branch's tree, both found by
+accident — and, **earlier, a mutation probe left applied to `apps/fed/src/data/profile.ts` while three
+agents shared one branch**. Nothing was re-derived from git, and layer 2's heading reads *"from EVIDENCE
+rather than reconstruction"* rather than *"measured"*, so it cannot borrow the authority of the two
+figures above. **It read *"measured rather than reconstructed"* for one round**, four lines above the
+sentence conceding it was a report — this document's own row-0007 defect, reproduced in a heading.
+
+**The second instance is why layer 2 is not n=1, and it carries the structural reason both are
+unmeasurable.** An uncommitted edit left applied to a shared working tree produces no commit, no diff
+and no ref naming it: `git log --oneline --all -S "MUTATION" -- apps/fed/src/data/profile.ts` at head
+returns **nothing**, because the probe was never committed and no commit can carry what was never
+committed. **The failure class is invisible to git by construction**, so the
+absence of an instrument reading is a property of the failure rather than a shortfall of this slice —
+and *"discovered by accident"* is the only discovery route that exists for it. On that instance the
+guard is worse than merely permissive: three agents on one branch share one path list, so there is no
+second PR to intersect against at all.
+
+### Why no layer can carry it — [ADR-0004](./0004-controls-and-enforcement.md)'s standing question, answered
+
+**It is a MOMENT problem, not a matcher problem, and that is what makes it different from the twenty-second
+and twenty-fourth amendments' answers.** Those refused an enforcement because the *predicate* was
+unavailable to any layer. Here the predicate is trivially available — *is another agent already working
+in this checkout* — and the layer that would carry it is a `PreToolUse` on `gh pr create`, which is the
+**last** act of a slice. The 2026-08-28 failure completed during the build, hours earlier: a
+measurement read off the wrong branch, an edit written to the wrong tree. **A control at the merge
+boundary cannot observe a failure that finishes before the boundary is reached.**
+
+**A control at the right moment would have to be a lock on the checkout at the first write**, which is
+neither `wip-guard.sh` nor a change to it, and is not proposed here: it would need a durable lease with
+an owner, a holder identity a subagent cannot forge, and a release path for a crashed session — none of
+which exist, and all of which are a mechanism rather than a rule. **Named as owed and left owed**, which
+is the honest form and the one the struck clause failed to take.
+
+### Considered options
+
+1. **Record the reason in three separated layers and correct the twelfth amendment's remedy clause.**
+   *(Chosen.)*
+2. **Reverse WIP=1 as the Issue's title asks.** Not available — the owner declined it, and his stated
+   precondition (personas and skills not yet equalised across his other harness projects) is not
+   something this loop can argue past.
+3. **Reconstruct a single coherent purpose from the three owner statements.** Rejected, and this is the
+   substantive call in the slice. #88 argues against a count, the 2026-08-13 correction imposes one,
+   and the 2026-08-28 answer keeps it while naming an unrelated precondition. A synthesis would read
+   as his rationale while being the loop's — the substitution this document's own *Deciders* convention
+   exists to prevent, which is why the line below labels each closed-inside-the-loop call as one.
+4. **Build the checkout lock.** Rejected as scope and as shape — see the layer walk above.
+5. **Change `wip-guard.sh` to deny on a count.** Rejected: it would satisfy the written policy at the
+   PR boundary while leaving the measured failure untouched, and #88 records the owner rejecting a
+   count with a reason. It buys the appearance of enforcement for the thing that never broke.
+
+### Consequences
+
+**Good**
+- **The proposal the owner asked for is now evaluable.** Its precondition was a written purpose; there
+  is one, with its three layers marked by strength.
+- **A reader can no longer infer enforcement from the hook.** The preload states in its own words that
+  `wip-guard.sh` does not enforce WIP=1, with two falsifiable measurements attached.
+- **A false remedy is off the books.** The twelfth amendment promised the gap away as a pending hook
+  change; that promise is struck where it was wrong, and struck rather than deleted.
+
+**Bad / accepted costs**
+- **The rule's actual purpose is still unrecorded, and layer 3 says so.** What is recorded is what the
+  rule *catches*, not what the owner *wanted caught*. If the answer is *"I want to see every change as
+  it happens"*, no isolation tooling satisfies it — and this record cannot close that.
+- **WIP=1 remains held by instruction alone.** By this loop's own test it is not engineered, and the
+  2026-08-28 collision is what that costs against a fresh context that never had the instruction. No
+  mechanism is proposed and the gap is left named.
+- **The fourteen-PR figure ages.** It is a fact about this repository's recent history, not a property
+  of the hook; the property is the `--state open` read, and the carrier states both so the conclusion
+  does not expire with the sample.
+- **Both instances are reports and can only ever be one.** They were discovered by accident, and the
+  second shows why: an uncommitted edit on a shared tree leaves no commit, no diff and no ref, so the
+  class is invisible to git by construction. The carrier's honesty about that is the whole of the
+  mitigation, and layer 2's heading is where it has to be visible.
+- **The record post-dated its own source for one round**, dating the owner's answer and the collision
+  from the authoring session's clock rather than from the comment reporting them (`createdAt`
+  2026-08-28). The rule that prevents it — **an event is dated from the artifact reporting it, a
+  measurement from the day it was run** — is now written in the carrier, where the next author meets
+  it. Nothing enforces it and no instrument can: a plausible date is indistinguishable from a true one
+  to every check in this repository.
+- **Every enumeration of that defect has been short, including this record's own, and that is the
+  finding rather than an aside.** The review named a set; the correction named a larger one and **got
+  its own arithmetic wrong** — two slots claimed, three items listed, and a fourth occurrence in this
+  amendment's own *Considered options* paragraph corrected in the same commit without appearing in
+  either list. **So no count is published beside the rule at all.** Selected by the criterion above —
+  *every date naming the owner's answer or the collision* — the members are mechanically re-derivable
+  by anyone, in either tree, at any head; the chewed total is the only part that was wrong, and it was
+  wrong every time it was stated. **This bullet is the one place in the round that did not follow the
+  rule the bullet above it states**, which is why it is written as a correction rather than as a
+  reflection.
+- **The same phrase-keyed coupling as the last five amendments.** The new arm keys on sentences, so
+  rewording reddens the gate and whoever rewords edits the needles in the same commit.
+- **Nothing observes WIP.** A session that ran two slices in one checkout and one that ran one are
+  indistinguishable from the tracker and from the diff. The arm asserts the recording is written; it
+  cannot assert a session obeyed the rule it records.
+
+**Deciders:** the owner (WIP=1 stands, and the re-scoping of #343 from reversal to recording); written
+by `agents-lead` per the #223 domain split — a pure loop/machinery decision, no product-architecture
+stake, no `tech-lead` co-citation owed. The three-layer separation, the strike of the twelfth
+amendment's remedy clause and the refusal to synthesise a purpose were closed inside the loop and are
+labelled as such rather than attributed to him. Driven by
+[#343](https://github.com/tedeuxx/tadeumendonca-skills/issues/343).
+
 ## Consequences
 **Good**
 - Context efficiency and authorship-bias elimination fall out of per-task isolation.
