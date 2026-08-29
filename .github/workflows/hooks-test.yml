@@ -125,6 +125,13 @@ jobs:
       - name: Run the dispatch-premise-guard suite
         run: bash hooks/scripts/dispatch-premise-guard.test.sh
 
+      # Same rule as the comment above, applied in the same slice as the hook (#337). This suite stubs
+      # `gh` and builds a real temporary git repository, so it needs no network and no token — the hook
+      # itself does, and that dependency is why the suite asserts CALL SHAPES rather than results for the
+      # two arms that talk to the tracker.
+      - name: Run the closure-artifact-guard suite
+        run: bash hooks/scripts/closure-artifact-guard.test.sh
+
       - name: Assert every hook script is committed executable
         run: bash hooks/scripts/hooks-executable.test.sh
 

@@ -155,6 +155,16 @@ declaration green is the failure this file's own `citação` rule exists to prev
 - **o que não faz:** It checks the **tree**, never the lines: a `file:line` citation is out of scope by decision, since whether a file says what a brief claims is prose-reading and a guard that reached for it would fail open on exactly the half that matters. **A bare SHA is never checked** — a merge-base, a PR head or a quoted verdict marker is a reference, not a premise, and treating one as a premise denied 8.0% of 859 real briefs for no reason. A **cross-repository** brief is not checked at all: one stamp, two repositories, no fact available to attribute it, so a guess reported as a control would be worse than the declared gap. And it decides nothing about a **stale Issue** — the check lives at dispatch, against the brief; an Issue that described finished work was already stale before any dispatch happened, which is a different mechanism at a different moment.
 - **citação:** > "So passing this guard means the TREE is what the brief says, never that the LINES are."
 
+### 0037 · an Issue is not closed by hand while the artifact it promised is missing
+
+- **tipo:** refusal
+- **carrier:** `hooks/scripts/closure-artifact-guard.sh`
+- **descrição:** A `PreToolUse` guard on `gh issue close`, resolving the `invocable:` lines of the Issue's own body against this tree.
+- **propósito:** A closing keyword knows nothing about whether the thing an Issue promised exists. Measured here: three Issues closed with their operable half unbuilt, one of them twice, and every instance was caught by a human asking. The obligation is that **the tracker's word for "done" is held against an artifact a reader can reach**, at the moment the state changes rather than in a review that may not happen — because the authorable half always ships first, and the half that ships second is the one nobody re-checks.
+- **o que faz:** On a close aimed at this checkout's own repository, reads the Issue body, extracts every entry declared at column 0 as `invocable:`, and resolves each one: a `/name` against `commands/name.md` or a `skills/name/SKILL.md` **that `plugin.json` also declares**; anything else as a repo-relative path. An entry carrying an `invocable-waived:` line with a reason of at least twelve characters is passed. Anything left unresolved denies the call and names it, with the three exits stated in the deny text — build it, record the narrowing, or leave the Issue open.
+- **o que não faz:** **An Issue that declares nothing is invisible to it, and nothing forces the declaration** — the field is written at intake by instruction, so this refuses a stated promise and never discovers an unstated one. It deliberately does **not** derive the promise from prose: measured over twenty closed Issues, the tightest derivation worth trying produced eleven unresolved identifiers and zero true positives, so a derived form would redden on honest work until it was loosened into nothing. It resolves **existence, never behaviour** — an empty file passes. A close aimed at another repository is skipped rather than guessed at. And it **fails open** on a missing `gh`, an API error or an unreadable body, so a silence from it can mean *checked and clean* or *could not check*.
+- **citação:** > "AN ISSUE THAT DECLARES NOTHING IS INVISIBLE HERE, AND NOTHING FORCES THE DECLARATION."
+
 ---
 
 ## `record` — a durable artifact makes a decision or an event findable later
@@ -234,6 +244,21 @@ class, and `0036`'s artifact is produced **on demand and never persisted** — t
 durability the `record` heading claims. It is filed `record` on the reading that the currency header is
 what makes the document findable-and-checkable later, which is true and is not the whole truth. The set
 is closed and is **not** reopened on one row.
+
+### 0038 · an Issue that already closed with its promised artifact missing is said out loud
+
+- **tipo:** record
+- **carrier:** `hooks/scripts/closure-artifact-guard.sh`
+- **descrição:** A `Stop` hook that reads the recently-closed Issues of the current repository and reports any whose own body declares an artifact this tree does not have.
+- **propósito:** The refusal at `0037` reaches one route and the loop mostly uses another: a close executed by the forge itself, on merge, from a keyword in a PR body. **No hook can observe that close and no permission layer can deny it**, so the obligation is that the failure is at least *stated* on the turn it happened, rather than surviving until somebody thinks to ask. The gap being closed is a week wide in the worst measured case, and the thing that closed it was a question from the owner.
+- **o que faz:** Bounds the pool server-side with a rolling fourteen-day `closed:>=` window (one API call per turn end), applies the same declaration predicate `0037` applies, and emits the offenders as context on the next turn with the three exits named. Each finding is reported once per session per Issue, so a parked decision does not nag every turn.
+- **o que não faz:** It is **detection and never prevention** — by the time it speaks, the tracker already says the work is done, and the reversal is a human act. It inherits every limit of `0037`'s predicate (nothing forces the declaration; existence rather than behaviour; fails open and silent). It reads only the repository the session is standing in. And the debounce it uses to stay quiet is indistinguishable, from the outside, from the finding having been repaired.
+- **citação:** > "It resolves EXISTENCE, never behaviour."
+
+**The same strain `0036` names, in the opposite direction.** A `Stop` hook's `additionalContext` is not
+durable at all — it reaches the next turn and is gone. It is filed `record` on the precedent `0009`
+already set for `zombie-loop-detect.sh`, whose artifact is the same shape, rather than on a claim that
+the notice persists. **What is durable here is the Issue body it reads**, not the notice it writes.
 
 ---
 

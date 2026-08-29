@@ -422,8 +422,13 @@ a pure loop/machinery decision.
 `commands/blueprint.md` — the projection this record's *Consequences* deliberately left unbuilt. **This
 Issue had closed twice with `/blueprint` not existing**, both times because a slice merged and carried
 the Issue with it; nothing in the loop reads whether an Issue's promised artifact resolves, and a
-closing keyword cannot check a command. Until the closure gate lands, the check is manual and it is one
-line: `ls commands/` names the file, and an unknown sibling identifier is refused *by name*.
+closing keyword cannot check a command. ~~Until the closure gate lands, the check is manual and it is one
+line:~~ **The gate landed on 2026-08-28 (#337, `hooks/scripts/closure-artifact-guard.sh`,
+[ADR-0004](./0004-controls-and-enforcement.md)'s 2026-08-28 amendment), and the sentence is struck
+rather than deleted because the manual check it names is still the one to run and the reason has
+changed.** What the gate holds is a promise the Issue **declares** (`invocable: /blueprint`); nothing
+forces that declaration, and this Issue carries none, so **for #313 specifically the check is still
+manual**: `ls commands/` names the file, and an unknown sibling identifier is refused *by name*.
 
 Measured, probe against control, one variable:
 

@@ -1864,6 +1864,94 @@ it was. That is the intended direction — a control that blocks correct briefin
 it means this guard catches one specific, cheaply-falsifiable mistake and nothing else, which is what
 the section heading in this document has said about every control here from the start.
 
+## Amendment (2026-08-28) — a control whose act belongs to the forge: what closes an Issue is not a tool call (#337)
+
+**Deciders:** the owner ratifies; written by `agents-lead` (authorship split by domain — this is loop
+machinery). Measurement, design and mutation-check by the same, in the slice that shipped it.
+
+**The question is this document's standing one — *which layer carries a control, and can that layer hold
+it?* — and this time the honest answer for the dominant route is "none of them".** Three Issues closed
+with the invocable half they promised unbuilt (#313, twice; #326; #431 in the sibling repo), and every
+instance surfaced because the owner asked. The control wanted is *an Issue does not reach `closed` while
+the artifact it promised is missing*.
+
+### The measurement that decides the layer
+
+**Every Issue this loop closed in the week to 2026-08-28 closed by a closing keyword in a merged PR
+body** — `Closes #313's slice 1` (PR #345), and the same shape in #333, #340, #347, #348, #349.
+The state transition is executed **by GitHub, on merge**. There is no tool call, so there is no
+`PreToolUse` payload, so **no hook in this harness observes it and no entry in any permissions layer can
+deny it.** This is a **sixth** reason a control cannot live in the floor — the four this document's
+*Which layer carries a control* section lists, plus the fifth #319 added (*the permissions syntax has no
+caller dimension*) — and it is different in kind from all five: not *the syntax has no dimension for
+it*, but **the act is not performed by anything the harness mediates**. Every earlier reason assumes
+there is a tool call to match and argues about what the match can see; this one removes the tool call.
+
+**What that measurement is evidence for, and what it must never be reused to argue.** It is read off
+**PR bodies**, so it proves the keyword was **present**, not that the keyword is what fired — the
+timeline, which would prove that, is unreadable from inside this harness (`gh api` is denied by the
+global floor). The claim is worded to what the artifact supports, and the design needs **one instance**
+of a keyword close rather than a share: dominance sets **priority**, never feasibility. The residual
+error also points the safe way — any close that was in fact manual makes the **preventable** share
+**larger** than measured, so the shipped design is correct under the error too. **That asymmetry is not
+a licence to run the number backwards.** It supports building the detector; it does **not** support a
+later argument that the manual route is rare enough to drop the refusal arm. Re-measure before claiming
+the reverse.
+
+**What that leaves is a two-surface split, and the split is forced rather than designed:**
+
+| route | share, measured | surface | what it can do |
+|---|---|---|---|
+| closing keyword on merge | all of the last week's closes | `Stop` hook | **detect**, one turn late |
+| `gh issue close` by hand | none in that window | `PreToolUse` on `Bash` | **refuse** |
+
+Both are `hooks/scripts/closure-artifact-guard.sh`, registered twice. The refusal is kept although its
+route is currently unused: it is the only refusal surface that exists at all, and the *close with a
+criterion* rite in `/harness-engineering` is a real user of it.
+
+### The rejected option that is still live, and why it was refused
+
+**A PR → Issue resolution route** — read the closing keyword out of the PR body at merge time and check
+the Issue's promise then. It is the only surface that could **prevent** the dominant failure, and
+`--body-file` does not hide it the way it hides comment text: the *path* is in the command string and
+the file is readable. It was **not built, on the owner's decision**, and the reason is #336's
+measurement: nothing forces a `loop` PR to reference its Issue, so the route's blind spot is exactly the
+PR that skipped the reference — a control whose coverage is decided by the author of the thing being
+controlled.
+
+**Deriving the promise from the Issue's prose** was rejected on a measurement rather than a preference.
+Over the twenty most recently closed Issues here, the tightest grammar worth trying (a backticked span
+that is exactly `/name` or `/plugin:name`) extracted **25 tokens, of which 11 did not resolve and every
+one of the 11 was a false positive** — `/architecture` seven times (a live command in the sibling repo),
+`/skill-doctor` (a rejected proposal), and two issue numbers inside backticks. **Zero true positives at
+head.** Eleven reds on honest work to catch nothing is the shape this document names repeatedly: a gate
+that reddens on correct work is loosened until it verifies nothing.
+
+### The decision, as it binds
+
+**The promise is DECLARED, not inferred.** An `invocable:` line at column 0 of the Issue body, read
+literally by the guard, written at intake by instruction, with `none` as a first-class value and
+`invocable-waived: <entry> <reason>` as the recorded-narrowing escape. The field label is a **parsing
+contract** in the same sense `docs/blueprint-registry.md`'s field labels are, and
+`hooks/scripts/inventory-counts.test.sh` asserts that the guard that reads it, the preload that states
+the rule and the intake command that writes it all spell it.
+
+### Consequences, including the one that makes this weaker than it reads
+
+**Nothing forces the declaration.** An Issue that declares nothing is invisible to both arms, and the
+only thing that puts the line there is an instruction in two documents. Applied to the three founding
+cases: it would have caught **#313 and #431** had their intake written the line, and **not #326 at
+all** — what #326 failed to create was labels and milestones in the *tracker*, and this control resolves
+artifacts in a *tree*. **Two of three, conditionally**, is the honest claim.
+
+It resolves **existence and never behaviour**; an empty file passes. It **fails open** on a missing
+`gh`, an API error or an unreadable body, so a silence from it can mean *checked and clean* or *could
+not check* — the same trade every guard here makes, in the direction that misleads. The `Stop` arm costs
+one API call per turn end and debounces per session per Issue, which means **its silence and its repair
+look identical from outside**. And the scope is deliberately narrow: Issues promising an **invocable**
+artifact, not every Issue type — a `content` Issue closes on a published article and a record Issue on a
+merged record, and neither is this control's business.
+
 ## Links
 - Driven by ADR-0002 and the Merge Request Definition of Done (record 0003, absorbed 2026-08-19 into
   [ADR-0006](./0006-verification-and-its-artifacts.md)) · consumed per project via
@@ -1909,4 +1997,9 @@ the section heading in this document has said about every control here from the 
   open"* opening is struck with it, and that bullet's *"flipping the two `: ;;`/`*)` arms … is the
   entire diff required"* estimate is recorded as measurably wrong — the `case` it names is never reached
   for three of the four causes. The generalisation across the rest of the guard set is #342 and is
-  deliberately NOT taken here.
+  deliberately NOT taken here. · amended (2026-08-28, second) to record a **sixth** reason a control
+  cannot live in the floor — the act is performed by the forge rather than by anything the harness
+  mediates, measured on a week of closes that were all closing-keyword closes — and the two-surface
+  split that follows from it (`closure-artifact-guard.sh`, refusing the manual route and detecting the
+  automatic one), including the PR → Issue route the owner refused and the prose-derivation the
+  measurement killed, closing #337.

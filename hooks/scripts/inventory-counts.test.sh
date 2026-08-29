@@ -3616,7 +3616,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=36
+BP_HIGH_WATER=38
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
@@ -5336,6 +5336,58 @@ else
       to the model at all. Either the file is a mechanism and its registration is missing, or it is not
       and the declaration is. Nothing else in this suite would say so."
   fi
+fi
+
+# ---------------------------------------------------------------------------------------------------
+# THE `invocable:` FIELD IS A PARSING CONTRACT WITH THREE HOLDERS, AND ALL THREE MUST SPELL IT (#337).
+#
+# A CONSUMER AND A PRODUCER OF THE SAME LITERAL, WHICH IS WHY THIS IS NOT #335's DEFEATED FENCE. #335
+# proposed matching a SENTENCE and an inserted word beat it. This matches a FIELD LABEL that a script
+# greps at column 0 — the same class as `docs/blueprint-registry.md`'s Portuguese field labels, which
+# this suite already reads literally for the same reason. Rename the field in the guard and the two
+# documents that tell an intake to write it are instantly wrong, silently, in the direction that reads
+# as "nothing to declare".
+#
+# NAMED GAP — THIS ASSERTS THAT THE RULE IS WRITTEN, NEVER THAT IT IS OBEYED. Nothing here reads an
+# Issue, and nothing anywhere makes an intake write the line. An Issue filed with no `invocable:` field
+# passes this arm, passes the guard, and closes with its promise unstated — that is the mechanism's
+# load-bearing limit, stated in three places on purpose and gated in none.
+invocable_holders="hooks/scripts/closure-artifact-guard.sh
+skills/harness-engineering/SKILL.md
+commands/new-issue.md"
+invocable_missing=""
+invocable_checked=0
+while IFS= read -r f; do
+  [ -z "$f" ] && continue
+  if [ ! -r "$ROOT/$f" ]; then
+    invocable_missing="$invocable_missing
+    $f — does not exist or is unreadable"
+    continue
+  fi
+  invocable_checked=$((invocable_checked + 1))
+  grep -qF 'invocable:' "$ROOT/$f" || invocable_missing="$invocable_missing
+    $f — does not carry the literal 'invocable:'"
+done <<< "$invocable_holders"
+
+if [ "$invocable_checked" -lt 3 ]; then
+  bad "invocable field — only $invocable_checked of 3 holders were readable, so nothing was asserted:$invocable_missing"
+elif [ -n "$invocable_missing" ]; then
+  bad "invocable field — the closure declaration's label is not spelled by every holder:$invocable_missing
+      The guard greps this literal at column 0 of an Issue body; the preload and the intake command are
+      the only things that tell anyone to write it. A rename in one place is silent in the other two."
+else
+  ok "invocable field — the guard that reads it, the preload that states the rule and the intake command that writes it all spell 'invocable:'"
+fi
+
+# And the waiver is the recorded-narrowing escape: the guard must accept it and the rule must document
+# it, or the only exit from a false promise is to leave the Issue open forever.
+if grep -qF 'invocable-waived:' "$ROOT/hooks/scripts/closure-artifact-guard.sh" \
+   && grep -qF 'invocable-waived:' "$ROOT/skills/harness-engineering/SKILL.md"; then
+  ok "invocable field — the 'invocable-waived:' escape is both implemented and documented"
+else
+  bad "invocable field — 'invocable-waived:' is implemented or documented but not both.
+      A guard with an undocumented escape is a guard people route around; a documented escape no guard
+      honours is a promise the deny text cannot keep."
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"

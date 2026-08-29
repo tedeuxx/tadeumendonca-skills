@@ -229,6 +229,21 @@ only if something concrete is in the way, and **name what** — a `blocked` labe
 written down reads as *waiting on the owner* forever. (#166 carried one for over a week after its stated
 blocker had shipped.)
 
+**Declare what closing this Issue will make invocable, on its own line at column 0.** The field is a
+parsing contract, not prose — `hooks/scripts/closure-artifact-guard.sh` reads it literally:
+
+```
+invocable: /blueprint                    a plugin identifier a reader can type
+invocable: hooks/scripts/detector.sh     a repo-relative path
+invocable: none                          this Issue promises nothing invocable
+```
+
+**Write it on every Issue, and `none` is the common answer** — the field exists so *promised* and
+*promised nothing* stop looking alike. Without it, an Issue can close on a merge with the half a reader
+can actually use missing, which happened three times before this field existed (#337, and see
+`/harness-engineering`'s *Closing an issue is a step* for the measurement and the limits). **Nothing
+mechanical forces this line; this instruction is the only thing that puts it there.**
+
 **Stamp the intake.** Record the date and the `main` SHA whoever ran the intake read. A closed description ages: the
 tree it was closed against moves, and a reader in November needs to know whether August's closure still
 describes the code.

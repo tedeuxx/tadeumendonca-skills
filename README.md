@@ -988,11 +988,14 @@ flowchart LR
   H9["orchestrator-tool-census"]
   H10["premature-pr-link-detect"]
   H11["dispatch-premise-guard"]
+  H12["closure-artifact-guard<br/>(refuses a manual close)"]
+  H13["closure-artifact-guard<br/>(reports one already closed)"]
 
   E1 --> H1
   E1 --> H2
   E1 --> H8
   E1 --> H11
+  E1 --> H12
   O1 --> H3
   O1 --> H4
   O4 --> H5
@@ -1000,17 +1003,18 @@ flowchart LR
   E6 --> H7
   E6 --> H9
   E6 --> H10
+  E6 --> H13
 
   class E1,O1,O4,E6 used
 ```
 
 | event | when it fires | denies? | hooks wired here | purpose |
 |---|---|---|---|---|
-| **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard`, `wip-guard` (matcher `Bash`) · `orchestrator-write-guard` (matcher `Edit\|Write\|MultiEdit\|NotebookEdit`) · `dispatch-premise-guard` (matcher `Agent`) | refuse the irreversible floor and a PR that overlaps an open one, *before* either happens — refuse the main agent's own edits inside a git working tree, which is a ROUTING rule rather than a floor one (#319) — and refuse a dispatch whose brief stamps a repository state that is not true, verified in the repository the brief's own citations resolve to rather than in `cwd` (#326) |
+| **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard`, `wip-guard` (matcher `Bash`) · `orchestrator-write-guard` (matcher `Edit\|Write\|MultiEdit\|NotebookEdit`) · `dispatch-premise-guard` (matcher `Agent`) · `closure-artifact-guard` (matcher `Bash`) | refuse the irreversible floor and a PR that overlaps an open one, *before* either happens — refuse the main agent's own edits inside a git working tree, which is a ROUTING rule rather than a floor one (#319) — refuse a dispatch whose brief stamps a repository state that is not true, verified in the repository the brief's own citations resolve to rather than in `cwd` (#326) — and refuse `gh issue close` on an Issue whose own body declares an invocable artifact that does not resolve in this tree (#337) |
 | **`SessionStart`** | a session begins or resumes | no | `session-wip`, `session-plugin-version` | inject the open queue, and warn when the installed build is not the merged one |
 | **`SubagentStart`** | a subagent is dispatched | no | `dispatch-metrics-start` | best-effort dependency probe only — see below; does not post |
 | **`SubagentStop`** | a subagent finishes | no | `dispatch-metrics-stop` | log rework rounds, time, output size and token cost for the dispatch as a structured Issue comment (#209) |
-| **`Stop`** | the main agent's turn ends | **yes, but no hook here uses that half** | `zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect` | detect (never prevent) an outstanding gate verdict left unaddressed at turn end — one turn late instead of one session late (#294) — report what the main agent did with its own hands, write/post class separated from reads (#319) — and flag a PR link handed to the owner for a PR that is not open, green and `APPROVE-PENDING-HUMAN` (#327) |
+| **`Stop`** | the main agent's turn ends | **yes, but no hook here uses that half** | `zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard` | detect (never prevent) an outstanding gate verdict left unaddressed at turn end — one turn late instead of one session late (#294) — report what the main agent did with its own hands, write/post class separated from reads (#319) — flag a PR link handed to the owner for a PR that is not open, green and `APPROVE-PENDING-HUMAN` (#327) — and report an Issue that is ALREADY closed with a declared invocable artifact missing, which is the only surface that reaches the closing-keyword route at all (#337) |
 | `UserPromptSubmit` | a prompt is submitted, before processing | **yes** | — | |
 | `UserPromptExpansion` | a typed command expands, before it reaches the model | **yes** | — | |
 | `PermissionRequest` | a call needs a permission decision | **yes** | — | |
@@ -1127,6 +1131,32 @@ remote-tracking ref reads as a false stamp; a brief about a linked worktree othe
 checked against its repository's main worktree; and a **cross-repository brief is not checked at all**,
 because one stamp and two repositories leaves no fact that says which one it is about.
 
+`closure-artifact-guard` (#337) is the only hook registered on **two** events, and the split is forced
+rather than chosen. It holds one rule — *an Issue whose own body declares an invocable artifact does not
+reach `closed` while that artifact does not resolve* — against a route it can refuse and a route nobody
+can. **Measured 2026-08-28: every Issue this loop closed in the preceding week closed by a closing
+keyword in a merged PR body** (`Closes #313's slice 1`, PR #345; the same shape in #333, #340,
+#347, #348, #349). That close is executed by GitHub on merge, so **no hook in this harness observes it
+and no permission layer can deny it** — which is why the `Stop` arm exists and is detection only, one
+turn late, exactly the class `zombie-loop-detect` is. The `PreToolUse` arm refuses the manual
+`gh issue close` route, which is the minority route today and is still the only refusal surface that
+exists at all.
+
+**The promise is DECLARED, never inferred, and that came out of a measurement that killed the obvious
+design.** Deriving the promise from an Issue's prose — every backticked `/identifier` in the title and
+body must resolve — was run against the twenty most recently closed Issues here: **25 tokens, 11
+unresolved, and every one of the 11 a false positive** (`/architecture` seven times, a live command in
+the sibling repo; `/skill-doctor`, a rejected proposal; two issue numbers inside backticks). Zero true
+positives at head. A gate that reddens on eleven pieces of honest work to catch none gets loosened
+until it verifies nothing, so the rule keys on a field label at column 0 (`invocable:`), which is a
+parsing contract in the same sense the blueprint registry's field labels are. **The limit this leaves
+is the load-bearing one and it is not hidden: an Issue that declares nothing is invisible to the hook,
+and nothing mechanical forces the declaration** — it is written at intake, by instruction. Applied to
+the three Issues it exists for, it would have caught two (#313, #431) had their intake written the
+line, and **not #326 at all**, whose missing half was labels and milestones in the tracker rather than
+files in a tree. A **PR → Issue** resolution route was not built, on the owner's decision: #336
+measured that nothing forces a `loop` PR to reference its Issue.
+
 **There used to be a fifth hook here, `session-scratch`, sweeping a repo-root `.scratch/` directory —
 retired at #245.** It existed to guarantee nothing survived into a new session, on the belief that a
 repo-side scratch directory needed its own cleanup because nothing else would ever provide one. Scratch
@@ -1148,7 +1178,7 @@ by hand:
 | **Skills** | yes — **14** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **4** (`autonomy-on`, `autonomy-off`, `new-issue`, `blueprint`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **7 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`) | dispatched by name via `Task` |
-| **Hooks** | yes — **`hooks.json` registers 11** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `orchestrator-write-guard`, `dispatch-premise-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`) — automatic, no invocation |
+| **Hooks** | yes — **`hooks.json` registers 13** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `orchestrator-write-guard`, `dispatch-premise-guard`, `closure-artifact-guard`), `SessionStart` (`session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **13 registrations over 12 scripts**: `closure-artifact-guard` is registered twice, on the two events its two arms need, and that is why the registration count is the honest number rather than a file count |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
 | LSP servers | **no** | — | no `.lsp.json` |
