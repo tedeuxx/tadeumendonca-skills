@@ -4909,7 +4909,7 @@ else
   for iter_cmd_needle in \
     '**and carrying the ACTIVE ITERATION' \
     '> **Report the count of `ready` items carrying NO milestone, from the same query, at session open.**' \
-    "- **the active iteration's pool is exhausted** — mechanical, no judgment; or"
+    '- **the ENTRY SNAPSHOT is exhausted** — mechanical, no judgment; or'
   do
     grep -qF -- "$iter_cmd_needle" "$ITER_CMD" || iter_cmd_missing="$iter_cmd_missing
     missing: \"$iter_cmd_needle\""
@@ -4928,6 +4928,124 @@ else
       (#97 → #103, and the exhaustion event itself)."
   else
     ok "iteration axis — commands/autonomy-on.md scopes the pool to the active iteration, counts the unassigned, and stops on exhaustion"
+  fi
+fi
+
+# ---------------------------------------------------------------------------------------------------
+# LOOP JOINS THE ACTIVE ITERATION AT FILING, AND THE TERMINAL SET IS THE DRAIN'S ENTRY SNAPSHOT (#338).
+#
+# WHY THIS EXISTS. The owner asked that `loop` work never be scheduled out — "tudo de loop deveria estar
+# na iteracao corrente" — and then, asked whether to narrow the rule to filing time or accept that the
+# pool grows, declined the narrowing: "a gente nao consegue impedir esse comportamento". Both halves are
+# load-bearing and they PULL AGAINST EACH OTHER, which is the only reason this needs a gate at all:
+#
+#   THE FILING RULE puts new `loop` Issues into the pool a drain is currently working. commands/
+#   new-issue.md set no milestone at all before this (`grep -c milestone commands/new-issue.md` -> 0), so
+#   every `loop` Issue was born outside the pool /autonomy-on can see.
+#   THE CONSEQUENCE is that "the active iteration's pool is exhausted" stops being reachable by working —
+#   the exact shape #103 retired one layer up, arriving one layer down. The terminal set therefore moved
+#   onto a SNAPSHOT taken at entry, and the two must ship together: the filing rule without the snapshot
+#   is a drain with no terminal state, and the snapshot without the filing rule is machinery for a
+#   problem nobody has.
+#
+# WHAT THESE ARMS OWN: that the filing rule is written in the file that FILES (commands/new-issue.md) and
+# in the preload every persona carries (skills/harness-engineering/SKILL.md), and that the file that
+# DRAINS carries the snapshot with the two properties that make it work — keyed on issue NUMBERS rather
+# than a count, and re-taken fresh on a second invocation so it defers rather than drops.
+#
+# THE NEGATIVE ARM IS LINE-ANCHORED, DELIBERATELY, AND grep -F WOULD HAVE FAILED HERE. The #326 bullet is
+# kept in the file struck (`~~- **the active iteration's pool is exhausted** …~~`) because a drain ran
+# under it, so a fixed-string search for the bullet text matches the PRESERVED copy and would pass with
+# the rule live again. Anchoring on `^- ` is what tells a live *Stop when* bullet from a struck one.
+#
+# WHAT NO ARM CAN OWN. That any session took a snapshot, or that any Issue was filed with the right
+# milestone. Nothing in hooks/scripts/ reads the queue — every `gh issue` call there is a write path — so
+# a drain that terminated against the live pool and one that terminated against its snapshot are
+# indistinguishable from the tracker and from the diff. No detector is proposed either, and the reason is
+# in the file: the only checkable signal (exhaustion reported while the iteration still holds open `ready`
+# items) is TRUE of every correct snapshot termination that saw an arrival. These arms gate the PRESENCE
+# OF A RULE. That is the whole claim.
+#
+# THREE INDEPENDENT `if` BLOCKS, EACH WITH ITS OWN VACUITY GUARD, for the reason stated 100 lines above:
+# an arm in an `elif` under a red arm emits NO verdict, and no passing total can surface that.
+SNAP_NEW="$ROOT/commands/new-issue.md"
+
+# ── 1 · the file that FILES carries the filing rule ──────────────────────────────────────────────
+snap_new_missing=""
+if [ ! -r "$SNAP_NEW" ]; then
+  bad "loop-at-filing — commands/new-issue.md is not readable; the filing rule cannot be checked at all.
+      This is the file that performs the act, so the rule living anywhere else is a description."
+else
+  for snap_new_needle in \
+    'A `loop` Issue is filed INTO the active iteration (#338)' \
+    '**Scope: `loop` only.**' \
+    '**Derive the milestone from the pool; never type its name and never read a date.**'
+  do
+    grep -qF -- "$snap_new_needle" "$SNAP_NEW" || snap_new_missing="$snap_new_missing
+    missing: \"$snap_new_needle\""
+  done
+  if [ -n "$snap_new_missing" ]; then
+    bad "loop-at-filing — commands/new-issue.md no longer files loop Issues into the active iteration:$snap_new_missing
+      The SCOPE needle is not decoration: widening the rule past \`loop\` moves planning into the capture
+      command, which is a different decision and was not made. The DERIVE needle is rule 1 arriving at
+      the filing act — a typed milestone name is the defect (\`gh issue list --milestone '<typo>'\`
+      returns empty with exit 0, so the wrong iteration is silent), and a date-selected one is what the
+      source project measured reporting nothing-to-do as though it were done."
+  else
+    ok "loop-at-filing — commands/new-issue.md files loop Issues into the pool-derived active iteration"
+  fi
+fi
+
+# ── 2 · the file that DRAINS carries the snapshot, and the retired bullet is not live ────────────
+snap_cmd_missing=""
+if [ ! -r "$ITER_CMD" ]; then
+  bad "entry snapshot — commands/autonomy-on.md is not readable; the terminal set cannot be checked."
+else
+  for snap_cmd_needle in \
+    '### The pool grows while it drains, so the terminal set is a SNAPSHOT taken at entry (#338)' \
+    '**What it is keyed on: the set of issue NUMBERS**' \
+    'it takes a FRESH snapshot'
+  do
+    grep -qF -- "$snap_cmd_needle" "$ITER_CMD" || snap_cmd_missing="$snap_cmd_missing
+    missing: \"$snap_cmd_needle\""
+  done
+  snap_live_hits=$(grep -cE "^- \*\*the active iteration's pool is exhausted\*\*" "$ITER_CMD" || true)
+  [ "${snap_live_hits:-0}" -eq 0 ] || snap_cmd_missing="$snap_cmd_missing
+    RETIRED #326 terminal condition is live again as a *Stop when* bullet, and it is not reachable by
+    working now that loop Issues join the pool at filing."
+  if [ -n "$snap_cmd_missing" ]; then
+    bad "entry snapshot — commands/autonomy-on.md no longer terminates against a set fixed at entry:$snap_cmd_missing
+      The NUMBERS needle is what stops the snapshot being a count: a count is satisfied by an arrival
+      replacing a closed item, so the drain would work an item it never admitted while the arithmetic
+      still matched. The FRESH needle is what makes the snapshot defer rather than drop — a second
+      invocation re-takes it, which is also why it needs no durable home and is not blocked by the
+      unreadable milestone description (#339)."
+  else
+    ok "entry snapshot — commands/autonomy-on.md terminates against the entry snapshot, keyed on numbers, re-taken per invocation"
+  fi
+fi
+
+# ── 3 · the universal preload carries both halves ────────────────────────────────────────────────
+snap_skill_missing=""
+if [ ! -r "$ITER_SKILL" ]; then
+  bad "entry snapshot — skills/harness-engineering/SKILL.md is not readable; the preload every persona
+      carries cannot be checked for the filing rule or the retired bound."
+else
+  for snap_skill_needle in \
+    '#### A `loop` Issue joins the ACTIVE iteration at FILING, never a later one (#338)' \
+    "**The iteration bounds nothing. The drain's ENTRY SNAPSHOT does.**"
+  do
+    grep -qF -- "$snap_skill_needle" "$ITER_SKILL" || snap_skill_missing="$snap_skill_missing
+    missing: \"$snap_skill_needle\""
+  done
+  if [ -n "$snap_skill_missing" ]; then
+    bad "entry snapshot — the universal preload no longer carries the #338 decision:$snap_skill_missing
+      The second needle is the correction, not a restatement: this section asserted that an iteration
+      bounds the drained pool and that findings land on the NEXT iteration. Both stopped being true for
+      \`loop\`, which is one of the two drainable types, and a preload that still claims a bound the
+      loop no longer has is worse than one that claims none."
+  else
+    ok "entry snapshot — the universal preload carries the filing rule and the corrected bound"
   fi
 fi
 
