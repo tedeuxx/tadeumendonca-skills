@@ -2876,6 +2876,161 @@ loop/machinery decision, no product-architecture stake, no `tech-lead` co-citati
 shape, its rejection of a durable home, and the detector's rejection were closed inside the loop and are
 labelled as such rather than attributed to him.
 
+## Amendment (2026-08-29, twenty-fourth) — the iteration's `loop` block MAY be carried as one branch and one MR; "one batch per iteration" is not adopted
+
+**Why this is an amendment and not record 0022.** This capability's own index entry claims *"the shape a
+unit of work takes (Issue, child task, branch, PR)"*, and the delivery unit for `loop` work is exactly
+that. #283's design is **one document per capability name**, so a new number here would create a second
+`roster-and-dev-loop` document — the arrangement that reconciliation exists to remove. The twentieth
+amendment declined a new record on the same reasoning and is the precedent, not a coincidence. **The
+#223 domain split governs WHO writes, not whether a number is issued**, and this is written by
+`agents-lead`.
+
+**The ask, and what was adopted from it.** The owner's specification (#357) proposed a *Loop Batch*: the
+iteration's `loop` items planned individually and delivered as one integrated reconfiguration — one
+branch, one MR, one bump, one tag, one integral QA verdict, one consumer reinstall, plus an authored
+traceability matrix, plus *"faça enforcement se necessário"*. **The composition half is adopted as a
+permission. The prohibition half, the matrix, the reinstall step and the enforcement are not.**
+
+### The decision
+
+1. **An iteration's eligible `loop` items MAY be carried as one branch and one merge request.** They are
+   still planned individually — each keeps its Issue, its `sp:N` and its position in the ordered body —
+   and commits stay separated per issue so the delivery is navigable. Carrier:
+   `skills/harness-engineering/SKILL.md`, section *The `loop` block MAY be carried as one branch and one
+   MR*; pointers in `commands/autonomy-on.md` and `commands/new-issue.md`.
+2. **It is a PERMISSION exercised by the owner at planning.** The default is unchanged and per-item.
+   Nothing composes a batch automatically and no drain may infer one.
+3. **"One Loop Batch per iteration" is NOT adopted**, and more than one batch per iteration is normal.
+4. **Nothing is enforced.** No gate, no hook, no deny. The only new gate arm asserts the rule is
+   **written**.
+
+### Why the headline clause was refused — false by construction, not merely unwanted
+
+**A branch does not cross repositories, and the iteration already does.** Measured 2026-08-29:
+`sprint-01` is milestone **1** in `tadeumendonca-io` (#556, #516) and milestone **2** in
+`tadeumendonca-skills` (#313, #357, #358), the two paired by nothing but a hand-written title. The moment
+an iteration's `loop` block spans both trees, *one branch / one MR / one bump / one tag / one integral
+review* is two of each, and the model must tolerate that rather than imply it away.
+
+**This is one development effort.** The owner, 2026-08-29: *«nao existe separacao no desenvolvimento do
+skills e do io»*. What is two is the tracker's representation and git's unit of integration — both
+limitations, neither a design. **The `loop` block being single-repo today is a fact about CONTENTS**: the
+product repo has never carried a `loop` item (`--state all --label loop` → **0**) while its label set
+already provisions `loop` and the full `sp:` class. Every rule here is written to survive the day that
+changes.
+
+**Second, independent reason: one batch per iteration removes the installable intermediate.** Every merge
+publishes a version ([ADR-0005](./0005-plugin-auto-versions-on-merge.md)), so per-item the window between
+*a rule merges* and *it can take effect* is bounded by the owner's next update. Under a whole-iteration
+batch there is **no installable intermediate by construction**, and the iteration's entire `loop` work is
+authored and reviewed under the pre-batch configuration. This iteration shipped `hooks/scripts/preflight.sh`,
+a hook that can refuse a prompt; batched, it would have sat inert while the rest of the batch was built
+against sessions it was written to stop.
+
+### What the batch actually buys, and what it costs — the arguments were re-derived, not accepted
+
+**It buys a conflict-and-rebase saving and nothing else.** Distinct issues per file over
+`v1.1.35..origin/main`, generated and version-carrier files excluded: **7** touched
+`hooks/scripts/inventory-counts.test.sh`, **5** touched `skills/harness-engineering/SKILL.md`,
+`docs/blueprint-registry.md` and `README.md`, **4** touched two records. N serial slices each rebase on a
+base the previous one just moved; a batch pays that once.
+
+**The Issue's two other arguments do not hold.** *Nine releases in one night* is not a cost the batch
+removes — publishing is not adoption, and the nine intermediate versions were nine chances to adopt, all
+of which the batch deletes. *Repeated reinstalls* is the same claim; one update instead of nine was
+always available as the owner's choice, and was in fact exercised mid-review (1.1.44 → 1.1.45).
+
+**It costs the ability to ship in part.** `git merge-tree --write-tree --merge-base=<commit> HEAD <commit>^`
+— the computation `git revert` performs — was run against two of this iteration's `loop` commits and
+conflicted in **7** files and **5** files respectively. One `REQUEST-CHANGES` therefore leaves the
+iteration's whole `loop` block unshipped, and the implied escape is a hand-resolved conflict in the files
+carrying the loop's own rules. Only the **last** issue's commits are cheap to drop. **The two bounds are
+compositional and both are discipline:** order by risk, keep batches small.
+
+**And it trades review rather than preserving it.** A small diff buys a **reviewable premise**; nothing
+reproduces that inside a batch-sized diff, and a matrix is navigation, not a ruler. Favourable for
+documentation-shaped `loop` items, unfavourable for hook-shaped ones.
+
+### Considered options
+
+1. **Adopt the composition half as a permission.** *(Chosen.)*
+2. **Adopt the specification as written, including "one batch per iteration".** Rejected: false by
+   construction across repositories, and it deletes the installable intermediate for the whole iteration.
+3. **Reject the model outright and keep per-item delivery mandatory.** Rejected: the overlap measurement
+   is real and the saving is real; forbidding the shape would price a measured benefit at zero.
+4. **Build the enforcement the specification asks for.** Rejected on a layer walk, not on cost —
+   see below.
+5. **Adopt the derived commit ↔ issue coverage check in this slice.** Rejected as scope: it is a separate
+   decision with a red gate and a convention behind it, and it is worth building whether or not any batch
+   is ever formed.
+
+### Why no layer can carry it — [ADR-0004](./0004-controls-and-enforcement.md)'s standing question, answered
+
+`permission-guard.sh` and `wip-guard.sh` read a **command string**, and `gh pr create` for a second `loop`
+PR is character-identical to the first. `wip-guard.sh` additionally lists only **open** PRs, so under
+WIP=1 the previous `loop` PR is already merged and there is nothing to overlap with — it bounds
+concurrency, never count-per-iteration, and it never fired once across this iteration's nine `loop`
+slices. A `PreToolUse` deny would have to resolve a branch to an Issue (a suffix heuristic measured at
+**11 of 12** on this repo's recent PRs), read its labels and milestone, and query merged PRs — two to
+three network calls inside a hook whose file-level posture is **fail open**. **A control that fails open
+on every lookup failure, keyed on a heuristic that misses one in twelve, denying an act with a legitimate
+exception, reads as enforcement and behaves as advice.** That is the shape the twenty-second amendment
+rejected, and it is rejected here on the same evidence.
+
+**The deeper reason, which does not expire with any measurement:** a `PreToolUse` or `Stop` hook receives
+**one `cwd`** and therefore sees **one repository**, while the iteration is not a repo-scoped object.
+**No single-repo hook can observe the iteration at all, whatever any repo contains.** The twenty-second
+amendment's *zero true positives* figure is a symptom of that; this is the cause, and this amendment
+restates it in the durable form in the carrier as well.
+
+### Consequences
+
+**Good**
+- **The measured benefit is available and the false clause is not shipped.** The saving that survives
+  scrutiny is permitted; the claim that could not hold is refused with its refutation recorded.
+- **Admission needs no new mechanism.** The specification's *"only by explicit owner decision"* is
+  already spelled `ready` — the owner's transition alone on this lane, and required by the pool
+  predicate. Building a second control would have duplicated an existing one.
+- **A permission has the least to lose from being unenforced.** An unenforced prohibition can be
+  violated; an unenforced permission can only be declined.
+- **It reconciles with the twenty-third amendment without reopening it.** That amendment governs the
+  **iteration**; this governs the **branch**. Different objects, no collision.
+
+**Bad / accepted costs**
+- **The `agents-lead` verdict marker is a PRESENCE check, not a head check, and a batch makes that
+  matter.** Rule 7c head-scopes only the **gatekeeper's** verdict (`headRefOid`, fail-closed since
+  #341); nothing does the equivalent for `harness-lead-verdict`, and `agents/quality-assurance.md`'s
+  hold 2 reads *"a comment on the PR before you may merge it"*. **On a branch that lives a whole
+  iteration, a marker from the first commit satisfies hold 2 for the entire batch.** Recorded as a named
+  residual and deliberately **not** repaired here: the repair is an added condition inside the merge
+  floor, which is its own change and touches the irreversible boundary.
+- **The active iteration is derived per repository and nothing checks the two derivations agree.** The
+  predicate returns a milestone *number* (1 and 2 today); only the hand-written **title** pairs them, so
+  `sprint-01` against `sprint-1` gives two successful derivations, two healthy-looking pools, and one
+  iteration silently become two. **Judged and deferred rather than folded in:** the cheap-looking
+  detector — derive in both trees at session open and compare titles — must first discover the sibling
+  tree (ADR-0004 calls that *"a heuristic and the weakest part"*) and then pair by the very string whose
+  agreement it is verifying. A detector that assumes what it checks is not a detector.
+- **The one genuinely enforceable clause is deferred, by name.** A derived commit ↔ issue coverage check
+  — every closed issue has a commit naming it, every commit names an admitted issue — is computable from
+  objects that already exist and needs no PR-body parsing. Measured cost at head: **17 of 21** non-`bump`
+  subjects carry a `(#N)`, so it reddens on honest work until the convention closes.
+- **Step 6 has no mechanism and none is proposed.** There is no install path; `powers/` is a generated
+  export, not an install route, and `session-plugin-version.sh` compares a **version string** rather than
+  tree contents. The specification's *"cópias instaladas idênticas ao manifest"* does not translate.
+- **The same phrase-keyed coupling as the last four amendments.** The new arm keys on sentences, so
+  rewording reddens the gate and whoever rewords edits the needles in the same commit.
+- **Nothing observes composition.** A batch, a per-item run, and a batch that quietly dropped an issue
+  are indistinguishable from the tracker and from the diff. The arm asserts the rule is written; it
+  cannot assert a session obeyed it.
+
+**Deciders:** the owner (the ask, and the *«nao existe separacao»* framing); written by `agents-lead` per
+the #223 domain split — a pure loop/machinery decision, no product-architecture stake, no `tech-lead`
+co-citation owed. The narrowing, the four refusals and the two deferrals were closed inside the loop
+against the owner's stated intent, and are labelled as such rather than attributed to him. Driven by
+[#357](https://github.com/tedeuxx/tadeumendonca-skills/issues/357).
+
 ## Consequences
 **Good**
 - Context efficiency and authorship-bias elimination fall out of per-task isolation.

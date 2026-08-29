@@ -565,9 +565,16 @@ he could release.
 numbered positions across both trees, and the open recommendations not yet ruled on. It was chosen for
 lack of an alternative and it is stated as such rather than as a design:
 
-- **Nothing reads it.** Measured 2026-08-28: no script under `hooks/scripts/` resolves a milestone at
-  all (`grep -rn "milestone" hooks/scripts/*.sh` matches exactly one line, and that line is a **comment**
-  in `closure-artifact-guard.sh`). The order is prose, read by a human, in a field no gate opens.
+- **Nothing reads it.** No script under `hooks/scripts/` resolves a milestone at all. The order is
+  prose, read by a human, in a field no gate opens. ~~`grep -rn "milestone" hooks/scripts/*.sh` matches
+  exactly one line, and that line is a **comment** in `closure-artifact-guard.sh`~~ — **the falsifier's
+  COUNT went stale within a day and the claim it supports did not**, which is the distinction worth
+  keeping. Re-run at head (#357) the same command matches many lines, because `inventory-counts.test.sh`
+  is itself a `*.sh` and #339's own gate arm quotes the word repeatedly. **Every match is a comment or a
+  test needle; not one is a lookup.** A published command that returns a different count than its
+  sentence claims reads as a refuted sentence, so the count is dropped and the property is stated
+  instead: no hook resolves a milestone, and the way to falsify that is to find a `gh issue`/`gh api`
+  call in a registered hook that reads one, not to count the word.
 - **It is not versioned where this loop can see it.** A description edit produces no commit, no diff and
   no Issue-timeline event this harness can read — `gh api` is denied by the global permission floor, so
   the route that would expose the edit history is unavailable by construction.
@@ -607,11 +614,22 @@ gh issue list --repo <owner>/<product> --state open --limit 200 --json number,la
   --jq '[.[]|select(.milestone!=null)|{n:.number,m:.milestone.number,l:(.labels|map(.name))}]'
 ```
 
-**Every `loop` item is in one repo and every `product` item is in the other, and the two halves of the
-iteration are two milestones carrying different numbers (2 and 1) paired only by title.** A `Stop` hook
-receives one `cwd` and therefore sees one repo, so the same-repo form has **zero true positives against
-this iteration's composition, by construction** — in `-skills` there is no `product` item it could fire
-on, and in `-io` there is no `loop` item that could make it fire. The cross-repo form is buildable and
+**The durable reason first, because the measurement below expires and this does not.** A `PreToolUse` or
+`Stop` hook receives **one `cwd`** and therefore sees **one repository**. The iteration is **not a
+repo-scoped object** — it is one thing whose tracker representation is two milestones in two namespaces,
+paired by a title that only convention pairs. **So no single-repo hook can observe the iteration at all,
+whatever any repo happens to contain.** That holds against every future composition, and it is the
+finding.
+
+**The dated measurement that first exposed it, kept as evidence and not as the argument.** On
+2026-08-28 every `loop` item sat in one repo and every `product` item in the other, the two halves of the
+iteration being two milestones carrying different numbers (2 and 1) paired only by title — so the
+same-repo form had **zero true positives against** that iteration's composition. **Read that as a fact
+about contents on a date, never as a separation between the two repositories:** there is one development
+effort and two places where files live (the owner, 2026-08-29 — *«nao existe separacao no
+desenvolvimento do skills e do io»*), and the `loop` label exists in both trees. Zero true positives is
+a symptom that moves when the contents move; the object being invisible from the layer is the cause, and
+it does not move. The cross-repo form is buildable and
 stacks three heuristics for one advisory notice: sibling-tree discovery from a payload that carries only
 `cwd` (ADR-0004 calls that candidate set *"a heuristic and the weakest part"*), milestone pairing by
 **title** (convention — the milestone description says so in its own words), and PR → Issue resolution
@@ -627,6 +645,202 @@ prose. That is one object away, and it is the same object the *weak home* sectio
 **So: the rule holds because deviation becomes visible and awkward, not because anything stops it. It is
 an instruction, and by this loop's own test — *would something stop me, or only my memory?* — it is not
 engineered.** Read the gate arm as asserting the rule is written down, never that a session obeyed it.
+
+### The `loop` block MAY be carried as one branch and one MR — a PERMISSION, not a rule (#357)
+
+**The rule, and it is one sentence.** At planning, an iteration's eligible `loop` items are planned
+**individually** — each keeps its own Issue, its own `sp:N`, its own position in the ordered body — and
+**may** be carried as **one branch and one merge request**. Commits stay separated per issue, so the
+delivery is navigable; the closing keywords still name every issue the branch discharges.
+
+**It is a MAY. Nothing composes a batch automatically, nothing forbids the per-item shape, and no gate
+observes either.** The composition is the owner's at planning, like every other composition decision in
+this section.
+
+**Why it is worth having, and it is one reason rather than the three the proposal offered.** The saving
+is **conflict-and-rebase**, not releases and not reviews. `loop` items overwhelmingly edit the same
+handful of files, so N serial slices each rebase on a base the previous one just moved. Re-measured at
+head over the range this Issue argues from — distinct issues touching each file, generated `powers/` and
+the version-carrier files excluded:
+
+```
+git log v1.1.35..origin/main --no-merges --name-only --format='COMMIT|%s' \
+  -- . ':(exclude)powers' ':(exclude)VERSION' ':(exclude).bumpversion.toml' \
+     ':(exclude).claude-plugin/plugin.json'
+# 7 issues → hooks/scripts/inventory-counts.test.sh
+# 5 issues → skills/harness-engineering/SKILL.md · docs/blueprint-registry.md · README.md
+# 4 issues → docs/adr/0004-controls-and-enforcement.md · docs/adr/0002-roster-and-dev-loop.md
+```
+
+A batch pays that cost once. **That is the whole of the benefit; the other two arguments were measured
+and do not hold** — see the dropped list below.
+
+#### More than one batch per iteration is NORMAL, and the model must say so
+
+**The specification's headline clause was *"one Loop Batch per iteration"*. It is not adopted, because
+it is false by construction rather than merely undesirable.** Two independent reasons, either of which
+is sufficient:
+
+**1 · A branch does not cross repositories, and the iteration already does.** Measured at head:
+
+```
+gh issue list --repo <owner>/<product> --state open --limit 200 --json number,labels,milestone \
+  --jq '[.[]|select(.milestone!=null)|{n:.number,m:.milestone.number,mt:.milestone.title}]'
+  → #556 and #516, milestone 1, "sprint-01"
+gh issue list --repo <owner>/<skills>  --state open --limit 200 --json number,labels,milestone …
+  → #313, #357, #358, milestone 2, "sprint-01"
+```
+
+**One iteration, five eligible items, two repositories, two milestone objects numbered 1 and 2 paired by
+nothing but their title.** The moment an iteration's `loop` block spans both trees it is two branches,
+two MRs, two bumps and two tags, and *"uma única revisão integral"* becomes two reviews that must agree
+about one configuration. **The rule has to tolerate that shape rather than imply it away.**
+
+**This is NOT two development efforts.** There is one, and two places where files live — the owner,
+2026-08-29: *«nao existe separacao no desenvolvimento do skills e do io»*. What is two is the tracker's
+representation and git's unit of integration, both of which are limitations, not design.
+
+**And the `loop` block being single-repo today is a fact about CONTENTS, not about the rule.** Measured
+at head, the product repo has **never** carried a `loop` item —
+`gh issue list --repo <owner>/<product> --state all --label loop --limit 200 --json number --jq 'length'`
+→ **0** — while its label set already carries `loop` alongside `product`, `content`, `ready`, `blocked`,
+`reader-facing` and the full `sp:` class (`gh label list --repo <owner>/<product>`). **The label exists
+there and has never been applied.** The routing labels type an item by **what it changes**, not by where
+its files sit, so a `loop`-typed change to that repo's own workflows, `.claude/` settings or gate wiring
+is a `loop` item belonging in that repo. Write every rule here so it survives the day that happens.
+
+**2 · A batch that spans the whole iteration removes the installable intermediate.** Every merge to
+`main` publishes a version (ADR-0005), so under the per-item shape the window between *a rule merges*
+and *the rule can take effect* is bounded by whenever the owner next updates — his choice, available
+after every slice. Under one batch per iteration **there is no installable intermediate by
+construction**, so the iteration's entire `loop` work is authored, reviewed and gated under the
+pre-batch configuration. That is tolerable for a documentation change and **not** tolerable for a hook:
+this iteration shipped `hooks/scripts/preflight.sh`, a hook that can refuse a prompt, which under a
+single batch would have sat inert while the rest of the batch was built against sessions it was written
+to stop.
+
+**So the practical shape is: batch by WORKSTREAM, not by iteration** — the proposal's own section 3
+already names workstreams and nothing in it requires them to share one MR. **And order a batch's issues
+by risk, most-likely-contested last**, because dropping the tip of a branch is free and dropping anything
+earlier is not (below).
+
+#### What a batch costs, said before anyone forms one
+
+**A batch fails whole, and there is no cheap partial-merge path.** Simulated by three-way merge without
+touching the working tree — the base is the commit, the sides are the tip and the commit's parent, which
+is what `git revert` computes:
+
+```
+git merge-tree --write-tree --merge-base=<commit> HEAD <commit>^
+# probed on two of this iteration's loop commits → CONFLICT in 7 files and in 5 files
+```
+
+**One `REQUEST-CHANGES` on one issue's commits leaves the iteration's whole `loop` block unshipped**, and
+the implied escape — drop that issue, ship the rest — is a hand-resolved conflict across five to seven
+files, under review pressure, in the files that carry the loop's own rules. Only the **last** issue's
+commits are cheap to drop. Nothing bounds this mechanically; the two available bounds are compositional
+(order by risk, keep batches small) and both are discipline.
+
+**And review is traded, not preserved.** What a small diff buys is a **reviewable premise** — a reviewer
+holding the whole change in view. Nothing reproduces that inside a batch-sized diff, and a traceability
+matrix does not: a matrix tells a reviewer *where to look*, which is navigation, not a ruler. **The
+honest statement is that the trade is favourable for documentation-shaped `loop` items and unfavourable
+for hook-shaped ones.**
+
+#### What was dropped from the specification, and why — each measured, not preferred
+
+- **"One Loop Batch per iteration" as a RULE.** False by construction across repositories, and it
+  removes the installable intermediate. Adopted as a permission instead. *(Above.)*
+- **The authored traceability matrix.** Nothing in this harness parses a PR body except
+  `closure-artifact-guard.sh`, which reads closing keywords rather than tables. An authored matrix is
+  claim-carrying prose with no reader — this repository's named recurring failure. **Its content is
+  worth having DERIVED**, which is the deferred item below.
+- **Step 6, the consumer reinstall.** It has no mechanism here. There is no install path: the owner runs
+  `/plugin marketplace update` + `/plugin update` and restarts, and `powers/` is a generated export gated
+  by regeneration-and-diff, not an install route. What exists is `hooks/scripts/session-plugin-version.sh`,
+  which compares a **version string** and injects a notice without blocking; the specification's
+  *"confirmar que as cópias instaladas são idênticas ao manifest"* is a **content** identity check that
+  does not exist and is not built here. **And a batch buys nothing here anyway** — one update instead of
+  N was always available as the owner's choice.
+- **Enforcement.** Every layer was walked and none can carry it. `permission-guard.sh` and `wip-guard.sh`
+  read a command string, and `gh pr create` on a second `loop` PR is character-identical to the first.
+  `wip-guard.sh` additionally sees only **open** PRs, so under WIP=1 the previous `loop` PR is already
+  merged and there is nothing to overlap with — it bounds concurrency, never count-per-iteration. A
+  `PreToolUse` deny would have to resolve a branch to an Issue (a suffix heuristic measured at 11 of 12
+  on this repo's recent PRs), read its labels and milestone, and query merged PRs — two to three network
+  calls in a hook whose file-level posture is **fail open**. **A control that fails open on every lookup
+  failure, keyed on a heuristic that misses one in twelve, denying an act with a legitimate exception, is
+  a control that reads as enforcement and behaves as advice.** Not built, on the same evidence #339
+  rejected the same shape on.
+
+#### Deliberately DEFERRED, not dropped: the derived commit ↔ issue coverage check
+
+**It is the one genuinely enforceable clause in the whole specification, and it is not built here.** Both
+directions are computable in CI from objects that already exist: every issue a PR closes has at least one
+commit naming it, and every commit on the branch names an issue in that set. It needs no PR-body parsing,
+no milestone lookup and no tree discovery.
+
+**What it would cost, measured at head:** `git log v1.1.35..origin/main --no-merges --format='%s'`,
+excluding `bump:` subjects, gives **17 of 21** carrying a `(#N)` — a commit-subject convention currently
+about 81% kept, so the gate would redden on honest work until the convention is closed.
+
+**It is deferred because it is its own decision, not because it is hard.** Folding it in prices two
+decisions as one: this section is a composition permission with no mechanism, and that is a mechanism
+with a red gate and a convention to enforce. **It is also worth building whether or not any batch is ever
+formed**, which is the clearest sign it is a separate item.
+
+#### Two named residuals — neither is fixed here, and both touch other people's floors
+
+**1 · The `agents-lead` verdict marker is a PRESENCE check, not a HEAD check.** `permission-guard.sh`
+rule 7c head-scopes the **gatekeeper's** verdict — it fetches `headRefOid` and the comment list in one
+call, and since #341 an unreadable head **denies**. Nothing does the equivalent for the harness marker:
+`grep -rln "harness-lead-verdict"` returns two briefs, two records, the string-identity arm in
+`inventory-counts.test.sh`, a **counter** in `dispatch-metrics-stop.sh`, and a comment in
+`zombie-loop-detect.sh` stating in its own words that it reads only `gatekeeper-verdict`. Hold 2 in
+`agents/quality-assurance.md` reads *"a comment on the PR before you may merge it"* — **presence.**
+
+**On a per-item slice that asymmetry costs at most one slice's diff, and re-posting on a moved head
+covers it in practice. On a branch that lives a whole iteration it does not:** a marker posted at the
+first commit satisfies hold 2 for everything that lands after it. **That is a real consequence of this
+model, and it is recorded rather than repaired** — the repair is an added condition inside rule 7c,
+which is the floor, and the floor is its own change.
+
+**2 · The active iteration is derived per repository and nothing checks the two derivations agree.** The
+pool predicate takes `--repo` and returns a milestone **number**; the numbers differ (1 and 2), so the
+only thing tying the halves together is the **title string**, written by hand, twice. Title one
+`sprint-01` and the other `sprint-1` and **each derivation succeeds, each reports a healthy pool, and the
+iteration silently becomes two** — a failure that presents as everything being fine.
+
+**Judged and deferred, and the judgement is the interesting part.** The obvious detection — derive in
+both trees at session open and assert the titles match — is *not* cheap in the layer that would hold it:
+a `SessionStart` hook receives one `cwd`, so it must first **discover the sibling tree**, which
+ADR-0004 already calls *"a heuristic and the weakest part"*, and then pair milestones **by title** —
+which is the very string whose agreement it is trying to verify. **A detector that assumes what it
+checks is not a detector.** So it is its own item, on the same reasoning that kept #339 from building the
+loop-first `Stop` hook, and it is named here rather than filed.
+
+#### How this reconciles with #338 and #339, without reopening either
+
+- **#338 governs the ITERATION; this governs the BRANCH.** A `loop` Issue joins the active iteration at
+  filing; whether it joins an **open batch branch** is a different question, and the answer is that
+  admitting one means either re-opening a diff that already carries verdicts or deferring to the next
+  batch. Different objects, no collision.
+- **Admission needs no new mechanism, and it is already spelled `ready`.** The specification asks that a
+  newly-discovered `loop` item enter the active batch only by explicit owner decision. `ready` on the
+  `loop` lane is the owner's transition alone, and the pool predicate requires it. **That control exists;
+  do not build a second one.**
+- **#339's loop-first ordering is untouched.** The `loop` block is still composed ahead of every
+  `product` item. This section only says the block *may* travel as one branch.
+- **The drain's entry snapshot is untouched.** Terminating against the pool as it stood at entry is
+  orthogonal to how many branches that pool is carried on.
+
+#### Nothing gates this either, and the arm says only that it is written
+
+`hooks/scripts/inventory-counts.test.sh` asserts this section exists and carries its load-bearing
+clauses. **It cannot observe whether any iteration was composed as a batch, because nothing captures the
+composition** — same limit, same words, as the loop-first arm above. By this loop's own test — *would
+something stop me, or only my memory?* — this is an instruction, and it is one that only ever **permits**,
+which is the shape with the least to lose from being unenforced.
 
 ### Estimation — the weight is an `sp:N` label, and the estimators are the personas that work the type
 

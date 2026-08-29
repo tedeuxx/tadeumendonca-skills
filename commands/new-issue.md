@@ -198,6 +198,11 @@ check it or labelled a hypothesis**, and a mitigation or the price of accepting 
   to write (#223), and that file rides in the implementing MR, not here.
 - **It gates nothing and files nothing.** It holds no merge, opens no Issue, and its return is advice the
   owner acts on — which is why the `ready` transition below is his alone on this lane.
+- **Filing a `loop` Issue does NOT reserve it a branch.** The iteration's `loop` block may be composed as
+  one batch — one branch, one MR, commits separated per issue — per `/harness-engineering`'s *The `loop`
+  block MAY be carried as one branch and one MR*. It is a **permission the owner exercises at planning**,
+  so nothing at filing time promises a per-Issue MR and nothing at filing time may assume one either.
+  *"Rides in the implementing MR"* above means whichever MR implements it.
 
 ### 4 · Label it honestly, and `ready` is not automatic
 
