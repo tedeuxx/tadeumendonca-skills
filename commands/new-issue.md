@@ -267,6 +267,68 @@ cannot say whether anything shipped unseen.
 `--body` loses every backtick to command substitution, silently, and this repo has paid for that four
 times in one session.
 
+#### A `loop` Issue is filed INTO the active iteration (#338)
+
+**The owner's ask, verbatim: «tudo de loop deveria estar na iteracao corrente.»** `loop` work is never
+scheduled out to a later iteration, so the milestone is set **at filing** and not left for planning. Before
+this, `commands/new-issue.md` never set a milestone at all — `grep -c "milestone" commands/new-issue.md`
+returned `0` — so every `loop` Issue was born outside the pool `/autonomy-on` can see.
+
+**Scope: `loop` only.** A `product` or `content` Issue is composed into an iteration at planning and takes
+no milestone here. **Which repo's iteration: the one the Issue is filed in** — milestones are a per-repo
+namespace and there is no cross-repo iteration object, so *"the current iteration"* is two objects and the
+filing repo is what picks between them.
+
+**Derive the milestone from the pool; never type its name and never read a date.** The predicate is
+`/harness-engineering`'s rule 1 — read it there — and it returns a milestone **number**; enumerate the
+titles from the same query rather than composing one:
+
+```
+gh issue list --repo <owner>/<repo> --state open --limit 200 --json number,labels,milestone \
+  --jq '[.[]|select(.milestone!=null)
+          |select((.labels|map(.name)|index("ready"))
+                  and ((.labels|map(.name)|index("product")) or (.labels|map(.name)|index("loop"))))
+          |{n:.milestone.number,t:.milestone.title}]|min_by(.n)|.t'
+```
+
+**`min_by(.n)` and not `min` on the titles** — rule 1 says *oldest*, and oldest is the milestone **number**.
+Sorting titles is alphabetical, which agrees with the number for `sprint-01 … sprint-09` and stops
+agreeing at `sprint-10`. That is a defect that cannot appear until the tenth iteration, which is the worst
+kind.
+
+Then file with it: `gh issue create --body-file <path> --milestone "<the title that came back>"`. The
+permission prefix is unchanged — `gh issue create` is what the guard matches, with or without the flag.
+
+**A wrong milestone name FAILS LOUDLY, and this was the open unknown the Issue flagged.** Measured
+2026-08-28 against `tedeuxx/tadeumendonca-skills`:
+
+```
+gh issue edit 332 --repo <owner>/<repo> --milestone "nonexistent-probe-338"
+→ failed to update …/issues/332: 'nonexistent-probe-338' not found
+→ failed to update 1 issue        (exit 1)
+```
+
+The issue was left unchanged (`gh issue view 332 --json milestone,updatedAt` → `milestone: null`, its
+`updatedAt` unmoved). **So a bulk assignment cannot appear to succeed and not have** — the failure mode
+the Issue asked about does not exist on this command. It does exist one step earlier, in *selecting* the
+wrong iteration, which is why the predicate above enumerates instead of naming.
+
+**If the query returns nothing, file with no milestone and say so in the body.** That is the state right
+after an iteration is fully drained, and it was the bootstrap state until the owner created the first
+iteration. ~~no milestone exists in either repository~~ — **struck 2026-08-28: it does.** The command
+above returns `sprint-01` in this repository, and the same query against the product repo returns
+`sprint-01` there too — **two distinct milestone objects sharing a title**, which is the concrete form of
+*"the current iteration is two objects"* and the reason the repo is named in the predicate rather than
+assumed. **Do not invent a milestone and do not create one**: `gh api` is denied in the global
+settings, deny from any layer wins, and there is no `gh milestone` subcommand, so **creating an iteration
+is an owner-only act performed in the browser**. An unassigned `loop` Issue is not lost — it is counted by
+`/autonomy-on`'s *"`ready` items carrying NO milestone"* line at session open, which exists for exactly
+this.
+
+**What nothing enforces.** No hook reads the queue — every `gh issue` call in `hooks/scripts/` is a write
+path — so an Issue filed with the wrong milestone, or with none while one existed, is invisible to the
+tracker and to the diff. The gate asserts this instruction is **present**. That is the whole claim.
+
 ## What this command does NOT do
 
 - **It does not build anything.** It opens an Issue. `autonomy-on` picks it up.

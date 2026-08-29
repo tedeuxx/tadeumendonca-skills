@@ -2422,8 +2422,12 @@ prevent. **"No new record owed" is the answer, with that reason**, and the ceili
    queue is `(product OR loop) AND ready`, so the alternative does not orphan a ceremony's output, it
    takes half the queue dark.
 3. **Exhaustion is the drain's terminal condition again, and #103's judgment condition moves to
-   planning** — decided inside the loop. It is not a reversal: #103's argument is about a pool that grows
-   while it drains, and an iteration's pool does not.
+   planning** — decided inside the loop. ~~It is not a reversal: #103's argument is about a pool that
+   grows while it drains, and an iteration's pool does not.~~ **Struck 2026-08-29 — see the twenty-third
+   amendment.** `loop` Issues now join the ACTIVE iteration at filing on the owner's decision, so an
+   iteration's pool does grow while it drains and this justification no longer holds. The terminal set
+   moved to the drain's ENTRY SNAPSHOT; the half of decision 3 that survives is that #103's judgment
+   condition still lives at planning.
 
 **The one measurement that could have sent decision 1 back to the table, closed here rather than left
 open.** `gh issue list --json milestone` returns a sub-object with **four keys and no `state`**
@@ -2481,8 +2485,9 @@ which configuration version, when generated"* header is a different object and i
 - **A `ready` item with no milestone silently stops being worked.** `ready` was sufficient and is now
   necessary-not-sufficient. The mitigation is a **count reported at session open**, from the same query —
   prose, not a mechanism, and it is the single largest silent-failure surface this amendment creates.
-- **The unboundedness moves; it is not removed.** The active iteration's pool is fixed at planning, and
-  nothing bounds the *next* one, or how many items the owner admits to one iteration. That is the intended
+- **The unboundedness moves; it is not removed.** ~~The active iteration's pool is fixed at planning~~ —
+  **struck 2026-08-29, twenty-third amendment: it is not, and the bound is now the drain's entry
+  snapshot.** The rest of this bullet survives intact: nothing bounds the *next* one, or how many items the owner admits to one iteration. That is the intended
   shape — the bound on worth is a human deciding — but an over-filled iteration reproduces the old
   unbounded drain inside one milestone, and no gate can see it.
 - **An empty pool from a mistyped milestone is indistinguishable from a drained one**, and exhaustion is
@@ -2756,6 +2761,120 @@ finding is already asking for.**
 `agents-lead` per the #223 domain split — a pure loop/machinery decision, no product-architecture stake,
 no `tech-lead` co-citation owed. The layer analysis, the detector's rejection and the two citation
 findings were closed inside the loop and are labelled as such rather than attributed to him.
+
+## Amendment (2026-08-29, twenty-third) — `loop` joins the ACTIVE iteration at filing, so the drain's terminal set is an entry SNAPSHOT and the iteration's pool is not
+
+**This amendment reverses decision 3 of the twentieth amendment**, and the clause it reverses is quoted
+there in as many words: *"It is not a reversal: #103's argument is about a pool that grows while it
+drains, and an iteration's pool does not."* **An iteration's pool now does.** The consequence bullet in
+that same amendment reading *"The active iteration's pool is fixed at planning"* is false for the same
+reason. Both are left standing there and reversed here rather than rewritten, per this library's own
+convention: each was correct on the day and someone built on it.
+
+**Two owner decisions, in order, both #338.** First the rule: *«tudo de loop deveria estar na iteracao
+corrente.»* Then, asked whether to narrow it to filing time — which is what `agents-lead` proposed at
+intake, and what would have preserved decision 3 intact — he declined: *«a gente nao consegue impedir esse
+comportamento, embora ao longo do tempo esse aumento de escopo dentro da iteracao nao é desejavel e deve
+se normalizar ocm o tempo.»* Then he amended: *«em resumo: as metricas da iteracao no gitlab vao mostrar
+o que aconteceu.»*
+
+**Read the three as one decision with a shape**, because taken singly the second reads as a shrug: the
+behaviour is **not preventable**, growth inside an iteration is **accepted and not endorsed**, and the
+signal that it is normalising is read **off the tracker** rather than off any instrument this repo
+authors.
+
+### The decision
+
+1. **A `loop` Issue is filed into the ACTIVE iteration, at filing, in the repo it is filed in.** Carrier:
+   `commands/new-issue.md`'s *Open it* step. Before this the command set no milestone at all —
+   `grep -c "milestone" commands/new-issue.md` returned `0` — so every `loop` Issue was born outside the
+   pool `/autonomy-on` can see, which is the defect the rule closes. Scope is `loop` and only `loop`:
+   widening it to every type moves planning into the capture command, a decision nobody has made.
+2. **The drain's terminal set is the pool AS IT STOOD AT ENTRY** — a snapshot of issue **numbers**, taken
+   once, held as session state for one invocation. Carrier: `commands/autonomy-on.md`. Two properties are
+   load-bearing rather than incidental. **Numbers, not a count**: a count is satisfied by an arrival
+   replacing a closed item, so the drain would work an item it never admitted while the arithmetic still
+   matched. **Re-taken fresh per invocation**: a second `/autonomy-on` in the same iteration picks up
+   everything the first did not take, so the snapshot **defers and never drops** — which is also why it
+   needs no durable home, and why the constraint the twenty-second amendment's slice measured (a milestone
+   description is not readable from here, so a description edit leaves no trace) does not reach this
+   design.
+3. **No arrivals instrument is built**, on his amendment. The drain does not report how many items joined
+   after it started.
+
+### The measurement his third clause needed, and why nothing was built for it
+
+**One fact, recorded as a fact.** These repositories are on **GitHub**, whose milestone view shows
+open-versus-closed and a completion bar and **does not show when an item joined a milestone** — the exact
+quantity *«deve se normalizar com o tempo»* is about. GitLab iterations carry that history natively. So on
+this tracker the growth is visible as a **moving denominator** rather than as an event. That is a
+constraint on what the tracker can show, not an argument for building around it; he was told and settled
+it.
+
+**The growth does surface, and it surfaces for free.** An Issue that arrives mid-drain carries no `sp:`
+label and, on the `loop` lane, no `ready` — both are existing **preflight** pendency classes. So the
+*next* invocation refuses to enter and surfaces them one at a time. Nobody writes that report; it is the
+existing preflight meeting the new filing rule.
+
+### Considered options
+
+1. **Narrow the rule to filing time** (`agents-lead`'s proposal at intake) — a `loop` Issue the owner
+   files during iteration N joins N, a `loop` finding surfaced by a slice inside N joins N+1. **Rejected
+   by the owner**, and the rejection is the interesting part: the line is unobservable. Nothing in the
+   tracker distinguishes an Issue born of the owner's ask from one born of a slice's finding, so the rule
+   would have been a discipline whose violation no gate and no reader could ever see — a stricter rule
+   with strictly less evidence behind it than the loose one.
+2. **Accept the growth and leave exhaustion as the terminal condition.** Rejected as incoherent: `loop` is
+   the class generated by working, so the drain's stopping condition would recede as the drain runs. That
+   is #103's argument arriving one layer down, and #103 is the reason `/autonomy-on` has a
+   terminal-condition section at all.
+3. **Persist the snapshot in the tracker** — a milestone description, or a comment on the iteration Issue.
+   Rejected twice over: the milestone description is not readable from here, and the iteration Issue does
+   not exist yet. **And it would be worse if it worked** — a persisted snapshot needs an invalidation rule
+   for the second invocation, which is exactly the question that kills a snapshot, and session state
+   answers it by having nothing to invalidate.
+4. **A detector, as the closing-artifact slice built for its own rule.** Rejected on precision rather than
+   on cost: the only mechanically checkable signal — *the drain reported exhaustion while the iteration
+   still holds open `ready` items* — is **true of every correct snapshot termination that saw an arrival**.
+   A detector with zero precision by construction trains its reader to ignore it, which is worse than none.
+
+### Consequences
+
+**Good**
+- **Both of the owner's asks hold at once**, which neither option managed alone: items join the active
+  iteration on arrival, and the drain still terminates.
+- **The terminal condition is true by construction rather than by policy.** A set of numbers fixed at
+  entry is exhausted by working it; it does not depend on anyone refraining from filing.
+- **Two unknowns the Issue flagged are closed by measurement.** `gh issue edit --milestone
+  "<nonexistent>"` **fails loudly** — exit 1, `'<name>' not found`, the issue unchanged — so a bulk
+  assignment cannot appear to succeed and not have. And the pool predicate returns `sprint-01` in **both**
+  repositories, so the bootstrap the Issue called blocking is discharged, and *"the current iteration is
+  two objects"* is now a concrete pair of milestones sharing a title rather than a hypothetical.
+
+**Bad**
+- **The closing ceremonies run against the ITERATION, not the snapshot**, so an iteration that grew
+  mid-drain is closed holding items the drain never admitted. That is what the accepted behaviour looks
+  like from the closing end. No mitigation is proposed.
+- **Nothing observes the snapshot.** No artifact records it, so a drain that terminated against its
+  snapshot, one that terminated against the live pool, and one that quietly dropped an item are
+  indistinguishable from the tracker and from the diff. Same residual, same wording, as the twentieth
+  amendment's — every `gh issue` call in `hooks/scripts/` is a write path.
+- **A `loop` Issue filed with the wrong milestone, or with none while one existed, is equally invisible.**
+  The `--milestone` failure is loud; *selecting* the wrong iteration is silent, which is why the carrier
+  enumerates from the items instead of naming.
+- **The trend is unmeasured, by decision.** *«Deve se normalizar com o tempo»* has no instrument, and a
+  moving denominator on a milestone bar is a weak reading of it. Recorded so that if watching the bar
+  turns out not to be enough, the gap is known to be one paragraph of a report rather than a mechanism.
+- **The same phrase-keyed coupling as the twentieth and nineteenth**: three new arms in
+  `inventory-counts.test.sh` key on sentences, so rewording reddens the gate and whoever rewords edits the
+  needles in the same commit. One arm is **line-anchored** rather than fixed-string, because the retired
+  #326 bullet is kept struck in the file and `grep -F` would have matched the preserved copy — a negative
+  arm that passes with the rule live again is the failure mode it exists to catch.
+
+**Deciders:** the owner (both rulings); written by `agents-lead` per the #223 domain split — a pure
+loop/machinery decision, no product-architecture stake, no `tech-lead` co-citation owed. The snapshot's
+shape, its rejection of a durable home, and the detector's rejection were closed inside the loop and are
+labelled as such rather than attributed to him.
 
 ## Consequences
 **Good**
