@@ -97,6 +97,13 @@ states in its own words that nothing gates it. `product-lead` orders **within** 
 compose. In this repo there is no conflict to reconcile at all — `product-lead` is not dispatched on
 `loop` intake here (ADR-0002 amendment #14), so the rule fills a vacuum rather than overriding anyone.
 
+**And the `loop` block MAY travel as one branch and one MR** — `/harness-engineering`'s
+*The `loop` block MAY be carried as one branch and one MR*. It is a **permission the owner exercises at
+planning**, never something this drain composes on its own: read the ordered body, and if it says the
+block is one batch, work it as one. **The default is unchanged and per-item.** More than one batch per
+iteration is normal — a branch does not cross repositories and the iteration does — so nothing here may
+infer *"the loop block is one PR"* from *"the loop block is a batch"*.
+
 The bias it exists to correct, said plainly because it is invisible from inside: **sorting the queue
 by what flows without a human is correct for safety and backwards for prioritisation.** It once
 produced seventeen closed issues with not one from the owner's product queue.
@@ -200,7 +207,10 @@ That is the timing. What follows is the exception path for what you *discover* m
 Follow `/harness-engineering`. Nothing here relaxes it:
 
 - Plan first for anything non-trivial; the two leads consolidate **one** demand before the build.
-- Thin vertical slice, end to end, finished **through merge** before opening the next.
+- Thin vertical slice, end to end, finished **through merge** before opening the next. **Where the owner
+  composed the `loop` block as one batch, the slice is the batch** — one branch, one MR, commits still
+  separated per issue — and *"before opening the next"* is measured against that unit, not against each
+  Issue in it. WIP=1 is satisfied either way, since a batch is one branch and one PR by construction.
 - WIP is bounded per `/harness-engineering` — read it there rather than trusting a restatement, and
   note the guard enforcing it may lag the rule (`product-lead` carries the caveat).
 - Every gate green with real evidence, and the `quality-assurance` on every PR. It merges the safe

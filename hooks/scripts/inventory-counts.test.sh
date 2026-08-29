@@ -5235,6 +5235,139 @@ else
 fi
 
 # ---------------------------------------------------------------------------------------------------
+# THE `loop` BLOCK MAY BE CARRIED AS ONE BRANCH AND ONE MR — A PERMISSION, AND THE REFUSALS BESIDE IT (#357).
+#
+# WHY THIS EXISTS. The owner proposed a "Loop Batch": the iteration's `loop` items delivered as one
+# integrated reconfiguration, with "faça enforcement se necessário". The composition half was adopted as
+# a PERMISSION; the headline clause ("one Loop Batch per iteration"), the authored traceability matrix,
+# the consumer-reinstall step and the enforcement were all refused, each on a measurement. ADR-0002's
+# twenty-fourth amendment is the record.
+#
+# WHAT THESE ARMS HOLD, AND IT IS ONLY EVER PRESENCE:
+#
+#   1. THE PERMISSION IS WRITTEN AS A PERMISSION, in the file every persona preloads — including the
+#      "more than one batch per iteration is normal" clause, the deferral of the coverage check, the
+#      marker residual, and the "nothing gates this either" disclaimer.
+#   2. THE TWO COMMANDS A HUMAN TYPES point at it, so neither `/autonomy-on` nor `/new-issue` reads as
+#      promising a per-Issue MR.
+#
+# WHY THE "IT IS A MAY" NEEDLE IS THE LOAD-BEARING ONE. A permission trimmed into a rule is the exact
+# failure this section refuses: "one Loop Batch per iteration" is FALSE BY CONSTRUCTION the moment the
+# iteration's `loop` block spans both repositories, because a branch does not cross repositories. If a
+# later edit turns the MAY into a MUST, this repo ships a rule it has already measured cannot hold.
+#
+# WHY THE DURABLE-FORM NEEDLE IS SEPARATE (arm 3). #339's layer analysis was argued from a dated fact —
+# every `loop` item in one repo, every `product` item in the other — which reads as a SEPARATION between
+# the two repositories. The owner's 2026-08-29 correction is that there is ONE development effort and two
+# places where files live. The durable statement is that a hook receives one `cwd`, so no single-repo hook
+# can observe the iteration REGARDLESS of contents. The dated measurement is kept as evidence; this arm
+# holds the reason, which is what stops the conclusion expiring when the contents move.
+#
+# WHAT NO ARM CAN OWN. That any iteration was actually composed as a batch, or was not. Nothing captures
+# the composition — the same limit, in the same words, as the loop-first arms 200 lines above. A green
+# here means the permission and its refusals are written down. That is the whole claim.
+#
+# THREE INDEPENDENT `if` BLOCKS, EACH WITH ITS OWN VACUITY GUARD, for the reason stated repeatedly above:
+# an arm nested under another emits NO verdict when the one above it goes red.
+LOOPBATCH_SKILL="$ROOT/skills/harness-engineering/SKILL.md"
+LOOPBATCH_AUTONOMY="$ROOT/commands/autonomy-on.md"
+LOOPBATCH_NEWISSUE="$ROOT/commands/new-issue.md"
+
+# ── 1 · the permission, its refusals, its deferral and its residual are in the universal preload ──
+loopbatch_skill_missing=""
+if [ ! -r "$LOOPBATCH_SKILL" ]; then
+  bad "loop-batch — skills/harness-engineering/SKILL.md is not readable; the composition permission
+      cannot be checked at all. This is the preload every persona carries, which is why the rule lives
+      here rather than in narrative prose."
+else
+  for loopbatch_needle in \
+    '### The `loop` block MAY be carried as one branch and one MR — a PERMISSION, not a rule (#357)' \
+    '**It is a MAY. Nothing composes a batch automatically, nothing forbids the per-item shape, and no gate' \
+    '#### More than one batch per iteration is NORMAL, and the model must say so' \
+    '#### Deliberately DEFERRED, not dropped: the derived commit ↔ issue coverage check' \
+    'is a PRESENCE check, not a HEAD check' \
+    '#### Nothing gates this either, and the arm says only that it is written'
+  do
+    grep -qF -- "$loopbatch_needle" "$LOOPBATCH_SKILL" || loopbatch_skill_missing="$loopbatch_skill_missing
+    missing: \"$loopbatch_needle\""
+  done
+  if [ -n "$loopbatch_skill_missing" ]; then
+    bad "loop-batch — the composition permission lost a load-bearing part:$loopbatch_skill_missing
+      The IT-IS-A-MAY needle is the one that matters most: turned into a MUST, this becomes
+      \"one Loop Batch per iteration\", which is false the moment the block spans both repositories
+      because a branch does not cross repositories. The MORE-THAN-ONE needle is that refusal stated
+      positively. The DEFERRED needle keeps the derived commit-to-issue coverage check visible as a
+      deliberate omission rather than an oversight — it is the only enforceable clause in the whole
+      specification. The PRESENCE-not-HEAD needle is the residual a batch makes expensive: rule 7c
+      head-scopes the GATEKEEPER's verdict and nothing head-scopes this persona's, so on a long-lived
+      branch a first-commit marker satisfies hold 2 for everything after it. The NOTHING-GATES needle is
+      what stops a reader inferring enforcement from a rule found in a file full of mechanisms.
+      If this is a deliberate rewording, update the needles in this file in the same commit."
+  else
+    ok "loop-batch — the preload carries the permission as a permission, the more-than-one clause, the deferred coverage check, the marker residual and the not-a-gate clause"
+  fi
+fi
+
+# ── 2 · both typed commands point at it, so neither promises a per-Issue MR ──
+loopbatch_cmd_missing=""
+if [ ! -r "$LOOPBATCH_AUTONOMY" ] || [ ! -r "$LOOPBATCH_NEWISSUE" ]; then
+  bad "loop-batch — commands/autonomy-on.md or commands/new-issue.md is not readable; the pointers from
+      the files a human TYPES to the composition permission cannot be checked."
+else
+  for loopbatch_autonomy_needle in \
+    'the `loop` block MAY travel as one branch and one MR' \
+    'the slice is the batch'
+  do
+    grep -qF -- "$loopbatch_autonomy_needle" "$LOOPBATCH_AUTONOMY" || loopbatch_cmd_missing="$loopbatch_cmd_missing
+    missing from commands/autonomy-on.md: \"$loopbatch_autonomy_needle\""
+  done
+  loopbatch_newissue_needle='Filing a `loop` Issue does NOT reserve it a branch'
+  grep -qF -- "$loopbatch_newissue_needle" "$LOOPBATCH_NEWISSUE" || loopbatch_cmd_missing="$loopbatch_cmd_missing
+    missing from commands/new-issue.md: \"$loopbatch_newissue_needle\""
+  if [ -n "$loopbatch_cmd_missing" ]; then
+    bad "loop-batch — a typed command no longer routes the delivery unit correctly:$loopbatch_cmd_missing
+      \`/autonomy-on\` is the file that WORKS the pool, so without the pointer its own
+      \"finished through merge before opening the next\" reads as a per-Issue promise. \`/new-issue\`
+      files the Issue, and without its needle a reader takes filing as reserving a branch. Both
+      pointers are one-directional on purpose: the canonical wording is the skill's, and these say so
+      rather than restating it."
+  else
+    ok "loop-batch — /autonomy-on and /new-issue both point at the composition permission and neither promises a per-Issue MR"
+  fi
+fi
+
+# ── 3 · the layer reason is stated in its DURABLE form, not only as a dated measurement ──
+loopbatch_durable_missing=""
+if [ ! -r "$LOOPBATCH_SKILL" ]; then
+  bad "loop-batch — skills/harness-engineering/SKILL.md is not readable; the durable statement of why no
+      hook can observe the iteration cannot be checked."
+else
+  for loopbatch_durable_needle in \
+    'no single-repo hook can observe the iteration at all,' \
+    'about contents on a date, never as a separation between the two repositories'
+  do
+    grep -qF -- "$loopbatch_durable_needle" "$LOOPBATCH_SKILL" || loopbatch_durable_missing="$loopbatch_durable_missing
+    missing: \"$loopbatch_durable_needle\""
+  done
+  if [ -n "$loopbatch_durable_missing" ]; then
+    bad "loop-batch — the layer analysis fell back to its dated measurement alone:$loopbatch_durable_missing
+      #339 argued from a fact about CONTENTS (every \`loop\` item in one repo, every \`product\` item in
+      the other). That fact expires the first time a \`loop\` Issue is filed in the product repo — where
+      the label already exists and has simply never been applied — and the conclusion it supports would
+      look like it expired with it. The durable reason is that a hook receives one \`cwd\` while the
+      iteration is not a repo-scoped object, so the conclusion holds whatever any repo contains. The
+      second needle is the owner's 2026-08-29 framing: one development effort, two places where files
+      live. Without it the measurement reads as a separation between the repositories.
+      NOTE ON THE NEEDLE ITSELF: it is a SINGLE-LINE span deliberately, and the full sentence begins
+      'Read that as a fact' on the previous line. \`grep -F\` is line-oriented, so a needle spanning a
+      wrap matches nothing and a null result reads as an absence — the defect commands/autonomy-on.md
+      records against itself. This needle was written across the wrap first and caught here."
+  else
+    ok "loop-batch — the layer reason is stated durably (one cwd, iteration not repo-scoped) and the dated measurement is flagged as a fact about contents"
+  fi
+fi
+
+# ---------------------------------------------------------------------------------------------------
 # ESTIMATION: THE WEIGHT IS AN `sp:N` LABEL, AND IT BLOCKS ENTRY RATHER THAN BEING DECORATION (#326).
 #
 # WHY THIS EXISTS, and it is a different failure from the axis arms above. This slice was dispatched
