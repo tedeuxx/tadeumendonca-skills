@@ -695,7 +695,7 @@ closing ceremonies run, and the stop moves to the planning handoff, which is the
 `/autonomy-on`'s *Stop when* for the operative wording and for how this settles against #103's judgment
 condition; it is stated once, there, rather than twice.
 
-~~Exhausting the active iteration's pool~~ — **struck 2026-08-28 (#338).** The iteration's pool is no
+~~Exhausting the active iteration's pool~~ — **struck 2026-08-29 (#338).** The iteration's pool is no
 longer a fixed set: `loop` items join it at filing, by the owner's decision, so *"the pool is empty"* is
 not a condition a drain can reach by working. The terminal set is now the pool **as it stood when the
 drain entered**, and the substitution is not cosmetic — a drain keyed on the live pool has no terminal
@@ -704,7 +704,7 @@ state at all, which is #103's argument arriving one layer down.
 ### What this does NOT bound, said plainly
 
 **The iteration bounds nothing. The drain's ENTRY SNAPSHOT does.** ~~The iteration bounds the pool being
-drained.~~ — **struck 2026-08-28 (#338)**, because the sentence that followed it was the load-bearing
+drained.~~ — **struck 2026-08-29 (#338)**, because the sentence that followed it was the load-bearing
 half and it is now false for one of the two drainable types: ~~Findings from a slice land as Issues on
 the next iteration by design~~. A `loop` finding lands on the **active** iteration, at filing, by the
 owner's decision, so an iteration's contents are not fixed at planning and its pool grows while it is
