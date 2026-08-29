@@ -1055,7 +1055,12 @@ more than it does:
   It does not implement "a `PreToolUse` hook on `gh pr merge` that denies a merge lacking the
   gatekeeper's marker" as its own freestanding control; it implements that check conditioned on 7b
   already having passed.
-- **FAILS OPEN on a missing tool, not closed.** The table below requires **deny** when `gh`/`jq` are
+- ~~**FAILS OPEN on a missing tool, not closed.**~~ **REVERSED 2026-08-28 (#341) — rule 7c fails
+  CLOSED. This bullet is struck in place rather than rewritten; see the amendment
+  *"the merge floor fails closed, and only the merge floor"* at the end of this record for the owner's
+  decision, what shipped, and the two claims in this bullet that measurement contradicted.** Read the
+  text below as the argument that was recorded for the fail-open, not as the current behaviour:
+  ~~The table below requires **deny** when `gh`/`jq` are
   absent. What shipped **allows** — matching `permission-guard.sh`'s own stated, file-wide policy
   ("Fails OPEN … on any parse error, a missing `jq`, or no network," this file's own header) rather than
   carving an exception into it. The reasoning for the deviation, not merely the fact of it: the design's
@@ -1064,7 +1069,8 @@ more than it does:
   reviewer, so a transient `gh`/network outage does not hand an outsider anything — it would, if anything,
   block a genuinely clean safe-class merge until the tooling recovers. **Named, not resolved:** this is a
   judgement call the owner may want to override; flipping the two `: ;;`/`*)` arms in rule 7c's final
-  `case` statement is the entire diff required to make it fail closed instead.
+  `case` statement is the entire diff required to make it fail closed instead.~~ **The owner did
+  override it (#341), and "the entire diff" was measurably wrong — see the 2026-08-28 amendment.**
 - **NO `ask` outcome, and none is possible without reintroducing a mechanism this file removed.** The
   table's third row routes an unattributable failure to `ask`; `permission-guard.sh`'s `ask()` helper was
   **deleted 2026-08-03** (this file's own comment above rule 5d), before this fold happened. Building the
@@ -1360,8 +1366,11 @@ nothing and never claimed to.
 
 ### Amendment (2026-08-23) — the fail-open had a third door, and it was the one the house tells you to use
 
-**The decision is unchanged: rule 7c still fails open.** What changes is the argument recorded for it,
-because a premise it rested on was measured false.
+~~**The decision is unchanged: rule 7c still fails open.**~~ **Struck 2026-08-28 (#341): it does not
+any more.** Everything else in this amendment stands — the extractor fix it records is unaffected, and
+its closing generalisation (*a fail-open's safety argument is an argument about the causes that can
+reach it*) is what the 2026-08-28 amendment builds on rather than replaces. What changes is the
+argument recorded for it, because a premise it rested on was measured false.
 
 **What the record claimed.** The *"FAILS OPEN on a missing tool, not closed"* bullet above justifies the
 deviation from the four-row table on the grounds that *"behind 7b, the only party who can even reach this
@@ -1451,6 +1460,113 @@ control*, but *can this layer still see the act it is holding a control over*.
 
 **Deciders:** the owner ratifies; written by `agents-lead` (authorship split by domain — this is loop
 machinery). Pre-implementation reproduction and mutation-check by the same, in the slice that fixed it.
+
+### Amendment (2026-08-28) — the merge floor fails CLOSED, and only the merge floor (#341)
+
+**The decision, and it is the owner's, in one word.** Asked whether the merge blocks or passes when
+reading the gate's verdict fails — no network, expired auth, a bad PR ref:
+
+> «deveria travar»
+
+**No readable verdict, no merge.** The unblock is manual and his. This reverses the *"FAILS OPEN on a
+missing tool, not closed"* bullet above, which named itself *"a judgement call the owner may want to
+override"*; he has.
+
+**What the fail-open actually was, and why it was worth reversing here and nowhere else.** It was not
+that the check was skipped — it is that the check was skipped **emitting nothing**, so a merge with no
+gate was indistinguishable, in the transcript and on the PR, from a merge with a clean one. Every other
+control in `hooks/scripts/` degrades into something a later step can still catch. This one degraded into
+the irreversible act itself. That is the criterion for the exception — **what the degradation lands on**,
+not how important the rule feels.
+
+**The recorded diff estimate was wrong, and it was wrong in the larger half.** The struck bullet says
+*"flipping the two `: ;;`/`*)` arms in rule 7c's final `case` statement is the entire diff required"*.
+Measured against the code it describes: it is not. The `case` is reached only inside
+`if [ -n "$qa_pr_json" ]`, so an absent `gh`, a failed API call, an expired token or a PR ref resolving
+to nothing never enter the `case` at all — they skip it, and flipping its arms changes nothing for any
+of them. The `case`'s `''` arm covers only a **third** flavour of unreadability: a response that arrived
+carrying no `headRefOid`. So the fix is two edits, not one: a `qa_unavailable` sentinel set before the
+read is consumed, and the `''` arm split out of the clearance list. **The bullet was written from the
+shape of the rule rather than from its control flow** — the same defect this record already logs one
+section up, where a claimed fail-open was written from the defect next door instead of from a
+measurement. It is recorded here rather than quietly corrected because *an ADR that states the size of
+a change nobody has run* is the failure mode this library is most exposed to.
+
+**What shipped, by cause, each with its own message.** Absent `gh` · absent `jq` · the API call
+returning nothing (no network, missing or expired auth, a rate limit, a PR reference resolving to no
+pull request) · a response with no readable head. Each denies naming **which precondition was missing
+and what unblocks it** — because a deny that is silent about why trades one invisible failure for
+another, which is the defect being fixed, not a lesser version of it.
+
+**Verified by mutation, one cause at a time, because a batch mutation cannot attribute a red.** Three
+independent mutations of the SOURCE, each run against the whole suite:
+
+```
+bash hooks/scripts/permission-guard.test.sh                       # control: 380 passed, 0 failed
+# 1. the unavailable-read deny disabled  (`if [ -n "$qa_unavailable" ]` -> `if false`)
+#    -> 377 passed, 3 failed: causes 1 (no gh), 2 (API failure), 3 (bad PR ref) — and nothing else
+# 2. the empty arm restored to the clearance list (`…|'') : ;;`)
+#    -> 378 passed, 2 failed: causes 4 and 4b (no headRefOid / empty headRefOid) — and nothing else
+# 3. both clearance literals removed (a floor that denies everything)
+#    -> 368 passed, 12 failed, including both new clearance controls
+```
+
+Mutation 3 is the one that matters most and is the one a suite of this shape usually lacks: **closing a
+fail-open ships a floor that denies everything unless something proves otherwise**, and the two
+clearance controls sitting next to the mutation are what prove otherwise.
+
+**THE SCOPE, STATED AS A REFUSAL RATHER THAN AS A NOTE.** The owner was asked about the merge floor and
+answered about the merge floor. **Every other control in this file, and every other hook in
+`hooks/scripts/`, still fails open and is untouched by this.** The generalisation across the guard set
+is [#342](https://github.com/tedeuxx/tadeumendonca-skills/issues/342), a separate Issue with a separate
+decision that has not been taken. A one-word ruling is the easiest thing in this repository to
+over-apply, and the fail-open contract it would be applied to is the one whose alternative — wedging the
+agent with no repair route — this record has already priced twice.
+
+**One branch is UNREACHABLE and shipped anyway, named here so nobody credits it.** A missing `jq` never
+reaches rule 7c: `permission-guard.sh` parses `.tool_input.command` with `jq` near its top and `exit 0`s
+on an empty result, so one absent `jq` disables the **entire** file — every rule, not this arm — and
+`deny()` is itself `jq -n`, so even the refusal could not be printed. Measured, and asserted in the
+suite as the current behaviour under the label `NAMED GAP, not #341's fix`, so it goes red the day
+somebody closes it. It is a different failure with a wider blast radius, it was excluded from #341's
+decision explicitly, and it is not fixed here.
+
+**And that last claim was FALSE when this record first made it — caught by the gate, not by its author,
+and recorded here because the shape is worth more than the fix.** The assertion set `PATH` to a
+directory holding a single `gh` symlink and then called the suite's ordinary helper — a helper that
+builds its payload with `jq -n` and launches the guard with `bash "$GUARD"`, **both resolved through
+that same emptied `PATH`.** So `jq` went missing from the *harness*, the guard was never launched, the
+empty output classified as ALLOW, and the case reported `ok` for a reason with no relation to the
+guard's behaviour. The gate proved it by simulating the repair — the parse branch denying instead of
+exiting 0 — and watching the assertion stay green.
+
+**The rule this yields, which generalises past this instance.** *Pinning a known-wrong behaviour is
+disciplined on three conditions: the gap is named in the assertion's own name, the reason is in the
+comment beside it, and **it actually reddens on repair**. The third is what does the work — without it
+the pattern is strictly worse than the comment it replaces, because a comment does not claim to be a
+check.* The correction has two parts, and the second is the transferable one:
+
+- **Remove one tool, not an environment.** The guard now runs under `env PATH=… bash "$GUARD"` against
+  a fixture holding symlinks to every external it reaches for (`bash`, `cat`, `grep`, `sed`, `awk`,
+  `tr`, `head`, `env`, `git`, `gh`) and **only** `jq` absent, while the harness keeps its own real
+  tools.
+- **Assert the EXIT CODE, because the expected observation is silence.** A guard that never launched
+  exits **127**; a guard that launched and allowed exits **0**; both emit nothing and both classify as
+  ALLOW. Where a test's expected result is *no output*, the absence of output cannot also be its
+  evidence that anything ran. Re-measured against both directions: the simulated repair reports
+  `DENY/rc0`, and deliberately dropping `bash` from the fixture — the original defect, reproduced —
+  reports `ALLOW/rc127`. The failure line names which of the two moved.
+
+**What the exception costs, since it is a cost this record twice declined to pay.** Rule 7c can now
+wedge the gatekeeper: with no network the one persona authorised to merge cannot merge, and no command
+it can run repairs that. The recovery is the owner merging in the browser — **the path this hook has
+zero reach over**, which is the argument the 2026-08-23 amendment used to keep the fail-open open. That
+argument is not refuted here; it is **outweighed**, on the owner's call, by the fact that the silent
+version of the same outcome produced a merge that nobody could tell from a reviewed one. A deferred
+merge costs a retry and is visible. An admitted one costs the whole control and is not.
+
+**Deciders:** the owner decides («deveria travar»); written and built by `agents-lead` (authorship split
+by domain — this is loop machinery). Gate review by `quality-assurance` on the diff, like any other.
 
 ## Permission entries have three states, and absent is not one (absorbed 2026-08-20, record 0018)
 
@@ -1786,4 +1902,11 @@ the section heading in this document has said about every control here from the 
   live in the floor (**the permissions syntax has no caller dimension**), and the measurement that a
   `matcher` is anchored — so `Edit|Write` left `NotebookEdit` open and a matcher is an enumeration;
   the same amendment strikes this record's *"denies `Edit(.claude/**)` and `Write(.claude/**)`"*
-  sentence, which head refutes (`"ask": ["Edit(.claude/**)"]`, no `Write` entry), closing #319.
+  sentence, which head refutes (`"ask": ["Edit(.claude/**)"]`, no `Write` entry), closing #319 ·
+  amended (2026-08-28) to record the owner's reversal of rule 7c's fail-open — **the merge floor, and
+  only the merge floor, now fails CLOSED** (#341): the *"FAILS OPEN on a missing tool, not closed"*
+  bullet is struck in place, the 2026-08-23 amendment's *"The decision is unchanged: rule 7c still fails
+  open"* opening is struck with it, and that bullet's *"flipping the two `: ;;`/`*)` arms … is the
+  entire diff required"* estimate is recorded as measurably wrong — the `case` it names is never reached
+  for three of the four causes. The generalisation across the rest of the guard set is #342 and is
+  deliberately NOT taken here.

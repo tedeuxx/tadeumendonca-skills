@@ -768,6 +768,20 @@ You still **do not fix it** — the cause goes in your verdict with the regressi
 accompany the fix.
 
 ## Classify — who may merge (methodology ADR-0004)
+
+**Before the classes: since 2026-08-28 the merge floor can DENY you for a reason that is not about the
+PR at all (#341).** `permission-guard.sh`'s rule 7c reads your own verdict off the PR before letting
+`gh pr merge` through, and if it cannot READ it — no `gh`, no network, expired auth, a PR reference that
+resolves to nothing, a response with no head — **it now denies instead of passing.** It used to pass
+silently, which meant a merge with no gate looked exactly like a merge with a clean one.
+
+**What to do when you see it, because the failure it reports is environmental and the repair is not
+yours to invent.** The deny message names which precondition was missing. Fix that and re-run the same
+command — `gh auth status`, the network, the PR reference actually naming a real pull request in the
+intended repo. **Do not route around it**, and in particular do not re-post a verdict hoping to change
+the answer: the floor is not disputing your verdict, it is saying it could not read one. If the
+precondition cannot be fixed from where you are, say so in your return and hand the PR to the owner —
+the unblock is manual and his.
 - **Safe class** — docs · dependency bumps · test-only · in-pattern refactor · in-pattern implementation
   of an **already-approved** spec/ADR. If the DoD is fully green, you **approve and merge** it yourself
   (`gh pr merge --merge`, never squash).

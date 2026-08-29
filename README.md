@@ -1048,7 +1048,12 @@ does not degrade at all.
 - **Cost:** it reads a command string, not intent. Everything it cannot express as a pattern has to live
   in a persona's judgement instead.
 - **Cost:** it fails open. Without `jq` it emits no decision at all, which the harness reads as *no
-  opinion* — so the session hook warns at startup when that is the case.
+  opinion* — so the session hook warns at startup when that is the case. **One rule is excepted since
+  2026-08-28 (#341): the merge floor denies when it cannot READ the gatekeeper's verdict** — no `gh`,
+  no network, expired auth, a PR reference resolving to nothing — because that one rule's degradation
+  landed on the irreversible act itself, and it landed silently. **The `jq` case above is NOT excepted
+  and is the honest edge of this**: a missing `jq` disables the whole file before any rule runs, so the
+  merge floor's own `jq` branch never fires. Everything else here still fails open, deliberately.
 
 `permission-guard` denies the irreversible floor before the command runs. `wip-guard` refuses a pull
 request that touches files an open one already touches — the bound is file overlap, not a count, because
