@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@1.8.0",
+        "--isolated",
+        "--channel",
+        "stable",
+        "--viewport",
+        "1280x800",
+        "--no-usage-statistics",
+        "--no-performance-crux",
+        "--allowedUrlPattern",
+        "${HARNESS_SWEEP_ORIGIN:-http://127.0.0.1:9/*}"
+      ]
+    }
+  }
+}

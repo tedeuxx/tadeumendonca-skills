@@ -1005,11 +1005,13 @@ flowchart LR
   H13["closure-artifact-guard<br/>(reports one already closed)"]
   H14["preflight<br/>(refuses a degraded session)"]
   H15["preflight<br/>(reports at the door)"]
+  H16["mcp-guard"]
 
   E1 --> H1
   E1 --> H2
   E1 --> H8
   E1 --> H11
+  E1 --> H16
   E1 --> H12
   E2 --> H14
   O1 --> H15
@@ -1027,7 +1029,7 @@ flowchart LR
 
 | event | when it fires | denies? | hooks wired here | purpose |
 |---|---|---|---|---|
-| **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard`, `wip-guard` (matcher `Bash`) · `orchestrator-write-guard` (matcher `Edit\|Write\|MultiEdit\|NotebookEdit`) · `dispatch-premise-guard` (matcher `Agent`) · `closure-artifact-guard` (matcher `Bash`) | refuse the irreversible floor and a PR that overlaps an open one, *before* either happens — refuse the main agent's own edits inside a git working tree, which is a ROUTING rule rather than a floor one (#319) — refuse a dispatch whose brief stamps a repository state that is not true, verified in the repository the brief's own citations resolve to rather than in `cwd` (#326) — and refuse `gh issue close` on an Issue whose own body declares an invocable artifact that does not resolve in this tree (#337) |
+| **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard`, `wip-guard` (matcher `Bash`) · `orchestrator-write-guard` (matcher `Edit\|Write\|MultiEdit\|NotebookEdit`) · `dispatch-premise-guard` (matcher `Agent`) · `closure-artifact-guard` (matcher `Bash`) · `mcp-guard` (matcher `mcp__.*`) | refuse the irreversible floor and a PR that overlaps an open one, *before* either happens — refuse the main agent's own edits inside a git working tree, which is a ROUTING rule rather than a floor one (#319) — refuse a dispatch whose brief stamps a repository state that is not true, verified in the repository the brief's own citations resolve to rather than in `cwd` (#326) — and refuse `gh issue close` on an Issue whose own body declares an invocable artifact that does not resolve in this tree (#337) |
 | **`SessionStart`** | a session begins or resumes | no | `preflight`, `session-wip`, `session-plugin-version` | say at the door that the session is degraded and will be refused at the first prompt — inject the open queue — and warn when the installed build is not the merged one |
 | **`SubagentStart`** | a subagent is dispatched | no | `dispatch-metrics-start` | best-effort dependency probe only — see below; does not post |
 | **`SubagentStop`** | a subagent finishes | no | `dispatch-metrics-stop` | log rework rounds, time, output size and token cost for the dispatch as a structured Issue comment (#209) |
@@ -1243,7 +1245,7 @@ by hand:
 | **Skills** | yes — **14** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **4** (`autonomy-on`, `autonomy-off`, `new-issue`, `blueprint`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **7 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`) | dispatched by name via `Task` |
-| **Hooks** | yes — **`hooks.json` registers 15** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `orchestrator-write-guard`, `dispatch-premise-guard`, `closure-artifact-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **15 registrations over 13 scripts**: `closure-artifact-guard` and `preflight` are each registered twice, on the two events their two halves need, and that is why the registration count is the honest number rather than a file count |
+| **Hooks** | yes — **`hooks.json` registers 16** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `orchestrator-write-guard`, `dispatch-premise-guard`, `closure-artifact-guard`, `mcp-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **16 registrations over 14 scripts**: `closure-artifact-guard` and `preflight` are each registered twice, on the two events their two halves need, and that is why the registration count is the honest number rather than a file count |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
 | LSP servers | **no** | — | no `.lsp.json` |
