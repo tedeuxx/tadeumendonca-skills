@@ -54,10 +54,26 @@ The owner reconciled both repos to one vocabulary (`/harness-engineering`, *One 
 repo*), so **this command now runs on either repo.** Kept as a correction rather than deleted, because
 the gap is the evidence for why the assessment is a standing rule.
 
-**Do not invent an order.** `product-lead` owns sequencing (ADR-0002 amendment #5): starting a
-slice that is not the top of the stated order requires that persona to have returned a new order, or
-the session to record that the order is unchanged. Invoke it at session start; do not substitute a
-heuristic here.
+**Do not invent an order.** `product-lead` owns sequencing ~~(ADR-0002 amendment #5)~~ — **struck
+2026-08-28 (#339): that citation is wrong.** Amendment #5's own header reads *"`product-manager` gets a
+trigger, and the reviewer's output gets a budget"*; sequencing ownership is not what it decided. Per
+`documentation-standard`'s *cite the clause, not the line*, the live wording is
+`/harness-engineering`'s *Opening a session — decisions before work*: **"Starting a slice that is not
+the top of the stated order requires `product-lead` to have returned a new order, or the session records
+that the order is unchanged."** Invoke it at session start; do not substitute a heuristic here.
+
+**The Issue's own proposed fix pointed somewhere else and was also wrong**, which is why the target is
+named by a grep rather than by recall: it proposed citing `agents/product-lead.md`, and
+`grep -rn "stated order" agents/ skills/ commands/` returns that file only at a **different** clause
+(the `PROCEED` verdict line). Two wrong locators for one sentence, in the same slice, is the argument
+for the rule rather than an anecdote against it.
+
+**What `product-lead` does NOT order: the `loop` block.** The owner's standing rule fixes it ahead of
+every `product` item at planning time. The canonical wording is `/harness-engineering`'s
+*Loop before product — a planning-time COMPOSITION rule*, which carries the eligibility escape and
+states in its own words that nothing gates it. `product-lead` orders **within** what the owner composed; it does not
+compose. In this repo there is no conflict to reconcile at all — `product-lead` is not dispatched on
+`loop` intake here (ADR-0002 amendment #14), so the rule fills a vacuum rather than overriding anyone.
 
 The bias it exists to correct, said plainly because it is invisible from inside: **sorting the queue
 by what flows without a human is correct for safety and backwards for prioritisation.** It once

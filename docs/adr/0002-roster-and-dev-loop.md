@@ -2645,6 +2645,107 @@ were closed inside the loop and are labelled as such rather than attributed to h
 retired *"absent that marker the diff is boundary class regardless"* form, ~980 lines from the amendment
 that corrected it. It is the citation every other surface points at, and it is its own slice.
 
+## Amendment (2026-08-28, twenty-second) — loop before product is a planning-time COMPOSITION rule, and no layer in this harness can gate it
+
+**The owner's standing rule (#339), 2026-08-28:** *«o pedido é que sempre todos itens de loop sejam
+atacados no inicio de sprints. lembre-se disso. faca enforcement se necessario.»* He ruled while the
+iteration was being ordered, which **dissolved a circularity worth recording**: the rule that would
+order the sprint was an item **inside** that sprint (position 7 of 13). He answered directly rather than
+waiting for the mechanism, so this amendment records a rule in force rather than proposing one, and the
+slice is not a precondition for the iteration it sits in.
+
+### The decision
+
+**Loop-first is discharged at PLANNING, on the iteration's ordered body — not at drain time, and not by
+a gate.** The ordered body lists every eligible `loop` item before any eligible `product` item; the
+drain keeps obeying `commands/autonomy-on.md`'s *"Do not invent an order."* The operative wording is
+`skills/harness-engineering/SKILL.md`'s *"Loop before product — a planning-time COMPOSITION rule, and it
+is NOT a gate"*, in the preload every persona carries; this record is the argument, not a second copy.
+
+**It ranks only what is ELIGIBLE**, and that clause is the deadlock escape the Issue asked for by name:
+`(loop AND ready AND active-iteration)` ahead of `(product AND ready AND active-iteration)`. An item
+without `ready`, or carrying `blocked`, is not in the pool and cannot stall it. **`ready` on a `loop`
+item is the owner's transition alone** (record 0015's Corollary 4), so ranking `loop`-ness rather than
+*eligible* `loop`-ness would have stalled a whole repo behind Issues only he could release — measured
+2026-08-28: `-skills` carried two unlabelled `loop` Issues while `-io` carried five `ready` `product`
+items and zero `loop` items of any kind.
+
+**The escape's real shape is narrower than it first reads, and this is where the honest limit sits.**
+This sprint produced a live instance the same day: position 6 (#341) needed the owner's go under the
+gate's hold 1, WIP=1 held, position 7's build could not open its PR, and the drain stopped until he
+answered. **The eligibility clause did not apply** — #341 was `ready` and already in progress. It covers
+an item that never *entered* the pool; it does not cover one that entered and stalled. For that, the
+escape is the one `/autonomy-on` already carries (cut the slice, write the question on the Issue, move
+on), and **WIP=1 is what converts the second case into a full stop** — a cost of WIP=1, not a defect in
+this rule.
+
+### The rejected options that are still live
+
+**1 · A `PreToolUse` refusal.** Rejected on the layer question this document exists to ask. Ordering is
+not a property of a tree and not a property of a command string: `gh pr create` on a product slice is
+character-identical whether a `loop` item is outstanding or not, and `wip-guard.sh` keys on file overlap
+on the same matcher. There is no observable moment at which a `product` slice "starts".
+
+**2 · A `Stop`-hook detector — designed, measured, NOT built.** This is the rejection most likely to be
+proposed again, and it was killed by a measurement rather than by cost. The obvious form is *"a product
+PR is open while `loop` items remain in the active iteration."* Measured against sprint-01's actual
+composition on 2026-08-28: **every `loop` item is in `-skills` and every `product` item is in `-io`**,
+and the iteration exists as two milestones (numbers 2 and 1) paired only by title. A `Stop` hook
+receives one `cwd`, so the same-repo form has **zero true positives against this iteration, by
+construction** — no `product` item in `-skills` for it to fire on, no `loop` item in `-io` to make it
+fire. **Scope that claim honestly: it is a fact about this sprint's composition, not about the class** —
+a future iteration mixing both types in one repo would give the same-repo form real positives. The
+cross-repo form is buildable and stacks three heuristics for one advisory notice: sibling-tree discovery
+from a payload carrying only `cwd` (ADR-0004's own *"a heuristic and the weakest part"*), milestone
+pairing by title (convention, as the milestone description itself says), and PR → Issue resolution
+(measured over the twelve most recent PRs: the closing-keyword route resolves 9 of 12, plus a
+branch-suffix heuristic 11 of 12, and #330 resolves under neither). Three heuristics deep, fail-silent
+by necessity, arriving one turn after a pick the ordered body already directed.
+
+**3 · Declaring the rule enforced because a gate arm exists.** Rejected explicitly.
+`inventory-counts.test.sh` gains two arms; both assert the rule is **written**, one of them keying on
+the *"not a gate"* disclaimer precisely so that trimming the disclaimer reddens. Nothing observes a
+pick.
+
+### What would change the answer, so the next reader does not re-walk it
+
+**A declared, machine-readable order carrier.** `skills/harness-engineering/SKILL.md` already specifies
+one — *"The planning artifact is an ITERATION ISSUE"* — and **it does not exist**. The order lives in
+the **milestone description** instead, in both repos, chosen for lack of an alternative. That home is
+weak in three measurable ways: nothing in `hooks/scripts/` resolves a milestone at all (one `grep` hit,
+in a comment); a description edit produces no commit, no diff and no timeline event this loop can read,
+since `gh api` is denied by the global floor; and it stands in for an object this same skill specifies.
+With a declared order the check becomes declarative — read the sequence, look up each number's labels,
+assert every `loop` number precedes every `product` number — needing no PR classification, no tree
+discovery and no prose parsing. **That is one object away, and it is the same object the weak-home
+finding is already asking for.**
+
+### Consequences still being paid
+
+- **The rule holds because deviation becomes visible and awkward, not because anything stops it.** By
+  this document's own test — *would something stop me, or only my memory?* — it is an instruction. It is
+  recorded as a named residual, not as a control, and the gate arms must never be read as the second.
+- **The order of record is unversioned where this loop can see it.** A milestone description can change
+  with no artifact any persona or hook can diff, so *"the plan said loop first"* is a claim about a
+  mutable field. Building the iteration Issue closes this and is not in this slice.
+- **A citation defect was fixed in passing and a second one was found in the fix.**
+  `commands/autonomy-on.md` cited ADR-0002 amendment #5 for sequencing ownership; #5's own header reads
+  *"`product-manager` gets a trigger, and the reviewer's output gets a budget"*. The Issue's proposed
+  replacement — `agents/product-lead.md` — is also wrong: `grep -rn "stated order" agents/ skills/
+  commands/` shows that file carrying only a `PROCEED` verdict line, while the live clause is in
+  `skills/harness-engineering/SKILL.md`'s *Opening a session — decisions before work*. **Two wrong
+  locators for one sentence inside one slice** is evidence for `documentation-standard`'s *cite the
+  clause, not the line*, not an anecdote against it.
+- **The synergy premise behind the rule is unmeasured, and stays that way.** *"Ganho de sinergia de
+  processo"* is the owner's, and this harness has no instrument for it — so if the ordering ever costs
+  more than it buys, there is no number to weigh it against. The metrics that would settle it already
+  exist in the design (cycle time, and carried-over count per iteration) and are not built here.
+
+**Deciders:** the owner (the rule, and that it is standing rather than batch-specific), written by
+`agents-lead` per the #223 domain split — a pure loop/machinery decision, no product-architecture stake,
+no `tech-lead` co-citation owed. The layer analysis, the detector's rejection and the two citation
+findings were closed inside the loop and are labelled as such rather than attributed to him.
+
 ## Consequences
 **Good**
 - Context efficiency and authorship-bias elimination fall out of per-task isolation.

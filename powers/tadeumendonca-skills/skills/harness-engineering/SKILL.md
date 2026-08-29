@@ -466,6 +466,13 @@ bolted on:
   case to `iteration:N`, and the vocabulary table below records it as a class rather than as six labels,
   because the six are one concept and a table listing them separately would be six rows nobody reads.
 
+- **The loop-first COMPOSITION rule (below) adds neither**, and it was walked against the same three
+  axes rather than assumed to be free. It changes no transition's actor and no transition's artifact —
+  it constrains only the **order** in which already-eligible items are picked out of a pool that already
+  exists. The state-model question *what observable artifact says this rule was applied?* has an honest
+  and uncomfortable answer here: **the ordered body, and nothing else**, which is why that section
+  states plainly that nothing gates it.
+
 **Two transitions are genuinely new, and they are the ones with no artifact — so they get one.**
 *An iteration was planned* and *an iteration closed* are both events a milestone's own flag cannot record
 here (no readable `state`), and an event nothing records is applied inconsistently and silently.
@@ -477,6 +484,117 @@ here (no readable `state`), and an event nothing records is applied inconsistent
 
 That reuses a primitive the loop already has rather than inventing a state: it is queryable, attributable,
 dated by GitHub, and it is the only place the owner's ordering can live at all.
+
+### Loop before product — a planning-time COMPOSITION rule, and it is NOT a gate
+
+**The owner's standing rule, 2026-08-28, in his words:**
+
+> *«o pedido é que sempre todos itens de loop sejam atacados no inicio de sprints. lembre-se disso. faca
+> enforcement se necessario.»*
+
+**It is in force, so this section RECORDS a rule rather than proposing one** — and it dissolved a
+circularity worth keeping, because the shape recurs. The rule that would order the iteration was itself
+an item **inside** that iteration (this one, position 7 of 13). He answered directly instead of waiting
+for the mechanism. **So this section is not a precondition for the iteration it sits in**, and a future
+reader finding the rule already applied to the sprint that produced it is not looking at a defect.
+
+**The rule.** At planning, the iteration's **ordered body** lists every eligible `loop` item before any
+eligible `product` item. One ordering authority, discharged by an artifact that already exists, and the
+drain keeps obeying `commands/autonomy-on.md`'s own *"Do not invent an order."*
+
+**It orders only what is ELIGIBLE, and that clause is the deadlock escape rather than a softening.**
+The rule ranks `(loop AND ready AND active-iteration)` ahead of
+`(product AND ready AND active-iteration)`. An item **without `ready`**, or carrying **`blocked`**, is
+not in the pool and therefore cannot stall it. State this explicitly or the first person to hit the
+stall improvises an escape, and the standing rule is that the loop grinds work down rather than halting
+on it.
+
+**Why that clause is not theoretical — a live instance from this sprint, and it is the escape's real
+shape rather than an invented one.** On 2026-08-28, position 6 (#341) needed the owner's go under the
+gate's hold 1; WIP=1 held; position 7's build was finished and could not open its PR; **the drain
+stopped until he answered.** Note what the eligibility clause does and does not buy there: #341 was
+`ready` and *in progress*, so it was in the pool and the escape did **not** apply. **The eligibility
+clause covers an item that never entered; it does not cover one that entered and then stalled** — for
+that, the escape is the one `/autonomy-on` already names (*"When a slice hits an owner decision it did
+not expect"*): write the question on the Issue, cut the slice to what can still finish, and move on.
+**WIP=1 is what turns the second case into a full stop**, and that is a deliberate cost of WIP=1, not a
+defect in this rule.
+
+**`ready` on a `loop` item is the owner's transition alone** (record 0015's Corollary 4), so a `loop` item
+awaiting `ready` is by construction awaiting him — which is exactly why the pool is scoped to `ready`
+and not to `loop`-ness. Measured 2026-08-28: `-skills` carried two `loop` Issues with no `ready`
+(#335, #336) while `-io` carried five `ready` `product` items and **zero** `loop` items of any kind. A
+rule ranking `loop` rather than *eligible* `loop` would have stalled a whole repo behind two Issues only
+he could release.
+
+#### Where the order actually lives — and it is a weak home
+
+**The order lives in the MILESTONE DESCRIPTION, in both repos** — carrying the ruling verbatim, the
+numbered positions across both trees, and the open recommendations not yet ruled on. It was chosen for
+lack of an alternative and it is stated as such rather than as a design:
+
+- **Nothing reads it.** Measured 2026-08-28: no script under `hooks/scripts/` resolves a milestone at
+  all (`grep -rn "milestone" hooks/scripts/*.sh` matches exactly one line, and that line is a **comment**
+  in `closure-artifact-guard.sh`). The order is prose, read by a human, in a field no gate opens.
+- **It is not versioned where this loop can see it.** A description edit produces no commit, no diff and
+  no Issue-timeline event this harness can read — `gh api` is denied by the global permission floor, so
+  the route that would expose the edit history is unavailable by construction.
+- **It contradicts the paragraph directly above.** *"The planning artifact is an ITERATION ISSUE"* is
+  what this skill specifies, and **there is no iteration Issue.** The specified object was not built;
+  the milestone description is standing in for it. That gap is named here rather than papered over,
+  because it is the same defect class #337 exists for — a rule shipped without the object it operates
+  on — and the surface most likely to be read as if the object exists is this one.
+
+**Building the iteration Issue is what would fix the home**, and it is not this slice. Until then, read
+the milestone description as the order of record and treat its weakness as known.
+
+#### Nothing gates this, and the layer analysis is why
+
+**Ordering is not a property of a tree and not a property of a command string.** Measured against every
+layer this harness has:
+
+| layer | can it hold *loop first*? |
+|---|---|
+| `permission-guard.sh` (`PreToolUse`/`Bash`) | **no** — it reads a command string. `gh pr create` on a product slice is character-identical whether a loop item is outstanding or not. |
+| `wip-guard.sh` | **no** — same matcher, keyed on file overlap. |
+| `session-wip.sh` (`SessionStart`) | **no** — it can *report* outstanding loop items, but it fires before any pick and cannot observe the pick that follows. |
+| a `Stop` hook | **detection only, one turn late** — and see the measurement below for why one is not built here. |
+| `inventory-counts.test.sh` | **presence only** — it can assert this rule is WRITTEN, which is what the arm added with this section does, and all it does. |
+
+**The only artifact that could record *"this was picked next"* is a PR's creation timestamp against the
+queue state at that moment, and nothing captures the queue state at that moment.**
+
+**A `Stop`-hook detector was designed and NOT built, on a measurement rather than on cost.** The
+obvious form — *"a product PR is open while `loop` items remain in the active iteration"* — was measured
+against this sprint's actual composition on 2026-08-28:
+
+```
+gh issue list --repo <owner>/<skills> --state open --limit 200 --json number,labels,milestone \
+  --jq '[.[]|select(.milestone!=null)|{n:.number,m:.milestone.number,l:(.labels|map(.name))}]'
+gh issue list --repo <owner>/<product> --state open --limit 200 --json number,labels,milestone \
+  --jq '[.[]|select(.milestone!=null)|{n:.number,m:.milestone.number,l:(.labels|map(.name))}]'
+```
+
+**Every `loop` item is in one repo and every `product` item is in the other, and the two halves of the
+iteration are two milestones carrying different numbers (2 and 1) paired only by title.** A `Stop` hook
+receives one `cwd` and therefore sees one repo, so the same-repo form has **zero true positives against
+this iteration's composition, by construction** — in `-skills` there is no `product` item it could fire
+on, and in `-io` there is no `loop` item that could make it fire. The cross-repo form is buildable and
+stacks three heuristics for one advisory notice: sibling-tree discovery from a payload that carries only
+`cwd` (ADR-0004 calls that candidate set *"a heuristic and the weakest part"*), milestone pairing by
+**title** (convention — the milestone description says so in its own words), and PR → Issue resolution
+(measured over the twelve most recent PRs: the closing-keyword route resolves **9 of 12**, adding a
+branch-name-suffix heuristic reaches **11 of 12**, and #330 resolves under neither).
+
+**What would change the answer, stated so the next person does not re-walk this.** A **declared,
+machine-readable order carrier** — the iteration Issue above, with the order as a parsed field rather
+than prose — turns the check declarative: read the declared sequence, look up each number's labels,
+assert every `loop` number precedes every `product` number. No PR classification, no tree discovery, no
+prose. That is one object away, and it is the same object the *weak home* section is already asking for.
+
+**So: the rule holds because deviation becomes visible and awkward, not because anything stops it. It is
+an instruction, and by this loop's own test — *would something stop me, or only my memory?* — it is not
+engineered.** Read the gate arm as asserting the rule is written down, never that a session obeyed it.
 
 ### Estimation — the weight is an `sp:N` label, and the estimators are the personas that work the type
 

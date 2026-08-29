@@ -4932,6 +4932,100 @@ else
 fi
 
 # ---------------------------------------------------------------------------------------------------
+# LOOP BEFORE PRODUCT IS A PLANNING-TIME COMPOSITION RULE, AND ITS OWN "NOT A GATE" CLAUSE IS GATED (#339).
+#
+# WHY THIS EXISTS. The owner ruled on 2026-08-28 that every `loop` item is worked before any `product`
+# item, in every iteration, and asked for enforcement. There is none available: ordering is not a
+# property of a tree and not a property of a command string, and the only artifact that could record
+# "this was picked next" — the queue state at the instant of the pick — is captured by nothing. So the
+# rule ships as an INSTRUCTION, and these arms hold the two things that are actually holdable:
+#
+#   1. THE RULE IS WRITTEN, in the file every persona preloads rather than in README prose no agent
+#      carries — including the ELIGIBILITY ESCAPE, without which the first person to hit a stalled
+#      `loop` item improvises one, and including the "nothing gates this" clause itself.
+#   2. THE COMMAND THE LOOP EXECUTES points at it and no longer carries the wrong citation live.
+#
+# WHY ARM 1 GATES THE "NOT A GATE" CLAUSE, which reads like a joke and is the load-bearing part. A rule
+# recorded with no enforcement, whose disclaimer is later trimmed as verbose, becomes a rule that READS
+# as enforced — this repo's own named failure shape (an inert control that looks installed). The
+# disclaimer is the only thing standing between a future reader and that inference, so it is the needle.
+#
+# WHAT NO ARM CAN OWN, in the same words the #326 arms use: that a SESSION obeyed any of it. Nothing in
+# hooks/scripts/ resolves a milestone — measured 2026-08-28, `grep -rn "milestone" hooks/scripts/*.sh`
+# matches one line and that line is a COMMENT — so the ordered body is prose in a field no gate opens.
+# These arms gate the PRESENCE OF A RULE. That is the whole claim.
+#
+# TWO INDEPENDENT `if` BLOCKS, EACH WITH ITS OWN VACUITY GUARD, for the reason stated 100 lines above:
+# an arm nested under another emits NO verdict when the one above it goes red, and a disappearing
+# assertion is invisible to any passing total.
+LOOPFIRST_SKILL="$ROOT/skills/harness-engineering/SKILL.md"
+LOOPFIRST_CMD="$ROOT/commands/autonomy-on.md"
+
+# ── 1 · the canonical section carries the rule, the escape, the weak home and the not-a-gate clause ──
+loopfirst_skill_missing=""
+if [ ! -r "$LOOPFIRST_SKILL" ]; then
+  bad "loop-first — skills/harness-engineering/SKILL.md is not readable; the canonical composition
+      rule cannot be checked at all. This is the preload every persona carries, which is why the
+      owner's standing rule lives here and not in narrative prose."
+else
+  for loopfirst_needle in \
+    '### Loop before product — a planning-time COMPOSITION rule, and it is NOT a gate' \
+    'The rule ranks `(loop AND ready AND active-iteration)` ahead of' \
+    '#### Where the order actually lives — and it is a weak home' \
+    '#### Nothing gates this, and the layer analysis is why' \
+    'zero true positives against'
+  do
+    grep -qF -- "$loopfirst_needle" "$LOOPFIRST_SKILL" || loopfirst_skill_missing="$loopfirst_skill_missing
+    missing: \"$loopfirst_needle\""
+  done
+  if [ -n "$loopfirst_skill_missing" ]; then
+    bad "loop-first — the canonical composition rule lost a load-bearing part:$loopfirst_skill_missing
+      The ELIGIBILITY needle is the deadlock escape: the rule ranks what is ALREADY ready, so an item
+      awaiting the owner's \`ready\` (his transition alone on the \`loop\` lane) is not in the pool and
+      cannot stall it. The WEAK HOME needle is the admission that the order lives in a milestone
+      description no gate reads, standing in for an iteration Issue that was specified and never built.
+      The NOT-A-GATE needle and the ZERO-TRUE-POSITIVES measurement are what stop this rule being read
+      as enforced by a reader who finds it in a file full of mechanisms. If this is a deliberate
+      rewording, update the needles in this file in the same commit."
+  else
+    ok "loop-first — the canonical section carries the rule, the eligibility escape, the weak-home admission and the not-a-gate clause"
+  fi
+fi
+
+# ── 2 · the executed command points at the rule, and the wrong citation is struck rather than live ──
+#
+# BOTH DIRECTIONS. The negative half keys on the LIVE form of the bad citation, not on its absence from
+# the file: the wrong locator is deliberately kept struck (`~~…~~`) because someone acted on it, and a
+# check that merely greps for the string would force deleting the correction that explains it. Same
+# distinction the #326 arm above draws between a live bullet and a preserved one.
+loopfirst_cmd_missing=""
+if [ ! -r "$LOOPFIRST_CMD" ]; then
+  bad "loop-first — commands/autonomy-on.md is not readable; the pointer from the file the loop
+      EXECUTES to the composition rule cannot be checked."
+else
+  for loopfirst_cmd_needle in \
+    '*Loop before product — a planning-time COMPOSITION rule*' \
+    '`product-lead` orders **within** what the owner composed; it does not'
+  do
+    grep -qF -- "$loopfirst_cmd_needle" "$LOOPFIRST_CMD" || loopfirst_cmd_missing="$loopfirst_cmd_missing
+    missing: \"$loopfirst_cmd_needle\""
+  done
+  loopfirst_retired='owns sequencing (ADR-0002 amendment #5): starting'
+  loopfirst_retired_hits=$(grep -cF -- "$loopfirst_retired" "$LOOPFIRST_CMD" || true)
+  [ "${loopfirst_retired_hits:-0}" -eq 0 ] || loopfirst_cmd_missing="$loopfirst_cmd_missing
+    RETIRED citation is live again, unstruck: \"$loopfirst_retired\""
+  if [ -n "$loopfirst_cmd_missing" ]; then
+    bad "loop-first — commands/autonomy-on.md no longer routes ordering correctly:$loopfirst_cmd_missing
+      The pointer is what stops the drain treating the \`loop\` block as \`product-lead\`'s to reorder;
+      the ownership sentence is what says the two authorities do not overlap. And ADR-0002 amendment #5
+      decided \"\`product-manager\` gets a trigger, and the reviewer's output gets a budget\" — not
+      sequencing ownership — so that citation must not come back live."
+  else
+    ok "loop-first — commands/autonomy-on.md points at the composition rule and the wrong citation stays struck"
+  fi
+fi
+
+# ---------------------------------------------------------------------------------------------------
 # ESTIMATION: THE WEIGHT IS AN `sp:N` LABEL, AND IT BLOCKS ENTRY RATHER THAN BEING DECORATION (#326).
 #
 # WHY THIS EXISTS, and it is a different failure from the axis arms above. This slice was dispatched
