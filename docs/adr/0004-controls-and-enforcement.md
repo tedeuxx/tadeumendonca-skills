@@ -2205,9 +2205,20 @@ forbidden servers — would have to grow every time the owner installs a connect
 between.
 
 **The orchestrator is deliberately untouched.** `agent_type` is empty there and the guard exits without
-a decision. The owner drives LinkedIn, Gmail and the rest from the main session; a floor rule invented
-to fix a subagent problem would break his own work, and this record's routing-class distinction (the
-2026-08-23 amendment) is exactly that call.
+a decision.
+
+**State the reason precisely, because the obvious phrasing is wrong and was caught at the gate.** It is
+**not** that the act is smaller: `mcp__linkedin__send_message` is as irreversible and as public as the
+merge that rule 7c was made to fail *closed* over, and this guard is the only rule in this file that
+**fails open** on an act of that class. The distinguishing argument is different and it is the only one
+that holds — **the orchestrator IS the owner's own session.** A subagent is a delegate acting on a brief
+nobody reads in real time; the main context is the human at the keyboard, and denying it a connector he
+installed and invokes deliberately is not a floor, it is a malfunction. Rule 5e's whole shape rests on
+the same distinction, and the routing-class amendment (2026-08-23) is the precedent for calling it what
+it is rather than dressing it as a safety argument.
+
+**The residual stands as a residual:** the most capable context in the loop has no MCP control at all,
+and the reason is that it is not an agent boundary to enforce.
 
 ### Who gets the browser, and why nobody else does
 
@@ -2341,6 +2352,26 @@ is a second, independent reason the hook layer had to hold this control rather t
 **`click` is allowed with its cost stated:** a nav link and the PDF download are unreachable without it,
 and a click can submit a form somebody else's markup put on the page. Narrowing, not closure.
 
+### The supply chain of the server itself, and one measured correction
+
+Raised at the merge gate as an advisory: `npx -y chrome-devtools-mcp@1.8.0` is exact-version pinned,
+**but has no integrity pin and "cannot run `--ignore-scripts`."** The concern is right and **the second
+half of the premise is false, measured** — `npx --ignore-scripts -y chrome-devtools-mcp@1.8.0 --version`
+prints `1.8.0`, and the same flag was measured completing a real navigation end to end. It is adopted,
+so the install-script surface of the package and its transitive dependencies no longer executes.
+
+**It is asserted at position 0, not by membership, and that distinction is the assertion's whole value.**
+`npx` splits its own flags from the package specifier at the first non-flag argument, so a
+`--ignore-scripts` that drifts *after* `chrome-devtools-mcp@1.8.0` is handed to the **server** — where it
+is an unknown option rather than a protection. Measured: moving it one position past the specifier
+reddens the suite; a membership check would have stayed green through exactly that move.
+
+**What is still not closed: the integrity hash.** Exact-version pinning plus npm's prohibition on
+republishing a version is what stands in for it. A true integrity pin needs a lockfile, and **this
+repository has no `package.json` and no `package-lock.json`** — introducing an npm manifest into a
+repo that has none, to hold one dev-time dependency, is a larger change than the risk justifies here
+and is recorded as declined rather than overlooked.
+
 ### Recording: a tracked file, because the sweeper cannot post
 
 Rule 5e is **unchanged** — no new posting route was opened. The sweep is written to
@@ -2385,6 +2416,14 @@ becomes load-bearing for a merge decision, that judgement changes, and it should
   live probe, and the suite feeds the guard a payload directly. If the routing regresses, every
   assertion stays green and the backstop is gone. There is no assertion available in-repo that catches
   it; the guard's header says so and this is the second place it is written down.
+- **The suite shipped wired into NO CI job, and the build report published it as a gate.** Found at the
+  merge gate by `grep -rn "mcp-guard.test.sh" .github/workflows/` returning nothing. It is this
+  amendment's own headline finding one layer up — a control that reads as installed and is inert — in
+  the layer that was supposed to hold the control. `hooks-test.yml`'s own comments already record two
+  prior instances and state the rule this broke: **add the hook and its CI step in the same slice.**
+  Fixed here. The `.mcp.json` entry added to `docs-test.yml`'s `paths:` one round earlier is explicitly
+  **not** that fix — it satisfies a gate-coverage arm while starting a job containing **zero**
+  occurrences of `mcp`, so the glob went green without gating the origin bound.
 - **"A sweep finding is advisory" is an instruction, not a mechanism.** `product-lead` holds one
   blocking veto — the truth of a published claim — and nothing prevents a sweep observation being
   dressed as one. The brief states the rule and states that nothing enforces it.

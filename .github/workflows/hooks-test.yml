@@ -72,6 +72,22 @@ on:
       - "VERSION"
       - ".claude-plugin/**"
       - ".github/workflows/hooks-test.yml"
+      # `.mcp.json` — for `mcp-guard.test.sh`, whose last three assertions read it directly: that it
+      # declares the `chrome-devtools` server the guard and `agents/product-lead.md` both name, that
+      # the browser keeps its `--allowedUrlPattern` origin bound, and that it keeps its `--isolated`
+      # throwaway profile.
+      #
+      # THE FALSIFIER, and it is the reason this line is not tidiness. A change that deletes
+      # `--allowedUrlPattern` UNBOUNDS the browser — the persona could then navigate anywhere, which is
+      # the whole egress argument the grant rests on. That change touches one file. Without this entry
+      # the PR making it starts no job holding the assertion, and ships green.
+      #
+      # `docs-test.yml` also lists `.mcp.json`, added one round earlier, and that is NOT this. It was
+      # added to satisfy `inventory-counts.test.sh`'s gate-coverage arm — the file is in that suite's
+      # `git ls-files` scan set. But `inventory-counts.test.sh` contains ZERO occurrences of `mcp`, so
+      # the job it starts asserts nothing about the origin bound. **The glob made the coverage arm
+      # green without gating the thing.** This entry is the one that actually starts the assertion.
+      - ".mcp.json"
 
 permissions:
   contents: read
@@ -138,6 +154,18 @@ jobs:
       # somebody remembers is worse than none, because it reads as covered.
       - name: Run the preflight suite
         run: bash hooks/scripts/preflight.test.sh
+
+      # Same rule a FOURTH time (#355), and this one is recorded as a violation rather than as a
+      # convention followed. The hook shipped in one commit and its step arrived only after
+      # `quality-assurance` measured `grep -rn "mcp-guard.test.sh" .github/workflows/` returning
+      # nothing — so for the length of one review round, 28 assertions protecting the browser's
+      # read-only narrowing, its origin bound and the deny-by-default persona table existed and ran
+      # nowhere. The suite was quoted in a `## Gates` list beside suites CI actually runs, which is
+      # what made local-only read as covered: the defect was not the missing step, it was that the
+      # missing step was invisible from the report. The comment three blocks up already said, in this
+      # file, that adding a hook and its CI step in different slices is how the gap opens.
+      - name: Run the mcp-guard suite
+        run: bash hooks/scripts/mcp-guard.test.sh
 
       - name: Assert every hook script is committed executable
         run: bash hooks/scripts/hooks-executable.test.sh

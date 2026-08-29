@@ -3,6 +3,7 @@
     "chrome-devtools": {
       "command": "npx",
       "args": [
+        "--ignore-scripts",
         "-y",
         "chrome-devtools-mcp@1.8.0",
         "--isolated",

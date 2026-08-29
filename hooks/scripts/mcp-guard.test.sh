@@ -189,5 +189,32 @@ else
       "--isolated is missing — the server gets a persistent profile"
 fi
 
+# The version is exact-pinned (`chrome-devtools-mcp@1.8.0`) and npm forbids republishing a version, so
+# the code is stable. What that does NOT cover is the INSTALL-SCRIPT surface of the package and its
+# transitive dependencies, which `npx` runs by default. `--ignore-scripts` closes it, and was measured
+# not to break the server: it starts, reports its version, and completes a real navigation.
+#
+# Asserted at position 0 rather than by membership. `npx` splits its own flags from the package
+# specifier at the first non-flag argument, so an entry that drifts AFTER `chrome-devtools-mcp@1.8.0`
+# is passed to the SERVER instead of to npx — where it is an unknown option, not a protection. A
+# membership check would stay green through exactly that move.
+if [ ! -f "$MCP_JSON" ]; then
+  bad ".mcp.json runs npx with --ignore-scripts" "not found at $MCP_JSON"
+elif [ "$(jq -r '.mcpServers["chrome-devtools"].args[0]' "$MCP_JSON" 2>/dev/null)" = "--ignore-scripts" ]; then
+  ok ".mcp.json runs npx with --ignore-scripts, ahead of the package specifier"
+else
+  bad ".mcp.json runs npx with --ignore-scripts, ahead of the package specifier" \
+      "args[0] is not --ignore-scripts; install scripts of the package and its dependencies would run"
+fi
+
+# The exact-version pin itself. `@latest`, a caret or a bare name would each make the code that runs
+# a moving target, which is what makes the pin worth an assertion rather than a convention.
+if [ -f "$MCP_JSON" ] && jq -e '.mcpServers["chrome-devtools"].args | index("chrome-devtools-mcp@1.8.0")' "$MCP_JSON" >/dev/null 2>&1; then
+  ok ".mcp.json pins the browser server to an exact version"
+else
+  bad ".mcp.json pins the browser server to an exact version" \
+      "the exact pin chrome-devtools-mcp@1.8.0 is gone — the code that runs is now a moving target"
+fi
+
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
