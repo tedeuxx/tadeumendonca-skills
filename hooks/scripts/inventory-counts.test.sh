@@ -3707,7 +3707,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=40
+BP_HIGH_WATER=41
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
@@ -4017,6 +4017,232 @@ elif [ -n "$bp_quote_problems" ]; then
       paraphrase is not, which is the entire reason this is the one content column with a gate."
 else
   ok "blueprint registry — all $bp_quotes_checked citação(s) appear verbatim in a carrier; $bp_unquoted row(s) state no limit in their source"
+fi
+
+# ── 7 · a citação is not satisfied ONLY by a line the carrier has STRUCK ──────────────────────────
+#
+# FOUND BY BUILDING, NOT BY READING (#358). Arm 6 greps the quote with `grep -qF`, which is blind to
+# `~~strike~~` markup — so rewriting a carrier's rule while KEEPING the old sentence inside a struck
+# span leaves arm 6 green with the row quoting a rule the carrier no longer holds. Measured on the
+# slice that rewrote `commands/blueprint.md`: the old `citação` (*"Not the registry, not a cached copy
+# of the output, not a scratch artifact."*) survived verbatim inside a `~~…~~` span, and the suite
+# printed 140/0 while row `0036` cited a struck rule.
+#
+# THAT IS THE WORST DIRECTION FOR THIS PARTICULAR GATE. `citação` is the ONE gateable half of the one
+# content column that has a gate at all — the whole argument for it is that a quote is greppable — and
+# a quote resolving into dead text turns the repo's single content assertion into a check that a
+# sentence was once written. The strike convention is deliberate and stays; what changes is that a row
+# must cite something the carrier still says.
+#
+# WHAT IT CANNOT HOLD: a sentence that is stale WITHOUT being struck. Strike markup is the only signal
+# of retirement this repo has that a grep can see, so this closes the announced retirement and nothing
+# else. A rule quietly reversed in the prose around a surviving sentence passes exactly as before.
+bp_struck_problems=""
+bp_struck_checked=0
+for bp_id in $bp_ids; do
+  bp_cit="$(bp_field "$bp_id" citação | head -1)"
+  case "$bp_cit" in
+    *"no limit stated in the source"*) continue ;;
+  esac
+  bp_q="$(printf '%s' "$bp_cit" | sed -n 's/^[^"]*"\(.*\)"[^"]*$/\1/p')"
+  [ -z "$bp_q" ] && continue          # arm 6 owns the malformed-cell case; do not double-report it
+  bp_live=0
+  bp_seen=0
+  bp_cval="$(bp_field "$bp_id" carrier | head -1)"
+  while IFS= read -r bp_path; do
+    [ -z "$bp_path" ] && continue
+    [ -r "$ROOT/$bp_path" ] || continue
+    while IFS= read -r bp_hitline; do
+      [ -z "$bp_hitline" ] && continue
+      bp_seen=1
+      case "$bp_hitline" in
+        *'~~'*) : ;;                  # this occurrence is inside a struck span
+        *)      bp_live=1 ;;
+      esac
+    done <<< "$(grep -F -- "$bp_q" "$ROOT/$bp_path" || true)"
+  done <<< "$(printf '%s' "$bp_cval" | grep -oE '`[^`]+`' | tr -d '`' || true)"
+  [ "$bp_seen" -eq 0 ] && continue     # arm 6 owns the does-not-appear-at-all case
+  bp_struck_checked=$((bp_struck_checked + 1))
+  [ "$bp_live" -eq 1 ] && continue
+  bp_struck_problems="$bp_struck_problems
+    $bp_id — every occurrence of the citação in its carrier(s) sits on a STRUCK line: $bp_q"
+done
+
+if [ "$bp_row_count" -eq 0 ]; then
+  bad "blueprint registry — the struck-citação check is vacuous: no row was parsed at all (arm 1)."
+elif [ "$bp_struck_checked" -eq 0 ]; then
+  bad "blueprint registry — NOT ONE citação was found in a carrier at all, so the struck-line check
+      quantifies over nothing. Arm 6 says whether that is a resolution failure or a parse failure."
+elif [ -n "$bp_struck_problems" ]; then
+  bad "blueprint registry — a citação resolves only into STRUCK text:$bp_struck_problems
+      A struck sentence is a rule the carrier announced it no longer holds. Re-author the row's
+      citação against what the carrier says NOW — the id does not change, only the cell does."
+else
+  ok "blueprint registry — all $bp_struck_checked resolved citação(s) appear on at least one line the carrier has not struck"
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+# `/blueprint`'S THREE MODES (#358) — THE DISPATCH SURFACE, BOTH DIRECTIONS.
+#
+# WHY THESE ARMS EXIST. `commands/blueprint.md` became a three-mode command on 2026-08-29: `export`,
+# `import <document>`, and a bare invocation that prints help and does nothing. The mode set is
+# published in TWO places that a human maintains independently — the `argument-hint` frontmatter, which
+# is what a typist sees, and the dispatch table plus the `# Mode:` headings in the body, which is what
+# the model reads. Nothing made them agree, and the failure is silent in the expensive direction: a
+# mode named in the hint with no section behind it is a mode the typist is invited to use and the model
+# has no instructions for.
+#
+# WHAT THEY PROVABLY CANNOT HOLD: whether any mode DOES what its row says. These are drift checks over
+# strings — the same class as every other cross-surface arm in this file — and the command's own
+# closing section states the residual in its own words. No green here says a blueprint was rendered
+# faithfully, a mechanism was classified correctly, or a provenance line was redacted.
+
+BP_CMD="$ROOT/commands/blueprint.md"
+
+# The declared modes, from the DISPATCH TABLE ONLY — bounded to the section, because backticked first
+# cells occur in five other tables in this file (the field mapping, the surfaces, the evidence classes,
+# the enforcement axis) and an unbounded regex would sweep them all in.
+bp_modes_table="$(awk '/^## The three modes/{t=1;next} /^## /{t=0} t' "$BP_CMD" 2>/dev/null \
+  | sed -n 's/^| `\([a-z][a-z-]*\)` |.*/\1/p' | sort -u | grep . || true)"
+# The declared modes, from the `argument-hint` — the first bare word of each `|`-separated segment.
+bp_modes_hint="$(grep -m1 '^argument-hint:' "$BP_CMD" 2>/dev/null \
+  | sed 's/^argument-hint: *//; s/"//g' | tr '|' '\n' \
+  | sed -n 's/^ *\([a-z][a-z-]*\).*/\1/p' | sort -u | grep . || true)"
+# The mode sections in the body.
+bp_modes_head="$(grep -oE '^# Mode: `[a-z][a-z-]*`' "$BP_CMD" 2>/dev/null \
+  | sed 's/^# Mode: `//; s/`$//' | sort -u | grep . || true)"
+
+bp_mode_problems=""
+if [ ! -r "$BP_CMD" ]; then
+  bp_mode_problems="$bp_mode_problems
+    commands/blueprint.md is not readable"
+fi
+for bp_m in $bp_modes_table; do
+  printf '%s\n' "$bp_modes_hint" | grep -qx "$bp_m" \
+    || bp_mode_problems="$bp_mode_problems
+    '$bp_m' has a dispatch-table row and is NOT in the argument-hint the typist reads"
+  printf '%s\n' "$bp_modes_head" | grep -qx "$bp_m" \
+    || bp_mode_problems="$bp_mode_problems
+    '$bp_m' has a dispatch-table row and NO '# Mode: \`$bp_m\`' section to dispatch to"
+done
+for bp_m in $bp_modes_hint; do
+  printf '%s\n' "$bp_modes_table" | grep -qx "$bp_m" \
+    || bp_mode_problems="$bp_mode_problems
+    '$bp_m' is offered in the argument-hint and has no dispatch-table row"
+done
+# The third mode is the bare invocation. It has no word, so it is asserted by its two statements: the
+# hint must tell the typist that no argument is legal, and the body must say what that does.
+grep -m1 '^argument-hint:' "$BP_CMD" 2>/dev/null | grep -qF 'no argument' \
+  || bp_mode_problems="$bp_mode_problems
+    the argument-hint does not mention 'no argument'; the bare-invocation mode is invisible to a typist"
+grep -qF 'prints help and does nothing else' "$BP_CMD" 2>/dev/null \
+  || bp_mode_problems="$bp_mode_problems
+    the body does not state that a bare invocation prints help and does nothing else"
+# The hint must not still advertise an unbuilt half. It said '(takes no argument — the export is the
+# whole command; the import half is not built)' until #358, and a stale hint of that shape is worse
+# than a missing one: it tells the typist the mode they are about to use does not exist.
+grep -m1 '^argument-hint:' "$BP_CMD" 2>/dev/null | grep -qF 'not built' \
+  && bp_mode_problems="$bp_mode_problems
+    the argument-hint still says a half is 'not built'"
+
+bp_modes_n="$(printf '%s\n' "$bp_modes_table" | grep -c . || true)"
+if [ "$bp_modes_n" -lt 2 ]; then
+  bad "blueprint modes — the dispatch table parsed $bp_modes_n mode(s) and there are two named ones
+      (export, import) plus the bare invocation. Either the table moved out from under
+      '## The three modes' or its row shape changed, and every assertion here is now vacuous."
+elif [ -n "$bp_mode_problems" ]; then
+  bad "blueprint modes — the dispatch surface disagrees with itself:$bp_mode_problems
+      The argument-hint is what a human reads while typing and the body is what the model dispatches
+      on. A mode present in one and absent from the other is an invitation with nothing behind it."
+else
+  ok "blueprint modes — the $bp_modes_n named mode(s) agree across the argument-hint, the dispatch table and the '# Mode:' sections, and the bare invocation is declared in both"
+fi
+
+# ── the import triage — five classes, and the question distribution that makes silence deliberate ──
+#
+# THE DISTRIBUTION IS THE ASSERTION, not the row count. Three of the five classes ask the owner
+# NOTHING, and that silence is the feature — it is what turns a foreign document into a handful of real
+# decisions. It is also what makes a MISCLASSIFICATION into those three invisible. So the shape is
+# gated: five classes, question counts drawn from a closed set of two values, and exactly three of them
+# silent. Change a 0 to a 2 and the interview stops being bounded; change a 2 to a 0 and a real
+# decision is taken without asking.
+bp_triage="$(awk '/^## Triage before asking/{t=1;next} /^## /{t=0} t' "$BP_CMD" 2>/dev/null \
+  | sed -n 's/^| *\([1-5]\) *| *[^|]* *| *\([0-9]\) *|.*/\1 \2/p' || true)"
+bp_triage_n="$(printf '%s\n' "$bp_triage" | grep -c . || true)"
+bp_triage_ids="$(printf '%s\n' "$bp_triage" | awk 'NF==2{print $1}' | sort -u | tr -d '\n')"
+bp_triage_silent="$(printf '%s\n' "$bp_triage" | awk 'NF==2 && $2 == 0' | grep -c . || true)"
+bp_triage_bad=""
+while IFS= read -r bp_tline; do
+  [ -z "$bp_tline" ] && continue
+  bp_tq="$(printf '%s' "$bp_tline" | awk '{print $2}')"
+  case "$bp_tq" in
+    0|2) : ;;
+    *) bp_triage_bad="$bp_triage_bad
+    class $(printf '%s' "$bp_tline" | awk '{print $1}') declares $bp_tq questions; the closed set is {0, 2}" ;;
+  esac
+done <<< "$bp_triage"
+
+if [ "$bp_triage_n" -eq 0 ]; then
+  bad "blueprint triage — NOT ONE class row was parsed under '## Triage before asking'. Either the
+      table moved or its shape changed; every assertion about the interview's bound is now vacuous."
+elif [ "$bp_triage_n" -ne 5 ] || [ "$bp_triage_ids" != "12345" ]; then
+  bad "blueprint triage — parsed $bp_triage_n row(s) with class ids '$bp_triage_ids'; the format
+      declares exactly five classes numbered 1..5, and the classification order in the body walks all
+      five. A missing class is a mechanism that falls through to whatever the model improvises."
+elif [ -n "$bp_triage_bad" ]; then
+  bad "blueprint triage — a class declares a question count outside the closed set:$bp_triage_bad
+      Two questions or none. A third value is an interview with no stated bound."
+elif [ "$bp_triage_silent" -ne 3 ]; then
+  bad "blueprint triage — $bp_triage_silent of 5 classes are silent; the format declares THREE
+      (already here, already rejected, incompatible). Fewer silent classes means the owner is asked
+      about decisions already taken; more means a real decision is taken without asking him."
+else
+  ok "blueprint triage — five classes numbered 1..5, question counts in {0,2}, exactly three silent"
+fi
+
+# ── the two rules of this command that have no control behind them, asserted as WRITTEN ────────────
+#
+# BOTH ARE `documents`-CLASS AND BOTH SAY SO. These arms hold that the sentences exist; nothing can
+# hold that anyone obeyed them, and the command states that in its own closing section. They are here
+# because the failure they guard is IRREVERSIBLE and public — an adoption item naming a foreign
+# harness's internals lands on a public tracker, and deleting the comment does not un-publish it.
+#
+# THE NEGATIVE ARM IS THE SHARPER OF THE TWO. The specification this command implements asks for the
+# export to be written to `<workspace-root>/tmp/blueprint-<config_version>.yaml`, and that path was
+# MEASURED denied by `orchestrator-write-guard.sh` in the ordinary single-repository install shape
+# (`{agent_type:"", Write, <repo-root>/tmp/…}` -> deny). So the arm asserts the command names no such
+# destination. It is scoped to `commands/blueprint.md` DELIBERATELY: ADR-0021 records the rejected path
+# and must be free to name it, and a repo-wide grep would redden the record that explains the rule.
+bp_rule_problems=""
+grep -qF 'Never write inside a repository.' "$BP_CMD" 2>/dev/null \
+  || bp_rule_problems="$bp_rule_problems
+    the narrowed write rule ('Never write inside a repository.') is not stated"
+grep -qF 'the session scratchpad' "$BP_CMD" 2>/dev/null \
+  || bp_rule_problems="$bp_rule_problems
+    the command names no session-scratchpad destination, so the output has nowhere legal to go"
+grep -qF 'by FUNCTION and by nothing else' "$BP_CMD" 2>/dev/null \
+  || bp_rule_problems="$bp_rule_problems
+    the provenance redaction rule (source named 'by FUNCTION and by nothing else') is not stated"
+grep -qF 'There is no gate here and none is claimed.' "$BP_CMD" 2>/dev/null \
+  || bp_rule_problems="$bp_rule_problems
+    the redaction rule does not state that nothing enforces it; a rule that implies a control it does
+    not have is worse than no rule"
+bp_bad_dest="$(grep -c -E 'workspace-root|tmp/blueprint' "$BP_CMD" 2>/dev/null || true)"
+if [ "${bp_bad_dest:-0}" -ne 0 ]; then
+  bp_rule_problems="$bp_rule_problems
+    the command names a repository-relative output destination ($bp_bad_dest occurrence(s) of
+    'workspace-root' or 'tmp/blueprint'). That path is DENIED to a typed command by
+    orchestrator-write-guard.sh wherever the workspace root is the repository root, which is the
+    ordinary installed shape"
+fi
+
+if [ ! -r "$BP_CMD" ]; then
+  bad "blueprint rules — commands/blueprint.md is not readable, so none of its uncontrolled rules
+      can be asserted present."
+elif [ -n "$bp_rule_problems" ]; then
+  bad "blueprint rules — a rule with no control behind it is missing from the only place it lives:$bp_rule_problems"
+else
+  ok "blueprint rules — the narrowed write rule, the scratchpad destination, the function-only provenance rule and its stated absence of a control are all present, and no repository-relative destination is named"
 fi
 
 

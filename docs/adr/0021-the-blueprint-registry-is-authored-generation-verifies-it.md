@@ -489,8 +489,202 @@ not.**
   nothing. **Whether a foreign harness's configuration fits this schema is a hypothesis, in those
   words** — there is one harness in evidence and it is ours.
 
+## Amendment, 2026-08-29 — `/blueprint` gets three modes, and the never-write rule narrows to never-write-INSIDE-A-REPOSITORY
+
+**Driven by [#358](https://github.com/tedeuxx/tadeumendonca-skills/issues/358)**, filed after a harness
+on another agent platform produced a real foreign blueprint on 2026-08-29 — the one precondition the
+import half had been waiting on, stated in the command's own words: *"a parser tested only against
+documents its own authors wrote verifies nothing."*
+
+**Deciders:** the owner (the specification, and the three-mode interface) · written by `agents-lead` per
+the domain split — a pure loop/machinery decision · the pre-implementation stress test on the Issue is
+this amendment's design work.
+
+**Why this is an amendment and not record 0022**, on the same ground the 2026-08-28 amendment already
+took: the capability is unchanged (`harness-blueprint`), the object is the same command and the same
+registry, and this narrows one rule and adds one mode rather than deciding a new thing. A second record
+for the second half of one capability is how a library becomes a changelog.
+
+### What changed
+
+1. **Three modes.** `export`, `import <document>`, and a bare invocation that **prints help and does
+   nothing** — no file, no interview, no implicit effect. An unrecognised first token is refused by
+   name rather than guessed at.
+2. **The never-write rule narrowed.** It read *"Never write a file. Not the registry, not a cached copy
+   of the output, not a scratch artifact."* It now reads **never write inside a repository**, and the
+   export writes its interchange YAML to the session scratchpad.
+3. **Translation on export, and the registry is not reshaped.** The foreign schema is emitted from the
+   authored rows, with `does_not` and `enforcement` carried as **optional extra fields**.
+4. **The five-class triage is adopted whole**, with the three silent classes still enumerated in the
+   record.
+5. **Approval in the interview files one `loop` item** — milestone yes, `ready` no.
+
+### The narrowing, and why it is not a reversal of the ageing-copy argument
+
+**Both reasons were true and they are about different objects.** The ageing-copy argument is about a
+**projection committed alongside its source**; the interchange argument is about a **handover
+artifact**, and an interchange with nothing to hand over is not one. The rule that carries the first
+without blocking the second is stated as a test rather than a prohibition: **can anything resolve this
+file later?** A scratchpad path is in no diff, in no gate's input, and in no consumer's reach, so it
+cannot become a second source of truth — not because writing it is virtuous but because nothing can find
+it. A repository-relative `tmp/` fails that test on day two.
+
+**The specification's own path was measured DENIED, and that is what settles the destination rather than
+the argument above.** `hooks/scripts/orchestrator-write-guard.sh`, one variable, on 2026-08-29:
+
+    {"agent_type":"","tool_name":"Write","file_path":"<repo-root>/tmp/blueprint-1.1.46.yaml"}   -> deny
+    {"agent_type":"","tool_name":"Write","file_path":"<workspace-root>/tmp/blueprint-…yaml"}    -> allow
+
+**`/blueprint` is a typed command, so it runs in the main session, whose `agent_type` is empty by
+construction — the deny is the ordinary case.** The two rows differ only because *this* workspace holds
+two repositories under a root that is not itself one. In the single-repository shape most consumers
+install, `<workspace-root>` **is** the repository root and the first row is what happens. **The same
+sentence would produce two behaviours decided by a property of the reader's machine**, which is the
+reason to change it and is stronger than the #245 argument it superficially resembles: #245 retired a
+repo-root `.scratch/` on a measurement that scratch *location* does not affect permission friction,
+which is a different claim about a different directory.
+
+### The limit column is not dropped, and the authority is the foreign format's own rule
+
+The foreign schema keys on `id` · `prevents` · `surface` · `always_loaded` · `evidence_class` · `note`,
+and has no equivalent of `o que não faz` — the cell this practice calls the most transferable in the
+row, because **a limit is a property of the strategy and survives the mechanism not surviving**. Its
+compatibility rule resolves it without a negotiation: *a reader must ignore unknown fields, and adding
+an optional field is a compatible change.* So `does_not` and `enforcement` ride along as optional extras
+and a conforming reader loses nothing it was promised. **Adopting the foreign shape wholesale would have
+produced an interchange that transmits only the half that does not travel.**
+
+### Three things this amendment records as accepted rather than solved
+
+- **The class-1 mapping does not persist.** The triage record is ephemeral by design, so a second import
+  of the same harness re-derives every correspondence and may map differently. **Accepted**: the mapping
+  is advisory, re-derivation is cheap, and the only fix — a committed mapping file — is precisely the
+  second source of truth this whole record refuses.
+- **The specification is circular about ids, for a harness that is not this one.** It requires
+  consulting prior exports before assigning an id *and* requires those exports to be ephemeral and
+  deletable. Harmless here — the registry is the durable id source and prior exports are never consulted
+  — and unexecutable for a harness whose only id source is its exports. **Named, and reported back
+  rather than worked around.**
+- **Silence cuts both ways, and class 4 has no substrate here.** Classes 1, 4 and 5 ask nothing, which
+  is the discipline worth having and is also what makes a **misclassification** into them invisible. And
+  *was this rejected?* is answered by a model reading prose across the decision library: **there is no
+  index of rejections**, and no query returns the set. The mitigation is not a gate — it is that every
+  silent verdict is enumerated in the record with its citation and presented even though it asks
+  nothing. **An unasked question he can see is recoverable; one he cannot is not.**
+
+### Filing on approval is a reading of a standing rule, not a measurement
+
+The specification says to register an adopted mechanism automatically and not ask again. The standing
+rule here is that **only the owner opens work**, enforced by rule 5c denying `gh issue create` to every
+dispatched persona. **The reading taken — and it is the reading rule 5c's own text already takes — is
+that the rule guards ORIGINATION**, in its words *"UNALIGNED work entering the queue — NOT the act of
+recording work the owner already asked for"*, and origination here is his: he approved this mechanism,
+one at a time, in an interview.
+
+**It is stated as a reading he can overturn, not as settled.** If he disagrees, the correct behaviour is
+to present the item and let him file it, and nothing in the command depends on the other answer.
+**Nothing can gate it** — no command string distinguishes *the owner approved* from *the model says the
+owner approved*, which is the ground rule 5d spent four rounds on before its `Parent: #N` verification
+was struck outright (*"intent is not in the command string"*, [ADR-0004](./0004-controls-and-enforcement.md)).
+
+**What is measured rather than read** is that the filing route works at all: `agents-lead`'s
+`agent_type` is denied `gh issue create` and the orchestrator's empty one is allowed, so a typed command
+in the main session can file today and a delegated subagent cannot. That is a build constraint written
+into the command, not a policy question.
+
+### The fourth collision — the specification forbids the milestone this loop requires
+
+The specification: *"não coloque o item automaticamente em sprint ou iteração."* This loop, since #338
+and with no exception clause: **a `loop` Issue joins the active iteration at filing.** Direct
+contradiction on the same act.
+
+**The local rule wins, and both properties survive.** It is the newer decision, it is the owner's own,
+and an adopted item with no milestone is invisible to `/autonomy-on`'s pool by construction. What the
+specification's clause is actually protecting against is **auto-scheduling**, and the thing that holds
+that here is `ready` — the owner's transition alone on this lane — not the milestone. **Milestone yes,
+`ready` no.**
+
+### The provenance redaction rule — the finding the Issue did not have
+
+**An adoption item publishes a foreign harness's internals into a PUBLIC repository, irreversibly.** The
+`note:` field is defined to carry *"reproduction notes, limitations or origin"*, which is exactly where
+an internal path, a system name or a board reference lives. Rule 5e exists for the analogous case and
+states the reason in its own words — a paraphrase of private material in a public comment *is not
+revertible by deleting the comment* — and **it does not reach this case at all**, because the actor
+filing is the orchestrator and the material is foreign rather than local.
+
+**The rule: the source harness is named by FUNCTION only.** No path, no system name, no host, no person,
+no verbatim span of the foreign document, in a filed item or in the record.
+
+**`enforcement: documents`, and there is deliberately no pretence of a control.** No hook can hold it: a
+posted body travels through `--body-file` (this repo's own command hygiene requires it), so the text is
+never in the command string a `PreToolUse` hook sees, and a guard keyed on the content would fire only
+on the inline form already forbidden — **a control that is inert exactly where it would need to work.**
+
+### The gate arms this adds, and the hole one of them closes
+
+Four new assertions in `hooks/scripts/inventory-counts.test.sh`, each mutation-checked on the source
+with its own attributed red: the mode surface in both directions (hint ↔ dispatch table ↔ `# Mode:`
+sections, plus the bare invocation and the absence of the stale *"not built"* claim); the triage shape
+(five classes, question counts in a closed `{0,2}`, exactly three silent); the four uncontrolled rules
+asserted **present** plus a negative arm asserting the command names **no** repository-relative
+destination; and one that is not about this Issue at all:
+
+> **A `citação` must appear on at least one line the carrier has NOT struck.**
+
+**That hole was found by building, not by reading.** Arm 6 greps the quote with `grep -qF`, which is
+blind to `~~strike~~` markup — so rewriting the command's rule while keeping the old sentence inside a
+struck span left the suite at **144 passed, 0 failed** with row `0036` citing a rule the carrier had
+announced it no longer holds. Measured, one variable: strike the sentence row `0036` quotes and arm 6
+stays **green** while the new arm goes red. **`citação` is the only gateable half of the only content
+column that has a gate**, and its whole argument is that a quote is greppable; a quote resolving into
+dead text reduces it to a check that a sentence was once written.
+
+**What it still cannot hold:** a sentence that is stale *without* being struck. Strike markup is the only
+retirement signal a grep can see here, so this closes the announced retirement and nothing else.
+
+### The SemVer consequence, and the gate that does not exist
+
+**Bare `/blueprint` exported before this change and prints help after it — a `$ARGUMENTS` contract
+change, which `CLAUDE.md`'s own release contract classes as MAJOR.** `.github/workflows/version-main.yml`
+bumps **patch** on every merge and its loop guard skips only `bump:` commits, so **merging this publishes
+a contract break as `1.1.x` with nothing in the version to warn a consumer tracking `main`.**
+
+**The decision is the deliberate `release.yml part=major` dispatch, not a rename of the help mode to
+`/blueprint help`.** The alternative was offered and is rejected because it contradicts the owner's own
+specification, and because the specification's choice is better on its merits: a mode that must be named
+cannot be entered by accident.
+
+**Nothing enforces this, and that is why it is written into the Definition of Done rather than assumed.**
+No workflow, hook or gate reads whether a major release followed a contract-breaking merge — the bump is
+unconditional. The discharge is a human act and its evidence is the `v2.0.0` tag. **Until that dispatch
+happens, the published version understates the change.**
+
+### Consequences
+
+**Good**
+- The interchange has an artifact to hand over, and it is in the one place nothing can resolve later —
+  so the ageing-copy argument is kept rather than traded away.
+- The limit column survives translation, which is the half of a blueprint that actually ports.
+- The one gateable content assertion in this repository stopped being satisfiable by struck text.
+
+**Bad, and accepted**
+- **`0036`'s strain in the `record` class got sharper, not milder.** Its artifact is now a file, and the
+  file's whole safety property is that it is unfindable — so the row claims durability for a document
+  designed not to persist. Named in the registry beside it; the closed set is not reopened.
+- **The `record` for `0041` sits in `routing` for a reason that is a reading.** Import *refuses* to
+  apply, and `refusal` in this registry means *prevented mechanically*, which this is not.
+- **`always_loaded` is flattened on export** — per-persona here, per-mechanism there — and a
+  `carrier: none` row is emitted as `surface: none`, a value outside the foreign schema's set that a
+  strict reader may reject. Both are stated in the export's header rather than hidden.
+- **Nothing verifies either mode's content.** No green says a blueprint was rendered faithfully, a
+  mechanism classified correctly, a provenance line redacted, or a filed item complete. The residual is
+  this record's own, one surface further out and one degree weaker.
+
 ## Links
 
+- [#358](https://github.com/tedeuxx/tadeumendonca-skills/issues/358) — the three-mode specification, and
+  the pre-implementation stress test that is this amendment's design work.
 - [#324](https://github.com/tedeuxx/tadeumendonca-skills/issues/324) — the claim-class contract, its
   pre-implementation refutation of the inventory-projection design, and the owner's addition of the
   `VERIFIED` class.
