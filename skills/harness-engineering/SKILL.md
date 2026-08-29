@@ -654,7 +654,7 @@ invocable-waived: /blueprint <reason>    the promise was narrowed, and here is w
 ```
 
 **Who writes it: the lane's own intake, when it closes the description** — the same act, no new state
-and no new label. `/none` is a real answer and the common one; the field exists so that *promised* and
+and no new label. `none` is a real answer and the common one; the field exists so that *promised* and
 *promised nothing* stop looking alike.
 
 **What it buys, and the two facts that bound it — both measured, neither assumed.** A manual

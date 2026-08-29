@@ -52,7 +52,7 @@
 #
 # ── WHERE THE CHECK CAN LIVE — MEASURED, NOT ASSUMED ───────────────────────────────────────────
 # Measured 2026-08-28: every Issue this loop closed in the last week closed by a CLOSING KEYWORD in
-# a merged PR body (`Closes #313's slice 1`, PR #345; the same in #333, #340, #346, #347, #348,
+# a merged PR body (`Closes #313's slice 1`, PR #345; the same in #333, #340, #347, #348,
 # #349). That close is executed by GitHub's servers on merge. NO HOOK IN THIS HARNESS OBSERVES IT
 # AND NO PERMISSION LAYER CAN DENY IT. Prevention is therefore unavailable on the route that is
 # actually used, and this script does not pretend otherwise:
@@ -65,6 +65,16 @@
 #   Stop             — DETECTS, on every route including the keyword one, at the end of the turn
 #                       in which the close happened. Same class as `zombie-loop-detect.sh` (#294):
 #                       one turn late instead of one session late, never preventive.
+#
+# WHAT THAT MEASUREMENT IS EVIDENCE FOR, AND WHAT IT MUST NEVER BE REUSED TO ARGUE. It is read off
+# PR BODIES, so it proves the keyword was PRESENT, not that the keyword is what fired — the timeline,
+# which would prove that, is unreadable from here (`gh api` is denied by the global floor). The design
+# needs ONE instance of a keyword close, not a share: dominance sets PRIORITY, never feasibility. And
+# the residual error points the safe way, since any close that was actually manual makes the
+# PREVENTABLE share LARGER than measured, so the shipped design is correct under the error too.
+# THAT ASYMMETRY IS NOT A LICENCE TO RUN THE NUMBER BACKWARDS. It supports building the detector; it
+# does NOT support a later argument that the manual route is rare enough to drop the refusal arm.
+# Re-measure before claiming the reverse.
 #
 # A PR -> Issue resolution route was NOT built, on the owner's decision (#336 measured that nothing
 # forces a `loop` PR to reference its Issue). This script never reads a PR.

@@ -1878,7 +1878,7 @@ the artifact it promised is missing*.
 ### The measurement that decides the layer
 
 **Every Issue this loop closed in the week to 2026-08-28 closed by a closing keyword in a merged PR
-body** — `Closes #313's slice 1` (PR #345), and the same shape in #333, #340, #346, #347, #348, #349.
+body** — `Closes #313's slice 1` (PR #345), and the same shape in #333, #340, #347, #348, #349.
 The state transition is executed **by GitHub, on merge**. There is no tool call, so there is no
 `PreToolUse` payload, so **no hook in this harness observes it and no entry in any permissions layer can
 deny it.** This is a **sixth** reason a control cannot live in the floor — the four this document's
@@ -1886,6 +1886,17 @@ deny it.** This is a **sixth** reason a control cannot live in the floor — the
 caller dimension*) — and it is different in kind from all five: not *the syntax has no dimension for
 it*, but **the act is not performed by anything the harness mediates**. Every earlier reason assumes
 there is a tool call to match and argues about what the match can see; this one removes the tool call.
+
+**What that measurement is evidence for, and what it must never be reused to argue.** It is read off
+**PR bodies**, so it proves the keyword was **present**, not that the keyword is what fired — the
+timeline, which would prove that, is unreadable from inside this harness (`gh api` is denied by the
+global floor). The claim is worded to what the artifact supports, and the design needs **one instance**
+of a keyword close rather than a share: dominance sets **priority**, never feasibility. The residual
+error also points the safe way — any close that was in fact manual makes the **preventable** share
+**larger** than measured, so the shipped design is correct under the error too. **That asymmetry is not
+a licence to run the number backwards.** It supports building the detector; it does **not** support a
+later argument that the manual route is rare enough to drop the refusal arm. Re-measure before claiming
+the reverse.
 
 **What that leaves is a two-surface split, and the split is forced rather than designed:**
 

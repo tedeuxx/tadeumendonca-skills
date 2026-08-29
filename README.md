@@ -1135,7 +1135,7 @@ because one stamp and two repositories leaves no fact that says which one it is 
 rather than chosen. It holds one rule — *an Issue whose own body declares an invocable artifact does not
 reach `closed` while that artifact does not resolve* — against a route it can refuse and a route nobody
 can. **Measured 2026-08-28: every Issue this loop closed in the preceding week closed by a closing
-keyword in a merged PR body** (`Closes #313's slice 1`, PR #345; the same shape in #333, #340, #346,
+keyword in a merged PR body** (`Closes #313's slice 1`, PR #345; the same shape in #333, #340,
 #347, #348, #349). That close is executed by GitHub on merge, so **no hook in this harness observes it
 and no permission layer can deny it** — which is why the `Stop` arm exists and is detection only, one
 turn late, exactly the class `zombie-loop-detect` is. The `PreToolUse` arm refuses the manual

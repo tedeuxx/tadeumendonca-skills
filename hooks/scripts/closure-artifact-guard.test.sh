@@ -173,6 +173,22 @@ else
 fi
 teardown
 
+# 6b · and the SPELLING is load-bearing: a leading slash routes into the plugin-identifier branch,
+# where `none` resolves to nothing. This arm exists because the preload shipped `/none` in its own
+# prose nine lines under a contract block spelling it `none` (caught at review of PR #351) — an
+# instruction that, followed literally, produces a false deny on an Issue that promised nothing.
+# A prose fence would have been defeated by an inserted character; this asserts the BEHAVIOUR that
+# makes the wrong spelling wrong, so the trap is exhibited where an editor meets it.
+setup
+body 'invocable: /none'
+out="$(run_pre 'gh issue close 1')"
+if denied "$out"; then
+  ok "PreToolUse — '/none' is NOT the null value: a leading slash makes it an unresolvable identifier"
+else
+  bad "PreToolUse — /none must not be treated as the null value" "$out"
+fi
+teardown
+
 # 7 · the waiver, and its reason floor
 setup
 body 'invocable: /blueprint
