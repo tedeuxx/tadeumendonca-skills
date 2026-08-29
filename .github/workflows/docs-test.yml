@@ -112,6 +112,18 @@ on:
       # `.py` in the repo without being told the tree exists. That is why this line is a one-line fix
       # and not a new instrument.
       - "powers/**"
+      # `.mcp.json` is the ELEVENTH occurrence, and like the tenth it was caught BEFORE the merge —
+      # `inventory-counts.test.sh`'s gate-coverage assertion went red on the PR that introduced the
+      # file (#355). Worth recording because the shape is now familiar and the cause is unchanged: the
+      # suite derives its scan set from `git ls-files`, so a newly tracked `.json` enters the scan the
+      # moment it is committed, while THIS filter is enumerated by hand and does not move with it.
+      #
+      # What the suite reads it for: the guard suite asserts `.mcp.json` declares the `chrome-devtools`
+      # server that `mcp-guard.sh` and `agents/product-lead.md` both name, and that the server keeps
+      # its `--allowedUrlPattern` origin bound and its `--isolated` throwaway profile. Without this
+      # line, a PR that removes the origin bound — unbounding the browser — touches only `.mcp.json`,
+      # starts no gate, and ships green.
+      - ".mcp.json"
 
 permissions:
   contents: read

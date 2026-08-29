@@ -24,7 +24,8 @@
 # WHAT THIS SUITE CANNOT DO, stated so a green is not over-read: it feeds the guard a payload directly.
 # It does NOT prove Claude Code routes `mcp__*` calls to a `PreToolUse` hook — that is a property of
 # the harness, not of this file, and it was established by live probe (recorded in the guard's header
-# and in ADR-0022). If that routing regresses, this suite stays green and the control is gone. There is
+# and in ADR-0004's 2026-08-29 amendment). If that routing regresses, this suite stays green and the
+# control is gone. There is
 # no assertion available here that would catch it.
 #
 # Run: bash hooks/scripts/mcp-guard.test.sh
