@@ -3711,7 +3711,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=43
+BP_HIGH_WATER=44
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
@@ -6224,6 +6224,104 @@ else
   bad "invocable field — 'invocable-waived:' is implemented or documented but not both.
       A guard with an undocumented escape is a guard people route around; a documented escape no guard
       honours is a promise the deny text cannot keep."
+fi
+
+# ---------------------------------------------------------------------------------------------------
+# THE `closes:` DECLARATION IS A SECOND PARSING CONTRACT WITH A CONSUMER AND A PRODUCER (#363).
+#
+# Rule 7d in `permission-guard.sh` greps `^closes:` out of the gate's own verdict comment; nothing but
+# `agents/quality-assurance.md` tells the gate to write it. Rename or re-anchor it in one place and the
+# other is instantly wrong, silently, in the direction that reads as "this PR declares no close" — i.e.
+# every merge that closes anything gets denied, or every declaration stops counting. Same class as the
+# `invocable:` block above and the `gh_repo_flag` identity arms: a field label read literally at
+# column 0.
+#
+# EVERY NEEDLE IS ASSERTED AT COUNT EXACTLY 1 (or an explicit N, stated), not at "at least one". A
+# `grep -qF` arm's real property is *count >= 1*, so a line-deletion probe removes the needle only when
+# it is unique — an arm that passes on two occurrences cannot be falsified by deleting one.
+#
+# NAMED GAP, THE SAME ONE THE `invocable:` BLOCK CARRIES: this asserts the contract is WRITTEN in both
+# halves. It cannot observe a verdict, cannot observe a merge, and cannot tell whether a declaration
+# that was written was true. Whether the gate verified delivery before declaring is a reviewer's read
+# and there is no instrument for it — the rule's own text says so, in the guard and in the brief.
+closes_guard="$ROOT/hooks/scripts/permission-guard.sh"
+closes_brief="$ROOT/agents/quality-assurance.md"
+
+if [ ! -r "$closes_guard" ] || [ ! -r "$closes_brief" ]; then
+  bad "closes declaration — a holder is unreadable
+      ($([ ! -r "$closes_guard" ] && printf 'hooks/scripts/permission-guard.sh ')$([ ! -r "$closes_brief" ] && printf 'agents/quality-assurance.md ')),
+      so nothing below was compared and a green would be an artifact of the break."
+else
+  closes_anchor="$(grep -c -F 'test("^closes:")' "$closes_guard" || true)"
+  closes_query="$(grep -c -F -- '--json headRefOid,comments,closingIssuesReferences' "$closes_guard" || true)"
+  closes_taught="$(grep -c -F 'closes: <every Issue number this PR will close' "$closes_brief" || true)"
+
+  # ── arm 1 · the consumer reads the declaration, anchored at column 0 ──
+  if [ "${closes_anchor:-0}" -ne 1 ]; then
+    bad "closes declaration — permission-guard.sh carries the anchored extraction 'test(\"^closes:\")'
+      ${closes_anchor} time(s), not exactly 1. Drop the '^' and the rule passes on a verdict that merely
+      MENTIONS the Issue number in prose — which is the exact case it exists to refuse, because on the
+      live instance BOTH verdicts on PR #356 contain '#355', the merge-authorising one included."
+  else
+    ok "closes declaration — rule 7d extracts the declaration anchored at column 0, exactly once"
+  fi
+
+  # ── arm 2 · the consumer actually ASKS the forge for the set it compares ──
+  # Asserted at 2 (both branches of the repo-flag split), spelled out rather than '>= 1': one branch
+  # silently losing the field is a rule that is OFF for the spelling that lost it, which is precisely
+  # how rule 7c was off for `gh pr merge N --repo owner/x` for a week.
+  if [ "${closes_query:-0}" -ne 2 ]; then
+    bad "closes declaration — the merge floor's own 'gh pr view --json' list requests
+      closingIssuesReferences in ${closes_query} of its 2 branches. A branch without it hands rule 7d a
+      payload with no field, which fails CLOSED and wedges the gate; a rule that asks for nothing
+      compares nothing."
+  else
+    ok "closes declaration — both branches of the merge floor's PR read request closingIssuesReferences"
+  fi
+
+  # ── arm 3 · the producer is told to write it, in the shape the consumer parses ──
+  if [ "${closes_taught:-0}" -ne 1 ]; then
+    bad "closes declaration — agents/quality-assurance.md carries the verdict-template 'closes:' line
+      ${closes_taught} time(s), not exactly 1. Nothing else in this harness tells the gate to write it,
+      so without it rule 7d denies every merge that closes an Issue and the deny is the only place the
+      contract is stated."
+  else
+    ok "closes declaration — the gate's own brief teaches the line the merge floor parses"
+  fi
+
+  # ── arm 4 · both limits are stated wherever the rule is ──
+  # The rule is a REFUSAL with two holes, and a refusal whose holes are documented in only one of the
+  # places that describe it is one somebody will read as complete coverage. Three surfaces: the
+  # mechanism, the brief that acts on it, and the universal preload every persona carries.
+  closes_limit_missing=""
+  closes_limit_checked=0
+  while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    [ -r "$ROOT/$f" ] || { closes_limit_missing="$closes_limit_missing
+    $f — unreadable"; continue; }
+    closes_limit_checked=$((closes_limit_checked + 1))
+    n="$(grep -c -i -F 'PR-body-derived' "$ROOT/$f" || true)"
+    [ "${n:-0}" -eq 1 ] || closes_limit_missing="$closes_limit_missing
+    $f — names the body-derived blind spot ${n} time(s), not exactly 1"
+  done <<'CLOSES_LIMIT_HOLDERS'
+hooks/scripts/permission-guard.sh
+agents/quality-assurance.md
+skills/harness-engineering/SKILL.md
+CLOSES_LIMIT_HOLDERS
+
+  if [ "$closes_limit_checked" -lt 3 ]; then
+    bad "closes declaration — only $closes_limit_checked of 3 limit-holders were readable, so the limit
+      was not asserted anywhere:$closes_limit_missing"
+  elif [ -n "$closes_limit_missing" ]; then
+    bad "closes declaration — the rule's measured blind spot is not stated wherever the rule
+      is:$closes_limit_missing
+      Measured 2026-08-30: a PR whose keyword lived only in a commit message returned an EMPTY
+      closingIssuesReferences, so the refusal cannot see that surface — the one that cannot be edited
+      afterwards, since amending needs a force-push the floor denies. A refusal presented as complete
+      coverage is worse than one that names its hole."
+  else
+    ok "closes declaration — the body-derived blind spot is named in the guard, the gate's brief and the preload"
+  fi
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════

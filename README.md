@@ -1204,11 +1204,21 @@ rather than chosen. It holds one rule — *an Issue whose own body declares an i
 reach `closed` while that artifact does not resolve* — against a route it can refuse and a route nobody
 can. **Measured 2026-08-28: every Issue this loop closed in the preceding week closed by a closing
 keyword in a merged PR body** (`Closes #313's slice 1`, PR #345; the same shape in #333, #340,
-#347, #348, #349). That close is executed by GitHub on merge, so **no hook in this harness observes it
-and no permission layer can deny it** — which is why the `Stop` arm exists and is detection only, one
-turn late, exactly the class `zombie-loop-detect` is. The `PreToolUse` arm refuses the manual
-`gh issue close` route, which is the minority route today and is still the only refusal surface that
-exists at all.
+#347, #348, #349). That close is executed by GitHub on merge, so **no hook in this harness observes it**
+— which is why the `Stop` arm exists and is detection only, one turn late, exactly the class
+`zombie-loop-detect` is. The `PreToolUse` arm refuses the manual `gh issue close` route, which is the
+minority route today.
+
+~~and no permission layer can deny it~~ · ~~and is still the only refusal surface that exists at all~~
+— **struck 2026-08-30 (#363).** Both halves were true about the **close** and false about the **merge**
+that causes it. The merge is a tool call; `permission-guard.sh` rule 7d now denies it when the PR's
+`closingIssuesReferences` — the forge's own resolved set, read on the call rule 7c was already making —
+contains an Issue the gate's verdict at the current head does not declare on a `closes:` line. So there
+are **two** refusal surfaces, and the second one reaches the majority route. It reaches it **one step
+upstream**: it refuses the merge, never the close, and a merge performed in a browser is outside it
+exactly as it is outside rule 7c. The `Stop` arm is what covers that residue and the commit-message
+route the derived field does not see — **measured: a PR carrying `Closes #358` only in a commit message
+returns `[]` from that field** — so it is not redundant and is not retired here.
 
 **The promise is DECLARED, never inferred, and that came out of a measurement that killed the obvious
 design.** Deriving the promise from an Issue's prose — every backticked `/identifier` in the title and

@@ -1098,9 +1098,26 @@ and no new label. `none` is a real answer and the common one; the field exists s
 *promised nothing* stop looking alike.
 
 **What it buys, and the two facts that bound it — both measured, neither assumed.** A manual
-`gh issue close` on an Issue with an unmet declaration is **refused**. A close by closing keyword is
+`gh issue close` on an Issue with an unmet declaration is **refused**. ~~A close by closing keyword is
 **executed by the forge on merge**, so nothing in this harness can refuse it — that case is *reported*
-at the end of the turn instead, one turn late, exactly the class `zombie-loop-detect` is. And the
+at the end of the turn instead, one turn late, exactly the class `zombie-loop-detect` is.~~
+
+**Struck 2026-08-30 (#363). The premise was true of the CLOSE and false of the MERGE, and the whole
+design of the missing control turned on the difference.** Nothing can refuse the forge's close — that
+half stands, and the `Stop` arm still covers it. But the close only happens *because a merge happened*,
+**the merge is a tool call, and `permission-guard.sh` rule 7c was already intercepting it, already
+fetching the PR and already reading the gate's verdict head-scoped.** Rule 7d (#363) adds one field to
+that same call — `closingIssuesReferences`, the forge's own resolved set, **zero additional
+round-trips** — and denies the merge when it contains an Issue the gate's verdict at the current head
+does not declare on a `closes:` line. So the route is refusable one step upstream of the act everyone
+was looking at. **It compares two artifacts and never judges delivery**, which is the narrower and
+honest obligation: the local defect was never *delivery unverified* (the gate judged #355 correctly and
+prescribed `Refs`) but *the prescription became a body edit and nothing verified it took*.
+
+**Two limits ride with it and are not closed by it:** `closingIssuesReferences` is **PR-body-derived**
+— measured with a throwaway PR carrying `Closes #358` only in a commit message, the field returned `[]`
+— so a keyword living only in a commit message is invisible; and no hook sees a **browser** merge.
+**The `Stop` arm is not redundant with the refusal and must not be retired against it.** And the
 promise is **declared, never derived**: deriving it from prose was measured over twenty closed Issues
 and produced eleven unresolved identifiers with **zero** true positives, which is a gate that reddens
 on honest work until someone loosens it into nothing.
