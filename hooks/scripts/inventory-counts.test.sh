@@ -6341,7 +6341,9 @@ if [ ! -r "$RITE_PRELOAD" ]; then
 else
   for rite_preload_needle in \
     '**Struck 2026-08-30 (#355), and it was wrong in two different ways.**' \
-    'Read *"the closing ceremonies"* anywhere in this loop as'
+    'Read *"the closing ceremonies"* anywhere in this loop as' \
+    '**And nothing FIRES the one that exists.**' \
+    '**the rite is not engineered.**'
   do
     grep -qF -- "$rite_preload_needle" "$RITE_PRELOAD" || rite_preload_missing="$rite_preload_missing
     missing: \"$rite_preload_needle\""
@@ -6352,10 +6354,88 @@ else
       that file and that no MCP server is reachable from a subagent — the first half is now false
       because the rite exists, the second because product-lead holds a browser (#356). The
       CEREMONIES-AS-ONE-BUILT-ONE-OWED needle is the other direction: this is the file every persona
-      preloads, so a plural read as satisfied here is read as satisfied everywhere."
+      preloads, so a plural read as satisfied here is read as satisfied everywhere.
+      The NOTHING-FIRES and NOT-ENGINEERED needles are a separate clause from both, added after the
+      copy lens measured that ADR-0002's twenty-sixth amendment claimed the enforcement admission was
+      in four surfaces and it was in three — present in the rite, the drain and registry row 0042, and
+      ABSENT from this one. That is the surface where its absence costs most: a persona meets
+      '/retrospective is the method half' here, always-on, and would learn the rite exists without
+      learning that nothing fires it. A promise a persona believes is worse than one it never read."
   else
-    ok "retrospective rite — the preload strikes the claim that the ceremonies are unbuilt and says which half is still owed"
+    ok "retrospective rite — the preload strikes the claim that the ceremonies are unbuilt, says which half is still owed, and admits that nothing fires the half that exists"
   fi
+fi
+
+# ── 5 · the copy lens's brief counts its OWN write exceptions correctly, and keeps the half that stands ──
+#
+# `product-lead` already held `Write` for the iteration sweep report (#356) and its brief called that
+# "the one exception". The rite asks EVERY consulted persona to write, and rule 5e names this persona as
+# one of the three that cannot comment instead — so after #355 there are TWO, and a brief that says
+# "one" while carrying two teaches its reader to stop counting. Found by the copy lens, which noted that
+# `agents/quality-assurance.md` was amended for exactly this and the identical clause one file over was
+# not.
+#
+# TWO NEEDLES, TWO CLAUSES, AND THEY FAIL DIFFERENTLY — the reason this arm reports per needle rather
+# than as one verdict. Losing the COUNT needle restores a false "one exception". Losing the WHAT-HAS-NOT-
+# CHANGED needle drops the half that stands (this persona still never edits copy, and neither report file
+# is copy) — which is the direction a strike is most likely to over-reach in, since the struck sentence
+# was protecting something real.
+RITE_COPY="$ROOT/agents/product-lead.md"
+rite_copy_missing=""
+if [ ! -r "$RITE_COPY" ]; then
+  bad "retrospective rite — agents/product-lead.md is not readable; the copy lens's own write-exception
+      count cannot be checked against the rite that adds the second one."
+else
+  for rite_copy_needle in \
+    'there are TWO exceptions now, and a rule that says "one" while carrying two is the shape that teaches a' \
+    '**What has NOT changed is the thing'
+  do
+    grep -qF -- "$rite_copy_needle" "$RITE_COPY" || rite_copy_missing="$rite_copy_missing
+    missing: \"$rite_copy_needle\""
+  done
+  if [ -n "$rite_copy_missing" ]; then
+    bad "retrospective rite — the copy lens's brief is out of step with its own grant:$rite_copy_missing
+      TWO EXCEPTIONS is the count: the iteration sweep report (#356) and the retrospective section
+      (#355). It cannot be a comment for this persona — permission-guard.sh rule 5e denies it
+      \`gh issue comment\` and \`gh pr comment\` by name — so the file is not a preference.
+      WHAT HAS NOT CHANGED is the half the struck sentence was protecting: it still never edits copy,
+      and neither report file is copy. A strike that drops it widens the grant by accident."
+  else
+    ok "retrospective rite — product-lead's brief counts both of its write exceptions and keeps the never-edit-copy half the struck sentence protected"
+  fi
+fi
+
+# ── 6 · the three briefs and the rite agree on WHERE the artifact goes ────────────────────────────
+#
+# The rite instructs a write to `docs/retrospective/<iteration>/`; two personas' briefs name that path
+# in their own words. Three files, one path, hand-maintained — which is the arrangement this suite
+# exists because it rots. A brief pointing one directory away produces a rite whose artifact is
+# scattered and whose "did it run" test (`ls` the directory) answers wrong.
+#
+# WHAT THIS CANNOT HOLD: that any file is ever actually written there. It is a string agreement across
+# three documents, nothing more, and it says so rather than being read as a check on the artifact.
+rite_path='docs/retrospective/<iteration>/'
+rite_path_missing=""
+rite_path_checked=0
+for rite_path_file in commands/retrospective.md agents/quality-assurance.md agents/product-lead.md; do
+  if [ ! -r "$ROOT/$rite_path_file" ]; then
+    rite_path_missing="$rite_path_missing
+    $rite_path_file — not readable"
+    continue
+  fi
+  rite_path_checked=$((rite_path_checked + 1))
+  grep -qF -- "$rite_path" "$ROOT/$rite_path_file" || rite_path_missing="$rite_path_missing
+    $rite_path_file — does not name $rite_path"
+done
+if [ "$rite_path_checked" -lt 3 ]; then
+  bad "retrospective rite — only $rite_path_checked of 3 artifact-path holders were readable, so the
+      agreement was not asserted:$rite_path_missing"
+elif [ -n "$rite_path_missing" ]; then
+  bad "retrospective rite — the rite and the briefs disagree about where the artifact goes:$rite_path_missing
+      One path, three hand-maintained documents. A brief pointing one directory away scatters the
+      artifact and breaks the only 'did the rite run' test there is, which is listing that directory."
+else
+  ok "retrospective rite — the rite and both writing briefs name the same artifact directory (string agreement only; nothing here observes a file being written)"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
