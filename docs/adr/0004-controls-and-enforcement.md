@@ -2522,10 +2522,26 @@ The intake flagged one unknown: *does an `ask` hang rather than deny where no pr
 both repositories: no script in `hooks/scripts/` assigns a milestone (every `gh issue` call there is a
 write path of another kind, and the one `"gh issue edit"` string in `orchestrator-tool-census.sh` is a
 classification label, not a call); `commands/autonomy-on.md` and `commands/retrospective.md` never assign
-one; the only two files that did — `new-issue.md` and `blueprint.md` — are narrowed by this slice; and
-the two CI workflows running `anthropics/claude-code-action` install no plugin, so this hook is not even
-registered there. **This is a conditional, and it is the condition to re-check:** the day any automated
-path assigns a milestone, the probe is owed before that path ships.
+one; and the only two files that did — `new-issue.md` and `blueprint.md` — are narrowed by this slice.
+
+~~and the two CI workflows running `anthropics/claude-code-action` install no plugin, so this hook is not
+even registered there.~~ **Struck at the merge gate, 2026-08-30, and struck rather than corrected in
+place because of WHERE it sat: this is the paragraph that dispenses with a measurement whose failure mode
+is a frozen session, so a false sentence inside it is load-bearing in a way the same sentence elsewhere
+would not be.** `.github/workflows/claude-code-review.yml` **does** install a plugin — it passes
+`plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'` and
+`plugins: 'code-review@claude-code-plugins'`. (`claude.yml` installs none; the claim was true of one
+workflow and asserted of two.)
+
+**The corrected claim, and the correction is a change of KIND rather than of fact.** No plugin **of this
+harness** is installed in either workflow, so `hooks/hooks.json` is never registered and rule 10 does not
+run there. That is a fact about **configuration**, which can change with one line in a workflow file —
+not the **structural** closure the struck sentence asserted. The conclusion survives; its strength does
+not, and the difference is exactly what a future reader would have relied on.
+
+**So this is a conditional, and there are now two conditions to re-check, not one:** the day any
+automated path assigns a milestone, **and** the day any workflow installs this repository's own plugin,
+the probe is owed before that path ships.
 
 ### Rejected here, with the reason
 

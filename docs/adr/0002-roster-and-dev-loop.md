@@ -3806,8 +3806,12 @@ as a terminal condition and the twentieth amendment's decision 3 stays reversed.
 
 `commands/new-issue.md` (the act) · `skills/harness-engineering/SKILL.md` (the preload) ·
 `commands/blueprint.md` (the adoption step, whose *"where the two rules conflict, the local rule wins"*
-paragraph is struck — its **reasoning** was the defect, since *"an adopted item with no milestone is
-invisible to the queue"* is false against a queue predicate that requires `ready`) ·
+paragraph is struck — its **reasoning** was the defect, and precisely: *"an adopted item with no
+milestone is invisible to the queue"* is **true**, the pool predicate opening with
+`select(.milestone!=null)`; what does not follow is that the milestone was worth setting, since the same
+predicate also requires `ready`, which the item never gets, so it was invisible **either way**. **A true
+premise carrying a false conclusion**, which the merge gate caught this authorship calling *"simply
+wrong"*) ·
 `commands/retrospective.md` (**the trigger justification, re-opened deliberately** — its rejected option
 *"the iteration is empty"* rested on #338 and genuinely re-opens; it is re-decided on two grounds that
 never depended on #338 rather than left inheriting a dead argument) · `commands/autonomy-on.md` (whose

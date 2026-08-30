@@ -431,10 +431,19 @@ by construction.~~
 
 **Struck 2026-08-30 (#365). The conflict it adjudicated no longer exists** — the local rule it invoked
 (#338) is itself struck — **and it is struck rather than edited because its REASONING was the defect, not
-its conclusion.** *"An adopted item with no milestone is invisible to the queue by construction"* is
-false in the way that matters: the queue predicate requires `ready`, which this same paragraph correctly
-says the item does not get. The item was already out of the drain on the `ready` predicate, and the
-milestone bought nothing but a changed completion bar on an iteration nobody had decided to change.
+its conclusion.**
+
+**Be exact about which part was the defect, because the obvious reading is wrong.** *"An adopted item
+with no milestone is invisible to the queue by construction"* is **TRUE** — the pool predicate opens with
+`select(.milestone!=null)`, so an unassigned item is genuinely outside it. What does not follow is the
+**inference**: that the milestone was therefore worth setting. The same predicate also requires `ready`,
+which this same paragraph correctly says the item never gets — so the item was **already** out of the
+drain, with or without a milestone, and the milestone bought **no visibility at all**. It bought one
+thing only: a changed completion bar on an iteration nobody had decided to change.
+
+**A true premise carrying a false conclusion is the harder defect to catch**, which is why it is written
+out here rather than summarised as *"the sentence was wrong"*. It was not; the step after it was.
+
 **This instruction was written six hours after #338 merged and was already acting on it, which is why
 the strike is here and not only in the rule's home file.**
 

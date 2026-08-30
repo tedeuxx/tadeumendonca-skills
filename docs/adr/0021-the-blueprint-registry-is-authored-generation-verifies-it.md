@@ -613,10 +613,18 @@ protecting against is auto-scheduling, and the thing that holds that here is `re
 true and it is why the local rule lost** — the `ready` predicate already held the item out of the pool,
 so the milestone bought nothing and changed the running iteration's completion bar for free.
 
-**The half that was simply wrong, named because it is the reasoning and not the conclusion:** *"an
-adopted item with no milestone is invisible to `/autonomy-on`'s pool by construction"*. The pool requires
-`ready`, which this same paragraph correctly says the item does not get — so the item was invisible to
-the pool either way, and the milestone made it visible to nothing.
+**The half that did no work — and it is worth naming precisely rather than calling it wrong:** *"an
+adopted item with no milestone is invisible to `/autonomy-on`'s pool by construction"*. **That sentence
+is TRUE**; the pool predicate opens with `select(.milestone!=null)`. What was wrong is the **inference
+drawn from it** — that the milestone was therefore worth setting. The same predicate also requires
+`ready`, which this paragraph correctly says the item never gets, so the item was invisible to the pool
+**either way** and the milestone made it visible to nothing.
+
+**Recorded in this shape deliberately.** The first authorship of this correction called the premise
+*"simply wrong"*, and the merge gate caught it. **A true premise carrying a false conclusion is a
+different and harder defect than a false premise**, and collapsing the two teaches the next reader to
+look for the wrong thing — to re-check the sentence, which is sound, instead of the step after it,
+which is not.
 
 ### The provenance redaction rule — the finding the Issue did not have
 
