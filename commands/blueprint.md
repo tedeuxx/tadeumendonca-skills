@@ -420,13 +420,27 @@ The filed item carries:
 **`not measured here` is the adoption's local standing, not a fourth evidence class of the format.** It
 is what stops a `measured` from another harness laundering itself into a local claim.
 
-**The item gets the active iteration's milestone and does NOT get `ready`.** The format says not to
-schedule an adopted item; the local rule says a `loop` Issue joins the active iteration at filing. Both
-properties survive: the milestone makes it visible to the queue, and `ready` — which is the owner's
-transition alone on this lane — is what actually holds it out of the drain. **Where the two rules
+**The item gets NO milestone and does NOT get `ready`.** The format says not to schedule an adopted item,
+and since #365 the local rule agrees with it: nothing is admitted to a running iteration automatically,
+so an adopted item is composed at planning like everything else.
+
+~~**The item gets the active iteration's milestone and does NOT get `ready`.** … **Where the two rules
 conflict on the same act, the local rule wins**, and the reason is stated rather than assumed: it is the
 newer decision, it is the owner's own, and an adopted item with no milestone is invisible to the queue
-by construction.
+by construction.~~
+
+**Struck 2026-08-30 (#365). The conflict it adjudicated no longer exists** — the local rule it invoked
+(#338) is itself struck — **and it is struck rather than edited because its REASONING was the defect, not
+its conclusion.** *"An adopted item with no milestone is invisible to the queue by construction"* is
+false in the way that matters: the queue predicate requires `ready`, which this same paragraph correctly
+says the item does not get. The item was already out of the drain on the `ready` predicate, and the
+milestone bought nothing but a changed completion bar on an iteration nobody had decided to change.
+**This instruction was written six hours after #338 merged and was already acting on it, which is why
+the strike is here and not only in the rule's home file.**
+
+**Also note what did NOT need to change: the guard now refuses the old form anyway.** `permission-guard.sh`
+rule 10 denies `gh issue create --milestone` to every dispatched persona, so if any part of an import is
+ever delegated, the struck instruction is unexecutable rather than merely stale.
 
 **Do not route the item into a batch, and do not name one.** Whether adopted items are later grouped is
 a separate decision with its own tracked item; referencing a batch that has not been composed would make
