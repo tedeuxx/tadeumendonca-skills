@@ -2475,10 +2475,19 @@ which configuration version, when generated"* header is a different object and i
   **The consequence is stated rather than hidden: the first preflight after this ships REFUSES**, because
   no item carries an `sp:N` yet. That is correct under the rule he settled and will read as a regression
   to anyone who meets it without this paragraph.
-- **Building the ceremony chain's REVIEW rite.** Not deferred on preference: it is **unbuildable AFK
+- **Building the ceremony chain's REVIEW rite.** ~~Not deferred on preference: it is **unbuildable AFK
   here** on three independently measured grounds — no MCP server is reachable from a dispatched subagent,
   merge-is-deploy leaves no non-production target to sweep, and resumable state has had no durable home
-  since #245 retired the repo-side scratch directory.
+  since #245 retired the repo-side scratch directory.~~ **Struck 2026-08-30 (#355): the first of the
+  three grounds is false at head, and it was the load-bearing one.** `product-lead` declares a read-only
+  `chrome-devtools` subset with a bounded origin, merged 2026-08-29 in PR #356. The other two survive,
+  and the rite is **still** deferred — but on grounds this amendment never measured and that the browser
+  does not touch: a route list rots, so a sweep whose list is stale is a green that proves nothing; and a
+  looker's finding is taste, so it must never be a gate. **Struck in place rather than edited** because
+  the estimation bullet fourteen lines above sets that convention in this very list, and an unstruck
+  bullet in a list that strikes its retirements reads as live. The refusal that stands today, and its
+  cheapest first slice, are in the twenty-sixth amendment and in `commands/retrospective.md`'s own last
+  section.
 
 ### Consequences
 
@@ -3220,9 +3229,20 @@ and a rite whose first execution predates its definition has no definition to be
    by nothing else, and the rite says so in those terms.
 6. **The sprint review half is NOT built**, and the deferral is recorded inside the rite rather than in
    a tracker comment, so the second half of *"the closing ceremonies"* cannot read as satisfied.
-7. **`agents/quality-assurance.md`'s Write rule is narrowed**, from *a Write to any repo path is a
-   defect* to *a Write to any repo path is a defect **in the review***, with the retrospective as the
-   one named exception and the **dispatch** rather than the path as the bound.
+7. **`agents/quality-assurance.md`'s Write rule gains its first exception, and a bound.** The two
+   states, quoted as they are rather than as the change felt. **Before:** three occurrences already
+   read *"a Write to any repo path is a defect **in the review**"* — in the description, in the
+   working-files section and in the tool-discipline section — and the rule was nonetheless **absolute**,
+   because nothing anywhere named a case where a repo write was legitimate, so the qualifier read as a
+   context noun rather than as a scope. **After:** the retrospective is named as the one exception and
+   the **dispatch** rather than the path is what bounds it; the description's copy drops *"in the
+   review"* in favour of stating the exception outright, and the other two occurrences are untouched.
+
+   *An earlier form of this item said the narrowing ran "from `a Write to any repo path is a defect` to
+   `…is a defect in the review`". That was inverted in both halves — the quoted AFTER is verbatim what
+   `main` already said, and it occurs nowhere at this branch's head. Corrected before merge rather than
+   left standing, because this document is where the next reader reconstructs what the rule used to say,
+   and a record that misquotes the state it replaced is worse than one that says nothing.*
 
 ### What was measured, and what it corrects in this repository's own records
 
