@@ -3186,6 +3186,133 @@ amendment's remedy clause and the refusal to synthesise a purpose were closed in
 labelled as such rather than attributed to him. Driven by
 [#343](https://github.com/tedeuxx/tadeumendonca-skills/issues/343).
 
+## Amendment (2026-08-30, twenty-sixth) — an iteration closes with a retrospective rite; the sprint review half is refused for now
+
+**Why this is an amendment and not record 0022.** It decides *what happens at the end of an iteration*,
+which is the same capability the iteration axis itself was recorded under (#326, the twentieth
+amendment) and the same document that already holds the composition rules the rite's output feeds
+(#338, #339, #357). #283's design is **one document per capability name**; a new number would create a
+second `roster-and-dev-loop`. Written by `agents-lead` per the #223 domain split — pure loop machinery,
+no product-architecture stake, no `tech-lead` co-citation owed.
+
+**The owner's sequencing governs the shape of this amendment.** Asked to run the rite ad hoc on
+2026-08-29, he stopped it: **«primeiro quero garantir os mecanismos e automatizacoes corretamente
+implementados»**, and on running it, **«depois a gente foca em executar ele no final do sprint atual»**.
+So this records a mechanism that **has not been run**. Doing it once by hand does not create the rite,
+and a rite whose first execution predates its definition has no definition to be executed against.
+
+### The decision
+
+1. **`commands/retrospective.md` is the rite**, typed by the owner and named by `/autonomy-on` at its
+   terminal condition. Trigger, scope, output and close are four things, decoupled: **the trigger is
+   the drain's entry snapshot going empty; the scope is the iteration as it stands at that moment; the
+   output is a proposal; the iteration's close stays the owner's, at planning.**
+2. **The consult set is DERIVED from the dispatch records the loop already leaves**, never a fixed
+   roster, and it is **a lower bound**. Measured across `sprint-01` in this repository: **six of seven
+   personas ran; `content-reviewer` ran zero times.**
+3. **Each consulted persona is fed its OWN artifacts** and reasons from them. This is the decision that
+   makes the rite worth having: isolation without evidence relocates the orchestrator's bias into N
+   contexts rather than removing it.
+4. **The artifact is one tracked file PER persona**, `docs/retrospective/<iteration>/<persona>.md`, and
+   the split is mechanical rather than cosmetic — a shared file would put every earlier answer in the
+   next persona's context, so the isolation would survive the dispatch and die at the write.
+5. **A cap of two findings per persona lives in the artifact template.** It is checkable by reading and
+   by nothing else, and the rite says so in those terms.
+6. **The sprint review half is NOT built**, and the deferral is recorded inside the rite rather than in
+   a tracker comment, so the second half of *"the closing ceremonies"* cannot read as satisfied.
+7. **`agents/quality-assurance.md`'s Write rule is narrowed**, from *a Write to any repo path is a
+   defect* to *a Write to any repo path is a defect **in the review***, with the retrospective as the
+   one named exception and the **dispatch** rather than the path as the bound.
+
+### What was measured, and what it corrects in this repository's own records
+
+**The consult set is derivable, which falsifies the Issue's fourth open question** (*"nothing currently
+records which were dispatched"*). `hooks/scripts/dispatch-metrics-stop.sh` posts one marker comment per
+dispatch. **Three limits travel with it and are written into the rite rather than left in this record:**
+the Issue number comes from the branch by a fragile grep (`fix/adr-0002-rewrite-355` yields `0002`;
+`main` yields nothing, so every intake dispatch is unrecorded), `agent_type` is namespaced, and it is
+per-repository. And the recorder exits 0 silently on about a dozen paths, so **a persona that ran and
+left no comment is indistinguishable from one that never ran.**
+
+**One claim in the universal preload was true when written and is false at head, and is struck rather
+than quietly edited.** *"REVIEW cannot run unattended in this harness — no MCP server is reachable from
+a dispatched subagent"* stopped being true on 2026-08-29, when `product-lead` gained a read-only
+`chrome-devtools` subset with a bounded origin (PR #356). **The review half is still refused, on grounds
+that survive the new capability**: a route list rots, and a looker's finding has no ruler, so it must
+never be a gate. The obstacle was never the browser.
+
+**The amplification is a consequence of two rules merged three days earlier, and it is stated where the
+rite is defined rather than here.** A retrospective finding is `loop`-typed, so it joins the **active**
+iteration at filing (#338) and is composed **ahead of every product item** (#339). Fifteen findings do
+not queue behind product work; they displace it, by rule. Plus roughly two estimation dispatches each
+before the next drain may enter.
+
+### Considered options
+
+- **A skill rather than a typed command** — rejected on this repository's own rule that
+  `argument-hint` is the contract and the distinction is semantic. The Issue's first open question asks
+  what an iteration *drained by hand* gets; the answer is a human typing an iteration name, and an
+  iteration name is an argument.
+- **One skill holding both rites** — rejected. They share a trigger and nothing else, and one file with
+  two halves would ship with one half real and one half a paragraph, which is the shape #337 exists for.
+- **A comment on the Issue as the artifact** — rejected. `permission-guard.sh` rule 5e denies
+  `product-lead`, `content-writer` and `content-reviewer` any public surface, so three of the seven
+  could not post at all and relaying them through the orchestrator reintroduces the aggregation the
+  isolation exists to prevent.
+- **One shared file with a section per persona** — rejected on the write-time contamination above. It
+  is the shape `docs/content-review/<slug>.md` uses, which is safe there only because one persona writes
+  it.
+- **Consulting all seven** — rejected on the measurement: one of them never ran.
+- **A `Stop` hook firing the rite** — rejected, not deferred. Nothing in `hooks/scripts/` reads the
+  queue, and a hook receives one `cwd` while the iteration is two milestone objects in two repositories
+  paired by title alone.
+
+### Why no layer can carry it — [ADR-0004](./0004-controls-and-enforcement.md)'s standing question, answered
+
+| layer | can it hold *the rite ran, over the right iteration, within its cap*? |
+|---|---|
+| `permission-guard.sh` (`PreToolUse`/`Bash`) | **no** — it reads a command string; there is no command whose spelling differs between a rite that ran and one that did not. |
+| a `PreToolUse` on `Write` | **no** — it sees a path, not a finding count, and not whether the dispatch was isolated. |
+| a `Stop` hook | **no** — it cannot observe a snapshot going empty, because nothing here reads the queue; and it sees one repository. |
+| `inventory-counts.test.sh` | **presence only** — it asserts the rite's rules are WRITTEN, which is what the five arms added here do, and all they do. |
+
+**So the rite is held by instruction, and by this loop's own test — *would something stop me, or only my
+memory?* — it is not engineered.** That is stated in the rite, in the drain, in the preload and in the
+registry row, in four places, because the one failure this repository names most often is a control that
+reads as installed and is inert.
+
+### Consequences
+
+**Good**
+- The `/autonomy-on` promise that has stood objectless since #326 now has half its object, and the other
+  half is named as owed in the file that makes the promise.
+- The improvement list stops being the orchestrator's, and stops being speculation, in the same move.
+- `sprint-01` closed with no rite at all; the next iteration has one to close with.
+
+**Bad / accepted costs**
+- **Nothing fires it and nothing observes it.** A skipped rite, a rite over the wrong iteration and a
+  rite with three of six personas are indistinguishable from the tracker.
+- **The cap is a template, not a bound.** Twelve proposals per iteration displacing product work by rule
+  is the designed-for case; nothing prevents thirty.
+- **The gatekeeper's absolute Write rule became conditional**, and a conditional rule is the shape that
+  erodes. The bound is the dispatch, and the bound is prose.
+- **The retrospective costs a branch, a PR and a gate pass.** Correct rather than regrettable — it is a
+  `loop` diff — but it is not free, and it lands at the moment an iteration is trying to close.
+- **The rite may fire twice per iteration**, once per repository drain, and nothing can prevent it. The
+  per-persona files are what make the second firing idempotent rather than duplicative.
+- **The sprint review half stays unbuilt**, so the three defects that motivated the Issue — all found by
+  the owner opening the running site himself, all through every green gate — remain uncaught by anything
+  in this loop.
+- **The same phrase-keyed coupling as the last six amendments.** The arms key on sentences; whoever
+  rewords edits the needles in the same commit.
+
+**Deciders:** the owner (the rite as a ritual, the drain's exhaustion as its trigger, isolation as its
+mechanism, and mechanism-before-execution); written by `agents-lead`, whose own intake stress test on
+[#355](https://github.com/tedeuxx/tadeumendonca-skills/issues/355) is the source of the narrowing, the
+derived consult set, the artifact choice and the refusal of the review half. The command-versus-skill
+call, the per-persona file split and the `quality-assurance` narrowing were closed inside the loop and
+are labelled as such rather than attributed to him.
+
 ## Consequences
 **Good**
 - Context efficiency and authorship-bias elimination fall out of per-task isolation.
