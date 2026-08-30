@@ -422,6 +422,10 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # then 3 → 4 on #313 slice 2, when `commands/blueprint.md` shipped the harness export. The fourth is a
 # typed command for the same reason as the other three and for one more: its argument selects DIRECTION
 # (empty exports, text would import), which is a thing a human types and a model cannot be matched into.
+# Then 4 → 5 on #355, when `commands/retrospective.md` shipped the iteration retrospective rite. It is
+# typed for the reason the Issue itself raised as an open question: an iteration drained by HAND never
+# reaches the drain's terminal condition, so the fallback route has to be a human typing an iteration
+# name — and an iteration name is an argument, which is what `argument-hint` exists for.
 #
 # THE ASSERTION IS NOT WEAKER FOR HAVING BEEN BUMPED, and that is the whole reason it is a pinned
 # literal rather than a `-ge`. It exists to catch the ACCIDENTAL root command — a skill dropped one
@@ -437,10 +441,10 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # So the failure this now catches is a LIBRARY SKILL LANDING IN `commands/` — where it is typed-only,
 # never matched, and absent from every count and table in this file.
 root_cmds=$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
-if [ "$root_cmds" -eq 4 ]; then
-  ok "commands/ root — exactly four owner-typed commands (autonomy-on, autonomy-off, new-issue, blueprint), as the docs enumerate"
+if [ "$root_cmds" -eq 5 ]; then
+  ok "commands/ root — exactly five owner-typed commands (autonomy-on, autonomy-off, new-issue, blueprint, retrospective), as the docs enumerate"
 else
-  bad "commands/ root — $root_cmds file(s); the docs enumerate four owner-typed commands (autonomy-on, autonomy-off, new-issue, blueprint).
+  bad "commands/ root — $root_cmds file(s); the docs enumerate five owner-typed commands (autonomy-on, autonomy-off, new-issue, blueprint, retrospective).
       A library skill belongs in skills/<name>/SKILL.md — under commands/ it is absent from every count
       and table here, and from the per-family breakdown a reader actually opens."
 fi
@@ -2021,7 +2025,7 @@ skill_stem() {
   esac
 }
 
-ARG_HINT_ALLOWED="autonomy-on autonomy-off new-issue blueprint"   # the four the OWNER types; a model-invoked skill has no typed argument
+ARG_HINT_ALLOWED="autonomy-on autonomy-off new-issue blueprint retrospective"   # the five the OWNER types; a model-invoked skill has no typed argument
 
 # The frontmatter block, exclusive of its `---` fences. Empty for a file that has none, which is what
 # the presence assertion below reads.
@@ -3707,7 +3711,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=41
+BP_HIGH_WATER=42
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
@@ -6185,6 +6189,173 @@ else
   bad "invocable field — 'invocable-waived:' is implemented or documented but not both.
       A guard with an undocumented escape is a guard people route around; a documented escape no guard
       honours is a promise the deny text cannot keep."
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+# THE ITERATION RETROSPECTIVE RITE, AND EVERY LIMIT IT SHIPS WITH (#355).
+#
+# WHY THIS EXISTS. `/autonomy-on` promised "the closing ceremonies run against the exhausted iteration"
+# from #326 and named nothing — measured on the commit this slice forked from, `git grep -l retrospect
+# 5cfea0b -- commands skills agents` matched two files that MENTION the word and
+# `git cat-file -e 5cfea0b:commands/retrospective.md` exited 128. A promise with no object survived a
+# month because it reads like a description of something that already runs. #355 built the object.
+#
+# WHAT THESE ARMS ASSERT AND WHAT THEY CANNOT. They assert the rite's rules are WRITTEN, in the files
+# that execute them. THEY CANNOT OBSERVE THAT A RITE RAN, that it ran over the right iteration, or that
+# it ran with the personas it should have. Nothing in hooks/scripts/ reads the queue at all — every
+# `gh issue` call there is a write path — so no layer in this harness can see a snapshot go empty.
+# Same claim, same words, as the #326 and #339 arms above: PRESENCE OF A RULE. That is the whole of it.
+#
+# WHY THE LIMIT NEEDLES ARE HERE AT ALL, WHICH LOOKS LIKE GATING A DISCLAIMER AND IS THE LOAD-BEARING
+# HALF. This rite has no enforcement anywhere: no hook fires it, no layer counts its findings, and its
+# consult set is a LOWER BOUND rather than a set. A reader who finds it in a directory full of
+# mechanisms will read it as one unless the file says otherwise — and a disclaimer later trimmed as
+# verbose leaves a rule that READS as enforced, this repo's own named failure shape. So the
+# lower-bound clause, the not-a-gate clause and the nothing-fires-this clause are needles.
+#
+# EACH NEEDLE IS ONE CLAUSE, AND THE FAILURE MESSAGE NAMES WHICH. The trap this suite has now paid for
+# twice is a needle that covers one clause of a two-clause rule: it reddens for the half nobody would
+# get wrong and stays green through the half that matters. Every needle below was verified with
+# `grep -c -F` against its target BEFORE being written here (all returned 1 — a needle written across a
+# line wrap matches nothing and reads exactly like absence), and each was then deleted on its own and
+# the suite re-run.
+RITE_CMD="$ROOT/commands/retrospective.md"
+RITE_DRAIN="$ROOT/commands/autonomy-on.md"
+RITE_GATE="$ROOT/agents/quality-assurance.md"
+RITE_PRELOAD="$ROOT/skills/harness-engineering/SKILL.md"
+
+# ── 1 · the rite carries its trigger, its mechanism, its artifact shape and all four of its limits ──
+rite_missing=""
+if [ ! -r "$RITE_CMD" ]; then
+  bad "retrospective rite — commands/retrospective.md is not readable, so NOTHING about the rite was
+      asserted. The drain's terminal condition points at this file; without it the closing ceremony is
+      a promise again, which is the state #355 was filed to end."
+else
+  for rite_needle in \
+    "The TRIGGER is the entry snapshot's exhaustion." \
+    'Isolated speculation is still speculation.' \
+    'the isolation would survive the dispatch and die at the write.' \
+    'denies `product-lead`, `content-writer` and' \
+    '**At most TWO findings per persona, the persona choosing which two.**' \
+    'A rule that is checkable by reading and not by running is the honest maximum here' \
+    'they displace it, by rule, in the very next' \
+    '**And the whole set is a LOWER BOUND, never the set.**' \
+    '- **Nothing fires this.** There is no hook.' \
+    '**A defect that lived between two contexts is invisible to this rite by construction.**' \
+    '## The sprint review half is NOT built, and this is where that is recorded'
+  do
+    grep -qF -- "$rite_needle" "$RITE_CMD" || rite_missing="$rite_missing
+    missing: \"$rite_needle\""
+  done
+  if [ -n "$rite_missing" ]; then
+    bad "retrospective rite — a load-bearing clause left commands/retrospective.md:$rite_missing
+      Each needle is ONE clause and answers for itself:
+        TRIGGER          — the snapshot fires it, the iteration scopes it, the owner still closes it.
+                           Collapsing the three is what makes the rite either never fire or fire on a
+                           half-worked iteration.
+        SPECULATION      — the reason the rite is worth running: a consulted persona is a fresh context,
+                           so isolation without its own evidence relocates the bias instead of removing it.
+        DIE AT THE WRITE — why the artifact is one file PER persona. A shared file puts every earlier
+                           answer in the next persona's context; isolation would survive the dispatch
+                           and die at the write.
+        DENIES           — why it is a file and not a comment: rule 5e denies three of the seven any
+                           public surface, so a comment artifact would have to be aggregated.
+        AT MOST TWO      — the volume cap.
+        HONEST MAXIMUM   — and the admission that the cap is checkable by reading and by nothing else.
+                           These two are separate clauses on purpose; the cap alone reads as enforced.
+        DISPLACE         — the amplification: a retrospective finding is \`loop\`, joins the ACTIVE
+                           iteration at filing (#338) and is ordered ahead of every product item (#339).
+        LOWER BOUND      — the consult set is derived from a recorder that exits silently on about a
+                           dozen paths, so it is 'at least these ran' and never 'these ran'.
+        NOTHING FIRES    — no hook, by instruction only.
+        BETWEEN CONTEXTS — what the rite cannot catch, by construction.
+        SWEEP NOT BUILT  — the review half is deferred and says so where the rite is defined, so the
+                           promise is not discovered unbuilt a second time.
+      If a clause was deliberately reworded, move its needle here in the same commit."
+  else
+    ok "retrospective rite — the rite states its trigger, why the evidence travels with the question, why the artifact is one file per persona, its cap, its amplification cost and all four of its limits"
+  fi
+fi
+
+# ── 2 · the drain names the object, on the right condition, without over-claiming the plural ──
+rite_drain_missing=""
+if [ ! -r "$RITE_DRAIN" ]; then
+  bad "retrospective rite — commands/autonomy-on.md is not readable; the pointer from the file that
+      EXECUTES the drain to the rite it fires cannot be checked."
+else
+  for rite_drain_needle in \
+    '### On exhaustion, run `/retrospective` — the closing ceremony now has an object (#355)' \
+    '**On the FIRST stop condition only**' \
+    '**HALF the promise now has an object and half still does not.**'
+  do
+    grep -qF -- "$rite_drain_needle" "$RITE_DRAIN" || rite_drain_missing="$rite_drain_missing
+    missing: \"$rite_drain_needle\""
+  done
+  if [ -n "$rite_drain_missing" ]; then
+    bad "retrospective rite — the drain no longer routes to the rite correctly:$rite_drain_missing
+      Three separate clauses. The HEADING is the pointer itself. FIRST STOP CONDITION scopes it to
+      snapshot exhaustion and away from the other two stops — a rite fired on a boundary event or an
+      owner interrupt reports on an iteration nobody finished. HALF THE PROMISE is what stops
+      'the closing ceremonies' being read as plural-and-satisfied while the sweep half is unbuilt."
+  else
+    ok "retrospective rite — autonomy-on names /retrospective, scopes it to snapshot exhaustion alone, and says which half of its own plural is still owed"
+  fi
+fi
+
+# ── 3 · the gatekeeper's Write narrowing — TWO clauses, TWO verdicts, because they fail differently ──
+#
+# The narrowing itself and the test that keeps it narrow are not one rule. Losing the first makes the
+# gate's brief contradict the rite (a persona instructed to write a file by one document and told it is
+# a defect by another). Losing the second turns a scoped exception into an open one, which is the
+# direction that erodes. One needle covering both would redden for whichever went first and could never
+# say which mattered, so they are two `if` blocks with two verdicts.
+if [ ! -r "$RITE_GATE" ]; then
+  bad "retrospective rite — agents/quality-assurance.md is not readable; the Write narrowing cannot be
+      checked in either direction."
+elif grep -qF -- '**One narrowing, and it is not a review dispatch (#355).**' "$RITE_GATE"; then
+  ok "retrospective rite — the gatekeeper's brief carries the Write narrowing, so it does not contradict the rite it is asked to write into"
+else
+  bad "retrospective rite — the gatekeeper's brief lost the Write narrowing. Its standing rule is that a
+      Write to any repo path is a defect in the review; the rite asks it for exactly one file. Without
+      this clause the two documents disagree and the persona is right either way, which is worse than
+      either rule alone."
+fi
+
+if [ ! -r "$RITE_GATE" ]; then
+  bad "retrospective rite — agents/quality-assurance.md is not readable; the narrowing's own bound
+      cannot be checked. Reported separately from the clause above on purpose: an unreadable file makes
+      BOTH verdicts uncomputable, and borrowing the neighbour's guard is how an assertion disappears."
+elif grep -qF -- 'The test that keeps it narrow is the dispatch, not the path' "$RITE_GATE"; then
+  ok "retrospective rite — the narrowing is bounded by the DISPATCH rather than by a path, so it cannot be read as a general licence to write into the tree"
+else
+  bad "retrospective rite — the narrowing lost its bound. Scoped to a PATH it would license any write
+      whose destination happened to look right; scoped to the DISPATCH it licenses nothing on a review.
+      A conditional rule with no stated condition is an unconditional one."
+fi
+
+# ── 4 · the universal preload no longer says the ceremony is unbuilt, and does not say it is finished ──
+rite_preload_missing=""
+if [ ! -r "$RITE_PRELOAD" ]; then
+  bad "retrospective rite — skills/harness-engineering/SKILL.md is not readable; the preload every
+      persona carries cannot be checked against the rite that now exists."
+else
+  for rite_preload_needle in \
+    '**Struck 2026-08-30 (#355), and it was wrong in two different ways.**' \
+    'Read *"the closing ceremonies"* anywhere in this loop as'
+  do
+    grep -qF -- "$rite_preload_needle" "$RITE_PRELOAD" || rite_preload_missing="$rite_preload_missing
+    missing: \"$rite_preload_needle\""
+  done
+  if [ -n "$rite_preload_missing" ]; then
+    bad "retrospective rite — the universal preload is out of step with the rite:$rite_preload_missing
+      The STRIKE needle is the correction of a bullet that said the ceremonies were not mechanisms in
+      that file and that no MCP server is reachable from a subagent — the first half is now false
+      because the rite exists, the second because product-lead holds a browser (#356). The
+      CEREMONIES-AS-ONE-BUILT-ONE-OWED needle is the other direction: this is the file every persona
+      preloads, so a plural read as satisfied here is read as satisfied everywhere."
+  else
+    ok "retrospective rite — the preload strikes the claim that the ceremonies are unbuilt and says which half is still owed"
+  fi
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
