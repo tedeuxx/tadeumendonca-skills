@@ -915,6 +915,16 @@ own artifacts. The **sprint review** half, which sweeps the running product and 
 different class of defect, **is not built**. Read *"the closing ceremonies"* anywhere in this loop as
 one built and one owed.
 
+**And nothing FIRES the one that exists.** `/autonomy-on` names it at its terminal condition; that is an
+instruction in a command file and it is the whole of the mechanism. No hook can be built for it, and the
+reason is one this file already establishes for a different rule: **nothing in `hooks/scripts/` reads the
+queue** — every `gh issue` call there is a write path — so no layer here can observe a snapshot going
+empty, and a hook receives one `cwd` while the iteration is two milestone objects in two repositories.
+By this loop's own test — *would something stop me, or only my memory?* — **the rite is not engineered.**
+Stated here rather than only in the rite because this is the file all seven personas carry always-on, so
+it is where a persona learns the rite exists, and learning that without learning that nothing fires it is
+how a promise becomes a belief.
+
 ~~Exhausting the active iteration's pool~~ — **struck 2026-08-29 (#338).** The iteration's pool is no
 longer a fixed set: `loop` items join it at filing, by the owner's decision, so *"the pool is empty"* is
 not a condition a drain can reach by working. The terminal set is now the pool **as it stood when the
