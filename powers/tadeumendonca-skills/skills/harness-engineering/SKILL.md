@@ -909,6 +909,12 @@ closing ceremonies run, and the stop moves to the planning handoff, which is the
 `/autonomy-on`'s *Stop when* for the operative wording and for how this settles against #103's judgment
 condition; it is stated once, there, rather than twice.
 
+**One of those ceremonies exists and one does not, and the plural is where that gets lost (#355).**
+`/retrospective` is the method half — the personas that ran, consulted alone, each reasoning from its
+own artifacts. The **sprint review** half, which sweeps the running product and finds a completely
+different class of defect, **is not built**. Read *"the closing ceremonies"* anywhere in this loop as
+one built and one owed.
+
 ~~Exhausting the active iteration's pool~~ — **struck 2026-08-29 (#338).** The iteration's pool is no
 longer a fixed set: `loop` items join it at filing, by the owner's decision, so *"the pool is empty"* is
 not a condition a drain can reach by working. The terminal set is now the pool **as it stood when the
@@ -949,10 +955,20 @@ carried over), not a gate.
   preflight. What is genuinely not in this slice is **the first pass**, 128 dispatches over the existing
   backlog, which is the owner's to trigger. Until it runs the points series is **empty rather than
   wrong**, and that distinction is the whole reason this bullet is corrected rather than left standing.
-- **The ceremonies.** REVIEW cannot run unattended in this harness — no MCP server is reachable from a
+- ~~**The ceremonies.** REVIEW cannot run unattended in this harness — no MCP server is reachable from a
   dispatched subagent, there is no non-production environment to sweep, and resumable state has no
   durable home since #245. RETROSPECTIVE and PLANNING are dispatch-and-interview shapes, not mechanisms
-  in this file.
+  in this file.~~ **Struck 2026-08-30 (#355), and it was wrong in two different ways.** *The
+  RETROSPECTIVE half is built* — `commands/retrospective.md`, a typed command the drain runs at its
+  terminal condition, with the isolation, the derived consult set, the per-persona artifact and the
+  cap. It was never merely a "dispatch-and-interview shape": what made it a mechanism was feeding each
+  consulted persona **its own artifacts**, since a persona at iteration close is a fresh context and
+  isolated speculation is still speculation. *And the MCP clause was true when written and is false at
+  head* — `product-lead` declares a read-only `chrome-devtools` subset with a bounded origin, merged
+  2026-08-29 (#356). **The review half is still not built**, on grounds that survive the new capability
+  intact — a route list rots, and a looker's finding has no ruler — recorded in
+  `commands/retrospective.md`'s own last section rather than here, so the deferral sits beside the rite
+  it defers. **PLANNING is genuinely unbuilt and no claim is made about it.**
 - **Anything that observes an iteration.** No hook reads the queue: every `gh issue` call in
   `hooks/scripts/` is a write path. This section is a rule the loop follows, and a gate asserts only that
   the rule is **written**, never that a session obeyed it.
