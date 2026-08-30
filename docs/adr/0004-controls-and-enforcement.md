@@ -2570,6 +2570,135 @@ the probe is owed before that path ships.
   `-m` is `--milestone`, and it would be wrong the day `gh` reassigns that short flag. Nothing detects
   that; the suite asserts today's meaning.
 
+## Amendment (2026-08-30) — the auto-close was called unrefusable, and the act that causes it was already being refused (#363)
+
+**Status:** accepted · **Deciders:** the owner (ratified the intake, «de acordo») · written by `agents-lead`
+(loop/machinery domain, ADR-0002's authorship split) · pre-implementation stress test by `agents-lead`,
+posted on the Issue as an intake comment.
+
+**Imported obligation, adopted narrowed.** #363 adopts the auto-close half of a foreign harness's
+`mr-selection-artifact-gate`. Its evidence class there was `measured`; **its standing here was
+`not measured here`, and everything below is local measurement rather than an inherited claim.** The
+review half of that mechanism was not re-adopted: rule 7c already binds the gate's verdict to the PR's
+current head.
+
+### The premise that was false, and it is the whole amendment
+
+The Issue's own framing — repeated in this repository's README, in the universal preload and in the
+blueprint registry — was that *a closing-keyword transition is executed by the forge at merge time, with
+no tool call for any `PreToolUse` hook to intercept.* **That is true of the close and false of the
+merge.** The merge is a tool call; rule 7c already intercepts it, already resolves the PR, already
+fetches the gate's verdict head-scoped, and already fails closed. Measured: `closingIssuesReferences`
+returns on the **same** `gh pr view` call rule 7c was already making, so the control costs **zero
+additional round-trips**.
+
+**The generalisation worth keeping is not about closing keywords.** An obligation written off as
+unreachable because *the event* is not a tool call may still be reachable at *the act that causes the
+event*, one step upstream. That is the second time in a week this harness found prevention where it had
+recorded only detection — #365 found it by letting a guard **ask** instead of know; this one found it by
+moving up one causal step. Neither is a property of guards in general; both are properties of a layer
+analysis somebody redid.
+
+### The local defect is NOT the imported obligation's, and building the imported one would have missed it
+
+The import says *delivery was not verified*. **Locally, delivery was verified.** On PR #356 the gate read
+the diff, judged Issue #355 undelivered, and prescribed `Closes #355` → `Refs #355` with its reasoning
+recorded. The gate was right. **What failed is that the prescription became a PR-body edit and nothing
+verified the edit took** — measured live at head, on the merged PR, the body still carries `close #355`
+inside the sentence explaining why the keyword must not be used, and the derived field still returns
+`[355]`.
+
+So the obligation implemented here has **no judgement in it**: the set of Issues the forge will close
+must be a set the gate's verdict at the current head declares. It compares two artifacts. It catches
+*the correction that did not hold* — the entire local defect class, three occurrences — and it does not
+catch *the gate judging wrongly*, which is stated in the hook's own header rather than left to be
+discovered.
+
+### Which layer carries it — and the measurement that ruled out the proposed one
+
+The Issue proposed a **CI job, per repository**. Measured at head:
+
+```
+gh pr checks 366 --repo <owner>/<repo> --required   → no required checks on the branch
+gh pr checks 366 --repo <owner>/<repo>              → claude-review · guard · inventory-counts (all reporting)
+```
+
+**Three checks run and report; zero are required.** A red job here is a notification, so the proposed
+surface would have shipped a control that reads as enforcement and behaves as advice — and the Issue
+would have closed as delivered. Making it real needs a second, owner-side change to branch protection,
+which this loop cannot even read: `gh api` is denied by the global floor, hit live during intake.
+
+`closure-artifact-guard.sh` was the other candidate and is the wrong file: its own header states *"This
+script never reads a PR"*, a decision taken on the owner's call at #336, and both its arms key on the
+Issue's `invocable:` declaration rather than on a PR's closing set.
+
+### The measurement that killed the obvious implementation
+
+The natural design — *the verdict must mention the Issue number* — **passes the exact case it exists to
+refuse.** Both gatekeeper verdicts on #356 contain `#355`, the merge-authorising one included, *because
+it is the verdict that prescribed removing the keyword*:
+
+```
+gh pr view 356 --repo <owner>/<repo> --json comments \
+  --jq '[.comments[]|select(.body|contains("gatekeeper-verdict"))]
+        |map({literal:(.body|split("\n")[1]), mentions:(.body|test("#355"))})'
+→ [{"literal":"REQUEST-CHANGES","mentions":true},{"literal":"APPROVE-AND-MERGE-BOUNDARY","mentions":true}]
+```
+
+So the declaration is **positional**: `^closes:` at column 0 of the verdict, the same contract
+`invocable:` and `purpose:` already carry in this tree, for the same reason — the token occurs in
+ordinary wrapped prose.
+
+### The false positive is priced in the mechanism, not in prose
+
+A PR that legitimately closes a delivered Issue is the common case, and this repository has measured
+twice that a control people route around is worse than none. **The legitimate close is not blocked; it is
+declared** — one line, at column 0, in the verdict the gate is already posting, on the head it already
+names. The comparison is **one-directional**: the forge's set must be inside the verdict's, never equal
+to it, so a gate that reviewed two Issues on a PR that closes one is a correct state rather than a deny.
+A PR that closes nothing never reaches the comparison.
+
+### The decision, as it binds
+
+- **Rule 7d, inside `permission-guard.sh`'s existing `*:quality-assurance` arm**, after rule 7c has
+  cleared the verdict. It denies `gh pr merge` when the PR's `closingIssuesReferences` contains a number
+  the head-scoped verdict does not declare on a `^closes:` line.
+- **It fails CLOSED, and that is the same exception #341 took rather than a second one.** A payload
+  without the field means the read that would have decided did not happen, on the irreversible act.
+- **`agents/quality-assurance.md` gains the `closes:` line in both verdict templates**, plus what to do
+  when the rule fires: declare it, or drop the keyword and **verify** the derived field returns `[]`
+  rather than reading the body and assuming.
+
+### What it does not reach, measured rather than assumed
+
+- **`closingIssuesReferences` is PR-body-derived.** Probed 2026-08-30 with a throwaway PR whose body
+  carried no keyword and whose single commit message carried `Closes #358`: the field returned `[]`. So
+  a keyword living only in a commit message is invisible to this rule — **the one surface that cannot be
+  edited afterwards**, since amending needs a force-push the floor denies.
+- **It is deliberately NOT widened to scan commit messages.** That needs the PR's head branch and
+  merge-base resolved inside a rule that fails closed, so every resolution failure becomes a wedged
+  merge; and a hand-rolled keyword regex is measurably both over- and under-inclusive against the forge's
+  own parser (`Closes #313's slice 1.` matches a regex and resolves, at GitHub, to a different number).
+- **Whether the commit-message route actually closes an Issue on merge here is NOT measured.** This
+  repository has no PR whose commits carry a keyword its body does not, so the two routes have never been
+  separable in its history. Documented forge behaviour is not a local measurement and is not claimed as
+  one.
+- **Zero reach over a browser merge**, exactly as rule 7c. `closure-artifact-guard.sh`'s `Stop` arm is
+  what covers that residue and the commit-message route; it is **not** made redundant and is not retired.
+
+### Consequences still being paid
+
+- **The gate can now be denied for a second reason that is not about the diff.** The repair is one line
+  in its own artifact, but it is a new way for a correct review to be stopped at the last step.
+- **Nothing verifies a declaration is TRUE.** A gate that declares `closes: N` without verifying delivery
+  passes. This control holds consistency between two artifacts the same persona produced.
+- **Every verdict written before this shipped declares nothing**, so any such PR that closes an Issue
+  needs a re-post. The blast radius is bounded by the plugin being installed deliberately — the rule is
+  inert until the owner updates.
+- **The blueprint registry's `0038` row asserted the opposite** (*"no permission layer can deny it"*) and
+  is re-authored in the same diff, as is the README sentence it came from. A registry row is prose no
+  instrument can falsify; this one went false the moment the layer analysis changed.
+
 ## Links
 - Driven by ADR-0002 and the Merge Request Definition of Done (record 0003, absorbed 2026-08-19 into
   [ADR-0006](./0006-verification-and-its-artifacts.md)) · consumed per project via
