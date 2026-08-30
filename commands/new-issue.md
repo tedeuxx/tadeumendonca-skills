@@ -272,21 +272,49 @@ cannot say whether anything shipped unseen.
 `--body` loses every backtick to command substitution, silently, and this repo has paid for that four
 times in one session.
 
-#### A `loop` Issue is filed INTO the active iteration (#338)
+#### No Issue is filed with a milestone — nothing enters a running iteration automatically (#365)
 
-**The owner's ask, verbatim: «tudo de loop deveria estar na iteracao corrente.»** `loop` work is never
-scheduled out to a later iteration, so the milestone is set **at filing** and not left for planning. Before
-this, `commands/new-issue.md` never set a milestone at all — `grep -c "milestone" commands/new-issue.md`
-returned `0` — so every `loop` Issue was born outside the pool `/autonomy-on` can see.
+**The owner's rule, verbatim, 2026-08-30:**
 
-**Scope: `loop` only.** A `product` or `content` Issue is composed into an iteration at planning and takes
-no milestone here. **Which repo's iteration: the one the Issue is filed in** — milestones are a per-repo
-namespace and there is no cross-repo iteration object, so *"the current iteration"* is two objects and the
-filing repo is what picks between them.
+> *«review e retrospective geram issues somente ao final do sprint e submetidos a priorizacao do backlog
+> do proximo. itens nao podem ser criados dentro do sprint automaticamente sem verificacao HITL.»*
 
-**Derive the milestone from the pool; never type its name and never read a date.** The predicate is
-`/harness-engineering`'s rule 1 — read it there — and it returns a milestone **number**; enumerate the
-titles from the same query rather than composing one:
+**So this command sets no milestone, for any type.** An Issue is born unassigned; composing it into an
+iteration is the owner's act at planning, where he is present and the iteration exists. **Say in your
+return that the Issue carries no milestone** — an omission the reader has to notice is how the rule
+quietly stops being applied.
+
+~~#### A `loop` Issue is filed INTO the active iteration (#338)~~
+
+~~**The owner's ask, verbatim: «tudo de loop deveria estar na iteracao corrente.»** `loop` work is never
+scheduled out to a later iteration, so the milestone is set **at filing** and not left for planning.~~
+~~**Scope: `loop` only.**~~ ~~**Derive the milestone from the pool; never type its name and never read a
+date.**~~
+
+**Struck 2026-08-30 (#365). It stood for one day, it was acted on — `commands/blueprint.md`'s adoption
+step was written against it six hours later — and it is the sentence that produced the act the owner
+objects to, which is why it is struck here rather than deleted.**
+
+**The two rules are opposite instructions about the same act, and #338 loses on a MEASUREMENT rather
+than on a preference: its own failure mode cannot occur.** #338's argument was that a `loop` Issue born
+outside the pool is invisible to `/autonomy-on` and silently never worked. The drain's queue is
+`(product OR loop) AND ready AND active-iteration`, and **a `loop` Issue is filed WITHOUT `ready`** —
+that transition is the owner's alone (record 0015's Corollary 4), stated in step 4 above. **The item falls
+out of the pool on the `ready` predicate before the milestone predicate is consulted.** So the milestone
+set at filing is inert until he acts, and when he acts he is present.
+
+**It changed exactly one observable thing: the running iteration's contents and its completion bar** —
+which is the scope change the owner objects to. It bought nothing and cost the objection. He had already
+applied the new rule by hand, removing #357 from `sprint-01` on 2026-08-30 (*«a principio isso nao
+deveria influenciar a iteracao corrente»*); that was read as a one-off and it was the rule appearing for
+the first time.
+
+**What #338 got right and is kept:** an unassigned Issue must not be lost. It is not — see the count
+`/autonomy-on` reports at session open, immediately below.
+
+**The derivation predicate is NOT deleted, it is relocated to where it is still used.** `/autonomy-on`
+and `commands/retrospective.md` both derive the active iteration to build a pool; that is a **read** and
+nothing here narrows it. What is gone is deriving a milestone in order to **assign** one:
 
 ```
 gh issue list --repo <owner>/<repo> --state open --limit 200 --json number,labels,milestone \
@@ -301,10 +329,22 @@ Sorting titles is alphabetical, which agrees with the number for `sprint-01 … 
 agreeing at `sprint-10`. That is a defect that cannot appear until the tenth iteration, which is the worst
 kind.
 
-Then file with it: `gh issue create --body-file <path> --milestone "<the title that came back>"`. The
-permission prefix is unchanged — `gh issue create` is what the guard matches, with or without the flag.
+~~Then file with it: `gh issue create --body-file <path> --milestone "<the title that came back>"`.~~
+**Struck 2026-08-30 (#365) — this is the line that performed the act.** The filing command is
+`gh issue create --body-file <path>`, with no `--milestone`, always.
 
-**A wrong milestone name FAILS LOUDLY, and this was the open unknown the Issue flagged.** Measured
+**And it is no longer only an instruction: `permission-guard.sh` rule 10 holds it.** A
+`gh issue create`/`gh issue edit` carrying `--milestone` (or `-m`) is **denied** to every dispatched
+persona and **asked** of the orchestrator, so the owner's answer to the prompt *is* the HITL
+verification his rule demands. **That is why this rule is prevention rather than the one-turn-late
+detection its Issue expected** — the wall that stopped #337, #339 and #363 is that a guard cannot tell
+*he told me* from *I did it myself*, and a guard that is allowed to **ask** does not have to.
+`--remove-milestone` is deliberately unmatched: taking an item back out is the corrective act, not the
+one under guard.
+
+**A wrong milestone name FAILS LOUDLY, and this was the open unknown #338 flagged.** Kept because it is
+still true of the assignment the owner makes at planning, and because the next person to type a
+milestone name deserves to know it. Measured
 2026-08-28 against `tedeuxx/tadeumendonca-skills`:
 
 ```

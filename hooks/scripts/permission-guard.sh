@@ -190,18 +190,44 @@ deny() {
   exit 0
 }
 
-# ~~For the class where the thing that makes an act right or wrong is NOT visible in the command, and
+# For the class where the thing that makes an act right or wrong is NOT visible in the command, and
 # the owner is the only one who can see it. `deny` would be a lie there — it says "never", when the
 # truth is "not unless the owner agrees" — and a denial the owner has to work around by typing the
-# command themselves has moved the work to them rather than protecting them from it.~~
+# command themselves has moved the work to them rather than protecting them from it.
 #
-# **THE `ask()` HELPER IS DELETED, 2026-08-03.** It had exactly one call site — rule 5d's prompt on a
+# ~~**THE `ask()` HELPER IS DELETED, 2026-08-03.** It had exactly one call site — rule 5d's prompt on a
 # main-agent `gh issue create` — and that call is gone (see 5d for the reasoning). The paragraph above
 # is kept struck rather than removed because its ARGUMENT is still correct and is what a future rule
 # would re-derive: there is a real class of act whose rightness the command cannot show. What changed
 # is that `gh issue create` from the MAIN AGENT turned out not to be in it, since the owner is already
 # watching that call happen. A future rule that genuinely is in that class re-adds these ten lines
-# deliberately; leaving a helper nothing calls would be a mechanism the file claims and does not run.
+# deliberately; leaving a helper nothing calls would be a mechanism the file claims and does not run.~~
+#
+# **RESTORED 2026-08-30 (#365), on exactly the terms that deletion set: a rule arrived that IS in the
+# class, so the helper is re-added deliberately rather than kept idle.** The paragraph above is
+# UN-struck and the deletion note struck in its place, because the argument it preserved is now load-
+# bearing again — rule 10 below guards *admitting an item into the running iteration*, and whether a
+# given admission is the owner's decision or the loop's own is not a fact any matcher can read off the
+# command. **What makes `ask` the right verdict there rather than a hedge: the owner's answer to the
+# prompt IS the human verification his rule demands.** The guard does not have to distinguish *he told
+# me to do this* from *I did it myself*; it puts the question to the only party who knows.
+#
+# WHAT AN `ask` COSTS THAT A `deny` DOES NOT, and it is the reason rule 10 does not hand it to
+# everyone: an `ask` needs a prompt surface. In the orchestrator's session there is one, by
+# construction — that is where the owner sits. A dispatched subagent has none, so `ask` there resolves
+# to whatever the harness does with an unanswerable prompt, which is a behaviour this file has NOT
+# measured. Rule 10 therefore denies the subagent case outright and asks only the orchestrator; see
+# its own comment.
+ask() {
+  jq -n --arg r "$1" '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "ask",
+      permissionDecisionReason: $r
+    }
+  }'
+  exit 0
+}
 
 # Single-line, collapsed whitespace for matching.
 cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
@@ -1387,6 +1413,65 @@ script_arg="$(printf '%s' "$cmd" | awk '
 if [ -n "$script_arg" ] \
    && printf '%s' "$script_arg" | grep -Eq '(^|/|'"'"'|")\.\.(/|'"'"'|"|$)'; then
   deny "Blocked: a script path handed to a shell contains a '..' segment. A path in an allow entry is a STRING prefix, not a directory scope — '<allowed-prefix>/../../x.sh' carries the prefix while reaching any file on disk, and permission-guard.sh deliberately does not look inside a script. Use the path without traversal, or run the script from the directory that owns it."
+fi
+
+# 10. ADMITTING AN ITEM INTO AN ITERATION (#365). The owner's rule, 2026-08-30, verbatim:
+#
+#       "itens nao podem ser criados dentro do sprint automaticamente sem verificacao HITL"
+#
+#     THE ACT THIS GUARDS IS NOT "AN ISSUE EXISTS" — it is "an issue carries a milestone", which is
+#     what changes a running iteration's contents and its completion bar. Those are different commands
+#     and only the second is this rule's business. `gh issue create` with no `--milestone` is untouched
+#     here and stays governed by 5c/5d alone.
+#
+#     WHY THIS LAYER, AND WHY THERE IS NO OTHER CANDIDATE. ADR-0004's standing question is which layer
+#     can carry a control. Measured 2026-08-30: `Bash(gh issue edit:*)` sits in BOTH the project floor
+#     and the global one, unscoped by caller, and this file carried no rule about it — so every persona
+#     and the orchestrator could assign any milestone to any issue with no decision from any layer. It
+#     cannot be expressed statically either: allow/deny entries are command PREFIXES and the issue
+#     number sits between `edit` and `--milestone`, so no prefix reaches the flag. One candidate, not a
+#     trade — which is rare enough in this file to be worth writing down.
+#
+#     TWO VERDICTS, SPLIT ON `agent_type`, AND THE SPLIT IS THE SAFETY PROPERTY RATHER THAN A NICETY:
+#
+#       A SUBAGENT IS DENIED. Composition is the owner's act at planning; no persona in the roster has
+#       any business assigning a milestone, so there is no legitimate call to prompt about. And an
+#       `ask` returned to a subagent reaches nobody — there is no prompt surface in a dispatched
+#       context — so asking there would trade a deterministic refusal for an unmeasured behaviour on a
+#       call that should be refused anyway. Deny is both the correct answer AND the one with no
+#       unknown in it.
+#
+#       THE ORCHESTRATOR IS ASKED. That is the session the owner is sitting in, so the prompt reaches
+#       a person and his answer is the HITL verification the rule demands. This is the whole reason
+#       the rule is prevention rather than the `Stop`-hook detection its Issue expected: the wall that
+#       stopped #337, #339 and #363 — a guard cannot tell "he told me" from "I did it myself" — does
+#       not apply when the guard is allowed to ASK instead of having to KNOW.
+#
+#     PLACED LAST, AFTER EVERY DENY, AND THAT POSITION IS LOAD-BEARING. `ask` exits, exactly as `deny`
+#     does. Sited next to rule 5c it would have exited BEFORE rules 7, 7b, 8 and 9, so
+#     `gh issue edit 5 --milestone x && git push origin main` would have come out ASK where rule 8
+#     denies it — an ask that SOFTENS a deny is a hole, not a prompt. This is the same "falling
+#     through is the only safe shape" lesson rule 5d already memorialises, and the cheapest way to
+#     obey it is to be the last rule in the file rather than to remember. Nothing may be appended
+#     below this block that denies.
+#
+#     WHAT IT DOES NOT CATCH, so nobody reads it as a bound. `gh api` would reach the same endpoint
+#     and is denied for writes by 5f, so that route is closed by a different rule and not by this one.
+#     The GitHub web UI is outside every layer here — which is correct rather than a gap, since a
+#     human clicking in a browser IS the verification. And the rule reads a flag, not an intent: an
+#     owner-directed admission and a self-directed one produce the same prompt, which is precisely
+#     why the prompt exists.
+#
+#     `--remove-milestone` IS DELIBERATELY NOT MATCHED. Removing an item from a running iteration is
+#     the corrective act the owner performed by hand on #357 — it is what the rule wants to be easy,
+#     not what it guards. It also does not match by accident: the pattern requires `--milestone`
+#     preceded by start-or-space, and `--remove-milestone` contains no such substring.
+if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]=]*|--repo[[:space:]=]*)[^[:space:]]+)?[[:space:]]+issue[[:space:]]+(create|edit)([[:space:]]|$)' \
+   && printf '%s' "$bare" | grep -Eq '(^|[[:space:]])(--milestone|-m)([[:space:]=]|$)'; then
+  if [ -n "$agent_type" ]; then
+    deny "Blocked: a subagent does not admit an item into an iteration. Composing an iteration is the owner's act at planning (#365) — file or edit the issue without --milestone and say in your return which iteration you believe it belongs to, so he assigns it."
+  fi
+  ask "This assigns an iteration (--milestone), which changes what the running iteration contains. The owner's rule is that nothing enters it without human verification (#365), and answering this prompt IS that verification. Approve if he asked for this admission; refuse and file without a milestone if you are composing on your own."
 fi
 
 exit 0

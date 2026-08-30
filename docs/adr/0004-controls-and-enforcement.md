@@ -2439,6 +2439,137 @@ becomes load-bearing for a merge decision, that judgement changes, and it should
   a deliberate scope line, not an oversight, and it means the most capable context in the loop is the
   one with no MCP control at all.
 
+## Amendment (2026-08-30) — the layer that can hold *nothing is admitted automatically*, and the first control here that reaches PREVENTION by ASKING (#365)
+
+**Status:** accepted · **Deciders:** owner (decision), written by `agents-lead` (loop/machinery domain,
+#223) · **Issue:** #365, `loop`, boundary
+
+### The rule, and the act it actually guards
+
+The owner's rule, verbatim, 2026-08-30:
+
+> *«review e retrospective geram issues somente ao final do sprint e submetidos a priorizacao do backlog
+> do proximo. itens nao podem ser criados dentro do sprint automaticamente sem verificacao HITL.»*
+
+**The guarded act is not *an Issue exists*. It is *an Issue carries a milestone*** — the only observable
+that changes a running iteration's contents and its completion bar. Those are different commands and only
+the second is a control question. This distinction is the whole amendment: the previous rule (#338) had
+guarded the wrong one and made the objectionable act mandatory.
+
+### Which layer can carry it — one candidate, which is rare here
+
+The standing question of this record, answered by measurement rather than by preference:
+
+| layer | can it hold *nothing is admitted automatically*? |
+|---|---|
+| `.claude/settings.json` / the global floor | **no.** `Bash(gh issue edit:*)` sits in **both** layers, unscoped by caller. Allow/deny entries are command **prefixes** and the issue number sits between `edit` and `--milestone`, so no prefix pattern reaches the flag. |
+| `permission-guard.sh` (`PreToolUse`/`Bash`) | **yes** — the flag is in the command string, no lookup, no network, branch-agnostic. |
+| a `Stop` hook | detection only, one turn late. |
+| `inventory-counts.test.sh` | presence of the written rule, nothing more. |
+
+**And the starting state was worse than the Issue described:** the guard carried **no rule at all** about
+`gh issue edit`, so every persona and the orchestrator could assign any milestone to any Issue with a
+decision from no layer. Measured 2026-08-30 —
+`grep -rn "issue edit" .claude/settings.json ~/.claude/settings.json` returns both allow entries, and
+`grep -rn "issue edit" hooks/scripts/permission-guard.sh` returned nothing.
+
+### The observation that made PREVENTION available, and it generalises past this Issue
+
+**#337, #339 and #363 each shipped as detection on the same wall: a guard cannot tell *the human asked
+for this* from *I decided it myself*.** That wall is real, and it is **not a property of guards — it is a
+property of guards that must KNOW.** A guard permitted to return `permissionDecision: "ask"` does not
+have to distinguish the two cases: **the human's answer to the prompt IS the verification the rule
+demands.**
+
+Measured against the installed build before relying on it: `ask` is an accepted `PreToolUse` decision
+(`permissionDecision:ie(["allow","deny","ask"])`), and `PreToolUse` hooks are consulted even under
+`bypassPermissions`, which the bundle states in its own words while describing what bypass skips.
+
+**When this does NOT generalise:** an `ask` needs a prompt surface. That is the whole reason the rule
+splits below, and it is the condition to check before reusing this shape.
+
+### The decision, as it binds
+
+1. **`commands/new-issue.md` files with no milestone, for every type.** Composition is the owner's act
+   at planning.
+2. **`permission-guard.sh` rule 10** matches `gh issue create`/`gh issue edit` carrying `--milestone` or
+   `-m`, in every spelling the tool accepts (attached value, the repository flag before the subcommand,
+   a `bash -c` payload). **A dispatched persona is DENIED; the orchestrator is ASKED.**
+3. **`--remove-milestone` is unmatched.** Taking an item back out is the corrective act the owner
+   performed by hand on #357 — what the rule wants to be easy, not what it guards.
+4. **#338 is struck, not narrowed**, at every surface that carried it.
+
+### Why #338 loses, and it is a measurement rather than a preference
+
+#338's argument was that a `loop` Issue born outside the pool is invisible to `/autonomy-on`. The pool is
+`(product OR loop) AND ready AND active-iteration`, and **a `loop` Issue is filed WITHOUT `ready`** — the
+owner's transition alone. **The item leaves the pool on the `ready` predicate before the milestone
+predicate is consulted.** So the milestone at filing was inert until he acted, and when he acted he was
+present. It changed exactly one thing: the running iteration's contents. **It bought nothing and cost the
+objection.**
+
+### The split is REACHABILITY, not severity, and that is the load-bearing design call
+
+`ask` returned to a dispatched subagent reaches nobody — there is no prompt surface in that context — so
+asking there would trade a deterministic refusal for an **unmeasured** behaviour, on a call that has no
+legitimate form anyway. Denying the subagent case removes the only unknown in the mechanism from every
+path except the orchestrator's own, which is by construction the session the human is in.
+
+### The measurement that was owed and why it was NOT taken
+
+The intake flagged one unknown: *does an `ask` hang rather than deny where no prompt can be shown?* It is
+**not measured**, and the reason is that no path reaches the guarded act unattended. Walked at head, in
+both repositories: no script in `hooks/scripts/` assigns a milestone (every `gh issue` call there is a
+write path of another kind, and the one `"gh issue edit"` string in `orchestrator-tool-census.sh` is a
+classification label, not a call); `commands/autonomy-on.md` and `commands/retrospective.md` never assign
+one; and the only two files that did — `new-issue.md` and `blueprint.md` — are narrowed by this slice.
+
+~~and the two CI workflows running `anthropics/claude-code-action` install no plugin, so this hook is not
+even registered there.~~ **Struck at the merge gate, 2026-08-30, and struck rather than corrected in
+place because of WHERE it sat: this is the paragraph that dispenses with a measurement whose failure mode
+is a frozen session, so a false sentence inside it is load-bearing in a way the same sentence elsewhere
+would not be.** `.github/workflows/claude-code-review.yml` **does** install a plugin — it passes
+`plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'` and
+`plugins: 'code-review@claude-code-plugins'`. (`claude.yml` installs none; the claim was true of one
+workflow and asserted of two.)
+
+**The corrected claim, and the correction is a change of KIND rather than of fact.** No plugin **of this
+harness** is installed in either workflow, so `hooks/hooks.json` is never registered and rule 10 does not
+run there. That is a fact about **configuration**, which can change with one line in a workflow file —
+not the **structural** closure the struck sentence asserted. The conclusion survives; its strength does
+not, and the difference is exactly what a future reader would have relied on.
+
+**So this is a conditional, and there are now two conditions to re-check, not one:** the day any
+automated path assigns a milestone, **and** the day any workflow installs this repository's own plugin,
+the probe is owed before that path ships.
+
+### Rejected here, with the reason
+
+- **A `Stop`-hook detector.** It was the Issue's own expectation and it is the wrong answer *here*: the
+  act is visible to a matcher this harness already registers, so installing the weaker control where the
+  stronger one fits would be a choice, not a limit.
+- **Denying `create --milestone` outright** (the intake's own recommendation, narrowed here). It would
+  force one legitimate human act into two commands and buy nothing the prompt does not already buy —
+  `ask` makes the admission visible at birth exactly as it does at edit.
+- **Removing `Bash(gh issue edit:*)` from the floor.** It would tax every label edit, which is the bulk
+  of honest `gh issue edit` traffic, to reach one flag.
+
+### Consequences still being paid
+
+- **Planning fires N prompts**, one per admission. Accepted: planning is owner-present by construction,
+  so there is no path where this prompt fires when he is absent and should not have been — the property
+  that stops an `ask` training a bypass.
+- **It reads a flag, never an intent.** An owner-directed admission and a self-directed one produce the
+  identical prompt. That is the design, not a shortfall, but it means the control cannot say afterwards
+  which one happened — nothing records *why* a milestone was assigned.
+- **The web interface is outside every layer**, correctly: a human clicking in a browser is the
+  verification. But it also means the guard's coverage is *this harness*, never *this tracker*.
+- **Nothing bounds how many items the owner admits to one iteration.** An over-filled iteration
+  reproduces the old unbounded drain inside one milestone, and no mechanism is proposed.
+- **The `-m` alternation is a two-character matcher.** It is correct for `gh issue create|edit`, where
+  `-m` is `--milestone`, and it would be wrong the day `gh` reassigns that short flag. Nothing detects
+  that; the suite asserts today's meaning.
+
 ## Links
 - Driven by ADR-0002 and the Merge Request Definition of Done (record 0003, absorbed 2026-08-19 into
   [ADR-0006](./0006-verification-and-its-artifacts.md)) · consumed per project via

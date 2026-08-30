@@ -28,11 +28,34 @@ typed.** The canonical wording, the predicate, and the measurement behind the tr
 `/harness-engineering`'s *The iteration is the unit of work* — read them there rather than trusting a
 restatement here. What this command owes on top of that is one line of its own:
 
-> **Report the count of `ready` items carrying NO milestone, from the same query, at session open.**
+> **Report the count of `ready` items carrying NO milestone, at session open.**
 
-**Run that predicate ONCE, at entry, and hold the issue numbers it returned — that set is the drain's
+~~from the same query~~ — **struck 2026-08-30 (#365): those three words made this line unrunnable, and
+it is a falsifier that FAILS OPEN, which is the worst shape a check can have.** "The same query" is the
+pool predicate, whose first filter is `select(.milestone!=null)`; items with no milestone are excluded
+from it by construction, so a reader following the sentence literally gets an empty result and reads it
+as *nothing to worry about*. The predicate is its own, and it is published here rather than described:
+
+```
+gh issue list --repo <owner>/<repo> --state open --limit 200 --json number,labels,milestone \
+  --jq '[.[]|select(.milestone==null)
+          |select(.labels|map(.name)|index("ready"))
+          |.number]|length'
+```
+
+**Run it in BOTH repositories.** This command takes one repo, and the iteration does not — the drain
+pool reads both trees, and a session opened in one never counts the other's unassigned items.
+
+**Since #365 this count is a BACKLOG SIZE, not a defect signal, and reading it the old way would be
+worse than not reading it.** Nothing is admitted to a running iteration automatically any more, so every
+newly-filed item is in this count by construction. A non-zero result is the normal state between
+plannings; what it tells the owner is how much is waiting to be composed, not that a rule was broken.
+
+**Run the POOL predicate ONCE, at entry, and hold the issue numbers it returned — that set is the drain's
 terminal set** (#338). The iteration itself keeps growing while the drain runs; the snapshot does not. See
 *The pool grows while it drains* under *Stop when* for why, and for what a second invocation does.
+**#365 narrows what makes the pool grow and does not remove it** — the owner still admits items at
+planning, `blocked` still clears, `ready` still lands mid-drain — so the snapshot stands unchanged.
 
 Before #326, `ready` was sufficient to be worked. After it, `ready` is necessary and not sufficient — so
 **every `ready` item with no milestone silently stops being worked**, and the only thing standing between

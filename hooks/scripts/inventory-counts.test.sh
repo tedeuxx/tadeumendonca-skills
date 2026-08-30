@@ -3711,7 +3711,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=42
+BP_HIGH_WATER=43
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
@@ -5229,7 +5229,8 @@ if [ ! -r "$ITER_CMD" ]; then
 else
   for iter_cmd_needle in \
     '**and carrying the ACTIVE ITERATION' \
-    '> **Report the count of `ready` items carrying NO milestone, from the same query, at session open.**' \
+    '> **Report the count of `ready` items carrying NO milestone, at session open.**' \
+    'select(.milestone==null)' \
     '- **the ENTRY SNAPSHOT is exhausted** — mechanical, no judgment; or'
   do
     grep -qF -- "$iter_cmd_needle" "$ITER_CMD" || iter_cmd_missing="$iter_cmd_missing
@@ -5245,6 +5246,11 @@ else
       description. And the no-milestone count is a precondition of this scoping rather than a nicety:
       \`ready\` was sufficient before #326 and is necessary-not-sufficient after it, so every \`ready\`
       item with no milestone silently stops being worked and nothing else anywhere would say so.
+      The \`select(.milestone==null)\` needle is #365's repair of that count and is a needle in its own
+      right rather than part of the sentence above: the published form read 'from the same query', and
+      the same query's FIRST filter is \`select(.milestone!=null)\`, so a reader following it literally
+      got an empty result and read it as nothing-to-worry-about. A falsifier that FAILS OPEN is worse
+      than no falsifier, which is why the predicate is now inline and asserted rather than described.
       Leaving BOTH terminal conditions standing is the shape this file has already paid for twice
       (#97 → #103, and the exhaustion event itself)."
   else
@@ -5297,23 +5303,41 @@ if [ ! -r "$SNAP_NEW" ]; then
   bad "loop-at-filing — commands/new-issue.md is not readable; the filing rule cannot be checked at all.
       This is the file that performs the act, so the rule living anywhere else is a description."
 else
+  # RE-AUTHORED 2026-08-30 (#365). The three needles that stood here asserted the OPPOSITE rule — that
+  # `loop` Issues are filed INTO the active iteration (#338) — and #365 struck it. They are replaced
+  # rather than deleted: the act this arm guards did not go away, it INVERTED, and an arm deleted
+  # because its subject reversed leaves the new rule ungated while every total stays plausible.
+  #
+  # Each needle was verified with `grep -c -F` against commands/new-issue.md before being written here,
+  # and the count checked to be exactly 1 — a `grep -qF` arm's property is COUNT >= 1, so a needle
+  # occurring twice survives a single-line deletion probe and the arm tests nothing while looking green.
   for snap_new_needle in \
-    'A `loop` Issue is filed INTO the active iteration (#338)' \
-    '**Scope: `loop` only.**' \
-    '**Derive the milestone from the pool; never type its name and never read a date.**'
+    'No Issue is filed with a milestone — nothing enters a running iteration automatically (#365)' \
+    'itens nao podem ser criados dentro do sprint automaticamente sem verificacao HITL' \
+    '**So this command sets no milestone, for any type.**' \
+    '`permission-guard.sh` rule 10 holds it.'
   do
     grep -qF -- "$snap_new_needle" "$SNAP_NEW" || snap_new_missing="$snap_new_missing
     missing: \"$snap_new_needle\""
   done
+  # THE NEGATIVE HALF, AND IT IS THE ARM THAT ACTUALLY BITES. The struck #338 text is KEPT in the file
+  # under \`~~\`, so a fixed-string search for it matches the preserved copy and would pass with the old
+  # rule live again. Anchoring on a LIVE (unstruck) line start is what tells the two apart — the same
+  # shape, and the same reason, as the \`^- \` anchor on the retired #326 bullet fifty lines below.
+  snap_new_live=$(grep -cE '^\*\*Derive the milestone from the pool' "$SNAP_NEW" || true)
+  [ "${snap_new_live:-0}" -eq 0 ] || snap_new_missing="$snap_new_missing
+    The #338 derive-and-assign instruction is LIVE again as an unstruck line. Deriving the active
+    iteration in order to READ a pool is untouched by #365; deriving one in order to ASSIGN a milestone
+    at filing is the act the owner's HITL rule forbids."
   if [ -n "$snap_new_missing" ]; then
-    bad "loop-at-filing — commands/new-issue.md no longer files loop Issues into the active iteration:$snap_new_missing
-      The SCOPE needle is not decoration: widening the rule past \`loop\` moves planning into the capture
-      command, which is a different decision and was not made. The DERIVE needle is rule 1 arriving at
-      the filing act — a typed milestone name is the defect (\`gh issue list --milestone '<typo>'\`
-      returns empty with exit 0, so the wrong iteration is silent), and a date-selected one is what the
-      source project measured reporting nothing-to-do as though it were done."
+    bad "no-auto-admission — commands/new-issue.md no longer files without a milestone:$snap_new_missing
+      This is the file that PERFORMS the filing, so the rule living anywhere else is a description.
+      The QUOTE needle is the owner's own words and is what stops the rule being re-derived into
+      something adjacent; the FOR-ANY-TYPE needle is not decoration, since #338 was scoped to \`loop\`
+      and the whole correction is that the scope was never the problem; the GUARD needle is the pointer
+      to permission-guard.sh rule 10, without which this reads as an instruction when it is enforced."
   else
-    ok "loop-at-filing — commands/new-issue.md files loop Issues into the pool-derived active iteration"
+    ok "no-auto-admission — commands/new-issue.md files with no milestone, quotes the owner's rule, and names the guard that holds it"
   fi
 fi
 
@@ -5352,21 +5376,32 @@ if [ ! -r "$ITER_SKILL" ]; then
   bad "entry snapshot — skills/harness-engineering/SKILL.md is not readable; the preload every persona
       carries cannot be checked for the filing rule or the retired bound."
 else
+  # THE FIRST NEEDLE IS REPLACED, THE SECOND IS UNTOUCHED, and the asymmetry is the finding #365 turned
+  # up rather than an editorial choice. The two clauses were shipped together by #338 and read as one
+  # decision; they are not. The FILING rule is struck. The ENTRY SNAPSHOT survives it — the pool still
+  # grows while it drains, for reasons #338 never owned (the owner admits at planning, `blocked` clears,
+  # `ready` lands mid-drain), so #338 was one contributor and never the premise. Striking both because
+  # they arrived in one commit is exactly the mistake this pair of needles now exists to make loud.
   for snap_skill_needle in \
-    '#### A `loop` Issue joins the ACTIVE iteration at FILING, never a later one (#338)' \
+    '#### NOTHING is admitted into a running iteration automatically — an Issue is filed with NO milestone (#365)' \
+    '**Why prevention was available here when it was not for #337, #339 or #363.**' \
     "**The iteration bounds nothing. The drain's ENTRY SNAPSHOT does.**"
   do
     grep -qF -- "$snap_skill_needle" "$ITER_SKILL" || snap_skill_missing="$snap_skill_missing
     missing: \"$snap_skill_needle\""
   done
   if [ -n "$snap_skill_missing" ]; then
-    bad "entry snapshot — the universal preload no longer carries the #338 decision:$snap_skill_missing
-      The second needle is the correction, not a restatement: this section asserted that an iteration
-      bounds the drained pool and that findings land on the NEXT iteration. Both stopped being true for
-      \`loop\`, which is one of the two drainable types, and a preload that still claims a bound the
-      loop no longer has is worse than one that claims none."
+    bad "no-auto-admission — the universal preload no longer carries the #365 decision:$snap_skill_missing
+      The WALL needle is the reasoning, not colour: this is the first rule in the family to ship as
+      PREVENTION rather than detection, and it is available only because a guard that may ASK does not
+      have to distinguish 'he told me' from 'I did it myself'. Lose that sentence and the next machinery
+      proposal re-derives detection from #337/#339/#363 without noticing the case is different.
+      The THIRD needle is the correction #338 shipped and #365 does NOT reverse: the drain terminates
+      against its entry snapshot, not against the iteration. Deleting it alongside the filing rule —
+      because the two arrived in the same commit — would leave the drain with no stated terminal set at
+      all, which is #103's defect restored one layer down."
   else
-    ok "entry snapshot — the universal preload carries the filing rule and the corrected bound"
+    ok "no-auto-admission — the universal preload carries the #365 rule, why prevention was available here, and the entry-snapshot bound that survives it"
   fi
 fi
 
@@ -6238,7 +6273,7 @@ else
     'denies `product-lead`, `content-writer` and' \
     '**At most TWO findings per persona, the persona choosing which two.**' \
     'A rule that is checkable by reading and not by running is the honest maximum here' \
-    'they displace it, by rule, in the very next' \
+    'They still displace the product work there, by rule (#339)' \
     '**And the whole set is a LOWER BOUND, never the set.**' \
     '- **Nothing fires this.** There is no hook.' \
     '**A defect that lived between two contexts is invisible to this rite by construction.**' \
@@ -6263,8 +6298,14 @@ else
         AT MOST TWO      — the volume cap.
         HONEST MAXIMUM   — and the admission that the cap is checkable by reading and by nothing else.
                            These two are separate clauses on purpose; the cap alone reads as enforced.
-        DISPLACE         — the amplification: a retrospective finding is \`loop\`, joins the ACTIVE
-                           iteration at filing (#338) and is ordered ahead of every product item (#339).
+        DISPLACE         — the amplification: a retrospective finding is \`loop\` and is ordered ahead
+                           of every product item (#339), so it displaces product work rather than
+                           queueing behind it. RE-AUTHORED 2026-08-30 (#365): the old needle read
+                           'they displace it, by rule, in the very next', which was written when the
+                           findings landed in the iteration the rite was CLOSING (#338). They now land
+                           unassigned and displace at the NEXT planning. The displacement did not go
+                           away — only its timing moved — so the needle moved with the sentence rather
+                           than being dropped with the struck half.
         LOWER BOUND      — the consult set is derived from a recorder that exits silently on about a
                            dozen paths, so it is 'at least these ran' and never 'these ran'.
         NOTHING FIRES    — no hook, by instruction only.

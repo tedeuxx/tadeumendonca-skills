@@ -3743,6 +3743,95 @@ live, and the consequences still being paid. Dropped from the five records above
 - **Each record's own `Considered options` restatement of the chosen option as option 1**, and each
   record's `Links` list, whose live members are folded into this document's cross-references.
 
+## Amendment (2026-08-30, twenty-seventh) — nothing is admitted into a running iteration automatically; the twenty-third amendment's decision 1 is REVERSED
+
+**Status:** accepted · **Deciders:** owner (decision), written by `agents-lead` (loop/machinery domain,
+#223) · **Issue:** #365, `loop`, boundary · **the control layer is recorded in
+[ADR-0004](./0004-controls-and-enforcement.md)'s 2026-08-30 amendment**, which is where *which layer can
+hold this* belongs and is not restated here.
+
+**This amendment reverses decision 1 of the twenty-third amendment.** That decision — *"a `loop` Issue is
+filed into the ACTIVE iteration, at filing, in the repo it is filed in"* — is struck. It stood for one
+day. It is reversed rather than rewritten, per this library's convention, because someone built on it:
+`commands/blueprint.md`'s adoption step was written against it six hours after it merged, and
+`commands/retrospective.md` justified its own trigger on it the next day.
+
+### The owner's rule
+
+> *«review e retrospective geram issues somente ao final do sprint e submetidos a priorizacao do backlog
+> do proximo. itens nao podem ser criados dentro do sprint automaticamente sem verificacao HITL. isso
+> precisa de enforcement acho. pois desconfio que vc nao esta seguindo isso.»*
+
+**His suspicion was right about the mechanism and wrong about the cause, which is the more useful
+finding.** Nothing had been auto-admitted — measured — but not because anything refused it: the pool
+predicate returned empty at those filings, so **there was no active iteration to admit into.** Had one
+`ready` item remained, both Issues filed that day would have been admitted by rule, with nobody asked.
+The rule held by luck.
+
+### Why #338 loses on a measurement rather than on a preference
+
+The Issue frames this as *which of two rules wins*. It is not a contest: **#338's own failure mode cannot
+occur.** Its argument was that a `loop` Issue born outside the pool is invisible to `/autonomy-on` and
+silently never worked. The pool is `(product OR loop) AND ready AND active-iteration`, and a `loop` Issue
+is filed **without `ready`** — the owner's transition alone (Corollary 4). **The item falls out of the
+pool on the `ready` predicate before the milestone predicate is consulted.**
+
+So the milestone set at filing was inert until he acted, and when he acted he was present. **It changed
+exactly one observable thing — the running iteration's contents and its completion bar** — which is
+precisely the scope change he objects to. It bought nothing and cost the objection. He had already
+applied the new rule by hand, removing #357 from `sprint-01` (*«a principio isso nao deveria influenciar
+a iteracao corrente»*); that was read as a one-off and was the rule appearing for the first time.
+
+### The decision
+
+1. **No Issue is filed with a milestone, for any type.** Composition into an iteration is the owner's act
+   at planning. Carrier: `commands/new-issue.md`'s *Open it* step.
+2. **The rule is enforced, not merely written** — `permission-guard.sh` rule 10, denied to every
+   dispatched persona and asked of the orchestrator. **This is the first rule in this family to reach
+   prevention**, and the reason is in ADR-0004's amendment: the wall that forced #337, #339 and #363 into
+   detection is a property of guards that must *know*, not of guards, and one that may **ask** does not
+   have to.
+3. **The scope is the ADMISSION, never the creation.** `gh issue create` without a milestone is untouched
+   and rules 5c/5d are unchanged.
+
+### What SURVIVES the twenty-third amendment, and it is the half most likely to be swept away with it
+
+**Decision 2 — the drain's terminal set is the ENTRY SNAPSHOT — stands.** The two decisions arrived in
+one commit and read as one; they are not. The pool still grows while it drains, for reasons #338 never
+owned: the owner admits items at planning, `blocked` clears, `ready` lands mid-drain. **#338 was one
+contributor, never the premise**, so reverting it does not restore *"the iteration's pool is exhausted"*
+as a terminal condition and the twentieth amendment's decision 3 stays reversed.
+
+### The ripple, discharged in this slice rather than named
+
+`commands/new-issue.md` (the act) · `skills/harness-engineering/SKILL.md` (the preload) ·
+`commands/blueprint.md` (the adoption step, whose *"where the two rules conflict, the local rule wins"*
+paragraph is struck — its **reasoning** was the defect, and precisely: *"an adopted item with no
+milestone is invisible to the queue"* is **true**, the pool predicate opening with
+`select(.milestone!=null)`; what does not follow is that the milestone was worth setting, since the same
+predicate also requires `ready`, which the item never gets, so it was invisible **either way**. **A true
+premise carrying a false conclusion**, which the merge gate caught this authorship calling *"simply
+wrong"*) ·
+`commands/retrospective.md` (**the trigger justification, re-opened deliberately** — its rejected option
+*"the iteration is empty"* rested on #338 and genuinely re-opens; it is re-decided on two grounds that
+never depended on #338 rather than left inheriting a dead argument) · `commands/autonomy-on.md` (whose
+no-milestone count had a **published predicate that could not return what it claimed** —
+*"from the same query"*, whose first filter excludes exactly the items being counted — a falsifier that
+fails open, repaired here) · `docs/blueprint-registry.md` (row 0041 re-authored, row **0043** added).
+
+### Consequences still being paid
+
+- **Every newly-filed item is unassigned by construction**, so `/autonomy-on`'s no-milestone count stops
+  being a defect signal and becomes a backlog size. Read the old way it would look like a permanent
+  breach.
+- **Nothing bounds how many items the owner admits at planning.** The prompt makes each admission
+  visible; it makes none of them wise.
+- **Nothing records WHY a milestone was assigned.** The guard reads a flag, and an owner-directed
+  admission is indistinguishable afterwards from one he merely approved without reading.
+- **The `ask`-with-no-prompt-surface behaviour is unmeasured**, deliberately: no automated path reaches
+  the guarded act today. That is a condition, not a closure — see ADR-0004's amendment for what would
+  re-open it.
+
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
   [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) · the DoD is

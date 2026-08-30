@@ -1379,6 +1379,49 @@ check ALLOW "--force alone"                 "rm --force /some/path"
 check ALLOW "plain rm"                      "rm /some/path"
 check ALLOW "a word merely ENDING in rm"    "npm run confirm -r -f"
 
+echo "--- rule 10: admitting an item into an iteration (#365) ---"
+# WHAT THIS SECTION OWNS. That the milestone-assigning act reaches a HUMAN in the one context where a
+# human exists, and reaches a DENY everywhere else. It does NOT own — and cannot — that the prompt is
+# actually rendered: this harness classifies the guard's own stdout, and whether an `ask` surfaces a
+# prompt is decided by a layer the suite cannot see (the header above says this at length about ALLOW,
+# and it is exactly as true of ASK).
+check_agent ASK  '' "orchestrator: edit assigns a milestone"   'gh issue edit 365 --repo o/r --milestone "sprint-01"'
+check_agent ASK  '' "the short flag is the same act"           'gh issue edit 365 -m sprint-01'
+check_agent ASK  '' "attached value spelling"                  'gh issue edit 365 --milestone=sprint-01'
+check_agent ASK  '' "create can admit too"                     'gh issue create --body-file /x/b.md --milestone "sprint-01"'
+check_agent ASK  '' "the -R spelling does not walk around it"  'gh -R o/r issue edit 365 --milestone sprint-01'
+check_agent ASK  '' "a -c wrapper does not walk around it"     'bash -c "gh issue edit 365 --milestone sprint-01"'
+
+# THE DENY HALF IS NOT A STRICTER ASK — it is the case where an ASK would reach nobody. A dispatched
+# persona has no prompt surface, so `ask` there would trade a deterministic refusal for an unmeasured
+# behaviour, on a call that has no legitimate form in the first place: composing an iteration is the
+# owner's act at planning.
+check_agent DENY 'tadeumendonca-skills:agents-lead'      "a persona does not admit"        'gh issue edit 365 --milestone "sprint-01"'
+check_agent DENY 'tadeumendonca-skills:developer'        "not even the one that may file"  'gh issue edit 365 --milestone "sprint-01"'
+check_agent DENY 'tadeumendonca-skills:quality-assurance' "nor the gate"                   'gh issue edit 365 -m sprint-01'
+
+# THE ALLOW HALF IS WHAT KEEPS THE RULE FROM BEING A TAX ON ORDINARY WORK, and each of these was a
+# spelling the pattern could plausibly have swallowed:
+#   - filing without a milestone is the NEW NORMAL under #365 and must stay silent, or the rule taxes
+#     the behaviour it exists to produce;
+#   - `--remove-milestone` is the owner's own corrective act (he performed it by hand on #357) and
+#     contains no `--milestone` substring, which is why it is asserted rather than assumed;
+#   - `gh issue list --milestone` is a READ, and a floor that stops reads stops the pool predicate
+#     every drain and every rite depends on;
+#   - the `git commit -m` case is a message ABOUT the act, and is the same `$bare` boundary rule 5c
+#     already had to learn.
+check_agent ALLOW '' "filing with no milestone is untouched"  'gh issue create --body-file /x/b.md'
+check_agent ALLOW '' "labels are not admission"               'gh issue edit 365 --add-label ready'
+check_agent ALLOW '' "removing from an iteration is free"     'gh issue edit 365 --remove-milestone'
+check_agent ALLOW '' "reading the pool is a read"             'gh issue list --repo o/r --milestone "sprint-01"'
+check_agent ALLOW '' "a message ABOUT the act is not the act" 'git commit -m "gh issue edit 5 --milestone sprint-01"'
+check_agent ALLOW 'tadeumendonca-skills:developer' "a persona may still label" 'gh issue edit 365 --add-label ready'
+
+# PLACEMENT, ASSERTED RATHER THAN COMMENTED. Rule 10 exits, exactly as `deny` does, so siting it
+# anywhere above rules 7/7b/8/9 would have let an ASK SOFTEN a DENY. This case is the falsifier for
+# that ordering and nothing else in the suite can see it: move the rule up and this flips ASK.
+check_agent DENY '' "an ask must never soften a deny" 'gh issue edit 365 --milestone x && git push origin main'
+
 rm -rf "$FEAT"
 rm -rf "$GH_STUB_DIR"
 
