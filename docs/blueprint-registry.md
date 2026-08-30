@@ -278,6 +278,16 @@ durable at all — it reaches the next turn and is gone. It is filed `record` on
 already set for `zombie-loop-detect.sh`, whose artifact is the same shape, rather than on a claim that
 the notice persists. **What is durable here is the Issue body it reads**, not the notice it writes.
 
+### 0042 · an iteration closes by asking the contexts that lived it, one at a time, from their own artifacts
+
+- **tipo:** record
+- **carrier:** `commands/retrospective.md`
+- **descrição:** A typed rite the drain runs when its entry snapshot is exhausted — one isolated dispatch per persona that actually ran, each writing its own file into the iteration's retrospective directory.
+- **propósito:** An iteration that closes without being asked what it taught loses the defects that live in the **method** rather than in the product — the ones no test can reach, because the only context that meets them is the loop while it runs. The obligation is not "hold a retrospective": it is to stop the improvement list being written by the one role that saw the whole iteration, which is the role least able to see its own bias in it. **Isolation alone does not deliver that**, and this is the part worth porting: a persona consulted at iteration close is a fresh context with no memory of the iteration, so an isolated dispatch handed only a question produces N plausible lists — the same bias relocated, not removed. The evidence has to travel with the question.
+- **o que faz:** Derives the consult set from the dispatch records the loop already leaves on each Issue rather than consulting a fixed roster, feeds each persona **its own** artifacts — its dispatch metrics, its verdict markers, its review-file sections, the changes it touched — and asks it to reason from those. Each writes one file of its own, capped at two findings, and the output is a proposal the owner rules on at planning. The one-file-per-persona split is the mechanism, not the formatting: a shared file would put every earlier answer in the next persona's context, so the isolation would survive the dispatch and die at the write.
+- **o que não faz:** **Nothing fires it, nothing observes it, and nothing bounds it** — the trigger is an instruction in another command file, no hook in this harness reads the queue at all, and the two-finding cap lives in a template because no layer can count findings in prose. The consult set is a **lower bound**, never the set: the dispatch recorder exits silently on about a dozen paths, so a persona that ran and left no trace is indistinguishable from one that never ran. It cannot see a defect that lived **between** two contexts, since every reporter reports only its own. And it finds no defect a reader would meet — that is the sweep half's class, and the sweep half is not built.
+- **citação:** > "Isolated speculation is still speculation."
+
 ---
 
 ## `routing` — what work exists, what state it is in, who acts next
@@ -396,7 +406,7 @@ where a sixth value can be argued on evidence rather than on the first two rows 
 - **descrição:** The single gate on every merge request, holding two lenses in one pass and posting a verdict artifact carrying the head it read.
 - **propósito:** The gate exists to **fight the builder**, on two axes at once: was every requirement met, and can this cause a problem in production. The two are different in kind — the first has a ruler external to the gate (the description the leads agreed), the second has none and cannot, since *can this break production* is not enumerable in advance.
 - **o que faz:** Verifies each criterion with evidence, labels every finding with the lens it came from, classifies the change as safe or boundary, and posts its verdict as a comment carrying the head it read — so a verdict on a moved head fails loudly instead of reading as approval. It merges both classes under distinct verdict literals, holding only four named exceptions.
-- **o que não faz:** It writes no code — its write grant exists for one purpose, composing its verdict body outside the tree, and a write to a repository path is a defect in the review. The posting rule is **self-enforced**: since the second gatekeeper was absorbed, nothing verifies the verdict was posted but the persona itself.
+- **o que não faz:** It writes no code — on a **review** dispatch its write grant composes the verdict body outside the tree and nothing else, and a write to a repository path is a defect. That scoping used to read *one purpose*, and #355 narrowed it: on a **retrospective** dispatch the same persona writes one file into the iteration's retrospective directory, because three of the seven personas are denied any public surface and a comment-shaped artifact would therefore have to be aggregated by the orchestrator. The test is the dispatch, never the path — which is a discipline, since nothing mechanical confines the grant either way. The posting rule is **self-enforced**: since the second gatekeeper was absorbed, nothing verifies the verdict was posted but the persona itself.
 - **citação:** > "it never edits code"
 
 ### 0022 · the machinery is stress-tested before it is built
