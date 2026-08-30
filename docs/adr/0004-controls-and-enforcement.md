@@ -1887,6 +1887,14 @@ caller dimension*) — and it is different in kind from all five: not *the synta
 it*, but **the act is not performed by anything the harness mediates**. Every earlier reason assumes
 there is a tool call to match and argues about what the match can see; this one removes the tool call.
 
+**Still literally true about the CLOSE, and operationally superseded about what follows from it
+(2026-08-30, #363).** The close is not mediated and no layer can deny it — that is unchanged. What was
+wrong was the inference everyone drew from it, here and in three other files: that the *failure* was
+therefore unpreventable. The **merge** that causes the close is mediated, and the 2026-08-30 amendment
+below builds the refusal there. **The generalisation to carry forward is that this sixth reason bounds
+the ACT it names and not the outcome that act produces** — before citing it, ask whether something one
+step upstream is mediated.
+
 **What that measurement is evidence for, and what it must never be reused to argue.** It is read off
 **PR bodies**, so it proves the keyword was **present**, not that the keyword is what fired — the
 timeline, which would prove that, is unreadable from inside this harness (`gh api` is denied by the
@@ -1902,12 +1910,19 @@ the reverse.
 
 | route | share, measured | surface | what it can do |
 |---|---|---|---|
-| closing keyword on merge | all of the last week's closes | `Stop` hook | **detect**, one turn late |
+| closing keyword on merge | all of the last week's closes | `Stop` hook | **detect**, one turn late — ~~and nothing else~~ · **see the row below, added 2026-08-30** |
+| the same route, at the MERGE that causes it | same | `PreToolUse` on `Bash`, rule 7d (#363) | **refuse**, one step upstream — a different predicate, see the 2026-08-30 amendment |
 | `gh issue close` by hand | none in that window | `PreToolUse` on `Bash` | **refuse** |
 
-Both are `hooks/scripts/closure-artifact-guard.sh`, registered twice. The refusal is kept although its
-route is currently unused: it is the only refusal surface that exists at all, and the *close with a
-criterion* rite in `/harness-engineering` is a real user of it.
+Both `Stop` and the hand-close refusal are `hooks/scripts/closure-artifact-guard.sh`, registered twice;
+the middle row is `permission-guard.sh` and is a **different obligation over a different artifact**, not
+a second implementation of this one. The hand-close refusal is kept although its route is currently
+unused: ~~it is the only refusal surface that exists at all~~ — **struck 2026-08-30 (#363), and it is
+the clause `README.md` strikes as false in the same diff; leaving it live here, in the canonical
+layer-analysis record, is the drift this document exists to prevent.** It is the only refusal surface
+for **this** predicate (a declared `invocable:` promise); it stopped being the only refusal surface
+reaching the keyword route. The *close with a criterion* rite in `/harness-engineering` is still a real
+user of it.
 
 ### The rejected option that is still live, and why it was refused
 
@@ -1918,6 +1933,18 @@ the file is readable. It was **not built, on the owner's decision**, and the rea
 measurement: nothing forces a `loop` PR to reference its Issue, so the route's blind spot is exactly the
 PR that skipped the reference — a control whose coverage is decided by the author of the thing being
 controlled.
+
+**~~It was not built~~ — a route of this shape WAS built on 2026-08-30 (#363), and the difference is
+worth stating precisely, because "it was not built" one page above the amendment that ships it is the
+drift class this document names most.** What #363 built is **not** this option: it does not read the
+keyword out of the PR body (it reads the forge's own resolved `closingIssuesReferences`, so the regex
+blind spot disappears), and it does not check *the Issue's promise* (it checks that the gate's
+head-scoped verdict **declares** the close, so the `invocable:` predicate is never consulted). **The
+objection above therefore does not transfer and was never answered — it was side-stepped by changing
+the predicate.** The blind spot #336 measured is real and survives in a different shape: a PR that
+references no Issue produces an empty resolved set, which rule 7d passes silently, exactly as this
+paragraph predicts. Read this section as *the promise-checking form of the route is still refused* and
+the 2026-08-30 amendment as *a consistency-checking form of it is in force*.
 
 **Deriving the promise from the Issue's prose** was rejected on a measurement rather than a preference.
 Over the twenty most recently closed Issues here, the tightest grammar worth trying (a backticked span
@@ -2698,6 +2725,24 @@ A PR that closes nothing never reaches the comparison.
 - **The blueprint registry's `0038` row asserted the opposite** (*"no permission layer can deny it"*) and
   is re-authored in the same diff, as is the README sentence it came from. A registry row is prose no
   instrument can falsify; this one went false the moment the layer analysis changed.
+- **THIS DOCUMENT asserted it too, in three places, and shipped the amendment without touching them for
+  one round.** The #337 amendment's *"it is the only refusal surface that exists at all"* was
+  character-for-character the clause the README strikes here; its routing table's `Stop`-hook row was
+  wrong in its own cell; and its *"rejected option that is still live"* described this route as unbuilt
+  one page above the amendment building a variant of it. All three are corrected above. **The lesson is
+  the one the strike itself is for: a strike travels to every surface carrying the sentence, and the
+  canonical record is the surface most likely to be missed, because it is the one being appended to
+  rather than read.**
+- **`closure-artifact-guard.sh` carried the same claim in its own header** and was not in the first
+  round's diff at all — so the carrier said the opposite of the registry row describing it.
+- **The `Stop` arm does NOT cover this rule's residue, and the first round of this amendment said it
+  did.** Re-derived: Issue #355, the instance rule 7d was built from, declares **no** `invocable:` line
+  (`gh issue view 355 --json body --jq '[.body|split("\n")[]|select(test("^invocable"))]'` → `[]`), and
+  that arm's predicate is a **declared** promise. So it could not have fired on #355 by any route. It
+  covers the **route**, for a **different obligation**. **An undeclared Issue closed by a browser merge
+  or by a commit-message keyword is caught by nothing at all** — stated here, in the README, in the
+  gate's brief and in registry `0044`, because a residue published as covered is worse than one
+  published as open.
 
 ## Links
 - Driven by ADR-0002 and the Merge Request Definition of Done (record 0003, absorbed 2026-08-19 into

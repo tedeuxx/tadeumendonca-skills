@@ -1216,9 +1216,28 @@ that causes it. The merge is a tool call; `permission-guard.sh` rule 7d now deni
 contains an Issue the gate's verdict at the current head does not declare on a `closes:` line. So there
 are **two** refusal surfaces, and the second one reaches the majority route. It reaches it **one step
 upstream**: it refuses the merge, never the close, and a merge performed in a browser is outside it
-exactly as it is outside rule 7c. The `Stop` arm is what covers that residue and the commit-message
-route the derived field does not see — **measured: a PR carrying `Closes #358` only in a commit message
-returns `[]` from that field** — so it is not redundant and is not retired here.
+exactly as it is outside rule 7c.
+
+**And what it does inside its reach is narrower than "reaches the majority route" makes it sound: it
+compares two artifacts and never judges delivery.** The forge's resolved set must be inside the set the
+gate's own verdict declares. If the gate declares a close it did not verify, the merge proceeds. This
+control holds *the correction that did not hold* — the local defect, three times over — and holds
+nothing about whether the work was done.
+
+**The `Stop` arm does NOT cover the two routes rule 7d cannot see, and saying it did was wrong for one
+round.** That arm's predicate is *an Issue that **declares** an `invocable:` artifact*, and on the very
+instance rule 7d was built from —
+
+```
+gh issue view 355 --repo <owner>/<repo> --json body --jq '[.body|split("\n")[]|select(test("^invocable"))]'
+→ []
+```
+
+— **there is no declaration, so the arm could not have fired by any route.** What it covers is the
+**route**, for a **different obligation**. **An undeclared Issue closed by a browser merge, or by a
+commit-message keyword the derived field never sees** — measured: a PR carrying that keyword only in a
+commit message returns `[]` from `closingIssuesReferences` — **is caught by nothing at all.** The arm
+stays because it holds its own obligation, not because it patches this one.
 
 **The promise is DECLARED, never inferred, and that came out of a measurement that killed the obvious
 design.** Deriving the promise from an Issue's prose — every backticked `/identifier` in the title and

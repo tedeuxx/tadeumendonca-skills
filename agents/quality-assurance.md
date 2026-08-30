@@ -381,11 +381,30 @@ returning `[]` — **do not read the body and assume it took.** That is precisel
 #356: the prescription was made, the builder reported it done, and the keyword survived inside the
 sentence explaining why it must not be used.
 
-**Two limits, and neither is closed by this line.** `closingIssuesReferences` is **PR-body-derived** —
-measured 2026-08-30 with a throwaway PR carrying `Closes #358` only in a commit message: the field
-returned `[]` — so a keyword living only in a commit message is invisible to the rule. And no hook sees
-a browser merge. The `Stop`-hook arm in `closure-artifact-guard.sh` is what covers those routes, one
-turn late; it is not redundant with this and must not be read as if it were.
+**Three limits, and none of them is closed by this line.**
+
+1. **`closingIssuesReferences` is PR-body-derived** — measured 2026-08-30 with a throwaway PR carrying
+   the keyword only in a commit message: the field returned `[]` — so a keyword living only in a commit
+   message is invisible to the rule.
+2. **No hook sees a browser merge.**
+3. **It compares two artifacts and never judges delivery.** A `closes:` line you write without
+   verifying is a line the floor accepts. **Do not read a clean merge as evidence the close was
+   earned — you are the evidence.**
+
+**Do NOT read the `Stop` arm in `closure-artifact-guard.sh` as covering limits 1 and 2. It does not,
+and this is the sentence that was wrong here for one round.** That arm's predicate is *an Issue that
+**declares** an `invocable:` artifact*, so it fires on **declared** promises only. Re-derived on the
+instance rule 7d was built from:
+
+```
+gh issue view 355 --repo <owner>/<repo> --json body --jq '[.body|split("\n")[]|select(test("^invocable"))]'
+→ []
+```
+
+**Issue #355 declares nothing, so the arm could not have fired on it by any route** — including the
+route that actually closed it. What the arm covers is the **route**, for a **different obligation**.
+**An UNDECLARED Issue closed by a browser merge or by a commit-message keyword is caught by nothing at
+all**, and that is the honest statement of this rule's residue.
 
 > **The verdict line is a projection of your own verdict set** — the one under *Your verdict — exactly
 > one of*. It introduces no literal that set does not contain, and a change to either changes both.

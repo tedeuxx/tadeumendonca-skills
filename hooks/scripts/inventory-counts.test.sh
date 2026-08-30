@@ -6322,6 +6322,129 @@ CLOSES_LIMIT_HOLDERS
   else
     ok "closes declaration — the body-derived blind spot is named in the guard, the gate's brief and the preload"
   fi
+
+  # ── arm 5 · the RESIDUE is stated wherever either mechanism is described ──
+  # THIS ARM EXISTS BECAUSE THE FIRST ROUND OF #363 PUBLISHED THE OPPOSITE, IN FOUR PLACES AT ONCE:
+  # that `closure-artifact-guard.sh`'s `Stop` arm covers rule 7d's two blind spots. It does not. That
+  # arm's predicate is an Issue that DECLARES an `invocable:` line, and the Issue rule 7d was built
+  # from declares none — re-derived at head:
+  #
+  #     gh issue view 355 --json body --jq '[.body|split("\n")[]|select(test("^invocable"))]'  ->  []
+  #
+  # So it could not have fired on that Issue by ANY route. It covers the ROUTE, for a DIFFERENT
+  # obligation. An UNDECLARED Issue closed by a browser merge or by a commit-message keyword is caught
+  # by nothing at all — and a residue published as covered is strictly worse than one published as
+  # open, because it is the sentence a gatekeeper would rely on when deciding the hole is somebody
+  # else's problem. Six holders, because six files describe one or both mechanisms and the correction
+  # is worthless in five of them.
+  closes_residue_missing=""
+  closes_residue_checked=0
+  while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    if [ ! -r "$ROOT/$f" ]; then
+      closes_residue_missing="$closes_residue_missing
+    $f — unreadable"
+      continue
+    fi
+    closes_residue_checked=$((closes_residue_checked + 1))
+    n="$(grep -c -i -F 'caught by nothing' "$ROOT/$f" || true)"
+    [ "${n:-0}" -eq 1 ] || closes_residue_missing="$closes_residue_missing
+    $f — states the uncovered residue ${n} time(s), not exactly 1"
+  done <<'CLOSES_RESIDUE_HOLDERS'
+README.md
+agents/quality-assurance.md
+skills/harness-engineering/SKILL.md
+docs/blueprint-registry.md
+docs/adr/0004-controls-and-enforcement.md
+hooks/scripts/closure-artifact-guard.sh
+CLOSES_RESIDUE_HOLDERS
+
+  if [ "$closes_residue_checked" -lt 6 ]; then
+    bad "closes declaration — only $closes_residue_checked of 6 residue-holders were readable, so the
+      claim was not asserted anywhere:$closes_residue_missing"
+  elif [ -n "$closes_residue_missing" ]; then
+    bad "closes declaration — a surface describing the merge refusal or the closure detector does not
+      state that their residues do NOT cover each other:$closes_residue_missing
+      An undeclared Issue closed by a browser merge or a commit-message keyword is caught by NOTHING.
+      Publishing either mechanism as covering the other's hole is worse than publishing the hole."
+  else
+    ok "closes declaration — all 6 surfaces state the residue neither mechanism covers"
+  fi
+
+  # ── arm 6 · the struck clause never stands as a live assertion ──
+  # 'it is the only refusal surface that exists at all' was struck in README.md by #363's first round
+  # and left LIVE, character-for-character, in the canonical layer-analysis record and in the carrier
+  # the registry row describes. A strike that does not travel produces two files disagreeing about one
+  # fact, and the one that keeps the false version is the one being appended to rather than read.
+  #
+  # THE PREDICATE ADMITS TWO FORMS AND NOTHING ELSE: the line carries a `~~` strike, or it quotes the
+  # clause inside `*"` (a DISCUSSION of the clause, which the documentation standard's own citation
+  # rule warns a grep cannot distinguish from an assertion). Anything else is the clause asserted.
+  #
+  # THIS FILE IS EXCLUDED FROM ITS OWN SCAN, and the exclusion is not a convenience: the arm's own
+  # `bad` text has to name the clause it is looking for, so a scan including this file matches its
+  # own error message and reddens on a clean tree. Found by running it. The exclusion is by FILENAME
+  # rather than by directory so the carrier and every other hook stay in scope — dropping `$ROOT/hooks`
+  # instead would have silently un-scanned `closure-artifact-guard.sh`, which is one of the two files
+  # this arm exists because of.
+  closes_stale_lines="$(grep -rn 'only refusal surface that exists' \
+    "$ROOT/README.md" "$ROOT/docs" "$ROOT/hooks" "$ROOT/agents" "$ROOT/skills" 2>/dev/null \
+    | grep -v 'inventory-counts\.test\.sh:' || true)"
+  closes_stale_live="$(printf '%s\n' "$closes_stale_lines" | grep . | grep -v '~~' | grep -v '\*"' || true)"
+  closes_stale_total="$(printf '%s\n' "$closes_stale_lines" | grep -c . || true)"
+
+  if [ "${closes_stale_total:-0}" -eq 0 ]; then
+    bad "closes declaration — the clause 'only refusal surface that exists' was found NOWHERE, so this
+      arm compared nothing. Either every occurrence was deleted rather than struck — which this repo's
+      strike-not-delete convention forbids for a sentence someone acted on — or the wording changed and
+      this assertion is vacuous."
+  elif [ -n "$closes_stale_live" ]; then
+    bad "closes declaration — the clause struck by #363 still stands as a LIVE assertion:
+$closes_stale_live
+      Rule 7d is a second refusal surface reaching the closing-keyword route, one step upstream at the
+      merge. Every occurrence of this clause must be inside a '~~' strike or quoted as a discussion."
+  else
+    ok "closes declaration — all $closes_stale_total occurrences of the struck refusal-surface clause are struck or quoted"
+  fi
+fi
+
+# ---------------------------------------------------------------------------------------------------
+# THE SAME DEFECT CLASS, ONE MERGE OLDER — A STRUCK RULE SURVIVING AS A LIVE PREMISE (#365, found #363).
+#
+# #365 struck "a `loop` Issue joins the active iteration at filing". The strike landed at the rule's own
+# heading in `skills/harness-engineering/SKILL.md` and in `commands/new-issue.md`, and SURVIVED at
+# SKILL.md's Loop Batch reconciliation, where the rule is not stated but USED — as the premise of a
+# different argument. That file is the universal preload every persona loads on every dispatch, and it
+# was read as current by an intake that reported correct behaviour as a defect before anyone found the
+# sentence.
+#
+# THE GENERALISABLE FINDING, WHICH IS WHY THIS ARM IS KEYED ON THE CLAIM AND NOT ON THE HEADING:
+# a strike lands where a rule is STATED and survives where it is CITED, paraphrased, or used as a
+# premise. Sweeping for the struck sentence finds the places that are already fixed.
+#
+# PREDICATE, IDENTICAL IN SHAPE TO THE REFUSAL-SURFACE ARM ABOVE: every occurrence of the claim must sit
+# on a line carrying a `~~` strike or quoted inside `*"` as a discussion. `powers/` is excluded because
+# it is GENERATED from `skills/` and gated by regeneration-and-diff — asserting it here would report one
+# authored defect twice and would go red on a stale export for a reason this arm does not own.
+iter_claim_lines="$(grep -rn 'joins the active iteration at' \
+  "$ROOT/README.md" "$ROOT/docs" "$ROOT/hooks" "$ROOT/agents" "$ROOT/skills" "$ROOT/commands" 2>/dev/null \
+  | grep -v 'inventory-counts\.test\.sh:' || true)"
+iter_claim_live="$(printf '%s\n' "$iter_claim_lines" | grep . | grep -v '~~' | grep -v '\*"' || true)"
+iter_claim_total="$(printf '%s\n' "$iter_claim_lines" | grep -c . || true)"
+
+if [ "${iter_claim_total:-0}" -eq 0 ]; then
+  bad "struck-premise sweep — the claim 'joins the active iteration at ...' was found NOWHERE, so this
+      arm compared nothing. Either every occurrence was deleted rather than struck, which the
+      strike-not-delete convention forbids for a rule someone acted on, or the wording moved and this
+      assertion is now vacuous — which is the failure mode it exists to catch, one level up."
+elif [ -n "$iter_claim_live" ]; then
+  bad "struck-premise sweep — the filing rule struck by #365 still stands as a LIVE claim:
+$iter_claim_live
+      No Issue is filed with a milestone, for any type (ADR-0002's twenty-seventh amendment;
+      permission-guard.sh rule 10 holds it). A strike lands where a rule is STATED and survives where it
+      is CITED or used as a premise — which is exactly what these lines are."
+else
+  ok "struck-premise sweep — all $iter_claim_total occurrences of the struck filing rule are struck or quoted"
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
