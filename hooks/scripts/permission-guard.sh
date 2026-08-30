@@ -81,8 +81,13 @@
 #
 # ── THE FAIL-OPEN CONTRACT, AND WHY IT SURVIVED THE INVERSION ────────────────────────────────────
 # Contract: receives the PreToolUse JSON on stdin; denies by printing a permissionDecision JSON and
-# exiting 0. **Fails OPEN (allows) on any parse error, a missing `jq`, or no network — EXCEPT rule 7c,
-# the merge floor, which fails CLOSED since 2026-08-28 (#341).**
+# exiting 0. **Fails OPEN (allows) on any parse error, a missing `jq`, or no network — EXCEPT the merge
+# floor, rules 7c AND 7d, which fail CLOSED since 2026-08-28 (#341) and 2026-08-30 (#363).**
+#
+# 7d IS NOT A SECOND EXCEPTION — IT IS THE SAME ONE, ONE FIELD WIDER. It runs only after 7c has already
+# read the PR and cleared the verdict, on the SAME payload, and it guards the same irreversible act. Its
+# one degradation branch (the payload came back without `closingIssuesReferences`) denies for exactly
+# 7c's reason: the read that would have decided did not happen. Nothing else in this file moved.
 #
 # ONE EXCEPTION, AND THE CRITERION FOR IT IS NOT "IMPORTANCE" — IT IS WHAT THE FAIL-OPEN LANDS ON.
 # Rule 7c is the only rule here whose degradation admits the IRREVERSIBLE act itself: it guards the
@@ -1178,9 +1183,9 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
         qa_unavailable="'jq' is not on PATH, so the verdict comment cannot be parsed"
       else
         if [ -n "$qa_repo" ]; then
-          qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --repo "$qa_repo" --json headRefOid,comments 2>/dev/null || true)"
+          qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --repo "$qa_repo" --json headRefOid,comments,closingIssuesReferences 2>/dev/null || true)"
         else
-          qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --json headRefOid,comments 2>/dev/null || true)"
+          qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --json headRefOid,comments,closingIssuesReferences 2>/dev/null || true)"
         fi
         if [ -z "$qa_pr_json" ]; then
           qa_unavailable="'gh pr view ${qa_ref:-<the current branch>}${qa_repo:+ --repo $qa_repo}' returned nothing — no network, missing or expired auth, a rate limit, or a PR reference that resolves to no pull request"
@@ -1236,6 +1241,105 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
           '') deny "Blocked: the merge floor read a response for this PR but could not determine its CURRENT head, so it cannot tell whether any verdict applies to the code that is there now — and since #341 an unreadable verdict denies rather than passing. Either 'gh pr view' returned a payload with no headRefOid (a partial or error response), or parsing it failed. Re-run 'gh pr view <ref> --json headRefOid,comments' by hand and see what comes back; if the PR is real and reachable, this is a finding about the tooling, not about your review. The unblock is manual and the owner's." ;;
           *) deny "Blocked: the last quality-assurance verdict on this PR's CURRENT head is '${qa_verdict}', which is neither APPROVE-AND-MERGE (safe class) nor APPROVE-AND-MERGE-BOUNDARY (boundary class, merged by the gate since ADR-0002 amendment #16) — so this merge does not match its own review record (ADR-0004). This is not a caller problem: rule 7b already confirms you are quality-assurance. It means either the head moved since that verdict was posted, the verdict was never re-posted after a later round, or the literal drifted from the one 'Your verdict — exactly one of' in your own brief defines. Post a correct verdict against the CURRENT head before merging — or, if this is one of the four holds that survive (an expansion of your own authority, a harness diff with no agents-lead marker, anything in iac/, or a lens ESCALATE), never call this tool: APPROVE-PENDING-HUMAN and hand the go/no-go to the human." ;;
         esac
+
+        # 7d. THE MERGE MUST NOT CLOSE AN ISSUE THE VERDICT DID NOT NAME (#363, adopted from a foreign
+        # harness's `mr-selection-artifact-gate`, auto-close half only — the review half is rule 7c and
+        # was already here).
+        #
+        # THE DEFECT IS NOT "DELIVERY WAS NOT VERIFIED", AND GETTING THAT WRONG BUILDS THE WRONG CONTROL.
+        # On the live instance — PR #356, Issue #355 — delivery WAS verified: the gate read the diff,
+        # judged that #355 was not delivered, and prescribed `Closes #355` → `Refs #355` with its
+        # reasoning. **The gate was right.** What failed is that the prescription became a PR-BODY EDIT
+        # and nothing verified the edit took. Measured at head, on the merged PR:
+        #
+        #   gh pr view 356 --repo <owner>/<repo> --json body --jq '.body' \
+        #     | grep -ioE '(clos(e|es|ed)|fix(e[sd])?|resolv(e|es|ed))[[:space:]]+#[0-9]+'   -> close #355
+        #   gh pr view 356 --repo <owner>/<repo> --json closingIssuesReferences               -> [355]
+        #
+        # The survivor sits INSIDE the sentence explaining why the keyword must not be used. That is the
+        # third time this repository has paid for it, and it is why the check runs at MERGE rather than
+        # as a checklist step: the edit that re-arms the keyword is characteristically the last one, the
+        # one describing the correction, and a checklist finding is stale the moment the body changes
+        # after it.
+        #
+        # SO THE OBLIGATION HAS NO JUDGEMENT IN IT.
+        # It compares two artifacts and never judges delivery.
+        # The forge's own derived set is one; the gate's own verdict at the current head is
+        # the other. Every number the forge will act on must be a number the verdict DECLARES. That is a
+        # string comparison over material rule 7c already fetched — see the `--json` list above, which
+        # gained one field and ZERO round-trips.
+        #
+        # WHAT MAKES A CLOSE LEGITIMATE HERE, STATED IN THE MECHANISM BECAUSE THE FALSE POSITIVE IS THE
+        # REAL RISK. A PR that closes a delivered Issue is the common case, and a refusal people learn to
+        # route around is worse than none (measured twice in this repository). So the legitimate close is
+        # not blocked — it is DECLARED: one line at column 0 in the verdict the gate is already posting,
+        # `closes: 355`, naming the Issues it verified delivered at that head. Cost: one line, in an
+        # artifact that already exists, written by the persona that already made the judgement. A PR that
+        # closes nothing declares nothing and never reaches the comparison at all.
+        #
+        # WHY A DECLARED LINE AND NOT "THE VERDICT MENTIONS #355" — THIS IS THE MEASUREMENT THAT KILLED
+        # THE OBVIOUS DESIGN. Both gatekeeper verdicts on #356 contain the string `#355`, the
+        # merge-authorising one included, BECAUSE it is the verdict that prescribed removing the keyword:
+        #
+        #   gh pr view 356 --repo <owner>/<repo> --json comments \
+        #     --jq '[.comments[]|select(.body|contains("gatekeeper-verdict"))]
+        #           |map({literal:(.body|split("\n")[1]), mentions:(.body|test("#355"))})'
+        #   -> [{"literal":"REQUEST-CHANGES","mentions":true},
+        #       {"literal":"APPROVE-AND-MERGE-BOUNDARY","mentions":true}]
+        #
+        # A prose-mention check passes the exact case it exists to refuse. The anchor is `^closes:` at
+        # column 0, case-sensitive, for the same reason `purpose:` is positional in this tree: the token
+        # occurs in ordinary wrapped prose, and a check that cannot tell a declaration from a sentence is
+        # not a check.
+        #
+        # THE BLIND SPOT, MEASURED RATHER THAN ASSUMED, AND NAMED RATHER THAN WIDENED AWAY.
+        # `closingIssuesReferences` is PR-BODY-DERIVED. Probed on 2026-08-30 with a throwaway PR whose
+        # body carried no keyword and whose single commit message carried `Closes #358`:
+        #
+        #   gh pr view 367 --repo <owner>/<repo> --json closingIssuesReferences   ->  []
+        #
+        # So this rule is blind to a closing keyword living only in a COMMIT MESSAGE — the one surface
+        # that cannot be edited afterwards, since amending needs a force-push the floor denies. It is
+        # NOT widened to scan commit messages, deliberately: that needs the PR's head branch and its
+        # merge-base resolved inside a rule that fails CLOSED, so every resolution failure would become
+        # a wedged merge, and a hand-rolled keyword regex is measurably both over- and under-inclusive
+        # against the forge's own parser (`Closes #313's slice 1.` matched by regex, resolved by GitHub
+        # to a different number entirely). Whether that route actually closes an Issue on merge here is
+        # **NOT measured** — this repository has no PR whose commits carry a keyword its body does not,
+        # so the two routes have never been separable in its history.
+        #
+        # AND IT HAS ZERO REACH OVER A BROWSER MERGE, exactly like 7c. Keep the `Stop`-hook detection
+        # arm in `closure-artifact-guard.sh`: it covers the route this refusal cannot see, and a refusal
+        # presented as complete coverage would be a worse artifact than one that names its hole.
+        if [ -n "$qa_pr_json" ]; then
+          qa_closing_present="$(printf '%s' "$qa_pr_json" | jq -r 'has("closingIssuesReferences")' 2>/dev/null || true)"
+          if [ "$qa_closing_present" != "true" ]; then
+            deny "Blocked: the merge floor could not read WHICH Issues this PR would close — 'gh pr view' answered, but the payload carries no closingIssuesReferences field, so rule 7d cannot tell whether the forge is about to close an Issue your verdict never named. Like rule 7c above it, this DENIES rather than passing (#363): the read that would have decided did not happen, and on the irreversible act that is not a silence to accept. Check that this rule's own 'gh pr view --json' list still requests closingIssuesReferences. If it does and the field is still absent, this is a finding about the tooling and not about your review — the unblock is manual and the owner's."
+          fi
+          qa_closing="$(printf '%s' "$qa_pr_json" | jq -r '[.closingIssuesReferences[]?.number // empty] | .[]' 2>/dev/null || true)"
+          if [ -n "$qa_closing" ]; then
+            qa_declared="$(printf '%s' "$qa_pr_json" | jq -r --arg m '<!-- gatekeeper-verdict: quality-assurance -->' '
+    (.headRefOid // "") as $h
+    | if $h == "" then ""
+      else [ .comments[]?
+             | select((.authorAssociation // "") as $a
+                      | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
+             | .body // ""
+             | select(contains($m)) | select(contains($h)) ]
+           | if length == 0 then ""
+             else (.[-1] | split("\n") | map(select(test("^closes:"))) | join(" ")) end
+      end' 2>/dev/null || true)"
+            qa_declared_nums="$(printf '%s' "$qa_declared" | grep -oE '[0-9]+' | sort -u || true)"
+            qa_undeclared=""
+            for qa_n in $qa_closing; do
+              printf '%s\n' "$qa_declared_nums" | grep -qx "$qa_n" && continue
+              qa_undeclared="$qa_undeclared #$qa_n"
+            done
+            if [ -n "$qa_undeclared" ]; then
+              deny "Blocked: merging this PR would let the forge close${qa_undeclared}, and your own verdict on this PR's CURRENT head declares no such close (#363). A closing keyword fires at merge and knows nothing about whether the thing the Issue promised exists — measured here: PR #356 closed Issue #355 with nothing #355 asked for built, and the keyword that did it survived inside the very sentence explaining why it must not be used. TWO EXITS, both cheap. If you verified those Issues delivered at this head: re-post your verdict with a 'closes:' line at COLUMN 0 naming every number above — 'closes: 355', or 'closes: 355 337' for several. If you did not: edit the PR body so the keyword reads 'Refs #N', then VERIFY with 'gh pr view <ref> --json closingIssuesReferences' returning [] — do not read the body and assume, because that is exactly the step that failed on #356. This rule compares two artifacts and never judges delivery: it cannot tell you whether the work was done, only whether the forge is about to act on a close your own review record does not name."
+            fi
+          fi
+        fi
       fi
       ;;
     *) deny "Blocked: merging a PR is the deploy and the quality-assurance's act, not the main agent's (ADR-0004). Route it through the quality-assurance subagent — invoke it with the human's go, and it performs the merge (approve-and-merge the safe class, or after your ratification for the boundary class). agent_type='${agent_type:-<main agent>}'." ;;
