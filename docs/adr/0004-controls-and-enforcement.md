@@ -2710,8 +2710,14 @@ A PR that closes nothing never reaches the comparison.
   repository has no PR whose commits carry a keyword its body does not, so the two routes have never been
   separable in its history. Documented forge behaviour is not a local measurement and is not claimed as
   one.
-- **Zero reach over a browser merge**, exactly as rule 7c. `closure-artifact-guard.sh`'s `Stop` arm is
-  what covers that residue and the commit-message route; it is **not** made redundant and is not retired.
+- **Zero reach over a browser merge**, exactly as rule 7c. ~~`closure-artifact-guard.sh`'s `Stop` arm is
+  what covers that residue and the commit-message route~~ — **struck 2026-08-30, the sixth instance of
+  this diff's own defect and the one inside the section headed *What it does not reach*, which is
+  exactly where a reader goes to learn the holes.** That arm's predicate is an Issue that **declares** an
+  `invocable:` line, and #355 declares none, so it could not have fired on the instance rule 7d was built
+  from by any route. It covers the **route**, for a **different obligation**; it is **not** made redundant
+  and is not retired, and it does **not** patch this rule's holes. **An undeclared Issue closed by a
+  browser merge or by a commit-message keyword is caught by nothing at all.**
 
 ### Consequences still being paid
 
@@ -2735,14 +2741,22 @@ A PR that closes nothing never reaches the comparison.
   rather than read.**
 - **`closure-artifact-guard.sh` carried the same claim in its own header** and was not in the first
   round's diff at all — so the carrier said the opposite of the registry row describing it.
-- **The `Stop` arm does NOT cover this rule's residue, and the first round of this amendment said it
-  did.** Re-derived: Issue #355, the instance rule 7d was built from, declares **no** `invocable:` line
+- **The `Stop` arm does NOT cover this rule's residue, and TWO rounds of this amendment said it did —
+  the second while the correction sat twenty-nine lines below the assertion, in the same document.** Re-derived: Issue #355, the instance rule 7d was built from, declares **no** `invocable:` line
   (`gh issue view 355 --json body --jq '[.body|split("\n")[]|select(test("^invocable"))]'` → `[]`), and
   that arm's predicate is a **declared** promise. So it could not have fired on #355 by any route. It
-  covers the **route**, for a **different obligation**. **An undeclared Issue closed by a browser merge
-  or by a commit-message keyword is caught by nothing at all** — stated here, in the README, in the
-  gate's brief and in registry `0044`, because a residue published as covered is worse than one
-  published as open.
+  covers the **route**, for a **different obligation**. **The uncovered case — an undeclared Issue
+  closed by a browser merge or by a commit-message keyword — is stated in the limits section above, in
+  the README, in the gate's brief and in registry `0044`**, because a residue published as covered is
+  worse than one published as open.
+- **The arm built for this class could not catch this instance, and that is the finding worth carrying.**
+  Arm 5 asserts the correction is **PRESENT** — it counts one needle from the corrected sentence, found
+  it at the corrected bullet, and passed while the false claim stood twenty-nine lines above. **A presence check cannot
+  express an absence**, and the two are different assertions about the same fact. The absence half is
+  arm 6's shape — *every occurrence of this clause is struck or quoted* — and it was keyed to a different
+  clause, so it looked past this one. **Both halves are now written for both clauses**, and the general
+  rule is stated rather than left to be rediscovered: **a correction needs the false claim's ABSENCE
+  asserted, not only its replacement's presence.**
 
 ## Links
 - Driven by ADR-0002 and the Merge Request Definition of Done (record 0003, absorbed 2026-08-19 into

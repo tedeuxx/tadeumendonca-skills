@@ -6371,81 +6371,82 @@ CLOSES_RESIDUE_HOLDERS
     ok "closes declaration — all 6 surfaces state the residue neither mechanism covers"
   fi
 
-  # ── arm 6 · the struck clause never stands as a live assertion ──
-  # 'it is the only refusal surface that exists at all' was struck in README.md by #363's first round
-  # and left LIVE, character-for-character, in the canonical layer-analysis record and in the carrier
-  # the registry row describes. A strike that does not travel produces two files disagreeing about one
-  # fact, and the one that keeps the false version is the one being appended to rather than read.
-  #
-  # THE PREDICATE ADMITS TWO FORMS AND NOTHING ELSE: the line carries a `~~` strike, or it quotes the
-  # clause inside `*"` (a DISCUSSION of the clause, which the documentation standard's own citation
-  # rule warns a grep cannot distinguish from an assertion). Anything else is the clause asserted.
-  #
-  # THIS FILE IS EXCLUDED FROM ITS OWN SCAN, and the exclusion is not a convenience: the arm's own
-  # `bad` text has to name the clause it is looking for, so a scan including this file matches its
-  # own error message and reddens on a clean tree. Found by running it. The exclusion is by FILENAME
-  # rather than by directory so the carrier and every other hook stay in scope — dropping `$ROOT/hooks`
-  # instead would have silently un-scanned `closure-artifact-guard.sh`, which is one of the two files
-  # this arm exists because of.
-  closes_stale_lines="$(grep -rn 'only refusal surface that exists' \
-    "$ROOT/README.md" "$ROOT/docs" "$ROOT/hooks" "$ROOT/agents" "$ROOT/skills" 2>/dev/null \
-    | grep -v 'inventory-counts\.test\.sh:' || true)"
-  closes_stale_live="$(printf '%s\n' "$closes_stale_lines" | grep . | grep -v '~~' | grep -v '\*"' || true)"
-  closes_stale_total="$(printf '%s\n' "$closes_stale_lines" | grep -c . || true)"
-
-  if [ "${closes_stale_total:-0}" -eq 0 ]; then
-    bad "closes declaration — the clause 'only refusal surface that exists' was found NOWHERE, so this
-      arm compared nothing. Either every occurrence was deleted rather than struck — which this repo's
-      strike-not-delete convention forbids for a sentence someone acted on — or the wording changed and
-      this assertion is vacuous."
-  elif [ -n "$closes_stale_live" ]; then
-    bad "closes declaration — the clause struck by #363 still stands as a LIVE assertion:
-$closes_stale_live
-      Rule 7d is a second refusal surface reaching the closing-keyword route, one step upstream at the
-      merge. Every occurrence of this clause must be inside a '~~' strike or quoted as a discussion."
-  else
-    ok "closes declaration — all $closes_stale_total occurrences of the struck refusal-surface clause are struck or quoted"
-  fi
 fi
 
 # ---------------------------------------------------------------------------------------------------
-# THE SAME DEFECT CLASS, ONE MERGE OLDER — A STRUCK RULE SURVIVING AS A LIVE PREMISE (#365, found #363).
+# THE RETIRED-CLAUSE REGISTRY — a correction needs the false claim's ABSENCE asserted, not only its
+# replacement's PRESENCE (#363, #365).
 #
-# #365 struck "a `loop` Issue joins the active iteration at filing". The strike landed at the rule's own
-# heading in `skills/harness-engineering/SKILL.md` and in `commands/new-issue.md`, and SURVIVED at
-# SKILL.md's Loop Batch reconciliation, where the rule is not stated but USED — as the premise of a
-# different argument. That file is the universal preload every persona loads on every dispatch, and it
-# was read as current by an intake that reported correct behaviour as a defect before anyone found the
-# sentence.
+# THIS BLOCK REPLACES TWO NEAR-IDENTICAL ARMS AND EXISTS BECAUSE OF A MEASURED FAILURE OF THE OTHER
+# SHAPE. The `closes declaration` arm above asserts the correction is PRESENT — it counts a needle in a
+# holder list and passes the moment the corrected sentence exists somewhere in each file. On this very
+# diff it passed while the FALSE claim stood twenty-nine lines above its own correction, in the section
+# headed "What it does not reach", which is exactly where a reader goes to learn the holes. **Presence
+# and absence are different assertions about the same fact, and a presence check cannot express an
+# absence.**
 #
-# THE GENERALISABLE FINDING, WHICH IS WHY THIS ARM IS KEYED ON THE CLAIM AND NOT ON THE HEADING:
-# a strike lands where a rule is STATED and survives where it is CITED, paraphrased, or used as a
-# premise. Sweeping for the struck sentence finds the places that are already fixed.
+# WHY THE ABSENCE HALF IS NOT FOLDED INTO THAT ARM, WHICH IS A JUDGEMENT RATHER THAN A CONVENIENCE.
+# That arm's domain is a DECLARED HOLDER LIST — six files that must each carry a sentence. This one's
+# domain is the WHOLE TREE — no file may carry a retired clause unstruck, including files nobody
+# thought to list. Two predicates over two domains sharing one verdict is the shape this file's own
+# header forbids: an arm that shares a verdict can DISAPPEAR rather than fail, and no total moves to
+# say so. So the halves stay apart, and this half is a REGISTRY rather than one arm per clause —
+# adding the next retired clause is one line here instead of forty lines of near-duplicate.
 #
-# PREDICATE, IDENTICAL IN SHAPE TO THE REFUSAL-SURFACE ARM ABOVE: every occurrence of the claim must sit
-# on a line carrying a `~~` strike or quoted inside `*"` as a discussion. `powers/` is excluded because
-# it is GENERATED from `skills/` and gated by regeneration-and-diff — asserting it here would report one
-# authored defect twice and would go red on a stale export for a reason this arm does not own.
-iter_claim_lines="$(grep -rn 'joins the active iteration at' \
-  "$ROOT/README.md" "$ROOT/docs" "$ROOT/hooks" "$ROOT/agents" "$ROOT/skills" "$ROOT/commands" 2>/dev/null \
-  | grep -v 'inventory-counts\.test\.sh:' || true)"
-iter_claim_live="$(printf '%s\n' "$iter_claim_lines" | grep . | grep -v '~~' | grep -v '\*"' || true)"
-iter_claim_total="$(printf '%s\n' "$iter_claim_lines" | grep -c . || true)"
+# THE GENERALISABLE FINDING, WHICH IS WHY THE REGISTRY IS KEYED ON THE CLAIM AND NOT ON A HEADING:
+# **a strike lands where a rule is STATED and survives where it is CITED, paraphrased, or used as a
+# premise for something else.** Sweeping for the struck sentence finds the places already fixed. Every
+# entry below was found that way — three of the six instances across these two clauses were in files
+# the same diff was already editing.
+#
+# THE PREDICATE ADMITS TWO FORMS AND NOTHING ELSE: the line carries a `~~` strike, or it quotes the
+# clause inside `*"` as a DISCUSSION — which the documentation standard's own citation rule warns a
+# grep cannot distinguish from an assertion. Anything else is the clause asserted.
+#
+# WHAT IT CANNOT DO, SAID BEFORE THE FIRST GREEN. It reads strings. It cannot tell whether a
+# replacement sentence is TRUE, cannot see a paraphrase that shares no vocabulary with the retired
+# clause, and cannot judge whether a `*"` quotation is really a discussion rather than an assertion
+# dressed as one. It catches the clause surviving VERBATIM, which is how all six instances survived.
+#
+# THIS FILE IS EXCLUDED FROM ITS OWN SCAN, and the exclusion is not a convenience: the registry has to
+# NAME each clause to search for it, so a scan including this file matches its own needle list and
+# reddens on a clean tree. Found by running it. The exclusion is by FILENAME rather than by directory,
+# so the carrier and every other hook stay in scope — dropping `$ROOT/hooks` instead would have
+# silently un-scanned `closure-artifact-guard.sh`, one of the files this exists because of.
+#
+# `powers/` IS EXCLUDED because it is GENERATED from `skills/` and gated by regeneration-and-diff:
+# asserting it here would report one authored defect twice, and would redden on a stale export for a
+# reason this block does not own.
+#
+# EACH CLAUSE EMITS ITS OWN VERDICT, per this file's chaining rule, and each repeats its own vacuity
+# guard rather than borrowing the neighbour's.
+while IFS='|' read -r retired_clause retired_why; do
+  [ -z "$retired_clause" ] && continue
+  retired_lines="$(grep -rn "$retired_clause" \
+    "$ROOT/README.md" "$ROOT/docs" "$ROOT/hooks" "$ROOT/agents" "$ROOT/skills" "$ROOT/commands" 2>/dev/null \
+    | grep -v 'inventory-counts\.test\.sh:' || true)"
+  retired_live="$(printf '%s\n' "$retired_lines" | grep . | grep -v '~~' | grep -v '\*"' || true)"
+  retired_total="$(printf '%s\n' "$retired_lines" | grep -c . || true)"
 
-if [ "${iter_claim_total:-0}" -eq 0 ]; then
-  bad "struck-premise sweep — the claim 'joins the active iteration at ...' was found NOWHERE, so this
-      arm compared nothing. Either every occurrence was deleted rather than struck, which the
-      strike-not-delete convention forbids for a rule someone acted on, or the wording moved and this
-      assertion is now vacuous — which is the failure mode it exists to catch, one level up."
-elif [ -n "$iter_claim_live" ]; then
-  bad "struck-premise sweep — the filing rule struck by #365 still stands as a LIVE claim:
-$iter_claim_live
-      No Issue is filed with a milestone, for any type (ADR-0002's twenty-seventh amendment;
-      permission-guard.sh rule 10 holds it). A strike lands where a rule is STATED and survives where it
-      is CITED or used as a premise — which is exactly what these lines are."
-else
-  ok "struck-premise sweep — all $iter_claim_total occurrences of the struck filing rule are struck or quoted"
-fi
+  if [ "${retired_total:-0}" -eq 0 ]; then
+    bad "retired clause — '$retired_clause' was found NOWHERE, so this assertion compared nothing.
+      Either every occurrence was deleted rather than struck — which the strike-not-delete convention
+      forbids for a sentence someone acted on — or the wording moved and this entry is now vacuous,
+      which is the failure mode this registry exists to catch, one level up."
+  elif [ -n "$retired_live" ]; then
+    bad "retired clause — '$retired_clause' still stands as a LIVE assertion:
+$retired_live
+      $retired_why
+      Every occurrence must be inside a '~~' strike or quoted inside '*\"' as a discussion. A strike
+      lands where a rule is STATED and survives where it is CITED or used as a premise."
+  else
+    ok "retired clause — all $retired_total occurrences of '$retired_clause' are struck or quoted"
+  fi
+done <<'RETIRED_CLAUSES'
+only refusal surface that exists|Rule 7d (#363) is a second refusal surface, reaching the closing-keyword route one step upstream at the merge.
+joins the active iteration at|No Issue is filed with a milestone, for any type (#365; ADR-0002's twenty-seventh amendment, held by permission-guard.sh rule 10).
+covers that residue|The Stop arm's predicate is a DECLARED invocable promise, and the Issue rule 7d was built from declares none — so it covers the ROUTE, for a DIFFERENT obligation, and patches none of rule 7d's holes.
+RETIRED_CLAUSES
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
 # THE ITERATION RETROSPECTIVE RITE, AND EVERY LIMIT IT SHIPS WITH (#355).
