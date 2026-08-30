@@ -354,6 +354,39 @@ opportunistically.
 fixed set, so *"the pool is empty"* is not a state a drain can reach by working; the terminal set is the
 pool **as it stood at entry**. See *The pool grows while it drains* below.
 
+### On exhaustion, run `/retrospective` — the closing ceremony now has an object (#355)
+
+**On the FIRST stop condition only** — the entry snapshot exhausted — **run
+`/tadeumendonca-skills:retrospective <iteration>`.** Not on a boundary event, and not when the owner
+interrupts: neither of those is the end of an iteration, and a rite fired on a stall would report on an
+iteration nobody finished.
+
+**This is the object, and until #355 there was none.** The sentence three sections below — *"the closing
+ceremonies run against the exhausted iteration"* — has stood since #326 with nothing in the tree it
+could name. Measured against the commit this slice forked from, **pinned so the answer does not move
+when this slice merges**:
+
+```
+git grep -l "retrospect" 5cfea0b -- commands skills agents
+# → agents/product-lead.md, skills/harness-engineering/SKILL.md — two files that MENTION the word
+git cat-file -e 5cfea0b:commands/retrospective.md
+# → exit 128, the path is not in that tree: nothing an owner or a drain could invoke
+```
+
+**Two mentions and no object is the exact failure `closure-artifact-guard.sh` was built for** — a
+promise resolves in prose and not in the tree — and it survived here for a month because the promise
+reads like a description of something that already runs.
+
+**HALF the promise now has an object and half still does not.** `/retrospective` is the **method** half:
+each persona that ran, consulted alone, reasoning from its own artifacts. The **sprint review** half —
+a bounded sweep of the running product, which finds a different class of defect entirely — **is not
+built**, and `commands/retrospective.md`'s last section is where that is recorded rather than left to be
+discovered again. Do not read "the closing ceremonies" as plural-and-satisfied.
+
+**Nothing fires it.** This is an instruction in a command file, and by this loop's own test — *would
+something stop me, or only my memory?* — it is not engineered. No hook can be: nothing in
+`hooks/scripts/` reads the queue at all, so no layer here can observe that a snapshot went empty.
+
 ~~**no open issue outranks the cost of continuing**~~ — **struck as the DRAIN's terminal condition at
 #326, and moved rather than retired.** It is now what **planning** asks: the criterion for admitting the
 next iteration's contents. See below for why both cannot be left standing.
