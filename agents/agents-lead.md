@@ -340,7 +340,11 @@ artifact instead of a claim that lived in someone else's context.
 ## `scrum-master` — the eighth profile, and it hands you findings rather than arguing with you (#375)
 
 **It is the roster's only tool-less profile, and that is the whole reason it exists at all.** Its
-frontmatter declares no `tools:` line: no dispatch, no `Edit`, no `Bash`, no label, no milestone. It
+frontmatter declares `tools: []`, an explicit empty grant: no dispatch, no `Edit`, no `Bash`, no label,
+no milestone. **Written explicitly because OMITTING the key inherits every tool the parent holds** —
+measured through `Task` against build 2.1.252 (#386), where the no-key spelling ran `Bash` and left a
+file on disk. In agent frontmatter, absence is inheritance, so a brief arguing from a missing key is
+arguing from the largest grant in the roster, not the smallest. It
 derives and ranks an eligible pool from what it is shown, selects one profile plus one stage, and
 returns a selection record; the orchestrator executes it. **You priced a profile that would have held
 milestone-write and recommended against it; the owner overrode that on a design where the profile holds

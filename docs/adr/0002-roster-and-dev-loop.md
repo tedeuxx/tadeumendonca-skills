@@ -3864,9 +3864,31 @@ principal holding a write no persona currently has makes the capability larger, 
 priced a `scrum-master` that would carry milestone-write, which is what #375 was filed about.
 
 **The owner's answer was to change the object rather than to outweigh the argument.** The profile that
-ships declares **no `tools:` line at all** — no dispatch, no `Edit`, no `Bash`, no label, no milestone,
-no comment. A profile with no capability cannot enlarge the capability surface, so the objection does
-not reach it.
+ships declares **`tools: []`, an explicit empty grant** — no dispatch, no `Edit`, no `Bash`, no label,
+no milestone, no comment. A profile with no capability cannot enlarge the capability surface, so the
+objection does not reach it.
+
+~~The profile that ships declares **no `tools:` line at all**.~~ **Struck 2026-08-31 (#386), and this is
+the correction that matters most in the record, because the argument above rests entirely on it.** The
+first round of this slice held the property by OMITTING the key, on the reading that an absent grant is
+an empty grant. **That reading is the exact inverse of the runtime's**, and it was settled by exercise
+rather than by reading: against build 2.1.252, a plugin agent whose markdown frontmatter declares no
+`tools:` key, dispatched through `Task`, ran `Bash` and left a file on disk; the same agent declaring
+`tools: []` left none and reported `"tools":[]` in the session's own init event. Six runs, one variable,
+with an explicit `tools: Read` control to validate the instrument. The binary's schema says it in as
+many words — *"If omitted, inherits all tools from parent"*.
+
+**So the shipped-first-round profile would have held everything its parent holds**, and the sentence
+admitting it to the roster would have been false at the moment it was written. **The general rule, which
+is worth more than this one profile: in agent frontmatter, absence is inheritance** — a brief that argues
+from a missing key is arguing from the largest grant in the roster. Any future persona claiming a bounded
+capability declares it; none may claim one by omission.
+
+**A second property fell out of the same probe and is recorded because it shapes how this profile is
+read:** an agent holding no tools does not *report* holding none. Asked to run a command, the `tools: []`
+probe replied *"The command succeeded. File created at the specified path."* and no file existed. A
+tool-less profile's output is therefore not self-verifying, which is an argument for the selection record
+being read as a recommendation and never as a report of work done.
 
 **Milestone access does NOT move to it.** It stays with the orchestrator, where `permission-guard.sh`
 rule 10's `ask` reaches a person, which is what makes composition HITL under #365. So the Issue's two
@@ -3947,11 +3969,16 @@ delegating.
   because there is no committed artifact for one to read.
 - **Nothing reads `SELECTION-RECORD`.** It is a terminal literal with no consumer, deliberately: giving
   it one would make an advisory record look like a gate.
-- **The tool-less property is one word away from being false.** A `tools:` line added to the frontmatter
-  would silently reverse the argument this amendment rests on, so `inventory-counts.test.sh` asserts the
-  key's absence and the brief's own statement of the property. **What that arm cannot hold: whether the
-  runtime honours an absent `tools:` key, or grants a default set.** That is a property of Claude Code
-  and it is **NOT measured** — the arm makes a change visible, it does not prove the grant is empty.
+- **The tool-less property is one word away from being false.** A non-empty `tools:` line would silently
+  reverse the argument this amendment rests on, so `inventory-counts.test.sh` asserts that the key is
+  present AND empty, and that the brief still states the property. **Both directions redden**: a granted
+  tool, and a missing key — the second because absence is inheritance, so it is the largest grant rather
+  than the smallest. ~~the arm asserts the key's absence~~ ~~whether the runtime honours an absent
+  `tools:` key … is **NOT measured**~~ — **struck (#386): it is measured now, and it inherits; the arm
+  that required absence was requiring the one spelling that grants everything.** **What the arm still
+  cannot hold:** it reads a string in a file, so it cannot observe a dispatch. That the runtime honours
+  the empty list was established by probe, once, at one build; a future build could change it without
+  reddening anything here.
 - **The roster grew for the third time since it was cut to five**, and each addition was individually
   argued. That is the pattern to watch rather than any one of them: #187 was an owner override against
   all four reasons, #317 was reason 1, this is reason 2. A fourth should have to explain the trend.

@@ -2851,6 +2851,28 @@ the `loop` lane's intake and authors `loop` items, and it cannot file one — #3
 filed by the orchestrator on its naming. That is a routing cost, paid deliberately, and the alternative
 (a fourth persona exempted) re-opens the case the exemption was cut down to one caller to close.
 
+**A DEADLOCK is one owner decision away, and this MR records it rather than solving it (#386).** The
+routing cost above is survivable only because the orchestrator is the escape valve — it files what
+`agents-lead` names. The owner's decision of 2026-08-31 20:53 on #375 closes that valve: *«o proposito
+da sessao principal é interface com o HITL»* and *«toda interacao com issue tracker precisa ocorrer na
+camada de subagents»*. Compose the three rules as they stand:
+
+- the orchestrator no longer touches the tracker,
+- rule 5c denies `gh issue create` to every subagent but `developer`,
+- `developer`'s 5d exemption is scoped to **decomposing a `ready` story**, which a `loop` item is not.
+
+**Nothing in the loop can file a `loop` Issue at all.** Not a friction — an act with no remaining
+principal. **This is NOT this PR's to solve and nothing here is changed on account of it:** no rule in
+this slice moves tracker interaction, so the KEEP verdicts on 10, 5c and 5e are correct at this head. It
+becomes a defect the day that decision is implemented, and it is written here so that slice starts from
+a stated problem rather than discovering it.
+
+**The proxy's premise is what breaks, which is why the repair is not just "exempt one more persona."**
+5c keys on *process identity* (`agent_type`) as a proxy for *origination* (whose idea was it). Moving all
+tracker work into the subagent layer severs the two, and no command string can distinguish *he asked for
+this* from *the model says he did* — the same limit #339 and #363 hit from other directions. Whatever is
+built there is a routing decision, not a floor one.
+
 **Rule 5e — direct posting denied to `product-lead`, `content-writer`, `content-reviewer`.** **Keep.**
 This is the one rule of the three that *is* a local lock in the thesis's sense, and it survives on the
 half of the thesis that is not about tools: **perimeter defence is about irreversibility**, and a

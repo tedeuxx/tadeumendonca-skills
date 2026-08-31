@@ -146,8 +146,8 @@ exists to argue with `content-writer` (renamed from `writer` in the same slice) 
 ruler, which is reason #1 of the four — *disagreement is wanted*.
 
 **The eighth is `scrum-master` (#375), and it is the first profile in this roster that holds NOTHING.**
-Its frontmatter declares no `tools:` line at all — no dispatch, no `Edit`, no `Bash`, no label, no
-milestone — so its whole output is text it returns: a **selection record** naming one profile, one
+Its frontmatter declares `tools: []`, an explicit empty grant — no dispatch, no `Edit`, no `Bash`, no
+label, no milestone — so its whole output is text it returns: a **selection record** naming one profile, one
 stage and one item, which the orchestrator executes. It satisfies reason #2 of the four — *a fresh
 context is wanted* — on the argument the retrospective rite already accepts one step later: selection is
 otherwise decided by the context that has seen the whole session and is least able to see its own bias

@@ -4288,20 +4288,25 @@ grep -qF 'There is no gate here and none is claimed.' "$BP_CMD" 2>/dev/null \
 # (c) It sees SPELLINGS, never SEMANTICS. Any synonym for the same directory that avoids the word
 #     'scratch' — 'the ignored working folder' — passes.
 #
-# WHAT IT DOES NOT BUY, AND THIS IS THE HALF TO READ. It is PRESENCE, not a control. The write itself
-# is already refused at runtime by `orchestrator-write-guard.sh` for any path inside a git working
-# tree, whatever this file says. All this arm stops is the command DOCUMENTING a route that would be
-# denied — an instruction a reader would follow, fail, and then work around. A green here says the
-# command names no such destination; it says nothing about where an export actually wrote.
+# WHAT IT DOES NOT BUY, AND THIS IS THE HALF TO READ. It is PRESENCE, not a control.
+# ~~The write itself is already refused at runtime by `orchestrator-write-guard.sh` for any path inside
+# a git working tree, whatever this file says.~~ STRUCK 2026-08-31 (#386): that hook is DELETED in this
+# same slice (#375), so the write is refused at runtime by NOTHING and this arm is now the only thing
+# standing between the command and a repository-relative destination. It is still only presence — it
+# stops the command DOCUMENTING such a route, an instruction a reader would follow and then work
+# around. A green here says the command names no such destination; it says nothing about where an
+# export actually wrote. Read the arm as strictly weaker than it was, not as a backstop.
 bp_bad_dest="$(grep -c -E 'workspace-root|tmp/blueprint|\.scratch|\b(under|into|inside|within|to|in|at)\b[^.]{0,40}scratch[ -](dir|directory|folder)' "$BP_CMD" 2>/dev/null || true)"
 if [ "${bp_bad_dest:-0}" -ne 0 ]; then
   bp_rule_problems="$bp_rule_problems
     the command names a repository-relative output destination ($bp_bad_dest occurrence(s) of
     'workspace-root', 'tmp/blueprint', '.scratch', or a scratch directory named in prose as a place
-    something is written to). Such a path is DENIED to a typed command by
-    orchestrator-write-guard.sh wherever the workspace root is the repository root, which is the
-    ordinary installed shape — and the repo-root scratch directory is additionally ignored by nothing
-    since #245 removed the entry and left the comment"
+    something is written to). Such a path sits inside a tracked tree wherever the workspace root is the
+    repository root, which is the ordinary installed shape, so the next reader resolves it — and the
+    repo-root scratch directory is additionally ignored by nothing since #245 removed the entry and
+    left the comment. (Until #386 this message said the path was DENIED at runtime by
+    orchestrator-write-guard.sh; that hook is deleted, so nothing denies it and this arm is the only
+    thing left.)"
 fi
 
 if [ ! -r "$BP_CMD" ]; then
@@ -6971,11 +6976,24 @@ fi
 # here tomorrow would be invisible to every gate, to the ADR that records the reversal, and to the
 # reader of the brief that argues from the absence.
 #
-# WHAT THIS ASSERTS AND WHAT IT CANNOT. It asserts the ABSENCE of a `tools:` key in the frontmatter, and
-# that the brief still states the property it rests on. It cannot assert that the runtime honours the
-# absence — whether a subagent with no `tools:` line inherits a default grant is a property of Claude
-# Code, not of this repo, and it is NOT measured here. The brief and ADR-0002's amendment both say so;
-# this arm is why a change to the frontmatter cannot be silent, not a proof that the grant is empty.
+# THIS ARM ASSERTED THE EXACT INVERSE OF THE PROPERTY UNTIL #386's REVIEW, AND THE CORRECTION IS THE
+# POINT. It used to require the ABSENCE of a `tools:` key, and said in this comment that whether an
+# absent key inherits a default grant "is a property of Claude Code, not of this repo, and it is NOT
+# measured here". It is measured now, and the answer is inheritance: against build 2.1.252, a plugin
+# agent whose markdown frontmatter declares no `tools:` key, dispatched through `Task`, ran `Bash` and
+# left a file on disk; the same agent declaring `tools: []` left none and reported "tools":[] in the
+# session init event. Six runs, one variable. So the old arm required the one spelling that grants
+# EVERYTHING, and would have reddened on the correct fix.
+#
+# WHAT THIS ASSERTS NOW. The PROPERTY — this profile holds no tool — in whatever spelling currently
+# expresses it, which is an explicit empty list. Both directions are gated: a `tools:` line that is not
+# empty reddens (the profile gained a capability), and a MISSING `tools:` line reddens too (absence is
+# inheritance, so it is the largest grant in the roster, not the smallest). There is deliberately no
+# third state that passes.
+#
+# WHAT IT STILL CANNOT DO. It reads a string in a file. It cannot observe a dispatch, so it cannot tell
+# you that the runtime honoured the empty list on the run that matters — that was established by probe,
+# once, at one build, and a future build could change it without reddening anything here.
 #
 # THE ESTIMATOR EXCLUSION IS THE SECOND HALF AND IS A DIFFERENT CLAIM. `harness-engineering`'s estimator
 # table names three sets; `scrum-master` is in none of them. An absence is indistinguishable from an
@@ -6988,14 +7006,23 @@ if [ ! -r "$SM_BRIEF" ]; then
   bad "scrum-master — agents/scrum-master.md is not readable, so NOTHING below ran: neither the
       tool-less property the profile was admitted on nor its estimator exclusion was asserted."
 else
-  # 1 · no `tools:` key, anywhere in the frontmatter. Read the fence explicitly rather than grepping the
-  #     whole file, so a `tools:` occurring inside prose (this brief discusses tool grants at length)
-  #     is not read as a declaration — the same positional discipline the `purpose:` arms use.
+  # 1 · the frontmatter declares a tool grant that is EMPTY. Read the fence explicitly rather than
+  #     grepping the whole file, so a `tools:` occurring inside prose (this brief discusses tool grants
+  #     at length) is not read as a declaration — the same positional discipline the `purpose:` arms use.
   sm_fm="$(awk 'NR==1 && $0=="---"{inside=1;next} inside && $0=="---"{exit} inside' "$SM_BRIEF")"
-  sm_tools_n="$(printf '%s\n' "$sm_fm" | grep -cE '^tools:' || true)"
-  [ "${sm_tools_n:-0}" -eq 0 ] || sm_problems="$sm_problems
-    agents/scrum-master.md declares a 'tools:' key ($sm_tools_n). The whole argument that admitted this
-    profile is that it holds nothing; a tool grant here is a roster decision, not a frontmatter edit."
+  sm_tools_line="$(printf '%s\n' "$sm_fm" | grep -E '^tools:' || true)"
+  if [ -z "$sm_tools_line" ]; then
+    sm_problems="$sm_problems
+    agents/scrum-master.md declares NO 'tools:' key. That is not an empty grant — it is the largest one:
+    an omitted key inherits every tool the parent holds (measured, build 2.1.252, #386). The profile was
+    admitted precisely because it holds nothing, so this spelling falsifies the argument that admitted
+    it. Declare 'tools: []'."
+  elif [ "$sm_tools_line" != "tools: []" ]; then
+    sm_problems="$sm_problems
+    agents/scrum-master.md declares a non-empty tool grant: '$sm_tools_line'. The whole argument that
+    admitted this profile is that it holds nothing; a tool grant here is a roster decision that re-runs
+    the four-reason test, not a frontmatter edit."
+  fi
 
   # 2 · the frontmatter still parses as a brief at all, so arm 1 is not green because the fence vanished.
   printf '%s\n' "$sm_fm" | grep -qE '^name: scrum-master$' || sm_problems="$sm_problems
@@ -7004,7 +7031,9 @@ else
 
   # 3 · the brief states the property and its bound, so a reader meets the argument rather than the gap.
   for sm_needle in \
-    '**You have no `tools:` line.**' \
+    '**Your `tools:` line is an explicit empty list — `tools: []`.**' \
+    'OMITTING it would have granted you everything' \
+    'in agent frontmatter, absence is' \
     'A profile with no capability cannot enlarge the capability surface' \
     'Nothing reads your record.'
   do
@@ -7031,7 +7060,7 @@ fi
 if [ -n "$sm_problems" ]; then
   bad "scrum-master — the profile no longer holds the property it was admitted on:$sm_problems"
 else
-  ok "scrum-master — the brief declares no tools, states the argument that rests on it and its own lack of a reader, and the estimator table excludes it in prose rather than by omission"
+  ok "scrum-master — the brief declares an EMPTY tools list (present and empty; absence would be inherit-all), states the argument that rests on it and its own lack of a reader, and the estimator table excludes it in prose rather than by omission"
 fi
 
 # ===================================================================================================
@@ -7110,7 +7139,7 @@ if [ -r "$MS_SKILL" ]; then
     the universal preload no longer carries the measurement that makes rule 5f's remedy unexecutable"
 fi
 
-if [ "$ms_checked" -lt 3 ]; then
+if [ "$ms_checked" -lt 4 ]; then
   bad "milestone route — only $ms_checked of 4 surfaces were readable, so the agreement was NOT
       asserted:$ms_problems"
 elif [ -n "$ms_problems" ]; then
