@@ -5,7 +5,7 @@ argument-hint: "[iteration] (defaults to the active iteration)"
 ---
 
 Run the retrospective rite for the iteration named by `$ARGUMENTS` (default: the active iteration,
-derived from the pool per `/harness-engineering` rule 1 — **enumerate, never type a milestone name**).
+derived from the pool per `/agents-configuration` rule 1 — **enumerate, never type a milestone name**).
 
 **This file is the object `/autonomy-on` has been promising.** That command has said *"the closing
 ceremonies run against the exhausted iteration"* since #326 with no ceremony anywhere in the tree. This
@@ -79,7 +79,7 @@ nothing needs to: the artifact records the iteration, not the route.
 **The rite may fire twice for one iteration, and nothing can stop it.** «The drain exhausted» is a
 **per-repo** event — `/autonomy-on` takes one repo and builds its pool from one milestone — while the
 iteration is two milestone objects in two repositories paired by title alone. A `Stop` hook receives one
-`cwd` and therefore sees one repository, which `/harness-engineering` has already measured for the
+`cwd` and therefore sees one repository, which `/agents-configuration` has already measured for the
 loop-first detector and called *"a heuristic and the weakest part"*. **The artifact is what makes a
 second firing idempotent rather than duplicative**: step 4's files already exist, so the second run
 finds them and appends nothing.
@@ -261,7 +261,7 @@ promised — `permission-guard.sh` rule 5c denies `gh issue create` to every sub
 and the rite adds no second control over it.
 
 **Only the owner opens work.** A rite that filed its own findings would convert one decision into a
-queue, which is `/harness-engineering`'s *Review does not open work* applied to a ceremony.
+queue, which is `/agents-configuration`'s *Review does not open work* applied to a ceremony.
 
 ## What this costs the NEXT iteration — the amplification, stated where the rite is defined
 
@@ -331,7 +331,7 @@ kept out of this slice on two measured grounds rather than on cost:
   in the mechanism rather than afterwards.
 
 **One premise of the original deferral is now false and is corrected here rather than left standing.**
-`/harness-engineering` records that REVIEW cannot run unattended because *"no MCP server is reachable
+`/agents-configuration` records that REVIEW cannot run unattended because *"no MCP server is reachable
 from a dispatched subagent"*. That was true when it was written and is not true now: `product-lead`
 declares a read-only `chrome-devtools` subset with a bounded origin. **The obstacle was never the
 browser** — it is a route list that rots and a finding with no ruler, both of which survive the new

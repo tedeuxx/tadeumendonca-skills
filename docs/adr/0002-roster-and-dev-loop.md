@@ -1709,7 +1709,7 @@ sound and needs *"an"*. Three instances of *"a `harness-lead`"* → *"a `agents-
 `agents-lead`"* elsewhere were found by grepping `\ba \`\{0,1\}agents-lead\b` after the sweep and fixed
 by hand (`.claude-plugin/plugin.json`'s marketplace description, `README.md` twice,
 `inventory-counts.test.sh`'s own comment, `agents/quality-assurance.md`, `docs/adr/README.md`,
-`skills/harness-engineering/SKILL.md`, and three more sites in this document). None of the eight failures
+`skills/agents-configuration/SKILL.md`, and three more sites in this document). None of the eight failures
 would have reddened any gate — this repo has no grammar check — so each was a silent readability defect
 a mechanical rename introduces and only a second grep-and-read pass catches.
 
@@ -1961,7 +1961,7 @@ It is not queryable from the tracker, and that is on purpose — see the state b
 
 ### The state machine was wrong for nine days, and this fixes it
 
-`/harness-engineering`'s state table named **`developer`** as the builder for a `content` Issue. That
+`/agents-configuration`'s state table named **`developer`** as the builder for a `content` Issue. That
 was false from amendment #13 (2026-08-13) onward — `developer`'s own brief has said it does not build
 `content` since #187 — and nothing reddened, because no gate reads that table. The row now names
 `content-writer`, and a `drafted` sub-state is added for `content` only.
@@ -1995,7 +1995,7 @@ else, bounded how. **A drafting round judges the PROSE.** The owner's decision r
 the flow that produces prose; it says nothing about the act that decides whether the Issue should exist,
 because that act never enters that flow. Amendment #14 points the same way: this persona's boundary is
 the consuming site, which is where `content` ships. If the reading is still wrong, the row in
-`/harness-engineering`'s state table is the single place to correct it.
+`/agents-configuration`'s state table is the single place to correct it.
 
 **What is actually lost is WHEN its craft checks run, not WHETHER they run.** Criterion 10 still fires
 at the merge gate, so nothing it would have said goes unsaid — it arrives on a **finished draft**
@@ -2204,7 +2204,7 @@ bites, nobody reconstructs it as an oversight.**
 - **A `PreToolUse` deny on any command containing a PR URL.** Rejected mechanically: the orchestrator's
   user-facing prose is not a tool call, so no `PreToolUse` matcher sees the act at all — and the calls it
   *would* see are `gh pr create`, which must not be blocked.
-- **Put the operative wording in `skills/harness-engineering/SKILL.md`**, the universal preload.
+- **Put the operative wording in `skills/agents-configuration/SKILL.md`**, the universal preload.
   Rejected as an **anti-placement**: `skills:` is `agents/*.md` frontmatter, and the actor this rule
   governs is the orchestrator, which is not a persona and has no frontmatter. It would be always-on for
   seven personas that never report to the owner and not always-on for the one actor that does.
@@ -2259,12 +2259,12 @@ which are outside its boundary (amendment #14).
 decision, not a stylistic choice: a record that restates an operative rule becomes one more surface to
 keep true, and [#329](https://github.com/tedeuxx/tadeumendonca-skills/issues/329) is what nine surfaces
 stating one rule costs. The wording itself is in
-[`skills/harness-engineering/SKILL.md`](../../skills/harness-engineering/SKILL.md), in the states table's
+[`skills/agents-configuration/SKILL.md`](../../skills/agents-configuration/SKILL.md), in the states table's
 `filed → **description closed**` rows. Read it there.
 
 **Two owner rulings, both on 2026-08-25:**
 
-1. **Canonical home.** *"The states table in `skills/harness-engineering/SKILL.md` is canonical.
+1. **Canonical home.** *"The states table in `skills/agents-configuration/SKILL.md` is canonical.
    `README.md` becomes a pointer."*
 2. **The exception.** Asked whether `tech-lead` co-signs a `loop` intake by exception or never, the
    answer was one word: ***"nunca"***.
@@ -2362,7 +2362,7 @@ half has landed. The fence is in
 
 ### Addendum (2026-08-26) — a TENTH surface, and it was the one written as an INSTRUCTION
 
-**This amendment's own sweep missed `skills/harness-engineering/SKILL.md`'s *When to reach for this
+**This amendment's own sweep missed `skills/agents-configuration/SKILL.md`'s *When to reach for this
 discipline specifically* bullet**, which read *"pair it with `tech-lead` (design-time …) and
 `quality-assurance` (code-time …)"* — seventy-five lines above the canonical row this amendment
 installed saying `tech-lead` never co-signs that lane. **The same file stated both, in the universal
@@ -2400,7 +2400,7 @@ and the axis did not exist at all.
 **This amendment records WHERE the rule lives and WHAT was decided in this slice that the source document
 refused to decide. It does not restate the operative wording** — the same restraint the nineteenth
 amendment took, for the same reason. The wording is
-[`skills/harness-engineering/SKILL.md`](../../skills/harness-engineering/SKILL.md), section *The iteration
+[`skills/agents-configuration/SKILL.md`](../../skills/agents-configuration/SKILL.md), section *The iteration
 is the unit of work*, and the drain's terminal condition is `commands/autonomy-on.md`'s *Stop when*.
 
 ### Why this is an amendment and NOT record 0022
@@ -2673,7 +2673,7 @@ slice is not a precondition for the iteration it sits in.
 **Loop-first is discharged at PLANNING, on the iteration's ordered body — not at drain time, and not by
 a gate.** The ordered body lists every eligible `loop` item before any eligible `product` item; the
 drain keeps obeying `commands/autonomy-on.md`'s *"Do not invent an order."* The operative wording is
-`skills/harness-engineering/SKILL.md`'s *"Loop before product — a planning-time COMPOSITION rule, and it
+`skills/agents-configuration/SKILL.md`'s *"Loop before product — a planning-time COMPOSITION rule, and it
 is NOT a gate"*, in the preload every persona carries; this record is the argument, not a second copy.
 
 **It ranks only what is ELIGIBLE**, and that clause is the deadlock escape the Issue asked for by name:
@@ -2726,7 +2726,7 @@ pick.
 
 ### What would change the answer, so the next reader does not re-walk it
 
-**A declared, machine-readable order carrier.** `skills/harness-engineering/SKILL.md` already specifies
+**A declared, machine-readable order carrier.** `skills/agents-configuration/SKILL.md` already specifies
 one — *"The planning artifact is an ITERATION ISSUE"* — and **it does not exist**. The order lives in
 the **milestone description** instead, in both repos, chosen for lack of an alternative. That home is
 weak in three measurable ways: nothing in `hooks/scripts/` resolves a milestone at all (one `grep` hit,
@@ -2748,7 +2748,7 @@ finding is already asking for.**
 - **A citation defect was fixed in passing, and the attempt to discredit the Issue's replacement was
   itself the defect.** `commands/autonomy-on.md` cited ADR-0002 amendment #5 for sequencing ownership;
   #5's own header reads *"`product-manager` gets a trigger, and the reviewer's output gets a budget"*,
-  so that retirement stands and the routing to `skills/harness-engineering/SKILL.md`'s *Opening a
+  so that retirement stands and the routing to `skills/agents-configuration/SKILL.md`'s *Opening a
   session — decisions before work* is correct. ~~The Issue's proposed replacement,
   `agents/product-lead.md`, is also wrong — it carries only a `PROCEED` verdict line.~~ **Struck the
   same day: that was FALSE.** That file carries the clause under *What you own — the ordering half*
@@ -2906,7 +2906,7 @@ permission. The prohibition half, the matrix, the reinstall step and the enforce
 1. **An iteration's eligible `loop` items MAY be carried as one branch and one merge request.** They are
    still planned individually — each keeps its Issue, its `sp:N` and its position in the ordered body —
    and commits stay separated per issue so the delivery is navigable. Carrier:
-   `skills/harness-engineering/SKILL.md`, section *The `loop` block MAY be carried as one branch and one
+   `skills/agents-configuration/SKILL.md`, section *The `loop` block MAY be carried as one branch and one
    MR*; pointers in `commands/autonomy-on.md` and `commands/new-issue.md`.
 2. **It is a PERMISSION exercised by the owner at planning.** The default is unchanged and per-item.
    Nothing composes a batch automatically and no drain may infer one.
@@ -3062,7 +3062,7 @@ corrects the twelfth amendment's claim about the other half.
 
 1. **WIP=1 stands, unchanged: one worktree, one in-flight branch, one open PR.** No reversal, and the
    `ready` label was withheld on the reversal at the time the owner answered.
-2. **What the rule protects is recorded** in `skills/harness-engineering/SKILL.md`, section *What
+2. **What the rule protects is recorded** in `skills/agents-configuration/SKILL.md`, section *What
    WIP=1 is PROTECTING*, in **three separated layers** — the owner's quoted words, the measured
    failure, and what is still unrecorded — because they are not equally strong and blending them turns
    a reconstruction into a citation.
@@ -3813,7 +3813,7 @@ as a terminal condition and the twentieth amendment's decision 3 stays reversed.
 
 ### The ripple, discharged in this slice rather than named
 
-`commands/new-issue.md` (the act) · `skills/harness-engineering/SKILL.md` (the preload) ·
+`commands/new-issue.md` (the act) · `skills/agents-configuration/SKILL.md` (the preload) ·
 `commands/blueprint.md` (the adoption step, whose *"where the two rules conflict, the local rule wins"*
 paragraph is struck — its **reasoning** was the defect, and precisely: *"an adopted item with no
 milestone is invisible to the queue"* is **true**, the pool predicate opening with

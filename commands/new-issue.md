@@ -131,7 +131,7 @@ loop does not verify.
 
 **Decide the type first (step 4's three exclusive labels), then dispatch. There is no default intake.**
 Who takes part is not this file's to state: the canonical wording is the `filed → **description closed**`
-rows of the states table in `/harness-engineering`, and this step **defers** to it rather than restating
+rows of the states table in `/agents-configuration`, and this step **defers** to it rather than restating
 it. If this step and that table ever disagree, **the table wins and the disagreement is a finding** — two
 surfaces stating the same operative rule independently is precisely what produced eleven days of drift
 with nothing able to contradict either (#329).
@@ -199,7 +199,7 @@ check it or labelled a hypothesis**, and a mitigation or the price of accepting 
 - **It gates nothing and files nothing.** It holds no merge, opens no Issue, and its return is advice the
   owner acts on — which is why the `ready` transition below is his alone on this lane.
 - **Filing a `loop` Issue does NOT reserve it a branch.** The iteration's `loop` block may be composed as
-  one batch — one branch, one MR, commits separated per issue — per `/harness-engineering`'s *The `loop`
+  one batch — one branch, one MR, commits separated per issue — per `/agents-configuration`'s *The `loop`
   block MAY be carried as one branch and one MR*. It is a **permission the owner exercises at planning**,
   so nothing at filing time promises a per-Issue MR and nothing at filing time may assume one either.
   *"Rides in the implementing MR"* above means whichever MR implements it.
@@ -208,7 +208,7 @@ check it or labelled a hypothesis**, and a mitigation or the price of accepting 
 
 **`ready` means the description is closed by whoever closes it on that lane** (the SDLC-generic bar a
 description must clear to earn it is `/definition-of-ready`). It does not mean the Issue exists, and
-**who closes it is per-type — the `filed → **description closed**` rows of `/harness-engineering`'s
+**who closes it is per-type — the `filed → **description closed**` rows of `/agents-configuration`'s
 states table are canonical**:
 
 - **`product`** — both leads closed it and neither says stop → apply `ready`.
@@ -246,7 +246,7 @@ invocable: none                          this Issue promises nothing invocable
 **Write it on every Issue, and `none` is the common answer** — the field exists so *promised* and
 *promised nothing* stop looking alike. Without it, an Issue can close on a merge with the half a reader
 can actually use missing, which happened three times before this field existed (#337, and see
-`/harness-engineering`'s *Closing an issue is a step* for the measurement and the limits). **Nothing
+`/agents-configuration`'s *Closing an issue is a step* for the measurement and the limits). **Nothing
 mechanical forces this line; this instruction is the only thing that puts it there.**
 
 **Stamp the intake.** Record the date and the `main` SHA whoever ran the intake read. A closed description ages: the

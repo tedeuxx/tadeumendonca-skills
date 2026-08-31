@@ -25,7 +25,7 @@ one that refuses.
 
 **The active iteration is derived from the pool, never from a date, and the milestone name is never
 typed.** The canonical wording, the predicate, and the measurement behind the tracker object are
-`/harness-engineering`'s *The iteration is the unit of work* — read them there rather than trusting a
+`/agents-configuration`'s *The iteration is the unit of work* — read them there rather than trusting a
 restatement here. What this command owes on top of that is one line of its own:
 
 > **Report the count of `ready` items carrying NO milestone, at session open.**
@@ -65,7 +65,7 @@ session already runs, and it is a precondition of this scoping rather than a nic
 **`ready` means the description is closed by whoever closes it on that lane — and on `loop` it is the
 owner's transition alone** (~~"the leads closed the description"~~, struck 2026-08-25 (#329): that was
 true of `product` and of no other lane, in the file the loop executes). The canonical wording is
-`/harness-engineering`'s `filed → **description closed**` and `filed → **ready**` rows — `product`
+`/agents-configuration`'s `filed → **description closed**` and `filed → **ready**` rows — `product`
 closes through both leads, `content` through `product-lead` alone, `loop` through `agents-lead` alone
 with the owner applying the label. The generic bar
 a description must clear to earn that label is `/definition-of-ready`. An Issue
@@ -74,12 +74,12 @@ without it is in the tracker but not executable, and the right move is to say so
 
 ~~**This command currently REFUSES to run on the harness repo.**~~ **It did until 2026-08-02, and the
 fix landed in the same slice that found it.** The first run of the state-model assessment
-(`/harness-engineering`) turned up that `tadeumendonca-skills` had no `product` label at all —
+(`/agents-configuration`) turned up that `tadeumendonca-skills` had no `product` label at all —
 it carried a separate 24-label taxonomy that was almost entirely unused — so the repo whose whole
 purpose is the loop could not be drained by the command that drains loops. Its backlog got worked by
 someone reading and judging, which is the failure the `ready` state exists to remove.
 
-The owner reconciled both repos to one vocabulary (`/harness-engineering`, *One vocabulary across every
+The owner reconciled both repos to one vocabulary (`/agents-configuration`, *One vocabulary across every
 repo*), so **this command now runs on either repo.** Kept as a correction rather than deleted, because
 the gap is the evidence for why the assessment is a standing rule.
 
@@ -87,7 +87,7 @@ the gap is the evidence for why the assessment is a standing rule.
 2026-08-28 (#339): that citation is wrong.** Amendment #5's own header reads *"`product-manager` gets a
 trigger, and the reviewer's output gets a budget"*; sequencing ownership is not what it decided. Per
 `documentation-standard`'s *cite the clause, not the line*, the live wording is
-`/harness-engineering`'s *Opening a session — decisions before work*: **"Starting a slice that is not
+`/agents-configuration`'s *Opening a session — decisions before work*: **"Starting a slice that is not
 the top of the stated order requires `product-lead` to have returned a new order, or the session records
 that the order is unchanged."** Invoke it at session start; do not substitute a heuristic here.
 
@@ -114,13 +114,13 @@ The routing above is unaffected — amendment #5 genuinely does not decide seque
 citation stays retired.
 
 **What `product-lead` does NOT order: the `loop` block.** The owner's standing rule fixes it ahead of
-every `product` item at planning time. The canonical wording is `/harness-engineering`'s
+every `product` item at planning time. The canonical wording is `/agents-configuration`'s
 *Loop before product — a planning-time COMPOSITION rule*, which carries the eligibility escape and
 states in its own words that nothing gates it. `product-lead` orders **within** what the owner composed; it does not
 compose. In this repo there is no conflict to reconcile at all — `product-lead` is not dispatched on
 `loop` intake here (ADR-0002 amendment #14), so the rule fills a vacuum rather than overriding anyone.
 
-**And the `loop` block MAY travel as one branch and one MR** — `/harness-engineering`'s
+**And the `loop` block MAY travel as one branch and one MR** — `/agents-configuration`'s
 *The `loop` block MAY be carried as one branch and one MR*. It is a **permission the owner exercises at
 planning**, never something this drain composes on its own: read the ordered body, and if it says the
 block is one batch, work it as one. **The default is unchanged and per-item.** More than one batch per
@@ -151,7 +151,7 @@ list, and he has said repeatedly that a decision list makes him rebuild the cont
 | a decision pending on the owner | the **`blocked`** label — already queried by the *Reporting* section below |
 | an outstanding `APPROVE-PENDING-HUMAN` at the current head | `zombie-loop-detect.sh` already reads exactly this artifact at `Stop` — reuse it, do not build a second reader |
 
-**The estimate class is the one that is new**, and `/harness-engineering`'s *Estimation* section is where
+**The estimate class is the one that is new**, and `/agents-configuration`'s *Estimation* section is where
 its vocabulary, its estimator sets per issue type and the median-of-isolated-dispatches rule live. Read
 them there; this is the gate, not a second definition.
 
@@ -181,7 +181,7 @@ pendency set is bounded by that iteration's contents rather than by the whole ba
 
 ## Decisions first, then work
 
-Per `/harness-engineering`, "Opening a session": **collect the pending owner decisions across the
+Per `/agents-configuration`, "Opening a session": **collect the pending owner decisions across the
 whole queue and ask them as a batch, before choosing what to build.** One conversation unblocks
 everything at once; one question per slice produces one stall per slice.
 
@@ -203,7 +203,7 @@ above included. **`--limit 100` is part of the claim, not tidiness:** the defaul
 open issues, so the same command without it silently drops the tail — which is where stale items live.
 
 **Why the line belongs here and nowhere else.** Nothing in the loop reads the open queue: every
-`gh issue` call in `hooks/scripts/` is a write path. `/harness-engineering`'s *"Closing an issue is a
+`gh issue` call in `hooks/scripts/` is a write path. `/agents-configuration`'s *"Closing an issue is a
 step, with a criterion"* already specifies the pruning pass and gives it **no trigger** — a mandate with
 no trigger, which is the shape this repo names as a document rather than a mechanism. Naming staleness at
 session open is the trigger, and it is the cheapest one: the session is already reading the queue to pick
@@ -231,14 +231,14 @@ That is the timing. What follows is the exception path for what you *discover* m
 
 ## Per slice — the loop, unchanged
 
-Follow `/harness-engineering`. Nothing here relaxes it:
+Follow `/agents-configuration`. Nothing here relaxes it:
 
 - Plan first for anything non-trivial; the two leads consolidate **one** demand before the build.
 - Thin vertical slice, end to end, finished **through merge** before opening the next. **Where the owner
   composed the `loop` block as one batch, the slice is the batch** — one branch, one MR, commits still
   separated per issue — and *"before opening the next"* is measured against that unit, not against each
   Issue in it. WIP=1 is satisfied either way, since a batch is one branch and one PR by construction.
-- WIP is bounded per `/harness-engineering` — read it there rather than trusting a restatement, and
+- WIP is bounded per `/agents-configuration` — read it there rather than trusting a restatement, and
   note the guard enforcing it may lag the rule (`product-lead` carries the caveat).
 - Every gate green with real evidence, and the `quality-assurance` on every PR. It merges the safe
   class ~~and escalates the boundary class~~ **and the boundary class, escalating only the four holds
@@ -255,7 +255,7 @@ Follow `/harness-engineering`. Nothing here relaxes it:
   `developer`, so "denies every subagent" is no longer accurate — but a **review** is still denied,
   which is the case this bullet is about.)* The **main loop may open
   issues**, and should: recording something the owner asked for is not generating demand. The guard
-  asks rather than denies there, so the owner decides per issue. See `/harness-engineering`,
+  asks rather than denies there, so the owner decides per issue. See `/agents-configuration`,
   *Review does not open work* — which is about reviews, not about the queue being unwritable.
 
 ## What autonomy does NOT extend to
@@ -395,7 +395,7 @@ when this slice merges**:
 
 ```
 git grep -l "retrospect" 5cfea0b -- commands skills agents
-# → agents/product-lead.md, skills/harness-engineering/SKILL.md — two files that MENTION the word
+# → agents/product-lead.md, skills/agents-configuration/SKILL.md — two files that MENTION the word
 git cat-file -e 5cfea0b:commands/retrospective.md
 # → exit 128, the path is not in that tree: nothing an owner or a drain could invoke
 ```
@@ -501,7 +501,7 @@ why two arithmetic conditions failed before either of them.
 **Exhaustion is no longer the end of the SESSION, only of the drain.** The closing ceremonies run against
 the exhausted iteration and the session's stop is the planning handoff, which is the owner's. Two
 consequences worth stating because nothing enforces either: an empty pool from a **mistyped** milestone is
-indistinguishable from a drained one (`/harness-engineering`, rule 1 — enumerate, never name), and a
+indistinguishable from a drained one (`/agents-configuration`, rule 1 — enumerate, never name), and a
 ceremony run over an iteration that never existed reads exactly like a completed iteration.
 
 **And a third since #338:** the ceremonies run against the **iteration**, not against the snapshot, so an
@@ -525,7 +525,7 @@ It replaced *"until the backlog is empty"* (#97) on the argument that the first 
 **human** and is therefore unreachable. True, and it shipped a version that fails because of the
 **loop** — which is worse, because it looks reachable.
 
-**What makes the new condition reachable is the pruning step** (`/harness-engineering`, *Closing an
+**What makes the new condition reachable is the pruning step** (`/agents-configuration`, *Closing an
 issue is a step*): a loop that only ever adds has no terminal state at any threshold. With a closing
 criterion, the queue can shrink, and "no open issue outranks the cost of continuing" becomes a real
 question rather than a formality.

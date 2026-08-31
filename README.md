@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 14 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 15 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -245,7 +245,7 @@ dispatches through.
 
 **Who closes a description on each lane is stated in ONE place, and it is not this one.** The canonical
 wording is the `filed → **description closed**` rows of the states table in
-[`skills/harness-engineering/SKILL.md`](./skills/harness-engineering/SKILL.md) — the file every persona
+[`skills/agents-configuration/SKILL.md`](./skills/agents-configuration/SKILL.md) — the file every persona
 preloads, read at the moment a dispatch is made. **This section is the narrative and points at it; the
 diagram above is a drawing of it.** Where the two disagree, the table wins.
 
@@ -353,7 +353,7 @@ the DoD, and the justification was false on the DoD's own terms — tier 1 on a 
 *description*, and every criterion in `skills/quality-gates/SKILL.md`'s Definition of Done has a subject
 that only exists after the build. **Struck here rather than corrected outright**, because
 `tadeumendonca-io` published a page from this section and a reader who took the old claim deserves to
-find out it changed; **corrected outright in `skills/harness-engineering/SKILL.md`**, where struck text
+find out it changed; **corrected outright in `skills/agents-configuration/SKILL.md`**, where struck text
 is tokens every persona pays on every dispatch to read a rule that no longer holds. The corrected
 sentence is promoted verbatim from that consuming page rather than drafted fresh.
 
@@ -554,7 +554,7 @@ was built to avoid.
 
 <!-- claim id=0004 class=DERIVED -->
 
-**Skills carry the conventions so the model does not re-invent them.** **14 skills + autonomy-on**,
+**Skills carry the conventions so the model does not re-invent them.** **15 skills + autonomy-on**,
 `autonomy-off`, `new-issue`, `blueprint` and `retrospective`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
@@ -636,7 +636,7 @@ them.
   stale. `versioning` used to be a fifth entry here;
   #258 folded it into `devops`, so the entry disappeared and the content travels inside the skill already
   loaded. **`definition-of-ready` was deliberately NOT added here** — `agents-lead` takes no part in
-  closing a `product`/`content` description (`/harness-engineering`, *Intake*); it is dispatched on
+  closing a `product`/`content` description (`/agents-configuration`, *Intake*); it is dispatched on
   `loop`-typed proposals only, where `ready` is an owner-only transition it never performs. It remains
   the persona most exposed to staleness, a real tension a frozen
   preload creates that its own brief names as a residual rather than resolves.
@@ -682,7 +682,7 @@ non-preloaded skill is: typed as `/definition-of-done`, or via the `Skill` tool 
 **`planning-poker` (13,112 B, #266) is deliberately preloaded by NO persona either, and for a stronger
 reason than `definition-of-done`'s.** This loop runs no human estimation ceremony at all — the roster
 that would once have held one (`scrum-master`, `product-owner`, `product-manager`) was absorbed into
-`product-lead`, and the loop's own thesis (`/harness-engineering`) replaced story points with mechanical,
+`product-lead`, and the loop's own thesis (`/agents-configuration`) replaced story points with mechanical,
 agent-graded gates as the thing that decides whether work is done. No persona in this roster *runs* a
 planning poker round, *diagnoses* one, or *designs* one at dispatch time — unlike `definition-of-done`,
 where `quality-assurance` at least *applies* a concrete instance of the concept the skill defines, nothing
@@ -758,10 +758,11 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library: 14 skills, one directory each, at one level under `skills/`.
+The library: 15 skills, one directory each, at one level under `skills/`.
 
 | skill | what it decides | whose domain |
 |---|---|---|
+| `agents-configuration` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `backend` | Backend (BFF-on-Lambda) | `developer` |
 | `cloud-infrastructure` | Cloud infrastructure (AWS) | `developer` |
 | `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `developer` |
@@ -770,8 +771,8 @@ The library: 14 skills, one directory each, at one level under `skills/`.
 | `definition-of-ready` | Definition of Ready — the bar a work item clears before it is buildable | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `devops` | Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and | `developer` · `agents-lead` · `tech-lead` (#227) |
 | `documentation-standard` | Documentation — the general standard and the ADR practice | `developer` (Part I, general docs) · `tech-lead` · `agents-lead` — Part II, ADR practice split by domain (#223) |
+| `engineering-standards` | Apply the owner's engineering standards — the two tiers, the eleven principles, and the few rules | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `frontend` | Frontend (React SPA) | `developer` |
-| `harness-engineering` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `license` | Apply the repository licensing standard in any <project> repo. | `developer` |
 | `planning-poker` | Planning Poker — consensus estimation, and what it is actually for | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `published-voice` | The owner's published voice — the shared ruler | `content-writer` · `content-reviewer` — the pair it was extracted for (#317) |
@@ -1506,7 +1507,7 @@ distributions do not collide — the repository root stays a Claude Code plugin,
 the same `skills/` tree the Claude Code manifest declares, and `hooks/scripts/kiro-power.test.sh`
 re-runs the generator into a temporary directory and diffs it against what is committed — so the two
 trees cannot drift, in either direction, without CI going red. The conversion is not a copy: **none of
-the 14 source skills carries a `name:` key** (`grep -c '^name:' skills/*/SKILL.md` → `0` for all
+the 15 source skills carries a `name:` key** (`grep -c '^name:' skills/*/SKILL.md` → `0` for all
 fourteen), because Claude Code derives the identifier from the directory, while Kiro validates
 `name` **and** `description` in the frontmatter. The generator synthesises it, and rewrites the
 library's relative `../../docs/adr/…` link targets to absolute URLs, which are the only form that still

@@ -443,7 +443,7 @@ only because the subject genuinely is positional. Re-run the command; do not tru
 instrument all name records that are **live**, so the question has never been forced. Two are certain
 because they were read in place, and both records they name exist: `hooks/scripts/permission-guard.sh`
 — span opening at line 961, citing ADR-0004 on that same line — and
-`skills/harness-engineering/SKILL.md` — span opening at line 501, citing ADR-0011 two lines later at
+`skills/agents-configuration/SKILL.md` — span opening at line 501, citing ADR-0011 two lines later at
 503, which is exactly why a line-level grep cannot see it. The population is not claimed to be
 complete, and whoever executes the owner's answer must enumerate it by reading rather than by running a
 grep.

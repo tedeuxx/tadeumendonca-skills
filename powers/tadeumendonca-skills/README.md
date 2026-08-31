@@ -31,7 +31,7 @@ copy nothing, so the steps above can appear to work and leave you with an empty 
 
 ## What this ships, and what it does not
 
-**Ships:** the skills — 14 dense, project-agnostic engineering guides.
+**Ships:** the skills — 15 dense, project-agnostic engineering guides.
 
 **Does not ship:** the harness's persona briefs (`agents/`), its `PreToolUse` permission hooks
 (`hooks/`) or its merge gates. **This export carries the knowledge layer and not the enforcement layer
@@ -90,7 +90,7 @@ pre-support build does, not as a threshold you can compare a version string to �
 not from the same series, so only the named release and the dates are comparable.
 
 **Verify against your own Kiro version before relying on it:** after installing, confirm that
-`~/.kiro/powers/installed/tadeumendonca-skills/skills/` contains 14 directories. The `installed/`
+`~/.kiro/powers/installed/tadeumendonca-skills/skills/` contains 15 directories. The `installed/`
 segment is not optional and the last segment is the power name, which Kiro derives from the final
 path component of the URL above. If that directory does not exist or is empty, your build predates the
 format and nothing here is loaded.

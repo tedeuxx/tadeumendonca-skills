@@ -1,5 +1,5 @@
 ---
-description: Operate DevOps for a `<project>` repo — GitHub Actions, Terraform Cloud, branching, the pipeline-only IaC floor, numeric SemVer, the Claude Code GitHub App, and SonarCloud (setup, CI step, gate wiring). Use when wiring a pipeline, granting CI a role, cutting a release, bumping SemVer, or a Sonar gate is red. Not for Terraform config (see cloud-infrastructure), state machine (see harness-engineering), the gate list Sonar sits inside (see quality-gates), or the pre-merge pass (see code-review).
+description: Operate DevOps for a `<project>` repo — GitHub Actions, Terraform Cloud, branching, the pipeline-only IaC floor, numeric SemVer, the Claude Code GitHub App, and SonarCloud (setup, CI step, gate wiring). Use when wiring a pipeline, granting CI a role, cutting a release, bumping SemVer, or a Sonar gate is red. Not for Terraform config (see cloud-infrastructure), state machine (see agents-configuration), the gate list Sonar sits inside (see quality-gates), or the pre-merge pass (see code-review).
 purpose: hold the pipeline, the state backend, branching and the permission model in one place, so an infrastructure mutation has exactly one route and that route is CI
 ---
 
@@ -13,7 +13,7 @@ Pipelines are **independent per repo** — never trigger one repo's pipeline fro
 
 ## Pick the model first
 
-Determine the repo's loop model (`/harness-engineering`) before configuring protection, writing a deploy
+Determine the repo's loop model (`/agents-configuration`) before configuring protection, writing a deploy
 workflow, or writing a single allow/deny entry. **How to tell:** the repo's `CLAUDE.md` states it.
 Otherwise, count environments — more than one → `gitflow-multi-env`; one (or none, for a consumed
 artifact) → `trunk-single-env`.
@@ -408,7 +408,7 @@ boundary (risky) or gate everything (slow) — both break cadence.
 
 GitHub Issues per repository — no central backlog repo. Review open issues at session start; on
 delivering a plan item, open/close its issue. Product ownership stays with the human. The live label
-vocabulary is `product`/`content`/`ready`/`blocked`/`reader-facing` — see `/harness-engineering`. (The
+vocabulary is `product`/`content`/`ready`/`blocked`/`reader-facing` — see `/agents-configuration`. (The
 retired `type:`/`priority:`/`phase:` scheme is documented in `github-actions`'s own history if you need
 the shape a `semver:`-labeled `gitflow-multi-env` repo still uses.)
 

@@ -519,15 +519,25 @@ where a sixth value can be argued on evidence rather than on the first two rows 
 `tipo == knowledge`), never a second table. The `skill` class is declared `partial` above; six carriers
 have no row yet, named there with the reason.
 
-### 0024 · the loop itself, and the judgment inside it
+### 0024 · the loop itself, and the intent behind its shape
 
 - **tipo:** knowledge
-- **carrier:** `skills/harness-engineering/SKILL.md`
-- **descrição:** The universal preload — the state machine, the intake chain, the inner-loop steps, and eleven principles in two tiers.
-- **propósito:** Every actor in this loop needs the same answer to *where am I, who acts next, and what records that it happened* — and that is not domain-specific the way the rest of the library is. It is preloaded by every profile so that the one thing nobody may improvise is the loop.
-- **o que faz:** States the two loop models and how to tell which one a repository runs, the issue types and their states with the artifact that records each transition, what "delivered" means against hygiene, the closing criteria, and the two tiers of principle — a floor that never bends and a dial calibrated to blast radius.
-- **o que não faz:** It does not define **done** or hold the gate tables, it does not carry the permission zones or the branching topology, and it does not define the SDLC-generic meaning of *ready* — three neighbours own those, and the boundary is stated in its own trigger so the model does not reach here for them.
-- **citação:** > "Not what "done" means (see quality-gates), the permission zones and CI/CD workflows (see devops), or the generic, SDLC-wide meaning of ready (see definition-of-ready)."
+- **carrier:** `skills/agents-configuration/SKILL.md`
+- **descrição:** The universal preload — this loop's intentional design: why it is shaped this way, the state machine, the intake chain, the inner-loop steps.
+- **propósito:** Every actor in this loop needs the same answer to *where am I, who acts next, and what records that it happened* — and, above that, *why the loop is shaped this way*, because a state table cannot enumerate the cases an actor will actually meet. It is preloaded by every profile so that the one thing nobody may improvise is the loop.
+- **o que faz:** States the two loop models and how to tell which one a repository runs, the issue types and their states with the artifact that records each transition, the iteration axis and how the active one is derived, the closing criteria, and the merge classes — each with the intent that produced it rather than the rule alone.
+- **o que não faz:** It does not carry the portable engineering judgment (that half was split out at #381), it does not define **done** or hold the gate tables, it does not carry the permission zones or the branching topology, and it does not define the SDLC-generic meaning of *ready* — four neighbours own those, and the boundary is stated in its own trigger so the model does not reach here for them.
+- **citação:** > "Not the portable judgment (see engineering-standards), what "done" means (see quality-gates), the permission zones (see devops), or the generic meaning of ready (see definition-of-ready)."
+
+### 0045 · the engineering judgment that survives leaving this loop
+
+- **tipo:** knowledge
+- **carrier:** `skills/engineering-standards/SKILL.md`
+- **descrição:** The portable half of the former universal preload — two tiers, eleven principles, delivery against hygiene, and the human residual.
+- **propósito:** A harness's judgment and a harness's machinery are indistinguishable while they live in one file, and the whole job of a blueprint is telling a portable rule from a local accident. Splitting them at the source makes the export honest instead of asking a renderer to make the distinction at projection time.
+- **o que faz:** States the mechanical-or-it-is-not-real test, the two tiers (a floor that never bends and a dial calibrated to blast radius), the eleven principles as defaults plus their triggers to deviate, what counts as delivered against hygiene, what an agent does while blocked on someone it does not control, and what is left to the human.
+- **o que não faz:** It states that a work-in-progress bound exists and deliberately does **not** say what this loop's bound is — that, its correction, what it protects and the measurement showing nothing enforces it are all local. It also holds no state machine, no intake chain and no gate table. The cut was made on one test — *would this still be true in a project that does not run this loop?* — and the operational ruler it was applied with is stated in the file: nothing here names a persona, a hook, an ADR or an Issue of this repository.
+- **citação:** > "Not this loop's own machinery, state machine or WIP rule (see agents-configuration), and not what done means concretely (see quality-gates)."
 
 ### 0025 · where a working file goes
 
@@ -577,7 +587,7 @@ have no row yet, named there with the reason.
 - **propósito:** Every guarantee in this section reduces to one test — *is the effect contained in the git-tracked tree, or does it escape?* — and that test is model-independent. What changes between loop models is only **which command** crosses the line, which is why the branching topology and the permission zones belong in one place rather than two.
 - **o que faz:** Carries the two branching shapes, the identity model that removes long-lived cloud keys, the secret scope-and-naming standard, the workflow set, the numeric versioning rules and their loop guard, the remote state backend, and the allow/ask/deny zones per loop model. Infrastructure mutation is pipeline-only: plan on the request, apply on the merge, never from a laptop.
 - **o que não faz:** It does not carry the Terraform configuration itself, the state machine, or the gate list its quality step sits inside — three neighbours own those. And it is explicit that the merge command is **deliberately not** a permission rule: whether a merge needs the human depends on the **class** of the change, and a matcher reading a command string cannot see a class.
-- **citação:** > "Not for Terraform config (see cloud-infrastructure), state machine (see harness-engineering), the gate list Sonar sits inside (see quality-gates), or the pre-merge pass (see code-review)."
+- **citação:** > "Not for Terraform config (see cloud-infrastructure), state machine (see agents-configuration), the gate list Sonar sits inside (see quality-gates), or the pre-merge pass (see code-review)."
 
 ### 0030 · what "done" means here, and the gates that prove it
 
@@ -607,7 +617,7 @@ have no row yet, named there with the reason.
 - **propósito:** A strong definition of done **cannot repair a story that was ambiguous when the builder started**. The two gates sit at opposite ends of the same lifecycle, and a loop that enforces only one fails at the end it left open.
 - **o que faz:** Gives the checklist shape conditional on the project's surfaces, names the flagship failure — scope fragmented across overlapping items — and states the relationship to estimation.
 - **o que não faz:** It is generic by construction, so it holds **this** loop's intake mechanism nowhere: the two-lead chain, the label, and who may apply it live with the state machine. It also does not verify what shipped, which is the other gate's job.
-- **citação:** > "Not for what "done" means at delivery (see quality-gates), or this repo's own two-lead intake mechanism (see harness-engineering)."
+- **citação:** > "Not for what "done" means at delivery (see quality-gates), or this repo's own two-lead intake mechanism (see agents-configuration)."
 
 ### 0033 · the ruler for anything published in the owner's voice
 

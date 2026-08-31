@@ -62,6 +62,7 @@ SKILLS = ROOT / "skills"
 DEVELOPER = "`developer`"
 JUDGES = "`product-lead` · `tech-lead` · `agents-lead` · `quality-assurance`"
 WIELDER = {
+    "agents-configuration": JUDGES,
     "backend": DEVELOPER,
     "cloud-infrastructure": DEVELOPER,
     "code-review": DEVELOPER,
@@ -70,8 +71,8 @@ WIELDER = {
     "definition-of-ready": JUDGES,
     "devops": "`developer` · `agents-lead` · `tech-lead` (#227)",
     "documentation-standard": "`developer` (Part I, general docs) · `tech-lead` · `agents-lead` — Part II, ADR practice split by domain (#223)",
+    "engineering-standards": JUDGES,
     "frontend": DEVELOPER,
-    "harness-engineering": JUDGES,
     "license": DEVELOPER,
     "planning-poker": JUDGES,
     "published-voice": "`content-writer` · `content-reviewer` — the pair it was extracted for (#317)",

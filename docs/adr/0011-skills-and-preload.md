@@ -77,11 +77,11 @@ loop's own rules. Found by `agents-lead` on #183 §2; the grep above was re-run 
 
 **FALSIFIED — marker placed 2026-08-13, closed by [#224](https://github.com/tedeuxx/tadeumendonca-skills/issues/224)/[#237](https://github.com/tedeuxx/tadeumendonca-skills/pull/237).**
 The drift this paragraph reports no longer exists: `skills/principles/dev-loop/SKILL.md` was folded into
-`skills/harness-engineering/SKILL.md` by that consolidation, and both clauses now live in
+`skills/agents-configuration/SKILL.md` by that consolidation, and both clauses now live in
 `agents/quality-assurance.md:737,744` alongside the three that were already there. Re-run of the same
 grep, against the current tree:
 
-    grep -rn "own authority\|loop's own rules\|expansion of its own" agents/ skills/harness-engineering/SKILL.md
+    grep -rn "own authority\|loop's own rules\|expansion of its own" agents/ skills/agents-configuration/SKILL.md
     → 3 hits, all in agents/quality-assurance.md (737, 744, and the original three merged with these two)
 
 **What this costs the record, said here so a reader does not have to infer it:** this paragraph was the
