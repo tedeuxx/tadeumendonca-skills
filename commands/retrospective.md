@@ -88,8 +88,12 @@ finds them and appends nothing.
 
 **`agents-lead` writes `docs/retrospective/<iteration>/00-scope.md` first**, and it contains **query
 output only** — no findings, no reading of anyone's artifacts. It is the machinery persona because the
-orchestrator cannot write it: `hooks/scripts/orchestrator-write-guard.sh` denies the orchestrator any
-edit inside a git working tree, keyed on its empty `agent_type`.
+scope record is machinery: the queries, the repositories, the snapshot the rite ran against.
+~~It is the machinery persona because the orchestrator cannot write it:
+`hooks/scripts/orchestrator-write-guard.sh` denies the orchestrator any edit inside a git working tree,
+keyed on its empty `agent_type`.~~ **Struck 2026-08-31 (#375): that hook is deleted and the orchestrator
+CAN now write this file.** The instruction is unchanged and the reason for it is weaker — it is a
+routing convention held by whoever reads the diff, not a deny that would refuse the alternative.
 
 The scope record carries, each with the command that produced it:
 

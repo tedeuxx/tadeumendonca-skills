@@ -184,15 +184,24 @@ declaration green is the failure this file's own `citação` rule exists to prev
 - **o que não faz:** It does not read what is drafted, so it cannot tell private material from public. It contains the **route**, never the content — the truth of a published claim stays a persona's blocking judgement at the merge gate, with no instrument behind it.
 - **citação:** > "it never posts to a public surface, mechanically (permission-guard.sh rule 5e)"
 
-### 0006 · the orchestrator does not edit the tree with its own hands
+### 0006 · the main session is deliberately idle, delegating only
 
-- **tipo:** refusal
-- **carrier:** `hooks/scripts/orchestrator-write-guard.sh`
-- **descrição:** A `PreToolUse` guard on the file-writing tools, denying a main-context write inside any git working tree.
-- **propósito:** Between the two acts already denied — trunk push and merge — everything was open, so a session could do the whole build in the main context and never dispatch the builder that owns it. That is not a floor violation: the work is tracked and revertible. It is the **wrong layer**, and its cost is that no persona's judgement, and no gate keying on a persona, ever touches the change.
-- **o que faz:** Denies by **scope** — inside a git working tree → deny — rather than by allow-listing the exempt paths, so the session scratchpad and the memory layer stay writable without anyone deriving a path shape the harness is free to change. The matcher is a full enumeration (`Edit|Write|MultiEdit|NotebookEdit`) because a matcher is anchored, not a substring search, and the shorter spelling was measured leaving a notebook write through.
-- **o que não faz:** It guards the file-writing **tools** only. The `Bash`-side write routes — `sed -i`, `tee` — are deliberately not blocked, and the census below is what keeps them visible instead. It also decides nothing about whether the delegation that should have happened was the right one.
-- **citação:** > "Two matchers, two scripts, one concern each."
+- **tipo:** routing
+- **carrier:** `agents/scrum-master.md`
+- **descrição:** A tool-less profile that returns a selection record naming who should act next, before anything is dispatched — so acting outside the record is a visible discrepancy rather than an invisible act.
+- **propósito:** Between the two acts already denied — trunk push and merge — everything is open, so a session can do the whole build in the main context and never dispatch the builder that owns it. That is not a floor violation: the work is tracked and revertible. It is the **wrong layer**, and its cost is that no persona's judgement, and no gate keying on a persona, ever touches the change.
+- **o que faz:** States the obligation POSITIVELY. *The orchestrator may not write* is a rule by exclusion, where delegation is whatever is left over; *the main session is deliberately idle, delegating only* makes delegation the normal path and acting directly the deviation. The record names one profile, one stage and one item, and it is written before the act rather than checked after it.
+- **o que não faz:** **It refuses nothing.** Nothing stops the main session from editing a repository file, nothing reads the record's closing literal, and the record is landed by the very actor it describes — so it is self-attested. It also decides nothing about whether the delegation named was the right one.
+- **citação:** > "Nothing reads your record."
+
+**~~tipo: refusal · carrier: `hooks/scripts/orchestrator-write-guard.sh`~~ — the CARRIER changed at
+#375, and the id did not.** This registry's own rule is that only an *abandoned* obligation is
+tombstoned, and this one was not abandoned: the owner's ruling was that the hook *«nao deveria
+existir»* because it was a contingency, while the obligation it stood for — *«deixar a sessao principal
+intencionalmente ociosa somente delegando»* — is exactly what he restated. **What changed is `tipo`,
+from `refusal` to `routing`, which moves this row's `enforcement` from `denies` to `documents`.** That
+is the honest form and it is a downgrade: a foreign implementer reading this row before #375 could have
+built a control, and reading it now can only build an influence.
 
 ### 0007 · one slice in flight
 

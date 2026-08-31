@@ -1022,7 +1022,6 @@ flowchart LR
   H5["dispatch-metrics-start"]
   H6["dispatch-metrics-stop"]
   H7["zombie-loop-detect"]
-  H8["orchestrator-write-guard"]
   H9["orchestrator-tool-census"]
   H10["premature-pr-link-detect"]
   H11["dispatch-premise-guard"]
@@ -1034,7 +1033,6 @@ flowchart LR
 
   E1 --> H1
   E1 --> H2
-  E1 --> H8
   E1 --> H11
   E1 --> H16
   E1 --> H12
@@ -1054,7 +1052,7 @@ flowchart LR
 
 | event | when it fires | denies? | hooks wired here | purpose |
 |---|---|---|---|---|
-| **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard`, `wip-guard` (matcher `Bash`) · `orchestrator-write-guard` (matcher `Edit\|Write\|MultiEdit\|NotebookEdit`) · `dispatch-premise-guard` (matcher `Agent`) · `closure-artifact-guard` (matcher `Bash`) · `mcp-guard` (matcher `mcp__.*`) | refuse the irreversible floor and a PR that overlaps an open one, *before* either happens — refuse the main agent's own edits inside a git working tree, which is a ROUTING rule rather than a floor one (#319) — refuse a dispatch whose brief stamps a repository state that is not true, verified in the repository the brief's own citations resolve to rather than in `cwd` (#326) — and refuse `gh issue close` on an Issue whose own body declares an invocable artifact that does not resolve in this tree (#337) |
+| **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard`, `wip-guard` (matcher `Bash`) · `dispatch-premise-guard` (matcher `Agent`) · `closure-artifact-guard` (matcher `Bash`) · `mcp-guard` (matcher `mcp__.*`) | refuse the irreversible floor and a PR that overlaps an open one, *before* either happens — refuse a dispatch whose brief stamps a repository state that is not true, verified in the repository the brief's own citations resolve to rather than in `cwd` (#326) — and refuse `gh issue close` on an Issue whose own body declares an invocable artifact that does not resolve in this tree (#337). ~~`orchestrator-write-guard` (matcher `Edit\|Write\|MultiEdit\|NotebookEdit`) — refuse the main agent's own edits inside a git working tree, a ROUTING rule rather than a floor one (#319)~~ **removed 2026-08-31 (#375)** — the owner's diagnosis was that it was a contingency rather than a design, and what replaces it is `scrum-master`'s selection record naming who acts before acting: detection, not prevention. **This is the only registration this repo has ever removed, and the matcher going with it is the reason the next paragraph exists.** |
 | **`SessionStart`** | a session begins or resumes | no | `preflight`, `session-wip`, `session-plugin-version` | say at the door that the session is degraded and will be refused at the first prompt — inject the open queue — and warn when the installed build is not the merged one |
 | **`SubagentStart`** | a subagent is dispatched | no | `dispatch-metrics-start` | best-effort dependency probe only — see below; does not post |
 | **`SubagentStop`** | a subagent finishes | no | `dispatch-metrics-stop` | log rework rounds, time, output size and token cost for the dispatch as a structured Issue comment (#209) |
@@ -1083,8 +1081,15 @@ the load-bearing word, and #319 measured how strict: the match is ANCHORED, not 
 A matcher `"rit"` did not fire for `Write` (control: `"Write"` fired on the identical call), and
 `"Edit|Write"` did not fire for `NotebookEdit` — which is a real, deferred, file-writing tool in this
 build, and it mutated a file inside a git working tree with the guard registered and silent. So a
-matcher is an ENUMERATION and inherits every risk an enumeration has; `orchestrator-write-guard` names
-four tools, and its suite asserts the registration so narrowing it goes red rather than quiet. And
+matcher is an ENUMERATION and inherits every risk an enumeration has. ~~`orchestrator-write-guard` names
+four tools, and its suite asserts the registration so narrowing it goes red rather than quiet.~~
+**Struck 2026-08-31 (#375): that hook is deleted, and no hook in this repo registers on a file-writing
+matcher any more.** The measurement is NOT struck and is deliberately restated here without its
+carrier, because it is a property of the runtime rather than of the hook that found it — the full
+record, including the second half a matcher fix would not have closed (`NotebookEdit`'s payload carries
+`notebook_path` and no `file_path`, so a guard reading only `.tool_input.file_path` allows every
+`NotebookEdit` even with the matcher naming it), is ADR-0004's *"the runtime facts a deleted guard
+measured"* section. And
 `SessionStart`'s injected context reaches the main session but **not a subagent dispatched later**, which
 is how a persona ends up running against a brief the session already knows is stale.
 
@@ -1126,7 +1131,7 @@ only loop state, and it never blocks — `additionalContext` only, debounced to 
 session via a marker file under the checkout's own `.git/` — see
 `hooks/scripts/zombie-loop-detect.sh` for the full design record and what it deliberately cannot catch.
 
-`orchestrator-write-guard` and `orchestrator-tool-census` are one pair, and the split between them is
+~~`orchestrator-write-guard` and `orchestrator-tool-census` are one pair, and the split between them is
 the whole decision (#319). **The guard denies exactly one class**: a file-writing call whose
 `agent_type` is empty — the main agent — resolving to a path inside a **git working tree**. It is a
 routing rule, not a floor rule: the identical edit goes through the moment it is made by the persona
@@ -1135,7 +1140,23 @@ untouched, deliberately broader than an allowlist because a deny that caught the
 the loop dead. The polarity is *deny by scope*, never *allow-list the exempt paths*: the session
 scratchpad — where PR bodies and verdict text are composed for `--body-file` — is exempt because it
 holds no repository, not because it is named, which keeps the rule correct when the harness moves its
-temp root. **The census gates nothing and cannot**: a `Stop` hook fires after the work happened. It
+temp root.~~
+
+**Struck 2026-08-31 (#375) — the guard is DELETED, and the census is no longer half of a pair.** The
+owner's diagnosis was that it was a contingency rather than a design: *«entendi que foi uma contingencia
+entao, nao era intencional … o que queriamos era deixar a sessao principal intencionalmente ociosa
+somente delegando. isso o SM ajuda.»* Its own header agreed, recording that the act it stopped was *"not
+a floor violation … it is the WRONG LAYER."* **Struck rather than deleted because it is the paragraph
+that told every reader the routing rule was mechanical**, and anyone who read it took that away.
+
+**What replaces it is not another lock.** `scrum-master` (#375) returns a **selection record** naming
+who should act, *before* acting, so the main session acting directly becomes a visible discrepancy
+between a record and a commit. **That is detection and not prevention, and it is weaker than the guard
+in two ways worth stating rather than discovering:** the record is landed by the orchestrator itself, so
+it is self-attested; and nothing greps `SELECTION-RECORD`, so no layer reports the discrepancy either.
+What the census already covers is unchanged and is now the whole of the mechanical half.
+
+**The census gates nothing and cannot**: a `Stop` hook fires after the work happened. It
 reports the main agent's own tool calls as a named list, write/post separated from reads, `Bash`
 classified by the act it ran (`gh issue comment` is a post; `gh issue view` is a read) so the posting
 class is not empty by construction. Two costs, handled rather than inherited: it counts **attempts** —
@@ -1299,7 +1320,7 @@ by hand:
 | **Skills** | yes — **14** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **5** (`autonomy-on`, `autonomy-off`, `new-issue`, `blueprint`, `retrospective`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **8 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`, `scrum-master`) | dispatched by name via `Task` |
-| **Hooks** | yes — **`hooks.json` registers 16** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `orchestrator-write-guard`, `dispatch-premise-guard`, `closure-artifact-guard`, `mcp-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **16 registrations over 14 scripts**: `closure-artifact-guard` and `preflight` are each registered twice, on the two events their two halves need, and that is why the registration count is the honest number rather than a file count |
+| **Hooks** | yes — **`hooks.json` registers 15** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `dispatch-premise-guard`, `closure-artifact-guard`, `mcp-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **15 registrations over 13 scripts**: `closure-artifact-guard` and `preflight` are each registered twice, on the two events their two halves need, and that is why the registration count is the honest number rather than a file count. **Both figures fell by one at #375** (16/14), when `orchestrator-write-guard` was removed — the first registration this repo has ever deleted rather than added |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
 | LSP servers | **no** | — | no `.lsp.json` |

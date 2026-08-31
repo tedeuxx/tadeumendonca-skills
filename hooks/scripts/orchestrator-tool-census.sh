@@ -4,9 +4,15 @@
 # did with its own hands this session, as a named list, with the write/post class separated from the
 # reads.
 #
-# ── WHAT THIS EXISTS FOR (#319) ─────────────────────────────────────────────────────────────────
-# `orchestrator-write-guard.sh` (PreToolUse) closes the one class where the act is unambiguous and the
-# delegation target exists: editing a file inside a git tree. Everything else the #319 review looked at
+# ── WHAT THIS EXISTS FOR (#319), AND WHAT IT INHERITED (#375) ──────────────────────────────────
+# ~~`orchestrator-write-guard.sh` (PreToolUse) closes the one class where the act is unambiguous and the
+# delegation target exists: editing a file inside a git tree.~~ **STRUCK 2026-08-31 (#375): that hook is
+# DELETED, on the owner's ruling that it was a contingency rather than a design. So this file is no
+# longer half of a pair — it is the WHOLE of the mechanical half, and it fires at `Stop`, after the act.
+# Nothing refuses a main-context edit any more. The replacement is `scrum-master`'s selection record,
+# which names who should act before acting: detection, not prevention, and self-attested, since the
+# orchestrator lands the record itself. Read every "this is the observation half" claim below with that
+# in mind — there is no refusal half behind it now.** Everything else the #319 review looked at
 # — reads, `gh issue create`, the `gh pr comment` / `gh issue comment` routes rule 5e ALLOWS the
 # orchestrator — is deliberately NOT mechanised, and this hook is the reason that decision is
 # affordable. A hook sees `grep` and a path, never whether the answer was already in a subagent's
@@ -46,8 +52,11 @@
 # The complaint on #319 was about posting — `gh issue comment`, `gh pr comment` — and every one of
 # those is a `Bash` call. A census that reported "Bash x31" would have an EMPTY post class by
 # construction, and would have been unable to see the thing it was built to see. It also picks up the
-# `Bash`-side write routes `orchestrator-write-guard.sh` deliberately does not block (`sed -i`, `tee`):
-# not blocked, but not invisible either.
+# `Bash`-side write routes that were never blocked (`sed -i`, `tee`) — and since #375 deleted
+# `orchestrator-write-guard.sh`, the `Edit`/`Write` tool routes are not blocked either. Not blocked, but
+# not invisible: this census is now the only observer of both classes, and #371 records that it is a
+# measurably imperfect one (it classifies on the first token, so a wrapper prefix lands a mutation in
+# the read bucket).
 #
 # ── WHERE THE DEBOUNCE STATE LIVES ─────────────────────────────────────────────────────────────
 # Under the checkout's own `.git/` directory, keyed by `session_id` — the same choice, for the same

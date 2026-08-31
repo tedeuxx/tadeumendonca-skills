@@ -76,10 +76,13 @@ hands it.
 
 **A repository-root scratch directory is refused by this rule, and naming one is the specific mistake
 this paragraph exists to stop.** It reads as ephemeral and is not: it sits at a predictable path inside
-a tracked tree, so the next reader resolves it, and — measured against
-`hooks/scripts/orchestrator-write-guard.sh` with the empty `agent_type` a typed command runs under —
-the write is **denied** wherever the workspace root is the repository root, which is the ordinary
-installed shape. **This harness carried exactly that directory once and retired it (#245)** — the one
+a tracked tree, so the next reader resolves it.
+~~and — measured against `hooks/scripts/orchestrator-write-guard.sh` with the empty `agent_type` a typed
+command runs under — the write is **denied** wherever the workspace root is the repository root, which
+is the ordinary installed shape.~~ **Struck 2026-08-31 (#375): that hook is deleted, so the write is no
+longer denied anywhere.** The rule survives on its first half alone, which was always the durable one —
+a predictable path inside a tracked tree is not ephemeral, whatever the permission layer happens to say
+about it this month. **This harness carried exactly that directory once and retired it (#245)** — the one
 obligation `docs/blueprint-registry.md`'s own `## History` note calls abandoned in this harness's
 history. Reinstating it in prose would restore a destination that is neither ignored nor writable.
 
@@ -89,14 +92,17 @@ artifact* in order to forbid the *ageing copy*, and an interchange with nothing 
 interchange. Struck rather than deleted because it stood from 2026-08-28 and is quoted in the registry
 row that describes this command — the narrowed sentence above is what that row now quotes.
 
-**A repository-relative output path is refused even where it would work.** Measured on 2026-08-29
-against `hooks/scripts/orchestrator-write-guard.sh`, one variable, payload `{"agent_type":"",
-"tool_name":"Write"}`: a `file_path` inside a git working tree returns `permissionDecision: deny`; the
-same path outside every tree returns nothing, which is allow. **A typed command runs in the main session,
-whose `agent_type` is empty by construction, so the deny is the ordinary case rather than the exotic
-one** — and in the single-repository shape most consumers install, a workspace-relative `tmp/` *is*
-inside the tree. The same instruction would then produce two behaviours decided by a property of the
-reader's machine, which is why the destination is the scratchpad and not a path relative to anything.
+**A repository-relative output path is refused by this rule, and it is now refused by NOTHING ELSE.**
+~~Measured on 2026-08-29 against `hooks/scripts/orchestrator-write-guard.sh`, one variable, payload
+`{"agent_type":"", "tool_name":"Write"}`: a `file_path` inside a git working tree returns
+`permissionDecision: deny`; the same path outside every tree returns nothing, which is allow.~~
+**Struck 2026-08-31 (#375) — the hook is deleted, so that measurement describes a build this plugin no
+longer ships.** Struck rather than deleted because it is the sentence that told a reader this rule had a
+mechanism behind it. **What survives is the argument, and it never depended on the hook:** in the
+single-repository shape most consumers install, a workspace-relative `tmp/` *is* inside the tree, so the
+same instruction produces two destinations decided by a property of the reader's machine. That is why
+the destination is the scratchpad and not a path relative to anything — and it is now held by this
+sentence and by review, with no layer able to refuse the alternative.
 
 ## Step 1 · locate the harness and stamp the export
 

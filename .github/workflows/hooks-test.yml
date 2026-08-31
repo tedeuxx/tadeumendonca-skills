@@ -111,9 +111,6 @@ jobs:
       - name: Run the skills-resolve suite
         run: bash hooks/scripts/skills-resolve.test.sh
 
-      - name: Run the orchestrator-write-guard suite
-        run: bash hooks/scripts/orchestrator-write-guard.test.sh
-
       - name: Run the orchestrator-tool-census suite
         run: bash hooks/scripts/orchestrator-tool-census.test.sh
 
