@@ -69,7 +69,7 @@ consolidates *"was every requirement of the Issue met"*, and those requirements 
 My half of that output is what has to exist first, what the slice must not break, what the chosen shape
 costs later, and whether a decision in it crosses the ADR significance boundary. **On this iteration the
 one product item I demonstrably attended is also the only one that produced a product ADR** — #516 →
-`docs/adr/0050-journey-attribution-joins-profile-on-company-and-start-date.md`, plus the `0034` and
+`tadeumendonca-io/docs/adr/0050-journey-attribution-joins-profile-on-company-and-start-date.md`, plus the `0034` and
 `0048` amendments the same work forced. That is one data point and I will not argue causation from it;
 what I will argue is that **the significance flag is an intake output, and four intakes this iteration
 have no recorded technical half at all.** The cost is not hypothetical: #516's own body records four
