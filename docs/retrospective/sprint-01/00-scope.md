@@ -166,6 +166,15 @@ one recorded dispatch.
 consulted — consulting it would spend a dispatch asking a persona that was never in the iteration to
 report on it.
 
+**Appended 2026-08-31 — the sentence above is the correct record of what the metric returned, and the
+metric was wrong.** The exclusion stood on zero `dispatch-metrics` records in both repositories; it was
+falsified **by artifact** during this rite's own run — `content-reviewer`'s pair had read six drafts
+over twelve `## Round` sections inside the iteration window, in `tadeumendonca-io`, so the persona
+demonstrably ran. It was then consulted **by hand**, under step 2's lower-bound clause (*"add a persona
+by hand when the owner knows it ran"*), and its file is in this diff. **The consequence is the useful
+part: the derived consult set is a lower bound in practice and not only in principle — it was wrong on
+its first run, and the rite's own clause is what caught it.**
+
 ### The three measured limits, travelling WITH the set
 
 **1 · The Issue number comes from the branch, by a fragile grep.** Re-verified at head:
