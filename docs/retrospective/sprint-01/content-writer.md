@@ -28,7 +28,7 @@ the other repository, entirely outside the iteration:
   open and closed alike:
   `gh issue list --repo tedeuxx/tadeumendonca-io --state all --label content --limit 300 --json number,milestone --jq '[.[]|select(.milestone!=null)]|length'` → **0**.
   Fourteen of them closed *inside* the iteration's window (2026-08-23 → 2026-08-30).
-- **Six `docs/content-review/<slug>.md` files were written in that window**, carrying **eleven `##
+- **Six `docs/content-review/<slug>.md` files were written in that window**, carrying **twelve `##
   Round` sections** between them
   (`grep -c '^## Round' docs/content-review/*.md` in `tadeumendonca-io` → 1, 2, 2, 2, 2, 3), across
   thirteen commits
@@ -39,7 +39,7 @@ the other repository, entirely outside the iteration:
 
 **The artifact that shows it, and it is the uncomfortable one:** this rite's own dispatch told me
 *"`content-reviewer` ran ZERO times this iteration (both repos), so nothing read your drafts against
-the same ruler."* **That is contradicted by artifact.** My pair read six drafts over eleven rounds
+the same ruler."* **That is contradicted by artifact.** My pair read six drafts over twelve rounds
 inside the window; what it did not do is leave a `dispatch-metrics` comment, because the work carried
 no Issue the branch-number grep could resolve to a milestoned item. The scope record is honest about
 being a lower bound; the inference drawn *from* it was not, and it was handed to me as fact.
@@ -109,7 +109,7 @@ where a published rule and a published falsifier disagree by one on a live artif
   `content-reviewer` any public post, and the rounds landing in `docs/content-review/<slug>.md` turned
   that constraint into an advantage: the rounds are in the diff, versioned, and read by the gate like
   any other change. Nothing about the window suggests a comment would have been better.
-- **The sourcing constraint, with no autonomous tier.** Six drafts, eleven rounds, and every place the
+- **The sourcing constraint, with no autonomous tier.** Six drafts, twelve rounds, and every place the
   source ran out was a stop rather than an invention. The rule that *nobody decides a draft is done*
   cost nothing this iteration and is the one rule I would not trade for throughput.
 - **The shared-ruler split.** Drafting and reviewing against the same sentences produced citable
