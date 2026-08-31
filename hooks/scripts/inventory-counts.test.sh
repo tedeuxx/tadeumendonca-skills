@@ -1566,12 +1566,32 @@ fi
 # CLAUDE.md still cannot reach a subagent, so the brief still has to state the destination itself, in
 # its own words, or a fresh dispatch has no way to know it.
 #
-# ONE PERSONA IS A GENUINE EXCEPTION, NOT AN OVERSIGHT. `product-lead` holds no `Write`/`Edit` grant and
-# writes no scratch file at all by design (its verdict returns as text; `quality-assurance` quotes it
-# onto the PR verbatim) — asserting "session scratchpad" against it would demand a sentence describing a
-# capability the brief deliberately does not have.
+# ~~ONE PERSONA IS~~ **TWO PERSONAS ARE** A GENUINE EXCEPTION, NOT AN OVERSIGHT. `product-lead` writes no
+# scratch file at all by design (its verdict returns as text; `quality-assurance` quotes it onto the PR
+# verbatim), and `scrum-master` (#375) holds **no `tools:` line at all** — no `Write`, no `Edit`, no
+# `Bash` — so its whole output is the text it returns. Asserting "session scratchpad" against either
+# would demand a sentence describing a capability the brief deliberately does not have.
+#
+# THE EXCEPTION IS A LIST AND NOT A DERIVATION, AND THAT IS A KNOWN WEAKNESS RATHER THAN A CHOICE OF
+# STYLE. The obvious derivation — *a brief declaring neither `Write` nor `Edit` takes the exception* —
+# would move `product-lead` to the ORDINARY branch, because its frontmatter has declared `Write` since
+# the iteration-sweep slice while the comment above went on describing it as having none. So a
+# derivation would redden a correct brief on a stale premise, and the honest form is a list plus this
+# paragraph naming why it is one. **If `product-lead`'s exception is re-examined, that stale premise is
+# the thing to examine**, and it is not this slice's.
 for brief in "$ROOT"/agents/*.md; do
   name="$(basename "$brief")"
+  if [ "$name" = "scrum-master.md" ]; then
+    if grep -qiF -- 'you write no scratch file' "$brief"; then
+      ok "agent brief — $name states its exception: no tools at all, writes no scratch file"
+    else
+      bad "agent brief — $name is expected to state it writes no scratch file at all (it declares no
+      tools). If that has changed — the profile now holds Write/Edit — this exception is stale AND so is
+      the argument the profile was admitted on; see ADR-0002's twenty-eighth amendment before removing
+      this branch."
+    fi
+    continue
+  fi
   if [ "$name" = "product-lead.md" ]; then
     if grep -qiF -- 'you write no scratch file' "$brief"; then
       ok "agent brief — $name states its exception: no Write/Edit, writes no scratch file"
@@ -7012,6 +7032,90 @@ if [ -n "$sm_problems" ]; then
   bad "scrum-master — the profile no longer holds the property it was admitted on:$sm_problems"
 else
   ok "scrum-master — the brief declares no tools, states the argument that rests on it and its own lack of a reader, and the estimator table excludes it in prose rather than by omission"
+fi
+
+# ===================================================================================================
+# THE MILESTONE ROUTE IS AN EXPLOITATION, AND EVERY SURFACE THAT DESCRIBES IT MUST SAY SO (#375)
+#
+# WHAT IS GATED HERE IS ONE SENTENCE, NOT A CONTROL, and the distinction is the whole reason this block
+# has a header this long. `scripts/milestone-create.sh` reaches the GitHub write API because neither the
+# settings matcher nor `permission-guard.sh` reads inside a script — the same blindness that makes
+# `python3 -c "…gh api -X POST…"` a back door. That is a defensible trade (a reviewed, named,
+# single-purpose instance of an open hole beats an unreviewed general one) and it is NOT "we found a
+# clean layer". **The failure this arm exists to prevent is a future edit that quietly reframes it as
+# the second thing**, because the honest framing is the only thing standing between a reader and the
+# belief that rule 5f closed the raw-API route. It did not; it closed the convenient spelling.
+#
+# THREE SURFACES CARRY IT AND ALL THREE ARE ASSERTED: the script's own header (read by whoever runs it),
+# rule 11's comment in the guard (read by whoever edits the floor), and the universal preload (read by
+# every persona on every dispatch). One of them going quiet is exactly the drift #329 measured, where a
+# rule lived on one surface and nothing could see it disagree with anything.
+#
+# WHAT NO ARM HERE CAN HOLD. It cannot tell whether the script does what its name says, whether the hole
+# is still open, or whether anyone read the sentence. It is a string-agreement check across three
+# hand-maintained files. Nothing more, and it says so rather than being read as coverage.
+MS_SCRIPT="$ROOT/scripts/milestone-create.sh"
+MS_GUARD="$ROOT/hooks/scripts/permission-guard.sh"
+MS_SKILL="$ROOT/skills/harness-engineering/SKILL.md"
+ms_problems=""
+ms_checked=0
+
+# 1 · the script exists, is executable, and is NOT in hooks/scripts/ — the last of which is a real
+#     constraint rather than tidiness: the `purpose:` gate above reads any `*.sh` there declaring a
+#     purpose as a mechanism that must be registered in hooks.json, and this is not a hook.
+if [ ! -r "$MS_SCRIPT" ]; then
+  ms_problems="$ms_problems
+    scripts/milestone-create.sh does not exist or is unreadable — the route rule 11 guards is gone,
+    and rule 11 is now a rule about nothing"
+else
+  ms_checked=$((ms_checked + 1))
+  [ -x "$MS_SCRIPT" ] || ms_problems="$ms_problems
+    scripts/milestone-create.sh is not executable; it is invoked as 'bash <path>' so this is not fatal
+    at runtime, and it is asserted because a non-executable script is the shape a committed hook has
+    silently no-opped in before"
+fi
+[ -e "$ROOT/hooks/scripts/milestone-create.sh" ] && ms_problems="$ms_problems
+    hooks/scripts/milestone-create.sh exists. This is not a hook and nothing registers it, so a copy
+    there is either an orphan under the purpose gate or a mechanism pretending not to be one."
+
+# 2 · the exploitation is stated on all three surfaces, each in its own words rather than one literal
+#     copied three times — a copied sentence is one edit away from being three stale ones.
+if [ -r "$MS_SCRIPT" ]; then
+  ms_checked=$((ms_checked + 1))
+  grep -qF -- 'THIS ROUTE WORKS BECAUSE A HOLE IS OPEN' "$MS_SCRIPT" || ms_problems="$ms_problems
+    scripts/milestone-create.sh no longer says in its own header that it depends on an open hole"
+  grep -qF -- 'no document here may claim the raw-API route is closed' "$MS_SCRIPT" \
+    || grep -qF -- 'may claim the raw-API route is closed' "$MS_SCRIPT" \
+    || ms_problems="$ms_problems
+    scripts/milestone-create.sh no longer forbids the claim that the raw-API route is closed"
+fi
+if [ -r "$MS_GUARD" ]; then
+  ms_checked=$((ms_checked + 1))
+  grep -qF -- 'AN EXPLOITATION, NOT A DESIGN' "$MS_GUARD" || ms_problems="$ms_problems
+    permission-guard.sh rule 11 no longer states that the route it guards is an exploitation"
+  grep -qF -- 'milestone-create' "$MS_GUARD" || ms_problems="$ms_problems
+    permission-guard.sh does not mention milestone-create at all; rule 11 is gone and the script is
+    guarded by nothing, which is strictly worse than never having built the route"
+fi
+if [ -r "$MS_SKILL" ]; then
+  ms_checked=$((ms_checked + 1))
+  grep -qF -- 'it is an EXPLOITATION rather than a design' "$MS_SKILL" || ms_problems="$ms_problems
+    the universal preload no longer states that the milestone route is an exploitation — this is the
+    surface every persona reads on every dispatch, so it is the one where a quiet reframing does most"
+  grep -qF -- 'unknown command "milestone" for "gh"' "$MS_SKILL" || ms_problems="$ms_problems
+    the universal preload no longer carries the measurement that makes rule 5f's remedy unexecutable"
+fi
+
+if [ "$ms_checked" -lt 3 ]; then
+  bad "milestone route — only $ms_checked of 4 surfaces were readable, so the agreement was NOT
+      asserted:$ms_problems"
+elif [ -n "$ms_problems" ]; then
+  bad "milestone route — a surface stopped saying what the route actually is:$ms_problems
+      The route reaches a write API because no permission layer reads inside a script. Rule 11's prompt,
+      not rule 5f, is the only thing standing there. A surface that stops saying so hands the next
+      reader a control that does not exist."
+else
+  ok "milestone route — the script, rule 11 and the universal preload each state that the route is an exploitation of an open hole (string agreement only; nothing here checks the hole or the script's behaviour)"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"

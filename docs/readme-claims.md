@@ -177,7 +177,7 @@ text in an entry — storing it here would rebuild the coupling the ids exist to
 
 - **class:** VERIFIED
 - **command:** `ls agents/*.md | wc -l`
-- **expects:** `7`
+- **expects:** `8`
 - **limit:** It counts brief **files**, not personas the roster claims — a brief added and never registered anywhere still moves this number, and a persona described in prose with no file does not. It also says nothing about the section's actual assertion, which is that those briefs preload only paths under `skills/`; that half is unfalsified here. The command was `find agents -maxdepth 1 -name '*.md' -type f | wc -l` until #325 dropped `find` from the head allow-list; `ls` with a glob is a slightly blunter instrument — it does not filter to regular files, so a *directory* named `something.md` under `agents/` would be counted. That is the whole of what changed, and it is accepted rather than worked around.
 
 ## 0002 · what travels to another harness, and who reads the gate's own verdict

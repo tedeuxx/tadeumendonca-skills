@@ -424,9 +424,33 @@ Creating one and closing one are both owner acts in the browser.
 never reads `state`. The predicate above derives the active iteration from *items*, so the one attribute
 milestones cannot expose is the one attribute the design does not consult. What it does cost is the
 source document's *"the iteration closes automatically"* clause, which is therefore **not adopted** —
-closing is a click. The alternative is unlisting `Bash(gh api:*)` from the global floor, which is the
-line standing between every persona and the raw write API; one click per iteration is cheaper than
-reopening that door.
+closing is a click.
+
+~~The alternative is unlisting `Bash(gh api:*)` from the global floor, which is the line standing
+between every persona and the raw write API; one click per iteration is cheaper than reopening that
+door.~~ ~~*"Creating one and closing one are both owner acts in the browser."*~~
+
+**Struck 2026-08-31 (#375) for CREATION only — CLOSING is still a click, and the two halves separate.**
+The owner's requirement is that the Scrum rites be executable end to end — *«voce deveria ao final
+dessa reconfiguracao do loop conseguir realizar intencionalmente todas atividades previstas em ritos de
+scrum»* — and creation had **no route at all**: `gh milestone` does not exist
+(`gh milestone --help` → `unknown command "milestone" for "gh"`), so rule 5f's prescribed remedy
+(*"use the gh subcommand for the act instead"*) is **unexecutable**, not merely inconvenient.
+
+**The route is `scripts/milestone-create.sh`, and it is an EXPLOITATION rather than a design.** It
+reaches the write API because **neither the settings matcher nor `permission-guard.sh` looks inside a
+script** — the same blindness that makes `python3 -c "…gh api -X POST…"` a back door, measured against
+the live guard. **So nothing here may claim the raw-API route is closed**, and the floor entry the
+struck sentence protects is untouched: it was never the thing standing in the way. What guards the act
+is `permission-guard.sh` **rule 11** — a subagent is denied, the orchestrator is asked, rule 10's exact
+split, and the owner's answer to that prompt is the HITL verification #365 demands. The full argument,
+the rejected endpoint carve-out and the price of accepting the hole are in ADR-0004's 2026-08-31
+amendment.
+
+**One measurement that could make the route unnecessary is NOT taken:** whether
+`gh issue edit --milestone "<new title>"` *creates* a missing milestone. `--help` says *"by name"*,
+which is a read of documentation and not a measurement, and rule 10 denies that command to the very
+persona that would settle it. If it turns out to create, delete the script rather than keeping it.
 
 ### `loop`-typed items ARE iteration-assignable
 

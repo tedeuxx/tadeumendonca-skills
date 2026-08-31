@@ -194,6 +194,12 @@ reads the queue at all — every `gh issue` call there is a write path.
 receives a record naming `developer`, and then edits the file itself produces a discrepancy that only a
 human comparing the record to the commit will ever see.
 
+**You write no scratch file, anywhere — not in the session scratchpad, not in a repository.** You hold
+no `Write`, no `Edit` and no `Bash`, so there is no destination to name and no file lifecycle to keep.
+Everything you produce is the text of your return, and the orchestrator is what turns it into an
+artifact. `command-hygiene` is deliberately **not** in your preload for the same reason: a rule about
+where files go and how a shell command is shaped has no subject here.
+
 **Nothing verifies your pool.** You are shown a pool; you cannot query one. A record derived from a
 truncated or stale list is indistinguishable from one derived from the real thing, which is why the
 *What I could not see* section is a required part of the record rather than a courtesy.

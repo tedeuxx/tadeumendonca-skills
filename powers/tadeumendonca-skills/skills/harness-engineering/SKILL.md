@@ -424,9 +424,33 @@ Creating one and closing one are both owner acts in the browser.
 never reads `state`. The predicate above derives the active iteration from *items*, so the one attribute
 milestones cannot expose is the one attribute the design does not consult. What it does cost is the
 source document's *"the iteration closes automatically"* clause, which is therefore **not adopted** —
-closing is a click. The alternative is unlisting `Bash(gh api:*)` from the global floor, which is the
-line standing between every persona and the raw write API; one click per iteration is cheaper than
-reopening that door.
+closing is a click.
+
+~~The alternative is unlisting `Bash(gh api:*)` from the global floor, which is the line standing
+between every persona and the raw write API; one click per iteration is cheaper than reopening that
+door.~~ ~~*"Creating one and closing one are both owner acts in the browser."*~~
+
+**Struck 2026-08-31 (#375) for CREATION only — CLOSING is still a click, and the two halves separate.**
+The owner's requirement is that the Scrum rites be executable end to end — *«voce deveria ao final
+dessa reconfiguracao do loop conseguir realizar intencionalmente todas atividades previstas em ritos de
+scrum»* — and creation had **no route at all**: `gh milestone` does not exist
+(`gh milestone --help` → `unknown command "milestone" for "gh"`), so rule 5f's prescribed remedy
+(*"use the gh subcommand for the act instead"*) is **unexecutable**, not merely inconvenient.
+
+**The route is `scripts/milestone-create.sh`, and it is an EXPLOITATION rather than a design.** It
+reaches the write API because **neither the settings matcher nor `permission-guard.sh` looks inside a
+script** — the same blindness that makes `python3 -c "…gh api -X POST…"` a back door, measured against
+the live guard. **So nothing here may claim the raw-API route is closed**, and the floor entry the
+struck sentence protects is untouched: it was never the thing standing in the way. What guards the act
+is `permission-guard.sh` **rule 11** — a subagent is denied, the orchestrator is asked, rule 10's exact
+split, and the owner's answer to that prompt is the HITL verification #365 demands. The full argument,
+the rejected endpoint carve-out and the price of accepting the hole are in ADR-0004's 2026-08-31
+amendment.
+
+**One measurement that could make the route unnecessary is NOT taken:** whether
+`gh issue edit --milestone "<new title>"` *creates* a missing milestone. `--help` says *"by name"*,
+which is a read of documentation and not a measurement, and rule 10 denies that command to the very
+persona that would settle it. If it turns out to create, delete the script rather than keeping it.
 
 ### `loop`-typed items ARE iteration-assignable
 
@@ -920,6 +944,15 @@ revote:**
 | `content` | `product-lead` · `content-writer` · `content-reviewer` · `quality-assurance` |
 | `loop` | `agents-lead` · `quality-assurance` |
 
+**`scrum-master` is EXCLUDED from every row, and the exclusion is a decision rather than an oversight
+(#375).** It is the one profile in the roster that appears in none of the three sets, so the absence
+would otherwise read as a persona nobody remembered to place — the exact *absent is not a state* shape
+ADR-0004 records for the permission floor. **The reason: it ranks the pool.** A profile that orders
+which item is worked next and also assigns that item its weight is grading its own ruler, and the
+median it would join is the smallest one (`loop`, two names), where a third voice would move the answer
+most. It has no tool to apply a label with either, so this is what the design already implies, written
+down where a reader looks for it.
+
 **Isolation costs nothing extra here and is not a new ceremony** — a subagent cannot see another's
 output, so independence is a property of dispatch rather than a discipline anyone must keep. It is the
 same property the two leads' parallel intake already relies on.
@@ -966,7 +999,11 @@ reason is one this file already establishes for a different rule: **nothing in `
 queue** — every `gh issue` call there is a write path — so no layer here can observe a snapshot going
 empty, and a hook receives one `cwd` while the iteration is two milestone objects in two repositories.
 By this loop's own test — *would something stop me, or only my memory?* — **the rite is not engineered.**
-Stated here rather than only in the rite because this is the file all seven personas carry always-on, so
+**And the one profile whose mandate is *"did the rite run"* — `scrum-master` (#375) — cannot fire it
+either.** It holds no tools, so it can only *say* a rite is owed, in a selection record nothing reads.
+That is a smaller claim than "the gap is closed" and it is the honest one: the rite went from
+*unobserved* to *observable by a profile somebody has to remember to dispatch*.
+Stated here rather than only in the rite because this is the file all eight personas carry always-on, so
 it is where a persona learns the rite exists, and learning that without learning that nothing fires it is
 how a promise becomes a belief.
 

@@ -1536,6 +1536,38 @@ check_agent ALLOW 'tadeumendonca-skills:developer' "a persona may still label" '
 # that ordering and nothing else in the suite can see it: move the rule up and this flips ASK.
 check_agent DENY '' "an ask must never soften a deny" 'gh issue edit 365 --milestone x && git push origin main'
 
+# ── RULE 11 · CREATING an iteration's milestone (#375) ─────────────────────────────────────────────
+#
+# A DIFFERENT ACT FROM RULE 10's, AND THE SUITE SAYS SO RATHER THAN LEAVING IT TO THE READER. Rule 10
+# guards ADMITTING an item into an iteration (`gh issue edit --milestone`); rule 11 guards CREATING the
+# iteration object. They share a verdict split and nothing else — the matchers are disjoint, so neither
+# rule's ordering relative to the other matters, and both must sit after every deny.
+#
+# THE FIRST DRAFT OF THIS RULE MATCHED NOTHING AND READ AS A WORKING CONTROL. Its preceding character
+# class excluded `/`, which is the one character that always precedes this basename in a real call. Both
+# branches returned no decision at all, and only probing found it. The absolute-path case below is the
+# assertion that keeps that from coming back: revert the class and it goes red rather than quiet.
+check_agent ASK  '' "the orchestrator is asked"          'bash scripts/milestone-create.sh sprint-02'
+check_agent ASK  '' "an absolute path is the same act"   'bash /a/b/scripts/milestone-create.sh sprint-02'
+check_agent ASK  '' "a -c wrapper does not walk around it" 'bash -c "bash scripts/milestone-create.sh sprint-02"'
+
+# THE DENY HALF, for rule 10's reason: no persona in the roster creates an iteration, and an `ask` in a
+# dispatched context reaches no prompt surface.
+check_agent DENY 'tadeumendonca-skills:agents-lead'  "a persona does not create one" 'bash scripts/milestone-create.sh sprint-02'
+check_agent DENY 'tadeumendonca-skills:developer'    "not even the builder"          'bash scripts/milestone-create.sh sprint-02'
+
+# THE ALLOW HALF — the boundaries the pattern could plausibly have swallowed.
+check_agent ALLOW '' "a message ABOUT the file is not the act" 'git commit -m "add scripts/milestone-create.sh"'
+check_agent ALLOW '' "a similarly-named script is not it"      'bash scripts/milestone-create-notes.sh x'
+check_agent ALLOW '' "reading the file is a read"              'cat scripts/milestone-create.sh'
+check_agent ALLOW '' "grepping it is a read"                   'grep -n purpose scripts/milestone-create.sh'
+check_agent ALLOW '' "staging it is not running it"            'git add scripts/milestone-create.sh'
+check_agent ASK  '' "the bare path spelling runs it"           './scripts/milestone-create.sh sprint-02'
+
+# PLACEMENT, ASSERTED THE SAME WAY RULE 10's IS AND FOR THE SAME REASON. Move rule 11 above rules 7/8
+# and this flips ASK, which is an ask softening a deny.
+check_agent DENY '' "rule 11's ask must never soften a deny" 'bash scripts/milestone-create.sh x && git push origin main'
+
 rm -rf "$FEAT"
 rm -rf "$GH_STUB_DIR"
 

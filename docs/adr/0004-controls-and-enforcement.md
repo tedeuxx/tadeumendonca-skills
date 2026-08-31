@@ -2758,6 +2758,210 @@ A PR that closes nothing never reaches the comparison.
   rule is stated rather than left to be rediscovered: **a correction needs the false claim's ABSENCE
   asserted, not only its replacement's presence.**
 
+## Amendment (2026-08-31) — a lock is removed on the owner's thesis, the persona restrictions are reassessed against it, and a rite gets a route that works because a hole is open (#375)
+
+**Deciders:** the owner. **Written by** `agents-lead` (#223). This amendment carries three things that
+belong together because they are one reassessment: what the removal of a control costs, what the three
+persona-keyed rules look like measured against the ruler the owner stated, and the one act in the Scrum
+rites that had no route at all.
+
+### The ruler, stated first, because every judgement below is made against it
+
+> *«o objetivo dessa configuracao de harness é conceder autonomia segura com defesa em perimetro e
+> processo de trabalho coordenado.»*
+> *«nao devemos ter restricao quanto a isso no nivel de subagents. subagents precisam ter acesso a todas
+> ferramentas necessarias para cumprir suas responsabilidades e atividades previstas.»*
+
+**Perimeter defence, not local locks. Coordinated process, not restriction.** The operative test this
+gives, and it is sharper than it first reads: **a rule that denies a persona an act its mandate never
+included is not a restriction the thesis objects to — it is the perimeter.** A rule that denies a
+persona an act its mandate *requires* is a local lock, and that is what has to go. Applied rule by rule
+below, the answer is not a sweep in either direction.
+
+### 1 · `orchestrator-write-guard.sh` is REMOVED, and it is a lock rather than a perimeter
+
+**The owner's diagnosis:** *«entendi que foi uma contingencia entao, nao era intencional. entao esse
+hook nao deveria existir. o que queriamos era deixar a sessao principal intencionalmente ociosa somente
+delegando. isso o SM ajuda.»*
+
+**Its own header agreed, which is the evidence rather than the assertion.** It recorded that the
+orchestrator was denied merge (rule 7b) and trunk push (rule 7) *"and nothing else"*, and that the act
+it stopped is *"not a floor violation (the work is tracked, reviewable, revertible); it is the WRONG
+LAYER."* **A control whose own text says the act it refuses is not a floor violation is a routing
+preference expressed as a deny**, and under the thesis that is exactly the class to remove.
+
+**What replaces it is positive rather than negative.** *The orchestrator may not write* states the rule
+by exclusion, where delegation is whatever is left over. *The main session is deliberately idle,
+delegating only* makes delegation the normal path and acting directly the deviation, and
+`scrum-master`'s selection record — naming who acts, **before** acting — is that rule's artifact
+(ADR-0002's twenty-eighth amendment).
+
+**Consequences, stated because they are the whole cost.** Nothing prevents the main session from
+editing a repository file. Detection replaces prevention, and **the detection is weaker than the phrase
+suggests**: the record is landed by the orchestrator itself, so it is self-attested, and nothing greps
+`SELECTION-RECORD`. `orchestrator-tool-census.sh` still reports the main agent's write/post class at
+`Stop`, one turn late, and it is now the whole of the mechanical half rather than one side of a pair.
+**And #371's finding rides along**: that census classifies on the first token, so a wrapper prefix
+lands a mutation in the read bucket — the one remaining observer of this class is measurably blind in
+ways nobody has fixed.
+
+### The runtime facts a deleted guard measured, rehomed here
+
+**These are properties of Claude Code, not of the hook that found them.** They were established by
+probe, they cost a probe to establish, and deleting the file that recorded them would have lost them.
+The next author of any guard over file-writing tools meets both:
+
+- **A `matcher` is ANCHORED, not a substring search.** One probe plugin, one variable:
+  `matcher "rit"` did **not** fire on a main-agent `Write` (control: `matcher "Write"` fired on the
+  identical call, and no file was created). `matcher "Edit|Write"` did **not** fire on a main-agent
+  `NotebookEdit`, and **the notebook was mutated inside a git working tree** — a real mutation of a real
+  file, not a hypothetical. `matcher "Edit|Write|NotebookEdit|MultiEdit"` fired and denied.
+- **`NotebookEdit` does not carry `file_path`.** Its payload keys, read from the same probe, are
+  `["cell_id","new_source","notebook_path"]`. **So a guard reading only `.tool_input.file_path` allows
+  every `NotebookEdit` even with the matcher naming it** — a second side door behind the first, and one
+  **no matcher fix would close.** Read a path out of a fallback chain, and assert the chain.
+- **`NotebookEdit` is a DEFERRED tool in this build** — its name is listed, its schema loads on demand
+  via `ToolSearch` — which is precisely why it is easy to miss by reading a session's initial tool list.
+
+**Bound on all three: measured on build 2.1.241, once.** Nothing re-measures them now that the hook is
+gone, so treat them as dated facts about a build rather than as invariants.
+
+### 2 · The three persona-keyed rules, reassessed against the thesis — and the answer is KEEP, three times, for three different reasons
+
+**Rule 10 — `--milestone` denied to every persona, asked of the orchestrator (#365).** **Keep, unchanged.**
+It denies subagents an act **no persona's mandate includes**: composing an iteration is the owner's at
+planning, and the profile most likely to want it — `scrum-master` — is explicitly barred from placing
+work in its own brief. So this is perimeter, not a local lock, and the thesis does not reach it.
+**Where it genuinely cannot be reconciled, said plainly rather than resolved:** if a future profile is
+ever given composition, rule 10 offers only two verdicts and neither works. Exempting it to `allow`
+**removes** the HITL verification #365 exists to create — the owner's answer to the prompt *is* the
+verification — and that would be reversing his newer rule for one caller. Exempting it to `ask` returns
+a prompt to a dispatched context with no prompt surface, which the guard's own comment says is
+**unmeasured**. There is no third verdict. **That is a conflict between two of the owner's own rules and
+it is left standing rather than decided here**; the mitigation that needs no exemption is the one that
+shipped — *propose* and *execute* are split, the profile proposes, the orchestrator executes and hits
+the prompt.
+
+**Rule 5c/5d — `gh issue create` denied to every subagent but `developer`.** **Keep.** Under the thesis
+this looks like a subagent-level restriction and is not one: opening work is not among any reviewing
+persona's *atividades previstas* — it is excluded by mandate, in `/harness-engineering`'s *Review does
+not open work*, and the measured failure is on record (19 net Issues in one session, ~13 born inside a
+review of something else). **The friction it does create is real and is named:** `agents-lead` is now
+the `loop` lane's intake and authors `loop` items, and it cannot file one — #375's own intake had to be
+filed by the orchestrator on its naming. That is a routing cost, paid deliberately, and the alternative
+(a fourth persona exempted) re-opens the case the exemption was cut down to one caller to close.
+
+**Rule 5e — direct posting denied to `product-lead`, `content-writer`, `content-reviewer`.** **Keep.**
+This is the one rule of the three that *is* a local lock in the thesis's sense, and it survives on the
+half of the thesis that is not about tools: **perimeter defence is about irreversibility**, and a
+paraphrase of `.brand/` in a public comment is not revertible by deleting the comment. The mandate is
+not obstructed — each of the three has a durable artifact route (a quoted verdict, a tracked draft, a
+tracked review file), so none of them is denied an *activity*, only a *spelling*.
+
+**One thing 5e gains and it is deliberately NOT a case branch.** `scrum-master` is now covered by 5e's
+`*)` catch-all, which denies a persona nobody has decided about. **The decision was made and it is
+recorded here rather than in the rule**, because the profile holds no `Bash` at all: a case branch
+naming it would be a rule with no subject, which is the *"mechanism the file claims and does not run"*
+defect `permission-guard.sh` already books twice. **If it is ever granted `Bash`, that branch has to be
+written**, and this paragraph is the note that says so.
+
+### 3 · The milestone route — and it works BECAUSE a hole is open, which is the finding, not the design
+
+**The act has no route at all, measured three ways.** `gh milestone` does not exist
+(`gh milestone --help` → `unknown command "milestone" for "gh"`). `gh api` that writes is denied by rule
+5f, whose prescribed remedy is *"use the gh subcommand for the act instead"* — **unexecutable here,
+because there is no subcommand**. And `Bash(gh api:*)` sits unqualified in the user-level floor's
+`deny`, which kills reads as well as writes, so 5f's own message (*"READING through `gh api` is
+untouched"*) is **false on this machine**.
+
+**Two candidate layers, and the one that could be clean is unreachable.** Carving the milestones
+endpoint into 5f would be the precise fix — the layer that already tells a read from a write can equally
+tell which endpoint — and it **would not work**, because a settings `deny` is evaluated whatever a hook
+returns and the floor entry is in an **untracked user file** nothing this plugin ships can change. So
+the precise fix ships inert.
+
+**What was built instead, and it is an exploitation rather than a design.** One tracked script,
+`scripts/milestone-create.sh`, is the only sanctioned milestone write. **It reaches the API because
+neither the settings matcher nor `permission-guard.sh` looks inside a script** — the guard says so in
+its own words at the `..`-traversal rule (*"permission-guard.sh deliberately does not look inside a
+script"*). **That is the same blindness that makes `python3 -c "…gh api -X POST…"` a back door, and
+both were measured against the live guard rather than a stub:**
+
+```
+{"tool_input":{"command":"python3 -c \"…subprocess.run(['gh','api','-X','POST',…])\""},"agent_type":""}
+  -> permission-guard.sh emits NOTHING (allow)
+{"tool_input":{"command":"gh api -X POST repos/o/r/milestones -f title=s2"},"agent_type":""}
+  -> deny (rule 5f)
+{"tool_input":{"command":"bash <repo>/hooks/scripts/<any>.sh …"},"agent_type":""}
+  -> permission-guard.sh emits NOTHING (allow)
+```
+
+**So 5f stops the convenient spelling, not the available one, and no ADR here may claim the raw-API
+route is closed.** Nobody is attacking; the point is that *"a carve-out could be widened later"* is
+decisive only if what is being carved is load-bearing, and it is not. **No cheap mitigation exists** —
+closing it means removing `python3:*` / `node:*` / `npx:*` from the allow lists, which breaks the loop's
+own tooling. **The price of accepting it is this paragraph**: a reviewed, named, single-purpose instance
+of an open hole beats an unreviewed general one, and it is not *"we found a clean layer"*.
+
+**What makes the route defensible rather than merely available.** The widenable surface moves from a
+regex in a hook to a **repo file that goes through review, the inventory gate and `quality-assurance`**.
+And the script deliberately does **not** sit under `hooks/scripts/` — it is not a hook, and the
+`purpose:` gate (#313) would read an unregistered script there as an orphan mechanism. It also
+therefore does **not** match the user floor's `Bash(bash <repo>/hooks/scripts/*)` allow entry, **so it
+prompts** — which is the feature, not the friction: composition is HITL by #365, and a prompt in the
+orchestrator's session is the verification.
+
+**Rule 11 makes that prompt a decision rather than a gap.** It keys on the script's basename plus
+`agent_type`: a subagent is **denied** (no persona composes an iteration), the orchestrator is **asked**
+— rule 10's exact verdict split, for the same reason. Relying on the *absence* of an allow entry would
+have been the *"absent is not a state"* shape this record already books for the AWS floor.
+
+**Placement: rule 11 sits LAST, after rule 10, and that is load-bearing.** `ask` exits like `deny`, so a
+rule sited earlier would let `bash scripts/milestone-create.sh x && git push origin main` come out ASK
+where rule 8 denies it — an ask that softens a deny is a hole. Rule 10's own comment already states this
+and rule 11 obeys it rather than restating it.
+
+### The alternative that was put FIRST and is not a compromise: do not grant it
+
+`harness-engineering` already states the design — *"Creating one and closing one are both owner acts in
+the browser"*, *"one click per iteration is cheaper than reopening that door."* Planning is owner-present
+by construction and nothing blocks *him*. **The price of that option, and it is the thing that gets
+forgotten and rediscovered as a defect:** `/sprint-planning` carries a manual step and the rites are not
+mechanically complete end to end. **The owner's requirement is the opposite** — *«voce deveria ao final
+dessa reconfiguracao do loop conseguir realizar intencionalmente todas atividades previstas em ritos de
+scrum»* — so the route is built and the honest description of it is above.
+
+### What was NOT measured, and would settle it
+
+- **Whether `gh issue edit --milestone "<new title>"` CREATES a missing milestone.** `--help` says *"by
+  name"*, which is a **read**, not a measurement. **It could not be measured from here**: rule 10 denies
+  every `gh issue edit --milestone` to a subagent, so the persona that would settle this question is
+  the one the guard refuses. **If it does create, this whole route is moot.** Cheap to settle on a
+  throwaway repo, from the orchestrator's session.
+- **Whether a `PreToolUse` hook returning `allow` overrides a settings-layer `deny`.** This decides
+  whether any `gh api` fix can ever ship inside the plugin. Not measured.
+- **Whether `ask` reaches anything in a dispatched subagent.** Unmeasured before this slice and
+  unmeasured after it; rule 11 avoids depending on it exactly as rule 10 does.
+
+### Consequences still being paid
+
+- **The `gh api` floor entry lives in an untracked user file, so no gate can see it**, it cannot ship in
+  the plugin, and a consumer gets 5f with no floor entry — a *different* control than this one. **5f's
+  own header additionally asserts the floor entry was removed** (*"WHY IT IS HERE AND NOT IN THE
+  FLOOR'S `deny`, WHICH IS WHERE IT LIVED FOR AN HOUR"*) and it lives there now. **Corrected in the
+  hook's comment in this slice; the entry itself is not this slice's to remove**, and whether to remove
+  it is its own decision with its own record.
+- **The loop depends on a capability it denies its own agents.** `session-plugin-version.sh` runs
+  `gh api repos/…/releases/latest` — the exact read the floor forbids — and works only because hook
+  scripts execute outside the permission layer. **That asymmetry is the mechanism behind the script
+  route above**: one finding wearing two hats.
+- **Nothing verifies the script does what its name says.** It is a repo file in the diff; a reviewer is
+  the control. That is the same residual every prose rule here carries and it is louder for a file that
+  reaches a write API.
+- **The orchestrator's boundary is two mechanically-enforced acts again, down from three.** The count is
+  in `CLAUDE.md` with the third clause struck rather than deleted, because it is the sentence that told
+  every reader the routing rule was mechanical.
+
 ## Links
 - Driven by ADR-0002 and the Merge Request Definition of Done (record 0003, absorbed 2026-08-19 into
   [ADR-0006](./0006-verification-and-its-artifacts.md)) · consumed per project via
