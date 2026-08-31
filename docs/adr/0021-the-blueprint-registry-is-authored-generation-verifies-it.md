@@ -710,8 +710,217 @@ happens, the published version understates the change.**
   mechanism classified correctly, a provenance line redacted, or a filed item complete. The residual is
   this record's own, one surface further out and one degree weaker.
 
+## Amendment, 2026-08-31 — the export's DOCUMENT contract: a preamble addressed to its reader, three sections, and two fields that claimed a source they did not have
+
+**Driven by [#376](https://github.com/tedeuxx/tadeumendonca-skills/issues/376)**, which reconciles the
+shipped command against a design the owner wrote for it.
+
+**Deciders:** the owner (the design, and the correction below) · written by `agents-lead` per the domain
+split — a pure loop/machinery decision · the reconciliation on the Issue is this amendment's design work.
+
+**Why this is an amendment and not record 0022**, on the same ground the two amendments above took: the
+capability is unchanged, the object is the same command and the same registry, and this changes what the
+export *emits* rather than deciding a new thing. A second record per format revision is how a library
+becomes a changelog.
+
+**The scope, stated first because it was got wrong once and the record should carry that.** The design
+was first read as removing `/blueprint`'s three modes. It does not, and the owner said so directly:
+*«a sua interpretacao para mim esta equivocada. pois eu nao removi a funcionalidade do argumento import
+ou export. isso se mantem.»* — and, on what the design's command-contract block is doing, *«eu entendo
+que esta alinhando proposito e formato»*. **`export`, `import <path>` and the bare invocation all stand,
+untouched.** This amendment governs the emitted document's **purpose, format and destination** and
+nothing on the dispatch surface. Recorded rather than quietly skipped, because a builder acting on the
+first reading would have deleted a working half, and the misreading is the kind that repeats.
+
+### What changed
+
+1. **The Markdown is ADDRESSED.** It opens with a preamble written to the agent that will read it —
+   read this rather than implement it; find what already exists locally under another name; interview
+   your owner one item at a time; every evidence claim belongs to the origin; never adopt a mechanism
+   before checking whether the failure it prevents was observed locally — and, negatively: install and
+   execute nothing, this is not a conformance checklist, copy the concept and never the wording.
+2. **The snapshot is three sections in a stated order** — the interaction surface, the inventory, the
+   general principles — replacing an undifferentiated list of seven.
+3. **Each inventory element carries four lines**: purpose · what it does · **what it does NOT do** ·
+   how it is activated. The limit line is mandatory on every element and is explicitly never the line
+   cut for cost.
+4. **`evidence_class` stops claiming to be authored** and is described as *declared per export and
+   unstable across invocations*, emitting `unknown` unless a registry cell exists — and none does.
+5. **`enforcement` becomes a closed-set JOIN** on `tipo`, against a mapping now published in the
+   registry's *How to read a row*, with a carrier-override rule and declared exceptions.
+6. **`source.disclaimer` is added to the YAML**, so the residual travels with the artifact rather than
+   only with the reading.
+7. **The destination is stated as a TEST** — *a path outside every git working tree* — rather than as a
+   directory name, and the gate arm that refuses a repository-relative destination is widened.
+
+### The two fields that claimed a source they did not have
+
+**This is the substance of the amendment, and both defects are the same shape one layer apart: a field
+that looks derived and is in fact re-decided on every invocation.**
+
+**`evidence_class` said `authored`.** Measured 2026-08-31: `grep -c 'evidence_class'` over
+`docs/blueprint-registry.md` returns **1**, and that single occurrence is prose inside row `0036`'s own
+limit cell — not a field. The registry's field contract does not name it, and
+`grep -rn 'evidence_class' hooks/scripts/inventory-counts.test.sh` returned **no output**: no arm of any
+kind, not even membership. **The cost is not the one the command already named.** Its own residual
+argues the field is unfalsifiable *as a claim about reality*, which is true and is a different problem.
+The sharper one is that it is **unstable as a projection**: two exports at the same commit can disagree,
+and the currency header's whole purpose is to let a reader trust that the commit determines the
+document.
+
+**`enforcement` was worse, and it was worse for a reason that is about the reader rather than the
+field.** It is emitted in **both** documents, and in the Markdown it prints beside `carrier` — which is
+gated, and real — with nothing distinguishing a looked-up value from a guessed one. Five `tipo` values,
+four `enforcement` values, and no table anywhere joining them.
+
+**Two different fixes, and the difference is whether an authored source is available cheaply.** For
+`enforcement` it is: the mapping was already implicit in the closed sets, so publishing it costs one
+table and gates as a join. For `evidence_class` it is not — an authored cell is 44 rows at this
+repository's depth bar, a sitting rather than a slice — **so the word is corrected instead of the field
+being invented.** *What is not acceptable is the state this replaces*, where a word claimed a source
+that did not exist; correcting the word is the cheap honest option and it is taken deliberately as the
+lesser of two, not as the better of two.
+
+**This does NOT reverse the 2026-08-28 decision not to add a fourth `enforcement` value.** It rests on
+it. That amendment's own argument — *"the distinction `acts` would carry is already carried by `tipo`"*
+— is precisely what makes the join possible: if `tipo` already carries the distinction, then `tipo`
+determines the value, and a lookup is available where a judgement was being made.
+
+### The destination — a second specification, a second repository-relative path, and an arm that missed it
+
+**The 2026-08-29 amendment measured `<repo-root>/tmp/blueprint-….yaml` DENIED and settled the
+destination on that.** The design this amendment implements named a *different* repository-relative
+destination — *"one prose file under the workspace's ignored scratch directory"* — and three things were
+measured against it on 2026-08-31:
+
+- **The directory is ignored nowhere.** `git check-ignore -v` on it exits 1 in **both** repositories of
+  this workspace: #245 removed the ignore entry and the sweep hook and left the comment block behind, so
+  it reads as documented-and-present and is neither.
+- **Writing there is denied**, by `orchestrator-write-guard.sh`, under the empty `agent_type` a typed
+  command runs with — the ordinary case, not the exotic one — wherever the workspace root is the
+  repository root, which is the shape most consumers install.
+- **The arm built to refuse exactly this matched neither literal.** `bp_bad_dest` grepped
+  `workspace-root|tmp/blueprint`; the new wording contains neither, so a repository-relative destination
+  would have landed with that arm green.
+
+**The fix is to state the destination as a property rather than as a name** — *a path outside every git
+working tree* — because a directory name is precisely the part that does not port. **And the arm is
+widened, with what that buys stated in its own header: it is presence, not a control.** The write is
+already refused at runtime whatever this file says; all the arm stops is the command *documenting* a
+route a reader would follow and then have to work around.
+
+**The second-order note worth keeping:** the directory the design named is the one obligation this
+harness's own registry calls abandoned in its history. The design reinstated it in prose.
+
+### The identity appendix stays last, and the reasoning was CONSIDERED AND OUTRANKED
+
+**Said out loud so it does not read as forgotten.** The shipped export puts the identity appendix last
+for a stated reason — *"a spine made of one harness's mechanism names can only describe harnesses shaped
+like that one"* — and that reason is **not** weakened by anything here. A receiving agent triaging this
+document needs *what does this prevent* first, because a useful mapping is `foreign obligation → local
+obligation` and never `foreign hook name → local hook name`.
+
+**The design asks for the interaction surface first, and that is a different question.** *Where does a
+human enter this harness* and *what is the document's spine* are two claims, and the shipped reasoning
+answers only the second. So both hold: **the invocation surface leads the snapshot as its own short
+section, and the identity appendix stays last with its reason intact.** One edit, satisfying the design,
+violating nothing.
+
+**The cost of taking both, priced rather than waved through:** the document now opens with the most
+local-accident-shaped content it carries — handles are named exactly as they are typed here — and a
+reader who stops after the first section takes away this harness's *command names* rather than its
+obligations. That is the risk the appendix rule was written against, arriving through the front door.
+It is accepted because the design's subject is UX and HITL control, for which the handles genuinely are
+the spine; **the mitigation is one sentence in the section itself saying so**, not a structural one.
+
+### Pros and cons is CUT from the five-line contract, and this is the decision rather than an omission
+
+The design names five inventory lines. **Four are emitted; *pros and cons* is not.**
+
+**The cons half already exists and is better placed.** `o que não faz` is the registry's limit cell —
+the one this registry calls *the most transferable cell in the row* — and a second cons column either
+duplicates it or dilutes it.
+
+**The pros half is `propósito` restated as a virtue, which the field contract forbids in as many
+words.** `propósito` is defined as *the failure the behaviour prevents*, deliberately not a benefit.
+
+**The rejected option was to author it: two cells × 44 rows**, at this repository's depth bar, with the
+owner's layer in them. That is a sitting, not a slice, and this registry already declares the `skill`
+class `partial` with six named unwritten rows rather than padding it — the same argument, doubled.
+
+**Activation went the other way, and the asymmetry is the point.** It is *derivable*: it is the
+interchange's `always_loaded` under another name, with a stated rule and the lossiness carried across —
+**zero new cells**. Two lines of one design, two different answers, decided by whether an authored
+source is available.
+
+### What is NOT struck, and why that is a finding rather than an omission
+
+**No sentence of this record is struck by this amendment.** The 2026-08-29 amendment's three-mode
+decision, its narrowed write rule, its optional-extras argument and its five-class triage all stand
+exactly as written; the 2026-08-28 amendment's refusal of a fourth `enforcement` value is *reinforced*.
+**The strikes this slice owes landed in the carriers instead** — `commands/blueprint.md` strikes the
+`authored` sentence in place, and `docs/blueprint-registry.md` rewrites row `0036`'s `descrição` and
+`o que faz` against what the command now emits. Naming this here matters because the disposition rule
+governs whole records: a record whose core decision is untouched is amended, never deleted, and no
+`## History` row is owed.
+
+**Row `0036`'s `citação` was re-read and deliberately NOT changed.** The destination section was added
+to rather than struck, so *"Never write inside a repository."* still appears live in the carrier and is
+still its sharpest statement of what the export declines to do. A `citação` that moves because a row was
+edited nearby is worse than one that stays.
+
+### The gate arms this adds, and the one habit it cannot mechanise
+
+**Two arms, both string checks, both saying so in their own headers.** `blueprint document contract`
+holds the preamble's eight clauses, the three snapshot sections **in order** (by line number — the order
+*is* the decision, and presence cannot tell it from its opposite), the mandatory limit line, the
+appendix's place, and the four honesty statements; it also carries a **negative** assertion that the
+interchange mapping does not call `evidence_class` *authored* again. `tipo->enforcement` holds the join
+closed in both directions: five mapping rows covering every `tipo` a live row declares, every value
+inside the closed set of four, the command publishing the same set, and the carrier override stated.
+
+**What no green here means.** Nothing in this repository runs `/blueprint`, captures its output, or
+compares a rendered document to the registry. **Every arm above asserts the command still TELLS the
+model to do something** — never that an export did it.
+
+**And one obligation is deliberately left as a habit.** Row `0036`'s carrier is a **format renderer**,
+so its cells go stale when the *emitted shape* changes — with **no strike anywhere for a grep to find**.
+This slice is the measured instance: the Markdown gained a preamble and three sections, the YAML gained
+a field, and `descrição` and `o que faz` went stale while the whole suite stayed green. The registry's
+re-read habit fires on a struck clause in a carrier and could not have fired here, so it gains a second
+trigger — *re-read `0036` whenever the emitted document's shape changes* — and that trigger is prose,
+because nothing here can compare a paraphrase to a renderer.
+
+### Consequences
+
+**Good**
+- Two fields stop claiming a source they do not have, and one of them stops being unstable at a fixed
+  commit — which is what the currency header exists to promise.
+- The residual now travels with the artifact that is handed over, not only with the copy that is
+  printed and discarded.
+- The destination is a property rather than a directory name, so it survives being read on a machine
+  whose layout is nothing like this one.
+- The document instructs its own reader, which is the only control available over an actor this harness
+  cannot observe at all.
+
+**Bad, and accepted**
+- **`evidence_class` now emits one value for every row.** Three values in the vocabulary and one in the
+  output is an honest under-claim and it is also a less useful document; closing it is an authoring
+  sitting nobody has scheduled.
+- **The join removes instability, not error.** A row filed under the wrong `tipo` gets a confidently
+  wrong `enforcement`, and the mapping propagates it with a straighter face than a guess would.
+- **The interaction surface leading puts the most local-accident-shaped content first**, priced above.
+- **The preamble is a control over a reader nobody here has measured**, and it is untestable from this
+  side by construction. The half of this capability that *was* exercised against a foreign document is
+  the import mode, which this amendment does not touch.
+- **Nothing verifies the emitted document, still.** One surface further out and one degree weaker than
+  this record's own residual, exactly as the amendment above it says.
+
 ## Links
 
+- [#376](https://github.com/tedeuxx/tadeumendonca-skills/issues/376) — the document-contract
+  reconciliation, the owner's correction of its first reading, and the measurements the 2026-08-31
+  amendment rests on.
 - [#358](https://github.com/tedeuxx/tadeumendonca-skills/issues/358) — the three-mode specification, and
   the pre-implementation stress test that is this amendment's design work.
 - [#324](https://github.com/tedeuxx/tadeumendonca-skills/issues/324) — the claim-class contract, its
