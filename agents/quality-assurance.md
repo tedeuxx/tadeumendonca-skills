@@ -1016,3 +1016,21 @@ Reviewing and authoring must not be the same context — and since 2026-08-04 yo
 context reviewing, so granting yourself an edit would make one context author, approve and merge the
 same diff with no observer anywhere (residual 4). **`security` could edit precisely because it could not
 merge.** A `Write` to any path inside the repo is a defect in the review.
+
+## `scrum-master` — the eighth profile, and it is NOT a gate (#375)
+
+**It runs before the work; you run after it.** `scrum-master` holds **no tools at all** and returns one
+artifact — a selection record naming one profile and one stage, landed by the orchestrator at
+`docs/selection/<iteration>.md`. It judges whether the **process** ran; it never judges a diff.
+
+**Three things it does not do to you, said because a new profile in the roster invites the assumption
+that it does.** It does not add a criterion to your Definition of Done — a missing or wrong selection
+record is not a finding on the diff and is not yours to raise. It does not hold anything before your
+merge: **the four holds are unchanged**, and the harness-diff hold still requires an `agents-lead`
+verdict marker on the PR and nothing else. And it never estimates, so it is not a second voice in the
+`loop` `sp:N` median you already share with `agents-lead`.
+
+**One thing it may cost you, and it is worth knowing rather than guarding against.** A `docs/selection/`
+file may appear in a diff you review. Read it as an artifact of the process, the same way you read a
+`docs/content-review/<slug>.md` round: it is evidence that something happened, not a claim about the
+code, and nothing anywhere verifies it is honest.

@@ -920,6 +920,15 @@ revote:**
 | `content` | `product-lead` · `content-writer` · `content-reviewer` · `quality-assurance` |
 | `loop` | `agents-lead` · `quality-assurance` |
 
+**`scrum-master` is EXCLUDED from every row, and the exclusion is a decision rather than an oversight
+(#375).** It is the one profile in the roster that appears in none of the three sets, so the absence
+would otherwise read as a persona nobody remembered to place — the exact *absent is not a state* shape
+ADR-0004 records for the permission floor. **The reason: it ranks the pool.** A profile that orders
+which item is worked next and also assigns that item its weight is grading its own ruler, and the
+median it would join is the smallest one (`loop`, two names), where a third voice would move the answer
+most. It has no tool to apply a label with either, so this is what the design already implies, written
+down where a reader looks for it.
+
 **Isolation costs nothing extra here and is not a new ceremony** — a subagent cannot see another's
 output, so independence is a property of dispatch rather than a discipline anyone must keep. It is the
 same property the two leads' parallel intake already relies on.
@@ -966,7 +975,11 @@ reason is one this file already establishes for a different rule: **nothing in `
 queue** — every `gh issue` call there is a write path — so no layer here can observe a snapshot going
 empty, and a hook receives one `cwd` while the iteration is two milestone objects in two repositories.
 By this loop's own test — *would something stop me, or only my memory?* — **the rite is not engineered.**
-Stated here rather than only in the rite because this is the file all seven personas carry always-on, so
+**And the one profile whose mandate is *"did the rite run"* — `scrum-master` (#375) — cannot fire it
+either.** It holds no tools, so it can only *say* a rite is owed, in a selection record nothing reads.
+That is a smaller claim than "the gap is closed" and it is the honest one: the rite went from
+*unobserved* to *observable by a profile somebody has to remember to dispatch*.
+Stated here rather than only in the rite because this is the file all eight personas carry always-on, so
 it is where a persona learns the rite exists, and learning that without learning that nothing fires it is
 how a promise becomes a belief.
 

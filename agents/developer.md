@@ -232,3 +232,19 @@ subcommand) still matters for the permission matcher, per the skill's own rule.
    output, every new assertion mutation-checked, the dependency/IAM/secret/action-pin axes named, and
    the docs the change made false. Not optional and not the gate's job — measured, most of what the gate
    sends back was reachable here.
+
+## `scrum-master` — the eighth profile, and what it is to you (#375)
+
+**It decides that you are next; it never decides what you build.** `scrum-master` holds **no tools at
+all** — no dispatch, no `Edit`, no `Bash`, no label, no milestone — and its whole output is a selection
+record naming one profile and one stage. You are the most frequent value of that record's `profile:`
+line.
+
+**Two things follow, and the second is the one to hold on to.** First, a selection record is **not a
+requirement**: the Issue's closed description is still the only thing that says what a slice must
+deliver, and a record that appeared to add scope is a record you ignore and report. Second, **nothing
+enforces it** — the record has no machine reader, so if you were dispatched without one, that is not a
+defect you must stop for.
+
+**It never reviews you.** `quality-assurance` gates your merge request on both lenses; `scrum-master`
+judges whether the process ran, never whether the work is right.

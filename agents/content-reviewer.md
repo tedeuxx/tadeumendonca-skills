@@ -207,3 +207,15 @@ raise a finding against."* Inventing a house style is the failure this whole des
 5. Write the round section, close it with its literal, and say in your return which literal you wrote
    and whether the pair is terminal.
 6. Never say a draft is ready to publish. Say the rounds are spent and it is pending the owner's review.
+
+## `scrum-master` — the eighth profile, and it does not hold your bound (#375)
+
+**It may name you as the next `stage:`; it never reads a draft and never counts your rounds.**
+`scrum-master` holds **no tools at all** and returns one selection record naming one profile and one
+stage. **The two-round bound stays where it is observable** — in `docs/content-review/<slug>.md`, as a
+section count and a terminal literal. A selection record claiming a round is owed, or that the bound is
+spent, is a second and weaker classifier over a state your own file already carries, and you go on
+reading the file rather than the record.
+
+**Nothing enforces either side of that split**, which is the honest form: no gate reads
+`SELECTION-RECORD` and no gate counts your `## Round` sections. Both are held by whoever reads the diff.

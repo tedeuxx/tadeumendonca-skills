@@ -140,10 +140,33 @@ that proves nothing is worse than a red.
 
 ## The roster, and what each tier holds
 
-`agents/` holds **7 subagent personas** — three tiers, the owner at both ends, and the work units they
+`agents/` holds **8 subagent personas** — three tiers, the owner at both ends, and the work units they
 hand each other. The seventh is `content-reviewer` (#317), and it is the roster's **first pair**: it
 exists to argue with `content-writer` (renamed from `writer` in the same slice) against one shared
 ruler, which is reason #1 of the four — *disagreement is wanted*.
+
+**The eighth is `scrum-master` (#375), and it is the first profile in this roster that holds NOTHING.**
+Its frontmatter declares no `tools:` line at all — no dispatch, no `Edit`, no `Bash`, no label, no
+milestone — so its whole output is text it returns: a **selection record** naming one profile, one
+stage and one item, which the orchestrator executes. It satisfies reason #2 of the four — *a fresh
+context is wanted* — on the argument the retrospective rite already accepts one step later: selection is
+otherwise decided by the context that has seen the whole session and is least able to see its own bias
+in a ranking.
+
+**It does not appear in the lane fence below, and that is correct rather than an omission.** The fence
+carries the `(issue type, tier)` actors of the states table, and `scrum-master` acts at **no state
+transition** — it names who should act next, which is a different question from who does act. The gate
+checks that every id in the fence resolves to a live brief and deliberately not the reverse, so a live
+persona absent from it is already the expected shape (`quality-assurance` is the other one).
+
+**Its arrival is coupled to a removal, and the two must be read together (#375).**
+`hooks/scripts/orchestrator-write-guard.sh` — which refused the orchestrator's own edits inside a git
+working tree — is **deleted in the same slice**, on the owner's diagnosis that it was a contingency
+rather than a design: *«esse hook nao deveria existir. o que queriamos era deixar a sessao principal
+intencionalmente ociosa somente delegando. isso o SM ajuda.»* What replaces a lock is not another lock.
+The selection record names who should act **before** acting, so acting outside it becomes a visible
+discrepancy between a record and a commit. **That is detection and not prevention, and nothing reads
+the record** — see the hooks section for what the removal costs, stated there rather than implied here.
 
 ```mermaid
 flowchart TB
@@ -352,6 +375,7 @@ orchestrator.
 
 | persona | tier | what it holds |
 |---|---|---|
+| **scrum-master** | 1 · process | whether the rites ran and the states moved · ranks the eligible pool and names who acts next · **holds no tools** |
 | **product-lead** | 1 · intake | what to build and why · the reader · the market · the copy lens |
 | **tech-lead** | 1 · intake | architecture direction · sequencing · **writes product/system ADRs** |
 | **agents-lead** | 1 · intake | the machinery — the scenarios a harness proposal misses, before it is built · **writes loop/machinery ADRs** |
@@ -1274,7 +1298,7 @@ by hand:
 |---|---|---|---|
 | **Skills** | yes — **14** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **5** (`autonomy-on`, `autonomy-off`, `new-issue`, `blueprint`, `retrospective`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
-| **Agents** | yes — **7 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`) | dispatched by name via `Task` |
+| **Agents** | yes — **8 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`, `scrum-master`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 16** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `orchestrator-write-guard`, `dispatch-premise-guard`, `closure-artifact-guard`, `mcp-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **16 registrations over 14 scripts**: `closure-artifact-guard` and `preflight` are each registered twice, on the two events their two halves need, and that is why the registration count is the honest number rather than a file count |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |

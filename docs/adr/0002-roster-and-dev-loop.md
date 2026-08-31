@@ -3832,6 +3832,132 @@ fails open, repaired here) · `docs/blueprint-registry.md` (row 0041 re-authored
   the guarded act today. That is a condition, not a closure — see ADR-0004's amendment for what would
   re-open it.
 
+## Amendment (2026-08-31, twenty-eighth) — `scrum-master` returns holding NOTHING, and exactly one half of amendment #7 is reversed (#375)
+
+**Deciders:** the owner. **Written by** `agents-lead` (#223 — this is a pure loop/machinery decision).
+**Pre-implementation stress test:** the #375 intake, which recommended **against** this profile and was
+overridden; the argument it made and the argument that beat it are both recorded below, because a
+future reader will raise this again.
+
+### What is reversed, said as narrowly as it is true
+
+Amendment #7 cut the roster 19 → 6 on the criterion *a persona exists only where conflict is wanted*,
+and `scrum-master` was one of the nineteen. That amendment made **two** claims about it, and they are
+not the same claim:
+
+1. **The measured claim: it produced no disagreement anybody needed.** Its object was ceremony
+   facilitation and an opinion about ordering, and `product-lead` already held both. **This is NOT
+   reversed.** It is still true, it is still the reason the old profile was absorbed, and `product-lead`
+   keeps ordering the `product` queue against the owner's stated objective.
+2. **The inferred claim: therefore nothing of that shape is worth having.** **This is what is
+   reversed**, and it was an inference from the first rather than a measurement of its own.
+
+**The distinction is the whole amendment.** What returns is not the absorbed competence. It is one
+artifact the absorbed profile never produced and nothing in this loop produces today: **a written
+selection record** — one profile, one stage, one item, and the reason — returned before the work is
+dispatched rather than reconstructed after it.
+
+### The reversal rests on a design where the profile holds nothing, and that is a precondition rather than a detail
+
+**The intake's objection, quoted, because it was correct about the profile it was pricing:** *"a new
+principal holding a write no persona currently has makes the capability larger, not smaller."* It
+priced a `scrum-master` that would carry milestone-write, which is what #375 was filed about.
+
+**The owner's answer was to change the object rather than to outweigh the argument.** The profile that
+ships declares **no `tools:` line at all** — no dispatch, no `Edit`, no `Bash`, no label, no milestone,
+no comment. A profile with no capability cannot enlarge the capability surface, so the objection does
+not reach it.
+
+**Milestone access does NOT move to it.** It stays with the orchestrator, where `permission-guard.sh`
+rule 10's `ask` reaches a person, which is what makes composition HITL under #365. So the Issue's two
+halves separate after all, contrary to the framing it was filed under: the profile lands, the
+capability does not move.
+
+**Which of the four reasons it satisfies: reason 2 — a fresh context is wanted.** Selection is
+otherwise decided by the orchestrator, which has seen the whole session and is therefore the context
+least able to see its own bias in a ranking. That is the argument the retrospective rite already
+accepts as its own mechanism, applied one step earlier.
+
+**And it does not fail the ADD rule, which is the half most likely to be waved through.**
+*Reconciliation cost is paid within a tier, not across tiers.* `scrum-master` produces one artifact
+nobody else produces and no verdict anybody must reconcile: it holds no gate, blocks nothing, and its
+record is advisory by construction because nothing reads it. The one adjacency that could have cost a
+reconciliation — ordering — is resolved by direction rather than by negotiation: it applies the **order
+of record** and routes disagreement with it to the owner, never back to `product-lead` as a re-ranking.
+
+### The coupled removal — `orchestrator-write-guard.sh` goes, and the two must be read together
+
+**The owner's diagnosis, verbatim:** *«entendi que foi uma contingencia entao, nao era intencional.
+entao esse hook nao deveria existir. o que queriamos era deixar a sessao principal intencionalmente
+ociosa somente delegando. isso o SM ajuda.»*
+
+**The hook's own header confirms the contingency reading** — it records that the orchestrator was denied
+merge (rule 7b) and trunk push (rule 7) *"and nothing else"*, so everything between was open, and that
+the act it stops is *"not a floor violation … it is the WRONG LAYER."* It closed a gap that was found,
+not a design anybody wanted.
+
+**The positive formulation is the better one and is why the replacement is not another lock.** The goal
+is not *the orchestrator may not write* — a rule stated by exclusion, where delegation is the leftover.
+It is **the main session is deliberately idle, delegating only**, where delegation is the normal path
+and acting directly is the deviation. A selection record naming who acts, **before** acting, is the
+positive form of the same rule.
+
+**Sequencing was not optional and is visible in the commit order of the slice that shipped this: the
+profile and its record land first, the guard is removed after.** Removing a lock before its replacement
+exists produces an interval with neither.
+
+**What that costs, stated because it disappears with the hook.** Nothing prevents the main session from
+editing a repository file. What changes is that it becomes **visible**: a record said who should act and
+a commit says otherwise. **Detection instead of prevention**, which is the direction the owner chose
+(*«menos travas mecanicas … mecanismos de influencia de contexto em vez de travas mecanicas»*) applied
+to its first concrete case. **And the detection is weaker than it sounds**: the record is landed by the
+orchestrator itself, so it is self-attested, and nothing greps `SELECTION-RECORD` at all.
+
+### The overlap with the hooks was DECIDED, not inherited
+
+The owner named the tension himself before the build: six mechanisms already guard parts of *"the loop
+runs in Scrum format"* mechanically — `wip-guard`, `session-wip`, `zombie-loop-detect`,
+`premature-pr-link-detect`, rule 10, `closure-artifact-guard`. **A profile whose mission duplicates a
+hook becomes a second, weaker classifier over the same state**, which is the defect measured on
+`orchestrator-tool-census.sh` (#371). The brief carries the split as a table and the left column is
+explicitly not the profile's. **Four states have no carrier at all, and only those are its object:** a
+rite that never ran on an exhausted iteration; an Issue whose work merged and which stayed open; an
+iteration worked with eligible `loop` items left behind; and the main session acting instead of
+delegating.
+
+### Considered options
+
+- **Do not rebuild it; leave selection with the orchestrator.** The intake's recommendation, and the
+  status quo for four weeks. **Rejected by the owner.** *What it was right about:* it costs nothing and
+  adds no roster surface. *What it could not answer:* the ranking context is the one with the bias.
+- **Rebuild it holding milestone-write, as #375 was filed.** **Rejected**, and by the owner rather than
+  by the intake: it would move HITL composition off rule 10's prompt, which is #365's whole mechanism.
+- **A typed command instead of a profile** — the shape `/retrospective` uses. **Rejected**, and this is
+  the closest call in the set: a command runs in the orchestrator's own context, which reproduces
+  exactly the bias reason 2 is about. A command can hold a *method*; only a dispatch can hold a *fresh
+  context*.
+- **Rebuild it, tool-less, and remove the write guard.** **Chosen.**
+
+### Consequences still being paid
+
+- **Nothing dispatches it**, and no hook can: a `SessionStart` hook receives one `cwd` while an
+  iteration is two milestone objects in two repositories, and nothing in `hooks/scripts/` reads the
+  queue at all. **An undispatched process guardian is indistinguishable from one that found nothing** —
+  the same residual `agents-lead` carried before #294, and this time there is no `Stop`-hook mitigation,
+  because there is no committed artifact for one to read.
+- **Nothing reads `SELECTION-RECORD`.** It is a terminal literal with no consumer, deliberately: giving
+  it one would make an advisory record look like a gate.
+- **The tool-less property is one word away from being false.** A `tools:` line added to the frontmatter
+  would silently reverse the argument this amendment rests on, so `inventory-counts.test.sh` asserts the
+  key's absence and the brief's own statement of the property. **What that arm cannot hold: whether the
+  runtime honours an absent `tools:` key, or grants a default set.** That is a property of Claude Code
+  and it is **NOT measured** — the arm makes a change visible, it does not prove the grant is empty.
+- **The roster grew for the third time since it was cut to five**, and each addition was individually
+  argued. That is the pattern to watch rather than any one of them: #187 was an owner override against
+  all four reasons, #317 was reason 1, this is reason 2. A fourth should have to explain the trend.
+- **`product-lead`'s absorbed ordering competence and this profile's ranking now sit one hop apart.**
+  Nothing mechanical keeps them apart; the brief's direction rule is prose.
+
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
   [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) · the DoD is

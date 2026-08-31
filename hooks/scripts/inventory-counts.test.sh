@@ -6940,5 +6940,79 @@ else
   ok "retrospective rite — the rite and both writing briefs name the same artifact directory (string agreement only; nothing here observes a file being written)"
 fi
 
+# ===================================================================================================
+# `scrum-master` HOLDS NOTHING, AND THAT IS THE ONLY PROPERTY IN THIS SLICE A GATE CAN HOLD (#375)
+#
+# The profile was admitted over its own intake's recommendation on ONE argument, in the owner's words on
+# the Issue: the intake priced a profile holding milestone-write, and *"a profile with no capability
+# cannot enlarge the capability surface"*. **That argument survives only while the frontmatter stays
+# empty of tools**, and a `tools:` line is one word to add. Nothing else in this suite reads a persona's
+# tool grant at all — measured, `grep -c "^tools:" ` appears in no arm — so a `tools: Read, Bash` added
+# here tomorrow would be invisible to every gate, to the ADR that records the reversal, and to the
+# reader of the brief that argues from the absence.
+#
+# WHAT THIS ASSERTS AND WHAT IT CANNOT. It asserts the ABSENCE of a `tools:` key in the frontmatter, and
+# that the brief still states the property it rests on. It cannot assert that the runtime honours the
+# absence — whether a subagent with no `tools:` line inherits a default grant is a property of Claude
+# Code, not of this repo, and it is NOT measured here. The brief and ADR-0002's amendment both say so;
+# this arm is why a change to the frontmatter cannot be silent, not a proof that the grant is empty.
+#
+# THE ESTIMATOR EXCLUSION IS THE SECOND HALF AND IS A DIFFERENT CLAIM. `harness-engineering`'s estimator
+# table names three sets; `scrum-master` is in none of them. An absence is indistinguishable from an
+# oversight, which is the shape ADR-0004's "absent is not a state" section exists for — so the exclusion
+# is asserted as WRITTEN PROSE, at the table, rather than inferred from three greps returning nothing.
+SM_BRIEF="$ROOT/agents/scrum-master.md"
+SM_SKILL="$ROOT/skills/harness-engineering/SKILL.md"
+sm_problems=""
+if [ ! -r "$SM_BRIEF" ]; then
+  bad "scrum-master — agents/scrum-master.md is not readable, so NOTHING below ran: neither the
+      tool-less property the profile was admitted on nor its estimator exclusion was asserted."
+else
+  # 1 · no `tools:` key, anywhere in the frontmatter. Read the fence explicitly rather than grepping the
+  #     whole file, so a `tools:` occurring inside prose (this brief discusses tool grants at length)
+  #     is not read as a declaration — the same positional discipline the `purpose:` arms use.
+  sm_fm="$(awk 'NR==1 && $0=="---"{inside=1;next} inside && $0=="---"{exit} inside' "$SM_BRIEF")"
+  sm_tools_n="$(printf '%s\n' "$sm_fm" | grep -cE '^tools:' || true)"
+  [ "${sm_tools_n:-0}" -eq 0 ] || sm_problems="$sm_problems
+    agents/scrum-master.md declares a 'tools:' key ($sm_tools_n). The whole argument that admitted this
+    profile is that it holds nothing; a tool grant here is a roster decision, not a frontmatter edit."
+
+  # 2 · the frontmatter still parses as a brief at all, so arm 1 is not green because the fence vanished.
+  printf '%s\n' "$sm_fm" | grep -qE '^name: scrum-master$' || sm_problems="$sm_problems
+    agents/scrum-master.md has no 'name: scrum-master' frontmatter key; the fence did not parse, so the
+    tool-less assertion above was checking an empty string rather than a declaration."
+
+  # 3 · the brief states the property and its bound, so a reader meets the argument rather than the gap.
+  for sm_needle in \
+    '**You have no `tools:` line.**' \
+    'A profile with no capability cannot enlarge the capability surface' \
+    'Nothing reads your record.'
+  do
+    grep -qF -- "$sm_needle" "$SM_BRIEF" || sm_problems="$sm_problems
+    agents/scrum-master.md no longer states: \"$sm_needle\""
+  done
+fi
+
+if [ ! -r "$SM_SKILL" ]; then
+  sm_problems="$sm_problems
+    skills/harness-engineering/SKILL.md is not readable; the estimator exclusion was not asserted."
+else
+  grep -qF -- '**`scrum-master` is EXCLUDED from every row' "$SM_SKILL" || sm_problems="$sm_problems
+    skills/harness-engineering/SKILL.md's estimator table no longer states the scrum-master exclusion.
+    An absence there is indistinguishable from a persona nobody remembered to place."
+  # And it must not have been quietly ADDED to a row, which is the failure the sentence above describes.
+  sm_in_row="$(grep -cE '^\| `(product|content|loop)` \|.*scrum-master' "$SM_SKILL" || true)"
+  [ "${sm_in_row:-0}" -eq 0 ] || sm_problems="$sm_problems
+    skills/harness-engineering/SKILL.md lists scrum-master in $sm_in_row estimator row(s) while the
+    exclusion prose is still present. A profile that ranks the pool and also weighs it grades its own
+    ruler; one of the two statements is now false and nothing else would say which."
+fi
+
+if [ -n "$sm_problems" ]; then
+  bad "scrum-master — the profile no longer holds the property it was admitted on:$sm_problems"
+else
+  ok "scrum-master — the brief declares no tools, states the argument that rests on it and its own lack of a reader, and the estimator table excludes it in prose rather than by omission"
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
