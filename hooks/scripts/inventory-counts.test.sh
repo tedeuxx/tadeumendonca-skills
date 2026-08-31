@@ -7084,8 +7084,12 @@ if [ -r "$MS_SCRIPT" ]; then
   ms_checked=$((ms_checked + 1))
   grep -qF -- 'THIS ROUTE WORKS BECAUSE A HOLE IS OPEN' "$MS_SCRIPT" || ms_problems="$ms_problems
     scripts/milestone-create.sh no longer says in its own header that it depends on an open hole"
-  grep -qF -- 'no document here may claim the raw-API route is closed' "$MS_SCRIPT" \
-    || grep -qF -- 'may claim the raw-API route is closed' "$MS_SCRIPT" \
+  # THE NEEDLE IS THE SHORTEST SPAN THAT FITS ON ONE LINE, and that is a constraint rather than a
+  # style call: `grep -F` is line-based and this file is prose wrapped at 100 columns, so the sentence
+  # this arm is about — "no document here may claim the raw-API route is closed" — is split across two
+  # lines in the source. The first draft of this needle carried the whole sentence and went RED against
+  # a file that says exactly what it demands. A multi-line claim needs a single-line anchor.
+  grep -qF -- 'raw-API route is closed' "$MS_SCRIPT" \
     || ms_problems="$ms_problems
     scripts/milestone-create.sh no longer forbids the claim that the raw-API route is closed"
 fi
