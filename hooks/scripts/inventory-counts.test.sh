@@ -422,7 +422,7 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # then 3 → 4 on #313 slice 2, when `commands/blueprint.md` shipped the harness export. The fourth is a
 # typed command for the same reason as the other three and for one more: its argument selects DIRECTION
 # (empty exports, text would import), which is a thing a human types and a model cannot be matched into.
-# Then 4 → 5 on #355, when `commands/retrospective.md` shipped the iteration retrospective rite. It is
+# Then 4 → 5 on #355, when `commands/sprint-retrospective.md` shipped the iteration retrospective rite. It is
 # typed for the reason the Issue itself raised as an open question: an iteration drained by HAND never
 # reaches the drain's terminal condition, so the fallback route has to be a human typing an iteration
 # name — and an iteration name is an argument, which is what `argument-hint` exists for.
@@ -442,9 +442,9 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # never matched, and absent from every count and table in this file.
 root_cmds=$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
 if [ "$root_cmds" -eq 5 ]; then
-  ok "commands/ root — exactly five owner-typed commands (autonomy-on, autonomy-off, new-issue, blueprint, retrospective), as the docs enumerate"
+  ok "commands/ root — exactly five owner-typed commands (autonomy-on, autonomy-off, new-issue, blueprint, sprint-retrospective), as the docs enumerate"
 else
-  bad "commands/ root — $root_cmds file(s); the docs enumerate five owner-typed commands (autonomy-on, autonomy-off, new-issue, blueprint, retrospective).
+  bad "commands/ root — $root_cmds file(s); the docs enumerate five owner-typed commands (autonomy-on, autonomy-off, new-issue, blueprint, sprint-retrospective).
       A library skill belongs in skills/<name>/SKILL.md — under commands/ it is absent from every count
       and table here, and from the per-family breakdown a reader actually opens."
 fi
@@ -2054,7 +2054,7 @@ skill_stem() {
   esac
 }
 
-ARG_HINT_ALLOWED="autonomy-on autonomy-off new-issue blueprint retrospective"   # the five the OWNER types; a model-invoked skill has no typed argument
+ARG_HINT_ALLOWED="autonomy-on autonomy-off new-issue blueprint sprint-retrospective"   # the five the OWNER types; a model-invoked skill has no typed argument
 
 # The frontmatter block, exclusive of its `---` fences. Empty for a file that has none, which is what
 # the presence assertion below reads.
@@ -5939,6 +5939,62 @@ fi
 # TWO INDEPENDENT `if` BLOCKS, EACH WITH ITS OWN VACUITY GUARD: an arm nested under another emits NO
 # verdict when the one above it goes red.
 # ---------------------------------------------------------------------------------------------------
+# THE SCRUM NAMES CARRY THEIR OWN DISCLAIMER, IN BOTH HOMES (#372).
+#
+# WHAT THE RENAME BOUGHT AND WHAT IT COST, because they are the same property. `/retrospective` became
+# `/sprint-retrospective` so a Scrum-literate reader could tell what the rite IS without reading the
+# loop. That works precisely BECAUSE a Scrum name carries expectations — and three of the ones in play
+# are expectations this loop does not honour: planning has no team commitment and no human estimation
+# ceremony, review is REFUSED on its shape rather than deferred on effort, and the retrospective is N
+# isolated contexts rather than a team in a room. A name that imports a false promise is a worse
+# legibility outcome than the name it replaced, so the disclaimer is part of the rename, not a caveat
+# on it.
+#
+# TWO HOMES, AND THE SECOND IS NOT DUPLICATION. `README.md` addresses the plural external audience the
+# owner named and NO AGENT CARRIES IT — which is #329's exact defect, operative wording living where
+# nobody who acts will read it. `skills/agents-configuration/SKILL.md` is the universal preload, read
+# at the moment a dispatch is made. Same shape the four merge holds already use deliberately.
+#
+# WHAT A GREEN HERE MEANS, stated because the wording invites the wrong reading: THE DISCLAIMER IS
+# WRITTEN. Not that it is true, not that anyone read it, and not that the three deviations are still
+# the right three. If `sprint-review` is ever built, this arm keeps passing while its clause goes
+# stale — that is a review's job, and there is no instrument for it.
+SCRUM372_PRELOAD="$ROOT/skills/agents-configuration/SKILL.md"
+SCRUM372_README="$README"
+scrum372_missing=""
+for scrum372_pair in "$SCRUM372_PRELOAD" "$SCRUM372_README"; do
+  if [ ! -r "$scrum372_pair" ]; then
+    scrum372_missing="$scrum372_missing
+    unreadable: ${scrum372_pair#"$ROOT"/}"
+    continue
+  fi
+  for scrum372_needle in \
+    'implies estimation-as-ceremony and a team commitment' \
+    'implies a stakeholder demo of an Increment' \
+    'isolated contexts that never see each' \
+    'refused' \
+    'legibility'
+  do
+    grep -qF -- "$scrum372_needle" "$scrum372_pair" \
+      || scrum372_missing="$scrum372_missing
+    ${scrum372_pair#"$ROOT"/} — missing: \"$scrum372_needle\""
+  done
+done
+if [ -n "$scrum372_missing" ]; then
+  bad "Scrum vocabulary — a rite name is published without the expectation it falsely imports:$scrum372_missing
+      Each of the three needles is a DEVIATION a Scrum-literate reader would otherwise assume away, and
+      each is independently load-bearing: PLANNING is the commitment that does not exist, REVIEW is the
+      refusal-on-shape that a reader would otherwise read as not-built-yet, RETROSPECTIVE is the
+      isolation that IS the mechanism rather than the formatting. REFUSED and LEGIBILITY are the two
+      words that stop the section reading as a roadmap and as a Scrum-conformance exercise respectively.
+      BOTH FILES ARE REQUIRED. The README alone reproduces #329 — prose no agent carries. The preload
+      alone leaves the external audience the naming was FOR without the caveat.
+      If this is a deliberate rewording, update the needles in this file in the same commit."
+else
+  ok "Scrum vocabulary — both the universal preload and the README state all three imported expectations the rite names do not honour (it asserts the disclaimer is WRITTEN, never that it is true)"
+fi
+
+# ---------------------------------------------------------------------------------------------------
 # THE #384 FOLD ARRIVED — `documentation-standard` CARRIES THE LICENSING RULE THE DELETED SKILL HELD.
 #
 # WHY THIS ARM EXISTS AND THE ADR PRACTICE'S EQUIVALENT DOES NOT. `documentation-standard` states, about
@@ -6848,7 +6904,7 @@ RETIRED_CLAUSES
 # WHY THIS EXISTS. `/autonomy-on` promised "the closing ceremonies run against the exhausted iteration"
 # from #326 and named nothing — measured on the commit this slice forked from, `git grep -l retrospect
 # 5cfea0b -- commands skills agents` matched two files that MENTION the word and
-# `git cat-file -e 5cfea0b:commands/retrospective.md` exited 128. A promise with no object survived a
+# `git cat-file -e 5cfea0b:commands/sprint-retrospective.md` exited 128. A promise with no object survived a
 # month because it reads like a description of something that already runs. #355 built the object.
 #
 # WHAT THESE ARMS ASSERT AND WHAT THEY CANNOT. They assert the rite's rules are WRITTEN, in the files
@@ -6870,7 +6926,7 @@ RETIRED_CLAUSES
 # `grep -c -F` against its target BEFORE being written here (all returned 1 — a needle written across a
 # line wrap matches nothing and reads exactly like absence), and each was then deleted on its own and
 # the suite re-run.
-RITE_CMD="$ROOT/commands/retrospective.md"
+RITE_CMD="$ROOT/commands/sprint-retrospective.md"
 RITE_DRAIN="$ROOT/commands/autonomy-on.md"
 RITE_GATE="$ROOT/agents/quality-assurance.md"
 RITE_PRELOAD="$ROOT/skills/agents-configuration/SKILL.md"
@@ -6878,7 +6934,7 @@ RITE_PRELOAD="$ROOT/skills/agents-configuration/SKILL.md"
 # ── 1 · the rite carries its trigger, its mechanism, its artifact shape and all four of its limits ──
 rite_missing=""
 if [ ! -r "$RITE_CMD" ]; then
-  bad "retrospective rite — commands/retrospective.md is not readable, so NOTHING about the rite was
+  bad "retrospective rite — commands/sprint-retrospective.md is not readable, so NOTHING about the rite was
       asserted. The drain's terminal condition points at this file; without it the closing ceremony is
       a promise again, which is the state #355 was filed to end."
 else
@@ -6901,7 +6957,7 @@ else
     missing: \"$rite_needle\""
   done
   if [ -n "$rite_missing" ]; then
-    bad "retrospective rite — a load-bearing clause left commands/retrospective.md:$rite_missing
+    bad "retrospective rite — a load-bearing clause left commands/sprint-retrospective.md:$rite_missing
       Each needle is ONE clause and answers for itself:
         TRIGGER          — the snapshot fires it, the iteration scopes it, the owner still closes it.
                            Collapsing the three is what makes the rite either never fire or fire on a
@@ -6953,7 +7009,7 @@ if [ ! -r "$RITE_DRAIN" ]; then
       EXECUTES the drain to the rite it fires cannot be checked."
 else
   for rite_drain_needle in \
-    '### On exhaustion, run `/retrospective` — the closing ceremony now has an object (#355)' \
+    '### On exhaustion, run `/sprint-retrospective` — the closing ceremony now has an object (#355)' \
     '**On the FIRST stop condition only**' \
     '**HALF the promise now has an object and half still does not.**'
   do
@@ -6967,7 +7023,7 @@ else
       owner interrupt reports on an iteration nobody finished. HALF THE PROMISE is what stops
       'the closing ceremonies' being read as plural-and-satisfied while the sweep half is unbuilt."
   else
-    ok "retrospective rite — autonomy-on names /retrospective, scopes it to snapshot exhaustion alone, and says which half of its own plural is still owed"
+    ok "retrospective rite — autonomy-on names /sprint-retrospective, scopes it to snapshot exhaustion alone, and says which half of its own plural is still owed"
   fi
 fi
 
@@ -7028,7 +7084,7 @@ else
       copy lens measured that ADR-0002's twenty-sixth amendment claimed the enforcement admission was
       in four surfaces and it was in three — present in the rite, the drain and registry row 0042, and
       ABSENT from this one. That is the surface where its absence costs most: a persona meets
-      '/retrospective is the method half' here, always-on, and would learn the rite exists without
+      '/sprint-retrospective is the method half' here, always-on, and would learn the rite exists without
       learning that nothing fires it. A promise a persona believes is worse than one it never read."
   else
     ok "retrospective rite — the preload strikes the claim that the ceremonies are unbuilt, says which half is still owed, and admits that nothing fires the half that exists"
@@ -7086,7 +7142,7 @@ fi
 rite_path='docs/retrospective/<iteration>/'
 rite_path_missing=""
 rite_path_checked=0
-for rite_path_file in commands/retrospective.md agents/quality-assurance.md agents/product-lead.md; do
+for rite_path_file in commands/sprint-retrospective.md agents/quality-assurance.md agents/product-lead.md; do
   if [ ! -r "$ROOT/$rite_path_file" ]; then
     rite_path_missing="$rite_path_missing
     $rite_path_file — not readable"

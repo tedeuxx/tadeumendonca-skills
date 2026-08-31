@@ -313,7 +313,7 @@ the first time.
 `/autonomy-on` reports at session open, immediately below.
 
 **The derivation predicate is NOT deleted, it is relocated to where it is still used.** `/autonomy-on`
-and `commands/retrospective.md` both derive the active iteration to build a pool; that is a **read** and
+and `commands/sprint-retrospective.md` both derive the active iteration to build a pool; that is a **read** and
 nothing here narrows it. What is gone is deriving a milestone in order to **assign** one:
 
 ```

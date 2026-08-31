@@ -72,7 +72,7 @@ whose contents are fixed at planning makes *"the iteration as it stands at that 
 stable object than it was. The decoupling above is unaffected; it simply costs less to defend.
 
 **The typed fallback is this file's `argument-hint`, and it is not a lesser path.** An iteration worked
-without `/autonomy-on` never reaches the mechanical trigger, so the owner types `/retrospective
+without `/autonomy-on` never reaches the mechanical trigger, so the owner types `/sprint-retrospective
 <iteration>` and the rite runs identically. **Nothing distinguishes the two runs in any artifact**, and
 nothing needs to: the artifact records the iteration, not the route.
 

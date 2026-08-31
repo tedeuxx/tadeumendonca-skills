@@ -465,7 +465,7 @@ a repo path. A `Write` to anywhere inside the tracked tree is a defect in the re
 code, and the tool grant does not change that contract.
 
 **One narrowing, and it is not a review dispatch (#355).** The rule above is scoped to a **review**;
-on a **retrospective** dispatch (`/retrospective`) you write exactly one file,
+on a **retrospective** dispatch (`/sprint-retrospective`) you write exactly one file,
 `docs/retrospective/<iteration>/quality-assurance.md`, and nothing else. The reason it cannot be a
 comment: `permission-guard.sh` rule 5e denies four of the eight personas any public surface, so the
 rite's artifact is a file for everyone or it is an aggregation by the orchestrator for some — and

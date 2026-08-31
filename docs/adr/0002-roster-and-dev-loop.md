@@ -2486,7 +2486,7 @@ which configuration version, when generated"* header is a different object and i
   looker's finding is taste, so it must never be a gate. **Struck in place rather than edited** because
   the estimation bullet fourteen lines above sets that convention in this very list, and an unstruck
   bullet in a list that strikes its retirements reads as live. The refusal that stands today, and its
-  cheapest first slice, are in the twenty-sixth amendment and in `commands/retrospective.md`'s own last
+  cheapest first slice, are in the twenty-sixth amendment and in `commands/sprint-retrospective.md`'s own last
   section.
 
 ### Consequences
@@ -3212,7 +3212,7 @@ and a rite whose first execution predates its definition has no definition to be
 
 ### The decision
 
-1. **`commands/retrospective.md` is the rite**, typed by the owner and named by `/autonomy-on` at its
+1. **`commands/sprint-retrospective.md` is the rite**, typed by the owner and named by `/autonomy-on` at its
    terminal condition. Trigger, scope, output and close are four things, decoupled: **the trigger is
    the drain's entry snapshot going empty; the scope is the iteration as it stands at that moment; the
    output is a proposal; the iteration's close stays the owner's, at planning.**
@@ -3763,7 +3763,7 @@ hold this* belongs and is not restated here.
 filed into the ACTIVE iteration, at filing, in the repo it is filed in"* — is struck. It stood for one
 day. It is reversed rather than rewritten, per this library's convention, because someone built on it:
 `commands/blueprint.md`'s adoption step was written against it six hours after it merged, and
-`commands/retrospective.md` justified its own trigger on it the next day.
+`commands/sprint-retrospective.md` justified its own trigger on it the next day.
 
 ### The owner's rule
 
@@ -3821,7 +3821,7 @@ milestone is invisible to the queue"* is **true**, the pool predicate opening wi
 predicate also requires `ready`, which the item never gets, so it was invisible **either way**. **A true
 premise carrying a false conclusion**, which the merge gate caught this authorship calling *"simply
 wrong"*) ·
-`commands/retrospective.md` (**the trigger justification, re-opened deliberately** — its rejected option
+`commands/sprint-retrospective.md` (**the trigger justification, re-opened deliberately** — its rejected option
 *"the iteration is empty"* rested on #338 and genuinely re-opens; it is re-decided on two grounds that
 never depended on #338 rather than left inheriting a dead argument) · `commands/autonomy-on.md` (whose
 no-milestone count had a **published predicate that could not return what it claimed** —

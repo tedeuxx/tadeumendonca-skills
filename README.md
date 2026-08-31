@@ -29,7 +29,7 @@ three things, and this repository is the middle one:
   its gates and its deploy, and the markdown content held in the repository itself.
 - **The customization** — this repository: the personas in `agents/`, the hooks registered in
   `hooks/hooks.json`, the skill library in `skills/`, the five commands a human types in `commands/`
-  (`autonomy-on`, `autonomy-off`, `new-issue`, `blueprint` and `retrospective`), and the methodology
+  (`autonomy-on`, `autonomy-off`, `new-issue`, `blueprint` and `sprint-retrospective`), and the methodology
   ADRs in `docs/adr/`.
 - **The runtime** — Claude Code: the orchestrator and the subagents, the `PreToolUse` and
   `SessionStart` events, the permission policy, and the tools with MCP.
@@ -504,6 +504,32 @@ request: rounds consumed, what remains, and an explicit choice — push through,
 obligation is one sentence: **state what shipping as-is would cost.** Not whether more could be found —
 more can always be found — but what the reader or the next maintainer actually pays.
 
+### The Scrum names are for legibility, and three of them import expectations this loop does not honour
+
+**The rites are named after the official Scrum events** — `/sprint-retrospective` today, `/sprint-planning`
+and `/sprint-review` when they are built — **so a reader who has never seen this loop can tell what is
+happening and how to control it.** The bound is legibility, not Scrum coverage: `loop` stays, because it
+already reads to a stranger, and so do `ready`, `blocked`, `product`, `content`, every persona name,
+Definition of Done, Definition of Ready and story points. A word that already reads needs no Scrum
+equivalent.
+
+**A Scrum name is legible because it carries expectations. Three of them carry expectations that are
+false here, and stating them is part of the naming decision rather than a caveat on it:**
+
+1. **`sprint-planning` implies estimation-as-ceremony and a team commitment.** Neither exists — estimation
+   is isolated subagent dispatch with a median, and nothing bounds how many items one iteration holds.
+2. **`sprint-review` implies a stakeholder demo of an Increment.** Merge is deploy here, the owner reviews
+   live after the fact, and the rite is **refused on its shape** rather than deferred: a route list rots,
+   and a looker's finding is not falsifiable, so it must not be a gate.
+3. **`sprint-retrospective` is the closest match and still imports one falsehood.** Scrum's retrospective
+   is the team in one room; this one is N isolated contexts that never see each other's output — the
+   rite's mechanism, not its formatting.
+
+**This is stated twice on purpose, here and in the universal preload.** This document is prose no agent
+carries; the preload is what every persona reads at the moment it acts. Two audiences, two homes — the
+same deliberate shape the four merge holds already use, and the alternative is a rule that only the
+audience that did not need it ever sees.
+
 ## The Definition of Done, and when a finding earns the right to block
 
 **The primary ruler is the issue: every requirement the leads stated, enumerated and marked met or
@@ -555,7 +581,7 @@ was built to avoid.
 <!-- claim id=0004 class=DERIVED -->
 
 **Skills carry the conventions so the model does not re-invent them.** **14 skills + autonomy-on**,
-`autonomy-off`, `new-issue`, `blueprint` and `retrospective`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
+`autonomy-off`, `new-issue`, `blueprint` and `sprint-retrospective`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
 "improve".
@@ -1352,7 +1378,7 @@ by hand:
 | resource type | ships? | where | how it takes effect |
 |---|---|---|---|
 | **Skills** | yes — **14** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
-| **Commands (legacy)** | yes — **5** (`autonomy-on`, `autonomy-off`, `new-issue`, `blueprint`, `retrospective`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
+| **Commands (legacy)** | yes — **5** (`autonomy-on`, `autonomy-off`, `new-issue`, `blueprint`, `sprint-retrospective`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **8 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`, `scrum-master`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 15** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `dispatch-premise-guard`, `closure-artifact-guard`, `mcp-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **15 registrations over 13 scripts**: `closure-artifact-guard` and `preflight` are each registered twice, on the two events their two halves need, and that is why the registration count is the honest number rather than a file count. **Both figures fell by one at #375** (16/14), when `orchestrator-write-guard` was removed — the first registration this repo has ever deleted rather than added |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |

@@ -348,6 +348,52 @@ Issue was met, and those requirements are the leads' output — so the ruler the
 impression, which has no stopping rule. That objectivity is what the labels buy: they are how the
 chain above becomes checkable instead of merely believed.
 
+### Scrum vocabulary — what these names import here, and what they do not (#372)
+
+**The rite commands are named after the official Scrum events so a human who has never seen this loop
+can tell what is happening and how to control it.** The owner's reason, and it is the ruler for every
+naming decision downstream of it: *«a ideia principal que tive foi orientar a configuracao de harness
+a comportamentos e elementos conhecidos pela metodologia agil do scrum para que seja mais facil para
+humanos entenderem o que esta acontecendo e como controlar o harness.»*
+
+**It is bounded by legibility, not by Scrum coverage.** *«o fluxo de trabalho podemos chamar de loop
+pois é entendivel»* — `loop` stays: the flow, the issue type, the lane. **A word that already reads to
+a stranger needs no Scrum equivalent**, which is why `ready`, `blocked`, `product`, `content`, every
+persona name, Definition of Done, Definition of Ready and `sp:N` are all untouched. Sorting the
+vocabulary by *does Scrum have a word for this* was the wrong axis and would have read as a mandate to
+rename the roster.
+
+**A Scrum name is legible BECAUSE it carries expectations, and three of the ones in play carry
+expectations this loop does not honour. Say so here rather than let a Scrum-literate reader infer
+them:**
+
+1. **`sprint-planning` implies estimation-as-ceremony and a team commitment.** Neither exists. This
+   loop estimates by isolated subagent dispatch with a median (`/planning-poker` is a reference
+   pattern, explicitly not run as a human ceremony), and **nothing bounds how many items the owner
+   admits to one iteration** — there is no commitment to under-fill against.
+2. **`sprint-review` implies a stakeholder demo of an Increment.** Here **merge is deploy**, the owner
+   reviews live after the fact, and the rite is *refused on its shape* rather than deferred on effort:
+   a route list rots, and a looker's finding is not falsifiable, so it must not be a gate. **The rite
+   does not exist and typing it returns `Unknown command:`, which is correct behaviour.**
+3. **`sprint-retrospective` is the closest match and still imports one falsehood.** Scrum's
+   retrospective is *the team in one room*. This one is **N isolated contexts that never see each
+   other's output** — which the rite calls its mechanism, not its formatting, because a persona at
+   iteration close is a fresh context and aggregating them would relocate the bias rather than remove
+   it.
+
+**Two things the rename deliberately did NOT touch, and both would have been defects.** The artifact
+directory stays `docs/retrospective/<iteration>/` — a live dispatch was writing into it, prior
+comments carrying the path cannot be rewritten, and three files agree on the string under a gate arm.
+And **the owner's own Portuguese quotes saying «review e retrospective» are his words about Scrum
+rites, not identifiers**; renaming them falsifies a quotation, which this repository has already paid
+for once on exactly this operation.
+
+**This section is in the preload rather than only in `README.md` because the README is prose no agent
+carries.** `README.md` states the same three deviations for the plural external audience the owner
+named, which does not read this file — the same deliberate two-home shape the four merge holds
+already use. A gate arm asserts this section exists and carries its clauses; **it asserts the
+disclaimer is WRITTEN, never that it is true.**
+
 ## The iteration is the unit of work
 
 **The pool a drain works is an ITERATION, not the whole `ready` queue.** Owner decision, 2026-08-24
@@ -1012,7 +1058,7 @@ closing ceremonies run, and the stop moves to the planning handoff, which is the
 condition; it is stated once, there, rather than twice.
 
 **One of those ceremonies exists and one does not, and the plural is where that gets lost (#355).**
-`/retrospective` is the method half — the personas that ran, consulted alone, each reasoning from its
+`/sprint-retrospective` is the method half — the personas that ran, consulted alone, each reasoning from its
 own artifacts. The **sprint review** half, which sweeps the running product and finds a completely
 different class of defect, **is not built**. Read *"the closing ceremonies"* anywhere in this loop as
 one built and one owed.
@@ -1075,7 +1121,7 @@ carried over), not a gate.
   dispatched subagent, there is no non-production environment to sweep, and resumable state has no
   durable home since #245. RETROSPECTIVE and PLANNING are dispatch-and-interview shapes, not mechanisms
   in this file.~~ **Struck 2026-08-30 (#355), and it was wrong in two different ways.** *The
-  RETROSPECTIVE half is built* — `commands/retrospective.md`, a typed command the drain runs at its
+  RETROSPECTIVE half is built* — `commands/sprint-retrospective.md`, a typed command the drain runs at its
   terminal condition, with the isolation, the derived consult set, the per-persona artifact and the
   cap. It was never merely a "dispatch-and-interview shape": what made it a mechanism was feeding each
   consulted persona **its own artifacts**, since a persona at iteration close is a fresh context and
@@ -1083,7 +1129,7 @@ carried over), not a gate.
   head* — `product-lead` declares a read-only `chrome-devtools` subset with a bounded origin, merged
   2026-08-29 (#356). **The review half is still not built**, on grounds that survive the new capability
   intact — a route list rots, and a looker's finding has no ruler — recorded in
-  `commands/retrospective.md`'s own last section rather than here, so the deferral sits beside the rite
+  `commands/sprint-retrospective.md`'s own last section rather than here, so the deferral sits beside the rite
   it defers. **PLANNING is genuinely unbuilt and no claim is made about it.**
 - **Anything that observes an iteration.** No hook reads the queue: every `gh issue` call in
   `hooks/scripts/` is a write path. This section is a rule the loop follows, and a gate asserts only that

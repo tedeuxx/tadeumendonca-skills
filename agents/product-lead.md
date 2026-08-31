@@ -521,7 +521,7 @@ identical unenforced shape for its own rounds file. **You still never edit copy.
 report is the one exception, and it is the whole reason the grant exists.~~ **Struck 2026-08-30 (#355) —
 there are TWO exceptions now, and a rule that says "one" while carrying two is the shape that teaches a
 reader to stop counting.** The second is the **retrospective section file**,
-`docs/retrospective/<iteration>/<persona>.md`, which `/retrospective` asks every consulted persona to
+`docs/retrospective/<iteration>/<persona>.md`, which `/sprint-retrospective` asks every consulted persona to
 write — you included, and necessarily so: `permission-guard.sh` rule 5e denies you `gh issue comment`
 and `gh pr comment` by name, so a comment-shaped artifact would have to be relayed by the orchestrator,
 which is the aggregation that rite's isolation exists to prevent. **What has NOT changed is the thing
