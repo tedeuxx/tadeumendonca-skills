@@ -68,6 +68,21 @@ predictable path inside a tree, because the next reader finds it and reads it as
 scratchpad path is in no diff, in no gate's input, and reachable by no consumer — so it cannot become a
 source of truth, which is what makes writing it safe.
 
+**The destination is stated as a TEST and never as a directory name: *a path outside every git working
+tree*.** A directory name is exactly the part that does not port — it names a convention of one
+machine's layout, and a reader on another harness who honours the name rather than the property gets
+neither. State the property, and let the receiving harness resolve it against whatever its own runtime
+hands it.
+
+**A repository-root scratch directory is refused by this rule, and naming one is the specific mistake
+this paragraph exists to stop.** It reads as ephemeral and is not: it sits at a predictable path inside
+a tracked tree, so the next reader resolves it, and — measured against
+`hooks/scripts/orchestrator-write-guard.sh` with the empty `agent_type` a typed command runs under —
+the write is **denied** wherever the workspace root is the repository root, which is the ordinary
+installed shape. **This harness carried exactly that directory once and retired it (#245)** — the one
+obligation `docs/blueprint-registry.md`'s own `## History` note calls abandoned in this harness's
+history. Reinstating it in prose would restore a destination that is neither ignored nor writable.
+
 ~~**Never write a file.** Not the registry, not a cached copy of the output, not a scratch artifact.~~
 **Struck 2026-08-29.** It was the right rule stated one notch too wide: it forbade the *handover
 artifact* in order to forbid the *ageing copy*, and an interchange with nothing to hand over is not an
@@ -85,7 +100,8 @@ reader's machine, which is why the destination is the scratchpad and not a path 
 
 ## Step 1 · locate the harness and stamp the export
 
-The harness root is the nearest directory containing `.claude-plugin/plugin.json`. From it:
+The harness root is the nearest directory containing `.claude-plugin/plugin.json`, found by walking
+**up** from the directory this session is rooted in. From it:
 
 - the plugin's own name and version — `.claude-plugin/plugin.json`, and `VERSION` if the repo has one
 - the commit — `git -C <root> rev-parse HEAD`
@@ -100,6 +116,15 @@ dirty, say so in the header — the export describes files, not the commit.
 source; a plugin cache under a version directory is an installed build and may be behind it. If you
 cannot establish that you are reading the canonical source, **stop and report that limitation** rather
 than emitting a blueprint that may describe a build nobody is running.
+
+**If the upward walk finds no manifest, this session is not rooted in a harness source tree. Report
+that and stop. A `plugin.json` under a version-numbered cache directory is an installed build and is
+never the answer.** This is the ordinary consumer case, not an edge one: a project that *installs* this
+plugin has no `.claude-plugin/` of its own, so the walk terminates with nothing, and the only manifest
+reachable from there is the cached build the paragraph above forbids. **Do not widen the search to
+reach it.** An export produced from a cache describes the last install, silently, under a currency
+header that looks authoritative — which is worse than no export, because the header is the only
+instrument the receiving reader has.
 
 ## Step 2 · read the identity
 
@@ -133,23 +158,146 @@ of itself.
 
 ## Step 4 · render the Markdown document
 
+**The document is a preamble addressed to its reader, then a snapshot in three sections.** The
+preamble is first for a reason that is not politeness: this document's first reader is an *agent* in
+another project, and an unaddressed document is adopted rather than evaluated. A snapshot with no
+instructions on how to read it will be read as a specification to implement, because that is what a
+list of mechanisms looks like.
+
+**The document is descriptive only.** It is not executable configuration, not a specification to
+implement, and not a runtime-compatibility claim. What is unsupported is *executing or installing* one
+project's configuration on another project's runtime — never reading or sharing the concepts. Say this
+in the document, in the preamble, in the document's own voice.
+
 Sections, in this order:
 
-1. **Header** — plugin, version, commit, branch, tree state, date, and the reproduce commands.
-2. **How to read a row** — the field contract, copied from the registry's own statement of it, so the
-   document is self-describing to someone who has never seen this format.
-3. **What no gate here can hold** — carried from the registry, above the rows. A reader must meet the
-   residual before meeting the content: the purpose cells are unfalsifiable by any instrument, and a
-   blueprint that hides that is selling a green it does not have.
-4. **The obligations**, grouped by `tipo`, each row with its `enforcement` value and its carrier.
-5. **Coverage** — which classes the harness claims completeness over, and, for a class declared
-   partial, **the unclaimed elements by name**. Silence about a gap reads as compliance; a named gap
-   reads as a gap.
-6. **Identity appendix** — every mechanism, its class, its registration point and its `purpose:`. This
+1. **Header** — plugin, version, commit, branch, tree state, date, and the reproduce commands. Keep it
+   to the stamp; it is the instrument, not the content.
+2. **The preamble addressed to the receiving agent** — see 4a.
+3. **The snapshot** — see 4b, three sections.
+4. **Identity appendix** — every mechanism, its class, its registration point and its `purpose:`. This
    is evidence that the rows are real rather than aspirational. **It is never the spine**: a spine made
-   of one harness's mechanism names can only describe harnesses shaped like that one.
-7. **Abandoned obligations** — the registry's tombstones, if it holds any. An empty table is a
+   of one harness's mechanism names can only describe harnesses shaped like that one. **It stays last**,
+   and the invocation surface leading the snapshot does not move it — those are two different
+   questions, and the reasoning is recorded rather than assumed (ADR-0021's 2026-08-31 amendment).
+5. **Abandoned obligations** — the registry's tombstones, if it holds any. An empty table is a
    statement and is printed as one.
+
+### 4a · the preamble — addressed to the agent that will read this
+
+Write it **to that agent, in the second person**, and make it carry all of the following. It is not a
+courtesy paragraph; each clause below removes one specific way this document gets misused.
+
+- **Read this. Do not implement it.** Nothing here is a task list, and no line of it is a change to
+  make. The output of reading it is a *conversation with your owner*, not a diff.
+- **First find what already exists locally under a different name.** Most of what looks new is not: an
+  obligation stated here as a hook may be carried there by a review habit, a checklist, or a rule in a
+  brief. **Map before you propose** — an obligation matched to a local one that already holds is the
+  most common correct outcome, and it costs nobody a decision.
+- **Interview your owner one item at a time.** Never a batch. A list of mechanisms presented at once
+  gets one answer for all of them, which is not a decision about any of them.
+- **Every evidence claim in this document belongs to the origin project.** *Measured there* never means
+  measured here. Treat every claim as unverified locally until something local verifies it, and say so
+  in whatever you write down.
+- **Never adopt a mechanism before checking whether the failure it prevents has actually been observed
+  locally.** A mechanism adopted because another project has it is a mechanism nobody local decided to
+  want, guarding a failure that may never have happened there.
+
+And what **not** to do, stated as flatly:
+
+- **Install nothing and execute nothing** from this document. It carries no configuration, and any
+  path, matcher or file name in it names the origin's machine.
+- **This is not a conformance checklist and not an audit.** A gap against it is not a finding. The
+  origin project has gaps too, and this document names its own.
+- **Never copy the wording. Copy the concept, or copy nothing.** Wording that reads well here was
+  written against local vocabulary, local mechanisms and a local history; pasted elsewhere it produces
+  a rule that sounds authoritative and refers to nothing.
+
+### 4b · the snapshot — three sections, in this order
+
+**1 · The interaction surface.** Every handle exactly as it is typed, its argument, what it does, and
+what a bare invocation does — plus the **AFK/HITL boundary**: what runs unattended, what stops and
+asks, and what escalates irreversibly to the owner. Enumerate the handles from `commands/` and the
+dispatchable actors from `agents/`, at invocation, as everything else here is enumerated.
+
+**It leads the snapshot, and that is a decision with a stated reason.** The subject of this document is
+how a human works *with* a project plus its harness, and for that subject the handles are the spine:
+they are what gives a human the sense of control over a loop that otherwise runs unattended. **This
+does not demote the obligations and does not move the identity appendix** — see the note on section 4
+above.
+
+**2 · The inventory of configuration elements.** Grouped by `tipo`, each element with its carrier, its
+`enforcement` value, and **four lines**:
+
+| line | source |
+|---|---|
+| **purpose** | the registry's `propósito` — the failure the obligation prevents, stated as a failure |
+| **what it does** | the registry's `o que faz` |
+| **what it does NOT do** | the registry's `o que não faz` — **mandatory on every element** |
+| **how it is activated** | derived — see *how it is activated* below |
+
+**"What it does NOT do" is mandatory on every element and is never the line cut for cost.** Without it
+a written rule reads as enforcement and an advisory anchor reads as though it refuses calls — so the
+receiving project adopts a guarantee that never existed. It is also the line that *ports*: a limit is a
+property of the strategy and survives the mechanism not surviving.
+
+Immediately above the rows, carry two things from the registry: **the field contract** (so the document
+is self-describing to someone who has never seen this format) and **what no gate here can hold**. A
+reader must meet the residual before meeting the content — the purpose cells are unfalsifiable by any
+instrument, and a blueprint that hides that is selling a green it does not have. Immediately after the
+rows, carry **coverage**: which classes the harness claims completeness over and, for a class declared
+partial, **the unclaimed elements by name**. Silence about a gap reads as compliance; a named gap reads
+as a gap.
+
+**Evidence travels as prose, attributed to the origin.** Say what was measured, where, and what is only
+documented or unknown — as a sentence beside the element, not as a bare field. The preamble already
+says the claims belong to the origin; the sentence is where a reader learns *which* claim is which.
+
+**3 · The general principles** that govern the configuration — the rules that are true across the
+elements rather than inside any one of them. Read them from the harness's own always-loaded guidance
+and its decision records; do not restate the inventory in prose.
+
+### How it is activated — derived, and the derivation is stated rather than judged
+
+**One of four values.** It is **derived**, on the rule below, and it is emitted with the derivation
+named so a reader can disagree with the rule rather than with the value:
+
+| the mechanism… | value |
+|---|---|
+| is preloaded into some actor's every interaction (the interchange's `always_loaded: true`) | **always present** |
+| is a typed command, or a body of knowledge reached by its own name | **invoked by handle** |
+| is registered on an event and runs when that event fires | **on call** |
+| is consulted only when a matching act is attempted, or is stated with nothing carrying it | **on demand** |
+
+**This is the interchange's `always_loaded` under another name, and it inherits that field's lossiness
+whole.** Here it is a per-persona property and there it is a per-mechanism value: the emission is the
+disjunction — **always present** if *any* profile preloads it — and the resolution is lost. **Name the
+preloading profiles beside the value**, exactly as the YAML names them in `note`, so a reader can
+recover what the derivation flattened.
+
+**Nothing new is authored for this line, deliberately.** It is derived from a field this command
+already derives, on a rule this file states; the alternative — an authored activation cell per row — is
+a sitting of its own, and a per-run judgement in its place would be the invention this command forbids
+everywhere else.
+
+### Pros and cons are NOT emitted, and the reason is the field contract
+
+The five-line inventory this document's design asks for names *pros and cons* as its fifth line. **It
+is cut, and this paragraph is why rather than an omission.**
+
+**The cons half already exists and is better placed.** `o que não faz` is the registry's own limit
+cell — the one it calls *the most transferable cell in the row* — and a separate cons column either
+duplicates it or dilutes it, and there is no third option.
+
+**The pros half is `propósito` restated as a virtue, which the field contract forbids in as many
+words.** `propósito` is defined as *the failure the behaviour prevents*, deliberately not a benefit;
+rendering the same cell twice, once as a failure and once as an advantage, publishes a stronger claim
+in the second rendering than the registry authored in the first.
+
+**If it is ever wanted, the honest form is derived and labelled as derived** — pros from `propósito`,
+cons from `o que não faz`, one paragraph, stated in the export as a re-reading of two cells rather than
+as an authored judgement. **What must not happen is 44 authored cells invented per run**, which is
+extraction dressed as judgement and is what the whole design forbids.
 
 ## Step 5 · render the YAML document
 
@@ -163,6 +311,7 @@ source:
   generated_at: <ISO-8601 timestamp>
   commit: <the SHA from step 1>
   tree_clean: <true|false>
+  disclaimer: <the residual — see below; emitted always, never omitted>
 mechanisms:
   - id: <the registry's four-digit id, unprefixed>
     prevents: <the failure the obligation exists to prevent>
@@ -173,6 +322,26 @@ mechanisms:
     does_not: <the limit, carried across from the registry>
     enforcement: <denies|advises|documents|absent>
 ```
+
+### `source.disclaimer` — the caveat travels with the artifact, not only with the reading
+
+**Emit it always.** Its text carries, in one paragraph and in the document's own voice: that this is
+**descriptive only** — not executable configuration, not a specification to implement, not a
+runtime-compatibility claim; that `format_version` is a claim about **this document's schema and
+nothing else**, since no mechanism here ports; that every `evidence_class` value is **self-declared by
+the exporting harness and falsified by nothing**; and that a claim measured there is not measured here.
+
+**Why it is a field and not a comment.** Without it the caveat lives only in the Markdown — which is
+*printed into a response* — while the YAML is the artifact that is **written to disk, handed over and
+parsed by a machine**. The residual would then travel with the copy nobody keeps and be absent from the
+copy that gets read by the receiving harness's importer. That is exactly inverted, and it compounds
+under the field above it: `evidence_class: measured` would arrive at a foreign reader with nothing in
+the file saying it is self-asserted.
+
+**The authority for adding it is the interchange format's own compatibility rule** — *a reader must
+ignore unknown fields, and adding an optional field is a compatible change* — the identical argument
+this command already invokes for `does_not` and `enforcement`. A conforming foreign reader ignores it
+and loses nothing it was promised.
 
 **Translate on export. Do not reshape the registry.** The registry is the authored artifact and this is
 a projection of it (ADR-0021); reshaping the artifact to suit one consumer inverts that, and the
@@ -185,10 +354,10 @@ renaming them moves gate arms for no interchange benefit.
 | `propósito` | `prevents` | the failure it prevents, stated as a failure rather than as a virtue |
 | `carrier` | `surface` | by the class of the carrier — see the table below |
 | — | `always_loaded` | derived — see below |
-| — | `evidence_class` | authored — see below |
+| — | `evidence_class` | **declared per export and unstable across invocations** — see below |
 | `o que faz` | `note` | the reproduction grain, redacted per the rule below |
 | `o que não faz` | **`does_not`** | verbatim in substance — an **optional extra field** |
-| `tipo` + the enforcement axis | **`enforcement`** | an **optional extra field** |
+| `tipo` | **`enforcement`** | a **closed-set join** against the registry's published mapping — see below. An **optional extra field** |
 
 **`does_not` and `enforcement` ride along as optional fields, and the authority for that is the
 interchange format's own compatibility rule** — *a reader must ignore unknown fields, and adding an
@@ -234,13 +403,30 @@ permission rule and a typed command — none of them costs context until somethi
 the disjunction — `true` if *any* profile preloads it — and the resolution is lost. Name the preloading
 profiles in `note` so a reader can recover what the field flattened.
 
-### `evidence_class` — a closed set of three, and the default is `unknown`
+### `evidence_class` — declared per export, unstable across invocations, and `unknown` unless a cell says otherwise
 
 | value | means |
 |---|---|
 | `measured` | the behaviour was exercised in this harness |
 | `documented` | documentation or a record asserts the behaviour; nothing exercised it |
 | `unknown` | the behaviour has not been established |
+
+**Emit `unknown` unless the registry carries an authored evidence cell for that row.** At this commit
+it carries none — no field in `docs/blueprint-registry.md`'s row contract holds it — so **every row
+emits `unknown`**, and the export says so in the header rather than letting three values suggest a
+distinction nothing here can make.
+
+~~**Authored — see below.** Default to `unknown`, never to `documented`.~~ **Struck 2026-08-31.** The
+word was **`authored`**, and it was false about this harness: nothing authors this field. What made it
+worth striking is not the inaccuracy but its consequence — a field with no authored source is
+**re-decided on every invocation**, so *two exports at the same commit can disagree*, and the currency
+header's entire purpose is to let a reader trust that the commit determines the document. Struck rather
+than deleted because it stood from 2026-08-28 and a reader took the field's stability from it.
+
+**So the honest description of this field is: declared per export and unstable across invocations.**
+Say that in the document, beside the value. The alternative — authoring an evidence cell per row — is a
+sitting of its own with the owner's layer in it, and it is not done here; **what is not acceptable is
+the state this replaces**, where the word claimed a source that did not exist.
 
 **Default to `unknown`, never to `documented`.** Defaulting up publishes a stronger claim than the
 harness has, and the two failure directions are not symmetric: an under-claim is corrected in one edit
@@ -253,7 +439,27 @@ exists to hold.
 **Nothing can falsify this field.** It is self-declared, and a model can write `measured` without
 measuring, exactly as `owner-take: not-supplied` can be written without asking. It earns its place as a
 **discipline with a marker** rather than as a verified fact, and this sentence is the marker. What a
-gate can hold is closed-set membership and nothing else.
+gate can hold is closed-set membership and nothing else — **and `source.disclaimer` is what carries the
+marker into the artifact**, since the Markdown that states it is printed and discarded while the YAML
+is the copy that is handed over.
+
+### `enforcement` — a closed-set JOIN on `tipo`, never a per-run judgement
+
+**Do not decide this field. Look it up.** `docs/blueprint-registry.md`'s *How to read a row* publishes
+the `tipo` → `enforcement` mapping; the export joins each row's `tipo` against it and emits the value it
+finds. Two rules complete it, both stated there rather than here:
+
+- **A row whose `carrier` is `none` or `retired` emits `absent`**, whatever its `tipo` — an obligation
+  nothing carries enforces nothing.
+- **A row that deviates from the mapping declares the deviation in the registry, as an exception with
+  its reason.** The export carries the declared value. A declared exception is a decision somebody made
+  once and can be argued with; a per-run guess is neither.
+
+**Why this is a join and not a judgement, said plainly.** `enforcement` is emitted in **both**
+documents, and in the Markdown it prints beside `carrier` — which is gated, and real — with nothing
+distinguishing the two for a reader. A field that looks derived and is in fact re-decided on every
+invocation is the same defect `evidence_class` has one paragraph above, on a field that is more visible
+and less hedged. The join costs one lookup and removes it.
 
 ### Stable ids — the registry is the authority, and the interchange rule has a defect
 
