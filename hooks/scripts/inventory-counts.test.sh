@@ -4242,16 +4242,43 @@ grep -qF 'There is no gate here and none is claimed.' "$BP_CMD" 2>/dev/null \
 # exits 1 in BOTH repositories of this workspace (#245 removed the ignore entry and the sweep hook and
 # left the comment block), so it is neither ignored nor writable, while reading as both.
 #
+# THE DOTTED LITERAL DID NOT CLOSE THE HOLE THE PARAGRAPH ABOVE DIAGNOSES, AND #377 IS THAT REPAIR.
+# `\.scratch` catches the DIRECTORY NAME; the specification's wording carries no dot, and prose is
+# exactly what lands in a command file. The header cited one hole and the pattern closed another. So
+# the arm now also refuses the PHRASE form — a scratch directory named as a place something is written
+# to, in any of the spellings a command file plausibly carries. Re-measured on 2026-08-31, the pattern
+# below against six lines, three destinations and three honest sentences:
+#   under the workspace ignored scratch directory.   -> MATCH
+#   Written to the repo scratch dir.                 -> MATCH
+#   Store it in the project scratch folder.          -> MATCH
+#   A repository-root scratch directory is refused…  -> no match  (the prohibition on line 77)
+#   …writes to the session scratchpad and nowhere…   -> no match  ('scratchpad' is not 'scratch dir')
+#   Not a scratch artifact, not a tmp directory.     -> no match
+#
+# WHAT THE PHRASE ARM CANNOT SEE, AND IT IS A REAL FALSE-NEGATIVE PAIR PLUS A FALSE-POSITIVE ONE.
+# (a) It keys on a PREPOSITION within 40 non-period characters before the noun, because that is what
+#     separates naming a destination from naming a mistake. A destination stated without one — a bare
+#     table cell reading `<workspace>/scratch dir` — is invisible to the phrase arm, though the slash
+#     forms are usually caught by the literals.
+# (b) It cannot tell a PROHIBITION from an INSTRUCTION. `Never write to the repo scratch directory.`
+#     matches and reddens, honestly written. The file's existing prohibitions are phrased without a
+#     preposition ('A repository-root scratch directory is refused…', 'not a scratch artifact'), and
+#     that phrasing is now load-bearing: rewrite one of them into prepositional form and this arm
+#     reddens on correct prose. Say the property, not the place.
+# (c) It sees SPELLINGS, never SEMANTICS. Any synonym for the same directory that avoids the word
+#     'scratch' — 'the ignored working folder' — passes.
+#
 # WHAT IT DOES NOT BUY, AND THIS IS THE HALF TO READ. It is PRESENCE, not a control. The write itself
 # is already refused at runtime by `orchestrator-write-guard.sh` for any path inside a git working
 # tree, whatever this file says. All this arm stops is the command DOCUMENTING a route that would be
 # denied — an instruction a reader would follow, fail, and then work around. A green here says the
 # command names no such destination; it says nothing about where an export actually wrote.
-bp_bad_dest="$(grep -c -E 'workspace-root|tmp/blueprint|\.scratch' "$BP_CMD" 2>/dev/null || true)"
+bp_bad_dest="$(grep -c -E 'workspace-root|tmp/blueprint|\.scratch|\b(under|into|inside|within|to|in|at)\b[^.]{0,40}scratch[ -](dir|directory|folder)' "$BP_CMD" 2>/dev/null || true)"
 if [ "${bp_bad_dest:-0}" -ne 0 ]; then
   bp_rule_problems="$bp_rule_problems
     the command names a repository-relative output destination ($bp_bad_dest occurrence(s) of
-    'workspace-root', 'tmp/blueprint' or '.scratch'). Such a path is DENIED to a typed command by
+    'workspace-root', 'tmp/blueprint', '.scratch', or a scratch directory named in prose as a place
+    something is written to). Such a path is DENIED to a typed command by
     orchestrator-write-guard.sh wherever the workspace root is the repository root, which is the
     ordinary installed shape — and the repo-root scratch directory is additionally ignored by nothing
     since #245 removed the entry and left the comment"
