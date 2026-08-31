@@ -183,15 +183,28 @@ that ran on `main` is **unrecorded** — which is precisely the intake dispatche
 above is builders-and-gates, not intake.** Read the `agents-lead` and lead columns accordingly: a
 `loop` intake that ran on `main` left nothing here.
 
-*A live instance of this limit, from this rite's own branch:*
+*This limit fired on this rite's own branch, and the branch was renamed rather than left standing as a
+demonstration.* The rite opened on `docs/retrospective-sprint-01`, which resolves under the predicate
+above:
 
 ```
 printf '%s' "docs/retrospective-sprint-01" | grep -oE '[0-9]+' | head -1   → 01
 ```
 
-Every dispatch of this retrospective is recorded against **`tadeumendonca-skills` #1** — an unrelated
-merged PR from 2026-07. The rite's own dispatch records are therefore not findable under any Issue in
-this iteration.
+Every `dispatch-metrics` comment from this rite would have posted onto **`tadeumendonca-skills` #1** —
+an unrelated PR merged in 2026-07. Polluting a public artifact to demonstrate a limit already recorded
+here is a bad trade, and this rite's artifact is these files, not its metrics comments. The branch was
+renamed to `docs/retrospective-sprint-one`, verified digit-free with the same predicate before the push:
+
+```
+printf '%s' "docs/retrospective-sprint-one" | grep -oE '[0-9]+' | head -1   → (nothing)
+```
+
+`dispatch-metrics-stop.sh` therefore exits silently on its no-number path, and **this rite's own
+dispatches are unrecorded by `dispatch-metrics` entirely.** That is not an escape from the limit but its
+other face — and it is an instance of the lower bound section 4 states: a persona that ran and left no
+comment is indistinguishable from one that never ran. Anyone reconstructing which personas this
+retrospective consulted must read these files, because the metrics hook holds nothing about it.
 
 **2 · `agent_type` is namespaced.** Every value returned above is spelled
 `tadeumendonca-skills:<persona>`, including the one recorded in `tadeumendonca-io` — the namespace is
