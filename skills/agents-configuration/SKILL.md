@@ -320,12 +320,12 @@ label is auditable and attributable, not proven.
 
 | label | means | set by | queried by |
 |---|---|---|---|
-| `product` | the repo's own deliverable | the owner, at filing | `/autonomy-on`'s queue · merge class **safe** |
+| `product` | the repo's own deliverable | the owner, at filing | `/autonomy on`'s queue · merge class **safe** |
 | `content` | published in the owner's voice | the owner, at filing | merge class **boundary** |
-| `ready` | the description is closed on that lane, per the `filed → **description closed**` rows above | the leads (`product`) · `product-lead` (`content`) · **the owner** (`loop`) | `/autonomy-on` · `developer` refuses an Issue without it |
+| `ready` | the description is closed on that lane, per the `filed → **description closed**` rows above | the leads (`product`) · `product-lead` (`content`) · **the owner** (`loop`) | `/autonomy on` · `developer` refuses an Issue without it |
 | `blocked` | waiting on the owner, or on something outside the loop | anyone | the "what needs the owner" report |
 | `reader-facing` | the diff will change words or images a reader sees | the owner or the leads | which lens the gate dispatches — **a signal, never a gate** |
-| `sp:N` | the item's estimated weight, one Fibonacci value from a closed set (#326) | the estimating personas for that type, median of an isolated dispatch each | `/autonomy-on`'s **preflight** (an item without one blocks entry) · the points-per-week aggregation |
+| `sp:N` | the item's estimated weight, one Fibonacci value from a closed set (#326) | the estimating personas for that type, median of an isolated dispatch each | `/autonomy on`'s **preflight** (an item without one blocks entry) · the points-per-week aggregation |
 
 `product` / `content` / `loop` are exclusive per
 [ADR-0002](../../docs/adr/0002-roster-and-dev-loop.md), which is the
@@ -398,7 +398,7 @@ disclaimer is WRITTEN, never that it is true.**
 
 **The pool a drain works is an ITERATION, not the whole `ready` queue.** Owner decision, 2026-08-24
 (#326). What the axis buys is stated narrowly on purpose: **a bounded pool and a reachable terminal
-condition.** `/autonomy-on` scoped by `ready` alone is unbounded for exactly the reason #103 retired
+condition.** `/autonomy on` scoped by `ready` alone is unbounded for exactly the reason #103 retired
 *"drain until the queue is dry"* — the queue grows by working — and an iteration is the smallest thing
 that fixes a pool's contents at a moment the owner is present.
 
@@ -526,7 +526,7 @@ persona that would settle it. If it turns out to create, delete the script rathe
 
 **Decided in this slice, not inherited — the source document explicitly refuses to answer it.** There,
 loop-typed items carry no iteration and sit outside the drained pool, so the question is only about where
-a retrospective's output lands. **Here the premise does not hold**: `/autonomy-on`'s queue is
+a retrospective's output lands. **Here the premise does not hold**: `/autonomy on`'s queue is
 `(product OR loop) AND ready`, so an iteration-scoped pool with loop items unassignable does not orphan a
 ceremony's output — **it takes half the queue dark**. One list, one axis, one predicate.
 
@@ -571,7 +571,7 @@ scheduled out.~~ ~~**Scope is `loop` and only `loop`.**~~ ~~**Which repo's itera
 is filed in.**~~
 
 **Struck 2026-08-30 (#365), and it is struck rather than narrowed because #338's own failure mode cannot
-occur.** Its argument was that a `loop` Issue born outside the pool is invisible to `/autonomy-on` and
+occur.** Its argument was that a `loop` Issue born outside the pool is invisible to `/autonomy on` and
 silently never worked. The pool is `(product OR loop) AND ready AND active-iteration`, and **a `loop`
 Issue is filed WITHOUT `ready`** — the owner's transition alone (record 0015's Corollary 4). The item is out
 of the pool on the `ready` predicate **before the milestone predicate is consulted**, so the milestone
@@ -650,7 +650,7 @@ reader finding the rule already applied to the sprint that produced it is not lo
 
 **The rule.** At planning, the iteration's **ordered body** lists every eligible `loop` item before any
 eligible `product` item. One ordering authority, discharged by an artifact that already exists, and the
-drain keeps obeying `commands/autonomy-on.md`'s own *"Do not invent an order."*
+drain keeps obeying `commands/autonomy.md`'s own *"Do not invent an order."*
 
 **It orders only what is ELIGIBLE, and that clause is the deadlock escape rather than a softening.**
 The rule ranks `(loop AND ready AND active-iteration)` ahead of
@@ -667,7 +667,7 @@ the gate's hold 1; WIP=1 held; position **6**'s build (#337) was finished and co
 Note what the eligibility clause does and does not buy there: #341 was
 `ready` and *in progress*, so it was in the pool and the escape did **not** apply. **The eligibility
 clause covers an item that never entered; it does not cover one that entered and then stalled** — for
-that, the escape is the one `/autonomy-on` already names (*"When a slice hits an owner decision it did
+that, the escape is the one `/autonomy on` already names (*"When a slice hits an owner decision it did
 not expect"*): write the question on the Issue, cut the slice to what can still finish, and move on.
 **WIP=1 is what turns the second case into a full stop**, and that is a deliberate cost of WIP=1, not a
 defect in this rule.
@@ -1035,7 +1035,7 @@ is the honest claim rather than the comfortable one.
 
 **Where the estimate is required.** An item with no `sp:N` is **outstanding HITL work**, and outstanding
 HITL work blocks the drain from entering — the owner's rule, *"todas pendencias HITL devem ser zeradas no
-momento da invocacao do comando"*. It is a **preflight**, not a mid-drain check: see `/autonomy-on`'s
+momento da invocacao do comando"*. It is a **preflight**, not a mid-drain check: see `/autonomy on`'s
 *Preflight* for the operative wording and the one-at-a-time surfacing rule, stated once, there.
 
 **What nothing enforces, said plainly.** Nothing constrains an item to exactly one `sp:` label, and
@@ -1054,7 +1054,7 @@ wrong, empty, and a chart drawn over it would be inventing its own subject.
 
 **Exhausting the drain's ENTRY SNAPSHOT is an internal transition, not the end of the session** — the
 closing ceremonies run, and the stop moves to the planning handoff, which is the owner's. See
-`/autonomy-on`'s *Stop when* for the operative wording and for how this settles against #103's judgment
+`/autonomy on`'s *Stop when* for the operative wording and for how this settles against #103's judgment
 condition; it is stated once, there, rather than twice.
 
 **One of those ceremonies exists and one does not, and the plural is where that gets lost (#355).**
@@ -1063,7 +1063,7 @@ own artifacts. The **sprint review** half, which sweeps the running product and 
 different class of defect, **is not built**. Read *"the closing ceremonies"* anywhere in this loop as
 one built and one owed.
 
-**And nothing FIRES the one that exists.** `/autonomy-on` names it at its terminal condition; that is an
+**And nothing FIRES the one that exists.** `/autonomy on` names it at its terminal condition; that is an
 instruction in a command file and it is the whole of the mechanism. No hook can be built for it, and the
 reason is one this file already establishes for a different rule: **nothing in `hooks/scripts/` reads the
 queue** — every `gh issue` call there is a write path — so no layer here can observe a snapshot going
@@ -1172,7 +1172,7 @@ backwards from what a backlog is for.
 **Delivery versus hygiene, and the rule that a session with zero product slices is a finding rather
 than a status, moved to `engineering-standards` at #381** — it holds in any project, names no
 mechanism of this one, and is what the report the drain produces is written against.
-`/autonomy-on`'s own reporting rule cites it by that framing and is unchanged.
+`/autonomy on`'s own reporting rule cites it by that framing and is unchanged.
 
 ## Closing an issue is a step, with a criterion
 

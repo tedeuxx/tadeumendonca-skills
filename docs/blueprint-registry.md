@@ -316,7 +316,7 @@ built a control, and reading it now can only build an influence.
 ### 0034 · a link to a review artifact is a summons, and one is sent only when the act is the human's
 
 - **tipo:** record
-- **carrier:** `hooks/scripts/premature-pr-link-detect.sh`, `commands/autonomy-on.md`
+- **carrier:** `hooks/scripts/premature-pr-link-detect.sh`, `commands/autonomy.md`
 - **descrição:** A `Stop` hook reading the turn's own assistant prose for pull-request links, paired with the operative rule in the command that drains the backlog.
 - **propósito:** An agent that hands a human a link to a review artifact is **summoning** them, whatever the surrounding prose claims — a link in a hand reads as *something is waiting for me*. Whether that reading is right is a property of **where the harness put the merge authority**, not of the link: in a loop whose gate merges everything but a named exception list, almost every review link is unactionable, and in a loop that holds a whole class for a human, most of them are. **An adopter must recompute which case they are in before adopting this at all** — porting the narrow form into a harness that holds a class for its human would suppress exactly the links that human needs.
 - **o que faz:** Reads the assistant's own text for the turn that just ended, extracts links to review artifacts, and for each asks three mechanical questions of the artifact itself — is it still open, has every check on its current revision completed and succeeded, and does the gate's own verdict at that revision name the human as the remaining actor. Anything else is reported back into the next turn with the reason, once per (artifact, revision) per session.
@@ -393,7 +393,7 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 ### 0014 · a ready backlog is drained without asking on in-pattern work
 
 - **tipo:** routing
-- **carrier:** `commands/autonomy-on.md`
+- **carrier:** `commands/autonomy.md`
 - **descrição:** A typed command that runs the queue end to end, one slice at a time, through the full loop.
 - **propósito:** A loop that asks a human on in-pattern work is a **design defect**, not mere friction: the human's residual should be the irreversible and the architectural, and nothing else. The command exists so that residual is *stated* rather than rediscovered per slice.
 - **o que faz:** Picks, builds, reviews and merges slices one at a time against the stated order, stopping only where the owner's judgement is genuinely required, and reports product slices against hygiene slices at the end.
@@ -403,11 +403,11 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 ### 0015 · autonomy ends with a stated close-out rather than by going quiet
 
 - **tipo:** routing
-- **carrier:** `commands/autonomy-off.md`
-- **descrição:** The paired command that ends autonomy mode.
-- **propósito:** **Nothing ships half-done.** Ending autonomy by simply stopping leaves the in-flight slice in a state nobody has named, and the difference between "waiting on you" and "stuck" is invisible from the outside.
+- **carrier:** `commands/autonomy.md`
+- **descrição:** The `off` mode of the same canonical command — the deliberate end of autonomy mode, a separate typed command until #368.
+- **propósito:** **Nothing ships half-done.** Ending autonomy by simply stopping leaves the in-flight slice in a state nobody has named, and the difference between "waiting on you" and "stuck" is invisible from the outside. It is a MODE rather than its own command because the decision is one decision with two directions, and a first token that must be named cannot be entered by accident.
 - **o que faz:** Finishes the in-flight slice to merge, starts nothing new, and posts a closing summary — merged, open, blocked, split by routing type.
-- **o que não faz:** It closes nothing and decides nothing about the backlog; the criterion-bearing close of an Issue is the owner's act. It also carries no trigger of its own — like the close-out pass the loop already specifies in full, it fires only when somebody invokes it.
+- **o que não faz:** It closes nothing and decides nothing about the backlog; the criterion-bearing close of an Issue is the owner's act. It also carries no trigger of its own — like the close-out pass the loop already specifies in full, it fires only when somebody invokes it. And it is **not a mechanism**: nothing in the harness records that a session is in autonomy mode, so neither mode can be verified to have run and the bare invocation deliberately reports nothing.
 - **citação:** > "Not for capturing a new request (see new-issue)."
 
 ### 0016 · a request becomes a tracked Issue with its description closed, or with the reason it is not
@@ -418,7 +418,7 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 - **propósito:** The owner is the only origin of work, and that rule was costing him: filing by hand is friction exactly where the loop wants none. The command makes the *cheap* path the *tracked* path.
 - **o que faz:** Searches for the decision that already exists before opening anything, runs the intake that closes the description between the two leads, and opens the Issue with the routing type applied — or opens it stating plainly why the description could not be closed.
 - **o que não faz:** It does not apply `ready` for a loop-typed Issue: that transition is the owner's alone. And it cannot verify that the leads actually closed the description rather than one nodding it through — the label is auditable and attributable, never proven.
-- **citação:** > "Not for executing issues already filed (see autonomy-on)."
+- **citação:** > "Not for executing issues already filed (see autonomy)."
 
 ### 0017 · nothing is worked outside the tracker
 

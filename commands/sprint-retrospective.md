@@ -7,7 +7,7 @@ argument-hint: "[iteration] (defaults to the active iteration)"
 Run the retrospective rite for the iteration named by `$ARGUMENTS` (default: the active iteration,
 derived from the pool per `/agents-configuration` rule 1 — **enumerate, never type a milestone name**).
 
-**This file is the object `/autonomy-on` has been promising.** That command has said *"the closing
+**This file is the object `/autonomy on` has been promising.** That command has said *"the closing
 ceremonies run against the exhausted iteration"* since #326 with no ceremony anywhere in the tree. This
 is the retrospective half. **The sprint review half is still unbuilt** — see the last section, which
 says so rather than leaving the promise to be discovered a second time.
@@ -34,7 +34,7 @@ worth running at all.
 ## The trigger
 
 **The drain reaching exhaustion of its ENTRY SNAPSHOT** — the owner's ratified end-of-sprint signal
-(«o gatilho para fim de sprint é o fim dos itens do dreno»), read against `/autonomy-on`'s own terminal
+(«o gatilho para fim de sprint é o fim dos itens do dreno»), read against `/autonomy on`'s own terminal
 condition rather than against a second definition invented here.
 
 **Three things are decoupled deliberately, and keeping them apart is what stops the snapshot-versus-
@@ -72,12 +72,12 @@ whose contents are fixed at planning makes *"the iteration as it stands at that 
 stable object than it was. The decoupling above is unaffected; it simply costs less to defend.
 
 **The typed fallback is this file's `argument-hint`, and it is not a lesser path.** An iteration worked
-without `/autonomy-on` never reaches the mechanical trigger, so the owner types `/sprint-retrospective
+without `/autonomy on` never reaches the mechanical trigger, so the owner types `/sprint-retrospective
 <iteration>` and the rite runs identically. **Nothing distinguishes the two runs in any artifact**, and
 nothing needs to: the artifact records the iteration, not the route.
 
 **The rite may fire twice for one iteration, and nothing can stop it.** «The drain exhausted» is a
-**per-repo** event — `/autonomy-on` takes one repo and builds its pool from one milestone — while the
+**per-repo** event — `/autonomy on` takes one repo and builds its pool from one milestone — while the
 iteration is two milestone objects in two repositories paired by title alone. A `Stop` hook receives one
 `cwd` and therefore sees one repository, which `/agents-configuration` has already measured for the
 loop-first detector and called *"a heuristic and the weakest part"*. **The artifact is what makes a
@@ -292,7 +292,7 @@ that the cap holds** — nothing measures it.
 
 ## What nothing enforces, said before any green is read
 
-- **Nothing fires this.** There is no hook. `/autonomy-on` names it at its terminal condition; that is
+- **Nothing fires this.** There is no hook. `/autonomy on` names it at its terminal condition; that is
   an instruction, and by this loop's own test — *would something stop me, or only my memory?* — it is
   not engineered.
 - **Nothing observes that it ran, or that it ran correctly.** No hook in `hooks/scripts/` reads the

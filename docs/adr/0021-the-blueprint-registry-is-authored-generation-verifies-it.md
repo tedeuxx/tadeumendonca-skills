@@ -614,7 +614,7 @@ is this defect's whole shape: a strike lands where a rule is STATED and survives
 here, as the description of what the local rule *was*.
 
 ~~**The local rule wins, and both properties survive.** It is the newer decision, it is the owner's own,
-and an adopted item with no milestone is invisible to `/autonomy-on`'s pool by construction. … **Milestone yes,
+and an adopted item with no milestone is invisible to `/autonomy on`'s pool by construction. … **Milestone yes,
 `ready` no.**~~
 
 **Struck 2026-08-30 (#365): the collision is DISSOLVED, not adjudicated, and the foreign specification
@@ -629,7 +629,7 @@ true and it is why the local rule lost** — the `ready` predicate already held 
 so the milestone bought nothing and changed the running iteration's completion bar for free.
 
 **The half that did no work — and it is worth naming precisely rather than calling it wrong:** *"an
-adopted item with no milestone is invisible to `/autonomy-on`'s pool by construction"*. **That sentence
+adopted item with no milestone is invisible to `/autonomy on`'s pool by construction"*. **That sentence
 is TRUE**; the pool predicate opens with `select(.milestone!=null)`. What was wrong is the **inference
 drawn from it** — that the milestone was therefore worth setting. The same predicate also requires
 `ready`, which this paragraph correctly says the item never gets, so the item was invisible to the pool

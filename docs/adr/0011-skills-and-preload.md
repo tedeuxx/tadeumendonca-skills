@@ -48,7 +48,7 @@ three questions have been answered by folder and by habit:
    the human's surface, addressed to the owner, carrying `argument-hint`. Measured:
 
        grep -rn "^argument-hint:" skills commands
-       → commands/autonomy-on.md:3 · commands/new-issue.md:3   (exactly 2, and 0 under skills/)
+       → commands/autonomy.md:3 · commands/new-issue.md:3   (exactly 2, and 0 under skills/)
 
 3. **Which agents a rule reaches.** Of the **14 process skills** under `skills/principles/` and
    `skills/workflow/`, **8 are preloaded by nobody** — including `dev-loop`, the file that defines the
@@ -1254,3 +1254,116 @@ it checks that the same file is loaded, never that either persona read it.
   `printenv CLAUDE_PLUGIN_ROOT` → exit 1 **and** the `PATH` plugin-cache entry, both in the shell that
   wrote this record; and **the assignment sweep**, which is the measurement the operative test rests on —
   the unassigned count (**62 of 69**) and the assigned seven, from the same loop run both ways.
+
+## Amendment (2026-08-31) — the distributed surface is reshaped, and every element of it is now named for what it IS
+
+**Owner decisions, taken across one sitting and built as one Loop Batch** (#381, #384, #372, #368).
+Recorded here rather than in a new record because this document is the capability anchor for *what a
+skill is and who preloads it*, and three of the four changes decide exactly that; the fourth (`/autonomy`)
+decides the command surface, which this record's own *command vs. skill* section already governs.
+
+### 1 · `harness-engineering` splits into `agents-configuration` and `engineering-standards` (#381)
+
+**The word `harness` leaves the skill surface** — *«harness- é um termo que estamos desidratando por nao
+conectar com os usuarios»* — the same reason and the same trajectory as `harness-lead` → `agents-lead`.
+
+**The cut is GENERIC vs LOCAL, and it is one question applied paragraph by paragraph:** *would this still
+be true in a project that does not run this loop?* Yes → `engineering-standards` (*«as preferencias de
+engenharia que possuimos de forma mais abrangente»*). No → `agents-configuration` (*«o coracao do
+blueprint do nosso loop … a intencionalidade do desenho do loop»*).
+
+**Why that cut is worth more than a rename, and it is this record's own subject:** `/blueprint`'s whole
+job is separating a portable rule from a local accident, and the two are indistinguishable while they
+live in one file. The split makes the export honest **at the source** instead of asking a renderer to
+draw the line at projection time.
+
+**The cut is GATED, which is the part that survives whoever authored it.** The operational ruler —
+nothing in the portable half names a persona of this roster, a hook script, or an ADR — is asserted by
+`inventory-counts.test.sh`, mutation-checked once per token. **What it cannot see is stated in its own
+header:** whether a paragraph IS portable, and the halved-cross-reference failure the Issue named before
+anything was built. That one is a reviewer's read on the diff and there is no instrument for it.
+
+**Three sections stayed local against the paragraph-grain reading, on the anti-halving rule** — WIP=1
+(the principle says a bound exists; what *this* bound is cites `wip-guard.sh`, two dated incidents and
+the owner's own corrections), *closing an issue* (dominated by the `invocable:` declaration and its
+guard) and *review does not open work* (dominated by rule 5c and `agent_type`).
+
+**Preloaded by all seven personas, both halves, and this slice is explicitly NOT priced as a token
+saving.** `agents-configuration` is universal by the owner's decision; `engineering-standards` was left
+open with a default of *yes* and dropping it for the content pair was considered and rejected — nothing
+in the roster demonstrably never needs the principles, and *delivery versus hygiene* is one of the
+paragraphs that moved.
+
+**One coherence obligation is booked and NOT closed:** `/blueprint export` renders the same design
+intent for a reader outside, `agents-configuration` carries it for the agents inside, and **nothing
+would notice if the two drifted** — one is a projection of an authored registry, the other authored
+prose. Named in the skill rather than discovered later.
+
+### 2 · `command-hygiene` → `shell`, and `license` folds into `documentation-standard` (#384)
+
+**Both from the exhaustive pass over all 40 distributed mechanisms**, put to the owner one at a time
+(*«gostaria de ser exaustivo quanto a isso»*). `shell` because *hygiene* names a virtue and *shell* names
+the object (*«entao nomeie como shell apenas»*). `license` folds because a `LICENSE` file is a **document
+at the repository root** — Part I's own object, at the same grain as *where a document lives* — and it
+was one rule in 25 lines carrying an always-on `description` (*«deveria»*).
+
+**The fold needed its own gate and the asymmetry is why.** `plugin.json`'s array is gated in both
+directions, so the DELETION is loud; nothing would have noticed the licensing section later being
+trimmed back out of Part I, and the file it came from no longer exists to notice its own absence. A new
+arm needles the five load-bearing clauses. **It cannot tell whether the fold was lossless** — the same
+residual this record's sibling (`documentation-standard`, absorption) already books for records.
+
+### 3 · `/retrospective` → `/sprint-retrospective`, with the Scrum names' own disclaimer (#372)
+
+**Legibility is the ruler, not Scrum coverage** — *«o fluxo de trabalho podemos chamar de loop pois é
+entendivel»*. A word that already reads to a stranger needs no Scrum equivalent, which is why the label
+vocabulary, the roster and the two definitions are untouched.
+
+**The disclaimer is part of the rename rather than a caveat on it, and it lands in two homes under one
+arm.** A Scrum name is legible BECAUSE it carries expectations, and three in play carry expectations this
+loop does not honour: planning has no team commitment and no human estimation ceremony, review is
+**refused on its shape** rather than deferred on effort, and the retrospective is N isolated contexts
+rather than a team in a room. `README.md` for the external audience the naming was for; the universal
+preload for the agents — the README being prose no agent carries is #329's exact defect.
+
+**A measurement the Issue derived and this slice settled by running it:** rename + drop from
+`ARG_HINT_ALLOWED` + drop `argument-hint:` leaves the suite **green**. A typed command can leave the
+owner-typed surface with nothing red, because `root_cmds` counts files and the vacuity floor is
+one-sided by design. **Not fixed here, on the Issue's own instruction** — the two-sided floor is its own
+decision.
+
+### 4 · `/autonomy-on` + `/autonomy-off` become `/autonomy on|off` (#368)
+
+**One canonical command whose first token is the mode**, inheriting `/blueprint`'s two properties
+deliberately: the help form does nothing at all, and an unrecognised token is refused by name rather
+than resolved to the nearest mode.
+
+**Bare `/autonomy` does NOT report the current mode, and that is a measurement rather than a
+preference.** Nothing in this repository tracks autonomy as state — no flag, no file, no hook reads it,
+which `commands/autonomy-off.md` had said since #165 — so a bare invocation answering *"currently on"*
+would be inventing its subject. The set is closed at two for the same reason; `status` was refused on it.
+
+**`on` is not the default**, because the two modes are not symmetric in cost: entering the drain by
+accident spends the queue, leaving it by accident spends one turn.
+
+**The `/blueprint` mode-agreement arm was generalised rather than duplicated**, and that is the
+second-order effect worth recording: a second command with the identical shape and no arm leaves a check
+that *looks* like it covers the pattern and covers one file. The set of mode-dispatching commands is
+**declared, not derived** — deriving it would let a command that loses its dispatch table silently leave
+the set, which is the drift the block exists to catch.
+
+### What this batch does NOT decide
+
+**The version stays PATCH**, on the owner's decision — *«ao final dessa reconfiguracao completa vamos
+gerar o major»* — so the accumulated contract breaks (`/autonomy-on`, `/autonomy-off`, `/retrospective`,
+`/harness-engineering`, `/command-hygiene`, `/license` all now return `Unknown command:`) are a recorded
+decision rather than an omission. **This is the third invocation-contract break shipped as a patch**, and
+the reason is the same each time: `version-main.yml` bumps patch unconditionally, so the merge that
+ships a break publishes it before any deliberate release can name it.
+
+**The published skill count does not move**, and it was re-derived rather than taken from the dispatch:
+the split (+1) and the fold (−1) cancel at **14**. The typed-command count moves **5 → 4**.
+
+**Nothing here re-opens the permission model**, the `orchestrator-write-guard` removal (#375), or the
+milestone-creation route. The only edits to `permission-guard.sh` are comments carrying the renamed skill
+identifier.

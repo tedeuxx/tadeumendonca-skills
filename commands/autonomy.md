@@ -1,11 +1,53 @@
 ---
-description: Drain a repo's ready product backlog end to end without asking — pick, build, review and merge slices one at a time, stopping only where the owner's judgment is genuinely required. Use when the owner says to work the backlog or keep going, when several ready issues are queued, or when in-pattern work keeps stalling for permission. Not for capturing a new request (see new-issue).
-purpose: drain an iteration's ready pool without asking on in-pattern work, so the loop stops paying one stall per slice for permission it has already been given
-argument-hint: "[repo] (defaults to the current repo)"
+description: Hand the wheel to the loop or take it back — `on` drains the active iteration's ready pool end to end without asking on in-pattern work, `off` finishes the in-flight slice, starts nothing new and posts a closing summary. Use when the owner says to work the backlog or keep going, when several ready issues are queued, when in-pattern work keeps stalling for permission, or when he wants the wheel back. Not for capturing a new request (see new-issue).
+purpose: put both directions of the autonomy decision behind one canonical command whose first token names the mode, so the mode cannot be entered by accident and an unresolved token fails loudly instead of guessing
+argument-hint: "on [repo] | off [repo] | (no argument prints help and does nothing)"
 ---
 
-Drain the product backlog of `$ARGUMENTS` (default: the current repo), one slice at a time, through
-the full dev-loop, without asking permission for anything in-pattern.
+Hand the wheel to the loop, or take it back.
+
+## The three modes
+
+Resolve `$ARGUMENTS` to exactly one row. **The first token is the mode. Nothing else is.**
+
+| mode | what it does | ends with |
+|---|---|---|
+| `on` | drains the active iteration's entry snapshot, one slice at a time, without asking on in-pattern work | the snapshot exhausted, then the closing ceremonies |
+| `off` | finishes the in-flight slice to merge, starts nothing new | the closing summary, as the final message of the turn |
+| *(no argument)* | prints the help below and stops | nothing |
+
+**A `[repo]` may follow the mode**, and defaults to the current repo. The mode is the FIRST token;
+`/autonomy <some-repo>` is not a repo argument, it is an unrecognised mode and is refused as one.
+
+**Bare `/autonomy` prints help and does nothing else.** No drain, no wind-down, no implicit effect of
+any kind. **It does NOT report the current mode either, and that is a measurement rather than a
+preference:** nothing in this repo tracks "the session is in autonomy mode" as state — no flag, no
+file, no hook reads it — so there is nothing to report and a bare invocation that answered *"currently
+on"* would be inventing its subject. The mode's own *What this does NOT do* section below has said so
+since #165; this table is the first place it decides a behaviour.
+
+**An unrecognised first token is refused by name.** Print the table above and stop. Do not guess that
+`/autonomy no` meant `off`, and do not fall through to a mode — a mode chosen for the typist is the
+failure this dispatch table exists to remove. **`on` is not the default**, because the two modes are
+not symmetric in cost: entering the drain by accident spends the queue, leaving it by accident spends
+one turn.
+
+**The set is closed at two.** `status` was considered and refused for the reason above — there is no
+readable state to report. Adding a third mode is a change to this table, deliberately, so the dispatch
+fails loudly rather than growing an open-ended guess.
+
+**Both modes were separate typed commands until #368** — `/autonomy-on` and `/autonomy-off`. **Both
+identifiers are gone and typing either now returns `Unknown command:`**, which is the correct loud
+failure this repository's flat namespace already buys. The precedent is `/blueprint`, which became a
+three-mode canonical command at #358 and whose two properties are inherited here on purpose rather than
+re-derived: the help form does nothing at all, and a typo is refused by name.
+
+---
+
+# Mode: `on`
+
+Drain the product backlog of the repo named after the mode (default: the current repo), one slice at a
+time, through the full dev-loop, without asking permission for anything in-pattern.
 
 **Done means: the drain's ENTRY SNAPSHOT of the active iteration's pool is exhausted** (#326, amended
 #338 — the iteration's pool grows while it drains, so the snapshot is what terminates and the iteration is
@@ -533,3 +575,51 @@ question rather than a formality.
 **Named residual:** that judgement is not mechanical. It is the honest shape — the alternative is
 another arithmetic condition, and this section is what an arithmetic condition that looked reachable
 cost.
+
+---
+
+# Mode: `off`
+
+End the drain for the repo named after the mode (default: the current repo).
+
+## Ratified reading (B) — stop after the current slice
+
+The invariant mode `on` enforces does not bend for this mode either: **a slice is merged or it
+is not started.** So `off` does not cut a branch off mid-build to comply faster — it finishes
+whatever slice is already in flight, through its Definition of Done and its merge, exactly as mode `on`
+would have. What it changes is what happens **next**: do not pick up the next item in the
+queue. Once the in-flight slice reaches a terminal state (merged, or closed per mode `on`'s own
+"when a slice hits an owner decision it did not expect" rule), stop.
+
+If nothing is in flight when this is invoked, there is nothing to finish — go straight to the closing
+summary.
+
+## What this does NOT do
+
+- It does not revoke anything the permission floor already denies. Mode `on` never granted
+  `terraform apply`/`destroy`, direct cloud mutation, force-push, `rm -rf`, secret writes, or merging
+  outside the gatekeeper's verdict — this mode has nothing to take back on that axis.
+- **It is not a mechanism.** Nothing in this repo tracks "the session is in autonomy mode" as state —
+  no flag, no file, no hook reads it. `on` and `off` are both **instructions to the
+  agent reading them**, not a state machine. A session transcript that never invokes either mode
+  never entered or left autonomy in any sense a machine can check; the pair only works because the
+  agent honors it. Say this plainly rather than let the existence of an "off" mode imply an "on/off"
+  switch actually exists somewhere. **It is also why bare `/autonomy` cannot report the current
+  mode**, which the dispatch table above states as a decision rather than leaving to be re-derived.
+
+## The closing summary — required, posted as the final message
+
+Once the in-flight slice is settled, post a summary before ending the turn. This is what makes the
+off-switch an artifact rather than a mood — per mode `on`'s own reporting rule (state, not
+narration), reused here rather than restated differently:
+
+- **Merged this session** — count and list, by issue number.
+- **Still open** — any PR that did not reach merge, and why (awaiting the gatekeeper, awaiting the
+  owner, blocked).
+- **Blocked on the owner** — queried via `gh issue list --label blocked`, not assembled by re-reading
+  the queue.
+- **Product vs. loop vs. content**, per mode `on`'s own delivery framing: a session with zero
+  product slices is a finding, not a status — say so if it applies here too.
+
+Do not bury this in a commit message or a PR body. It is the final message of the turn, addressed to
+the owner.

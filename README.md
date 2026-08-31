@@ -29,7 +29,7 @@ three things, and this repository is the middle one:
   its gates and its deploy, and the markdown content held in the repository itself.
 - **The customization** — this repository: the personas in `agents/`, the hooks registered in
   `hooks/hooks.json`, the skill library in `skills/`, the five commands a human types in `commands/`
-  (`autonomy-on`, `autonomy-off`, `new-issue`, `blueprint` and `sprint-retrospective`), and the methodology
+  (`autonomy on`, `autonomy off`, `new-issue`, `blueprint` and `sprint-retrospective`), and the methodology
   ADRs in `docs/adr/`.
 - **The runtime** — Claude Code: the orchestrator and the subagents, the `PreToolUse` and
   `SessionStart` events, the permission policy, and the tools with MCP.
@@ -190,7 +190,7 @@ flowchart TB
   end
 
   US{{"USER STORY — the issue<br/>one description, both leads agreed · label: ready<br/>its TASK LIST is the decomposition<br/>product · content only"}}
-  AO[["/autonomy-on · drains the ready queue"]]
+  AO[["/autonomy on · drains the ready queue"]]
 
   ORCH["ORCHESTRATOR — the main session<br/>dispatches every persona · commits · pushes<br/>never merges · never decides the irreversible"]
 
@@ -328,7 +328,7 @@ irreversible act) the earlier diagram showed.
 
 **`loop` is a shorter path, but not for the reason an earlier draft of this figure claimed.** It is not
 gate-free at intake — a `loop`-typed Issue still needs `ready` before anything builds against it, and
-`/autonomy-on`'s own queue predicate is `(product OR loop) AND ready` ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md)),
+`/autonomy on`'s own queue predicate is `(product OR loop) AND ready` ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md)),
 so it can be drained the same mechanical way a `product` story can. What is actually different: `ready`
 on a `loop` Issue is an **owner-only** transition ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md),
 record 0015's Corollary 4) rather than the two leads reconciling between themselves, and its own tier 2 is
@@ -365,7 +365,7 @@ legibility.
 **And one duty on that owner↔orchestrator edge is about restraint rather than relay: the orchestrator
 hands the owner a PR link only when the remaining act is his** — ready to merge, every check complete and
 successful, which reads mechanically as `APPROVE-PENDING-HUMAN` at the PR's current head. The operative
-wording is his own sentence, in `commands/autonomy-on.md`'s *Reporting* section; the argument, the
+wording is his own sentence, in `commands/autonomy.md`'s *Reporting* section; the argument, the
 enforcement and the cost of the informal ship-notice it removes are
 [ADR-0002](./docs/adr/0002-roster-and-dev-loop.md)'s eighteenth amendment (#327).
 
@@ -580,8 +580,8 @@ was built to avoid.
 
 <!-- claim id=0004 class=DERIVED -->
 
-**Skills carry the conventions so the model does not re-invent them.** **14 skills + autonomy-on**,
-`autonomy-off`, `new-issue`, `blueprint` and `sprint-retrospective`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
+**Skills carry the conventions so the model does not re-invent them.** **14 skills + autonomy**,
+`autonomy off`, `new-issue`, `blueprint` and `sprint-retrospective`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
 "improve".
@@ -1378,7 +1378,7 @@ by hand:
 | resource type | ships? | where | how it takes effect |
 |---|---|---|---|
 | **Skills** | yes — **14** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
-| **Commands (legacy)** | yes — **5** (`autonomy-on`, `autonomy-off`, `new-issue`, `blueprint`, `sprint-retrospective`) | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
+| **Commands (legacy)** | yes — **4 files** (`autonomy`, `new-issue`, `blueprint`, `sprint-retrospective`), derived from `ls commands/` — `autonomy` carries two modes (`on`\|`off`) and `blueprint` three, so the count of things a human can TYPE is larger than the count of files and the two must not be conflated | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **8 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`, `scrum-master`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 15** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `dispatch-premise-guard`, `closure-artifact-guard`, `mcp-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **15 registrations over 13 scripts**: `closure-artifact-guard` and `preflight` are each registered twice, on the two events their two halves need, and that is why the registration count is the honest number rather than a file count. **Both figures fell by one at #375** (16/14), when `orchestrator-write-guard` was removed — the first registration this repo has ever deleted rather than added |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |

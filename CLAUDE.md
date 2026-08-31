@@ -131,7 +131,7 @@ person can falsify it in one command instead of trusting the date.
 
 This repo is a **Claude Code plugin + marketplace** — the native way to reuse skills across
 projects. The skill library lives in `skills/`, one directory per skill holding a `SKILL.md`, and the five
-commands a human types live in `commands/` (`autonomy-on`, `autonomy-off`, `new-issue`, `blueprint`,
+commands a human types live in `commands/` (`autonomy on`, `autonomy off`, `new-issue`, `blueprint`,
 `sprint-retrospective`);
 `.claude-plugin/marketplace.json` is the catalog and
 `.claude-plugin/plugin.json` the manifest. **Nothing is published outside this git repo** — the
@@ -200,7 +200,7 @@ not distinguish them.** **Measured on 2026-08-10**, `claude plugin details` on t
 **`Skills (71)`** — the 69 the library held under `skills/` then, **plus the 2 then under `commands/`**,
 counted alike, reachable alike. **Both denominators have moved since** — the library consolidated to 14
 (`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 14, re-run 2026-08-23) and `commands/` holds 5
-(`ls commands/` → `autonomy-off.md autonomy-on.md blueprint.md new-issue.md sprint-retrospective.md`, re-run
+(`ls commands/` → `autonomy.md blueprint.md new-issue.md sprint-retrospective.md`, re-run
 #355) — so read the 71 as the
 measurement that established the rule, not as today's inventory. **The rule is what survives the
 denominators:** the loader counts both directories alike.
@@ -208,7 +208,7 @@ denominators:** the loader counts both directories alike.
 **2 · DECLARATION is what registers a skill. The root is only the default.**
 
 ~~**The root is for the loader's SKILL INDEX. Nesting kept the 69 out of it — and only out of it.**
-Before the split the same command reported `Skills (2)` — `autonomy-on` and `new-issue`, the only two
+Before the split the same command reported `Skills (2)` — `autonomy on` and `new-issue`, the only two
 files not inside a family.~~ ~~Nested skills were measured to resolve under **no** spelling — not
 `/plugin:nested`, not `/plugin:fam/nested`, not `/plugin:fam:nested`, and **not the `Skill` tool**
 either.~~

@@ -104,8 +104,8 @@ agents=$(find "$ROOT/agents" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' 
 expect_in "$README" "$agents subagent personas" "agents/"
 
 # --- skills, in total ---------------------------------------------------------------------------
-# The root-level commands (autonomy-on.md) are counted SEPARATELY from the library, because that is
-# how both documents present them: "<N> skills + autonomy-on".
+# The root-level commands (autonomy.md) are counted SEPARATELY from the library, because that is
+# how both documents present them: "<N> skills + autonomy".
 #
 # ── THERE IS NO FAMILY. ONE LEVEL, FOURTEEN DIRECTORIES (#286) ────────────────────────────────────
 # The owner's decision, in his words: *"o que eu quero é que todas skills estejam no mesmo nível
@@ -371,7 +371,7 @@ else
   bad "CLAUDE.md skill table — these skills have no row:$missing_rows; a skill is published and unlisted"
 fi
 
-expect_in "$README" "$total skills + autonomy-on" "library total"
+expect_in "$README" "$total skills + autonomy" "library total"
 
 # EVERY occurrence, not the one literal — and this is the hole the first version of this file had.
 # The README states the total twice: once as the asserted string in the diagram, and once in prose in
@@ -416,7 +416,7 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # docs' enumeration stops describing the remainder and this fails on purpose.
 #
 # The expected value moved 1 → 2 on 2026-08-04, when `commands/new-issue.md` shipped as a deliberate
-# second root-level ACTION command (autonomy-on turns the loop on; new-issue captures a request as an
+# second root-level ACTION command (autonomy `on` turns the loop on; new-issue captures a request as an
 # Issue — both are things the owner invokes directly, neither belongs under a namespace), then 2 → 3 on
 # #165, when `commands/autonomy-off.md` shipped as the deliberate off-switch autonomy-on always lacked,
 # then 3 → 4 on #313 slice 2, when `commands/blueprint.md` shipped the harness export. The fourth is a
@@ -441,10 +441,10 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # So the failure this now catches is a LIBRARY SKILL LANDING IN `commands/` — where it is typed-only,
 # never matched, and absent from every count and table in this file.
 root_cmds=$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
-if [ "$root_cmds" -eq 5 ]; then
-  ok "commands/ root — exactly five owner-typed commands (autonomy-on, autonomy-off, new-issue, blueprint, sprint-retrospective), as the docs enumerate"
+if [ "$root_cmds" -eq 4 ]; then
+  ok "commands/ root — exactly four owner-typed commands (autonomy, new-issue, blueprint, sprint-retrospective), as the docs enumerate"
 else
-  bad "commands/ root — $root_cmds file(s); the docs enumerate five owner-typed commands (autonomy-on, autonomy-off, new-issue, blueprint, sprint-retrospective).
+  bad "commands/ root — $root_cmds file(s); the docs enumerate four owner-typed commands (autonomy, new-issue, blueprint, sprint-retrospective).
       A library skill belongs in skills/<name>/SKILL.md — under commands/ it is absent from every count
       and table here, and from the per-family breakdown a reader actually opens."
 fi
@@ -1111,7 +1111,7 @@ fi
 # above already closed it for `CLAUDE.md` with `rows=$(grep -c ...)`, after it SHIPPED: a skill was
 # added, the heading count went red, someone bumped the number the failure named, and the suite went
 # green with the table below still listing one fewer. The README's table had no equivalent, so the same
-# sequence there is still available. Adding a skill reddens `<N> skills + autonomy-on`, one edit fixes
+# sequence there is still available. Adding a skill reddens `<N> skills + autonomy`, one edit fixes
 # the sentence the failure quotes, and the skill ships published-and-unlisted in the one document a
 # forker actually reads.
 #
@@ -2030,7 +2030,7 @@ fi
 # every path is `skills/<stem>/SKILL.md`, so a basename stem is the string SKILL for all 69, and the two
 # assertions below that are keyed on the stem stop meaning anything. `agents-lead` mutated the
 # source to prove it — a stem-opener added to `routing`'s description, `argument-hint:` deleted from
-# `autonomy-on` — and BOTH SURVIVED, under a PASS line asserting the property just removed. Zero reds.
+# `autonomy on` — and BOTH SURVIVED, under a PASS line asserting the property just removed. Zero reds.
 #
 # So the stem comes from the PARENT DIRECTORY for a library skill, and from the basename for a typed
 # command. And the two typed commands are kept IN the set as a second source rather than dropped with
@@ -2054,7 +2054,7 @@ skill_stem() {
   esac
 }
 
-ARG_HINT_ALLOWED="autonomy-on autonomy-off new-issue blueprint sprint-retrospective"   # the five the OWNER types; a model-invoked skill has no typed argument
+ARG_HINT_ALLOWED="autonomy new-issue blueprint sprint-retrospective"   # the four the OWNER types; a model-invoked skill has no typed argument
 
 # The frontmatter block, exclusive of its `---` fences. Empty for a file that has none, which is what
 # the presence assertion below reads.
@@ -2086,9 +2086,9 @@ fm_block() {
 #     inventory documents `check_every_occurrence` reads, with the same pattern. Those four are already
 #     required to agree with the family walk, so this borrows a number that is independently pinned.
 #   - THE TYPED-COMMAND ENUMERATION — `ARG_HINT_ALLOWED`, counted rather than assumed. The published
-#     figure counts the LIBRARY only ("<N> skills + autonomy-on"), so the two owner-typed commands have
+#     figure counts the LIBRARY only ("<N> skills + autonomy"), so the two owner-typed commands have
 #     to be added back, and this file already maintains the list of exactly which they are. #165's
-#     `autonomy-off` moves both numbers in the same commit, as it should.
+#     `autonomy off` moves both numbers in the same commit, as it should.
 #
 # WHAT IT CATCHES: any shrink of the scan set that the documents have NOT been told about — a move to
 # another directory, a deletion, a `find` whose path stopped resolving. WHAT IT DELIBERATELY DOES NOT:
@@ -2096,7 +2096,7 @@ fm_block() {
 # one — and a GROWTH, because a floor is one-sided on purpose. An added skill is caught by the count
 # assertions above, in a message that names the documents to edit.
 #
-# ONE THING IT NOW COVERS THAT NOTHING DID: deleting `commands/autonomy-on.md` used to remove the file
+# ONE THING IT NOW COVERS THAT NOTHING DID: deleting `commands/autonomy.md` used to remove the file
 # from the scan set, which is the ONE way to silence L1's POSITIVE `argument-hint` assertion — the loop
 # never opens a file it cannot see. The floor counts the typed commands independently of the scan, so
 # the deletion is a shortfall rather than an absence.
@@ -4131,7 +4131,22 @@ fi
 # closing section states the residual in its own words. No green here says a blueprint was rendered
 # faithfully, a mechanism was classified correctly, or a provenance line was redacted.
 
-BP_CMD="$ROOT/commands/blueprint.md"
+# THE ARM IS NO LONGER `/blueprint`-ONLY (#368), AND THE GENERALISATION IS THE FINDING RATHER THAN A
+# TIDY-UP. `/autonomy` became a mode-dispatching command with exactly this shape — a dispatch table, an
+# `argument-hint` a typist reads, `# Mode:` sections a model dispatches on, and a bare invocation that
+# does nothing — inheriting `/blueprint`'s two properties on purpose. A second command with the same
+# failure mode and no arm is the second-order effect a rename slice produces and nobody sees: the
+# protection looks like it covers the pattern and covers one file.
+#
+# THE SET IS DECLARED, NOT DERIVED, and that is deliberate. Deriving it (say, every command carrying a
+# `# Mode:` heading) would make a command that LOSES its dispatch table silently leave the set, which is
+# the exact drift this block exists to catch — a check whose subject is chosen by the thing it checks.
+# Adding a third mode-dispatching command is one word here, in the same commit, and forgetting fails
+# CLOSED at the vacuity guard below.
+MODE_CMDS="blueprint autonomy"
+
+for MODE_CMD_STEM in $MODE_CMDS; do
+BP_CMD="$ROOT/commands/$MODE_CMD_STEM.md"
 
 # The declared modes, from the DISPATCH TABLE ONLY — bounded to the section, because backticked first
 # cells occur in five other tables in this file (the field mapping, the surfaces, the evidence classes,
@@ -4149,7 +4164,7 @@ bp_modes_head="$(grep -oE '^# Mode: `[a-z][a-z-]*`' "$BP_CMD" 2>/dev/null \
 bp_mode_problems=""
 if [ ! -r "$BP_CMD" ]; then
   bp_mode_problems="$bp_mode_problems
-    commands/blueprint.md is not readable"
+    commands/$MODE_CMD_STEM.md is not readable"
 fi
 for bp_m in $bp_modes_table; do
   printf '%s\n' "$bp_modes_hint" | grep -qx "$bp_m" \
@@ -4181,16 +4196,24 @@ grep -m1 '^argument-hint:' "$BP_CMD" 2>/dev/null | grep -qF 'not built' \
 
 bp_modes_n="$(printf '%s\n' "$bp_modes_table" | grep -c . || true)"
 if [ "$bp_modes_n" -lt 2 ]; then
-  bad "blueprint modes — the dispatch table parsed $bp_modes_n mode(s) and there are two named ones
-      (export, import) plus the bare invocation. Either the table moved out from under
+  bad "$MODE_CMD_STEM modes — the dispatch table parsed $bp_modes_n mode(s) and every one of these
+      commands has two named ones plus the bare invocation. Either the table moved out from under
       '## The three modes' or its row shape changed, and every assertion here is now vacuous."
 elif [ -n "$bp_mode_problems" ]; then
-  bad "blueprint modes — the dispatch surface disagrees with itself:$bp_mode_problems
+  bad "$MODE_CMD_STEM modes — the dispatch surface disagrees with itself:$bp_mode_problems
       The argument-hint is what a human reads while typing and the body is what the model dispatches
       on. A mode present in one and absent from the other is an invitation with nothing behind it."
 else
-  ok "blueprint modes — the $bp_modes_n named mode(s) agree across the argument-hint, the dispatch table and the '# Mode:' sections, and the bare invocation is declared in both"
+  ok "$MODE_CMD_STEM modes — the $bp_modes_n named mode(s) agree across the argument-hint, the dispatch table and the '# Mode:' sections, and the bare invocation is declared in both"
 fi
+done
+
+# RESTORE `BP_CMD`, AND THIS LINE IS LOAD-BEARING RATHER THAN TIDINESS. Every arm below this point —
+# the triage classes, the adoption rules, the document contract, the tipo->enforcement mapping — reads
+# `$BP_CMD` and is about `/blueprint` specifically. Making the block above a loop left the variable
+# holding whichever command was last in `MODE_CMDS`, and four arms below went red against a file that
+# is not their subject. Found by running the suite, not by reading the diff.
+BP_CMD="$ROOT/commands/blueprint.md"
 
 # ── the import triage — five classes, and the question distribution that makes silence deliberate ──
 #
@@ -5214,7 +5237,7 @@ fi
 # COST, taken deliberately: the check is coupled to a phrase, so rewording it goes red and whoever
 # rewords must edit this arm. That friction is the feature — the same argument the bare-`#NNN` arm in
 # `premature-pr-link-detect.test.sh` already makes. Change it deliberately, do not drift out of it.
-AUTON="$ROOT/commands/autonomy-on.md"
+AUTON="$ROOT/commands/autonomy.md"
 limb2_missing=""
 for limb2_needle in \
   'the ask is explicitly a decision he holds' \
@@ -5225,9 +5248,9 @@ do
     missing: \"$limb2_needle\""
 done
 if [ -z "$limb2_missing" ]; then
-  ok "PR-link rule — commands/autonomy-on.md carries the second limb AND names the detector's blindness to it"
+  ok "PR-link rule — commands/autonomy.md carries the second limb AND names the detector's blindness to it"
 else
-  bad "PR-link rule — commands/autonomy-on.md no longer states the rule the owner wrote:$limb2_missing
+  bad "PR-link rule — commands/autonomy.md no longer states the rule the owner wrote:$limb2_missing
       #327's rule has TWO limbs. Shipping only the first publishes a stricter rule than his, which
       withholds a PR link carrying a decision he holds. If this is a deliberate rewording, update the
       needles here in the same commit; if it is a deletion, it is the #328 defect recurring."
@@ -5315,7 +5338,7 @@ fi
 # Round 1 of #329 shipped with three surfaces still publishing the retired rule, and NEITHER key reached
 # any of them — because their defect is a GENERALISATION. "the leads" is not a pairing phrase and names
 # no persona, so it is invisible to both. The three were `agents/product-lead.md` (a preload, citing as
-# its authority the two surfaces the same MR had just reversed), `commands/autonomy-on.md` (the OTHER
+# its authority the two surfaces the same MR had just reversed), `commands/autonomy.md` (the OTHER
 # file the orchestrator executes, four lines under a queue predicate that includes `loop`), and the
 # label table INSIDE the file the ruling designates canonical. Three instances in three files is a
 # class, not a coincidence: the cheapest way to restate a lane rule is to drop the lane.
@@ -5344,7 +5367,7 @@ else
     missing: the label table's \`ready\` row in skills/agents-configuration/SKILL.md is no longer lane-scoped"
   grep -qF -- '**`ready` means the description is closed by whoever closes it on that lane — and on `loop` it is the' "$AUTON" \
     || lane_gen_missing="$lane_gen_missing
-    missing: commands/autonomy-on.md's \`ready\` sentence is no longer lane-scoped"
+    missing: commands/autonomy.md's \`ready\` sentence is no longer lane-scoped"
   grep -qF -- 'through `agents-lead` **alone**' "$LANE_PLEAD" || lane_gen_missing="$lane_gen_missing
     missing: agents/product-lead.md no longer closes its \`loop\` sentence on \`agents-lead\` alone"
   # STRUCK OCCURRENCES ARE NOT HITS, and this is not a convenience — it is what makes the negative half
@@ -5456,7 +5479,7 @@ fi
 # fail but DISAPPEARS, which no passing total can surface. That defect was found five times in this file
 # by planting a mutation and watching for the line that never came; it is not repeated here.
 ITER_SKILL="$ROOT/skills/agents-configuration/SKILL.md"
-ITER_CMD="$ROOT/commands/autonomy-on.md"
+ITER_CMD="$ROOT/commands/autonomy.md"
 
 # ── 1 · the canonical section carries both rules, the measurement, and the state-model pass ──────
 iter_skill_missing=""
@@ -5498,7 +5521,7 @@ fi
 # the strip-then-grep shape the lane arms use.
 iter_cmd_missing=""
 if [ ! -r "$ITER_CMD" ]; then
-  bad "iteration axis — commands/autonomy-on.md is not readable; the executed pool and terminal
+  bad "iteration axis — commands/autonomy.md is not readable; the executed pool and terminal
       condition cannot be checked at all."
 else
   for iter_cmd_needle in \
@@ -5515,7 +5538,7 @@ else
   [ "${iter_retired_hits:-0}" -eq 0 ] || iter_cmd_missing="$iter_cmd_missing
     RETIRED terminal condition is live again as a *Stop when* bullet: \"$iter_retired\""
   if [ -n "$iter_cmd_missing" ]; then
-    bad "iteration axis — commands/autonomy-on.md no longer executes the iteration-scoped drain:$iter_cmd_missing
+    bad "iteration axis — commands/autonomy.md no longer executes the iteration-scoped drain:$iter_cmd_missing
       The queue predicate and the terminal condition are what the axis IS, operationally — the rest is
       description. And the no-milestone count is a precondition of this scoping rather than a nicety:
       \`ready\` was sufficient before #326 and is necessary-not-sufficient after it, so every \`ready\`
@@ -5528,7 +5551,7 @@ else
       Leaving BOTH terminal conditions standing is the shape this file has already paid for twice
       (#97 → #103, and the exhaustion event itself)."
   else
-    ok "iteration axis — commands/autonomy-on.md scopes the pool to the active iteration, counts the unassigned, and stops on exhaustion"
+    ok "iteration axis — commands/autonomy.md scopes the pool to the active iteration, counts the unassigned, and stops on exhaustion"
   fi
 fi
 
@@ -5542,7 +5565,7 @@ fi
 #
 #   THE FILING RULE puts new `loop` Issues into the pool a drain is currently working. commands/
 #   new-issue.md set no milestone at all before this (`grep -c milestone commands/new-issue.md` -> 0), so
-#   every `loop` Issue was born outside the pool /autonomy-on can see.
+#   every `loop` Issue was born outside the pool /autonomy on can see.
 #   THE CONSEQUENCE is that "the active iteration's pool is exhausted" stops being reachable by working —
 #   the exact shape #103 retired one layer up, arriving one layer down. The terminal set therefore moved
 #   onto a SNAPSHOT taken at entry, and the two must ship together: the filing rule without the snapshot
@@ -5618,7 +5641,7 @@ fi
 # ── 2 · the file that DRAINS carries the snapshot, and the retired bullet is not live ────────────
 snap_cmd_missing=""
 if [ ! -r "$ITER_CMD" ]; then
-  bad "entry snapshot — commands/autonomy-on.md is not readable; the terminal set cannot be checked."
+  bad "entry snapshot — commands/autonomy.md is not readable; the terminal set cannot be checked."
 else
   for snap_cmd_needle in \
     '### The pool grows while it drains, so the terminal set is a SNAPSHOT taken at entry (#338)' \
@@ -5633,14 +5656,14 @@ else
     RETIRED #326 terminal condition is live again as a *Stop when* bullet, and it is not reachable by
     working now that loop Issues join the pool at filing."
   if [ -n "$snap_cmd_missing" ]; then
-    bad "entry snapshot — commands/autonomy-on.md no longer terminates against a set fixed at entry:$snap_cmd_missing
+    bad "entry snapshot — commands/autonomy.md no longer terminates against a set fixed at entry:$snap_cmd_missing
       The NUMBERS needle is what stops the snapshot being a count: a count is satisfied by an arrival
       replacing a closed item, so the drain would work an item it never admitted while the arithmetic
       still matched. The FRESH needle is what makes the snapshot defer rather than drop — a second
       invocation re-takes it, which is also why it needs no durable home and is not blocked by the
       unreadable milestone description (#339)."
   else
-    ok "entry snapshot — commands/autonomy-on.md terminates against the entry snapshot, keyed on numbers, re-taken per invocation"
+    ok "entry snapshot — commands/autonomy.md terminates against the entry snapshot, keyed on numbers, re-taken per invocation"
   fi
 fi
 
@@ -5707,7 +5730,7 @@ fi
 # an arm nested under another emits NO verdict when the one above it goes red, and a disappearing
 # assertion is invisible to any passing total.
 LOOPFIRST_SKILL="$ROOT/skills/agents-configuration/SKILL.md"
-LOOPFIRST_CMD="$ROOT/commands/autonomy-on.md"
+LOOPFIRST_CMD="$ROOT/commands/autonomy.md"
 
 # ── 1 · the canonical section carries the rule, the escape, the weak home and the not-a-gate clause ──
 loopfirst_skill_missing=""
@@ -5748,7 +5771,7 @@ fi
 # distinction the #326 arm above draws between a live bullet and a preserved one.
 loopfirst_cmd_missing=""
 if [ ! -r "$LOOPFIRST_CMD" ]; then
-  bad "loop-first — commands/autonomy-on.md is not readable; the pointer from the file the loop
+  bad "loop-first — commands/autonomy.md is not readable; the pointer from the file the loop
       EXECUTES to the composition rule cannot be checked."
 else
   for loopfirst_cmd_needle in \
@@ -5763,13 +5786,13 @@ else
   [ "${loopfirst_retired_hits:-0}" -eq 0 ] || loopfirst_cmd_missing="$loopfirst_cmd_missing
     RETIRED citation is live again, unstruck: \"$loopfirst_retired\""
   if [ -n "$loopfirst_cmd_missing" ]; then
-    bad "loop-first — commands/autonomy-on.md no longer routes ordering correctly:$loopfirst_cmd_missing
+    bad "loop-first — commands/autonomy.md no longer routes ordering correctly:$loopfirst_cmd_missing
       The pointer is what stops the drain treating the \`loop\` block as \`product-lead\`'s to reorder;
       the ownership sentence is what says the two authorities do not overlap. And ADR-0002 amendment #5
       decided \"\`product-manager\` gets a trigger, and the reviewer's output gets a budget\" — not
       sequencing ownership — so that citation must not come back live."
   else
-    ok "loop-first — commands/autonomy-on.md points at the composition rule and the wrong citation stays struck"
+    ok "loop-first — commands/autonomy.md points at the composition rule and the wrong citation stays struck"
   fi
 fi
 
@@ -5787,7 +5810,7 @@ fi
 #   1. THE PERMISSION IS WRITTEN AS A PERMISSION, in the file every persona preloads — including the
 #      "more than one batch per iteration is normal" clause, the deferral of the coverage check, the
 #      marker residual, and the "nothing gates this either" disclaimer.
-#   2. THE TWO COMMANDS A HUMAN TYPES point at it, so neither `/autonomy-on` nor `/new-issue` reads as
+#   2. THE TWO COMMANDS A HUMAN TYPES point at it, so neither `/autonomy on` nor `/new-issue` reads as
 #      promising a per-Issue MR.
 #
 # WHY THE "IT IS A MAY" NEEDLE IS THE LOAD-BEARING ONE. A permission trimmed into a rule is the exact
@@ -5809,7 +5832,7 @@ fi
 # THREE INDEPENDENT `if` BLOCKS, EACH WITH ITS OWN VACUITY GUARD, for the reason stated repeatedly above:
 # an arm nested under another emits NO verdict when the one above it goes red.
 LOOPBATCH_SKILL="$ROOT/skills/agents-configuration/SKILL.md"
-LOOPBATCH_AUTONOMY="$ROOT/commands/autonomy-on.md"
+LOOPBATCH_AUTONOMY="$ROOT/commands/autonomy.md"
 LOOPBATCH_NEWISSUE="$ROOT/commands/new-issue.md"
 
 # ── 1 · the permission, its refusals, its deferral and its residual are in the universal preload ──
@@ -5850,7 +5873,7 @@ fi
 # ── 2 · both typed commands point at it, so neither promises a per-Issue MR ──
 loopbatch_cmd_missing=""
 if [ ! -r "$LOOPBATCH_AUTONOMY" ] || [ ! -r "$LOOPBATCH_NEWISSUE" ]; then
-  bad "loop-batch — commands/autonomy-on.md or commands/new-issue.md is not readable; the pointers from
+  bad "loop-batch — commands/autonomy.md or commands/new-issue.md is not readable; the pointers from
       the files a human TYPES to the composition permission cannot be checked."
 else
   for loopbatch_autonomy_needle in \
@@ -5858,20 +5881,20 @@ else
     'the slice is the batch'
   do
     grep -qF -- "$loopbatch_autonomy_needle" "$LOOPBATCH_AUTONOMY" || loopbatch_cmd_missing="$loopbatch_cmd_missing
-    missing from commands/autonomy-on.md: \"$loopbatch_autonomy_needle\""
+    missing from commands/autonomy.md: \"$loopbatch_autonomy_needle\""
   done
   loopbatch_newissue_needle='Filing a `loop` Issue does NOT reserve it a branch'
   grep -qF -- "$loopbatch_newissue_needle" "$LOOPBATCH_NEWISSUE" || loopbatch_cmd_missing="$loopbatch_cmd_missing
     missing from commands/new-issue.md: \"$loopbatch_newissue_needle\""
   if [ -n "$loopbatch_cmd_missing" ]; then
     bad "loop-batch — a typed command no longer routes the delivery unit correctly:$loopbatch_cmd_missing
-      \`/autonomy-on\` is the file that WORKS the pool, so without the pointer its own
+      \`/autonomy on\` is the file that WORKS the pool, so without the pointer its own
       \"finished through merge before opening the next\" reads as a per-Issue promise. \`/new-issue\`
       files the Issue, and without its needle a reader takes filing as reserving a branch. Both
       pointers are one-directional on purpose: the canonical wording is the skill's, and these say so
       rather than restating it."
   else
-    ok "loop-batch — /autonomy-on and /new-issue both point at the composition permission and neither promises a per-Issue MR"
+    ok "loop-batch — /autonomy on and /new-issue both point at the composition permission and neither promises a per-Issue MR"
   fi
 fi
 
@@ -5899,7 +5922,7 @@ else
       live. Without it the measurement reads as a separation between the repositories.
       NOTE ON THE NEEDLE ITSELF: it is a SINGLE-LINE span deliberately, and the full sentence begins
       'Read that as a fact' on the previous line. \`grep -F\` is line-oriented, so a needle spanning a
-      wrap matches nothing and a null result reads as an absence — the defect commands/autonomy-on.md
+      wrap matches nothing and a null result reads as an absence — the defect commands/autonomy.md
       records against itself. This needle was written across the wrap first and caught here."
   else
     ok "loop-batch — the layer reason is stated durably (one cwd, iteration not repo-scoped) and the dated measurement is flagged as a fact about contents"
@@ -6235,7 +6258,7 @@ fi
 # OWN `if`, OWN VACUITY GUARD, same reason as the block above: an arm in an `elif` under another emits
 # NO verdict when the one above goes red, and a total that stays plausible cannot surface that.
 EST_SKILL="$ROOT/skills/agents-configuration/SKILL.md"
-EST_CMD="$ROOT/commands/autonomy-on.md"
+EST_CMD="$ROOT/commands/autonomy.md"
 
 # ── 1 · the canonical surface carries the vocabulary, the estimators and the enforcement limit ───
 est_skill_missing=""
@@ -6272,7 +6295,7 @@ fi
 # ── 2 · the executed command refuses to ENTER while a pendency stands ────────────────────────────
 est_cmd_missing=""
 if [ ! -r "$EST_CMD" ]; then
-  bad "estimation carrier — commands/autonomy-on.md is not readable; the preflight cannot be checked."
+  bad "estimation carrier — commands/autonomy.md is not readable; the preflight cannot be checked."
 else
   for est_cmd_needle in \
     '## Preflight — outstanding HITL work blocks ENTRY (#326)' \
@@ -6284,7 +6307,7 @@ else
     missing: \"$est_cmd_needle\""
   done
   if [ -n "$est_cmd_missing" ]; then
-    bad "estimation carrier — commands/autonomy-on.md no longer gates ENTRY on the pendency set:$est_cmd_missing
+    bad "estimation carrier — commands/autonomy.md no longer gates ENTRY on the pendency set:$est_cmd_missing
       The owner's rule is quoted rather than paraphrased because it is the rule: zero outstanding HITL
       work AT INVOCATION. A preflight that surfaces a LIST instead of one thing at a time is a decision
       list, which he has rejected repeatedly — the one-at-a-time clause is part of the rule, not of its
@@ -6292,7 +6315,7 @@ else
       which escalates immediately and parks the item; collapsing the two either wakes him for every
       doubt or holds a real blocker until the iteration closes."
   else
-    ok "estimation carrier — commands/autonomy-on.md blocks entry on the pendency set, one thing at a time"
+    ok "estimation carrier — commands/autonomy.md blocks entry on the pendency set, one thing at a time"
   fi
 fi
 
@@ -6901,7 +6924,7 @@ RETIRED_CLAUSES
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
 # THE ITERATION RETROSPECTIVE RITE, AND EVERY LIMIT IT SHIPS WITH (#355).
 #
-# WHY THIS EXISTS. `/autonomy-on` promised "the closing ceremonies run against the exhausted iteration"
+# WHY THIS EXISTS. `/autonomy on` promised "the closing ceremonies run against the exhausted iteration"
 # from #326 and named nothing — measured on the commit this slice forked from, `git grep -l retrospect
 # 5cfea0b -- commands skills agents` matched two files that MENTION the word and
 # `git cat-file -e 5cfea0b:commands/sprint-retrospective.md` exited 128. A promise with no object survived a
@@ -6927,7 +6950,7 @@ RETIRED_CLAUSES
 # line wrap matches nothing and reads exactly like absence), and each was then deleted on its own and
 # the suite re-run.
 RITE_CMD="$ROOT/commands/sprint-retrospective.md"
-RITE_DRAIN="$ROOT/commands/autonomy-on.md"
+RITE_DRAIN="$ROOT/commands/autonomy.md"
 RITE_GATE="$ROOT/agents/quality-assurance.md"
 RITE_PRELOAD="$ROOT/skills/agents-configuration/SKILL.md"
 
@@ -7005,7 +7028,7 @@ fi
 # ── 2 · the drain names the object, on the right condition, without over-claiming the plural ──
 rite_drain_missing=""
 if [ ! -r "$RITE_DRAIN" ]; then
-  bad "retrospective rite — commands/autonomy-on.md is not readable; the pointer from the file that
+  bad "retrospective rite — commands/autonomy.md is not readable; the pointer from the file that
       EXECUTES the drain to the rite it fires cannot be checked."
 else
   for rite_drain_needle in \
@@ -7023,7 +7046,7 @@ else
       owner interrupt reports on an iteration nobody finished. HALF THE PROMISE is what stops
       'the closing ceremonies' being read as plural-and-satisfied while the sweep half is unbuilt."
   else
-    ok "retrospective rite — autonomy-on names /sprint-retrospective, scopes it to snapshot exhaustion alone, and says which half of its own plural is still owed"
+    ok "retrospective rite — autonomy names /sprint-retrospective, scopes it to snapshot exhaustion alone, and says which half of its own plural is still owed"
   fi
 fi
 

@@ -2547,7 +2547,7 @@ splits below, and it is the condition to check before reusing this shape.
 
 ### Why #338 loses, and it is a measurement rather than a preference
 
-#338's argument was that a `loop` Issue born outside the pool is invisible to `/autonomy-on`. The pool is
+#338's argument was that a `loop` Issue born outside the pool is invisible to `/autonomy on`. The pool is
 `(product OR loop) AND ready AND active-iteration`, and **a `loop` Issue is filed WITHOUT `ready`** — the
 owner's transition alone. **The item leaves the pool on the `ready` predicate before the milestone
 predicate is consulted.** So the milestone at filing was inert until he acted, and when he acted he was
@@ -2567,7 +2567,7 @@ The intake flagged one unknown: *does an `ask` hang rather than deny where no pr
 **not measured**, and the reason is that no path reaches the guarded act unattended. Walked at head, in
 both repositories: no script in `hooks/scripts/` assigns a milestone (every `gh issue` call there is a
 write path of another kind, and the one `"gh issue edit"` string in `orchestrator-tool-census.sh` is a
-classification label, not a call); `commands/autonomy-on.md` and `commands/sprint-retrospective.md` never assign
+classification label, not a call); `commands/autonomy.md` and `commands/sprint-retrospective.md` never assign
 one; and the only two files that did — `new-issue.md` and `blueprint.md` — are narrowed by this slice.
 
 ~~and the two CI workflows running `anthropics/claude-code-action` install no plugin, so this hook is not
