@@ -1701,7 +1701,7 @@ fi
 #
 # — and BOTH suites were green, because nothing compared a file's copies to each other. The 5c copy
 # turned the subagent issue gate off for `gh -R=owner/x issue create`; the 7c copy turned the merge
-# gate's verdict check off for `gh pr merge N --repo owner/x`, which is the spelling `command-hygiene`
+# gate's verdict check off for `gh pr merge N --repo owner/x`, which is the spelling `shell`
 # MANDATES. A rule defeated by following the instructions.
 #
 # THIS IS DELIBERATELY THE SAME SHAPE AS THE ARMS ABOVE and not a cleverer one: emit every copy, and
@@ -1718,7 +1718,7 @@ elif printf '%s\n' "$guard_classes" | grep -qvxF -- "$guard_class"; then
       all copies:   $(printf '%s' "$guard_classes" | tr '\n' ' ')
       A hand-rolled copy that is a spelling behind is a rule that is OFF for that spelling, silently.
       That is how rule 5c missed 'gh -R=owner/x issue create' and rule 7c missed
-      'gh pr merge N --repo owner/x' — the spelling command-hygiene tells every persona to use."
+      'gh pr merge N --repo owner/x' — the spelling shell tells every persona to use."
 else
   ok "flag class — every copy inside permission-guard.sh parses -R/--repo with the identical class"
 fi
@@ -1852,7 +1852,7 @@ fi
 #
 # THIS IS A DRIFT CHECK OVER A STRING, NOT A CONTENT CHECK, and the distinction is the whole of what
 # it is worth. It asserts both files still carry the one-surface sentence; it cannot assert either
-# means it, and it can never observe where a marker was actually posted. NO HOOK CAN: `command-hygiene`
+# means it, and it can never observe where a marker was actually posted. NO HOOK CAN: `shell`
 # requires every comment body to go through `--body-file`, so the marker text is never in the command
 # string a PreToolUse hook sees — a guard keyed on the literal would fire only on the inline `--body`
 # form this repo already forbids, i.e. it would be inert exactly where it would have to work.
@@ -5938,6 +5938,56 @@ fi
 #
 # TWO INDEPENDENT `if` BLOCKS, EACH WITH ITS OWN VACUITY GUARD: an arm nested under another emits NO
 # verdict when the one above it goes red.
+# ---------------------------------------------------------------------------------------------------
+# THE #384 FOLD ARRIVED — `documentation-standard` CARRIES THE LICENSING RULE THE DELETED SKILL HELD.
+#
+# WHY THIS ARM EXISTS AND THE ADR PRACTICE'S EQUIVALENT DOES NOT. `documentation-standard` states, about
+# ABSORBING A RECORD, that nothing reads the destination's content: a History row pointing at a document
+# that never received the decision passes exactly like one pointing at a document that did. That
+# residual is accepted there because the row and the fold land in one MR where a reviewer sees both.
+# A SKILL fold has no row at all — `skills/license/` was deleted and `plugin.json`'s array shrank, and
+# both directions of that array are already gated, so the DELETION is loud and the ARRIVAL is silent.
+# Nothing else in this suite would notice a later edit trimming the licensing section back out of Part I,
+# and the standalone file it came from no longer exists to notice its absence.
+#
+# THE NEEDLES ARE THE RULE, NOT THE HEADING. A heading can be renamed for good reasons; the three
+# obligations cannot be dropped without changing what the platform licenses under. WHAT IT CANNOT DO is
+# tell whether the section is CORRECT, or whether the fold was lossless — that was a reviewer's read on
+# the diff and there is no instrument for it, which is the same limit stated one skill over.
+LIC384_DOC="$ROOT/skills/documentation-standard/SKILL.md"
+lic384_missing=""
+if [ ! -r "$LIC384_DOC" ]; then
+  bad "#384 fold — skills/documentation-standard/SKILL.md is not readable, so the licensing rule folded
+      into it was not checked. The standalone skill it came from was deleted in the same commit, so
+      there is no second copy anywhere: if this file is gone, the rule is gone."
+else
+  for lic384_needle in \
+    'Every repo on the platform is **MIT-licensed**' \
+    'the file — not just a manifest field — is what gives it' \
+    '**Manifests declare it too:**' \
+    'Keep the **copyright year** current' \
+    'explicit patent grant** (Apache-2.0 has one)'
+  do
+    # EVERY NEEDLE HERE IS A SINGLE-LINE SPAN, checked with `grep -c -F` before being written. The
+    # patent-grant one was first written `no explicit patent grant` and matched NOTHING — the source
+    # wraps between `no` and `explicit`. `grep -F` is line-oriented, so the null result read as a
+    # missing rule rather than as a broken needle, which is the failure this file warns about two
+    # blocks down and reproduced here on its first run.
+    grep -qF -- "$lic384_needle" "$LIC384_DOC" || lic384_missing="$lic384_missing
+    missing: \"$lic384_needle\""
+  done
+  if [ -n "$lic384_missing" ]; then
+    bad "#384 fold — the licensing rule lost a load-bearing part:$lic384_missing
+      MIT-LICENSED is the standard itself. FILE-NOT-FIELD is the one clause a reader can get wrong in a
+      way that has legal effect — a manifest field alone does not license anything. MANIFESTS and
+      COPYRIGHT-YEAR are the two obligations that go stale silently. PATENT-GRANT is the trade-off, and
+      a standard published without its cost is the shape this library refuses everywhere else.
+      If this is a deliberate rewording, update the needles in this file in the same commit."
+  else
+    ok "#384 fold — documentation-standard carries the licensing standard the deleted skill held: the file-not-field clause, both sync obligations and the patent-grant trade-off (it cannot tell whether the fold was lossless — that is the reviewer's read on the diff)"
+  fi
+fi
+
 # ---------------------------------------------------------------------------------------------------
 # THE #381 CUT HOLDS — `engineering-standards` CARRIES NO LOCAL MACHINERY.
 #

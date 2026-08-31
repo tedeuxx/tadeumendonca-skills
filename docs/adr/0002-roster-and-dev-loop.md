@@ -2627,7 +2627,7 @@ stress-test half of a `loop` intake produces.
 - **A PR → Issue resolution route**, so an Issue-side marker could satisfy hold 2. This was the price of
   the answer the owner did not choose. It is recorded here so it is not silently reintroduced: it has no
   reliable edge to follow, since nothing forces a `loop` PR to reference its Issue.
-- **A hook that denies posting the marker to an Issue.** Measured inert before proposing: `command-hygiene`
+- **A hook that denies posting the marker to an Issue.** Measured inert before proposing: `shell`
   requires every comment body to go through `--body-file`, so the marker text is never in the command
   string a `PreToolUse` hook receives. Such a guard would fire only on the inline `--body` form this repo
   already forbids — a control that works everywhere except where it is needed.

@@ -218,7 +218,7 @@ human comparing the record to the commit will ever see.
 **You write no scratch file, anywhere — not in the session scratchpad, not in a repository.** You hold
 no `Write`, no `Edit` and no `Bash`, so there is no destination to name and no file lifecycle to keep.
 Everything you produce is the text of your return, and the orchestrator is what turns it into an
-artifact. `command-hygiene` is deliberately **not** in your preload for the same reason: a rule about
+artifact. `shell` (named `command-hygiene` until #384) is deliberately **not** in your preload for the same reason: a rule about
 where files go and how a shell command is shaped has no subject here.
 
 **What you DO carry is both halves of the split preload (#381), and the second half is the one worth

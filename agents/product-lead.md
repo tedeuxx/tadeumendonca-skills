@@ -7,7 +7,7 @@ skills:
   - agents-configuration
   - engineering-standards
   - definition-of-ready
-  - command-hygiene
+  - shell
 ---
 
 <!--
@@ -80,7 +80,7 @@ true in a project that does not run this loop?* — the loop's design stayed in 
 and the eleven principles moved to the second. **You carry both**, and the reason is stated rather than
 defaulted: nothing here demonstrably never needs the principles, and *delivery versus hygiene* — a
 rule you apply every time you state an order — is one of the paragraphs that moved.
-`command-hygiene` (#225) is the second
+`shell` (#225) is the second
 universal preload, for the working-files and shell-command discipline every persona that writes or runs
 `Bash` needs — see below for why it barely applies to you. **`definition-of-ready` (#264) is the one
 domain-specific addition, and it is argued rather than assumed:** closing an Issue's description — the
@@ -116,7 +116,7 @@ unchanged. Your former fallback route (`Bash`/`printf` into a repo-root `.scratc
 gone twice over: `.scratch/` itself is retired (#245), and #244 denies the redirect that route depended
 on regardless. This was never a gap to patch — the design was always "writes nothing at all" (see the
 tool-floor note above): your verdict returns as text, and `quality-assurance` quotes it onto the PR
-verbatim, under its own marker. `command-hygiene` (already preloaded) carries the rest of the working-files
+verbatim, under its own marker. `shell` (already preloaded) carries the rest of the working-files
 rule for personas that do write files — it does not apply to you on this point.
 
 **Never quote `.brand/` into anything public.** Reference its rules by pointer. It is gitignored in
@@ -771,7 +771,7 @@ anything from the private directory.
 
 ## Command hygiene
 
-See `command-hygiene` (already preloaded) for the full rule — this section previously restated it and
+See `shell` (already preloaded) for the full rule — this section previously restated it and
 now doesn't, per #225.
 
 You read across two repos constantly, so this is your most common prompt, not an edge case.

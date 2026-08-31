@@ -1,6 +1,6 @@
 ---
-name: command-hygiene
 description: Apply the platform's working-files and shell discipline in any `<project>` repo — where scratch files go, one atomic Bash call per invocation, the `gh --repo` flag position, and `--body-file` for any multi-line PR/issue body. Use whenever a persona writes a working file, runs a shell command, or composes a PR/issue comment. Not for the loop's state machine (see agents-configuration) or what a merge verdict must contain (see quality-gates).
+purpose: state the working-file and shell discipline once, because the same procedure copied into every brief is exactly what a preloaded skill exists to remove
 ---
 
 Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched
@@ -8,7 +8,17 @@ into it.
 
 Context: $ARGUMENTS
 
-## Why this is one skill
+## Why this is one skill, and why it is now called `shell`
+
+**Renamed from `command-hygiene` at #384**, on the owner's ruling — *«entao nomeie como shell
+apenas»* — during the pass that put every distributed mechanism to him one at a time. The content did
+not change; the identifier did, because *hygiene* names a virtue and *shell* names the object.
+
+**One mechanism difference is NOT renamed away, and it is the part worth knowing if this file is read
+on other machinery:** here the discipline is **enforced** — `permission-guard.sh` denies chained
+commands, stdout redirects and `2>/dev/null` outright, which is why the rules below read as facts
+rather than as advice. On a harness without that guard the same file is an instruction only, and a
+reader who takes the confident tone as evidence that something is stopping them will be wrong.
 
 Two behaviors — where scratch files go, and how a shell command avoids tripping the permission matcher —
 were independently restated, near-verbatim, in all five agent briefs the roster held at #225 (a content

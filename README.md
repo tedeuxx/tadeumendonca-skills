@@ -8,7 +8,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 15 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 14 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -554,7 +554,7 @@ was built to avoid.
 
 <!-- claim id=0004 class=DERIVED -->
 
-**Skills carry the conventions so the model does not re-invent them.** **15 skills + autonomy-on**,
+**Skills carry the conventions so the model does not re-invent them.** **14 skills + autonomy-on**,
 `autonomy-off`, `new-issue`, `blueprint` and `retrospective`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
@@ -565,11 +565,13 @@ and its trade-off*, not just the rule — because a rule without its reason is o
 **That column was headed *wielded by* until #172, and the rename is the point rather than a tidy-up.** It answers **whose mandate a convention falls under** — who is accountable for `dynamodb` being right. It does **not** answer *what does this persona have loaded*, and the two diverge sharply: under the old heading a reader had one column and no way to tell which question it was answering, so the curated preload below read as a contradiction of it rather than as a different fact.
 
 **Reconciling the two into one column was the alternative, and it was rejected.** Across the seven
-briefs the `skills:` lists total **27 preload entries** (`grep -h '^  - ' agents/*.md | wc -l`;
-`harness-engineering`'s universal preload, #224, is what pushed this above the ten it used to be;
+briefs the `skills:` lists total **34 preload entries** (`grep -h '^  - ' agents/*.md | wc -l`, re-run
+2026-08-31; the universal preload — `harness-engineering` at #224, **split into
+`agents-configuration` + `engineering-standards` at #381**, which is what moved this from 27 to 34,
+seven briefs gaining one entry each — is what pushed it above the ten it used to be;
 `published-voice` is carried by the content pair and by nobody else, which is now **two** briefs rather
-than the one it was extracted from), resolving to **eight distinct files
-(`grep -h '^  - ' agents/*.md | sort -u | wc -l`), all eight
+than the one it was extracted from), resolving to **nine distinct files
+(`grep -h '^  - ' agents/*.md | sort -u | wc -l`), all nine
 of them rows in this table.** Against 67 rows, making the column mean *preloaded by* would still print
 "— none" against **60 of them**, `dynamodb`, `vpc` and `cloudfront` among them: publishing, on the
 document a forker reads first, that no persona is responsible for nine tenths of the library. That is
@@ -590,12 +592,42 @@ before the persona's first turn.** There is no declare-without-loading option, s
 deprivation rather than a deferral**, which is why the briefs argue their omissions rather than listing
 them.
 
-- **`developer` — 101,637 B** — `code-review` · `quality-gates` ·
-  `harness-engineering` · `command-hygiene` · `devops`. `quality-gates` grew 763 B at #265 — a pointer
+**Every figure below was RE-MEASURED on 2026-08-31 and every one of them roughly DOUBLED — and that is
+a finding about this list rather than about the slice that re-measured it.** The command, so the next
+reader falsifies it instead of trusting the date:
+
+```
+python3 - <<'PY'
+import pathlib
+root = pathlib.Path('.')
+for f in sorted((root/'agents').glob('*.md')):
+    ents, inb = [], False
+    for l in f.read_text().splitlines():
+        if l.startswith('skills:'): inb = True; continue
+        if inb:
+            if l.startswith('  - '): ents.append(l[4:].strip())
+            else: break
+    print(f.stem, f"{sum((root/'skills'/e/'SKILL.md').stat().st_size for e in ents):,} B", ents)
+PY
+```
+
+**`developer` published 101,637 B and measures 191,112 B; `product-lead` published 50,437 B and
+measures 137,777 B.** The split that produced `engineering-standards` moved these numbers by roughly
+12 KB each — it does not begin to account for the gap. **These figures had been drifting for weeks
+under merges that grew a preloaded skill without touching this list**, which is exactly the failure
+this repository's *publish the number with its command* rule exists to prevent, surviving in the
+document that publishes the most numbers. The per-entry deltas narrated in each bullet below (`+763 B`
+at #265, `+5,717 B` at #260) are **historical and were correct when written**; they are kept because
+each records a decision, and they are **not** re-derivable against the totals above — a bullet's delta
+and a bullet's total no longer belong to the same measurement, and pretending they do is how the next
+figure goes stale invisibly.
+
+- **`developer` — 191,112 B** — `code-review` · `quality-gates` · `agents-configuration` · `engineering-standards` ·
+  `shell` · `devops`. `quality-gates` grew 763 B at #265 — a pointer
   paragraph repointing its former generic DoD framing at the new `definition-of-done` skill — which
   moves this total by the same amount, since this brief carries the whole file.
-- **`quality-assurance` — 81,977 B** — `harness-engineering` · `quality-gates` ·
-  `devops` · `command-hygiene`. `coverage` used to be a fifth, separate entry here; #257 folded its
+- **`quality-assurance` — 171,305 B** — `agents-configuration` · `engineering-standards` · `quality-gates` ·
+  `devops` · `shell`. `coverage` used to be a fifth, separate entry here; #257 folded its
   content into `quality-gates`, so the same policy is still fully preloaded — the entry disappeared, not
   the content. `sonarcloud` used to be the third entry; #259 folded it into `devops`, and this brief now
   preloads `devops` whole rather than losing the Sonar-diagnosis content it needs — the same fork #258
@@ -603,9 +635,9 @@ them.
   canonical source for three of this brief's own production-lens criteria (IAM least-privilege, the
   immutable OIDC subject, SHA-pinning) that this file previously restated in compressed form.
   `quality-gates`'s #265 growth (see `developer`, above) moves this total by the same 763 B.
-- **`tech-lead` — 89,996 B** — `documentation-standard` · `harness-engineering` ·
-  `definition-of-ready` · `command-hygiene` · `devops`. This used to be five entries (`adr`,
-  `documentation-standard`, `harness-engineering`, `command-hygiene`, `devops`); #260 folded `adr` into
+- **`tech-lead` — 199,829 B** — `documentation-standard` · `agents-configuration` · `engineering-standards` ·
+  `definition-of-ready` · `shell` · `devops`. This used to be five entries (`adr`,
+  `documentation-standard`, `harness-engineering`, `shell`, `devops`); #260 folded `adr` into
   `documentation-standard` as its Part II, so the entry count temporarily dropped to four before #264
   added a fifth back. This brief already preloaded both bodies of content in full
   before the merge (76,495 B), and the merged file runs 1,590 B heavier than the sum of the two originals
@@ -619,16 +651,16 @@ them.
   argued rather than assumed: closing an Issue's description with `product-lead` is not an occasional
   reference for this persona, it happens at every intake dispatch, which is the same class of necessity
   that justifies a preload rather than a `Read` on demand.
-- **`product-lead` — 50,437 B** — `harness-engineering` · `definition-of-ready` · `command-hygiene`.
+- **`product-lead` — 137,777 B** — `agents-configuration` · `engineering-standards` · `definition-of-ready` · `shell`.
   `definition-of-ready` (11,131 B, #264) is a new, deliberate second domain-specific entry alongside the
   universal preloads — the same reasoning as `tech-lead`'s addition above: this persona performs the act
   the skill defines (closing a description to the point it earns `ready`) at every dispatch, not
   occasionally.
-- **`agents-lead` — 78,885 B** — `harness-engineering` · `documentation-standard` · `command-hygiene` ·
+- **`agents-lead` — 188,564 B** — `agents-configuration` · `engineering-standards` · `documentation-standard` · `shell` ·
   `devops`. `harness-engineering` was the one exception to what used to be `skills: []`; the other three
   followed for reasons its own brief states (`documentation-standard`'s Part II — the ADR practice
   formerly the standalone `adr` skill, folded in at #260 — for loop/harness ADRs since #223,
-  `command-hygiene` and `devops` as the transversal/machinery skills it owns). This entry used to read
+  `shell` and `devops` as the transversal/machinery skills it owns). This entry used to read
   `adr` (6,307 B, 72,368 B total); the #260 merge swaps the identifier **and** grows what this brief
   receives — it now also carries Part I, the general documentation standard, which it never preloaded on
   its own. That is a real, if incidental, increase (+5,717 B) rather than a renaming with no effect, and
@@ -640,7 +672,7 @@ them.
   `loop`-typed proposals only, where `ready` is an owner-only transition it never performs. It remains
   the persona most exposed to staleness, a real tension a frozen
   preload creates that its own brief names as a residual rather than resolves.
-- **`content-writer` — 74,367 B** — `harness-engineering` · `command-hygiene` · `published-voice`.
+- **`content-writer` — 155,773 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice`.
   Renamed from `writer` at #317; the figure moved for one reason and it is not the rename, which costs
   nothing — `harness-engineering` grew in the same slice, by the state-machine rows this pair required.
   **`published-voice` (29,117 B) is not an addition to this brief, it is a relocation out of it:** the
@@ -658,7 +690,7 @@ them.
   and `wc -c` at this head returns **29,117**. The file was not edited between the two, so the published
   number was wrong when it shipped — a 22-byte miss, invisible because nothing gates a byte figure. It
   is corrected here and named rather than silently overwritten.
-- **`content-reviewer` — 74,367 B** — `harness-engineering` · `command-hygiene` · `published-voice`.
+- **`content-reviewer` — 155,773 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice`.
   **Byte-identical to `content-writer`'s, because the list is identical — and that identity is the
   design rather than a copy-paste.** The pair
   is only worth its cost if both halves judge against one file; giving the reviewer a skill the writer
@@ -729,7 +761,7 @@ four of the six totals — `developer`, `agents-lead` and `tech-lead` via `devop
 `harness-engineering` (33,412 B, the
 universal preload, #224) is the
 largest single skill in the library and is carried by all six briefs. The two figures (billed vs.
-distinct) differ because several skills — `harness-engineering`, `command-hygiene`, `quality-gates`,
+distinct) differ because several skills — `harness-engineering`, `shell`, `quality-gates`,
 `documentation-standard`, `devops` — are each carried by more than one persona: there is no dedupe, so each is
 billed once per persona and the library sees it once. Note what this list and
 the table below disagree about, deliberately: `developer` **preloads** `quality-gates` and
@@ -758,7 +790,7 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library: 15 skills, one directory each, at one level under `skills/`.
+The library: 14 skills, one directory each, at one level under `skills/`.
 
 | skill | what it decides | whose domain |
 |---|---|---|
@@ -766,17 +798,16 @@ The library: 15 skills, one directory each, at one level under `skills/`.
 | `backend` | Backend (BFF-on-Lambda) | `developer` |
 | `cloud-infrastructure` | Cloud infrastructure (AWS) | `developer` |
 | `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `developer` |
-| `command-hygiene` | Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched | `product-lead` · `tech-lead` · `agents-lead` · `developer` · `quality-assurance` |
 | `definition-of-done` | Definition of Done — the ruler that decides when work stops | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `definition-of-ready` | Definition of Ready — the bar a work item clears before it is buildable | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `devops` | Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and | `developer` · `agents-lead` · `tech-lead` (#227) |
 | `documentation-standard` | Documentation — the general standard and the ADR practice | `developer` (Part I, general docs) · `tech-lead` · `agents-lead` — Part II, ADR practice split by domain (#223) |
 | `engineering-standards` | Apply the owner's engineering standards — the two tiers, the eleven principles, and the few rules | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `frontend` | Frontend (React SPA) | `developer` |
-| `license` | Apply the repository licensing standard in any <project> repo. | `developer` |
 | `planning-poker` | Planning Poker — consensus estimation, and what it is actually for | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `published-voice` | The owner's published voice — the shared ruler | `content-writer` · `content-reviewer` — the pair it was extracted for (#317) |
 | `quality-gates` | Quality gates — the definition of done and the concrete policy that proves it | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
+| `shell` | Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched | `product-lead` · `tech-lead` · `agents-lead` · `developer` · `quality-assurance` · `content-writer` · `content-reviewer` |
 **Three things the table shows rather than asserts.** The builder is the only persona holding a build
 skill — `backend`, `frontend`, `cloud-infrastructure` — because conventions exist for building, and one
 persona builds. `documentation-standard` is the only skill that splits between personas, and it splits
@@ -1507,7 +1538,7 @@ distributions do not collide — the repository root stays a Claude Code plugin,
 the same `skills/` tree the Claude Code manifest declares, and `hooks/scripts/kiro-power.test.sh`
 re-runs the generator into a temporary directory and diffs it against what is committed — so the two
 trees cannot drift, in either direction, without CI going red. The conversion is not a copy: **none of
-the 15 source skills carries a `name:` key** (`grep -c '^name:' skills/*/SKILL.md` → `0` for all
+the 14 source skills carries a `name:` key** (`grep -c '^name:' skills/*/SKILL.md` → `0` for all
 fourteen), because Claude Code derives the identifier from the directory, while Kiro validates
 `name` **and** `description` in the frontmatter. The generator synthesises it, and rewrites the
 library's relative `../../docs/adr/…` link targets to absolute URLs, which are the only form that still

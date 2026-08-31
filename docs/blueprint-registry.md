@@ -121,14 +121,20 @@ as misleading as one that over-claims.
 | `command` | `commands/*.md` | complete |
 | `skill` | the paths declared in `.claude-plugin/plugin.json` | partial |
 
-**What `partial` means here, exactly, and why it was not padded to look complete.** Ten `knowledge`
-rows over eight carriers landed; six skills have no row yet — `backend`, `frontend`,
-`cloud-infrastructure`, `definition-of-done`, `planning-poker`, `license`. The three reference skills
+**What `partial` means here, exactly, and why it was not padded to look complete.** Eleven `knowledge`
+rows over nine carriers landed; **five** skills have no row yet — `backend`, `frontend`,
+`cloud-infrastructure`, `definition-of-done`, `planning-poker`. The three reference skills
 are where `o que não faz` is hardest and least quotable (measured: `cloud-infrastructure` is 21 service
-sections whose limits are per-section, not per-file), and `license` states no limit anywhere in its 25
-lines, so its cell is already known to be a finding rather than a sentence. Authoring six rows at the
-ratified depth is a sitting of its own with the owner's layer in it; producing six thin ones to turn a
+sections whose limits are per-section, not per-file). Authoring five rows at the
+ratified depth is a sitting of its own with the owner's layer in it; producing five thin ones to turn a
 declaration green is the failure this file's own `citação` rule exists to prevent.
+
+~~six skills have no row yet … and `license` states no limit anywhere in its 25 lines, so its cell is
+already known to be a finding rather than a sentence.~~ **Struck 2026-08-31 (#384): `license` is not a
+skill.** It folded into `documentation-standard` as a section of Part I, so the unclaimed set is five,
+not six — and the observation that survives is worth keeping rather than deleting with the row: **the
+file most likely to have an empty `o que não faz` cell was the one small enough to be absorbed.** A
+carrier that cannot state a limit is usually a carrier that is not a capability.
 
 ---
 
@@ -542,7 +548,7 @@ have no row yet, named there with the reason.
 ### 0025 · where a working file goes
 
 - **tipo:** knowledge
-- **carrier:** `skills/command-hygiene/SKILL.md`
+- **carrier:** `skills/shell/SKILL.md`
 - **descrição:** The first of two bodies of knowledge this carrier declares in its own header: scratch files, and the route by which they are written.
 - **propósito:** Every persona that composes a pull-request body, a commit message or a verdict writes a file first, and where that file lands is a decision nobody should be making per case. It is one preload rather than a paragraph in each brief because the same procedure had been restated near-verbatim in every brief on the roster.
 - **o que faz:** Sends every scratch file to the harness's own session scratchpad — session-specific, outside every tracked tree, with a lifecycle the harness owns — and names the two valid routes for writing one.
@@ -552,7 +558,7 @@ have no row yet, named there with the reason.
 ### 0026 · the shape of a shell command, and of a posted body
 
 - **tipo:** knowledge
-- **carrier:** `skills/command-hygiene/SKILL.md`
+- **carrier:** `skills/shell/SKILL.md`
 - **descrição:** The second body of knowledge in the same carrier: one atomic call, the flag position, and `--body-file` without exception.
 - **propósito:** Permission friction is almost never a missing allowlist entry — it is the **shape** of the command. And the posting half is not friction at all but silent damage: backticks and `$` are eaten from an inline body by the shell, and this platform paid for that more than once in a single session before the rule was written down.
 - **o que faz:** One atomic command per call, `git -C` and `npm --prefix` instead of a directory change, the repository flag placed *after* the subcommand so the matcher's prefix still matches, and any body longer than one line written to a file and posted with `--body-file`.

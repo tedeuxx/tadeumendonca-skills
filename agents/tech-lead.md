@@ -8,7 +8,7 @@ skills:
   - agents-configuration
   - engineering-standards
   - definition-of-ready
-  - command-hygiene
+  - shell
   - devops
 ---
 
@@ -70,7 +70,7 @@ bytes; see the README's persona-preload table for the re-measured total.
 **Every scratch file you write goes in the session scratchpad — the harness's own directory, not a repo
 path.** There used to be a repo-root `.scratch/` here instead, retired at #245: it never solved the
 problem it was kept for (#244 already measured that permission friction does not depend on location),
-and it cost a sweep hook and a rule that lived only in agent-brief prose. `command-hygiene` (already
+and it cost a sweep hook and a rule that lived only in agent-brief prose. `shell` (already
 preloaded) carries the rest of the rule in full; do not restate it here. Your scratch route is
 `Write`/`Edit`, already granted.
 
@@ -243,7 +243,7 @@ consuming repo. The test for which: does it constrain *this product*, or *any pr
 
 ## Command hygiene
 
-See `command-hygiene` (already preloaded) for the full rule — this section previously restated it and
+See `shell` (already preloaded) for the full rule — this section previously restated it and
 now doesn't, per #225.
 
 ## The discipline that makes this useful rather than decorative

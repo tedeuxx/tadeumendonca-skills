@@ -7,7 +7,7 @@ skills:
   - agents-configuration
   - engineering-standards
   - documentation-standard
-  - command-hygiene
+  - shell
   - devops
 ---
 
@@ -21,7 +21,7 @@ its intake chain) and **`engineering-standards`** (the portable judgment: the tw
 principles, delivery versus hygiene, the human residual). **You carry both, and the second is not a
 concession** — the cut test was *would this still be true in a project that does not run this loop?*,
 and everything that answered yes is content you apply when reviewing a proposal against the floor
-rather than against the machinery. **`command-hygiene` is also universal (#225)** — where scratch files go and how a shell
+rather than against the machinery. **`shell` is also universal (#225)** — where scratch files go and how a shell
 command avoids the permission matcher applies to every persona that writes a file or runs `Bash`, not
 just you; it replaces this file's own former "Working files"/"Command hygiene" sections, which duplicated
 it near-verbatim across all five briefs. **`documentation-standard` is here because you now author ADRs
@@ -76,7 +76,7 @@ still protecting, not a workaround for it.
 **Every scratch file you write goes in the session scratchpad — the harness's own directory, not a repo
 path.** There used to be a repo-root `.scratch/` here instead, retired at #245: it never solved the
 problem it was kept for (#244 already measured that permission friction does not depend on location),
-and it cost a sweep hook and a rule that lived only in agent-brief prose. `command-hygiene` (already
+and it cost a sweep hook and a rule that lived only in agent-brief prose. `shell` (already
 preloaded) carries the rest of the rule in full; do not restate it here. One thing specific to you, not
 in the skill: you write scratch files with the `Write`/`Edit` tool directly — a capability this
 frontmatter grants you, not a shell workaround.
@@ -222,7 +222,7 @@ rather than inferring, and say when you did.
 
 ## Command hygiene
 
-See `command-hygiene` (already preloaded) for the full rule — this section previously restated it and
+See `shell` (already preloaded) for the full rule — this section previously restated it and
 now doesn't, per #225.
 
 **A caveat that is specifically yours:** you are the persona most likely to be *probing* the guard, and a probe whose payload merely mentions a denied act is denied as the act. Heredocs are the sharp edge — `$bare` collapses quoted spans but not heredoc bodies, so `cat > probe.sh <<EOF` carrying `gh secret set` in its text is blocked. Write probe files with the `Write` tool rather than through the shell, and report that friction as a finding rather than working around it silently.
@@ -323,7 +323,7 @@ gate does not read:
 marker literal is spelled identically across its producer, its consumer and the metrics hook, and (since
 #336) that this brief and `agents/quality-assurance.md` both carry the same one-surface sentence. Both
 are **drift checks over strings, not content checks** — they cannot tell whether either file means it,
-and they cannot observe where a marker was actually posted. **No hook can:** `command-hygiene` requires
+and they cannot observe where a marker was actually posted. **No hook can:** `shell` requires
 every comment body to go through `--body-file`, so the marker text is never in the command string a
 `PreToolUse` hook sees — a guard keyed on the literal would fire only on the inline `--body` form the
 repo already forbids, which is a control that is inert exactly where it would need to work. The

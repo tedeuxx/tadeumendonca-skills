@@ -1393,7 +1393,7 @@ and with `REQUEST-CHANGES` sitting on the named PR's current head, the second sp
 issued by the harness-stamped reviewer, reaching the fail-open through the extractor rather than through
 the environment.
 
-**And the losing spelling is the one this platform MANDATES.** `skills/command-hygiene/SKILL.md`: *"Target
+**And the losing spelling is the one this platform MANDATES.** `skills/shell/SKILL.md`: *"Target
 another repo with `gh <subcommand> --repo <owner/repo>`, never `gh -R <owner/repo> <subcommand>`."* That
 rule is right about its own subject — a flag before the subcommand changes the allowlist prefix — and it
 is preloaded by all six personas, `quality-assurance` included. **So the strongest control in this loop

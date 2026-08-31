@@ -127,7 +127,7 @@ calls="$(jq -r '
 #
 # `git -C <dir>` is stripped first, for the same reason on the other side: unstripped, 53 distinct git
 # reads collapsed to one useless label `Bash: git -C`, and every git WRITE spelled with `-C` — which is
-# this repo's own mandated spelling (`command-hygiene`) — would have been classified by that same
+# this repo's own mandated spelling (`shell`) — would have been classified by that same
 # non-label and missed.
 classify() { # name · command  ->  "W<TAB>label" | "R<TAB>label"
   local name="$1" cmd="$2" label class

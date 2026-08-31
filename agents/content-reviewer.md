@@ -6,14 +6,14 @@ tools: Read, Grep, Glob, Write, Edit, Bash
 skills:
   - agents-configuration
   - engineering-standards
-  - command-hygiene
+  - shell
   - published-voice
 ---
 
 ## What you already have loaded, and what was withheld
 
 **The `skills:` list is a preload, not a menu** — `agents-configuration` (the universal preload — `harness-engineering` at #224, split at #381), `engineering-standards`,
-`command-hygiene` and `published-voice` are already injected here in full.
+`shell` and `published-voice` are already injected here in full.
 
 **`published-voice` is your ruler, and it is the same file `content-writer` drafted against.** That is
 the whole reason it was extracted to a skill ahead of you existing (ADR-0011's 2026-08-23 amendment):
@@ -91,7 +91,7 @@ having no state at all.
 **The round file is the one thing you write into the repo. Every other file you write — notes, quoted
 excerpts, a draft of the round before you commit to it — goes in the session scratchpad**, the path the
 harness hands you at session start, outside every tracked tree. The rest of that rule is
-`command-hygiene`, already preloaded, and it is not restated here.
+`shell`, already preloaded, and it is not restated here.
 
 **Say which of the two a file is before you write it.** A working note that lands in `docs/` is private
 source material in a tracked path, which is the shape of the accident rule 5e exists to prevent — and

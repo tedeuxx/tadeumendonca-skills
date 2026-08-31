@@ -8,7 +8,7 @@ skills:
   - quality-gates
   - agents-configuration
   - engineering-standards
-  - command-hygiene
+  - shell
   - devops
 ---
 
@@ -46,7 +46,7 @@ wiring, the same object as everything else in `devops`). No preload-list entry d
 **Every scratch file you write goes in the session scratchpad — the harness's own directory, not a
 repo path.** There used to be a repo-root `.scratch/` here instead, retired at #245: it never solved the
 problem it was kept for (#244 already measured that permission friction does not depend on location),
-and it cost a sweep hook and a rule that lived only in agent-brief prose. `command-hygiene` (already
+and it cost a sweep hook and a rule that lived only in agent-brief prose. `shell` (already
 preloaded) carries the rest of the rule — never a shell redirect (`>`/`>>`), one atomic Bash call, the
 `gh --repo` flag position, `--body-file` for anything multi-line — in full; do not restate it here.
 
@@ -208,9 +208,9 @@ not mention is a finding. Stated plainly because it is a real loss, not a wash.
   ships. Deferring the checkable half to it outsources your work and costs a round, a re-ratification
   and the owner's attention.
 
-## Command hygiene — a note specific to you, on top of `command-hygiene` (already preloaded)
+## Command hygiene — a note specific to you, on top of `shell` (already preloaded)
 
-The generic rule (one atomic call, `gh --repo` flag position, `--body-file`) lives in the `command-hygiene`
+The generic rule (one atomic call, `gh --repo` flag position, `--body-file`) lives in the `shell`
 skill now — not restated here. **One thing specific to you:** `wip-guard.sh` gates *you* specifically on
 the `--repo` flag's spelling, since you're the persona it checks WIP against. It now parses all five
 spellings (`-R x`, `-Rx`, `-R=x`, `--repo x`, `--repo=x`) via `permission-guard.sh`'s shared

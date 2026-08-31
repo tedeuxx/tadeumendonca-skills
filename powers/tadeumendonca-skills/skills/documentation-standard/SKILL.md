@@ -81,14 +81,41 @@ index per repo more than it needs to sit beside the specific file it changed.
   labels table for the same retirement, carried there with the "kept, not corrected" flag this line
   lacked.
 
+### Licensing — the `LICENSE` file and the manifest field
+
+**Folded in from the standalone `license` skill (#384), on the owner's ruling — *«deveria»*.** It was
+one rule in 25 lines, the smallest file in the library, and it carried an always-on `description`
+competing for the matcher's attention with fourteen others. It belongs here because a `LICENSE` file
+is a **document at the repository root** and the manifest field is its declaration — the same object
+Part I already governs, at the same grain as *where a document lives*. Nothing about the rule changed
+in the move.
+
+Every repo on the platform is **MIT-licensed** — permissive, ubiquitous, friction-free, which is the
+point for code and skills meant to be reused.
+
+- A **`LICENSE`** file at the repo root: MIT, `Copyright (c) <year> <owner>`. GitHub **auto-detects**
+  it (shows the license and the "MIT" badge); the file — not just a manifest field — is what gives it
+  legal effect.
+- **Manifests declare it too:** `plugin.json` / `package.json` `"license": "MIT"`; OpenAPI
+  `info.license` where applicable. Keep them in sync with the `LICENSE` file.
+- Keep the **copyright year** current (use a range, e.g. `2026–2027`, once it spans years).
+
+**Why MIT, and the trade-off.** Permissive and universally understood, with no copyleft obligations —
+which maximizes adoption and reuse, and the skills library exists to be reused. The trade: **no
+explicit patent grant** (Apache-2.0 has one) and no copyleft, so derivatives may be closed. Accepted
+for simplicity; if a patent grant ever matters, Apache-2.0 is the drop-in swap.
+
 ### Pros & cons (of the general standard)
 
 **Pros**
 - Diffable, versioned docs; diagrams as code (Mermaid); no binary images to drift.
+- One permissive license across every repo — zero legal friction for reuse or contribution, and
+  GitHub auto-detects the `LICENSE` file.
 
 **Cons**
 - Mermaid has expressiveness limits.
 - Keeping docs current is a discipline, not enforced.
+- MIT carries no patent grant and no copyleft — a deliberate trade for simplicity.
 
 ## Part II — Architecture Decision Records (the governed artifact)
 

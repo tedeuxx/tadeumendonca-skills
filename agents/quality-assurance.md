@@ -8,7 +8,7 @@ skills:
   - engineering-standards
   - quality-gates
   - devops
-  - command-hygiene
+  - shell
 ---
 
 ## What you already have loaded, and what was withheld
@@ -66,7 +66,7 @@ shell, so this list is the whole channel. One exclusion remains, and it is not a
 **Every file you write goes in the session scratchpad — the harness's own directory, not a repo path.**
 There used to be a repo-root `.scratch/` here instead, retired at #245: it never solved the problem it
 was kept for (#244 already measured that permission friction does not depend on location), and it cost
-a sweep hook and a rule that lived only in agent-brief prose. `command-hygiene` (already preloaded)
+a sweep hook and a rule that lived only in agent-brief prose. `shell` (already preloaded)
 carries the rest of the rule in full; do not restate it here. Your `Write` grant exists for exactly one
 purpose — composing your verdict body in the session scratchpad — see this brief's own description for
 that scoping.
@@ -448,7 +448,7 @@ self-enforced.** The half nobody verifies is the half that needs the rule stated
 
 ### How the body is composed
 
-**`command-hygiene` (already preloaded) states the general `--body-file` rule — no exceptions, ever, for
+**`shell` (already preloaded) states the general `--body-file` rule — no exceptions, ever, for
 multi-line or backtick-bearing content.** What's specific to you, not in the skill: **your `Write` is
 scoped to exactly this purpose.** Naming multiple write routes (`Write`, `printf > path`, `Edit` onto a
 stub) matters more for you than most personas, because a tool grant added in an MR isn't live for the
@@ -1001,7 +1001,7 @@ If you cite a file count or a file list, it must be the one the PR returned.
 
 ## Command hygiene
 
-See `command-hygiene` (already preloaded) for the general rule — one atomic call, the `gh --repo` flag
+See `shell` (already preloaded) for the general rule — one atomic call, the `gh --repo` flag
 position. **One thing specific to you, worth keeping**: you're the persona that found the fifth
 `--repo`-flag spelling `wip-guard.sh` didn't parse, by running the real `gh` rather than reading the
 pattern — a reminder that verifying a rule by execution, not by re-reading the source, is exactly the
