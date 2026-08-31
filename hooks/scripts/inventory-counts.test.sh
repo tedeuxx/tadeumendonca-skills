@@ -4231,13 +4231,30 @@ grep -qF 'There is no gate here and none is claimed.' "$BP_CMD" 2>/dev/null \
   || bp_rule_problems="$bp_rule_problems
     the redaction rule does not state that nothing enforces it; a rule that implies a control it does
     not have is worse than no rule"
-bp_bad_dest="$(grep -c -E 'workspace-root|tmp/blueprint' "$BP_CMD" 2>/dev/null || true)"
+# WIDENED #376 TO REFUSE `.scratch` AS WELL, AND WHAT THAT BUYS IS NARROWER THAN IT LOOKS — SAY SO.
+# The literal set was `workspace-root|tmp/blueprint`, which is exactly the destination the #358
+# specification named. #376's specification named a DIFFERENT one — "the workspace's ignored scratch
+# directory" — and matched neither literal, so an arm that exists to refuse a repository-relative
+# destination would have passed the second one silently. Measured on 2026-08-31:
+#   printf 'Output is one prose file under the workspace ignored scratch directory.\n' \
+#     | grep -c -E 'workspace-root|tmp/blueprint'   -> 0
+# The directory in question is additionally worse than the first: `git check-ignore -v .scratch/x`
+# exits 1 in BOTH repositories of this workspace (#245 removed the ignore entry and the sweep hook and
+# left the comment block), so it is neither ignored nor writable, while reading as both.
+#
+# WHAT IT DOES NOT BUY, AND THIS IS THE HALF TO READ. It is PRESENCE, not a control. The write itself
+# is already refused at runtime by `orchestrator-write-guard.sh` for any path inside a git working
+# tree, whatever this file says. All this arm stops is the command DOCUMENTING a route that would be
+# denied — an instruction a reader would follow, fail, and then work around. A green here says the
+# command names no such destination; it says nothing about where an export actually wrote.
+bp_bad_dest="$(grep -c -E 'workspace-root|tmp/blueprint|\.scratch' "$BP_CMD" 2>/dev/null || true)"
 if [ "${bp_bad_dest:-0}" -ne 0 ]; then
   bp_rule_problems="$bp_rule_problems
     the command names a repository-relative output destination ($bp_bad_dest occurrence(s) of
-    'workspace-root' or 'tmp/blueprint'). That path is DENIED to a typed command by
+    'workspace-root', 'tmp/blueprint' or '.scratch'). Such a path is DENIED to a typed command by
     orchestrator-write-guard.sh wherever the workspace root is the repository root, which is the
-    ordinary installed shape"
+    ordinary installed shape — and the repo-root scratch directory is additionally ignored by nothing
+    since #245 removed the entry and left the comment"
 fi
 
 if [ ! -r "$BP_CMD" ]; then
@@ -4247,6 +4264,201 @@ elif [ -n "$bp_rule_problems" ]; then
   bad "blueprint rules — a rule with no control behind it is missing from the only place it lives:$bp_rule_problems"
 else
   ok "blueprint rules — the narrowed write rule, the scratchpad destination, the function-only provenance rule and its stated absence of a control are all present, and no repository-relative destination is named"
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+# THE EXPORT'S DOCUMENT CONTRACT (#376) — THE PREAMBLE, THE THREE SECTIONS, AND THE TWO HONESTY EDITS.
+#
+# WHY THESE ARMS EXIST. Until #376 the export's Markdown was a seven-item list of sections and nothing
+# asserted any of it. The redesign makes the document ADDRESSED — its first reader is an agent in
+# another project, and every clause of the preamble removes one specific way a snapshot gets misused
+# (implemented rather than read, adopted before the failure was observed locally, audited against).
+# A preamble clause that quietly disappears is invisible: the document still renders, still looks
+# complete, and instructs its reader to do nothing in particular.
+#
+# WHAT THEY PROVABLY CANNOT HOLD, SAID BEFORE THE FIRST ASSERTION. Everything here is a STRING CHECK
+# over a file of instructions. Nothing in this repository runs `/blueprint`, captures its output, or
+# compares a rendered document to the registry. So no green here says a preamble was written into an
+# export, that the three sections appeared in that order, that `unknown` was actually emitted, or that
+# the disclaimer reached the YAML. It says the command still TELLS the model to do those things. The
+# command's own closing section states the same residual, and this comment is the second statement of
+# it deliberately, because it is the one a person editing the gate reads.
+
+bp_doc_problems=""
+
+# ── the preamble, both halves: what the receiving agent must do, and what it must not ──
+while IFS= read -r bp_lit; do
+  [ -z "$bp_lit" ] && continue
+  grep -qF -- "$bp_lit" "$BP_CMD" 2>/dev/null \
+    || bp_doc_problems="$bp_doc_problems
+    the preamble no longer says: $bp_lit"
+done <<'BP_PREAMBLE'
+Read this. Do not implement it.
+First find what already exists locally under a different name.
+Interview your owner one item at a time.
+Every evidence claim in this document belongs to the origin project.
+Never adopt a mechanism before checking whether the failure it prevents
+Install nothing and execute nothing
+This is not a conformance checklist and not an audit.
+Never copy the wording. Copy the concept, or copy nothing.
+BP_PREAMBLE
+
+# ── the snapshot's three sections, and the per-element contract ──
+while IFS= read -r bp_lit; do
+  [ -z "$bp_lit" ] && continue
+  grep -qF -- "$bp_lit" "$BP_CMD" 2>/dev/null \
+    || bp_doc_problems="$bp_doc_problems
+    the snapshot contract no longer states: $bp_lit"
+done <<'BP_SNAPSHOT'
+1 · The interaction surface.
+2 · The inventory of configuration elements.
+3 · The general principles
+"What it does NOT do" is mandatory on every element and is never the line cut for cost.
+It is never the spine
+It stays last
+BP_SNAPSHOT
+
+# THE ORDER IS THE ASSERTION, NOT THE PRESENCE. The reconciliation's resolution was to lead the
+# snapshot with the invocation surface AND keep the identity appendix last with its reason intact —
+# two things a presence check cannot tell apart from their opposite. So the three section markers are
+# located by line number and required to be strictly increasing.
+bp_ln_surface="$(grep -nF '1 · The interaction surface.' "$BP_CMD" 2>/dev/null | head -1 | cut -d: -f1)"
+bp_ln_inventory="$(grep -nF '2 · The inventory of configuration elements.' "$BP_CMD" 2>/dev/null | head -1 | cut -d: -f1)"
+bp_ln_principles="$(grep -nF '3 · The general principles' "$BP_CMD" 2>/dev/null | head -1 | cut -d: -f1)"
+if [ -n "$bp_ln_surface" ] && [ -n "$bp_ln_inventory" ] && [ -n "$bp_ln_principles" ]; then
+  if [ "$bp_ln_surface" -ge "$bp_ln_inventory" ] || [ "$bp_ln_inventory" -ge "$bp_ln_principles" ]; then
+    bp_doc_problems="$bp_doc_problems
+    the snapshot's three sections are not in the declared order (interaction surface at line
+    $bp_ln_surface, inventory at $bp_ln_inventory, principles at $bp_ln_principles). The order IS the
+    decision — the interaction surface leads because the document's subject is how a human works with
+    a project plus its harness"
+  fi
+fi
+
+# ── the two honesty edits, and the negative half of the first one ──
+while IFS= read -r bp_lit; do
+  [ -z "$bp_lit" ] && continue
+  grep -qF -- "$bp_lit" "$BP_CMD" 2>/dev/null \
+    || bp_doc_problems="$bp_doc_problems
+    the export no longer states: $bp_lit"
+done <<'BP_HONESTY'
+declared per export and unstable across invocations
+Emit `unknown` unless the registry carries an authored evidence cell for that row.
+disclaimer: <the residual
+Do not decide this field. Look it up.
+The destination is stated as a TEST and never as a directory name
+If the upward walk finds no manifest, this session is not rooted in a harness source tree.
+BP_HONESTY
+
+# THE NEGATIVE ARM. The field-mapping table said `evidence_class` was `authored`, and nothing authors
+# it — measured 2026-08-31: `grep -c 'evidence_class' docs/blueprint-registry.md` -> 1, and that one
+# occurrence is prose inside row 0036's own limit cell, not a field. A field with no authored source
+# is re-decided per invocation, so two exports at one commit can disagree — which defeats the
+# currency header's whole purpose. This asserts the word does not come back on that row.
+if grep -qE '^\| — \| `evidence_class` \|.*authored' "$BP_CMD" 2>/dev/null; then
+  bp_doc_problems="$bp_doc_problems
+    the interchange mapping calls \`evidence_class\` 'authored' again. Nothing authors it: no field of
+    docs/blueprint-registry.md holds it, so the value is decided per invocation and two exports at one
+    commit can disagree"
+fi
+
+if [ ! -r "$BP_CMD" ]; then
+  bad "blueprint document contract — commands/blueprint.md is not readable, so the preamble, the three
+      sections and the two honesty edits cannot be asserted at all."
+elif [ -n "$bp_doc_problems" ]; then
+  bad "blueprint document contract — the emitted document's contract has drifted:$bp_doc_problems
+      Each clause above removes one named way a snapshot gets misused by the agent that reads it.
+      String presence only: nothing here observes a rendered document."
+else
+  ok "blueprint document contract — the receiving-agent preamble (both halves), the three snapshot sections in order, the mandatory limit line, the appendix's place, and the evidence/disclaimer/destination/no-manifest statements are all present"
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+# `tipo` -> `enforcement` — A CLOSED-SET JOIN, GATED IN BOTH DIRECTIONS (#376).
+#
+# WHY. `enforcement` is emitted by `/blueprint` in BOTH documents, and in the Markdown it prints
+# beside `carrier` — which is gated, and real — with nothing telling a reader the two are different
+# kinds of claim. It had no source of any kind: five `tipo` values, four `enforcement` values, and no
+# table anywhere joining them, so the value was a per-run guess wearing a derived field's authority.
+# The registry now publishes the mapping and these arms hold it closed on both sides.
+#
+# WHAT IT PROVABLY CANNOT HOLD. It does not make `enforcement` TRUE. A row filed under the wrong
+# `tipo` gets a confidently wrong value and this join propagates it without adding an error of its
+# own — it removes INSTABILITY, not error. Nothing here reads an emitted document either.
+
+BP_ENFORCEMENT="denies advises documents absent"
+
+# the mapping, from the registry's own section
+bp_map="$(awk '
+  /^### /                                          { f = 0 }
+  /^### / && /tipo/ && /enforcement/ && /mapping/   { f = 1; next }
+  /^## /                                           { f = 0 }
+  f && /^\| `[a-z][a-z]*` \| `[a-z][a-z]*` \|/ {
+      k = $0; sub(/^\| `/, "", k); sub(/`.*$/, "", k)
+      v = $0; sub(/^\| `[a-z]*` \| `/, "", v); sub(/`.*$/, "", v)
+      # the table HEADER is backticked too (`| `tipo` | `enforcement` | why |`) and matches this
+      # pattern exactly. Dropping it by name is safe: `tipo` is not one of the five tipo VALUES.
+      if (k != "tipo") print k "\t" v
+  }
+' "$BP_REG" 2>/dev/null || true)"
+bp_map_n="$(printf '%s\n' "$bp_map" | grep -c . || true)"
+bp_map_keys="$(printf '%s\n' "$bp_map" | awk -F'\t' 'NF==2{print $1}' | sort -u | tr '\n' ' ')"
+
+# the enforcement value set as the COMMAND publishes it, parsed from its own closed-set table
+bp_enf_cmd="$(awk '
+  /enforcement` is a closed set of four/ { f = 1; next }
+  f && /^\*\*/                           { f = 0 }
+  f && /^\| `[a-z][a-z]*` \|/ { line = $0; sub(/^\| `/, "", line); sub(/`.*$/, "", line); print line }
+' "$BP_CMD" 2>/dev/null || true)"
+bp_enf_cmd_set="$(printf '%s\n' "$bp_enf_cmd" | grep . | sort -u | tr '\n' ' ')"
+
+bp_join_problems=""
+# every mapping value is in the closed set
+while IFS= read -r bp_pair; do
+  [ -z "$bp_pair" ] && continue
+  bp_v="$(printf '%s' "$bp_pair" | awk -F'\t' '{print $2}')"
+  case " $BP_ENFORCEMENT " in
+    *" $bp_v "*) : ;;
+    *) bp_join_problems="$bp_join_problems
+    the mapping emits '$bp_v', which is not one of: $BP_ENFORCEMENT" ;;
+  esac
+done <<< "$bp_map"
+# the join is TOTAL: every tipo a live row declares has a mapping entry
+for bp_id in $bp_ids; do
+  bp_tipo="$(bp_field "$bp_id" tipo | head -1)"
+  [ -z "$bp_tipo" ] && continue
+  case " $bp_map_keys " in
+    *" $bp_tipo "*) : ;;
+    *) bp_join_problems="$bp_join_problems
+    row $bp_id declares tipo '$bp_tipo' and the mapping has no entry for it, so its enforcement value
+    would be decided per invocation again" ;;
+  esac
+done
+# the command must publish the same four values the mapping is checked against
+if [ -n "$bp_enf_cmd_set" ] && [ "$(printf '%s' "$bp_enf_cmd_set" | tr -s ' ' | sed 's/ $//')" != "$(printf '%s' "$BP_ENFORCEMENT" | tr ' ' '\n' | sort -u | tr '\n' ' ' | sed 's/ $//')" ]; then
+  bp_join_problems="$bp_join_problems
+    commands/blueprint.md publishes the enforcement values '$bp_enf_cmd_set' and the registry mapping
+    is gated against '$BP_ENFORCEMENT'. Two surfaces, one closed set: a value in one and not the other
+    is a document emitting something no reader was told about"
+fi
+# the carrier override must be stated where the mapping is
+grep -qF 'emits `absent`, whatever its `tipo`' "$BP_REG" 2>/dev/null \
+  || bp_join_problems="$bp_join_problems
+    the registry does not state the carrier override (a row carried by nothing emits 'absent',
+    whatever its tipo). Without it 'absent' has to be guessed, which is what the mapping replaces"
+
+if [ "$bp_map_n" -eq 0 ]; then
+  bad "tipo->enforcement — NOT ONE mapping row was parsed out of docs/blueprint-registry.md. Either the
+      section moved or its table shape changed, and every assertion here is vacuous — which reads, to
+      whoever runs the suite, exactly like a mapping that is fine."
+elif [ "$bp_map_n" -ne 5 ] || [ -z "$bp_enf_cmd_set" ]; then
+  bad "tipo->enforcement — parsed $bp_map_n mapping row(s) and the command published
+      '$bp_enf_cmd_set'. The mapping must cover the five closed tipo values ($BP_TIPOS) and the
+      command must still publish its four enforcement values, or the join has a hole nothing reports."
+elif [ -n "$bp_join_problems" ]; then
+  bad "tipo->enforcement — the join is not closed:$bp_join_problems"
+else
+  ok "tipo->enforcement — the mapping covers all 5 tipo values, every value is in the closed set of 4, the command publishes the same set, and the carrier override is stated (join totality only; nothing here reads an emitted document)"
 fi
 
 
