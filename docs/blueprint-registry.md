@@ -30,6 +30,39 @@ else this repo publishes. The labels are a parsing contract as well as a heading
 | `o que não faz` | **the limit.** The most transferable cell in the row: a limit is a property of the strategy, so it ports even where the mechanism does not. |
 | `citação` | the carrier's **own words** about its limit, verbatim, or the literal `no limit stated in the source`. Asserted to appear in the carrier file. |
 
+### The `tipo` → `enforcement` mapping — published here so nothing has to guess it
+
+**`enforcement` is not a field of a row. It is a JOIN**, and this is the table it joins against.
+`/blueprint` emits an `enforcement` value in **both** documents it renders — in the Markdown it prints
+beside `carrier`, which is gated and real — so a value re-decided on every invocation would look
+exactly like a derived one and be neither. Publishing the mapping makes the derivation a lookup.
+
+| `tipo` | `enforcement` | why |
+|---|---|---|
+| `refusal` | `denies` | it can stop the actor **before** the act |
+| `review` | `advises` | it produces a judgement and nothing more |
+| `record` | `documents` | it does not refuse; read `documents` as *does not refuse*, never as *does nothing* |
+| `routing` | `documents` | same axis, same reading — it moves work, it refuses nothing |
+| `knowledge` | `documents` | it removes a re-decision; the actor reaches for it and does not decide again |
+
+**Two rules complete it.**
+
+1. **A row whose `carrier` is `none` or `retired` emits `absent`, whatever its `tipo`.** An obligation
+   nothing carries enforces nothing, and this override is what keeps `absent` a *value* rather than a
+   sixth `tipo`. At this commit exactly one row is in that state (`0017`).
+2. **A row that deviates from the mapping declares the deviation here, as an exception with its
+   reason**, and the export carries the declared value. **At this commit there are no declared
+   exceptions.** A declared exception is a decision somebody took once and can be argued with; a
+   per-run guess is neither, and it is the arrangement this table replaces.
+
+**What this does NOT do, said where the table is rather than only in the residual below.** It does not
+make `enforcement` true — a row filed under the wrong `tipo` gets a confidently wrong `enforcement`,
+and the join propagates the error without adding one of its own. It only removes the *instability*: at
+one commit, the same row now yields the same value on every invocation. **The axis measures refusal
+only**, which is a strain named in the format rather than resolved by a fourth value — a mechanism that
+*acts* without refusing lands in `documents` beside a body of guidance that does something else
+entirely.
+
 ## What no gate here can hold — read this before reading a green
 
 **`propósito` is unfalsifiable, and so is the reasoning inside `o que faz`.** No instrument in this
@@ -55,6 +88,17 @@ perfectly, because there is nothing to resolve it against.** Measured on #343: `
 promised the policy/mechanism gap away as *a change to this hook and is named as owed, not as done*,
 which was the carrier's own struck clause restated in this file — the strike falsified it, and the
 whole suite stayed green. Only the author re-reading the row found it.
+
+**The habit has a second trigger, and row `0036` is why it needed one.** The rule above fires on a
+**strike in a carrier** — a signal a grep can see. `0036`'s carrier is a **format renderer**, so its
+cells describe an *emitted shape* rather than a rule, and that shape changes when the renderer's
+instructions change **with nothing struck at all**: adding an interchange field, dropping a rendered
+line, reordering the document's sections. Measured on #376 — the export's Markdown gained a preamble
+and three sections, the YAML gained a field, and `descrição` and `o que faz` went stale while the whole
+suite stayed green and no strike existed for any arm to find. **So: re-read `0036` whenever the emitted
+document's shape changes — its section order, its per-element lines, or the interchange field list —
+and not only when a sentence in `commands/blueprint.md` is struck.** The same applies to any future row
+whose carrier renders a document rather than refusing an act.
 
 **It is a habit and not a mechanism, and the reason is not cost.** Nothing here can compare a
 paraphrase to a source; that is the same sentence two paragraphs up, applied to the case where the
@@ -268,10 +312,10 @@ declaration green is the failure this file's own `citação` rule exists to prev
 
 - **tipo:** record
 - **carrier:** `commands/blueprint.md`
-- **descrição:** The `export` mode of a typed command that renders this registry, plus a fresh read of the tree, as two documents from one read — a Markdown blueprint printed for a reader and a YAML interchange file written to the session scratchpad — both stamped with the commit they describe.
+- **descrição:** The `export` mode of a typed command that renders this registry, plus a fresh read of the tree, as two documents from one read — a Markdown blueprint **addressed to the agent that will read it**, opening with a preamble and then a snapshot in three sections (the interaction surface, the inventory, the general principles), printed for a reader; and a YAML interchange file written to the session scratchpad — both stamped with the commit they describe and both carrying the residual.
 - **propósito:** A harness that can only be understood by running it cannot be **compared** to another one, and comparison is the whole reason to write any of this down. The obligation is that this harness's design leaves it in a form a reader on different machinery can evaluate — obligation first, mechanism as evidence — so that what ports (the obligation, the strategy, and above all the limit) is separable from what is local accident (our matcher, our event names, our directory layout). An interchange additionally needs something to **hand over**, which is why the export produces an artifact and not only a rendering.
-- **o que faz:** Reads identity at invocation from the four sources that *register* a mechanism rather than from a directory listing, reads the authored obligations from this file, and renders both shapes in one invocation — two renderers over one read cannot drift because there is no interval between them. The Markdown carries a currency header (plugin, version, commit, tree state, and the commands that reproduce every count), the field contract, the residual this registry states about its own unfalsifiable cells, the rows grouped by `tipo`, the coverage declaration **with a partial class's unclaimed elements named**, and an identity appendix as evidence. The YAML translates each row into the foreign interchange shape and carries the limit column across as an **optional extra field**, which the format's own compatibility rule permits — so the one cell that actually ports is not dropped to fit a schema.
-- **o que não faz:** It **never writes inside a repository** — the artifact goes to the session scratchpad, which is in no diff, no gate's input and no consumer's reach, so it cannot become the second source of truth an ageing committed projection would be. It never edits this file. It cannot tell a true obligation from a plausible one; it carries this file's cells forward exactly, residual included, and a green anywhere in this suite says nothing about them. **`always_loaded` is flattened on the way out** — a per-persona property here, a per-mechanism field there — and a `carrier: none` row is emitted as `surface: none`, which is a value outside the foreign schema's set and may be rejected by a strict reader. Its `enforcement` axis measures **refusal only**: a mechanism that acts without refusing is classed `documents`, a strain named in the format rather than resolved by a fourth value.
+- **o que faz:** Reads identity at invocation from the four sources that *register* a mechanism rather than from a directory listing, reads the authored obligations from this file, and renders both shapes in one invocation — two renderers over one read cannot drift because there is no interval between them. The Markdown opens with a currency header (plugin, version, commit, tree state, and the commands that reproduce every count), then a **preamble addressed to the receiving agent** — read it rather than implement it, find what already exists locally under another name, interview its owner one item at a time, treat every evidence claim as the origin's, never adopt a mechanism before checking the failure was observed locally; and, negatively, install and execute nothing, treat it as no kind of conformance checklist, copy the concept and never the wording. The snapshot then runs **interaction surface → inventory → general principles**, with the field contract and the residual above the rows, the coverage declaration **with a partial class's unclaimed elements named** after them, the identity appendix last as evidence, and the tombstone table printed even when empty. Each inventory element carries four lines — purpose, what it does, **what it does NOT do**, and how it is activated, the last derived from `always_loaded` on a rule the command states. The YAML translates each row into the foreign interchange shape, carries the limit column across as an **optional extra field** (which the format's own compatibility rule permits, so the one cell that actually ports is not dropped to fit a schema), joins `tipo` against the mapping published above for `enforcement`, and emits `source.disclaimer` so the residual travels with the artifact and not only with the reading.
+- **o que não faz:** It **never writes inside a repository** — the artifact goes to the session scratchpad, which is in no diff, no gate's input and no consumer's reach, so it cannot become the second source of truth an ageing committed projection would be. It never edits this file. It cannot tell a true obligation from a plausible one; it carries this file's cells forward exactly, residual included, and a green anywhere in this suite says nothing about them. **It emits no pros-and-cons line**: the cons half is `o que não faz` already, and a pros half would be `propósito` restated as a virtue, which the field contract forbids in as many words. **`evidence_class` is declared per export and unstable across invocations** — nothing in this registry authors it, so every row emits `unknown` at this commit and the word `authored` that stood here until 2026-08-31 was a claim to a source that does not exist. **Activation and `always_loaded` are flattened on the way out** — a per-persona property here, a per-mechanism value there — with the preloading profiles named beside the value as the only recovery. A `carrier: none` row is emitted as `surface: none`, a value outside the foreign schema's set that a strict reader may reject. The `enforcement` join removes the instability and **not the error**: a row filed under the wrong `tipo` gets a confidently wrong value, and the axis measures **refusal only**, so a mechanism that acts without refusing is classed `documents` — a strain named in the format rather than resolved by a fourth value.
 - **citação:** > "Never write inside a repository."
 
 **The strain in `record`, named the same way `0018`/`0019`'s is.** The five values hold no `export`
@@ -282,6 +326,15 @@ is closed and is **not** reopened on one row. **The 2026-08-29 rewrite made the 
 than milder**: the export now writes a file, and the file is in the one place nothing can resolve later,
 so the row claims durability for a document whose whole safety property is that it is unfindable. Named
 here, not smoothed over.
+
+**The `citação` was re-read against the rewritten carrier on 2026-08-31 and deliberately NOT changed.**
+The 2026-08-31 rewrite added to the destination section and struck nothing in it, so
+*"Never write inside a repository."* still appears live in `commands/blueprint.md` and is still the
+carrier's own sharpest statement of what the export declines to do. **Re-quoting it to something
+fresher would have been churn**, and a `citação` that moves because a row was edited nearby is worse
+than one that stays: the arm asserts a quote resolves, and the only thing that should move it is the
+carrier's own words moving. The cells that *did* go stale are `descrição` and `o que faz`, and they are
+rewritten in the same MR — which is the whole point of the second trigger stated above.
 
 ### 0038 · an Issue that already closed with its promised artifact missing is said out loud
 
