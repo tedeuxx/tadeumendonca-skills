@@ -3711,7 +3711,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=43
+BP_HIGH_WATER=44
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
@@ -6225,6 +6225,228 @@ else
       A guard with an undocumented escape is a guard people route around; a documented escape no guard
       honours is a promise the deny text cannot keep."
 fi
+
+# ---------------------------------------------------------------------------------------------------
+# THE `closes:` DECLARATION IS A SECOND PARSING CONTRACT WITH A CONSUMER AND A PRODUCER (#363).
+#
+# Rule 7d in `permission-guard.sh` greps `^closes:` out of the gate's own verdict comment; nothing but
+# `agents/quality-assurance.md` tells the gate to write it. Rename or re-anchor it in one place and the
+# other is instantly wrong, silently, in the direction that reads as "this PR declares no close" — i.e.
+# every merge that closes anything gets denied, or every declaration stops counting. Same class as the
+# `invocable:` block above and the `gh_repo_flag` identity arms: a field label read literally at
+# column 0.
+#
+# EVERY NEEDLE IS ASSERTED AT COUNT EXACTLY 1 (or an explicit N, stated), not at "at least one". A
+# `grep -qF` arm's real property is *count >= 1*, so a line-deletion probe removes the needle only when
+# it is unique — an arm that passes on two occurrences cannot be falsified by deleting one.
+#
+# NAMED GAP, THE SAME ONE THE `invocable:` BLOCK CARRIES: this asserts the contract is WRITTEN in both
+# halves. It cannot observe a verdict, cannot observe a merge, and cannot tell whether a declaration
+# that was written was true. Whether the gate verified delivery before declaring is a reviewer's read
+# and there is no instrument for it — the rule's own text says so, in the guard and in the brief.
+closes_guard="$ROOT/hooks/scripts/permission-guard.sh"
+closes_brief="$ROOT/agents/quality-assurance.md"
+
+if [ ! -r "$closes_guard" ] || [ ! -r "$closes_brief" ]; then
+  bad "closes declaration — a holder is unreadable
+      ($([ ! -r "$closes_guard" ] && printf 'hooks/scripts/permission-guard.sh ')$([ ! -r "$closes_brief" ] && printf 'agents/quality-assurance.md ')),
+      so nothing below was compared and a green would be an artifact of the break."
+else
+  closes_anchor="$(grep -c -F 'test("^closes:")' "$closes_guard" || true)"
+  closes_query="$(grep -c -F -- '--json headRefOid,comments,closingIssuesReferences' "$closes_guard" || true)"
+  closes_taught="$(grep -c -F 'closes: <every Issue number this PR will close' "$closes_brief" || true)"
+
+  # ── arm 1 · the consumer reads the declaration, anchored at column 0 ──
+  if [ "${closes_anchor:-0}" -ne 1 ]; then
+    bad "closes declaration — permission-guard.sh carries the anchored extraction 'test(\"^closes:\")'
+      ${closes_anchor} time(s), not exactly 1. Drop the '^' and the rule passes on a verdict that merely
+      MENTIONS the Issue number in prose — which is the exact case it exists to refuse, because on the
+      live instance BOTH verdicts on PR #356 contain '#355', the merge-authorising one included."
+  else
+    ok "closes declaration — rule 7d extracts the declaration anchored at column 0, exactly once"
+  fi
+
+  # ── arm 2 · the consumer actually ASKS the forge for the set it compares ──
+  # Asserted at 2 (both branches of the repo-flag split), spelled out rather than '>= 1': one branch
+  # silently losing the field is a rule that is OFF for the spelling that lost it, which is precisely
+  # how rule 7c was off for `gh pr merge N --repo owner/x` for a week.
+  if [ "${closes_query:-0}" -ne 2 ]; then
+    bad "closes declaration — the merge floor's own 'gh pr view --json' list requests
+      closingIssuesReferences in ${closes_query} of its 2 branches. A branch without it hands rule 7d a
+      payload with no field, which fails CLOSED and wedges the gate; a rule that asks for nothing
+      compares nothing."
+  else
+    ok "closes declaration — both branches of the merge floor's PR read request closingIssuesReferences"
+  fi
+
+  # ── arm 3 · the producer is told to write it, in the shape the consumer parses ──
+  if [ "${closes_taught:-0}" -ne 1 ]; then
+    bad "closes declaration — agents/quality-assurance.md carries the verdict-template 'closes:' line
+      ${closes_taught} time(s), not exactly 1. Nothing else in this harness tells the gate to write it,
+      so without it rule 7d denies every merge that closes an Issue and the deny is the only place the
+      contract is stated."
+  else
+    ok "closes declaration — the gate's own brief teaches the line the merge floor parses"
+  fi
+
+  # ── arm 4 · both limits are stated wherever the rule is ──
+  # The rule is a REFUSAL with two holes, and a refusal whose holes are documented in only one of the
+  # places that describe it is one somebody will read as complete coverage. Three surfaces: the
+  # mechanism, the brief that acts on it, and the universal preload every persona carries.
+  closes_limit_missing=""
+  closes_limit_checked=0
+  while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    [ -r "$ROOT/$f" ] || { closes_limit_missing="$closes_limit_missing
+    $f — unreadable"; continue; }
+    closes_limit_checked=$((closes_limit_checked + 1))
+    n="$(grep -c -i -F 'PR-body-derived' "$ROOT/$f" || true)"
+    [ "${n:-0}" -eq 1 ] || closes_limit_missing="$closes_limit_missing
+    $f — names the body-derived blind spot ${n} time(s), not exactly 1"
+  done <<'CLOSES_LIMIT_HOLDERS'
+hooks/scripts/permission-guard.sh
+agents/quality-assurance.md
+skills/harness-engineering/SKILL.md
+CLOSES_LIMIT_HOLDERS
+
+  if [ "$closes_limit_checked" -lt 3 ]; then
+    bad "closes declaration — only $closes_limit_checked of 3 limit-holders were readable, so the limit
+      was not asserted anywhere:$closes_limit_missing"
+  elif [ -n "$closes_limit_missing" ]; then
+    bad "closes declaration — the rule's measured blind spot is not stated wherever the rule
+      is:$closes_limit_missing
+      Measured 2026-08-30: a PR whose keyword lived only in a commit message returned an EMPTY
+      closingIssuesReferences, so the refusal cannot see that surface — the one that cannot be edited
+      afterwards, since amending needs a force-push the floor denies. A refusal presented as complete
+      coverage is worse than one that names its hole."
+  else
+    ok "closes declaration — the body-derived blind spot is named in the guard, the gate's brief and the preload"
+  fi
+
+  # ── arm 5 · the RESIDUE is stated wherever either mechanism is described ──
+  # THIS ARM EXISTS BECAUSE THE FIRST ROUND OF #363 PUBLISHED THE OPPOSITE, IN FOUR PLACES AT ONCE:
+  # that `closure-artifact-guard.sh`'s `Stop` arm covers rule 7d's two blind spots. It does not. That
+  # arm's predicate is an Issue that DECLARES an `invocable:` line, and the Issue rule 7d was built
+  # from declares none — re-derived at head:
+  #
+  #     gh issue view 355 --json body --jq '[.body|split("\n")[]|select(test("^invocable"))]'  ->  []
+  #
+  # So it could not have fired on that Issue by ANY route. It covers the ROUTE, for a DIFFERENT
+  # obligation. An UNDECLARED Issue closed by a browser merge or by a commit-message keyword is caught
+  # by nothing at all — and a residue published as covered is strictly worse than one published as
+  # open, because it is the sentence a gatekeeper would rely on when deciding the hole is somebody
+  # else's problem. Six holders, because six files describe one or both mechanisms and the correction
+  # is worthless in five of them.
+  closes_residue_missing=""
+  closes_residue_checked=0
+  while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    if [ ! -r "$ROOT/$f" ]; then
+      closes_residue_missing="$closes_residue_missing
+    $f — unreadable"
+      continue
+    fi
+    closes_residue_checked=$((closes_residue_checked + 1))
+    n="$(grep -c -i -F 'caught by nothing' "$ROOT/$f" || true)"
+    [ "${n:-0}" -eq 1 ] || closes_residue_missing="$closes_residue_missing
+    $f — states the uncovered residue ${n} time(s), not exactly 1"
+  done <<'CLOSES_RESIDUE_HOLDERS'
+README.md
+agents/quality-assurance.md
+skills/harness-engineering/SKILL.md
+docs/blueprint-registry.md
+docs/adr/0004-controls-and-enforcement.md
+hooks/scripts/closure-artifact-guard.sh
+CLOSES_RESIDUE_HOLDERS
+
+  if [ "$closes_residue_checked" -lt 6 ]; then
+    bad "closes declaration — only $closes_residue_checked of 6 residue-holders were readable, so the
+      claim was not asserted anywhere:$closes_residue_missing"
+  elif [ -n "$closes_residue_missing" ]; then
+    bad "closes declaration — a surface describing the merge refusal or the closure detector does not
+      state that their residues do NOT cover each other:$closes_residue_missing
+      An undeclared Issue closed by a browser merge or a commit-message keyword is caught by NOTHING.
+      Publishing either mechanism as covering the other's hole is worse than publishing the hole."
+  else
+    ok "closes declaration — all 6 surfaces state the residue neither mechanism covers"
+  fi
+
+fi
+
+# ---------------------------------------------------------------------------------------------------
+# THE RETIRED-CLAUSE REGISTRY — a correction needs the false claim's ABSENCE asserted, not only its
+# replacement's PRESENCE (#363, #365).
+#
+# THIS BLOCK REPLACES TWO NEAR-IDENTICAL ARMS AND EXISTS BECAUSE OF A MEASURED FAILURE OF THE OTHER
+# SHAPE. The `closes declaration` arm above asserts the correction is PRESENT — it counts a needle in a
+# holder list and passes the moment the corrected sentence exists somewhere in each file. On this very
+# diff it passed while the FALSE claim stood twenty-nine lines above its own correction, in the section
+# headed "What it does not reach", which is exactly where a reader goes to learn the holes. **Presence
+# and absence are different assertions about the same fact, and a presence check cannot express an
+# absence.**
+#
+# WHY THE ABSENCE HALF IS NOT FOLDED INTO THAT ARM, WHICH IS A JUDGEMENT RATHER THAN A CONVENIENCE.
+# That arm's domain is a DECLARED HOLDER LIST — six files that must each carry a sentence. This one's
+# domain is the WHOLE TREE — no file may carry a retired clause unstruck, including files nobody
+# thought to list. Two predicates over two domains sharing one verdict is the shape this file's own
+# header forbids: an arm that shares a verdict can DISAPPEAR rather than fail, and no total moves to
+# say so. So the halves stay apart, and this half is a REGISTRY rather than one arm per clause —
+# adding the next retired clause is one line here instead of forty lines of near-duplicate.
+#
+# THE GENERALISABLE FINDING, WHICH IS WHY THE REGISTRY IS KEYED ON THE CLAIM AND NOT ON A HEADING:
+# **a strike lands where a rule is STATED and survives where it is CITED, paraphrased, or used as a
+# premise for something else.** Sweeping for the struck sentence finds the places already fixed. Every
+# entry below was found that way — three of the six instances across these two clauses were in files
+# the same diff was already editing.
+#
+# THE PREDICATE ADMITS TWO FORMS AND NOTHING ELSE: the line carries a `~~` strike, or it quotes the
+# clause inside `*"` as a DISCUSSION — which the documentation standard's own citation rule warns a
+# grep cannot distinguish from an assertion. Anything else is the clause asserted.
+#
+# WHAT IT CANNOT DO, SAID BEFORE THE FIRST GREEN. It reads strings. It cannot tell whether a
+# replacement sentence is TRUE, cannot see a paraphrase that shares no vocabulary with the retired
+# clause, and cannot judge whether a `*"` quotation is really a discussion rather than an assertion
+# dressed as one. It catches the clause surviving VERBATIM, which is how all six instances survived.
+#
+# THIS FILE IS EXCLUDED FROM ITS OWN SCAN, and the exclusion is not a convenience: the registry has to
+# NAME each clause to search for it, so a scan including this file matches its own needle list and
+# reddens on a clean tree. Found by running it. The exclusion is by FILENAME rather than by directory,
+# so the carrier and every other hook stay in scope — dropping `$ROOT/hooks` instead would have
+# silently un-scanned `closure-artifact-guard.sh`, one of the files this exists because of.
+#
+# `powers/` IS EXCLUDED because it is GENERATED from `skills/` and gated by regeneration-and-diff:
+# asserting it here would report one authored defect twice, and would redden on a stale export for a
+# reason this block does not own.
+#
+# EACH CLAUSE EMITS ITS OWN VERDICT, per this file's chaining rule, and each repeats its own vacuity
+# guard rather than borrowing the neighbour's.
+while IFS='|' read -r retired_clause retired_why; do
+  [ -z "$retired_clause" ] && continue
+  retired_lines="$(grep -rn "$retired_clause" \
+    "$ROOT/README.md" "$ROOT/docs" "$ROOT/hooks" "$ROOT/agents" "$ROOT/skills" "$ROOT/commands" 2>/dev/null \
+    | grep -v 'inventory-counts\.test\.sh:' || true)"
+  retired_live="$(printf '%s\n' "$retired_lines" | grep . | grep -v '~~' | grep -v '\*"' || true)"
+  retired_total="$(printf '%s\n' "$retired_lines" | grep -c . || true)"
+
+  if [ "${retired_total:-0}" -eq 0 ]; then
+    bad "retired clause — '$retired_clause' was found NOWHERE, so this assertion compared nothing.
+      Either every occurrence was deleted rather than struck — which the strike-not-delete convention
+      forbids for a sentence someone acted on — or the wording moved and this entry is now vacuous,
+      which is the failure mode this registry exists to catch, one level up."
+  elif [ -n "$retired_live" ]; then
+    bad "retired clause — '$retired_clause' still stands as a LIVE assertion:
+$retired_live
+      $retired_why
+      Every occurrence must be inside a '~~' strike or quoted inside '*\"' as a discussion. A strike
+      lands where a rule is STATED and survives where it is CITED or used as a premise."
+  else
+    ok "retired clause — all $retired_total occurrences of '$retired_clause' are struck or quoted"
+  fi
+done <<'RETIRED_CLAUSES'
+only refusal surface that exists|Rule 7d (#363) is a second refusal surface, reaching the closing-keyword route one step upstream at the merge.
+joins the active iteration at|No Issue is filed with a milestone, for any type (#365; ADR-0002's twenty-seventh amendment, held by permission-guard.sh rule 10).
+covers that residue|The Stop arm's predicate is a DECLARED invocable promise, and the Issue rule 7d was built from declares none — so it covers the ROUTE, for a DIFFERENT obligation, and patches none of rule 7d's holes.
+RETIRED_CLAUSES
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
 # THE ITERATION RETROSPECTIVE RITE, AND EVERY LIMIT IT SHIPS WITH (#355).

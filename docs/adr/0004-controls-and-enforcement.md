@@ -1887,6 +1887,14 @@ caller dimension*) — and it is different in kind from all five: not *the synta
 it*, but **the act is not performed by anything the harness mediates**. Every earlier reason assumes
 there is a tool call to match and argues about what the match can see; this one removes the tool call.
 
+**Still literally true about the CLOSE, and operationally superseded about what follows from it
+(2026-08-30, #363).** The close is not mediated and no layer can deny it — that is unchanged. What was
+wrong was the inference everyone drew from it, here and in three other files: that the *failure* was
+therefore unpreventable. The **merge** that causes the close is mediated, and the 2026-08-30 amendment
+below builds the refusal there. **The generalisation to carry forward is that this sixth reason bounds
+the ACT it names and not the outcome that act produces** — before citing it, ask whether something one
+step upstream is mediated.
+
 **What that measurement is evidence for, and what it must never be reused to argue.** It is read off
 **PR bodies**, so it proves the keyword was **present**, not that the keyword is what fired — the
 timeline, which would prove that, is unreadable from inside this harness (`gh api` is denied by the
@@ -1902,12 +1910,19 @@ the reverse.
 
 | route | share, measured | surface | what it can do |
 |---|---|---|---|
-| closing keyword on merge | all of the last week's closes | `Stop` hook | **detect**, one turn late |
+| closing keyword on merge | all of the last week's closes | `Stop` hook | **detect**, one turn late — ~~and nothing else~~ · **see the row below, added 2026-08-30** |
+| the same route, at the MERGE that causes it | same | `PreToolUse` on `Bash`, rule 7d (#363) | **refuse**, one step upstream — a different predicate, see the 2026-08-30 amendment |
 | `gh issue close` by hand | none in that window | `PreToolUse` on `Bash` | **refuse** |
 
-Both are `hooks/scripts/closure-artifact-guard.sh`, registered twice. The refusal is kept although its
-route is currently unused: it is the only refusal surface that exists at all, and the *close with a
-criterion* rite in `/harness-engineering` is a real user of it.
+Both `Stop` and the hand-close refusal are `hooks/scripts/closure-artifact-guard.sh`, registered twice;
+the middle row is `permission-guard.sh` and is a **different obligation over a different artifact**, not
+a second implementation of this one. The hand-close refusal is kept although its route is currently
+unused: ~~it is the only refusal surface that exists at all~~ — **struck 2026-08-30 (#363), and it is
+the clause `README.md` strikes as false in the same diff; leaving it live here, in the canonical
+layer-analysis record, is the drift this document exists to prevent.** It is the only refusal surface
+for **this** predicate (a declared `invocable:` promise); it stopped being the only refusal surface
+reaching the keyword route. The *close with a criterion* rite in `/harness-engineering` is still a real
+user of it.
 
 ### The rejected option that is still live, and why it was refused
 
@@ -1918,6 +1933,18 @@ the file is readable. It was **not built, on the owner's decision**, and the rea
 measurement: nothing forces a `loop` PR to reference its Issue, so the route's blind spot is exactly the
 PR that skipped the reference — a control whose coverage is decided by the author of the thing being
 controlled.
+
+**~~It was not built~~ — a route of this shape WAS built on 2026-08-30 (#363), and the difference is
+worth stating precisely, because "it was not built" one page above the amendment that ships it is the
+drift class this document names most.** What #363 built is **not** this option: it does not read the
+keyword out of the PR body (it reads the forge's own resolved `closingIssuesReferences`, so the regex
+blind spot disappears), and it does not check *the Issue's promise* (it checks that the gate's
+head-scoped verdict **declares** the close, so the `invocable:` predicate is never consulted). **The
+objection above therefore does not transfer and was never answered — it was side-stepped by changing
+the predicate.** The blind spot #336 measured is real and survives in a different shape: a PR that
+references no Issue produces an empty resolved set, which rule 7d passes silently, exactly as this
+paragraph predicts. Read this section as *the promise-checking form of the route is still refused* and
+the 2026-08-30 amendment as *a consistency-checking form of it is in force*.
 
 **Deriving the promise from the Issue's prose** was rejected on a measurement rather than a preference.
 Over the twenty most recently closed Issues here, the tightest grammar worth trying (a backticked span
@@ -2569,6 +2596,167 @@ the probe is owed before that path ships.
 - **The `-m` alternation is a two-character matcher.** It is correct for `gh issue create|edit`, where
   `-m` is `--milestone`, and it would be wrong the day `gh` reassigns that short flag. Nothing detects
   that; the suite asserts today's meaning.
+
+## Amendment (2026-08-30) — the auto-close was called unrefusable, and the act that causes it was already being refused (#363)
+
+**Status:** accepted · **Deciders:** the owner (ratified the intake, «de acordo») · written by `agents-lead`
+(loop/machinery domain, ADR-0002's authorship split) · pre-implementation stress test by `agents-lead`,
+posted on the Issue as an intake comment.
+
+**Imported obligation, adopted narrowed.** #363 adopts the auto-close half of a foreign harness's
+`mr-selection-artifact-gate`. Its evidence class there was `measured`; **its standing here was
+`not measured here`, and everything below is local measurement rather than an inherited claim.** The
+review half of that mechanism was not re-adopted: rule 7c already binds the gate's verdict to the PR's
+current head.
+
+### The premise that was false, and it is the whole amendment
+
+The Issue's own framing — repeated in this repository's README, in the universal preload and in the
+blueprint registry — was that *a closing-keyword transition is executed by the forge at merge time, with
+no tool call for any `PreToolUse` hook to intercept.* **That is true of the close and false of the
+merge.** The merge is a tool call; rule 7c already intercepts it, already resolves the PR, already
+fetches the gate's verdict head-scoped, and already fails closed. Measured: `closingIssuesReferences`
+returns on the **same** `gh pr view` call rule 7c was already making, so the control costs **zero
+additional round-trips**.
+
+**The generalisation worth keeping is not about closing keywords.** An obligation written off as
+unreachable because *the event* is not a tool call may still be reachable at *the act that causes the
+event*, one step upstream. That is the second time in a week this harness found prevention where it had
+recorded only detection — #365 found it by letting a guard **ask** instead of know; this one found it by
+moving up one causal step. Neither is a property of guards in general; both are properties of a layer
+analysis somebody redid.
+
+### The local defect is NOT the imported obligation's, and building the imported one would have missed it
+
+The import says *delivery was not verified*. **Locally, delivery was verified.** On PR #356 the gate read
+the diff, judged Issue #355 undelivered, and prescribed `Closes #355` → `Refs #355` with its reasoning
+recorded. The gate was right. **What failed is that the prescription became a PR-body edit and nothing
+verified the edit took** — measured live at head, on the merged PR, the body still carries `close #355`
+inside the sentence explaining why the keyword must not be used, and the derived field still returns
+`[355]`.
+
+So the obligation implemented here has **no judgement in it**: the set of Issues the forge will close
+must be a set the gate's verdict at the current head declares. It compares two artifacts. It catches
+*the correction that did not hold* — the entire local defect class, three occurrences — and it does not
+catch *the gate judging wrongly*, which is stated in the hook's own header rather than left to be
+discovered.
+
+### Which layer carries it — and the measurement that ruled out the proposed one
+
+The Issue proposed a **CI job, per repository**. Measured at head:
+
+```
+gh pr checks 366 --repo <owner>/<repo> --required   → no required checks on the branch
+gh pr checks 366 --repo <owner>/<repo>              → claude-review · guard · inventory-counts (all reporting)
+```
+
+**Three checks run and report; zero are required.** A red job here is a notification, so the proposed
+surface would have shipped a control that reads as enforcement and behaves as advice — and the Issue
+would have closed as delivered. Making it real needs a second, owner-side change to branch protection,
+which this loop cannot even read: `gh api` is denied by the global floor, hit live during intake.
+
+`closure-artifact-guard.sh` was the other candidate and is the wrong file: its own header states *"This
+script never reads a PR"*, a decision taken on the owner's call at #336, and both its arms key on the
+Issue's `invocable:` declaration rather than on a PR's closing set.
+
+### The measurement that killed the obvious implementation
+
+The natural design — *the verdict must mention the Issue number* — **passes the exact case it exists to
+refuse.** Both gatekeeper verdicts on #356 contain `#355`, the merge-authorising one included, *because
+it is the verdict that prescribed removing the keyword*:
+
+```
+gh pr view 356 --repo <owner>/<repo> --json comments \
+  --jq '[.comments[]|select(.body|contains("gatekeeper-verdict"))]
+        |map({literal:(.body|split("\n")[1]), mentions:(.body|test("#355"))})'
+→ [{"literal":"REQUEST-CHANGES","mentions":true},{"literal":"APPROVE-AND-MERGE-BOUNDARY","mentions":true}]
+```
+
+So the declaration is **positional**: `^closes:` at column 0 of the verdict, the same contract
+`invocable:` and `purpose:` already carry in this tree, for the same reason — the token occurs in
+ordinary wrapped prose.
+
+### The false positive is priced in the mechanism, not in prose
+
+A PR that legitimately closes a delivered Issue is the common case, and this repository has measured
+twice that a control people route around is worse than none. **The legitimate close is not blocked; it is
+declared** — one line, at column 0, in the verdict the gate is already posting, on the head it already
+names. The comparison is **one-directional**: the forge's set must be inside the verdict's, never equal
+to it, so a gate that reviewed two Issues on a PR that closes one is a correct state rather than a deny.
+A PR that closes nothing never reaches the comparison.
+
+### The decision, as it binds
+
+- **Rule 7d, inside `permission-guard.sh`'s existing `*:quality-assurance` arm**, after rule 7c has
+  cleared the verdict. It denies `gh pr merge` when the PR's `closingIssuesReferences` contains a number
+  the head-scoped verdict does not declare on a `^closes:` line.
+- **It fails CLOSED, and that is the same exception #341 took rather than a second one.** A payload
+  without the field means the read that would have decided did not happen, on the irreversible act.
+- **`agents/quality-assurance.md` gains the `closes:` line in both verdict templates**, plus what to do
+  when the rule fires: declare it, or drop the keyword and **verify** the derived field returns `[]`
+  rather than reading the body and assuming.
+
+### What it does not reach, measured rather than assumed
+
+- **`closingIssuesReferences` is PR-body-derived.** Probed 2026-08-30 with a throwaway PR whose body
+  carried no keyword and whose single commit message carried `Closes #358`: the field returned `[]`. So
+  a keyword living only in a commit message is invisible to this rule — **the one surface that cannot be
+  edited afterwards**, since amending needs a force-push the floor denies.
+- **It is deliberately NOT widened to scan commit messages.** That needs the PR's head branch and
+  merge-base resolved inside a rule that fails closed, so every resolution failure becomes a wedged
+  merge; and a hand-rolled keyword regex is measurably both over- and under-inclusive against the forge's
+  own parser (`Closes #313's slice 1.` matches a regex and resolves, at GitHub, to a different number).
+- **Whether the commit-message route actually closes an Issue on merge here is NOT measured.** This
+  repository has no PR whose commits carry a keyword its body does not, so the two routes have never been
+  separable in its history. Documented forge behaviour is not a local measurement and is not claimed as
+  one.
+- **Zero reach over a browser merge**, exactly as rule 7c. ~~`closure-artifact-guard.sh`'s `Stop` arm is
+  what covers that residue and the commit-message route~~ — **struck 2026-08-30, the sixth instance of
+  this diff's own defect and the one inside the section headed *What it does not reach*, which is
+  exactly where a reader goes to learn the holes.** That arm's predicate is an Issue that **declares** an
+  `invocable:` line, and #355 declares none, so it could not have fired on the instance rule 7d was built
+  from by any route. It covers the **route**, for a **different obligation**; it is **not** made redundant
+  and is not retired, and it does **not** patch this rule's holes. **An undeclared Issue closed by a
+  browser merge or by a commit-message keyword is caught by nothing at all.**
+
+### Consequences still being paid
+
+- **The gate can now be denied for a second reason that is not about the diff.** The repair is one line
+  in its own artifact, but it is a new way for a correct review to be stopped at the last step.
+- **Nothing verifies a declaration is TRUE.** A gate that declares `closes: N` without verifying delivery
+  passes. This control holds consistency between two artifacts the same persona produced.
+- **Every verdict written before this shipped declares nothing**, so any such PR that closes an Issue
+  needs a re-post. The blast radius is bounded by the plugin being installed deliberately — the rule is
+  inert until the owner updates.
+- **The blueprint registry's `0038` row asserted the opposite** (*"no permission layer can deny it"*) and
+  is re-authored in the same diff, as is the README sentence it came from. A registry row is prose no
+  instrument can falsify; this one went false the moment the layer analysis changed.
+- **THIS DOCUMENT asserted it too, in three places, and shipped the amendment without touching them for
+  one round.** The #337 amendment's *"it is the only refusal surface that exists at all"* was
+  character-for-character the clause the README strikes here; its routing table's `Stop`-hook row was
+  wrong in its own cell; and its *"rejected option that is still live"* described this route as unbuilt
+  one page above the amendment building a variant of it. All three are corrected above. **The lesson is
+  the one the strike itself is for: a strike travels to every surface carrying the sentence, and the
+  canonical record is the surface most likely to be missed, because it is the one being appended to
+  rather than read.**
+- **`closure-artifact-guard.sh` carried the same claim in its own header** and was not in the first
+  round's diff at all — so the carrier said the opposite of the registry row describing it.
+- **The `Stop` arm does NOT cover this rule's residue, and TWO rounds of this amendment said it did —
+  the second while the correction sat twenty-nine lines below the assertion, in the same document.** Re-derived: Issue #355, the instance rule 7d was built from, declares **no** `invocable:` line
+  (`gh issue view 355 --json body --jq '[.body|split("\n")[]|select(test("^invocable"))]'` → `[]`), and
+  that arm's predicate is a **declared** promise. So it could not have fired on #355 by any route. It
+  covers the **route**, for a **different obligation**. **The uncovered case — an undeclared Issue
+  closed by a browser merge or by a commit-message keyword — is stated in the limits section above, in
+  the README, in the gate's brief and in registry `0044`**, because a residue published as covered is
+  worse than one published as open.
+- **The arm built for this class could not catch this instance, and that is the finding worth carrying.**
+  Arm 5 asserts the correction is **PRESENT** — it counts one needle from the corrected sentence, found
+  it at the corrected bullet, and passed while the false claim stood twenty-nine lines above. **A presence check cannot
+  express an absence**, and the two are different assertions about the same fact. The absence half is
+  arm 6's shape — *every occurrence of this clause is struck or quoted* — and it was keyed to a different
+  clause, so it looked past this one. **Both halves are now written for both clauses**, and the general
+  rule is stated rather than left to be rediscovered: **a correction needs the false claim's ABSENCE
+  asserted, not only its replacement's presence.**
 
 ## Links
 - Driven by ADR-0002 and the Merge Request Definition of Done (record 0003, absorbed 2026-08-19 into

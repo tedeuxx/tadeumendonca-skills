@@ -162,7 +162,11 @@ deve escalar para mim o quanto antes"*). And it is **not a mechanism**: nothing 
 that it ran, and a session that skipped it looks exactly like one that found the set empty.
 
 **An ARRIVAL is not a mid-drain pendency, and the distinction has to be stated or the escalation rule
-eats the accepted behaviour (#338).** An Issue that joins the active iteration after the drain entered is
+eats the accepted behaviour.** ~~(#338)~~ — **the attribution is struck 2026-08-30 (#365)**: nothing is
+filed into the active iteration any more, so #338 is no longer what produces an arrival. **The rule below
+is unchanged and its subject is wider than #338 ever was** — an arrival is now the owner assigning an
+item at planning, or a `blocked` item clearing, both of which outlive the strike. An Issue that joins the
+active iteration after the drain entered is
 outside the entry snapshot, so it blocks nothing and escalates nothing; it is the *next* invocation's
 preflight problem, where it will refuse on `sp:` and — on the `loop` lane — on `ready`. Escalating per
 arrival would convert something the owner explicitly accepted into a stream of interruptions, which is the

@@ -357,9 +357,54 @@ Required shape, because the reader is a record and not only a person:
 <!-- gatekeeper-verdict: quality-assurance -->
 APPROVE-AND-MERGE   ← or APPROVE-AND-MERGE-BOUNDARY, or APPROVE-PENDING-HUMAN, or REQUEST-CHANGES
 head: <the headRefOid you reviewed>
+closes: <every Issue number this PR will close, space-separated — omit the line if it closes none>
 
 …then your verdict and the per-criterion table.
 ```
+
+**The `closes:` line, and it is read by a machine (#363).** `permission-guard.sh` rule 7d asks the forge
+which Issues this PR would close — `gh pr view <ref> --json closingIssuesReferences`, the parser's own
+answer rather than a regex over the body — and **denies the merge when that set contains a number your
+verdict at the current head does not declare on a `closes:` line at COLUMN 0.** So the line is required
+exactly when the PR closes something, and writing it is you asserting *I verified these delivered at
+this head*.
+
+**Why a declared line and not "the verdict mentions #N".** Measured on the live instance: PR #356 closed
+Issue #355 with nothing #355 asked for built, and **both** gatekeeper verdicts on that PR contain the
+string `#355` — the merge-authorising one included, *because it is the verdict that prescribed removing
+the keyword*. A prose-mention check would have passed the exact case the rule exists to refuse. Column 0,
+lowercase, one line; `closes: 355 337` for several.
+
+**What to do when the rule fires and you did NOT verify delivery.** Do not add the line. Edit the PR body
+so the keyword reads `Refs #N`, then **verify** with `gh pr view <ref> --json closingIssuesReferences`
+returning `[]` — **do not read the body and assume it took.** That is precisely the step that failed on
+#356: the prescription was made, the builder reported it done, and the keyword survived inside the
+sentence explaining why it must not be used.
+
+**Three limits, and none of them is closed by this line.**
+
+1. **`closingIssuesReferences` is PR-body-derived** — measured 2026-08-30 with a throwaway PR carrying
+   the keyword only in a commit message: the field returned `[]` — so a keyword living only in a commit
+   message is invisible to the rule.
+2. **No hook sees a browser merge.**
+3. **It compares two artifacts and never judges delivery.** A `closes:` line you write without
+   verifying is a line the floor accepts. **Do not read a clean merge as evidence the close was
+   earned — you are the evidence.**
+
+**Do NOT read the `Stop` arm in `closure-artifact-guard.sh` as covering limits 1 and 2. It does not,
+and this is the sentence that was wrong here for one round.** That arm's predicate is *an Issue that
+**declares** an `invocable:` artifact*, so it fires on **declared** promises only. Re-derived on the
+instance rule 7d was built from:
+
+```
+gh issue view 355 --repo <owner>/<repo> --json body --jq '[.body|split("\n")[]|select(test("^invocable"))]'
+→ []
+```
+
+**Issue #355 declares nothing, so the arm could not have fired on it by any route** — including the
+route that actually closed it. What the arm covers is the **route**, for a **different obligation**.
+**An UNDECLARED Issue closed by a browser merge or by a commit-message keyword is caught by nothing at
+all**, and that is the honest statement of this rule's residue.
 
 > **The verdict line is a projection of your own verdict set** — the one under *Your verdict — exactly
 > one of*. It introduces no literal that set does not contain, and a change to either changes both.
@@ -620,6 +665,7 @@ them:
 <!-- gatekeeper-verdict: quality-assurance -->
 REQUEST-CHANGES
 head: <the headRefOid you reviewed>
+closes: <only when this PR would close an Issue you verified delivered — see the shape above>
 
 …your verdict and the per-criterion table…
 
@@ -792,6 +838,13 @@ intended repo. **Do not route around it**, and in particular do not re-post a ve
 the answer: the floor is not disputing your verdict, it is saying it could not read one. If the
 precondition cannot be fixed from where you are, say so in your return and hand the PR to the owner —
 the unblock is manual and his.
+
+**And since 2026-08-30 the same floor can deny you for a SECOND reason that is not about the diff
+either (#363, rule 7d).** If the PR would auto-close an Issue your verdict at the current head does not
+name on a `closes:` line, the merge is refused. **This is not a fifth hold and it is not a class** —
+holds route the decision to the owner; this one is repaired by you, in one line, in the artifact you
+were already posting, and the repair is described in full under *Your verdict is an ARTIFACT on the PR*
+above. It denies the merge, never the review.
 - **Safe class** — docs · dependency bumps · test-only · in-pattern refactor · in-pattern implementation
   of an **already-approved** spec/ADR. If the DoD is fully green, you **approve and merge** it yourself
   (`gh pr merge --merge`, never squash).

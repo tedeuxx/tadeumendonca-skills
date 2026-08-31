@@ -854,10 +854,22 @@ loop-first `Stop` hook, and it is named here rather than filed.
 
 #### How this reconciles with #338 and #339, without reopening either
 
-- **#338 governs the ITERATION; this governs the BRANCH.** A `loop` Issue joins the active iteration at
-  filing; whether it joins an **open batch branch** is a different question, and the answer is that
-  admitting one means either re-opening a diff that already carries verdicts or deferring to the next
-  batch. Different objects, no collision.
+- **#338 governs the ITERATION; this governs the BRANCH — and #338 was struck one hour before this line
+  was corrected, which moves the premise and leaves the distinction standing.**
+  ~~A `loop` Issue joins the active iteration at filing;~~ **struck 2026-08-30 (#365)** — no Issue is
+  filed with a milestone now, for any type, and `permission-guard.sh` rule 10 holds it. **The
+  distinction this bullet exists to make is untouched:** *which iteration an item belongs to* is
+  composed by the owner at planning, and *whether an item joins an **open batch branch*** is a
+  different question with its own answer — admitting one means either re-opening a diff that already
+  carries verdicts or deferring to the next batch. Different objects, no collision. **What #365 changed
+  is only WHEN the second question can arise**: an item now reaches an iteration by a human act rather
+  than at filing, so it can no longer appear mid-drain from an Issue the loop itself filed.
+
+  *Why this survived the #365 sweep, and it is the finding rather than the fix.* **A strike lands where
+  a rule is STATED and survives where it is CITED, paraphrased, or used as a premise for something
+  else.** #365 struck the rule at its own heading and left it asserted here, in the file every persona
+  loads on every dispatch — and it was read as current by an intake that reported correct behaviour as
+  a defect. Sweep for the claim's substance, never for the sentence that was struck.
 - **Admission needs no new mechanism, and it is already spelled `ready`.** The specification asks that a
   newly-discovered `loop` item enter the active batch only by explicit owner decision. `ready` on the
   `loop` lane is the owner's transition alone, and the pool predicate requires it. **That control exists;
@@ -1098,9 +1110,33 @@ and no new label. `none` is a real answer and the common one; the field exists s
 *promised nothing* stop looking alike.
 
 **What it buys, and the two facts that bound it — both measured, neither assumed.** A manual
-`gh issue close` on an Issue with an unmet declaration is **refused**. A close by closing keyword is
+`gh issue close` on an Issue with an unmet declaration is **refused**. ~~A close by closing keyword is
 **executed by the forge on merge**, so nothing in this harness can refuse it — that case is *reported*
-at the end of the turn instead, one turn late, exactly the class `zombie-loop-detect` is. And the
+at the end of the turn instead, one turn late, exactly the class `zombie-loop-detect` is.~~
+
+**Struck 2026-08-30 (#363). The premise was true of the CLOSE and false of the MERGE, and the whole
+design of the missing control turned on the difference.** Nothing can refuse the forge's close — that
+half stands, and the `Stop` arm still covers it **for an Issue that declared a promise**. But the
+close only happens *because a merge happened*,
+**the merge is a tool call, and `permission-guard.sh` rule 7c was already intercepting it, already
+fetching the PR and already reading the gate's verdict head-scoped.** Rule 7d (#363) adds one field to
+that same call — `closingIssuesReferences`, the forge's own resolved set, **zero additional
+round-trips** — and denies the merge when it contains an Issue the gate's verdict at the current head
+does not declare on a `closes:` line. So the route is refusable one step upstream of the act everyone
+was looking at. **It compares two artifacts and never judges delivery**, which is the narrower and
+honest obligation: the local defect was never *delivery unverified* (the gate judged #355 correctly and
+prescribed `Refs`) but *the prescription became a body edit and nothing verified it took*.
+
+**Two limits ride with it and are not closed by it:** `closingIssuesReferences` is **PR-body-derived**
+— measured with a throwaway PR carrying `Closes #358` only in a commit message, the field returned `[]`
+— so a keyword living only in a commit message is invisible; and no hook sees a **browser** merge.
+**The `Stop` arm is not redundant with the refusal and must not be retired against it — but it does NOT
+cover those two, and reading it as the patch is the error this paragraph carried for one round.** Its
+predicate is *an Issue that **declares** an `invocable:` line*, and #355 — the instance rule 7d was
+built from — declares none, re-derived at head with
+`gh issue view 355 --json body --jq '[.body|split("\n")[]|select(test("^invocable"))]'` returning `[]`.
+So the arm could not have fired on it by any route. **An undeclared Issue closed by a browser merge or
+by a commit-message keyword is caught by nothing at all.** And the
 promise is **declared, never derived**: deriving it from prose was measured over twenty closed Issues
 and produced eleven unresolved identifiers with **zero** true positives, which is a gate that reddens
 on honest work until someone loosens it into nothing.

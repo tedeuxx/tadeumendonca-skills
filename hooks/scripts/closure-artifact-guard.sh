@@ -54,14 +54,39 @@
 # Measured 2026-08-28: every Issue this loop closed in the last week closed by a CLOSING KEYWORD in
 # a merged PR body (`Closes #313's slice 1`, PR #345; the same in #333, #340, #347, #348,
 # #349). That close is executed by GitHub's servers on merge. NO HOOK IN THIS HARNESS OBSERVES IT
-# AND NO PERMISSION LAYER CAN DENY IT. Prevention is therefore unavailable on the route that is
-# actually used, and this script does not pretend otherwise:
+# AND ~~NO PERMISSION LAYER CAN DENY IT~~ -- SEE THE 2026-08-30 CORRECTION IMMEDIATELY BELOW.
+# Prevention is therefore unavailable on the route that is actually used, and this script does not
+# pretend otherwise:
 #
 #   PreToolUse (Bash) — PREVENTS, on the manual `gh issue close` route only. Measurably the
-#                       minority route today. It is the only refusal surface that exists, it costs
-#                       one string comparison on calls that are not `gh issue close`, and the
-#                       "close with a criterion" rite in `/harness-engineering` is a real user of
-#                       it.
+#                       minority route today. ~~It is the only refusal surface that exists~~
+#                       (struck 2026-08-30, #363), it costs one string comparison on calls that are
+#                       not `gh issue close`, and the "close with a criterion" rite in
+#                       `/harness-engineering` is a real user of it.
+#
+# ── CORRECTION 2026-08-30 (#363) — TRUE OF THE CLOSE, FALSE OF THE MERGE ───────────────────────
+# The two struck clauses above were the reasoning everything downstream inherited, and the second
+# one was character-for-character what `README.md` and `docs/adr/0004` strike as false. Nothing can
+# deny the forge's CLOSE — that half stands. But the close only happens because a MERGE happened,
+# the merge IS a tool call, and `permission-guard.sh` rule 7d denies it when the PR's
+# `closingIssuesReferences` contains an Issue the gate's head-scoped verdict does not declare on a
+# `closes:` line. So there are two refusal surfaces, and the second one reaches the keyword route,
+# one step upstream.
+#
+# THAT IS A DIFFERENT OBLIGATION OVER A DIFFERENT ARTIFACT, AND THIS SCRIPT IS NOT MADE REDUNDANT
+# BY IT — BUT NEITHER DOES THIS SCRIPT PATCH RULE 7D'S HOLES, WHICH IS THE MISREADING TO REFUSE.
+# Rule 7d compares two artifacts (the forge's resolved set against the gate's declaration) and
+# never consults `invocable:` at all. THIS script fires only on an Issue that DECLARES a promise.
+# Re-derived at head on the very Issue rule 7d was built from:
+#
+#     gh issue view 355 --json body --jq '[.body|split("\n")[]|select(test("^invocable"))]'
+#     → []
+#
+# #355 declares NOTHING, so this script could not have fired on it by any route — including the
+# route that actually closed it. AN UNDECLARED ISSUE CLOSED BY A BROWSER MERGE, OR BY A
+# COMMIT-MESSAGE KEYWORD (which `closingIssuesReferences` does not see — measured: a PR carrying
+# the keyword only in a commit message returns []), IS CAUGHT BY NOTHING AT ALL. Do not publish
+# either mechanism as covering the other's residue.
 #   Stop             — DETECTS, on every route including the keyword one, at the end of the turn
 #                       in which the close happened. Same class as `zombie-loop-detect.sh` (#294):
 #                       one turn late instead of one session late, never preventive.

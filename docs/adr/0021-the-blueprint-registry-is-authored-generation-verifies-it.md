@@ -595,8 +595,15 @@ into the command, not a policy question.
 ### The fourth collision — the specification forbids the milestone this loop requires
 
 The specification: *"não coloque o item automaticamente em sprint ou iteração."* This loop, since #338
-and with no exception clause: **a `loop` Issue joins the active iteration at filing.** Direct
+and with no exception clause: ~~**a `loop` Issue joins the active iteration at filing.**~~ Direct
 contradiction on the same act.
+
+**Read that clause in the PAST tense — struck 2026-08-30 (#365), and found by a gate arm on its first
+run rather than by a reader (#363).** It is the *statement of the collision*, and the collision's
+resolution two paragraphs below is already correct; but the sentence itself is present-tense and a
+reader landing here meets a rule that no longer holds before reaching the paragraph that says so. **That
+is this defect's whole shape: a strike lands where a rule is STATED and survives where it is CITED** —
+here, as the description of what the local rule *was*.
 
 ~~**The local rule wins, and both properties survive.** It is the newer decision, it is the owner's own,
 and an adopted item with no milestone is invisible to `/autonomy-on`'s pool by construction. … **Milestone yes,

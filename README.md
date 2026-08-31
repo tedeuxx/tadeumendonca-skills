@@ -1204,11 +1204,40 @@ rather than chosen. It holds one rule — *an Issue whose own body declares an i
 reach `closed` while that artifact does not resolve* — against a route it can refuse and a route nobody
 can. **Measured 2026-08-28: every Issue this loop closed in the preceding week closed by a closing
 keyword in a merged PR body** (`Closes #313's slice 1`, PR #345; the same shape in #333, #340,
-#347, #348, #349). That close is executed by GitHub on merge, so **no hook in this harness observes it
-and no permission layer can deny it** — which is why the `Stop` arm exists and is detection only, one
-turn late, exactly the class `zombie-loop-detect` is. The `PreToolUse` arm refuses the manual
-`gh issue close` route, which is the minority route today and is still the only refusal surface that
-exists at all.
+#347, #348, #349). That close is executed by GitHub on merge, so **no hook in this harness observes it**
+— which is why the `Stop` arm exists and is detection only, one turn late, exactly the class
+`zombie-loop-detect` is. The `PreToolUse` arm refuses the manual `gh issue close` route, which is the
+minority route today.
+
+~~and no permission layer can deny it~~ · ~~and is still the only refusal surface that exists at all~~
+— **struck 2026-08-30 (#363).** Both halves were true about the **close** and false about the **merge**
+that causes it. The merge is a tool call; `permission-guard.sh` rule 7d now denies it when the PR's
+`closingIssuesReferences` — the forge's own resolved set, read on the call rule 7c was already making —
+contains an Issue the gate's verdict at the current head does not declare on a `closes:` line. So there
+are **two** refusal surfaces, and the second one reaches the majority route. It reaches it **one step
+upstream**: it refuses the merge, never the close, and a merge performed in a browser is outside it
+exactly as it is outside rule 7c.
+
+**And what it does inside its reach is narrower than "reaches the majority route" makes it sound: it
+compares two artifacts and never judges delivery.** The forge's resolved set must be inside the set the
+gate's own verdict declares. If the gate declares a close it did not verify, the merge proceeds. This
+control holds *the correction that did not hold* — the local defect, three times over — and holds
+nothing about whether the work was done.
+
+**The `Stop` arm does NOT cover the two routes rule 7d cannot see, and saying it did was wrong for one
+round.** That arm's predicate is *an Issue that **declares** an `invocable:` artifact*, and on the very
+instance rule 7d was built from —
+
+```
+gh issue view 355 --repo <owner>/<repo> --json body --jq '[.body|split("\n")[]|select(test("^invocable"))]'
+→ []
+```
+
+— **there is no declaration, so the arm could not have fired by any route.** What it covers is the
+**route**, for a **different obligation**. **An undeclared Issue closed by a browser merge, or by a
+commit-message keyword the derived field never sees** — measured: a PR carrying that keyword only in a
+commit message returns `[]` from `closingIssuesReferences` — **is caught by nothing at all.** The arm
+stays because it holds its own obligation, not because it patches this one.
 
 **The promise is DECLARED, never inferred, and that came out of a measurement that killed the obvious
 design.** Deriving the promise from an Issue's prose — every backticked `/identifier` in the title and
