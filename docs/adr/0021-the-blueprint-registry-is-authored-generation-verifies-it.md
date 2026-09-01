@@ -529,8 +529,16 @@ file later?** A scratchpad path is in no diff, in no gate's input, and in no con
 cannot become a second source of truth — not because writing it is virtuous but because nothing can find
 it. A repository-relative `tmp/` fails that test on day two.
 
-**The specification's own path was measured DENIED, and that is what settles the destination rather than
-the argument above.** `hooks/scripts/orchestrator-write-guard.sh`, one variable, on 2026-08-29:
+~~**The specification's own path was measured DENIED, and that is what settles the destination rather
+than the argument above.** `hooks/scripts/orchestrator-write-guard.sh`, one variable, on 2026-08-29:~~
+**Struck 2026-08-31 (#386): that hook is DELETED in this same slice (#375), so the measurement below
+describes a build this plugin no longer ships and nothing denies the write now.** Struck rather than
+deleted because it is the sentence that told a reader this destination rule was settled by a *mechanism*
+rather than by an argument. **What survives never depended on the hook** — see the paragraph following
+the payloads: in the single-repository shape most consumers install, `<workspace-root>` *is* the
+repository root, so the same sentence yields two destinations decided by a property of the reader's
+machine. **The identical strike landed in `commands/blueprint.md` in this slice and did not travel here
+— one defect, two instances, which is the STATED-versus-CITED gap #363 exists for.**
 
     {"agent_type":"","tool_name":"Write","file_path":"<repo-root>/tmp/blueprint-1.1.46.yaml"}   -> deny
     {"agent_type":"","tool_name":"Write","file_path":"<workspace-root>/tmp/blueprint-…yaml"}    -> allow
@@ -796,18 +804,28 @@ measured against it on 2026-08-31:
 - **The directory is ignored nowhere.** `git check-ignore -v` on it exits 1 in **both** repositories of
   this workspace: #245 removed the ignore entry and the sweep hook and left the comment block behind, so
   it reads as documented-and-present and is neither.
-- **Writing there is denied**, by `orchestrator-write-guard.sh`, under the empty `agent_type` a typed
+- ~~**Writing there is denied**, by `orchestrator-write-guard.sh`, under the empty `agent_type` a typed
   command runs with — the ordinary case, not the exotic one — wherever the workspace root is the
-  repository root, which is the shape most consumers install.
+  repository root, which is the shape most consumers install.~~ **Struck 2026-08-31 (#386): the hook is
+  deleted in this same slice, so writing there is denied by nothing.** The bullet above it — *the
+  directory is ignored nowhere* — is untouched and is on its own sufficient to refuse that destination.
 - **The arm built to refuse exactly this matched neither literal.** `bp_bad_dest` grepped
   `workspace-root|tmp/blueprint`; the new wording contains neither, so a repository-relative destination
   would have landed with that arm green.
 
 **The fix is to state the destination as a property rather than as a name** — *a path outside every git
 working tree* — because a directory name is precisely the part that does not port. **And the arm is
-widened, with what that buys stated in its own header: it is presence, not a control.** The write is
-already refused at runtime whatever this file says; all the arm stops is the command *documenting* a
-route a reader would follow and then have to work around.
+widened, with what that buys stated in its own header: it is presence, not a control.**
+~~The write is already refused at runtime whatever this file says; all the arm stops is the command~~
+~~*documenting* a route a reader would follow and then have to work around.~~ **Struck 2026-08-31 (#386), nine lines
+below the strike that already corrected the bullet this sentence rests on, and that adjacency is the
+finding rather than an aside.** The bullet was struck because `orchestrator-write-guard.sh` is deleted
+in this slice; this sentence *used the bullet as a premise* and survived — which is this repo's own
+recorded class, *a strike lands where a rule is STATED and survives where it is CITED, paraphrased, or
+used as a premise for something else*. **What is true at head:** nothing refuses the write at runtime,
+so the arm is the only thing standing between a reader and that destination — still presence rather
+than a control, but now presence with nothing behind it, which is a weaker position than the struck
+sentence claimed and is why the correction is not cosmetic.
 
 **The second-order note worth keeping:** the directory the design named is the one obligation this
 harness's own registry calls abandoned in its history. The design reinstated it in prose.

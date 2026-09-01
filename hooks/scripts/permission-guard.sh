@@ -581,7 +581,20 @@ fi
 #     the rule that closes it. Nothing here depends on the order — 5f matches `gh api`, which no other
 #     rule matches at all — but a reader's understanding does.
 #
-#     WHY IT IS HERE AND NOT IN THE FLOOR'S `deny`, WHICH IS WHERE IT LIVED FOR AN HOUR. The permission
+#     ~~WHY IT IS HERE AND NOT IN THE FLOOR'S `deny`, WHICH IS WHERE IT LIVED FOR AN HOUR.~~ **THAT
+#     HEADING IS FALSE AT HEAD, CORRECTED 2026-08-31 (#375): `Bash(gh api:*)` LIVES IN THE FLOOR'S
+#     `deny` NOW, unqualified.** So this rule is not the only layer, and the paragraph below describes
+#     a state that was undone by a later permission audit without anyone editing this comment. **Three
+#     consequences, and the third is the one that bites:** (a) the deny message's closing sentence
+#     ("READING through `gh api` is untouched") is **false on the owner's machine** — that read is
+#     refused before this hook is consulted; (b) the floor entry is in an UNTRACKED user-level file, so
+#     no gate here can see it and a consumer of this plugin gets 5f with no floor entry, which is a
+#     DIFFERENT control than the one running here; (c) the loop depends on the capability it denies its
+#     own agents — `session-plugin-version.sh` runs `gh api repos/…/releases/latest`, and it works only
+#     because hook scripts execute outside the permission layer. **Whether to remove the floor entry is
+#     its own decision with its own record and is NOT taken here**; what is corrected here is the claim.
+#
+#     ORIGINAL PARAGRAPH, KEPT BECAUSE ITS ARGUMENT IS STILL THE REASON THIS RULE EXISTS. The permission
 #     audit added a blanket `Bash(gh api:*)` deny after finding the route was never denied at all,
 #     merely unlisted, with one `Bash(gh *)` wildcard erasing even that. That deny was too broad: it
 #     removed READ access to everything the `gh` subcommands do not expose, and this repo's own loop
@@ -640,7 +653,7 @@ fi
 #     The long forms keep `([[:space:]=]|$)`, which is what stops `--fieldwork` matching `--field`.
 gh_api_write='(--method|-X)[[:space:]=]*(POST|PUT|PATCH|DELETE)|(-f|-F)|(--field|--raw-field|--input)([[:space:]=]|$)'
 if printf '%s' "$bare" | grep -Eqi "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+api([[:space:]]+[^[:space:]]+)*[[:space:]]+(${gh_api_write})"; then
-  deny "Blocked: this \`gh api\` call WRITES (it carries --method POST/PUT/PATCH/DELETE, -X, -f/-F/--field/--raw-field, or --input; note that -f and -F make the request a POST on their own). The raw API is the back door around the rules that own these acts — opening an issue (5c/5d) and merging a PR (7b) — so a write here is the one spelling those gates cannot see. Use the gh subcommand for the act instead, so the rule that owns it applies: \`gh issue create\`, \`gh pr merge\`, \`gh pr comment\`. READING through \`gh api\` is untouched — drop the field flags and pass query parameters in the endpoint (\`gh api 'repos/o/r/issues?state=open'\`)."
+  deny "Blocked: this \`gh api\` call WRITES (it carries --method POST/PUT/PATCH/DELETE, -X, -f/-F/--field/--raw-field, or --input; note that -f and -F make the request a POST on their own). The raw API is the back door around the rules that own these acts — opening an issue (5c/5d) and merging a PR (7b) — so a write here is the one spelling those gates cannot see. Use the gh subcommand for the act instead, so the rule that owns it applies: \`gh issue create\`, \`gh pr merge\`, \`gh pr comment\`. THIS RULE leaves READS untouched — drop the field flags and pass query parameters in the endpoint (\`gh api 'repos/o/r/issues?state=open'\`) — but a static \`Bash(gh api:*)\` deny may sit in the settings floor ABOVE this hook and refuse the read anyway; that is a different layer and this message cannot see it. And where an act has NO gh subcommand at all — creating a milestone, measured: \`gh milestone --help\` -> unknown command — this rule's remedy is unexecutable and the act needs its own reviewed route (see rule 11)."
 fi
 
 # 5e. THE COPY LENS DOES NOT WRITE TO A PUBLIC SURFACE (owner, 2026-08-04).
@@ -746,6 +759,17 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
     # draft sourced from `.brand/` against `published-voice`, so its findings quote that material back.
     *:content-reviewer)
       deny "Blocked: \`content-reviewer\` writes nothing to a public surface directly. It reads the private positioning layer (\`.brand/\`) to judge a draft against \`published-voice\`, so a finding of its own can quote that material — the same shape \`product-lead\` and \`content-writer\` are denied for, and not revertible by deleting the comment. Its round goes to a TRACKED file on the same branch (\`docs/content-review/<slug>.md\`, one \`## Round\` section per round, closed with \`CONTENT-REVIEW-FINDINGS\` or \`CONTENT-REVIEW-CLEAR\`) through \`Write\`/\`Edit\`, where it lands in the diff the owner already reads. That file is the artifact, not a workaround for this deny. agent_type='${agent_type}'." ;;
+    # `scrum-master` (#375) is named EXPLICITLY for the same reason `content-reviewer` is, and its REASON
+    # is a different one — which is precisely why leaving it to the catch-all loses something. The other
+    # three deny because they read `.brand/` and a paraphrase of private material in a public comment is
+    # not revertible. This one reads nothing private. It denies because it declares `tools: []` — an
+    # explicit empty grant, measured as the only spelling that means nothing — so it holds no `Bash` and
+    # cannot issue this command at all. A posting call arriving under this `agent_type` is therefore an
+    # impossible payload, and the honest verdict is DENY rather than the catch-all's "nobody has decided
+    # about you yet": someone has, and the decision is that this profile's whole output is the SELECTION
+    # RECORD it returns to the main session, which executes it.
+    *:scrum-master)
+      deny "Blocked: \`scrum-master\` posts nothing, and the reason is narrower than the other denies in this rule: it declares \`tools: []\` — an explicit empty grant — so it holds no \`Bash\` and cannot issue \`gh pr comment\`/\`gh issue comment\`/\`gh issue create\` at all. A posting call arriving under this agent_type is an impossible payload, not a capability question. Its whole output is the SELECTION RECORD it RETURNS; the main session is what acts on it, including any comment that record says is owed. Writing the act in the past tense is a false claim about the loop's own state. This deny is BY DECISION, not by omission — it is not the catch-all's 'nobody has decided about you yet'. agent_type='${agent_type}'." ;;
     *)
       deny "Blocked: agent_type='${agent_type}' is not on this rule's allowlist for posting directly (\`gh pr comment\`/\`gh issue comment\`/\`gh issue create\`). New personas default to DENY here — deliberately, per ADR-0004's 'absent is not a state' — until someone decides they belong on the allow side above and adds them by name. If this SHOULD be allowed, that is a decision to make explicitly, not a gap to route around." ;;
   esac
@@ -1576,6 +1600,100 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]
     deny "Blocked: a subagent does not admit an item into an iteration. Composing an iteration is the owner's act at planning (#365) — file or edit the issue without --milestone and say in your return which iteration you believe it belongs to, so he assigns it."
   fi
   ask "This assigns an iteration (--milestone), which changes what the running iteration contains. The owner's rule is that nothing enters it without human verification (#365), and answering this prompt IS that verification. Approve if he asked for this admission; refuse and file without a milestone if you are composing on your own."
+fi
+
+# 11. CREATING AN ITERATION'S MILESTONE (#375). Rule 10 guards ADMITTING an item into an iteration;
+#     this guards CREATING the iteration object itself, which is the one act in the Scrum rites that had
+#     no route at all.
+#
+#     THE ACT IS IMPOSSIBLE THROUGH THE ROUTE THIS FILE PRESCRIBES, MEASURED:
+#
+#       gh milestone --help   ->   unknown command "milestone" for "gh"
+#
+#     So rule 5f's remedy — "use the gh subcommand for the act instead, so the rule that owns it
+#     applies" — is UNEXECUTABLE here. 5f was written on the assumption that every act has an owning
+#     subcommand, and this is the counterexample: the act is not routed, it is unreachable.
+#
+#     THE ROUTE THIS RULE GUARDS IS AN EXPLOITATION, NOT A DESIGN, AND THIS COMMENT SAYS SO BECAUSE THE
+#     ALTERNATIVE IS AN ARTIFACT THAT READS AS A CLEAN LAYER. `scripts/milestone-create.sh` reaches the
+#     API because NEITHER the settings matcher NOR this file looks inside a script — the same sentence
+#     the `..`-traversal rule above already states about itself. Measured against this file, live:
+#
+#       gh api -X POST repos/o/r/milestones -f title=x            -> deny (5f)
+#       python3 -c "…subprocess.run(['gh','api','-X','POST',…])"  -> NO decision from any layer
+#       bash <repo>/<any>/<any>.sh …                              -> NO decision from any layer
+#
+#     **So 5f stops the convenient spelling of a raw-API write and not the available one.** Nobody is
+#     attacking; what changes is the argument. "A carve-out could be widened later" is decisive only if
+#     the thing being carved is load-bearing, and it is not. NO CHEAP MITIGATION EXISTS: closing the
+#     hole means removing `python3:*` / `node:*` / `npx:*` from the allow lists, which breaks the loop's
+#     own tooling. The price of accepting it is that no comment in this file, and no record, may claim
+#     the raw-API route is closed.
+#
+#     WHY NOT CARVE THE ENDPOINT INTO 5f INSTEAD, WHICH WOULD BE THE PRECISE FIX. Two reasons, and the
+#     second is decisive on its own. (a) Carving by endpoint is the precedent to avoid: the regex becomes
+#     a list, the list grows by request, each addition individually reasonable. (b) `Bash(gh api:*)` sits
+#     unqualified in the USER-LEVEL floor's `deny`, which is evaluated whatever this hook returns, and
+#     that file is untracked — nothing this plugin ships can change it. **The precise fix would ship
+#     inert**, which is worse than an honest exploitation, because it would read as a control.
+#
+#     TWO VERDICTS, SPLIT ON `agent_type`, AND IT IS RULE 10's SPLIT FOR RULE 10's REASON. A subagent is
+#     DENIED: no persona in the roster creates an iteration, `scrum-master` is barred from placing work
+#     in its own brief, and an `ask` returned to a dispatched context reaches no prompt surface. The
+#     orchestrator is ASKED, because that is the session the owner sits in and his answer IS the human
+#     verification #365 demands.
+#
+#     THE `ask` IS A DECISION AND NOT A GAP, WHICH IS THE WHOLE REASON THIS RULE EXISTS AT ALL. The
+#     script is deliberately NOT under `hooks/scripts/`, so it does not match the user floor's
+#     `Bash(bash <repo>/hooks/scripts/*)` allow entry and would prompt anyway. Leaning on that ABSENCE
+#     would be the "Permission entries have three states, and absent is not one" shape ADR-0004 books
+#     for the AWS floor: an allow entry added later for an unrelated reason would silently remove the
+#     verification. So the rule states it.
+#
+#     MATCHED ON THE BASENAME, NOT AN ABSOLUTE PATH, and that is deliberate rather than lax. The same
+#     repository is checked out at several paths in this workspace — the main clone and one or more
+#     `git worktree`s — so an absolute prefix would fire in one checkout and not another, which is a
+#     control decided by which directory a session happens to sit in. The cost is stated rather than
+#     hidden: a file of this name ANYWHERE would match, including one in another repository. That is the
+#     safe direction (it over-asks, it never under-asks) and the deny message names the script so a false
+#     positive is legible rather than mysterious.
+#
+#     PLACED LAST, AFTER RULE 10, AND THE POSITION IS LOAD-BEARING FOR THE SAME REASON RULE 10's IS.
+#     `ask` exits exactly as `deny` does. Sited earlier, `bash scripts/milestone-create.sh x && git push
+#     origin main` would come out ASK where rule 8 DENIES it — an ask that softens a deny is a hole, not
+#     a prompt. Rule 10's own comment already states this; this rule obeys it. Rule 11's DENY branch is
+#     safe here because every deny above has already had its chance.
+#
+#     Matched on `$bare`, so `git commit -m "add scripts/milestone-create.sh"` — a message ABOUT the
+#     file — is not the act. Same trap, same convention, as 5c/5e/5f.
+#     THE PATH MUST BE IN A POSITION WHERE IT IS BEING **RUN**, NOT MERELY NAMED — and that is two
+#     patterns rather than one, each earned by a probe that went the wrong way:
+#
+#       DRAFT 1 required a non-`/` character before the basename. `/` is the one character that always
+#         precedes it in a real call (`scripts/milestone-create.sh`), so BOTH branches returned no
+#         decision at all and the rule read as a working control while matching nothing.
+#       DRAFT 2 matched the basename anywhere in `$bare`. That made `cat scripts/milestone-create.sh`
+#         — a plain READ of a tracked file — come out ASK. A floor that prompts on reading a file is
+#         the cry-wolf failure this repo books twice already, and it was caught by an ALLOW assertion
+#         in the suite rather than by reading the pattern.
+#
+#     So the rule fires only when the path is in COMMAND POSITION (start of the string, or after a
+#     `;`/`&`/`|` separator — the `./scripts/…` and bare-path spellings) or when it follows an
+#     INTERPRETER (`bash`/`sh`/`zsh`/`ksh`/`dash`/`exec`/`env`/`command`). Naming the file to any other
+#     program — `cat`, `grep`, `git add`, `shellcheck` — is untouched.
+#
+#     WHAT THIS STILL OVER-ASKS, said rather than left to be discovered: an interpreter invoked with
+#     options between it and the path (`bash -x scripts/milestone-create.sh`) matches, which is correct,
+#     and so would `bash --rcfile scripts/milestone-create.sh`, which is not running it as a script. That
+#     is the safe direction and the deny/ask message names the script, so the false positive is legible.
+sm_run_cmdpos='(^|[;&|])[[:space:]]*(\./)?[^[:space:];&|]*milestone-create\.sh([[:space:]]|$)'
+sm_run_interp='(^|[^[:alnum:]_.-])(bash|sh|zsh|ksh|dash|exec|env|command)[[:space:]]+([^[:space:]]+[[:space:]]+)*(\./)?[^[:space:]]*milestone-create\.sh([[:space:]]|$)'
+if printf '%s' "$bare" | grep -Eq "$sm_run_cmdpos" \
+   || printf '%s' "$bare" | grep -Eq "$sm_run_interp"; then
+  if [ -n "$agent_type" ]; then
+    deny "Blocked: a subagent does not create an iteration. Creating the milestone an iteration is represented by is the owner's act at planning (#375, #365) — say in your return that the iteration object is missing and which title it needs, so he creates it. This is scripts/milestone-create.sh, the only sanctioned milestone-creation route; read its header for why it exists and what open hole it depends on. agent_type='${agent_type}'."
+  fi
+  ask "This CREATES an iteration's milestone (scripts/milestone-create.sh). Composing an iteration is the owner's act at planning, and answering this prompt IS the human verification his rule demands (#365). Approve if he asked for this iteration to exist; refuse otherwise. Note what this route actually is: the script reaches the write API because no permission layer reads inside a script, so this prompt — not rule 5f — is the only thing standing here."
 fi
 
 exit 0

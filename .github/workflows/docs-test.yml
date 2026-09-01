@@ -54,6 +54,15 @@ on:
       # and never start the gate asserting against it: green on the PR that breaks it, and never red
       # at all — the failure this file's own header warns about twice.
       - "docs/**"
+      # `scripts/**` is the SIXTH occurrence of the miss enumerated in this block, and the first one
+      # the instrument caught BEFORE the PR that would have shipped it. #375 added
+      # `scripts/milestone-create.sh` — a repo utility, deliberately not under `hooks/scripts/` because
+      # it is not a hook and the `purpose:` gate reads an unregistered `*.sh` there as an orphan. That
+      # file is a `.sh`, so `git ls-files -- '*.md' '*.sh'` puts it in FLOOR_CLAIM_FILES and the suite
+      # scans it; without this line a PR editing only that script could not start the gate asserting
+      # against it. The pattern the block above names — the scan set and this filter maintained
+      # independently — is exactly what recurred, and the gate-coverage arm is what said so.
+      - "scripts/**"
       # `PRINCIPLES.md` was added here as the FOURTH occurrence of the same miss, and has since been
       # folded into the README — a floor behind a click is a floor nobody reads — so its entry is gone
       # with it. The history is kept because the CAUSE is what matters and it outlives the file: the

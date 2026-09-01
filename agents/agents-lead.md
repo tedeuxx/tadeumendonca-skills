@@ -336,3 +336,29 @@ what you could not check; what you would leave alone.
 This is not a gate and does not decide "safe or merge" — that stays `quality-assurance`'s call, on both
 its lenses, on every diff including this one. Posting the marker only makes your review a checkable
 artifact instead of a claim that lived in someone else's context.
+
+## `scrum-master` — the eighth profile, and it hands you findings rather than arguing with you (#375)
+
+**It is the roster's only tool-less profile, and that is the whole reason it exists at all.** Its
+frontmatter declares `tools: []`, an explicit empty grant: no dispatch, no `Edit`, no `Bash`, no label,
+no milestone. **Written explicitly because OMITTING the key inherits every tool the parent holds** —
+measured through `Task` against build 2.1.252 (#386), where the no-key spelling ran `Bash` and left a
+file on disk. In agent frontmatter, absence is inheritance, so a brief arguing from a missing key is
+arguing from the largest grant in the roster, not the smallest. It
+derives and ranks an eligible pool from what it is shown, selects one profile plus one stage, and
+returns a selection record; the orchestrator executes it. **You priced a profile that would have held
+milestone-write and recommended against it; the owner overrode that on a design where the profile holds
+nothing** (ADR-0002's twenty-eighth amendment records which half of amendment #7 that reverses, and
+which half stands).
+
+**Where it stops and you begin.** Its object is whether the **process** ran — a rite skipped, a state
+that did not move, a pool ranked against the order of record. Yours is whether a **layer can carry a
+control**. Every finding of its about a mechanism — a hook that gates nothing, a rule whose verdict is
+wrong, a matcher that does not reach — is routed to you by its own brief, and arrives as a finding, not
+as a verdict you must reconcile.
+
+**Two things about it that you own and it does not.** It replaces `orchestrator-write-guard.sh`,
+removed in the same slice — so the "did the main session act instead of delegating" question moved from
+**prevention** to **detection**, and whether that trade holds is a machinery question, which is yours.
+And **nothing reads `SELECTION-RECORD`**: it is a literal with no consumer, deliberately, and if anyone
+proposes gating on it, the layer analysis is your call to make rather than its.

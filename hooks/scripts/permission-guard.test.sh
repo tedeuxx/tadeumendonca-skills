@@ -948,6 +948,39 @@ check_agent ALLOW "tadeumendonca-skills:content-reviewer" "listing PRs"     "gh 
 check_agent ALLOW "tadeumendonca-skills:content-reviewer" "viewing an issue" "gh issue view 173"
 check_agent ALLOW "tadeumendonca-skills:content-reviewer" "diffing a PR"     "gh pr diff 149"
 
+echo "--- rule 5e: scrum-master denies BY DECISION, not by omission (#375) ---"
+# The three cases below would pass with the `*:scrum-master)` arm DELETED — the catch-all denies too —
+# so on their own they assert nothing about the arm. They are kept for the same reason the retired
+# `writer` case above is: a same-verdict assertion is weak, a missing one is nothing.
+check_agent DENY "tadeumendonca-skills:scrum-master" "pr comment"    "gh pr comment 149 --body x"
+check_agent DENY "tadeumendonca-skills:scrum-master" "issue comment" "gh issue comment 149 --body x"
+check_agent DENY "tadeumendonca-skills:scrum-master" "issue create"  "gh issue create --title x --body y"
+# THIS is the arm's falsifier, and it asserts the TEXT rather than the verdict, because the verdict is
+# identical either way. Rule 5e's own comment states the property under test: "a deny by omission and a
+# deny by decision are the same behaviour and different facts, and only one of them survives someone
+# later reading the rule". A behavioural assertion cannot tell those two apart by construction — so the
+# only thing that can redden on the arm's removal is the message. Deleting the arm falls through to the
+# catch-all, whose text carries "New personas default to DENY here" and does NOT carry the literal
+# below, and this case goes red naming the persona.
+sm_out=$(jq -n --arg c "gh pr comment 149 --body x" --arg a "tadeumendonca-skills:scrum-master" \
+  '{tool_input:{command:$c}, agent_type:$a}' | bash "$GUARD")
+if printf '%s' "$sm_out" | grep -qF 'This deny is BY DECISION, not by omission'; then
+  pass=$((pass + 1)); printf 'ok    %-6s %s\n' "DENY" "scrum-master's deny is its own, not the catch-all's"
+else
+  fail=$((fail + 1)); printf 'FAIL  want=DENY-by-decision  scrum-master reached the catch-all (or its message changed)\n      got: %s\n' "$sm_out"
+fi
+# The complement, so the pair cannot both be satisfied by a message that says everything: the by-name
+# deny must NOT carry the catch-all's own sentence. Without this, widening the catch-all's text to
+# include the literal above would keep the case above green with the arm gone.
+if printf '%s' "$sm_out" | grep -qF 'New personas default to DENY here'; then
+  fail=$((fail + 1)); printf 'FAIL  scrum-master got the CATCH-ALL message, so its by-name arm is not being reached\n'
+else
+  pass=$((pass + 1)); printf 'ok    %-6s %s\n' "DENY" "scrum-master does not receive the catch-all's 'new personas default' text"
+fi
+# No ALLOW cases here, deliberately, unlike `content-reviewer`'s: that persona reads the queue as part
+# of its work, and this one declares `tools: []` — it holds no `Bash` at all, so a read is as impossible
+# as a post. Asserting ALLOW on `gh pr list` for it would document a capability it does not have.
+
 echo "--- rule 5e: an unlisted persona defaults to DENY, not ALLOW (#187, ADR-0004) ---"
 # The falsifier the inversion exists to satisfy: a persona nobody remembered to add to the allow side
 # must NOT post by default. Before #187 this fell through ALLOW for anything not literally named
@@ -1535,6 +1568,38 @@ check_agent ALLOW 'tadeumendonca-skills:developer' "a persona may still label" '
 # anywhere above rules 7/7b/8/9 would have let an ASK SOFTEN a DENY. This case is the falsifier for
 # that ordering and nothing else in the suite can see it: move the rule up and this flips ASK.
 check_agent DENY '' "an ask must never soften a deny" 'gh issue edit 365 --milestone x && git push origin main'
+
+# ── RULE 11 · CREATING an iteration's milestone (#375) ─────────────────────────────────────────────
+#
+# A DIFFERENT ACT FROM RULE 10's, AND THE SUITE SAYS SO RATHER THAN LEAVING IT TO THE READER. Rule 10
+# guards ADMITTING an item into an iteration (`gh issue edit --milestone`); rule 11 guards CREATING the
+# iteration object. They share a verdict split and nothing else — the matchers are disjoint, so neither
+# rule's ordering relative to the other matters, and both must sit after every deny.
+#
+# THE FIRST DRAFT OF THIS RULE MATCHED NOTHING AND READ AS A WORKING CONTROL. Its preceding character
+# class excluded `/`, which is the one character that always precedes this basename in a real call. Both
+# branches returned no decision at all, and only probing found it. The absolute-path case below is the
+# assertion that keeps that from coming back: revert the class and it goes red rather than quiet.
+check_agent ASK  '' "the orchestrator is asked"          'bash scripts/milestone-create.sh sprint-02'
+check_agent ASK  '' "an absolute path is the same act"   'bash /a/b/scripts/milestone-create.sh sprint-02'
+check_agent ASK  '' "a -c wrapper does not walk around it" 'bash -c "bash scripts/milestone-create.sh sprint-02"'
+
+# THE DENY HALF, for rule 10's reason: no persona in the roster creates an iteration, and an `ask` in a
+# dispatched context reaches no prompt surface.
+check_agent DENY 'tadeumendonca-skills:agents-lead'  "a persona does not create one" 'bash scripts/milestone-create.sh sprint-02'
+check_agent DENY 'tadeumendonca-skills:developer'    "not even the builder"          'bash scripts/milestone-create.sh sprint-02'
+
+# THE ALLOW HALF — the boundaries the pattern could plausibly have swallowed.
+check_agent ALLOW '' "a message ABOUT the file is not the act" 'git commit -m "add scripts/milestone-create.sh"'
+check_agent ALLOW '' "a similarly-named script is not it"      'bash scripts/milestone-create-notes.sh x'
+check_agent ALLOW '' "reading the file is a read"              'cat scripts/milestone-create.sh'
+check_agent ALLOW '' "grepping it is a read"                   'grep -n purpose scripts/milestone-create.sh'
+check_agent ALLOW '' "staging it is not running it"            'git add scripts/milestone-create.sh'
+check_agent ASK  '' "the bare path spelling runs it"           './scripts/milestone-create.sh sprint-02'
+
+# PLACEMENT, ASSERTED THE SAME WAY RULE 10's IS AND FOR THE SAME REASON. Move rule 11 above rules 7/8
+# and this flips ASK, which is an ask softening a deny.
+check_agent DENY '' "rule 11's ask must never soften a deny" 'bash scripts/milestone-create.sh x && git push origin main'
 
 rm -rf "$FEAT"
 rm -rf "$GH_STUB_DIR"

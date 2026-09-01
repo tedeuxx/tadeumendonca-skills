@@ -180,19 +180,28 @@ declaration green is the failure this file's own `citação` rule exists to prev
 - **carrier:** `hooks/scripts/permission-guard.sh`, `agents/content-writer.md`, `agents/content-reviewer.md`
 - **descrição:** Rule 5e — the three personas that read the private positioning layer are denied every direct posting route.
 - **propósito:** The personas that draft in the owner's voice are the ones that have read private source material, so they are exactly where an unreviewed paraphrase of it would land on a public surface. Containment is worth more here than speed, and it must be **mechanical**: a brief saying "never post" is an instruction, and an instruction is only as strong as the model's attention.
-- **o que faz:** Denies the posting commands to those agent types, leaving them the route the loop wants anyway — a draft on a tracked file, on a branch, reviewed before anything reaches a reader.
+- **o que faz:** Denies the posting commands to those agent types, leaving them the route the loop wants anyway — a draft on a tracked file, on a branch, reviewed before anything reaches a reader. **The mechanism is deny-unless-cleared, so its deny set is wider than the three this entry is about:** anything not on the allowlist falls to a catch-all `deny`. `scrum-master` is in the deny set too, and **by decision rather than by that default** — it is named in the rule with its own message (#375), because its reason is a different one: it reads nothing private and denies because it declares `tools: []`, so it holds no `Bash` and cannot issue the command at all. The catch-all still stands behind all of them, for the persona nobody has decided about yet.
 - **o que não faz:** It does not read what is drafted, so it cannot tell private material from public. It contains the **route**, never the content — the truth of a published claim stays a persona's blocking judgement at the merge gate, with no instrument behind it.
 - **citação:** > "it never posts to a public surface, mechanically (permission-guard.sh rule 5e)"
 
-### 0006 · the orchestrator does not edit the tree with its own hands
+### 0006 · the main session is deliberately idle, delegating only
 
-- **tipo:** refusal
-- **carrier:** `hooks/scripts/orchestrator-write-guard.sh`
-- **descrição:** A `PreToolUse` guard on the file-writing tools, denying a main-context write inside any git working tree.
-- **propósito:** Between the two acts already denied — trunk push and merge — everything was open, so a session could do the whole build in the main context and never dispatch the builder that owns it. That is not a floor violation: the work is tracked and revertible. It is the **wrong layer**, and its cost is that no persona's judgement, and no gate keying on a persona, ever touches the change.
-- **o que faz:** Denies by **scope** — inside a git working tree → deny — rather than by allow-listing the exempt paths, so the session scratchpad and the memory layer stay writable without anyone deriving a path shape the harness is free to change. The matcher is a full enumeration (`Edit|Write|MultiEdit|NotebookEdit`) because a matcher is anchored, not a substring search, and the shorter spelling was measured leaving a notebook write through.
-- **o que não faz:** It guards the file-writing **tools** only. The `Bash`-side write routes — `sed -i`, `tee` — are deliberately not blocked, and the census below is what keeps them visible instead. It also decides nothing about whether the delegation that should have happened was the right one.
-- **citação:** > "Two matchers, two scripts, one concern each."
+- **tipo:** routing
+- **carrier:** `agents/scrum-master.md`
+- **descrição:** A tool-less profile that returns a selection record naming who should act next, before anything is dispatched — so acting outside the record is a visible discrepancy rather than an invisible act.
+- **propósito:** Between the two acts already denied — trunk push and merge — everything is open, so a session can do the whole build in the main context and never dispatch the builder that owns it. That is not a floor violation: the work is tracked and revertible. It is the **wrong layer**, and its cost is that no persona's judgement, and no gate keying on a persona, ever touches the change.
+- **o que faz:** States the obligation POSITIVELY. *The orchestrator may not write* is a rule by exclusion, where delegation is whatever is left over; *the main session is deliberately idle, delegating only* makes delegation the normal path and acting directly the deviation. The record names one profile, one stage and one item, and it is written before the act rather than checked after it.
+- **o que não faz:** **It refuses nothing.** Nothing stops the main session from editing a repository file, nothing reads the record's closing literal, and the record is landed by the very actor it describes — so it is self-attested. It also decides nothing about whether the delegation named was the right one.
+- **citação:** > "Nothing reads your record."
+
+**~~tipo: refusal · carrier: `hooks/scripts/orchestrator-write-guard.sh`~~ — the CARRIER changed at
+#375, and the id did not.** This registry's own rule is that only an *abandoned* obligation is
+tombstoned, and this one was not abandoned: the owner's ruling was that the hook *«nao deveria
+existir»* because it was a contingency, while the obligation it stood for — *«deixar a sessao principal
+intencionalmente ociosa somente delegando»* — is exactly what he restated. **What changed is `tipo`,
+from `refusal` to `routing`, which moves this row's `enforcement` from `denies` to `documents`.** That
+is the honest form and it is a downgrade: a foreign implementer reading this row before #375 could have
+built a control, and reading it now can only build an influence.
 
 ### 0007 · one slice in flight
 
@@ -479,7 +488,7 @@ where a sixth value can be argued on evidence rather than on the first two rows 
 - **descrição:** The single gate on every merge request, holding two lenses in one pass and posting a verdict artifact carrying the head it read.
 - **propósito:** The gate exists to **fight the builder**, on two axes at once: was every requirement met, and can this cause a problem in production. The two are different in kind — the first has a ruler external to the gate (the description the leads agreed), the second has none and cannot, since *can this break production* is not enumerable in advance.
 - **o que faz:** Verifies each criterion with evidence, labels every finding with the lens it came from, classifies the change as safe or boundary, and posts its verdict as a comment carrying the head it read — so a verdict on a moved head fails loudly instead of reading as approval. It merges both classes under distinct verdict literals, holding only four named exceptions.
-- **o que não faz:** It writes no code — on a **review** dispatch its write grant composes the verdict body outside the tree and nothing else, and a write to a repository path is a defect. That scoping used to read *one purpose*, and #355 narrowed it: on a **retrospective** dispatch the same persona writes one file into the iteration's retrospective directory, because three of the seven personas are denied any public surface and a comment-shaped artifact would therefore have to be aggregated by the orchestrator. The test is the dispatch, never the path — which is a discipline, since nothing mechanical confines the grant either way. The posting rule is **self-enforced**: since the second gatekeeper was absorbed, nothing verifies the verdict was posted but the persona itself.
+- **o que não faz:** It writes no code — on a **review** dispatch its write grant composes the verdict body outside the tree and nothing else, and a write to a repository path is a defect. That scoping used to read *one purpose*, and #355 narrowed it: on a **retrospective** dispatch the same persona writes one file into the iteration's retrospective directory, because four of the eight personas are denied any public surface and a comment-shaped artifact would therefore have to be aggregated by the orchestrator. The test is the dispatch, never the path — which is a discipline, since nothing mechanical confines the grant either way. The posting rule is **self-enforced**: since the second gatekeeper was absorbed, nothing verifies the verdict was posted but the persona itself.
 - **citação:** > "it never edits code"
 
 ### 0022 · the machinery is stress-tested before it is built

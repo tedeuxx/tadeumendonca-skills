@@ -25,8 +25,8 @@ subagent's output, so isolation costs nothing extra here: it is a property of di
 discipline anyone has to keep.
 
 **But isolation alone buys nothing, and this is the finding the rite is built around.** A consulted
-persona is a **fresh context with no memory of the iteration**. Handed only a question, seven personas
-produce seven plausible lists — which is the orchestrator's bias relocated to seven contexts, not
+persona is a **fresh context with no memory of the iteration**. Handed only a question, N personas
+produce N plausible lists — which is the orchestrator's bias relocated to N contexts, not
 removed. **Isolated speculation is still speculation.** So the dispatch feeds each persona its own
 evidence, and asks it to reason from that. That is what step 3 is for, and it is the reason this rite is
 worth running at all.
@@ -88,8 +88,12 @@ finds them and appends nothing.
 
 **`agents-lead` writes `docs/retrospective/<iteration>/00-scope.md` first**, and it contains **query
 output only** — no findings, no reading of anyone's artifacts. It is the machinery persona because the
-orchestrator cannot write it: `hooks/scripts/orchestrator-write-guard.sh` denies the orchestrator any
-edit inside a git working tree, keyed on its empty `agent_type`.
+scope record is machinery: the queries, the repositories, the snapshot the rite ran against.
+~~It is the machinery persona because the orchestrator cannot write it:
+`hooks/scripts/orchestrator-write-guard.sh` denies the orchestrator any edit inside a git working tree,
+keyed on its empty `agent_type`.~~ **Struck 2026-08-31 (#375): that hook is deleted and the orchestrator
+CAN now write this file.** The instruction is unchanged and the reason for it is weaker — it is a
+routing convention held by whoever reads the diff, not a deny that would refuse the alternative.
 
 The scope record carries, each with the command that produced it:
 
@@ -110,7 +114,7 @@ The scope record carries, each with the command that produced it:
 
 ## Step 2 — the consult set is DERIVED, and it is a lower bound
 
-**Do not consult a fixed set of seven.** `hooks/scripts/dispatch-metrics-stop.sh` posts one comment per
+**Do not consult a fixed set.** `hooks/scripts/dispatch-metrics-stop.sh` posts one comment per
 dispatch onto the Issue whose number it reads from the branch, under the marker
 `<!-- dispatch-metrics: <plugin>:<agent_type> #<issue> -->`. Per Issue in the iteration:
 
@@ -122,8 +126,10 @@ gh issue view <n> --repo <owner>/<repo> --json comments \
 ```
 
 Measured across `sprint-01` in this repository: **six of seven personas ran; `content-reviewer` ran zero
-times.** Consulting a fixed seven would spend a dispatch asking a persona that was never in the
-iteration to report on it.
+times.** Consulting the fixed roster instead would spend a dispatch asking a persona that was never in
+the iteration to report on it. *(The measurement above is dated and is left at its own denominator: the
+roster held seven when `sprint-01` ran and holds **eight** since #375, which is exactly why the consult
+set is derived rather than written down.)*
 
 **Three measured limits travel WITH the set, and the artifact states them rather than implying them:**
 
@@ -143,6 +149,30 @@ about a dozen paths — no `jq`, no `gh`, no branch, no number in the branch, a 
 trailing `|| true` on the post itself. **A persona that ran and left no comment is indistinguishable
 from one that never ran.** Read the query result as *"at least these ran"*, write that phrase into the
 scope record, and add a persona by hand when the owner knows it ran.
+
+**Then SUBTRACT every profile that cannot `Write`, and record the subtraction in the scope record by
+name.** The rite's artifact is a file the consulted persona writes itself (step 4), so a profile whose
+`tools:` grant contains no `Write` cannot produce one — and the derivation above has no filter, so it
+will hand you such a profile the moment one has run. At head that is `scrum-master`
+(`agents/scrum-master.md`, `tools: []`); the clause is written as a **property** rather than a name so
+the next tool-less profile is covered without an edit here. It applies to a hand-added persona exactly
+as it applies to a derived one.
+
+**The relay is refused explicitly, and that refusal is the whole reason this is an exclusion rather than
+an accommodation.** The available workaround — dispatch it anyway, have the orchestrator write the file
+from what it returned — is the aggregation this rite's isolation exists to prevent, in the one step where
+it would be invisible: the directory would hold the file, `ls` would answer *"the rite ran"*, and nothing
+in the artifact would say the answer passed through the context being retrospected. **A second reason,
+measured rather than argued:** `agents/scrum-master.md` records that a tool-less profile asked to act
+reports the act as done — *"the `tools: []` probe replied «The command succeeded. File created at the
+specified path.» and no file existed"*. Consulted, it would report a write that did not happen, and the
+rite has no check that would contradict it.
+
+**What the exclusion costs, stated rather than absorbed:** the process-guardian voice is absent from the
+rite, and it is the profile most likely to have something to say about whether the loop ran in order.
+The fix for that is a `Write` grant on the profile — a roster decision, with the four-reason test re-run
+per that brief's own warning that *"if a future slice gives you a tool, that argument comes back in
+full"* — never a relay arranged here.
 
 ## Step 3 — one isolated dispatch per persona, fed its OWN artifacts
 
@@ -179,12 +209,14 @@ docs/retrospective/<iteration>/` answers *"did the rite run"*. Anyone composing 
 narrative would be performing the aggregation the isolation exists to prevent, which is why no step here
 asks for one.
 
-**A comment was NOT chosen, and three of the seven personas are why.** `permission-guard.sh` rule 5e
+**A comment was NOT chosen, and four of the eight personas are why.** `permission-guard.sh` rule 5e
 allowlists `gh pr comment` / `gh issue comment` / `gh issue create` to the orchestrator, `developer`,
 `tech-lead`, `agents-lead` and `quality-assurance`, and **denies `product-lead`, `content-writer` and
-`content-reviewer` by name.** Three of the seven cannot post their own answer at all, and relaying them
-through the orchestrator reintroduces exactly the aggregation this rite exists to avoid — for the three
-personas closest to the owner's voice. A file lands in a diff he already reads, goes through the gate
+`content-reviewer` by name — and `scrum-master` by name too (#375), for its own reason: it holds
+no `Bash` at all.** The
+criterion is *every persona not on rule 5e's allowlist*, and the count follows from it: **four of the
+eight cannot post their own answer at all**, and relaying them through the orchestrator reintroduces
+exactly the aggregation this rite exists to avoid. A file lands in a diff he already reads, goes through the gate
 like any other change, and is the route rule 5e's own deny text points the denied personas at.
 
 **The price is stated rather than absorbed: the retrospective now costs a branch, a PR and a gate pass.**

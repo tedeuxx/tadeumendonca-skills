@@ -1566,12 +1566,41 @@ fi
 # CLAUDE.md still cannot reach a subagent, so the brief still has to state the destination itself, in
 # its own words, or a fresh dispatch has no way to know it.
 #
-# ONE PERSONA IS A GENUINE EXCEPTION, NOT AN OVERSIGHT. `product-lead` holds no `Write`/`Edit` grant and
-# writes no scratch file at all by design (its verdict returns as text; `quality-assurance` quotes it
-# onto the PR verbatim) — asserting "session scratchpad" against it would demand a sentence describing a
-# capability the brief deliberately does not have.
+# ~~ONE PERSONA IS~~ **TWO PERSONAS ARE** A GENUINE EXCEPTION, NOT AN OVERSIGHT. `product-lead` writes no
+# scratch file at all by design (its verdict returns as text; `quality-assurance` quotes it onto the PR
+# verbatim), and `scrum-master` (#375) declares an EXPLICIT EMPTY GRANT, `tools: []` — no `Write`, no
+# `Edit`, no `Bash` — so its whole output is the text it returns. Asserting "session scratchpad" against
+# either would demand a sentence describing a capability the brief deliberately does not have.
+#
+# ~~and `scrum-master` (#375) holds **no `tools:` line at all**~~ — **STRUCK 2026-08-31 (#386). That
+# reading is the exact inverse of the runtime and it survived here, inside the gate that now asserts
+# its opposite.** Measured through `Task` on build 2.1.252: an agent whose frontmatter OMITS `tools:`
+# inherits the parent's whole grant. The profile therefore carries `tools: []` explicitly, and the
+# arm below keys on the brief's own sentence rather than on the frontmatter's absence. **This instance
+# is unreachable by the RETIRED-CLAUSE REGISTRY below** — that block excludes this file from its own
+# scan by filename, deliberately and for a good reason — so it was found by review and nothing but
+# review could have found it. Recorded here so the next sweep does not assume the registry covered it.
+#
+# THE EXCEPTION IS A LIST AND NOT A DERIVATION, AND THAT IS A KNOWN WEAKNESS RATHER THAN A CHOICE OF
+# STYLE. The obvious derivation — *a brief declaring neither `Write` nor `Edit` takes the exception* —
+# would move `product-lead` to the ORDINARY branch, because its frontmatter has declared `Write` since
+# the iteration-sweep slice while the comment above went on describing it as having none. So a
+# derivation would redden a correct brief on a stale premise, and the honest form is a list plus this
+# paragraph naming why it is one. **If `product-lead`'s exception is re-examined, that stale premise is
+# the thing to examine**, and it is not this slice's.
 for brief in "$ROOT"/agents/*.md; do
   name="$(basename "$brief")"
+  if [ "$name" = "scrum-master.md" ]; then
+    if grep -qiF -- 'you write no scratch file' "$brief"; then
+      ok "agent brief — $name states its exception: no tools at all, writes no scratch file"
+    else
+      bad "agent brief — $name is expected to state it writes no scratch file at all (it declares no
+      tools). If that has changed — the profile now holds Write/Edit — this exception is stale AND so is
+      the argument the profile was admitted on; see ADR-0002's twenty-eighth amendment before removing
+      this branch."
+    fi
+    continue
+  fi
   if [ "$name" = "product-lead.md" ]; then
     if grep -qiF -- 'you write no scratch file' "$brief"; then
       ok "agent brief — $name states its exception: no Write/Edit, writes no scratch file"
@@ -4268,20 +4297,25 @@ grep -qF 'There is no gate here and none is claimed.' "$BP_CMD" 2>/dev/null \
 # (c) It sees SPELLINGS, never SEMANTICS. Any synonym for the same directory that avoids the word
 #     'scratch' — 'the ignored working folder' — passes.
 #
-# WHAT IT DOES NOT BUY, AND THIS IS THE HALF TO READ. It is PRESENCE, not a control. The write itself
-# is already refused at runtime by `orchestrator-write-guard.sh` for any path inside a git working
-# tree, whatever this file says. All this arm stops is the command DOCUMENTING a route that would be
-# denied — an instruction a reader would follow, fail, and then work around. A green here says the
-# command names no such destination; it says nothing about where an export actually wrote.
+# WHAT IT DOES NOT BUY, AND THIS IS THE HALF TO READ. It is PRESENCE, not a control.
+# ~~The write itself is already refused at runtime by `orchestrator-write-guard.sh` for any path inside
+# a git working tree, whatever this file says.~~ STRUCK 2026-08-31 (#386): that hook is DELETED in this
+# same slice (#375), so the write is refused at runtime by NOTHING and this arm is now the only thing
+# standing between the command and a repository-relative destination. It is still only presence — it
+# stops the command DOCUMENTING such a route, an instruction a reader would follow and then work
+# around. A green here says the command names no such destination; it says nothing about where an
+# export actually wrote. Read the arm as strictly weaker than it was, not as a backstop.
 bp_bad_dest="$(grep -c -E 'workspace-root|tmp/blueprint|\.scratch|\b(under|into|inside|within|to|in|at)\b[^.]{0,40}scratch[ -](dir|directory|folder)' "$BP_CMD" 2>/dev/null || true)"
 if [ "${bp_bad_dest:-0}" -ne 0 ]; then
   bp_rule_problems="$bp_rule_problems
     the command names a repository-relative output destination ($bp_bad_dest occurrence(s) of
     'workspace-root', 'tmp/blueprint', '.scratch', or a scratch directory named in prose as a place
-    something is written to). Such a path is DENIED to a typed command by
-    orchestrator-write-guard.sh wherever the workspace root is the repository root, which is the
-    ordinary installed shape — and the repo-root scratch directory is additionally ignored by nothing
-    since #245 removed the entry and left the comment"
+    something is written to). Such a path sits inside a tracked tree wherever the workspace root is the
+    repository root, which is the ordinary installed shape, so the next reader resolves it — and the
+    repo-root scratch directory is additionally ignored by nothing since #245 removed the entry and
+    left the comment. (Until #386 this message said the path was DENIED at runtime by
+    orchestrator-write-guard.sh; that hook is deleted, so nothing denies it and this arm is the only
+    thing left.)"
 fi
 
 if [ ! -r "$BP_CMD" ]; then
@@ -6642,6 +6676,14 @@ fi
 # clause inside `*"` as a DISCUSSION — which the documentation standard's own citation rule warns a
 # grep cannot distinguish from an assertion. Anything else is the clause asserted.
 #
+# THE PREDICATE IS LINE-SCOPED, AND #386 PAID FOR LEARNING IT. A strike opened on the PRECEDING line
+# and closed on the FOLLOWING one renders correctly in Markdown and reddens here, because the needle's
+# own line carries no `~~`. That is a false red, and it is the right trade rather than a bug to fix:
+# a multi-line predicate would have to guess where a strike opens and closes, and guessing is how a
+# check starts passing on prose it never read. **So a struck span wraps EACH of its lines**, which is
+# uglier in the source and is what makes the assertion mechanical. Found by running this block, not by
+# reading it.
+#
 # WHAT IT CANNOT DO, SAID BEFORE THE FIRST GREEN. It reads strings. It cannot tell whether a
 # replacement sentence is TRUE, cannot see a paraphrase that shares no vocabulary with the retired
 # clause, and cannot judge whether a `*"` quotation is really a discussion rather than an assertion
@@ -6685,6 +6727,9 @@ done <<'RETIRED_CLAUSES'
 only refusal surface that exists|Rule 7d (#363) is a second refusal surface, reaching the closing-keyword route one step upstream at the merge.
 joins the active iteration at|No Issue is filed with a milestone, for any type (#365; ADR-0002's twenty-seventh amendment, held by permission-guard.sh rule 10).
 covers that residue|The Stop arm's predicate is a DECLARED invocable promise, and the Issue rule 7d was built from declares none — so it covers the ROUTE, for a DIFFERENT obligation, and patches none of rule 7d's holes.
+editing a file inside a git working tree|orchestrator-write-guard.sh is DELETED and its registration removed (#375/#386), so the orchestrator's mechanically-enforced boundary is TWO acts again — merge and direct push to the trunk. permission-guard.sh runs on the Bash matcher and cannot see an Edit/Write call at all, so what the deletion leaves is no layer rather than another layer.
+already refused at runtime|Nothing refuses the orchestrator's write at runtime since #386 deleted orchestrator-write-guard.sh. Any sentence resting on that refusal — including one nine lines below its own strike, which is how this instance survived — is a control claimed where none exists.
+asserts the registration itself|hooks/scripts/orchestrator-write-guard.test.sh is deleted in #386 along with its CI step, so the matcher-enumeration lesson in ADR-0004 named a mitigation that no longer exists. The lesson stands; the reassurance does not.
 RETIRED_CLAUSES
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
@@ -6732,6 +6777,8 @@ else
     'Isolated speculation is still speculation.' \
     'the isolation would survive the dispatch and die at the write.' \
     'denies `product-lead`, `content-writer` and' \
+    '**Then SUBTRACT every profile that cannot `Write`' \
+    '**The relay is refused explicitly' \
     '**At most TWO findings per persona, the persona choosing which two.**' \
     'A rule that is checkable by reading and not by running is the honest maximum here' \
     'They still displace the product work there, by rule (#339)' \
@@ -6754,8 +6801,18 @@ else
         DIE AT THE WRITE — why the artifact is one file PER persona. A shared file puts every earlier
                            answer in the next persona's context; isolation would survive the dispatch
                            and die at the write.
-        DENIES           — why it is a file and not a comment: rule 5e denies three of the seven any
+        DENIES           — why it is a file and not a comment: rule 5e denies four of the eight any
                            public surface, so a comment artifact would have to be aggregated.
+        SUBTRACT         — the consult set is derived with NO filter, so a profile holding no \`Write\`
+                           lands in it and is asked for an artifact it cannot produce. The clause is a
+                           PROPERTY, not a name, so the next tool-less profile is covered without an
+                           edit. Losing it breaks the rite at the first iteration close, which is the
+                           one moment nobody is watching.
+        RELAY REFUSED    — and the refusal is the load-bearing half. Without it the cheap recovery is
+                           the orchestrator writing the file from what the profile returned, which is
+                           the aggregation the isolation exists to prevent, arriving where \`ls\` on the
+                           directory still answers 'the rite ran'. Two needles, because the exclusion
+                           alone reads as a gap somebody may helpfully close.
         AT MOST TWO      — the volume cap.
         HONEST MAXIMUM   — and the admission that the cap is checkable by reading and by nothing else.
                            These two are separate clauses on purpose; the cap alone reads as enforced.
@@ -6938,6 +6995,192 @@ elif [ -n "$rite_path_missing" ]; then
       artifact and breaks the only 'did the rite run' test there is, which is listing that directory."
 else
   ok "retrospective rite — the rite and both writing briefs name the same artifact directory (string agreement only; nothing here observes a file being written)"
+fi
+
+# ===================================================================================================
+# `scrum-master` HOLDS NOTHING, AND THAT IS THE ONLY PROPERTY IN THIS SLICE A GATE CAN HOLD (#375)
+#
+# The profile was admitted over its own intake's recommendation on ONE argument, in the owner's words on
+# the Issue: the intake priced a profile holding milestone-write, and *"a profile with no capability
+# cannot enlarge the capability surface"*. **That argument survives only while the frontmatter stays
+# empty of tools**, and a `tools:` line is one word to add. Nothing else in this suite reads a persona's
+# tool grant at all — measured, `grep -c "^tools:" ` appears in no arm — so a `tools: Read, Bash` added
+# here tomorrow would be invisible to every gate, to the ADR that records the reversal, and to the
+# reader of the brief that argues from the absence.
+#
+# THIS ARM ASSERTED THE EXACT INVERSE OF THE PROPERTY UNTIL #386's REVIEW, AND THE CORRECTION IS THE
+# POINT. It used to require the ABSENCE of a `tools:` key, and said in this comment that whether an
+# absent key inherits a default grant "is a property of Claude Code, not of this repo, and it is NOT
+# measured here". It is measured now, and the answer is inheritance: against build 2.1.252, a plugin
+# agent whose markdown frontmatter declares no `tools:` key, dispatched through `Task`, ran `Bash` and
+# left a file on disk; the same agent declaring `tools: []` left none and reported "tools":[] in the
+# session init event. Six runs, one variable. So the old arm required the one spelling that grants
+# EVERYTHING, and would have reddened on the correct fix.
+#
+# WHAT THIS ASSERTS NOW. The PROPERTY — this profile holds no tool — in whatever spelling currently
+# expresses it, which is an explicit empty list. Both directions are gated: a `tools:` line that is not
+# empty reddens (the profile gained a capability), and a MISSING `tools:` line reddens too (absence is
+# inheritance, so it is the largest grant in the roster, not the smallest). There is deliberately no
+# third state that passes.
+#
+# WHAT IT STILL CANNOT DO. It reads a string in a file. It cannot observe a dispatch, so it cannot tell
+# you that the runtime honoured the empty list on the run that matters — that was established by probe,
+# once, at one build, and a future build could change it without reddening anything here.
+#
+# THE ESTIMATOR EXCLUSION IS THE SECOND HALF AND IS A DIFFERENT CLAIM. `harness-engineering`'s estimator
+# table names three sets; `scrum-master` is in none of them. An absence is indistinguishable from an
+# oversight, which is the shape ADR-0004's "absent is not a state" section exists for — so the exclusion
+# is asserted as WRITTEN PROSE, at the table, rather than inferred from three greps returning nothing.
+SM_BRIEF="$ROOT/agents/scrum-master.md"
+SM_SKILL="$ROOT/skills/harness-engineering/SKILL.md"
+sm_problems=""
+if [ ! -r "$SM_BRIEF" ]; then
+  bad "scrum-master — agents/scrum-master.md is not readable, so NOTHING below ran: neither the
+      tool-less property the profile was admitted on nor its estimator exclusion was asserted."
+else
+  # 1 · the frontmatter declares a tool grant that is EMPTY. Read the fence explicitly rather than
+  #     grepping the whole file, so a `tools:` occurring inside prose (this brief discusses tool grants
+  #     at length) is not read as a declaration — the same positional discipline the `purpose:` arms use.
+  sm_fm="$(awk 'NR==1 && $0=="---"{inside=1;next} inside && $0=="---"{exit} inside' "$SM_BRIEF")"
+  sm_tools_line="$(printf '%s\n' "$sm_fm" | grep -E '^tools:' || true)"
+  if [ -z "$sm_tools_line" ]; then
+    sm_problems="$sm_problems
+    agents/scrum-master.md declares NO 'tools:' key. That is not an empty grant — it is the largest one:
+    an omitted key inherits every tool the parent holds (measured, build 2.1.252, #386). The profile was
+    admitted precisely because it holds nothing, so this spelling falsifies the argument that admitted
+    it. Declare 'tools: []'."
+  elif [ "$sm_tools_line" != "tools: []" ]; then
+    sm_problems="$sm_problems
+    agents/scrum-master.md declares a non-empty tool grant: '$sm_tools_line'. The whole argument that
+    admitted this profile is that it holds nothing; a tool grant here is a roster decision that re-runs
+    the four-reason test, not a frontmatter edit."
+  fi
+
+  # 2 · the frontmatter still parses as a brief at all, so arm 1 is not green because the fence vanished.
+  printf '%s\n' "$sm_fm" | grep -qE '^name: scrum-master$' || sm_problems="$sm_problems
+    agents/scrum-master.md has no 'name: scrum-master' frontmatter key; the fence did not parse, so the
+    tool-less assertion above was checking an empty string rather than a declaration."
+
+  # 3 · the brief states the property and its bound, so a reader meets the argument rather than the gap.
+  for sm_needle in \
+    '**Your `tools:` line is an explicit empty list — `tools: []`.**' \
+    'OMITTING it would have granted you everything' \
+    'in agent frontmatter, absence is' \
+    'A profile with no capability cannot enlarge the capability surface' \
+    'Nothing reads your record.'
+  do
+    grep -qF -- "$sm_needle" "$SM_BRIEF" || sm_problems="$sm_problems
+    agents/scrum-master.md no longer states: \"$sm_needle\""
+  done
+fi
+
+if [ ! -r "$SM_SKILL" ]; then
+  sm_problems="$sm_problems
+    skills/harness-engineering/SKILL.md is not readable; the estimator exclusion was not asserted."
+else
+  grep -qF -- '**`scrum-master` is EXCLUDED from every row' "$SM_SKILL" || sm_problems="$sm_problems
+    skills/harness-engineering/SKILL.md's estimator table no longer states the scrum-master exclusion.
+    An absence there is indistinguishable from a persona nobody remembered to place."
+  # And it must not have been quietly ADDED to a row, which is the failure the sentence above describes.
+  sm_in_row="$(grep -cE '^\| `(product|content|loop)` \|.*scrum-master' "$SM_SKILL" || true)"
+  [ "${sm_in_row:-0}" -eq 0 ] || sm_problems="$sm_problems
+    skills/harness-engineering/SKILL.md lists scrum-master in $sm_in_row estimator row(s) while the
+    exclusion prose is still present. A profile that ranks the pool and also weighs it grades its own
+    ruler; one of the two statements is now false and nothing else would say which."
+fi
+
+if [ -n "$sm_problems" ]; then
+  bad "scrum-master — the profile no longer holds the property it was admitted on:$sm_problems"
+else
+  ok "scrum-master — the brief declares an EMPTY tools list (present and empty; absence would be inherit-all), states the argument that rests on it and its own lack of a reader, and the estimator table excludes it in prose rather than by omission"
+fi
+
+# ===================================================================================================
+# THE MILESTONE ROUTE IS AN EXPLOITATION, AND EVERY SURFACE THAT DESCRIBES IT MUST SAY SO (#375)
+#
+# WHAT IS GATED HERE IS ONE SENTENCE, NOT A CONTROL, and the distinction is the whole reason this block
+# has a header this long. `scripts/milestone-create.sh` reaches the GitHub write API because neither the
+# settings matcher nor `permission-guard.sh` reads inside a script — the same blindness that makes
+# `python3 -c "…gh api -X POST…"` a back door. That is a defensible trade (a reviewed, named,
+# single-purpose instance of an open hole beats an unreviewed general one) and it is NOT "we found a
+# clean layer". **The failure this arm exists to prevent is a future edit that quietly reframes it as
+# the second thing**, because the honest framing is the only thing standing between a reader and the
+# belief that rule 5f closed the raw-API route. It did not; it closed the convenient spelling.
+#
+# THREE SURFACES CARRY IT AND ALL THREE ARE ASSERTED: the script's own header (read by whoever runs it),
+# rule 11's comment in the guard (read by whoever edits the floor), and the universal preload (read by
+# every persona on every dispatch). One of them going quiet is exactly the drift #329 measured, where a
+# rule lived on one surface and nothing could see it disagree with anything.
+#
+# WHAT NO ARM HERE CAN HOLD. It cannot tell whether the script does what its name says, whether the hole
+# is still open, or whether anyone read the sentence. It is a string-agreement check across three
+# hand-maintained files. Nothing more, and it says so rather than being read as coverage.
+MS_SCRIPT="$ROOT/scripts/milestone-create.sh"
+MS_GUARD="$ROOT/hooks/scripts/permission-guard.sh"
+MS_SKILL="$ROOT/skills/harness-engineering/SKILL.md"
+ms_problems=""
+ms_checked=0
+
+# 1 · the script exists, is executable, and is NOT in hooks/scripts/ — the last of which is a real
+#     constraint rather than tidiness: the `purpose:` gate above reads any `*.sh` there declaring a
+#     purpose as a mechanism that must be registered in hooks.json, and this is not a hook.
+if [ ! -r "$MS_SCRIPT" ]; then
+  ms_problems="$ms_problems
+    scripts/milestone-create.sh does not exist or is unreadable — the route rule 11 guards is gone,
+    and rule 11 is now a rule about nothing"
+else
+  ms_checked=$((ms_checked + 1))
+  [ -x "$MS_SCRIPT" ] || ms_problems="$ms_problems
+    scripts/milestone-create.sh is not executable; it is invoked as 'bash <path>' so this is not fatal
+    at runtime, and it is asserted because a non-executable script is the shape a committed hook has
+    silently no-opped in before"
+fi
+[ -e "$ROOT/hooks/scripts/milestone-create.sh" ] && ms_problems="$ms_problems
+    hooks/scripts/milestone-create.sh exists. This is not a hook and nothing registers it, so a copy
+    there is either an orphan under the purpose gate or a mechanism pretending not to be one."
+
+# 2 · the exploitation is stated on all three surfaces, each in its own words rather than one literal
+#     copied three times — a copied sentence is one edit away from being three stale ones.
+if [ -r "$MS_SCRIPT" ]; then
+  ms_checked=$((ms_checked + 1))
+  grep -qF -- 'THIS ROUTE WORKS BECAUSE A HOLE IS OPEN' "$MS_SCRIPT" || ms_problems="$ms_problems
+    scripts/milestone-create.sh no longer says in its own header that it depends on an open hole"
+  # THE NEEDLE IS THE SHORTEST SPAN THAT FITS ON ONE LINE, and that is a constraint rather than a
+  # style call: `grep -F` is line-based and this file is prose wrapped at 100 columns, so the sentence
+  # this arm is about — "no document here may claim the raw-API route is closed" — is split across two
+  # lines in the source. The first draft of this needle carried the whole sentence and went RED against
+  # a file that says exactly what it demands. A multi-line claim needs a single-line anchor.
+  grep -qF -- 'raw-API route is closed' "$MS_SCRIPT" \
+    || ms_problems="$ms_problems
+    scripts/milestone-create.sh no longer forbids the claim that the raw-API route is closed"
+fi
+if [ -r "$MS_GUARD" ]; then
+  ms_checked=$((ms_checked + 1))
+  grep -qF -- 'AN EXPLOITATION, NOT A DESIGN' "$MS_GUARD" || ms_problems="$ms_problems
+    permission-guard.sh rule 11 no longer states that the route it guards is an exploitation"
+  grep -qF -- 'milestone-create' "$MS_GUARD" || ms_problems="$ms_problems
+    permission-guard.sh does not mention milestone-create at all; rule 11 is gone and the script is
+    guarded by nothing, which is strictly worse than never having built the route"
+fi
+if [ -r "$MS_SKILL" ]; then
+  ms_checked=$((ms_checked + 1))
+  grep -qF -- 'it is an EXPLOITATION rather than a design' "$MS_SKILL" || ms_problems="$ms_problems
+    the universal preload no longer states that the milestone route is an exploitation — this is the
+    surface every persona reads on every dispatch, so it is the one where a quiet reframing does most"
+  grep -qF -- 'unknown command "milestone" for "gh"' "$MS_SKILL" || ms_problems="$ms_problems
+    the universal preload no longer carries the measurement that makes rule 5f's remedy unexecutable"
+fi
+
+if [ "$ms_checked" -lt 4 ]; then
+  bad "milestone route — only $ms_checked of 4 surfaces were readable, so the agreement was NOT
+      asserted:$ms_problems"
+elif [ -n "$ms_problems" ]; then
+  bad "milestone route — a surface stopped saying what the route actually is:$ms_problems
+      The route reaches a write API because no permission layer reads inside a script. Rule 11's prompt,
+      not rule 5f, is the only thing standing there. A surface that stops saying so hands the next
+      reader a control that does not exist."
+else
+  ok "milestone route — the script, rule 11 and the universal preload each state that the route is an exploitation of an open hole (string agreement only; nothing here checks the hole or the script's behaviour)"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
