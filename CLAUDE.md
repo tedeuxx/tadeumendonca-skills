@@ -130,9 +130,11 @@ person can falsify it in one command instead of trusting the date.
 ## Installation (Claude Code plugin)
 
 This repo is a **Claude Code plugin + marketplace** — the native way to reuse skills across
-projects. The skill library lives in `skills/`, one directory per skill holding a `SKILL.md`, and the five
-commands a human types live in `commands/` (`autonomy on`, `autonomy off`, `new-issue`, `blueprint`,
-`sprint-retrospective`);
+projects. The skill library lives in `skills/`, one directory per skill holding a `SKILL.md`, and the
+**four** command files a human types live in `commands/` (`ls commands/` → `autonomy.md blueprint.md
+new-issue.md sprint-retrospective.md`), carrying **six** non-help typed forms — `autonomy on`,
+`autonomy off`, `new-issue`, `blueprint export`, `blueprint import`, `sprint-retrospective` — because
+`autonomy` and `blueprint` each carry modes and a bare invocation of either only prints help;
 `.claude-plugin/marketplace.json` is the catalog and
 `.claude-plugin/plugin.json` the manifest. **Nothing is published outside this git repo** — the
 marketplace is just a metadata file the consumer points at.
