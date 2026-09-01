@@ -3994,6 +3994,379 @@ delegating.
 - **`product-lead`'s absorbed ordering competence and this profile's ranking now sit one hop apart.**
   Nothing mechanical keeps them apart; the brief's direction rule is prose.
 
+## Amendment (2026-09-01, twenty-ninth) — planning gets an object; it assembles and ranks, and composition stays the owner's act (#378)
+
+**Deciders:** the owner — on #378's ratified body, **and separately on the scope widening below, ruled
+2026-09-01.** **Written by** `agents-lead` (#223 — this is a pure loop/machinery decision).
+**Pre-implementation stress test:** the #378 intake; **a second, independent lens read the built diff
+cold at `573d842`** and its three blocking findings are what the *partition-not-sequence*,
+*no-update-route-is-built* and *enumerate-the-retrospective-directory* sections below record.
+
+### The scope widening, ratified 2026-09-01 — and the wording decides more than the yes
+
+**The owner's ruling, verbatim, on #378:**
+
+> *«bom, o rito deveria sim criar a iteracao como produto ao final dela»*
+
+**«como produto ao final dela» is stronger than permission to create one, and the rite is written to
+that wording rather than to the question that was asked.** The question was *may it create the
+iteration*; the answer makes the iteration **the rite's product**. So it is a statement about the rite's
+**completion**, not about one of its steps: **a planning that ends without an iteration object has
+produced nothing.** The rite says exactly that, in its own words, before step 1.
+
+~~**ONE PART OF THIS AMENDMENT IS NOT YET RATIFIED AND MUST NOT BE READ AS IF IT WERE.**~~ **Struck
+2026-09-01 by the ruling above.** It is struck rather than deleted because it stood on a pushed head
+and a reader may have taken the flag seriously — which was its purpose. What it flagged was real and
+is worth keeping visible as a method note: #378's body said *"It does not create an iteration"*, the
+owner applied `ready` to **that** body, and what had lapsed was the bullet's **reason** (#375 open, no
+route) rather than its scope. **A lapsed reason is not a widened scope**, so the build stopped and
+asked instead of inferring the decision from what had become convenient. The ruling is the widening,
+made explicitly, and it lives on #378 rather than only here.
+
+**What this does NOT loosen, because the two acts are different objects and the rite keeps both
+guarded.** *Placement* is an **item** acquiring a milestone — rule 10, one prompt per item. *Creation*
+is the **iteration object** — rule 11, one prompt. Both remain the owner's, answered by him; the
+widening moves what the rite is **for**, not who decides.
+
+**Why this is an amendment and not a new record.** It decides *what happens before an iteration
+starts*, which is the same object as the twenty-sixth amendment's *what happens when one ends* and the
+twenty-seventh's *what may enter one while it runs*. #283's rule is one document per capability name;
+the capability is the dev loop and this document is it.
+
+### What was actually missing, and it was not a decision
+
+**Nothing here moves a decision away from the owner, and that is the whole design.** Composition was
+already his (twenty-seventh amendment, held by `permission-guard.sh` rule 10), and it stays his,
+prompt by prompt. What did not exist was the thing that **puts the decision in front of him**: the pool
+assembled, the ordering rules applied, one item at a time.
+
+Three instances, measured rather than argued:
+
+1. `skills/agents-configuration/SKILL.md` said so in its own words — *"PLANNING is genuinely unbuilt
+   and no claim is made about it."* **That sentence is struck by this slice**, in the file itself: it
+   was true when the rite did not exist and it is false the moment this merges, and it sits in the
+   universal preload every persona carries always-on.
+2. **Five `ready` `loop` items sat unmilestoned with nothing presenting them** — a real measurement,
+   dated, attributed and re-runnable rather than asserted: **taken 2026-08-31 by #378's own intake**,
+   naming **#365, #370, #371, #372, #374**. The predicate:
+
+   ```
+   gh issue list --repo <owner>/<repo> --state open --limit 200 --json number,labels,milestone \
+     --jq '[.[]|select(.milestone==null)
+             |select((.labels|map(.name)|index("ready")) and (.labels|map(.name)|index("loop")))
+             |.number]'
+   ```
+
+   **Re-run 2026-09-01 it returns SEVEN** — `[383, 378, 374, 372, 371, 370, 365]` — the same five plus
+   #378 and #383, filed since. **The two figures do not contradict each other and the difference is the
+   point:** one is a dated historical measurement of the condition that motivated the rite, the other
+   is the class's population today, and a class whose membership moves must be published as a
+   predicate rather than as a bare count. **`commands/sprint-planning.md` therefore publishes the
+   predicate and NO number, and this bullet is where the dated figure lives** — the split the copy lens
+   asked for and the one this practice already prescribes: the command file is installed by strangers
+   and states the rule, the record carries the measurement that motivated it. **The command is printed
+   here because a figure under a heading reading *measured rather than argued*, carrying neither a date
+   nor a falsifier, is precisely the failure this slice spent a round correcting elsewhere.**
+3. **The twenty-sixth amendment's rite shipped its producer and not its consumer.**
+   `commands/sprint-retrospective.md` writes per-persona proposals whose declared consumer is *"a
+   proposal the owner rules on at planning"*. `sprint-01`'s seven files have never been ruled on,
+   because there was no planning to rule in.
+
+**(3) is the one that generalises.** A rite that produces an artifact for a moment that does not exist
+is the same shape as a promise with no object — the failure the twenty-sixth amendment itself closed
+one step earlier, reappearing at the other end of the same chain.
+
+### The decision that #378 required to be made explicitly: the rite DISPATCHES the ranking
+
+**`/sprint-planning` dispatches `scrum-master` exactly once, to rank the assembled pool, and makes no
+other dispatch.** The alternative — rank in the orchestrator's context, which already holds the pool —
+is cheaper and was rejected on the argument the twenty-sixth amendment already accepts as a mechanism:
+the orchestrator has seen the whole session and is the context least able to see its own bias in an
+ordering it produces. This is that argument applied one step earlier, which is exactly how the
+twenty-eighth amendment justified the profile's existence.
+
+**It is the first dispatch of that profile.** It shipped on 2026-08-31 and had never been used.
+
+**Why the dispatch cannot leak the composition, which is what makes it safe rather than merely
+reasonable — two independent layers, neither depending on a brief being obeyed:** the profile declares
+`tools: []`, so it holds no `Bash`, no `Edit` and no dispatch; and rule 10 denies `--milestone` to
+**every** non-empty `agent_type`. Its ranking decides the order items are presented in and nothing
+else.
+
+**Read the second layer NARROWLY, because it is ACT-specific and not agent-specific, and this sentence
+is what a future reader will lean on the day the profile is given a tool.** Rule 10 keys on a flag and
+rule 11 on a script name. Measured against the head guard: `bash scripts/milestone-update.sh …` — a
+script that does not exist — drew **no decision from any layer, for a subagent as well as the
+orchestrator**, before this slice widened rule 11. **A subagent holding `Bash` reaches any spelling
+neither rule names.** What makes the dispatch safe today is the FIRST layer, and the second is a floor
+over named acts rather than a fence around the profile.
+
+**And the dispatch forces one circularity, recorded rather than left to be hit.**
+`agents/scrum-master.md` ranks against *the order of record*, which `agents-configuration` says is the
+milestone description — and at planning that description does not exist, because this rite is what
+creates it. **Resolution: at planning it ranks by the ratified rules alone (`loop` before `product`
+among the eligible, #339) and says so in its record.** The brief now names planning as a third moment
+and carries that exception, so the two surfaces agree instead of needing a reader to reconcile them.
+
+#### The ratified rules PARTITION and do not SEQUENCE — found on review, and it is the sharper half
+
+**The resolution above is necessary and was not sufficient, and the gap it left is the one that would
+have discredited the whole dispatch on its first run.** Loop-before-product is the only ordering rule
+this loop has ratified and it says nothing about two `loop` items; the pool predicate says nothing
+either. **So "rank by the ratified rules alone" determines a partition and no sequence.**
+
+**On the pool that exists, the partition is empty.** Re-derived 2026-09-01 with the pool predicate:
+**7 eligible items, every one `loop`, all in one repository, `[]` in the other.**
+
+```
+gh issue list --repo <owner>/<repo> --state open --limit 200 --json number,labels,milestone \
+  --jq '[.[]|select(.milestone==null)
+          |select((.labels|map(.name)|index("ready"))
+                  and ((.labels|map(.name)|index("product")) or (.labels|map(.name)|index("loop"))))
+          |.number]'
+```
+
+**So the first draft asked the profile to compose an order no rule determines and return it under the
+word *ratified*, from the profile built to be the bias-free one, into the field that becomes the order
+of record.** That **launders**, and laundering is strictly worse than the thing #378 refused: ranking
+in the orchestrator's context at least leaves everyone able to see whose order it is.
+
+**The decision: the intra-class sequence is a DECLARED TIEBREAK — issue number ascending, which is
+filing order — labelled as one in the record and in every per-item line it decided.** Both surfaces
+carry it and a gate arm holds both.
+
+**Rejected, with the reason, because a later reader will propose each:**
+
+- **Return the classes unordered.** The owner rules item by item and needs a stable presentation order;
+  an unordered set makes the *rite's* order the orchestrator's again, silently. Strictly worse.
+- **Ratify filing order as an ordering rule.** It is not an argument about what matters. Promoting it
+  would put a rule in the loop nobody decided, and the loop would then order by it forever.
+- **Let the profile compose and justify a sequence.** This is what was refused; it is the defect.
+
+**What the tiebreak does NOT buy:** it is arbitrary. It gives the order *known provenance*, not merit —
+and the record and the rite both say so in those words rather than letting *declared* read as *right*.
+
+#### Two consequences of dispatching at a moment the brief did not name
+
+Both were found on review, both are the same class as the circularity, and both are settled in the
+brief rather than left to the profile to improvise:
+
+- **The `### Selection` block is OMITTED at planning.** It mandates exactly one `profile:`, one
+  `stage:` and one `item:` and forbids hedging — correct for a record naming who acts next, and there
+  is nothing to select when the owner is composing a pool. A sentinel (`profile: none`) was rejected:
+  it invents a value for a field whose whole point is that it always names somebody.
+- **One act, one artifact.** The brief lands records at `docs/selection/<iteration>.md`; the rite embeds
+  the ranking verbatim in `docs/planning/<iteration>.md`. **No selection file is written for a planning
+  dispatch.** Unstated, either both are written or one is silently skipped, and only one would be read.
+
+### #378's "it does not create an iteration" is SUPERSEDED — by the owner's ruling, on a dependency that
+had already lapsed
+
+**The ruling is what supersedes it** (quoted in full at the top of this amendment); what follows is why
+the bullet was right when written and what had changed underneath it before he was asked.
+
+That bullet was written on 2026-08-31, when #375 was open and milestone creation had **no route at
+all** — measured then and unchanged now: `gh milestone --help` → `unknown command "milestone" for
+"gh"`, and `gh api` writes are denied by rule 5f. #386 merged `scripts/milestone-create.sh` and rule
+11 the same day.
+
+**So the rite PRODUCES the iteration, through that route, and it is the route's first exercise.** Rule
+11 asks the orchestrator; his answer is the verification. **Read *produces* rather than *may create*:**
+the ruling's own wording — «como produto ao final dela» — makes the object the rite's deliverable, so a
+planning that ends without one has not finished. **Nothing about that is claimed to be
+closed:** the route reaches the write API because no permission layer reads inside a script, which is
+the same blindness that makes `python3 -c "…gh api -X POST…"` reach it. The rite repeats that in its
+own text rather than relying on the script's header.
+
+**The create-before-admit ORDER rests on a missing SCRIPT, not on a control — and the first draft of
+this amendment got that wrong in the one direction that matters.** The script accepts `--description`
+at creation; the composition therefore has to be collected before the object is created, since
+`agents-configuration` says the order of record lives in that description. That much stands.
+
+~~and **nothing in this harness can amend a milestone description afterwards**. … Where the milestone
+already exists, the order of record **cannot be written at all**~~ — **STRUCK on review, before this
+ever merged, and struck rather than edited because it is the sentence that made a missing script read
+as a property of the harness.** It is refuted by the rite's own mechanism, three paragraphs above:
+5f blocks the *convenient* spelling and not the *available* one, and CREATE already depends on the
+available one. Measured against the head guard, one payload per line:
+
+```
+[ORCH]         gh api -X PATCH repos/o/r/milestones/2 -f description=x  -> deny (5f)
+[ORCH]         bash scripts/milestone-update.sh 2 --repo o/r …          -> NO decision from any layer
+[scrum-master] bash scripts/milestone-update.sh 2 --repo o/r …          -> NO decision from any layer
+```
+
+**PATCH is blocked in the same spelling POST is blocked in and reachable in the same spelling POST is
+reachable in.** The correct statement is **no update route is BUILT**; the hole is open and anyone may
+write one. Where the milestone already exists, the order of record is **not written into the milestone
+description and the reason is recorded** — the composition itself survives in full in the rite's own
+artifact, which is one more reason `agents-configuration` calls that field a weak home.
+
+**And the residual is guarded PRE-EMPTIVELY rather than left to the slice that accepts the invitation.**
+Rule 11 was pinned to the literal basename `milestone-create.sh`, so the `milestone-update.sh` this
+residual invites would have shipped a milestone write with **neither the `ask` nor the `deny`**, on a
+route indistinguishable from the sanctioned one — #365's human verification absent, with nothing saying
+so. That is ADR-0004's *"absent is not a state"* shape arriving through a file nobody had written yet.
+**Rule 11 now matches `milestone-[a-z0-9-]*.sh` in both run positions**, and the widening ships here.
+
+**A closed VERB LIST was rejected, and the reason is the whole argument for the family form.**
+`milestone-(create|update|close)\.sh` reintroduces exactly the failure the widening exists to prevent:
+the first name nobody enumerated ships unguarded, silently. The family form fails the other way — a
+read-only `milestone-report.sh` prompts — and **a prompt on a read is legible where an unguarded write
+is not.** One pre-existing ALLOW assertion asserted the opposite property and is **struck and
+re-authored in place**, with that reasoning written at the assertion rather than in a commit message,
+because changing a test to fit new code is the shape to be most suspicious of.
+
+### The planning artifact is a tracked file, and it is NOT the object this loop specified
+
+`agents-configuration` specifies the planning artifact as **an iteration Issue** — *"one Issue per
+iteration, opened by the owner at planning, whose body is the ordered list of the items admitted"* —
+and that object was never built. The same file already calls the milestone description a **weak home**
+for the order.
+
+**This rite writes `docs/planning/<iteration>.md` and that is a THIRD home, not the specified one.** It
+is better than the milestone description in one way — versioned, diffable, in a diff the gate reads —
+and worse in one: nothing else in the loop reads it either. **The specified object remains owed**, and
+the rite says so in the section that writes the file, so a reader cannot mistake one for the other.
+
+### What this deliberately does NOT do
+
+- **It does not estimate.** #378 scoped it out and the scoping is kept: a profile that ranks a pool
+  and also weighs it grades its own ruler, which is the reason `scrum-master` is excluded from the
+  estimator sets in the first place. **The consequence is stated in both files rather than discovered:**
+  `/autonomy`'s preflight refuses entry while an item lacks `sp:N`, so a freshly composed iteration
+  ordinarily refuses the first drain, and the rite closes by listing exactly which items will cause it.
+- **It does not open work.** A retrospective proposal becomes an Issue only on the owner's ruling, and
+  it is filed with no milestone like everything else (twenty-seventh amendment), then admitted by the
+  same prompted route as any other item.
+- **It does not close an iteration.** No command available to this loop can read whether a milestone is
+  open or closed.
+- **It does not handle a CARRY-OVER, and it does not pretend to.** Step 1 assembles `milestone == null`,
+  so an open item still carrying the last iteration's milestone is invisible to the rite entirely. **The
+  class is reachable and its population is a moving number, so the rite publishes the predicate and no
+  count** — it is populated whenever an iteration does not fully drain, which is the ordinary case
+  planning exists for. The corrective act exists and is the owner's (`--remove-milestone`, which rule 10
+  deliberately does not match). Closing it needs a second assembly pass and a rule for which iteration a
+  carried item returns to, and that is its own slice.
+- **It does not see an Issue carrying no routing label.** Same shape, same treatment: the predicate is
+  published and no vacuity is asserted.
+
+#### A VACUITY CLAIM IS THE WRONG SHAPE, and both bullets above carried one until the gate refuted it
+
+**Both bullets shipped saying the class was *vacuous today*, with the predicate printed beside the
+claim, and one of them was already false at the head that published it.** An Issue filed at 16:11:32Z
+on 2026-09-01 in the product repository carried only `reader-facing` — no routing label — so the
+negated predicate returned one member, and it did so **before** the head asserting emptiness was
+pushed. **The falsifier printed beside the claim is what refuted the claim.**
+
+**That is not staleness and the distinction is the whole of the correction.** A stale figure was true
+once; this was false when written. And it is the same defect this very amendment corrects under *What
+was actually missing, and it was not a decision*, where a published `five` carried neither a date nor a
+falsifier — **the second instance in one slice, which is what makes it a shape rather than a slip.**
+
+**Why re-measuring was rejected as the fix.** The class re-emptied within the hour (the missing label
+was applied by hand), so a fresh measurement would have republished *vacuous* and been correct for
+exactly as long as nobody forgets a label again. **One forgotten label falsifies a vacuity claim**, so
+the claim is a promise that the world stays still, which is not a promise a record may make.
+
+**What replaces it:** the **property** — an item in this class is dropped by the rite without a word —
+plus the predicate that reads who is in the class **now**. A count would need a date and a re-run; a
+property needs neither. **The general rule this books: publish a predicate for a class whose membership
+moves, and reserve dated counts for measurements of things that do not.**
+
+### The SECOND input is enumerated, not typed — the rite's own rule, applied to itself
+
+**Found on review: the rite stated *"never type a milestone title into a query"* and then addressed its
+second input by a hand-typed directory one screen later.** The proposals live in
+`docs/retrospective/<previous-iteration>/`, and *which* iteration is not derivable — no command here
+reads a milestone's `state`. **A mistyped directory makes the glob match nothing and the rite reports
+"0 findings", which is exactly what an honest empty retrospective looks like.** A plausible zero, from
+a falsifier that fails open, reproducing the very failure the rite exists to close — a producer whose
+output has no consumer — through its own second door on the same run.
+
+**The rule now applies to both inputs: `ls -d docs/retrospective/*/`, select from what came back, and
+if the selected directory holds zero `## Finding` sections, say it as a finding about the handoff
+rather than reporting a count.** The cost of the second half is a false alarm on a genuinely empty
+retrospective; that is the direction worth failing in, because an empty retrospective is itself worth
+saying out loud.
+
+### The VERSION, ruled on rather than defaulted to
+
+**By this repository's own published criterion this is a MINOR** — `CLAUDE.md`: *"**minor** — additive:
+a new skill/command, or substantial new capability."* The first draft of the PR body stated that
+criterion and concluded PATCH, which is the criterion arguing against the conclusion in the same
+sentence.
+
+**What actually happens is mechanical and is not a decision anyone takes on this PR.**
+`version-main.yml` bumps **patch unconditionally** on every push to `main`; this repository has no
+`semver:` label path, `release.yml` is `workflow_dispatch` only, and `Bash(gh workflow run:*)` is
+denied. **So the merge publishes a PATCH whatever any PR body says.** Declaring PATCH here is therefore
+a description of the mechanism, not a ruling — and the failure mode of dressing a default as a decision
+is that the MINOR never gets cut.
+
+**It is absorbed by the deliberate bump the owner cuts once the whole reconfiguration lands** (*«ao
+final dessa reconfiguracao completa vamos gerar o major»*), and a MAJOR subsumes an outstanding MINOR.
+**If that bump does not happen, this slice will have shipped a MINOR-class change under a patch tag**,
+and the record says so here rather than leaving it to be reconstructed from the tag history.
+
+### Counter-argument, and the cost accepted
+
+**The strongest case against building this at all is #378's own carried hypothesis:** that what was
+missing is the assembly, rather than the owner simply not having sat down to plan. The three instances
+above are consistent with both readings. **The rite is worth building on the first and cheap on the
+second** — it is a typed command, costing nothing until invoked — which is why it was built rather than
+argued about further.
+
+**What it costs, which is real:** N admitted items is N permission prompts, plus one for creating the
+iteration. That is the price the twenty-seventh amendment already priced and accepted, arriving in
+bulk at the one moment the owner is present by construction.
+
+### Criterion 10 on this slice — CLOSED BY A RULING, not passed, and the ruling is the ORCHESTRATOR'S
+
+**Who decided, first, because that is the part this repository blocks on hardest.** The ruling that a
+two-count `README.md` edit does not warrant a `product-lead` dispatch was made by **the orchestrator**,
+in a dispatch brief. **It is not the owner's. He was never asked and has not spoken on it.**
+
+**A round of this PR recorded it as the owner's, and that was false.** It is corrected here rather than
+quietly reworded, because *who decided* is exactly the class of claim this loop treats as blocking: a
+ruling attributed to the owner carries authority he never lent it, and **it is unfalsifiable from inside
+the artifact** — a reader in November has no way to tell a real ratification from a misattributed one.
+The falsifier is external and cheap: `gh issue view 378 --json comments` and `gh pr view 388 --json
+comments` are where his words are, and neither carries this one.
+
+**What the ruling closes, stated exactly: the DISPATCH, not the CHECK.** The gate's own reading is
+`CLOSED-BY-RULING`, never `PASSED`, and the three parts of it are separate:
+
+- **The trigger fired.** `README.md` and `CLAUDE.md` are in the diff and the reader-facing rule fails
+  closed, so criterion 10 was live.
+- **No `product-lead` verdict on this diff exists.** The `dispatch-metrics` entries showing it ran are
+  on the **Issue**, at intake — a different object from a lens verdict on a diff.
+- **The gate found the copy clean by its OWN measurement** — the counts in both documents are the ones
+  it re-derived. That is a different fact from *the copy lens having run*, and the two must not be
+  collapsed: one is a gate checking numbers, the other is a persona judging published claims.
+
+**So the honest form is that a check was WAIVED by the orchestrator on a size judgement, with the gate's
+independent read recorded beside it.** If that waiver is wrong, the correction is the owner's and the
+route is a `product-lead` dispatch on the diff, relayed verbatim under a `copy-verdict` fence.
+
+### What nothing enforces, said before any green is read
+
+**Nothing fires this rite, nothing observes that it ran, and nothing observes that it ran correctly.**
+No hook in `hooks/scripts/` reads the queue — every `gh issue` call there is a write path — and a hook
+receives one `cwd` while an iteration is two milestone objects in two repositories paired by a
+hand-typed title. A planning skipped, a planning over a mistyped title, and a planning that presented
+three items instead of thirty are indistinguishable from the tracker.
+
+**And nothing observes the dispatch.** `dispatch-metrics-stop.sh` reads an Issue number out of the
+branch name and a planning branch need not carry one; the profile holds no tools, so it leaves no other
+trace. **The one-item-at-a-time rule is checkable by reading the artifact's rulings table and by
+nothing else.**
+
+- **The same phrase-keyed coupling as the last seven amendments.** `inventory-counts.test.sh`'s three
+  planning arms key on sentences across three files; whoever rewrites one of them will meet a red
+  naming the clause. That is presence of a rule and never obedience to one, and the arms' own header
+  says so.
+
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
   [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) · the DoD is

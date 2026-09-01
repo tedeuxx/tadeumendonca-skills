@@ -53,6 +53,10 @@
 # `milestone` sub-object returned by `gh issue list --json milestone` carries four keys and no `state`),
 # and does not compose an iteration. It creates one object and prints what the API returned.
 #
+# It also does not take a description INLINE any more. `--description <text>` is gone; the only route
+# is `--description-file <path>`. The reason is at the option itself rather than here, because that is
+# where someone re-adding the flag would be standing.
+#
 # ── AN UNSETTLED QUESTION THAT COULD MAKE THIS FILE UNNECESSARY ────────────────────────────────
 # Whether `gh issue edit --milestone "<new title>"` CREATES a missing milestone is NOT measured. `--help`
 # says "by name", which is a READ of documentation and not a measurement. It could not be measured from
@@ -63,11 +67,14 @@ set -euo pipefail
 
 usage() {
   printf '%s\n' \
-    'usage: bash scripts/milestone-create.sh <title> [--repo <owner>/<repo>] [--description <text>]' \
+    'usage: bash scripts/milestone-create.sh <title> [--repo <owner>/<repo>] [--description-file <path>]' \
     '' \
     'Creates ONE milestone. The repo defaults to the one the current directory belongs to.' \
     'This is the only sanctioned milestone-creation route in this harness; see the header of' \
-    'this file for why it exists and what hole it depends on.' >&2
+    'this file for why it exists and what hole it depends on.' \
+    '' \
+    'THE DESCRIPTION ARRIVES BY FILE AND HAS NO INLINE FORM. There is no --description <text>: it' \
+    'was REMOVED rather than left beside the file route, so no caller can pick the hazard.' >&2
 }
 
 [ "$#" -ge 1 ] || { usage; exit 2; }
@@ -79,7 +86,24 @@ description=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --repo)        [ "$#" -ge 2 ] || { usage; exit 2; }; repo="$2"; shift 2 ;;
-    --description) [ "$#" -ge 2 ] || { usage; exit 2; }; description="$2"; shift 2 ;;
+    # THE DESCRIPTION ARRIVES BY FILE, AND THE INLINE FORM IS GONE RATHER THAN DEPRECATED (#378).
+    # This script shipped with `--description <text>` (#375) and `/sprint-planning` was written to
+    # call it that way. Measured, one Bash call, the argument double-quoted exactly as that step
+    # wrote it: a backtick inside it is EXECUTED, not eaten, and `$` expands the same way. The text
+    # being composed is not trusted — both repositories are public (`gh repo view --json isPrivate`
+    # -> false, twice), so the Issue titles the rite reads into that body are attacker-supplied. And
+    # the corruption is unrecoverable from here: the description IS the order of record and no update
+    # route is built, so a mangled one is a browser delete-and-recreate.
+    #
+    # KEEPING BOTH FLAGS WOULD HAVE FIXED THE CALLER AND NOT THE SCRIPT. A caller may always pick the
+    # convenient spelling, and the next one will; the repo's own `/shell` rule is that --body-file has
+    # NO per-case exception. So the inline form is deleted. `inventory-counts.test.sh` asserts its
+    # ABSENCE, not merely the presence of the file route, because "unused" and "gone" are different
+    # claims and only the second one is a control.
+    --description-file)
+                   [ "$#" -ge 2 ] || { usage; exit 2; }
+                   [ -r "$2" ] || { printf 'description file not readable: %s\n' "$2" >&2; exit 2; }
+                   description="$(cat -- "$2")"; shift 2 ;;
     -h|--help)     usage; exit 0 ;;
     -*)            printf 'unknown option: %s\n' "$1" >&2; usage; exit 2 ;;
     *)             [ -z "$title" ] || { printf 'more than one title given\n' >&2; exit 2; }

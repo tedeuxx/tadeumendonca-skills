@@ -197,6 +197,12 @@ list, and he has said repeatedly that a decision list makes him rebuild the cont
 its vocabulary, its estimator sets per issue type and the median-of-isolated-dispatches rule live. Read
 them there; this is the gate, not a second definition.
 
+**And the iteration this preflight reads was composed by `/sprint-planning`, which deliberately produces
+no `sp:N`.** So a freshly-composed iteration ordinarily refuses the first drain on the estimate class.
+That is the two rites agreeing rather than colliding: the planning rite closes by **listing** the
+admitted items carrying no `sp:N`, so what this preflight refuses on is already on record when it
+refuses.
+
 **Two things this preflight is not.** It is **not a mid-drain check** — a pendency discovered *during* the
 drain escalates immediately and the item is parked while the others continue, which is a different rule
 with a different reason (*"todo momento que estiver atuando AFK em dreno e tiver uma pendencia HITL voce
@@ -445,6 +451,20 @@ git cat-file -e 5cfea0b:commands/sprint-retrospective.md
 **Two mentions and no object is the exact failure `closure-artifact-guard.sh` was built for** — a
 promise resolves in prose and not in the tree — and it survived here for a month because the promise
 reads like a description of something that already runs.
+
+### The handoff after the ceremonies has an object too — `/sprint-planning` (#378)
+
+**The planning handoff below is no longer a phrase.** `/tadeumendonca-skills:sprint-planning
+<iteration>` assembles the next iteration's candidates — the eligible unmilestoned work in both
+repositories plus the proposals `/sprint-retrospective` just produced — has them ranked by a context
+that did not run this drain, and presents them to the owner **one item at a time**.
+
+**It runs AFTER the retrospective, not instead of it**, because the retrospective's proposal files are
+one of its two inputs. **It composes nothing on its own**: every milestone write is the owner answering
+a `permission-guard.sh` prompt (rule 10 for an admission, rule 11 for creating the iteration).
+
+**Nothing fires it either**, for the reason stated one paragraph up: no layer here reads the queue. Read
+this as the drain naming where it hands off, never as a chain that runs itself.
 
 **HALF the promise now has an object and half still does not.** `/sprint-retrospective` is the **method** half:
 each persona that ran, consulted alone, reasoning from its own artifacts. The **sprint review** half —

@@ -1133,7 +1133,21 @@ carried over), not a gate.
   2026-08-29 (#356). **The review half is still not built**, on grounds that survive the new capability
   intact — a route list rots, and a looker's finding has no ruler — recorded in
   `commands/sprint-retrospective.md`'s own last section rather than here, so the deferral sits beside the rite
-  it defers. **PLANNING is genuinely unbuilt and no claim is made about it.**
+  it defers. ~~**PLANNING is genuinely unbuilt and no claim is made about it.**~~ **Struck 2026-09-01
+  (#378) — PLANNING IS BUILT, and this sentence is struck IN THE PRELOAD because that is where it did
+  its damage.** `commands/sprint-planning.md` is a typed rite the owner invokes: it assembles the
+  eligible unmilestoned work in both repositories plus the previous iteration's retrospective
+  proposals, has a tool-less profile rank it, presents each item alone for his ruling, and **produces
+  the iteration object** — his wording, *«o rito deveria sim criar a iteracao como produto ao final
+  dela»*, so a planning that ends without one has produced nothing. **Composition stays his**: every
+  admission is a `permission-guard.sh` rule 10 prompt and creating the milestone is rule 11's.
+  **Struck rather than deleted because this file is loaded on every dispatch** — a persona that read
+  *"planning is unbuilt"* would not reach for a rite that exists, and the strike is what tells it the
+  claim changed rather than leaving the absence to be inferred. **What has NOT changed: nothing fires
+  it.** No hook in `hooks/scripts/` reads the queue and a hook sees one `cwd` while an iteration is two
+  milestone objects in two repositories, so by this loop's own test the rite is **not engineered** —
+  the same limit the retrospective half carries, and the reason *"the closing ceremonies"* still reads
+  as one built and one owed.
 - **Anything that observes an iteration.** No hook reads the queue: every `gh issue` call in
   `hooks/scripts/` is a write path. This section is a rule the loop follows, and a gate asserts only that
   the rule is **written**, never that a session obeyed it.

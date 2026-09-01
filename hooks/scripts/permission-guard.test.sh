@@ -1589,9 +1589,34 @@ check_agent ASK  '' "a -c wrapper does not walk around it" 'bash -c "bash script
 check_agent DENY 'tadeumendonca-skills:agents-lead'  "a persona does not create one" 'bash scripts/milestone-create.sh sprint-02'
 check_agent DENY 'tadeumendonca-skills:developer'    "not even the builder"          'bash scripts/milestone-create.sh sprint-02'
 
+# ── THE FAMILY, NOT THE ONE FILE (#378) ────────────────────────────────────────────────────────────
+#
+# THE RULE NOW MATCHES `milestone-[a-z0-9-]*.sh`, AND THESE ARE THE ASSERTIONS THAT MAKE THE WIDENING
+# REAL RATHER THAN ASPIRATIONAL. Measured before it: `bash scripts/milestone-update.sh 2 --repo o/r`
+# drew NO decision from any layer, for a subagent as well as the orchestrator — a milestone write with
+# neither the ask nor the deny, on a route indistinguishable from the sanctioned one. The script does
+# not exist; the residual `/sprint-planning` books is what invites it, so the guard is widened BEFORE
+# the slice that would write it rather than after.
+check_agent ASK  '' "an unwritten sibling is already guarded"     'bash scripts/milestone-update.sh 2 --repo o/r'
+check_agent DENY 'tadeumendonca-skills:agents-lead' "and denied to a persona" 'bash scripts/milestone-update.sh 2 --repo o/r'
+check_agent ASK  '' "any verb in the family, not a known list"    'bash scripts/milestone-set-description.sh 2'
+
 # THE ALLOW HALF — the boundaries the pattern could plausibly have swallowed.
 check_agent ALLOW '' "a message ABOUT the file is not the act" 'git commit -m "add scripts/milestone-create.sh"'
-check_agent ALLOW '' "a similarly-named script is not it"      'bash scripts/milestone-create-notes.sh x'
+# ~~check_agent ALLOW '' "a similarly-named script is not it" 'bash scripts/milestone-create-notes.sh x'~~
+#
+# STRUCK AND RE-AUTHORED, NOT DELETED, BECAUSE THE WIDENING DELIBERATELY REVERSES WHAT IT ASSERTED.
+# It asserted that a script whose basename merely EXTENDS `milestone-create` is not the act — true of a
+# literal basename and false of a family. Changing an assertion to fit new code is the shape to be most
+# suspicious of, so the reason is written here rather than in a commit message: the alternative to the
+# family form is a closed VERB LIST (`milestone-(create|update|close)\.sh`), and a verb list
+# reintroduces exactly the failure the widening exists to prevent — the first name nobody enumerated
+# ships unguarded, silently. The family form's cost is the opposite direction and it is loud: a
+# read-only `milestone-report.sh` PROMPTS. A prompt on a read is legible; an unguarded write is not.
+check_agent ASK   '' "a similarly-named script IS the family now" 'bash scripts/milestone-create-notes.sh x'
+# AND THE PATTERN IS STILL BOUNDED — this is what stops the family form being read as "anything under
+# scripts/". A name that does not begin `milestone-` is untouched, whatever it does.
+check_agent ALLOW '' "the family is bounded by the prefix"     'bash scripts/iteration-notes.sh x'
 check_agent ALLOW '' "reading the file is a read"              'cat scripts/milestone-create.sh'
 check_agent ALLOW '' "grepping it is a read"                   'grep -n purpose scripts/milestone-create.sh'
 check_agent ALLOW '' "staging it is not running it"            'git add scripts/milestone-create.sh'

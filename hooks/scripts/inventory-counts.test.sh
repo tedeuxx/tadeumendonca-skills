@@ -426,6 +426,12 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # typed for the reason the Issue itself raised as an open question: an iteration drained by HAND never
 # reaches the drain's terminal condition, so the fallback route has to be a human typing an iteration
 # name — and an iteration name is an argument, which is what `argument-hint` exists for.
+# Then 5 → 4 on #368, when `autonomy-on` and `autonomy-off` became one `autonomy on|off` — the one time
+# this literal has moved DOWN, and the reason the comment records both directions rather than a history
+# of additions. Then 4 → 5 on #378, when `commands/sprint-planning.md` shipped the planning rite. It is
+# typed for the same reason `sprint-retrospective` is and for one more: at planning the iteration does
+# not exist yet, so there is nothing in the tracker a default could be derived FROM — the title is
+# supplied by the human or the rite has no subject.
 #
 # THE ASSERTION IS NOT WEAKER FOR HAVING BEEN BUMPED, and that is the whole reason it is a pinned
 # literal rather than a `-ge`. It exists to catch the ACCIDENTAL root command — a skill dropped one
@@ -441,10 +447,10 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # So the failure this now catches is a LIBRARY SKILL LANDING IN `commands/` — where it is typed-only,
 # never matched, and absent from every count and table in this file.
 root_cmds=$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
-if [ "$root_cmds" -eq 4 ]; then
-  ok "commands/ root — exactly four owner-typed commands (autonomy, new-issue, blueprint, sprint-retrospective), as the docs enumerate"
+if [ "$root_cmds" -eq 5 ]; then
+  ok "commands/ root — exactly five owner-typed commands (autonomy, new-issue, blueprint, sprint-retrospective, sprint-planning), as the docs enumerate"
 else
-  bad "commands/ root — $root_cmds file(s); the docs enumerate four owner-typed commands (autonomy, new-issue, blueprint, sprint-retrospective).
+  bad "commands/ root — $root_cmds file(s); the docs enumerate five owner-typed commands (autonomy, new-issue, blueprint, sprint-retrospective, sprint-planning).
       A library skill belongs in skills/<name>/SKILL.md — under commands/ it is absent from every count
       and table here, and from the per-family breakdown a reader actually opens."
 fi
@@ -2054,7 +2060,7 @@ skill_stem() {
   esac
 }
 
-ARG_HINT_ALLOWED="autonomy new-issue blueprint sprint-retrospective"   # the four the OWNER types; a model-invoked skill has no typed argument
+ARG_HINT_ALLOWED="autonomy new-issue blueprint sprint-retrospective sprint-planning"   # the five the OWNER types; a model-invoked skill has no typed argument
 
 # The frontmatter block, exclusive of its `---` fences. Empty for a file that has none, which is what
 # the presence assertion below reads.
@@ -3741,7 +3747,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=45
+BP_HIGH_WATER=46
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
@@ -7370,6 +7376,452 @@ elif [ -n "$ms_problems" ]; then
       reader a control that does not exist."
 else
   ok "milestone route — the script, rule 11 and the universal preload each state that the route is an exploitation of an open hole (string agreement only; nothing here checks the hole or the script's behaviour)"
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+# THE PLANNING RITE, AND THE THREE SURFACES THAT HAVE TO AGREE ABOUT IT (#378).
+#
+# WHY IT EXISTS. `/agents-configuration` said in its own words that "PLANNING is genuinely unbuilt and
+# no claim is made about it", while `commands/sprint-retrospective.md` produced per-persona proposals
+# whose declared consumer was "a proposal the owner rules on at planning". The producer shipped and the
+# consumer did not, which is the same shape as the promise #355 closed one rite earlier.
+#
+# WHAT THESE ARMS ASSERT AND WHAT THEY CANNOT — the same sentence as every rite arm above, and it is
+# not boilerplate here. They assert the rite's rules are WRITTEN. THEY CANNOT OBSERVE THAT A PLANNING
+# RAN, that it presented one item at a time, that `scrum-master` was dispatched at all, or that the
+# owner ruled on anything. Nothing in hooks/scripts/ reads the queue; a hook receives one `cwd` while
+# an iteration is two milestone objects in two repositories paired by a hand-typed title. There is no
+# layer that could hold any of it, and this block must never be cited as if there were.
+#
+# WHY THE "NOTHING PLACES" NEEDLES ARE THE LOAD-BEARING ONES. This rite drives the two acts the loop
+# guards hardest — creating an iteration (rule 11) and admitting an item to one (rule 10) — and both
+# are held by a PROMPT that reaches the owner and nobody else. A revision that quietly turned "assemble
+# and present" into "compose" would not redden a permission test: the guard would still ask, and the
+# asking would still be answered. What it would change is who DECIDED, which only the rite's own text
+# records. So the clauses saying it composes nothing are gated, and the ones saying it estimates
+# nothing are gated beside them, because the estimate gap is what the next drain refuses on.
+#
+# EACH NEEDLE IS ONE CLAUSE AND EACH WAS VERIFIED WITH `grep -c -F` BEFORE BEING WRITTEN HERE (all
+# returned 1). Two of them were re-cut after returning 0: this file wraps at 100 columns and a needle
+# spanning a wrap matches nothing while reading exactly like absence — the failure `abf035c` already
+# paid for once on the milestone arm.
+PLAN_CMD="$ROOT/commands/sprint-planning.md"
+PLAN_DRAIN="$ROOT/commands/autonomy.md"
+PLAN_SM="$ROOT/agents/scrum-master.md"
+
+# ── 1 · the rite states what it does, what it refuses to do, and every limit it ships with ────────
+plan_missing=""
+if [ ! -r "$PLAN_CMD" ]; then
+  bad "planning rite — commands/sprint-planning.md is not readable, so NOTHING about the rite was
+      asserted. The drain's handoff and the retrospective's proposals both point at this file; without
+      it, planning is a promise again and the proposals have no consumer, which is the state #378 was
+      filed to end."
+else
+  for plan_needle in \
+    '**It ASSEMBLES and RANKS. It does not PLACE.**' \
+    'dispatches `scrum-master` exactly once, to rank the assembled pool.' \
+    '**Why dispatching it cannot leak placement, which is the property that makes this safe.**' \
+    'nothing to rank against and the instruction is circular.' \
+    '**One question at a time. No multiple choice. No decision list.**' \
+    '**DROP means withhold, never close**' \
+    'Never type a milestone title into a query' \
+    'bash scripts/milestone-create.sh "<iteration>" --repo' \
+    'may claim the raw-API route is closed.' \
+    '**It does not estimate.** No `sp:N` is produced' \
+    'will ordinarily refuse the first drain**.' \
+    '**This is NOT the iteration Issue' \
+    '**Nothing fires it.** No hook in `hooks/scripts/` reads the queue' \
+    '**Nothing observes that it ran, or that it ran correctly.**' \
+    '**The count ships with the command that produces it, or not at all.**' \
+    '**ENUMERATE, then select — the same discipline step 1 states for milestones' \
+    'second layer is ACT-specific, not agent-specific' \
+    '**They partition. They do not sequence.**' \
+    'is a DECLARED TIEBREAK and is labelled as one: issue number ascending,' \
+    '- **The `### Selection` block is OMITTED at planning.**' \
+    '- **The record lands in ONE file and it is not `docs/selection/`.**' \
+    'no update route is built. The same hole is open' \
+    '**If 4a fails after the human has approved it, STOP. Do not enter 4b.**' \
+    '**This rite costs a branch, a PR and a gate pass**' \
+    'is NOT `hooks/scripts/preflight.sh`.**' \
+    '- **AN ITEM CARRIED OVER FROM THE PREVIOUS ITERATION.**' \
+    '- **AN ISSUE CARRYING NO ROUTING LABEL.**' \
+    "### THE ITERATION IS THIS RITE'S PRODUCT, and that is a completion condition rather than a step" \
+    'iteration object has produced nothing' \
+    'bom, o rito deveria sim criar a iteracao como produto ao final dela' \
+    'A vacuity assertion is the wrong SHAPE for this claim' \
+    '**One branch is exempt, and naming it is what stops a legitimate outcome reading as a violation' \
+    '**If NOTHING was admitted, 4a does not run and the rite has still finished.**'
+  do
+    grep -qF -- "$plan_needle" "$PLAN_CMD" || plan_missing="$plan_missing
+    missing: \"$plan_needle\""
+  done
+  if [ -n "$plan_missing" ]; then
+    bad "planning rite — a load-bearing clause left commands/sprint-planning.md:$plan_missing
+      Each needle is ONE clause and answers for itself:
+        ASSEMBLES        — the rite's whole boundary. Composition is the owner's act (#365); a rite that
+                           reads as composing has taken a decision nothing in the tracker will attribute.
+        DISPATCHES       — the ranking is NOT done in the orchestrator's context, which is #378's stated
+                           condition for building this rite at all. Dropping it silently returns the
+                           ordering to the one context that saw the whole session.
+        CANNOT LEAK      — why that dispatch is safe: the profile holds tools: [] and rule 10 denies
+                           every non-empty agent_type. Two layers, neither depending on a brief.
+        CIRCULAR         — scrum-master ranks against the order of record, and at planning the order of
+                           record does not exist yet. Unstated, the next reader resolves it by inventing
+                           an order, which is the one thing the dispatch exists to prevent.
+        ONE QUESTION     — a standing owner constraint, broken before. A batch of admissions is the
+                           decision list he has repeatedly said makes him rebuild the context each time.
+        DROP             — an Issue he opened is never closed on a rite's advice; DROP withholds.
+        NEVER TYPE       — a milestone name that matches nothing returns empty with exit 0, which is
+                           indistinguishable from a drained pool (rule 1).
+        CREATE ROUTE     — the one sanctioned milestone write. Losing the line loses the only route the
+                           rite has, and the act has no gh subcommand to fall back to.
+        RAW-API          — that route reaches the write API because no layer reads inside a script. A
+                           rite that stops saying so hands the reader a control that does not exist.
+        NO ESTIMATE      — #378 scoped estimation out; a rite that started estimating would grade the
+                           pool it ranked.
+        REFUSE THE DRAIN — the consequence of the line above, said where it lands rather than discovered
+                           at the drain's door.
+        NOT THE ISSUE    — the specified planning artifact (an iteration Issue) is still unbuilt; this
+                           file is a third home for the order and must not read as the specified one.
+        NOTHING FIRES /  — the two disclaimers. This rite has no enforcement anywhere, and a disclaimer
+        NOTHING OBSERVES   trimmed as verbose leaves a rule that READS as enforced.
+      The eleven below were added at the first review round, each closing a defect that had SHIPPED in
+      the first draft rather than a hypothetical:
+        COUNT+COMMAND    — the first draft published a bare `five` that was 7 on its own date. This
+                           repo's own rule is that a number ships with its command or not at all, and
+                           the slice publishing the rule broke it.
+        ENUMERATE        — the retrospective directory was hand-typed one screen after the rite states
+                           enumerate-then-select for milestones. A wrong name yields "0 findings", which
+                           is what an honest empty retrospective looks like: a falsifier failing open.
+        ACT-SPECIFIC     — "two independent layers" is true and narrower than it reads. Rule 10 keys on
+                           a flag and rule 11 on a script name; a subagent holding Bash reaches any
+                           spelling neither names. The safety today is `tools: []`, layer one.
+        PARTITION /      — loop-before-product does not order two `loop` items, and the live pool is
+        TIEBREAK           7 items of one class. Without these two clauses the profile must compose a
+                           sequence and return it under the word "ratified" — laundering an invented
+                           order through the profile built to be the bias-free one, which is strictly
+                           worse than ranking in the orchestrator's context.
+        SELECTION        — `### Selection` mandates one profile, one stage, one item and forbids
+                           hedging. Nothing is selected at planning, so the field has no honest value.
+        ONE FILE         — the brief lands records in docs/selection/ and the rite embeds the ranking in
+                           docs/planning/. Unstated, either both are written or one is silently skipped.
+        NO UPDATE ROUTE  — the first draft called CREATE-then-ADMIT 'forced' because 'nothing can amend
+                           a milestone description'. Measured false: PATCH is blocked in the spelling
+                           POST is blocked in and reachable in the spelling POST is reachable in. The
+                           order rests on no script existing, not on a control.
+        4A FAILS         — if creation fails after the human approved it, entering 4b issues N
+                           admissions against a milestone that does not exist.
+        COSTS            — the rite costs a branch, a PR and a gate pass, and its tracker writes are
+                           live while its artifact is not.
+        PREFLIGHT        — this repo ships a hook literally named preflight.sh which has no opinion
+                           about estimates; the word here names a rule a session follows.
+        CARRIED OVER /   — the two classes step 1's predicate drops silently. Both vacuous at head and
+        NO ROUTING LABEL   both stated in advance, which is what that list is for.
+      The three below arrived with the owner's 2026-09-01 ruling and are one clause split three ways,
+      because the WORDING is what is load-bearing and a paraphrase of it would pass a looser needle:
+        PRODUCT          — «como produto ao final dela». The iteration object is what the rite PRODUCES,
+                           not something it is permitted to create along the way. Losing this heading
+                           turns a completion condition back into an optional final step.
+        PRODUCED NOTHING — the operative consequence: a planning that ends without an iteration object
+                           has no deliverable. It is the half a reader acts on.
+        THE QUOTE        — his sentence, verbatim. The ruling is stronger than the yes that was asked
+                           for, and only the original wording carries that; a summary of it does not.
+        VACUITY SHAPE    — added at the gate's round. Two bullets published 'vacuous today' beside the
+                           predicate that refuted one of them at the head that shipped it. Re-measuring
+                           was REJECTED as the fix: the class re-emptied within the hour, so a fresh
+                           count would have been correct until the next forgotten label. The clause
+                           records that a vacuity claim is the wrong SHAPE — publish the predicate for
+                           a class whose membership moves, and reserve dated counts for what does not.
+        EMPTY BRANCH     — added at the copy lens's round. The completion condition says a planning
+        (x2)               ending without an iteration object has produced nothing, and step 3 permits
+                           defer/drop on every item — so the owner admitting NOTHING is a legitimate
+                           outcome that would otherwise read as a violated completion condition. Two
+                           needles because the exemption and the instruction live in two sections and
+                           either alone leaves the other reading as absolute."
+  else
+    ok "planning rite — the rite states its boundary, that the iteration is its PRODUCT rather than a step (in the owner's own words), its dispatch and why that dispatch cannot place work (and how narrowly), the circularity planning forces on the ranking, that the ratified rules partition rather than sequence and what the tiebreak is, the one-at-a-time rule, enumerate-then-select on BOTH inputs, the milestone route with the hole it depends on and the update route that is merely unwritten, what happens when creation fails, its own cost, that it produces no estimate and which preflight that names, both of its disclaimers, and the two classes it cannot see"
+  fi
+fi
+
+# ── 2 · the drain names the rite it hands off to, and agrees about the estimate gap ───────────────
+#
+# THE DRAIN IS WHERE A READER LEARNS THE RITE EXISTS. `/autonomy on`'s terminal condition is the one
+# place that says what happens after exhaustion, and it promised "the planning handoff" as a phrase for
+# five days with nothing in the tree to name — the same shape as the plural "closing ceremonies" #355
+# closed. The second needle is the agreement rather than the pointer: the drain refuses on `sp:N` and
+# the rite produces none, so the two either say that in both files or one of them is lying by omission.
+if [ ! -r "$PLAN_DRAIN" ]; then
+  bad "planning rite — commands/autonomy.md is not readable; the pointer from the file that reaches the
+      rite's trigger could not be checked, so the handoff is unasserted in both directions."
+else
+  plan_drain_missing=""
+  for plan_dneedle in \
+    '/sprint-planning` (#378)' \
+    'It runs AFTER the retrospective, not instead of it' \
+    'ordinarily refuses the first drain on the estimate class.'
+  do
+    grep -qF -- "$plan_dneedle" "$PLAN_DRAIN" || plan_drain_missing="$plan_drain_missing
+    missing: \"$plan_dneedle\""
+  done
+  if [ -n "$plan_drain_missing" ]; then
+    bad "planning rite — the drain no longer routes to the planning rite correctly:$plan_drain_missing
+      The drain is where a reader learns the rite exists at all — nothing fires it. And the ordering
+      matters: the retrospective's proposals are one of the planning rite's two inputs, so a planning
+      run first reads an empty second input and nobody would notice. The estimate clause is the
+      agreement between the two files: the drain refuses on sp:N and the rite deliberately makes none."
+  else
+    ok "planning rite — the drain names /sprint-planning, sequences it after the retrospective, and states the estimate gap the rite leaves it (string agreement only; nothing fires either rite)"
+  fi
+fi
+
+# ── 3 · the ranking profile's brief and the rite agree about the planning moment ──────────────────
+#
+# WHY THIS IS ITS OWN ARM. `agents/scrum-master.md`'s `description` names TWO moments — the start of a
+# working turn, and an iteration's terminal condition — and planning is a THIRD. A rite dispatching a
+# profile at a moment the profile's own brief does not know about is how a persona improvises: it would
+# reach for the ordering rule it does have, which tells it to rank against the milestone description,
+# which at planning does not exist yet. The brief carrying the exception is what stops that.
+if [ ! -r "$PLAN_SM" ]; then
+  bad "planning rite — agents/scrum-master.md is not readable; the profile the rite dispatches could not
+      be checked, so nothing asserts that it knows about the moment it is dispatched at."
+else
+  plan_sm_missing=""
+  for plan_sneedle in \
+    '## PLANNING is a third moment, and it makes one of your rules circular (#378)' \
+    '**At planning you rank by the ratified rules alone**' \
+    '### The ratified rules PARTITION; they do not SEQUENCE' \
+    '### At planning the `### Selection` block is OMITTED, and the record lands in ONE file'
+  do
+    grep -qF -- "$plan_sneedle" "$PLAN_SM" || plan_sm_missing="$plan_sm_missing
+    missing: \"$plan_sneedle\""
+  done
+  if [ -n "$plan_sm_missing" ]; then
+    bad "planning rite — the ranking profile's brief is out of step with the rite that dispatches it:$plan_sm_missing
+      The rite dispatches this profile at a moment its own description does not name. Without the
+      exception written here, it applies the rule it does have — rank against the order of record — and
+      the order of record is the milestone description, which planning is what CREATES. A persona given
+      a circular instruction resolves it by inventing an order, which is exactly what dispatching it
+      instead of ranking in place was supposed to prevent."
+  else
+    ok "planning rite — the ranking profile's brief names planning as a third moment, carries the exception the circularity forces, states that the ratified rules partition rather than sequence, and lands one record in one file (string agreement only; nothing observes a dispatch)"
+  fi
+fi
+
+# ── 4 · the rite and the brief agree WHERE the planning record goes ───────────────────────────────
+#
+# TWO PROSE SURFACES NAMING A PATH WITH NOTHING ASSERTING THEY AGREE is the arrangement this suite
+# exists because it rots — `docs/retrospective/` has had this arm since #355 and `docs/planning/` had
+# none until the first review round found the two files disagreeing about whether a `docs/selection/`
+# file is also written. It is a STRING agreement across two documents and nothing more: no file is ever
+# observed being written there, and this arm cannot tell a planning that ran from one that did not.
+plan_path='docs/planning/<iteration>.md'
+plan_path_missing=""
+plan_path_checked=0
+for plan_path_file in commands/sprint-planning.md agents/scrum-master.md; do
+  if [ ! -r "$ROOT/$plan_path_file" ]; then
+    plan_path_missing="$plan_path_missing
+    $plan_path_file — not readable"
+    continue
+  fi
+  plan_path_checked=$((plan_path_checked + 1))
+  grep -qF -- "$plan_path" "$ROOT/$plan_path_file" || plan_path_missing="$plan_path_missing
+    $plan_path_file — does not name $plan_path"
+done
+if [ "$plan_path_checked" -lt 2 ]; then
+  bad "planning rite — only $plan_path_checked of 2 artifact-path holders were readable, so the agreement
+      was not asserted:$plan_path_missing"
+elif [ -n "$plan_path_missing" ]; then
+  bad "planning rite — the rite and the ranking profile's brief disagree about where the planning record
+      goes:$plan_path_missing
+      One path, two hand-maintained documents. The brief's ordinary landing spot is docs/selection/, and
+      the planning exception is the only thing keeping one act from producing two artifacts of which
+      only one is ever read."
+else
+  ok "planning rite — the rite and the ranking profile's brief name the same planning artifact (string agreement only; nothing here observes a file being written)"
+fi
+
+# ── 5 · the milestone-write guard covers the FAMILY, not one basename ─────────────────────────────
+#
+# WIDENED PRE-EMPTIVELY (#378) AND ASSERTED HERE SO THE WIDENING CANNOT BE QUIETLY REVERTED. The rite
+# books a residual — the order of record lives in a milestone description, there is a create route and
+# no update route — which invites a `scripts/milestone-update.sh`. Measured before the widening, that
+# script drew NO decision from any layer, for a subagent as well as the orchestrator: a milestone write
+# with neither the ask nor the deny, on a route indistinguishable from the sanctioned one.
+#
+# WHAT THIS ARM CANNOT DO: it reads the pattern's TEXT. `permission-guard.test.sh` is what exercises the
+# verdicts, and it is where the ASK/DENY/ALLOW cases for the family live. A green here means the family
+# form is written down, never that it fires.
+plan_guard="$ROOT/hooks/scripts/permission-guard.sh"
+plan_rite="$ROOT/commands/sprint-planning.md"
+plan_fam_problems=""
+plan_fam_checked=0
+if [ -r "$plan_guard" ]; then
+  plan_fam_checked=$((plan_fam_checked + 1))
+  grep -qF -- 'milestone-[a-z0-9-]*\.sh' "$plan_guard" || plan_fam_problems="$plan_fam_problems
+    permission-guard.sh no longer matches the milestone script FAMILY. Pinned to one basename, the next
+    script in it — which this rite's own residual invites — ships with neither the ask nor the deny."
+  grep -qF -- 'THE FAMILY, NOT THE ONE FILE' "$plan_guard" || plan_fam_problems="$plan_fam_problems
+    permission-guard.sh no longer records WHY rule 11 matches a family, so the next reader sees an
+    over-broad pattern with no reason and narrows it back to the basename."
+fi
+if [ -r "$plan_rite" ]; then
+  plan_fam_checked=$((plan_fam_checked + 1))
+  grep -qF -- 'no update route is built. The same hole is open' "$plan_rite" || plan_fam_problems="$plan_fam_problems
+    commands/sprint-planning.md no longer says that the missing update route is a missing SCRIPT rather
+    than a control. That sentence is the one that stopped a hole reading as a floor."
+fi
+if [ "$plan_fam_checked" -lt 2 ]; then
+  bad "planning rite — only $plan_fam_checked of 2 surfaces were readable, so the milestone-family
+      widening was NOT asserted:$plan_fam_problems"
+elif [ -n "$plan_fam_problems" ]; then
+  bad "planning rite — the milestone-write family is no longer guarded or no longer explained:$plan_fam_problems"
+else
+  ok "planning rite — rule 11 matches the milestone script FAMILY and says why, and the rite states that the missing update route is a missing script rather than a control (text agreement only; permission-guard.test.sh exercises the verdicts)"
+fi
+
+# ── 6 · the milestone description travels as a FILE, and the inline route is GONE rather than unused ──
+#
+# THE ONLY ARM IN THIS BLOCK WHOSE PRIMARY ASSERTION IS AN ABSENCE, and the absence is the control.
+# The gate's production finding at `0ecc7a7`: step 4a composed the ordered body into a double-quoted
+# shell argument, and `scripts/milestone-create.sh` took `--description <text>` and nothing else.
+# Measured, one call, the argument quoted exactly as that step wrote it — and re-run through the file
+# route with the identical bytes:
+#
+#   inline "order: 1. #383 <backtick>id -u<backtick> end · 2. #378 $HOME end"
+#     -> order: 1. #383 501 end · 2. #378 /Users/... end          # the command RAN; $HOME expanded
+#   description="$(cat -- <path>)"
+#     -> 1. #383 <backtick>id -u<backtick> end · 2. #378 $HOME end # bytes, verbatim
+#
+# (The probe's own backticks are spelled out above rather than written, because a heredoc carrying
+# them is executed by the shell that writes this file — the same class of defect, one layer up.)
+#
+# Three things made it blocking rather than a style note: both repositories are PUBLIC, so the Issue
+# titles the rite composes into that body are attacker-supplied; the milestone description IS the order
+# of record and no update route is built, so a mangled one is a browser delete-and-recreate; and it
+# contradicted `/shell`'s no-exception `--body-file` rule inside a slice otherwise careful about it.
+#
+# WHY THE ARM ASSERTS AN ABSENCE. Adding `--description-file` beside `--description` fixes the CALLER
+# and not the SCRIPT — the next caller picks whichever spelling is shorter, which is precisely why the
+# repo's own rule is written without exceptions. So the inline arm is DELETED, and this asserts it is
+# still deleted.
+#
+# THE NEEDLE IS A REGEX AND NOT A FIXED STRING, AND THAT IS THE GATE'S OWN FINDING RATHER THAN A
+# PREFERENCE. The first draft matched the literal `--description)` at FOUR-SPACE indentation, which made
+# half of a two-directional control a check against COPY-PASTE ONLY: a re-add at two spaces, or as an
+# alternation, evaded it while a copy-back from git history was caught. Probed, one line per spelling,
+# against `grep -E -- '--description[)|]'`:
+#
+#   --description)            MATCH       <- bare, the copy-back
+#     --description)          MATCH       <- two-space
+#       --description)        MATCH       <- four-space, the original literal
+#   --description|-d)         MATCH       <- alternation, option first
+#   -d|--description)         MATCH       <- alternation, option second
+#   --description-file)       no match    <- the positive route, unaffected
+#   the inline `--description <text>` form no match  <- prose, here and in the rite
+#
+# The character class is what separates them: this option is followed by `)` or `|` only where it is a
+# `case` ARM, by `-` inside `--description-file`, and by a space in every prose mention.
+#
+# WHAT IT STILL CANNOT CATCH, said rather than left implied: an arm doing the same job under a DIFFERENT
+# NAME (`--desc)`, `--body)`, a bare `-d)`). No string check can, and the honest scope is *this option
+# cannot come back under this name*. The positive needle uses the same regex form so the two are
+# symmetric and neither depends on indentation.
+#
+# WHAT IT CANNOT DO: it reads the option table, not behaviour. Nothing here executes the script or
+# reaches the API. The refusal was verified by running it (`--description "x"` -> `unknown option`,
+# exit 2) and that run is not reproducible from this suite.
+plan_desc_script="$ROOT/scripts/milestone-create.sh"
+plan_desc_problems=""
+plan_desc_checked=0
+if [ -r "$plan_desc_script" ]; then
+  plan_desc_checked=$((plan_desc_checked + 1))
+  grep -qE -- '--description-file[)|]' "$plan_desc_script" || plan_desc_problems="$plan_desc_problems
+    scripts/milestone-create.sh has no '--description-file' option, so the only way to pass a
+    description is inline — a shell argument that INTERPRETS backticks and \$ in text composed from
+    public-tracker Issue titles."
+  if grep -qE -- '--description[)|]' "$plan_desc_script"; then
+    plan_desc_problems="$plan_desc_problems
+    scripts/milestone-create.sh accepts '--description <text>' again. The inline route was removed
+    rather than deprecated, precisely so no caller can pick it; re-adding it restores the injection
+    surface whatever the rite happens to call today."
+  fi
+  grep -qF -- 'THE DESCRIPTION ARRIVES BY FILE, AND THE INLINE FORM IS GONE RATHER THAN DEPRECATED' "$plan_desc_script" \
+    || plan_desc_problems="$plan_desc_problems
+    scripts/milestone-create.sh no longer records WHY the inline form is absent, so the next reader
+    sees a missing convenience flag and adds it back."
+fi
+if [ -r "$plan_rite" ]; then
+  plan_desc_checked=$((plan_desc_checked + 1))
+  grep -qF -- 'bash scripts/milestone-create.sh "<iteration>" --repo <owner>/<repo> --description-file <path>' "$plan_rite" \
+    || plan_desc_problems="$plan_desc_problems
+    commands/sprint-planning.md step 4a no longer calls the file route. The script may still refuse the
+    inline form, but the rite is what a reader copies."
+  grep -qF -- '**The ordered body NEVER travels as a shell argument' "$plan_rite" \
+    || plan_desc_problems="$plan_desc_problems
+    commands/sprint-planning.md no longer says why the body goes to a file. Without it the call reads
+    as an arbitrary preference and the next edit reverts it for brevity."
+fi
+if [ "$plan_desc_checked" -lt 2 ]; then
+  bad "planning rite — only $plan_desc_checked of 2 surfaces were readable, so the description-file
+      route was NOT asserted:$plan_desc_problems"
+elif [ -n "$plan_desc_problems" ]; then
+  bad "planning rite — the milestone description can travel as a shell argument again:$plan_desc_problems
+      A double-quoted argument EXECUTES backticks and expands \$; the text is composed from public
+      Issue titles; and the description is the order of record with no update route to repair it."
+else
+  ok "planning rite — the milestone description travels by FILE, the inline route is absent rather than merely unused, and both surfaces say why (option-table and text agreement only; nothing here runs the script)"
+fi
+
+# ── 7 · the UNIVERSAL PRELOAD no longer says planning is unbuilt, and the rite's citation says so too ──
+#
+# THE HIGHEST-BLAST-RADIUS SENTENCE IN THIS SLICE, AND IT IS NOT IN THE FILE THE SLICE IS ABOUT. The
+# copy lens's first blocking finding: `skills/agents-configuration/SKILL.md` carried *"PLANNING is
+# genuinely unbuilt and no claim is made about it"*, which this merge makes false — in the one file all
+# eight profiles carry ALWAYS-ON, so the false sentence is injected into every dispatch rather than
+# merely published. And `commands/sprint-planning.md` QUOTED it, present-tense, as the justification
+# for the rite's own existence: the merge would have shipped a command file whose opening argument
+# rested on a claim the same merge falsified.
+#
+# THE NEEDLE IS THE STRUCK FORM, WHICH IS A TWO-WAY CHECK IN ONE STRING. `~~**PLANNING is genuinely
+# unbuilt…**~~` disappears if someone UN-STRIKES the sentence (reinstating the false claim) and equally
+# if someone DELETES it (dropping the correction a persona needs in order to reach for a rite that
+# exists). This repo's struck-not-deleted convention is what makes one string cover both directions.
+#
+# WHAT IT CANNOT DO: it reads the preload's text. Nothing here observes a dispatch, and nothing checks
+# that `powers/`'s generated copy carries the same words — `kiro-power.test.sh` owns that, by
+# regenerating into a temp directory and diffing.
+plan_preload="$ROOT/skills/agents-configuration/SKILL.md"
+plan_pre_problems=""
+plan_pre_checked=0
+if [ -r "$plan_preload" ]; then
+  plan_pre_checked=$((plan_pre_checked + 1))
+  grep -qF -- '~~**PLANNING is genuinely unbuilt and no claim is made about it.**~~' "$plan_preload" \
+    || plan_pre_problems="$plan_pre_problems
+    skills/agents-configuration/SKILL.md no longer carries the STRUCK form of 'PLANNING is genuinely
+    unbuilt'. Either the claim was reinstated — false since the rite shipped, in the file every profile
+    loads always-on — or the correction was deleted, which leaves a persona no reason to reach for a
+    rite that exists."
+  grep -qF -- '**What has NOT changed: nothing fires' "$plan_preload" \
+    || plan_pre_problems="$plan_pre_problems
+    the preload's correction no longer says that nothing FIRES the planning rite. Announcing a rite as
+    built without that clause is how a promise becomes a belief — the preload's own words about the
+    retrospective half."
+fi
+if [ -r "$plan_rite" ]; then
+  plan_pre_checked=$((plan_pre_checked + 1))
+  grep -qF -- '**Read it as the state this rite' "$plan_rite" \
+    || plan_pre_problems="$plan_pre_problems
+    commands/sprint-planning.md quotes the preload's 'PLANNING is genuinely unbuilt' sentence and no
+    longer marks it as the state this rite CLOSED. Unmarked, the rite's opening argument reads as
+    resting on a claim its own merge falsifies."
+fi
+if [ "$plan_pre_checked" -lt 2 ]; then
+  bad "planning rite — only $plan_pre_checked of 2 surfaces were readable, so the preload correction was
+      NOT asserted:$plan_pre_problems"
+elif [ -n "$plan_pre_problems" ]; then
+  bad "planning rite — the universal preload or the rite's citation of it went stale:$plan_pre_problems"
+else
+  ok "planning rite — the universal preload carries the planning-is-unbuilt claim STRUCK rather than live, keeps the nothing-fires-it limit, and the rite marks its citation as the state it closed (text agreement only; powers/ identity is kiro-power.test.sh's)"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
