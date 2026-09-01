@@ -3963,7 +3963,7 @@ delegating.
   adds no roster surface. *What it could not answer:* the ranking context is the one with the bias.
 - **Rebuild it holding milestone-write, as #375 was filed.** **Rejected**, and by the owner rather than
   by the intake: it would move HITL composition off rule 10's prompt, which is #365's whole mechanism.
-- **A typed command instead of a profile** — the shape `/retrospective` uses. **Rejected**, and this is
+- **A typed command instead of a profile** — the shape `/sprint-retrospective` uses. **Rejected**, and this is
   the closest call in the set: a command runs in the orchestrator's own context, which reproduces
   exactly the bias reason 2 is about. A command can hold a *method*; only a dispatch can hold a *fresh
   context*.

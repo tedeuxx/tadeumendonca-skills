@@ -1288,7 +1288,7 @@ anything was built. That one is a reviewer's read on the diff and there is no in
 the owner's own corrections), *closing an issue* (dominated by the `invocable:` declaration and its
 guard) and *review does not open work* (dominated by rule 5c and `agent_type`).
 
-**Preloaded by all seven personas, both halves, and this slice is explicitly NOT priced as a token
+**Preloaded by all eight personas, both halves, and this slice is explicitly NOT priced as a token
 saving.** `agents-configuration` is universal by the owner's decision; `engineering-standards` was left
 open with a default of *yes* and dropping it for the content pair was considered and rejected — nothing
 in the roster demonstrably never needs the principles, and *delivery versus hygiene* is one of the

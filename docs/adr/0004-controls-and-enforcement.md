@@ -2989,7 +2989,11 @@ and rule 11 obeys it rather than restating it.
 `agents-configuration` stated the design — *"Creating one and closing one are both owner acts in
 the browser"*, *"one click per iteration is cheaper than reopening that door."* **Both clauses are
 STRUCK at head by this record's own decision (#375), the strike scoped to CREATION — closing is still
-a click** — so read them as the state this option was argued FROM, not as current text; the skill was
+a click.** *This sentence read as if that had always been true of both sites; it was not.* The first
+clause occurs **twice** in the skill — struck where it is restated alongside the second, and **left
+standing at its original site** until #387 struck it there too, so a reader following this citation
+between #375 and #387 landed on it asserted. Read both as the state this option was argued FROM, not
+as current text; the skill was
 named `harness-engineering` until #381. Planning is owner-present
 by construction and nothing blocks *him*. **The price of that option, and it is the thing that gets
 forgotten and rediscovered as a defect:** `/sprint-planning` carries a manual step and the rites are not

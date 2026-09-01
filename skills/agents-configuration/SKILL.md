@@ -488,7 +488,10 @@ gh issue list --repo <owner>/<repo> --state all --limit 200 --json number,milest
 
 There is no `gh milestone` subcommand, and `state` is not among `gh issue list --json`'s available
 fields, so **no command available to this loop can read whether a milestone is open or closed.**
-Creating one and closing one are both owner acts in the browser.
+~~Creating one and closing one are both owner acts in the browser.~~ **Struck 2026-08-31 (#375), for
+CREATION only** — `scripts/milestone-create.sh` is the route, and **closing is still a click**. The
+restatement further down carries the same strike and the same scope; this site is the original and was
+left standing when that one landed.
 
 **Why that does not send the object back to the table, which is the honest form of this answer:** rule 1
 never reads `state`. The predicate above derives the active iteration from *items*, so the one attribute
