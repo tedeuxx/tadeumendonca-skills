@@ -88,7 +88,7 @@ covering them.** If one of them is wrong, that is a finding about the machinery 
 Four states, each of which is invisible to every layer above, and each named from this repository's own
 evidence rather than invented:
 
-1. **A rite that never ran on an exhausted iteration.** `commands/retrospective.md` says so in its own
+1. **A rite that never ran on an exhausted iteration.** `commands/sprint-retrospective.md` (named `retrospective.md` until #372) says so in its own
    words: *"a rite skipped, a rite run over the wrong iteration, and a rite run with three personas
    instead of six are indistinguishable from the tracker."* Nothing fires the rite and nothing observes
    that it did not fire.

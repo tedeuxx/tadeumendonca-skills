@@ -637,8 +637,8 @@ for f in sorted((root/'agents').glob('*.md')):
 PY
 ```
 
-**`developer` published 101,637 B and measures 191,112 B; `product-lead` published 50,437 B and
-measures 137,777 B.** The split that produced `engineering-standards` moved these numbers by roughly
+**`developer` published 101,637 B and measures 198,411 B; `product-lead` published 50,437 B and
+measures 145,076 B.** The split that produced `engineering-standards` moved these numbers by roughly
 12 KB each — it does not begin to account for the gap. **These figures had been drifting for weeks
 under merges that grew a preloaded skill without touching this list**, which is exactly the failure
 this repository's *publish the number with its command* rule exists to prevent, surviving in the
@@ -648,11 +648,11 @@ each records a decision, and they are **not** re-derivable against the totals ab
 and a bullet's total no longer belong to the same measurement, and pretending they do is how the next
 figure goes stale invisibly.
 
-- **`developer` — 191,112 B** — `code-review` · `quality-gates` · `agents-configuration` · `engineering-standards` ·
+- **`developer` — 198,411 B** — `code-review` · `quality-gates` · `agents-configuration` · `engineering-standards` ·
   `shell` · `devops`. `quality-gates` grew 763 B at #265 — a pointer
   paragraph repointing its former generic DoD framing at the new `definition-of-done` skill — which
   moves this total by the same amount, since this brief carries the whole file.
-- **`quality-assurance` — 171,305 B** — `agents-configuration` · `engineering-standards` · `quality-gates` ·
+- **`quality-assurance` — 178,604 B** — `agents-configuration` · `engineering-standards` · `quality-gates` ·
   `devops` · `shell`. `coverage` used to be a fifth, separate entry here; #257 folded its
   content into `quality-gates`, so the same policy is still fully preloaded — the entry disappeared, not
   the content. `sonarcloud` used to be the third entry; #259 folded it into `devops`, and this brief now
@@ -661,7 +661,7 @@ figure goes stale invisibly.
   canonical source for three of this brief's own production-lens criteria (IAM least-privilege, the
   immutable OIDC subject, SHA-pinning) that this file previously restated in compressed form.
   `quality-gates`'s #265 growth (see `developer`, above) moves this total by the same 763 B.
-- **`tech-lead` — 199,829 B** — `documentation-standard` · `agents-configuration` · `engineering-standards` ·
+- **`tech-lead` — 207,128 B** — `documentation-standard` · `agents-configuration` · `engineering-standards` ·
   `definition-of-ready` · `shell` · `devops`. This used to be five entries (`adr`,
   `documentation-standard`, `harness-engineering`, `shell`, `devops`); #260 folded `adr` into
   `documentation-standard` as its Part II, so the entry count temporarily dropped to four before #264
@@ -677,12 +677,12 @@ figure goes stale invisibly.
   argued rather than assumed: closing an Issue's description with `product-lead` is not an occasional
   reference for this persona, it happens at every intake dispatch, which is the same class of necessity
   that justifies a preload rather than a `Read` on demand.
-- **`product-lead` — 137,777 B** — `agents-configuration` · `engineering-standards` · `definition-of-ready` · `shell`.
+- **`product-lead` — 145,076 B** — `agents-configuration` · `engineering-standards` · `definition-of-ready` · `shell`.
   `definition-of-ready` (11,131 B, #264) is a new, deliberate second domain-specific entry alongside the
   universal preloads — the same reasoning as `tech-lead`'s addition above: this persona performs the act
   the skill defines (closing a description to the point it earns `ready`) at every dispatch, not
   occasionally.
-- **`agents-lead` — 188,564 B** — `agents-configuration` · `engineering-standards` · `documentation-standard` · `shell` ·
+- **`agents-lead` — 195,863 B** — `agents-configuration` · `engineering-standards` · `documentation-standard` · `shell` ·
   `devops`. `harness-engineering` was the one exception to what used to be `skills: []`; the other three
   followed for reasons its own brief states (`documentation-standard`'s Part II — the ADR practice
   formerly the standalone `adr` skill, folded in at #260 — for loop/harness ADRs since #223,
@@ -698,7 +698,7 @@ figure goes stale invisibly.
   `loop`-typed proposals only, where `ready` is an owner-only transition it never performs. It remains
   the persona most exposed to staleness, a real tension a frozen
   preload creates that its own brief names as a residual rather than resolves.
-- **`content-writer` — 155,773 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice`.
+- **`content-writer` — 163,072 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice`.
   Renamed from `writer` at #317; the figure moved for one reason and it is not the rename, which costs
   nothing — `harness-engineering` grew in the same slice, by the state-machine rows this pair required.
   **`published-voice` (29,117 B) is not an addition to this brief, it is a relocation out of it:** the
@@ -716,7 +716,7 @@ figure goes stale invisibly.
   and `wc -c` at this head returns **29,117**. The file was not edited between the two, so the published
   number was wrong when it shipped — a 22-byte miss, invisible because nothing gates a byte figure. It
   is corrected here and named rather than silently overwritten.
-- **`content-reviewer` — 155,773 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice`.
+- **`content-reviewer` — 163,072 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice`.
   **Byte-identical to `content-writer`'s, because the list is identical — and that identity is the
   design rather than a copy-paste.** The pair
   is only worth its cost if both halves judge against one file; giving the reviewer a skill the writer
@@ -727,6 +727,17 @@ figure goes stale invisibly.
   protocol is stated in this brief and not in `content-writer`'s**, which carries only the four rules
   that bind the drafter — a deliberate asymmetry, because two copies of a protocol is the failure the
   ruler extraction was performed to avoid, one layer down.
+- **`scrum-master` — 126,792 B** — `agents-configuration` · `engineering-standards`. **The smallest
+  preload in the roster, and the only list with no third entry.** It arrived at #375 declaring
+  `harness-engineering`, a skill this batch renamed out of existence at #381; the profile's two halves
+  were decided here on the same per-persona basis as the other seven rather than by find-and-replace.
+  `agents-configuration` is the object of its mandate — the state machine, the rites, the intake chain,
+  the iteration axis, the ordering rule it ranks against. `engineering-standards` is carried for two of
+  its sections specifically, both of which are **ranking inputs** rather than build guidance: *What
+  "delivered" means* (product slices against hygiene slices) and *the agent's state while a slice is
+  blocked on someone else*. **What is withheld is `shell`, and the reason is mechanical rather than
+  editorial:** this profile declares `tools: []`, so it writes no file and runs no command, and a rule
+  about where scratch files go has no subject here — the brief says so in its own words.
 
 **`definition-of-done` (15,255 B, #265) is deliberately preloaded by NO persona.** Argued rather than
 assumed, unlike `definition-of-ready`'s addition to `product-lead` and `tech-lead` above: those two
@@ -734,7 +745,7 @@ assumed, unlike `definition-of-ready`'s addition to `product-lead` and `tech-lea
 persona in this roster *designs* a Definition of Done at dispatch time — `quality-assurance` **applies**
 one that already exists (`quality-gates`, this loop's own concrete instance), it does not construct one
 from scratch, and the new skill's actual audience — someone standing up a DoD for a *new* project — is
-not a role any of the six plays inside this loop's own operation. It stays reachable the same way every
+not a role any of the eight plays inside this loop's own operation (`ls agents/*.md | wc -l` -> 8; the figure read `six` from #265 until here, having survived two roster additions). It stays reachable the same way every
 non-preloaded skill is: typed as `/definition-of-done`, or via the `Skill` tool on demand.
 
 **`planning-poker` (13,112 B, #266) is deliberately preloaded by NO persona either, and for a stronger
@@ -747,24 +758,21 @@ where `quality-assurance` at least *applies* a concrete instance of the concept 
 here even touches this skill's subject at any dispatch. It stays reachable the same way every
 non-preloaded skill is: typed as `/planning-poker`, or via the `Skill` tool on demand.
 
-**623,030 B as billed across the seven, 180,584 B distinct — 38.9% of the library (464,194 B across 14
-skills; `find skills -name SKILL.md | xargs wc -c`), and the largest preload is `tech-lead`'s at
-115,651 B, with `developer` second at 108,702 B.** **Read the five per-persona figures above this
-paragraph as measured at an earlier head and NOT re-derived here** — they moved when
-`harness-engineering` grew (33,412 → 36,492 → 39,219 B) on merges that published no figure, and
-reconciling them is its own slice rather than a side effect of adding a persona. Only the content
-pair's two figures and this aggregate were re-measured at this head, because those are the ones this
-diff falsifies.
+**1,378,018 B as billed across the eight, 272,560 B distinct — 49.1% of the library (555,130 B across
+14 skills; `find skills -name SKILL.md | xargs wc -c`), and the largest preload is `tech-lead`'s at
+207,128 B, with `developer` second at 198,411 B.** **Every figure in this section — the eight
+per-persona bullets above and this aggregate — was re-derived against THIS tree**, with the script
+published above this list, as the last step before the commit. Nothing here is carried forward.
 
-**A caveat on the aggregate that the previous head's version of this paragraph did not carry, and
-should have.** The billed total and the two "largest" figures are derived from ~~**all seven**~~ **the
-seven briefs the roster held when they were measured — it is EIGHT at this head (#375), so the
-aggregate excludes `scrum-master` and is stale in the same direction as the bullets below it** —
-including the five whose own bullets are declared stale one paragraph up — so this line is re-measured
-while the numbers it sits beside are not, and a reader diffing the bullets against the total will not
-be able to reconcile them. That is the honest state and not a defect introduced here: the alternative
-is to publish an aggregate assembled from figures known to be wrong. It is stated so nobody spends a
-session discovering it. The command that settles all of them in one run, which is what a reconciling
+**The staleness caveat this paragraph carried at the previous head is DISCHARGED, and which part is
+discharged matters more than the fact that it is.** That version read that the billed total was
+*"derived from all seven briefs the roster held when they were measured — it is EIGHT at this head
+(#375), so the aggregate excludes `scrum-master`"*, and that five of the per-persona bullets were
+*"measured at an earlier head and NOT re-derived"*. Both were true when written and both are false
+now: the eighth brief has its own bullet, and all eight totals come from one run against this tree.
+**What is NOT discharged is the class** — nothing gates a byte figure, so the next merge that grows a
+preloaded skill without touching this list re-opens the same gap silently. This list is correct at one
+commit; nothing keeps it correct. The command that settles all of them in one run, which is what a reconciling
 slice should use rather than one `wc -c` call per brief:
 `grep -h '^  - ' agents/*.md | sort | uniq -c` for the counts, and per-persona
 `sed -n '/^skills:/,/^---/p' agents/<name>.md` piped into `wc -c` over the named `skills/*/SKILL.md`.
@@ -784,14 +792,18 @@ moved every persona's total by that amount since all six carry it. #260 folded `
 the library-wide distinct/billed figures; #259 folded `sonarcloud` into `devops` before that, changing
 four of the six totals — `developer`, `agents-lead` and `tech-lead` via `devops`'s growth, and
 `quality-assurance` via the `sonarcloud`→`devops` swap decided above.)
-`harness-engineering` (33,412 B, the
-universal preload, #224) is the
-largest single skill in the library and is carried by all six briefs. The two figures (billed vs.
-distinct) differ because several skills — `harness-engineering`, `shell`, `quality-gates`,
-`documentation-standard`, `devops` — are each carried by more than one persona: there is no dedupe, so each is
-billed once per persona and the library sees it once. Note what this list and
-the table below disagree about, deliberately: `developer` **preloads** `quality-gates` and
-`harness-engineering` while the table below puts both under the four judging personas. Both are true.
+~~`harness-engineering` (33,412 B, the universal preload, #224) is the largest single skill in the
+library and is carried by all six briefs.~~ **Struck here rather than restamped, because both halves
+were wrong in different ways and only one of them is this batch's doing.** The identifier died at #381;
+the *ranking* had been false for longer — `cloud-infrastructure` (155,998 B) is the largest single
+skill in the library and is preloaded by **nobody**, while the largest *preloaded* one is
+`agents-configuration` at 113,850 B, carried by all **eight** briefs. The two figures (billed vs.
+distinct) differ because several skills — `agents-configuration`, `engineering-standards`, `shell`,
+`quality-gates`, `documentation-standard`, `devops` — are each carried by more than one persona: there
+is no dedupe, so each is billed once per persona and the library sees it once. Note what this list and
+the table below disagree about, deliberately: `developer` **preloads** `quality-gates`,
+`agents-configuration` and `engineering-standards` while the table below puts them under the judging
+personas. Both are true.
 The principles are the judges' ruler and the builder's floor; *whose domain* and *what is loaded* are
 different questions, which is exactly why they are two lists rather than one contested column.
 
