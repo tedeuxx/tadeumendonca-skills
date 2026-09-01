@@ -4042,10 +4042,31 @@ assembled, the ordering rules applied, one item at a time.
 
 Three instances, measured rather than argued:
 
-1. `skills/agents-configuration/SKILL.md` states it in its own words — *"PLANNING is genuinely unbuilt
-   and no claim is made about it."*
-2. Five `ready` `loop` items sat unmilestoned with nothing presenting them, invisible to every
-   iteration-scoped mechanism at once.
+1. `skills/agents-configuration/SKILL.md` said so in its own words — *"PLANNING is genuinely unbuilt
+   and no claim is made about it."* **That sentence is struck by this slice**, in the file itself: it
+   was true when the rite did not exist and it is false the moment this merges, and it sits in the
+   universal preload every persona carries always-on.
+2. **Five `ready` `loop` items sat unmilestoned with nothing presenting them** — a real measurement,
+   dated, attributed and re-runnable rather than asserted: **taken 2026-08-31 by #378's own intake**,
+   naming **#365, #370, #371, #372, #374**. The predicate:
+
+   ```
+   gh issue list --repo <owner>/<repo> --state open --limit 200 --json number,labels,milestone \
+     --jq '[.[]|select(.milestone==null)
+             |select((.labels|map(.name)|index("ready")) and (.labels|map(.name)|index("loop")))
+             |.number]'
+   ```
+
+   **Re-run 2026-09-01 it returns SEVEN** — `[383, 378, 374, 372, 371, 370, 365]` — the same five plus
+   #378 and #383, filed since. **The two figures do not contradict each other and the difference is the
+   point:** one is a dated historical measurement of the condition that motivated the rite, the other
+   is the class's population today, and a class whose membership moves must be published as a
+   predicate rather than as a bare count. **`commands/sprint-planning.md` therefore publishes the
+   predicate and NO number, and this bullet is where the dated figure lives** — the split the copy lens
+   asked for and the one this practice already prescribes: the command file is installed by strangers
+   and states the rule, the record carries the measurement that motivated it. **The command is printed
+   here because a figure under a heading reading *measured rather than argued*, carrying neither a date
+   nor a falsifier, is precisely the failure this slice spent a round correcting elsewhere.**
 3. **The twenty-sixth amendment's rite shipped its producer and not its consumer.**
    `commands/sprint-retrospective.md` writes per-persona proposals whose declared consumer is *"a
    proposal the owner rules on at planning"*. `sprint-01`'s seven files have never been ruled on,
@@ -4239,9 +4260,9 @@ negated predicate returned one member, and it did so **before** the head asserti
 pushed. **The falsifier printed beside the claim is what refuted the claim.**
 
 **That is not staleness and the distinction is the whole of the correction.** A stale figure was true
-once; this was false when written. And it is the same defect this very amendment corrects two sections
-earlier, where a published `five` was `7` on its own date — **the second instance in one slice, which
-is what makes it a shape rather than a slip.**
+once; this was false when written. And it is the same defect this very amendment corrects under *What
+was actually missing, and it was not a decision*, where a published `five` carried neither a date nor a
+falsifier — **the second instance in one slice, which is what makes it a shape rather than a slip.**
 
 **Why re-measuring was rejected as the fix.** The class re-emptied within the hour (the missing label
 was applied by hand), so a fresh measurement would have republished *vacuous* and been correct for

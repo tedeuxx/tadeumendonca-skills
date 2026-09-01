@@ -7448,7 +7448,9 @@ else
     "### THE ITERATION IS THIS RITE'S PRODUCT, and that is a completion condition rather than a step" \
     'iteration object has produced nothing' \
     'bom, o rito deveria sim criar a iteracao como produto ao final dela' \
-    'A vacuity assertion is the wrong SHAPE for this claim'
+    'A vacuity assertion is the wrong SHAPE for this claim' \
+    '**One branch is exempt, and naming it is what stops a legitimate outcome reading as a violation' \
+    '**If NOTHING was admitted, 4a does not run and the rite has still finished.**'
   do
     grep -qF -- "$plan_needle" "$PLAN_CMD" || plan_missing="$plan_missing
     missing: \"$plan_needle\""
@@ -7529,7 +7531,13 @@ else
                            was REJECTED as the fix: the class re-emptied within the hour, so a fresh
                            count would have been correct until the next forgotten label. The clause
                            records that a vacuity claim is the wrong SHAPE — publish the predicate for
-                           a class whose membership moves, and reserve dated counts for what does not."
+                           a class whose membership moves, and reserve dated counts for what does not.
+        EMPTY BRANCH     — added at the copy lens's round. The completion condition says a planning
+        (x2)               ending without an iteration object has produced nothing, and step 3 permits
+                           defer/drop on every item — so the owner admitting NOTHING is a legitimate
+                           outcome that would otherwise read as a violated completion condition. Two
+                           needles because the exemption and the instruction live in two sections and
+                           either alone leaves the other reading as absolute."
   else
     ok "planning rite — the rite states its boundary, that the iteration is its PRODUCT rather than a step (in the owner's own words), its dispatch and why that dispatch cannot place work (and how narrowly), the circularity planning forces on the ranking, that the ratified rules partition rather than sequence and what the tiebreak is, the one-at-a-time rule, enumerate-then-select on BOTH inputs, the milestone route with the hole it depends on and the update route that is merely unwritten, what happens when creation fails, its own cost, that it produces no estimate and which preflight that names, both of its disclaimers, and the two classes it cannot see"
   fi
@@ -7762,6 +7770,58 @@ elif [ -n "$plan_desc_problems" ]; then
       Issue titles; and the description is the order of record with no update route to repair it."
 else
   ok "planning rite — the milestone description travels by FILE, the inline route is absent rather than merely unused, and both surfaces say why (option-table and text agreement only; nothing here runs the script)"
+fi
+
+# ── 7 · the UNIVERSAL PRELOAD no longer says planning is unbuilt, and the rite's citation says so too ──
+#
+# THE HIGHEST-BLAST-RADIUS SENTENCE IN THIS SLICE, AND IT IS NOT IN THE FILE THE SLICE IS ABOUT. The
+# copy lens's first blocking finding: `skills/agents-configuration/SKILL.md` carried *"PLANNING is
+# genuinely unbuilt and no claim is made about it"*, which this merge makes false — in the one file all
+# eight profiles carry ALWAYS-ON, so the false sentence is injected into every dispatch rather than
+# merely published. And `commands/sprint-planning.md` QUOTED it, present-tense, as the justification
+# for the rite's own existence: the merge would have shipped a command file whose opening argument
+# rested on a claim the same merge falsified.
+#
+# THE NEEDLE IS THE STRUCK FORM, WHICH IS A TWO-WAY CHECK IN ONE STRING. `~~**PLANNING is genuinely
+# unbuilt…**~~` disappears if someone UN-STRIKES the sentence (reinstating the false claim) and equally
+# if someone DELETES it (dropping the correction a persona needs in order to reach for a rite that
+# exists). This repo's struck-not-deleted convention is what makes one string cover both directions.
+#
+# WHAT IT CANNOT DO: it reads the preload's text. Nothing here observes a dispatch, and nothing checks
+# that `powers/`'s generated copy carries the same words — `kiro-power.test.sh` owns that, by
+# regenerating into a temp directory and diffing.
+plan_preload="$ROOT/skills/agents-configuration/SKILL.md"
+plan_pre_problems=""
+plan_pre_checked=0
+if [ -r "$plan_preload" ]; then
+  plan_pre_checked=$((plan_pre_checked + 1))
+  grep -qF -- '~~**PLANNING is genuinely unbuilt and no claim is made about it.**~~' "$plan_preload" \
+    || plan_pre_problems="$plan_pre_problems
+    skills/agents-configuration/SKILL.md no longer carries the STRUCK form of 'PLANNING is genuinely
+    unbuilt'. Either the claim was reinstated — false since the rite shipped, in the file every profile
+    loads always-on — or the correction was deleted, which leaves a persona no reason to reach for a
+    rite that exists."
+  grep -qF -- '**What has NOT changed: nothing fires' "$plan_preload" \
+    || plan_pre_problems="$plan_pre_problems
+    the preload's correction no longer says that nothing FIRES the planning rite. Announcing a rite as
+    built without that clause is how a promise becomes a belief — the preload's own words about the
+    retrospective half."
+fi
+if [ -r "$plan_rite" ]; then
+  plan_pre_checked=$((plan_pre_checked + 1))
+  grep -qF -- '**Read it as the state this rite' "$plan_rite" \
+    || plan_pre_problems="$plan_pre_problems
+    commands/sprint-planning.md quotes the preload's 'PLANNING is genuinely unbuilt' sentence and no
+    longer marks it as the state this rite CLOSED. Unmarked, the rite's opening argument reads as
+    resting on a claim its own merge falsifies."
+fi
+if [ "$plan_pre_checked" -lt 2 ]; then
+  bad "planning rite — only $plan_pre_checked of 2 surfaces were readable, so the preload correction was
+      NOT asserted:$plan_pre_problems"
+elif [ -n "$plan_pre_problems" ]; then
+  bad "planning rite — the universal preload or the rite's citation of it went stale:$plan_pre_problems"
+else
+  ok "planning rite — the universal preload carries the planning-is-unbuilt claim STRUCK rather than live, keeps the nothing-fires-it limit, and the rite marks its citation as the state it closed (text agreement only; powers/ identity is kiro-power.test.sh's)"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"

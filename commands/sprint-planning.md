@@ -7,9 +7,13 @@ argument-hint: "<iteration> (the title of the iteration being composed)"
 Run the planning rite for the iteration named by `$ARGUMENTS`.
 
 **This rite is the consumer the closing rites never had.** `commands/sprint-retrospective.md` produces
-per-persona proposal files whose stated consumer is *"a proposal the owner rules on at planning"*, and
-`/agents-configuration` states in its own words that **"PLANNING is genuinely unbuilt and no claim is
-made about it."** This is that object.
+per-persona proposal files whose stated consumer is *"a proposal the owner rules on at planning"* — and
+until this rite shipped there was no planning to rule in. **`/agents-configuration` said so in its own
+words, and that sentence is STRUCK IN THAT FILE by the same slice that adds this one:**
+*"PLANNING is genuinely unbuilt and no claim is made about it."* **Read it as the state this rite
+closed, not as a live claim** — a command file whose opening argument rested on a sentence its own
+merge falsifies would be exactly the defect this repository blocks on, and the strike is what keeps
+the citation honest in both directions.
 
 ## What this is, and the one thing it is not
 
@@ -29,6 +33,11 @@ what the iteration contains.
 iteration object has produced nothing** — it assembled, it ranked, it collected rulings, and it has no
 deliverable. That is a statement about whether the rite finished, and it is why step 4a is not
 optional and not a nicety at the end of a list.
+
+**One branch is exempt, and naming it is what stops a legitimate outcome reading as a violation: the
+owner admitting NOTHING.** Step 3 permits *defer* and *drop* on every item, so an empty composition is
+a real answer — and it creates no milestone, because a milestone with no items is an object nothing
+reads. See step 4a. **Every other path through this rite ends with the object or has not finished.**
 
 **This does NOT loosen the sentence above it, and the two are about different objects.** *Placement* is
 an **item** acquiring a milestone — rule 10, one prompt per item, his answer each time. *Creation* is
@@ -57,11 +66,9 @@ gh issue list --repo <owner>/<repo> --state open --limit 200 --json number,label
           |.number]'
 ```
 
-**A published `five` stood here for one round and was wrong on its own date.** It was #378's figure,
-taken 2026-08-31, restated without re-running anything; the same predicate at head returns **7** in one
-repository and **`[]`** in the other. Read that as the rule this repo already has — *a measured number
-ships with the command that produced it, inline and runnable, or not at all* — being broken in the very
-slice that publishes it.
+**Run it rather than reading a count here.** The class's population moves with the backlog, so this
+file publishes the predicate and no number; the dated measurement that motivated the rite lives in
+ADR-0002's twenty-ninth amendment, where a record belongs.
 
 **None of those three is a missing decision** — the decision is his and stays his. What was missing is
 the thing that puts the decision in front of him, item by item, with the pool already assembled.
@@ -269,12 +276,10 @@ description **at creation and nowhere else**. Since the milestone description is
 **order of record** lives, the ordered body has to be known before the object is created — so
 composition is collected first and the milestone is created once, carrying it.
 
-~~nothing in this harness can amend a milestone description afterwards (`gh api -X PATCH` is denied by
-`permission-guard.sh` rule 5f, and there is no `gh milestone` subcommand at all)~~ — **STRUCK on review,
-before this ever merged, and struck rather than edited because it is the sentence that made a missing
-script read as a property of the harness.** It is false in exactly the way the paragraph two below is
-true: 5f denies the *convenient* spelling and not the *available* one, and this rite already depends on
-the available one for CREATE. Probed against the head guard, one payload per line:
+**Read *built* literally, because the convenient reading of this is false.** It is not that the harness
+*cannot* amend a milestone description — 5f denies the *convenient* spelling of a raw-API write and not
+the *available* one, and this rite already depends on the available one for CREATE. Probed against the
+head guard, one payload per line:
 
 ```
 [ORCH]         gh api -X PATCH repos/o/r/milestones/2 -f description=x  -> deny (5f)
@@ -294,6 +299,14 @@ looks exactly like the sanctioned one, and #365's human verification would have 
 nothing saying so. The rule now matches `milestone-[a-z0-9-]*.sh` in the same two run positions, so the
 next script in that family arrives guarded on the day it is written rather than on the day someone
 notices. That widening ships in this slice; it is not a follow-up.
+
+**If NOTHING was admitted, 4a does not run and the rite has still finished.** Step 3's table permits
+*defer* and *drop* on every item, so the owner ruling everything out is a legitimate outcome, not a
+failure — and **an empty composition creates no milestone**, because a milestone with no items is an
+object nothing reads. **That is the one branch where "a planning that ends without an iteration object
+has produced nothing" does not apply**, and it is named here so a legitimate outcome cannot read as a
+violated completion condition. Say it in the artifact — *nothing admitted, no iteration created, and
+here is the pool he ruled out* — and stop; the rulings are the product of that run.
 
 **4a · create the iteration, once per repository that has admitted items. The ordered body goes to a
 FILE first — `Write` it to the session scratchpad — and the file's PATH is what the command carries:**

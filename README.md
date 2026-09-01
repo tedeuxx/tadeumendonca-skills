@@ -509,8 +509,8 @@ more can always be found — but what the reader or the next maintainer actually
 
 ### The Scrum names are for legibility, and three of them import expectations this loop does not honour
 
-**The rites are named after the official Scrum events** — `/sprint-retrospective` today, `/sprint-planning`
-and `/sprint-review` when they are built — **so a reader who has never seen this loop can tell what is
+**The rites are named after the official Scrum events** — `/sprint-retrospective` and `/sprint-planning`
+today, `/sprint-review` when it is built — **so a reader who has never seen this loop can tell what is
 happening and how to control it.** The bound is legibility, not Scrum coverage: `loop` stays, because it
 already reads to a stranger, and so do `ready`, `blocked`, `product`, `content`, every persona name,
 Definition of Done, Definition of Ready and story points. A word that already reads needs no Scrum
