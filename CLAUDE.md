@@ -199,9 +199,9 @@ a contaminação na leitura do repositório por humanos se tudo ficar no mesmo l
 not distinguish them.** **Measured on 2026-08-10**, `claude plugin details` on the split tree reported
 **`Skills (71)`** — the 69 the library held under `skills/` then, **plus the 2 then under `commands/`**,
 counted alike, reachable alike. **Both denominators have moved since** — the library consolidated to 14
-(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 14, re-run 2026-08-23) and `commands/` holds 5
+(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 14, re-run 2026-09-01) and `commands/` holds 4
 (`ls commands/` → `autonomy.md blueprint.md new-issue.md sprint-retrospective.md`, re-run
-#355) — so read the 71 as the
+2026-09-01) — so read the 71 as the
 measurement that established the rule, not as today's inventory. **The rule is what survives the
 denominators:** the loader counts both directories alike.
 

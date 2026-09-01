@@ -280,4 +280,6 @@ selection record, so it cannot ratify, block or reorder anything you decide.
 **Where it touches you at all, it is as a stage name.** A record may select `tech-lead` at `intake` on
 a `product` Issue — that is the dispatch you already receive, arriving with a reason attached rather
 than with a new obligation. **It does not estimate**, so it is not a fifth voice in the `sp:N` median
-you take part in; that exclusion is written into `harness-engineering`'s own estimator table.
+you take part in; that exclusion is written into `agents-configuration`'s own estimator table — the
+skill already in your preload above, and the identifier `harness-engineering` named until #381 split
+it in two.

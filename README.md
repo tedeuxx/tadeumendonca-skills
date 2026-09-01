@@ -28,9 +28,11 @@ three things, and this repository is the middle one:
   built with Vite and TypeScript, the Terraform that provisions CloudFront and S3, the pipeline with
   its gates and its deploy, and the markdown content held in the repository itself.
 - **The customization** — this repository: the personas in `agents/`, the hooks registered in
-  `hooks/hooks.json`, the skill library in `skills/`, the five commands a human types in `commands/`
-  (`autonomy on`, `autonomy off`, `new-issue`, `blueprint` and `sprint-retrospective`), and the methodology
-  ADRs in `docs/adr/`.
+  `hooks/hooks.json`, the skill library in `skills/`, the **four** command files in `commands/`
+  (`ls commands/` → `autonomy.md blueprint.md new-issue.md sprint-retrospective.md`; `autonomy` and
+  `blueprint` each carry modes a human types after the name, so the count of typed forms is larger than
+  the count of files and the two must not be conflated — see the resource table below), and the
+  methodology ADRs in `docs/adr/`.
 - **The runtime** — Claude Code: the orchestrator and the subagents, the `PreToolUse` and
   `SessionStart` events, the permission policy, and the tools with MCP.
 
@@ -590,11 +592,12 @@ and its trade-off*, not just the rule — because a rule without its reason is o
 
 **That column was headed *wielded by* until #172, and the rename is the point rather than a tidy-up.** It answers **whose mandate a convention falls under** — who is accountable for `dynamodb` being right. It does **not** answer *what does this persona have loaded*, and the two diverge sharply: under the old heading a reader had one column and no way to tell which question it was answering, so the curated preload below read as a contradiction of it rather than as a different fact.
 
-**Reconciling the two into one column was the alternative, and it was rejected.** Across the seven
-briefs the `skills:` lists total **34 preload entries** (`grep -h '^  - ' agents/*.md | wc -l`, re-run
-2026-08-31; the universal preload — `harness-engineering` at #224, **split into
-`agents-configuration` + `engineering-standards` at #381**, which is what moved this from 27 to 34,
-seven briefs gaining one entry each — is what pushed it above the ten it used to be;
+**Reconciling the two into one column was the alternative, and it was rejected.** Across the eight
+briefs (`ls agents/*.md | wc -l` → 8) the `skills:` lists total **36 preload entries**
+(`grep -h '^  - ' agents/*.md | wc -l`, re-run
+2026-09-01; the universal preload — `harness-engineering` at #224, **split into
+`agents-configuration` + `engineering-standards` at #381**, which is what moved this from 28 to 36,
+eight briefs gaining one entry each — is what pushed it above the ten it used to be;
 `published-voice` is carried by the content pair and by nobody else, which is now **two** briefs rather
 than the one it was extracted from), resolving to **nine distinct files
 (`grep -h '^  - ' agents/*.md | sort -u | wc -l`), all nine
@@ -637,6 +640,18 @@ for f in sorted((root/'agents').glob('*.md')):
 PY
 ```
 
+**Every PER-SKILL byte figure further down this section — the parentheticals beside
+`definition-of-ready`, `definition-of-done` and `planning-poker` — is one line of the same tree, and
+comes from its own command rather than from that script:**
+
+```
+find skills -name SKILL.md -exec wc -c {} +
+```
+
+Those three shipped without it and drifted by 134, 22 and 150 bytes respectively; they were re-derived
+on 2026-09-01 with the command above, which is now published beside them because a figure with no
+runnable falsifier is one the next reader can only trust.
+
 **`developer` published 101,637 B and measures 198,411 B; `product-lead` published 50,437 B and
 measures 145,076 B.** The split that produced `engineering-standards` moved these numbers by roughly
 12 KB each — it does not begin to account for the gap. **These figures had been drifting for weeks
@@ -673,12 +688,12 @@ figure goes stale invisibly.
   sequencing content it argued it needs (#227) — a real decision, recorded in the brief itself, that
   also closes a gap the *whose domain* table below already asserted (`tech-lead` as a `devops` domain
   holder, #227) without this preload list backing it until now. The trade: a heavier preload than the
-  narrow `versioning` file it replaces. **`definition-of-ready` (11,131 B, #264) is the newest entry** —
+  narrow `versioning` file it replaces. **`definition-of-ready` (11,265 B, #264) is the newest entry** —
   argued rather than assumed: closing an Issue's description with `product-lead` is not an occasional
   reference for this persona, it happens at every intake dispatch, which is the same class of necessity
   that justifies a preload rather than a `Read` on demand.
 - **`product-lead` — 145,076 B** — `agents-configuration` · `engineering-standards` · `definition-of-ready` · `shell`.
-  `definition-of-ready` (11,131 B, #264) is a new, deliberate second domain-specific entry alongside the
+  `definition-of-ready` (11,265 B, #264) is a new, deliberate second domain-specific entry alongside the
   universal preloads — the same reasoning as `tech-lead`'s addition above: this persona performs the act
   the skill defines (closing a description to the point it earns `ready`) at every dispatch, not
   occasionally.
@@ -739,7 +754,7 @@ figure goes stale invisibly.
   editorial:** this profile declares `tools: []`, so it writes no file and runs no command, and a rule
   about where scratch files go has no subject here — the brief says so in its own words.
 
-**`definition-of-done` (15,255 B, #265) is deliberately preloaded by NO persona.** Argued rather than
+**`definition-of-done` (15,233 B, #265) is deliberately preloaded by NO persona.** Argued rather than
 assumed, unlike `definition-of-ready`'s addition to `product-lead` and `tech-lead` above: those two
 *perform the act the skill defines* at every intake dispatch (closing a description to `ready`). No
 persona in this roster *designs* a Definition of Done at dispatch time — `quality-assurance` **applies**
@@ -748,7 +763,7 @@ from scratch, and the new skill's actual audience — someone standing up a DoD 
 not a role any of the eight plays inside this loop's own operation (`ls agents/*.md | wc -l` -> 8; the figure read `six` from #265 until here, having survived two roster additions). It stays reachable the same way every
 non-preloaded skill is: typed as `/definition-of-done`, or via the `Skill` tool on demand.
 
-**`planning-poker` (13,112 B, #266) is deliberately preloaded by NO persona either, and for a stronger
+**`planning-poker` (13,262 B, #266) is deliberately preloaded by NO persona either, and for a stronger
 reason than `definition-of-done`'s.** This loop runs no human estimation ceremony at all — the roster
 that would once have held one (`scrum-master`, `product-owner`, `product-manager`) was absorbed into
 `product-lead`, and the loop's own thesis (`/agents-configuration`) replaced story points with mechanical,
