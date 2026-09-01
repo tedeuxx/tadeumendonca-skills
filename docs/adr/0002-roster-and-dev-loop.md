@@ -4300,6 +4300,34 @@ argued about further.
 iteration. That is the price the twenty-seventh amendment already priced and accepted, arriving in
 bulk at the one moment the owner is present by construction.
 
+### Criterion 10 on this slice — CLOSED BY A RULING, not passed, and the ruling is the ORCHESTRATOR'S
+
+**Who decided, first, because that is the part this repository blocks on hardest.** The ruling that a
+two-count `README.md` edit does not warrant a `product-lead` dispatch was made by **the orchestrator**,
+in a dispatch brief. **It is not the owner's. He was never asked and has not spoken on it.**
+
+**A round of this PR recorded it as the owner's, and that was false.** It is corrected here rather than
+quietly reworded, because *who decided* is exactly the class of claim this loop treats as blocking: a
+ruling attributed to the owner carries authority he never lent it, and **it is unfalsifiable from inside
+the artifact** — a reader in November has no way to tell a real ratification from a misattributed one.
+The falsifier is external and cheap: `gh issue view 378 --json comments` and `gh pr view 388 --json
+comments` are where his words are, and neither carries this one.
+
+**What the ruling closes, stated exactly: the DISPATCH, not the CHECK.** The gate's own reading is
+`CLOSED-BY-RULING`, never `PASSED`, and the three parts of it are separate:
+
+- **The trigger fired.** `README.md` and `CLAUDE.md` are in the diff and the reader-facing rule fails
+  closed, so criterion 10 was live.
+- **No `product-lead` verdict on this diff exists.** The `dispatch-metrics` entries showing it ran are
+  on the **Issue**, at intake — a different object from a lens verdict on a diff.
+- **The gate found the copy clean by its OWN measurement** — the counts in both documents are the ones
+  it re-derived. That is a different fact from *the copy lens having run*, and the two must not be
+  collapsed: one is a gate checking numbers, the other is a persona judging published claims.
+
+**So the honest form is that a check was WAIVED by the orchestrator on a size judgement, with the gate's
+independent read recorded beside it.** If that waiver is wrong, the correction is the owner's and the
+route is a `product-lead` dispatch on the diff, relayed verbatim under a `copy-verdict` fence.
+
 ### What nothing enforces, said before any green is read
 
 **Nothing fires this rite, nothing observes that it ran, and nothing observes that it ran correctly.**

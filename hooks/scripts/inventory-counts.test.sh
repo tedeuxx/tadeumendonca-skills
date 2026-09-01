@@ -7695,8 +7695,29 @@ fi
 # WHY THE ARM ASSERTS AN ABSENCE. Adding `--description-file` beside `--description` fixes the CALLER
 # and not the SCRIPT — the next caller picks whichever spelling is shorter, which is precisely why the
 # repo's own rule is written without exceptions. So the inline arm is DELETED, and this asserts it is
-# still deleted. `--description)` and `--description-file)` are distinct as fixed strings, so the
-# negative needle cannot be satisfied by the positive one.
+# still deleted.
+#
+# THE NEEDLE IS A REGEX AND NOT A FIXED STRING, AND THAT IS THE GATE'S OWN FINDING RATHER THAN A
+# PREFERENCE. The first draft matched the literal `--description)` at FOUR-SPACE indentation, which made
+# half of a two-directional control a check against COPY-PASTE ONLY: a re-add at two spaces, or as an
+# alternation, evaded it while a copy-back from git history was caught. Probed, one line per spelling,
+# against `grep -E -- '--description[)|]'`:
+#
+#   --description)            MATCH       <- bare, the copy-back
+#     --description)          MATCH       <- two-space
+#       --description)        MATCH       <- four-space, the original literal
+#   --description|-d)         MATCH       <- alternation, option first
+#   -d|--description)         MATCH       <- alternation, option second
+#   --description-file)       no match    <- the positive route, unaffected
+#   the inline `--description <text>` form no match  <- prose, here and in the rite
+#
+# The character class is what separates them: this option is followed by `)` or `|` only where it is a
+# `case` ARM, by `-` inside `--description-file`, and by a space in every prose mention.
+#
+# WHAT IT STILL CANNOT CATCH, said rather than left implied: an arm doing the same job under a DIFFERENT
+# NAME (`--desc)`, `--body)`, a bare `-d)`). No string check can, and the honest scope is *this option
+# cannot come back under this name*. The positive needle uses the same regex form so the two are
+# symmetric and neither depends on indentation.
 #
 # WHAT IT CANNOT DO: it reads the option table, not behaviour. Nothing here executes the script or
 # reaches the API. The refusal was verified by running it (`--description "x"` -> `unknown option`,
@@ -7706,11 +7727,11 @@ plan_desc_problems=""
 plan_desc_checked=0
 if [ -r "$plan_desc_script" ]; then
   plan_desc_checked=$((plan_desc_checked + 1))
-  grep -qF -- '    --description-file)' "$plan_desc_script" || plan_desc_problems="$plan_desc_problems
+  grep -qE -- '--description-file[)|]' "$plan_desc_script" || plan_desc_problems="$plan_desc_problems
     scripts/milestone-create.sh has no '--description-file' option, so the only way to pass a
     description is inline — a shell argument that INTERPRETS backticks and \$ in text composed from
     public-tracker Issue titles."
-  if grep -qF -- '    --description)' "$plan_desc_script"; then
+  if grep -qE -- '--description[)|]' "$plan_desc_script"; then
     plan_desc_problems="$plan_desc_problems
     scripts/milestone-create.sh accepts '--description <text>' again. The inline route was removed
     rather than deprecated, precisely so no caller can pick it; re-adding it restores the injection
