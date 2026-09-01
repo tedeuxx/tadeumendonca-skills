@@ -426,6 +426,12 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # typed for the reason the Issue itself raised as an open question: an iteration drained by HAND never
 # reaches the drain's terminal condition, so the fallback route has to be a human typing an iteration
 # name — and an iteration name is an argument, which is what `argument-hint` exists for.
+# Then 5 → 4 on #368, when `autonomy-on` and `autonomy-off` became one `autonomy on|off` — the one time
+# this literal has moved DOWN, and the reason the comment records both directions rather than a history
+# of additions. Then 4 → 5 on #378, when `commands/sprint-planning.md` shipped the planning rite. It is
+# typed for the same reason `sprint-retrospective` is and for one more: at planning the iteration does
+# not exist yet, so there is nothing in the tracker a default could be derived FROM — the title is
+# supplied by the human or the rite has no subject.
 #
 # THE ASSERTION IS NOT WEAKER FOR HAVING BEEN BUMPED, and that is the whole reason it is a pinned
 # literal rather than a `-ge`. It exists to catch the ACCIDENTAL root command — a skill dropped one
@@ -441,10 +447,10 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # So the failure this now catches is a LIBRARY SKILL LANDING IN `commands/` — where it is typed-only,
 # never matched, and absent from every count and table in this file.
 root_cmds=$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
-if [ "$root_cmds" -eq 4 ]; then
-  ok "commands/ root — exactly four owner-typed commands (autonomy, new-issue, blueprint, sprint-retrospective), as the docs enumerate"
+if [ "$root_cmds" -eq 5 ]; then
+  ok "commands/ root — exactly five owner-typed commands (autonomy, new-issue, blueprint, sprint-retrospective, sprint-planning), as the docs enumerate"
 else
-  bad "commands/ root — $root_cmds file(s); the docs enumerate four owner-typed commands (autonomy, new-issue, blueprint, sprint-retrospective).
+  bad "commands/ root — $root_cmds file(s); the docs enumerate five owner-typed commands (autonomy, new-issue, blueprint, sprint-retrospective, sprint-planning).
       A library skill belongs in skills/<name>/SKILL.md — under commands/ it is absent from every count
       and table here, and from the per-family breakdown a reader actually opens."
 fi
@@ -2054,7 +2060,7 @@ skill_stem() {
   esac
 }
 
-ARG_HINT_ALLOWED="autonomy new-issue blueprint sprint-retrospective"   # the four the OWNER types; a model-invoked skill has no typed argument
+ARG_HINT_ALLOWED="autonomy new-issue blueprint sprint-retrospective sprint-planning"   # the five the OWNER types; a model-invoked skill has no typed argument
 
 # The frontmatter block, exclusive of its `---` fences. Empty for a file that has none, which is what
 # the presence assertion below reads.
@@ -3741,7 +3747,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=45
+BP_HIGH_WATER=46
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
@@ -7370,6 +7376,161 @@ elif [ -n "$ms_problems" ]; then
       reader a control that does not exist."
 else
   ok "milestone route — the script, rule 11 and the universal preload each state that the route is an exploitation of an open hole (string agreement only; nothing here checks the hole or the script's behaviour)"
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+# THE PLANNING RITE, AND THE THREE SURFACES THAT HAVE TO AGREE ABOUT IT (#378).
+#
+# WHY IT EXISTS. `/agents-configuration` said in its own words that "PLANNING is genuinely unbuilt and
+# no claim is made about it", while `commands/sprint-retrospective.md` produced per-persona proposals
+# whose declared consumer was "a proposal the owner rules on at planning". The producer shipped and the
+# consumer did not, which is the same shape as the promise #355 closed one rite earlier.
+#
+# WHAT THESE ARMS ASSERT AND WHAT THEY CANNOT — the same sentence as every rite arm above, and it is
+# not boilerplate here. They assert the rite's rules are WRITTEN. THEY CANNOT OBSERVE THAT A PLANNING
+# RAN, that it presented one item at a time, that `scrum-master` was dispatched at all, or that the
+# owner ruled on anything. Nothing in hooks/scripts/ reads the queue; a hook receives one `cwd` while
+# an iteration is two milestone objects in two repositories paired by a hand-typed title. There is no
+# layer that could hold any of it, and this block must never be cited as if there were.
+#
+# WHY THE "NOTHING PLACES" NEEDLES ARE THE LOAD-BEARING ONES. This rite drives the two acts the loop
+# guards hardest — creating an iteration (rule 11) and admitting an item to one (rule 10) — and both
+# are held by a PROMPT that reaches the owner and nobody else. A revision that quietly turned "assemble
+# and present" into "compose" would not redden a permission test: the guard would still ask, and the
+# asking would still be answered. What it would change is who DECIDED, which only the rite's own text
+# records. So the clauses saying it composes nothing are gated, and the ones saying it estimates
+# nothing are gated beside them, because the estimate gap is what the next drain refuses on.
+#
+# EACH NEEDLE IS ONE CLAUSE AND EACH WAS VERIFIED WITH `grep -c -F` BEFORE BEING WRITTEN HERE (all
+# returned 1). Two of them were re-cut after returning 0: this file wraps at 100 columns and a needle
+# spanning a wrap matches nothing while reading exactly like absence — the failure `abf035c` already
+# paid for once on the milestone arm.
+PLAN_CMD="$ROOT/commands/sprint-planning.md"
+PLAN_DRAIN="$ROOT/commands/autonomy.md"
+PLAN_SM="$ROOT/agents/scrum-master.md"
+
+# ── 1 · the rite states what it does, what it refuses to do, and every limit it ships with ────────
+plan_missing=""
+if [ ! -r "$PLAN_CMD" ]; then
+  bad "planning rite — commands/sprint-planning.md is not readable, so NOTHING about the rite was
+      asserted. The drain's handoff and the retrospective's proposals both point at this file; without
+      it, planning is a promise again and the proposals have no consumer, which is the state #378 was
+      filed to end."
+else
+  for plan_needle in \
+    '**It ASSEMBLES and RANKS. It does not PLACE.**' \
+    'dispatches `scrum-master` exactly once, to rank the assembled pool.' \
+    '**Why dispatching it cannot leak placement, which is the property that makes this safe.**' \
+    'nothing to rank against and the instruction is circular.' \
+    '**One question at a time. No multiple choice. No decision list.**' \
+    '**DROP means withhold, never close**' \
+    'Never type a milestone title into a query' \
+    'bash scripts/milestone-create.sh "<iteration>" --repo' \
+    'may claim the raw-API route is closed.' \
+    '**It does not estimate.** No `sp:N` is produced' \
+    'will ordinarily refuse the first drain**.' \
+    '**This is NOT the iteration Issue' \
+    '**Nothing fires it.** No hook in `hooks/scripts/` reads the queue' \
+    '**Nothing observes that it ran, or that it ran correctly.**'
+  do
+    grep -qF -- "$plan_needle" "$PLAN_CMD" || plan_missing="$plan_missing
+    missing: \"$plan_needle\""
+  done
+  if [ -n "$plan_missing" ]; then
+    bad "planning rite — a load-bearing clause left commands/sprint-planning.md:$plan_missing
+      Each needle is ONE clause and answers for itself:
+        ASSEMBLES        — the rite's whole boundary. Composition is the owner's act (#365); a rite that
+                           reads as composing has taken a decision nothing in the tracker will attribute.
+        DISPATCHES       — the ranking is NOT done in the orchestrator's context, which is #378's stated
+                           condition for building this rite at all. Dropping it silently returns the
+                           ordering to the one context that saw the whole session.
+        CANNOT LEAK      — why that dispatch is safe: the profile holds tools: [] and rule 10 denies
+                           every non-empty agent_type. Two layers, neither depending on a brief.
+        CIRCULAR         — scrum-master ranks against the order of record, and at planning the order of
+                           record does not exist yet. Unstated, the next reader resolves it by inventing
+                           an order, which is the one thing the dispatch exists to prevent.
+        ONE QUESTION     — a standing owner constraint, broken before. A batch of admissions is the
+                           decision list he has repeatedly said makes him rebuild the context each time.
+        DROP             — an Issue he opened is never closed on a rite's advice; DROP withholds.
+        NEVER TYPE       — a milestone name that matches nothing returns empty with exit 0, which is
+                           indistinguishable from a drained pool (rule 1).
+        CREATE ROUTE     — the one sanctioned milestone write. Losing the line loses the only route the
+                           rite has, and the act has no gh subcommand to fall back to.
+        RAW-API          — that route reaches the write API because no layer reads inside a script. A
+                           rite that stops saying so hands the reader a control that does not exist.
+        NO ESTIMATE      — #378 scoped estimation out; a rite that started estimating would grade the
+                           pool it ranked.
+        REFUSE THE DRAIN — the consequence of the line above, said where it lands rather than discovered
+                           at the drain's door.
+        NOT THE ISSUE    — the specified planning artifact (an iteration Issue) is still unbuilt; this
+                           file is a third home for the order and must not read as the specified one.
+        NOTHING FIRES /  — the two disclaimers. This rite has no enforcement anywhere, and a disclaimer
+        NOTHING OBSERVES   trimmed as verbose leaves a rule that READS as enforced."
+  else
+    ok "planning rite — the rite states its boundary, its dispatch and why that dispatch cannot place work, the circularity planning forces on the ranking, the one-at-a-time rule, the milestone route and the hole it depends on, that it produces no estimate and what that costs the next drain, and both of its disclaimers"
+  fi
+fi
+
+# ── 2 · the drain names the rite it hands off to, and agrees about the estimate gap ───────────────
+#
+# THE DRAIN IS WHERE A READER LEARNS THE RITE EXISTS. `/autonomy on`'s terminal condition is the one
+# place that says what happens after exhaustion, and it promised "the planning handoff" as a phrase for
+# five days with nothing in the tree to name — the same shape as the plural "closing ceremonies" #355
+# closed. The second needle is the agreement rather than the pointer: the drain refuses on `sp:N` and
+# the rite produces none, so the two either say that in both files or one of them is lying by omission.
+if [ ! -r "$PLAN_DRAIN" ]; then
+  bad "planning rite — commands/autonomy.md is not readable; the pointer from the file that reaches the
+      rite's trigger could not be checked, so the handoff is unasserted in both directions."
+else
+  plan_drain_missing=""
+  for plan_dneedle in \
+    '/sprint-planning` (#378)' \
+    'It runs AFTER the retrospective, not instead of it' \
+    'ordinarily refuses the first drain on the estimate class.'
+  do
+    grep -qF -- "$plan_dneedle" "$PLAN_DRAIN" || plan_drain_missing="$plan_drain_missing
+    missing: \"$plan_dneedle\""
+  done
+  if [ -n "$plan_drain_missing" ]; then
+    bad "planning rite — the drain no longer routes to the planning rite correctly:$plan_drain_missing
+      The drain is where a reader learns the rite exists at all — nothing fires it. And the ordering
+      matters: the retrospective's proposals are one of the planning rite's two inputs, so a planning
+      run first reads an empty second input and nobody would notice. The estimate clause is the
+      agreement between the two files: the drain refuses on sp:N and the rite deliberately makes none."
+  else
+    ok "planning rite — the drain names /sprint-planning, sequences it after the retrospective, and states the estimate gap the rite leaves it (string agreement only; nothing fires either rite)"
+  fi
+fi
+
+# ── 3 · the ranking profile's brief and the rite agree about the planning moment ──────────────────
+#
+# WHY THIS IS ITS OWN ARM. `agents/scrum-master.md`'s `description` names TWO moments — the start of a
+# working turn, and an iteration's terminal condition — and planning is a THIRD. A rite dispatching a
+# profile at a moment the profile's own brief does not know about is how a persona improvises: it would
+# reach for the ordering rule it does have, which tells it to rank against the milestone description,
+# which at planning does not exist yet. The brief carrying the exception is what stops that.
+if [ ! -r "$PLAN_SM" ]; then
+  bad "planning rite — agents/scrum-master.md is not readable; the profile the rite dispatches could not
+      be checked, so nothing asserts that it knows about the moment it is dispatched at."
+else
+  plan_sm_missing=""
+  for plan_sneedle in \
+    '## PLANNING is a third moment, and it makes one of your rules circular (#378)' \
+    '**At planning you rank by the ratified rules alone**'
+  do
+    grep -qF -- "$plan_sneedle" "$PLAN_SM" || plan_sm_missing="$plan_sm_missing
+    missing: \"$plan_sneedle\""
+  done
+  if [ -n "$plan_sm_missing" ]; then
+    bad "planning rite — the ranking profile's brief is out of step with the rite that dispatches it:$plan_sm_missing
+      The rite dispatches this profile at a moment its own description does not name. Without the
+      exception written here, it applies the rule it does have — rank against the order of record — and
+      the order of record is the milestone description, which planning is what CREATES. A persona given
+      a circular instruction resolves it by inventing an order, which is exactly what dispatching it
+      instead of ranking in place was supposed to prevent."
+  else
+    ok "planning rite — the ranking profile's brief names planning as a third moment and carries the exception the circularity forces (string agreement only; nothing observes a dispatch)"
+  fi
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"

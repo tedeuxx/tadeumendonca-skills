@@ -446,6 +446,16 @@ this is not. It is filed `routing` on the reading that its output is *what work 
 next*: a tracked item, in a state, awaiting the owner's transition. That is true and is not the whole
 truth, and the set is not reopened on one row.
 
+### 0046 · an iteration is composed from an assembled pool, one item at a time, by the human
+
+- **tipo:** routing
+- **carrier:** `commands/sprint-planning.md`
+- **descrição:** A typed rite that assembles every candidate for the next iteration — the eligible unmilestoned work in both repositories plus the proposals the closing rites produced — has a tool-less profile rank it, and presents the ranked pool to the owner one item at a time.
+- **propósito:** The obligation is **not** "hold a planning meeting". It is that the human who composes an iteration should not also be the one who has to REMEMBER what to compose it from: a loop whose ordering rule depends on a person recalling it has an ordering rule only while he recalls it. Two failures ride on that. The first is silent — eligible work that nothing presents sits unmilestoned indefinitely, invisible to every iteration-scoped mechanism at once. The second is that a closing rite's proposals have no consumer at all unless some moment exists where they can be ruled on; without one, the rite produces artifacts that are read by nobody and the iteration learns nothing from itself.
+- **o que faz:** Enumerates open unmilestoned work per repository (never naming a milestone in a query), splits it into eligible, awaiting-the-owner and not-drained, reads the previous iteration's retrospective findings as candidates, and dispatches the tool-less process profile once to rank the eligible pool against the already-ratified ordering rules. Presents each item alone and takes one of four rulings, then creates the iteration through the one sanctioned milestone route — carrying the ordered body as the milestone's description, because the create route accepts one and no update route exists — and admits each item with a call that prompts the human individually. Writes one tracked planning file recording the pool, the ranking, the rulings and the composition.
+- **o que não faz:** **It composes nothing itself.** Every milestone write is the human answering a permission prompt, and the ranking profile holds no tools at all, so neither the rite nor its dispatch can place work. **It does not estimate**, so the composition it leaves ordinarily refuses the next drain's preflight — which it reports rather than resolves. **It does not open work**, does not close an iteration (nothing here can read whether a milestone is open or closed), and does not judge the work. And **nothing fires it, nothing observes it and nothing bounds it**: no hook in this harness reads the queue, a hook sees one repository while an iteration is two milestone objects paired only by a hand-typed title, and the one-item-at-a-time rule is checkable by reading an artifact and by nothing else.
+- **citação:** > "Nothing observes that it ran, or that it ran correctly."
+
 ### 0018 · an approved spec is built by an actor that cannot merge it
 
 - **tipo:** routing
