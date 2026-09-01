@@ -1345,7 +1345,7 @@ above) is what resolved the collision, by making "start something disjoint while
 let two overlapping slices rot into conflict" the same rule instead of two rules fighting over the same
 guard.
 
-**The 2026-08-13 WIP=1 correction** (see `harness-engineering`'s own section on it) **supersedes the
+**The 2026-08-13 WIP=1 correction** (see `agents-configuration`'s own section on it) **supersedes the
 WRITTEN principle this collision produced** — the disjoint-files exception is struck and the policy is
 now a strict count of one in-flight branch — but that correction is written policy only.
 `hooks/scripts/wip-guard.sh` still enforces file overlap, not a raw count, so as of this amendment the
@@ -2286,7 +2286,7 @@ The *`README.md` is the single source of truth for the dev-loop narrative (absor
 **instruction to whoever dispatches**. In the owner's terms:
 
 - the **README is prose that no agent carries**; nothing preloads it;
-- the **states table is mechanism**, and every persona preloads `harness-engineering`.
+- the **states table is mechanism**, and every persona preloads `agents-configuration` and `engineering-standards`.
 
 **A rule exists to be obeyed by whoever dispatches, and whoever dispatches reads the skill.** Putting the
 operative wording where nobody looks is how #329 happened.

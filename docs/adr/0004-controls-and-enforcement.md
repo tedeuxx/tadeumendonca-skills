@@ -1754,7 +1754,7 @@ already been corrected. **The structural point is not that a human erred.** A di
 *inherits* its brief's premise and cannot check it — it was not present when the measurement was taken
 — so the premise of a dispatch was a load-bearing claim that nothing in the loop ever read back. That
 is the same defect shape #329 recorded one layer up, and it is the shape the state-model rule in
-`harness-engineering` exists to catch: *what observable artifact says this was true?*
+`agents-configuration` exists to catch: *what observable artifact says this was true?*
 
 **Why `PreToolUse` and not `Stop`.** Because this layer can **prevent**. A `Stop` hook would report the
 waste after it was paid for, which is the difference between a control and a receipt. This is the first
@@ -2863,7 +2863,7 @@ the prompt.
 
 **Rule 5c/5d — `gh issue create` denied to every subagent but `developer`.** **Keep.** Under the thesis
 this looks like a subagent-level restriction and is not one: opening work is not among any reviewing
-persona's *atividades previstas* — it is excluded by mandate, in `/harness-engineering`'s *Review does
+persona's *atividades previstas* — it is excluded by mandate, in `/agents-configuration`'s *Review does
 not open work*, and the measured failure is on record (19 net Issues in one session, ~13 born inside a
 review of something else). **The friction it does create is real and is named:** `agents-lead` is now
 the `loop` lane's intake and authors `loop` items, and it cannot file one — #375's own intake had to be
@@ -2986,8 +2986,11 @@ and rule 11 obeys it rather than restating it.
 
 ### The alternative that was put FIRST and is not a compromise: do not grant it
 
-`harness-engineering` already states the design — *"Creating one and closing one are both owner acts in
-the browser"*, *"one click per iteration is cheaper than reopening that door."* Planning is owner-present
+`agents-configuration` stated the design — *"Creating one and closing one are both owner acts in
+the browser"*, *"one click per iteration is cheaper than reopening that door."* **Both clauses are
+STRUCK at head by this record's own decision (#375), the strike scoped to CREATION — closing is still
+a click** — so read them as the state this option was argued FROM, not as current text; the skill was
+named `harness-engineering` until #381. Planning is owner-present
 by construction and nothing blocks *him*. **The price of that option, and it is the thing that gets
 forgotten and rediscovered as a defect:** `/sprint-planning` carries a manual step and the rites are not
 mechanically complete end to end. **The owner's requirement is the opposite** — *«voce deveria ao final
