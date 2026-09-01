@@ -1290,7 +1290,11 @@ does not degrade at all.
 `permission-guard` denies the irreversible floor before the command runs. `wip-guard` refuses a pull
 request that touches files an open one already touches — the bound is file overlap, not a count, because
 counting blocks disjoint work while doing nothing about the real risk. `session-wip` lists the open queue.
-`session-plugin-version` says when the installed build is not the merged one. `dispatch-metrics-stop`
+`session-plugin-version` says when the build the session is **running** is not the merged one — derived
+from that build's own manifest via `$0`, since #370 measured that reading the shared marketplace clone
+instead had let a project install sit 35 versions behind for 17 days with this hook silent — and names
+the other registered projects pinned to a different build, because the one furthest behind is by
+construction the one nobody opens. `dispatch-metrics-stop`
 logs the four benchmarking metrics the owner asked for on #209 — rework rounds, time, token cost, and an
 output-size proxy — as a structured comment on the Issue the dispatch worked, deriving them from
 `agent_transcript_path` (a per-dispatch JSONL transcript, separate from the main session's own) and from
@@ -1521,7 +1525,7 @@ repository reaches it by opening the directory. **Nothing loads it at runtime.**
 same way a human does: by choosing to read the path, not because the harness put it in front of them.
 That gap is why the decision records are read by *convention* (`tech-lead` writes them, the leads and the
 gate are told to consult them) rather than by *mechanism* — nothing here forces the read the way
-`session-plugin-version` forces the marketplace-staleness warning below.
+`session-plugin-version` forces the build-staleness warning below.
 
 ### The producer, its own marketplace, and the two consumers
 
@@ -1569,7 +1573,19 @@ to allow. It matters most for the change that is hardest to notice: a renamed or
 resolves to its OLD definition until the cache refreshes, so a dispatch silently runs a persona whose file
 no longer exists in the repo. `session-plugin-version` (above, under
 [The hooks](#the-hooks-and-what-they-refuse)) is the mechanism that catches exactly this gap — it does not
-resolve it, it warns at the next `SessionStart` that the installed build is behind the merged one.
+resolve it, it warns at the next `SessionStart` that the build the session is running is behind the
+merged one.
+
+**That sentence was FALSE for as long as it stood, and it is worth saying so rather than quietly
+correcting it.** Until #370 the hook read the shared **marketplace clone** and called the result
+`installed`. The clone is what `/plugin marketplace update` refreshes; it is not the build any session
+resolves. Measured 2026-08-31: a project-scope install record pinned `tadeumendonca-io` to `1.0.16` — 35
+versions and 17 days behind, on a build with no `agents-lead`, no merge floor and no milestone rule —
+while the clone read `1.1.51`, so the hook compared the clone against its reference, matched, and said
+nothing. The mechanism named here as catching *exactly this gap* was reading past it. It now derives the
+running build from `$0` (`hooks.json` registers every hook by interpolated absolute path, so `$0` is the
+build in play) and carries a second arm that reports the **other** projects' pinned records — which is
+the arm that matters, since a project nobody opens starts no session for the first arm to fire in.
 
 ## Stack
 
