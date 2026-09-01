@@ -6777,6 +6777,8 @@ else
     'Isolated speculation is still speculation.' \
     'the isolation would survive the dispatch and die at the write.' \
     'denies `product-lead`, `content-writer` and' \
+    '**Then SUBTRACT every profile that cannot `Write`' \
+    '**The relay is refused explicitly' \
     '**At most TWO findings per persona, the persona choosing which two.**' \
     'A rule that is checkable by reading and not by running is the honest maximum here' \
     'They still displace the product work there, by rule (#339)' \
@@ -6799,8 +6801,18 @@ else
         DIE AT THE WRITE — why the artifact is one file PER persona. A shared file puts every earlier
                            answer in the next persona's context; isolation would survive the dispatch
                            and die at the write.
-        DENIES           — why it is a file and not a comment: rule 5e denies three of the eight any
+        DENIES           — why it is a file and not a comment: rule 5e denies four of the eight any
                            public surface, so a comment artifact would have to be aggregated.
+        SUBTRACT         — the consult set is derived with NO filter, so a profile holding no \`Write\`
+                           lands in it and is asked for an artifact it cannot produce. The clause is a
+                           PROPERTY, not a name, so the next tool-less profile is covered without an
+                           edit. Losing it breaks the rite at the first iteration close, which is the
+                           one moment nobody is watching.
+        RELAY REFUSED    — and the refusal is the load-bearing half. Without it the cheap recovery is
+                           the orchestrator writing the file from what the profile returned, which is
+                           the aggregation the isolation exists to prevent, arriving where \`ls\` on the
+                           directory still answers 'the rite ran'. Two needles, because the exclusion
+                           alone reads as a gap somebody may helpfully close.
         AT MOST TWO      — the volume cap.
         HONEST MAXIMUM   — and the admission that the cap is checkable by reading and by nothing else.
                            These two are separate clauses on purpose; the cap alone reads as enforced.

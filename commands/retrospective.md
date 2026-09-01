@@ -114,7 +114,7 @@ The scope record carries, each with the command that produced it:
 
 ## Step 2 — the consult set is DERIVED, and it is a lower bound
 
-**Do not consult a fixed set of seven.** `hooks/scripts/dispatch-metrics-stop.sh` posts one comment per
+**Do not consult a fixed set.** `hooks/scripts/dispatch-metrics-stop.sh` posts one comment per
 dispatch onto the Issue whose number it reads from the branch, under the marker
 `<!-- dispatch-metrics: <plugin>:<agent_type> #<issue> -->`. Per Issue in the iteration:
 
@@ -149,6 +149,30 @@ about a dozen paths — no `jq`, no `gh`, no branch, no number in the branch, a 
 trailing `|| true` on the post itself. **A persona that ran and left no comment is indistinguishable
 from one that never ran.** Read the query result as *"at least these ran"*, write that phrase into the
 scope record, and add a persona by hand when the owner knows it ran.
+
+**Then SUBTRACT every profile that cannot `Write`, and record the subtraction in the scope record by
+name.** The rite's artifact is a file the consulted persona writes itself (step 4), so a profile whose
+`tools:` grant contains no `Write` cannot produce one — and the derivation above has no filter, so it
+will hand you such a profile the moment one has run. At head that is `scrum-master`
+(`agents/scrum-master.md`, `tools: []`); the clause is written as a **property** rather than a name so
+the next tool-less profile is covered without an edit here. It applies to a hand-added persona exactly
+as it applies to a derived one.
+
+**The relay is refused explicitly, and that refusal is the whole reason this is an exclusion rather than
+an accommodation.** The available workaround — dispatch it anyway, have the orchestrator write the file
+from what it returned — is the aggregation this rite's isolation exists to prevent, in the one step where
+it would be invisible: the directory would hold the file, `ls` would answer *"the rite ran"*, and nothing
+in the artifact would say the answer passed through the context being retrospected. **A second reason,
+measured rather than argued:** `agents/scrum-master.md` records that a tool-less profile asked to act
+reports the act as done — *"the `tools: []` probe replied «The command succeeded. File created at the
+specified path.» and no file existed"*. Consulted, it would report a write that did not happen, and the
+rite has no check that would contradict it.
+
+**What the exclusion costs, stated rather than absorbed:** the process-guardian voice is absent from the
+rite, and it is the profile most likely to have something to say about whether the loop ran in order.
+The fix for that is a `Write` grant on the profile — a roster decision, with the four-reason test re-run
+per that brief's own warning that *"if a future slice gives you a tool, that argument comes back in
+full"* — never a relay arranged here.
 
 ## Step 3 — one isolated dispatch per persona, fed its OWN artifacts
 
@@ -185,12 +209,13 @@ docs/retrospective/<iteration>/` answers *"did the rite run"*. Anyone composing 
 narrative would be performing the aggregation the isolation exists to prevent, which is why no step here
 asks for one.
 
-**A comment was NOT chosen, and three of the eight personas are why.** `permission-guard.sh` rule 5e
+**A comment was NOT chosen, and four of the eight personas are why.** `permission-guard.sh` rule 5e
 allowlists `gh pr comment` / `gh issue comment` / `gh issue create` to the orchestrator, `developer`,
 `tech-lead`, `agents-lead` and `quality-assurance`, and **denies `product-lead`, `content-writer` and
-`content-reviewer` by name.** Three of the eight cannot post their own answer at all, and relaying them
-through the orchestrator reintroduces exactly the aggregation this rite exists to avoid — for the three
-personas closest to the owner's voice. A file lands in a diff he already reads, goes through the gate
+`content-reviewer` by name — and `scrum-master` under its `*)` catch-all, which is a deny.** The
+criterion is *every persona not on rule 5e's allowlist*, and the count follows from it: **four of the
+eight cannot post their own answer at all**, and relaying them through the orchestrator reintroduces
+exactly the aggregation this rite exists to avoid. A file lands in a diff he already reads, goes through the gate
 like any other change, and is the route rule 5e's own deny text points the denied personas at.
 
 **The price is stated rather than absorbed: the retrospective now costs a branch, a PR and a gate pass.**
