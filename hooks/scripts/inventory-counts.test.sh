@@ -1568,9 +1568,18 @@ fi
 #
 # ~~ONE PERSONA IS~~ **TWO PERSONAS ARE** A GENUINE EXCEPTION, NOT AN OVERSIGHT. `product-lead` writes no
 # scratch file at all by design (its verdict returns as text; `quality-assurance` quotes it onto the PR
-# verbatim), and `scrum-master` (#375) holds **no `tools:` line at all** — no `Write`, no `Edit`, no
-# `Bash` — so its whole output is the text it returns. Asserting "session scratchpad" against either
-# would demand a sentence describing a capability the brief deliberately does not have.
+# verbatim), and `scrum-master` (#375) declares an EXPLICIT EMPTY GRANT, `tools: []` — no `Write`, no
+# `Edit`, no `Bash` — so its whole output is the text it returns. Asserting "session scratchpad" against
+# either would demand a sentence describing a capability the brief deliberately does not have.
+#
+# ~~and `scrum-master` (#375) holds **no `tools:` line at all**~~ — **STRUCK 2026-08-31 (#386). That
+# reading is the exact inverse of the runtime and it survived here, inside the gate that now asserts
+# its opposite.** Measured through `Task` on build 2.1.252: an agent whose frontmatter OMITS `tools:`
+# inherits the parent's whole grant. The profile therefore carries `tools: []` explicitly, and the
+# arm below keys on the brief's own sentence rather than on the frontmatter's absence. **This instance
+# is unreachable by the RETIRED-CLAUSE REGISTRY below** — that block excludes this file from its own
+# scan by filename, deliberately and for a good reason — so it was found by review and nothing but
+# review could have found it. Recorded here so the next sweep does not assume the registry covered it.
 #
 # THE EXCEPTION IS A LIST AND NOT A DERIVATION, AND THAT IS A KNOWN WEAKNESS RATHER THAN A CHOICE OF
 # STYLE. The obvious derivation — *a brief declaring neither `Write` nor `Edit` takes the exception* —
@@ -6667,6 +6676,14 @@ fi
 # clause inside `*"` as a DISCUSSION — which the documentation standard's own citation rule warns a
 # grep cannot distinguish from an assertion. Anything else is the clause asserted.
 #
+# THE PREDICATE IS LINE-SCOPED, AND #386 PAID FOR LEARNING IT. A strike opened on the PRECEDING line
+# and closed on the FOLLOWING one renders correctly in Markdown and reddens here, because the needle's
+# own line carries no `~~`. That is a false red, and it is the right trade rather than a bug to fix:
+# a multi-line predicate would have to guess where a strike opens and closes, and guessing is how a
+# check starts passing on prose it never read. **So a struck span wraps EACH of its lines**, which is
+# uglier in the source and is what makes the assertion mechanical. Found by running this block, not by
+# reading it.
+#
 # WHAT IT CANNOT DO, SAID BEFORE THE FIRST GREEN. It reads strings. It cannot tell whether a
 # replacement sentence is TRUE, cannot see a paraphrase that shares no vocabulary with the retired
 # clause, and cannot judge whether a `*"` quotation is really a discussion rather than an assertion
@@ -6710,6 +6727,9 @@ done <<'RETIRED_CLAUSES'
 only refusal surface that exists|Rule 7d (#363) is a second refusal surface, reaching the closing-keyword route one step upstream at the merge.
 joins the active iteration at|No Issue is filed with a milestone, for any type (#365; ADR-0002's twenty-seventh amendment, held by permission-guard.sh rule 10).
 covers that residue|The Stop arm's predicate is a DECLARED invocable promise, and the Issue rule 7d was built from declares none — so it covers the ROUTE, for a DIFFERENT obligation, and patches none of rule 7d's holes.
+editing a file inside a git working tree|orchestrator-write-guard.sh is DELETED and its registration removed (#375/#386), so the orchestrator's mechanically-enforced boundary is TWO acts again — merge and direct push to the trunk. permission-guard.sh runs on the Bash matcher and cannot see an Edit/Write call at all, so what the deletion leaves is no layer rather than another layer.
+already refused at runtime|Nothing refuses the orchestrator's write at runtime since #386 deleted orchestrator-write-guard.sh. Any sentence resting on that refusal — including one nine lines below its own strike, which is how this instance survived — is a control claimed where none exists.
+asserts the registration itself|hooks/scripts/orchestrator-write-guard.test.sh is deleted in #386 along with its CI step, so the matcher-enumeration lesson in ADR-0004 named a mitigation that no longer exists. The lesson stands; the reassurance does not.
 RETIRED_CLAUSES
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
@@ -6779,7 +6799,7 @@ else
         DIE AT THE WRITE — why the artifact is one file PER persona. A shared file puts every earlier
                            answer in the next persona's context; isolation would survive the dispatch
                            and die at the write.
-        DENIES           — why it is a file and not a comment: rule 5e denies three of the seven any
+        DENIES           — why it is a file and not a comment: rule 5e denies three of the eight any
                            public surface, so a comment artifact would have to be aggregated.
         AT MOST TWO      — the volume cap.
         HONEST MAXIMUM   — and the admission that the cap is checkable by reading and by nothing else.

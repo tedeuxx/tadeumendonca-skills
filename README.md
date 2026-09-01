@@ -699,13 +699,15 @@ pair's two figures and this aggregate were re-measured at this head, because tho
 diff falsifies.
 
 **A caveat on the aggregate that the previous head's version of this paragraph did not carry, and
-should have.** The billed total and the two "largest" figures are derived from **all seven** briefs,
+should have.** The billed total and the two "largest" figures are derived from ~~**all seven**~~ **the
+seven briefs the roster held when they were measured — it is EIGHT at this head (#375), so the
+aggregate excludes `scrum-master` and is stale in the same direction as the bullets below it** —
 including the five whose own bullets are declared stale one paragraph up — so this line is re-measured
 while the numbers it sits beside are not, and a reader diffing the bullets against the total will not
 be able to reconcile them. That is the honest state and not a defect introduced here: the alternative
 is to publish an aggregate assembled from figures known to be wrong. It is stated so nobody spends a
 session discovering it. The command that settles all of them in one run, which is what a reconciling
-slice should use rather than seven `wc -c` calls:
+slice should use rather than one `wc -c` call per brief:
 `grep -h '^  - ' agents/*.md | sort | uniq -c` for the counts, and per-persona
 `sed -n '/^skills:/,/^---/p' agents/<name>.md` piped into `wc -c` over the named `skills/*/SKILL.md`.
 (All figures measured
@@ -1342,8 +1344,8 @@ they are never in this repo's git history.
 ADR library lives at `docs/adr/`, is tracked in git, and travels with every clone — a human reading this
 repository reaches it by opening the directory. **Nothing loads it at runtime.** No hook in
 `hooks/hooks.json` reads it, no manifest references it, and no persona's `skills:` frontmatter names a
-`docs/` path — the seven personas above preload only files under `skills/`
-(`ls agents/*.md | wc -l` → **7**; claim `0001`). An agent reaches `docs/` the
+`docs/` path — the eight personas above preload only files under `skills/`
+(`ls agents/*.md | wc -l` → **8**; claim `0001`). An agent reaches `docs/` the
 same way a human does: by choosing to read the path, not because the harness put it in front of them.
 That gap is why the decision records are read by *convention* (`tech-lead` writes them, the leads and the
 gate are told to consult them) rather than by *mechanism* — nothing here forces the read the way

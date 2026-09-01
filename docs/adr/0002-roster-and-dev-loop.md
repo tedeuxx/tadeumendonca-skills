@@ -3446,15 +3446,24 @@ this document). The term converges five live spellings — `orchestrator`, `main
 
 **The boundary, in two honest parts rather than one:**
 
-- **Mechanically enforced, for ~~exactly two acts~~ THREE acts — merge, direct push to the trunk, and
-  (since #319, 2026-08-23) editing a file inside a git working tree.**
+- **Mechanically enforced, for ~~exactly two acts~~ ~~THREE acts~~ TWO acts again — merge and direct
+  push to the trunk.** ~~and
+  (since #319, 2026-08-23) editing a file inside a git working tree.~~ **Struck 2026-08-31 (#386):
+  `orchestrator-write-guard.sh` is deleted and its registration removed, so the third act has no
+  carrier and the count is two.** The strike is sited here, under *The decision, as it currently
+  binds*, because that heading is what a fresh context reads as present tense — `CLAUDE.md`'s copy of
+  this same sentence was struck in the slice that deleted the hook and **this original was not**, which
+  is the CITED-vs-STATED class this repo has now paid for twice in one PR.
   `hooks/scripts/permission-guard.sh` leaves `agent_type` **empty** for the main agent by design, and
-  rules 7 (trunk push) and 7b (merge) fire against that empty value. The third act is enforced by a
+  rules 7 (trunk push) and 7b (merge) fire against that empty value. ~~The third act is enforced by a
   different hook on a different matcher — `hooks/scripts/orchestrator-write-guard.sh`, registered on
   `Edit|Write|MultiEdit|NotebookEdit` — because `permission-guard.sh` runs on the `Bash` matcher and
   returns immediately on a payload with no `.tool_input.command`. It is a **routing** rule rather than
   a floor one: the identical edit is allowed the moment a persona makes it, and every non-empty
-  `agent_type` passes through untouched. See
+  `agent_type` passes through untouched.~~ **The `Bash`-matcher fact in that struck passage is still
+  true and still load-bearing** — `permission-guard.sh` cannot see an `Edit`/`Write` call at all — so
+  what the deletion leaves is not a rule moved to another layer but **no layer**, which is the honest
+  reading and the one *The coupled removal* section below argues for. See
   [ADR-0004](./0004-controls-and-enforcement.md)'s 2026-08-23 amendment for the decision, the
   measurement that a matcher is anchored, and the `Bash`-side residual it leaves open. Asserted in
   `permission-guard.test.sh` under the case name `"main agent (no agent_type) cannot merge"` and again

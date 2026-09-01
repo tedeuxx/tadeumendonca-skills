@@ -1688,9 +1688,28 @@ why reading a session's initial tool list does not find it. And the payload key 
 `file_path` allows every NotebookEdit **even with the matcher naming it** — a second side door behind
 the first, which no matcher fix would have closed. **Therefore: a matcher is an enumeration and inherits
 every risk an enumeration has**, exactly like the pattern-lists this document already rejects on the
-`Bash` side. The mitigation is not a claim of completeness — it is that
-`hooks/scripts/orchestrator-write-guard.test.sh` asserts the registration itself, so narrowing the
-matcher goes red instead of quiet.
+`Bash` side. ~~The mitigation is not a claim of completeness — it is that~~
+~~`hooks/scripts/orchestrator-write-guard.test.sh` asserts the registration itself, so narrowing the~~
+~~matcher goes red instead of quiet.~~
+
+**Struck 2026-08-31 (#386): that file is DELETED in the same slice that removed the hook, and its CI
+step with it, so THERE IS NO MITIGATION — this paragraph named a control that does not exist, in the
+one paragraph a future guard author is sent to read.** The struck sentence is corrected here rather
+than deferred with its neighbour at *"denies a file-writing call whose `agent_type` is empty"* above,
+and the two are genuinely different: that one is a **dated amendment** reversed in this same document
+1,100 lines later under *"`orchestrator-write-guard.sh` is REMOVED"*, so a reader who keeps reading is
+corrected; this one is a **standing engineering lesson about matchers**, deliberately kept live and
+deliberately rehomed by this slice precisely so the next matcher author reads it — and it was left
+pointing at a test suite that is gone.
+
+**What survives the strike, and it is everything the lesson is for:** a matcher is anchored rather than
+a substring search, `NotebookEdit` is deferred and carries `notebook_path` rather than `file_path`, and
+therefore a matcher is an enumeration. Those are properties of the runtime measured on build 2.1.241,
+not of the deleted hook. **What does NOT survive is the reassurance.** Any future hook on a
+multi-tool matcher ships with no assertion behind its registration unless its author writes one —
+`hooks/scripts/hooks-executable.test.sh` checks that a registered script exists and is executable, and
+nothing anywhere asserts that a given matcher still names the tools its argument depends on. That is the
+residual, and it is now the reader's to carry rather than a suite's.
 
 **What is deliberately NOT mechanised, recorded so it reads as a decision.** Reads, `gh issue create`,
 and the `gh pr comment` / `gh issue comment` routes rule 5e allows the orchestrator. A hook sees `grep`

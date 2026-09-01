@@ -25,8 +25,8 @@ subagent's output, so isolation costs nothing extra here: it is a property of di
 discipline anyone has to keep.
 
 **But isolation alone buys nothing, and this is the finding the rite is built around.** A consulted
-persona is a **fresh context with no memory of the iteration**. Handed only a question, seven personas
-produce seven plausible lists — which is the orchestrator's bias relocated to seven contexts, not
+persona is a **fresh context with no memory of the iteration**. Handed only a question, N personas
+produce N plausible lists — which is the orchestrator's bias relocated to N contexts, not
 removed. **Isolated speculation is still speculation.** So the dispatch feeds each persona its own
 evidence, and asks it to reason from that. That is what step 3 is for, and it is the reason this rite is
 worth running at all.
@@ -126,8 +126,10 @@ gh issue view <n> --repo <owner>/<repo> --json comments \
 ```
 
 Measured across `sprint-01` in this repository: **six of seven personas ran; `content-reviewer` ran zero
-times.** Consulting a fixed seven would spend a dispatch asking a persona that was never in the
-iteration to report on it.
+times.** Consulting the fixed roster instead would spend a dispatch asking a persona that was never in
+the iteration to report on it. *(The measurement above is dated and is left at its own denominator: the
+roster held seven when `sprint-01` ran and holds **eight** since #375, which is exactly why the consult
+set is derived rather than written down.)*
 
 **Three measured limits travel WITH the set, and the artifact states them rather than implying them:**
 
@@ -183,10 +185,10 @@ docs/retrospective/<iteration>/` answers *"did the rite run"*. Anyone composing 
 narrative would be performing the aggregation the isolation exists to prevent, which is why no step here
 asks for one.
 
-**A comment was NOT chosen, and three of the seven personas are why.** `permission-guard.sh` rule 5e
+**A comment was NOT chosen, and three of the eight personas are why.** `permission-guard.sh` rule 5e
 allowlists `gh pr comment` / `gh issue comment` / `gh issue create` to the orchestrator, `developer`,
 `tech-lead`, `agents-lead` and `quality-assurance`, and **denies `product-lead`, `content-writer` and
-`content-reviewer` by name.** Three of the seven cannot post their own answer at all, and relaying them
+`content-reviewer` by name.** Three of the eight cannot post their own answer at all, and relaying them
 through the orchestrator reintroduces exactly the aggregation this rite exists to avoid — for the three
 personas closest to the owner's voice. A file lands in a diff he already reads, goes through the gate
 like any other change, and is the route rule 5e's own deny text points the denied personas at.
