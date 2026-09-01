@@ -3996,23 +3996,37 @@ delegating.
 
 ## Amendment (2026-09-01, twenty-ninth) — planning gets an object; it assembles and ranks, and composition stays the owner's act (#378)
 
-**Deciders:** the owner, **on everything #378's ratified body already carries** — the rite itself, that
-it composes rather than places, that it does not estimate and does not open work. **Written by**
-`agents-lead` (#223 — this is a pure loop/machinery decision). **Pre-implementation stress test:** the
-#378 intake; **a second, independent lens read the built diff cold at `573d842`** and its three
-blocking findings are what the *partition-not-sequence*, *no-update-route-is-built* and
-*enumerate-the-retrospective-directory* sections below record.
+**Deciders:** the owner — on #378's ratified body, **and separately on the scope widening below, ruled
+2026-09-01.** **Written by** `agents-lead` (#223 — this is a pure loop/machinery decision).
+**Pre-implementation stress test:** the #378 intake; **a second, independent lens read the built diff
+cold at `573d842`** and its three blocking findings are what the *partition-not-sequence*,
+*no-update-route-is-built* and *enumerate-the-retrospective-directory* sections below record.
 
-**ONE PART OF THIS AMENDMENT IS NOT YET RATIFIED AND MUST NOT BE READ AS IF IT WERE — the scope change
-that lets the rite CREATE the iteration.** #378's body, at head and unamended, still reads *"It does not
-create an iteration"*, and the owner applied `ready` to **that** body. What lapsed is the bullet's
-stated *reason* (#375 was open; the route did not exist), and that lapse is mechanical and checkable —
-but *the reason lapsed* is not *the scope was widened*, and only he closes that gap. Verified rather
-than assumed: `gh issue view 378 --json comments` returns one comment and it is `dispatch-metrics`;
-`gh pr view 388 --json comments,reviews` returned no owner ruling at authorship. **Under *no solo
-architectural decisions* this is one sentence from him, and it is asked on the PR rather than inferred
-here.** If he declines, step 4a and rule 11's involvement come out and the rite hands him the title to
-create — everything else in this amendment stands unchanged.
+### The scope widening, ratified 2026-09-01 — and the wording decides more than the yes
+
+**The owner's ruling, verbatim, on #378:**
+
+> *«bom, o rito deveria sim criar a iteracao como produto ao final dela»*
+
+**«como produto ao final dela» is stronger than permission to create one, and the rite is written to
+that wording rather than to the question that was asked.** The question was *may it create the
+iteration*; the answer makes the iteration **the rite's product**. So it is a statement about the rite's
+**completion**, not about one of its steps: **a planning that ends without an iteration object has
+produced nothing.** The rite says exactly that, in its own words, before step 1.
+
+~~**ONE PART OF THIS AMENDMENT IS NOT YET RATIFIED AND MUST NOT BE READ AS IF IT WERE.**~~ **Struck
+2026-09-01 by the ruling above.** It is struck rather than deleted because it stood on a pushed head
+and a reader may have taken the flag seriously — which was its purpose. What it flagged was real and
+is worth keeping visible as a method note: #378's body said *"It does not create an iteration"*, the
+owner applied `ready` to **that** body, and what had lapsed was the bullet's **reason** (#375 open, no
+route) rather than its scope. **A lapsed reason is not a widened scope**, so the build stopped and
+asked instead of inferring the decision from what had become convenient. The ruling is the widening,
+made explicitly, and it lives on #378 rather than only here.
+
+**What this does NOT loosen, because the two acts are different objects and the rite keeps both
+guarded.** *Placement* is an **item** acquiring a milestone — rule 10, one prompt per item. *Creation*
+is the **iteration object** — rule 11, one prompt. Both remain the owner's, answered by him; the
+widening moves what the rite is **for**, not who decides.
 
 **Why this is an amendment and not a new record.** It decides *what happens before an iteration
 starts*, which is the same object as the twenty-sixth amendment's *what happens when one ends* and the
@@ -4124,16 +4138,21 @@ brief rather than left to the profile to improvise:
   the ranking verbatim in `docs/planning/<iteration>.md`. **No selection file is written for a planning
   dispatch.** Unstated, either both are written or one is silently skipped, and only one would be read.
 
-### #378's "it does not create an iteration" is SUPERSEDED, and by a dependency rather than by a
-preference
+### #378's "it does not create an iteration" is SUPERSEDED — by the owner's ruling, on a dependency that
+had already lapsed
+
+**The ruling is what supersedes it** (quoted in full at the top of this amendment); what follows is why
+the bullet was right when written and what had changed underneath it before he was asked.
 
 That bullet was written on 2026-08-31, when #375 was open and milestone creation had **no route at
 all** — measured then and unchanged now: `gh milestone --help` → `unknown command "milestone" for
 "gh"`, and `gh api` writes are denied by rule 5f. #386 merged `scripts/milestone-create.sh` and rule
 11 the same day.
 
-**So the rite creates the iteration, through that route, and it is the route's first exercise.** Rule
-11 asks the orchestrator; his answer is the verification. **Nothing about that is claimed to be
+**So the rite PRODUCES the iteration, through that route, and it is the route's first exercise.** Rule
+11 asks the orchestrator; his answer is the verification. **Read *produces* rather than *may create*:**
+the ruling's own wording — «como produto ao final dela» — makes the object the rite's deliverable, so a
+planning that ends without one has not finished. **Nothing about that is claimed to be
 closed:** the route reaches the write API because no permission layer reads inside a script, which is
 the same blindness that makes `python3 -c "…gh api -X POST…"` reach it. The rite repeats that in its
 own text rather than relying on the script's header.

@@ -18,6 +18,30 @@ owner's act (#365), held by `permission-guard.sh` rule 10, whose prompt reaches 
 Nothing in this rite may set a milestone without his answer to that prompt, and nothing in it decides
 what the iteration contains.
 
+### THE ITERATION IS THIS RITE'S PRODUCT, and that is a completion condition rather than a step
+
+**Owner's ruling, 2026-09-01, verbatim:**
+
+> *«bom, o rito deveria sim criar a iteracao como produto ao final dela»*
+
+**Read the wording exactly: «como produto ao final dela».** The iteration object is what this rite
+**produces**, not something it is permitted to create along the way. **A planning that ends without an
+iteration object has produced nothing** — it assembled, it ranked, it collected rulings, and it has no
+deliverable. That is a statement about whether the rite finished, and it is why step 4a is not
+optional and not a nicety at the end of a list.
+
+**This does NOT loosen the sentence above it, and the two are about different objects.** *Placement* is
+an **item** acquiring a milestone — rule 10, one prompt per item, his answer each time. *Creation* is
+the **iteration object itself** — rule 11, one prompt, his answer. Both are still his; the rite performs
+neither without him. What the ruling settles is that producing the object is **in scope and is the
+point**, after a period when no route to it existed at all.
+
+**It also supersedes #378's own body**, which reads *"It does not create an iteration. Milestone
+creation has no route from here (#375)."* That line was correct when written and its **reason** lapsed
+when #386 merged the route the same day — and a lapsed reason is not a widened scope, which is why this
+build stopped and asked rather than inferring the decision from what had become convenient. The ruling
+above is the widening, made explicitly, and it is recorded on #378 rather than only here.
+
 **The failure it closes, measured here rather than imported.** Eligible items sat unmilestoned with
 nothing presenting them; the loop-first composition rule (#339) depended on the owner remembering it;
 and the `sprint-01` retrospective's proposal files had no consumer at all.
@@ -37,8 +61,10 @@ gh issue list --repo <owner>/<repo> --state open --limit 200 --json number,label
 taken 2026-08-31, restated without re-running anything; the same predicate at head returns **7** in one
 repository and **`[]`** in the other. Read that as the rule this repo already has — *a measured number
 ships with the command that produced it, inline and runnable, or not at all* — being broken in the very
-slice that publishes it. None of those is a missing decision — the decision is his and stays his. What was missing is the
-thing that puts the decision in front of him, item by item, with the pool already assembled.
+slice that publishes it.
+
+**None of those three is a missing decision** — the decision is his and stays his. What was missing is
+the thing that puts the decision in front of him, item by item, with the pool already assembled.
 
 **It is executed in the ORCHESTRATOR's context, and that is a requirement rather than a convenience.**
 Rule 10 (`--milestone`) and rule 11 (`scripts/milestone-create.sh`) both **deny a subagent and ask the
@@ -231,7 +257,10 @@ presents five and collects five answers has produced the decision list the const
 **It does not estimate.** No `sp:N` is produced, requested or required here; estimation is
 `/agents-configuration`'s *Estimation* section, with its own estimator sets and its own trigger.
 
-## Step 4 — create the iteration, then admit the items, in that order
+## Step 4 — produce the iteration, then admit the items, in that order
+
+**This step is where the rite's PRODUCT is made** (see *the iteration is this rite's product* above),
+so the order below is not a sequencing preference — 4a is the deliverable and 4b is what fills it.
 
 **The order is load-bearing, and the reason it is load-bearing is narrower than it first reads: there
 is a CREATE route BUILT and no UPDATE route BUILT.** `scripts/milestone-create.sh` accepts

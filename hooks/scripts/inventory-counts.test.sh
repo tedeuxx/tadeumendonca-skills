@@ -7444,7 +7444,10 @@ else
     '**This rite costs a branch, a PR and a gate pass**' \
     'is NOT `hooks/scripts/preflight.sh`.**' \
     '- **AN ITEM CARRIED OVER FROM THE PREVIOUS ITERATION.**' \
-    '- **AN ISSUE CARRYING NO ROUTING LABEL.**'
+    '- **AN ISSUE CARRYING NO ROUTING LABEL.**' \
+    "### THE ITERATION IS THIS RITE'S PRODUCT, and that is a completion condition rather than a step" \
+    'iteration object has produced nothing' \
+    'bom, o rito deveria sim criar a iteracao como produto ao final dela'
   do
     grep -qF -- "$plan_needle" "$PLAN_CMD" || plan_missing="$plan_missing
     missing: \"$plan_needle\""
@@ -7510,9 +7513,18 @@ else
         PREFLIGHT        — this repo ships a hook literally named preflight.sh which has no opinion
                            about estimates; the word here names a rule a session follows.
         CARRIED OVER /   — the two classes step 1's predicate drops silently. Both vacuous at head and
-        NO ROUTING LABEL   both stated in advance, which is what that list is for."
+        NO ROUTING LABEL   both stated in advance, which is what that list is for.
+      The three below arrived with the owner's 2026-09-01 ruling and are one clause split three ways,
+      because the WORDING is what is load-bearing and a paraphrase of it would pass a looser needle:
+        PRODUCT          — «como produto ao final dela». The iteration object is what the rite PRODUCES,
+                           not something it is permitted to create along the way. Losing this heading
+                           turns a completion condition back into an optional final step.
+        PRODUCED NOTHING — the operative consequence: a planning that ends without an iteration object
+                           has no deliverable. It is the half a reader acts on.
+        THE QUOTE        — his sentence, verbatim. The ruling is stronger than the yes that was asked
+                           for, and only the original wording carries that; a summary of it does not."
   else
-    ok "planning rite — the rite states its boundary, its dispatch and why that dispatch cannot place work (and how narrowly), the circularity planning forces on the ranking, that the ratified rules partition rather than sequence and what the tiebreak is, the one-at-a-time rule, enumerate-then-select on BOTH inputs, the milestone route with the hole it depends on and the update route that is merely unwritten, what happens when creation fails, its own cost, that it produces no estimate and which preflight that names, both of its disclaimers, and the two classes it cannot see"
+    ok "planning rite — the rite states its boundary, that the iteration is its PRODUCT rather than a step (in the owner's own words), its dispatch and why that dispatch cannot place work (and how narrowly), the circularity planning forces on the ranking, that the ratified rules partition rather than sequence and what the tiebreak is, the one-at-a-time rule, enumerate-then-select on BOTH inputs, the milestone route with the hole it depends on and the update route that is merely unwritten, what happens when creation fails, its own cost, that it produces no estimate and which preflight that names, both of its disclaimers, and the two classes it cannot see"
   fi
 fi
 
