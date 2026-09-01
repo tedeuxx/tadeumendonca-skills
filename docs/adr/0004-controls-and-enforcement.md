@@ -1722,8 +1722,12 @@ half is a **habit**, observed by the census and enforced by nobody.
 committed allow list, so `sed -i` and `tee` reach a tracked file without passing this matcher. Closing
 it means resolving a path out of a shell command string, which is the SEMANTIC class this document says
 a pattern cannot hold — and a wrong guess there denies `developer`'s builds too, since the guard decides
-from the same string. It is left open and made **visible** instead: the census classifies those commands
-into its write/post class. `command > file` was already denied outright for every caller (#244), so the
+from the same string. It is left open and made **visible** instead: ~~the census classifies those commands
+into its write/post class.~~ **Struck 2026-09-01 (#371) — true of the two commands this paragraph names,
+false as the general property the sentence reads as.** It reads as *the census sees the `Bash` write side
+door*; measured, it saw a hand-listed slice of it, and a wrapper prefix or a stray option put a mutation
+in the READ list. See the 2026-09-01 amendment below for what the census sees now and what it declares it
+does not. `command > file` was already denied outright for every caller (#244), so the
 loudest spelling of this door was closed before this rule existed.
 
 **Accepted costs.** The guard fails open on a missing `jq`/`git`, like every other guard here. It is a
@@ -3090,3 +3094,83 @@ scrum»* — so the route is built and the honest description of it is above.
   *refuse the session while the guard set's preconditions are absent*. The same amendment adds a rule to
   the layer question — **how often a control fires decides whether the layer can survive holding it** —
   and records the version-drift precondition as rejected on that rule, closing #342.
+
+## Amendment (2026-09-01) — a REPORTER's coverage is unbounded where a FLOOR's is enumerated, so it declares what it did not recognise (#371)
+
+**What moves:** the *"Named residual — the `Bash` side door, open and known"* paragraph above, whose
+clause *"the census classifies those commands into its write/post class"* is struck in place. **What does
+not move:** the residual itself. The `Bash` side door is still open, still deliberately, and this
+amendment makes it *more* visible rather than closing it.
+
+### What was measured
+
+Probed against `hooks/scripts/orchestrator-tool-census.sh` with a real `Stop` payload, threshold lowered
+so the notice would print. Every row is a mutation, and every row landed in the **read** list:
+
+| command | label produced | class |
+|---|---|---|
+| `git -c user.name=x commit -m y` | `git -c` | R |
+| `git --git-dir=<path> commit -m y` | `git --git-dir=<path>` | R |
+| `gh --repo <o/r> issue comment 1 --body-file <p>` | `gh --repo <o/r>` | R |
+| `env -C <dir> claude plugin update <plugin> --scope project -y` | `env` | R |
+| `gh api <endpoint>` | `gh api <endpoint>` | R, one label per endpoint |
+
+The fourth is the motivating incident: a call that rewrote which build every project resolves, reported
+as a read. The third is the more expensive one — `gh … comment` is the orchestrator's most common write,
+and `command-hygiene` already documents that this flag position breaks the **permission** prefix matcher.
+Nobody had noticed it breaks the census identically.
+
+### The finding, which is about SHAPE rather than about five bugs
+
+The three string defects are cheap and are fixed. What is not fixable in this layer is the coverage. The
+first token of every `Bash(...)` allow pattern across the six settings files in this workspace resolves
+to **57 distinct programs**, of which exactly **two** carry a multi-word label. So *"which other programs
+hide a mutating subcommand"* is not a list of seven; it is everything except two — `bump-my-version bump`
+(writes two files, commits and tags), `npm publish`, `node`, `python3`, `bash`, `terraform init`,
+`aws <verb>`, `awk 'print > "f"'`, `find -delete`, `curl -o`, each reported as a read.
+
+**A hand-maintained per-tool list of mutating subcommands has the maintenance profile of a matcher list,
+not of a classifier**: it must be extended every time a program is added to any of four settings files,
+by someone who remembers this hook exists.
+
+### The rule this adds to the layer question
+
+> **A FLOOR may enumerate what it denies, because a denial fires on a specific act. A REPORTER cannot
+> enumerate what it observes, because its subject is everything that happened — so a reporter with a
+> two-class output silently reports its own coverage gap as a clean result.**
+
+The remedy is a **third class**. `?` means *not recognised*, printed as its own block, and the notice
+says in its own words that unclassified is not measured-as-a-read. Before it, `R` was the default and
+nothing distinguished *measured as a read* from *not recognised*; every future gap was something the
+next person found by accident.
+
+**Price, paid rather than waved at:** the notice is longer, and `?` holds genuine readers until they are
+listed. It is bounded by an explicit reader list, and `?` deliberately **does not trigger** the notice,
+so a turn holding only unclassified calls stays as silent as it was before. Of the variants weighed, it
+is the only one whose cost does not grow with the allowlist.
+
+### Considered and rejected
+
+- **Extend the W list per tool.** Rejected on the enumeration above: the list to maintain is 55 programs
+  wide and grows in four files this hook does not read.
+- **Go back to substring matching over the whole command.** Rejected on its own recorded evidence: run
+  against a real 916-call transcript it classified a `cat` heredoc as a write because the heredoc *body*
+  carried a mutating word, and `gh release view` as a post. **The argument here is that the coverage is
+  unbounded, not that the matching is wrong**, and only the second was ever the defect.
+- **Merge `classify()` into `permission-guard.sh`.** It is a second, weaker classifier over the same
+  command strings, and this Issue is that duplication drifting into view — but the guard is a
+  **fail-closed floor** and the census a **fail-open reporter**. Coupling them would give the floor a
+  reason to change every time the report gains a label, which is a bad trade in the direction that
+  matters. The mitigation is review discipline: **when a program is added to any allowlist, both files
+  are the checklist.**
+
+### What this does NOT claim
+
+The census still gates nothing, still fires after the act, and still counts **attempts** rather than
+effects. And the semantic half stays uncloseable: no first-N-words rule can tell `node scripts/read.js`
+from `node scripts/write.js`. The `?` class is what documents that **at runtime, per session**, instead
+of in a paragraph nobody re-reads.
+
+**Significance:** *alters a previously-recorded decision*, marginally — it strikes a clause of this
+record's own residual and adds one rule to the layer question. No new record. Authored by `agents-lead`
+per the domain split (#223).

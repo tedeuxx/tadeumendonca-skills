@@ -1335,17 +1335,30 @@ it is self-attested; and nothing greps `SELECTION-RECORD`, so no layer reports t
 What the census already covers is unchanged and is now the whole of the mechanical half.
 
 **The census gates nothing and cannot**: a `Stop` hook fires after the work happened. It
-reports the main agent's own tool calls as a named list, write/post separated from reads, `Bash`
+reports the main agent's own tool calls as a named list, write/post separated from reads **and from a
+third class, `?`, meaning not recognised (#371)**, `Bash`
 classified by the act it ran (`gh issue comment` is a post; `gh issue view` is a read) so the posting
 class is not empty by construction. Two costs, handled rather than inherited: it counts **attempts** —
 a denied call still appears, and the notice says so every time — and it would otherwise fire every
 turn, so only the write/post class can trigger it and only after three more such calls since the last
-notice in that session. **What is deliberately NOT mechanised, and must read as a decision rather than
+notice in that session; an unclassified call triggers nothing at all.
+
+**Why a third class, and it is the finding rather than a feature.** Measured on #371, the classifier
+labelled on the first tokens, so `env -C <dir> claude plugin update …` labelled as `env` and
+`gh --repo <o/r> issue comment …` as `gh --repo <o/r>` — **four mutations in one probe, every one of
+them reported as a read**, including the call that rewrote which build every project resolves. The
+string defects are fixed (wrappers and leading options are stripped before labelling). What is not
+fixable in this layer is the coverage: the first token of every `Bash(...)` allow pattern across the six
+settings files in this workspace resolves to **57 distinct programs**, of which two carry a subcommand
+label. **A floor may enumerate what it denies; a reporter cannot enumerate what it observes**, so a
+two-class reporter silently reports its own gap as a clean result. `?` is what stops that — it says *not
+recognised*, in its own block, rather than filing the remainder under *read*. **What is deliberately NOT mechanised, and must read as a decision rather than
 an omission:** reads, `gh issue create`, and the `gh pr comment` / `gh issue comment` routes rule 5e
 allows the orchestrator. A hook sees `grep` and a path, never whether the answer was already in a
 subagent's return; and denying the comment routes would leave an intake finding with no durable
 artifact, since at intake there is frequently no PR and `product-lead` holds no `Write` at all. That
-half is a **habit**, observed by the census and enforced by nobody.
+half is a **habit**, observed by the census and enforced by nobody — and *observed* now means observed
+in three classes, one of which is an admission.
 
 `preflight` is the newest and the only one that stops the session rather than an action (#342). Every
 other hook here fails open on a missing dependency and says nothing — `permission-guard.sh` reads its

@@ -287,10 +287,10 @@ built a control, and reading it now can only build an influence.
 
 - **tipo:** record
 - **carrier:** `hooks/scripts/orchestrator-tool-census.sh`
-- **descrição:** A `Stop` hook that lists the main context's own tool calls, with the write/post class separated from the reads.
+- **descrição:** A `Stop` hook that lists the main context's own tool calls in **three** classes — the write/post class, the reads, and the ones it did not recognise.
 - **propósito:** One class of orchestrator over-reach is unambiguous and mechanically deniable; the rest — reads, comments, the routes the floor deliberately allows — is a **habit**, and a habit nobody observes is a habit nobody can correct. Making the shape of a session visible is what makes leaving that half unmechanised affordable.
-- **o que faz:** Reads the main agent's transcript, which by construction holds the orchestrator's own calls and not a subagent's, classifies each call by its **label** rather than by a substring of the whole command string, and emits a notice only once the write/post class has grown past a threshold since the last one.
-- **o que não faz:** **It gates nothing and cannot** — it fires after the act, emits no decision, and every exit path is a success. It counts **attempts, not effects**: a write denied by another hook still appears in the transcript and is still counted, which is stated in the notice itself every time rather than quietly corrected.
+- **o que faz:** Reads the main agent's transcript, which by construction holds the orchestrator's own calls and not a subagent's, classifies each call by its **label** rather than by a substring of the whole command string — stripping shell wrappers, environment assignments and leading options first, so a mutation cannot hide behind a prefix — and emits a notice only once the write/post class has grown past a threshold since the last one.
+- **o que não faz:** **It gates nothing and cannot** — it fires after the act, emits no decision, and every exit path is a success. It counts **attempts, not effects**: a write denied by another hook still appears in the transcript and is still counted, which is stated in the notice itself every time rather than quietly corrected. **And it does not pretend to recognise everything it sees.** A reporter's subject is everything that happened, so its coverage cannot be enumerated the way a floor's denials can; a two-class output would file its own blind spot under *read*. The third class says *not recognised*, and is the only variant whose cost does not grow with the allowlist it cannot see.
 - **citação:** > "THIS GATES NOTHING. IT CANNOT."
 
 ### 0011 · a dispatch leaves a measurable trace on the Issue it was working
