@@ -434,7 +434,24 @@ git tag --list 'v*' --sort=v:refname \
 
 **Sixty-nine published releases and seventeen days apart, on one machine, for one consumer** — twice
 the gap the figure claimed, in the direction that makes the argument stronger, which is exactly why it
-went unchallenged. Kept as a struck line rather than silently corrected, because a wrong number nobody
+went unchallenged.
+
+**Two caveats on the replacement, because a corrected figure inherits the obligation the wrong one
+failed.** First, the `awk` above **fails open in the inflating direction**: given an upper bound that
+does not exist it falls through to EOF and returns a larger number with exit 0 and no error
+(substituting `v9.9.9` returns 74). Check that both bounds are real tags before trusting the count.
+Second, `69` was confirmed against a **second instrument** — `gh release list --limit 400` over the
+same range also gives 69, from a different source than `git tag`, on a repository holding 226 tags and
+153 releases overall. That is why the wording is *"published releases"* rather than *"versions"*: the
+replacement does not share the old figure's property of being an artifact of how it was computed.
+
+**And the table above is machine-local with no disclosure, unlike the other machine-local figure in
+this batch — the asymmetry is named rather than left.** `~/.claude/plugins/installed_plugins.json` is
+in no repository; read today it holds all three records at `1.1.53`, so the `1.0.16 / 2026-08-14` row
+no longer exists anywhere but a stale directory in the plugin cache. The table is **dated**, which makes
+it honest as history and is why it stands — but the 61-programs figure three sections away in
+`docs/adr/0004-controls-and-enforcement.md` carries an explicit *"not reproducible from a clone"*
+caveat and this one did not. It does now. Kept as a struck line rather than silently corrected, because a wrong number nobody
 could re-run is the defect this record is *about*: an install lag nobody could see. The 2026-08-10
 amendment had already seen the shape and read it as unremarkable — it records *"`1.0.5`, and `1.0.0` for
 one project entry"* in passing, treating the divergence as a detail of the pinning rather than as the

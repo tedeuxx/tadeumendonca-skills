@@ -190,6 +190,60 @@ out="$(run_hook)"
 if [ -z "$out" ]; then ok 'silent when the turn surfaced the link'; else bad 'silent when surfaced' "got: $out"; fi
 teardown
 
+echo '--- #374 review: a PR number must not be discharged by a LONGER one (prefix collision) ---'
+# The first form substring-matched `/pull/${pr_number}`, which makes every PR number a prefix of every
+# longer one. Detection-only, so the cost is a MISS — the quiet direction, and the one nobody notices.
+# Three cases: the two controls are what stop this arm passing for a hook that fires on everything or
+# on nothing.
+SHORT_URL='https://github.com/tedeuxx/tadeumendonca-skills/pull/15'
+LONG_URL='https://github.com/tedeuxx/tadeumendonca-skills/pull/150'
+UNRELATED_URL='https://github.com/tedeuxx/tadeumendonca-skills/pull/99'
+
+# control: the real link WAS handed over -> silent
+setup
+human_turn "go"
+assistant_text "Ready for you: $SHORT_URL"
+open_pr 15 abc123
+pr_fixture OPEN abc123 "$checks_green" APPROVE-PENDING-HUMAN
+out="$(run_hook)"
+if [ -z "$out" ]; then ok 'control — PR 15 with a /pull/15 link is silent'
+else bad 'control — /pull/15 discharges PR 15' "got: $out"; fi
+teardown
+
+# THE PROBE: a link to PR 150 must NOT discharge PR 15.
+setup
+human_turn "go"
+assistant_text "Here is the other one: $LONG_URL"
+open_pr 15 abc123
+pr_fixture OPEN abc123 "$checks_green" APPROVE-PENDING-HUMAN
+out="$(run_hook)"
+if [ -n "$out" ]; then ok 'a /pull/150 link does NOT discharge PR 15'
+else bad 'a /pull/150 link must not discharge PR 15' 'got empty — the prefix collision is back'; fi
+teardown
+
+# control: an unrelated, non-prefix number -> fires, so the arm above is not passing on a hook that
+# simply fires whenever the number differs by any means.
+setup
+human_turn "go"
+assistant_text "Unrelated: $UNRELATED_URL"
+open_pr 15 abc123
+pr_fixture OPEN abc123 "$checks_green" APPROVE-PENDING-HUMAN
+out="$(run_hook)"
+if [ -n "$out" ]; then ok 'control — an unrelated PR link still fires'
+else bad 'control — an unrelated PR link fires' 'got empty'; fi
+teardown
+
+# AND THE REVERSE DIRECTION: the longer number must not be discharged by the shorter one either.
+setup
+human_turn "go"
+assistant_text "Ready: $SHORT_URL"
+open_pr 150 abc123
+pr_fixture OPEN abc123 "$checks_green" APPROVE-PENDING-HUMAN
+out="$(run_hook)"
+if [ -n "$out" ]; then ok 'a /pull/15 link does NOT discharge PR 150'
+else bad 'a /pull/15 link must not discharge PR 150' 'got empty'; fi
+teardown
+
 echo '--- the two clearances are the gate acting on itself, and owe nothing ---'
 # A PR sitting open under a clearance is a RACE at any single instant — verdict, then merge seconds
 # later — indistinguishable from a strand. Treating it as owed would fire on the healthy sequence

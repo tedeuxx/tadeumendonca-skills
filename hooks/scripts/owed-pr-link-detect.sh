@@ -59,6 +59,12 @@
 # would fire on the healthy sequence every time. The fifth literal exists precisely so that the strand
 # stops having to be inferred from a clearance that stayed open.
 #
+# `REQUEST-CHANGES` is not in (3) either, and it is worth stating rather than leaving to the reader:
+# it routes to the BUILDER, not to the owner, so a PR carrying it owes him nothing. It reaches this
+# hook only via the `*)` arm below, which exits silently — correct here, and the reason every literal
+# in the brief is named in this header rather than only the ones that fire. A literal nobody wrote
+# down is a literal nobody decided about, and `*)` swallows it either way.
+#
 # ── IT READS THE ORCHESTRATOR'S PROSE ONLY, for the sibling's measured reason ───────────────────
 # `tool_result` blocks carry the identical PR URLs at identical counts, because `gh pr create` prints
 # the URL as its own stdout. A rule that counted those would consider the link "surfaced" every time the
@@ -198,9 +204,25 @@ turn_prose="$(jq -r '
 # bare `#NNN` cannot be told from an Issue number without a network call — the same hole the sibling
 # names, in the same direction: this hook is blind to the shorthand and therefore fires on a turn that
 # used it. That is a false positive in a DETECTION-only notice, which is the cheap direction.
-case "$turn_prose" in
-  *"/pull/${pr_number}"*) exit 0 ;;
-esac
+#
+# THE NUMBER IS EXTRACTED AND COMPARED, NEVER SUBSTRING-MATCHED (#374 review). The first form was
+# `case "$turn_prose" in *"/pull/${pr_number}"*)`, and a plain substring makes every PR number a
+# PREFIX of every longer one. Measured through the hook end to end, with a control on each side:
+#
+#   PR 15, turn links /pull/15    -> silent   (correct — the link was handed over)
+#   PR 15, turn links /pull/150   -> SILENT   ← FALSE NEGATIVE: a different PR discharged this one
+#   PR 15, turn links /pull/99    -> fires    (correct)
+#
+# Detection-only, so the cost is a MISS rather than a false alarm — the quiet direction, and the one
+# nobody notices. The sibling `premature-pr-link-detect.sh` never had this: it extracts full URLs with
+# a bounded regex and parses the number exactly. This now does the same rather than adding a boundary
+# character class, so the two hooks agree on what "a link to PR N" means.
+if printf '%s\n' "$turn_prose" \
+   | grep -oE 'https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/pull/[0-9]+' \
+   | sed -n 's#^.*/pull/\([0-9]*\)$#\1#p' \
+   | grep -qx "$pr_number"; then
+  exit 0
+fi
 
 owner_act="the owner's decision on one of the four holds"
 case "$verdict" in

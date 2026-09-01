@@ -1821,6 +1821,92 @@ EOF
 fi
 
 # ---------------------------------------------------------------------------------------------------
+# THE SAME VOCABULARY, ACROSS ALL FIVE READERS (#374). The two arms above cover `session-wip.sh` and
+# rule 7c. They were published in ADR-0004's 2026-09-01 amendment as *"that gate covers one reader of
+# five"* — TRUE about this file, and it was measured that adding a SIXTH literal to the brief reddens
+# exactly one arm here while four readers stay green. That is the gap these two arms close.
+#
+# WHY "EVERY LITERAL MUST APPEAR IN EVERY READER'S CASE BLOCK" IS THE WRONG ASSERTION, and was rejected
+# rather than merely not chosen. `zombie-loop-detect.sh` deliberately omits both clearances — they fall
+# to `*) exit 0` because a cleared PR is not an outstanding verdict — and `owed-pr-link-detect.sh`
+# deliberately omits three. Requiring presence in the arm would redden on correct code at head.
+#
+# WHAT IS ASSERTED INSTEAD, and it is weaker on purpose: every literal the brief defines is NAMED
+# somewhere in each reader's file — in a case arm, or in the comment that documents why it falls
+# through. The property is *the author considered this literal*, and the failure it catches is the real
+# one: a literal added to the brief landing in a reader whose `*)` swallows it with nobody having
+# decided that it should. Every reader's `*)` does something wrong with an unconsidered literal —
+# `session-wip.sh` reports a false defect, rule 7c denies with a message about a moved head,
+# `premature-pr-link-detect.sh` emits a false positive, and the two `exit 0` readers go SILENT.
+#
+# ITS LIMIT, STATED BECAUSE THIS FILE ALREADY LEARNED IT ONCE: a name in a comment is not a name in a
+# case arm, and this arm cannot tell them apart. That is precisely why the arm-scoped `wip_patterns`
+# check above was written the way it was, and it is why this one does NOT replace it. Arm-scoped where
+# a fall-through is a defect; named-anywhere where a fall-through is a design choice.
+vocab_readers="hooks/scripts/zombie-loop-detect.sh hooks/scripts/premature-pr-link-detect.sh hooks/scripts/owed-pr-link-detect.sh"
+if [ -z "$qa_verdicts" ]; then
+  bad "verdict vocabulary (all readers) — no literal was extracted from agents/quality-assurance.md,
+      so nothing was compared and a green here would be an artifact of the parse breaking."
+else
+  for reader in $vocab_readers; do
+    if [ ! -r "$ROOT/$reader" ]; then
+      bad "verdict vocabulary (all readers) — $reader is not readable; nothing compared."
+      continue
+    fi
+    unnamed=""
+    while IFS= read -r v; do
+      [ -z "$v" ] && continue
+      grep -qF -- "$v" "$ROOT/$reader" || unnamed="${unnamed} ${v}"
+    done <<EOF
+$qa_verdicts
+EOF
+    if [ -n "$unnamed" ]; then
+      bad "verdict vocabulary (all readers) — $reader never names:${unnamed}.
+      Nothing in that file decides what happens to it, so it reaches the \`*)\` arm by omission rather
+      than by choice — silently in the two \`exit 0\` readers, and as a false notice in the others."
+    else
+      ok "verdict vocabulary (all readers) — $reader names every literal quality-assurance.md defines"
+    fi
+  done
+fi
+
+# THE PHANTOM DIRECTION, GENERALISED. The arm above catches a brief literal no reader considered; this
+# one catches the reverse — a reader carrying a literal the brief does not define, which is the drift
+# ADR-0004's Context section measured three times in one day (`ADVISORY-ONLY`, `CLEAN`, `APPROVED`).
+# Rule 7c already has this check for its ACCEPT arms only; a misspelling in a DENY arm, or in any of
+# the three Stop readers, was covered by nothing.
+for reader in $vocab_readers hooks/scripts/session-wip.sh; do
+  if [ ! -r "$ROOT/$reader" ]; then
+    bad "verdict vocabulary (phantom) — $reader is not readable; nothing compared."
+    continue
+  fi
+  # The FIRST `case "$verdict" in` block only — `owed-pr-link-detect.sh` carries a second one that
+  # picks notice wording rather than classifying, and folding it in would compare the wrong thing.
+  reader_arms="$(awk '/case "\$verdict" in/{f=1} f{print} f&&/^[[:space:]]*esac/{exit}' \
+    "$ROOT/$reader" 2>/dev/null \
+    | grep -oE "^[[:space:]]*[A-Z][A-Z'|-]*\)" | tr -d ' )' | tr '|' '\n' || true)"
+  if [ -z "$reader_arms" ]; then
+    bad "verdict vocabulary (phantom) — no case arm was extracted from $reader; a green here would be
+      an artifact of the parse breaking, not a finding."
+    continue
+  fi
+  phantom_r=""
+  while IFS= read -r v; do
+    [ -z "$v" ] && continue
+    printf '%s\n' "$qa_verdicts" | grep -qx "$v" || phantom_r="${phantom_r} ${v}"
+  done <<EOF
+$reader_arms
+EOF
+  if [ -n "$phantom_r" ]; then
+    bad "verdict vocabulary (phantom) — $reader classifies on literal(s) agents/quality-assurance.md
+      does not define:${phantom_r}. Nothing can post them, so that arm is dead code that reads as
+      coverage — the exact shape three drifted literals took in one day (ADR-0004's Context)."
+  else
+    ok "verdict vocabulary (phantom) — every literal $reader classifies on is one the brief defines"
+  fi
+done
+
+# ---------------------------------------------------------------------------------------------------
 # THE THIRD DUPLICATED LITERAL, AND WHY IT MUST NOT BE RENAMED: `agents-lead`#291 kept the exact
 # marker string `harness-lead-verdict` unchanged when the persona that produces it was renamed from
 # `harness-lead` to `agents-lead`, on the argument that every marker already posted to a GitHub

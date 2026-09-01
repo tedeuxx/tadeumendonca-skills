@@ -1363,11 +1363,15 @@ labelled on the first tokens, so `env -C <dir> claude plugin update …` labelle
 them reported as a read**, including the call that rewrote which build every project resolves. The
 string defects are fixed (wrappers and leading options are stripped before labelling). What is not
 fixable in this layer is the coverage: the first token of every `Bash(...)` allow pattern across the six
-settings files in this workspace resolves to **61 distinct programs** (measured 2026-09-01 with the
-command in `docs/adr/0004-controls-and-enforcement.md`'s 2026-09-01 amendment; #371's intake measured
-57 the day before, and **two of those six files are untracked local overlays, so the figure is
-machine-specific and moved by four overnight** — which is the argument rather than an erratum), of
-which two carried a subcommand label before this change.
+settings files in this workspace resolves to **61 distinct programs**, of which two carried a subcommand
+label before this change. Measured 2026-09-01 with the command in
+`docs/adr/0004-controls-and-enforcement.md`'s 2026-09-01 amendment, which names all six files rather
+than eliding them. **Four of the six are outside every repository** — both `~/.claude/*` and both
+untracked `settings.local.json` — **so from the two tracked files a clone yields 57**, the exact number
+#371's intake published and this batch corrects; the four extra programs are `brew`, `claude`, `file`
+and `open`. That figure is published beside 61 deliberately: without it a reader re-deriving from a
+clone lands on 57 and concludes the correction was the error. **The argument survives either number** —
+the list is unbounded and it moves — which is what licenses publishing a machine-specific figure at all.
 **A floor may enumerate what it denies; a reporter cannot enumerate what it observes**, so a
 two-class reporter silently reports its own gap as a clean result. `?` is what stops that — it says *not
 recognised*, in its own block, rather than filing the remainder under *read*. **What is deliberately NOT mechanised, and must read as a decision rather than
@@ -1610,8 +1614,10 @@ merged one.
 **That sentence was FALSE for as long as it stood, and it is worth saying so rather than quietly
 correcting it.** Until #370 the hook read the shared **marketplace clone** and called the result
 `installed`. The clone is what `/plugin marketplace update` refreshes; it is not the build any session
-resolves. Measured 2026-08-31: a project-scope install record pinned `tadeumendonca-io` to `1.0.16` — 35
-versions and 17 days behind, on a build with no `agents-lead`, no merge floor and no milestone rule —
+resolves. Measured 2026-08-31: a project-scope install record pinned `tadeumendonca-io` to `1.0.16` — ~~35
+versions~~ **69 published releases** (35 was `51 − 16`, patch-component subtraction across a minor
+boundary; struck in ADR-0005's 2026-09-01 amendment, which publishes the `git tag` command that
+yields 69) and 17 days behind, on a build with no `agents-lead`, no merge floor and no milestone rule —
 while the clone read `1.1.51`, so the hook compared the clone against its reference, matched, and said
 nothing. The mechanism named here as catching *exactly this gap* was reading past it. It now derives the
 running build from `$0` (`hooks.json` registers every hook by interpolated absolute path, so `$0` is the

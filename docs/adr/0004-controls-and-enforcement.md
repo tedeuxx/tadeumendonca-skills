@@ -3126,19 +3126,40 @@ The three string defects are cheap and are fixed. What is not fixable in this la
 first token of every `Bash(...)` allow pattern across the six settings files in this workspace resolves
 to **61 distinct programs**, plus 2 absolute script paths counted separately because they are not
 programs, of which exactly **two** carried a multi-word label before this change and three do after it.
-**Re-derived at head on 2026-09-01 rather than carried from #371's intake, which measured 57 on
-2026-08-31 against the same six files:**
+**Re-derived at head on 2026-09-01, with the six files named rather than elided** — a placeholder is not
+a runnable command, and this repository's rule is inline-and-runnable or not at all:
 
 ```
-jq -r '.permissions.allow[]? // empty' <the six settings files> \
-  | grep '^Bash(' | sed 's/^Bash(//; s/[:)].*$//' | awk '{print $1}' | sort -u
+jq -r '.permissions.allow[]? // empty' \
+  ~/.claude/settings.json ~/.claude/settings.local.json \
+  <workspace>/tadeumendonca-io/.claude/settings.json \
+  <workspace>/tadeumendonca-io/.claude/settings.local.json \
+  <workspace>/tadeumendonca-skills/.claude/settings.json \
+  <workspace>/tadeumendonca-skills/.claude/settings.local.json \
+  | grep '^Bash(' | sed 's/^Bash(//; s/[:)].*$//' | awk '{print $1}' | sort -u | grep -v '^/'
 ```
 
-**The drift between 57 and 61 is the argument rather than an erratum**, and it is why the figure is
-published with the command and with its own caveat: four programs entered the allowlists in one day,
-**two of the six files are untracked local overlays**, so the number is machine-specific and not
-reproducible from a clone. A list that moves by four overnight, sourced partly from files no repository
-holds, is not a list anyone maintains by hand in a second place.
+**Four of those six files are outside every repository, not two.** Both `~/.claude/*` live in the home
+directory and in no repo at all; both `settings.local.json` are untracked, measured with
+`git ls-files --error-unmatch` answering *"did not match any file(s) known to git"* for each.
+
+**From the two TRACKED files alone the same pipeline yields 57** — the exact number #371's intake
+published and this amendment corrects. That line is not a footnote: without it, a reader re-deriving
+from what a clone can reach lands on 57, reads this record calling 57 an erratum, and concludes the
+correction was the error. **The four programs that exist only outside every repository are `brew`,
+`claude`, `file` and `open`** — and `claude`, the program at the centre of #371's motivating incident,
+comes from an untracked overlay.
+
+**Three conditions govern publishing a number derived partly from untracked files**, and they are stated
+here as a rule rather than as this instance's apology: name the files inline; state how much of the
+derivation is unreproducible and publish what a clone yields beside it; and the argument must survive
+the imprecision. **The third is what licenses the figure at all** — *the list is unbounded and it moves*
+holds at 57 and at 61 — and the first two are what this amendment failed on its first authorship and
+discharges here.
+
+**The drift between 57 and 61 is the argument rather than an erratum:** four programs entered the
+allowlists in one day and nothing in this repository could see it. A list that moves by four overnight,
+sourced mostly from files no repository holds, is not a list anyone maintains by hand in a second place.
 
 So *"which other programs
 hide a mutating subcommand"* is not a list of seven; it is everything except two — `bump-my-version bump`
@@ -3146,8 +3167,9 @@ hide a mutating subcommand"* is not a list of seven; it is everything except two
 `aws <verb>`, `awk 'print > "f"'`, `find -delete`, `curl -o`, each reported as a read.
 
 **A hand-maintained per-tool list of mutating subcommands has the maintenance profile of a matcher list,
-not of a classifier**: it must be extended every time a program is added to any of four settings files,
-by someone who remembers this hook exists.
+not of a classifier**: it must be extended every time a program is added to any of the SIX settings files named above, by
+someone who remembers this hook exists. (The derivation set and the maintenance set are the same six;
+an earlier draft of this paragraph said "four" beside the "six" above and contradicted itself twice.)
 
 ### The rule this adds to the layer question
 
@@ -3266,8 +3288,51 @@ been written yet.
 **What it costs, accepted and stated so it is not rediscovered as a defect.** Five readers now parse
 the vocabulary independently — `permission-guard.sh` (7c), `session-wip.sh`, `zombie-loop-detect.sh`,
 `premature-pr-link-detect.sh` and the new `owed-pr-link-detect.sh` — plus the producing brief. They
-must move in lockstep, and the only thing enforcing that is `inventory-counts.test.sh`'s assertion of
-`session-wip.sh`'s list against the brief's own section. **That gate covers one reader of five.**
+must move in lockstep.
+
+~~and the only thing enforcing that is `inventory-counts.test.sh`'s assertion of `session-wip.sh`'s
+list against the brief's own section. **That gate covers one reader of five.**~~
+
+**STRUCK the day it was written, and it is the same defect this amendment's neighbour struck one
+section above for the *Bash side door* clause — committed again, in the amendment that ships beside
+it.** *"Held by review"* was false about all four: removing the literal from any reader's own `case`
+arm reddens that reader's own suite, and every one of those suites has a step in `hooks-test.yml`.
+Measured, one mutation per run, tree restored between:
+
+| reader removed from | its own suite |
+|---|---|
+| `owed-pr-link-detect.sh` | 28 passed, **2 failed** |
+| `zombie-loop-detect.sh` | 25 passed, **2 failed** |
+| `premature-pr-link-detect.sh` | 34 passed, **1 failed** |
+
+**The real residual was a different one, and the misstatement hid it.** Adding a SIXTH literal to the
+brief reddened exactly one arm — `inventory-counts` 179/1 on `session-wip.sh` — and left all four other
+readers green. So the gap was never *a literal deleted from a reader*; it was *a literal added to the
+brief that no reader ever considered*, which every reader's `*)` then swallows: silently in the two
+`exit 0` readers, as a false defect report in `session-wip.sh`, as a false notice in
+`premature-pr-link-detect.sh`, and as a deny with the wrong repair message in rule 7c.
+
+**That gap is closed in this same MR**, by generalising the `awk` case-block extraction
+`inventory-counts.test.sh` already had. The same sixth-literal probe now reddens **four** arms instead
+of one. Two arm classes, and they are deliberately not the same strength:
+
+- **Named-anywhere, across the three `Stop` readers.** *"Every literal must appear in every reader's
+  case block"* was **rejected rather than merely not chosen**: `zombie-loop-detect.sh` deliberately
+  omits both clearances and `owed-pr-link-detect.sh` omits three, so that assertion would redden on
+  correct code. What is asserted is that each reader **names** every brief literal — in an arm, or in
+  the comment documenting the fall-through — because the property that matters is *the author
+  considered it*. **Its limit is stated in the arm itself:** a name in a comment is not a name in an
+  arm, and this check cannot tell them apart. It therefore does not replace the arm-scoped
+  `session-wip.sh` check, which exists because a fall-through there is a defect rather than a design.
+- **Phantom, generalised to all four `case`-block readers.** Rule 7c already had this for its *accept*
+  arms only; a misspelling in a deny arm, or in any `Stop` reader, was covered by nothing. This is the
+  drift this record's own Context section measured three times in one day.
+
+**What is still not gated, and this time it is stated as the narrow thing it is:** nothing asserts that
+a reader's *treatment* of a literal is correct — only that it was considered and that it exists.
+`owed-pr-link-detect.sh` was found by this arm never naming `REQUEST-CHANGES` at all, which is exactly
+the class it was built for; whether the sentence added there is the right decision is a reviewer's call
+and there is no instrument for it.
 
 ### And the gate must DISCOVER that it is blocked: attempt the merge once per head
 
@@ -3291,6 +3356,55 @@ at roughly 65 seconds per blocked head. Once, never in a retry loop.
   non-ask and flagged the ask**, so position is not a ruler; it lives on #362 as a behaviour question.
 - **A route around rule 7b.** The escape already exists and it is the owner's browser merge, which rule
   7c's own comment says it has zero reach over. **The strand is the correct failure of a correct rule.**
+
+### A fourth denial kind exists, and a detector keyed on one of them misses the other
+
+The measurement above (`8 records, 2 kinds` in one session) is honestly scoped and stays. But the
+**corpus** is wider than two kinds, and a future detector needs the wider figure:
+
+```
+grep -rhoE '"toolDenialKind":"[a-z-]+"' ~/.claude/projects/<this-project>/
+→ 2546 permission-rule · 51 user-rejected · 25 automode-blocked · 14 automode-unavailable
+```
+
+**`automode-unavailable` is a second auto-mode refusal shape**, and nothing above mentions it. A
+detector keyed only on `automode-blocked` is blind to 14 records in this corpus. That is advisory — no
+detector is keyed on either string today — and it is recorded so the first one built does not inherit
+the narrower premise. *(Machine-local, like every transcript figure: the corpus is this machine's
+project directory and is not reproducible from a clone.)*
+
+### The prefix exposure this batch shipped as an open hypothesis is REFUTED, with one exception
+
+#371 left it open whether `permission-guard.sh` carries the same wrapper/option blindness the census
+had. **It does not, and the reason is the finding rather than the result.** Measured by feeding the
+guard `PreToolUse` payloads with `agent_type` empty — it is a pure function of its stdin, so nothing was
+mutated:
+
+```
+rule 7b (merge)      — DENY on every form:
+  gh pr merge · gh --repo o/r pr merge · env gh pr merge · command gh pr merge
+  xargs -I{} gh pr merge · time gh pr merge
+rule 7  (trunk push) — DENY on every form:
+  git push origin main · git -c user.name=x push · git -C <repo> push · env git push · time git push
+```
+
+**The census labels the FIRST TOKEN; the guard matches `(^|[^[:alnum:]_])gh…` ANYWHERE in the string**,
+and rule 7b carries a shared `gh_repo_flag` pattern covering `-R`/`--repo` in every punctuation. The two
+layers anchor differently on purpose, and that difference is what kept #371's defect out of the floor.
+**This is evidence FOR keeping `classify()` and the guard separate, not against it** — merging them
+would have propagated the bug into the fail-closed layer.
+
+**The one exception, and it is a real hole in the floor:**
+
+```
+git --git-dir=<a-repo-on-main>/.git push        → «no decision»
+```
+
+Rule 7's extraction reads `-C` only, so a push aimed at another checkout's trunk through `--git-dir`
+reaches no rule. **Contained rather than open:** that spelling matches no `Bash(git push:*)` allow
+prefix either, so it degrades to *ask a human* rather than to *execute*. **Not fixed here, deliberately
+— it is the floor, and the floor is its own change with its own record.** Named so the next reader
+finds a measured gap rather than an open worry.
 
 ### Significance
 

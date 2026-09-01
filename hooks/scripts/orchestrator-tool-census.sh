@@ -151,23 +151,41 @@ calls="$(jq -r '
 # The first token of every `Bash(...)` allow pattern across all six settings files in this workspace
 # resolves to **61 distinct programs** (plus 2 absolute script paths, counted separately because they
 # are not programs), of which exactly two — `gh` and `git` — got a multi-word label before this change
-# and three do after it. Re-derived at head on 2026-09-01 rather than carried from #371's intake, which
-# measured **57** on 2026-08-31 against the same six files:
+# and three do after it. Re-derived at head on 2026-09-01, with the six files NAMED rather than elided,
+# because a placeholder is not a runnable command and this repo's rule is inline-and-runnable or not at
+# all:
 #
-#   jq -r '.permissions.allow[]? // empty' <the six settings files> \
-#     | grep '^Bash(' | sed 's/^Bash(//; s/[:)].*$//' | awk '{print $1}' | sort -u
+#   jq -r '.permissions.allow[]? // empty' \
+#     ~/.claude/settings.json ~/.claude/settings.local.json \
+#     <workspace>/tadeumendonca-io/.claude/settings.json \
+#     <workspace>/tadeumendonca-io/.claude/settings.local.json \
+#     <workspace>/tadeumendonca-skills/.claude/settings.json \
+#     <workspace>/tadeumendonca-skills/.claude/settings.local.json \
+#     | grep '^Bash(' | sed 's/^Bash(//; s/[:)].*$//' | awk '{print $1}' | sort -u | grep -v '^/'
 #
-# THE DRIFT BETWEEN THOSE TWO FIGURES IS THE ARGUMENT, NOT AN ERRATUM. Four programs entered the
-# allowlists in one day, two of the six files are UNTRACKED local overlays, and this hook read none of
-# it. A number that moves by four overnight is not a list anyone can maintain by hand in a second file.
-# READ IT AS MACHINE-SPECIFIC: the two `settings.local.json` files are not in any repository, so the
-# figure is not reproducible from a clone and the command above is what makes that visible.
+# FOUR OF THOSE SIX FILES ARE OUTSIDE EVERY REPOSITORY, not two. Both `~/.claude/*` live in the home
+# directory and in no repo at all, and both `settings.local.json` are untracked — measured with
+# `git ls-files --error-unmatch`, which answers "did not match any file(s) known to git" for each.
+#
+# **FROM THE TWO TRACKED FILES ALONE, THE SAME PIPELINE YIELDS 57** — the exact number #371's intake
+# published and this file corrects. Publishing 61 without that line manufactures a contradiction: a
+# reader re-deriving from what a clone can reach lands on 57, reads 57 called an erratum, and concludes
+# the correction was the error. The four programs that exist ONLY outside every repository are `brew`,
+# `claude`, `file` and `open` — and `claude`, the program at the centre of this hook's own motivating
+# incident, comes from an untracked overlay.
+#
+# THE DRIFT IS THE ARGUMENT, NOT AN ERRATUM. Four programs entered the allowlists in one day and this
+# hook read none of it. A number that moves by four overnight, sourced mostly from files no repository
+# holds, is not a list anyone maintains by hand in a second file. **And the argument survives the
+# imprecision** — *the list is unbounded and it moves* holds at 57 and at 61 — which is why the figure
+# is published with its disclosure rather than withdrawn.
 # So "which other programs hide a mutating subcommand" is not a list of seven; it is everything except
 # two. `bump-my-version bump patch` writes two files, commits AND tags. `npm publish`, `npx`, `node`,
 # `python3`, `bash`, `terraform init`, `aws <any verb>`, `awk 'print > "f"'`, `find -delete`, `curl -o`
 # are all reachable and all reported as reads. A hand-maintained list would have to be extended every
-# time a program is added to any of four settings files, by someone who remembers this hook exists —
-# the maintenance profile of a matcher list, not of a classifier.
+# time a program is added to any of the SIX settings files named above — the derivation set and the
+# maintenance set are the same six — by someone who remembers this hook exists. That is the maintenance
+# profile of a matcher list, not of a classifier.
 #
 # So a THIRD class exists: `?`, meaning **not recognised**, not measured-as-a-read. Before it, `R` was
 # the default and a reader could not tell the two apart; every future gap was something the next person
@@ -193,7 +211,14 @@ calls="$(jq -r '
 # `git --no-pager log`, and a rule that only ever skips one token leaves `o/r` sitting where `issue`
 # should be. Both failures are silent, which is why the set is written down.
 strip_lead() { # command -> command with wrappers/assignments/leading options removed
-  local c="$1" first rest guard=0
+  # NORMALISE WHITESPACE FIRST. `${c%% *}` and `${c#* }` split on ONE space, so `gh  --repo o/r pr
+  # comment` (two spaces, a shape a human types) left `--repo` unstripped and the label came out as
+  # `gh --repo o/r`. That degraded into `?` rather than into a false read — an admission, not an
+  # assertion — so it was a usefulness defect and not a correctness one, and it is fixed with the same
+  # `awk` call the label already makes at the end of `classify()`. Tabs and backslash-continuations
+  # were probed and were already handled correctly; only runs of spaces were not.
+  local c rest first guard=0
+  c="$(printf '%s' "$1" | awk '{$1=$1; print}')"
   while [ "$guard" -lt 12 ]; do
     guard=$((guard + 1))
     [ -z "$c" ] && break
@@ -274,8 +299,17 @@ classify() { # name · command  ->  "W<TAB>label" | "R<TAB>label" | "?<TAB>label
     tee|mv|cp|rm|chmod|touch|mkdir|rsync|patch)
       class=W ;;
     sed)
-      # in-place only; a `sed -n` read is not a write
-      case " $cmd " in *" -i"*) class=W ;; *) class=R ;; esac ;;
+      # IN-PLACE ONLY; a `sed -n` read is not a write. BOTH SPELLINGS, and the second one was a
+      # measured defect rather than a precaution: `*" -i"*` does not contain `" --in-place"`, so
+      # `sed --in-place s/a/b/ <file>` was classified `R` — a mutation POSITIVELY CLAIMED as a read,
+      # which is worse than the `?` class it would otherwise have fallen into. `?` is an admission;
+      # `R` is an assertion, and this is the one arm in this function that asserts.
+      #
+      # PLATFORM CAVEAT, because the defect is unreachable on the machine that found it: BSD `sed`
+      # rejects the long form outright (`sed: illegal option -- -`), so this fires only where `sed` is
+      # GNU-shaped — every Linux runner, and this repo's own CI. A classifier that is correct on one
+      # platform and wrong on another should say which, rather than being green where it is tested.
+      case " $cmd " in *" -i"*|*" --in-place"*) class=W ;; *) class=R ;; esac ;;
     # ── R: the explicit readers, which is what keeps `?` from filling with noise ──────────────
     # Bounded on purpose. A subcommand that is not listed here lands in `?`, which is the honest
     # answer for `git config` (writes with `--global`), `git checkout`, `git fetch` and `git clone`.
