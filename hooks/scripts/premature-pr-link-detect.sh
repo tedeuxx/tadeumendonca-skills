@@ -16,7 +16,7 @@
 # that reading is correct: under ADR-0002 amendment #16 the gate merges the safe class AND the
 # boundary class itself, so almost every open PR is one he has nothing to do with.
 #
-# The operative wording is `commands/autonomy-on.md`'s *Reporting* section; the argument, the rejected
+# The operative wording is `commands/autonomy.md`'s *Reporting* section; the argument, the rejected
 # options and the residual this rule makes bite are ADR-0002's eighteenth amendment. This file is the
 # enforcement half, and it exists because the owner asked for one in those terms: "esse o comportamento
 # que quero que vc faca enforcement no harness config".
@@ -79,7 +79,7 @@
 # "Is this ask a decision he holds" is not knowable at any layer, and making it guessable would be
 # theatre. The cost is bounded by this being DETECTION ONLY: a spurious notice in the next turn's
 # context, never a withheld link. That bound is load-bearing — if this hook were ever made preventive
-# it would suppress exactly the links the owner asked to keep. See `commands/autonomy-on.md` and
+# it would suppress exactly the links the owner asked to keep. See `commands/autonomy.md` and
 # ADR-0002's eighteenth amendment, both of which state the second limb in the operative wording.
 # * Silent on: no `jq`, no `gh`, no git dir, an unreadable transcript, `stop_hook_active`. Inherited
 #   from the sibling Stop hooks and correct — absence of a notice never means compliance.

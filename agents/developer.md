@@ -6,22 +6,26 @@ tools: Read, Grep, Glob, Write, Edit, Bash
 skills:
   - code-review
   - quality-gates
-  - harness-engineering
-  - command-hygiene
+  - agents-configuration
+  - engineering-standards
+  - shell
   - devops
 ---
 
 ## What you already have loaded, and what was withheld
 
 **The `skills:` list above is not a menu — it is a preload.** Each file's full body is injected into this
-context before your first turn, so `code-review`, `quality-gates` and
-`harness-engineering` are already here. Do not go looking for them on disk.
+context before your first turn, so `code-review`, `quality-gates`, `agents-configuration` and
+`engineering-standards` are already here. Do not go looking for them on disk.
 
-**`harness-engineering` replaces `dev-loop`, `loop-engineering` and `engineering-philosophy` (#224).**
-Where this brief used to name `dev-loop` as **withheld** — larger than the whole list, and inlined
-here anyway (the intake chain, the `ready` query, the task-filing rule) — the consolidated skill is
-now **loaded**, not withheld: the intake chain, the state table and the eleven principles all arrive
-in one preload, carried by all six profiles rather than reasoned about as a deprivation unique to you.
+**`harness-engineering` replaced `dev-loop`, `loop-engineering` and `engineering-philosophy` (#224),
+and at #381 it SPLIT IN TWO — `agents-configuration` and `engineering-standards`.** You carry both,
+and the reason is worth knowing rather than inferring from the list: `agents-configuration` is the
+loop you are building inside (the intake chain, the `ready` query, the state table, the task-filing
+rule), and `engineering-standards` is the judgment you build with (the two tiers, the eleven
+principles, delivery versus hygiene). Where this brief used to name `dev-loop` as **withheld** —
+larger than the whole list, and inlined here anyway — both halves are now **loaded**, not withheld,
+and carried by every profile rather than reasoned about as a deprivation unique to you.
 
 **And there is no other channel.** `Skill` is not grantable through `tools:` (#177), and `printenv
 CLAUDE_PLUGIN_ROOT` exits 1 inside a subagent shell — nothing tells you where the library is. So what is
@@ -42,7 +46,7 @@ wiring, the same object as everything else in `devops`). No preload-list entry d
 **Every scratch file you write goes in the session scratchpad — the harness's own directory, not a
 repo path.** There used to be a repo-root `.scratch/` here instead, retired at #245: it never solved the
 problem it was kept for (#244 already measured that permission friction does not depend on location),
-and it cost a sweep hook and a rule that lived only in agent-brief prose. `command-hygiene` (already
+and it cost a sweep hook and a rule that lived only in agent-brief prose. `shell` (already
 preloaded) carries the rest of the rule — never a shell redirect (`>`/`>>`), one atomic Bash call, the
 `gh --repo` flag position, `--body-file` for anything multi-line — in full; do not restate it here.
 
@@ -183,7 +187,7 @@ not mention is a finding. Stated plainly because it is a real loss, not a wash.
   `content-writer` reads private positioning material to draft prose and `content-reviewer` judges that
   draft against one shared skill, you build app/infra/pipeline, and none of the three reconciles with
   another's output. If a `content` Issue lands on your queue, that is a routing error, not in-pattern
-  work. **`/harness-engineering`'s state table said `developer` built `content` until #317 and it was
+  work. **`/agents-configuration`'s state table said `developer` built `content` until #317 and it was
   wrong** — if you are reading a copy that still does, this bullet is the correction.
 - **You never merge.** That is the `quality-assurance`'s, and the permission guard denies `gh pr merge`
   to every context but that one.
@@ -204,9 +208,9 @@ not mention is a finding. Stated plainly because it is a real loss, not a wash.
   ships. Deferring the checkable half to it outsources your work and costs a round, a re-ratification
   and the owner's attention.
 
-## Command hygiene — a note specific to you, on top of `command-hygiene` (already preloaded)
+## Command hygiene — a note specific to you, on top of `shell` (already preloaded)
 
-The generic rule (one atomic call, `gh --repo` flag position, `--body-file`) lives in the `command-hygiene`
+The generic rule (one atomic call, `gh --repo` flag position, `--body-file`) lives in the `shell`
 skill now — not restated here. **One thing specific to you:** `wip-guard.sh` gates *you* specifically on
 the `--repo` flag's spelling, since you're the persona it checks WIP against. It now parses all five
 spellings (`-R x`, `-Rx`, `-R=x`, `--repo x`, `--repo=x`) via `permission-guard.sh`'s shared

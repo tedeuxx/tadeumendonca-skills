@@ -121,14 +121,20 @@ as misleading as one that over-claims.
 | `command` | `commands/*.md` | complete |
 | `skill` | the paths declared in `.claude-plugin/plugin.json` | partial |
 
-**What `partial` means here, exactly, and why it was not padded to look complete.** Ten `knowledge`
-rows over eight carriers landed; six skills have no row yet — `backend`, `frontend`,
-`cloud-infrastructure`, `definition-of-done`, `planning-poker`, `license`. The three reference skills
+**What `partial` means here, exactly, and why it was not padded to look complete.** Eleven `knowledge`
+rows over nine carriers landed; **five** skills have no row yet — `backend`, `frontend`,
+`cloud-infrastructure`, `definition-of-done`, `planning-poker`. The three reference skills
 are where `o que não faz` is hardest and least quotable (measured: `cloud-infrastructure` is 21 service
-sections whose limits are per-section, not per-file), and `license` states no limit anywhere in its 25
-lines, so its cell is already known to be a finding rather than a sentence. Authoring six rows at the
-ratified depth is a sitting of its own with the owner's layer in it; producing six thin ones to turn a
+sections whose limits are per-section, not per-file). Authoring five rows at the
+ratified depth is a sitting of its own with the owner's layer in it; producing five thin ones to turn a
 declaration green is the failure this file's own `citação` rule exists to prevent.
+
+~~six skills have no row yet … and `license` states no limit anywhere in its 25 lines, so its cell is
+already known to be a finding rather than a sentence.~~ **Struck 2026-08-31 (#384): `license` is not a
+skill.** It folded into `documentation-standard` as a section of Part I, so the unclaimed set is five,
+not six — and the observation that survives is worth keeping rather than deleting with the row: **the
+file most likely to have an empty `o que não faz` cell was the one small enough to be absorbed.** A
+carrier that cannot state a limit is usually a carrier that is not a capability.
 
 ---
 
@@ -310,7 +316,7 @@ built a control, and reading it now can only build an influence.
 ### 0034 · a link to a review artifact is a summons, and one is sent only when the act is the human's
 
 - **tipo:** record
-- **carrier:** `hooks/scripts/premature-pr-link-detect.sh`, `commands/autonomy-on.md`
+- **carrier:** `hooks/scripts/premature-pr-link-detect.sh`, `commands/autonomy.md`
 - **descrição:** A `Stop` hook reading the turn's own assistant prose for pull-request links, paired with the operative rule in the command that drains the backlog.
 - **propósito:** An agent that hands a human a link to a review artifact is **summoning** them, whatever the surrounding prose claims — a link in a hand reads as *something is waiting for me*. Whether that reading is right is a property of **where the harness put the merge authority**, not of the link: in a loop whose gate merges everything but a named exception list, almost every review link is unactionable, and in a loop that holds a whole class for a human, most of them are. **An adopter must recompute which case they are in before adopting this at all** — porting the narrow form into a harness that holds a class for its human would suppress exactly the links that human needs.
 - **o que faz:** Reads the assistant's own text for the turn that just ended, extracts links to review artifacts, and for each asks three mechanical questions of the artifact itself — is it still open, has every check on its current revision completed and succeeded, and does the gate's own verdict at that revision name the human as the remaining actor. Anything else is reported back into the next turn with the reason, once per (artifact, revision) per session.
@@ -363,7 +369,7 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 ### 0042 · an iteration closes by asking the contexts that lived it, one at a time, from their own artifacts
 
 - **tipo:** record
-- **carrier:** `commands/retrospective.md`
+- **carrier:** `commands/sprint-retrospective.md`
 - **descrição:** A typed rite the drain runs when its entry snapshot is exhausted — one isolated dispatch per persona that actually ran, each writing its own file into the iteration's retrospective directory.
 - **propósito:** An iteration that closes without being asked what it taught loses the defects that live in the **method** rather than in the product — the ones no test can reach, because the only context that meets them is the loop while it runs. The obligation is not "hold a retrospective": it is to stop the improvement list being written by the one role that saw the whole iteration, which is the role least able to see its own bias in it. **Isolation alone does not deliver that**, and this is the part worth porting: a persona consulted at iteration close is a fresh context with no memory of the iteration, so an isolated dispatch handed only a question produces N plausible lists — the same bias relocated, not removed. The evidence has to travel with the question.
 - **o que faz:** Derives the consult set from the dispatch records the loop already leaves on each Issue rather than consulting a fixed roster, feeds each persona **its own** artifacts — its dispatch metrics, its verdict markers, its review-file sections, the changes it touched — and asks it to reason from those. Each writes one file of its own, capped at two findings, and the output is a proposal the owner rules on at planning. The one-file-per-persona split is the mechanism, not the formatting: a shared file would put every earlier answer in the next persona's context, so the isolation would survive the dispatch and die at the write.
@@ -387,7 +393,7 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 ### 0014 · a ready backlog is drained without asking on in-pattern work
 
 - **tipo:** routing
-- **carrier:** `commands/autonomy-on.md`
+- **carrier:** `commands/autonomy.md`
 - **descrição:** A typed command that runs the queue end to end, one slice at a time, through the full loop.
 - **propósito:** A loop that asks a human on in-pattern work is a **design defect**, not mere friction: the human's residual should be the irreversible and the architectural, and nothing else. The command exists so that residual is *stated* rather than rediscovered per slice.
 - **o que faz:** Picks, builds, reviews and merges slices one at a time against the stated order, stopping only where the owner's judgement is genuinely required, and reports product slices against hygiene slices at the end.
@@ -397,11 +403,11 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 ### 0015 · autonomy ends with a stated close-out rather than by going quiet
 
 - **tipo:** routing
-- **carrier:** `commands/autonomy-off.md`
-- **descrição:** The paired command that ends autonomy mode.
-- **propósito:** **Nothing ships half-done.** Ending autonomy by simply stopping leaves the in-flight slice in a state nobody has named, and the difference between "waiting on you" and "stuck" is invisible from the outside.
+- **carrier:** `commands/autonomy.md`
+- **descrição:** The `off` mode of the same canonical command — the deliberate end of autonomy mode, a separate typed command until #368.
+- **propósito:** **Nothing ships half-done.** Ending autonomy by simply stopping leaves the in-flight slice in a state nobody has named, and the difference between "waiting on you" and "stuck" is invisible from the outside. It is a MODE rather than its own command because the decision is one decision with two directions, and a first token that must be named cannot be entered by accident.
 - **o que faz:** Finishes the in-flight slice to merge, starts nothing new, and posts a closing summary — merged, open, blocked, split by routing type.
-- **o que não faz:** It closes nothing and decides nothing about the backlog; the criterion-bearing close of an Issue is the owner's act. It also carries no trigger of its own — like the close-out pass the loop already specifies in full, it fires only when somebody invokes it.
+- **o que não faz:** It closes nothing and decides nothing about the backlog; the criterion-bearing close of an Issue is the owner's act. It also carries no trigger of its own — like the close-out pass the loop already specifies in full, it fires only when somebody invokes it. And it is **not a mechanism**: nothing in the harness records that a session is in autonomy mode, so neither mode can be verified to have run and the bare invocation deliberately reports nothing.
 - **citação:** > "Not for capturing a new request (see new-issue)."
 
 ### 0016 · a request becomes a tracked Issue with its description closed, or with the reason it is not
@@ -412,7 +418,7 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 - **propósito:** The owner is the only origin of work, and that rule was costing him: filing by hand is friction exactly where the loop wants none. The command makes the *cheap* path the *tracked* path.
 - **o que faz:** Searches for the decision that already exists before opening anything, runs the intake that closes the description between the two leads, and opens the Issue with the routing type applied — or opens it stating plainly why the description could not be closed.
 - **o que não faz:** It does not apply `ready` for a loop-typed Issue: that transition is the owner's alone. And it cannot verify that the leads actually closed the description rather than one nodding it through — the label is auditable and attributable, never proven.
-- **citação:** > "Not for executing issues already filed (see autonomy-on)."
+- **citação:** > "Not for executing issues already filed (see autonomy)."
 
 ### 0017 · nothing is worked outside the tracker
 
@@ -516,23 +522,44 @@ where a sixth value can be argued on evidence rather than on the first two rows 
 ## `knowledge` — guidance the actor reaches for, removing a re-decision
 
 **This section is the skills list**, and it is a **view over this one registry** (selector
-`tipo == knowledge`), never a second table. The `skill` class is declared `partial` above; six carriers
-have no row yet, named there with the reason.
+`tipo == knowledge`), never a second table. The `skill` class is declared `partial` above; **five**
+carriers have no row yet, named there with the reason. **It read `six` until #387 and this branch is
+what made that false** — `six` was correct on `main` (8 carriers with a row, 14 skills) and #384's
+`license` fold moved it to five, which was struck at the `partial` declaration above and not here.
+Re-derived rather than adjusted, and it is the same command in both places:
 
-### 0024 · the loop itself, and the judgment inside it
+```
+grep -c '^- \*\*tipo:\*\* knowledge' docs/blueprint-registry.md                     # 11 rows
+grep -A1 '^- \*\*tipo:\*\* knowledge' docs/blueprint-registry.md | grep carrier | sort -u | wc -l   # 9 carriers
+jq -r '.skills[]' .claude-plugin/plugin.json | wc -l                                # 14 skills
+```
+
+11 rows over 9 carriers, 14 skills declared → **5** unclaimed.
+
+### 0024 · the loop itself, and the intent behind its shape
 
 - **tipo:** knowledge
-- **carrier:** `skills/harness-engineering/SKILL.md`
-- **descrição:** The universal preload — the state machine, the intake chain, the inner-loop steps, and eleven principles in two tiers.
-- **propósito:** Every actor in this loop needs the same answer to *where am I, who acts next, and what records that it happened* — and that is not domain-specific the way the rest of the library is. It is preloaded by every profile so that the one thing nobody may improvise is the loop.
-- **o que faz:** States the two loop models and how to tell which one a repository runs, the issue types and their states with the artifact that records each transition, what "delivered" means against hygiene, the closing criteria, and the two tiers of principle — a floor that never bends and a dial calibrated to blast radius.
-- **o que não faz:** It does not define **done** or hold the gate tables, it does not carry the permission zones or the branching topology, and it does not define the SDLC-generic meaning of *ready* — three neighbours own those, and the boundary is stated in its own trigger so the model does not reach here for them.
-- **citação:** > "Not what "done" means (see quality-gates), the permission zones and CI/CD workflows (see devops), or the generic, SDLC-wide meaning of ready (see definition-of-ready)."
+- **carrier:** `skills/agents-configuration/SKILL.md`
+- **descrição:** The universal preload — this loop's intentional design: why it is shaped this way, the state machine, the intake chain, the inner-loop steps.
+- **propósito:** Every actor in this loop needs the same answer to *where am I, who acts next, and what records that it happened* — and, above that, *why the loop is shaped this way*, because a state table cannot enumerate the cases an actor will actually meet. It is preloaded by every profile so that the one thing nobody may improvise is the loop.
+- **o que faz:** States the two loop models and how to tell which one a repository runs, the issue types and their states with the artifact that records each transition, the iteration axis and how the active one is derived, the closing criteria, and the merge classes — each with the intent that produced it rather than the rule alone.
+- **o que não faz:** It does not carry the portable engineering judgment (that half was split out at #381), it does not define **done** or hold the gate tables, it does not carry the permission zones or the branching topology, and it does not define the SDLC-generic meaning of *ready* — four neighbours own those, and the boundary is stated in its own trigger so the model does not reach here for them.
+- **citação:** > "Not the portable judgment (see engineering-standards), what "done" means (see quality-gates), the permission zones (see devops), or the generic meaning of ready (see definition-of-ready)."
+
+### 0045 · the engineering judgment that survives leaving this loop
+
+- **tipo:** knowledge
+- **carrier:** `skills/engineering-standards/SKILL.md`
+- **descrição:** The portable half of the former universal preload — two tiers, eleven principles, delivery against hygiene, and the human residual.
+- **propósito:** A harness's judgment and a harness's machinery are indistinguishable while they live in one file, and the whole job of a blueprint is telling a portable rule from a local accident. Splitting them at the source makes the export honest instead of asking a renderer to make the distinction at projection time.
+- **o que faz:** States the mechanical-or-it-is-not-real test, the two tiers (a floor that never bends and a dial calibrated to blast radius), the eleven principles as defaults plus their triggers to deviate, what counts as delivered against hygiene, what an agent does while blocked on someone it does not control, and what is left to the human.
+- **o que não faz:** It states that a work-in-progress bound exists and deliberately does **not** say what this loop's bound is — that, its correction, what it protects and the measurement showing nothing enforces it are all local. It also holds no state machine, no intake chain and no gate table. The cut was made on one test — *would this still be true in a project that does not run this loop?* — and the operational ruler it was applied with is stated in the file: nothing here names a persona, a hook, an ADR or an Issue of this repository.
+- **citação:** > "Not this loop's own machinery, state machine or WIP rule (see agents-configuration), and not what done means concretely (see quality-gates)."
 
 ### 0025 · where a working file goes
 
 - **tipo:** knowledge
-- **carrier:** `skills/command-hygiene/SKILL.md`
+- **carrier:** `skills/shell/SKILL.md`
 - **descrição:** The first of two bodies of knowledge this carrier declares in its own header: scratch files, and the route by which they are written.
 - **propósito:** Every persona that composes a pull-request body, a commit message or a verdict writes a file first, and where that file lands is a decision nobody should be making per case. It is one preload rather than a paragraph in each brief because the same procedure had been restated near-verbatim in every brief on the roster.
 - **o que faz:** Sends every scratch file to the harness's own session scratchpad — session-specific, outside every tracked tree, with a lifecycle the harness owns — and names the two valid routes for writing one.
@@ -542,7 +569,7 @@ have no row yet, named there with the reason.
 ### 0026 · the shape of a shell command, and of a posted body
 
 - **tipo:** knowledge
-- **carrier:** `skills/command-hygiene/SKILL.md`
+- **carrier:** `skills/shell/SKILL.md`
 - **descrição:** The second body of knowledge in the same carrier: one atomic call, the flag position, and `--body-file` without exception.
 - **propósito:** Permission friction is almost never a missing allowlist entry — it is the **shape** of the command. And the posting half is not friction at all but silent damage: backticks and `$` are eaten from an inline body by the shell, and this platform paid for that more than once in a single session before the rule was written down.
 - **o que faz:** One atomic command per call, `git -C` and `npm --prefix` instead of a directory change, the repository flag placed *after* the subcommand so the matcher's prefix still matches, and any body longer than one line written to a file and posted with `--body-file`.
@@ -577,7 +604,7 @@ have no row yet, named there with the reason.
 - **propósito:** Every guarantee in this section reduces to one test — *is the effect contained in the git-tracked tree, or does it escape?* — and that test is model-independent. What changes between loop models is only **which command** crosses the line, which is why the branching topology and the permission zones belong in one place rather than two.
 - **o que faz:** Carries the two branching shapes, the identity model that removes long-lived cloud keys, the secret scope-and-naming standard, the workflow set, the numeric versioning rules and their loop guard, the remote state backend, and the allow/ask/deny zones per loop model. Infrastructure mutation is pipeline-only: plan on the request, apply on the merge, never from a laptop.
 - **o que não faz:** It does not carry the Terraform configuration itself, the state machine, or the gate list its quality step sits inside — three neighbours own those. And it is explicit that the merge command is **deliberately not** a permission rule: whether a merge needs the human depends on the **class** of the change, and a matcher reading a command string cannot see a class.
-- **citação:** > "Not for Terraform config (see cloud-infrastructure), state machine (see harness-engineering), the gate list Sonar sits inside (see quality-gates), or the pre-merge pass (see code-review)."
+- **citação:** > "Not for Terraform config (see cloud-infrastructure), state machine (see agents-configuration), the gate list Sonar sits inside (see quality-gates), or the pre-merge pass (see code-review)."
 
 ### 0030 · what "done" means here, and the gates that prove it
 
@@ -607,7 +634,7 @@ have no row yet, named there with the reason.
 - **propósito:** A strong definition of done **cannot repair a story that was ambiguous when the builder started**. The two gates sit at opposite ends of the same lifecycle, and a loop that enforces only one fails at the end it left open.
 - **o que faz:** Gives the checklist shape conditional on the project's surfaces, names the flagship failure — scope fragmented across overlapping items — and states the relationship to estimation.
 - **o que não faz:** It is generic by construction, so it holds **this** loop's intake mechanism nowhere: the two-lead chain, the label, and who may apply it live with the state machine. It also does not verify what shipped, which is the other gate's job.
-- **citação:** > "Not for what "done" means at delivery (see quality-gates), or this repo's own two-lead intake mechanism (see harness-engineering)."
+- **citação:** > "Not for what "done" means at delivery (see quality-gates), or this repo's own two-lead intake mechanism (see agents-configuration)."
 
 ### 0033 · the ruler for anything published in the owner's voice
 

@@ -1,11 +1,53 @@
 ---
-description: Drain a repo's ready product backlog end to end without asking — pick, build, review and merge slices one at a time, stopping only where the owner's judgment is genuinely required. Use when the owner says to work the backlog or keep going, when several ready issues are queued, or when in-pattern work keeps stalling for permission. Not for capturing a new request (see new-issue).
-purpose: drain an iteration's ready pool without asking on in-pattern work, so the loop stops paying one stall per slice for permission it has already been given
-argument-hint: "[repo] (defaults to the current repo)"
+description: Hand the wheel to the loop or take it back — `on` drains the active iteration's ready pool end to end without asking on in-pattern work, `off` finishes the in-flight slice, starts nothing new and posts a closing summary. Use when the owner says to work the backlog or keep going, when several ready issues are queued, when in-pattern work keeps stalling for permission, or when he wants the wheel back. Not for capturing a new request (see new-issue).
+purpose: put both directions of the autonomy decision behind one canonical command whose first token names the mode, so the mode cannot be entered by accident and an unresolved token fails loudly instead of guessing
+argument-hint: "on [repo] | off [repo] | (no argument prints help and does nothing)"
 ---
 
-Drain the product backlog of `$ARGUMENTS` (default: the current repo), one slice at a time, through
-the full dev-loop, without asking permission for anything in-pattern.
+Hand the wheel to the loop, or take it back.
+
+## The three modes
+
+Resolve `$ARGUMENTS` to exactly one row. **The first token is the mode. Nothing else is.**
+
+| mode | what it does | ends with |
+|---|---|---|
+| `on` | drains the active iteration's entry snapshot, one slice at a time, without asking on in-pattern work | the snapshot exhausted, then the closing ceremonies |
+| `off` | finishes the in-flight slice to merge, starts nothing new | the closing summary, as the final message of the turn |
+| *(no argument)* | prints the help below and stops | nothing |
+
+**A `[repo]` may follow the mode**, and defaults to the current repo. The mode is the FIRST token;
+`/autonomy <some-repo>` is not a repo argument, it is an unrecognised mode and is refused as one.
+
+**Bare `/autonomy` prints help and does nothing else.** No drain, no wind-down, no implicit effect of
+any kind. **It does NOT report the current mode either, and that is a measurement rather than a
+preference:** nothing in this repo tracks "the session is in autonomy mode" as state — no flag, no
+file, no hook reads it — so there is nothing to report and a bare invocation that answered *"currently
+on"* would be inventing its subject. The mode's own *What this does NOT do* section below has said so
+since #165; this table is the first place it decides a behaviour.
+
+**An unrecognised first token is refused by name.** Print the table above and stop. Do not guess that
+`/autonomy no` meant `off`, and do not fall through to a mode — a mode chosen for the typist is the
+failure this dispatch table exists to remove. **`on` is not the default**, because the two modes are
+not symmetric in cost: entering the drain by accident spends the queue, leaving it by accident spends
+one turn.
+
+**The set is closed at two.** `status` was considered and refused for the reason above — there is no
+readable state to report. Adding a third mode is a change to this table, deliberately, so the dispatch
+fails loudly rather than growing an open-ended guess.
+
+**Both modes were separate typed commands until #368** — `/autonomy-on` and `/autonomy-off`. **Both
+identifiers are gone and typing either now returns `Unknown command:`**, which is the correct loud
+failure this repository's flat namespace already buys. The precedent is `/blueprint`, which became a
+three-mode canonical command at #358 and whose two properties are inherited here on purpose rather than
+re-derived: the help form does nothing at all, and a typo is refused by name.
+
+---
+
+# Mode: `on`
+
+Drain the product backlog of the repo named after the mode (default: the current repo), one slice at a
+time, through the full dev-loop, without asking permission for anything in-pattern.
 
 **Done means: the drain's ENTRY SNAPSHOT of the active iteration's pool is exhausted** (#326, amended
 #338 — the iteration's pool grows while it drains, so the snapshot is what terminates and the iteration is
@@ -25,7 +67,7 @@ one that refuses.
 
 **The active iteration is derived from the pool, never from a date, and the milestone name is never
 typed.** The canonical wording, the predicate, and the measurement behind the tracker object are
-`/harness-engineering`'s *The iteration is the unit of work* — read them there rather than trusting a
+`/agents-configuration`'s *The iteration is the unit of work* — read them there rather than trusting a
 restatement here. What this command owes on top of that is one line of its own:
 
 > **Report the count of `ready` items carrying NO milestone, at session open.**
@@ -65,7 +107,7 @@ session already runs, and it is a precondition of this scoping rather than a nic
 **`ready` means the description is closed by whoever closes it on that lane — and on `loop` it is the
 owner's transition alone** (~~"the leads closed the description"~~, struck 2026-08-25 (#329): that was
 true of `product` and of no other lane, in the file the loop executes). The canonical wording is
-`/harness-engineering`'s `filed → **description closed**` and `filed → **ready**` rows — `product`
+`/agents-configuration`'s `filed → **description closed**` and `filed → **ready**` rows — `product`
 closes through both leads, `content` through `product-lead` alone, `loop` through `agents-lead` alone
 with the owner applying the label. The generic bar
 a description must clear to earn that label is `/definition-of-ready`. An Issue
@@ -74,12 +116,12 @@ without it is in the tracker but not executable, and the right move is to say so
 
 ~~**This command currently REFUSES to run on the harness repo.**~~ **It did until 2026-08-02, and the
 fix landed in the same slice that found it.** The first run of the state-model assessment
-(`/harness-engineering`) turned up that `tadeumendonca-skills` had no `product` label at all —
+(`/agents-configuration`) turned up that `tadeumendonca-skills` had no `product` label at all —
 it carried a separate 24-label taxonomy that was almost entirely unused — so the repo whose whole
 purpose is the loop could not be drained by the command that drains loops. Its backlog got worked by
 someone reading and judging, which is the failure the `ready` state exists to remove.
 
-The owner reconciled both repos to one vocabulary (`/harness-engineering`, *One vocabulary across every
+The owner reconciled both repos to one vocabulary (`/agents-configuration`, *One vocabulary across every
 repo*), so **this command now runs on either repo.** Kept as a correction rather than deleted, because
 the gap is the evidence for why the assessment is a standing rule.
 
@@ -87,7 +129,7 @@ the gap is the evidence for why the assessment is a standing rule.
 2026-08-28 (#339): that citation is wrong.** Amendment #5's own header reads *"`product-manager` gets a
 trigger, and the reviewer's output gets a budget"*; sequencing ownership is not what it decided. Per
 `documentation-standard`'s *cite the clause, not the line*, the live wording is
-`/harness-engineering`'s *Opening a session — decisions before work*: **"Starting a slice that is not
+`/agents-configuration`'s *Opening a session — decisions before work*: **"Starting a slice that is not
 the top of the stated order requires `product-lead` to have returned a new order, or the session records
 that the order is unchanged."** Invoke it at session start; do not substitute a heuristic here.
 
@@ -114,13 +156,13 @@ The routing above is unaffected — amendment #5 genuinely does not decide seque
 citation stays retired.
 
 **What `product-lead` does NOT order: the `loop` block.** The owner's standing rule fixes it ahead of
-every `product` item at planning time. The canonical wording is `/harness-engineering`'s
+every `product` item at planning time. The canonical wording is `/agents-configuration`'s
 *Loop before product — a planning-time COMPOSITION rule*, which carries the eligibility escape and
 states in its own words that nothing gates it. `product-lead` orders **within** what the owner composed; it does not
 compose. In this repo there is no conflict to reconcile at all — `product-lead` is not dispatched on
 `loop` intake here (ADR-0002 amendment #14), so the rule fills a vacuum rather than overriding anyone.
 
-**And the `loop` block MAY travel as one branch and one MR** — `/harness-engineering`'s
+**And the `loop` block MAY travel as one branch and one MR** — `/agents-configuration`'s
 *The `loop` block MAY be carried as one branch and one MR*. It is a **permission the owner exercises at
 planning**, never something this drain composes on its own: read the ordered body, and if it says the
 block is one batch, work it as one. **The default is unchanged and per-item.** More than one batch per
@@ -151,7 +193,7 @@ list, and he has said repeatedly that a decision list makes him rebuild the cont
 | a decision pending on the owner | the **`blocked`** label — already queried by the *Reporting* section below |
 | an outstanding `APPROVE-PENDING-HUMAN` at the current head | `zombie-loop-detect.sh` already reads exactly this artifact at `Stop` — reuse it, do not build a second reader |
 
-**The estimate class is the one that is new**, and `/harness-engineering`'s *Estimation* section is where
+**The estimate class is the one that is new**, and `/agents-configuration`'s *Estimation* section is where
 its vocabulary, its estimator sets per issue type and the median-of-isolated-dispatches rule live. Read
 them there; this is the gate, not a second definition.
 
@@ -181,7 +223,7 @@ pendency set is bounded by that iteration's contents rather than by the whole ba
 
 ## Decisions first, then work
 
-Per `/harness-engineering`, "Opening a session": **collect the pending owner decisions across the
+Per `/agents-configuration`, "Opening a session": **collect the pending owner decisions across the
 whole queue and ask them as a batch, before choosing what to build.** One conversation unblocks
 everything at once; one question per slice produces one stall per slice.
 
@@ -203,7 +245,7 @@ above included. **`--limit 100` is part of the claim, not tidiness:** the defaul
 open issues, so the same command without it silently drops the tail — which is where stale items live.
 
 **Why the line belongs here and nowhere else.** Nothing in the loop reads the open queue: every
-`gh issue` call in `hooks/scripts/` is a write path. `/harness-engineering`'s *"Closing an issue is a
+`gh issue` call in `hooks/scripts/` is a write path. `/agents-configuration`'s *"Closing an issue is a
 step, with a criterion"* already specifies the pruning pass and gives it **no trigger** — a mandate with
 no trigger, which is the shape this repo names as a document rather than a mechanism. Naming staleness at
 session open is the trigger, and it is the cheapest one: the session is already reading the queue to pick
@@ -231,14 +273,14 @@ That is the timing. What follows is the exception path for what you *discover* m
 
 ## Per slice — the loop, unchanged
 
-Follow `/harness-engineering`. Nothing here relaxes it:
+Follow `/agents-configuration`. Nothing here relaxes it:
 
 - Plan first for anything non-trivial; the two leads consolidate **one** demand before the build.
 - Thin vertical slice, end to end, finished **through merge** before opening the next. **Where the owner
   composed the `loop` block as one batch, the slice is the batch** — one branch, one MR, commits still
   separated per issue — and *"before opening the next"* is measured against that unit, not against each
   Issue in it. WIP=1 is satisfied either way, since a batch is one branch and one PR by construction.
-- WIP is bounded per `/harness-engineering` — read it there rather than trusting a restatement, and
+- WIP is bounded per `/agents-configuration` — read it there rather than trusting a restatement, and
   note the guard enforcing it may lag the rule (`product-lead` carries the caveat).
 - Every gate green with real evidence, and the `quality-assurance` on every PR. It merges the safe
   class ~~and escalates the boundary class~~ **and the boundary class, escalating only the four holds
@@ -255,7 +297,7 @@ Follow `/harness-engineering`. Nothing here relaxes it:
   `developer`, so "denies every subagent" is no longer accurate — but a **review** is still denied,
   which is the case this bullet is about.)* The **main loop may open
   issues**, and should: recording something the owner asked for is not generating demand. The guard
-  asks rather than denies there, so the owner decides per issue. See `/harness-engineering`,
+  asks rather than denies there, so the owner decides per issue. See `/agents-configuration`,
   *Review does not open work* — which is about reviews, not about the queue being unwritable.
 
 ## What autonomy does NOT extend to
@@ -381,10 +423,10 @@ opportunistically.
 fixed set, so *"the pool is empty"* is not a state a drain can reach by working; the terminal set is the
 pool **as it stood at entry**. See *The pool grows while it drains* below.
 
-### On exhaustion, run `/retrospective` — the closing ceremony now has an object (#355)
+### On exhaustion, run `/sprint-retrospective` — the closing ceremony now has an object (#355)
 
 **On the FIRST stop condition only** — the entry snapshot exhausted — **run
-`/tadeumendonca-skills:retrospective <iteration>`.** Not on a boundary event, and not when the owner
+`/tadeumendonca-skills:sprint-retrospective <iteration>`.** Not on a boundary event, and not when the owner
 interrupts: neither of those is the end of an iteration, and a rite fired on a stall would report on an
 iteration nobody finished.
 
@@ -395,8 +437,8 @@ when this slice merges**:
 
 ```
 git grep -l "retrospect" 5cfea0b -- commands skills agents
-# → agents/product-lead.md, skills/harness-engineering/SKILL.md — two files that MENTION the word
-git cat-file -e 5cfea0b:commands/retrospective.md
+# → agents/product-lead.md, skills/agents-configuration/SKILL.md — two files that MENTION the word
+git cat-file -e 5cfea0b:commands/sprint-retrospective.md
 # → exit 128, the path is not in that tree: nothing an owner or a drain could invoke
 ```
 
@@ -404,10 +446,10 @@ git cat-file -e 5cfea0b:commands/retrospective.md
 promise resolves in prose and not in the tree — and it survived here for a month because the promise
 reads like a description of something that already runs.
 
-**HALF the promise now has an object and half still does not.** `/retrospective` is the **method** half:
+**HALF the promise now has an object and half still does not.** `/sprint-retrospective` is the **method** half:
 each persona that ran, consulted alone, reasoning from its own artifacts. The **sprint review** half —
 a bounded sweep of the running product, which finds a different class of defect entirely — **is not
-built**, and `commands/retrospective.md`'s last section is where that is recorded rather than left to be
+built**, and `commands/sprint-retrospective.md`'s last section is where that is recorded rather than left to be
 discovered again. Do not read "the closing ceremonies" as plural-and-satisfied.
 
 **Nothing fires it.** This is an instruction in a command file, and by this loop's own test — *would
@@ -445,7 +487,7 @@ argument below was built on it.
 - **Where it lives: session state, for the duration of one invocation.** It needs **no durable home**,
   which is why the constraint #339 measured — a milestone description is not readable from here, so a
   description edit leaves no trace — does not bite this design. Nothing is being written to the tracker.
-- **What a second `/autonomy-on` in the same iteration does: it takes a FRESH snapshot.** Items the first
+- **What a second `/autonomy on` in the same iteration does: it takes a FRESH snapshot.** Items the first
   drain did not take are still open, still `ready`, still in the iteration, so they are in the second
   snapshot by construction. **The snapshot defers, it never drops.** This is the question the proposal was
   handed to answer and it is the one that would have killed a snapshot with a durable home: a persisted
@@ -501,7 +543,7 @@ why two arithmetic conditions failed before either of them.
 **Exhaustion is no longer the end of the SESSION, only of the drain.** The closing ceremonies run against
 the exhausted iteration and the session's stop is the planning handoff, which is the owner's. Two
 consequences worth stating because nothing enforces either: an empty pool from a **mistyped** milestone is
-indistinguishable from a drained one (`/harness-engineering`, rule 1 — enumerate, never name), and a
+indistinguishable from a drained one (`/agents-configuration`, rule 1 — enumerate, never name), and a
 ceremony run over an iteration that never existed reads exactly like a completed iteration.
 
 **And a third since #338:** the ceremonies run against the **iteration**, not against the snapshot, so an
@@ -525,7 +567,7 @@ It replaced *"until the backlog is empty"* (#97) on the argument that the first 
 **human** and is therefore unreachable. True, and it shipped a version that fails because of the
 **loop** — which is worse, because it looks reachable.
 
-**What makes the new condition reachable is the pruning step** (`/harness-engineering`, *Closing an
+**What makes the new condition reachable is the pruning step** (`/agents-configuration`, *Closing an
 issue is a step*): a loop that only ever adds has no terminal state at any threshold. With a closing
 criterion, the queue can shrink, and "no open issue outranks the cost of continuing" becomes a real
 question rather than a formality.
@@ -533,3 +575,51 @@ question rather than a formality.
 **Named residual:** that judgement is not mechanical. It is the honest shape — the alternative is
 another arithmetic condition, and this section is what an arithmetic condition that looked reachable
 cost.
+
+---
+
+# Mode: `off`
+
+End the drain for the repo named after the mode (default: the current repo).
+
+## Ratified reading (B) — stop after the current slice
+
+The invariant mode `on` enforces does not bend for this mode either: **a slice is merged or it
+is not started.** So `off` does not cut a branch off mid-build to comply faster — it finishes
+whatever slice is already in flight, through its Definition of Done and its merge, exactly as mode `on`
+would have. What it changes is what happens **next**: do not pick up the next item in the
+queue. Once the in-flight slice reaches a terminal state (merged, or closed per mode `on`'s own
+"when a slice hits an owner decision it did not expect" rule), stop.
+
+If nothing is in flight when this is invoked, there is nothing to finish — go straight to the closing
+summary.
+
+## What this does NOT do
+
+- It does not revoke anything the permission floor already denies. Mode `on` never granted
+  `terraform apply`/`destroy`, direct cloud mutation, force-push, `rm -rf`, secret writes, or merging
+  outside the gatekeeper's verdict — this mode has nothing to take back on that axis.
+- **It is not a mechanism.** Nothing in this repo tracks "the session is in autonomy mode" as state —
+  no flag, no file, no hook reads it. `on` and `off` are both **instructions to the
+  agent reading them**, not a state machine. A session transcript that never invokes either mode
+  never entered or left autonomy in any sense a machine can check; the pair only works because the
+  agent honors it. Say this plainly rather than let the existence of an "off" mode imply an "on/off"
+  switch actually exists somewhere. **It is also why bare `/autonomy` cannot report the current
+  mode**, which the dispatch table above states as a decision rather than leaving to be re-derived.
+
+## The closing summary — required, posted as the final message
+
+Once the in-flight slice is settled, post a summary before ending the turn. This is what makes the
+off-switch an artifact rather than a mood — per mode `on`'s own reporting rule (state, not
+narration), reused here rather than restated differently:
+
+- **Merged this session** — count and list, by issue number.
+- **Still open** — any PR that did not reach merge, and why (awaiting the gatekeeper, awaiting the
+  owner, blocked).
+- **Blocked on the owner** — queried via `gh issue list --label blocked`, not assembled by re-reading
+  the queue.
+- **Product vs. loop vs. content**, per mode `on`'s own delivery framing: a session with zero
+  product slices is a finding, not a status — say so if it applies here too.
+
+Do not bury this in a commit message or a PR body. It is the final message of the turn, addressed to
+the owner.

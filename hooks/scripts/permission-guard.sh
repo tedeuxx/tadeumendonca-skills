@@ -1164,7 +1164,7 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
       #
       # and with a REQUEST-CHANGES verdict sitting on the named PR, the second spelling came out
       # **ALLOW** — the fail-open below, reached by a command `gh` accepts and this platform's own
-      # `command-hygiene` skill MANDATES ("Target another repo with `gh <subcommand> --repo
+      # `shell` skill MANDATES ("Target another repo with `gh <subcommand> --repo
       # <owner/repo>`, never `gh -R <owner/repo> <subcommand>`", that file's own wording). A control
       # defeated by following the instructions is not a parsing bug with a security consequence; it is
       # a control that was off for the everyday spelling, which is why the fail-open argument below

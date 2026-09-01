@@ -1,6 +1,6 @@
 ---
 name: planning-poker
-description: Run a planning poker estimation round, or diagnose why one produced theater instead of signal. Use when sizing backlog items with a team, choosing between group-consensus estimation and a single person's gut call, or explaining why a session's numbers don't seem to influence anything downstream. Reference pattern only — this repo's own loop runs no human estimation ceremony (see harness-engineering).
+description: Run a planning poker estimation round, or diagnose why one produced theater instead of signal. Use when sizing backlog items with a team, choosing between group-consensus estimation and a single person's gut call, or explaining why a session's numbers don't seem to influence anything downstream. Reference pattern only — this repo's own loop runs no human estimation ceremony (see agents-configuration).
 ---
 
 # Planning Poker — consensus estimation, and what it is actually for
@@ -11,7 +11,7 @@ is the same kind of thing: a concept a project either practices deliberately or 
 badly, stated once so a team does not have to rediscover its failure modes the hard way.
 
 **This is a reference pattern, not a description of anything this repo does.** `tadeumendonca-skills`'
-own loop, documented in `/harness-engineering`, runs no human estimation ceremony at all — the
+own loop, documented in `/agents-configuration`, runs no human estimation ceremony at all — the
 `scrum-master`, `product-owner` and `product-manager` personas that would once have run one were
 absorbed into `product-lead`, and the loop's own thesis replaced story points with mechanical,
 agent-graded gates (`/quality-gates`) as the thing that decides whether work is done. This skill exists

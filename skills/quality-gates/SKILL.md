@@ -5,7 +5,7 @@ purpose: state this loop's concrete Definition of Done and the gates that prove 
 
 # Quality gates — the definition of done and the concrete policy that proves it
 
-Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that prove it — the enforcement half of the principles layer (`/harness-engineering` carries the judgment and the flow).
+Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that prove it — the enforcement half of the principles layer (`/engineering-standards` carries the judgment, `/agents-configuration` the flow — one file until #381 split them).
 
 **Two bodies of content, kept legible as two sections rather than blended (#257).** Part I is the
 *definition* of done — the thesis, the DoD, the 100% functional-regression invariant, the gate table
@@ -60,7 +60,7 @@ Development is validated **locally and automatically before the deploy** — not
 - "The regression passes locally" is the concrete pre-deploy gate.
 
 ### Gates — calibrated to blast-radius
-The gate set is the same; **where it sits** follows the loop model (`/harness-engineering`). The organizing rule: **the heavy gates sit at the point of no return.**
+The gate set is the same; **where it sits** follows the loop model (`/agents-configuration`). The organizing rule: **the heavy gates sit at the point of no return.**
 
 #### `gitflow-multi-env`
 | Gate | Staging (merge → integration branch) | Production (promote → release branch) |

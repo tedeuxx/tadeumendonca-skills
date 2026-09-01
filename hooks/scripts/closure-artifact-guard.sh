@@ -62,7 +62,7 @@
 #                       minority route today. ~~It is the only refusal surface that exists~~
 #                       (struck 2026-08-30, #363), it costs one string comparison on calls that are
 #                       not `gh issue close`, and the "close with a criterion" rite in
-#                       `/harness-engineering` is a real user of it.
+#                       `/agents-configuration` is a real user of it.
 #
 # ── CORRECTION 2026-08-30 (#363) — TRUE OF THE CLOSE, FALSE OF THE MERGE ───────────────────────
 # The two struck clauses above were the reasoning everything downstream inherited, and the second
@@ -107,7 +107,7 @@
 # ── WHAT IT DOES NOT COVER, said before any green is read ──────────────────────────────────────
 # 1. AN ISSUE THAT DECLARES NOTHING IS INVISIBLE HERE, AND NOTHING FORCES THE DECLARATION. That is
 #    the load-bearing limit and it is not hidden: the field is written at intake by the lane's own
-#    intake persona (`/harness-engineering`'s states table; `commands/new-issue.md` step 4b), which
+#    intake persona (`/agents-configuration`'s states table; `commands/new-issue.md` step 4b), which
 #    is an instruction, not a mechanism. Applied to the three founding cases: this would have caught
 #    #313 and #431 had their intake written the line, and it would NOT have caught #326 at all —
 #    what #326 failed to build was labels and milestones in the TRACKER, and this gate resolves

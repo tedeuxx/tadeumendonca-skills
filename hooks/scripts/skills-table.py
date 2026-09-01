@@ -55,27 +55,27 @@ SKILLS = ROOT / "skills"
 
 # ALLOCATION IS PER SKILL, KEYED ON THE SKILL'S OWN NAME (#286). It used to be a per-FAMILY map with
 # three exceptions beside it, because family granularity could not state the truth for those three
-# (`documentation-standard` splits by domain, `command-hygiene` is transversal, `devops` has three
+# (`documentation-standard` splits by domain, `shell` is transversal, `devops` has three
 # holders). With no families left there is nothing to inherit from, so every skill states its own owner
 # and the exception list is gone — the same information, one indirection fewer, and fourteen lines that
 # each say what they mean.
 DEVELOPER = "`developer`"
 JUDGES = "`product-lead` · `tech-lead` · `agents-lead` · `quality-assurance`"
 WIELDER = {
+    "agents-configuration": JUDGES,
     "backend": DEVELOPER,
     "cloud-infrastructure": DEVELOPER,
     "code-review": DEVELOPER,
-    "command-hygiene": "`product-lead` · `tech-lead` · `agents-lead` · `developer` · `quality-assurance`",
     "definition-of-done": JUDGES,
     "definition-of-ready": JUDGES,
     "devops": "`developer` · `agents-lead` · `tech-lead` (#227)",
     "documentation-standard": "`developer` (Part I, general docs) · `tech-lead` · `agents-lead` — Part II, ADR practice split by domain (#223)",
+    "engineering-standards": JUDGES,
     "frontend": DEVELOPER,
-    "harness-engineering": JUDGES,
-    "license": DEVELOPER,
     "planning-poker": JUDGES,
     "published-voice": "`content-writer` · `content-reviewer` — the pair it was extracted for (#317)",
     "quality-gates": JUDGES,
+    "shell": "`product-lead` · `tech-lead` · `agents-lead` · `developer` · `quality-assurance` · `content-writer` · `content-reviewer`",
 }
 
 # A skill with no entry above is unallocated, and that is information rather than an error: an unused

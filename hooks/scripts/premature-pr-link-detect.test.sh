@@ -280,7 +280,7 @@ teardown
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 # COST, DEBOUNCE, AND THE SHAPES THE SIBLING HOOKS ALREADY OWE
 # ══════════════════════════════════════════════════════════════════════════════════════════════
-echo '--- the gh call is spelled with --repo AFTER the subcommand (command-hygiene) ---'
+echo '--- the gh call is spelled with --repo AFTER the subcommand (shell) ---'
 setup
 human_turn "go"
 assistant_text "PR is up: $URL"

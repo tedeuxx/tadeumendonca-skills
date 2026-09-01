@@ -1,19 +1,42 @@
 ---
-description: Run any slice through the loop — intake, the state machine, the inner-loop steps — and apply the judgment (eleven principles, two tiers) behind every decision in it. Use when picking up a slice, proposing a change to the loop itself, or naming Agent Harness Engineering / AI-DLC in public writing. Not what "done" means (see quality-gates), the permission zones and CI/CD workflows (see devops), or the generic, SDLC-wide meaning of ready (see definition-of-ready).
-purpose: name and carry the loop itself - the state machine, the intake chain and the judgment inside it - as the one body of knowledge every profile shares
+description: Run a slice through this loop's intentional design — why it is shaped this way, its intake chain, its state machine, its iteration axis, its inner-loop steps. Use when picking up a slice, proposing a change to the loop itself, or naming Agent Harness Engineering in public writing. Not the portable judgment (see engineering-standards), what "done" means (see quality-gates), the permission zones (see devops), or the generic meaning of ready (see definition-of-ready).
+purpose: carry the intentional design of this loop - why it is shaped this way, not only what its steps are - so every agent acting inside it can decide correctly in the cases the state table does not enumerate
 ---
 
 Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state
-machine a change travels through, the judgment that shapes every decision inside it — in any
+machine a change travels through, and the design intent behind every part of it — in any
 `<project>` repo.
 
 Context: $ARGUMENTS
 
 This is the **universal preload**: the one skill every profile in this roster carries, because
 understanding the loop itself is not domain-specific the way the rest of the process library is.
-Two companion skills carry adjacent ground and are **not** folded in here: `/quality-gates`
-(what "done" means, the Definition of Done, the gate tables) and `/devops` (the permission zones and
-guard hook that make the deny-boundary mechanical, plus CI/CD and the branching topology). The single-
+
+**It is the heart of this loop's blueprint, read from inside** — the owner's framing, and the
+authoring standard it sets: *«agents-configuration é o coracao do blueprint do nosso loop, para ser
+associado a todos agentes e eles saberem a intencionalidade do desenho do loop que estamos
+implementando e perseguindo nessa configuracao/distribuicao.»* A state table tells an agent what to do
+next; **this file must also tell it *why* the loop is shaped this way**, so it can act correctly in a
+case the table does not enumerate — which is most cases. **What it must not become is a procedure
+manual**: it is always-on in every dispatch, so depth for its own sake here is a defect, not a virtue.
+
+**`/blueprint export` renders the same subject for a reader OUTSIDE this harness; this file carries it
+for the agents inside.** Same design intent, two audiences, neither a substitute for the other — and
+**nothing currently notices if the two drift.** The blueprint is a projection of
+`docs/blueprint-registry.md` plus a tree read; this is authored prose. That is a coherence obligation
+with no instrument behind it, named here rather than discovered later.
+
+**Its companion is `engineering-standards`, split out of this file at #381** — the engineering
+preferences that would still be true in a project that never runs this loop: the two tiers, the eleven
+principles, what counts as delivery, the human residual. **The cut test was one question, applied
+paragraph by paragraph:** *would this still be true in a project that does not run this loop?* Yes →
+`engineering-standards`. No → here. Where a principle has a local enforcement, the principle is named
+there and the enforcement here, once each.
+
+Three companion skills carry adjacent ground and are **not** folded in here: `/engineering-standards`
+(the judgment), `/quality-gates` (what "done" means, the Definition of Done, the gate tables) and
+`/devops` (the permission zones and guard hook that make the deny-boundary mechanical, plus CI/CD and
+the branching topology). The single-
 vs. two-environment branching topology lives in `/devops` (#227) — this skill keeps only how the state
 machine, labels and inner loop work once a mode is chosen, not the mode itself.
 
@@ -79,14 +102,15 @@ WIP-respected). What has no other owner is the loop **as a system**:
 
 ### The move that makes it a discipline, not a vibe
 
-Every guarantee above is **mechanical or it is not real.** "The reviewer holds the merge gate" is
-Agent Harness Engineering only once a hook denies the merge to every context but the reviewer; until
-then it is an instruction the loop can break — and the same model that skipped a review is the one
-trusted to remember. The test, applied to any claimed property of the loop:
+Every guarantee above is **mechanical or it is not real** — and the test that decides it is
+`engineering-standards`', stated there once and applied here repeatedly:
 
 > *If this guarantee failed right now, would something stop me — or only my memory?*
 
-If only memory, it is not engineered yet — it is an intention.
+If only memory, it is not engineered yet — it is an intention. **This file answers "only my memory"
+about several of its own rules, by name**, which is what the test is for: it is worth carrying because
+it produces that admission, not because it produces a green. Each of those places says so where it
+stands, rather than being collected into a list that would rot separately from them.
 
 ### Before a loop change goes into execution — re-derive the state model
 
@@ -296,12 +320,12 @@ label is auditable and attributable, not proven.
 
 | label | means | set by | queried by |
 |---|---|---|---|
-| `product` | the repo's own deliverable | the owner, at filing | `/autonomy-on`'s queue · merge class **safe** |
+| `product` | the repo's own deliverable | the owner, at filing | `/autonomy on`'s queue · merge class **safe** |
 | `content` | published in the owner's voice | the owner, at filing | merge class **boundary** |
-| `ready` | the description is closed on that lane, per the `filed → **description closed**` rows above | the leads (`product`) · `product-lead` (`content`) · **the owner** (`loop`) | `/autonomy-on` · `developer` refuses an Issue without it |
+| `ready` | the description is closed on that lane, per the `filed → **description closed**` rows above | the leads (`product`) · `product-lead` (`content`) · **the owner** (`loop`) | `/autonomy on` · `developer` refuses an Issue without it |
 | `blocked` | waiting on the owner, or on something outside the loop | anyone | the "what needs the owner" report |
 | `reader-facing` | the diff will change words or images a reader sees | the owner or the leads | which lens the gate dispatches — **a signal, never a gate** |
-| `sp:N` | the item's estimated weight, one Fibonacci value from a closed set (#326) | the estimating personas for that type, median of an isolated dispatch each | `/autonomy-on`'s **preflight** (an item without one blocks entry) · the points-per-week aggregation |
+| `sp:N` | the item's estimated weight, one Fibonacci value from a closed set (#326) | the estimating personas for that type, median of an isolated dispatch each | `/autonomy on`'s **preflight** (an item without one blocks entry) · the points-per-week aggregation |
 
 `product` / `content` / `loop` are exclusive per
 [ADR-0002](../../docs/adr/0002-roster-and-dev-loop.md), which is the
@@ -324,11 +348,57 @@ Issue was met, and those requirements are the leads' output — so the ruler the
 impression, which has no stopping rule. That objectivity is what the labels buy: they are how the
 chain above becomes checkable instead of merely believed.
 
+### Scrum vocabulary — what these names import here, and what they do not (#372)
+
+**The rite commands are named after the official Scrum events so a human who has never seen this loop
+can tell what is happening and how to control it.** The owner's reason, and it is the ruler for every
+naming decision downstream of it: *«a ideia principal que tive foi orientar a configuracao de harness
+a comportamentos e elementos conhecidos pela metodologia agil do scrum para que seja mais facil para
+humanos entenderem o que esta acontecendo e como controlar o harness.»*
+
+**It is bounded by legibility, not by Scrum coverage.** *«o fluxo de trabalho podemos chamar de loop
+pois é entendivel»* — `loop` stays: the flow, the issue type, the lane. **A word that already reads to
+a stranger needs no Scrum equivalent**, which is why `ready`, `blocked`, `product`, `content`, every
+persona name, Definition of Done, Definition of Ready and `sp:N` are all untouched. Sorting the
+vocabulary by *does Scrum have a word for this* was the wrong axis and would have read as a mandate to
+rename the roster.
+
+**A Scrum name is legible BECAUSE it carries expectations, and three of the ones in play carry
+expectations this loop does not honour. Say so here rather than let a Scrum-literate reader infer
+them:**
+
+1. **`sprint-planning` implies estimation-as-ceremony and a team commitment.** Neither exists. This
+   loop estimates by isolated subagent dispatch with a median (`/planning-poker` is a reference
+   pattern, explicitly not run as a human ceremony), and **nothing bounds how many items the owner
+   admits to one iteration** — there is no commitment to under-fill against.
+2. **`sprint-review` implies a stakeholder demo of an Increment.** Here **merge is deploy**, the owner
+   reviews live after the fact, and the rite is *refused on its shape* rather than deferred on effort:
+   a route list rots, and a looker's finding is not falsifiable, so it must not be a gate. **The rite
+   does not exist and typing it returns `Unknown command:`, which is correct behaviour.**
+3. **`sprint-retrospective` is the closest match and still imports one falsehood.** Scrum's
+   retrospective is *the team in one room*. This one is **N isolated contexts that never see each
+   other's output** — which the rite calls its mechanism, not its formatting, because a persona at
+   iteration close is a fresh context and aggregating them would relocate the bias rather than remove
+   it.
+
+**Two things the rename deliberately did NOT touch, and both would have been defects.** The artifact
+directory stays `docs/retrospective/<iteration>/` — a live dispatch was writing into it, prior
+comments carrying the path cannot be rewritten, and three files agree on the string under a gate arm.
+And **the owner's own Portuguese quotes saying «review e retrospective» are his words about Scrum
+rites, not identifiers**; renaming them falsifies a quotation, which this repository has already paid
+for once on exactly this operation.
+
+**This section is in the preload rather than only in `README.md` because the README is prose no agent
+carries.** `README.md` states the same three deviations for the plural external audience the owner
+named, which does not read this file — the same deliberate two-home shape the four merge holds
+already use. A gate arm asserts this section exists and carries its clauses; **it asserts the
+disclaimer is WRITTEN, never that it is true.**
+
 ## The iteration is the unit of work
 
 **The pool a drain works is an ITERATION, not the whole `ready` queue.** Owner decision, 2026-08-24
 (#326). What the axis buys is stated narrowly on purpose: **a bounded pool and a reachable terminal
-condition.** `/autonomy-on` scoped by `ready` alone is unbounded for exactly the reason #103 retired
+condition.** `/autonomy on` scoped by `ready` alone is unbounded for exactly the reason #103 retired
 *"drain until the queue is dry"* — the queue grows by working — and an iteration is the smallest thing
 that fixes a pool's contents at a moment the owner is present.
 
@@ -418,7 +488,10 @@ gh issue list --repo <owner>/<repo> --state all --limit 200 --json number,milest
 
 There is no `gh milestone` subcommand, and `state` is not among `gh issue list --json`'s available
 fields, so **no command available to this loop can read whether a milestone is open or closed.**
-Creating one and closing one are both owner acts in the browser.
+~~Creating one and closing one are both owner acts in the browser.~~ **Struck 2026-08-31 (#375), for
+CREATION only** — `scripts/milestone-create.sh` is the route, and **closing is still a click**. The
+restatement further down carries the same strike and the same scope; this site is the original and was
+left standing when that one landed.
 
 **Why that does not send the object back to the table, which is the honest form of this answer:** rule 1
 never reads `state`. The predicate above derives the active iteration from *items*, so the one attribute
@@ -456,7 +529,7 @@ persona that would settle it. If it turns out to create, delete the script rathe
 
 **Decided in this slice, not inherited — the source document explicitly refuses to answer it.** There,
 loop-typed items carry no iteration and sit outside the drained pool, so the question is only about where
-a retrospective's output lands. **Here the premise does not hold**: `/autonomy-on`'s queue is
+a retrospective's output lands. **Here the premise does not hold**: `/autonomy on`'s queue is
 `(product OR loop) AND ready`, so an iteration-scoped pool with loop items unassignable does not orphan a
 ceremony's output — **it takes half the queue dark**. One list, one axis, one predicate.
 
@@ -501,7 +574,7 @@ scheduled out.~~ ~~**Scope is `loop` and only `loop`.**~~ ~~**Which repo's itera
 is filed in.**~~
 
 **Struck 2026-08-30 (#365), and it is struck rather than narrowed because #338's own failure mode cannot
-occur.** Its argument was that a `loop` Issue born outside the pool is invisible to `/autonomy-on` and
+occur.** Its argument was that a `loop` Issue born outside the pool is invisible to `/autonomy on` and
 silently never worked. The pool is `(product OR loop) AND ready AND active-iteration`, and **a `loop`
 Issue is filed WITHOUT `ready`** — the owner's transition alone (record 0015's Corollary 4). The item is out
 of the pool on the `ready` predicate **before the milestone predicate is consulted**, so the milestone
@@ -580,7 +653,7 @@ reader finding the rule already applied to the sprint that produced it is not lo
 
 **The rule.** At planning, the iteration's **ordered body** lists every eligible `loop` item before any
 eligible `product` item. One ordering authority, discharged by an artifact that already exists, and the
-drain keeps obeying `commands/autonomy-on.md`'s own *"Do not invent an order."*
+drain keeps obeying `commands/autonomy.md`'s own *"Do not invent an order."*
 
 **It orders only what is ELIGIBLE, and that clause is the deadlock escape rather than a softening.**
 The rule ranks `(loop AND ready AND active-iteration)` ahead of
@@ -597,7 +670,7 @@ the gate's hold 1; WIP=1 held; position **6**'s build (#337) was finished and co
 Note what the eligibility clause does and does not buy there: #341 was
 `ready` and *in progress*, so it was in the pool and the escape did **not** apply. **The eligibility
 clause covers an item that never entered; it does not cover one that entered and then stalled** — for
-that, the escape is the one `/autonomy-on` already names (*"When a slice hits an owner decision it did
+that, the escape is the one `/autonomy on` already names (*"When a slice hits an owner decision it did
 not expect"*): write the question on the Issue, cut the slice to what can still finish, and move on.
 **WIP=1 is what turns the second case into a full stop**, and that is a deliberate cost of WIP=1, not a
 defect in this rule.
@@ -965,7 +1038,7 @@ is the honest claim rather than the comfortable one.
 
 **Where the estimate is required.** An item with no `sp:N` is **outstanding HITL work**, and outstanding
 HITL work blocks the drain from entering — the owner's rule, *"todas pendencias HITL devem ser zeradas no
-momento da invocacao do comando"*. It is a **preflight**, not a mid-drain check: see `/autonomy-on`'s
+momento da invocacao do comando"*. It is a **preflight**, not a mid-drain check: see `/autonomy on`'s
 *Preflight* for the operative wording and the one-at-a-time surfacing rule, stated once, there.
 
 **What nothing enforces, said plainly.** Nothing constrains an item to exactly one `sp:` label, and
@@ -984,16 +1057,16 @@ wrong, empty, and a chart drawn over it would be inventing its own subject.
 
 **Exhausting the drain's ENTRY SNAPSHOT is an internal transition, not the end of the session** — the
 closing ceremonies run, and the stop moves to the planning handoff, which is the owner's. See
-`/autonomy-on`'s *Stop when* for the operative wording and for how this settles against #103's judgment
+`/autonomy on`'s *Stop when* for the operative wording and for how this settles against #103's judgment
 condition; it is stated once, there, rather than twice.
 
 **One of those ceremonies exists and one does not, and the plural is where that gets lost (#355).**
-`/retrospective` is the method half — the personas that ran, consulted alone, each reasoning from its
+`/sprint-retrospective` is the method half — the personas that ran, consulted alone, each reasoning from its
 own artifacts. The **sprint review** half, which sweeps the running product and finds a completely
 different class of defect, **is not built**. Read *"the closing ceremonies"* anywhere in this loop as
 one built and one owed.
 
-**And nothing FIRES the one that exists.** `/autonomy-on` names it at its terminal condition; that is an
+**And nothing FIRES the one that exists.** `/autonomy on` names it at its terminal condition; that is an
 instruction in a command file and it is the whole of the mechanism. No hook can be built for it, and the
 reason is one this file already establishes for a different rule: **nothing in `hooks/scripts/` reads the
 queue** — every `gh issue` call there is a write path — so no layer here can observe a snapshot going
@@ -1051,7 +1124,7 @@ carried over), not a gate.
   dispatched subagent, there is no non-production environment to sweep, and resumable state has no
   durable home since #245. RETROSPECTIVE and PLANNING are dispatch-and-interview shapes, not mechanisms
   in this file.~~ **Struck 2026-08-30 (#355), and it was wrong in two different ways.** *The
-  RETROSPECTIVE half is built* — `commands/retrospective.md`, a typed command the drain runs at its
+  RETROSPECTIVE half is built* — `commands/sprint-retrospective.md`, a typed command the drain runs at its
   terminal condition, with the isolation, the derived consult set, the per-persona artifact and the
   cap. It was never merely a "dispatch-and-interview shape": what made it a mechanism was feeding each
   consulted persona **its own artifacts**, since a persona at iteration close is a fresh context and
@@ -1059,7 +1132,7 @@ carried over), not a gate.
   head* — `product-lead` declares a read-only `chrome-devtools` subset with a bounded origin, merged
   2026-08-29 (#356). **The review half is still not built**, on grounds that survive the new capability
   intact — a route list rots, and a looker's finding has no ruler — recorded in
-  `commands/retrospective.md`'s own last section rather than here, so the deferral sits beside the rite
+  `commands/sprint-retrospective.md`'s own last section rather than here, so the deferral sits beside the rite
   it defers. **PLANNING is genuinely unbuilt and no claim is made about it.**
 - **Anything that observes an iteration.** No hook reads the queue: every `gh issue` call in
   `hooks/scripts/` is a write path. This section is a rule the loop follows, and a gate asserts only that
@@ -1097,16 +1170,12 @@ merges without the owner); requested work needs decisions, sometimes the owner's
 unchecked, the autonomy gradient sorts the queue by what can flow without a human, which is exactly
 backwards from what a backlog is for.
 
-## What "delivered" means
+## What "delivered" means — stated in `engineering-standards`
 
-**A slice DELIVERED when a reader can do, see or read something different.** Everything else is
-**hygiene** — comments, dead code, a test mechanism, a process rule, a README. Hygiene is not lesser
-work and it is not delivery: it is the cost of being able to deliver again.
-
-**Report product slices against hygiene slices, every session.** A session with zero product slices
-is a finding, not a status. **Hygiene is picked up when it BLOCKS a product slice, or in one
-deliberate bounded batch** — not opportunistically, and not because it is what flows most easily
-without a human.
+**Delivery versus hygiene, and the rule that a session with zero product slices is a finding rather
+than a status, moved to `engineering-standards` at #381** — it holds in any project, names no
+mechanism of this one, and is what the report the drain produces is written against.
+`/autonomy on`'s own reporting rule cites it by that framing and is unchanged.
 
 ## Closing an issue is a step, with a criterion
 
@@ -1207,15 +1276,12 @@ ratified. `developer` may file a task, and the rule it must follow — *only und
 accepted cost: a finding in a verdict is ephemeral where an Issue is not — fewer things tracked, some
 real findings lost, preferred to a queue that grows by working.
 
-## The agent's state while a slice is blocked on someone else
+## The agent's state while a slice is blocked — stated in `engineering-standards`
 
-**With no defined action for that interval, the default behaviour is to report status. Reporting
-reads to the agent as delivery and to the owner as stopping.**
-
-> **On dispatching work to a reviewer — or to any actor you do not control — name and BEGIN the next
-> non-overlapping action before ending the turn.** If there is none, say so: *"waiting on X, nothing
-> disjoint in the queue"* is honest status. Silence is not, because silence is indistinguishable from
-> being stuck.
+**What an agent does while waiting on an actor it does not control moved to `engineering-standards`
+at #381.** It is a rule about turn-taking with a human, true of any agent on any machinery, and it
+names nothing in this loop. The obligation is unchanged: name and BEGIN the next non-overlapping
+action before ending the turn, or say plainly that there is none.
 
 ## Inner loop (per slice)
 
@@ -1308,105 +1374,23 @@ re-told here — this section states only the current, corrected rule.
 **Failure path:** revert the offending merge and let the revert deploy/re-release — a forward fix
 with a new slice, not a long-lived hotfix branch.
 
-## What the human does (the residual)
+## What the human does, and the judgment behind it — stated in `engineering-standards`
 
-Everything mechanical is the agent's job: plan, slice, build, validate locally, make the gates green,
-report evidence. The human is left only the residual — approving (or redirecting)
-architectural/contract decisions and giving the **go/no-go on the irreversible act**. Designing the
-loop so that residual stays small is the whole point.
+**The human residual and the eleven principles in two tiers moved to `engineering-standards` at
+#381**, on the cut test above: every one of them is true of a project that never runs this loop, and
+none of them names a persona, a hook or an ADR of this one. Nothing was edited in the move.
 
----
+**What did NOT move is the WIP bound below, and that is the one place the split had to choose.**
+Principle #3 states that a bound exists; *what this loop's bound is*, the owner correction that
+produced it, what it protects and the measurement showing nothing enforces it are all local — they
+cite `wip-guard.sh`, this repository's own PRs and two dated incidents. So the principle is stated
+there once and the rule is stated here once, and neither file says *see the other one* for its own
+half.
 
-## The judgment — eleven principles, two tiers
+## WIP=1 — the struck exception, and why
 
-This is the section that folds in what was `/engineering-philosophy`: the lens every agent applies
-while doing the above, not a separate concern from it. Read it as defaults plus the explicit triggers
-to deviate, not as rigid rules.
-
-### The spine: agent-led verification, human-residual
-
-Everything below serves the same purpose stated above: the gates are objective and mechanical so an
-agent can *prove* "done" itself, and the human's attention is reserved for what can't be reliably
-automated. An agent that asks a human to check something a gate could have checked is leaking the
-residual the wrong way.
-
-### Two tiers — know which you're in
-
-- **Non-negotiable floor** (never bends, regardless of risk): the quality gate, 100% functional
-  regression, observability, security/resilience by-design. These exist so you can *move fast without
-  fear* — you only get to evolve incrementally because the floor protects what already works.
-- **Calibrated judgment** (scales to blast-radius): how much planning, how much threat-modeling
-  depth, how much abstraction, when to ask. Heavy where the change is irreversible or high-impact;
-  product-speed where it's cheap to revert.
-
-**The floor is a set of properties, not a fixed checklist of tools.** *What* proves each property is
-read from the repo — the loop model, the suites that exist, the runtime that emits telemetry. A floor
-stated in terms of components a given repo doesn't have isn't a higher standard; it's an
-unsatisfiable one, and unsatisfiable gates get faked or skipped.
-
-### How I approach work
-
-**1. Plan-first.** Design the solution and align on it *before* writing code. Default to Plan mode
-for any non-trivial task. *When I move faster:* a trivial, in-pattern change doesn't need a ceremony
-— but the bar for "trivial" is low, not high.
-
-**2. Ask before deciding — on the right things.** Stop and align on **architecture, contracts
-(API/schema), and anything irreversible**. *Decide autonomously* on implementation that fits the
-existing pattern. The line is "does this change a boundary others depend on, or something hard to
-undo?" → ask. Otherwise → decide and report. Never make a *solo architectural* call.
-
-**3. Thin vertical slices, bounded by overlap AND by WIP=1.** Each increment crosses the layers and
-delivers reviewable value. **WIP=1 — see below.** Serial focus beats half-finished breadth.
-
-**4. Surgical changes, tracked debt.** Keep each change focused on its slice. When adjacent mess sits
-in the path, **work around it and file the debt** — do *not* refactor alongside (no boy-scouting
-mid-feature). Debt is recorded and paid in a dedicated cycle, not smuggled into an unrelated change.
-
-### What I optimize for
-
-**5. Simple but extensible.** Bias to the simplest thing that solves the problem now, with clear
-extension points only where growth is genuinely known. Not radical YAGNI, not build-for-scale-upfront
-— the deliberate middle. Abstraction must pay for itself before it's added.
-
-**6. No architecture or tech dogma — the tool follows the problem.** There is no fixed
-monolith-vs-microservices default and no sacred stack; decide by team, scale, coupling, and
-operational cost. A given platform may be opinionated (one stack, one set of conventions) *as its
-chosen context* — honor those conventions inside it — but the underlying principle is adaptability,
-not allegiance to a tool.
-
-**7. Rigor calibrated to blast-radius.** Match the weight of process to the cost of being wrong.
-Irreversible / live / high-coupling → maximum rigor and a human in the loop. Cheap-to-revert /
-isolated / git-reversible → product-speed. This is the dial; the floor (tier 1) is what the dial
-never turns below. "Cheap to revert" is a property of the *change*, not of a tier of environment — a
-repo with a single environment has no cheap tier to hide in, so the dial reads off blast-radius
-directly.
-
-### What "good" must always carry (the floor)
-
-**8. Quality is a gate, not an option.** "Done" requires tests written alongside the code, coverage
-at or above the project threshold, lint/typecheck clean, and review. **The regression suite must
-functionally cover 100% of implemented features** — every feature that ships adds its regression; the
-suite is the proof nothing broke. A change that adds behavior without its regression is not done.
-Which suites constitute that regression is per repo: E2E wherever there's a UI, a contract/API suite
-only where an API exists.
-
-**9. Observability is part of "done."** A change isn't finished until its behavior is provable
-**where it runs**. Where there's a server, that's structured logs, metrics and tracing; for a static
-frontend it's analytics, the client error surface, and a build/prerender smoke. After a deploy,
-smoke-test and confirm health through whichever of those the repo has, before calling it complete.
-
-**10. Security and resilience by-design.** Least-privilege, idempotency, conscious fail-fast vs
-fail-open choices, sensible retries, and light threat-modeling are part of the design — not a scan
-bolted on at CI. Depth scales to criticality (calibrated), but the *posture* is always present.
-
-**11. Living docs.** Architecture and decisions live as Mermaid diagrams plus markdown in the repo,
-kept current with the code — not as an afterthought. The history (clean, conventional commits)
-carries the *why*; the docs carry the *shape*.
-
-### WIP=1 — the struck exception, and why
-
-Principle #3 above used to read, and this project's own struck-not-deleted convention keeps the old
-text visible rather than erasing it:
+`engineering-standards`' principle #3 used to read, and this project's own struck-not-deleted
+convention keeps the old text visible rather than erasing it:
 
 ~~**A slice may start while another is open only if they touch no file in common**; if they overlap,
 finish the first to its Definition of Done. Serial focus beats half-finished breadth — but serialising
@@ -1437,7 +1421,7 @@ the hook fires at `gh pr create` and the failure happens hours earlier. Struck r
 because it stood for sixteen days and it is the sentence that told every reader the gap had a known
 remedy and merely needed doing.
 
-#### What WIP=1 is PROTECTING — recorded 2026-08-29 (#343), because it was never written down
+### What WIP=1 is PROTECTING — recorded 2026-08-29 (#343), because it was never written down
 
 **The rule stood for sixteen days with no recorded reason, and a rule whose reason is unwritten is one
 the next reader reverses on the first inconvenience.** #343 was opened to reverse it; the owner
@@ -1510,7 +1494,7 @@ purpose turns out to be *"I want to see every change as it happens"*, no amount 
 satisfies it and separate worktrees answer nothing. **That question is still open and only he can
 close it** — which is precisely why the proposal he asked for is a different artifact from this one.
 
-#### `wip-guard.sh` does NOT enforce WIP=1, and a reader who thinks it does is wrong about what protects them
+### `wip-guard.sh` does NOT enforce WIP=1, and a reader who thinks it does is wrong about what protects them
 
 **Two independent facts, both measured at head on 2026-08-29, and each one alone is enough.** *(The
 two dates in this section differ on purpose: an EVENT is dated from the artifact that reports it — the
@@ -1557,22 +1541,15 @@ costs when the memory is a fresh context that never had it. Read the hook as pro
 queue** from stale overlapping branches, and read WIP=1 as protecting the **working tree** from being
 two things at once. Different objects, different moments, and only one of them has a mechanism.
 
-### Using this section
+## Using this skill
 
-When an agent works in a consuming repo, these eleven principles are the lens for every choice: plan
-first, ask on the boundaries, slice thin, keep the floor green, and verify your own work before
-handing the residual to a human. The deep-dive component skills tell you *how* to build each piece;
-this tells you *how to decide* while you do. Today that means three reference skills — `/backend`,
-`/frontend` and `/cloud-infrastructure`. ~~Today that means the per-service families under
-`skills/backend/*`, `skills/frontend/*` and `skills/infrastructure/*`; per
-[ADR-0011](../../docs/adr/0011-skills-and-preload.md)'s 2026-08-13
-amendment these are consolidating into single reference skills … **not yet built as of this writing**,
-so read the family directories as they stand until that consolidation lands.~~ **Struck: it is built.**
-#229/#230/#231 consolidated 21, 19 and 15 files into one skill each, and #286 removed the family
-directories the struck sentence told a reader to go and read. Every skill is `skills/<name>/SKILL.md`.
+This file is the loop you are inside. Read it for *why* a rule is shaped the way it is, not only for
+what the rule says — that is what lets you act correctly in the cases the state table does not
+enumerate, which is most of them.
 
-See also: `/quality-gates` (the Definition of Done, the gate tables per loop model, and — since #257
-folded the former standalone `coverage` skill in — the concrete gate definitions for both stacks),
-`/devops` (the permission zones and guard hook, branching, per-environment topology, OIDC, the deploy
-workflows, TFC state), `/playwright` (E2E). Repos with an API layer add its contract/API suite — see
-`/postman`.
+See also: `/engineering-standards` (the judgment applied inside all of this — the two tiers, the
+eleven principles, delivery versus hygiene, the human residual), `/quality-gates` (the Definition of
+Done and the gate tables per loop model), `/devops` (the permission zones and guard hook, branching,
+per-environment topology, OIDC, the deploy workflows, TFC state), `/definition-of-ready` (the
+SDLC-generic bar this loop's intake chain reaches), and `/documentation-standard` (the ADR practice
+that records decisions about all of it).

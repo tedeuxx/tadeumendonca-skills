@@ -60,7 +60,7 @@ gate approved — and a relay is the one thing this loop already refuses to trus
 
 **And the standard was inverted.** The loop already held that the owner's ratification is verified from
 the PR itself and that *a relay is a notification, never the authority* — the rule this record then made
-mechanical, and which `/harness-engineering` states in its inner-loop section. (This sentence attributed
+mechanical, and which `/agents-configuration` states in its inner-loop section. (This sentence attributed
 that rule to a *"2026-07-29 amendment"* of record 0003 until 2026-08-20. The amendment is real; the
 number was a **cross-repo collision** — it belongs to the consuming repo's third record,
 [trunk-based delivery, single environment](https://github.com/tedeuxx/tadeumendonca-io/blob/main/docs/adr/0003-trunk-based-single-environment.md),

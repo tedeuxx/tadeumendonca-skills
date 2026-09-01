@@ -1,12 +1,12 @@
 ---
 name: definition-of-ready
-description: Set the bar a work item must clear before a builder can pick it up, and recognize an item that looks ready but is not. Use when writing acceptance criteria, running intake on a story, sizing a backlog, or diagnosing why in-progress work keeps stalling on undecided scope. Not for what "done" means at delivery (see quality-gates), or this repo's own two-lead intake mechanism (see harness-engineering).
+description: Set the bar a work item must clear before a builder can pick it up, and recognize an item that looks ready but is not. Use when writing acceptance criteria, running intake on a story, sizing a backlog, or diagnosing why in-progress work keeps stalling on undecided scope. Not for what "done" means at delivery (see quality-gates), or this repo's own two-lead intake mechanism (see agents-configuration).
 ---
 
 # Definition of Ready — the bar a work item clears before it is buildable
 
 Apply this SDLC-generic concept in any `<project>` — it defines what makes an item **ready to build**,
-independent of which loop, tracker or team runs it. `/harness-engineering` and `/quality-gates` are the
+independent of which loop, tracker or team runs it. `/agents-configuration` and `/quality-gates` are the
 two ends of the same lifecycle this skill sits between: **ready** is the entry gate to building, **done**
 (`quality-gates`) is the exit gate out of it. Neither substitutes for the other, and a loop that only
 enforces one of them fails at the end it left open — a strong Definition of Done cannot repair a story
@@ -111,7 +111,7 @@ exactly the failure mode named above.
 - Moves ambiguity resolution to where it is cheapest — before a branch exists — rather than to wherever
   the builder first trips on it.
 - Makes "is this item buildable" a checkable property instead of a feeling, the same move the `ready`
-  label makes mechanical in this repo's own loop (`/harness-engineering`).
+  label makes mechanical in this repo's own loop (`/agents-configuration`).
 - The checklist scales down honestly: a project with fewer surfaces gets a shorter, still-complete list,
   rather than a universal list with items nobody can satisfy.
 

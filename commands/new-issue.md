@@ -1,5 +1,5 @@
 ---
-description: Capture a request as a GitHub Issue — search for the decision that already exists, run the intake the issue's type routes to, and open it with the description closed or with the reason it is not. Use when the owner describes something he wants, when work would otherwise start untracked, or when it is unclear whether a request reopens a settled decision. Not for executing issues already filed (see autonomy-on).
+description: Capture a request as a GitHub Issue — search for the decision that already exists, run the intake the issue's type routes to, and open it with the description closed or with the reason it is not. Use when the owner describes something he wants, when work would otherwise start untracked, or when it is unclear whether a request reopens a settled decision. Not for executing issues already filed (see autonomy).
 purpose: make filing the cheap path, because the owner is the only origin of work and untracked requests were the standing cost of that rule
 argument-hint: "<what you want, in your own words>"
 ---
@@ -131,7 +131,7 @@ loop does not verify.
 
 **Decide the type first (step 4's three exclusive labels), then dispatch. There is no default intake.**
 Who takes part is not this file's to state: the canonical wording is the `filed → **description closed**`
-rows of the states table in `/harness-engineering`, and this step **defers** to it rather than restating
+rows of the states table in `/agents-configuration`, and this step **defers** to it rather than restating
 it. If this step and that table ever disagree, **the table wins and the disagreement is a finding** — two
 surfaces stating the same operative rule independently is precisely what produced eleven days of drift
 with nothing able to contradict either (#329).
@@ -199,7 +199,7 @@ check it or labelled a hypothesis**, and a mitigation or the price of accepting 
 - **It gates nothing and files nothing.** It holds no merge, opens no Issue, and its return is advice the
   owner acts on — which is why the `ready` transition below is his alone on this lane.
 - **Filing a `loop` Issue does NOT reserve it a branch.** The iteration's `loop` block may be composed as
-  one batch — one branch, one MR, commits separated per issue — per `/harness-engineering`'s *The `loop`
+  one batch — one branch, one MR, commits separated per issue — per `/agents-configuration`'s *The `loop`
   block MAY be carried as one branch and one MR*. It is a **permission the owner exercises at planning**,
   so nothing at filing time promises a per-Issue MR and nothing at filing time may assume one either.
   *"Rides in the implementing MR"* above means whichever MR implements it.
@@ -208,12 +208,12 @@ check it or labelled a hypothesis**, and a mitigation or the price of accepting 
 
 **`ready` means the description is closed by whoever closes it on that lane** (the SDLC-generic bar a
 description must clear to earn it is `/definition-of-ready`). It does not mean the Issue exists, and
-**who closes it is per-type — the `filed → **description closed**` rows of `/harness-engineering`'s
+**who closes it is per-type — the `filed → **description closed**` rows of `/agents-configuration`'s
 states table are canonical**:
 
 - **`product`** — both leads closed it and neither says stop → apply `ready`.
 - **`content`** — `product-lead` closed it and does not say stop → apply `ready`. **`ready` on a
-  `content` Issue is not a queue**: the owner selects content one piece at a time, and `/autonomy-on`
+  `content` Issue is not a queue**: the owner selects content one piece at a time, and `/autonomy on`
   excludes the lane deliberately.
 - **`loop`** — **`ready` is the owner's transition and nobody else's** (ADR-0002, record 0015's
   Corollary 4). `agents-lead` closing the description does **not** earn the label; report to the owner
@@ -223,7 +223,7 @@ And on every lane:
 
 - **Any dispatched persona recommends defer or drop** → **do not apply `ready`.** Record the
   recommendation in the body with its reason. An Issue carrying "the intake says don't build this" is a
-  real artifact; the same Issue labelled `ready` is a lie that `autonomy-on` will act on.
+  real artifact; the same Issue labelled `ready` is a lie that `autonomy on` will act on.
 - **The intake needs an owner decision to close its half** → no `ready`, and put the question in the body
   in the form the owner answers in one line.
 
@@ -246,7 +246,7 @@ invocable: none                          this Issue promises nothing invocable
 **Write it on every Issue, and `none` is the common answer** — the field exists so *promised* and
 *promised nothing* stop looking alike. Without it, an Issue can close on a merge with the half a reader
 can actually use missing, which happened three times before this field existed (#337, and see
-`/harness-engineering`'s *Closing an issue is a step* for the measurement and the limits). **Nothing
+`/agents-configuration`'s *Closing an issue is a step* for the measurement and the limits). **Nothing
 mechanical forces this line; this instruction is the only thing that puts it there.**
 
 **Stamp the intake.** Record the date and the `main` SHA whoever ran the intake read. A closed description ages: the
@@ -297,7 +297,7 @@ objects to, which is why it is struck here rather than deleted.**
 
 **The two rules are opposite instructions about the same act, and #338 loses on a MEASUREMENT rather
 than on a preference: its own failure mode cannot occur.** #338's argument was that a `loop` Issue born
-outside the pool is invisible to `/autonomy-on` and silently never worked. The drain's queue is
+outside the pool is invisible to `/autonomy on` and silently never worked. The drain's queue is
 `(product OR loop) AND ready AND active-iteration`, and **a `loop` Issue is filed WITHOUT `ready`** —
 that transition is the owner's alone (record 0015's Corollary 4), stated in step 4 above. **The item falls
 out of the pool on the `ready` predicate before the milestone predicate is consulted.** So the milestone
@@ -310,10 +310,10 @@ deveria influenciar a iteracao corrente»*); that was read as a one-off and it w
 the first time.
 
 **What #338 got right and is kept:** an unassigned Issue must not be lost. It is not — see the count
-`/autonomy-on` reports at session open, immediately below.
+`/autonomy on` reports at session open, immediately below.
 
-**The derivation predicate is NOT deleted, it is relocated to where it is still used.** `/autonomy-on`
-and `commands/retrospective.md` both derive the active iteration to build a pool; that is a **read** and
+**The derivation predicate is NOT deleted, it is relocated to where it is still used.** `/autonomy on`
+and `commands/sprint-retrospective.md` both derive the active iteration to build a pool; that is a **read** and
 nothing here narrows it. What is gone is deriving a milestone in order to **assign** one:
 
 ```
@@ -367,7 +367,7 @@ above returns `sprint-01` in this repository, and the same query against the pro
 assumed. **Do not invent a milestone and do not create one**: `gh api` is denied in the global
 settings, deny from any layer wins, and there is no `gh milestone` subcommand, so **creating an iteration
 is an owner-only act performed in the browser**. An unassigned `loop` Issue is not lost — it is counted by
-`/autonomy-on`'s *"`ready` items carrying NO milestone"* line at session open, which exists for exactly
+`/autonomy on`'s *"`ready` items carrying NO milestone"* line at session open, which exists for exactly
 this.
 
 **What nothing enforces.** No hook reads the queue — every `gh issue` call in `hooks/scripts/` is a write
@@ -376,7 +376,7 @@ tracker and to the diff. The gate asserts this instruction is **present**. That 
 
 ## What this command does NOT do
 
-- **It does not build anything.** It opens an Issue. `autonomy-on` picks it up.
+- **It does not build anything.** It opens an Issue. `autonomy on` picks it up.
 - **It does not decide.** The intake advises, the owner decides, and an Issue that resolves a disagreement
   the owner has not seen is worse than one that surfaces it.
 - **It does not open work nobody asked for.** The owner invoked it; that is the authorization, and it is

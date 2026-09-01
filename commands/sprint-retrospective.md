@@ -5,9 +5,9 @@ argument-hint: "[iteration] (defaults to the active iteration)"
 ---
 
 Run the retrospective rite for the iteration named by `$ARGUMENTS` (default: the active iteration,
-derived from the pool per `/harness-engineering` rule 1 — **enumerate, never type a milestone name**).
+derived from the pool per `/agents-configuration` rule 1 — **enumerate, never type a milestone name**).
 
-**This file is the object `/autonomy-on` has been promising.** That command has said *"the closing
+**This file is the object `/autonomy on` has been promising.** That command has said *"the closing
 ceremonies run against the exhausted iteration"* since #326 with no ceremony anywhere in the tree. This
 is the retrospective half. **The sprint review half is still unbuilt** — see the last section, which
 says so rather than leaving the promise to be discovered a second time.
@@ -34,7 +34,7 @@ worth running at all.
 ## The trigger
 
 **The drain reaching exhaustion of its ENTRY SNAPSHOT** — the owner's ratified end-of-sprint signal
-(«o gatilho para fim de sprint é o fim dos itens do dreno»), read against `/autonomy-on`'s own terminal
+(«o gatilho para fim de sprint é o fim dos itens do dreno»), read against `/autonomy on`'s own terminal
 condition rather than against a second definition invented here.
 
 **Three things are decoupled deliberately, and keeping them apart is what stops the snapshot-versus-
@@ -72,14 +72,14 @@ whose contents are fixed at planning makes *"the iteration as it stands at that 
 stable object than it was. The decoupling above is unaffected; it simply costs less to defend.
 
 **The typed fallback is this file's `argument-hint`, and it is not a lesser path.** An iteration worked
-without `/autonomy-on` never reaches the mechanical trigger, so the owner types `/retrospective
+without `/autonomy on` never reaches the mechanical trigger, so the owner types `/sprint-retrospective
 <iteration>` and the rite runs identically. **Nothing distinguishes the two runs in any artifact**, and
 nothing needs to: the artifact records the iteration, not the route.
 
 **The rite may fire twice for one iteration, and nothing can stop it.** «The drain exhausted» is a
-**per-repo** event — `/autonomy-on` takes one repo and builds its pool from one milestone — while the
+**per-repo** event — `/autonomy on` takes one repo and builds its pool from one milestone — while the
 iteration is two milestone objects in two repositories paired by title alone. A `Stop` hook receives one
-`cwd` and therefore sees one repository, which `/harness-engineering` has already measured for the
+`cwd` and therefore sees one repository, which `/agents-configuration` has already measured for the
 loop-first detector and called *"a heuristic and the weakest part"*. **The artifact is what makes a
 second firing idempotent rather than duplicative**: step 4's files already exist, so the second run
 finds them and appends nothing.
@@ -261,7 +261,7 @@ promised — `permission-guard.sh` rule 5c denies `gh issue create` to every sub
 and the rite adds no second control over it.
 
 **Only the owner opens work.** A rite that filed its own findings would convert one decision into a
-queue, which is `/harness-engineering`'s *Review does not open work* applied to a ceremony.
+queue, which is `/agents-configuration`'s *Review does not open work* applied to a ceremony.
 
 ## What this costs the NEXT iteration — the amplification, stated where the rite is defined
 
@@ -292,7 +292,7 @@ that the cap holds** — nothing measures it.
 
 ## What nothing enforces, said before any green is read
 
-- **Nothing fires this.** There is no hook. `/autonomy-on` names it at its terminal condition; that is
+- **Nothing fires this.** There is no hook. `/autonomy on` names it at its terminal condition; that is
   an instruction, and by this loop's own test — *would something stop me, or only my memory?* — it is
   not engineered.
 - **Nothing observes that it ran, or that it ran correctly.** No hook in `hooks/scripts/` reads the
@@ -331,7 +331,7 @@ kept out of this slice on two measured grounds rather than on cost:
   in the mechanism rather than afterwards.
 
 **One premise of the original deferral is now false and is corrected here rather than left standing.**
-`/harness-engineering` records that REVIEW cannot run unattended because *"no MCP server is reachable
+`/agents-configuration` records that REVIEW cannot run unattended because *"no MCP server is reachable
 from a dispatched subagent"*. That was true when it was written and is not true now: `product-lead`
 declares a read-only `chrome-devtools` subset with a bounded origin. **The obstacle was never the
 browser** — it is a route list that rots and a finding with no ruler, both of which survive the new

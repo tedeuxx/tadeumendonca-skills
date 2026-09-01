@@ -1345,7 +1345,7 @@ above) is what resolved the collision, by making "start something disjoint while
 let two overlapping slices rot into conflict" the same rule instead of two rules fighting over the same
 guard.
 
-**The 2026-08-13 WIP=1 correction** (see `harness-engineering`'s own section on it) **supersedes the
+**The 2026-08-13 WIP=1 correction** (see `agents-configuration`'s own section on it) **supersedes the
 WRITTEN principle this collision produced** — the disjoint-files exception is struck and the policy is
 now a strict count of one in-flight branch — but that correction is written policy only.
 `hooks/scripts/wip-guard.sh` still enforces file overlap, not a raw count, so as of this amendment the
@@ -1362,7 +1362,7 @@ and social-post language (LinkedIn/X) in the owner's voice — joins tier 2 alon
 #10 states for a persona to exist** (disagreement wanted, fresh context wanted, context-window
 constraint, capability should be smaller). It exists because a `content`-typed Issue had no mechanical
 builder at all — `product-lead` holds no `Write`; `developer` has `Write` and the relevant globs but is
-never dispatched to `content` work, since `/autonomy-on`'s queue was `product`+`ready` only. That is a
+never dispatched to `content` work, since `/autonomy on`'s queue was `product`+`ready` only. That is a
 **capability gap**, a fifth shape the four-reason criterion does not name. **Owner override, 2026-08-12,
 ahead of #161's own measured-delta precondition** — #161 asked to measure the current roster's drafting
 delta on one article *before* adding a persona; this amendment adds it first and retains #161's
@@ -1709,7 +1709,7 @@ sound and needs *"an"*. Three instances of *"a `harness-lead`"* → *"a `agents-
 `agents-lead`"* elsewhere were found by grepping `\ba \`\{0,1\}agents-lead\b` after the sweep and fixed
 by hand (`.claude-plugin/plugin.json`'s marketplace description, `README.md` twice,
 `inventory-counts.test.sh`'s own comment, `agents/quality-assurance.md`, `docs/adr/README.md`,
-`skills/harness-engineering/SKILL.md`, and three more sites in this document). None of the eight failures
+`skills/agents-configuration/SKILL.md`, and three more sites in this document). None of the eight failures
 would have reddened any gate — this repo has no grammar check — so each was a silent readability defect
 a mechanical rename introduces and only a second grep-and-read pass catches.
 
@@ -1961,7 +1961,7 @@ It is not queryable from the tracker, and that is on purpose — see the state b
 
 ### The state machine was wrong for nine days, and this fixes it
 
-`/harness-engineering`'s state table named **`developer`** as the builder for a `content` Issue. That
+`/agents-configuration`'s state table named **`developer`** as the builder for a `content` Issue. That
 was false from amendment #13 (2026-08-13) onward — `developer`'s own brief has said it does not build
 `content` since #187 — and nothing reddened, because no gate reads that table. The row now names
 `content-writer`, and a `drafted` sub-state is added for `content` only.
@@ -1995,7 +1995,7 @@ else, bounded how. **A drafting round judges the PROSE.** The owner's decision r
 the flow that produces prose; it says nothing about the act that decides whether the Issue should exist,
 because that act never enters that flow. Amendment #14 points the same way: this persona's boundary is
 the consuming site, which is where `content` ships. If the reading is still wrong, the row in
-`/harness-engineering`'s state table is the single place to correct it.
+`/agents-configuration`'s state table is the single place to correct it.
 
 **What is actually lost is WHEN its craft checks run, not WHETHER they run.** Criterion 10 still fires
 at the merge gate, so nothing it would have said goes unsaid — it arrives on a **finished draft**
@@ -2128,7 +2128,7 @@ request*. Such a PR frequently carries **no gate verdict at its head at all**, s
 above classifies it as premature — the first limb alone is **stricter than the rule the owner wrote**, in
 the direction that withholds something he asked to keep. It shipped on no surface in the first round of
 this slice and was caught by the merge gate, not by any check; the operative wording now carries both
-limbs (`commands/autonomy-on.md`, *"Do not hand the owner a PR link he cannot act on"*). **The mechanical
+limbs (`commands/autonomy.md`, *"Do not hand the owner a PR link he cannot act on"*). **The mechanical
 half deliberately implements only limb one** — *"is this ask a decision he holds"* is not knowable at any
 layer, and an attempt to make it so would be the theatre this record spends its length avoiding.
 
@@ -2204,7 +2204,7 @@ bites, nobody reconstructs it as an oversight.**
 - **A `PreToolUse` deny on any command containing a PR URL.** Rejected mechanically: the orchestrator's
   user-facing prose is not a tool call, so no `PreToolUse` matcher sees the act at all — and the calls it
   *would* see are `gh pr create`, which must not be blocked.
-- **Put the operative wording in `skills/harness-engineering/SKILL.md`**, the universal preload.
+- **Put the operative wording in `skills/agents-configuration/SKILL.md`**, the universal preload.
   Rejected as an **anti-placement**: `skills:` is `agents/*.md` frontmatter, and the actor this rule
   governs is the orchestrator, which is not a persona and has no frontmatter. It would be always-on for
   seven personas that never report to the owner and not always-on for the one actor that does.
@@ -2235,7 +2235,7 @@ bites, nobody reconstructs it as an oversight.**
   `zombie-loop-detect.sh` and now this one read the same artifact with the same extraction. Drift between
   three readers is caught by a reviewer diffing three test files, not by any gate — the same trade
   `zombie-loop-detect.sh`'s header already argued for, extended by one.
-- **`/autonomy-on` covers autonomy runs, and the defect can occur in any session.** Accepted rather than
+- **`/autonomy on` covers autonomy runs, and the defect can occur in any session.** Accepted rather than
   duplicating the wording, which is what this document's own *`README.md` is the single source of truth
   for the dev-loop narrative (absorbed 2026-08-20, record 0019)* section forbids — *two documents
   claiming the same authority at similar depth is worse than one document at full depth*. If it recurs
@@ -2259,12 +2259,12 @@ which are outside its boundary (amendment #14).
 decision, not a stylistic choice: a record that restates an operative rule becomes one more surface to
 keep true, and [#329](https://github.com/tedeuxx/tadeumendonca-skills/issues/329) is what nine surfaces
 stating one rule costs. The wording itself is in
-[`skills/harness-engineering/SKILL.md`](../../skills/harness-engineering/SKILL.md), in the states table's
+[`skills/agents-configuration/SKILL.md`](../../skills/agents-configuration/SKILL.md), in the states table's
 `filed → **description closed**` rows. Read it there.
 
 **Two owner rulings, both on 2026-08-25:**
 
-1. **Canonical home.** *"The states table in `skills/harness-engineering/SKILL.md` is canonical.
+1. **Canonical home.** *"The states table in `skills/agents-configuration/SKILL.md` is canonical.
    `README.md` becomes a pointer."*
 2. **The exception.** Asked whether `tech-lead` co-signs a `loop` intake by exception or never, the
    answer was one word: ***"nunca"***.
@@ -2286,7 +2286,7 @@ The *`README.md` is the single source of truth for the dev-loop narrative (absor
 **instruction to whoever dispatches**. In the owner's terms:
 
 - the **README is prose that no agent carries**; nothing preloads it;
-- the **states table is mechanism**, and every persona preloads `harness-engineering`.
+- the **states table is mechanism**, and every persona preloads `agents-configuration` and `engineering-standards`.
 
 **A rule exists to be obeyed by whoever dispatches, and whoever dispatches reads the skill.** Putting the
 operative wording where nobody looks is how #329 happened.
@@ -2362,7 +2362,7 @@ half has landed. The fence is in
 
 ### Addendum (2026-08-26) — a TENTH surface, and it was the one written as an INSTRUCTION
 
-**This amendment's own sweep missed `skills/harness-engineering/SKILL.md`'s *When to reach for this
+**This amendment's own sweep missed `skills/agents-configuration/SKILL.md`'s *When to reach for this
 discipline specifically* bullet**, which read *"pair it with `tech-lead` (design-time …) and
 `quality-assurance` (code-time …)"* — seventy-five lines above the canonical row this amendment
 installed saying `tech-lead` never co-signs that lane. **The same file stated both, in the universal
@@ -2400,8 +2400,8 @@ and the axis did not exist at all.
 **This amendment records WHERE the rule lives and WHAT was decided in this slice that the source document
 refused to decide. It does not restate the operative wording** — the same restraint the nineteenth
 amendment took, for the same reason. The wording is
-[`skills/harness-engineering/SKILL.md`](../../skills/harness-engineering/SKILL.md), section *The iteration
-is the unit of work*, and the drain's terminal condition is `commands/autonomy-on.md`'s *Stop when*.
+[`skills/agents-configuration/SKILL.md`](../../skills/agents-configuration/SKILL.md), section *The iteration
+is the unit of work*, and the drain's terminal condition is `commands/autonomy.md`'s *Stop when*.
 
 ### Why this is an amendment and NOT record 0022
 
@@ -2418,7 +2418,7 @@ prevent. **"No new record owed" is the answer, with that reason**, and the ceili
    token scope the account lacks, and its GraphQL route is denied by the global floor. Milestones need
    none of that.
 2. **`loop`-typed items are iteration-assignable** — the question the source document explicitly declines
-   to answer for an importer. Decided inside the loop, on a premise measured locally: `/autonomy-on`'s
+   to answer for an importer. Decided inside the loop, on a premise measured locally: `/autonomy on`'s
    queue is `(product OR loop) AND ready`, so the alternative does not orphan a ceremony's output, it
    takes half the queue dark.
 3. **Exhaustion is the drain's terminal condition again, and #103's judgment condition moves to
@@ -2486,7 +2486,7 @@ which configuration version, when generated"* header is a different object and i
   looker's finding is taste, so it must never be a gate. **Struck in place rather than edited** because
   the estimation bullet fourteen lines above sets that convention in this very list, and an unstruck
   bullet in a list that strikes its retirements reads as live. The refusal that stands today, and its
-  cheapest first slice, are in the twenty-sixth amendment and in `commands/retrospective.md`'s own last
+  cheapest first slice, are in the twenty-sixth amendment and in `commands/sprint-retrospective.md`'s own last
   section.
 
 ### Consequences
@@ -2515,7 +2515,7 @@ which configuration version, when generated"* header is a different object and i
 
 **Two artifacts on #326 disagree about whether implementation may proceed, and the chronology settles
 it.** At **22:31 on 2026-08-24** a comment placed implementation **on hold** pending the source project's
-finished implementation — the axis, the tracker object, the ceremony chain and the `/autonomy-on` stop
+finished implementation — the axis, the tracker object, the ceremony chain and the `/autonomy on` stop
 condition, all explicitly not proceeding. At **00:00:25** the **ratified sprint model** was posted: later
 in time, and a **complete design** rather than a deferral. The owner then applied `loop`-typed `ready`,
 which on that lane is his transition alone and is the loop's own signal that an Issue is executable.
@@ -2627,7 +2627,7 @@ stress-test half of a `loop` intake produces.
 - **A PR → Issue resolution route**, so an Issue-side marker could satisfy hold 2. This was the price of
   the answer the owner did not choose. It is recorded here so it is not silently reintroduced: it has no
   reliable edge to follow, since nothing forces a `loop` PR to reference its Issue.
-- **A hook that denies posting the marker to an Issue.** Measured inert before proposing: `command-hygiene`
+- **A hook that denies posting the marker to an Issue.** Measured inert before proposing: `shell`
   requires every comment body to go through `--body-file`, so the marker text is never in the command
   string a `PreToolUse` hook receives. Such a guard would fire only on the inline `--body` form this repo
   already forbids — a control that works everywhere except where it is needed.
@@ -2672,8 +2672,8 @@ slice is not a precondition for the iteration it sits in.
 
 **Loop-first is discharged at PLANNING, on the iteration's ordered body — not at drain time, and not by
 a gate.** The ordered body lists every eligible `loop` item before any eligible `product` item; the
-drain keeps obeying `commands/autonomy-on.md`'s *"Do not invent an order."* The operative wording is
-`skills/harness-engineering/SKILL.md`'s *"Loop before product — a planning-time COMPOSITION rule, and it
+drain keeps obeying `commands/autonomy.md`'s *"Do not invent an order."* The operative wording is
+`skills/agents-configuration/SKILL.md`'s *"Loop before product — a planning-time COMPOSITION rule, and it
 is NOT a gate"*, in the preload every persona carries; this record is the argument, not a second copy.
 
 **It ranks only what is ELIGIBLE**, and that clause is the deadlock escape the Issue asked for by name:
@@ -2692,7 +2692,7 @@ stopped until he answered. (Written as `6` and `7` on the first pass; the order 
 and could not show it false** — the field is mutable and unversioned, which is this amendment's own
 weak-home consequence reproducing itself inside the slice that records it.) **The eligibility clause did not apply** — #341 was `ready` and already in progress. It covers
 an item that never *entered* the pool; it does not cover one that entered and stalled. For that, the
-escape is the one `/autonomy-on` already carries (cut the slice, write the question on the Issue, move
+escape is the one `/autonomy on` already carries (cut the slice, write the question on the Issue, move
 on), and **WIP=1 is what converts the second case into a full stop** — a cost of WIP=1, not a defect in
 this rule.
 
@@ -2726,7 +2726,7 @@ pick.
 
 ### What would change the answer, so the next reader does not re-walk it
 
-**A declared, machine-readable order carrier.** `skills/harness-engineering/SKILL.md` already specifies
+**A declared, machine-readable order carrier.** `skills/agents-configuration/SKILL.md` already specifies
 one — *"The planning artifact is an ITERATION ISSUE"* — and **it does not exist**. The order lives in
 the **milestone description** instead, in both repos, chosen for lack of an alternative. That home is
 weak in three measurable ways: nothing in `hooks/scripts/` resolves a milestone at all (one `grep` hit,
@@ -2746,9 +2746,9 @@ finding is already asking for.**
   with no artifact any persona or hook can diff, so *"the plan said loop first"* is a claim about a
   mutable field. Building the iteration Issue closes this and is not in this slice.
 - **A citation defect was fixed in passing, and the attempt to discredit the Issue's replacement was
-  itself the defect.** `commands/autonomy-on.md` cited ADR-0002 amendment #5 for sequencing ownership;
+  itself the defect.** `commands/autonomy.md` cited ADR-0002 amendment #5 for sequencing ownership;
   #5's own header reads *"`product-manager` gets a trigger, and the reviewer's output gets a budget"*,
-  so that retirement stands and the routing to `skills/harness-engineering/SKILL.md`'s *Opening a
+  so that retirement stands and the routing to `skills/agents-configuration/SKILL.md`'s *Opening a
   session — decisions before work* is correct. ~~The Issue's proposed replacement,
   `agents/product-lead.md`, is also wrong — it carries only a `PROCEED` verdict line.~~ **Struck the
   same day: that was FALSE.** That file carries the clause under *What you own — the ordering half*
@@ -2797,13 +2797,13 @@ authors.
 1. **A `loop` Issue is filed into the ACTIVE iteration, at filing, in the repo it is filed in.** Carrier:
    `commands/new-issue.md`'s *Open it* step. Before this the command set no milestone at all —
    `grep -c "milestone" commands/new-issue.md` returned `0` — so every `loop` Issue was born outside the
-   pool `/autonomy-on` can see, which is the defect the rule closes. Scope is `loop` and only `loop`:
+   pool `/autonomy on` can see, which is the defect the rule closes. Scope is `loop` and only `loop`:
    widening it to every type moves planning into the capture command, a decision nobody has made.
 2. **The drain's terminal set is the pool AS IT STOOD AT ENTRY** — a snapshot of issue **numbers**, taken
-   once, held as session state for one invocation. Carrier: `commands/autonomy-on.md`. Two properties are
+   once, held as session state for one invocation. Carrier: `commands/autonomy.md`. Two properties are
    load-bearing rather than incidental. **Numbers, not a count**: a count is satisfied by an arrival
    replacing a closed item, so the drain would work an item it never admitted while the arithmetic still
-   matched. **Re-taken fresh per invocation**: a second `/autonomy-on` in the same iteration picks up
+   matched. **Re-taken fresh per invocation**: a second `/autonomy on` in the same iteration picks up
    everything the first did not take, so the snapshot **defers and never drops** — which is also why it
    needs no durable home, and why the constraint the twenty-second amendment's slice measured (a milestone
    description is not readable from here, so a description edit leaves no trace) does not reach this
@@ -2835,7 +2835,7 @@ existing preflight meeting the new filing rule.
    with strictly less evidence behind it than the loose one.
 2. **Accept the growth and leave exhaustion as the terminal condition.** Rejected as incoherent: `loop` is
    the class generated by working, so the drain's stopping condition would recede as the drain runs. That
-   is #103's argument arriving one layer down, and #103 is the reason `/autonomy-on` has a
+   is #103's argument arriving one layer down, and #103 is the reason `/autonomy on` has a
    terminal-condition section at all.
 3. **Persist the snapshot in the tracker** — a milestone description, or a comment on the iteration Issue.
    Rejected twice over: the milestone description is not readable from here, and the iteration Issue does
@@ -2906,8 +2906,8 @@ permission. The prohibition half, the matrix, the reinstall step and the enforce
 1. **An iteration's eligible `loop` items MAY be carried as one branch and one merge request.** They are
    still planned individually — each keeps its Issue, its `sp:N` and its position in the ordered body —
    and commits stay separated per issue so the delivery is navigable. Carrier:
-   `skills/harness-engineering/SKILL.md`, section *The `loop` block MAY be carried as one branch and one
-   MR*; pointers in `commands/autonomy-on.md` and `commands/new-issue.md`.
+   `skills/agents-configuration/SKILL.md`, section *The `loop` block MAY be carried as one branch and one
+   MR*; pointers in `commands/autonomy.md` and `commands/new-issue.md`.
 2. **It is a PERMISSION exercised by the owner at planning.** The default is unchanged and per-item.
    Nothing composes a batch automatically and no drain may infer one.
 3. **"One Loop Batch per iteration" is NOT adopted**, and more than one batch per iteration is normal.
@@ -3062,7 +3062,7 @@ corrects the twelfth amendment's claim about the other half.
 
 1. **WIP=1 stands, unchanged: one worktree, one in-flight branch, one open PR.** No reversal, and the
    `ready` label was withheld on the reversal at the time the owner answered.
-2. **What the rule protects is recorded** in `skills/harness-engineering/SKILL.md`, section *What
+2. **What the rule protects is recorded** in `skills/agents-configuration/SKILL.md`, section *What
    WIP=1 is PROTECTING*, in **three separated layers** — the owner's quoted words, the measured
    failure, and what is still unrecorded — because they are not equally strong and blending them turns
    a reconstruction into a citation.
@@ -3212,7 +3212,7 @@ and a rite whose first execution predates its definition has no definition to be
 
 ### The decision
 
-1. **`commands/retrospective.md` is the rite**, typed by the owner and named by `/autonomy-on` at its
+1. **`commands/sprint-retrospective.md` is the rite**, typed by the owner and named by `/autonomy on` at its
    terminal condition. Trigger, scope, output and close are four things, decoupled: **the trigger is
    the drain's entry snapshot going empty; the scope is the iteration as it stands at that moment; the
    output is a proposal; the iteration's close stays the owner's, at planning.**
@@ -3304,7 +3304,7 @@ reads as installed and is inert.
 ### Consequences
 
 **Good**
-- The `/autonomy-on` promise that has stood objectless since #326 now has half its object, and the other
+- The `/autonomy on` promise that has stood objectless since #326 now has half its object, and the other
   half is named as owed in the file that makes the promise.
 - The improvement list stops being the orchestrator's, and stops being speculation, in the same move.
 - `sprint-01` closed with no rite at all; the next iteration has one to close with.
@@ -3368,7 +3368,7 @@ decided in *A task is an Issue child, not a checkbox (absorbed 2026-08-20, recor
 Three corollaries are part of the decision rather than consequences of it, because the routing axis is
 not real without them.
 
-**Corollary 1 (record 0012) — the `/autonomy-on` queue predicate is `(product OR loop) AND ready`.**
+**Corollary 1 (record 0012) — the `/autonomy on` queue predicate is `(product OR loop) AND ready`.**
 The predicate was `product` only. Measured at the time against this repo's own backlog, 12 of 13 open
 Issues carried `product` and every one of them was harness/loop-class work, so making `loop` real and
 exclusive without widening the predicate would have **silently emptied the drainer in the one repo whose
@@ -3732,7 +3732,7 @@ live, and the consequences still being paid. Dropped from the five records above
 
 - **Every *"consequent work, out of scope here"* item that has since been discharged.** All five records
   were written under a `docs/adr/**`-only write scope and each named edits it could not make — the
-  `/autonomy-on` predicate, `new-issue.md`'s label step, `quality-assurance`'s boundary-class criterion,
+  `/autonomy on` predicate, `new-issue.md`'s label step, `quality-assurance`'s boundary-class criterion,
   `agents-lead`'s frontmatter and its two brief bugs, `dev-loop/SKILL.md`'s tracker rule, the README's
   checkbox sentence. Those edits landed. A list of obligations that were met is archaeology; the ones that
   are **not** met survive above as consequences.
@@ -3763,7 +3763,7 @@ hold this* belongs and is not restated here.
 filed into the ACTIVE iteration, at filing, in the repo it is filed in"* — is struck. It stood for one
 day. It is reversed rather than rewritten, per this library's convention, because someone built on it:
 `commands/blueprint.md`'s adoption step was written against it six hours after it merged, and
-`commands/retrospective.md` justified its own trigger on it the next day.
+`commands/sprint-retrospective.md` justified its own trigger on it the next day.
 
 ### The owner's rule
 
@@ -3780,7 +3780,7 @@ The rule held by luck.
 ### Why #338 loses on a measurement rather than on a preference
 
 The Issue frames this as *which of two rules wins*. It is not a contest: **#338's own failure mode cannot
-occur.** Its argument was that a `loop` Issue born outside the pool is invisible to `/autonomy-on` and
+occur.** Its argument was that a `loop` Issue born outside the pool is invisible to `/autonomy on` and
 silently never worked. The pool is `(product OR loop) AND ready AND active-iteration`, and a `loop` Issue
 is filed **without `ready`** — the owner's transition alone (Corollary 4). **The item falls out of the
 pool on the `ready` predicate before the milestone predicate is consulted.**
@@ -3813,7 +3813,7 @@ as a terminal condition and the twentieth amendment's decision 3 stays reversed.
 
 ### The ripple, discharged in this slice rather than named
 
-`commands/new-issue.md` (the act) · `skills/harness-engineering/SKILL.md` (the preload) ·
+`commands/new-issue.md` (the act) · `skills/agents-configuration/SKILL.md` (the preload) ·
 `commands/blueprint.md` (the adoption step, whose *"where the two rules conflict, the local rule wins"*
 paragraph is struck — its **reasoning** was the defect, and precisely: *"an adopted item with no
 milestone is invisible to the queue"* is **true**, the pool predicate opening with
@@ -3821,16 +3821,16 @@ milestone is invisible to the queue"* is **true**, the pool predicate opening wi
 predicate also requires `ready`, which the item never gets, so it was invisible **either way**. **A true
 premise carrying a false conclusion**, which the merge gate caught this authorship calling *"simply
 wrong"*) ·
-`commands/retrospective.md` (**the trigger justification, re-opened deliberately** — its rejected option
+`commands/sprint-retrospective.md` (**the trigger justification, re-opened deliberately** — its rejected option
 *"the iteration is empty"* rested on #338 and genuinely re-opens; it is re-decided on two grounds that
-never depended on #338 rather than left inheriting a dead argument) · `commands/autonomy-on.md` (whose
+never depended on #338 rather than left inheriting a dead argument) · `commands/autonomy.md` (whose
 no-milestone count had a **published predicate that could not return what it claimed** —
 *"from the same query"*, whose first filter excludes exactly the items being counted — a falsifier that
 fails open, repaired here) · `docs/blueprint-registry.md` (row 0041 re-authored, row **0043** added).
 
 ### Consequences still being paid
 
-- **Every newly-filed item is unassigned by construction**, so `/autonomy-on`'s no-milestone count stops
+- **Every newly-filed item is unassigned by construction**, so `/autonomy on`'s no-milestone count stops
   being a defect signal and becomes a backlog size. Read the old way it would look like a permanent
   breach.
 - **Nothing bounds how many items the owner admits at planning.** The prompt makes each admission
@@ -3963,7 +3963,7 @@ delegating.
   adds no roster surface. *What it could not answer:* the ranking context is the one with the bias.
 - **Rebuild it holding milestone-write, as #375 was filed.** **Rejected**, and by the owner rather than
   by the intake: it would move HITL composition off rule 10's prompt, which is #365's whole mechanism.
-- **A typed command instead of a profile** — the shape `/retrospective` uses. **Rejected**, and this is
+- **A typed command instead of a profile** — the shape `/sprint-retrospective` uses. **Rejected**, and this is
   the closest call in the set: a command runs in the orchestrator's own context, which reproduces
   exactly the bias reason 2 is about. A command can hold a *method*; only a dispatch can hold a *fresh
   context*.

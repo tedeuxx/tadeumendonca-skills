@@ -442,7 +442,7 @@ assert_gh_call "--repo=, no space"                       "pr view 149 --repo own
 # ── FLAG POSITION MUST NOT MATTER (2026-08-23) ──────────────────────────────────────────────────────────
 # The five cases above all put the flag BEFORE the subcommand, and the extractor they were written
 # against was anchored to exactly that (`^gh <flag> <value> pr merge`). The spelling this platform's
-# own `command-hygiene` skill MANDATES — "Target another repo with `gh <subcommand> --repo
+# own `shell` skill MANDATES — "Target another repo with `gh <subcommand> --repo
 # <owner/repo>`, never `gh -R <owner/repo> <subcommand>`" — is the one it could not parse, so `qa_repo`
 # came out EMPTY and 7c read whatever repo the cwd resolved to. Measured before the fix, with this
 # same arg-logging stub: `gh pr merge 479 --repo owner/repo` logged `pr view 479 --json …` — no

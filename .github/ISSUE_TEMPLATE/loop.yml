@@ -8,7 +8,7 @@ body:
         Only the owner opens work. This template exists so `/new-issue` (and a human filing directly)
         close the same description this lane's intake produces — see `commands/new-issue.md` step 3b for
         the full process this mirrors. **Loop-typed intake is `agents-lead` alone, always** — the
-        canonical wording is the `filed → description closed` rows of `/harness-engineering`'s states
+        canonical wording is the `filed → description closed` rows of `/agents-configuration`'s states
         table. `ready` on this lane is the owner's transition and nobody else's.
   - type: textarea
     id: request

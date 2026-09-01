@@ -30,7 +30,7 @@ ACM, Route53) → email and event fan-out (SES, SNS) → observability (CloudWat
 CloudWatch X-Ray). Each section keeps the full depth of its source skill — HCL, "Choices that matter",
 "Decision & trade-off", "Pros & cons" — reorganized under one file rather than trimmed. A cross-reference that used to point at one of these 21 skills as its own file (e.g. `/acm`, `/vpc`) now
 reads as a reference to the section below/above that covers it instead. References to skills **outside**
-this merge (`/devops`, `/harness-engineering`,
+this merge (`/devops`, `/agents-configuration`,
 `/lambda-handler`, `/redis-cache`, `/notifications`, `/og-edge-handler`, `/environment-config`,
 `/secrets-management`, `/authentication`, `/bff`, `/metrics`, `/logging`, `/tracing`, `/pagination`,
 `/openapi`, `/devops`, …) are unchanged.

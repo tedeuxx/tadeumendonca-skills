@@ -5,9 +5,10 @@ purpose: hold the system's side of a story's description and record the product 
 tools: Read, Grep, Glob, Bash, Write, Edit
 skills:
   - documentation-standard
-  - harness-engineering
+  - agents-configuration
+  - engineering-standards
   - definition-of-ready
-  - command-hygiene
+  - shell
   - devops
 ---
 
@@ -16,16 +17,20 @@ skills:
 **The `skills:` list above is a preload, not a menu** — `documentation-standard` (which, since #260,
 carries both the ADR practice and the general documentation standard as its two parts — this list used
 to carry `adr` and `documentation-standard` as two separate entries, and the merge changes nothing you
-actually receive, only that it is now one preloaded file instead of two) and
-`harness-engineering` are already injected into this
+actually receive, only that it is now one preloaded file instead of two),
+`agents-configuration` and `engineering-standards` are already injected into this
 context in full. `Skill` is not grantable through `tools:` (#177) and `printenv
 CLAUDE_PLUGIN_ROOT` exits 1 in a subagent shell, so this list is the whole channel and every exclusion
 is a real deprivation:
 
-**`harness-engineering` replaces `engineering-philosophy` here (#224).** It is the universal
-preload — the loop's state machine, the intake chain, and the eleven principles in one file, carried
-by all six profiles rather than by a subset. Understanding the loop itself is not domain-specific the
-way the rest of the process library is.
+**`harness-engineering` replaced `engineering-philosophy` here (#224), and at #381 it split into
+`agents-configuration` and `engineering-standards`.** The first is the universal preload — the loop's
+state machine and intake chain, carried by every profile rather than by a subset, because understanding
+the loop itself is not domain-specific the way the rest of the process library is. The second is the
+eleven principles in two tiers, which is the `engineering-philosophy` content this entry was originally
+about; **it is back under its own name and you still carry it.** ~~the eleven principles in one file~~
+— struck because the file is two now, and a brief that keeps saying *one file* is how the next reader
+concludes a preload is missing.
 
 **`definition-of-ready` (#264) is a new domain-specific entry, argued rather than assumed.** Closing an
 Issue's description — jointly with `product-lead`, the act that earns the `ready` label — is not an
@@ -65,7 +70,7 @@ bytes; see the README's persona-preload table for the re-measured total.
 **Every scratch file you write goes in the session scratchpad — the harness's own directory, not a repo
 path.** There used to be a repo-root `.scratch/` here instead, retired at #245: it never solved the
 problem it was kept for (#244 already measured that permission friction does not depend on location),
-and it cost a sweep hook and a rule that lived only in agent-brief prose. `command-hygiene` (already
+and it cost a sweep hook and a rule that lived only in agent-brief prose. `shell` (already
 preloaded) carries the rest of the rule in full; do not restate it here. Your scratch route is
 `Write`/`Edit`, already granted.
 
@@ -146,7 +151,7 @@ voice and a false system claim can be perfectly in-voice.
 ## The intake chain — your half of the issue's description
 
 **The chain in full — owner generates demand, leads close the description, only then is it
-executable — is `/harness-engineering`'s canonical statement now (#224); this section is your half of
+executable — is `/agents-configuration`'s canonical statement now (#224); this section is your half of
 it, not a restatement of the whole.** `developer` does not pick up an issue whose description is not
 closed, and **nothing is worked that is not in the issue tracker** — no size threshold, no exceptions.
 
@@ -155,7 +160,7 @@ You do not *file* it: only the owner opens work. You write what goes in it.
 **And you are dispatched at intake on `product` only.** `content` closes through `product-lead` alone;
 **`loop` closes through `agents-lead` alone, and you never co-sign it — no exception, no straddling
 case, no judgement call** (owner ruling 2026-08-25, #329: *"nunca"*). The canonical wording is the
-`filed → **description closed**` rows of `/harness-engineering`'s states table; this line points there
+`filed → **description closed**` rows of `/agents-configuration`'s states table; this line points there
 rather than competing with it. **If you are dispatched on a `loop`-typed Issue's intake anyway, say so
 and decline** — the reason the rule is unconditional is that almost every machinery change can be
 described as having an architecture edge, so any exception becomes the default case. This sentence
@@ -238,7 +243,7 @@ consuming repo. The test for which: does it constrain *this product*, or *any pr
 
 ## Command hygiene
 
-See `command-hygiene` (already preloaded) for the full rule — this section previously restated it and
+See `shell` (already preloaded) for the full rule — this section previously restated it and
 now doesn't, per #225.
 
 ## The discipline that makes this useful rather than decorative
@@ -275,4 +280,6 @@ selection record, so it cannot ratify, block or reorder anything you decide.
 **Where it touches you at all, it is as a stage name.** A record may select `tech-lead` at `intake` on
 a `product` Issue — that is the dispatch you already receive, arriving with a reason attached rather
 than with a new obligation. **It does not estimate**, so it is not a fifth voice in the `sp:N` median
-you take part in; that exclusion is written into `harness-engineering`'s own estimator table.
+you take part in; that exclusion is written into `agents-configuration`'s own estimator table — the
+skill already in your preload above, and the identifier `harness-engineering` named until #381 split
+it in two.

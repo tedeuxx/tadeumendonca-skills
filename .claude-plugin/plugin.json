@@ -12,16 +12,16 @@
     "./skills/backend",
     "./skills/frontend",
     "./skills/cloud-infrastructure",
+    "./skills/agents-configuration",
     "./skills/code-review",
-    "./skills/command-hygiene",
     "./skills/definition-of-done",
     "./skills/definition-of-ready",
     "./skills/devops",
     "./skills/documentation-standard",
-    "./skills/harness-engineering",
-    "./skills/license",
+    "./skills/engineering-standards",
     "./skills/planning-poker",
     "./skills/published-voice",
-    "./skills/quality-gates"
+    "./skills/quality-gates",
+    "./skills/shell"
   ]
 }

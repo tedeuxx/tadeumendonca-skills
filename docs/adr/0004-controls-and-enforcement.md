@@ -584,7 +584,7 @@ owner makes — not something this amendment performs on its own authority.
 
 **Why this is a decision-currency defect, not a merge-authority defect.** The classification this ADR decided (safe self-merges, boundary escalates, Amendment 2026-07-25 making "only the reviewer merges" mechanically true) was never wrong or ambiguous *in this ADR*. The failure was that a second prose restatement of the same rule, in a different file, was allowed to go stale independently — the platform equivalent of two callers holding different cached copies of the same config with no invalidation between them.
 
-**Resolution.** The stale sentence was struck in `dev-loop`'s own text (*"That was written before ADR-0004's classified autonomy and contradicted `quality-assurance`'s own definition… What the merge asks for is a judgement, and who supplies it depends on the class"*) and the corrected framing — safe class merges itself once both lenses are green, boundary class never does, unclear-is-boundary — is now carried in exactly one place: `skills/harness-engineering/SKILL.md`'s *"The merge is the go/no-go"* section, which cites this ADR directly rather than re-deriving the rule in its own words. Consolidating three principle skills into one (`harness-engineering`) removes the specific duplication that let this drift happen; it does not remove the general risk of a future skill restating an ADR's decision in fresh prose that can then drift.
+**Resolution.** The stale sentence was struck in `dev-loop`'s own text (*"That was written before ADR-0004's classified autonomy and contradicted `quality-assurance`'s own definition… What the merge asks for is a judgement, and who supplies it depends on the class"*) and the corrected framing — safe class merges itself once both lenses are green, boundary class never does, unclear-is-boundary — is now carried in exactly one place: `skills/agents-configuration/SKILL.md`'s *"The merge is the go/no-go"* section, which cites this ADR directly rather than re-deriving the rule in its own words. Consolidating three principle skills into one (`harness-engineering`) removes the specific duplication that let this drift happen; it does not remove the general risk of a future skill restating an ADR's decision in fresh prose that can then drift.
 
 **Accepted cost, named rather than solved:** nothing mechanical asserts that a skill's prose description of a decision still matches the ADR it describes. This amendment records the one incident that surfaced; it is not a standing check.
 
@@ -1393,7 +1393,7 @@ and with `REQUEST-CHANGES` sitting on the named PR's current head, the second sp
 issued by the harness-stamped reviewer, reaching the fail-open through the extractor rather than through
 the environment.
 
-**And the losing spelling is the one this platform MANDATES.** `skills/command-hygiene/SKILL.md`: *"Target
+**And the losing spelling is the one this platform MANDATES.** `skills/shell/SKILL.md`: *"Target
 another repo with `gh <subcommand> --repo <owner/repo>`, never `gh -R <owner/repo> <subcommand>`."* That
 rule is right about its own subject — a flag before the subcommand changes the allowlist prefix — and it
 is preloaded by all six personas, `quality-assurance` included. **So the strongest control in this loop
@@ -1754,7 +1754,7 @@ already been corrected. **The structural point is not that a human erred.** A di
 *inherits* its brief's premise and cannot check it — it was not present when the measurement was taken
 — so the premise of a dispatch was a load-bearing claim that nothing in the loop ever read back. That
 is the same defect shape #329 recorded one layer up, and it is the shape the state-model rule in
-`harness-engineering` exists to catch: *what observable artifact says this was true?*
+`agents-configuration` exists to catch: *what observable artifact says this was true?*
 
 **Why `PreToolUse` and not `Stop`.** Because this layer can **prevent**. A `Stop` hook would report the
 waste after it was paid for, which is the difference between a control and a receipt. This is the first
@@ -1940,7 +1940,7 @@ unused: ~~it is the only refusal surface that exists at all~~ — **struck 2026-
 the clause `README.md` strikes as false in the same diff; leaving it live here, in the canonical
 layer-analysis record, is the drift this document exists to prevent.** It is the only refusal surface
 for **this** predicate (a declared `invocable:` promise); it stopped being the only refusal surface
-reaching the keyword route. The *close with a criterion* rite in `/harness-engineering` is still a real
+reaching the keyword route. The *close with a criterion* rite in `/agents-configuration` is still a real
 user of it.
 
 ### The rejected option that is still live, and why it was refused
@@ -2547,7 +2547,7 @@ splits below, and it is the condition to check before reusing this shape.
 
 ### Why #338 loses, and it is a measurement rather than a preference
 
-#338's argument was that a `loop` Issue born outside the pool is invisible to `/autonomy-on`. The pool is
+#338's argument was that a `loop` Issue born outside the pool is invisible to `/autonomy on`. The pool is
 `(product OR loop) AND ready AND active-iteration`, and **a `loop` Issue is filed WITHOUT `ready`** — the
 owner's transition alone. **The item leaves the pool on the `ready` predicate before the milestone
 predicate is consulted.** So the milestone at filing was inert until he acted, and when he acted he was
@@ -2567,7 +2567,7 @@ The intake flagged one unknown: *does an `ask` hang rather than deny where no pr
 **not measured**, and the reason is that no path reaches the guarded act unattended. Walked at head, in
 both repositories: no script in `hooks/scripts/` assigns a milestone (every `gh issue` call there is a
 write path of another kind, and the one `"gh issue edit"` string in `orchestrator-tool-census.sh` is a
-classification label, not a call); `commands/autonomy-on.md` and `commands/retrospective.md` never assign
+classification label, not a call); `commands/autonomy.md` and `commands/sprint-retrospective.md` never assign
 one; and the only two files that did — `new-issue.md` and `blueprint.md` — are narrowed by this slice.
 
 ~~and the two CI workflows running `anthropics/claude-code-action` install no plugin, so this hook is not
@@ -2863,7 +2863,7 @@ the prompt.
 
 **Rule 5c/5d — `gh issue create` denied to every subagent but `developer`.** **Keep.** Under the thesis
 this looks like a subagent-level restriction and is not one: opening work is not among any reviewing
-persona's *atividades previstas* — it is excluded by mandate, in `/harness-engineering`'s *Review does
+persona's *atividades previstas* — it is excluded by mandate, in `/agents-configuration`'s *Review does
 not open work*, and the measured failure is on record (19 net Issues in one session, ~13 born inside a
 review of something else). **The friction it does create is real and is named:** `agents-lead` is now
 the `loop` lane's intake and authors `loop` items, and it cannot file one — #375's own intake had to be
@@ -2986,8 +2986,15 @@ and rule 11 obeys it rather than restating it.
 
 ### The alternative that was put FIRST and is not a compromise: do not grant it
 
-`harness-engineering` already states the design — *"Creating one and closing one are both owner acts in
-the browser"*, *"one click per iteration is cheaper than reopening that door."* Planning is owner-present
+`agents-configuration` stated the design — *"Creating one and closing one are both owner acts in
+the browser"*, *"one click per iteration is cheaper than reopening that door."* **Both clauses are
+STRUCK at head by this record's own decision (#375), the strike scoped to CREATION — closing is still
+a click.** *This sentence read as if that had always been true of both sites; it was not.* The first
+clause occurs **twice** in the skill — struck where it is restated alongside the second, and **left
+standing at its original site** until #387 struck it there too, so a reader following this citation
+between #375 and #387 landed on it asserted. Read both as the state this option was argued FROM, not
+as current text; the skill was
+named `harness-engineering` until #381. Planning is owner-present
 by construction and nothing blocks *him*. **The price of that option, and it is the thing that gets
 forgotten and rediscovered as a defect:** `/sprint-planning` carries a manual step and the rites are not
 mechanically complete end to end. **The owner's requirement is the opposite** — *«voce deveria ao final

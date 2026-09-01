@@ -106,7 +106,7 @@ fi
 
 # REFUSE A DUPLICATE TITLE, and this is the one check that is worth more than it looks. An iteration is
 # ONE thing whose tracker representation is two milestones in two repositories paired by nothing but
-# their title — `harness-engineering` names that as a live, undetected failure ("title one `sprint-01`
+# their title — `agents-configuration` names that as a live, undetected failure ("title one `sprint-01`
 # and the other `sprint-1` and each derivation succeeds, each reports a healthy pool, and the iteration
 # silently becomes two"). This does not fix that. It closes only the narrower case of creating a second
 # milestone with a title this repository already has.
