@@ -696,8 +696,8 @@ per-skill figure below was checked against that output rather than against the m
 remembered. **Nothing gates any of this** — see the *claim registry* note on claim `0004`, which
 declares that the arm owns the table and none of the surrounding prose.
 
-**`developer` published 101,637 B and measures 198,411 B; `product-lead` published 50,437 B and
-measures 145,076 B.** The split that produced `engineering-standards` moved these numbers by roughly
+**`developer` published 101,637 B and measures 198,688 B; `product-lead` published 50,437 B and
+measures 145,353 B.** The split that produced `engineering-standards` moved these numbers by roughly
 12 KB each — it does not begin to account for the gap. **These figures had been drifting for weeks
 under merges that grew a preloaded skill without touching this list**, which is exactly the failure
 this repository's *publish the number with its command* rule exists to prevent, surviving in the
@@ -707,11 +707,11 @@ each records a decision, and they are **not** re-derivable against the totals ab
 and a bullet's total no longer belong to the same measurement, and pretending they do is how the next
 figure goes stale invisibly.
 
-- **`developer` — 198,411 B** — `code-review` · `quality-gates` · `agents-configuration` · `engineering-standards` ·
+- **`developer` — 198,688 B** — `code-review` · `quality-gates` · `agents-configuration` · `engineering-standards` ·
   `shell` · `devops`. `quality-gates` grew 763 B at #265 — a pointer
   paragraph repointing its former generic DoD framing at the new `definition-of-done` skill — which
   moves this total by the same amount, since this brief carries the whole file.
-- **`quality-assurance` — 178,604 B** — `agents-configuration` · `engineering-standards` · `quality-gates` ·
+- **`quality-assurance` — 178,881 B** — `agents-configuration` · `engineering-standards` · `quality-gates` ·
   `devops` · `shell`. `coverage` used to be a fifth, separate entry here; #257 folded its
   content into `quality-gates`, so the same policy is still fully preloaded — the entry disappeared, not
   the content. `sonarcloud` used to be the third entry; #259 folded it into `devops`, and this brief now
@@ -720,7 +720,7 @@ figure goes stale invisibly.
   canonical source for three of this brief's own production-lens criteria (IAM least-privilege, the
   immutable OIDC subject, SHA-pinning) that this file previously restated in compressed form.
   `quality-gates`'s #265 growth (see `developer`, above) moves this total by the same 763 B.
-- **`tech-lead` — 207,128 B** — `documentation-standard` · `agents-configuration` · `engineering-standards` ·
+- **`tech-lead` — 207,405 B** — `documentation-standard` · `agents-configuration` · `engineering-standards` ·
   `definition-of-ready` · `shell` · `devops`. This used to be five entries (`adr`,
   `documentation-standard`, `harness-engineering`, `shell`, `devops`); #260 folded `adr` into
   `documentation-standard` as its Part II, so the entry count temporarily dropped to four before #264
@@ -736,12 +736,12 @@ figure goes stale invisibly.
   argued rather than assumed: closing an Issue's description with `product-lead` is not an occasional
   reference for this persona, it happens at every intake dispatch, which is the same class of necessity
   that justifies a preload rather than a `Read` on demand.
-- **`product-lead` — 145,076 B** — `agents-configuration` · `engineering-standards` · `definition-of-ready` · `shell`.
+- **`product-lead` — 145,353 B** — `agents-configuration` · `engineering-standards` · `definition-of-ready` · `shell`.
   `definition-of-ready` (11,265 B, #264) is a new, deliberate second domain-specific entry alongside the
   universal preloads — the same reasoning as `tech-lead`'s addition above: this persona performs the act
   the skill defines (closing a description to the point it earns `ready`) at every dispatch, not
   occasionally.
-- **`agents-lead` — 195,863 B** — `agents-configuration` · `engineering-standards` · `documentation-standard` · `shell` ·
+- **`agents-lead` — 196,140 B** — `agents-configuration` · `engineering-standards` · `documentation-standard` · `shell` ·
   `devops`. `harness-engineering` was the one exception to what used to be `skills: []`; the other three
   followed for reasons its own brief states (`documentation-standard`'s Part II — the ADR practice
   formerly the standalone `adr` skill, folded in at #260 — for loop/harness ADRs since #223,
@@ -757,7 +757,7 @@ figure goes stale invisibly.
   `loop`-typed proposals only, where `ready` is an owner-only transition it never performs. It remains
   the persona most exposed to staleness, a real tension a frozen
   preload creates that its own brief names as a residual rather than resolves.
-- **`content-writer` — 163,072 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice`.
+- **`content-writer` — 163,349 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice`.
   Renamed from `writer` at #317; the figure moved for one reason and it is not the rename, which costs
   nothing — `harness-engineering` grew in the same slice, by the state-machine rows this pair required.
   **`published-voice` (29,261 B) is not an addition to this brief, it is a relocation out of it:** the
@@ -785,7 +785,7 @@ figure goes stale invisibly.
   sharpest form of this defect** — it reads as freshly checked and is the least likely line in the
   section to be re-checked. It is why the class sentence above now publishes a criterion instead of a
   list of three.
-- **`content-reviewer` — 163,072 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice`.
+- **`content-reviewer` — 163,349 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice`.
   **Byte-identical to `content-writer`'s, because the list is identical — and that identity is the
   design rather than a copy-paste.** The pair
   is only worth its cost if both halves judge against one file; giving the reviewer a skill the writer
@@ -796,7 +796,7 @@ figure goes stale invisibly.
   protocol is stated in this brief and not in `content-writer`'s**, which carries only the four rules
   that bind the drafter — a deliberate asymmetry, because two copies of a protocol is the failure the
   ruler extraction was performed to avoid, one layer down.
-- **`scrum-master` — 126,792 B** — `agents-configuration` · `engineering-standards`. **The smallest
+- **`scrum-master` — 127,069 B** — `agents-configuration` · `engineering-standards`. **The smallest
   preload in the roster, and the only list with no third entry.** It arrived at #375 declaring
   `harness-engineering`, a skill this batch renamed out of existence at #381; the profile's two halves
   were decided here on the same per-persona basis as the other seven rather than by find-and-replace.
@@ -827,11 +827,43 @@ where `quality-assurance` at least *applies* a concrete instance of the concept 
 here even touches this skill's subject at any dispatch. It stays reachable the same way every
 non-preloaded skill is: typed as `/planning-poker`, or via the `Skill` tool on demand.
 
-**1,378,018 B as billed across the eight, 272,560 B distinct — 49.1% of the library (555,130 B across
+**1,380,234 B as billed across the eight, 272,837 B distinct — 49.1% of the library (555,407 B across
 14 skills; `find skills -name SKILL.md | xargs wc -c`), and the largest preload is `tech-lead`'s at
-207,128 B, with `developer` second at 198,411 B.** **Every figure in this section — the eight
+207,405 B, with `developer` second at 198,688 B.** **Every figure in this section — the eight
 per-persona bullets above and this aggregate — was re-derived against THIS tree**, with the script
 published above this list, as the last step before the commit. Nothing here is carried forward.
+
+**That claim was FALSE at the previous head, and the class the paragraph below names as *not
+discharged* is what fired — inside the same PR that names it.** Every one of these eleven figures — the
+eight per-persona totals, the billed aggregate, the distinct total and the library total — was low by
+**exactly 277 B** per preload, because one commit on this branch grew a skill that every brief carries:
+
+```
+git show aaad5d8:skills/agents-configuration/SKILL.md | wc -c   # 113850  ← measured and published here
+git show HEAD:skills/agents-configuration/SKILL.md    | wc -c   # 114127
+git log --oneline aaad5d8..HEAD -- skills/agents-configuration/SKILL.md   # 199e95a, four commits later
+```
+
+*(The rev is spelled `<rev>:<path>` above rather than `ls-tree -r -l <rev> <path>` for a mechanical
+reason worth one line: a SHA ending in a digit, followed by a space and `skills`, matches the
+`[0-9]+ ([a-z-]+ ){0,2}skills` arm that pins this repo's skill count in **every** occurrence, and a
+command quoted in prose is not exempt from it. The first form of this block turned that arm red.)*
+
+**8 briefs × 277 B = 2,216 B on the billed total, and 277 B once each on the distinct and library
+totals** — which is exactly the correction applied here, in all three, and is why the arithmetic is
+self-checking rather than eleven separate repairs. **The defect is this repository's named recurring
+one: a number whose base is inside the diff that publishes it.** Not a stale figure inherited from
+`main` — the figure was re-derived, correctly, and then invalidated four commits later by a diff that
+never touched this list. **The section publishes its own falsifier, so any reader who ran the script
+got eleven different numbers from a sentence claiming it had just been run**, which is the sharpest
+form of this defect: the claim of freshness is what makes it unlikely to be re-checked.
+
+**What this changes about the paragraph below: nothing, and that is the point.** *"Nothing keeps it
+correct"* was already written there; this is the first recorded instance of it firing **within a single
+branch** rather than across merges, and the shorter interval is the finding. The mitigation available
+without a gate is procedural and is stated as such — re-run the script **after the last edit of the
+slice, not after the last edit that touched `skills/`**, since which files are preloaded is not
+something the author of an unrelated commit is looking at.
 
 **The staleness caveat this paragraph carried at the previous head is DISCHARGED, and which part is
 discharged matters more than the fact that it is.** That version read that the billed total was
