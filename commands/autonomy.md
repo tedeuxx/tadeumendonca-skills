@@ -487,7 +487,7 @@ argument below was built on it.
 - **Where it lives: session state, for the duration of one invocation.** It needs **no durable home**,
   which is why the constraint #339 measured — a milestone description is not readable from here, so a
   description edit leaves no trace — does not bite this design. Nothing is being written to the tracker.
-- **What a second `/autonomy-on` in the same iteration does: it takes a FRESH snapshot.** Items the first
+- **What a second `/autonomy on` in the same iteration does: it takes a FRESH snapshot.** Items the first
   drain did not take are still open, still `ready`, still in the iteration, so they are in the second
   snapshot by construction. **The snapshot defers, it never drops.** This is the question the proposal was
   handed to answer and it is the one that would have killed a snapshot with a durable home: a persisted
