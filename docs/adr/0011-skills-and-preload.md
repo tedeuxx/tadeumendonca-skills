@@ -830,7 +830,14 @@ points at** when it declines to write the reverse assertion — *every `SKILL.md
 75-file, six-cluster tree that #229/#230/#231 and #286 no longer produce:
 
     bash hooks/scripts/inventory-counts.test.sh | grep -i 'skill descriptions'
-    → scan set 16 files (13 skills + 3 typed commands) · L1, L2, L3 all PASS · 4 clustered skills
+    → scan set 18 files (14 skills + 4 typed commands) · L1, L2, L3 all PASS · 6 clustered skills
+
+**Re-derived on 2026-09-01 (#387), and it had contradicted its own command before that.** The figures
+read `16 files (13 skills + 3 typed commands) · 4 clustered skills` while the command printed on the
+line above returned 18/14/4/6 — a published command whose output refutes the sentence beside it, under
+a heading asserting the sentence is live. The stale figures came in at `76cfe7d`, which is on `main`,
+so this was **not** authored by the #381/#384/#372/#368 batch; that batch moved the true file count
+19 → 18 and left the sentence, which is what made it worth re-deriving here rather than filing.
 
 ### The rejected options that are still live
 
@@ -1362,7 +1369,22 @@ the reason is the same each time: `version-main.yml` bumps patch unconditionally
 ships a break publishes it before any deliberate release can name it.
 
 **The published skill count does not move**, and it was re-derived rather than taken from the dispatch:
-the split (+1) and the fold (−1) cancel at **14**. The typed-command count moves **5 → 4**.
+the split (+1) and the fold (−1) cancel at **14**. **The command FILE count moves 5 → 4; the count of
+non-help TYPED FORMS does not move and is 6 on both sides.** The unit is named because it was not, and
+the unnamed version was false under the criterion its own words carried — *"typed-command count"* names
+the typed form and reports the file. Both sides re-derived rather than adjusted:
+
+```
+git ls-tree --name-only origin/main commands/   # 5 files: autonomy-off autonomy-on blueprint new-issue retrospective
+ls commands/                                    # 4 files: autonomy.md blueprint.md new-issue.md sprint-retrospective.md
+git grep -n 'argument-hint' origin/main -- commands/   # 5 declarations -> 6 non-help forms:
+#   autonomy-on · autonomy-off · blueprint export · blueprint import · new-issue · retrospective
+grep -n '^argument-hint' commands/*.md                 # 4 declarations -> 6 non-help forms:
+#   autonomy on · autonomy off · blueprint export · blueprint import · new-issue · sprint-retrospective
+```
+
+**Two files carry modes, so the two counts were never the same number** — `autonomy` and `blueprint`
+each declare their forms in one `argument-hint`, and a bare invocation of either only prints help.
 
 **Nothing here re-opens the permission model**, the `orchestrator-write-guard` removal (#375), or the
 milestone-creation route. The only edits to `permission-guard.sh` are comments carrying the renamed skill

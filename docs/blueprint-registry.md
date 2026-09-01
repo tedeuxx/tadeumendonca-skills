@@ -522,8 +522,19 @@ where a sixth value can be argued on evidence rather than on the first two rows 
 ## `knowledge` — guidance the actor reaches for, removing a re-decision
 
 **This section is the skills list**, and it is a **view over this one registry** (selector
-`tipo == knowledge`), never a second table. The `skill` class is declared `partial` above; six carriers
-have no row yet, named there with the reason.
+`tipo == knowledge`), never a second table. The `skill` class is declared `partial` above; **five**
+carriers have no row yet, named there with the reason. **It read `six` until #387 and this branch is
+what made that false** — `six` was correct on `main` (8 carriers with a row, 14 skills) and #384's
+`license` fold moved it to five, which was struck at the `partial` declaration above and not here.
+Re-derived rather than adjusted, and it is the same command in both places:
+
+```
+grep -c '^- \*\*tipo:\*\* knowledge' docs/blueprint-registry.md                     # 11 rows
+grep -A1 '^- \*\*tipo:\*\* knowledge' docs/blueprint-registry.md | grep carrier | sort -u | wc -l   # 9 carriers
+jq -r '.skills[]' .claude-plugin/plugin.json | wc -l                                # 14 skills
+```
+
+11 rows over 9 carriers, 14 skills declared → **5** unclaimed.
 
 ### 0024 · the loop itself, and the intent behind its shape
 
