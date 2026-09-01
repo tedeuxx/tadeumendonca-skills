@@ -263,8 +263,9 @@ presents five and collects five answers has produced the decision list the const
 so the order below is not a sequencing preference — 4a is the deliverable and 4b is what fills it.
 
 **The order is load-bearing, and the reason it is load-bearing is narrower than it first reads: there
-is a CREATE route BUILT and no UPDATE route BUILT.** `scripts/milestone-create.sh` accepts
-`--description` at creation. Since the milestone description is where `/agents-configuration` says the
+is a CREATE route BUILT and no UPDATE route BUILT.** `scripts/milestone-create.sh` takes the
+description **at creation and nowhere else**. Since the milestone description is where
+`/agents-configuration` says the
 **order of record** lives, the ordered body has to be known before the object is created — so
 composition is collected first and the milestone is created once, carrying it.
 
@@ -294,11 +295,38 @@ nothing saying so. The rule now matches `milestone-[a-z0-9-]*.sh` in the same tw
 next script in that family arrives guarded on the day it is written rather than on the day someone
 notices. That widening ships in this slice; it is not a follow-up.
 
-**4a · create the iteration, once per repository that has admitted items:**
+**4a · create the iteration, once per repository that has admitted items. The ordered body goes to a
+FILE first — `Write` it to the session scratchpad — and the file's PATH is what the command carries:**
 
 ```
-bash scripts/milestone-create.sh "<iteration>" --repo <owner>/<repo> --description "<the ordered body>"
+bash scripts/milestone-create.sh "<iteration>" --repo <owner>/<repo> --description-file <path>
 ```
+
+**The ordered body NEVER travels as a shell argument, and this is a production rule rather than a style
+one.** `/shell`'s `--body-file` rule has no per-case exception, and this flag is exactly that class.
+Three things make it sharper here than the general shape:
+
+- **A double-quoted argument is INTERPRETED, not merely mangled.** Measured, one call, the argument
+  quoted exactly as this step wrote it before this round — and re-run against the file route with the
+  identical payload:
+
+  ```
+  inline:      "order: 1. #383 `id -u` end · 2. #378 $HOME end"
+    -> order: 1. #383 501 end · 2. #378 /Users/... end       # id -u RAN; $HOME expanded
+  file route:  description="$(cat -- <path>)"
+    -> 1. #383 `id -u` end · 2. #378 $HOME end                # bytes, verbatim
+  ```
+
+- **The text is not trusted.** Both repositories are public (`gh repo view --json isPrivate` → `false`,
+  twice), so the Issue titles step 1 reads and step 3 presents are attacker-supplied strings, and step
+  4a is where they would have been composed into that argument.
+- **The corruption is unrecoverable from here.** The description IS the order of record and no update
+  route is built (above), so a body that lands mangled is a browser delete-and-recreate.
+
+**The inline `--description <text>` form is REMOVED from the script, not left beside the file route.**
+Measured at head: `bash scripts/milestone-create.sh "probe" --description "x"` → `unknown option:
+--description`, exit 2. Keeping both would have fixed this caller and not the script — a later caller
+picks the convenient spelling, which is the whole reason `/shell`'s rule is written without exceptions.
 
 **This PROMPTS, and the prompt is the point.** Rule 11 asks the orchestrator; his answer is the human
 verification #365 demands. The script refuses a duplicate title in that repository and prints what the
@@ -445,17 +473,33 @@ a known next act instead of a surprise at the drain's door.
   query one, so a truncated assembly produces a confident ranking of the wrong set.
 - **AN ITEM CARRIED OVER FROM THE PREVIOUS ITERATION.** Step 1 assembles `milestone == null`, so an open
   item still carrying the last iteration's milestone is **invisible to this rite entirely** — not
-  presented, not ruled on, and silently still in a closed iteration's contents. **Vacuous today and
-  latent rather than absent**: measured 2026-09-01,
-  `gh issue list --repo <owner>/<repo> --state open --limit 200 --json number,milestone --jq '[.[]|select(.milestone!=null)]|length'`
-  returns **0** in both repositories. It fires the first time an iteration does not fully drain, which
-  is the ordinary case planning exists for. **The corrective act exists and is his:**
+  presented, not ruled on, and silently still in a closed iteration's contents. **The class is
+  REACHABLE, and its population is a moving number — run the predicate, do not read a count here:**
+  `gh issue list --repo <owner>/<repo> --state open --limit 200 --json number,milestone --jq '[.[]|select(.milestone!=null)|.number]'`
+  over both repositories. It is populated whenever an iteration does not fully drain, which is the
+  ordinary case planning exists for. **The corrective act exists and is his:**
   `gh issue edit <n> --remove-milestone`, which rule 10 deliberately does not match precisely because
   taking an item back out is what the loop wants to be easy. **The rite does not do it and does not
   surface it**, and closing that is its own slice — it needs a second assembly pass over milestoned
   open items, and a rule for which iteration they return to.
 - **AN ISSUE CARRYING NO ROUTING LABEL.** Step 1's three classes are keyed on `product`, `loop` and
   `content`, so an Issue with none of them matches nothing, appears in no class, and is dropped without
-  a word. **Vacuous today** — the negation of that predicate returns `[]` in both repositories on
-  2026-09-01 — so this is a cost stated in advance rather than one being paid, and it belongs on this
-  list because a class that silently has no bucket is exactly what this list is for.
+  a word. **The class is REACHABLE and has already been populated — run the predicate rather than
+  reading a count here:**
+
+  ```
+  gh issue list --repo <owner>/<repo> --state open --limit 200 --json number,labels \
+    --jq '[.[]|select((.labels|map(.name)|index("product")|not)
+                  and (.labels|map(.name)|index("loop")|not)
+                  and (.labels|map(.name)|index("content")|not))|.number]'
+  ```
+
+  **A vacuity assertion is the wrong SHAPE for this claim, and that is the finding rather than the
+  number.** An earlier draft published *"vacuous today — the negation of that predicate returns `[]` in
+  both repositories"*, and it was already false when it shipped: an Issue filed at 16:11:32Z on
+  2026-09-01 carried only `reader-facing`, so the predicate returned one member **before** the head
+  that published the emptiness was pushed — and the command printed beside the claim is what showed it.
+  **One forgotten label falsifies a vacuity claim**, which makes such a claim a promise that the world
+  will stay still. What is stable is the property: **an Issue with no routing label matches no class
+  here and is dropped without a word**, and the predicate above is how anyone reads who is in that
+  state now.

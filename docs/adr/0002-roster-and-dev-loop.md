@@ -4221,14 +4221,37 @@ the rite says so in the section that writes the file, so a reader cannot mistake
 - **It does not close an iteration.** No command available to this loop can read whether a milestone is
   open or closed.
 - **It does not handle a CARRY-OVER, and it does not pretend to.** Step 1 assembles `milestone == null`,
-  so an open item still carrying the last iteration's milestone is invisible to the rite entirely.
-  Measured 2026-09-01, both repositories hold **zero** open milestoned issues, so this is **latent
-  rather than live** — and it fires the first time an iteration does not fully drain, which is the
-  ordinary case planning exists for. The corrective act exists and is the owner's
-  (`--remove-milestone`, which rule 10 deliberately does not match). Closing it needs a second assembly
-  pass and a rule for which iteration a carried item returns to, and that is its own slice.
-- **It does not see an Issue carrying no routing label.** Vacuous at head (the negated predicate returns
-  `[]` in both repositories) and stated in advance rather than discovered.
+  so an open item still carrying the last iteration's milestone is invisible to the rite entirely. **The
+  class is reachable and its population is a moving number, so the rite publishes the predicate and no
+  count** — it is populated whenever an iteration does not fully drain, which is the ordinary case
+  planning exists for. The corrective act exists and is the owner's (`--remove-milestone`, which rule 10
+  deliberately does not match). Closing it needs a second assembly pass and a rule for which iteration a
+  carried item returns to, and that is its own slice.
+- **It does not see an Issue carrying no routing label.** Same shape, same treatment: the predicate is
+  published and no vacuity is asserted.
+
+#### A VACUITY CLAIM IS THE WRONG SHAPE, and both bullets above carried one until the gate refuted it
+
+**Both bullets shipped saying the class was *vacuous today*, with the predicate printed beside the
+claim, and one of them was already false at the head that published it.** An Issue filed at 16:11:32Z
+on 2026-09-01 in the product repository carried only `reader-facing` — no routing label — so the
+negated predicate returned one member, and it did so **before** the head asserting emptiness was
+pushed. **The falsifier printed beside the claim is what refuted the claim.**
+
+**That is not staleness and the distinction is the whole of the correction.** A stale figure was true
+once; this was false when written. And it is the same defect this very amendment corrects two sections
+earlier, where a published `five` was `7` on its own date — **the second instance in one slice, which
+is what makes it a shape rather than a slip.**
+
+**Why re-measuring was rejected as the fix.** The class re-emptied within the hour (the missing label
+was applied by hand), so a fresh measurement would have republished *vacuous* and been correct for
+exactly as long as nobody forgets a label again. **One forgotten label falsifies a vacuity claim**, so
+the claim is a promise that the world stays still, which is not a promise a record may make.
+
+**What replaces it:** the **property** — an item in this class is dropped by the rite without a word —
+plus the predicate that reads who is in the class **now**. A count would need a date and a re-run; a
+property needs neither. **The general rule this books: publish a predicate for a class whose membership
+moves, and reserve dated counts for measurements of things that do not.**
 
 ### The SECOND input is enumerated, not typed — the rite's own rule, applied to itself
 

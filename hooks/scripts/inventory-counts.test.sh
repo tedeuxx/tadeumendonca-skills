@@ -7447,7 +7447,8 @@ else
     '- **AN ISSUE CARRYING NO ROUTING LABEL.**' \
     "### THE ITERATION IS THIS RITE'S PRODUCT, and that is a completion condition rather than a step" \
     'iteration object has produced nothing' \
-    'bom, o rito deveria sim criar a iteracao como produto ao final dela'
+    'bom, o rito deveria sim criar a iteracao como produto ao final dela' \
+    'A vacuity assertion is the wrong SHAPE for this claim'
   do
     grep -qF -- "$plan_needle" "$PLAN_CMD" || plan_missing="$plan_missing
     missing: \"$plan_needle\""
@@ -7522,7 +7523,13 @@ else
         PRODUCED NOTHING — the operative consequence: a planning that ends without an iteration object
                            has no deliverable. It is the half a reader acts on.
         THE QUOTE        — his sentence, verbatim. The ruling is stronger than the yes that was asked
-                           for, and only the original wording carries that; a summary of it does not."
+                           for, and only the original wording carries that; a summary of it does not.
+        VACUITY SHAPE    — added at the gate's round. Two bullets published 'vacuous today' beside the
+                           predicate that refuted one of them at the head that shipped it. Re-measuring
+                           was REJECTED as the fix: the class re-emptied within the hour, so a fresh
+                           count would have been correct until the next forgotten label. The clause
+                           records that a vacuity claim is the wrong SHAPE — publish the predicate for
+                           a class whose membership moves, and reserve dated counts for what does not."
   else
     ok "planning rite — the rite states its boundary, that the iteration is its PRODUCT rather than a step (in the owner's own words), its dispatch and why that dispatch cannot place work (and how narrowly), the circularity planning forces on the ranking, that the ratified rules partition rather than sequence and what the tiebreak is, the one-at-a-time rule, enumerate-then-select on BOTH inputs, the milestone route with the hole it depends on and the update route that is merely unwritten, what happens when creation fails, its own cost, that it produces no estimate and which preflight that names, both of its disclaimers, and the two classes it cannot see"
   fi
@@ -7662,6 +7669,78 @@ elif [ -n "$plan_fam_problems" ]; then
   bad "planning rite — the milestone-write family is no longer guarded or no longer explained:$plan_fam_problems"
 else
   ok "planning rite — rule 11 matches the milestone script FAMILY and says why, and the rite states that the missing update route is a missing script rather than a control (text agreement only; permission-guard.test.sh exercises the verdicts)"
+fi
+
+# ── 6 · the milestone description travels as a FILE, and the inline route is GONE rather than unused ──
+#
+# THE ONLY ARM IN THIS BLOCK WHOSE PRIMARY ASSERTION IS AN ABSENCE, and the absence is the control.
+# The gate's production finding at `0ecc7a7`: step 4a composed the ordered body into a double-quoted
+# shell argument, and `scripts/milestone-create.sh` took `--description <text>` and nothing else.
+# Measured, one call, the argument quoted exactly as that step wrote it — and re-run through the file
+# route with the identical bytes:
+#
+#   inline "order: 1. #383 <backtick>id -u<backtick> end · 2. #378 $HOME end"
+#     -> order: 1. #383 501 end · 2. #378 /Users/... end          # the command RAN; $HOME expanded
+#   description="$(cat -- <path>)"
+#     -> 1. #383 <backtick>id -u<backtick> end · 2. #378 $HOME end # bytes, verbatim
+#
+# (The probe's own backticks are spelled out above rather than written, because a heredoc carrying
+# them is executed by the shell that writes this file — the same class of defect, one layer up.)
+#
+# Three things made it blocking rather than a style note: both repositories are PUBLIC, so the Issue
+# titles the rite composes into that body are attacker-supplied; the milestone description IS the order
+# of record and no update route is built, so a mangled one is a browser delete-and-recreate; and it
+# contradicted `/shell`'s no-exception `--body-file` rule inside a slice otherwise careful about it.
+#
+# WHY THE ARM ASSERTS AN ABSENCE. Adding `--description-file` beside `--description` fixes the CALLER
+# and not the SCRIPT — the next caller picks whichever spelling is shorter, which is precisely why the
+# repo's own rule is written without exceptions. So the inline arm is DELETED, and this asserts it is
+# still deleted. `--description)` and `--description-file)` are distinct as fixed strings, so the
+# negative needle cannot be satisfied by the positive one.
+#
+# WHAT IT CANNOT DO: it reads the option table, not behaviour. Nothing here executes the script or
+# reaches the API. The refusal was verified by running it (`--description "x"` -> `unknown option`,
+# exit 2) and that run is not reproducible from this suite.
+plan_desc_script="$ROOT/scripts/milestone-create.sh"
+plan_desc_problems=""
+plan_desc_checked=0
+if [ -r "$plan_desc_script" ]; then
+  plan_desc_checked=$((plan_desc_checked + 1))
+  grep -qF -- '    --description-file)' "$plan_desc_script" || plan_desc_problems="$plan_desc_problems
+    scripts/milestone-create.sh has no '--description-file' option, so the only way to pass a
+    description is inline — a shell argument that INTERPRETS backticks and \$ in text composed from
+    public-tracker Issue titles."
+  if grep -qF -- '    --description)' "$plan_desc_script"; then
+    plan_desc_problems="$plan_desc_problems
+    scripts/milestone-create.sh accepts '--description <text>' again. The inline route was removed
+    rather than deprecated, precisely so no caller can pick it; re-adding it restores the injection
+    surface whatever the rite happens to call today."
+  fi
+  grep -qF -- 'THE DESCRIPTION ARRIVES BY FILE, AND THE INLINE FORM IS GONE RATHER THAN DEPRECATED' "$plan_desc_script" \
+    || plan_desc_problems="$plan_desc_problems
+    scripts/milestone-create.sh no longer records WHY the inline form is absent, so the next reader
+    sees a missing convenience flag and adds it back."
+fi
+if [ -r "$plan_rite" ]; then
+  plan_desc_checked=$((plan_desc_checked + 1))
+  grep -qF -- 'bash scripts/milestone-create.sh "<iteration>" --repo <owner>/<repo> --description-file <path>' "$plan_rite" \
+    || plan_desc_problems="$plan_desc_problems
+    commands/sprint-planning.md step 4a no longer calls the file route. The script may still refuse the
+    inline form, but the rite is what a reader copies."
+  grep -qF -- '**The ordered body NEVER travels as a shell argument' "$plan_rite" \
+    || plan_desc_problems="$plan_desc_problems
+    commands/sprint-planning.md no longer says why the body goes to a file. Without it the call reads
+    as an arbitrary preference and the next edit reverts it for brevity."
+fi
+if [ "$plan_desc_checked" -lt 2 ]; then
+  bad "planning rite — only $plan_desc_checked of 2 surfaces were readable, so the description-file
+      route was NOT asserted:$plan_desc_problems"
+elif [ -n "$plan_desc_problems" ]; then
+  bad "planning rite — the milestone description can travel as a shell argument again:$plan_desc_problems
+      A double-quoted argument EXECUTES backticks and expands \$; the text is composed from public
+      Issue titles; and the description is the order of record with no update route to repair it."
+else
+  ok "planning rite — the milestone description travels by FILE, the inline route is absent rather than merely unused, and both surfaces say why (option-table and text agreement only; nothing here runs the script)"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
