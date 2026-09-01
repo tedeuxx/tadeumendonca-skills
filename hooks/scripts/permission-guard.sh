@@ -759,6 +759,17 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
     # draft sourced from `.brand/` against `published-voice`, so its findings quote that material back.
     *:content-reviewer)
       deny "Blocked: \`content-reviewer\` writes nothing to a public surface directly. It reads the private positioning layer (\`.brand/\`) to judge a draft against \`published-voice\`, so a finding of its own can quote that material — the same shape \`product-lead\` and \`content-writer\` are denied for, and not revertible by deleting the comment. Its round goes to a TRACKED file on the same branch (\`docs/content-review/<slug>.md\`, one \`## Round\` section per round, closed with \`CONTENT-REVIEW-FINDINGS\` or \`CONTENT-REVIEW-CLEAR\`) through \`Write\`/\`Edit\`, where it lands in the diff the owner already reads. That file is the artifact, not a workaround for this deny. agent_type='${agent_type}'." ;;
+    # `scrum-master` (#375) is named EXPLICITLY for the same reason `content-reviewer` is, and its REASON
+    # is a different one — which is precisely why leaving it to the catch-all loses something. The other
+    # three deny because they read `.brand/` and a paraphrase of private material in a public comment is
+    # not revertible. This one reads nothing private. It denies because it declares `tools: []` — an
+    # explicit empty grant, measured as the only spelling that means nothing — so it holds no `Bash` and
+    # cannot issue this command at all. A posting call arriving under this `agent_type` is therefore an
+    # impossible payload, and the honest verdict is DENY rather than the catch-all's "nobody has decided
+    # about you yet": someone has, and the decision is that this profile's whole output is the SELECTION
+    # RECORD it returns to the main session, which executes it.
+    *:scrum-master)
+      deny "Blocked: \`scrum-master\` posts nothing, and the reason is narrower than the other denies in this rule: it declares \`tools: []\` — an explicit empty grant — so it holds no \`Bash\` and cannot issue \`gh pr comment\`/\`gh issue comment\`/\`gh issue create\` at all. A posting call arriving under this agent_type is an impossible payload, not a capability question. Its whole output is the SELECTION RECORD it RETURNS; the main session is what acts on it, including any comment that record says is owed. Writing the act in the past tense is a false claim about the loop's own state. This deny is BY DECISION, not by omission — it is not the catch-all's 'nobody has decided about you yet'. agent_type='${agent_type}'." ;;
     *)
       deny "Blocked: agent_type='${agent_type}' is not on this rule's allowlist for posting directly (\`gh pr comment\`/\`gh issue comment\`/\`gh issue create\`). New personas default to DENY here — deliberately, per ADR-0004's 'absent is not a state' — until someone decides they belong on the allow side above and adds them by name. If this SHOULD be allowed, that is a decision to make explicitly, not a gap to route around." ;;
   esac

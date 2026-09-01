@@ -212,7 +212,8 @@ asks for one.
 **A comment was NOT chosen, and four of the eight personas are why.** `permission-guard.sh` rule 5e
 allowlists `gh pr comment` / `gh issue comment` / `gh issue create` to the orchestrator, `developer`,
 `tech-lead`, `agents-lead` and `quality-assurance`, and **denies `product-lead`, `content-writer` and
-`content-reviewer` by name — and `scrum-master` under its `*)` catch-all, which is a deny.** The
+`content-reviewer` by name — and `scrum-master` by name too (#375), for its own reason: it holds
+no `Bash` at all.** The
 criterion is *every persona not on rule 5e's allowlist*, and the count follows from it: **four of the
 eight cannot post their own answer at all**, and relaying them through the orchestrator reintroduces
 exactly the aggregation this rite exists to avoid. A file lands in a diff he already reads, goes through the gate

@@ -2899,12 +2899,34 @@ paraphrase of `.brand/` in a public comment is not revertible by deleting the co
 not obstructed — each of the three has a durable artifact route (a quoted verdict, a tracked draft, a
 tracked review file), so none of them is denied an *activity*, only a *spelling*.
 
-**One thing 5e gains and it is deliberately NOT a case branch.** `scrum-master` is now covered by 5e's
+~~**One thing 5e gains and it is deliberately NOT a case branch.** `scrum-master` is now covered by 5e's
 `*)` catch-all, which denies a persona nobody has decided about. **The decision was made and it is
 recorded here rather than in the rule**, because the profile holds no `Bash` at all: a case branch
 naming it would be a rule with no subject, which is the *"mechanism the file claims and does not run"*
 defect `permission-guard.sh` already books twice. **If it is ever granted `Bash`, that branch has to be
-written**, and this paragraph is the note that says so.
+written**, and this paragraph is the note that says so.~~
+
+**Struck within the same slice (#375), and the strike is kept because the reasoning it replaces is the
+better half of the argument.** The clause is right that the branch is **unreachable in practice** — the
+profile declares `tools: []`, so it can never issue the command, and nothing that reaches 5e under that
+`agent_type` is a real dispatch. What it gets wrong is the conclusion it draws from that. *"Recorded
+here rather than in the rule"* puts the decision in a document the rule's own reader is not holding,
+and 5e's own comment states the property being traded away in its own words: **a deny by omission and a
+deny by decision are the same behaviour and different facts, and only one of them survives someone
+later reading the rule and assuming the gap was an oversight.** Five surfaces in this same slice assert
+`scrum-master`'s deny as a deliberate fact; the rule was the one place it read as an accident.
+
+**So the branch is written.** `*:scrum-master)` carries its own deny text naming its own reason — no
+`.brand/` exposure, an empty tool grant — and the catch-all still stands behind it for the persona
+nobody has decided about yet. **Behaviour is unchanged and was measured both ways**: the same payload
+denies before and after, and only the message differs. **The branch is therefore DORMANT, not inert** —
+the same distinction this slice draws for the retrospective rite's SUBTRACT clause, and for the same
+reason: nothing exercises it today, and it is correct the moment anything does. The *"mechanism the
+file claims and does not run"* defect is a rule that claims a case it never **decides**; this one
+decides its case, and the case simply does not arrive. What is genuinely gated is the **text**, not the
+verdict — `permission-guard.test.sh` asserts the by-name message is what a `scrum-master` payload
+receives and that the catch-all's *"New personas default to DENY here"* is not, because a verdict
+assertion cannot tell the two routes apart by construction.
 
 ### 3 · The milestone route — and it works BECAUSE a hole is open, which is the finding, not the design
 
