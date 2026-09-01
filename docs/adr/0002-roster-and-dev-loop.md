@@ -3994,6 +3994,138 @@ delegating.
 - **`product-lead`'s absorbed ordering competence and this profile's ranking now sit one hop apart.**
   Nothing mechanical keeps them apart; the brief's direction rule is prose.
 
+## Amendment (2026-09-01, twenty-ninth) — planning gets an object; it assembles and ranks, and composition stays the owner's act (#378)
+
+**Deciders:** the owner. **Written by** `agents-lead` (#223 — this is a pure loop/machinery decision).
+**Pre-implementation stress test:** the #378 intake, whose scope this build follows except on one
+bullet, corrected below against a dependency that merged after it was written.
+
+**Why this is an amendment and not a new record.** It decides *what happens before an iteration
+starts*, which is the same object as the twenty-sixth amendment's *what happens when one ends* and the
+twenty-seventh's *what may enter one while it runs*. #283's rule is one document per capability name;
+the capability is the dev loop and this document is it.
+
+### What was actually missing, and it was not a decision
+
+**Nothing here moves a decision away from the owner, and that is the whole design.** Composition was
+already his (twenty-seventh amendment, held by `permission-guard.sh` rule 10), and it stays his,
+prompt by prompt. What did not exist was the thing that **puts the decision in front of him**: the pool
+assembled, the ordering rules applied, one item at a time.
+
+Three instances, measured rather than argued:
+
+1. `skills/agents-configuration/SKILL.md` states it in its own words — *"PLANNING is genuinely unbuilt
+   and no claim is made about it."*
+2. Five `ready` `loop` items sat unmilestoned with nothing presenting them, invisible to every
+   iteration-scoped mechanism at once.
+3. **The twenty-sixth amendment's rite shipped its producer and not its consumer.**
+   `commands/sprint-retrospective.md` writes per-persona proposals whose declared consumer is *"a
+   proposal the owner rules on at planning"*. `sprint-01`'s seven files have never been ruled on,
+   because there was no planning to rule in.
+
+**(3) is the one that generalises.** A rite that produces an artifact for a moment that does not exist
+is the same shape as a promise with no object — the failure the twenty-sixth amendment itself closed
+one step earlier, reappearing at the other end of the same chain.
+
+### The decision that #378 required to be made explicitly: the rite DISPATCHES the ranking
+
+**`/sprint-planning` dispatches `scrum-master` exactly once, to rank the assembled pool, and makes no
+other dispatch.** The alternative — rank in the orchestrator's context, which already holds the pool —
+is cheaper and was rejected on the argument the twenty-sixth amendment already accepts as a mechanism:
+the orchestrator has seen the whole session and is the context least able to see its own bias in an
+ordering it produces. This is that argument applied one step earlier, which is exactly how the
+twenty-eighth amendment justified the profile's existence.
+
+**It is the first dispatch of that profile.** It shipped on 2026-08-31 and had never been used.
+
+**Why the dispatch cannot leak the composition, which is what makes it safe rather than merely
+reasonable — two independent layers, neither depending on a brief being obeyed:** the profile declares
+`tools: []`, so it holds no `Bash`, no `Edit` and no dispatch; and rule 10 denies `--milestone` to
+**every** non-empty `agent_type`. Its ranking decides the order items are presented in and nothing
+else.
+
+**And the dispatch forces one circularity, recorded rather than left to be hit.**
+`agents/scrum-master.md` ranks against *the order of record*, which `agents-configuration` says is the
+milestone description — and at planning that description does not exist, because this rite is what
+creates it. **Resolution: at planning it ranks by the ratified rules alone (`loop` before `product`
+among the eligible, #339) and says so in its record.** The brief now names planning as a third moment
+and carries that exception, so the two surfaces agree instead of needing a reader to reconcile them.
+
+### #378's "it does not create an iteration" is SUPERSEDED, and by a dependency rather than by a
+preference
+
+That bullet was written on 2026-08-31, when #375 was open and milestone creation had **no route at
+all** — measured then and unchanged now: `gh milestone --help` → `unknown command "milestone" for
+"gh"`, and `gh api` writes are denied by rule 5f. #386 merged `scripts/milestone-create.sh` and rule
+11 the same day.
+
+**So the rite creates the iteration, through that route, and it is the route's first exercise.** Rule
+11 asks the orchestrator; his answer is the verification. **Nothing about that is claimed to be
+closed:** the route reaches the write API because no permission layer reads inside a script, which is
+the same blindness that makes `python3 -c "…gh api -X POST…"` reach it. The rite repeats that in its
+own text rather than relying on the script's header.
+
+**The create-before-admit ORDER is a consequence of a measured gap, not a style.** The script accepts
+`--description` at creation and **nothing in this harness can amend a milestone description
+afterwards**. Since `agents-configuration` says the order of record lives in that description, the
+composition has to be collected before the object is created. Where the milestone already exists, the
+order of record **cannot be written at all**, and the rite's artifact says so rather than omitting it.
+
+### The planning artifact is a tracked file, and it is NOT the object this loop specified
+
+`agents-configuration` specifies the planning artifact as **an iteration Issue** — *"one Issue per
+iteration, opened by the owner at planning, whose body is the ordered list of the items admitted"* —
+and that object was never built. The same file already calls the milestone description a **weak home**
+for the order.
+
+**This rite writes `docs/planning/<iteration>.md` and that is a THIRD home, not the specified one.** It
+is better than the milestone description in one way — versioned, diffable, in a diff the gate reads —
+and worse in one: nothing else in the loop reads it either. **The specified object remains owed**, and
+the rite says so in the section that writes the file, so a reader cannot mistake one for the other.
+
+### What this deliberately does NOT do
+
+- **It does not estimate.** #378 scoped it out and the scoping is kept: a profile that ranks a pool
+  and also weighs it grades its own ruler, which is the reason `scrum-master` is excluded from the
+  estimator sets in the first place. **The consequence is stated in both files rather than discovered:**
+  `/autonomy`'s preflight refuses entry while an item lacks `sp:N`, so a freshly composed iteration
+  ordinarily refuses the first drain, and the rite closes by listing exactly which items will cause it.
+- **It does not open work.** A retrospective proposal becomes an Issue only on the owner's ruling, and
+  it is filed with no milestone like everything else (twenty-seventh amendment), then admitted by the
+  same prompted route as any other item.
+- **It does not close an iteration.** No command available to this loop can read whether a milestone is
+  open or closed.
+
+### Counter-argument, and the cost accepted
+
+**The strongest case against building this at all is #378's own carried hypothesis:** that what was
+missing is the assembly, rather than the owner simply not having sat down to plan. The three instances
+above are consistent with both readings. **The rite is worth building on the first and cheap on the
+second** — it is a typed command, costing nothing until invoked — which is why it was built rather than
+argued about further.
+
+**What it costs, which is real:** N admitted items is N permission prompts, plus one for creating the
+iteration. That is the price the twenty-seventh amendment already priced and accepted, arriving in
+bulk at the one moment the owner is present by construction.
+
+### What nothing enforces, said before any green is read
+
+**Nothing fires this rite, nothing observes that it ran, and nothing observes that it ran correctly.**
+No hook in `hooks/scripts/` reads the queue — every `gh issue` call there is a write path — and a hook
+receives one `cwd` while an iteration is two milestone objects in two repositories paired by a
+hand-typed title. A planning skipped, a planning over a mistyped title, and a planning that presented
+three items instead of thirty are indistinguishable from the tracker.
+
+**And nothing observes the dispatch.** `dispatch-metrics-stop.sh` reads an Issue number out of the
+branch name and a planning branch need not carry one; the profile holds no tools, so it leaves no other
+trace. **The one-item-at-a-time rule is checkable by reading the artifact's rulings table and by
+nothing else.**
+
+- **The same phrase-keyed coupling as the last seven amendments.** `inventory-counts.test.sh`'s three
+  planning arms key on sentences across three files; whoever rewrites one of them will meet a red
+  naming the clause. That is presence of a rule and never obedience to one, and the arms' own header
+  says so.
+
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
   [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) · the DoD is
