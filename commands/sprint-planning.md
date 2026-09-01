@@ -18,10 +18,26 @@ owner's act (#365), held by `permission-guard.sh` rule 10, whose prompt reaches 
 Nothing in this rite may set a milestone without his answer to that prompt, and nothing in it decides
 what the iteration contains.
 
-**The failure it closes, measured here rather than imported.** On 2026-09-01 five `ready` `loop` items
-sat with no milestone and nothing presenting them; the loop-first composition rule (#339) depended on
-the owner remembering it; and the `sprint-01` retrospective's seven proposal files had no consumer at
-all. None of those is a missing decision — the decision is his and stays his. What was missing is the
+**The failure it closes, measured here rather than imported.** Eligible items sat unmilestoned with
+nothing presenting them; the loop-first composition rule (#339) depended on the owner remembering it;
+and the `sprint-01` retrospective's proposal files had no consumer at all.
+
+**The count ships with the command that produces it, or not at all.** Re-derived 2026-09-01, and it is
+the same predicate step 1 uses:
+
+```
+gh issue list --repo <owner>/<repo> --state open --limit 200 --json number,labels,milestone \
+  --jq '[.[]|select(.milestone==null)
+          |select((.labels|map(.name)|index("ready"))
+                  and ((.labels|map(.name)|index("product")) or (.labels|map(.name)|index("loop"))))
+          |.number]'
+```
+
+**A published `five` stood here for one round and was wrong on its own date.** It was #378's figure,
+taken 2026-08-31, restated without re-running anything; the same predicate at head returns **7** in one
+repository and **`[]`** in the other. Read that as the rule this repo already has — *a measured number
+ships with the command that produced it, inline and runnable, or not at all* — being broken in the very
+slice that publishes it. None of those is a missing decision — the decision is his and stays his. What was missing is the
 thing that puts the decision in front of him, item by item, with the pool already assembled.
 
 **It is executed in the ORCHESTRATOR's context, and that is a requirement rather than a convenience.**
@@ -75,10 +91,26 @@ silently truncates composes an iteration out of a subset while reading as comple
 
 ### The second input — the closing rites' proposals
 
-Read every `## Finding` section in `docs/retrospective/<previous-iteration>/*.md` on the default branch.
-Each is a **candidate**, not an item: it has no Issue, no `ready` and no estimate. Present it as itself
-and record his ruling; **an Issue exists only where he says so**, and it is filed with **no milestone**
-like every other Issue (#365), then admitted in step 4 by the same route as everything else.
+**ENUMERATE, then select — the same discipline step 1 states for milestones, and it applies here for
+the identical reason.** The directory name is not derivable: no command available to this loop reads a
+milestone's `state`, so *"the previous iteration"* would otherwise be typed, and a typed directory that
+matches nothing makes the glob return zero files. **Zero files and an honest empty retrospective are
+indistinguishable** — a plausible zero, which is the failure mode this rite exists to close arriving
+through its own second door.
+
+```
+ls -d docs/retrospective/*/
+```
+
+**Select from what came back. Then read every `## Finding` section in the selected directory.** If the
+selected directory holds **zero** `## Finding` sections, do not report a count — **say it as a finding
+about the handoff**, naming the directory that was read, because a producer whose output arrives empty
+is exactly the thing that must not pass silently. The same applies if `ls` returns nothing at all.
+
+Each finding is a **candidate**, not an item: it has no Issue, no `ready` and no estimate. Present it as
+itself and record his ruling; **an Issue exists only where he says so**, and it is filed with **no
+milestone** like every other Issue (#365), then admitted in step 4 by the same route as everything
+else.
 
 **The handoff shape is unexercised and this rite is its first test.** `sprint-01`'s rite produced seven
 files and none of them has ever been ruled on. Read a mismatch between what those files carry and what
@@ -102,13 +134,48 @@ bias in a ranking."*
 apply a label even if it tried. And rule 10 denies `--milestone` to **every** non-empty `agent_type`
 regardless. Two independent layers, neither of which depends on the brief being obeyed.
 
+**And that second layer is ACT-specific, not agent-specific — read it narrowly or it will be leaned on
+the day this profile is given a tool.** Rule 10 keys on the `--milestone` flag and rule 11 on a script
+basename. Measured against the head guard, one payload per line:
+
+```
+[scrum-master] gh issue edit 5 --repo o/r --milestone "s2"      -> deny   (rule 10)
+[scrum-master] bash scripts/milestone-create.sh "s2" --repo o/r -> deny   (rule 11)
+[scrum-master] bash scripts/milestone-update.sh 2  --repo o/r   -> NO decision from any layer
+```
+
+**A subagent holding `Bash` reaches any spelling neither rule names**, because no permission layer
+reads inside a script. What makes the dispatch safe today is the FIRST layer — `tools: []`, so there is
+no `Bash` to spell anything with. The second is a floor over one act, not a fence around the profile.
+
 **What it is given:** the three classes from step 1, verbatim, both repositories, with labels and
 `sp:N` where present. **What it returns:** a ranked eligible pool and its process findings, in its
 own `SELECTION-RECORD` shape.
 
-**The ordering rules it applies are ratified, not invented** — `loop` before `product` among the
-eligible (#339), and eligibility as defined above. It does not invent an order and this rite does not
-ask it to.
+### The ratified rules ORDER BETWEEN CLASSES AND NOT WITHIN ONE, and that has to be said here
+
+**The rules it applies are ratified** — `loop` before `product` among the eligible (#339), and
+eligibility as the pool predicate defines it. **They partition. They do not sequence.** Nothing
+ratified anywhere in this loop orders two `loop` items against each other.
+
+**On the pool that exists this is not a corner case, it is the whole pool.** Re-derived 2026-09-01 with
+step 1's own predicate: **7 eligible items, every one `loop`, all in one repository, and `[]` in the
+other.** Loop-before-product partitions nothing here, so if the rite asked for a ranked sequence with a
+per-item rationale it would be asking the profile to compose an order no rule determines — and to
+return it under the word *"ratified"*, from the profile built to be the bias-free one, into a milestone
+description that becomes the order of record. **That launders, which is strictly worse than ranking in
+the orchestrator's context where everyone can see whose order it is.**
+
+**So the sequence within a class is a DECLARED TIEBREAK and is labelled as one: issue number ascending,
+which is filing order.** It is mechanical, checkable by anyone, and it is **not** a ruling about worth.
+The record says so in those terms, and *What I could not see* carries the sentence **no ratified rule
+orders within a class; the intra-class sequence below is a filing-order tiebreak, not a ranking.**
+
+**Why a declared tiebreak rather than "return the classes unordered".** The owner rules item by item
+and needs a stable presentation order; an unordered set makes the rite's own order the orchestrator's
+again, silently. A stated mechanical rule has known provenance, which is the property the dispatch
+exists to protect. **Why not ratify the tiebreak as an ordering rule:** filing order is not an argument
+about what matters, and promoting it would put a rule in the loop that nobody decided.
 
 ### The one adaptation planning forces, and it is a circularity
 
@@ -116,10 +183,24 @@ ask it to.
 record is *the milestone description*. **At planning that description does not exist yet — this rite is
 what produces it.** So on a composition there is nothing to rank against and the instruction is circular.
 
-**Resolution: at planning it ranks by the ratified rules alone, and says so in its record's *What I
-could not see* section.** `agents/scrum-master.md` carries the same sentence, so the two surfaces agree
-rather than needing to be reconciled by whoever reads them. Where an iteration is being **re-planned**
-and a description already exists, the ordinary instruction applies unchanged.
+**Resolution: at planning it ranks by the ratified rules alone, plus the declared filing-order
+tiebreak above, and says so in its record's *What I could not see* section.**
+`agents/scrum-master.md` carries the same sentences, so the two surfaces agree rather than needing to
+be reconciled by whoever reads them. Where an iteration is being **re-planned** and a description
+already exists, the ordinary instruction applies unchanged.
+
+**Two more adaptations, because a mandatory field with no legitimate value is the same improvisation
+class this section exists to close, one field over:**
+
+- **The `### Selection` block is OMITTED at planning.** Its brief mandates exactly one `profile:`, one
+  `stage:` and one `item:`, and forbids hedging — correctly, for a record that names who acts next.
+  **At planning nothing is being selected to act**, so there is no honest value for any of the three.
+  Omitted, and the brief says so; the alternative — a `profile: none` sentinel — invents a value for a
+  field whose whole point is that it never has one.
+- **The record lands in ONE file and it is not `docs/selection/`.** The brief's ordinary landing spot
+  is `docs/selection/<iteration>.md`; at planning the ranking is embedded verbatim in
+  `docs/planning/<iteration>.md` (step 5) and **no selection file is written**. One ranking, one
+  artifact. Two files would be two sources of truth for one act, and only one of them would be read.
 
 ### Its ranking is advisory and the owner overrules it item by item
 
@@ -131,8 +212,11 @@ ranking decides the **order the items are presented in**, and nothing else. Ever
 **One question at a time. No multiple choice. No decision list.** Two standing owner constraints, both
 broken before, and a batch of admissions is a decision list wearing a table.
 
-Per item, in ranked order, present: the number, the title, its type, its labels, its `sp:N` if it has
-one, and one line of why it ranks where it does. Take one of four rulings:
+Per item, in the presented order, give: the number, the title, its type, its labels, its `sp:N` if it
+has one, and **one line of why it sits where it does — which is either a ratified rule or the literal
+`tiebreak only — no ratified rule orders within this class`.** Never a composed rationale: the second
+form is the honest one whenever the class was not partitioned, and saying so is what stops an invented
+order reading as a ruling. Take one of four rulings:
 
 | ruling | what the rite does |
 |---|---|
@@ -149,13 +233,37 @@ presents five and collects five answers has produced the decision list the const
 
 ## Step 4 — create the iteration, then admit the items, in that order
 
-**The order is load-bearing and is the consequence of a measured gap: there is a CREATE route and no
-UPDATE route.** `scripts/milestone-create.sh` accepts `--description` at creation; nothing in this
-harness can amend a milestone description afterwards (`gh api -X PATCH` is denied by
-`permission-guard.sh` rule 5f, and there is no `gh milestone` subcommand at all). Since the milestone
-description is where `/agents-configuration` says the **order of record** lives, the ordered body has to
-be known before the object is created — so composition is collected first and the milestone is created
-once, carrying it.
+**The order is load-bearing, and the reason it is load-bearing is narrower than it first reads: there
+is a CREATE route BUILT and no UPDATE route BUILT.** `scripts/milestone-create.sh` accepts
+`--description` at creation. Since the milestone description is where `/agents-configuration` says the
+**order of record** lives, the ordered body has to be known before the object is created — so
+composition is collected first and the milestone is created once, carrying it.
+
+~~nothing in this harness can amend a milestone description afterwards (`gh api -X PATCH` is denied by
+`permission-guard.sh` rule 5f, and there is no `gh milestone` subcommand at all)~~ — **STRUCK on review,
+before this ever merged, and struck rather than edited because it is the sentence that made a missing
+script read as a property of the harness.** It is false in exactly the way the paragraph two below is
+true: 5f denies the *convenient* spelling and not the *available* one, and this rite already depends on
+the available one for CREATE. Probed against the head guard, one payload per line:
+
+```
+[ORCH]         gh api -X PATCH repos/o/r/milestones/2 -f description=x  -> deny (5f)
+[ORCH]         bash scripts/milestone-update.sh 2 --repo o/r …          -> NO decision from any layer
+[scrum-master] bash scripts/milestone-update.sh 2 --repo o/r …          -> NO decision from any layer
+```
+
+**PATCH is blocked in the same spelling POST is blocked in, and reachable in the same spelling POST is
+reachable in.** So the correct statement is: **no update route is built. The same hole is open, and
+anyone may write one.** What the CREATE-then-ADMIT order actually rests on is that no such script
+exists today — a fact about this tree, re-checkable with `ls scripts/`, not a property of any control.
+
+**And that invitation is guarded PRE-EMPTIVELY rather than left for the slice that accepts it.** Rule
+11 was pinned to the literal basename `milestone-create.sh`, so a `milestone-update.sh` written in good
+faith would have shipped a milestone write with **neither the `ask` nor the `deny`**, on a route that
+looks exactly like the sanctioned one, and #365's human verification would have been absent with
+nothing saying so. The rule now matches `milestone-[a-z0-9-]*.sh` in the same two run positions, so the
+next script in that family arrives guarded on the day it is written rather than on the day someone
+notices. That widening ships in this slice; it is not a follow-up.
 
 **4a · create the iteration, once per repository that has admitted items:**
 
@@ -172,9 +280,19 @@ header to say it.** Neither the settings matcher nor `permission-guard.sh` looks
 is the same blindness that makes `python3 -c "…gh api -X POST…"` reach the write API. **No document here
 may claim the raw-API route is closed.**
 
-**Where the milestone already exists** — the owner created it in the browser, or a previous planning did
-— **skip 4a and say in the artifact that the order of record could not be written**, because there is no
-update route. That is a real residual of this rite and not a step anyone forgot.
+**Where the milestone already exists** — the owner created it in the browser, or a previous planning
+did — **skip 4a and say in the artifact that the order of record was NOT written into the milestone
+description, and why.** The reason is that no update route is built (above), not that none is possible.
+The composition is still recorded in full in step 5's artifact, so the ordering is not lost — it is
+lost *from the field `/agents-configuration` calls the order of record*, which is one more reason that
+field is called a weak home there.
+
+**If 4a fails after the human has approved it, STOP. Do not enter 4b.** The script exits non-zero on a
+duplicate title (4), an unresolvable repository (3) and any `gh` failure under `set -euo pipefail`, and
+prints `created milestone #N` on success. **If that line is not printed, there is no milestone**, and
+4b would then issue N `gh issue edit --milestone` calls against a title that does not exist: N more
+prompts, N failures, and a half-executed planning whose artifact says a composition landed. Record the
+failure in step 5 and hand it back.
 
 **4b · admit each item, one call per item:**
 
@@ -192,8 +310,23 @@ healthy pool. Nothing detects this.
 
 ## Step 5 — the artifact, and what it is standing in for
 
-**The orchestrator writes `docs/planning/<iteration>.md`** on the branch the planning lands on, and it
-is the only durable record that this rite ran:
+**The orchestrator writes `docs/planning/<iteration>.md`** on a branch, and **it is the only durable
+record that this rite ran** — no `docs/selection/` file is written, per step 2.
+
+**This rite costs a branch, a PR and a gate pass**, exactly as `/sprint-retrospective` says of itself.
+That is correct rather than regrettable — it is a `loop` diff and it is reviewed like one. Two things
+follow that the retrospective does not have to face, and they are stated rather than inherited:
+
+- **The branch does not exist when the rite starts.** Planning precedes work by construction, so the
+  branch is cut *for the artifact*, not found.
+- **The tracker writes in step 4 are LIVE and the artifact is not.** If the PR carrying this file is
+  rejected, the milestone and the N admissions stand and the only record that the rite ran does not.
+  **So write and commit the pool, the ranking and the rulings BEFORE step 4 runs**, and append the
+  composition, the pendency and the failures after. That does not make the writes reversible — nothing
+  here does; `--remove-milestone` is the corrective act and it is the owner's — it makes them
+  *recorded* even in the branch that never merges.
+
+The shape:
 
 ```
 # <iteration> — planning
@@ -233,6 +366,13 @@ way: nothing else in the loop reads it either. **The specified object is still o
 `/autonomy`'s **preflight** refuses to enter while any item in the active iteration lacks `sp:N`, or
 lacks `ready` on the `loop` lane. This rite admits items and produces no estimates, so **the composition
 it leaves will ordinarily refuse the first drain**.
+
+**That preflight is the command's own self-check and is NOT `hooks/scripts/preflight.sh`.** The names
+collide and nothing but this sentence separates them. The hook is #342's dependency door-check;
+measured, `grep -cE 'sp:|milestone|iteration' hooks/scripts/preflight.sh` returns **0**, so it has no
+opinion about estimates, iterations or this rite. **The estimate preflight is prose in
+`commands/autonomy.md` executed by the session**, which means the word *refuses* here describes a rule
+someone follows, not a hook that fires.
 
 **That is correct rather than a defect, and naming it is the whole obligation here.** The rite closes by
 listing the admitted items carrying no `sp:N` — one line each, no dispatches — so the estimation pass is
@@ -274,3 +414,19 @@ a known next act instead of a surprise at the drain's door.
   repository**.
 - **Whether the pool it was handed is the pool that exists.** `scrum-master` is shown a pool and cannot
   query one, so a truncated assembly produces a confident ranking of the wrong set.
+- **AN ITEM CARRIED OVER FROM THE PREVIOUS ITERATION.** Step 1 assembles `milestone == null`, so an open
+  item still carrying the last iteration's milestone is **invisible to this rite entirely** — not
+  presented, not ruled on, and silently still in a closed iteration's contents. **Vacuous today and
+  latent rather than absent**: measured 2026-09-01,
+  `gh issue list --repo <owner>/<repo> --state open --limit 200 --json number,milestone --jq '[.[]|select(.milestone!=null)]|length'`
+  returns **0** in both repositories. It fires the first time an iteration does not fully drain, which
+  is the ordinary case planning exists for. **The corrective act exists and is his:**
+  `gh issue edit <n> --remove-milestone`, which rule 10 deliberately does not match precisely because
+  taking an item back out is what the loop wants to be easy. **The rite does not do it and does not
+  surface it**, and closing that is its own slice — it needs a second assembly pass over milestoned
+  open items, and a rule for which iteration they return to.
+- **AN ISSUE CARRYING NO ROUTING LABEL.** Step 1's three classes are keyed on `product`, `loop` and
+  `content`, so an Issue with none of them matches nothing, appears in no class, and is dropped without
+  a word. **Vacuous today** — the negation of that predicate returns `[]` in both repositories on
+  2026-09-01 — so this is a cost stated in advance rather than one being paid, and it belongs on this
+  list because a class that silently has no bucket is exactly what this list is for.

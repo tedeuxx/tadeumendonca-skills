@@ -1686,14 +1686,39 @@ fi
 #     options between it and the path (`bash -x scripts/milestone-create.sh`) matches, which is correct,
 #     and so would `bash --rcfile scripts/milestone-create.sh`, which is not running it as a script. That
 #     is the safe direction and the deny/ask message names the script, so the false positive is legible.
-sm_run_cmdpos='(^|[;&|])[[:space:]]*(\./)?[^[:space:];&|]*milestone-create\.sh([[:space:]]|$)'
-sm_run_interp='(^|[^[:alnum:]_.-])(bash|sh|zsh|ksh|dash|exec|env|command)[[:space:]]+([^[:space:]]+[[:space:]]+)*(\./)?[^[:space:]]*milestone-create\.sh([[:space:]]|$)'
+#
+#     THE FAMILY, NOT THE ONE FILE — WIDENED PRE-EMPTIVELY ON #378, BEFORE THE SECOND SCRIPT EXISTS.
+#     This rule shipped pinned to the literal basename `milestone-create.sh`. `/sprint-planning` then
+#     booked a residual that INVITES a second script in the same family: the order of record lives in a
+#     milestone's description, the create route can set one at creation, and nothing built here can
+#     amend one afterwards — so a `milestone-update.sh` is the obvious next slice. Measured against
+#     this file BEFORE the widening, one payload per line, verdict read off `permissionDecision`:
+#
+#       [ORCH]         bash scripts/milestone-create.sh "s2" --repo o/r  -> ask   (this rule)
+#       [scrum-master] bash scripts/milestone-create.sh "s2" --repo o/r  -> deny  (this rule)
+#       [ORCH]         gh api -X PATCH repos/o/r/milestones/2 -f d=x     -> deny  (rule 5f)
+#       [ORCH]         bash scripts/milestone-update.sh 2 --repo o/r     -> NO decision from any layer
+#       [scrum-master] bash scripts/milestone-update.sh 2 --repo o/r     -> NO decision from any layer
+#
+#     **A milestone write with neither the `ask` nor the `deny`, on a route that looks exactly like the
+#     sanctioned one, for a subagent as well as the orchestrator.** #365's human verification would be
+#     absent and nothing would say so — the "absent is not a state" shape ADR-0004 books, arriving
+#     through a file nobody had written yet. So the basename becomes the FAMILY
+#     `milestone-[a-z0-9-]*.sh`, and the next script in it is guarded on the day it is written rather
+#     than on the day someone notices it was not.
+#
+#     THE COST OF THE FAMILY FORM, STATED RATHER THAN DISCOVERED. It over-asks: a `milestone-report.sh`
+#     that only READS would prompt. That is the same safe direction the basename matching already
+#     chose. What genuinely changes is the MESSAGE: the rule can no longer claim to know which act is
+#     being performed, so it names the family and the act class rather than asserting a create.
+sm_run_cmdpos='(^|[;&|])[[:space:]]*(\./)?[^[:space:];&|]*milestone-[a-z0-9-]*\.sh([[:space:]]|$)'
+sm_run_interp='(^|[^[:alnum:]_.-])(bash|sh|zsh|ksh|dash|exec|env|command)[[:space:]]+([^[:space:]]+[[:space:]]+)*(\./)?[^[:space:]]*milestone-[a-z0-9-]*\.sh([[:space:]]|$)'
 if printf '%s' "$bare" | grep -Eq "$sm_run_cmdpos" \
    || printf '%s' "$bare" | grep -Eq "$sm_run_interp"; then
   if [ -n "$agent_type" ]; then
-    deny "Blocked: a subagent does not create an iteration. Creating the milestone an iteration is represented by is the owner's act at planning (#375, #365) — say in your return that the iteration object is missing and which title it needs, so he creates it. This is scripts/milestone-create.sh, the only sanctioned milestone-creation route; read its header for why it exists and what open hole it depends on. agent_type='${agent_type}'."
+    deny "Blocked: a subagent does not compose an iteration. Creating the milestone an iteration is represented by — and amending it — are the owner's acts at planning (#375, #365); say in your return what the iteration object needs, so he does it. This matched the scripts/milestone-*.sh family, the only sanctioned milestone-write route; read scripts/milestone-create.sh's header for why the family exists and what open hole it depends on. agent_type='${agent_type}'."
   fi
-  ask "This CREATES an iteration's milestone (scripts/milestone-create.sh). Composing an iteration is the owner's act at planning, and answering this prompt IS the human verification his rule demands (#365). Approve if he asked for this iteration to exist; refuse otherwise. Note what this route actually is: the script reaches the write API because no permission layer reads inside a script, so this prompt — not rule 5f — is the only thing standing here."
+  ask "This runs a milestone-write route (the scripts/milestone-*.sh family) — creating or amending the object an iteration is represented by. Composing an iteration is the owner's act at planning, and answering this prompt IS the human verification his rule demands (#365). Approve if he asked for this; refuse otherwise. Note what this route actually is: the script reaches the write API because no permission layer reads inside a script, so this prompt — not rule 5f — is the only thing standing here. The pattern matches the FAMILY by name, so a read-only script named this way prompts too; that is the safe direction."
 fi
 
 exit 0

@@ -188,6 +188,44 @@ those terms, so nobody reads the ranking as having been checked against an order
 Where an iteration is being **re-planned** and a description already exists, the ordinary instruction
 applies unchanged and you rank against it.
 
+### The ratified rules PARTITION; they do not SEQUENCE — and on a single-class pool that is everything
+
+**Loop-before-product is the only ordering rule this loop has ratified, and it says nothing about two
+`loop` items.** Neither does the pool predicate. So on a pool that is one class, **no ratified rule
+determines any part of the sequence.** That is not hypothetical: measured 2026-09-01 with the pool
+predicate itself, the eligible set was **7 items, every one `loop`, all in one repository, `[]` in the
+other**.
+
+**Do not compose a sequence and present it as ranked.** An order you invented, returned by the profile
+built to be the bias-free one, under the word *ratified*, into a field that becomes the order of
+record, is **worse than the orchestrator ranking in place** — there everyone can see whose order it is.
+That is the exact failure your existence is meant to prevent, arriving through you.
+
+**What you do instead: partition by the ratified rule, then order within each class by a DECLARED
+TIEBREAK — issue number ascending, which is filing order — and label it as a tiebreak.** It is
+mechanical and anyone can re-derive it. **Your record carries the sentence, in *What I could not see*:
+no ratified rule orders within a class; the intra-class sequence is a filing-order tiebreak, not a
+ranking.** And every per-item line whose position the tiebreak decided says
+`tiebreak only — no ratified rule orders within this class` rather than a reason you composed.
+
+**The tiebreak is not promoted to a rule, deliberately.** Filing order is not an argument about what
+matters; ratifying it would put an ordering rule in the loop that nobody decided. It exists to give the
+owner a stable presentation order with known provenance, and for nothing else.
+
+### At planning the `### Selection` block is OMITTED, and the record lands in ONE file
+
+**Omit `### Selection` entirely.** The block mandates exactly one `profile:`, one `stage:` and one
+`item:`, and forbids hedging — right for a record that names who acts next, and **there is nothing to
+select at planning**: no work is being dispatched, the owner is composing a pool. A sentinel
+(`profile: none`) would invent a value for a field whose whole point is that it always names somebody.
+Every other section — the ranked pool, *Process findings*, *What I could not see*, the closing
+`SELECTION-RECORD` literal — is written as usual.
+
+**And the record lands in `docs/planning/<iteration>.md`, not `docs/selection/<iteration>.md`.** The
+planning rite embeds what you return, verbatim, in its own artifact; **no selection file is written for
+a planning dispatch.** One act, one artifact. Two files would be two sources of truth for one ranking,
+and only one of them would ever be read.
+
 **Your ranking there decides presentation order and nothing else.** The owner rules on every item
 individually; a record that read as a composition would be claiming an authority the rite explicitly
 denies it.
