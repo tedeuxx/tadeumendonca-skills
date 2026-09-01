@@ -3174,3 +3174,111 @@ of in a paragraph nobody re-reads.
 **Significance:** *alters a previously-recorded decision*, marginally — it strikes a clause of this
 record's own residual and adds one rule to the layer question. No new record. Authored by `agents-lead`
 per the domain split (#223).
+
+## Amendment (2026-09-01) — the auto-mode classifier is a THIRD-LAYER system that cannot be routed to, and the state it produces gets a name (#374)
+
+**What moves:** *"The third layer: ask which SYSTEM authorises the act"* gains its first entry where
+the section's own instruction — *"Route the control there, keep the workspace rule"* — **is not
+available**, and `agents/quality-assurance.md`'s verdict vocabulary gains a fifth literal. **What does
+not move:** rule 7b's single-executor design, and the four surviving holds.
+
+### Correcting a premise before anything else: it is NOT undocumented here
+
+The intake was briefed that this repository had never recorded the classifier. It had — **once**, in
+this record, where it appears as an *obstacle to a measurement* (two greps it refused, in the
+container amendment's *"What is NOT decided here"*). **That is worse than absence**: a reader meets it
+as an annoyance rather than as a thing that decides acts.
+
+### What it is, and what can honestly be said about it
+
+Claude Code's auto-mode classifier refused a dispatch instructing `quality-assurance` to merge a PR.
+Four properties, each measured or read rather than assumed:
+
+1. **It is NOT unobservable.** The transcript carries `"toolDenialKind":"automode-blocked"` alongside
+   `"sourceToolAssistantUUID"`, a value **distinct** from the `permission-rule` this harness's own guard
+   produces. Over one session: 8 denial records, 2 distinct kinds, 7 × `permission-rule`, 1 ×
+   `automode-blocked`. Resolving the UUID gives the denied call — a `SendMessage`, not a `Bash`.
+2. **It is unconfigurable and unversioned from here.** Its predicate can change between CLI builds with
+   no signal in this repository, and `session-plugin-version.sh` measures the *plugin*, not the CLI.
+3. **It is advisory in wording and terminal in effect.** It says the act may be attempted with other
+   tools. For a merge, the other tools are rule 7b's back door and the `gh api` route rule 5f denies.
+   **The instruction it gives is one this harness must not follow**, and recording that is the point —
+   a future context reading it as licence is the failure mode.
+4. **It is not a control in either direction.** It is not this loop's guarantee against a bad merge
+   (rule 7c is), and it is not predictable enough to design around.
+
+**So the third layer's routing move is unavailable for the first time.** There is nothing to route to:
+no configuration surface, no published policy, no per-repo setting. The rule the section adds is
+therefore not *route it* but:
+
+> **Where the authorising system cannot be reached, the control cannot be moved — so name the STATE it
+> produces instead, and give that state an artifact.** An unroutable refusal is not a reason to weaken
+> the workspace rule it collides with; it is a reason to make the collision visible.
+
+### Which verdicts can strand the loop — read at head, and the asymmetry is the finding
+
+| literal | authorised executor | permitted by this harness? | can strand? |
+|---|---|---|---|
+| `REQUEST-CHANGES` | `developer` / `agents-lead` | yes — no merge | no |
+| `APPROVE-PENDING-HUMAN` | **the owner**, in the browser | yes — outside every layer here | **no**, and it is the only literal whose executor no layer can block |
+| `APPROVE-AND-MERGE` | `quality-assurance` **alone** | rule 7b denies every other `agent_type` | **yes** |
+| `APPROVE-AND-MERGE-BOUNDARY` | `quality-assurance` **alone** | identical path | **yes** |
+
+> **The two verdicts that authorise the gate to act are the two that can strand the loop; the verdict
+> that hands the act to the owner cannot.**
+
+### The decision: a fifth literal, `APPROVE-EXECUTOR-BLOCKED`
+
+**Decided by the owner, over the intake's flag-don't-recommend and over deferring until frequency data
+existed.** It names the state that had no name — *DoD green, safe-or-boundary class, none of the four
+holds applies, executor unavailable, the act is the owner's by exception* — so the readers read a state
+that exists instead of inferring one from a clearance that stayed open.
+
+**Why inference was not enough, and this is the measurement that decides the design.** *"A clearance
+posted and the PR still open"* is derivable, and it is a **race detector**: the healthy sequence is
+verdict-then-merge seconds later, and a strand is the same two facts minutes later. Nothing in any
+artifact distinguishes *the executor is blocked* from *the gate has not merged yet* — so the weaker
+honest trigger was persistence across two `Stop` events at the same `(PR, head)`, and even that could
+not say **why**. The fifth literal replaces an inference with a statement by the only actor that knows.
+
+**Spelled disjoint from the merge-authorising pair, deliberately.** `APPROVE-AND-MERGE-…` would have
+read as a member of the family that authorises a merge, and this literal is its opposite. Every reader
+in this repository matches exact literals and never globs (rule 7c states that in its own words), so
+the naming is not what makes it safe — it is the first line of defence in the readers that have not
+been written yet.
+
+**What it costs, accepted and stated so it is not rediscovered as a defect.** Five readers now parse
+the vocabulary independently — `permission-guard.sh` (7c), `session-wip.sh`, `zombie-loop-detect.sh`,
+`premature-pr-link-detect.sh` and the new `owed-pr-link-detect.sh` — plus the producing brief. They
+must move in lockstep, and the only thing enforcing that is `inventory-counts.test.sh`'s assertion of
+`session-wip.sh`'s list against the brief's own section. **That gate covers one reader of five.**
+
+### And the gate must DISCOVER that it is blocked: attempt the merge once per head
+
+A refusal that was never attempted leaves no `automode-blocked` record, so no downstream detector has a
+premise. Measured across two PRs in one session: on the first the call was issued and the record
+exists; on the second the loop reasoned *"already hit this today"* and issued nothing.
+
+> **The signal exists precisely when the loop already knows, and is absent precisely when it forgets.
+> Self-censorship produces no record of anything.**
+
+So the behaviour rule is **attempt once per head, even when the classifier is known to block**, priced
+at roughly 65 seconds per blocked head. Once, never in a retry loop.
+
+### What was NOT built, and why each is a decision rather than a gap
+
+- **A `Stop` detector for "a clearance posted and the PR still open".** It is a race detector, above.
+  What ships instead is `owed-pr-link-detect.sh`, keyed on the two literals that *say* the act is the
+  owner's, which needs no inference at all.
+- **The placement half.** The motivating incident was a link the owner had received twice and could not
+  find, at character 20 and character 439 of two turns. **A position threshold would have passed the
+  non-ask and flagged the ask**, so position is not a ruler; it lives on #362 as a behaviour question.
+- **A route around rule 7b.** The escape already exists and it is the owner's browser merge, which rule
+  7c's own comment says it has zero reach over. **The strand is the correct failure of a correct rule.**
+
+### Significance
+
+Arm: *alters a previously-recorded decision* — it narrows the third layer's routing instruction and
+extends the verdict vocabulary rule 7c enforces. `Deciders`: the owner (the fifth literal, and the
+split of the deliverable); written by `agents-lead` per the domain split (#223), whose object is the
+machinery.

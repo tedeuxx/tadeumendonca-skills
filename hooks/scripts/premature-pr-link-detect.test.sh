@@ -149,15 +149,51 @@ out="$(run_hook)"
 if [ -n "$out" ]; then ok 'fires on an empty check rollup (not treated as green)'; else bad 'fires on an empty check rollup' 'got empty'; fi
 teardown
 
-echo '--- green and merge-ready, but the GATE acts on it itself: still not his ---'
+echo '--- NARROWED (#374): a clearance verdict is SILENT here, and silent is not approved ---'
+# This arm asserted the opposite until #374, and the false positive it encoded is on disk: a debounce
+# marker from PR #373 reads "the verdict at this head is APPROVE-AND-MERGE, not APPROVE-PENDING-HUMAN
+# — the gate acts on that itself", written about a link the owner had asked for. The catch-all fused
+# REQUEST-CHANGES (genuinely premature) with a clearance (NOT premature — the PR is finished, and only
+# who executes is open). A link to a cleared-but-unmerged PR is AMBIGUOUS, not legitimate, so the hook
+# says nothing rather than certifying what it cannot judge.
+#
+# PRICED: after this, a genuinely premature link on a cleared-but-unmerged PR is flagged by nothing.
 setup
 human_turn "go"
 assistant_text "PR is up: $URL"
 pr_fixture OPEN abc123 "$checks_green" APPROVE-AND-MERGE-BOUNDARY
 out="$(run_hook)"
+if [ -z "$out" ]; then ok 'silent on APPROVE-AND-MERGE-BOUNDARY'; else bad 'silent on APPROVE-AND-MERGE-BOUNDARY' "got: $out"; fi
+teardown
+setup
+human_turn "go"
+assistant_text "PR is up: $URL"
+pr_fixture OPEN abc123 "$checks_green" APPROVE-AND-MERGE
+out="$(run_hook)"
+if [ -z "$out" ]; then ok 'silent on APPROVE-AND-MERGE too'; else bad 'silent on APPROVE-AND-MERGE too' "got: $out"; fi
+teardown
+
+echo '--- the FIFTH literal (#374) means the act is his, so the link is legitimate ---'
+# APPROVE-EXECUTOR-BLOCKED: the gate cleared the diff and could not execute the merge. This is the one
+# state where handing over a link is not merely allowed but owed.
+setup
+human_turn "go"
+assistant_text "PR is up: $URL"
+pr_fixture OPEN abc123 "$checks_green" APPROVE-EXECUTOR-BLOCKED
+out="$(run_hook)"
+if [ -z "$out" ]; then ok 'silent on APPROVE-EXECUTOR-BLOCKED — the link is exactly right'; else bad 'silent on APPROVE-EXECUTOR-BLOCKED' "got: $out"; fi
+teardown
+
+echo '--- the narrowing did NOT become a blanket pass: an unrecognised literal still fires ---'
+# Without this, "silent on a clearance" would pass for a hook that went silent on everything.
+setup
+human_turn "go"
+assistant_text "PR is up: $URL"
+pr_fixture OPEN abc123 "$checks_green" APPROVE-AND-MERGE-LATER
+out="$(run_hook)"
 case "$out" in
-  *'APPROVE-AND-MERGE-BOUNDARY'*) ok 'fires on a clearance verdict, naming it' ;;
-  *) bad 'fires on a clearance verdict, naming it' "got: ${out:-<empty>}" ;;
+  *'APPROVE-AND-MERGE-LATER'*) ok 'a drifted literal is still reported, naming it' ;;
+  *) bad 'a drifted literal is still reported' "got: ${out:-<empty>}" ;;
 esac
 teardown
 

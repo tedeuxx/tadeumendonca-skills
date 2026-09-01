@@ -367,10 +367,19 @@ legibility.
 
 **And one duty on that owner↔orchestrator edge is about restraint rather than relay: the orchestrator
 hands the owner a PR link only when the remaining act is his** — ready to merge, every check complete and
-successful, which reads mechanically as `APPROVE-PENDING-HUMAN` at the PR's current head. The operative
+successful, which reads mechanically as `APPROVE-PENDING-HUMAN` **or `APPROVE-EXECUTOR-BLOCKED`** at the
+PR's current head (#374 added the second — the gate cleared the diff and could not execute the merge, so
+the decision is made and only the act is his). The operative
 wording is his own sentence, in `commands/autonomy.md`'s *Reporting* section; the argument, the
 enforcement and the cost of the informal ship-notice it removes are
 [ADR-0002](./docs/adr/0002-roster-and-dev-loop.md)'s eighteenth amendment (#327).
+
+**The duty has an inverse, and since #374 that has a hook too.** A turn that ends while one of those two
+literals sits at an open, green PR's head and surfaces no link has ended owing him one —
+`owed-pr-link-detect`. It is the exact inverse of the premature check and is deliberately a separate
+file: one hook with two rulers would make a silent turn unattributable in both directions. **It does not
+cover the incident it was built under**, which its own header says before anything else — the complaint
+was a link he had received twice and could not find, and an absence detector is silent on exactly that.
 
 **`MR --> QA` reads "via orchestrator"** because the gate is dispatched, not self-triggered — the merge
 request reaches `quality-assurance` the same way every other piece of work reaches a persona: through the
@@ -1198,6 +1207,7 @@ flowchart LR
   H7["zombie-loop-detect"]
   H9["orchestrator-tool-census"]
   H10["premature-pr-link-detect"]
+  H17["owed-pr-link-detect"]
   H11["dispatch-premise-guard"]
   H12["closure-artifact-guard<br/>(refuses a manual close)"]
   H13["closure-artifact-guard<br/>(reports one already closed)"]
@@ -1219,6 +1229,7 @@ flowchart LR
   E6 --> H7
   E6 --> H9
   E6 --> H10
+  E6 --> H17
   E6 --> H13
 
   class E1,E2,O1,O4,E6 used
@@ -1230,7 +1241,7 @@ flowchart LR
 | **`SessionStart`** | a session begins or resumes | no | `preflight`, `session-wip`, `session-plugin-version` | say at the door that the session is degraded and will be refused at the first prompt — inject the open queue — and warn when the installed build is not the merged one |
 | **`SubagentStart`** | a subagent is dispatched | no | `dispatch-metrics-start` | best-effort dependency probe only — see below; does not post |
 | **`SubagentStop`** | a subagent finishes | no | `dispatch-metrics-stop` | log rework rounds, time, output size and token cost for the dispatch as a structured Issue comment (#209) |
-| **`Stop`** | the main agent's turn ends | **yes, but no hook here uses that half** | `zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard` | detect (never prevent) an outstanding gate verdict left unaddressed at turn end — one turn late instead of one session late (#294) — report what the main agent did with its own hands, write/post class separated from reads (#319) — flag a PR link handed to the owner for a PR that is not open, green and `APPROVE-PENDING-HUMAN` (#327) — and report an Issue that is ALREADY closed with a declared invocable artifact missing, which is the only surface that reaches the closing-keyword route at all (#337) |
+| **`Stop`** | the main agent's turn ends | **yes, but no hook here uses that half** | `zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `owed-pr-link-detect`, `closure-artifact-guard` | detect (never prevent) an outstanding gate verdict left unaddressed at turn end — one turn late instead of one session late (#294) — report what the main agent did with its own hands, write/post class separated from reads **and from a third, unrecognised class** (#319, #371) — flag a PR link handed to the owner for a PR that is not open, green and awaiting him (#327) — flag the INVERSE, a turn that ended owing him a link and surfaced none (#374) — and report an Issue that is ALREADY closed with a declared invocable artifact missing, which is the only surface that reaches the closing-keyword route at all (#337) |
 | **`UserPromptSubmit`** | a prompt is submitted, before processing | **yes** | `preflight` | refuse to process anything while the guards' own preconditions are absent — an interpreter a registered hook reaches for missing from `PATH`, a registered script absent or without its execute bit, or a headless session running with the static deny layer off (#342) |
 | `UserPromptExpansion` | a typed command expands, before it reaches the model | **yes** | — | |
 | `PermissionRequest` | a call needs a permission decision | **yes** | — | |
@@ -1303,8 +1314,9 @@ does not post; it only warns, once, if `jq` is missing and the `SubagentStop` ho
 therefore cannot capture anything this session — see `hooks/scripts/dispatch-metrics-stop.sh` for the full
 design record, including why this is one comment per dispatch rather than one comment updated per Issue.
 `zombie-loop-detect` is a *second, independent reader* of the same ADR-0006 `gatekeeper-verdict` artifact
-`session-wip` already reads, wired to `Stop` instead of `SessionStart` so an outstanding REQUEST-CHANGES or
-APPROVE-PENDING-HUMAN verdict surfaces one turn late rather than one session late; it never parses prose,
+`session-wip` already reads, wired to `Stop` instead of `SessionStart` so an outstanding REQUEST-CHANGES,
+APPROVE-PENDING-HUMAN or APPROVE-EXECUTOR-BLOCKED verdict surfaces one turn late rather than one session
+late; it never parses prose,
 only loop state, and it never blocks — `additionalContext` only, debounced to once per (PR, head SHA) per
 session via a marker file under the checkout's own `.git/` — see
 `hooks/scripts/zombie-loop-detect.sh` for the full design record and what it deliberately cannot catch.
@@ -1511,7 +1523,7 @@ by hand:
 | **Skills** | yes — **14** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **5 files** (`autonomy`, `new-issue`, `blueprint`, `sprint-retrospective`, `sprint-planning`), derived from `ls commands/` — `autonomy` and `blueprint` each carry **three** dispatch rows, so the count of things a human can TYPE is larger than the count of files and the two must not be conflated. **The criterion is the dispatch row, not the operating mode** — it is what each command file's own `## The three modes` heading counts, and it is the right unit here because a bare `/autonomy` is a thing a human types: two operating modes (`on`\|`off`, `export`\|`import`) plus the bare form that prints help and does nothing. Each command's *operating* set is separately closed at two, which is what `commands/autonomy.md`'s *"The set is closed at two"* means and is not a second count of the same thing | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **8 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`, `scrum-master`) | dispatched by name via `Task` |
-| **Hooks** | yes — **`hooks.json` registers 15** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `dispatch-premise-guard`, `closure-artifact-guard`, `mcp-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **15 registrations over 13 scripts**: `closure-artifact-guard` and `preflight` are each registered twice, on the two events their two halves need, and that is why the registration count is the honest number rather than a file count. **Both figures fell by one at #375** (16/14), when `orchestrator-write-guard` was removed — the first registration this repo has ever deleted rather than added |
+| **Hooks** | yes — **`hooks.json` registers 16** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `dispatch-premise-guard`, `closure-artifact-guard`, `mcp-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `owed-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **16 registrations over 14 scripts**: `closure-artifact-guard` and `preflight` are each registered twice, on the two events their two halves need, and that is why the registration count is the honest number rather than a file count. **Both figures fell by one at #375** (from 16/14), when `orchestrator-write-guard` was removed — the first registration this repo has ever deleted rather than added — **and both are back to 16/14 at #374**, which is a coincidence of arithmetic and not a restoration: the script that left refused an act, and the one that arrived only reports one |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
 | LSP servers | **no** | — | no `.lsp.json` |

@@ -959,8 +959,55 @@ than a queue parking instead.
 - **APPROVE-PENDING-HUMAN** — DoD green but **one of the four holds** in *Classify — who may merge*
   applies. Name which one; do not merge; surface the human go/no-go. It no longer means "boundary
   class" — boundary alone merges.
+- **APPROVE-EXECUTOR-BLOCKED** — DoD green, the class is safe or boundary, **none of the four holds
+  applies**, so this verdict would have been `APPROVE-AND-MERGE(-BOUNDARY)` — and **you could not execute
+  the merge**. The decision is made and only the ACT is outstanding, so it is the owner's by exception.
+  Name what blocked you, and say plainly that this is not a hold and not a finding on the diff. Added
+  2026-09-01 (#374) on the owner's decision, over the intake's flag-don't-recommend.
 - **REQUEST-CHANGES** — one or more DoD gates unmet. List each gap **specifically and with the evidence**
   (the failing check, the missing test, the un-referenced ADR, the out-of-scope file). No vague notes.
+
+### The fifth literal names a state that HAD no name, and the distinction it holds is worth stating
+
+**`APPROVE-PENDING-HUMAN` means the DECISION is his. `APPROVE-EXECUTOR-BLOCKED` means the decision is
+yours, was made, and only the ACT is his.** Collapsing the two loses the difference between *the gate
+declined to clear this* and *the gate cleared it and could not press the button* — and the second was,
+until #374, indistinguishable from a gate that had simply not got round to merging yet.
+
+**How the loop reached the state, and it is measured rather than hypothetical.** Rule 7b makes
+`quality-assurance` the **only** permitted executor of an authorised merge; every other `agent_type`
+is denied, the orchestrator by 7b's catch-all and the `gh api` route by rule 5f. So when a layer
+outside this harness refuses to dispatch you — Claude Code's auto-mode classifier does, and the
+transcript records it as `toolDenialKind: "automode-blocked"`, a value distinct from `permission-rule`
+— **the refusal is terminal rather than inconvenient.** The PR sits open, cleared, with nothing in the
+tracker or on the PR saying so. On the incident that produced this literal it sat that way for about
+five minutes and the owner had to ask.
+
+**Rule 7b's single-executor design is NOT relaxed by this, and must not be read as relaxed.** The strand
+is the correct failure of a correct rule; the alternative reopens the hole ADR-0004 closed. The fifth
+literal **names** the strand. It does not route around it, and rule 7c will still refuse a merge
+carrying it — deliberately, because a verdict meaning *I could not merge this* must not be a verdict
+that merges it.
+
+### To post it you must have DISCOVERED that you are blocked — attempt the merge once per head
+
+**Attempt the authorised merge once per head, even when the classifier is known to block it.** A refusal
+you did not attempt leaves no `automode-blocked` record, and a state nothing records is a state no
+detector downstream can derive a premise from. This is measured too, and the asymmetry is the whole
+argument: on one PR the call was issued and the denial record exists; on the next the loop reasoned
+*"already hit this today, no point repeating it"* and **self-censorship produced no record of anything**.
+
+> **The signal exists precisely when the loop already knows, and is absent precisely when it forgets.**
+
+**Price, accepted and stated so it is not rediscovered as a defect:** one wasted dispatch round-trip per
+blocked head, measured at roughly 65 seconds. **Once per head, never in a retry loop** — a second
+attempt at the same head buys no new information and the debounce is the head SHA, exactly as it is for
+your own verdict marker.
+
+**One boundary that is not negotiable and is itself the finding.** The classifier's refusal text says
+you may attempt the act using other tools. **Do not.** For a merge the other tools are rule 7b's back
+door and the `gh api` route rule 5f denies, and re-wording a dispatch until it slips past a refusal is on
+the wrong side of the line the refusal draws. If you are blocked, post the literal and stop.
 
 Lead with the verdict. Then, in order:
 

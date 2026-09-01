@@ -117,6 +117,12 @@ jobs:
       - name: Run the premature-pr-link-detect suite
         run: bash hooks/scripts/premature-pr-link-detect.test.sh
 
+      # Added in the SAME slice as the hook (#374), for the reason the comment two steps down already
+      # gives about `dispatch-premise-guard`: a suite written and then left to a habit is a gate one
+      # forgotten habit away from absent, and two of the suites here spent weeks in exactly that state.
+      - name: Run the owed-pr-link-detect suite
+        run: bash hooks/scripts/owed-pr-link-detect.test.sh
+
       # TWO SUITES HAVE NEVER HAD A STEP HERE — `zombie-loop-detect.test.sh` and
       # `session-plugin-version.test.sh`. Both were written mutation-checked and then left to be run by
       # hand, which is a gate one forgotten habit away from absent: exactly the "a green that proves

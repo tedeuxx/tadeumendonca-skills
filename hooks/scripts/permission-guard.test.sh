@@ -233,6 +233,13 @@ check_agent ALLOW "tadeumendonca-skills:quality-assurance" "APPROVE-AND-MERGE-BO
 # that fails if anyone reaches for that shortcut; it cannot be caught by the two positive cases.
 write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE-LATER"
 check_agent DENY  "tadeumendonca-skills:quality-assurance" "a PREFIX-SHARING drift ('APPROVE-AND-MERGE-LATER') is not either literal — the arm is not globbed" "gh pr merge 149 --merge"
+# THE FIFTH LITERAL (#374). `APPROVE-EXECUTOR-BLOCKED` says the gate cleared this diff and COULD NOT
+# execute the merge, so the act became the owner's by exception. A verdict whose content is "I could
+# not merge this" must not be a verdict that merges it — and it must not be read as a member of the
+# merge-authorising family, which is why the literal is spelled disjoint from `APPROVE-AND-MERGE-…`
+# rather than as another suffix on it. Mutate: add it to the clearing arm -> this goes red.
+write_gh_fixture "stubbed-head" "APPROVE-EXECUTOR-BLOCKED"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "APPROVE-EXECUTOR-BLOCKED does not merge — it records that the gate could not" "gh pr merge 149 --merge"
 # STALE HEAD: the verdict is APPROVE-AND-MERGE, but against a SHA that is no longer the PR's head — a
 # later, unreviewed commit landed after the verdict was posted. This is the exact failure ADR-0006 was
 # written for: a verdict on a superseded head must not read as approval of what is there now.

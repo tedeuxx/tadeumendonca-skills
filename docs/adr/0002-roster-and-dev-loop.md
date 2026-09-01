@@ -2121,6 +2121,14 @@ links in one session were four false alarms.
 **`APPROVE-PENDING-HUMAN`**. `REQUEST-CHANGES` is also non-merging and is **not** an owner summons — it
 routes to the builder. Naming the literal is checkable; naming *"one of the four holds fired"* is not.
 
+**Amended 2026-09-01 (#374): the vocabulary is FIVE and the owner-summoning set is TWO.**
+`APPROVE-EXECUTOR-BLOCKED` joins it — the gate cleared the diff and could not execute the merge, so the
+decision is made and only the act is his. The paragraph above is left standing rather than rewritten
+because its *argument* is unchanged and is the part worth keeping: naming a literal is checkable, and
+naming which hold fired is not. Only the arithmetic moved. See ADR-0004's 2026-09-01 amendment for the
+decision, the readers that must move in lockstep, and why inferring the state from a clearance that
+stayed open is a race detector rather than a strand detector.
+
 **The rule has a SECOND limb, and it is not mechanical — which is why it was nearly lost.** #327 states
 it in the same blockquote it labels *"the sharp form of the rule"*: a PR link also goes to him **when the
 ask is explicitly a decision he holds** (a title, a positioning call), *stated as that and not as a merge
