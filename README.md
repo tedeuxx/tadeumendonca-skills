@@ -582,8 +582,16 @@ was built to avoid.
 
 <!-- claim id=0004 class=DERIVED -->
 
-**Skills carry the conventions so the model does not re-invent them.** **14 skills + autonomy**,
-`autonomy off`, `new-issue`, `blueprint` and `sprint-retrospective`, generic by construction (`<project>` / `<apex-domain>` placeholders), covering the AWS
+**Skills carry the conventions so the model does not re-invent them.** **14 skills + autonomy** —
+typed `autonomy on` or `autonomy off`, never bare, since `commands/autonomy.md` states that a bare
+`/autonomy` *"prints help and does nothing else"* — plus `new-issue`, `blueprint` and
+`sprint-retrospective`, across **four command files** (`ls commands/` → `autonomy.md blueprint.md
+new-issue.md sprint-retrospective.md`). **The count of typed forms is larger than the count of files,
+because `autonomy` and `blueprint` each carry modes, and the two must not be conflated** — this
+README's own resource-table row for **Commands (legacy)** says exactly that, and **this sentence
+conflated them anyway until #387**: it named bare `autonomy` as one of the commands and omitted
+`autonomy on`, the mode that actually does the work. Generic by construction (`<project>` /
+`<apex-domain>` placeholders), covering the AWS
 services, the frontend stack, the CI/CD wiring and the engineering principles. Each states *the choice
 and its trade-off*, not just the rule — because a rule without its reason is one the next session will
 "improve".
@@ -601,11 +609,34 @@ eight briefs gaining one entry each — is what pushed it above the ten it used 
 `published-voice` is carried by the content pair and by nobody else, which is now **two** briefs rather
 than the one it was extracted from), resolving to **nine distinct files
 (`grep -h '^  - ' agents/*.md | sort -u | wc -l`), all nine
-of them rows in this table.** Against 67 rows, making the column mean *preloaded by* would still print
-"— none" against **60 of them**, `dynamodb`, `vpc` and `cloudfront` among them: publishing, on the
-document a forker reads first, that no persona is responsible for nine tenths of the library. That is
-false, and it deletes the true information the column already carries to remove a contradiction that a
-heading fixes.
+of them rows in this table.** Against **14** rows, making the column mean *preloaded by* would still
+print "— none" against **5 of them** — `backend`, `cloud-infrastructure`, `definition-of-done`,
+`frontend` and `planning-poker`: publishing, on the document a forker reads first, that no persona is
+responsible for just over a third of the library. That is false, and it deletes the true information
+the column already carries to remove a contradiction that a heading fixes.
+
+**Both figures and all five names are derived from the table below, by one command over both
+inputs** — never enumerated by hand, which is what this sentence used to be and why it stayed wrong
+for weeks:
+
+```
+awk -F'|' 'FILENAME !~ /README/ { if ($0 ~ /^  - /) { s=$0; sub(/^  - /,"",s); p[s]=1 } next }
+  $0 ~ /^. skill . what it decides . whose domain .$/ { t=1; next }
+  t && $0 !~ /^\|/ { t=0 }
+  t { n=$2; gsub(/[^a-z-]/,"",n); if (n != "" && n !~ /^-+$/) { c++; if (!(n in p)) { print n; z++ } } }
+  END { print "rows: " c "  none: " z }' agents/*.md README.md
+```
+
+**The magnitude fell and the objection did not, which is the honest form rather than a retreat.**
+~~*"Against 67 rows … 60 of them, `dynamodb`, `vpc` and `cloudfront` among them … nine tenths of the
+library"*~~ — struck 2026-09-01 (#387, the owner's ruling: correct the facts, keep the argument). Two
+separate defects, and only one was a number: **67/60 predates the consolidations** that took the
+library to 14, and **`dynamodb`, `vpc` and `cloudfront` stopped being skills at #229**, so the
+examples carrying the rhetoric were three dead identifiers named in the present tense — the same class
+this batch fixed in `agents/tech-lead.md`. The replacements are not chosen for effect: they are
+whatever the command above returns, and `cloud-infrastructure` is the row the three dead names
+consolidated into. **The claim is smaller and it is still the claim** — a third of the library
+published as belonging to nobody is not less false than nine tenths of it, only less dramatic.
 
 *"Of body"* is a precision the frontmatter forced (#166): every skill now opens with a `description:`
 block written for the **matcher** — one trigger sentence of 300-500 characters naming the situation the
@@ -640,17 +671,30 @@ for f in sorted((root/'agents').glob('*.md')):
 PY
 ```
 
-**Every PER-SKILL byte figure further down this section — the parentheticals beside
-`definition-of-ready`, `definition-of-done` and `planning-poker` — is one line of the same tree, and
-comes from its own command rather than from that script:**
+**Every PER-SKILL byte figure further down this section — every parenthetical stating one skill's own
+size, with no member enumerated here on purpose — is one line of the same tree, and comes from its own
+command rather than from that script:**
 
 ```
 find skills -name SKILL.md -exec wc -c {} +
 ```
 
-Those three shipped without it and drifted by 134, 22 and 150 bytes respectively; they were re-derived
-on 2026-09-01 with the command above, which is now published beside them because a figure with no
-runnable falsifier is one the next reader can only trust.
+**The criterion above replaced an enumeration, and it was replaced for the reason it existed.** The
+line here read ~~*"the parentheticals beside `definition-of-ready`, `definition-of-done` and
+`planning-poker`"*~~ and shipped as a complete list of the class. It was not: this section states a
+skill's own size for **six** distinct skills, across seven occurrences — `definition-of-ready` twice —
+which `grep -nE '[0-9]{1,3}(,[0-9]{3})+ ?B' README.md` surfaces for a human to sort from the
+historical and struck figures beside them. The three not named included **`published-voice`, which was
+144 B stale and carried a present-tense `wc -c` claim about it** — inside a round whose entire subject
+was catching exactly that. The three that *were* named had shipped without a falsifier and had drifted
+by 134, 22 and 150 bytes; they were re-derived on 2026-09-01 and were correct once re-derived — which
+is the whole point: **the rule broken was not *publish the number with its command*** — the command was
+published, right here — **it was `documentation-standard`'s companion clause, *verifying the members
+does not verify the set***. A criterion cannot go stale when a seventh parenthetical is added; a list
+of three can, and did. Re-derived whole on 2026-09-01: the command above returns 14 lines, and every
+per-skill figure below was checked against that output rather than against the members someone
+remembered. **Nothing gates any of this** — see the *claim registry* note on claim `0004`, which
+declares that the arm owns the table and none of the surrounding prose.
 
 **`developer` published 101,637 B and measures 198,411 B; `product-lead` published 50,437 B and
 measures 145,076 B.** The split that produced `engineering-standards` moved these numbers by roughly
@@ -716,7 +760,7 @@ figure goes stale invisibly.
 - **`content-writer` — 163,072 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice`.
   Renamed from `writer` at #317; the figure moved for one reason and it is not the rename, which costs
   nothing — `harness-engineering` grew in the same slice, by the state-machine rows this pair required.
-  **`published-voice` (29,117 B) is not an addition to this brief, it is a relocation out of it:** the
+  **`published-voice` (29,261 B) is not an addition to this brief, it is a relocation out of it:** the
   voice calibration, the corpus evidence, the sourcing constraint, the ranked title criteria and the
   teaser rules were brief prose and are now a skill, so what this persona reads is very nearly what it
   read before. **It is not sold as a token saving and is not one** — `Skill` is not grantable through
@@ -727,10 +771,20 @@ figure goes stale invisibly.
   reviewer the owner has decided on and not yet built (ADR-0011's 2026-08-23 amendment)~~ **and that
   second consumer is now built (#317), which is what closes the named exception rather than leaving it
   standing.**
-  *A correction this diff makes rather than inherits:* the figure published here at #316 was **29,139 B**
-  and `wc -c` at this head returns **29,117**. The file was not edited between the two, so the published
-  number was wrong when it shipped — a 22-byte miss, invisible because nothing gates a byte figure. It
-  is corrected here and named rather than silently overwritten.
+  *A correction of a correction, and the sentence it replaces was wrong about more than its number.*
+  This line read ~~*"the figure published here at #316 was **29,139 B** and `wc -c` at this head
+  returns **29,117**. The file was not edited between the two, so the published number was wrong when
+  it shipped — a 22-byte miss."*~~ **Both halves were false, and each in a different way.** 29,139 was
+  **correct** when published — `git show 0f484b5:skills/published-voice/SKILL.md | wc -c` → **29139**
+  — and the file **was** edited between the two: `e214d6f` (2026-08-23) shrank it by exactly the 22 B
+  the sentence attributed to a miss
+  (`git show e214d6f:skills/published-voice/SKILL.md | wc -c` → **29117**), so there was an edit, not
+  an error. And 29,117 was itself stale by the time the sentence claimed to have just measured it:
+  `0d218e1` (#313, 2026-08-28) grew the file to **29,261**, which is what `wc -c` returns at this head.
+  **A present-tense measurement verb inside a paragraph whose subject is a stale byte figure is the
+  sharpest form of this defect** — it reads as freshly checked and is the least likely line in the
+  section to be re-checked. It is why the class sentence above now publishes a criterion instead of a
+  list of three.
 - **`content-reviewer` — 163,072 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice`.
   **Byte-identical to `content-writer`'s, because the list is identical — and that identity is the
   design rather than a copy-paste.** The pair
