@@ -1303,7 +1303,9 @@ request that touches files an open one already touches — the bound is file ove
 counting blocks disjoint work while doing nothing about the real risk. `session-wip` lists the open queue.
 `session-plugin-version` says when the build the session is **running** is not the merged one — derived
 from that build's own manifest via `$0`, since #370 measured that reading the shared marketplace clone
-instead had let a project install sit 35 versions behind for 17 days with this hook silent — and names
+instead had let a project install sit **69 published releases** behind for 17 days with this hook
+silent (#370's intake said 35, which is `51 − 16` and not a release count; struck in ADR-0005's
+2026-09-01 amendment, where the tag-list command that produces 69 is published) — and names
 the other registered projects pinned to a different build, because the one furthest behind is by
 construction the one nobody opens. `dispatch-metrics-stop`
 logs the four benchmarking metrics the owner asked for on #209 — rework rounds, time, token cost, and an

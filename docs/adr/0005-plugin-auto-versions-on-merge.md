@@ -421,7 +421,21 @@ what was cited.
 | user | — | 1.1.51 | 2026-08-31 |
 | project | `…/tadeumendonca-skills` | 1.1.51 | 2026-08-31 |
 
-**Thirty-five versions and seventeen days apart, on one machine, for one consumer.** The 2026-08-10
+~~**Thirty-five versions and seventeen days apart, on one machine, for one consumer.**~~ **Struck the
+day it was written: 35 is not a version count, it is `51 − 16` — a subtraction of PATCH components
+across a MINOR boundary, which is arithmetic on a string rather than a measurement.** #370's intake
+published it, this amendment inherited it, and it survived until someone ran the command:
+
+```
+git tag --list 'v*' --sort=v:refname \
+  | awk '/^v1\.0\.16$/{f=1;next} /^v1\.1\.51$/{print;f=0} f{print}' | wc -l
+→ 69
+```
+
+**Sixty-nine published releases and seventeen days apart, on one machine, for one consumer** — twice
+the gap the figure claimed, in the direction that makes the argument stronger, which is exactly why it
+went unchallenged. Kept as a struck line rather than silently corrected, because a wrong number nobody
+could re-run is the defect this record is *about*: an install lag nobody could see. The 2026-08-10
 amendment had already seen the shape and read it as unremarkable — it records *"`1.0.5`, and `1.0.0` for
 one project entry"* in passing, treating the divergence as a detail of the pinning rather than as the
 thing worth watching.

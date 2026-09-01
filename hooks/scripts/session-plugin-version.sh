@@ -31,7 +31,10 @@
 # It read the MARKETPLACE CLONE and called the result `installed`. The marketplace clone is
 # the shared checkout `/plugin marketplace update` refreshes; it is not the build any session
 # necessarily runs. Measured on 2026-08-31: `~/.claude/plugins/installed_plugins.json` held a
-# PROJECT-scope record pinning `tadeumendonca-io` to 1.0.16 — 35 versions and 17 days behind —
+# PROJECT-scope record pinning `tadeumendonca-io` to 1.0.16 — **69 published releases** and 17 days
+# behind (`git tag --list 'v*' --sort=v:refname` between v1.0.16 and v1.1.51 → 69; the "35" #370's
+# intake published is `51 − 16`, patch-component subtraction across a minor boundary, and it is struck
+# in ADR-0005's 2026-09-01 amendment) —
 # while the marketplace clone read 1.1.51. The hook compared 1.1.51 against its reference,
 # matched, and FINISHED SILENTLY. The one mechanism built to see exactly this drift could not,
 # because it was reading the wrong file. That 1.0.16 build had no `agents-lead`, no
@@ -51,7 +54,7 @@
 # `/System/Volumes/Data/Users/…`) — exists only because it RE-DERIVES a fact the runtime gives
 # away. Each is a heuristic and each fails silently, in a hook that never blocks. Worse, its
 # stated fallback resolved a failed match to the `user` record, which on 2026-08-14 would have
-# reported "up to date" while running a 35-version-old build. A hook whose whole job is "you may
+# reported "up to date" while running a build 69 releases old. A hook whose whole job is "you may
 # be wrong about yourself" must never resolve an ambiguity in the direction of comfort.
 #
 # A `$0`-derived read also fixes `claude --plugin-dir .`, the documented local-authoring route,
@@ -337,7 +340,7 @@ $cross
 This is the half of #370 that matters: a project's install record is written once by \`install\`
 and never surfaced again, so a project nobody opens can sit any number of versions behind for any
 length of time with every gate in this repo green. Measured on 2026-08-31: \`tadeumendonca-io\` sat
-35 versions and 17 days behind, on a build with no merge floor and no \`agents-lead\`.
+69 published releases and 17 days behind, on a build with no merge floor and no \`agents-lead\`.
 
 Each stale record moves WITHOUT opening a session there:
   env -C <projectPath> claude plugin update $PLUGIN_KEY --scope project -y
