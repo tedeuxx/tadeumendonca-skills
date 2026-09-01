@@ -3124,7 +3124,23 @@ Nobody had noticed it breaks the census identically.
 
 The three string defects are cheap and are fixed. What is not fixable in this layer is the coverage. The
 first token of every `Bash(...)` allow pattern across the six settings files in this workspace resolves
-to **57 distinct programs**, of which exactly **two** carry a multi-word label. So *"which other programs
+to **61 distinct programs**, plus 2 absolute script paths counted separately because they are not
+programs, of which exactly **two** carried a multi-word label before this change and three do after it.
+**Re-derived at head on 2026-09-01 rather than carried from #371's intake, which measured 57 on
+2026-08-31 against the same six files:**
+
+```
+jq -r '.permissions.allow[]? // empty' <the six settings files> \
+  | grep '^Bash(' | sed 's/^Bash(//; s/[:)].*$//' | awk '{print $1}' | sort -u
+```
+
+**The drift between 57 and 61 is the argument rather than an erratum**, and it is why the figure is
+published with the command and with its own caveat: four programs entered the allowlists in one day,
+**two of the six files are untracked local overlays**, so the number is machine-specific and not
+reproducible from a clone. A list that moves by four overnight, sourced partly from files no repository
+holds, is not a list anyone maintains by hand in a second place.
+
+So *"which other programs
 hide a mutating subcommand"* is not a list of seven; it is everything except two — `bump-my-version bump`
 (writes two files, commits and tags), `npm publish`, `node`, `python3`, `bash`, `terraform init`,
 `aws <verb>`, `awk 'print > "f"'`, `find -delete`, `curl -o`, each reported as a read.

@@ -149,7 +149,19 @@ calls="$(jq -r '
 #
 # ── WHY A PER-TOOL LIST OF MUTATING SUBCOMMANDS IS NOT THE SHAPE, AND `?` IS ───────────────────
 # The first token of every `Bash(...)` allow pattern across all six settings files in this workspace
-# resolves to **57 distinct programs**, of which exactly two — `gh` and `git` — get a multi-word label.
+# resolves to **61 distinct programs** (plus 2 absolute script paths, counted separately because they
+# are not programs), of which exactly two — `gh` and `git` — got a multi-word label before this change
+# and three do after it. Re-derived at head on 2026-09-01 rather than carried from #371's intake, which
+# measured **57** on 2026-08-31 against the same six files:
+#
+#   jq -r '.permissions.allow[]? // empty' <the six settings files> \
+#     | grep '^Bash(' | sed 's/^Bash(//; s/[:)].*$//' | awk '{print $1}' | sort -u
+#
+# THE DRIFT BETWEEN THOSE TWO FIGURES IS THE ARGUMENT, NOT AN ERRATUM. Four programs entered the
+# allowlists in one day, two of the six files are UNTRACKED local overlays, and this hook read none of
+# it. A number that moves by four overnight is not a list anyone can maintain by hand in a second file.
+# READ IT AS MACHINE-SPECIFIC: the two `settings.local.json` files are not in any repository, so the
+# figure is not reproducible from a clone and the command above is what makes that visible.
 # So "which other programs hide a mutating subcommand" is not a list of seven; it is everything except
 # two. `bump-my-version bump patch` writes two files, commits AND tags. `npm publish`, `npx`, `node`,
 # `python3`, `bash`, `terraform init`, `aws <any verb>`, `awk 'print > "f"'`, `find -delete`, `curl -o`
@@ -336,9 +348,10 @@ appears here. The write/post class is the only one that can trigger this notice 
 only after ${CENSUS_THRESHOLD} more write/post calls in this session, and an unclassified call
 triggers nothing at all. And the third class means what it says (#371): 'unclassified' is NOT
 'measured as a read'. No first-N-words rule can tell 'node scripts/read.js' from
-'node scripts/write.js', and the programs reachable from this workspace's allowlists number 57
-against two that carry a subcommand label — so the honest report of the remainder is that it was not
-recognised. If something in that block mutates anything, it belongs in this hook's W list.
+'node scripts/write.js', and the programs reachable from this workspace's allowlists outnumber the
+handful that carry a subcommand label by more than twenty to one — so the honest report of the
+remainder is that it was not recognised. If something in that block mutates anything, it belongs in
+this hook's W list.
 
 If the write/post list holds work a persona owns, that work was done in the wrong layer: dispatch
 next time. Reads and the comment routes rule 5e allows are a HABIT, not a rule — nothing here forbids

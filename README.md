@@ -1361,8 +1361,12 @@ labelled on the first tokens, so `env -C <dir> claude plugin update …` labelle
 them reported as a read**, including the call that rewrote which build every project resolves. The
 string defects are fixed (wrappers and leading options are stripped before labelling). What is not
 fixable in this layer is the coverage: the first token of every `Bash(...)` allow pattern across the six
-settings files in this workspace resolves to **57 distinct programs**, of which two carry a subcommand
-label. **A floor may enumerate what it denies; a reporter cannot enumerate what it observes**, so a
+settings files in this workspace resolves to **61 distinct programs** (measured 2026-09-01 with the
+command in `docs/adr/0004-controls-and-enforcement.md`'s 2026-09-01 amendment; #371's intake measured
+57 the day before, and **two of those six files are untracked local overlays, so the figure is
+machine-specific and moved by four overnight** — which is the argument rather than an erratum), of
+which two carried a subcommand label before this change.
+**A floor may enumerate what it denies; a reporter cannot enumerate what it observes**, so a
 two-class reporter silently reports its own gap as a clean result. `?` is what stops that — it says *not
 recognised*, in its own block, rather than filing the remainder under *read*. **What is deliberately NOT mechanised, and must read as a decision rather than
 an omission:** reads, `gh issue create`, and the `gh pr comment` / `gh issue comment` routes rule 5e
