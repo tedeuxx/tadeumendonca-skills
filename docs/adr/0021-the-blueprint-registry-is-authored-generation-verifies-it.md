@@ -141,7 +141,21 @@ failure mode. *(The replacement edit is not in this slice — see* Consequences 
   not. The gate does **not** assert that the quote is the *relevant* limit.
 - **The three content columns are 100% authored, zero generated.** This is an elicitation pass of the
   same class as one deep-dive per skill. It does not complete in one sitting, and it did not: the
-  `skill` class ships **declared partial**, with six carriers unclaimed and named.
+  `skill` class ships **declared partial**, with ~~six~~ **five** carriers unclaimed and named.
+  **It read `six` until #387, and #387 is what made that false** — `six` was true on `main` (8 carriers
+  carried a row against 14 declared skills), and **the whole of the move is #384's `license` fold**,
+  which deleted a skill that had no row: an unclaimed element leaving the denominator. **#381's split
+  is difference-neutral and it is worth saying so**, because it is the change that *looks* causal — it
+  adds one carrier and one skill (8→9 and 14→15 in isolation), leaving six. The two landing together is
+  what holds the declared total at 14 while the carriers rise to 9. So the base moved inside the diff
+  that publishes it. Re-derived at head rather than adjusted, and it is the same pair of commands the
+  registry publishes beside its own copy of this number (`docs/blueprint-registry.md`, the
+  *`knowledge`* view's header):
+
+  ```
+  grep -A1 '^- \*\*tipo:\*\* knowledge' docs/blueprint-registry.md | grep carrier | sort -u | wc -l   # 9
+  jq -r '.skills[]' .claude-plugin/plugin.json | wc -l                                                # 14
+  ```
 - **The strain in the closed set is real and is not resolved here.** Two rows describe **builders**, and
   the five values hold no `build` class; they are filed `routing` on the reading that a builder is a
   *who acts next* carrier for a routing type. That is true and it is not the whole truth. The set is not
@@ -864,7 +878,15 @@ words.** `propósito` is defined as *the failure the behaviour prevents*, delibe
 
 **The rejected option was to author it: two cells × 44 rows**, at this repository's depth bar, with the
 owner's layer in them. That is a sitting, not a slice, and this registry already declares the `skill`
-class `partial` with six named unwritten rows rather than padding it — the same argument, doubled.
+class `partial` with ~~six~~ **five** named unwritten rows rather than padding it — the same argument,
+doubled. **It read `six` until #387** — true on `main` (8 carriers with a row, 14 declared skills) and
+false at that branch's head, where #384's `license` fold removed a skill that had no row (the whole of
+the move) and #381's split raised carriers and skills together (difference-neutral), leaving 9 and 14.
+Re-derived:
+`grep -A1 '^- \*\*tipo:\*\* knowledge' docs/blueprint-registry.md | grep carrier | sort -u | wc -l` → 9,
+`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 14. The count is *stated* here and *derived*
+in `docs/blueprint-registry.md`; that this restatement did not travel with it is the defect, not the
+number.
 
 **Activation went the other way, and the asymmetry is the point.** It is *derivable*: it is the
 interchange's `always_loaded` under another name, with a stated rule and the lossiness carried across —
