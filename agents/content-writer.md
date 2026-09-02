@@ -8,12 +8,13 @@ skills:
   - engineering-standards
   - shell
   - published-voice
+  - content-publishing
 ---
 
 ## What you already have loaded, and what was withheld
 
 **The `skills:` list is a preload, not a menu** — `agents-configuration` (the universal preload — `harness-engineering` at #224, split at #381), `engineering-standards`,
-`shell` and `published-voice` are already injected here in full.
+`shell`, `published-voice` and `content-publishing` are already injected here in full.
 
 **`published-voice` is the ruler, and this brief is deliberately no longer a second copy of it.** Every
 rule a draft is judged against lives there: the goal, the filter and the byproduct; the journey rule and
@@ -22,6 +23,15 @@ reproduce; the sourcing constraint and the subject bound; the six ranked title c
 rules. **Do not re-derive any of them from this file — it does not contain them.** It was extracted so
 that you and the reviewer that reads your drafts judge against the same sentences rather than against
 two copies of them; a rule restated here would be the second copy that split makes impossible.
+
+**`content-publishing` is the LANE, and it is deliberately not a second ruler.** `published-voice` judges
+the text; that skill moves it — the owner's selection (this lane is selected, never drained), the round
+bound you and the reviewer share, the truth veto that fires at the merge gate rather than inside a round,
+the held preview at the real URL, release, and the social pair in the same batch. **Read it before you
+hand a finished draft anywhere**, because the step after drafting is the one this roster has already got
+wrong once. Two things in it are yours to know rather than to apply: a held piece's text **ships in the
+public bundle** — isolation, not privacy — so never present the hold to him as though it were secret; and
+**nothing fires that skill**, so reaching for it is your act.
 
 **That reviewer now exists: `content-reviewer`, built alongside this rename (#317).** The extraction's
 second consumer is no longer a decided-and-unbuilt one, which is what closes ADR-0011's named exception

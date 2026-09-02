@@ -554,17 +554,24 @@ where a sixth value can be argued on evidence rather than on the first two rows 
 **This section is the skills list**, and it is a **view over this one registry** (selector
 `tipo == knowledge`), never a second table. The `skill` class is declared `partial` above; **five**
 carriers have no row yet, named there with the reason. **It read `six` until #387 and this branch is
-what made that false** — `six` was correct on `main` (8 carriers with a row, 14 skills) and #384's
+what made that false** — `six` was correct at the time (8 carriers with a row, 14 skills) and #384's
 `license` fold moved it to five, which was struck at the `partial` declaration above and not here.
 Re-derived rather than adjusted, and it is the same command in both places:
 
 ```
-grep -c '^- \*\*tipo:\*\* knowledge' docs/blueprint-registry.md                     # 11 rows
-grep -A1 '^- \*\*tipo:\*\* knowledge' docs/blueprint-registry.md | grep carrier | sort -u | wc -l   # 9 carriers
-jq -r '.skills[]' .claude-plugin/plugin.json | wc -l                                # 14 skills
+grep -c '^- \*\*tipo:\*\* knowledge' docs/blueprint-registry.md                     # 13 rows
+grep -A1 '^- \*\*tipo:\*\* knowledge' docs/blueprint-registry.md | grep carrier | sort -u | wc -l   # 10 carriers
+jq -r '.skills[]' .claude-plugin/plugin.json | wc -l                                # 15 skills
 ```
 
-11 rows over 9 carriers, 14 skills declared → **5** unclaimed.
+13 rows over 10 carriers, 15 skills declared → **5** unclaimed.
+
+**The row figure read `11` and the first command already returned `12` on `main`** — re-derived here
+from a separate checkout of `origin/main` rather than from this diff, so the base is not read out of the
+change that moves it. It is corrected rather than adjusted by one: a count published beside its own
+command, disagreeing with that command at the moment someone runs it, reads as a refuted claim and
+teaches the next reader to stop running it. **The unclaimed figure did not move**, because this slice
+added a carrier and a row together.
 
 ### 0024 · the loop itself, and the intent behind its shape
 
@@ -705,6 +712,16 @@ jq -r '.skills[]' .claude-plugin/plugin.json | wc -l                            
 - **o que faz:** States the precondition FIRST — no loop running, no escalation — then the five clauses as a conjunction, so four-of-five is recognisable as something else (a conversation, a design question, a status report). Defines the three axes literally so the wrong instrument is not reached for, gives the operational test (**anything that moves scope is a *potential* escalation**, and *potential* is load-bearing), fixes the form, and adds the failure test that catches the deferential shape: **a question with no options is offloading the analysis**, so if it cannot be reduced to four direct options it is not ready to rise and the loop owes more work first.
 - **o que não faz:** **It authors no threshold** — no number, no multiplier, no trigger for how far a spend runs before the trade is worth escalating; that calibration comes from metrics and worklog over real iterations. It does not settle *how* a loop detects that an item's cost or time has gone wrong: that question is open with no mechanism. It is **not** the permission floor's irreversibility test, which is untouched and asks what may never execute without a human rather than whose decision a choice is. And **it is almost entirely unenforced, which the carrier states itself**: clauses 1 and 5 are partly mechanizable, clauses 2, 3 and 4 are not at all — nothing records that a subagent's return was an escalation, no layer sees a message to a human, and every available layer is detection one turn late.
 - **citação:** > "a question with no options is not an escalation"
+
+### 0050 · the lane a published piece travels, and who is waiting at each step
+
+- **tipo:** knowledge
+- **carrier:** `skills/content-publishing/SKILL.md`
+- **descrição:** The whole pipeline for a content-typed item — the interview at capture, the description closed by one lens, **the owner's selection**, the draft, the two-round review bound, the truth veto at the merge gate, the held preview at the real URL, release, and the social pair in the same batch — every step marked AFK, HITL or unbuilt.
+- **propósito:** This lane was implemented and written down nowhere a session reads: every step existed, and the only record of their **order** was a decision record in the consuming product's own library, opened by someone who already knew to look. The cost is measured rather than feared — a session asked to put a finished piece in front of the owner offered a rendered artifact, not knowing the platform had a preview mode built for exactly that, and he had to correct it. It also carries the rule that decides where drafting **ends**: closing the text is not the end of it, the first deploy is.
+- **o que faz:** States the fork that makes this lane unlike every other — it is **selected one piece at a time and never drained**, so `ready` here is not a queue and the pool predicate excludes it by construction. Names the human moment at every step rather than describing automation that does not exist. Records the hold's exact mechanism (a shared-fact flag in front matter, a parameter that is presence and never a value, a **divergence** between the public enumeration and the resolution index) and the three alternatives rejected by measurement, so nobody proposes them again. And it puts the flagship trade-off where it cannot be missed: **isolation is not privacy** — a held piece's text ships in the public bundle, and the falsifier for that is published with its mutation.
+- **o que não faz:** **It never judges prose** — the ruler the drafting pair blocks against is the shared voice skill, and a finding supportable only from this file is not citable. It does not state the intake interview's operative wording, which lives with the command that runs it. It resolves no disagreement between the pair, and it is **not** a mechanism: nothing fires it, nothing checks a held piece was read before release, nothing verifies the social pair shipped, and nothing observes whether a review round happened at all.
+- **citação:** > "closing the text is not the end of drafting — the first deploy is"
 
 ---
 

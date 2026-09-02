@@ -1499,3 +1499,92 @@ withdraw: **say it where the reader is, rather than leave the commit history rea
 held.** The lesson, which outlives this record: **a commit boundary argued as a review affordance is
 one the ADR must be staged against too** — `git add` the record with the slice it justifies, not with
 whatever is being committed when it happens to be written.
+
+## Amendment, 2026-09-02 — a fifteenth skill, and the test it passes is CONSUMERS rather than subject
+
+**Decided by the owner, mid-session, in the words quoted below; written by `agents-lead` under the
+domain split (#223), riding in the MR that performs it. No Issue exists and none is owed** — harness
+work he asks for directly is authorised by the asking. It belongs to this capability because its
+subject is **when a body of knowledge earns a skill file of its own, and which personas preload it** —
+not what the lane does, which is the skill's own content.
+
+### What was decided
+
+**`content-publishing` is a skill, not a command**, and it is preloaded by both halves of the content
+pair. The owner's words, and the second is the one that set the scope:
+
+> *«o modo preview nao é um skill?»* · *«voce trabalhando na producao de um artigo deveria utiliza-lo ao
+> final para mandar para revisao»*
+
+> *«pense no fluxo de trabalho de um issue do tipo content como voce automatizaria toda esteira»*
+
+So the file is not the preview step; it is **the whole lane** — the interview at capture, the
+description closed by one lens, the owner's selection, the draft, the two-round review bound, the truth
+veto at the merge gate, the held preview at the real URL, release, and the social pair in the same
+batch.
+
+**A skill and not a command, on this library's own distinction**: a command is a file a human *types*
+and declares `argument-hint`; a skill is a body of knowledge the model *reaches for*. The owner types
+nothing here — the model reaches for it at the end of drafting — so it declares no `argument-hint`,
+which the inventory gate asserts in both directions.
+
+### The extraction test, and why this passes it where `published-voice` needed an exception
+
+ADR-0011's test is transversality: *if changing a persona's mandate would change the rule, it is not
+transversal.* The 2026-08-23 amendment above admitted `published-voice` as a **named exception**,
+*extracted ahead of a decided second consumer*, because at that moment exactly one persona loaded it.
+
+**This one needs no exception, and the difference is worth stating so the exception is not read as a
+precedent.** Two consumers exist **at the moment of extraction** — the drafter and the reviewer, both
+built — and the identity of their two `skills:` lists is already gated, so *both or neither* was the
+only admissible shape rather than a choice. A third actor is described by the file and does not preload
+it: the merge gate, whose truth-veto relay is one step in the lane. That is the ordinary state of a
+transversal skill, not a strain on the test.
+
+**What it costs, priced rather than waved through.** 18,395 B, always-on, into two briefs — the same
+40,912 B of billed context the aggregate in `README.md` now carries, re-derived there against a separate
+checkout of `main`. A preloaded skill is exactly as always-on as brief prose, and its `description`
+is additionally always-on in every session that loads the library. Accepted because the alternative is
+the two personas that run the lane not knowing where their step sits in it, which is the defect the
+slice was asked for.
+
+### The two things this record fixes that are NOT the skill
+
+**1 · The rule had one home and it was in the wrong repository.** Every step of the lane existed; the
+only record of their **order** was a decision record in the consuming product's library — number `0049`
+there, now declared in this suite's foreign-number list so the citation is a reviewable act rather than
+an accident that reads as local. A record in the product's library is opened by someone already looking
+for it; a skill is reached by a model that does not know it needs one.
+
+**2 · The measured cost of that.** A session asked to put a finished article in front of the owner
+offered a rendered artifact and had to be told — *«nunca mais iriamos utilizar artifact, esqueceu»* —
+that the platform had a preview mode scoped and built for exactly that. The rule the skill now carries
+is his correction of it:
+
+> *«ao final de fechar o texto de um artigo voce deveria fazer o primeiro deploy dele no modo preview e
+> me enviar o link para revisao inplace»*
+
+### Consequences
+
+#### Good
+
+- The lane has one written home, reached by the two personas that run it, at the moment they run it.
+- The step that has been described wrongly more than once — the hold — is recorded with its exact
+  mechanism **and its three rejected alternatives**, each rejected by measurement, so the same
+  proposals do not return.
+- The flagship trade-off travels with the mechanism: **isolation is not privacy**, published with the
+  falsifier and the mutation that makes it a measurement rather than a failed search.
+
+#### Bad, and each is accepted rather than mitigated
+
+- **Nothing fires it.** No hook, no matcher, no rite reaches for it at the end of a draft. By this
+  loop's own test — *would something stop me, or only my memory?* — the whole lane is memory except the
+  containment that keeps the drafting personas off public surfaces and the gate's own merge floor. The
+  skill says so in those terms rather than reading as a mechanism.
+- **It is a frozen snapshot of a lane that is still moving**, and it names the consuming product's hold
+  design in enough detail to go stale if that design changes. Bounded by keeping every consumer-specific
+  spelling inside a worked example and stating the portable rule separately — *the first deploy is part
+  of drafting* — which survives the example changing.
+- **The `content` lane remains invisible to the iteration axis**, and this record does not fix that.
+  The skill names it as the price of a selected lane rather than as a defect, because the alternative
+  reverses the owner's standing rule that content is selected one piece at a time.

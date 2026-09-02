@@ -3363,7 +3363,7 @@ fi
 # is a citation like any other to the loop below: it would register as a sighting and keep an exemption
 # alive after its last real citing site was removed — this block defeating its own second arm from
 # inside its own documentation.
-FOREIGN_ADR_NUMBERS="0023 0043 0046"
+FOREIGN_ADR_NUMBERS="0023 0043 0046 0049"
 
 foreign_problems=""
 for num in $FOREIGN_ADR_NUMBERS; do
@@ -4050,7 +4050,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=49
+BP_HIGH_WATER=50
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).

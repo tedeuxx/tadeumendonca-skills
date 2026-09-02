@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Emit the README's skill inventory table, derived from `skills/`.
 
-THERE IS NO FAMILY ANY MORE (#286). The tree is `skills/<name>/SKILL.md`, one level, fourteen
-directories — the owner's decision: *"o que eu quero é que todas skills estejam no mesmo nível
+THERE IS NO FAMILY ANY MORE (#286). The tree is `skills/<name>/SKILL.md`, one level, ONE DIRECTORY PER
+SKILL — the count is deliberately not spelled here, because it moves whenever a skill is added and a
+number in a docstring has no falsifier beside it; `jq -r '.skills[]' .claude-plugin/plugin.json | wc -l`
+is the derivation. The owner's decision: *"o que eu quero é que todas skills estejam no mesmo nível
 hierárquico de diretórios."* So this file no longer computes a family, no longer emits a family column,
 and the allocation map below is keyed on the SKILL rather than inherited from a group.
 
@@ -17,7 +19,7 @@ fallen to 13. That history is written up in `CLAUDE.md`, not re-argued here.
 
 WHAT THE FLATTEN COST THIS FILE, said rather than left to look free: allocation was a per-FAMILY map
 with three per-skill exceptions, which was compact and could not state the truth for those three. It is
-now fourteen explicit lines. That is more to maintain and it is exact — no skill inherits an owner from
+now one explicit line per skill. That is more to maintain and it is exact — no skill inherits an owner from
 a directory it merely happens to sit in, and a NEW skill lands as `UNALLOCATED` (rendered `— none`)
 instead of quietly inheriting its neighbours', which `skills-resolve.test.sh`'s reverse assertion
 reddens on.
@@ -57,8 +59,8 @@ SKILLS = ROOT / "skills"
 # three exceptions beside it, because family granularity could not state the truth for those three
 # (`documentation-standard` splits by domain, `shell` is transversal, `devops` has three
 # holders). With no families left there is nothing to inherit from, so every skill states its own owner
-# and the exception list is gone — the same information, one indirection fewer, and fourteen lines that
-# each say what they mean.
+# and the exception list is gone — the same information, one indirection fewer, and one line per skill,
+# each saying what it means.
 DEVELOPER = "`developer`"
 JUDGES = "`product-lead` · `tech-lead` · `agents-lead` · `quality-assurance`"
 WIELDER = {
@@ -66,6 +68,7 @@ WIELDER = {
     "backend": DEVELOPER,
     "cloud-infrastructure": DEVELOPER,
     "code-review": DEVELOPER,
+    "content-publishing": "`content-writer` · `content-reviewer` · `product-lead` — the pair that runs the lane, and the lens that opens it and holds the truth veto that closes it",
     "definition-of-done": JUDGES,
     "definition-of-ready": JUDGES,
     "devops": "`developer` · `agents-lead` · `tech-lead` (#227)",
