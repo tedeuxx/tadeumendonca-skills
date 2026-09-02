@@ -3593,7 +3593,7 @@ Three consequences, and each disposes of a whole class:
 
 **Struck as a claim, corrected in the row above, and recorded here because this is the table a later
 reader applies rather than a detail.** The permission layer refuses on **two** shapes, not one: a
-`Bash` command prefix **and** a tool name × path glob. Measured, both settings files, all four
+`Bash` command prefix **and** a tool name × path glob. Measured, both settings files,
 non-`Bash` entries emitted rather than counted:
 
 ```
