@@ -129,8 +129,11 @@ case "$out" in
 esac
 # THE ADMISSION IS PART OF THE ARTIFACT, not commentary on it. Without it the notice reads as coverage
 # of the incident that produced this hook, which it explicitly is not.
+# The needle is the CLAIM, not the character offsets it used to quote. The offsets moved to this
+# hook's header (a maintainer reads them once) rather than being reprinted into every session, so an
+# arm keyed on `character 20` would have asserted the register rather than the limit.
 case "$out" in
-  *'character 20'*) ok 'the notice says this is not the failure that actually happened' ;;
+  *'is not the one that actually happened'*) ok 'the notice says this is not the failure that actually happened' ;;
   *) bad 'the notice carries its own limit' "got: $out" ;;
 esac
 teardown

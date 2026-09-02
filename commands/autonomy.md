@@ -362,8 +362,10 @@ builder. `APPROVE-AND-MERGE` and `APPROVE-AND-MERGE-BOUNDARY` are clearances the
 literals sits at an open, green PR's head, and surfaces no link, is a turn that ended owing him one —
 reported by `owed-pr-link-detect.sh`. **It does not address the incident that produced it**, and saying
 so is part of the rule rather than a footnote: the motivating complaint was a link he had received twice
-and could not find, buried at character 439 of a turn that opened with two paragraphs of machinery. **So
-when the link goes, the ask goes FIRST.** That half is a discipline; nothing checks it.
+and could not find, buried mid-message under paragraphs of machinery. **So
+when the link goes, the ask goes FIRST.** That half is a discipline; nothing checks it. *(The measured
+character offsets are deliberately not here — see `hooks/scripts/owed-pr-link-detect.sh`'s header for the
+full table and ADR-0004's 2026-09-01 amendment for the argument they support.)*
 
 **A second case is legitimate, and it is the second limb of his own rule (#327).** A PR link also goes to
 him when **the ask is explicitly a decision he holds** — a title, a positioning call on a draft —

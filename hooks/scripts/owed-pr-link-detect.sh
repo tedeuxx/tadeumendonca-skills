@@ -240,9 +240,10 @@ turn's prose carried the URL, so as far as he can see the slice simply stopped.
 
 Hand him the link, and put the ask FIRST. The standing rule is that anything needed FROM him goes first
 and labelled as an ask, never buried at the end of a report — and this hook cannot check that half. On
-the incident that produced it the link was in his hands twice before he asked for it, at character 20
-and at character 439 of two different turns, so the failure this hook detects is not the only one in
-this family and is not the one that actually happened.
+the incident that produced it the link was in his hands twice before he asked for it, in both cases
+mid-message, so the failure this hook detects is not the only one in
+this family and is not the one that actually happened. (The measured offsets are in this file's own
+header, where they are read once by a maintainer rather than reprinted into every session.)
 
 This is owed-pr-link-detect.sh (#374), a Stop hook. It is DETECTION, NEVER PREVENTION — it fires after
 the turn already reached him, so there is nothing left to refuse; it gates nothing and decides nothing.

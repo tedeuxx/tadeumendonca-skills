@@ -3295,15 +3295,28 @@ list against the brief's own section. **That gate covers one reader of five.**~~
 
 **STRUCK the day it was written, and it is the same defect this amendment's neighbour struck one
 section above for the *Bash side door* clause — committed again, in the amendment that ships beside
-it.** *"Held by review"* was false about all four: removing the literal from any reader's own `case`
-arm reddens that reader's own suite, and every one of those suites has a step in `hooks-test.yml`.
-Measured, one mutation per run, tree restored between:
+it.** *"Held by review"* was false about the four `case`-block readers: removing the literal from any of
+their own arms reddens that reader's own suite. **All FIVE readers were mutated, not three** — the first
+authorship of this block published a three-row table under a claim about four, which is *measured and
+omitted* being indistinguishable from *not measured*, this record's own rule failing on the soft side.
+One mutation per run, tree restored between:
 
-| reader removed from | its own suite |
+| reader, literal removed from its own arm | its own suite |
 |---|---|
 | `owed-pr-link-detect.sh` | 28 passed, **2 failed** |
 | `zombie-loop-detect.sh` | 25 passed, **2 failed** |
 | `premature-pr-link-detect.sh` | 34 passed, **1 failed** |
+| `session-wip.sh` | 38 passed, **1 failed** |
+| `permission-guard.sh` (rule 7c) | **430 passed, 0 failed — no red** |
+
+**The fifth row is the one worth reading, and it is NOT a contradiction of the rule-7c sentence three
+paragraphs below.** Removing 7c's dedicated arm changes the *message* and not the *decision*: the
+literal falls to `*)`, which **also denies**. So the merge floor is covered by fail-closed default
+rather than by an assertion, in both directions — an unconsidered literal denies, and a deleted arm
+denies too. That is the safe direction and no arm is owed for it; it is stated here because a table of
+four reds and one green invites the reader to hunt for a defect that is not there. The two facts sit
+three paragraphs apart because they concern **opposite mutations** — one adds a literal to the brief,
+the other removes an arm from a reader — and only the first is what the new gate arms watch.
 
 **The real residual was a different one, and the misstatement hid it.** Adding a SIXTH literal to the
 brief reddened exactly one arm — `inventory-counts` 179/1 on `session-wip.sh` — and left all four other
