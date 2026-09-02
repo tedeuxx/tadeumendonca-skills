@@ -202,7 +202,8 @@ a contaminação na leitura do repositório por humanos se tudo ficar no mesmo l
 not distinguish them.** **Measured on 2026-08-10**, `claude plugin details` on the split tree reported
 **`Skills (71)`** — the 69 the library held under `skills/` then, **plus the 2 then under `commands/`**,
 counted alike, reachable alike. **Both denominators have moved since** — the library consolidated to 14
-(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 14, re-run 2026-09-02) and `commands/` holds 6
+and has since gained one (`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 15, re-run
+2026-09-02) and `commands/` holds 6
 (`ls commands/` → `autonomy.md blueprint.md new-issue.md sprint-planning.md sprint-retrospective.md
 sprint-review.md`, re-run 2026-09-02) — so read the 71 as the
 measurement that established the rule, not as today's inventory. **The rule is what survives the
@@ -283,7 +284,8 @@ descriptions dense deliberately; **that decision was free while nothing loaded t
 loaded.** Nobody has revisited it — that is an open decision, not a settled one.
 
 **That figure is the price at its measurement, not the price today, and the denominator is why.** The
-library has consolidated to **14** since (`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 14,
+library has consolidated and then grown again to **15** since (`jq -r '.skills[]'
+.claude-plugin/plugin.json | wc -l` → 15,
 the same figure the sections below list), so the per-session cost is smaller by some amount
 this file deliberately does not state. Re-measuring and publishing a current number would swap a
 checkable historical claim — 69 descriptions, one date, one command — for a current one sourced to a
@@ -344,7 +346,7 @@ safe pin (no mid-development tags pollute the namespace).
 
 ## Command reference
 
-**14 skills, one directory each, at ONE level under `skills/` (#286)** — the owner's decision: *"o que
+**15 skills, one directory each, at ONE level under `skills/` (#286)** — the owner's decision: *"o que
 eu quero é que todas skills estejam no mesmo nível hierárquico de diretórios."* **The headings below are
 a reading structure in this document and nothing else.** They were directories until #286 (`principles/`,
 `backend/`, `frontend/`, `infrastructure/`, `workflow/`), and the reason they were is recorded in the
@@ -353,10 +355,10 @@ was made on.
 
 **Why the directories existed, and why that reason lapsed.** They came back at #182 on the owner's call,
 for the human reading the library: a category teaches what a skill IS in a way an alphabetical list of
-**69** does not. That argument was about a denominator. The library is **14**
-(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 14), after `#229`/`#230`/`#231` consolidated
-21, 19 and 15 files into one skill each — so the pile the grouping protected a reader from no longer
-exists. **What did NOT change is the identifier**: the loader reads the innermost directory name at any
+**69** does not. That argument was about a denominator. The library is **15**
+(`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 15) — 14 after `#229`/`#230`/`#231`
+consolidated 21, 19 and 15 files into one skill each, plus `content-publishing` added 2026-09-02 — so
+the pile the grouping protected a reader from no longer exists. **What did NOT change is the identifier**: the loader reads the innermost directory name at any
 depth, so `/tadeumendonca-skills:cloud-infrastructure` is the same string before and after, and this
 slice is a PATCH rather than a breaking change. Re-measured on #286 rather than inherited from #182 —
 one probe plugin, one skill body, only the depth varying:
@@ -495,7 +497,11 @@ DevOps tooling. `devops` is the umbrella (#227) — GitHub/CI-CD (OIDC, secrets/
 | `/shell` | Where scratch files go, one atomic Bash call, the `gh --repo` flag position, `--body-file` always — ~~preloaded by all 7 personas~~ **preloaded by 7 of the 8 (#375): every persona that writes a file or runs a shell command.** `scrum-master` holds neither `Write` nor `Bash`, so the rule has no subject there and preloading it would be bytes with nothing to govern |
 | `/code-review` | Author-side completeness pass before opening the MR: anticipates both gates, verifies the DoD with evidence |
 
-### the content skills — the ruler two personas share
+### the content skills — the ruler two personas share, and the lane they share it inside
+
+**Two skills since 2026-09-02, and they are split on OBJECT rather than on size:** `published-voice`
+judges the **text**, `content-publishing` **moves** it. Both are carried by both halves of the pair, which
+the gate below already required of any addition to either list.
 
 One skill, and it exists to be **shared** rather than to be complete. `published-voice` holds every rule
 a piece of published prose is judged against; `agents/content-writer.md` and
@@ -516,6 +522,7 @@ always-on in every session that loads the library.
 | Command | Purpose |
 |---|---|
 | `/published-voice` | The ruler for anything published in the owner's voice: the three anchors and their precedence, the goal/filter/byproduct block, the journey rule and its two corollaries, his voice in his own words, the 26-article Medium corpus and the half not to reproduce, the sourcing constraint and the subject bound, the six ranked title criteria, and the teaser rules for a LinkedIn/X post that points at a piece |
+| `/content-publishing` | The LANE a piece travels, end to end, with each step marked AFK / HITL / unbuilt: the interview at capture, the description closed by one lead, **the owner's selection — this lane is selected and never drained, so `ready` here is not a queue**, the draft, the two-round review bound, the truth veto at the merge gate, the held preview at the real URL, release, and the LinkedIn + X pair in the same batch. Its flagship trade-off is **isolation is not privacy** — a held piece's text ships in the public bundle — and it names what nothing enforces: nothing fires it, nothing checks a held piece was read, nothing verifies the social pair shipped |
 
 ---
 
