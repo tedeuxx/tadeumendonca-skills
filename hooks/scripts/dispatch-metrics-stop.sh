@@ -141,6 +141,25 @@
 # read as never having run — which is the defect #382 was filed for, and which nearly cost a profile
 # its place in the roster. A GATE would need the opposite bias; this is not a gate.
 #
+# ── WHAT THE FAN-OUT COSTS, PRICED RATHER THAN LEFT AS "NOISE" ────────────────────────────────────
+# The noise paragraph further up prices the ONE-COMMENT-PER-STOP shape, which predates the set and is
+# therefore not the whole bill. The set MULTIPLIES that volume by however many Issues resolve, up to
+# the cap below. Measured on the live instance this fix was built from:
+#
+#   gh issue view 381 --repo <owner>/<repo> --json comments \
+#     --jq '[.comments[]|select(.body|contains("dispatch-metrics:"))]|length'      # -> 36
+#
+# 36 metrics comments on ONE Issue, from a batch branch that named four. The identical run under this
+# hook posts to all four — so roughly **144 comments for the same work**, four times the volume for
+# the same information, and the cap bounds the fan-out at 8 ISSUES rather than at any number of
+# comments.
+#
+# ACCEPTED, and the trade is stated rather than implied: the alternative is what #382 measured — three
+# quarters of a batch reading as *no persona ran*. A reader can ignore a comment; a reader cannot
+# recover a record that was never posted. **If this becomes intolerable the lever is the cap, not the
+# union** — lowering `issue_cap` narrows the fan-out while keeping the attribution correct for the
+# common case, and the truncation is visible when it bites.
+#
 # WHAT IS STILL UNRECORDED, and it is narrower than before but not gone: a dispatch on a branch whose
 # name carries no qualifying token AND which has no PR — chiefly intake work still on `main`. That
 # case has no Issue to attach a comment to and nothing here can invent one. It is named in the
@@ -229,6 +248,7 @@ issues="$(printf '%s\n%s\n' "$pr_issues" "$branch_issues" \
 # which is the property that separates this from the defect being fixed.
 issue_total="$(printf '%s\n' "$issues" | grep -c . || true)"
 issue_cap=8
+issues_all="$(printf '%s\n' "$issues" | tr '\n' ' ' | sed 's/ $//')"
 issues="$(printf '%s\n' "$issues" | head -n "$issue_cap")"
 
 # ── transcript-derived metrics ───────────────────────────────────────────────────────────────────
@@ -327,8 +347,13 @@ for issue in $issues; do
     printf '<!-- dispatch-metrics: %s #%s -->\n' "$agent_type" "$issue"
     printf 'agent_type: %s\n' "$agent_type"
     printf 'issue: #%s\n' "$issue"
-    printf 'issues_resolved: %s\n' "$(printf '%s' "$issues" | tr '\n' ' ')"
+    # THE FULL SET, NEVER THE CAPPED ONE. `issues_resolved` naming only the Issues actually posted to
+    # would silently truncate the very set-visibility property this field exists to publish — a
+    # reader could not tell a four-Issue batch from the first eight of a forty-Issue one, and the
+    # total sat on a different line that only appears when the cap bites.
+    printf 'issues_resolved: %s\n' "$issues_all"
     if [ "${issue_total:-0}" -gt "$issue_cap" ]; then
+      printf 'issues_posted: %s\n' "$(printf '%s' "$issues" | tr '\n' ' ')"
       printf 'issues_truncated: yes — %s resolved, capped at %s\n' "$issue_total" "$issue_cap"
     fi
     printf 'branch: %s\n' "${branch:-unavailable}"

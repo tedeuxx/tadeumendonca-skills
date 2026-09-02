@@ -14,7 +14,7 @@ badly, stated once so a team does not have to rediscover its failure modes the h
 own loop, documented in `/agents-configuration`, runs no human estimation ceremony at all — the
 `scrum-master`, `product-owner` and `product-manager` personas that would once have run one were
 absorbed into `product-lead`, and the loop's own thesis replaced story points with mechanical,
-agent-graded gates (`/quality-gates`) as the thing that decides whether work is done. This skill exists
+agent-graded criteria (`/definition-of-done`, proven by `/quality-gates`) as the thing that decides whether work is done. This skill exists
 because the library is explicitly broader than its current consumer — the same stance this repo takes
 about the `backend` family, which documents an architecture the consuming site retired. Nobody dispatches
 this skill inside this repo's own operation; it is here for the projects this plugin installs into that

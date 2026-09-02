@@ -557,8 +557,10 @@ audience that did not need it ever sees.
 unmet, individually.** A verdict that says "implements the issue" has consolidated nothing. Where the
 description is not closed enough to enumerate, *that* is the finding — reviewing it anyway hides that
 intake failed. `quality-gates` (in the table below) is the **mechanical** half of "done" — the coverage
-floor, the gate table per loop model, the concrete thresholds. This is the **methodology** half: how a
-requirement becomes a verdict, and how a finding earns the right to hold a merge. Each of the ten
+floor, the gate table per loop model, the concrete thresholds; `definition-of-done` is where the
+**criteria** themselves live, with the table naming which of them a gate proves and which nothing does.
+This is the **methodology** half: how a
+requirement becomes a verdict, and how a finding earns the right to hold a merge. Each of the eleven
 criteria below is verified with **evidence** — a command's real output, a line in the diff — never with
 "looks fine".
 
@@ -580,6 +582,12 @@ criteria below is verified with **evidence** — a command's real output, a line
 10. **Content truth** — where the diff changes anything a reader or a crawler will see, the copy lens
     (`product-lead`) returned a verdict and its blocking findings are resolved. **A claim the gate can
     itself falsify against a checkable source fails this criterion whatever the lens returned.**
+11. **Reach** — where the change's consumer is an artifact somebody has to **author**, that artifact is
+    named and its existence stated. Criteria 1–8 establish that a change is *correct*; none of them
+    asks whether it is *used*, and the two come apart exactly here. **It does not block** — building a
+    mechanism ahead of its consumer is legitimate — it converts a disclosed limitation into a
+    **question handed to the owner** rather than a sentence in a report. **Nothing observes that the
+    question was asked**, and `definition-of-done` records that residual rather than implying a gate.
 
 **A finding blocks only if it names a criterion and a falsifier** — the command, line or file that would
 show the reviewer wrong. A finding naming no criterion is **advisory**: reported, never blocking. This is
@@ -620,18 +628,24 @@ and its trade-off*, not just the rule — because a rule without its reason is o
 **That column was headed *wielded by* until #172, and the rename is the point rather than a tidy-up.** It answers **whose mandate a convention falls under** — who is accountable for `dynamodb` being right. It does **not** answer *what does this persona have loaded*, and the two diverge sharply: under the old heading a reader had one column and no way to tell which question it was answering, so the curated preload below read as a contradiction of it rather than as a different fact.
 
 **Reconciling the two into one column was the alternative, and it was rejected.** Across the eight
-briefs (`ls agents/*.md | wc -l` → 8) the `skills:` lists total **36 preload entries**
+briefs (`ls agents/*.md | wc -l` → 8) the `skills:` lists total **38 preload entries**
 (`grep -h '^  - ' agents/*.md | wc -l`, re-run
-2026-09-01; the universal preload — `harness-engineering` at #224, **split into
+2026-09-02; the universal preload — `harness-engineering` at #224, **split into
 `agents-configuration` + `engineering-standards` at #381**, which is what moved this from 28 to 36,
 eight briefs gaining one entry each — is what pushed it above the ten it used to be;
 `published-voice` is carried by the content pair and by nobody else, which is now **two** briefs rather
-than the one it was extracted from), resolving to **nine distinct files
-(`grep -h '^  - ' agents/*.md | sort -u | wc -l`), all nine
+than the one it was extracted from; **#380 added the two that take it 36 → 38** —
+`definition-of-done` to `quality-assurance` and `definition-of-ready` to `agents-lead`), resolving to
+**ten distinct files
+(`grep -h '^  - ' agents/*.md | sort -u | wc -l`), all ten
 of them rows in this table.** Against **14** rows, making the column mean *preloaded by* would still
-print "— none" against **5 of them** — `backend`, `cloud-infrastructure`, `definition-of-done`,
+print "— none" against **4 of them** — `backend`, `cloud-infrastructure`,
 `frontend` and `planning-poker`: publishing, on the document a forker reads first, that no persona is
-responsible for just over a third of the library. That is false, and it deletes the true information
+responsible for well over a quarter of the library. ~~**5 of them** … `definition-of-done`~~ —
+**struck 2026-09-02 (#380), and this is the member that moved rather than a recount**:
+`definition-of-done` is preloaded by `quality-assurance` as of that slice, so the name this paragraph
+listed as unpreloaded is one its own diff preloaded. Re-derive with the command below rather than
+trusting either figure. That is false, and it deletes the true information
 the column already carries to remove a contradiction that a heading fixes.
 
 **Both figures and all five names are derived from the table below, by one command over both
@@ -990,7 +1004,7 @@ The library: 14 skills, one directory each, at one level under `skills/`.
 | `frontend` | Frontend (React SPA) | `developer` |
 | `planning-poker` | Planning Poker — consensus estimation, and what it is actually for | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `published-voice` | The owner's published voice — the shared ruler | `content-writer` · `content-reviewer` — the pair it was extracted for (#317) |
-| `quality-gates` | Quality gates — the definition of done and the concrete policy that proves it | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
+| `quality-gates` | Quality gates — the CI/CD policy, and where each gate sits | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `shell` | Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched | `product-lead` · `tech-lead` · `agents-lead` · `developer` · `quality-assurance` · `content-writer` · `content-reviewer` |
 **Three things the table shows rather than asserts.** The builder is the only persona holding a build
 skill — `backend`, `frontend`, `cloud-infrastructure` — because conventions exist for building, and one

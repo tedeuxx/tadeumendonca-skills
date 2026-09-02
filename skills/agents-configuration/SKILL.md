@@ -33,8 +33,9 @@ paragraph by paragraph:** *would this still be true in a project that does not r
 `engineering-standards`. No → here. Where a principle has a local enforcement, the principle is named
 there and the enforcement here, once each.
 
-Three companion skills carry adjacent ground and are **not** folded in here: `/engineering-standards`
-(the judgment), `/quality-gates` (what "done" means, the Definition of Done, the gate tables) and
+Four companion skills carry adjacent ground and are **not** folded in here: `/engineering-standards`
+(the judgment), `/definition-of-done` (what "done" means — the criteria, and which of them a gate
+proves), `/quality-gates` (the CI/CD gates and their tables) and
 `/devops` (the permission zones and guard hook that make the deny-boundary mechanical, plus CI/CD and
 the branching topology). The single-
 vs. two-environment branching topology lives in `/devops` (#227) — this skill keeps only how the state
@@ -1619,8 +1620,9 @@ what the rule says — that is what lets you act correctly in the cases the stat
 enumerate, which is most of them.
 
 See also: `/engineering-standards` (the judgment applied inside all of this — the two tiers, the
-eleven principles, delivery versus hygiene, the human residual), `/quality-gates` (the Definition of
-Done and the gate tables per loop model), `/devops` (the permission zones and guard hook, branching,
+eleven principles, delivery versus hygiene, the human residual), `/definition-of-done` (the Definition
+of Done — the criteria and the seam table), `/quality-gates` (the CI/CD gate tables per loop model and
+the merge-class rules), `/devops` (the permission zones and guard hook, branching,
 per-environment topology, OIDC, the deploy workflows, TFC state), `/definition-of-ready` (the
 SDLC-generic bar this loop's intake chain reaches), and `/documentation-standard` (the ADR practice
 that records decisions about all of it).

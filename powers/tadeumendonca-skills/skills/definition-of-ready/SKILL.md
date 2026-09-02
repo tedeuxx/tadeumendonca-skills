@@ -146,14 +146,39 @@ governs, so the bar is short and complete rather than long and partly unsatisfia
 **The same sentence `/definition-of-done` owes at the exit gate, owed here at the entry gate.** State it
 by member rather than by count, for the reason that file gives:
 
-- **Checked by a mechanism:** the `invocable:` declaration (`hooks/scripts/closure-artifact-guard.sh`
-  refuses a manual close on an unmet one), and the presence of `sp:N` (the drain's preflight refuses to
-  enter with an item that lacks one).
+**Three buckets, not two, and the third exists because two collapsed a distinction this repo pays for.**
+An earlier form of this list had *checked by a mechanism* and *checked by nobody* only, and put `sp:N`
+in the first — which is false, and false in the **permissive** direction, on the one table whose entire
+job is separating an instrument from a memory.
+
+- **Checked by a hook:** the `invocable:` declaration.
+  `hooks/scripts/closure-artifact-guard.sh` is registered in `hooks/hooks.json` and refuses a manual
+  close on an unmet one. This is the only bullet here where something fires.
+- **Checked by an instruction the session follows, not by a hook:** the presence of `sp:N`. The drain's
+  preflight *"refuses to enter"* while an item in the active iteration lacks one — and that preflight
+  is **prose in `commands/autonomy.md` executed by the session**, not `hooks/scripts/preflight.sh`.
+  **The names collide, and `commands/sprint-planning.md` is where the collision is warned about**, in
+  its own words: *"That preflight is the command's own self-check and is NOT
+  `hooks/scripts/preflight.sh`. The names collide and nothing but this sentence separates them … the
+  word* refuses *here describes a rule someone follows, not a hook that fires."* Its falsifier,
+  re-run at head:
+
+  ```
+  grep -cE 'sp:|milestone|iteration' hooks/scripts/preflight.sh    # -> 0
+  ```
+
 - **Checked by nobody:** whether the description is genuinely closed, whether the acceptance criteria
   are observable, and whether the seam against neighbouring Issues was read at all. **Nothing observes
   a dispatch.** An Issue whose intake was skipped entirely is indistinguishable, from the tracker and
   from the diff, from one run correctly — the artifact of record is a closed description, and a
   description says nothing about who was asked.
+
+**Why the middle bucket is not a softer version of the first.** By this loop's own test — *would
+something stop me, or only my memory?* — buckets two and three are **both** memory, and a reader who
+needs to know what protects them should read them together. The split exists because their *failure
+modes* differ: bucket two fails when a session skips a written step, bucket three has no step to skip.
+**Do not promote anything into bucket one without naming the registered hook that fires**, which is the
+error this list already made once.
 
 **So `ready` is attributable and auditable, and it is not proven.** That is the honest form, and it is
 the same shape as the label's own entry rule: something must *query* it, which two things do. Nothing

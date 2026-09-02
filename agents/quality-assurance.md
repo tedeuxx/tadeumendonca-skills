@@ -553,8 +553,12 @@ The hard gates, each to be confirmed:
    tests green, a mutation-checked suite, and the limitation *disclosed in the builder's report*. This
    gate read that disclosure and approved, correctly by every criterion it then had.
    **Satisfied by** answering, in one sentence: *what must exist outside this diff for this change to do
-   anything for a reader, and does it exist?* Three honest answers — *nothing must* (the consumer is
-   code in this diff; say so and move on), *X exists* (name it), or ***X does not exist yet***.
+   anything for a reader, and does it exist?* Three honest answers — *nothing must, the consumer is
+   code and it is `<path>`*, *X exists* (name it), or ***X does not exist yet***.
+   **The first answer names its object too, and that is not pedantry:** a bare *"nothing must"* is
+   unfalsifiable, is the cheapest thing to write, and is available on exactly the class this criterion
+   exists for — the measured instance would have accepted it. Naming the path costs nothing when the
+   answer is true and cannot be written when it is false.
    **The third answer does NOT block.** Building a mechanism ahead of its consumer is legitimate here
    and recorded as such. What it does is convert a disclosed limitation into a **question handed to the
    owner** — in your verdict, as an ask — instead of a sentence in a report he reads twice and is never

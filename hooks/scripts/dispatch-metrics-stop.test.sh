@@ -272,6 +272,38 @@ else
   bad "set visibility" "expected 'issues_resolved: 371 372' in the #371 comment, got '$(grep '^issues_resolved' "$root/bodies/371" 2>/dev/null)'"
 fi
 
+# ── ARM 6b — THE CAP, which was the one new behaviour in this slice with no assertion at all ────
+#
+# Added on review. The slice's own thesis is "this shipped without a suite for three weeks", so a new
+# bound arriving with no arm is that defect in miniature — and the cap is the ONLY thing standing
+# between a runaway branch name and an unbounded fan-out.
+#
+# Three properties, because the cap is only safe if all three hold: it BOUNDS the posts, it is VISIBLE
+# when it bites, and — the one that was wrong before this arm existed — `issues_resolved` still names
+# the WHOLE set rather than the truncated one.
+
+run_hook "loop/b-101-102-103-104-105-106-107-108-109-110" "acme:developer"
+posted_count="$(grep -c '^issue comment ' "$root/calls.log" || true)"
+if [ "$posted_count" -eq 8 ]; then
+  ok "cap — ten resolved Issues post to exactly 8, so the fan-out is bounded"
+else
+  bad "cap — bound" "expected 8 posts, got $posted_count"
+fi
+
+capbody="$root/bodies/101"
+if grep -q '^issues_truncated: yes — 10 resolved, capped at 8$' "$capbody" 2>/dev/null; then
+  ok "cap — truncation is VISIBLE in the artifact and names the total, never silent"
+else
+  bad "cap — visibility" "expected the issues_truncated line, got '$(grep '^issues_truncated' "$capbody" 2>/dev/null)'"
+fi
+
+if grep -q '^issues_resolved: 101 102 103 104 105 106 107 108 109 110$' "$capbody" 2>/dev/null; then
+  ok "cap — issues_resolved names the WHOLE set, not the 8 that were posted to"
+else
+  bad "cap — set visibility survives truncation" \
+      "issues_resolved must carry all ten; got '$(grep '^issues_resolved' "$capbody" 2>/dev/null)'"
+fi
+
 teardown
 
 # ── ARM 7 — every silent exit is NAMED, derived from the SOURCE ──────────────────────────────────

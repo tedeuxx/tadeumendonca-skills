@@ -1472,3 +1472,30 @@ edited away or corrected in an adjacent paragraph.
 **Deliberately not published: any byte figure** for the two skills or for `quality-assurance`'s preload
 total. Both bases sit inside the diff that would publish them, which is this repository's most expensive
 recurring defect. The membership is the claim.
+
+### This amendment is in the WRONG COMMIT, and the note stays because the repair is unavailable
+
+**It landed in `ce64746`, the commit for [#362](https://github.com/tedeuxx/tadeumendonca-skills/issues/362),
+not in `963d8e3`, the commit for #380 whose decision it records.** `documentation-standard`'s *same MR*
+requirement is satisfied and is not what is wrong. What is wrong is that the batch's two-commit split
+was justified on the ground that **a reviewer must be able to separate the two Issues** — and this
+record, the argument for one of them, rides in the other's commit. **A revert of #362 would take #380's
+decision record with it.**
+
+Sharper than a misfiling: `ce64746`'s own message reads *"an amendment to ADR-0006 …, deliberately NOT
+to ADR-0011"* while that same commit adds 81 lines to ADR-0011. The message asserts the opposite of
+what the commit does.
+
+**Not repaired, and the constraint is measured rather than assumed.** Moving it means rewriting a
+pushed branch, and the floor refuses — probed at head against the guard itself:
+
+```
+printf '…"command":"git push --force-with-lease …"…' | bash hooks/scripts/permission-guard.sh
+→ Blocked: force-push / 'git reset --hard' rewrites history irreversibly.
+```
+
+So the honest disposition is the one this repository already uses for a published claim it cannot
+withdraw: **say it where the reader is, rather than leave the commit history reading as if the split
+held.** The lesson, which outlives this record: **a commit boundary argued as a review affordance is
+one the ADR must be staged against too** — `git add` the record with the slice it justifies, not with
+whatever is being committed when it happens to be written.

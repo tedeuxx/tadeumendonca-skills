@@ -1,5 +1,5 @@
 ---
-description: Design or evaluate a Definition of Done — the criteria a slice, release or project calls finished. Use when building a DoD from scratch, choosing its shape (fixed checklist, per-item-type criteria, automated gate), or diagnosing why review still reads as subjective. Not for this loop's own concrete DoD and gate thresholds (see quality-gates), or a work item's readiness to be built (see definition-of-ready).
+description: Design or evaluate a Definition of Done, and apply THIS loop's own — the criteria a slice calls finished, plus the table naming which of them a gate proves and which nothing does. Use when building a DoD from scratch, checking a slice against this loop's criteria, or diagnosing why review still reads as subjective. Not for the CI/CD gates and thresholds themselves (see quality-gates), or a work item's readiness to be built (see definition-of-ready).
 purpose: teach what makes a Definition of Done a ruler rather than a phrase, independently of any one project's gates
 ---
 
@@ -210,7 +210,12 @@ what that guard cannot see rather than as a tightening of it.
 diff, for this change to do anything for a reader — and does it exist?* Three honest answers, and the
 third is the one this row was written for:
 
-- **"Nothing does; the consumer is code already in this diff."** Row 9 has no subject. Say so and move on.
+- **"Nothing must — the consumer is code, and it is `<path>`."** **The object is named even here, and
+  that requirement is the answer to this criterion's own sharpest weakness.** Left as a bare *"nothing
+  must"*, this is unfalsifiable, it is the cheapest thing to write, and it is available on exactly the
+  class row 9 exists for — **the measured instance below would have accepted it.** A criterion whose
+  cheapest passing answer is indistinguishable from its failure mode is not gating anything. Naming the
+  path costs a reviewer nothing when the answer is true and is impossible to write when it is not.
 - **"X exists."** Name it. That is the evidence.
 - **"X does not exist yet."** *This is the answer that used to pass silently as a disclosed
   limitation.* It does not stop the merge — building a mechanism ahead of its consumer stays legitimate
