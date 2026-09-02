@@ -3512,7 +3512,26 @@ jq -r '[.hooks|to_entries[]|.key as $e|.value[]|.hooks[]|{e:$e,s:(.command|split
 
 **A live false claim fell out of that derivation and is corrected in this same MR.** `README.md` read
 *"`closure-artifact-guard` (#337) is the only hook registered on **two** events"* — false since
-`preflight` shipped on two events at #342, three days later. It is struck in place and the derived
+`preflight` shipped on two events at #342.
+
+~~three days later~~ — **struck 2026-09-02: the interval was minted by this correction and never
+falsified, which is the fifth instance of the lesson the round before it wrote down — *a correction
+is a publication, and it needs the same falsifier discipline as what it replaces.* It was THREE
+HOURS ELEVEN MINUTES, the same night**, and the true figure is the sharper evidence for everything
+this paragraph exists to say: the claim went stale before its author slept. Published with its two
+commits rather than as a rounded interval, because a duration is exactly the shape that cannot be
+re-derived from the sentence carrying it:
+
+```
+git show -s --format='%H %ad %s' --date=iso 8b6d302 e1fe5c7
+→ 8b6d302  2026-08-28 21:35:16 -0300  feat(loop): closure is held against the artifact … (#337)
+→ e1fe5c7  2026-08-29 00:46:19 -0300  feat(loop): the session refuses to run while its guards cannot … (#342)
+```
+
+**The form to prefer is the one that cannot go stale at all**, and it already existed inside this
+same diff: `inventory-counts.test.sh`'s own comment says *"true when written and false from #342
+onward"* and names no duration. `README.md` now carries that form; the interval is kept only here,
+where it is the argument rather than decoration. The sentence is struck in place and the derived
 statement replaces it, and `inventory-counts.test.sh` now holds the claim in both directions off the
 command above, so the next registration on a second event reddens rather than quietly refuting a
 sentence nobody re-reads. **The event table in the same file was already correct** (it lists
@@ -3925,15 +3944,22 @@ amendment left open in the previous round, now settled in the direction that kee
 The criterion offers them no alternative, so this is the axis they are actually judged on. Two carry a
 measured cost worth recording.
 
-**`dispatch-metrics-stop.sh` occupies 83% of this repository's Issue comment surface.** Over the forty
-most recent Issues:
+**`dispatch-metrics-stop.sh` dominates this repository's Issue comment surface**, and the figure is
+published as a **dated reading of a sliding window** rather than as a fixed pair, because the window
+moves every time an Issue is filed or commented:
 
 ```
 gh issue list --repo <owner>/<repo> --state all --limit 40 --json number,comments \
   --jq '{metrics:([.[]|[.comments[]|select(.body|test("dispatch-metrics"))]|length]|add),
          total:([.[]|(.comments|length)]|add)}'
-→ {"metrics":325,"total":390}
+→ {"metrics":325,"total":390}    2026-09-01   (~83%)
+→ {"metrics":333,"total":398}    2026-09-02   (~84%)
 ```
+
+**Two readings one day apart, and neither is wrong** — `--limit 40` selects *the forty most recent*,
+so the denominator is a moving object and a single pair republished later reads as refuted by its own
+command. **The stable claim is the proportion, not the numerator**: on both readings the hook's own
+comments are more than four fifths of everything on that surface. Re-run it; do not cite the pair.
 
 **It survives anyway, and the reason is a consumer rather than a preference:** `/sprint-retrospective`
 step 2 derives the rite's consult set from these comments by name. Cutting the hook removes the rite's

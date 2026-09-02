@@ -410,9 +410,21 @@ case "$branch" in main|master) deny "…HEAD is '$branch', so this push lands on
 unborn HEAD, where `rev-parse` fails and the check would silently skip. **So the hook reads the branch;
 what it does not read is an ENVIRONMENT NAME**, and that is the property that actually makes one hook
 correct under both loop models. A rule keyed on `staging`/`production` belongs in the repo's own
-`settings.json`, never the shared hook. **The trunk-push rule was measured and ruled on in #383**: it
-survives, because `enforce_admins` is `false` on `main` (owner's read, 2026-09-02), so the forge does
-not refuse the admin credential every agent here acts through.
+`settings.json`, never the shared hook. **And the local deny is the only layer refusing that push today, which is a
+CONTINGENCY rather than a property.** Branch protection on `main` is configured with
+`enforce_admins` disabled, so protection does not apply to administrators — and every agent in this
+loop acts through an admin credential, so the forge would accept the push the hook refuses. Read
+2026-09-02:
+
+```
+gh api repos/<owner>/<repo>/branches/main/protection --jq '.enforce_admins.enabled'   → false
+```
+
+**Carry the caveat wherever that fact is repeated:** if `enforce_admins` is ever enabled the forge
+starts refusing this actor and the local rule becomes the redundant layer — **and nothing in this
+plugin can observe that**. The setting lives at the forge, changes without a commit, and the command
+above is denied to every context inside the loop by the `Bash(gh api:*)` floor entry, so the reading
+is a human's. Treat it as dated, not as settled.
 
 ## Why this doesn't cost cadence
 

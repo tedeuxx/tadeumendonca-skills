@@ -1465,7 +1465,7 @@ because one stamp and two repositories leaves no fact that says which one it is 
 
 `closure-artifact-guard` (#337) ~~is the only hook registered on **two** events~~ is registered on
 **two** events, and the split is forced rather than chosen. **Struck 2026-09-02 (#383): the "only" was
-false from #342 onward — three days after it was written — and it was found while DERIVING the hook
+false from #342 onward — and it was found while DERIVING the hook
 inventory for that audit, not by anyone re-reading the sentence.** Two scripts carry two registrations
 each, and the pair is derived rather than asserted:
 
