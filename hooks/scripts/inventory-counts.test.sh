@@ -625,6 +625,71 @@ else
     ok "hooks/ — the event partition closes: $ev_wired wired + $ev_unwired unwired = $ev_total_claimed claimed
       (the $ev_total_claimed itself is a property of Claude Code and is deliberately NOT falsified here)"
   fi
+
+  # --- MULTI-EVENT REGISTRATION, AND THE SINGULAR CLAIM THAT WENT FALSE THREE DAYS AFTER IT SHIPPED
+  #
+  # A FOURTH NUMBER lived in the same README section and was pinned by none of the three above:
+  # HOW MANY SCRIPTS CARRY MORE THAN ONE REGISTRATION. The README asserted it as a singular —
+  # "`closure-artifact-guard` (#337) is the only hook registered on **two** events" — which was true
+  # when written and false from #342 onward, when `preflight` shipped on `UserPromptSubmit` AND
+  # `SessionStart`. It stood until #383's audit found it while DERIVING the inventory, not by anyone
+  # re-reading it.
+  #
+  # WHY EVERY ARM ABOVE STAYED GREEN OVER IT, which is the reason this one exists rather than a
+  # tighter version of one of them: a second registration of an ALREADY-REGISTERED script adds one
+  # `"command"` line (the registration count moves, and the README diagram is expected to move with
+  # it), adds no new event key, and adds no new hook NAME. The three pinned numbers are all
+  # insensitive to the one fact this sentence was about.
+  #
+  # BOTH DIRECTIONS, and the second is the one that catches the NEXT occurrence:
+  #   1. every script on more than one event is NAMED in the README — members emitted on a hit, never
+  #      a bare count, because a count that is right about a set it never lists is this repo's own
+  #      recurring defect;
+  #   2. the singular phrase may be LIVE only while exactly one script is multi-event; otherwise it
+  #      must sit inside a `~~…~~` strike. Per this file's own header rule — a needle pinning a live
+  #      sentence goes green over its own strike — the arm reads the STRIKE and not the phrase, so
+  #      correcting the sentence the way this repo corrects sentences is what turns it green.
+  if ! jq -e . "$HOOKS_JSON" >/dev/null 2>&1; then
+    bad "hooks/ (multi-event) — hooks.json is not parseable by jq, so this arm computed NOTHING and is
+      not passing. Every claim below it about which scripts are registered twice is unchecked."
+  else
+    multi_ev="$(jq -r '[.hooks|to_entries[]|.key as $e|.value[]|.hooks[]
+                        |{e:$e,s:(.command|split("/")|last)}]
+                       |group_by(.s)|map(select(length>1))|.[]|.[0].s' "$HOOKS_JSON" 2>/dev/null || printf '')"
+    multi_n="$(printf '%s\n' "$multi_ev" | grep -c . || true)"
+    [ -z "$multi_ev" ] && multi_n=0
+
+    if [ "$multi_n" -eq 0 ]; then
+      ok "hooks/ (multi-event) — no script in hooks.json is registered on more than one event"
+    else
+      while IFS= read -r ev_script; do
+        [ -z "$ev_script" ] && continue
+        if grep -qF -- "${ev_script%.sh}" "$README"; then
+          ok "hooks/ (multi-event) — README names '${ev_script%.sh}', which carries more than one registration"
+        else
+          bad "hooks/ (multi-event) — '${ev_script%.sh}' is registered on more than one event in
+      hooks.json and appears nowhere in README.md"
+        fi
+      done <<EOF
+$multi_ev
+EOF
+    fi
+
+    ev_only_phrase='is the only hook registered on **two** events'
+    ev_only_live="$(grep -nF -- "$ev_only_phrase" "$README" | grep -v '~~' || true)"
+    if [ "$multi_n" -eq 1 ] && [ -n "$ev_only_live" ]; then
+      ok "hooks/ (multi-event) — README's singular claim is live and exactly one script ($multi_ev) is multi-event"
+    elif [ -n "$ev_only_live" ]; then
+      bad "hooks/ (multi-event) — README carries '$ev_only_phrase' OUTSIDE a strike while $multi_n script(s)
+      are registered on more than one event:
+$(printf '%s' "$multi_ev" | sed 's/^/        /')
+      The claim is false as written. Strike it in place (\`~~…~~\`) and state the derived pair beside
+      it — this repo does not delete a sentence someone may have read. Offending line(s):
+$(printf '%s' "$ev_only_live" | sed 's/^/        /')"
+    else
+      ok "hooks/ (multi-event) — README carries no LIVE singular claim while $multi_n script(s) are multi-event"
+    fi
+  fi
 fi
 
 # --- the career figure, which is why this file exists at all ----------------------------------

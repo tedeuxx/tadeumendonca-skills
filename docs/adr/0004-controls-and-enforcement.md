@@ -3462,3 +3462,397 @@ Arm: *alters a previously-recorded decision* — it narrows the third layer's ro
 extends the verdict vocabulary rule 7c enforces. `Deciders`: the owner (the fifth literal, and the
 split of the deliverable); written by `agents-lead` per the domain split (#223), whose object is the
 machinery.
+
+## Amendment (2026-09-02) — every hook walked against the owner's criterion, which grades the ALTERNATIVES and not the hook (#383)
+
+**Deciders:** the owner — the criterion, ruled on #383 on 2026-09-01. **Written by** `agents-lead`
+(#223). **Nothing is removed in this slice, and that is the Issue's own condition rather than
+caution** — see *The order* below.
+
+### The criterion, and it is none of the three the intake proposed
+
+> «qualquer trava mecanica (hook) so deveria sobreviver se nao puder ter algum mecanismo de controle
+> equivalente com outros elementos de configuracao do harness explorados»
+
+One question per hook, in this order:
+
+> **Can some other harness element carry this control? If yes, the hook does not survive — regardless
+> of how important the control is.**
+
+**The importance of the control is not the question.** A control can be essential and the hook still
+lose: the criterion is about *which layer carries it*, not *whether it is worth carrying*. That is the
+inversion separating it from the three the intake offered (reversibility of the act · legible
+authorship without the lock · measured firing frequency), each of which would have spared a hook on
+the strength of what it protects.
+
+**«explorados» is load-bearing** — an alternative never attempted does not count as unavailable. Each
+verdict below names which of the six elements was tried: a persona brief · a skill · a command · the
+permission layer · the forge/CI perimeter · a selection or verdict artifact.
+
+### The inventory, derived — and the unit changes the number, so the unit is stated
+
+**14 scripts · 16 registrations · 6 events.** Both figures come out of `hooks/hooks.json`, which this
+MR does not touch:
+
+```
+jq '[.hooks|to_entries[]|.value[]|.hooks[]]|length' hooks/hooks.json            → 16
+jq -r '[.hooks|to_entries[]|.value[]|.hooks[]|(.command|split("/")|last)]|unique|length' hooks/hooks.json  → 14
+jq -r '.hooks|keys|length' hooks/hooks.json                                     → 6
+```
+
+The gap is two scripts carrying two registrations each, and the members are emitted rather than
+asserted:
+
+```
+jq -r '[.hooks|to_entries[]|.key as $e|.value[]|.hooks[]|{e:$e,s:(.command|split("/")|last)}]
+       |group_by(.s)|map(select(length>1))|map(.[0].s + " -> " + (map(.e)|join(", ")))|.[]' hooks/hooks.json
+→ closure-artifact-guard.sh -> PreToolUse, Stop
+→ preflight.sh             -> UserPromptSubmit, SessionStart
+```
+
+**A live false claim fell out of that derivation and is corrected in this same MR.** `README.md` read
+*"`closure-artifact-guard` (#337) is the only hook registered on **two** events"* — false since
+`preflight` shipped on two events at #342, three days later. It is struck in place and the derived
+statement replaces it, and `inventory-counts.test.sh` now holds the claim in both directions off the
+command above, so the next registration on a second event reddens rather than quietly refuting a
+sentence nobody re-reads. **The event table in the same file was already correct** (it lists
+`preflight` in two rows); only the prose was wrong, which is the harder half to notice.
+
+### Which hooks can REFUSE — measured on the scripts, not read off the event names
+
+The Issue's split was a starting point. Re-derived at head by the emission each script is capable of
+— a `permissionDecision` of `deny`/`ask`, or `exit 2`, the only two refusal mechanisms in this
+harness:
+
+```
+grep -lE 'permissionDecision: "(deny|ask)"|exit 2$' hooks/scripts/<the 14 registered scripts>
+→ permission-guard.sh · wip-guard.sh · closure-artifact-guard.sh
+  dispatch-premise-guard.sh · mcp-guard.sh · preflight.sh
+```
+
+**Six can refuse, eight cannot**, and the eight are already what the owner's direction asks for. Four
+confirming probes, payload piped to the script, verdict read off stdout and the exit code:
+
+| payload | script | result |
+|---|---|---|
+| `terraform apply -auto-approve` | `permission-guard.sh` | `deny` — *"pipeline-only"* |
+| `git push origin main` | `permission-guard.sh` | `deny` — the trunk-push floor |
+| `mcp__claude_ai_Gmail__send_message`, `agent_type` = `…:developer` | `mcp-guard.sh` | `deny` — no MCP grant |
+| `{"hook_event_name":"Stop", …}` | `orchestrator-tool-census.sh` | no output, `exit 0` |
+
+And one mutation, because `preflight` is the only hook here that fails **closed** and the claim is
+worth measuring rather than reading: a `PATH` holding every binary it needs **except `jq`**, built by
+symlinking into a shim directory, with the full `PATH` as the control.
+
+```
+control (full PATH)    → no output, exit 0
+mutation (no jq)       → "HARNESS PREFLIGHT — REFUSING TO RUN DEGRADED (#342) / NOT ON PATH: jq", exit 2
+```
+
+That measurement decides one of the three cuts below.
+
+### The finding that decides most of the audit: the alternatives are blind in ways the criterion's list does not say
+
+Walking six elements against fourteen hooks produces one table, and the table is the amendment's
+load-bearing part:
+
+| element | sees WHO is asking | sees WHAT is asked | reads live state at decision time | can refuse |
+|---|---|---|---|---|
+| a persona brief · a skill · a command | it *is* the caller's text | yes, as prose | no | **no** |
+| `settings.json` `allow`/`ask`/`deny` | **no** | a command **prefix** only | no | yes |
+| a profile's `tools:` grant | yes | tool **name** only | no | yes |
+| the forge/CI perimeter | the forge actor | only acts that reach the forge | yes | yes |
+| a selection or verdict artifact | yes | yes | yes | **no — after the fact** |
+
+Three consequences, and each disposes of a whole class:
+
+1. **Only two layers refuse anything locally, and each is blind where the other sees.** The permission
+   layer sees the command and not the caller; `tools:` sees the caller and not the command. **A
+   control needing both is inexpressible anywhere else** — this record's own *Which layer carries a
+   control* section reached the same wall from the other direction. Live instances: rules 5c/5d
+   (`gh issue create`, denied to every subagent but `developer`), 5e (public posting, denied to the
+   three personas that read `.brand/`), 7b (`gh pr merge`, allowed to `quality-assurance` alone), and
+   `mcp-guard` in its entirety. `Bash(gh pr merge:*)` sits in the **allow** list of both settings
+   layers, and it must: a `deny` there denies the gatekeeper too, which is the whole act.
+2. **A control whose predicate is live remote state is expressible in NONE of them**, because none of
+   the five performs I/O at decision time. The criterion's list has no member for this class, so it
+   has no alternative to offer: `closure-artifact-guard`'s `PreToolUse` arm (the Issue's body),
+   `dispatch-premise-guard` (the repository the brief stamps), rules 7c and 7d (the gate's verdict and
+   the PR's closing set).
+3. **Eight of fourteen refuse nothing at all, so the criterion cannot reach them either** — every
+   alternative it lists is static text or a refusal, and none of them can *observe*. No brief computes
+   the open PR queue; no skill reads `agent_transcript_path`; no command knows which build is
+   installed. **They are judged on cost, which is the Issue's framing and not the owner's criterion**,
+   and this amendment prices them rather than pretending the criterion ruled on them.
+
+> **So the criterion bites in exactly one place: where a hook duplicates a control another layer
+> already holds.** That is a narrower cut than the Issue anticipated, and saying so is the finding. It
+> found three.
+
+### The verdicts
+
+| # | hook | refuses? | verdict | the element that carries it instead, or the pair that makes it inexpressible |
+|---|---|---|---|---|
+| 1 | `permission-guard` | yes | **survives** | caller × command, four times; and enumeration in the floor was measured not to converge |
+| 2 | `wip-guard` | yes | **CUT** | a skill — WIP=1 in the universal preload, which is strictly stricter |
+| 3 | `closure-artifact-guard` | yes (`PreToolUse`) | survives | live remote state; no element reads an Issue body |
+| 4 | `dispatch-premise-guard` | yes | survives | live remote state × the dispatch's own text |
+| 5 | `mcp-guard` | yes | survives | caller × tool name — the canonical pair |
+| 6 | `preflight` | yes | survives | nothing else can refuse a **session**; and it is the only fail-closed layer |
+| 7 | `session-wip` | no | survives | observer — and it inherits #2's detection |
+| 8 | `session-plugin-version` | no | survives | observer; no element reads the installed build |
+| 9 | `zombie-loop-detect` | no | survives | observer; reads the gate's verdict at head |
+| 10 | `orchestrator-tool-census` | no | **contested** | a selection artifact — the criterion names it, and it exists |
+| 11 | `premature-pr-link-detect` | no | survives | observer; the condition is conjunctive over live CI state |
+| 12 | `owed-pr-link-detect` | no | survives | observer; same |
+| 13 | `dispatch-metrics-start` | no | **CUT** | `preflight` — measured above, and it blocks where this only warns |
+| 14 | `dispatch-metrics-stop` | no | survives | observer, **and it has a consumer**: `/sprint-retrospective` step 2 |
+
+**Plus one rule-level cut and one rule-level contest inside `permission-guard`**, because that file is
+fourteen controls in one script and a per-file verdict would hide both.
+
+### The three that lose, each with what detects the act afterwards
+
+**1 · `wip-guard.sh` — CUT. A skill already carries a strictly stronger rule.**
+
+Its control is *a new PR may not be opened when it overlaps an already-open PR by the same author*.
+`/agents-configuration` states WIP=1 — *one worktree, one in-flight branch, one open PR at a time,
+full stop* — in the **universal preload every profile carries**. That rule forbids the second PR
+whether or not it overlaps, so the hook's control is a proper subset of one already stated where every
+actor reads it.
+
+**And under that rule the hook's precondition is never true.** It reads `gh pr list --state open
+--author @me` and exits before computing a single path when the list is empty. Re-measured at head
+over the twenty most recent merged PRs — the guard's own question, *how many other PRs of this author
+were open at the instant this one was created*:
+
+```
+gh pr list --repo <owner>/<repo> --state merged --limit 20 --json number,createdAt,mergedAt \
+  --jq '[.[]] as $p | [$p[] | .number as $n | .createdAt as $c
+        | {pr:$n, others_open_at_create: [$p[]
+            | select(.number != $n and .createdAt < $c and .mergedAt > $c)] | length}]'
+→ others_open_at_create: 0, twenty times out of twenty
+```
+
+*(Bounds: this repository only, the twenty most recent merged PRs, and the query does **not** filter by
+author where the guard does — filtering can only shrink the set, so zero stays zero.)* This restates a
+measurement `/agents-configuration` already published over fourteen; it is re-derived here rather than
+carried, and the window has widened without the answer moving.
+
+**What detects the act afterwards:** `session-wip.sh` lists the open PR queue at every session start,
+so a second open PR is visible one session late — the same class of trade the removal of
+`orchestrator-write-guard` made. Nothing observes it at `gh pr create` time, and nothing has needed
+to.
+
+**What the cut costs, stated as a cost and not waved away.** WIP=1 is explicitly reversible by owner
+decision — `/agents-configuration` keeps the struck disjoint-files exception visible for exactly that
+reason. This hook is the surviving artifact of the *previous* policy, and deleting it makes that
+reversal more expensive than re-registering a file: it also holds the sibling-task exemption (#195),
+which is real logic nobody would rewrite from memory. **The rehoming obligation therefore has content
+here** — the overlap algorithm and the exemption belong in the removal's own record before the file
+goes.
+
+**And what it does NOT cost, because the hook was never protecting it:** the failure WIP=1 exists to
+prevent — two slices in one checkout — is invisible to this guard by construction. It fires at
+`gh pr create`, hours after the damage, and it derives its own side from whatever directory it runs
+in, so two agents in one checkout produce the same answer. That is already recorded in
+`/agents-configuration` and is unchanged by this verdict.
+
+**2 · `dispatch-metrics-start.sh` — CUT. Its own header states two reasons and neither survives.**
+
+Reason 1 is *symmetry with the event pair, so a future extension has a place to land without a new
+`hooks.json` edit*. **That is not a control**, and a registration held open for a hypothetical is the
+shape the owner's direction is aimed at.
+
+Reason 2 is *a cheap, silent dependency probe … says so ONCE, early, rather than leaving the Stop hook
+to fail silently*. **`preflight.sh` carries that, and carries it harder.** It derives its requirement
+set from `command -v` declarations across every registered script, so `jq` is required transitively:
+
+```
+grep -lE 'command -v jq' hooks/scripts/<the 14 registered scripts>   → 10 of the 14, permission-guard among them
+```
+
+and the probe above shows what happens when it is missing: `exit 2`, the prompt refused, with the
+missing binary named. **A warning is strictly weaker than a refusal of the same condition.** The
+subsumption is chronological rather than designed — `dispatch-metrics-start` shipped at #209
+(2026-08-14), `preflight` at #342 (2026-08-29) — which is exactly the drift this audit exists to find.
+
+**What detects the act afterwards:** nothing is being refused, so nothing is owed. Removing this
+registration does not weaken `preflight`'s derivation, because `dispatch-metrics-stop.sh` declares
+`command -v jq` on its own and stays registered.
+
+**Rehoming, and it is not empty.** The header records the `SubagentStart` payload's field set, measured
+on #209 — `session_id`, `transcript_path` (the *main* session's), `cwd`, `prompt_id`, `agent_id`,
+`agent_type`, `hook_event_name`, and the absence of `agent_transcript_path` until the agent has
+produced a turn. **That is a property of Claude Code, not of the hook**, and it is the same class of
+fact the `orchestrator-write-guard` removal had to rehome into this record. It moves with the deletion,
+not after it.
+
+**3 · `permission-guard.sh` rule 9 — CUT at rule grain. It is the one rule that carries no control.**
+
+Its own text says so: *"A SPEED BUMP ON THE NAIVE TRAVERSAL. **NOT A BOUND, AND IT MUST NEVER BE CITED
+AS ONE.**"* Three escape classes are recorded against it as measured, one of which — an empty quoted
+span, `.""./.""./` — has no `..` adjacency anywhere in the string, so no widening of the pattern can
+reach it. **The criterion does not apply to rule 9, and that is the verdict:** there is no control to
+relocate, so the question *can another element carry it* has no subject. It survives today on
+*"it costs one grep and a speed bump that announces itself is honest"*, which is a reasonable argument
+under a thesis of defence in depth and not under a thesis of fewer mechanical locks.
+
+**What detects the act afterwards: nothing, and nothing did before.** The floor grants uninspected
+execution through more allow entries than anyone has enumerated, which is the rule's own stated
+reason for not being a bound.
+
+### Contested, and the owner's to rule — two, for two different reasons
+
+**`orchestrator-tool-census.sh` — the criterion names its replacement, and the replacement exists.**
+
+This is the only hook where the criterion's own list supplies a candidate: *a selection or verdict
+artifact*. `scrum-master`'s selection record names who should act **before** acting, where the census
+reports what the main agent did **after**. The census's stated purpose is to keep an unmechanised
+delegation habit observable and therefore correctable; a record naming the intended actor makes the
+deviation legible from the other end.
+
+**Three things keep this from being a clean cut, and they pull in opposite directions.** The record is
+self-attested — the orchestrator lands it — and nothing greps `SELECTION-RECORD`, so it detects only
+what its author chose to write down. The census reads the transcript, which the orchestrator does not
+author. But #371 measured the census wrong about its own classes: it classifies on the first token, so
+a wrapper prefix lands a mutation in the read bucket. **A reporter that is measurably blind and a
+record that is self-attested are two weak halves, and this audit will not pretend either is the
+answer.** It is the one verdict that should be decided together with #371 rather than ahead of it — if
+the census is cut, #371 dissolves; if it is repaired, #371 is the repair.
+
+**`permission-guard.sh` rule 7 (the trunk push) — the alternative exists, and the read that would
+settle it is denied to this harness.**
+
+Rule 7 is the case the owner predicted: *the two acts the permission layer already reaches — trunk
+push and merge — are exactly where the hook may turn out to be the redundant layer.* Half of it
+already **is** redundant. Both settings layers deny the direct spellings, and the global layer goes
+further and denies the `git -C <path>` spelling for both repositories by name:
+
+```
+Bash(git push origin main) · Bash(git push origin main:*) · Bash(git push origin HEAD:main:*)
+Bash(git -C <repo-a> push origin main) · Bash(git -C <repo-a> push origin main:*) · …and the same three for <repo-b>
+```
+
+**So somebody already explored this alternative and implemented it by hand, per repository.** What the
+settings layer still cannot express is the *semantic* case — a bare `git push` while `HEAD` is `main`,
+where the target is in the checkout and not in the string — and the wrapped case. That is this record's
+routing rule working exactly as written, and on it alone rule 7 survives.
+
+**The element that could carry it whole is the forge, and this audit could not read it.** Branch
+protection refusing a non-PR push to `main` would hold the control at the only layer where the act
+actually lands, for every spelling at once, semantic case included. The attempt:
+
+```
+gh api repos/<owner>/<repo>/branches/main/protection --jq '.required_pull_request_reviews, .allow_force_pushes'
+→ Permission to use Bash with command gh api … has been denied.
+```
+
+`Bash(gh api:*)` is a **global deny**, so the harness cannot read its own forge perimeter. **What is
+documented rather than measured points the other way and is the reason this is contested rather than
+cut:** `/devops` records protection on `main` as *PR required, 0 approvals, no force-push*, **with
+`enforce_admins=false`** so the owner and the version-bump actor can push directly. Every agent in
+this loop acts through the owner's own credential. **If `enforce_admins` is false, the forge does not
+refuse this actor, and the local rule is the only layer that does.** That is one read away from
+settled, and the read is the owner's: `gh api repos/<owner>/<repo>/branches/main/protection`, or the
+repository's Settings → Branches page.
+
+### Cost priced where the criterion is silent — the eight reporters
+
+The criterion offers them no alternative, so this is the axis they are actually judged on. Two carry a
+measured cost worth recording.
+
+**`dispatch-metrics-stop.sh` occupies 83% of this repository's Issue comment surface.** Over the forty
+most recent Issues:
+
+```
+gh issue list --repo <owner>/<repo> --state all --limit 40 --json number,comments \
+  --jq '{metrics:([.[]|[.comments[]|select(.body|test("dispatch-metrics"))]|length]|add),
+         total:([.[]|(.comments|length)]|add)}'
+→ {"metrics":325,"total":390}
+```
+
+**It survives anyway, and the reason is a consumer rather than a preference:** `/sprint-retrospective`
+step 2 derives the rite's consult set from these comments by name. Cutting the hook removes the rite's
+only evidence of which personas ran. That is the difference between this and
+`dispatch-metrics-start` — one is read by something, the other by nothing.
+
+**A defect in that instrument was found while pricing it, and it is stated here because it bears on
+what the survival buys.** The Issue number is derived as the **first** integer in the branch name:
+
+```
+issue="$(printf '%s' "$branch" | grep -oE '[0-9]+' | head -1 || true)"
+```
+
+Measured against the batch branch `loop/batch-structural-381-384-372-368-r2`: **all 36 of that slice's
+dispatch comments landed on #381, and #384, #372 and #368 carry none.** Under the loop-batch
+permission this record's companion skill already grants — one branch may carry several `loop` Issues —
+the instrument attributes the whole batch to whichever Issue is named first, and the retrospective
+then reads *no persona ran* for every other Issue in the batch. **Not repaired here** (this slice
+removes nothing and repairs nothing), and not filed: it is named for the owner in the MR body, per
+*Review does not open work*.
+
+**`owed-pr-link-detect.sh` states in its own header that it does not address the incident that
+produced it** — the defect was placement, not absence, and an absence detector is silent on both of
+the turns that failed. It survives the criterion (nothing else observes a turn ending), and the honest
+note is that its green means less than its name suggests. That was already declared at build time,
+which is why it is a note and not a finding.
+
+### The order, and why nothing is cut in this slice
+
+**Nothing is removed here, and it is #383's own condition rather than caution.** The Issue states the
+`orchestrator-write-guard` removal as the template *"including its two conditions: the replacement
+lands first, and the runtime knowledge the hook measured is rehomed rather than deleted."* Both cuts
+above carry rehoming content — `wip-guard`'s overlap algorithm and sibling-task exemption,
+`dispatch-metrics-start`'s measured `SubagentStart` payload — and neither has been rehomed. A removal
+slice that also had to invent its own record is the shape that produces the defects this repository
+keeps paying for.
+
+Proposed order, smallest blast radius first:
+
+1. **`dispatch-metrics-start`** — one registration, one file, one rehomed payload fact, no control
+   lost. The replacement is already in the tree and measured.
+2. **`wip-guard`** — one registration, one file, and a real algorithm to rehome. Its detection
+   successor (`session-wip`) is already in the tree.
+3. **rule 9** — a rule-grain deletion inside `permission-guard`, with its three measured escape
+   classes rehomed into this record. Mutation-check the suite: the arms asserting rule 9's denials go
+   with it, and no other arm may go green over their absence.
+4. **`orchestrator-tool-census`** — decided **with** #371, never before it.
+5. **rule 7** — decided **after** the owner reads the branch-protection settings. If
+   `enforce_admins` is true for the actor this loop uses, the semantic half is the only part worth
+   keeping and the rest is duplication.
+
+**Each of the five is a `loop` change to the loop's own floor**, so each is `ready` on the owner's
+transition alone.
+
+### What could NOT be checked, so nobody re-walks it
+
+- **The forge perimeter.** `Bash(gh api:*)` is denied at the global layer, and there is no `gh`
+  subcommand for branch protection. The command that would settle rule 7 is named above.
+- **Whether any of the eight reporters is ever read by a human.** `/sprint-retrospective` reads one of
+  them mechanically; for the other seven there is no artifact that would record a read, so *"does this
+  notice change behaviour"* is unmeasurable from inside the harness and is the owner's judgement.
+- **Whether `permission-guard`'s coverage claims still hold.** They are asserted by its own suite over
+  the spellings someone thought to try, and this audit re-ran none of them. A per-rule sweep is its
+  own slice.
+- **Why `#375` carries zero `dispatch-metrics` comments** while its own branch
+  (`loop/scrum-master-and-milestone-route-375`) resolves to `375` under the derivation above. Observed,
+  not explained; the hook exits `0` silently on about a dozen paths, so the observation is compatible
+  with several causes and settles none.
+
+### What is left alone, and it is most of the file
+
+`permission-guard`'s persona-keyed rules (5c/5d, 5e), the merge floor (7b/7c/7d), the milestone
+rules (10/11), the composition rules (8/8b) and `mcp-guard` are all the caller × command pair, and
+this record already measured that enumerating spellings into the floor does not converge — nine
+unlisted spellings in a 150-probe sweep. `dispatch-premise-guard` and `closure-artifact-guard`'s
+`PreToolUse` arm are the remote-state class, which no element in the criterion's list can hold at all.
+`preflight` is the only layer that can refuse a session and the only one that fails closed. **Five of
+the six refusal-capable hooks are load-bearing, and the audit says so as plainly as it says which one
+is not.**
+
+### Significance
+
+Arm: *sets a cross-cutting pattern others will follow* — it records the test by which a mechanical
+lock is kept or removed in this harness, and the layer table that answers it. `Deciders`: the owner
+(the criterion); written by `agents-lead` per the domain split (#223), whose object is the machinery.
