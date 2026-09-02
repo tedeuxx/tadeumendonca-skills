@@ -1463,8 +1463,24 @@ remote-tracking ref reads as a false stamp; a brief about a linked worktree othe
 checked against its repository's main worktree; and a **cross-repository brief is not checked at all**,
 because one stamp and two repositories leaves no fact that says which one it is about.
 
-`closure-artifact-guard` (#337) is the only hook registered on **two** events, and the split is forced
-rather than chosen. It holds one rule — *an Issue whose own body declares an invocable artifact does not
+`closure-artifact-guard` (#337) ~~is the only hook registered on **two** events~~ is registered on
+**two** events, and the split is forced rather than chosen. **Struck 2026-09-02 (#383): the "only" was
+false from #342 onward — and it was found while DERIVING the hook
+inventory for that audit, not by anyone re-reading the sentence.** Two scripts carry two registrations
+each, and the pair is derived rather than asserted:
+
+```
+jq -r '[.hooks|to_entries[]|.key as $e|.value[]|.hooks[]|{e:$e,s:(.command|split("/")|last)}]
+       |group_by(.s)|map(select(length>1))|map(.[0].s + " -> " + (map(.e)|join(", ")))|.[]' hooks/hooks.json
+→ closure-artifact-guard.sh -> PreToolUse, Stop
+→ preflight.sh             -> UserPromptSubmit, SessionStart
+```
+
+**The event table above was already correct** — it lists `preflight` in both its rows — so only the
+prose was wrong, which is the half nothing re-reads. `inventory-counts.test.sh` now holds this claim in
+both directions off that same command, so the next hook registered on a second event reddens instead of
+quietly refuting a sentence. What the struck clause got right survives untouched: this guard holds one
+rule — *an Issue whose own body declares an invocable artifact does not
 reach `closed` while that artifact does not resolve* — against a route it can refuse and a route nobody
 can. **Measured 2026-08-28: every Issue this loop closed in the preceding week closed by a closing
 keyword in a merged PR body** (`Closes #313's slice 1`, PR #345; the same shape in #333, #340,
