@@ -1,63 +1,72 @@
 ---
 name: quality-gates
-description: Apply THIS loop's concrete Definition of Done and gate policy that proves it — the 100% regression invariant, the gate table per loop model, plus thresholds (lint/typecheck zero, coverage ≥85%, contract/E2E, dependency + secret scanning, SAST). Use when deciding if a slice ships, calibrating gates, or wiring CI. Not for the pre-merge pass (see code-review), Sonar mechanics (see devops), or what a DoD generically is and how to design one (see definition-of-done).
+description: Apply THIS loop's CI/CD gate policy — the gate table per loop model, the merge-class rules, and the thresholds (lint/typecheck zero, coverage ≥85%, contract/E2E, dependency + secret scanning, SAST). Use when calibrating gates, wiring CI, or deciding who merges a class. Not for the criteria that make a slice complete (see definition-of-done), the pre-merge pass (see code-review), or Sonar mechanics (see devops).
 ---
 
-# Quality gates — the definition of done and the concrete policy that proves it
+# Quality gates — the CI/CD policy, and where each gate sits
 
-Apply the platform's verification model and deploy gates in any `<project>` repo. This defines what "done" means and the mechanical gates that prove it — the enforcement half of the principles layer (`/engineering-standards` carries the judgment, `/agents-configuration` the flow — one file until #381 split them).
+Apply the platform's verification model and deploy gates in any `<project>` repo. This defines the mechanical gates and where they sit — the enforcement half of the principles layer (`/engineering-standards` carries the judgment, `/agents-configuration` the flow — one file until #381 split them). **What makes a slice COMPLETE is `/definition-of-done` since #380**, on the owner's definitions quoted below; this file is the CI/CD metrics half of that pair and nothing else.
 
 **Two bodies of content, kept legible as two sections rather than blended (#257).** Part I is the
-*definition* of done — the thesis, the DoD, the 100% functional-regression invariant, the gate table
-per loop model. Part II is the *concrete, stack-agnostic policy* that satisfies it — the actual
+*verification model and the gate tables* — the thesis, the gate table per loop model, the merge-class
+rules, and where enforcement lives. ~~the *definition* of done — the thesis, the DoD, the 100%
+functional-regression invariant, the gate table per loop model~~ — **struck #380: the DoD, the
+regression invariant and local/post-deploy validation moved to `/definition-of-done`.** Part II is the
+*concrete, stack-agnostic policy* that satisfies it — the actual
 thresholds, and what each check is for. They were split into two skills at #230 specifically so
 `quality-assurance` could preload the concrete policy independent of stack; the split was folded back
 into one file at #257, on the owner's call, once the two skills sat next to each other under
 near-identical names (`quality-gates` next to `coverage`, whose own doc already opened "# Quality
 gates") — a naming collision, not a judgment that the two kinds of content were the same thing. Read
-Part I for *what counts as done*; read Part II for *the numbers and checks that prove it*.
+Part I for *which gate sits where and who merges what*; read Part II for *the numbers each gate checks*.
 
 Context: $ARGUMENTS
 
-## Part I — What "done" means (the definition)
+## Part I — The verification model and the gate tables
 
-**This section is deliberately narrow now (#265).** It used to open on the generic case for a Definition
-of Done — why "done" needs a ruler at all, what makes a criterion well-formed, the shapes a DoD can take
-and how one goes wrong — stated in general terms before ever reaching this loop's own numbers. That
-generic content now lives in `/definition-of-done`, a standalone SDLC-generic skill, so it exists once
-rather than at two altitudes with no pointer between them. **Read `/definition-of-done` first if you are
-asking "what should a Definition of Done even contain" — this section answers a narrower question: what
-does THIS repo's loop specifically require**, given that the general case is already settled elsewhere.
+**This section narrowed twice, and the second cut is the one that matters.** At #265 the *generic* case
+for a Definition of Done — why "done" needs a ruler, what makes a criterion well-formed, the shapes a
+DoD can take — moved to `/definition-of-done`. **At #380 the CONCRETE Definition of Done followed it**,
+so the two halves of one concept stopped living in two skills. What is left here is what the owner's own
+definitions put here: **CI/CD metrics.**
+
+**Read `/definition-of-done` for what a slice must satisfy to be complete** — both the generic
+discipline and this loop's own criteria, with the table saying which of them a gate proves. **Read
+this file for the gates themselves.** The two are a pair and neither is sufficient: a slice can clear
+every gate below and still fail the DoD, which is exactly what the seam table in the other file is for.
 
 ### The thesis: agent-led verification, human-residual
 The point of this model is that **agents perform the majority of verification and humans are left only the residual.** Every gate below is objective and mechanical *on purpose* — so an agent can prove "done" by itself, and a human's scarce attention goes only to what can't be automated with confidence: irreversible/architectural judgment and the final go/no-go.
 
 **Trust comes from the harness, not the agent's word.** For this to hold, verification must be *enforced by the machine* — hooks and CI required checks that actually run and block — never accepted as the agent's self-report. An agent can hallucinate a green check; a required check cannot. So the agent **reports with real evidence** (actual command output) and the **hook / CI is the source of truth**. If a gate is only "the agent said it ran," the human residual silently grows back, because now someone has to check whether it really verified. Keep the gates inescapable and mechanical.
 
-### Definition of Done (a slice is "done" only when all hold)
-- Unit/integration tests written alongside the code, **coverage ≥ 85%**, green (the concrete threshold and what counts as proof beyond the unit line is Part II below).
-- **Regression added for the feature** (see the invariant below).
-- Lint + typecheck clean.
-- **Observability instrumented for the new behavior** — in whatever form this repo's runtime actually supports (see below).
-- Security/resilience posture applied (least-privilege, idempotency, fail-fast/open, retries).
-- **Docs/Mermaid updated**; debt (if any) named in the review — the owner decides whether it becomes an issue.
-- **Conventional-commit** subject (the commit log is the changelog).
-- **Validated locally.**
+### The Definition of Done lives in `/definition-of-done` — MOVED at #380
 
-Anything short of all of these is in-progress, not done.
+~~**Definition of Done (a slice is "done" only when all hold)** — the eight criteria, the 100%
+functional-regression invariant, local validation, and post-deploy verification.~~ **MOVED 2026-09-02
+(#380) to `/definition-of-done`, where the concrete list now sits beside the generic discipline that
+governs it.** Struck rather than deleted because this is where every persona in this roster looked for
+it for weeks, and an absence here with no marker reads as a deletion.
 
-### The regression invariant — 100% functional coverage
-The regression suite must **functionally cover 100% of the repo's implemented features** — not a representative sample. Every feature that ships adds its own regression; the collective suite is the proof that *nothing already working broke*. This is the one gate that does **not** bend to blast-radius — it is the floor that lets the platform be evolved incrementally without fear. A change that adds behavior without its regression breaks the invariant and is not done.
+**The owner's definitions are the ruler, and they are what forced the move:**
 
-**Which suites this means is per repo.** E2E (browser) always, where there is a UI. An **API/contract suite only where an API exists.** Demanding coverage of a surface the repo does not have is not rigor — it is an unsatisfiable gate, and an unsatisfiable gate teaches the agent to fabricate evidence or quietly skip the check. Read the repo, then name the suites.
+> *«quality gates para mim sao mais relacionados a metricas de ci/cd.»*
+> *«definition of done para mim sao relacionado a completude de um issue.»*
+> *«eu queria que os nomes seguissem conceitos claros de agil. quality gates e definition of done tem
+> uma intersecao mas servem a propositos distintos.»*
 
-**Observability is scoped the same way.** "Instrumented" means structured logs, metrics and tracing where there is a server to emit them; for a static frontend it means analytics, the client-side error surface, and a build/prerender smoke. Neither is a lesser standard — both must prove the change is working where it runs.
+**What stayed here is exactly what those definitions put here: CI/CD metrics.** The gate tables per loop
+model, the thresholds in Part II, the enforcement wiring, the merge-class rules. **No threshold moved and
+no gate changed** — this was a relocation, not a retuning.
 
-### Local validation (before anything ships)
-Development is validated **locally and automatically before the deploy** — not by a manual click-through:
-- Run the repo's **regression against the local environment**. The suite is multi-env by design: it runs locally now and against the deployed environment post-deploy.
-- What "locally" requires depends on the loop model — a static repo runs fully offline; a repo with backing services points at them per `/devops`.
-- "The regression passes locally" is the concrete pre-deploy gate.
+**What you must read there and cannot read here:** the criteria themselves, and the table stating
+**which of them a gate proves and which it does not**. That table is the sentence neither file could
+carry while both halves lived in one of them — *a green pipeline is not a met Definition of Done* — and
+it is the reason the split was worth the churn rather than a naming preference.
+
+**If you are `quality-assurance`, `/definition-of-done` is now in your preload beside this file** (added
+in the same slice; a ruler the gate cannot see is not a ruler). If you are reading this skill for the
+DoD and it is *not* in your preload, that is a finding — say so rather than reconstructing the list.
 
 ### Gates — calibrated to blast-radius
 The gate set is the same; **where it sits** follows the loop model (`/agents-configuration`). The organizing rule: **the heavy gates sit at the point of no return.**
@@ -94,9 +103,6 @@ There is no downstream tier to defer to, so **nothing is deferred**: a gate skip
 **The merge is the go/no-go; that is not the same as the merge always asking a human.** This table used to read *"Merge asks — required"*, which contradicted `quality-assurance`'s own definition and made an agent's conclusion depend on which file it happened to read (#62). The merge needs a **judgement**; who supplies it is set by the class. `quality-assurance` merges the **safe** class itself once both of its lenses are green; ~~it never merges the **boundary** class — infrastructure and anything threatening continuity, a change to the loop's own rules, publishing in the owner's voice~~ **and since 2026-08-23 (ADR-0002 amendment #16) it merges the boundary class too, under its own verdict literal `APPROVE-AND-MERGE-BOUNDARY`, with the owner reviewing live after deploy.** The argument is the loop model itself — under `trunk-single-env` there is no preview to hold for, so the hold delayed publication without producing anything to inspect. **That reasoning is confined to this table on purpose and is NOT carried into the `gitflow-multi-env` one**, where an integration branch is exactly the place to hold a change and look at it. **Four holds survive, and the gate still never merges them:** an expansion of its own authority, a harness diff carrying no `agents-lead` verdict marker, anything in `iac/` (where the merge applies and the PR's plan is the preview), and an explicit lens `ESCALATE`. When the class is unclear, it is boundary — and when what is unclear is whether a hold applies, it applies.
 
 (Infrastructure repos, both models: format + validate + policy scan + a reviewed plan; apply only on merge, pipeline-only.)
-
-### Post-deploy verification
-A deploy isn't finished at "merged." After it lands — every environment it lands in — **run a smoke and confirm health through the repo's observability** before considering it complete. This closes the loop with "observability is part of done": the proof a change works is that you can *see* it working where it runs.
 
 ### Where enforcement lives
 - **Hooks** (deterministic, fire on every relevant action): fast local feedback — formatting, lint-on-edit, guardrails. Shipped close to the agent.

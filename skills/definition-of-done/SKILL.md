@@ -1,5 +1,5 @@
 ---
-description: Design or evaluate a Definition of Done — the criteria a slice, release or project calls finished. Use when building a DoD from scratch, choosing its shape (fixed checklist, per-item-type criteria, automated gate), or diagnosing why review still reads as subjective. Not for this loop's own concrete DoD and gate thresholds (see quality-gates), or a work item's readiness to be built (see definition-of-ready).
+description: Design or evaluate a Definition of Done, and apply THIS loop's own — the criteria a slice calls finished, plus the table naming which of them a gate proves and which nothing does. Use when building a DoD from scratch, checking a slice against this loop's criteria, or diagnosing why review still reads as subjective. Not for the CI/CD gates and thresholds themselves (see quality-gates), or a work item's readiness to be built (see definition-of-ready).
 purpose: teach what makes a Definition of Done a ruler rather than a phrase, independently of any one project's gates
 ---
 
@@ -136,6 +136,163 @@ document, a checklist, a gate in CI — while not actually functioning as the ru
 test in *Why a Definition of Done is a mechanism, not a phrase* (does a criterion decide, or does a
 person still decide and the criterion just gets cited afterwards?) is what separates a real DoD from any
 of these four.
+
+## THIS loop's concrete Definition of Done — the criteria, and which of them a gate proves
+
+**Moved here from `/quality-gates` at #380, on the owner's own definitions, quoted because they are the
+ruler rather than a preference:**
+
+> *«quality gates para mim sao mais relacionados a metricas de ci/cd.»*
+> *«definition of done para mim sao relacionado a completude de um issue.»*
+
+A reader asking *"what is this project's Definition of Done?"* used to open the skill called
+`definition-of-done` and find only theory, while the actual list lived in the skill named after CI/CD
+mechanisms. **Nothing above this heading changed and no threshold moved** — `/quality-gates` keeps the
+gate tables, the thresholds and the enforcement wiring, which are CI/CD metrics and belong there.
+
+### The criteria (a slice is "done" only when all hold)
+
+| # | criterion | is it PROVED by a gate? |
+|---|---|---|
+| 1 | Unit/integration tests written alongside the code, **coverage ≥ 85%**, green | **yes** — CI, threshold in `/quality-gates` Part II |
+| 2 | **Regression added for the feature** (the 100% invariant below) | **partly** — CI proves the suite is green, nothing proves a regression was *added for this feature* |
+| 3 | Lint + typecheck clean | **yes** — CI |
+| 4 | **Observability instrumented for the new behaviour**, in whatever form this repo's runtime supports | **no** — a reviewer's judgement |
+| 5 | Security/resilience posture applied (least-privilege, idempotency, fail-fast/open, retries) | **partly** — SAST and dependency scanning catch a subset; the posture is not enumerable |
+| 6 | **Docs/Mermaid updated**; debt named in the review | **no** |
+| 7 | **Conventional-commit** subject (the commit log is the changelog) | **no** — a convention this repo keeps and does not enforce; the derived commit↔issue coverage check that would is deliberately deferred, per `/agents-configuration` |
+| 8 | **Validated locally**, with real command output rather than a claim | **no** — the report is the only artifact |
+| 9 | **Where the slice's consumer is an artifact somebody has to AUTHOR, that artifact is named and its existence stated** (#362) | **no, and it cannot be** — see below; the row is admitted knowing that |
+
+Anything short of all of these is in-progress, not done.
+
+### Row 9 — the DoD accepted CORRECT as DELIVERED, and this is the narrowest honest repair (#362)
+
+**The gap, as a property rather than as an incident: the criteria above verify that a change is
+CORRECT. Until row 9, nothing asked whether it is USED.** For most slices those coincide — a guard that
+denies denies, a rule that is written is written. **They come apart exactly where a feature's consumer
+is an artifact somebody has to author**, and there the loop had no criterion at all.
+
+**The measured instance, and it passed every layer.** A slice shipped two review affordances behind a
+preview parameter; one of them renders only when an article declares a field in its front matter. Only
+the test fixture written to prove the feature declared one. **So the feature worked for its own fixture
+and for nothing else** — with six E2E tests, a mutation-checked assertion suite, and the limitation
+*disclosed in the builder's own report*. The builder was right about the diff. The gate was right about
+the diff. The relay was right about what it relayed. **Nobody owned whether the feature reached its
+consumer**, and the owner found it by opening the page himself.
+
+**This is not "it was not tested."** The mechanism was proven and the outcome was never looked at.
+
+#### What row 9 deliberately is NOT
+
+**It is not a blanket *"prove it is used."*** That would block every mechanism built ahead of its
+consumer, which this repo does deliberately and correctly — `published-voice` was extracted ahead of its
+second consumer and that is recorded as an accepted exception, not a defect. The scope is the narrow
+one: **a slice whose consumer is an authored artifact.** Where the consumer is code, a caller, a hook or
+a reader following a link, rows 1–8 already cover it and row 9 has no subject.
+
+**It is not gateable, and saying so is the point rather than an apology.** *"Does this reach its
+consumer"* has no mechanical form in the general case, and a criterion nobody can check is the shape
+this repository names as its worst. Row 9 is admitted to the list **with its right-hand column reading
+`no, and it cannot be`** — which is precisely what the seam table exists to make sayable. A criterion
+that is honest about having no gate is worth more than one that implies it has one.
+
+**It is not the existing `invocable:` field under another name, and the difference is the predicate.**
+`hooks/scripts/closure-artifact-guard.sh` reads a declared `invocable:` line and refuses a manual close
+when the named artifact does not exist. **Its predicate is EXISTENCE; row 9's is REACH.** In the measured
+instance an honest `invocable:` declaration would have named a component path that resolves perfectly —
+the guard would have passed, and the feature would still have reached nobody. Read row 9 as covering
+what that guard cannot see rather than as a tightening of it.
+
+#### How it is actually satisfied, and by whom
+
+**At review, in one sentence, in the verdict.** The reviewer asks: *what has to exist, outside this
+diff, for this change to do anything for a reader — and does it exist?* Three honest answers, and the
+third is the one this row was written for:
+
+- **"Nothing must — the consumer is code, and it is `<path>`."** **The object is named even here, and
+  that requirement is the answer to this criterion's own sharpest weakness.** Left as a bare *"nothing
+  must"*, this is unfalsifiable, it is the cheapest thing to write, and it is available on exactly the
+  class row 9 exists for — **the measured instance below would have accepted it.** A criterion whose
+  cheapest passing answer is indistinguishable from its failure mode is not gating anything. Naming the
+  path costs a reviewer nothing when the answer is true and is impossible to write when it is not.
+- **"X exists."** Name it. That is the evidence.
+- **"X does not exist yet."** *This is the answer that used to pass silently as a disclosed
+  limitation.* It does not stop the merge — building a mechanism ahead of its consumer stays legitimate
+  — but it is a finding the owner is handed as a **question**, not as a sentence in a report. The
+  measured instance reached him twice as prose and neither time as a question.
+
+#### The residual, named because nothing catches it
+
+**Nothing observes that anyone asked.** No hook can: the question is about an artifact outside the diff,
+in another repository more often than not, and a `PreToolUse` guard reads a command string while a
+`Stop` hook reads committed state. **By this loop's own test — *would something stop me, or only my
+memory?* — row 9 is not engineered.** It is a criterion with a reviewer behind it and no instrument,
+which is exactly what four of the other eight rows already are; it is listed with them rather than
+pretending to be a ninth gate.
+
+**And the sweep will not cover it either.** The iteration-close review rite derives its target list
+from the application's own route generator, and a held or unpublished artifact is by construction not
+in that list — so the rite that looks most like a backstop here is structurally blind to the very case
+row 9 names. That is stated so nobody closes this gap twice by pointing at the sweep.
+
+### The seam — a green gate is not a met DoD, and this is the sentence that makes it visible
+
+**This is the most valuable line in the move, and it was not statable while the two lived in one file.**
+Read the right-hand column above as the whole of the claim, and **read the members rather than a count**
+— a tally beside a table is a second source of truth for one fact, and it is the arrangement this
+repository's own gate exists because it rots:
+
+- **fully proved by a gate:** rows 1 and 3;
+- **proved in part, with the uncovered part named in the row:** rows 2 and 5;
+- **not proved by anything mechanical:** rows 4, 6, 7, 8 and 9 — and row 9 is the one that **cannot**
+  be, by construction rather than for want of someone building it.
+
+A pipeline that is entirely green has established rows 1 and 3, part of 2 and part of 5, **and nothing
+else**.
+
+The consequence runs in both directions, and the second one is the one that gets missed:
+
+- **A DoD criterion with no gate is not thereby weaker** — it is checked by a person, at review, and its
+  evidence is whatever that person can point at. It fails the way a person fails: quietly, under time
+  pressure, on the day it matters.
+- **A gate that proves no DoD criterion is not thereby pointless, and must not be read as delivery
+  evidence.** `hooks/scripts/inventory-counts.test.sh` proves inventory consistency; nothing in the list
+  above depends on it. Its green says something true and says nothing about whether a slice is done.
+
+**The failure this prevents is a category error, not a missing check:** a DoD living inside the gates
+file inherits the gates' authority, so *"CI is green"* silently reads as *"the DoD is met"*. It is not,
+it never was, and the table above is the cheapest form of saying so.
+
+### The regression invariant — 100% functional coverage
+
+The regression suite must **functionally cover 100% of the repo's implemented features** — not a
+representative sample. Every feature that ships adds its own regression; the collective suite is the
+proof that *nothing already working broke*. This is the one criterion that does **not** bend to
+blast-radius — it is the floor that lets the platform be evolved incrementally without fear. A change
+that adds behaviour without its regression breaks the invariant and is not done.
+
+**Which suites this means is per repo.** E2E (browser) always, where there is a UI. An **API/contract
+suite only where an API exists.** Demanding coverage of a surface the repo does not have is not rigor —
+it is an unsatisfiable gate, and an unsatisfiable gate teaches the agent to fabricate evidence or quietly
+skip the check. This is *Designing a DoD from scratch* step 1 applied to this repo rather than restated;
+read the repo, then name the suites.
+
+**Observability (row 4) is scoped the same way.** "Instrumented" means structured logs, metrics and
+tracing where there is a server to emit them; for a static frontend it means analytics, the client-side
+error surface, and a build/prerender smoke. Neither is a lesser standard — both must prove the change is
+working where it runs.
+
+### Local validation, and post-deploy
+
+Development is validated **locally and automatically before the deploy** — not by a manual
+click-through. Run the repo's regression against the local environment; what "locally" requires depends
+on the loop model (a static repo runs fully offline; a repo with backing services points at them per
+`/devops`). *"The regression passes locally"* is the concrete pre-deploy gate.
+
+**A deploy is not finished at "merged."** After it lands — in every environment it lands in — run a smoke
+and confirm health through the repo's observability before considering it complete. That closes the loop
+with row 4: the proof a change works is that you can *see* it working where it runs.
 
 ## Ready is a precondition of done
 

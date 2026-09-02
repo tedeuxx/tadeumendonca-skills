@@ -1391,3 +1391,111 @@ each declare their forms in one `argument-hint`, and a bare invocation of either
 **Nothing here re-opens the permission model**, the `orchestrator-write-guard` removal (#375), or the
 milestone-creation route. The only edits to `permission-guard.sh` are comments carrying the renamed skill
 identifier.
+
+## Amendment, 2026-09-02 — a concept and its ruler live in one file, and two preloads move with them
+
+**Driven by [#380](https://github.com/tedeuxx/tadeumendonca-skills/issues/380). Decided by the owner,
+whose definitions are quoted below and are the ruler rather than a preference; written by `agents-lead`
+under the domain split (#223), riding in the MR that performs it.** It belongs to this capability
+because its subject is **which skill file carries which body of knowledge, and what a persona preloads**
+— not what "done" means, which is `verification-and-its-artifacts`'s and is untouched here.
+
+### The defect, and it was symmetric
+
+Both ends of a work item's life kept their **concept** in the skill named after them and their **real
+ruler** somewhere else:
+
+| concept | generic half | this loop's concrete half lived in |
+|---|---|---|
+| Definition of Ready | `definition-of-ready` | nowhere — the loop had no written bar at all |
+| Definition of Done | `definition-of-done` | `quality-gates` (#265) |
+
+So a reader asking *"what is this project's Definition of Done?"* opened the skill called
+`definition-of-done` and found theory, while the list lived in the skill named after CI/CD mechanisms.
+
+The owner's definitions:
+
+> *«quality gates para mim sao mais relacionados a metricas de ci/cd.»*
+> *«definition of done para mim sao relacionado a completude de um issue.»*
+> *«assim como temos o definition-of-ready tbm»*
+
+### The decision
+
+**The DoD moves to `definition-of-done`; the concrete readiness bar is written into
+`definition-of-ready`; `quality-gates` keeps the CI/CD metrics and nothing else.** No threshold moved
+and no gate changed — a relocation, not a retuning.
+
+**The pair, not one skill.** Fixing only the DoD would have left the asymmetry it was fixing: a reader
+would learn that one of the two names means what it says and the other does not, which is worse than
+both being wrong the same way.
+
+**The seam sentence is what the move buys, and it was not statable before it.** Each of the two skills
+now carries, beside its criteria, a statement of **which of them a mechanism checks and which nothing
+does** — by member, never by count. At the exit gate that makes *a green pipeline is not a met
+Definition of Done* visible instead of assumed; at the entry gate it says plainly that nothing observes
+whether an intake dispatch happened at all.
+
+### Considered and rejected
+
+**Move the `filed → description closed` rows out of `agents-configuration` too.** Rejected, and the
+reason is [#329](https://github.com/tedeuxx/tadeumendonca-skills/issues/329)'s unchanged: that file is
+the universal preload every persona carries **at the moment it dispatches**, and a rule about *who may
+act* has to be where whoever dispatches will read it. Putting the operative wording where nobody looks
+is how #329 happened. The line drawn instead: **what is a BAR went to the bar's skill; what is a
+TRANSITION stayed with the state machine.**
+
+**Leave the preloads alone and let the personas reach the skills on demand.** Rejected as the highest-
+cost consequence of the move rather than a detail — **a ruler the actor cannot see is not a ruler.**
+Two preloads therefore move in the same commit as the content:
+
+- **`quality-assurance` gains `definition-of-done`.** It preloaded `quality-gates` and not the other;
+  without this it would verify delivery against a list it no longer had.
+- **`agents-lead` gains `definition-of-ready`.** It is the sole closer of the `loop` lane's description,
+  and `product-lead`/`tech-lead` have carried this skill all along for the same act on their lanes.
+
+### Consequences
+
+**Good.** Each name now means what it says, in both directions. The gate reads its two rulers as a
+declared pair. The seam sentence exists at both ends of the lifecycle, and it is the sentence
+[#362](https://github.com/tedeuxx/tadeumendonca-skills/issues/362) needed somewhere to land.
+
+**Bad, and named rather than absorbed.** `agents-lead`'s new entry makes worse the tension its own brief
+already records: the added section describes hooks that persona owns, so it is carrying a frozen
+snapshot of its own object. Accepted on the same trade `devops` already accepted, with the brief's
+standing rule unchanged — **if the section contradicts the hook, the hook wins and it says so.**
+
+**Bad.** Two README claims — *`definition-of-done` is deliberately preloaded by NO persona* and
+*`definition-of-ready` was deliberately NOT added to `agents-lead`* — became false in the same commit
+that made them false. Both are **struck in place** with the reason each argument failed, rather than
+edited away or corrected in an adjacent paragraph.
+
+**Deliberately not published: any byte figure** for the two skills or for `quality-assurance`'s preload
+total. Both bases sit inside the diff that would publish them, which is this repository's most expensive
+recurring defect. The membership is the claim.
+
+### This amendment is in the WRONG COMMIT, and the note stays because the repair is unavailable
+
+**It landed in `ce64746`, the commit for [#362](https://github.com/tedeuxx/tadeumendonca-skills/issues/362),
+not in `963d8e3`, the commit for #380 whose decision it records.** `documentation-standard`'s *same MR*
+requirement is satisfied and is not what is wrong. What is wrong is that the batch's two-commit split
+was justified on the ground that **a reviewer must be able to separate the two Issues** — and this
+record, the argument for one of them, rides in the other's commit. **A revert of #362 would take #380's
+decision record with it.**
+
+Sharper than a misfiling: `ce64746`'s own message reads *"an amendment to ADR-0006 …, deliberately NOT
+to ADR-0011"* while that same commit adds 81 lines to ADR-0011. The message asserts the opposite of
+what the commit does.
+
+**Not repaired, and the constraint is measured rather than assumed.** Moving it means rewriting a
+pushed branch, and the floor refuses — probed at head against the guard itself:
+
+```
+printf '…"command":"git push --force-with-lease …"…' | bash hooks/scripts/permission-guard.sh
+→ Blocked: force-push / 'git reset --hard' rewrites history irreversibly.
+```
+
+So the honest disposition is the one this repository already uses for a published claim it cannot
+withdraw: **say it where the reader is, rather than leave the commit history reading as if the split
+held.** The lesson, which outlives this record: **a commit boundary argued as a review affordance is
+one the ADR must be staged against too** — `git add` the record with the slice it justifies, not with
+whatever is being committed when it happens to be written.

@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Run the author's own completeness pass before opening a merge request — every requirement marked met or unmet, every new assertion mutation-checked, what the change made false, alternative spellings of anything parsed, and the gates run with real output. Use when a slice is finished and not yet submitted, or when anticipating both the delivery and the can-this-break-production lens. Not for the definition of done itself (see quality-gates).
+description: Run the author's own completeness pass before opening a merge request — every requirement marked met or unmet, every new assertion mutation-checked, what the change made false, alternative spellings of anything parsed, and the gates run with real output. Use when a slice is finished and not yet submitted, or when anticipating both of the gate's lenses. Not for the definition of done itself (see definition-of-done), or the CI/CD gates it anticipates (see quality-gates).
 ---
 
 Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's review that comes after.
@@ -98,6 +98,22 @@ Measured, twice in one day, on the two slices that followed the one this file sh
 - and an earlier round returned three hits and acted on two, which satisfies *"read every hit"* literally. Hence **dispositioned**: each hit gets an outcome — a fix, or a recorded finding that it is not drift.
 
 **A list names the class; a procedure finds the instances** — the same difference §2 turns on. This section was itself rewritten from a list after failing on its own PR, and then corrected again when the procedure searched the wrong thing. *A procedure with the wrong input is a list that also reassures you.*
+
+**A second failure mode, and it is the one that LOOKS like success: a sweep that converges on what a gate can see.** Run the grep, fix the hits that turn something red, watch the suite go green, and stop — because green is the signal you were trained to stop on. **Every remaining hit sits in a field nothing checks, and the sweep is now indistinguishable from a complete one right up until someone reads the prose.**
+
+Measured, on the slice that moved a body of knowledge between two skills. **The claim was left false in every surface a gate does not read, and corrected in every surface one does — and nobody chose that split.** The criterion, not a count, because a count here would age the moment either set moves: *fixed* was exactly *has a gated quotation compared against its carrier*; *missed* was exactly *does not*. Among the missed was the moved file's **own `description:`** — the trigger whose entire job is routing a model to the thing it now carried, telling that model to look elsewhere. Nothing was red at any point.
+
+Re-derive the set with the words of the **old** claim rather than trusting either list:
+
+```
+grep -rn "see quality-gates\|/quality-gates" skills/ docs/blueprint-registry.md agents/ commands/ README.md
+```
+
+> **Disposition the hits BEFORE running any suite, and count them against what you fixed.** If the number you fixed equals the number that would have gone red, that is not confirmation — it is the signature of a gate-driven sweep, and the remaining hits are in the ungated fields by construction.
+
+The cheap structural check, because a field is gated or it is not and you can tell in one look: **for every record that carries a gated field, read its ungated siblings in the same breath.** A registry row whose quotation is compared to its carrier also carries a description, a purpose and a what-it-does that nothing compares to anything.
+
+**And run the gates BETWEEN corrections, not once at the end.** A correction is a publication and can mint its own defect, so a batch of them landed together arrives as one red with several causes — or, worse, as a green that only holds because two errors were introduced in fields nothing reads. Measured on the slice this section was written from: of four self-minted defects, **the two the suite could see were caught by a mid-round run and would otherwise have shipped inside the fix for someone else's finding.** The cost is seconds; the alternative is a review round spent separating your own corrections from the thing you were correcting.
 
 **And its limit, which is not a defect but is a thing to know: a phrase sweep finds RESTATEMENTS, never OMISSIONS.** A grep of the old claim cannot reach a place that should now say something and says nothing — it shares none of the words you are searching for. Measured: a rule was added to two persona files, an ADR and a state table, and the *procedural narration* an agent actually reads was missed by the sweep and found by reading. **So after the grep, ask separately: where does this repo TELL someone how to do this, and does that place now know?** This section is necessary and not sufficient, for the same reason it gives about lists.
 

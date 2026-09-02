@@ -177,6 +177,28 @@ jobs:
       - name: Run the mcp-guard suite
         run: bash hooks/scripts/mcp-guard.test.sh
 
+      # Same rule a FIFTH time (#382), and this one is the sharpest instance in the list because the
+      # suite did not exist at all until now. `dispatch-metrics-stop.sh` shipped at #209 with NO test
+      # file, and its `rework_rounds_so_far` arm was therefore inert for its entire life — 47 of 47
+      # comments on the two highest-volume Issues of `sprint-01` read `n/a`, including every
+      # gatekeeper dispatch, while the field printed a plausible value every time. Nothing was red
+      # anywhere, because nothing was asserting anything. The hook and its step land in the same
+      # commit here, which is what the four comments above all say.
+      #
+      # IT IS NOT THE LAST UNGUARDED SCRIPT, and this line says so because the first draft of it
+      # claimed otherwise and was measured false in the same session. The MEMBER rather than a count,
+      # since the list is the claim:
+      #
+      #   for f in hooks/scripts/*.sh; do case "$f" in *.test.sh) continue;; esac; \
+      #     [ -f "${f%.sh}.test.sh" ] || echo "NO SUITE: $f"; done
+      #   -> hooks/scripts/dispatch-metrics-start.sh
+      #
+      # That one is left deliberately rather than overlooked: it posts nothing, decides nothing, and
+      # ADR-0004's hook census already carries it as **CUT** — writing a suite for a script proposed
+      # for deletion is work aimed at the wrong end of the decision.
+      - name: Run the dispatch-metrics-stop suite
+        run: bash hooks/scripts/dispatch-metrics-stop.test.sh
+
       - name: Assert every hook script is committed executable
         run: bash hooks/scripts/hooks-executable.test.sh
 

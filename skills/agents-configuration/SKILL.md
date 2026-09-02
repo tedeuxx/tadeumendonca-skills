@@ -1,5 +1,5 @@
 ---
-description: Run a slice through this loop's intentional design — why it is shaped this way, its intake chain, its state machine, its iteration axis, its inner-loop steps. Use when picking up a slice, proposing a change to the loop itself, or naming Agent Harness Engineering in public writing. Not the portable judgment (see engineering-standards), what "done" means (see quality-gates), the permission zones (see devops), or the generic meaning of ready (see definition-of-ready).
+description: Run a slice through this loop's intentional design — its intake chain, state machine, iteration axis and inner-loop steps. Use when picking up a slice, proposing a change to the loop itself, or naming Agent Harness Engineering in public writing. Not the portable judgment (see engineering-standards), what "done" means (see definition-of-done), the CI/CD gates (see quality-gates), the permission zones (see devops), or what makes an item ready (see definition-of-ready).
 purpose: carry the intentional design of this loop - why it is shaped this way, not only what its steps are - so every agent acting inside it can decide correctly in the cases the state table does not enumerate
 ---
 
@@ -33,8 +33,9 @@ paragraph by paragraph:** *would this still be true in a project that does not r
 `engineering-standards`. No → here. Where a principle has a local enforcement, the principle is named
 there and the enforcement here, once each.
 
-Three companion skills carry adjacent ground and are **not** folded in here: `/engineering-standards`
-(the judgment), `/quality-gates` (what "done" means, the Definition of Done, the gate tables) and
+Four companion skills carry adjacent ground and are **not** folded in here: `/engineering-standards`
+(the judgment), `/definition-of-done` (what "done" means — the criteria, and which of them a gate
+proves), `/quality-gates` (the CI/CD gates and their tables) and
 `/devops` (the permission zones and guard hook that make the deny-boundary mechanical, plus CI/CD and
 the branching topology). The single-
 vs. two-environment branching topology lives in `/devops` (#227) — this skill keeps only how the state
@@ -187,12 +188,24 @@ both signals are absent, it is `trunk-single-env`.**
 
 **Nothing is worked that is not recorded in the issue tracker.** No exceptions, no size threshold.
 
-**What "closed" means for a description, generically, is `/definition-of-ready`'s subject, not
-restated here.** This section is this loop's own **mechanism** for reaching that state — which two
-personas close it, what label records the transition, what the state machine does once it is set — not
-a second definition of what "ready" means as a concept. Read `/definition-of-ready` for the SDLC-generic
-bar (the checklist shape, the flagship failure of scope fragmented across issues, the relationship to
-estimation); read this section for how *this loop specifically* gets an Issue there.
+**What "closed" means for a description is `/definition-of-ready`'s subject — generically AND for this
+loop, since #380 — and it is not restated here.** This section is this loop's own **mechanism** for
+reaching that state — which personas close it, what label records the transition, what the state
+machine does once it is set — not a second definition of what "ready" means.
+
+**The split moved at #380 and the new line is worth stating exactly**, because the old wording implied
+the concrete bar lived here and it never did — it lived nowhere. Read `/definition-of-ready` for the
+SDLC-generic bar (the checklist shape, the flagship failure of scope fragmented across issues, the
+relationship to estimation) **and for this loop's own concrete bar** — what `ready` asserts, the five
+items a closed description carries here, and the seam sentence naming which of them a mechanism checks
+and which nothing does. Read this section for **who acts and what records it**.
+
+**The `filed → description closed` rows below did NOT move, and #329's argument is why.** They are the
+canonical statement of who takes part on each lane, and they are here because this file is the
+universal preload every persona carries at the moment it dispatches. A rule about *who may act* has to
+be where whoever dispatches will read it; putting the operative wording where nobody looks is how #329
+happened in the first place. **What is a bar went to the bar's skill; what is a transition stayed with
+the state machine.**
 
 **The chain below is the `product` lane.** All three lanes are in the states table's
 `filed → **description closed**` rows, which are the canonical statement of who takes part on each —
@@ -1607,8 +1620,9 @@ what the rule says — that is what lets you act correctly in the cases the stat
 enumerate, which is most of them.
 
 See also: `/engineering-standards` (the judgment applied inside all of this — the two tiers, the
-eleven principles, delivery versus hygiene, the human residual), `/quality-gates` (the Definition of
-Done and the gate tables per loop model), `/devops` (the permission zones and guard hook, branching,
+eleven principles, delivery versus hygiene, the human residual), `/definition-of-done` (the Definition
+of Done — the criteria and the seam table), `/quality-gates` (the CI/CD gate tables per loop model and
+the merge-class rules), `/devops` (the permission zones and guard hook, branching,
 per-environment topology, OIDC, the deploy workflows, TFC state), `/definition-of-ready` (the
 SDLC-generic bar this loop's intake chain reaches), and `/documentation-standard` (the ADR practice
 that records decisions about all of it).

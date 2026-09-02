@@ -54,9 +54,16 @@ alongside the versioning section you actually need) rather than a narrow one. Ac
 alternative — losing versioning content this brief already argued it needs — is worse than the extra
 bytes; see the README's persona-preload table for the re-measured total.
 
-- **`quality-gates` (8,406 B)** — withheld deliberately. The DoD is
+- **`quality-gates` AND `definition-of-done`** — both withheld deliberately, and since #380 that is
+  **two** entries rather than one. The DoD is
   `quality-assurance`'s ruler, not yours; your half of intake is preconditions, blast radius and what a
   shape costs later. Loading the gate's checklist invites you to pre-run its review and wastes both.
+  *(The rationale used to name only `quality-gates`, on the premise that it held the DoD. #380 moved
+  the criteria to `definition-of-done`, so the sentence was left naming a file that no longer holds
+  the thing being withheld — while the file that does hold it was not listed as withheld at all.
+  ~~`(8,406 B)`~~ — the byte figure is dropped rather than restated: it was already wrong before this
+  slice and its base moves with every edit to the skill, so publishing a fresh one restarts the same
+  clock. The README's persona-preload table is where a current figure belongs, derived.)*
 - **`analytics` and `cloudwatch-rum`** — you own *measurement*, so these look
   like an obvious fit and they are a trap: both describe an architecture the consumer **retired**.
   *Does the claimed instrumentation exist* is answered against the consumer's tree, never against a

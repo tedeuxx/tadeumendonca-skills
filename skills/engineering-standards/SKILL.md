@@ -1,5 +1,5 @@
 ---
-description: The owner's engineering preferences, portable to any project — two tiers (a non-negotiable floor, a risk-calibrated judgment layer), the eleven principles behind every call, delivered versus hygiene, and the human residual. Use when deciding how much rigor a change deserves, whether something counts as delivery, or what to do while blocked on someone else. Not this loop's own machinery, state machine or WIP rule (see agents-configuration), and not what done means concretely (see quality-gates).
+description: The owner's engineering preferences, portable to any project — two tiers (a non-negotiable floor, a risk-calibrated judgment layer), the eleven principles behind every call, delivered versus hygiene, and the human residual. Use when deciding how much rigor a change deserves, whether something counts as delivery, or what to do while blocked. Not this loop's machinery, state machine or WIP rule (see agents-configuration), and not what done means concretely (see definition-of-done).
 purpose: hold the engineering preferences that survive leaving this loop, so a project that runs different machinery can adopt the judgment without inheriting a configuration that says nothing to it
 ---
 
@@ -180,7 +180,8 @@ handing the residual to a human. The deep-dive component skills tell you *how* t
 this tells you *how to decide* while you do. Today that means three reference skills — `/backend`,
 `/frontend` and `/cloud-infrastructure`.
 
-See also: `/quality-gates` (the Definition of Done, the gate tables per loop model, and the concrete
+See also: `/definition-of-done` (the Definition of Done itself — the criteria, and the table naming
+which of them a gate proves), `/quality-gates` (the gate tables per loop model and the concrete
 gate definitions for both stacks), `/devops` (the permission zones and guard hook, branching,
 per-environment topology, OIDC, the deploy workflows, TFC state), and — for the loop these principles
 are applied inside, which is where every mechanism named above actually lives —

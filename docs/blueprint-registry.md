@@ -574,7 +574,7 @@ jq -r '.skills[]' .claude-plugin/plugin.json | wc -l                            
 - **propósito:** Every actor in this loop needs the same answer to *where am I, who acts next, and what records that it happened* — and, above that, *why the loop is shaped this way*, because a state table cannot enumerate the cases an actor will actually meet. It is preloaded by every profile so that the one thing nobody may improvise is the loop.
 - **o que faz:** States the two loop models and how to tell which one a repository runs, the issue types and their states with the artifact that records each transition, the iteration axis and how the active one is derived, the closing criteria, and the merge classes — each with the intent that produced it rather than the rule alone.
 - **o que não faz:** It does not carry the portable engineering judgment (that half was split out at #381), it does not define **done** or hold the gate tables, it does not carry the permission zones or the branching topology, and it does not define the SDLC-generic meaning of *ready* — four neighbours own those, and the boundary is stated in its own trigger so the model does not reach here for them.
-- **citação:** > "Not the portable judgment (see engineering-standards), what "done" means (see quality-gates), the permission zones (see devops), or the generic meaning of ready (see definition-of-ready)."
+- **citação:** > "Not the portable judgment (see engineering-standards), what "done" means (see definition-of-done), the CI/CD gates (see quality-gates), the permission zones (see devops), or what makes an item ready (see definition-of-ready)."
 
 ### 0045 · the engineering judgment that survives leaving this loop
 
@@ -584,7 +584,7 @@ jq -r '.skills[]' .claude-plugin/plugin.json | wc -l                            
 - **propósito:** A harness's judgment and a harness's machinery are indistinguishable while they live in one file, and the whole job of a blueprint is telling a portable rule from a local accident. Splitting them at the source makes the export honest instead of asking a renderer to make the distinction at projection time.
 - **o que faz:** States the mechanical-or-it-is-not-real test, the two tiers (a floor that never bends and a dial calibrated to blast radius), the eleven principles as defaults plus their triggers to deviate, what counts as delivered against hygiene, what an agent does while blocked on someone it does not control, and what is left to the human.
 - **o que não faz:** It states that a work-in-progress bound exists and deliberately does **not** say what this loop's bound is — that, its correction, what it protects and the measurement showing nothing enforces it are all local. It also holds no state machine, no intake chain and no gate table. The cut was made on one test — *would this still be true in a project that does not run this loop?* — and the operational ruler it was applied with is stated in the file: nothing here names a persona, a hook, an ADR or an Issue of this repository.
-- **citação:** > "Not this loop's own machinery, state machine or WIP rule (see agents-configuration), and not what done means concretely (see quality-gates)."
+- **citação:** > "Not this loop's machinery, state machine or WIP rule (see agents-configuration), and not what done means concretely (see definition-of-done)."
 
 ### 0025 · where a working file goes
 
@@ -636,15 +636,15 @@ jq -r '.skills[]' .claude-plugin/plugin.json | wc -l                            
 - **o que não faz:** It does not carry the Terraform configuration itself, the state machine, or the gate list its quality step sits inside — three neighbours own those. And it is explicit that the merge command is **deliberately not** a permission rule: whether a merge needs the human depends on the **class** of the change, and a matcher reading a command string cannot see a class.
 - **citação:** > "Not for Terraform config (see cloud-infrastructure), state machine (see agents-configuration), the gate list Sonar sits inside (see quality-gates), or the pre-merge pass (see code-review)."
 
-### 0030 · what "done" means here, and the gates that prove it
+### 0030 · the CI/CD gates, and where each one sits
 
 - **tipo:** knowledge
 - **carrier:** `skills/quality-gates/SKILL.md`
-- **descrição:** This loop's concrete definition of done in one part, and the stack-agnostic thresholds that satisfy it in the other.
-- **propósito:** A gate is only a ruler if it is **external to the reviewer**. A vague description leaves the gate nothing to anchor on, so it falls back on impression — and impression has no stopping rule. The regression invariant is the other half: every feature that ships adds its regression, so the suite is the proof that nothing broke.
-- **o que faz:** States the definition of done, the full-coverage regression invariant, the gate table per loop model, and the concrete thresholds — zero lint and typecheck errors, a coverage floor, contract and end-to-end suites where they exist, dependency and secret scanning, static analysis.
-- **o que não faz:** It is not the **author-side** pass that runs before the request is opened, it does not carry the quality-platform mechanics, and it does not teach what a definition of done generically *is* or how to design one — three neighbours own those. Which suites constitute the regression is per repository, deliberately: a floor stated in components a repository does not have is not a higher standard, it is an unsatisfiable one, and unsatisfiable gates get faked.
-- **citação:** > "Not for the pre-merge pass (see code-review), Sonar mechanics (see devops), or what a DoD generically is and how to design one (see definition-of-done)."
+- **descrição:** This loop's CI/CD gate policy — the gate table per loop model and the merge-class rules in one part, the stack-agnostic thresholds in the other.
+- **propósito:** A gate is only a ruler if it is **external to the reviewer**. A vague description leaves the gate nothing to anchor on, so it falls back on impression — and impression has no stopping rule. Keeping the gates here and the completion criteria next door is what stops *CI is green* being read as *the item is done*: the criteria this file's gates do NOT prove are named beside them, in the neighbour that owns them.
+- **o que faz:** States the gate table per loop model, the merge-class rules, and the concrete thresholds — zero lint and typecheck errors, a coverage floor, contract and end-to-end suites where they exist, dependency and secret scanning, static analysis.
+- **o que não faz:** It is not the **author-side** pass that runs before the request is opened, it does not carry the quality-platform mechanics, and — since the definition of done moved out — it carries **neither** the criteria that make an item complete **nor** the generic teaching of what a definition of done is; one neighbour now owns both. Which suites constitute the regression is per repository, deliberately: a floor stated in components a repository does not have is not a higher standard, it is an unsatisfiable one, and unsatisfiable gates get faked.
+- **citação:** > "Not for the criteria that make a slice complete (see definition-of-done), the pre-merge pass (see code-review), or Sonar mechanics (see devops)."
 
 ### 0031 · the author's own completeness pass
 
@@ -654,7 +654,7 @@ jq -r '.skills[]' .claude-plugin/plugin.json | wc -l                            
 - **propósito:** Both of the gate's lenses are answered **first, while fixing is still free**. The merge of the two gatekeepers raised the value of this pass rather than lowering it: there is no longer a second reader coming from a different direction, so a defect one of them would have caught is now caught once or not at all.
 - **o que faz:** Walks every requirement marked met or unmet with its evidence, mutation-checks every new assertion, names what the change made **false** elsewhere, tries alternative spellings of anything the change parses, and runs the gates with real output rather than a claim.
 - **o que não faz:** It is not the definition of done — it anticipates a ruler it does not own. And it is **author-side**, so it carries the bias it exists to compensate for: it can find an assertion that cannot fail, and it cannot find the question the author never thought to ask.
-- **citação:** > "Not for the definition of done itself (see quality-gates)."
+- **citação:** > "Not for the definition of done itself (see definition-of-done), or the CI/CD gates it anticipates (see quality-gates)."
 
 ### 0032 · the bar an item clears before a builder picks it up
 
@@ -664,7 +664,7 @@ jq -r '.skills[]' .claude-plugin/plugin.json | wc -l                            
 - **propósito:** A strong definition of done **cannot repair a story that was ambiguous when the builder started**. The two gates sit at opposite ends of the same lifecycle, and a loop that enforces only one fails at the end it left open.
 - **o que faz:** Gives the checklist shape conditional on the project's surfaces, names the flagship failure — scope fragmented across overlapping items — and states the relationship to estimation.
 - **o que não faz:** It is generic by construction, so it holds **this** loop's intake mechanism nowhere: the two-lead chain, the label, and who may apply it live with the state machine. It also does not verify what shipped, which is the other gate's job.
-- **citação:** > "Not for what "done" means at delivery (see quality-gates), or this repo's own two-lead intake mechanism (see agents-configuration)."
+- **citação:** > "Not for what "done" means at delivery (see definition-of-done), or the state machine of who acts at each transition (see agents-configuration)."
 
 ### 0033 · the ruler for anything published in the owner's voice
 
