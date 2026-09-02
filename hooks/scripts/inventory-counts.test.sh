@@ -7211,6 +7211,7 @@ else
     'the isolation would survive the dispatch and die at the write.' \
     'denies `product-lead`, `content-writer` and' \
     '**Then SUBTRACT every profile that cannot `Write`' \
+    '- **its own iteration-sweep report — `docs/iteration-sweep/<iteration>.md` in the consuming repo, for' \
     '**The relay is refused explicitly' \
     '**At most TWO findings per persona, the persona choosing which two.**' \
     'A rule that is checkable by reading and not by running is the honest maximum here' \
@@ -7237,6 +7238,16 @@ else
                            and die at the write.
         DENIES           — why it is a file and not a comment: rule 5e denies four of the eight any
                            public surface, so a comment artifact would have to be aggregated.
+        SWEEP REPORT     — step 3's artifact list is CLOSED, and this bullet is the one that makes the
+                           review-first ordering a MECHANICAL reason rather than only a legibility one.
+                           Four surfaces assert 'the retrospective feeds each persona its own artifacts
+                           and the sweep's report is one of them' — the rite, the drain, the universal
+                           preload and the generated Kiro export — and every one of them is false the
+                           moment this bullet leaves. It was ADDED at #379-r3 after the copy lens found
+                           all four already shipping against a list that did not name it: the claim was
+                           written in four places and the one list that decides it carried nothing.
+                           Delete the bullet and four documents go quietly wrong, in two distribution
+                           surfaces; that is why it is pinned here rather than trusted to adjacency.
         SUBTRACT         — the consult set is derived with NO filter, so a profile holding no \`Write\`
                            lands in it and is asked for an artifact it cannot produce. The clause is a
                            PROPERTY, not a name, so the next tool-less profile is covered without an
@@ -8127,7 +8138,7 @@ else
     'a gate with no ruler grades taste' \
     'this rite ships no list, deliberately' \
     'consume.** A route that exists in the product is in that list *by construction*' \
-    'it is a list, and no, it does' \
+    '**It is a list, and it does not rot**' \
     '**Do not enumerate assets.**' \
     'so it is stated as the one' \
     '### And the sweep is INCOMPLETE. It says so, in the report, every time' \
@@ -8151,6 +8162,14 @@ else
                            function the product's own sitemap consumes, and the file ADMITS the result
                            is a list while saying why that one cannot rot. Dropping the third leaves a
                            claim that reads as evasion of the objection rather than an answer to it.
+                           THE THIRD NEEDLE MOVED at #379-r3 and the reason is worth keeping: it read
+                           'it is a list, and no, it does' — the tail of a sentence answering a quoted
+                           objection ("a list by another name?") that NOBODY IN THE FILE RAISES. The
+                           copy lens flagged that shape as review-round residue in an installed file,
+                           the sentence was rewritten as a plain assertion, and the needle moved with
+                           it. WHAT IT ASSERTS IS UNCHANGED — the file admits the result is a list —
+                           and this arm caught the rewrite, which is the arm working rather than a
+                           cost of it.
         DO NOT ENUMERATE / ONE PLACE STALENESS — the asset axis is read off the page, and the viewport
                            axis is the one enumerated set, named as the one place a list can rot here.
         INCOMPLETE / EMULATED PHONE — the lower bound, and the residual that matters most: the defects

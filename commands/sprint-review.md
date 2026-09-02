@@ -1,5 +1,5 @@
 ---
-description: Sweep the running product at iteration close — the live surface, derived rather than listed, at more than one viewport and in every locale, and report what a reader would meet. Use when the drain reports its entry snapshot exhausted, or when the owner types it against an iteration worked by hand. It returns observations for the owner, never a verdict, and it gates nothing.
+description: Sweep the running product at iteration close — the live surface, derived rather than listed, at more than one viewport and in every locale, and report what a reader would meet at a derived lower bound. Use when the drain reports its entry snapshot exhausted, or when the owner types it against an iteration worked by hand. It returns observations for the owner, never a verdict, and it gates nothing.
 purpose: give the closing of an iteration a look at the running product, because every gate in this loop reads a diff and none of them can see a page that renders wrong
 argument-hint: "[iteration] (defaults to the active iteration)"
 ---
@@ -7,15 +7,26 @@ argument-hint: "[iteration] (defaults to the active iteration)"
 Run the sprint review for the iteration named by `$ARGUMENTS` (default: the active iteration, derived
 from the pool per `/agents-configuration` rule 1 — **enumerate, never type a milestone name**).
 
-**This file is the second half of a promise that was plural for months.** `/autonomy on` has said *"the
-closing ceremonies run against the exhausted iteration"* since #326; `/sprint-retrospective` (#355) was
-the first half and said in its own last section that this half was **not built**. It is built now, and
-that section is struck rather than deleted, because it is what told every reader the half was refused.
+**This file is the second half of a promise that has been plural since #326.** `/autonomy on` has said
+*"the closing ceremonies run against the exhausted iteration"* since then; `/sprint-retrospective`
+(#355) was the first half and said in its own last section that this half was **not built**. It is
+built now, and that section is struck rather than deleted, because it is what told every reader the
+half was refused.
 
 ## What this is, and the two things it is not
 
 **It is an OBSERVATION SWEEP of the running product.** Merge is deploy under `trunk-single-env`, so
 there is no staging copy and no preview: the thing being looked at is what a reader is looking at.
+
+**And it is a LOWER BOUND. Said here, first, before the three axes argue that the objection is
+answered.** Its targets are derived rather than listed, which is what stops them rotting — it does not
+make them complete. An interaction-gated surface is unreachable under a read-only browser grant,
+anything time- or state-dependent is invisible, and **an emulated phone is not the phone the motivating
+defects were found on.** *This paragraph is here because it was not: the admission sat at 63% of the
+file, after the reader had been told three times that the objection was answered, and this file's own
+instruction is to state it in the rite rather than after it. A reader who stops at the end of axis 3 —
+the natural stopping point, since the file has just declared the objection answered — must not leave
+believing coverage is closed.* The full residual is under *And the sweep is INCOMPLETE* below.
 
 **It is NOT a gate, and it returns NO verdict.** This is not a preference and it is not a posture that
 could be tightened later — it is what makes the rite admissible at all. The finding a looker produces
@@ -45,8 +56,13 @@ Two independent reasons, and either alone would settle it:
    the Sprint Retrospective. A reader who knows the events and finds them in a different order has been
    handed a name that no longer helps him predict anything, which is the whole of what the naming was
    for.
-2. **The retrospective feeds each consulted persona its OWN artifacts.** This rite's report is one of
-   them. Run second, it would be an artifact produced after the consultation that would have read it.
+2. **The retrospective feeds each consulted persona its OWN artifacts, and this rite's report is on
+   that list.** Run second, it would be an artifact produced after the consultation that would have
+   read it. **The list is `commands/sprint-retrospective.md`'s step 3, and it is closed** — check the
+   bullet naming `docs/iteration-sweep/<iteration>.md` is there, because that bullet is the whole of
+   this reason. **It was NOT there when this sentence was first written**, and the same slice added it
+   after a review found the reason resting on a consumption relationship that did not exist. Read that
+   as the shape to watch: a mechanical reason is only mechanical while the mechanism names it.
 
 **Nothing sequences these.** No hook fires any of the three; the order is an instruction in a command
 file, and by this loop's own test — *would something stop me, or only my memory?* — it is not
@@ -86,6 +102,23 @@ Definition of Done. **This rite deliberately has no ruler.** Handing a rite with
 persona built around one produces either a verdict nobody asked for or a gate with no ground, and both
 are the failure this rite's own shape refuses.
 
+### What the choice COSTS, because two reasons for it and no price is not how this file argues
+
+**The driver's competence is split, and only half of it is native.** The judgement half is squarely
+its own — layout that reads wrong, wording against `published-voice`, cross-surface staleness. **The
+mechanical half is not a product judgement**, and `agents/product-lead.md` states the risk in its own
+words: *"the risk is that you under-read console noise a builder would recognise."*
+
+**The compensation is already in that brief and is not restated here: the mechanical half is a
+CHECKLIST WITH A COUNT, not an opinion.** Per route the answer is *evidence or not*, and
+*"I looked and it seemed fine"* is not one of the values — which, with the two counts leading the
+report, is what stops inexperience on that half producing a false green.
+
+**Read the compensation as a bound rather than a cure.** A checklist catches the console error that
+was *logged*; it does not make the reader of that line know what it was serving. **That residual is the
+price of this driver, and it is paid rather than closed** — the alternative drivers cost either a
+second MCP grant or a ruler this rite does not have.
+
 ## The hard part: how the sweep knows what to look at, without a list that rots
 
 **A route list rots**, and a sweep whose list is stale reports green over the routes nobody enumerated.
@@ -102,14 +135,15 @@ named in `agents/product-lead.md`, which is entitled to name it; the property is
 > consume.** A route that exists in the product is in that list *by construction*, and a route that is
 > added without appearing in it is broken for search engines before it is missed by this sweep.
 
-That is the whole of the answer to *"a list by another name?"* — **yes, it is a list, and no, it does
-not rot**, because **nothing maintains it FOR THIS SWEEP**: the sweep's copy is generated at the moment
-it runs, and its staleness is not a state the product can be in while working. **The qualifier is
-load-bearing and is not hedging** — a generator may well hold a hand-written array inside it, and this
-one does. What makes the axis sound is not that no human ever edits anything upstream; it is the
-sentence above: **the sweep and the product's own published surface consume the same function**, so a
-route the sweep cannot see is a route the sitemap and the prerender cannot see either. **If the
-generator cannot be run, that is a FAILED sweep, not a sweep with a smaller list.**
+**It is a list, and it does not rot**, because **nothing maintains it FOR THIS SWEEP**: the sweep's copy
+is generated at the moment it runs, and its staleness is not a state the product can be in while
+working.
+
+**Read that qualifier narrowly — a generator may well hold a hand-written array inside it, and this one
+does.** What makes the axis sound is not that no human edits anything upstream; it is the property
+above: **the sweep and the product's own published surface consume the same function**, so a route the
+sweep cannot see is a route the sitemap and the prerender cannot see either. **If the generator cannot
+be run, that is a FAILED sweep, not a sweep with a smaller list.**
 
 ### Axis 2 — the viewport is a closed set, and it is where the motivating defects lived
 
@@ -119,8 +153,19 @@ place staleness can enter: **a viewport class the product starts caring about (a
 print stylesheet) is invisible here until someone adds it.**
 
 That is a real residual and it is cheap only because the set is short and its members change rarely.
-**It is named here so it is a known bound rather than a discovery.** The three defects that motivated
-this rite were all found at a viewport, so this axis is not overhead — it is the axis.
+**It is named here so it is a known bound rather than a discovery.**
+
+**Two of the three motivating defects are this axis's**, and they are named rather than counted:
+the banner off-centre **horizontally**, and then — after that fix shipped — the same banner off-centre
+**vertically**. Both were mis-positioning visible only at a rendered width; **neither would have
+appeared in a network log**, because the image loaded correctly every time.
+
+~~The three defects that motivated this rite were all found at a viewport, so this axis is not
+overhead — it is the axis.~~ **Struck in review, and the reason generalises past this sentence.** The
+same three-defect set was claimed as decisive here *and* under axis 3, with a universal quantifier in
+both places and no attribution in either — and under the readings that make both sentences true
+(everything on a phone is at some viewport; a banner is an asset), **neither claim could be falsified.**
+A claim true under every reading is a frame, not evidence. Attributed above and under axis 3.
 
 ### Axis 3 — the assets are read OFF THE PAGE, and this is the axis no list could have held
 
@@ -133,8 +178,19 @@ without anyone writing anything down:
   bar rendering without its link* is exactly this shape, and it is why the snapshot is taken per route
   rather than only when something looks wrong.
 
-**This axis is the direct answer to the objection.** The motivating defects were found *on an asset no
-route list would have enumerated by name* — and no list here does, because the page is the enumerator.
+**This axis is the direct answer to the objection, and ONE of the three motivating defects is its
+instance** — *a preview bar rendering without its link*: an element that rendered without the thing it
+was for, on a surface no route list would have enumerated by name. No list here does, because the page
+is the enumerator. *(The other two are axis 2's; see there. The attribution is deliberate — the same
+evidence set was previously claimed as decisive for both axes, universally, which made neither claim
+falsifiable.)*
+
+**And the honest consequence of attributing rather than counting: the NETWORK-LOG half of this axis has
+no motivating instance at all.** All three defects were things that rendered *wrongly*, not things that
+failed to load. The network log is here on the argument that a broken asset announces itself without
+anyone knowing its name in advance — which is sound and is **not** evidence from the defects this rite
+was built for. Read it as the cheaper half of a two-tool axis, carried on reasoning, while the snapshot
+half is carried on an instance.
 
 ### And the sweep is INCOMPLETE. It says so, in the report, every time
 
@@ -183,8 +239,18 @@ nothing and will assume the best.
 **Nothing here files an Issue and nothing here changes anything.** The judgement findings are candidates
 for the next iteration and `/sprint-planning` reads them alongside the retrospective's proposals; the
 owner rules on each. This is already mechanical rather than promised — `permission-guard.sh` rule 5c
-denies `gh issue create` to every subagent but `developer`, and rule 5e denies this rite's driver every
-public surface — and the rite adds no second control over it.
+denies `gh issue create` to every subagent but `developer`, and **rule 5e denies this rite's driver
+three subcommands by name: `gh pr comment`, `gh issue comment` and `gh issue create`** — and the rite
+adds no second control over it.
+
+**Read that as three subcommands and not as "every public surface", which is what this paragraph said
+until it was corrected in review.** `gh pr create`, `gh pr edit` and a `git push` are **untouched** by
+rule 5e — measured, same payload shape, only the command varying: `gh pr comment` denies,
+`gh pr create` draws no decision. The driver's own brief says so in bold, and the overclaim was worse
+here than anywhere else in this file, because **this is the paragraph whose job is to say the
+containment is mechanical rather than promised.** A reader who takes *"every public surface"* at face
+value believes a boundary is closed that is open — in the one place the file is asserting there is
+nothing left to promise.
 
 **A sweep finding must never be relayed as a BLOCKING truth finding.** That veto is about *the truth of
 a published claim*. A broken image, a console error and a bad line-break at 390px are none of them

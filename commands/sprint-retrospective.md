@@ -184,10 +184,19 @@ that iteration only:
 - its own verdict markers — `gatekeeper-verdict` for the gate, `harness-lead-verdict` for the machinery
   lens;
 - its own review-file sections — `docs/content-review/<slug>.md` for the content pair;
+- **its own iteration-sweep report — `docs/iteration-sweep/<iteration>.md` in the consuming repo, for
+  the persona that drove `/sprint-review` (#379).** This bullet is why the review runs **first** of the
+  three: the sweep's report is one of the artifacts this step feeds back, so a sweep run after the
+  consultation would produce evidence the consultation could not read. **Added here in the same slice
+  that made that claim** — it was asserted in four places and this list, which is the one that decides
+  it, did not carry it;
 - the PRs and Issues it touched.
 
-**All of that is reachable with `gh` reads and marker greps that already exist. Nothing new is built to
-produce it.** The question the dispatch asks is therefore *"here is what you produced; what does it say
+**All of that is reachable with reads that already exist — `gh` reads, marker greps, and a file read for
+the sweep report, which is a tracked file in the other repo rather than anything this loop has to
+build. Nothing new is built to produce it.** *(The sweep-report bullet is the one item here that is
+NOT a `gh` read, and it is the one this suite can never see: it lands in the consuming repository. If
+the file is absent, that is a finding about the handoff — say so — never a silently shorter dispatch.)* The question the dispatch asks is therefore *"here is what you produced; what does it say
 should change?"* rather than *"what did you see?"* — a documented-evidence question of the kind this
 loop already requires everywhere else.
 
