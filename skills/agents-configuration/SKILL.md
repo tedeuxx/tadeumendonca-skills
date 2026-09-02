@@ -371,10 +371,15 @@ them:**
    loop estimates by isolated subagent dispatch with a median (`/planning-poker` is a reference
    pattern, explicitly not run as a human ceremony), and **nothing bounds how many items the owner
    admits to one iteration** — there is no commitment to under-fill against.
-2. **`sprint-review` implies a stakeholder demo of an Increment.** Here **merge is deploy**, the owner
-   reviews live after the fact, and the rite is *refused on its shape* rather than deferred on effort:
-   a route list rots, and a looker's finding is not falsifiable, so it must not be a gate. **The rite
-   does not exist and typing it returns `Unknown command:`, which is correct behaviour.**
+2. **`sprint-review` implies a stakeholder demo of an Increment.** There is none:
+   **no audience, no acceptance moment and no ruler.** Merge is deploy here, so the increment has been live since each
+   merge; the rite sweeps the running site and returns observations, and it gates nothing.
+   ~~the rite is *refused on its shape* rather than deferred on effort: a route list rots, and a
+   looker's finding is not falsifiable, so it must not be a gate. **The rite does not exist and typing
+   it returns `Unknown command:`, which is correct behaviour.**~~ **Struck 2026-09-02 (#379) — the rite
+   EXISTS and typing it runs a sweep.** The refusal was **satisfied, not lifted**: it ships no route
+   list and it returns no verdict. **The deviation a Scrum reader must still not import is the demo**,
+   and that one is not fixable by building anything.
 3. **`sprint-retrospective` is the closest match and still imports one falsehood.** Scrum's
    retrospective is *the team in one room*. This one is **N isolated contexts that never see each
    other's output** — which the rite calls its mechanism, not its formatting, because a persona at
@@ -1060,18 +1065,32 @@ closing ceremonies run, and the stop moves to the planning handoff, which is the
 `/autonomy on`'s *Stop when* for the operative wording and for how this settles against #103's judgment
 condition; it is stated once, there, rather than twice.
 
-**One of those ceremonies exists and one does not, and the plural is where that gets lost (#355).**
-`/sprint-retrospective` is the method half — the personas that ran, consulted alone, each reasoning from its
-own artifacts. The **sprint review** half, which sweeps the running product and finds a completely
-different class of defect, **is not built**. Read *"the closing ceremonies"* anywhere in this loop as
-one built and one owed.
+~~**One of those ceremonies exists and one does not, and the plural is where that gets lost (#355).**~~
+~~The **sprint review** half, which sweeps the running product and finds a completely different class of defect, **is not built**. Read *"the closing ceremonies"* anywhere in this loop as one built and one owed.~~
+**Struck 2026-09-02 (#379). BOTH exist, and the strike lands HERE first because this is the
+file every persona carries always-on** — a persona that read *"one built and one owed"* would not reach
+for a rite that exists, which is the same damage the struck planning sentence did below.
 
-**And nothing FIRES the one that exists.** `/autonomy on` names it at its terminal condition; that is an
-instruction in a command file and it is the whole of the mechanism. No hook can be built for it, and the
-reason is one this file already establishes for a different rule: **nothing in `hooks/scripts/` reads the
-queue** — every `gh issue` call there is a write path — so no layer here can observe a snapshot going
+**The closing ceremonies are two, and they are complementary rather than overlapping.**
+`/sprint-retrospective` is the **method** half — the personas that ran, consulted alone, each reasoning
+from its own artifacts. `/sprint-review` (#379) is the **product** half — a bounded sweep of the running
+site, driven by `product-lead`, the only persona holding a browser. **Each finds none of the other's
+class**, which is why the split is two rites and not two sections of one.
+
+**The order is `/sprint-review` → `/sprint-retrospective` → `/sprint-planning`** — Scrum's own, which is
+the point of the names, and mechanically right for one more reason: the retrospective feeds each
+consulted persona its own artifacts and the sweep's report is one of them.
+
+**What the plural does NOT now mean.** The sweep declares itself a **lower bound** — routes are derived
+from the product's own generator and assets are read off the page, but viewports are enumerated and an
+emulated phone is not a phone. Two objects existing is not two rites running.
+
+**And nothing FIRES either of them.** `/autonomy on` names both at its terminal condition; that is an
+instruction in a command file and it is the whole of the mechanism. No hook can be built for either, and
+the reason is one this file already establishes for a different rule: **nothing in `hooks/scripts/` reads
+the queue** — every `gh issue` call there is a write path — so no layer here can observe a snapshot going
 empty, and a hook receives one `cwd` while the iteration is two milestone objects in two repositories.
-By this loop's own test — *would something stop me, or only my memory?* — **the rite is not engineered.**
+By this loop's own test — *would something stop me, or only my memory?* — **neither rite is engineered.**
 **And the one profile whose mandate is *"did the rite run"* — `scrum-master` (#375) — cannot fire it
 either.** It holds no tools, so it can only *say* a rite is owed, in a selection record nothing reads.
 That is a smaller claim than "the gap is closed" and it is the honest one: the rite went from
@@ -1130,10 +1149,14 @@ carried over), not a gate.
   consulted persona **its own artifacts**, since a persona at iteration close is a fresh context and
   isolated speculation is still speculation. *And the MCP clause was true when written and is false at
   head* — `product-lead` declares a read-only `chrome-devtools` subset with a bounded origin, merged
-  2026-08-29 (#356). **The review half is still not built**, on grounds that survive the new capability
-  intact — a route list rots, and a looker's finding has no ruler — recorded in
-  `commands/sprint-retrospective.md`'s own last section rather than here, so the deferral sits beside the rite
-  it defers. ~~**PLANNING is genuinely unbuilt and no claim is made about it.**~~ **Struck 2026-09-01
+  2026-08-29 (#356). ~~**The review half is still not built**, on grounds that survive the new capability
+  intact — a route list rots, and a looker's finding has no ruler~~ — **struck 2026-09-02 (#379): it is
+  built, and the two grounds were SATISFIED rather than lifted.** `commands/sprint-review.md` ships no
+  route list (its targets come from the product's own generator, its assets off the page) and is
+  explicitly not a gate and returns no verdict. **The residual the grounds did not cover is stated in
+  the rite itself:** it is a lower bound, and nothing fires it. Recorded in
+  `commands/sprint-retrospective.md`'s own last section as well, where the deferral was, so a reader
+  who arrives at the refusal finds what discharged it. ~~**PLANNING is genuinely unbuilt and no claim is made about it.**~~ **Struck 2026-09-01
   (#378) — PLANNING IS BUILT, and this sentence is struck IN THE PRELOAD because that is where it did
   its damage.** `commands/sprint-planning.md` is a typed rite the owner invokes: it assembles the
   eligible unmilestoned work in both repositories plus the previous iteration's retrospective
@@ -1146,8 +1169,10 @@ carried over), not a gate.
   claim changed rather than leaving the absence to be inferred. **What has NOT changed: nothing fires
   it.** No hook in `hooks/scripts/` reads the queue and a hook sees one `cwd` while an iteration is two
   milestone objects in two repositories, so by this loop's own test the rite is **not engineered** —
-  the same limit the retrospective half carries, and the reason *"the closing ceremonies"* still reads
-  as one built and one owed.
+  ~~the same limit the retrospective half carries, and the reason *"the closing ceremonies"* still reads
+  as one built and one owed.~~ **Struck 2026-09-02 (#379): all three rites now exist, so the plural is
+  satisfied in COUNT.** The limit is unchanged and is now the only thing left of that sentence —
+  **three objects, zero triggers.**
 - **Anything that observes an iteration.** No hook reads the queue: every `gh issue` call in
   `hooks/scripts/` is a write path. This section is a rule the loop follows, and a gate asserts only that
   the rule is **written**, never that a session obeyed it.

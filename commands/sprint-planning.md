@@ -140,6 +140,14 @@ selected directory holds **zero** `## Finding` sections, do not report a count â
 about the handoff**, naming the directory that was read, because a producer whose output arrives empty
 is exactly the thing that must not pass silently. The same applies if `ls` returns nothing at all.
 
+**Since #379 there are TWO closing rites and this step reads BOTH.** `/sprint-review` runs first and
+writes one report per iteration into the **consuming** repo, at the path `agents/product-lead.md`
+names. Read its **judgement** half only: its mechanical half is evidence the owner acts on directly,
+often before this rite runs, and carrying it here would present a fixed-or-not question as a
+composition candidate. **A missing sweep report is a finding about the handoff, not an empty pool** â€”
+say so, naming the path that was read, exactly as the paragraph above requires of the retrospective's
+directory.
+
 Each finding is a **candidate**, not an item: it has no Issue, no `ready` and no estimate. Present it as
 itself and record his ruling; **an Issue exists only where he says so**, and it is filed with **no
 milestone** like every other Issue (#365), then admitted in step 4 by the same route as everything

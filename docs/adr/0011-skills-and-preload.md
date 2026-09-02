@@ -1328,8 +1328,10 @@ vocabulary, the roster and the two definitions are untouched.
 
 **The disclaimer is part of the rename rather than a caveat on it, and it lands in two homes under one
 arm.** A Scrum name is legible BECAUSE it carries expectations, and three in play carry expectations this
-loop does not honour: planning has no team commitment and no human estimation ceremony, review is
-**refused on its shape** rather than deferred on effort, and the retrospective is N isolated contexts
+loop does not honour: planning has no team commitment and no human estimation ceremony, ~~review is
+**refused on its shape** rather than deferred on effort~~ **— struck 2026-09-02 (#379): the rite is
+BUILT and the refusal was satisfied rather than lifted, so the deviation that survives is the
+STAKEHOLDER DEMO, of which there is none —** and the retrospective is N isolated contexts
 rather than a team in a room. `README.md` for the external audience the naming was for; the universal
 preload for the agents — the README being prose no agent carries is #329's exact defect.
 

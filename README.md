@@ -28,9 +28,9 @@ three things, and this repository is the middle one:
   built with Vite and TypeScript, the Terraform that provisions CloudFront and S3, the pipeline with
   its gates and its deploy, and the markdown content held in the repository itself.
 - **The customization** — this repository: the personas in `agents/`, the hooks registered in
-  `hooks/hooks.json`, the skill library in `skills/`, the **five** command files in `commands/`
+  `hooks/hooks.json`, the skill library in `skills/`, the **six** command files in `commands/`
   (`ls commands/` → `autonomy.md blueprint.md new-issue.md sprint-planning.md
-  sprint-retrospective.md`; `autonomy` and
+  sprint-retrospective.md sprint-review.md`; `autonomy` and
   `blueprint` each carry modes a human types after the name, so the count of typed forms is larger than
   the count of files and the two must not be conflated — see the resource table below), and the
   methodology ADRs in `docs/adr/`.
@@ -518,9 +518,11 @@ more can always be found — but what the reader or the next maintainer actually
 
 ### The Scrum names are for legibility, and three of them import expectations this loop does not honour
 
-**The rites are named after the official Scrum events** — `/sprint-retrospective` and `/sprint-planning`
-today, `/sprint-review` when it is built — **so a reader who has never seen this loop can tell what is
-happening and how to control it.** The bound is legibility, not Scrum coverage: `loop` stays, because it
+**The rites are named after the official Scrum events** — `/sprint-review`, `/sprint-retrospective` and
+`/sprint-planning`, **all three built as of #379**, running in Scrum's own order — **so a reader who has
+never seen this loop can tell what is happening and how to control it.** ~~`/sprint-review` when it is
+built~~ — **struck 2026-09-02: the set is complete.** What that does *not* mean is stated below and in
+the universal preload: **nothing fires any of the three.** The bound is legibility, not Scrum coverage: `loop` stays, because it
 already reads to a stranger, and so do `ready`, `blocked`, `product`, `content`, every persona name,
 Definition of Done, Definition of Ready and story points. A word that already reads needs no Scrum
 equivalent.
@@ -530,9 +532,13 @@ false here, and stating them is part of the naming decision rather than a caveat
 
 1. **`sprint-planning` implies estimation-as-ceremony and a team commitment.** Neither exists — estimation
    is isolated subagent dispatch with a median, and nothing bounds how many items one iteration holds.
-2. **`sprint-review` implies a stakeholder demo of an Increment.** Merge is deploy here, the owner reviews
-   live after the fact, and the rite is **refused on its shape** rather than deferred: a route list rots,
-   and a looker's finding is not falsifiable, so it must not be a gate.
+2. **`sprint-review` implies a stakeholder demo of an Increment.** There is none —
+   **no audience, no acceptance moment, no ruler.** Merge is deploy here, so the increment has been live since each merge,
+   and the rite is a sweep of the running site that returns observations and no verdict. ~~the rite is
+   **refused on its shape** rather than deferred: a route list rots, and a looker's finding is not
+   falsifiable, so it must not be a gate.~~ **Struck 2026-09-02 (#379): the rite is built.** The refusal
+   was **satisfied rather than lifted** — it ships no route list and it is not a gate — which is why the
+   deviation that survives the build is the *demo*, not the absence.
 3. **`sprint-retrospective` is the closest match and still imports one falsehood.** Scrum's retrospective
    is the team in one room; this one is N isolated contexts that never see each other's output — the
    rite's mechanism, not its formatting.
@@ -595,8 +601,8 @@ was built to avoid.
 **Skills carry the conventions so the model does not re-invent them.** **14 skills + autonomy** —
 typed `autonomy on` or `autonomy off`, never bare, since `commands/autonomy.md` states that a bare
 `/autonomy` *"prints help and does nothing else"* — plus `new-issue`, `blueprint`,
-`sprint-retrospective` and `sprint-planning`, across **five command files** (`ls commands/` →
-`autonomy.md blueprint.md new-issue.md sprint-planning.md sprint-retrospective.md`). **The count of typed forms is larger than the count of files,
+`sprint-review`, `sprint-retrospective` and `sprint-planning`, across **six command files** (`ls commands/` →
+`autonomy.md blueprint.md new-issue.md sprint-planning.md sprint-retrospective.md sprint-review.md`). **The count of typed forms is larger than the count of files,
 because `autonomy` and `blueprint` each carry modes, and the two must not be conflated** — this
 README's own resource-table row for **Commands (legacy)** says exactly that, and **this sentence
 conflated them anyway until #387**: it named bare `autonomy` as one of the commands and omitted
@@ -1531,7 +1537,7 @@ by hand:
 | resource type | ships? | where | how it takes effect |
 |---|---|---|---|
 | **Skills** | yes — **14** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
-| **Commands (legacy)** | yes — **5 files** (`autonomy`, `new-issue`, `blueprint`, `sprint-retrospective`, `sprint-planning`), derived from `ls commands/` — `autonomy` and `blueprint` each carry **three** dispatch rows, so the count of things a human can TYPE is larger than the count of files and the two must not be conflated. **The criterion is the dispatch row, not the operating mode** — it is what each command file's own `## The three modes` heading counts, and it is the right unit here because a bare `/autonomy` is a thing a human types: two operating modes (`on`\|`off`, `export`\|`import`) plus the bare form that prints help and does nothing. Each command's *operating* set is separately closed at two, which is what `commands/autonomy.md`'s *"The set is closed at two"* means and is not a second count of the same thing | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
+| **Commands (legacy)** | yes — **6 files** (`autonomy`, `new-issue`, `blueprint`, `sprint-review`, `sprint-retrospective`, `sprint-planning`), derived from `ls commands/` — `autonomy` and `blueprint` each carry **three** dispatch rows, so the count of things a human can TYPE is larger than the count of files and the two must not be conflated. **The criterion is the dispatch row, not the operating mode** — it is what each command file's own `## The three modes` heading counts, and it is the right unit here because a bare `/autonomy` is a thing a human types: two operating modes (`on`\|`off`, `export`\|`import`) plus the bare form that prints help and does nothing. Each command's *operating* set is separately closed at two, which is what `commands/autonomy.md`'s *"The set is closed at two"* means and is not a second count of the same thing | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **8 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`, `scrum-master`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 16** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `dispatch-premise-guard`, `closure-artifact-guard`, `mcp-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `owed-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **16 registrations over 14 scripts**: `closure-artifact-guard` and `preflight` are each registered twice, on the two events their two halves need, and that is why the registration count is the honest number rather than a file count. **Both figures fell by one at #375** (from 16/14), when `orchestrator-write-guard` was removed — the first registration this repo has ever deleted rather than added — **and both are back to 16/14 at #374**, which is a coincidence of arithmetic and not a restoration: the script that left refused an act, and the one that arrived only reports one |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
@@ -1788,7 +1794,7 @@ activated. Until that happens, read *measured* below as **measured in the bundle
 | `skills/` — 14 `SKILL.md` guides | declared in `.claude-plugin/plugin.json`'s `skills` array | **carried** — `skills/<name>/SKILL.md` under the package root, discovered by walking the tree. The one element that ports and installs cleanly |
 | `agents/` — 8 persona brief **files** (`ls agents/*.md \| wc -l` → 8) with `tools:` / `skills:` frontmatter | shipped and loaded | **not exported — and now for a measured reason, not only a chosen one. Transport yes, activation no.** The installer would copy the directory (see *Transport is not activation* below); the loader has no key, path or walk that reads it. Kiro *has* a per-subagent mechanism — `.kiro/agents/*.md` with `tools`/`excludedTools` and a `permissions.rules[]` block that compiles to Cedar policy and parses shell with tree-sitter — but it is **workspace** configuration a Kiro user hand-authors, not something a Power installs into |
 | `hooks/` — the `PreToolUse` permission guard and the loop's session hooks | registered by `hooks/hooks.json` on install; the guard denies the irreversible floor | **not exported — same shape: transport yes, activation no.** `hooks/hooks.json` is Claude-Code-shaped and nothing in the Power loader looks for it. The IDE *does* have a real blocking `preToolUse` mechanism at this build (see below — that finding reversed), but it is reached through workspace/agent configuration, not through a Power |
-| `commands/` — 5 command **files**, each declaring `argument-hint` (`grep -l '^argument-hint' commands/*.md \| wc -l` → 5), carrying **7** non-help typed forms | `/plugin:<name>`, arguments interpolated as `$ARGUMENTS` | the corresponding element is **steering**, and the 2026-08-21 ambiguity is now **closed**: the loader resolves `dev.kiro/steering/` (and `dev.kiro/INSTRUCTIONS.md`) inside a package root, so steering is carried by the format. `commands/` at the repo root is not that path and is not read. Still not exported in this slice — a typed-command surface with `$ARGUMENTS` has no steering equivalent, so this would be a rewrite rather than a copy |
+| `commands/` — 6 command **files**, each declaring `argument-hint` (`grep -l '^argument-hint' commands/*.md \| wc -l` → 6), carrying **8** non-help typed forms | `/plugin:<name>`, arguments interpolated as `$ARGUMENTS` | the corresponding element is **steering**, and the 2026-08-21 ambiguity is now **closed**: the loader resolves `dev.kiro/steering/` (and `dev.kiro/INSTRUCTIONS.md`) inside a package root, so steering is carried by the format. `commands/` at the repo root is not that path and is not read. Still not exported in this slice — a typed-command surface with `$ARGUMENTS` has no steering equivalent, so this would be a rewrite rather than a copy |
 | `mcp.json` | — | carried (optional). This repo ships none |
 | `.claude-plugin/marketplace.json` | the marketplace a consumer adds once, then installs and updates from | **a difference, not a limitation.** Kiro installs straight from a GitHub URL; there is no marketplace indirection to be missing |
 

@@ -397,6 +397,15 @@ shipped. Removing it without a replacement makes that named residual bite, on pu
 voice. The replacement — a boundary-merge notification — was scoped **out** of #327 on his own call.
 The argument is ADR-0002's eighteenth amendment.
 
+**This paragraph is STILL TRUE at head and is not a fourth stale surface — checked 2026-09-02 (#379)
+rather than assumed, because it reads like one.** `/sprint-review` shipped and amendment #16's residual
+is now **partially** discharged, so a sweep for *"amendment #16 books it as missing"* lands here. **The
+clause this paragraph depends on is the boundary-merge NOTIFICATION** — *nothing records that the owner
+looked*, and *nothing surfaces to him that something boundary shipped* — and **both of those are still
+open.** The sweep's report closes only the third clause (a post-deploy look now leaves an artifact) and
+it surfaces nothing per-merge, which is exactly what this paragraph is about. **Do not strike it**; if
+the `APPROVE-AND-MERGE-BOUNDARY` `SessionStart` arm is ever built, that is when this paragraph changes.
+
 **Enforcement, and its exact limits.** `hooks/scripts/premature-pr-link-detect.sh` is a `Stop` hook that
 reads the turn's own assistant prose and flags a PR URL whose PR is not open-green-and-pending-human. It
 is **detection, never prevention** — it fires after the text has already reached him, so it makes the
@@ -440,12 +449,19 @@ opportunistically.
 fixed set, so *"the pool is empty"* is not a state a drain can reach by working; the terminal set is the
 pool **as it stood at entry**. See *The pool grows while it drains* below.
 
-### On exhaustion, run `/sprint-retrospective` — the closing ceremony now has an object (#355)
+### On exhaustion, run `/sprint-review` FIRST, then `/sprint-retrospective` (#379)
 
 **On the FIRST stop condition only** — the entry snapshot exhausted — **run
+`/tadeumendonca-skills:sprint-review <iteration>`, then
 `/tadeumendonca-skills:sprint-retrospective <iteration>`.** Not on a boundary event, and not when the owner
 interrupts: neither of those is the end of an iteration, and a rite fired on a stall would report on an
 iteration nobody finished.
+
+**The review runs first, and the order is Scrum's own** — Sprint Review precedes Sprint Retrospective —
+which is the whole reason the rites carry Scrum names. There is a mechanical reason too, and it points
+the same way: **the retrospective feeds each consulted persona its own artifacts, and the sweep's
+report is one of them.** Run second, the sweep would produce an artifact after the consultation that
+would have read it.
 
 **This is the object, and until #355 there was none.** The sentence three sections below — *"the closing
 ceremonies run against the exhausted iteration"* — has stood since #326 with nothing in the tree it
@@ -467,21 +483,26 @@ reads like a description of something that already runs.
 
 **The planning handoff below is no longer a phrase.** `/tadeumendonca-skills:sprint-planning
 <iteration>` assembles the next iteration's candidates — the eligible unmilestoned work in both
-repositories plus the proposals `/sprint-retrospective` just produced — has them ranked by a context
+repositories plus the proposals the two closing rites just produced — has them ranked by a context
 that did not run this drain, and presents them to the owner **one item at a time**.
 
-**It runs AFTER the retrospective, not instead of it**, because the retrospective's proposal files are
-one of its two inputs. **It composes nothing on its own**: every milestone write is the owner answering
+**It runs AFTER both closing rites, not instead of them**, because their proposal files are its
+inputs — the retrospective's per-persona findings and, since #379, the sweep's judgement half. **It composes nothing on its own**: every milestone write is the owner answering
 a `permission-guard.sh` prompt (rule 10 for an admission, rule 11 for creating the iteration).
 
 **Nothing fires it either**, for the reason stated one paragraph up: no layer here reads the queue. Read
 this as the drain naming where it hands off, never as a chain that runs itself.
 
-**HALF the promise now has an object and half still does not.** `/sprint-retrospective` is the **method** half:
-each persona that ran, consulted alone, reasoning from its own artifacts. The **sprint review** half —
-a bounded sweep of the running product, which finds a different class of defect entirely — **is not
-built**, and `commands/sprint-retrospective.md`'s last section is where that is recorded rather than left to be
-discovered again. Do not read "the closing ceremonies" as plural-and-satisfied.
+~~**HALF the promise now has an object and half still does not.**~~ **Struck 2026-09-02 (#379) — BOTH
+halves now have an object, and the plural is finally true.** It is struck rather than deleted because it
+is the sentence that told every reader, for two days, which half was owed. `/sprint-retrospective` is
+the **method** half: each persona that ran, consulted alone, reasoning from its own artifacts.
+`/sprint-review` is the **product** half: a bounded, derived sweep of the running site, which finds a
+different class of defect entirely and finds none of the other's.
+
+**Read "the closing ceremonies" as plural-and-satisfied in its COUNT and in nothing else.** Neither rite
+is fired by anything, neither is observed by anything, and the sweep is a **lower bound** by its own
+declaration. Two objects existing is not two rites running.
 
 **Nothing fires it.** This is an instruction in a command file, and by this loop's own test — *would
 something stop me, or only my memory?* — it is not engineered. No hook can be: nothing in

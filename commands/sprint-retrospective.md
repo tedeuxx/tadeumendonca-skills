@@ -9,8 +9,9 @@ derived from the pool per `/agents-configuration` rule 1 — **enumerate, never 
 
 **This file is the object `/autonomy on` has been promising.** That command has said *"the closing
 ceremonies run against the exhausted iteration"* since #326 with no ceremony anywhere in the tree. This
-is the retrospective half. **The sprint review half is still unbuilt** — see the last section, which
-says so rather than leaving the promise to be discovered a second time.
+is the retrospective half. ~~**The sprint review half is still unbuilt**~~ — **struck 2026-09-02
+(#379): it is built, and it is `/sprint-review`, which runs BEFORE this rite.** The last section
+records what its refusal demanded and how the built rite satisfies it.
 
 ## What this is, and the one thing it is not
 
@@ -183,10 +184,19 @@ that iteration only:
 - its own verdict markers — `gatekeeper-verdict` for the gate, `harness-lead-verdict` for the machinery
   lens;
 - its own review-file sections — `docs/content-review/<slug>.md` for the content pair;
+- **its own iteration-sweep report — `docs/iteration-sweep/<iteration>.md` in the consuming repo, for
+  the persona that drove `/sprint-review` (#379).** This bullet is why the review runs **first** of the
+  three: the sweep's report is one of the artifacts this step feeds back, so a sweep run after the
+  consultation would produce evidence the consultation could not read. **Added here in the same slice
+  that made that claim** — it was asserted in four places and this list, which is the one that decides
+  it, did not carry it;
 - the PRs and Issues it touched.
 
-**All of that is reachable with `gh` reads and marker greps that already exist. Nothing new is built to
-produce it.** The question the dispatch asks is therefore *"here is what you produced; what does it say
+**All of that is reachable with reads that already exist — `gh` reads, marker greps, and a file read for
+the sweep report, which is a tracked file in the other repo rather than anything this loop has to
+build. Nothing new is built to produce it.** *(The sweep-report bullet is the one item here that is
+NOT a `gh` read, and it is the one this suite can never see: it lands in the consuming repository. If
+the file is absent, that is a finding about the handoff — say so — never a silently shorter dispatch.)* The question the dispatch asks is therefore *"here is what you produced; what does it say
 should change?"* rather than *"what did you see?"* — a documented-evidence question of the kind this
 loop already requires everywhere else.
 
@@ -311,11 +321,36 @@ twenty-sixth amendment, not an omission to be repaired later by someone who assu
   whole iteration except the orchestrator — whose contribution is precisely what the isolation excludes.
   **A defect that lived between two contexts is invisible to this rite by construction.**
 - **Anything a persona that left no `dispatch-metrics` comment saw.** See step 2's lower bound.
-- **Every defect a reader would meet.** Those are the review half's class, and the review half is not
-  built. This rite finds defects in the **method**; a browser sweep finds none of them, and this finds
-  none of a browser sweep's.
+- **Every defect a reader would meet.** Those are the review half's class, and the review half is
+  **`/sprint-review`, which runs before this rite** (#379). This rite finds defects in the **method**; a
+  browser sweep finds none of them, and this finds none of a browser sweep's. **The complementarity is
+  unchanged by the other half existing** — two rites, two blind spots, neither covering the other.
 
-## The sprint review half is NOT built, and this is where that is recorded
+## The sprint review half IS built now — `/sprint-review` (#379), and the refusal it satisfied
+
+~~## The sprint review half is NOT built, and this is where that is recorded~~ — **struck 2026-09-02
+(#379).** This heading was the record of the deferral for three days, and it is struck in place rather
+than deleted because it is what every reader of this rite took away about the other half. **The rite
+exists: `commands/sprint-review.md`, driven by `product-lead`, run FIRST of the three closing rites.**
+
+**The refusal below was SATISFIED, not lifted, and that distinction is the whole design of what
+replaced it.** Both grounds were about the review's *shape*, and both were built into it:
+
+- **the route list** — the rite ships **no list**. Its targets come from the consuming repo's own route
+  generator, the same function the sitemap and the prerender consume, so a route that exists is in the
+  set by construction; its assets are read off the page itself through the network log and the DOM
+  snapshot; and only the viewport set is enumerated, which the rite names as its one place staleness
+  can enter. **It also declares itself a lower bound**, because route × viewport × assets is not the
+  whole surface — an emulated phone is not the phone the original defects were found on.
+- **the ruler** — the rite is **not a gate and returns no verdict**, stated in its own second section
+  rather than added afterwards, which is the form this section demanded of it.
+
+**What was NOT satisfied and is recorded as an open residual:** nothing fires the sweep, nothing
+observes that it ran, and its own failure is loud only because it is instructed to be. It is an
+instruction, exactly as this rite is.
+
+**The original deferral, kept verbatim below, because the grounds are the design constraints anyone
+changing that rite must still meet:**
 
 **Deliberately deferred, not forgotten.** The half that sweeps the running product in a browser is a
 different rite with a different actor, a different input and a different class of finding, and it was
@@ -337,8 +372,14 @@ declares a read-only `chrome-devtools` subset with a bounded origin. **The obsta
 browser** — it is a route list that rots and a finding with no ruler, both of which survive the new
 capability intact.
 
-**The cheapest first slice of the review half is not a sweep at all**, and it is named here so the next
+~~**The cheapest first slice of the review half is not a sweep at all**, and it is named here so the next
 person does not re-derive it: a `SessionStart` arm reading merged PRs that carry
-`APPROVE-AND-MERGE-BOUNDARY`. That closes ADR-0002 amendment #16's booked residual — *"the owner reviews
-live, after deploy" has no artifact* — and it tells a future sweep **what to look at** rather than
-competing with it.
+`APPROVE-AND-MERGE-BOUNDARY`.~~ **Struck 2026-09-02 (#379): the owner declined the cheap slice and
+chose the full rite, so this is no longer a *first step*.** ~~ADR-0002 amendment #16's booked residual
+… **is DISCHARGED by the sweep's report file** … The arm … is now an *addition* to a sweep that exists
+rather than a substitute for one that did not.~~ **Struck in the same MR's first review round: that
+overclaimed, and the arm is NOT an optional addition.** The residual books three clauses and the sweep
+delivers one — a post-deploy look now leaves an artifact, but the report records that **`product-lead`**
+looked rather than the owner, and it surfaces **nothing per-merge**. **So the arm is the OPEN HALF of a
+partially-discharged residual**, still unbuilt, and it remains the right next thing to build for the two
+clauses the sweep cannot reach. The clause-by-clause split is with amendment #16's own bullet.

@@ -354,6 +354,14 @@ console error read by someone who does not know what the page was for is a line 
 rodando»*** — a high-level regression sweep of the whole running application — and
 ***«onde issues de layout, wording, coisas de revisao, podem ser pegas em uma ultima instancia»***.
 
+**Since #379 the sweep has a RITE that names it: `/sprint-review`.** That file is the *rite* — when it
+fires, where it sits among the three closing ceremonies (**first**, in Scrum's own order), why you are
+its driver rather than the gatekeeper, and the three axes that answer *how does a sweep know what to
+look at without a list that rots*. **This section is the PROCEDURE and stays the authority on it** —
+the generator command, the two halves, the FAILED conditions and the report path are here and are not
+restated there. Read the two as one thing. **Nothing fires either**, which is the rite's own first
+disclaimer and is not softened by it existing.
+
 **Run it at ITERATION CLOSE, against production.** Merge is deploy under `trunk-single-env`, so there is
 no staging copy and no preview. **This is the last sieve there is**, and the reason is mechanical rather
 than cultural: the held-draft state holds an **article** — a `draft` fact in front matter takes a post
