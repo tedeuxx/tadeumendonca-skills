@@ -367,10 +367,19 @@ legibility.
 
 **And one duty on that owner↔orchestrator edge is about restraint rather than relay: the orchestrator
 hands the owner a PR link only when the remaining act is his** — ready to merge, every check complete and
-successful, which reads mechanically as `APPROVE-PENDING-HUMAN` at the PR's current head. The operative
+successful, which reads mechanically as `APPROVE-PENDING-HUMAN` **or `APPROVE-EXECUTOR-BLOCKED`** at the
+PR's current head (#374 added the second — the gate cleared the diff and could not execute the merge, so
+the decision is made and only the act is his). The operative
 wording is his own sentence, in `commands/autonomy.md`'s *Reporting* section; the argument, the
 enforcement and the cost of the informal ship-notice it removes are
 [ADR-0002](./docs/adr/0002-roster-and-dev-loop.md)'s eighteenth amendment (#327).
+
+**The duty has an inverse, and since #374 that has a hook too.** A turn that ends while one of those two
+literals sits at an open, green PR's head and surfaces no link has ended owing him one —
+`owed-pr-link-detect`. It is the exact inverse of the premature check and is deliberately a separate
+file: one hook with two rulers would make a silent turn unattributable in both directions. **It does not
+cover the incident it was built under**, which its own header says before anything else — the complaint
+was a link he had received twice and could not find, and an absence detector is silent on exactly that.
 
 **`MR --> QA` reads "via orchestrator"** because the gate is dispatched, not self-triggered — the merge
 request reaches `quality-assurance` the same way every other piece of work reaches a persona: through the
@@ -1198,6 +1207,7 @@ flowchart LR
   H7["zombie-loop-detect"]
   H9["orchestrator-tool-census"]
   H10["premature-pr-link-detect"]
+  H17["owed-pr-link-detect"]
   H11["dispatch-premise-guard"]
   H12["closure-artifact-guard<br/>(refuses a manual close)"]
   H13["closure-artifact-guard<br/>(reports one already closed)"]
@@ -1219,6 +1229,7 @@ flowchart LR
   E6 --> H7
   E6 --> H9
   E6 --> H10
+  E6 --> H17
   E6 --> H13
 
   class E1,E2,O1,O4,E6 used
@@ -1230,7 +1241,7 @@ flowchart LR
 | **`SessionStart`** | a session begins or resumes | no | `preflight`, `session-wip`, `session-plugin-version` | say at the door that the session is degraded and will be refused at the first prompt — inject the open queue — and warn when the installed build is not the merged one |
 | **`SubagentStart`** | a subagent is dispatched | no | `dispatch-metrics-start` | best-effort dependency probe only — see below; does not post |
 | **`SubagentStop`** | a subagent finishes | no | `dispatch-metrics-stop` | log rework rounds, time, output size and token cost for the dispatch as a structured Issue comment (#209) |
-| **`Stop`** | the main agent's turn ends | **yes, but no hook here uses that half** | `zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard` | detect (never prevent) an outstanding gate verdict left unaddressed at turn end — one turn late instead of one session late (#294) — report what the main agent did with its own hands, write/post class separated from reads (#319) — flag a PR link handed to the owner for a PR that is not open, green and `APPROVE-PENDING-HUMAN` (#327) — and report an Issue that is ALREADY closed with a declared invocable artifact missing, which is the only surface that reaches the closing-keyword route at all (#337) |
+| **`Stop`** | the main agent's turn ends | **yes, but no hook here uses that half** | `zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `owed-pr-link-detect`, `closure-artifact-guard` | detect (never prevent) an outstanding gate verdict left unaddressed at turn end — one turn late instead of one session late (#294) — report what the main agent did with its own hands, write/post class separated from reads **and from a third, unrecognised class** (#319, #371) — flag a PR link handed to the owner for a PR that is not open, green and awaiting him (#327) — flag the INVERSE, a turn that ended owing him a link and surfaced none (#374) — and report an Issue that is ALREADY closed with a declared invocable artifact missing, which is the only surface that reaches the closing-keyword route at all (#337) |
 | **`UserPromptSubmit`** | a prompt is submitted, before processing | **yes** | `preflight` | refuse to process anything while the guards' own preconditions are absent — an interpreter a registered hook reaches for missing from `PATH`, a registered script absent or without its execute bit, or a headless session running with the static deny layer off (#342) |
 | `UserPromptExpansion` | a typed command expands, before it reaches the model | **yes** | — | |
 | `PermissionRequest` | a call needs a permission decision | **yes** | — | |
@@ -1290,7 +1301,13 @@ does not degrade at all.
 `permission-guard` denies the irreversible floor before the command runs. `wip-guard` refuses a pull
 request that touches files an open one already touches — the bound is file overlap, not a count, because
 counting blocks disjoint work while doing nothing about the real risk. `session-wip` lists the open queue.
-`session-plugin-version` says when the installed build is not the merged one. `dispatch-metrics-stop`
+`session-plugin-version` says when the build the session is **running** is not the merged one — derived
+from that build's own manifest via `$0`, since #370 measured that reading the shared marketplace clone
+instead had let a project install sit **69 published releases** behind for 17 days with this hook
+silent (#370's intake said 35, which is `51 − 16` and not a release count; struck in ADR-0005's
+2026-09-01 amendment, where the tag-list command that produces 69 is published) — and names
+the other registered projects pinned to a different build, because the one furthest behind is by
+construction the one nobody opens. `dispatch-metrics-stop`
 logs the four benchmarking metrics the owner asked for on #209 — rework rounds, time, token cost, and an
 output-size proxy — as a structured comment on the Issue the dispatch worked, deriving them from
 `agent_transcript_path` (a per-dispatch JSONL transcript, separate from the main session's own) and from
@@ -1299,8 +1316,9 @@ does not post; it only warns, once, if `jq` is missing and the `SubagentStop` ho
 therefore cannot capture anything this session — see `hooks/scripts/dispatch-metrics-stop.sh` for the full
 design record, including why this is one comment per dispatch rather than one comment updated per Issue.
 `zombie-loop-detect` is a *second, independent reader* of the same ADR-0006 `gatekeeper-verdict` artifact
-`session-wip` already reads, wired to `Stop` instead of `SessionStart` so an outstanding REQUEST-CHANGES or
-APPROVE-PENDING-HUMAN verdict surfaces one turn late rather than one session late; it never parses prose,
+`session-wip` already reads, wired to `Stop` instead of `SessionStart` so an outstanding REQUEST-CHANGES,
+APPROVE-PENDING-HUMAN or APPROVE-EXECUTOR-BLOCKED verdict surfaces one turn late rather than one session
+late; it never parses prose,
 only loop state, and it never blocks — `additionalContext` only, debounced to once per (PR, head SHA) per
 session via a marker file under the checkout's own `.git/` — see
 `hooks/scripts/zombie-loop-detect.sh` for the full design record and what it deliberately cannot catch.
@@ -1331,17 +1349,38 @@ it is self-attested; and nothing greps `SELECTION-RECORD`, so no layer reports t
 What the census already covers is unchanged and is now the whole of the mechanical half.
 
 **The census gates nothing and cannot**: a `Stop` hook fires after the work happened. It
-reports the main agent's own tool calls as a named list, write/post separated from reads, `Bash`
+reports the main agent's own tool calls as a named list, write/post separated from reads **and from a
+third class, `?`, meaning not recognised (#371)**, `Bash`
 classified by the act it ran (`gh issue comment` is a post; `gh issue view` is a read) so the posting
 class is not empty by construction. Two costs, handled rather than inherited: it counts **attempts** —
 a denied call still appears, and the notice says so every time — and it would otherwise fire every
 turn, so only the write/post class can trigger it and only after three more such calls since the last
-notice in that session. **What is deliberately NOT mechanised, and must read as a decision rather than
+notice in that session; an unclassified call triggers nothing at all.
+
+**Why a third class, and it is the finding rather than a feature.** Measured on #371, the classifier
+labelled on the first tokens, so `env -C <dir> claude plugin update …` labelled as `env` and
+`gh --repo <o/r> issue comment …` as `gh --repo <o/r>` — **four mutations in one probe, every one of
+them reported as a read**, including the call that rewrote which build every project resolves. The
+string defects are fixed (wrappers and leading options are stripped before labelling). What is not
+fixable in this layer is the coverage: the first token of every `Bash(...)` allow pattern across the six
+settings files in this workspace resolves to **61 distinct programs**, of which two carried a subcommand
+label before this change. Measured 2026-09-01 with the command in
+`docs/adr/0004-controls-and-enforcement.md`'s 2026-09-01 amendment, which names all six files rather
+than eliding them. **Four of the six are outside every repository** — both `~/.claude/*` and both
+untracked `settings.local.json` — **so from the two tracked files a clone yields 57**, the exact number
+#371's intake published and this batch corrects; the four extra programs are `brew`, `claude`, `file`
+and `open`. That figure is published beside 61 deliberately: without it a reader re-deriving from a
+clone lands on 57 and concludes the correction was the error. **The argument survives either number** —
+the list is unbounded and it moves — which is what licenses publishing a machine-specific figure at all.
+**A floor may enumerate what it denies; a reporter cannot enumerate what it observes**, so a
+two-class reporter silently reports its own gap as a clean result. `?` is what stops that — it says *not
+recognised*, in its own block, rather than filing the remainder under *read*. **What is deliberately NOT mechanised, and must read as a decision rather than
 an omission:** reads, `gh issue create`, and the `gh pr comment` / `gh issue comment` routes rule 5e
 allows the orchestrator. A hook sees `grep` and a path, never whether the answer was already in a
 subagent's return; and denying the comment routes would leave an intake finding with no durable
 artifact, since at intake there is frequently no PR and `product-lead` holds no `Write` at all. That
-half is a **habit**, observed by the census and enforced by nobody.
+half is a **habit**, observed by the census and enforced by nobody — and *observed* now means observed
+in three classes, one of which is an admission.
 
 `preflight` is the newest and the only one that stops the session rather than an action (#342). Every
 other hook here fails open on a missing dependency and says nothing — `permission-guard.sh` reads its
@@ -1494,7 +1533,7 @@ by hand:
 | **Skills** | yes — **14** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **5 files** (`autonomy`, `new-issue`, `blueprint`, `sprint-retrospective`, `sprint-planning`), derived from `ls commands/` — `autonomy` and `blueprint` each carry **three** dispatch rows, so the count of things a human can TYPE is larger than the count of files and the two must not be conflated. **The criterion is the dispatch row, not the operating mode** — it is what each command file's own `## The three modes` heading counts, and it is the right unit here because a bare `/autonomy` is a thing a human types: two operating modes (`on`\|`off`, `export`\|`import`) plus the bare form that prints help and does nothing. Each command's *operating* set is separately closed at two, which is what `commands/autonomy.md`'s *"The set is closed at two"* means and is not a second count of the same thing | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **8 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`, `scrum-master`) | dispatched by name via `Task` |
-| **Hooks** | yes — **`hooks.json` registers 15** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `dispatch-premise-guard`, `closure-artifact-guard`, `mcp-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **15 registrations over 13 scripts**: `closure-artifact-guard` and `preflight` are each registered twice, on the two events their two halves need, and that is why the registration count is the honest number rather than a file count. **Both figures fell by one at #375** (16/14), when `orchestrator-write-guard` was removed — the first registration this repo has ever deleted rather than added |
+| **Hooks** | yes — **`hooks.json` registers 16** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `dispatch-premise-guard`, `closure-artifact-guard`, `mcp-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `owed-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **16 registrations over 14 scripts**: `closure-artifact-guard` and `preflight` are each registered twice, on the two events their two halves need, and that is why the registration count is the honest number rather than a file count. **Both figures fell by one at #375** (from 16/14), when `orchestrator-write-guard` was removed — the first registration this repo has ever deleted rather than added — **and both are back to 16/14 at #374**, which is a coincidence of arithmetic and not a restoration: the script that left refused an act, and the one that arrived only reports one |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
 | LSP servers | **no** | — | no `.lsp.json` |
@@ -1521,7 +1560,7 @@ repository reaches it by opening the directory. **Nothing loads it at runtime.**
 same way a human does: by choosing to read the path, not because the harness put it in front of them.
 That gap is why the decision records are read by *convention* (`tech-lead` writes them, the leads and the
 gate are told to consult them) rather than by *mechanism* — nothing here forces the read the way
-`session-plugin-version` forces the marketplace-staleness warning below.
+`session-plugin-version` forces the build-staleness warning below.
 
 ### The producer, its own marketplace, and the two consumers
 
@@ -1569,7 +1608,21 @@ to allow. It matters most for the change that is hardest to notice: a renamed or
 resolves to its OLD definition until the cache refreshes, so a dispatch silently runs a persona whose file
 no longer exists in the repo. `session-plugin-version` (above, under
 [The hooks](#the-hooks-and-what-they-refuse)) is the mechanism that catches exactly this gap — it does not
-resolve it, it warns at the next `SessionStart` that the installed build is behind the merged one.
+resolve it, it warns at the next `SessionStart` that the build the session is running is behind the
+merged one.
+
+**That sentence was FALSE for as long as it stood, and it is worth saying so rather than quietly
+correcting it.** Until #370 the hook read the shared **marketplace clone** and called the result
+`installed`. The clone is what `/plugin marketplace update` refreshes; it is not the build any session
+resolves. Measured 2026-08-31: a project-scope install record pinned `tadeumendonca-io` to `1.0.16` — ~~35
+versions~~ **69 published releases** (35 was `51 − 16`, patch-component subtraction across a minor
+boundary; struck in ADR-0005's 2026-09-01 amendment, which publishes the `git tag` command that
+yields 69) and 17 days behind, on a build with no `agents-lead`, no merge floor and no milestone rule —
+while the clone read `1.1.51`, so the hook compared the clone against its reference, matched, and said
+nothing. The mechanism named here as catching *exactly this gap* was reading past it. It now derives the
+running build from `$0` (`hooks.json` registers every hook by interpolated absolute path, so `$0` is the
+build in play) and carries a second arm that reports the **other** projects' pinned records — which is
+the arm that matters, since a project nobody opens starts no session for the first arm to fire in.
 
 ## Stack
 

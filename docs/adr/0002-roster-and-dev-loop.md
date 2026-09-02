@@ -2116,10 +2116,25 @@ class **and** the boundary class itself, holding only the four named exceptions.
 is one he has nothing to do with, and the link is an interruption with no act behind it. Four premature
 links in one session were four false alarms.
 
-**Mechanically, "ready for him" is one verdict literal, not a hold count.** `agents/quality-assurance.md`'s
-*"Your verdict — exactly one of"* enumerates four; exactly one means the remaining act is the owner's:
-**`APPROVE-PENDING-HUMAN`**. `REQUEST-CHANGES` is also non-merging and is **not** an owner summons — it
+**Mechanically, "ready for him" is a verdict literal, not a hold count.** `agents/quality-assurance.md`'s
+*"Your verdict — exactly one of"* enumerates ~~four~~ **five**; ~~exactly one means~~ **two mean** the
+remaining act is the owner's: **`APPROVE-PENDING-HUMAN`** **and `APPROVE-EXECUTOR-BLOCKED`**.
+`REQUEST-CHANGES` is also non-merging and is **not** an owner summons — it
 routes to the builder. Naming the literal is checkable; naming *"one of the four holds fired"* is not.
+
+**Amended 2026-09-01 (#374): the vocabulary is FIVE and the owner-summoning set is TWO.**
+`APPROVE-EXECUTOR-BLOCKED` joins it — the gate cleared the diff and could not execute the merge, so the
+decision is made and only the act is his. **The arithmetic above is STRUCK IN PLACE rather than left to
+this amendment to correct**, which is the fix the copy lens required on this paragraph's first
+authorship: an adjacent correction is not a correction, because *"a correction needs the false claim's
+ABSENCE asserted, not its replacement's presence"* — this repository's own rule, landed one commit
+before this branch. ADR-0005's amendment in this same PR applies it to itself, striking
+`~~Thirty-five versions~~` **even though the corrected figure is in the very next sentence**; leaning on
+adjacency here would have been the one inconsistency in the batch. What is genuinely unchanged is the
+*argument* — naming a literal is checkable, naming which hold fired is not — and only the arithmetic
+moved, which is precisely why the arithmetic is what needed striking. See ADR-0004's 2026-09-01
+amendment for the decision, the readers that must move in lockstep, and why inferring the state from a
+clearance that stayed open is a race detector rather than a strand detector.
 
 **The rule has a SECOND limb, and it is not mechanical — which is why it was nearly lost.** #327 states
 it in the same blockquote it labels *"the sharp form of the rule"*: a PR link also goes to him **when the

@@ -1722,8 +1722,12 @@ half is a **habit**, observed by the census and enforced by nobody.
 committed allow list, so `sed -i` and `tee` reach a tracked file without passing this matcher. Closing
 it means resolving a path out of a shell command string, which is the SEMANTIC class this document says
 a pattern cannot hold — and a wrong guess there denies `developer`'s builds too, since the guard decides
-from the same string. It is left open and made **visible** instead: the census classifies those commands
-into its write/post class. `command > file` was already denied outright for every caller (#244), so the
+from the same string. It is left open and made **visible** instead: ~~the census classifies those commands
+into its write/post class.~~ **Struck 2026-09-01 (#371) — true of the two commands this paragraph names,
+false as the general property the sentence reads as.** It reads as *the census sees the `Bash` write side
+door*; measured, it saw a hand-listed slice of it, and a wrapper prefix or a stray option put a mutation
+in the READ list. See the 2026-09-01 amendment below for what the census sees now and what it declares it
+does not. `command > file` was already denied outright for every caller (#244), so the
 loudest spelling of this door was closed before this rule existed.
 
 **Accepted costs.** The guard fails open on a missing `jq`/`git`, like every other guard here. It is a
@@ -3090,3 +3094,371 @@ scrum»* — so the route is built and the honest description of it is above.
   *refuse the session while the guard set's preconditions are absent*. The same amendment adds a rule to
   the layer question — **how often a control fires decides whether the layer can survive holding it** —
   and records the version-drift precondition as rejected on that rule, closing #342.
+
+## Amendment (2026-09-01) — a REPORTER's coverage is unbounded where a FLOOR's is enumerated, so it declares what it did not recognise (#371)
+
+**What moves:** the *"Named residual — the `Bash` side door, open and known"* paragraph above, whose
+clause *"the census classifies those commands into its write/post class"* is struck in place. **What does
+not move:** the residual itself. The `Bash` side door is still open, still deliberately, and this
+amendment makes it *more* visible rather than closing it.
+
+### What was measured
+
+Probed against `hooks/scripts/orchestrator-tool-census.sh` with a real `Stop` payload, threshold lowered
+so the notice would print. Every row is a mutation, and every row landed in the **read** list:
+
+| command | label produced | class |
+|---|---|---|
+| `git -c user.name=x commit -m y` | `git -c` | R |
+| `git --git-dir=<path> commit -m y` | `git --git-dir=<path>` | R |
+| `gh --repo <o/r> issue comment 1 --body-file <p>` | `gh --repo <o/r>` | R |
+| `env -C <dir> claude plugin update <plugin> --scope project -y` | `env` | R |
+| `gh api <endpoint>` | `gh api <endpoint>` | R, one label per endpoint |
+
+The fourth is the motivating incident: a call that rewrote which build every project resolves, reported
+as a read. The third is the more expensive one — `gh … comment` is the orchestrator's most common write,
+and `command-hygiene` already documents that this flag position breaks the **permission** prefix matcher.
+Nobody had noticed it breaks the census identically.
+
+### The finding, which is about SHAPE rather than about five bugs
+
+The three string defects are cheap and are fixed. What is not fixable in this layer is the coverage. The
+first token of every `Bash(...)` allow pattern across the six settings files in this workspace resolves
+to **61 distinct programs**, plus 2 absolute script paths counted separately because they are not
+programs, of which exactly **two** carried a multi-word label before this change and three do after it.
+**Re-derived at head on 2026-09-01, with the six files named rather than elided** — a placeholder is not
+a runnable command, and this repository's rule is inline-and-runnable or not at all:
+
+```
+jq -r '.permissions.allow[]? // empty' \
+  ~/.claude/settings.json ~/.claude/settings.local.json \
+  <workspace>/tadeumendonca-io/.claude/settings.json \
+  <workspace>/tadeumendonca-io/.claude/settings.local.json \
+  <workspace>/tadeumendonca-skills/.claude/settings.json \
+  <workspace>/tadeumendonca-skills/.claude/settings.local.json \
+  | grep '^Bash(' | sed 's/^Bash(//; s/[:)].*$//' | awk '{print $1}' | sort -u | grep -v '^/'
+```
+
+**Four of those six files are outside every repository, not two.** Both `~/.claude/*` live in the home
+directory and in no repo at all; both `settings.local.json` are untracked, measured with
+`git ls-files --error-unmatch` answering *"did not match any file(s) known to git"* for each.
+
+**From the two TRACKED files alone the same pipeline yields 57** — the exact number #371's intake
+published and this amendment corrects. That line is not a footnote: without it, a reader re-deriving
+from what a clone can reach lands on 57, reads this record calling 57 an erratum, and concludes the
+correction was the error. **The four programs that exist only outside every repository are `brew`,
+`claude`, `file` and `open`** — and `claude`, the program at the centre of #371's motivating incident,
+comes from an untracked overlay.
+
+**Three conditions govern publishing a number derived partly from untracked files**, and they are stated
+here as a rule rather than as this instance's apology: name the files inline; state how much of the
+derivation is unreproducible and publish what a clone yields beside it; and the argument must survive
+the imprecision. **The third is what licenses the figure at all** — *the list is unbounded and it moves*
+holds at 57 and at 61 — and the first two are what this amendment failed on its first authorship and
+discharges here.
+
+**The drift between 57 and 61 is the argument rather than an erratum:** four programs entered the
+allowlists in one day and nothing in this repository could see it. A list that moves by four overnight,
+sourced mostly from files no repository holds, is not a list anyone maintains by hand in a second place.
+
+So *"which other programs
+hide a mutating subcommand"* is not a list of seven; it is everything except two — `bump-my-version bump`
+(writes two files, commits and tags), `npm publish`, `node`, `python3`, `bash`, `terraform init`,
+`aws <verb>`, `awk 'print > "f"'`, `find -delete`, `curl -o`, each reported as a read.
+
+**A hand-maintained per-tool list of mutating subcommands has the maintenance profile of a matcher list,
+not of a classifier**: it must be extended every time a program is added to any of the SIX settings files named above, by
+someone who remembers this hook exists. (The derivation set and the maintenance set are the same six;
+an earlier draft of this paragraph said "four" beside the "six" above and contradicted itself twice.)
+
+### The rule this adds to the layer question
+
+> **A FLOOR may enumerate what it denies, because a denial fires on a specific act. A REPORTER cannot
+> enumerate what it observes, because its subject is everything that happened — so a reporter with a
+> two-class output silently reports its own coverage gap as a clean result.**
+
+The remedy is a **third class**. `?` means *not recognised*, printed as its own block, and the notice
+says in its own words that unclassified is not measured-as-a-read. Before it, `R` was the default and
+nothing distinguished *measured as a read* from *not recognised*; every future gap was something the
+next person found by accident.
+
+**Price, paid rather than waved at:** the notice is longer, and `?` holds genuine readers until they are
+listed. It is bounded by an explicit reader list, and `?` deliberately **does not trigger** the notice,
+so a turn holding only unclassified calls stays as silent as it was before. Of the variants weighed, it
+is the only one whose cost does not grow with the allowlist.
+
+### Considered and rejected
+
+- **Extend the W list per tool.** Rejected on the enumeration above: the list to maintain is 55 programs
+  wide and grows in four files this hook does not read.
+- **Go back to substring matching over the whole command.** Rejected on its own recorded evidence: run
+  against a real 916-call transcript it classified a `cat` heredoc as a write because the heredoc *body*
+  carried a mutating word, and `gh release view` as a post. **The argument here is that the coverage is
+  unbounded, not that the matching is wrong**, and only the second was ever the defect.
+- **Merge `classify()` into `permission-guard.sh`.** It is a second, weaker classifier over the same
+  command strings, and this Issue is that duplication drifting into view — but the guard is a
+  **fail-closed floor** and the census a **fail-open reporter**. Coupling them would give the floor a
+  reason to change every time the report gains a label, which is a bad trade in the direction that
+  matters. The mitigation is review discipline: **when a program is added to any allowlist, both files
+  are the checklist.**
+
+### What this does NOT claim
+
+The census still gates nothing, still fires after the act, and still counts **attempts** rather than
+effects. And the semantic half stays uncloseable: no first-N-words rule can tell `node scripts/read.js`
+from `node scripts/write.js`. The `?` class is what documents that **at runtime, per session**, instead
+of in a paragraph nobody re-reads.
+
+**Significance:** *alters a previously-recorded decision*, marginally — it strikes a clause of this
+record's own residual and adds one rule to the layer question. No new record. Authored by `agents-lead`
+per the domain split (#223).
+
+## Amendment (2026-09-01) — the auto-mode classifier is a THIRD-LAYER system that cannot be routed to, and the state it produces gets a name (#374)
+
+**What moves:** *"The third layer: ask which SYSTEM authorises the act"* gains its first entry where
+the section's own instruction — *"Route the control there, keep the workspace rule"* — **is not
+available**, and `agents/quality-assurance.md`'s verdict vocabulary gains a fifth literal. **What does
+not move:** rule 7b's single-executor design, and the four surviving holds.
+
+### Correcting a premise before anything else: it is NOT undocumented here
+
+The intake was briefed that this repository had never recorded the classifier. It had — **once**, in
+this record, where it appears as an *obstacle to a measurement* (two greps it refused, in the
+container amendment's *"What is NOT decided here"*). **That is worse than absence**: a reader meets it
+as an annoyance rather than as a thing that decides acts.
+
+### What it is, and what can honestly be said about it
+
+Claude Code's auto-mode classifier refused a dispatch instructing `quality-assurance` to merge a PR.
+Four properties, each measured or read rather than assumed:
+
+1. **It is NOT unobservable.** The transcript carries `"toolDenialKind":"automode-blocked"` alongside
+   `"sourceToolAssistantUUID"`, a value **distinct** from the `permission-rule` this harness's own guard
+   produces. Over one session: 8 denial records, 2 distinct kinds, 7 × `permission-rule`, 1 ×
+   `automode-blocked`. Resolving the UUID gives the denied call — a `SendMessage`, not a `Bash`.
+2. **It is unconfigurable and unversioned from here.** Its predicate can change between CLI builds with
+   no signal in this repository, and `session-plugin-version.sh` measures the *plugin*, not the CLI.
+3. **It is advisory in wording and terminal in effect.** It says the act may be attempted with other
+   tools. For a merge, the other tools are rule 7b's back door and the `gh api` route rule 5f denies.
+   **The instruction it gives is one this harness must not follow**, and recording that is the point —
+   a future context reading it as licence is the failure mode.
+4. **It is not a control in either direction.** It is not this loop's guarantee against a bad merge
+   (rule 7c is), and it is not predictable enough to design around.
+
+**So the third layer's routing move is unavailable for the first time.** There is nothing to route to:
+no configuration surface, no published policy, no per-repo setting. The rule the section adds is
+therefore not *route it* but:
+
+> **Where the authorising system cannot be reached, the control cannot be moved — so name the STATE it
+> produces instead, and give that state an artifact.** An unroutable refusal is not a reason to weaken
+> the workspace rule it collides with; it is a reason to make the collision visible.
+
+### Which verdicts can strand the loop — read at head, and the asymmetry is the finding
+
+| literal | authorised executor | permitted by this harness? | can strand? |
+|---|---|---|---|
+| `REQUEST-CHANGES` | `developer` / `agents-lead` | yes — no merge | no |
+| `APPROVE-PENDING-HUMAN` | **the owner**, in the browser | yes — outside every layer here | **no**, and it is the only literal whose executor no layer can block |
+| `APPROVE-AND-MERGE` | `quality-assurance` **alone** | rule 7b denies every other `agent_type` | **yes** |
+| `APPROVE-AND-MERGE-BOUNDARY` | `quality-assurance` **alone** | identical path | **yes** |
+
+> **The two verdicts that authorise the gate to act are the two that can strand the loop; the verdict
+> that hands the act to the owner cannot.**
+
+### The decision: a fifth literal, `APPROVE-EXECUTOR-BLOCKED`
+
+**Decided by the owner, over the intake's flag-don't-recommend and over deferring until frequency data
+existed.** It names the state that had no name — *DoD green, safe-or-boundary class, none of the four
+holds applies, executor unavailable, the act is the owner's by exception* — so the readers read a state
+that exists instead of inferring one from a clearance that stayed open.
+
+**Why inference was not enough, and this is the measurement that decides the design.** *"A clearance
+posted and the PR still open"* is derivable, and it is a **race detector**: the healthy sequence is
+verdict-then-merge seconds later, and a strand is the same two facts minutes later. Nothing in any
+artifact distinguishes *the executor is blocked* from *the gate has not merged yet* — so the weaker
+honest trigger was persistence across two `Stop` events at the same `(PR, head)`, and even that could
+not say **why**. The fifth literal replaces an inference with a statement by the only actor that knows.
+
+**Spelled disjoint from the merge-authorising pair, deliberately.** `APPROVE-AND-MERGE-…` would have
+read as a member of the family that authorises a merge, and this literal is its opposite. Every reader
+in this repository matches exact literals and never globs (rule 7c states that in its own words), so
+the naming is not what makes it safe — it is the first line of defence in the readers that have not
+been written yet.
+
+**What it costs, accepted and stated so it is not rediscovered as a defect.** Five readers now parse
+the vocabulary independently — `permission-guard.sh` (7c), `session-wip.sh`, `zombie-loop-detect.sh`,
+`premature-pr-link-detect.sh` and the new `owed-pr-link-detect.sh` — plus the producing brief. They
+must move in lockstep.
+
+~~and the only thing enforcing that is `inventory-counts.test.sh`'s assertion of `session-wip.sh`'s
+list against the brief's own section. **That gate covers one reader of five.**~~
+
+**STRUCK the day it was written, and it is the same defect this amendment's neighbour struck one
+section above for the *Bash side door* clause — committed again, in the amendment that ships beside
+it.** *"Held by review"* was false about the four `case`-block readers: removing the literal from any of
+their own arms reddens that reader's own suite. **All FIVE readers were mutated, not three** — the first
+authorship of this block published a three-row table under a claim about four, which is *measured and
+omitted* being indistinguishable from *not measured*, this record's own rule failing on the soft side.
+One mutation per run, tree restored between:
+
+| reader, literal removed from its own arm | its own suite |
+|---|---|
+| `owed-pr-link-detect.sh` | 28 passed, **2 failed** |
+| `zombie-loop-detect.sh` | 25 passed, **2 failed** |
+| `premature-pr-link-detect.sh` | 34 passed, **1 failed** |
+| `session-wip.sh` | 38 passed, **1 failed** |
+| `permission-guard.sh` (rule 7c) | **430 passed, 0 failed — no red** |
+
+**The fifth row is the one worth reading, and it is NOT a contradiction of the rule-7c sentence three
+paragraphs below.** Removing 7c's dedicated arm changes the *message* and not the *decision*: the
+literal falls to `*)`, which **also denies**. So the merge floor is covered by fail-closed default
+rather than by an assertion, in both directions — an unconsidered literal denies, and a deleted arm
+denies too. It is stated here because a table of
+four reds and one green invites the reader to hunt for a defect that is not there. The two facts sit
+three paragraphs apart because they concern **opposite mutations** — one adds a literal to the brief,
+the other removes an arm from a reader — and only the first is what the new gate arms watch.
+
+~~That is the safe direction and no arm is owed for it.~~ **Narrowed on the gate's own reading: that is
+true of the DECISION and over-broad as first written.** An arm asserting the *decision* would be
+vacuous — it would pass with the dedicated arm and without it, since `*)` denies either way, which is
+precisely the assertion-that-cannot-fail this record names as a defect elsewhere. **What is unheld is
+the MESSAGE**, and the message is not incidental: it is #374's whole deliverable. A gate that lands in
+the executor-blocked state and is denied by the catch-all reads *"the head moved, or the literal
+drifted"* — which is wrong about both, and sends it to re-post a verdict rather than to hand the owner
+the link. So the honest form is *no **decision** arm is owed; the message is held by nothing*, and it
+joins the residual list rather than the settled one.
+
+**The real residual was a different one, and the misstatement hid it.** Adding a SIXTH literal to the
+brief reddened exactly one arm — `inventory-counts` 179/1 on `session-wip.sh` — and left all four other
+readers green. So the gap was never *a literal deleted from a reader*; it was *a literal added to the
+brief that no reader ever considered*, which every reader's `*)` then swallows: silently in the two
+`exit 0` readers, as a false defect report in `session-wip.sh`, as a false notice in
+`premature-pr-link-detect.sh`, and as a deny with the wrong repair message in rule 7c.
+
+**That gap is closed in this same MR**, by generalising the `awk` case-block extraction
+`inventory-counts.test.sh` already had. The same sixth-literal probe now reddens **four** arms instead
+of one.
+
+**A substring match against PROSE read as a mechanism, committed by the reviewer of the batch about
+exactly that (recorded 2026-09-01).** The gate's first pass ruled that *"16 of 16 suites have a step in
+`hooks-test.yml`"*; its probe matched each suite's **basename in comments** rather than a `run:` line,
+and the true split is **15 plus `inventory-counts.test.sh` in `docs-test.yml`**. The ruling it
+supported is unchanged — every suite does run in CI — but the defect is the same one this amendment
+records one section above: *a check that cannot tell a citation from a discussion of it*. It is written
+down because the batch's thesis is that an instrument reporting something other than what it measures
+is the failure, and the instrument was a reviewer this time.
+
+**Four, not five, and the fifth reader is worth naming rather than rounding up.** Rule 7c does *not*
+redden on an unconsidered literal — it **fails closed**, denying the merge, which is correct by default
+and is why no arm is owed there. So the five readers are covered as **four that redden plus one that
+fails closed**, and a reader expecting a fifth red will not get one. Stated because the sentence above
+reads as *five arms* if the distinction is left to inference.
+
+**A third class was added at the gate's first pass, and it covers the surface the other two do not.**
+Both classes above compare the definition list to a **reader**; nothing compared it to the block a gate
+actually **copies**. That is exactly where this amendment's own fifth literal failed to arrive — the
+*"Required shape"* template kept offering four while the definition list defined five, and the
+sixth-literal probe reddened four arms, none of them about it. It is the mirror of the `APPROVED`
+incident this record's Context section already measured: then the template offered a literal the set
+never defined; now the set defined one the template never offered. **The arm therefore asserts both
+directions**, and it anchors on the fenced block rather than a line, because adding the fifth literal
+wrapped the template onto two lines — a line-anchored check would have broken on its own fix.
+
+Two arm classes below, and they are deliberately not the same strength:
+
+- **Named-anywhere, across the three `Stop` readers.** *"Every literal must appear in every reader's
+  case block"* was **rejected rather than merely not chosen**: `zombie-loop-detect.sh` deliberately
+  omits both clearances and `owed-pr-link-detect.sh` omits three, so that assertion would redden on
+  correct code. What is asserted is that each reader **names** every brief literal — in an arm, or in
+  the comment documenting the fall-through — because the property that matters is *the author
+  considered it*. **Its limit is stated in the arm itself:** a name in a comment is not a name in an
+  arm, and this check cannot tell them apart. It therefore does not replace the arm-scoped
+  `session-wip.sh` check, which exists because a fall-through there is a defect rather than a design.
+- **Phantom, generalised to all four `case`-block readers.** Rule 7c already had this for its *accept*
+  arms only; a misspelling in a deny arm, or in any `Stop` reader, was covered by nothing. This is the
+  drift this record's own Context section measured three times in one day.
+
+**What is still not gated, and this time it is stated as the narrow thing it is:** nothing asserts that
+a reader's *treatment* of a literal is correct — only that it was considered and that it exists.
+`owed-pr-link-detect.sh` was found by this arm never naming `REQUEST-CHANGES` at all, which is exactly
+the class it was built for; whether the sentence added there is the right decision is a reviewer's call
+and there is no instrument for it.
+
+### And the gate must DISCOVER that it is blocked: attempt the merge once per head
+
+A refusal that was never attempted leaves no `automode-blocked` record, so no downstream detector has a
+premise. Measured across two PRs in one session: on the first the call was issued and the record
+exists; on the second the loop reasoned *"already hit this today"* and issued nothing.
+
+> **The signal exists precisely when the loop already knows, and is absent precisely when it forgets.
+> Self-censorship produces no record of anything.**
+
+So the behaviour rule is **attempt once per head, even when the classifier is known to block**, priced
+at roughly 65 seconds per blocked head. Once, never in a retry loop.
+
+### What was NOT built, and why each is a decision rather than a gap
+
+- **A `Stop` detector for "a clearance posted and the PR still open".** It is a race detector, above.
+  What ships instead is `owed-pr-link-detect.sh`, keyed on the two literals that *say* the act is the
+  owner's, which needs no inference at all.
+- **The placement half.** The motivating incident was a link the owner had received twice and could not
+  find, at character 20 and character 439 of two turns. **A position threshold would have passed the
+  non-ask and flagged the ask**, so position is not a ruler; it lives on #362 as a behaviour question.
+- **A route around rule 7b.** The escape already exists and it is the owner's browser merge, which rule
+  7c's own comment says it has zero reach over. **The strand is the correct failure of a correct rule.**
+
+### A fourth denial kind exists, and a detector keyed on one of them misses the other
+
+The measurement above (`8 records, 2 kinds` in one session) is honestly scoped and stays. But the
+**corpus** is wider than two kinds, and a future detector needs the wider figure:
+
+```
+grep -rhoE '"toolDenialKind":"[a-z-]+"' ~/.claude/projects/<this-project>/
+→ 2546 permission-rule · 51 user-rejected · 25 automode-blocked · 14 automode-unavailable
+```
+
+**`automode-unavailable` is a second auto-mode refusal shape**, and nothing above mentions it. A
+detector keyed only on `automode-blocked` is blind to 14 records in this corpus. That is advisory — no
+detector is keyed on either string today — and it is recorded so the first one built does not inherit
+the narrower premise. *(Machine-local, like every transcript figure: the corpus is this machine's
+project directory and is not reproducible from a clone.)*
+
+### The prefix exposure this batch shipped as an open hypothesis is REFUTED, with one exception
+
+#371 left it open whether `permission-guard.sh` carries the same wrapper/option blindness the census
+had. **It does not, and the reason is the finding rather than the result.** Measured by feeding the
+guard `PreToolUse` payloads with `agent_type` empty — it is a pure function of its stdin, so nothing was
+mutated:
+
+```
+rule 7b (merge)      — DENY on every form:
+  gh pr merge · gh --repo o/r pr merge · env gh pr merge · command gh pr merge
+  xargs -I{} gh pr merge · time gh pr merge
+rule 7  (trunk push) — DENY on every form:
+  git push origin main · git -c user.name=x push · git -C <repo> push · env git push · time git push
+```
+
+**The census labels the FIRST TOKEN; the guard matches `(^|[^[:alnum:]_])gh…` ANYWHERE in the string**,
+and rule 7b carries a shared `gh_repo_flag` pattern covering `-R`/`--repo` in every punctuation. The two
+layers anchor differently on purpose, and that difference is what kept #371's defect out of the floor.
+**This is evidence FOR keeping `classify()` and the guard separate, not against it** — merging them
+would have propagated the bug into the fail-closed layer.
+
+**The one exception, and it is a real hole in the floor:**
+
+```
+git --git-dir=<a-repo-on-main>/.git push        → «no decision»
+```
+
+Rule 7's extraction reads `-C` only, so a push aimed at another checkout's trunk through `--git-dir`
+reaches no rule. **Contained rather than open:** that spelling matches no `Bash(git push:*)` allow
+prefix either, so it degrades to *ask a human* rather than to *execute*. **Not fixed here, deliberately
+— it is the floor, and the floor is its own change with its own record.** Named so the next reader
+finds a measured gap rather than an open worry.
+
+### Significance
+
+Arm: *alters a previously-recorded decision* — it narrows the third layer's routing instruction and
+extends the verdict vocabulary rule 7c enforces. `Deciders`: the owner (the fifth literal, and the
+split of the deliverable); written by `agents-lead` per the domain split (#223), whose object is the
+machinery.

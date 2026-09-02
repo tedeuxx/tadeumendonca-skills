@@ -24,15 +24,18 @@
 # ── WHAT MAKES A LINK LEGITIMATE HERE — three conditions, all mechanical ────────────────────────
 # 1. the PR is OPEN;
 # 2. every check on its current head has COMPLETED and SUCCEEDED, and there is at least one;
-# 3. the gate posted `APPROVE-PENDING-HUMAN` against that same head.
+# 3. the gate posted `APPROVE-PENDING-HUMAN` **or `APPROVE-EXECUTOR-BLOCKED`** against that same head.
 #
 # (3) is what turns "ready to merge" into "ready for HIM". `agents/quality-assurance.md`'s "Your verdict
-# — exactly one of" enumerates four literals, and exactly ONE of them means the remaining act is the
-# owner's: `APPROVE-PENDING-HUMAN`, posted when one of the four surviving holds fired. THE HOLD COUNT IS
-# NOT WHAT THIS READS, deliberately — `REQUEST-CHANGES` is also non-merging and is emphatically not an
-# owner summons, it routes to the builder; `APPROVE-AND-MERGE` and `APPROVE-AND-MERGE-BOUNDARY` are
-# clearances the gate acts on itself. Reading the literal is checkable; reading "which of four holds
-# applied" is not.
+# — exactly one of" enumerates **five** literals since #374, and exactly TWO of them mean the remaining
+# act is the owner's: `APPROVE-PENDING-HUMAN`, posted when one of the four surviving holds fired, and
+# `APPROVE-EXECUTOR-BLOCKED`, posted when the gate cleared the diff and could not execute the merge.
+# THE HOLD COUNT IS NOT WHAT THIS READS, deliberately — `REQUEST-CHANGES` is also non-merging and is
+# emphatically not an owner summons, it routes to the builder. Reading the literal is checkable;
+# reading "which of four holds applied" is not.
+#
+# `APPROVE-AND-MERGE` and `APPROVE-AND-MERGE-BOUNDARY` are clearances the gate acts on itself, and
+# since #374 they are **silent here rather than flagged** — see the narrowing at the `case` below.
 #
 # ── DETECTION, NEVER PREVENTION — the same terms `zombie-loop-detect.sh` uses ───────────────────
 # This is a `Stop` hook. It fires AFTER the text has already reached the owner. It cannot un-send a
@@ -237,10 +240,36 @@ while IFS= read -r url; do
     esac
   fi
   if [ -z "$reason" ]; then
+    # ── NARROWED, NOT WIDENED (#374) ─────────────────────────────────────────────────────────────
+    # The catch-all treated *not APPROVE-PENDING-HUMAN* as *premature*, which fused two states that are
+    # not alike: `REQUEST-CHANGES` (genuinely premature — the diff is not finished) and
+    # `APPROVE-AND-MERGE(-BOUNDARY)` (NOT premature — the PR is finished, and only WHO EXECUTES is
+    # open). The false positive is on disk rather than reasoned about: a debounce marker from PR #373
+    # reads "the verdict at this head is APPROVE-AND-MERGE, not APPROVE-PENDING-HUMAN — the gate acts
+    # on that itself", written about a link the owner had asked for.
+    #
+    # SILENT, NOT APPROVED, and the distinction is the whole of the arm. A link to a cleared-but-
+    # unmerged PR is AMBIGUOUS, not legitimate: it could be a race (verdict, merge seconds later) or a
+    # strand. Clearing it would let this hook certify what it cannot judge. **Detection hooks should be
+    # silent where they are ignorant.**
+    #
+    # PRICED CAVEAT: after this, a genuinely premature link on a cleared-but-unmerged PR is flagged by
+    # nothing. Correct trade — the hook was flagging it for the wrong reason AND giving the wrong
+    # instruction ("Report STATE in prose instead"), which on the motivating incident is what pushed the
+    # link the owner was asking for down to character 439 of a turn that opened with two paragraphs
+    # about rule 7b.
+    #
+    # AND THE INVERSE TRIGGER IS NOT FOLDED IN HERE. "A URL is absent" shares no code path, no debounce
+    # semantics and no notice text with "a URL is present". One hook with two rulers is unattributable
+    # in both directions; the absence case is `owed-pr-link-detect.sh`.
     case "$verdict" in
-      APPROVE-PENDING-HUMAN) : ;;
+      # the two literals that mean the remaining act is the owner's — a link is exactly right
+      APPROVE-PENDING-HUMAN|APPROVE-EXECUTOR-BLOCKED) : ;;
+      # cleared: the PR is finished and who executes is a different question from whether this link
+      # was premature. Say nothing.
+      APPROVE-AND-MERGE|APPROVE-AND-MERGE-BOUNDARY) : ;;
       none) reason="no quality-assurance verdict at this head — the gate has not run, so nothing says the remaining act is his" ;;
-      *)    reason="the verdict at this head is $verdict, not APPROVE-PENDING-HUMAN — the gate acts on that itself" ;;
+      *)    reason="the verdict at this head is $verdict, which is neither a hold that hands him the decision (APPROVE-PENDING-HUMAN, APPROVE-EXECUTOR-BLOCKED) nor a clearance — so nothing says the remaining act is his" ;;
     esac
   fi
 
@@ -261,11 +290,14 @@ $findings
 The rule, in his words (#327): \"eu apenas quero receber links de PR quando tiver pronto para merge com
 todos check concluidos com sucesso\". The condition is conjunctive — ready to merge AND every check
 complete and successful — and the mechanical reading of \"ready for him\" is a quality-assurance verdict
-of APPROVE-PENDING-HUMAN at the PR's current head, the one literal of four that means the remaining act
-is the owner's.
+of APPROVE-PENDING-HUMAN or APPROVE-EXECUTOR-BLOCKED at the PR's current head, the two literals of five
+that mean the remaining act is the owner's.
 
 Report STATE in prose instead: what shipped, what is in flight, what is blocked. Hand over the link when
-the remaining act is his.
+the remaining act is his — and when you do, put the ask FIRST. This hook has nothing to say about
+placement and cannot: on the incident that produced #374 the link was in his hands twice before he asked
+for it, at character 20 and at character 439, and an index threshold would have passed the first (an
+announcement) and flagged the second (the actual ask).
 
 This is premature-pr-link-detect.sh (#327), a Stop hook. It is DETECTION, NEVER PREVENTION — it fires
 after the text already reached him, so there is nothing left to refuse; it gates nothing and decides

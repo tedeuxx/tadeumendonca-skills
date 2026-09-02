@@ -7,8 +7,24 @@
 # defect this repo has actually shipped, and is why this file exists at all rather than the
 # hook being "obviously correct".
 #
-# The hook reads $HOME for the marketplace manifest and $CLAUDE_PROJECT_DIR for the source
-# one, so both are pointed at a temp tree. Nothing here touches the real installation.
+# THE FIXTURE CHANGED WITH #370, and the change is the point rather than plumbing. The hook used
+# to read the marketplace clone, so the old fixture wrote a manifest under
+# `$HOME/.claude/plugins/marketplaces/…` and ran the hook straight out of the repo. That fixture
+# could not have caught the defect #370 records: it asserted the behaviour of the wrong file.
+#
+# Now the hook derives the running build from `$0`, so the test COPIES it to a versioned,
+# build-shaped temp path and invokes it from there:
+#
+#     $root/build/<version>/hooks/scripts/session-plugin-version.sh
+#     $root/build/<version>/.claude-plugin/plugin.json      ← the version under test
+#
+# That is a faithful model of how the harness actually invokes it — `hooks/hooks.json` registers
+# every hook as `"${CLAUDE_PLUGIN_ROOT}"/hooks/scripts/<name>.sh`, an interpolated absolute path
+# into one cached build — and it is why the "running build" version is now a fixture parameter
+# rather than a file in a fake $HOME.
+#
+# $HOME still points at the temp tree, because the CROSS-PROJECT arm reads
+# `$HOME/.claude/plugins/installed_plugins.json`. Nothing here touches the real installation.
 
 set -uo pipefail
 
@@ -19,14 +35,20 @@ fail=0
 ok()   { printf 'ok    %s\n' "$1"; pass=$((pass + 1)); }
 bad()  { printf 'FAIL  %s\n     %s\n' "$1" "$2"; fail=$((fail + 1)); }
 
-# Build a throwaway HOME + project tree. Passing '' for either version omits that manifest,
-# which is how the "not installed" and "consuming repo" cases are expressed.
+# Build a throwaway build tree + project tree + $HOME.
+#   $1 — the version of the BUILD the hook is copied into. '' means "no manifest beside the
+#        build", i.e. the hook was invoked from somewhere that is not a plugin tree.
+#   $2 — the version in the project's own source manifest. '' omits it (the consuming-repo case).
+#   $3 — optional: literal JSON for installed_plugins.json. '' omits the registry entirely.
 setup() {
   root="$(mktemp -d)"
+  build="$root/build/x"
+  mkdir -p "$build/hooks/scripts"
+  cp "$HOOK" "$build/hooks/scripts/session-plugin-version.sh"
   if [ -n "$1" ]; then
-    mkdir -p "$root/home/.claude/plugins/marketplaces/tadeumendonca/.claude-plugin"
+    mkdir -p "$build/.claude-plugin"
     printf '{"name":"tadeumendonca-skills","version":"%s"}\n' "$1" \
-      > "$root/home/.claude/plugins/marketplaces/tadeumendonca/.claude-plugin/plugin.json"
+      > "$build/.claude-plugin/plugin.json"
   fi
   if [ -n "$2" ]; then
     mkdir -p "$root/proj/.claude-plugin"
@@ -35,21 +57,25 @@ setup() {
   else
     mkdir -p "$root/proj"
   fi
+  mkdir -p "$root/home/.claude/plugins"
+  if [ -n "${3:-}" ]; then
+    printf '%s\n' "$3" > "$root/home/.claude/plugins/installed_plugins.json"
+  fi
 }
 
-# Run the hook against the temp tree. PATH is stripped of `gh` so the release-API fallback
-# cannot reach the network from a test — a suite whose result depends on GitHub being up is
-# testing GitHub.
+# Run the hook FROM THE BUILD PATH, which is what makes `$0` meaningful. PATH is stripped of `gh`
+# so the release-API fallback cannot reach the network from a test — a suite whose result depends
+# on GitHub being up is testing GitHub.
 run_hook() {
   ( export HOME="$root/home"
     export CLAUDE_PROJECT_DIR="$root/proj"
-    export PATH="$root/nogh:/usr/bin:/bin"
     mkdir -p "$root/nogh"
-    bash "$HOOK" 2>/dev/null )
+    export PATH="$root/nogh:/usr/bin:/bin"
+    bash "$build/hooks/scripts/session-plugin-version.sh" 2>/dev/null )
 }
 
-check() { # label · installed · source · matcher(present|absent) · needle
-  setup "$2" "$3"
+check() { # label · build version · source version · matcher(present|absent|empty) · needle · [registry json]
+  setup "$2" "$3" "${6:-}"
   out="$(run_hook)"
   case "$4" in
     present)
@@ -68,29 +94,87 @@ check() { # label · installed · source · matcher(present|absent) · needle
   rm -rf "$root"
 }
 
-echo '--- it fires when the install is behind, which is the failure it exists for (#93) ---'
+echo '--- it fires when the running build is behind, which is the failure it exists for (#93) ---'
 check 'reports both versions'            0.4.21 0.4.24 present '0.4.21'
 check 'names the reference version'      0.4.21 0.4.24 present '0.4.24'
-check 'says the published side is ahead' 0.4.21 0.4.24 present 'is AHEAD of the install'
+check 'says the published side is ahead' 0.4.21 0.4.24 present 'is AHEAD of the build this session is running'
 check 'warns about stale subagents'      0.4.21 0.4.24 present 'resolves to its OLD definition'
 check 'emits a SessionStart event'       0.4.21 0.4.24 present '"hookEventName": "SessionStart"'
+
+echo '--- the version reported is the BUILD it runs from, not any other manifest (#370) ---'
+# THE ARM THE OLD FIXTURE COULD NOT HAVE HAD. It asserts the label AND that the number came out of
+# the build directory the hook was invoked from. Mutate: point SELF_MANIFEST back at the marketplace
+# clone and this goes red while every other arm above still passes — which is precisely how the
+# defect survived.
+check 'labels it as the running build'   0.4.21 0.4.24 present 'running build (this session): 0.4.21'
+check 'no longer calls it "marketplace"' 0.4.21 0.4.24 absent  'installed (marketplace)'
+# The build's own manifest is the ONLY source of that number: with the manifest absent from the
+# build tree there is nothing to report, and the hook must not substitute another file.
+check 'no build manifest: silent, never "up to date"' '' 0.4.24 empty ''
+
+echo '--- the remedy it prints must be one that works (#370) ---'
+# The old text said restarting after a marketplace refresh made the merged version effective. It
+# does not: the refresh moves the shared clone and leaves the per-scope install record pinned.
+check 'prescribes the marketplace refresh' 0.4.21 0.4.24 present '/plugin marketplace update'
+check 'and the install-record move'        0.4.21 0.4.24 present '/plugin update tadeumendonca-skills@tadeumendonca'
+check 'says the refresh alone is not it'   0.4.21 0.4.24 present 'refreshing the clone alone leaves the record pinned'
 
 echo '--- version comparison is numeric, not lexical ---'
 # The whole point: 0.4.9 vs 0.4.21 is where a string compare silently inverts the verdict and
 # tells the session it is up to date while it runs a stale build.
-check 'a two-digit patch beats a one-digit one' 0.4.9 0.4.21 present 'is AHEAD of the install'
-check 'and the reverse direction too'           0.4.21 0.4.9 present 'The INSTALL is ahead'
+check 'a two-digit patch beats a one-digit one' 0.4.9 0.4.21 present 'is AHEAD of the build'
+check 'and the reverse direction too'           0.4.21 0.4.9 present 'The BUILD is ahead'
 
 echo '--- the two directions are distinct actions, not one message ---'
-check 'install-ahead tells you to pull'     0.4.24 0.4.21 present 'Pull before changing a hook'
-check 'install-ahead does NOT say restart'  0.4.24 0.4.21 absent  'Restarting the session'
+check 'build-ahead tells you to pull'      0.4.24 0.4.21 present 'Pull before changing a hook'
+check 'build-ahead does NOT say restart'   0.4.24 0.4.21 absent  '/plugin marketplace update'
 
 echo '--- silence is the correct output, and must be real silence ---'
 check 'identical versions say nothing'   0.4.24 0.4.24 empty ''
-check 'no marketplace install: nothing'  ''     0.4.24 empty ''
 # In a consuming repo with no `gh`, there is no reference to compare against. Silence, not a
 # guess — a notice built on an unknown reference is worse than none.
 check 'no source and no gh: nothing'     0.4.21 ''     empty ''
+
+echo '--- the cross-project arm: the projects nobody opens (#370) ---'
+# This is the half that matters. The primary arm above reports from inside a stale session; a
+# project that is never opened never starts one, so only this arm can see it.
+REG_STALE='{"version":2,"plugins":{"tadeumendonca-skills@tadeumendonca":[
+  {"scope":"project","projectPath":"/tmp/other-project","version":"1.0.16"},
+  {"scope":"user","version":"0.4.24"}]}}'
+REG_CLEAN='{"version":2,"plugins":{"tadeumendonca-skills@tadeumendonca":[
+  {"scope":"project","projectPath":"/tmp/other-project","version":"0.4.24"},
+  {"scope":"user","version":"0.4.24"}]}}'
+# Every PROJECT record matches; only the USER record is stale. This arm is what separates "reports
+# stale project records" from "reports stale records" — the user record is the running session's own
+# concern and arm 1 already owns it, so reporting it here would double-report and, worse, name no
+# path the reader could act on.
+REG_USER_STALE='{"version":2,"plugins":{"tadeumendonca-skills@tadeumendonca":[
+  {"scope":"project","projectPath":"/tmp/other-project","version":"0.4.24"},
+  {"scope":"user","version":"1.0.16"}]}}'
+REG_SCHEMA='{"version":3,"plugins":{"tadeumendonca-skills@tadeumendonca":[
+  {"scope":"project","projectPath":"/tmp/other-project","version":"1.0.16"}]}}'
+REG_SCOPE='{"version":2,"plugins":{"tadeumendonca-skills@tadeumendonca":[
+  {"scope":"managed","projectPath":"/tmp/other-project","version":"1.0.16"},
+  {"scope":"project","projectPath":"/tmp/third","version":"1.0.16"}]}}'
+
+check 'names the stale project path'   0.4.24 0.4.24 present '/tmp/other-project' "$REG_STALE"
+check 'names its pinned version'       0.4.24 0.4.24 present '1.0.16'             "$REG_STALE"
+check 'prints the move command'        0.4.24 0.4.24 present 'claude plugin update tadeumendonca-skills@tadeumendonca --scope project -y' "$REG_STALE"
+# The NEGATIVE half — without it, "reports a stale project" would pass for an arm that reports
+# every project unconditionally.
+check 'silent when every record matches' 0.4.24 0.4.24 empty '' "$REG_CLEAN"
+check 'a stale user-scope record is not reported here'  0.4.24 0.4.24 empty '' "$REG_USER_STALE"
+# And it must be silent when the running build itself is fine and there is no registry at all.
+check 'no registry: nothing'           0.4.24 0.4.24 empty ''
+
+echo '--- three cases that must end in "could not determine", never in a clean bill of health ---'
+check 'unknown schema is reported as skipped' 0.4.24 0.4.24 present 'schema version this hook has not read' "$REG_SCHEMA"
+check 'unknown schema reports nothing else'   0.4.24 0.4.24 absent  '/tmp/other-project'                    "$REG_SCHEMA"
+check 'an unrecognised scope refuses to conclude' 0.4.24 0.4.24 present 'An unrecognised scope may be in play' "$REG_SCOPE"
+# THE SHARPEST ARM IN THIS BLOCK: with a `managed` record present, the hook must NOT go on to report
+# the `project` record it does understand. A partial answer presented as a complete one is the exact
+# failure this hook exists to prevent. Mutate: drop the SCOPE branch and let the filter run → red.
+check 'and does not report the records it recognises' 0.4.24 0.4.24 absent '/tmp/third'                     "$REG_SCOPE"
 
 echo '--- the dependency probe: is the permission guard able to speak at all? ---'
 # ARRANGING "jq IS ABSENT" HONESTLY, because the alternative is a case that passes for the wrong
@@ -122,11 +206,11 @@ run_hook_nojq() {
   ( export HOME="$root/home"
     export CLAUDE_PROJECT_DIR="$root/proj"
     export PATH="$root/nojq"
-    "$BASH" "$HOOK" 2>/dev/null )
+    "$BASH" "$build/hooks/scripts/session-plugin-version.sh" 2>/dev/null )
 }
 
-check_nojq() { # label · installed · source · matcher(present|absent) · needle
-  setup "$2" "$3"
+check_nojq() { # label · build version · source version · matcher(present|absent) · needle · [registry]
+  setup "$2" "$3" "${6:-}"
   setup_nojq_bin
   out="$(run_hook_nojq)"
   case "$4" in
@@ -153,12 +237,17 @@ check_nojq 'the arrangement really has no jq' 0.4.24 0.4.24 present 'is not on P
 # path where there is nothing else to say, or the notice is missing exactly when the session looks
 # healthiest.
 check_nojq 'fires when versions MATCH'        0.4.24 0.4.24 present 'PERMISSION GUARD IS INERT'
-check_nojq 'fires when nothing is installed'  ''     0.4.24 present 'PERMISSION GUARD IS INERT'
+check_nojq 'fires with no build manifest'     ''     0.4.24 present 'PERMISSION GUARD IS INERT'
 check_nojq 'fires with no source and no gh'   0.4.21 ''     present 'PERMISSION GUARD IS INERT'
 check_nojq 'fires when versions DIFFER too'   0.4.21 0.4.24 present 'PERMISSION GUARD IS INERT'
 
+# The jq-less machine must be TOLD the cross-project arm did not run, inside the notice it already
+# gets — otherwise the arm's silence there is indistinguishable from a clean result (#370).
+check_nojq 'says the cross-project arm skipped' 0.4.24 0.4.24 present 'cross-project check skipped: no jq' "$REG_STALE"
+check_nojq 'and really does not run it'         0.4.24 0.4.24 absent  '/tmp/other-project'                 "$REG_STALE"
+
 # Both findings arrive in ONE payload rather than two objects, and the version half is not lost.
-check_nojq 'version finding survives beside it' 0.4.21 0.4.24 present 'is AHEAD of the install'
+check_nojq 'version finding survives beside it' 0.4.21 0.4.24 present 'is AHEAD of the build'
 check_nojq 'still a valid SessionStart event'   0.4.24 0.4.24 present '"hookEventName":"SessionStart"'
 
 # It must say what is LOST in re-derivable terms, and name the concrete verified consequence.

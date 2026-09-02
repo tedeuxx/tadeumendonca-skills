@@ -187,8 +187,17 @@ verdict="$(printf '%s' "$pr_view" | jq -r --arg m "$MARKER" '
 # was. NAMED RESIDUAL, not closed here: neither clearance fires this notice when the PR is still open
 # at turn end, so "the gate cleared it and then did not merge it" is invisible to this hook. That gap
 # predates the amendment and is identical for both literals; closing it is a separate change.
+#
+# `APPROVE-EXECUTOR-BLOCKED` (#374) IS ADDED, and it is not the same kind of addition as the boundary
+# literal was. That one was a clearance, so silence was correct. This one is the loop's own statement
+# that it has finished and cannot proceed — an outstanding state by definition, and the sharpest one
+# in the vocabulary, since nothing downstream of it will move without the owner. **It does not close
+# the named residual above**: a PR still open under APPROVE-AND-MERGE(-BOUNDARY) is still invisible
+# here, because that state is a race (verdict, then merge seconds later) and cannot be told apart from
+# a strand at any single instant. The fifth literal exists precisely so the strand stops having to be
+# inferred from a clearance that stayed open.
 case "$verdict" in
-  REQUEST-CHANGES|APPROVE-PENDING-HUMAN) : ;;
+  REQUEST-CHANGES|APPROVE-PENDING-HUMAN|APPROVE-EXECUTOR-BLOCKED) : ;;
   *) exit 0 ;;
 esac
 
@@ -203,6 +212,10 @@ It does not know WHY; it only knows the state is outstanding.
 
 If REQUEST-CHANGES: dispatch the persona that owns the fix and re-request review.
 If APPROVE-PENDING-HUMAN: this needs the owner's go/no-go, not another dispatch.
+If APPROVE-EXECUTOR-BLOCKED: the gate CLEARED this and could not execute the merge, so the
+remaining act is the owner's by exception (#374). Hand him the link. Do not re-dispatch the
+gate hoping for a different result, and do not reach for another route to the merge — rule
+7b's single-executor design is what makes this state terminal, and it is correct.
 
 This notice fires at most once per (PR, head SHA) per session — it will not repeat for this
 exact state, and re-arms only if the head moves or a new verdict lands."

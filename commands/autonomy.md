@@ -349,12 +349,23 @@ someone will act on.
 whose pipeline is still running does not qualify however green it looks so far; a red pipeline is the
 loop's to fix without involving him.
 
-**Mechanically, "ready for him" is one verdict literal, not a hold count.** `agents/quality-assurance.md`'s
-*"Your verdict — exactly one of"* enumerates four, and exactly one of them means the remaining act is
-the owner's: **`APPROVE-PENDING-HUMAN`**, posted when one of the four surviving holds fired.
+**Mechanically, "ready for him" is a verdict literal, not a hold count.** `agents/quality-assurance.md`'s
+*"Your verdict — exactly one of"* enumerates **five** since #374, and **two** of them mean the remaining
+act is the owner's: **`APPROVE-PENDING-HUMAN`**, posted when one of the four surviving holds fired, and
+**`APPROVE-EXECUTOR-BLOCKED`**, posted when the gate cleared the diff and could not execute the merge —
+the decision made, only the act outstanding.
 `REQUEST-CHANGES` is also non-merging and is emphatically *not* an owner summons — it routes to the
 builder. `APPROVE-AND-MERGE` and `APPROVE-AND-MERGE-BOUNDARY` are clearances the gate acts on itself
 (ADR-0002 amendment #16), which is why almost every open PR is one he has nothing to do with.
+
+**And the rule now has an inverse with its own hook (#374).** A turn that ends while one of those two
+literals sits at an open, green PR's head, and surfaces no link, is a turn that ended owing him one —
+reported by `owed-pr-link-detect.sh`. **It does not address the incident that produced it**, and saying
+so is part of the rule rather than a footnote: the motivating complaint was a link he had received twice
+and could not find, buried mid-message under paragraphs of machinery. **So
+when the link goes, the ask goes FIRST.** That half is a discipline; nothing checks it. *(The measured
+character offsets are deliberately not here — see `hooks/scripts/owed-pr-link-detect.sh`'s header for the
+full table and ADR-0004's 2026-09-01 amendment for the argument they support.)*
 
 **A second case is legitimate, and it is the second limb of his own rule (#327).** A PR link also goes to
 him when **the ask is explicitly a decision he holds** — a title, a positioning call on a draft —

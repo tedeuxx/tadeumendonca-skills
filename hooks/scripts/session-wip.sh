@@ -118,6 +118,14 @@ verdict_suffix() {
     # `inventory-counts.test.sh` now asserts this list against `agents/quality-assurance.md`'s own
     # "Your verdict — exactly one of" section, so the next literal added there cannot land here late.
     APPROVE-AND-MERGE|APPROVE-AND-MERGE-BOUNDARY) : ;;  # reviewed and clear; the listing has nothing to add
+    # `APPROVE-EXECUTOR-BLOCKED` (#374) is outstanding for a DIFFERENT reason from the other two and
+    # the listing says which, because the repair differs: REQUEST-CHANGES routes to the builder,
+    # APPROVE-PENDING-HUMAN wants a decision the owner holds, and this one wants the owner to press a
+    # button on a decision that is already made. Rendering it silently — as the merge-authorising pair
+    # is rendered — would hide the one state in the vocabulary where the loop has finished and nothing
+    # will move without him.
+    APPROVE-EXECUTOR-BLOCKED)
+      printf '%s' " — quality-assurance CLEARED this and could not merge it: the act is the owner's (${verdict})" ;;
     APPROVE-PENDING-HUMAN|REQUEST-CHANGES)
       printf '%s' " — quality-assurance returned ${verdict} on the current head" ;;
     *) printf '%s' " — quality-assurance posted an UNRECOGNISED verdict on the current head: ${verdict}" ;;
@@ -151,8 +159,10 @@ current head — either it was never dispatched, or the verdict it has is stale 
 branch moved since. Dispatch the gate before merging; that is the rule, and this line
 exists because nothing else in the loop can tell you it was skipped.
 
-A line naming a verdict — REQUEST-CHANGES or APPROVE-PENDING-HUMAN — HAS been through the
-gate and is not done: the first needs changes and a re-review, the second needs the owner.
+A line naming a verdict — REQUEST-CHANGES, APPROVE-PENDING-HUMAN or APPROVE-EXECUTOR-BLOCKED
+— HAS been through the gate and is not done: the first needs changes and a re-review, the
+second needs a decision the owner holds, and the third needs only his hand on the merge —
+the gate cleared it and could not execute (#374).
 A line reporting an UNRECOGNISED verdict means the gate posted a literal its own persona
 does not define, which is a defect in the gate rather than in the PR.
 

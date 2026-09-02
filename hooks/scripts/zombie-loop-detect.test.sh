@@ -114,6 +114,24 @@ case "$out" in
 esac
 teardown
 
+echo '--- APPROVE-EXECUTOR-BLOCKED (#374) is the sharpest outstanding state there is ---'
+# The gate cleared the diff and could not execute the merge, so nothing downstream moves without the
+# owner. Silence here would hide the one state in the vocabulary where the loop has finished.
+setup
+checkout_branch feat/x
+open_pr 150 abc123
+view_with_verdict abc123 APPROVE-EXECUTOR-BLOCKED
+out="$(run_hook)"
+case "$out" in
+  *'APPROVE-EXECUTOR-BLOCKED'*) ok 'APPROVE-EXECUTOR-BLOCKED fires' ;;
+  *) bad 'APPROVE-EXECUTOR-BLOCKED fires' "got: ${out:-<empty>}" ;;
+esac
+case "$out" in
+  *'remaining act is the owner'*) ok 'and the notice says the act is the owner, not another dispatch' ;;
+  *) bad 'the notice routes it to the owner' "got: ${out:-<empty>}" ;;
+esac
+teardown
+
 echo '--- APPROVE-AND-MERGE is not outstanding, no notice ---'
 setup
 checkout_branch feat/x

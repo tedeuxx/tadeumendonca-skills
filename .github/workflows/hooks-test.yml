@@ -117,14 +117,27 @@ jobs:
       - name: Run the premature-pr-link-detect suite
         run: bash hooks/scripts/premature-pr-link-detect.test.sh
 
+      # Added in the SAME slice as the hook (#374), for the reason the comment two steps down already
+      # gives about `dispatch-premise-guard`: a suite written and then left to a habit is a gate one
+      # forgotten habit away from absent, and two of the suites here spent weeks in exactly that state.
+      - name: Run the owed-pr-link-detect suite
+        run: bash hooks/scripts/owed-pr-link-detect.test.sh
+
       # TWO SUITES HAVE NEVER HAD A STEP HERE — `zombie-loop-detect.test.sh` and
       # `session-plugin-version.test.sh`. Both were written mutation-checked and then left to be run by
       # hand, which is a gate one forgotten habit away from absent: exactly the "a green that proves
       # nothing" shape this repo names as the failure the harness discipline exists to catch, sitting in
       # the directory that catches it for everything else. Found while adding the step above, because
-      # adding one meant reading the list. Both pass at head (25 and 27 assertions), so this closes the
+      # adding one meant reading the list. Both passed when the steps were added, so this closed the
       # gap rather than opening a red. NAMED RATHER THAN FOLDED IN SILENTLY: this is adjacent to #327's
       # subject, not part of it, and it is two lines rather than a slice.
+      #
+      # ~~Both pass at head (25 and 27 assertions)~~ — STRUCK 2026-09-01 (#374). The pair was TRUE when
+      # written and this very diff falsified both halves (27 and 44 at head), which is the point rather
+      # than the erratum: a frozen count with no command beside it rots on the next slice that touches
+      # the suite, and the slice that touches it is usually the one editing this file. The property is
+      # what survives — both suites have a step here and both are green in CI — and the totals are
+      # printed by the suites themselves, which is the only place they cannot go stale.
       - name: Run the zombie-loop-detect suite
         run: bash hooks/scripts/zombie-loop-detect.test.sh
 

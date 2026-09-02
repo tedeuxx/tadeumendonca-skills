@@ -57,6 +57,31 @@ run_hook() { # [session_id] [stop_hook_active]
 
 notice() { printf '%s' "$1" | jq -r '.hookSpecificOutput.additionalContext // ""' 2>/dev/null || true; }
 
+# EVERY BLOCK THAT EXPECTS A NOTICE ASSERTS THAT ONE ARRIVED, BEFORE ASSERTING ANYTHING ABOUT IT.
+# Found on #374's review, and it is a defect in this FILE rather than in the hook. Forcing the census
+# permanently silent (CENSUS_THRESHOLD 3 -> 9999) left 18 arms passing, three of them absent-shaped and
+# matching against an EMPTY STRING — including one added in this same batch specifically to harden a
+# block:
+#
+#   ok    the wrapper never survives into a label
+#   ok    gh api is not reported as a read
+#   ok    a listed reader does not appear in the ? block
+#
+# The earlier hardening (three `Write` calls, so the notice's trigger does not depend on the
+# classification under test) is real and was verified — but it is POSITIONAL: it works because each
+# absent-shaped arm happens to sit beside a positive arm in the same block, so an empty notice reddens
+# loudly somewhere. Delete or reorder that sibling and the protection is gone with no red to say so.
+# `ctx_or_die` makes it structural: one call per block, and an absent-shaped assertion can no longer
+# pass by matching nothing.
+ctx_or_die() { # label · notice-text
+  if [ -z "$2" ]; then
+    bad "$1" 'the hook emitted NO notice — every assertion in this block would pass against an empty
+     string, so this is reported as a failure rather than letting absent-shaped arms go green'
+    return 1
+  fi
+  return 0
+}
+
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 echo '--- below the threshold, a turn is silent (the noise bound that keeps this readable) ---'
 setup
@@ -79,6 +104,7 @@ echo '--- crossing the threshold: the notice names each tool with its count ---'
 add_call Bash "gh issue comment 319 --repo o/r --body-file /x"
 out="$(run_hook)"
 ctx="$(notice "$out")"
+ctx_or_die "a notice was emitted for this block" "$ctx"
 case "$ctx" in
   *"write/post (3)"*) ok 'the write/post class counts 3' ;;
   *) bad 'the write/post class counts 3' "got: ${ctx:-<empty>}" ;;
@@ -115,6 +141,7 @@ add_call Bash "git -C /some/repo push origin feat/x"
 add_call Bash "git -C /some/repo status --short"
 out="$(run_hook)"
 ctx="$(notice "$out")"
+ctx_or_die "a notice was emitted for this block" "$ctx"
 case "$ctx" in
   *"Bash: git commit x1"*) ok 'a git -C commit is labelled git commit' ;;
   *) bad 'a git -C commit is labelled git commit' "got: ${ctx:-<empty>}" ;;
@@ -129,6 +156,218 @@ case "$ctx" in
 esac
 teardown
 
+echo '--- #371: a wrapper prefix must not park a mutation in the read bucket ---'
+# The motivating incident: `env -C <dir> claude plugin update …` rewrote the install registry — which
+# decides which briefs and hooks every project runs — and was reported as a READ, because `classify()`
+# labelled on the first token and the first token was `env`.
+setup
+# THE THREE `Write`s ARE NOT PADDING. Without them the notice's own threshold decides whether this
+# block runs at all: under the mutation that removes the wrapper strip the write count drops below 3,
+# the hook stays silent, and every `absent`-shaped assertion below passes against an EMPTY string. That
+# is a case passing for the wrong reason, which this repo has shipped before — so the trigger is made
+# independent of the thing under test.
+add_call Write
+add_call Write
+add_call Write
+add_call Bash "env -C /some/proj claude plugin update tadeumendonca-skills@tadeumendonca --scope project -y"
+add_call Bash "claude plugin install tadeumendonca-skills@tadeumendonca"
+add_call Bash "claude plugin uninstall tadeumendonca-skills@tadeumendonca"
+out="$(run_hook)"
+ctx="$(notice "$out")"
+ctx_or_die "a notice was emitted for this block" "$ctx"
+case "$ctx" in
+  *"write/post (6)"*) ok 'a wrapper-prefixed plugin update is write-class' ;;
+  *) bad 'a wrapper-prefixed plugin update is write-class' "got: ${ctx:-<empty>}" ;;
+esac
+# THE LABEL ARM, DELIBERATELY SEPARATE FROM THE CLASS ARM. Adding `claude plugin update` to the W list
+# without the strip fixes nothing, because that string is never produced — the label came off `env`.
+# Folding this into the class check above would hide exactly that failure, so it stands alone.
+# Mutate: revert the label step to `awk '{print $1}'` with the W list intact -> this goes red.
+case "$ctx" in
+  *"Bash: claude plugin update x1"*) ok 'and it is labelled by the ACT, three words, not by the wrapper' ;;
+  *) bad 'the label names the act, not the wrapper' "got: $ctx" ;;
+esac
+case "$ctx" in
+  *"Bash: env"*) bad 'the wrapper never survives into a label' "got: $ctx" ;;
+  *) ok 'the wrapper never survives into a label' ;;
+esac
+teardown
+
+echo '--- #371: the NEGATIVE half — a wrapper strip must not become a blanket write ---'
+# Without these, "a wrapper-prefixed update is a write" would pass for a hook that classifies the whole
+# `claude` program, or every `env`-prefixed command, as a write.
+setup
+add_call Bash "claude plugin list"
+add_call Bash "env -C /some/proj claude plugin list"
+add_call Bash "claude plugin details tadeumendonca-skills@tadeumendonca"
+add_call Write
+add_call Write
+add_call Write
+out="$(run_hook)"
+ctx="$(notice "$out")"
+ctx_or_die "a notice was emitted for this block" "$ctx"
+case "$ctx" in
+  *"write/post (3)"*) ok 'three plugin READS are not writes; only the three Writes count' ;;
+  *) bad 'three plugin reads are not writes' "got: ${ctx:-<empty>}" ;;
+esac
+case "$ctx" in
+  *"Bash: claude plugin list x2"*) ok 'the wrapped and bare read carry the SAME label' ;;
+  *) bad 'the wrapped and bare read carry the same label' "got: $ctx" ;;
+esac
+teardown
+
+echo '--- #371: a stray option before the subcommand leaked the two labels that DO work ---'
+# Measured against this hook before the fix: `git -c user.name=x commit` labelled `git -c` and landed in
+# READ; `gh --repo o/r issue comment` labelled `gh --repo o/r` and landed in READ. The second is the
+# orchestrator's most common write, and `command-hygiene` already documents that this flag position
+# breaks the PERMISSION prefix matcher — nobody had noticed it breaks the census identically.
+setup
+# Same reason as above: the trigger must not depend on the classification under test.
+add_call Write
+add_call Write
+add_call Write
+add_call Bash "git -c user.name=x commit -m y"
+add_call Bash "git --git-dir=/tmp/r/.git commit -m y"
+add_call Bash "gh --repo o/r issue comment 1 --body-file /x"
+out="$(run_hook)"
+ctx="$(notice "$out")"
+ctx_or_die "a notice was emitted for this block" "$ctx"
+case "$ctx" in
+  *"write/post (6)"*) ok 'an option before the subcommand no longer hides a write' ;;
+  *) bad 'an option before the subcommand no longer hides a write' "got: ${ctx:-<empty>}" ;;
+esac
+case "$ctx" in
+  *"Bash: git commit x2"*) ok 'both git option spellings collapse to one label, git commit' ;;
+  *) bad 'both git option spellings label as git commit' "got: $ctx" ;;
+esac
+case "$ctx" in
+  *"Bash: gh issue comment x1"*) ok 'gh --repo is stripped with its VALUE, so the subcommand is found' ;;
+  *) bad 'gh --repo is stripped with its value' "got: $ctx" ;;
+esac
+teardown
+
+echo '--- #371: and the option strip must not eat a read into a write, or a subcommand ---'
+setup
+add_call Bash "git -c core.pager=cat status --short"
+add_call Bash "gh --repo o/r issue view 1"
+add_call Bash "git --no-pager log --oneline -5"
+add_call Write
+add_call Write
+add_call Write
+out="$(run_hook)"
+ctx="$(notice "$out")"
+ctx_or_die "a notice was emitted for this block" "$ctx"
+case "$ctx" in
+  *"write/post (3)"*) ok 'the three option-bearing reads stay reads' ;;
+  *) bad 'the three option-bearing reads stay reads' "got: ${ctx:-<empty>}" ;;
+esac
+case "$ctx" in
+  *"Bash: git status x1"*) ok 'git -c <k=v> status is labelled git status' ;;
+  *) bad 'git -c <k=v> status is labelled git status' "got: $ctx" ;;
+esac
+# A no-argument flag must NOT swallow the subcommand behind it — the failure a generic "skip the next
+# token too" rule would produce, silently, on every `git --no-pager <read>`.
+case "$ctx" in
+  *"Bash: git log x1"*) ok 'a no-argument flag does not swallow the subcommand' ;;
+  *) bad 'a no-argument flag does not swallow the subcommand' "got: $ctx" ;;
+esac
+case "$ctx" in
+  *"Bash: gh issue view x1"*) ok 'gh --repo issue view is still a read, correctly labelled' ;;
+  *) bad 'gh --repo issue view is still a read' "got: $ctx" ;;
+esac
+teardown
+
+echo '--- #371: gh api gets a bounded label, and is NOT called a read ---'
+# The three-word rule took a URL path as its third word, so `gh api` produced one label per endpoint and
+# no W entry could ever match it. `gh api -X POST` writes and nothing in a label can tell, so the
+# honest class is neither W nor R.
+setup
+add_call Bash "gh api repos/o/r/contents/VERSION"
+add_call Bash "gh api repos/o/r/pulls/1 --jq .head.sha"
+add_call Write
+add_call Write
+add_call Write
+out="$(run_hook)"
+ctx="$(notice "$out")"
+ctx_or_die "a notice was emitted for this block" "$ctx"
+case "$ctx" in
+  *"Bash: gh api x2"*) ok 'two endpoints collapse to one bounded label' ;;
+  *) bad 'gh api is capped at two words' "got: ${ctx:-<empty>}" ;;
+esac
+case "$ctx" in
+  *"unclassified (2)"*) ok 'gh api lands in the unclassified class, not in read' ;;
+  *) bad 'gh api lands in unclassified' "got: $ctx" ;;
+esac
+rd="$(printf '%s' "$ctx" | sed -n '/^read (/,/^unclassified (/p')"
+case "$rd" in
+  *"gh api"*) bad 'gh api is not reported as a read' "read block was: $rd" ;;
+  *) ok 'gh api is not reported as a read' ;;
+esac
+teardown
+
+echo '--- #371: the third class — unrecognised is NOT measured-as-a-read ---'
+setup
+add_call Bash "bump-my-version bump patch"
+add_call Bash "npm publish"
+add_call Bash "node scripts/whatever.js"
+add_call Bash "grep -rn foo ."
+add_call Write
+add_call Write
+add_call Write
+out="$(run_hook)"
+ctx="$(notice "$out")"
+ctx_or_die "a notice was emitted for this block" "$ctx"
+# Mutate: default the class back to R -> this goes red, and it is the arm the whole class exists for.
+case "$ctx" in
+  *"unclassified (3)"*) ok 'three unrecognised programs land in ? rather than in read' ;;
+  *) bad 'unrecognised programs land in ?' "got: ${ctx:-<empty>}" ;;
+esac
+case "$ctx" in
+  *"NOT measured as reads"*) ok 'the block says what the class means, so silence there is not comfort' ;;
+  *) bad 'the ? block explains itself' "got: $ctx" ;;
+esac
+# THE BOUND ON THE NOISE: a listed reader must stay in R and must not appear in the ? block.
+case "$ctx" in
+  *"read (1)"*) ok 'a listed reader stays in the read class' ;;
+  *) bad 'a listed reader stays in the read class' "got: $ctx" ;;
+esac
+unk="$(printf '%s' "$ctx" | sed -n '/^unclassified (/,$p')"
+case "$unk" in
+  *"Bash: grep"*) bad 'a listed reader does not appear in the ? block' "? block was: $unk" ;;
+  *) ok 'a listed reader does not appear in the ? block' ;;
+esac
+teardown
+
+echo '--- #371: an unclassified call triggers nothing, so the third class adds no noise floor ---'
+setup
+for _ in 1 2 3 4 5 6; do add_call Bash "bump-my-version bump patch"; done
+out="$(run_hook)"
+if [ -z "$out" ]; then ok 'six unclassified calls and zero writes produce no notice'
+else bad 'unclassified calls never trigger a notice' "got: $out"; fi
+teardown
+
+echo '--- #371: an unknown TOOL name is unclassified too, not silently a read ---'
+# The same defect one layer up: a new write-capable tool landing in R by default would be invisible.
+setup
+add_call SomeFutureWriteTool
+add_call mcp__thing__mutate
+add_call Read
+add_call Write
+add_call Write
+add_call Write
+out="$(run_hook)"
+ctx="$(notice "$out")"
+ctx_or_die "a notice was emitted for this block" "$ctx"
+case "$ctx" in
+  *"unclassified (2)"*) ok 'two unknown tool names land in ?' ;;
+  *) bad 'unknown tool names land in ?' "got: ${ctx:-<empty>}" ;;
+esac
+case "$ctx" in
+  *"read (1)"*) ok 'and a known read tool is unaffected' ;;
+  *) bad 'a known read tool is unaffected' "got: $ctx" ;;
+esac
+teardown
+
 echo '--- classification is on the label, not on a substring of the whole command ---'
 setup
 # The measured false positive: a heredoc whose BODY carries a mutating word, and a `gh release view`.
@@ -140,9 +379,69 @@ add_call Write
 add_call Write
 out="$(run_hook)"
 ctx="$(notice "$out")"
+ctx_or_die "a notice was emitted for this block" "$ctx"
 case "$ctx" in
   *"write/post (3)"*) ok 'the three decoys are reads; only the three Writes count' ;;
   *) bad 'the three decoys are reads; only the three Writes count' "got: ${ctx:-<empty>}" ;;
+esac
+teardown
+
+echo '--- #374 review: `sed --in-place` was POSITIVELY CLAIMED as a read ---'
+# The `sed` arm matched `*" -i"*`, which `" --in-place"` does not contain — so a mutation landed in R.
+# This is worse than the `?` class it would otherwise have reached: `?` is an admission, `R` is an
+# assertion, and `sed` is the one arm in classify() that asserts.
+#
+# PLATFORM CAVEAT, carried in the test because it is why nobody hit this: BSD `sed` rejects the long
+# form (`sed: illegal option -- -`), so the defect is unreachable on the machine that found it and
+# reachable on every Linux runner, including this repo's own CI.
+setup
+add_call Bash "sed --in-place s/a/b/ /tmp/f"
+add_call Bash "sed --in-place s/c/d/ /tmp/f"
+add_call Bash "sed --in-place s/e/f/ /tmp/f"
+out="$(run_hook)"
+case "$(notice "$out")" in
+  *"write/post (3)"*) ok 'sed --in-place is write-class, like sed -i' ;;
+  *) bad 'sed --in-place is write-class' "got: ${out:-<empty>}" ;;
+esac
+teardown
+# THE NEGATIVE HALF: a long-form READ must not become a write just because the arm grew a pattern.
+setup
+add_call Bash "sed --expression=s/a/b/ /tmp/f"
+add_call Bash "sed --quiet 1,20p /tmp/f"
+add_call Write
+add_call Write
+add_call Write
+out="$(run_hook)"
+case "$(notice "$out")" in
+  *"write/post (3)"*) ok 'a long-form sed READ stays a read' ;;
+  *) bad 'a long-form sed read stays a read' "got: ${out:-<empty>}" ;;
+esac
+teardown
+
+echo '--- #374 review: repeated spaces must not defeat the option strip ---'
+# `${c%% *}` / `${c#* }` split on ONE space, so `gh  --repo o/r pr comment` (two spaces, a shape a
+# human types) left `--repo` unstripped and the label came out `gh --repo o/r` -> `?`. A degradation
+# rather than a false read, and fixed with the same `awk` normalisation the label already used.
+setup
+add_call Write
+add_call Write
+add_call Write
+add_call Bash "gh  --repo o/r  issue comment 1 --body-file /x"
+add_call Bash "git   -c user.name=x   commit -m y"
+out="$(run_hook)"
+ctx="$(notice "$out")"
+ctx_or_die "a notice was emitted for this block" "$ctx"
+case "$ctx" in
+  *"write/post (5)"*) ok 'double-spaced writes are still writes' ;;
+  *) bad 'double-spaced writes are still writes' "got: ${ctx:-<empty>}" ;;
+esac
+case "$ctx" in
+  *"Bash: gh issue comment x1"*) ok 'and the label is the same as the single-spaced form' ;;
+  *) bad 'the double-spaced label matches the single-spaced one' "got: $ctx" ;;
+esac
+case "$ctx" in
+  *"Bash: git commit x1"*) ok 'the git form too' ;;
+  *) bad 'the double-spaced git label' "got: $ctx" ;;
 esac
 teardown
 
@@ -199,6 +498,7 @@ case "$out" in
   *) bad 'emits Stop hookSpecificOutput' "got: $out" ;;
 esac
 ctx="$(notice "$out")"
+ctx_or_die "a notice was emitted for this block" "$ctx"
 case "$ctx" in
   *ATTEMPTS*) ok 'the notice states that it counts attempts, including denied calls' ;;
   *) bad 'the notice states that it counts attempts' "got: $ctx" ;;

@@ -397,3 +397,110 @@ new decision, changes no contract and establishes no pattern. It is written beca
 carrying a **false ground** for a live cost, which the current-codebase rule treats as a defect in a
 live record rather than as a new decision. Authored by `agents-lead` per the domain split (#223): the
 subject is the harness's own distribution machinery.
+
+## Amendment (2026-09-01) — *«a pin is a lockfile»* is NARROWED: the pin is written by a side effect and never surfaced again
+
+**What moves:** the third section of the 2026-08-10 amendment, *"What makes it affordable is a fact
+about today's consumer, not a property of the policy"*. Its clause **`A pin is a lockfile`, so nobody is
+carried across a break they did not choose** is narrowed here. **What does NOT move:** the decision this
+record holds — the plugin auto-versions on every merge, adoption stays the consumer's opt-in. Nothing in
+*Decision outcome* is touched, and no option is reconsidered.
+
+That section explicitly demanded this: *"Any future appeal to this amendment must re-derive the consumer
+set rather than cite it."* This amendment discharges that clause, and the re-derivation refutes part of
+what was cited.
+
+### What was re-derived, and it is the same file the old clause named
+
+`~/.claude/plugins/installed_plugins.json`, read on 2026-08-31 (#370). It held **three** records for
+`tadeumendonca-skills@tadeumendonca`, not one:
+
+| scope | projectPath | version | lastUpdated |
+|---|---|---|---|
+| project | `…/tadeumendonca-io` | **1.0.16** | 2026-08-14 |
+| user | — | 1.1.51 | 2026-08-31 |
+| project | `…/tadeumendonca-skills` | 1.1.51 | 2026-08-31 |
+
+~~**Thirty-five versions and seventeen days apart, on one machine, for one consumer.**~~ **Struck the
+day it was written: 35 is not a version count, it is `51 − 16` — a subtraction of PATCH components
+across a MINOR boundary, which is arithmetic on a string rather than a measurement.** #370's intake
+published it, this amendment inherited it, and it survived until someone ran the command:
+
+```
+git tag --list 'v*' --sort=v:refname \
+  | awk '/^v1\.0\.16$/{f=1;next} /^v1\.1\.51$/{print;f=0} f{print}' | wc -l
+→ 69
+```
+
+**Sixty-nine published releases and seventeen days apart, on one machine, for one consumer** — twice
+the gap the figure claimed, in the direction that makes the argument stronger, which is exactly why it
+went unchallenged.
+
+**Two caveats on the replacement, because a corrected figure inherits the obligation the wrong one
+failed.** First, the `awk` above **fails open in the inflating direction**: given an upper bound that
+does not exist it falls through to EOF and returns a larger number with exit 0 and no error
+(substituting `v9.9.9` returns 74). Check that both bounds are real tags before trusting the count.
+Second, `69` was confirmed against a **second instrument** — `gh release list --limit 400` over the
+same range also gives 69, from a different source than `git tag`, on a repository holding 226 tags and
+153 releases overall. That is why the wording is *"published releases"* rather than *"versions"*: the
+replacement does not share the old figure's property of being an artifact of how it was computed.
+
+**And the table above is machine-local with no disclosure, unlike the other machine-local figure in
+this batch — the asymmetry is named rather than left.** `~/.claude/plugins/installed_plugins.json` is
+in no repository; read today it holds all three records at `1.1.53`, so the `1.0.16 / 2026-08-14` row
+no longer exists anywhere but a stale directory in the plugin cache. The table is **dated**, which makes
+it honest as history and is why it stands — but the 61-programs figure three sections away in
+`docs/adr/0004-controls-and-enforcement.md` carries an explicit *"not reproducible from a clone"*
+caveat and this one did not. It does now. Kept as a struck line rather than silently corrected, because a wrong number nobody
+could re-run is the defect this record is *about*: an install lag nobody could see. The 2026-08-10
+amendment had already seen the shape and read it as unremarkable — it records *"`1.0.5`, and `1.0.0` for
+one project entry"* in passing, treating the divergence as a detail of the pinning rather than as the
+thing worth watching.
+
+### The premise that failed, stated as narrowly as it actually failed
+
+**A pin is a lockfile for a consumer who knows the pin exists and moves it deliberately.** The CLI writes
+a per-project record as a **side effect of `install`** and never surfaces it again: nothing prints it at
+session start, nothing reports it as drift, and `/plugin marketplace update` moves the shared clone while
+leaving every record where it was.
+
+So the protective reading — *nobody is carried across a break they did not choose* — is true in the
+letter and inverted in effect. Nobody was carried across the break; **one project was left behind it**,
+which the pin argument counted as safety and this record now counts as the cost it actually is. What that
+`-io` session ran for seventeen days had no `agents-lead`, no `content-writer`, no `content-reviewer`, no
+merge floor (rule 7c) and no milestone rule (rule 10) — five superseded rule-sets, live, with every gate
+in this repository green.
+
+### The narrowed clause, in one sentence
+
+**A pin bounds a break; it does not bound a LAG, and only the first was ever argued for here.** The
+auto-version-on-merge decision remains licensed by the pin exactly as recorded — a consumer is not
+carried anywhere by a merge. What the pin never licensed, and was read as licensing, is the silence: an
+un-surfaced pin makes *installed* and *published* diverge without limit, and the divergence is invisible
+from both sides.
+
+### What discharges it, and what it deliberately does not do
+
+`hooks/scripts/session-plugin-version.sh` now reads **the running build's own manifest**, derived from
+`$0` — `hooks/hooks.json` registers every hook by interpolated absolute path, so `$0` *is* the build in
+play — and carries a second arm that reads the registry to report **project-scope records that differ
+from the reference**, from whichever session happens to be open. The full reasoning, including the
+registry-matching design that was refuted, is in that file's own header.
+
+**This is detection and it is deliberately not prevention.** Nothing here blocks a session on a stale
+install, nothing updates a record, and the hook still never blocks anything — a session must always be
+able to start. By this loop's own test, *would something stop me, or only my memory?*, a stale install is
+still held by nobody; what changed is that it is now **visible from a session that is not the stale one**,
+which is the only place it was ever going to be seen.
+
+**Two residuals, named rather than closed.** The primary arm reports from inside the stale session, which
+is precisely the session nobody opens. And the cross-project arm is `jq`-gated — on a machine without
+`jq` it does not run, and says so inside the notice that already fires there.
+
+### Significance
+
+Arm: **alters a previously-recorded decision.** It narrows a load-bearing ground of the 2026-08-10
+amendment — the clause that licensed a PATCH for a break — without touching the decision that ground
+supports. No deletion or fold question arises: the record is live, the decision is in force, and the
+convention inside a live record is *amend by appending, strike in place, never rewrite*. Authored by
+`agents-lead` per the domain split (#223); the subject is the harness's own install machinery.

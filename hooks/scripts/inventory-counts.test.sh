@@ -1821,6 +1821,179 @@ EOF
 fi
 
 # ---------------------------------------------------------------------------------------------------
+# THE SAME VOCABULARY, ACROSS ALL FIVE READERS (#374). The two arms above cover `session-wip.sh` and
+# rule 7c. They were published in ADR-0004's 2026-09-01 amendment as *"that gate covers one reader of
+# five"* — TRUE about this file, and it was measured that adding a SIXTH literal to the brief reddens
+# exactly one arm here while four readers stay green. That is the gap these two arms close.
+#
+# WHY "EVERY LITERAL MUST APPEAR IN EVERY READER'S CASE BLOCK" IS THE WRONG ASSERTION, and was rejected
+# rather than merely not chosen. `zombie-loop-detect.sh` deliberately omits both clearances — they fall
+# to `*) exit 0` because a cleared PR is not an outstanding verdict — and `owed-pr-link-detect.sh`
+# deliberately omits three. Requiring presence in the arm would redden on correct code at head.
+#
+# WHAT IS ASSERTED INSTEAD, and it is weaker on purpose: every literal the brief defines is NAMED
+# somewhere in each reader's file — in a case arm, or in the comment that documents why it falls
+# through. The property is *the author considered this literal*, and the failure it catches is the real
+# one: a literal added to the brief landing in a reader whose `*)` swallows it with nobody having
+# decided that it should. Every reader's `*)` does something wrong with an unconsidered literal —
+# `session-wip.sh` reports a false defect, rule 7c denies with a message about a moved head,
+# `premature-pr-link-detect.sh` emits a false positive, and the two `exit 0` readers go SILENT.
+#
+# ITS LIMIT, STATED BECAUSE THIS FILE ALREADY LEARNED IT ONCE: a name in a comment is not a name in a
+# case arm, and this arm cannot tell them apart. That is precisely why the arm-scoped `wip_patterns`
+# check above was written the way it was, and it is why this one does NOT replace it. Arm-scoped where
+# a fall-through is a defect; named-anywhere where a fall-through is a design choice.
+vocab_readers="hooks/scripts/zombie-loop-detect.sh hooks/scripts/premature-pr-link-detect.sh hooks/scripts/owed-pr-link-detect.sh"
+if [ -z "$qa_verdicts" ]; then
+  bad "verdict vocabulary (all readers) — no literal was extracted from agents/quality-assurance.md,
+      so nothing was compared and a green here would be an artifact of the parse breaking."
+else
+  for reader in $vocab_readers; do
+    if [ ! -r "$ROOT/$reader" ]; then
+      bad "verdict vocabulary (all readers) — $reader is not readable; nothing compared."
+      continue
+    fi
+    unnamed=""
+    while IFS= read -r v; do
+      [ -z "$v" ] && continue
+      grep -qF -- "$v" "$ROOT/$reader" || unnamed="${unnamed} ${v}"
+    done <<EOF
+$qa_verdicts
+EOF
+    if [ -n "$unnamed" ]; then
+      bad "verdict vocabulary (all readers) — $reader never names:${unnamed}.
+      Nothing in that file decides what happens to it, so it reaches the \`*)\` arm by omission rather
+      than by choice — silently in the two \`exit 0\` readers, and as a false notice in the others."
+    else
+      ok "verdict vocabulary (all readers) — $reader names every literal quality-assurance.md defines"
+    fi
+  done
+fi
+
+# THE PHANTOM DIRECTION, GENERALISED. The arm above catches a brief literal no reader considered; this
+# one catches the reverse — a reader carrying a literal the brief does not define, which is the drift
+# ADR-0004's Context section measured three times in one day (`ADVISORY-ONLY`, `CLEAN`, `APPROVED`).
+# Rule 7c already has this check for its ACCEPT arms only; a misspelling in a DENY arm, or in any of
+# the three Stop readers, was covered by nothing.
+for reader in $vocab_readers hooks/scripts/session-wip.sh; do
+  if [ ! -r "$ROOT/$reader" ]; then
+    bad "verdict vocabulary (phantom) — $reader is not readable; nothing compared."
+    continue
+  fi
+  # The FIRST `case "$verdict" in` block only — `owed-pr-link-detect.sh` carries a second one that
+  # picks notice wording rather than classifying, and folding it in would compare the wrong thing.
+  reader_arms="$(awk '/case "\$verdict" in/{f=1} f{print} f&&/^[[:space:]]*esac/{exit}' \
+    "$ROOT/$reader" 2>/dev/null \
+    | grep -oE "^[[:space:]]*[A-Z][A-Z'|-]*\)" | tr -d ' )' | tr '|' '\n' || true)"
+  if [ -z "$reader_arms" ]; then
+    bad "verdict vocabulary (phantom) — no case arm was extracted from $reader; a green here would be
+      an artifact of the parse breaking, not a finding."
+    continue
+  fi
+  phantom_r=""
+  while IFS= read -r v; do
+    [ -z "$v" ] && continue
+    printf '%s\n' "$qa_verdicts" | grep -qx "$v" || phantom_r="${phantom_r} ${v}"
+  done <<EOF
+$reader_arms
+EOF
+  if [ -n "$phantom_r" ]; then
+    bad "verdict vocabulary (phantom) — $reader classifies on literal(s) agents/quality-assurance.md
+      does not define:${phantom_r}. Nothing can post them, so that arm is dead code that reads as
+      coverage — the exact shape three drifted literals took in one day (ADR-0004's Context)."
+  else
+    ok "verdict vocabulary (phantom) — every literal $reader classifies on is one the brief defines"
+  fi
+done
+
+# ---------------------------------------------------------------------------------------------------
+# THE BRIEF'S OWN TEMPLATE AGAINST THE BRIEF'S OWN SET (#374, gate round 1). Every arm above compares
+# the definition list to a READER. Nothing compared it to the block a gate actually COPIES — and that
+# is where the fifth literal failed to arrive: `agents/quality-assurance.md` added
+# `APPROVE-EXECUTOR-BLOCKED` to *"Your verdict — exactly one of"* and left the *"Required shape"* block
+# offering four. The file states the invariant ninety lines below the template — *"a change to either
+# changes both"* — and the sixth-literal probe reddened four arms, NONE of them about that block.
+#
+# IT IS THE MIRROR OF THE `APPROVED` DEFECT this repo already paid for: then the template offered a
+# literal the set never defined; now the set defined one the template never offered. Same file, same
+# two vocabularies, opposite direction — which is why this is written over BOTH directions rather than
+# only the one that bit.
+#
+# WHY THE FENCED BLOCK AND NOT A LINE NUMBER: the template wrapped onto two lines when the fifth
+# literal was added, so a check anchored on a single line would have broken on the fix itself. The
+# extraction takes the fenced block following the `Required shape` heading — stable against rewrapping
+# and against the block growing more fields.
+qa_template="$(awk '/^Required shape, because the reader is a record/{f=1} f&&/^```/{n++} f{print} f&&n==2{exit}' \
+  "$ROOT/agents/quality-assurance.md" 2>/dev/null || true)"
+if [ -z "$qa_verdicts" ] || [ -z "$qa_template" ]; then
+  bad "verdict template — nothing was extracted from
+      $([ -z "$qa_verdicts" ] && printf 'the verdict list ')$([ -z "$qa_template" ] && printf 'the Required shape block ')— a green
+      here would be an artifact of the parse breaking, not a finding."
+else
+  missing_in_tmpl=""
+  while IFS= read -r v; do
+    [ -z "$v" ] && continue
+    printf '%s\n' "$qa_template" | grep -qF -- "$v" || missing_in_tmpl="${missing_in_tmpl} ${v}"
+  done <<EOF
+$qa_verdicts
+EOF
+  if [ -n "$missing_in_tmpl" ]; then
+    bad "verdict template — the 'Required shape' block a gate COPIES does not offer:${missing_in_tmpl}.
+      The brief's own invariant is 'a change to either changes both'. A gate composing from that block
+      cannot post a literal it does not list, so the definition set is decoration for exactly the state
+      the missing literal names — which is how APPROVE-EXECUTOR-BLOCKED shipped unusable at #374."
+  else
+    ok "verdict template — the 'Required shape' block offers every literal quality-assurance.md defines"
+  fi
+  # THE PHANTOM DIRECTION, and it is the one the `APPROVED` incident actually took.
+  tmpl_extra=""
+  tmpl_lits="$(printf '%s\n' "$qa_template" | grep -oE 'APPROVE[A-Z-]*|REQUEST-CHANGES' | sort -u || true)"
+  while IFS= read -r v; do
+    [ -z "$v" ] && continue
+    printf '%s\n' "$qa_verdicts" | grep -qx "$v" || tmpl_extra="${tmpl_extra} ${v}"
+  done <<EOF
+$tmpl_lits
+EOF
+  if [ -n "$tmpl_extra" ]; then
+    bad "verdict template — the 'Required shape' block offers literal(s) the verdict list does not
+      define:${tmpl_extra}. This is the ORIGINAL direction of the defect (\`APPROVED\`): a gate copies
+      the template, posts a literal nothing downstream recognises, and every reader falls to its \`*)\`."
+  else
+    ok "verdict template — every literal the 'Required shape' block offers is one the verdict list defines"
+  fi
+
+  # ── THE MARKER STRING, WHICH IS NOT A LITERAL AND WAS COVERED BY NOTHING ──────────────────────
+  # Both arms above compare the verdict LITERALS. The template also carries the thing all five readers
+  # actually grep for — the `<!-- gatekeeper-verdict: quality-assurance -->` envelope — and NOTHING
+  # asserted it. Reproduced before closing it: misspell the marker inside the fenced block and the
+  # suite stayed at 189 passed, 0 failed.
+  #
+  # WHY THAT IS WORSE THAN A WRONG LITERAL, and why it earns its own arm rather than a line in one of
+  # the two above: a gate copying a template with a broken envelope posts a verdict that is CORRECT in
+  # every visible respect and that no reader can find. `session-wip.sh` reports the PR as unreviewed,
+  # `zombie-loop-detect.sh` sees no outstanding verdict, and rule 7c — which fails CLOSED since #341 —
+  # denies the merge for a PR that was in fact reviewed and cleared. The failure presents as four
+  # unrelated defects in four different mechanisms.
+  #
+  # The string is taken from `permission-guard.sh` rather than restated here: a second copy of the one
+  # value under test is the arrangement this file exists to catch, and rule 7c is the reader with the
+  # strongest claim to own it — it is the one that denies on a miss.
+  qa_marker="$(grep -oE "<!-- gatekeeper-verdict: [a-z-]+ -->" "$ROOT/hooks/scripts/permission-guard.sh" 2>/dev/null | head -1 || true)"
+  if [ -z "$qa_marker" ]; then
+    bad "verdict template — the gatekeeper-verdict marker could not be extracted from
+      permission-guard.sh, so there was nothing to compare the template against and a green here would
+      be an artifact of the parse breaking."
+  elif ! printf '%s\n' "$qa_template" | grep -qF -- "$qa_marker"; then
+    bad "verdict template — the 'Required shape' block does not carry the marker rule 7c reads
+      ($qa_marker). A gate copying this template posts a verdict no reader can find: session-wip.sh
+      reports the PR unreviewed, zombie-loop-detect.sh sees nothing outstanding, and rule 7c — which
+      fails CLOSED — denies the merge of a PR that WAS reviewed and cleared."
+  else
+    ok "verdict template — the 'Required shape' block carries the exact marker rule 7c greps for"
+  fi
+fi
+
+# ---------------------------------------------------------------------------------------------------
 # THE THIRD DUPLICATED LITERAL, AND WHY IT MUST NOT BE RENAMED: `agents-lead`#291 kept the exact
 # marker string `harness-lead-verdict` unchanged when the persona that produces it was renamed from
 # `harness-lead` to `agents-lead`, on the argument that every marker already posted to a GitHub
@@ -3747,7 +3920,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=46
+BP_HIGH_WATER=47
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).

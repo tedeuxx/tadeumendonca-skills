@@ -1371,6 +1371,26 @@ clause under another name. On any of these the gate returns `APPROVE-PENDING-HUM
 merges it under the boundary literal rather than holding it, so **when what is unclear is whether one of
 the four holds applies, the conservative reading is that it does.**
 
+**A FIFTH verdict literal exists since 2026-09-01 (#374), and it is NOT a fifth hold.** The holds above
+are still four. `APPROVE-EXECUTOR-BLOCKED` means *DoD green, class safe or boundary, none of the four
+holds applies* — so the verdict would have been a clearance — **and the gate could not execute the
+merge**. The decision is made; only the act is outstanding, and it becomes the owner's by exception.
+
+**Why the state needed a name rather than an inference.** Rule 7b makes `quality-assurance` the only
+permitted executor of an authorised merge, so a layer outside this harness refusing to dispatch it —
+Claude Code's auto-mode classifier does, recorded in the transcript as `toolDenialKind:
+"automode-blocked"` — leaves the PR open, cleared, with nothing anywhere saying so. And *"a clearance
+posted and the PR still open"* is a **race detector**, not a strand detector: the healthy sequence is
+verdict-then-merge seconds later, and no artifact distinguishes the two at any single instant.
+
+**Two things this does not change**, said because a new literal invites the assumption that it does.
+**Rule 7b's single-executor design stays** — the strand is the correct failure of a correct rule, and
+rule 7c refuses a merge carrying this literal, deliberately. And **the gate must have ATTEMPTED the
+merge once at that head to be entitled to post it**: a refusal nobody attempted leaves no record, and
+measured across two PRs in one session, the loop that skipped the attempt as pointless produced no
+signal at all. The full decision, its rejected options and the readers that must move in lockstep are
+[ADR-0004](https://github.com/tedeuxx/tadeumendonca-skills/blob/main/docs/adr/0004-controls-and-enforcement.md)'s 2026-09-01 amendment.
+
 **What the safe/boundary split still decides, since a distinction that changes nothing should be retired
 rather than kept:** which of the four holds can apply (every one is a boundary trigger), which verdict
 literal is posted — so the merge record itself says whether anything shipped without a pre-publication

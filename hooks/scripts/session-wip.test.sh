@@ -133,6 +133,24 @@ head: abc123"
   rm -rf "$root"
 done
 
+# THE FIFTH LITERAL (#374) renders with its OWN wording, not the shared one. It is outstanding for a
+# different reason from the other two — REQUEST-CHANGES routes to the builder, APPROVE-PENDING-HUMAN
+# wants a decision the owner holds, and this one wants only his hand on a decision already made — and
+# the listing exists to say which of those a line needs.
+setup
+add_pr 150 'chore: prune an inert deny rule' tedeuxx
+build_list
+add_pr_view 150 'abc123' "$MARKER
+APPROVE-EXECUTOR-BLOCKED
+head: abc123"
+expect 'the fifth literal is named on the line'   present 'APPROVE-EXECUTOR-BLOCKED'
+expect 'and says the gate cleared it but could not merge' present "could not merge it: the act is the owner"
+expect 'it is NOT read as unreviewed'             absent  "$NEEDLE"
+# Mutate: fold it into the APPROVE-PENDING-HUMAN arm -> this goes red, because that arm renders the
+# shared 'quality-assurance returned <v>' wording instead.
+expect 'and it does NOT render as a plain return'  absent 'quality-assurance returned APPROVE-EXECUTOR-BLOCKED'
+rm -rf "$root"
+
 # The partner half: the one verdict that means "done" must stay silent, or every reviewed PR
 # carries a line and the signal dies of noise.
 setup
