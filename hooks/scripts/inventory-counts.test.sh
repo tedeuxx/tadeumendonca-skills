@@ -1961,6 +1961,36 @@ EOF
   else
     ok "verdict template — every literal the 'Required shape' block offers is one the verdict list defines"
   fi
+
+  # ── THE MARKER STRING, WHICH IS NOT A LITERAL AND WAS COVERED BY NOTHING ──────────────────────
+  # Both arms above compare the verdict LITERALS. The template also carries the thing all five readers
+  # actually grep for — the `<!-- gatekeeper-verdict: quality-assurance -->` envelope — and NOTHING
+  # asserted it. Reproduced before closing it: misspell the marker inside the fenced block and the
+  # suite stayed at 189 passed, 0 failed.
+  #
+  # WHY THAT IS WORSE THAN A WRONG LITERAL, and why it earns its own arm rather than a line in one of
+  # the two above: a gate copying a template with a broken envelope posts a verdict that is CORRECT in
+  # every visible respect and that no reader can find. `session-wip.sh` reports the PR as unreviewed,
+  # `zombie-loop-detect.sh` sees no outstanding verdict, and rule 7c — which fails CLOSED since #341 —
+  # denies the merge for a PR that was in fact reviewed and cleared. The failure presents as four
+  # unrelated defects in four different mechanisms.
+  #
+  # The string is taken from `permission-guard.sh` rather than restated here: a second copy of the one
+  # value under test is the arrangement this file exists to catch, and rule 7c is the reader with the
+  # strongest claim to own it — it is the one that denies on a miss.
+  qa_marker="$(grep -oE "<!-- gatekeeper-verdict: [a-z-]+ -->" "$ROOT/hooks/scripts/permission-guard.sh" 2>/dev/null | head -1 || true)"
+  if [ -z "$qa_marker" ]; then
+    bad "verdict template — the gatekeeper-verdict marker could not be extracted from
+      permission-guard.sh, so there was nothing to compare the template against and a green here would
+      be an artifact of the parse breaking."
+  elif ! printf '%s\n' "$qa_template" | grep -qF -- "$qa_marker"; then
+    bad "verdict template — the 'Required shape' block does not carry the marker rule 7c reads
+      ($qa_marker). A gate copying this template posts a verdict no reader can find: session-wip.sh
+      reports the PR unreviewed, zombie-loop-detect.sh sees nothing outstanding, and rule 7c — which
+      fails CLOSED — denies the merge of a PR that WAS reviewed and cleared."
+  else
+    ok "verdict template — the 'Required shape' block carries the exact marker rule 7c greps for"
+  fi
 fi
 
 # ---------------------------------------------------------------------------------------------------

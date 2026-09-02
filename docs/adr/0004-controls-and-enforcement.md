@@ -3313,10 +3313,20 @@ One mutation per run, tree restored between:
 paragraphs below.** Removing 7c's dedicated arm changes the *message* and not the *decision*: the
 literal falls to `*)`, which **also denies**. So the merge floor is covered by fail-closed default
 rather than by an assertion, in both directions — an unconsidered literal denies, and a deleted arm
-denies too. That is the safe direction and no arm is owed for it; it is stated here because a table of
+denies too. It is stated here because a table of
 four reds and one green invites the reader to hunt for a defect that is not there. The two facts sit
 three paragraphs apart because they concern **opposite mutations** — one adds a literal to the brief,
 the other removes an arm from a reader — and only the first is what the new gate arms watch.
+
+~~That is the safe direction and no arm is owed for it.~~ **Narrowed on the gate's own reading: that is
+true of the DECISION and over-broad as first written.** An arm asserting the *decision* would be
+vacuous — it would pass with the dedicated arm and without it, since `*)` denies either way, which is
+precisely the assertion-that-cannot-fail this record names as a defect elsewhere. **What is unheld is
+the MESSAGE**, and the message is not incidental: it is #374's whole deliverable. A gate that lands in
+the executor-blocked state and is denied by the catch-all reads *"the head moved, or the literal
+drifted"* — which is wrong about both, and sends it to re-post a verdict rather than to hand the owner
+the link. So the honest form is *no **decision** arm is owed; the message is held by nothing*, and it
+joins the residual list rather than the settled one.
 
 **The real residual was a different one, and the misstatement hid it.** Adding a SIXTH literal to the
 brief reddened exactly one arm — `inventory-counts` 179/1 on `session-wip.sh` — and left all four other
@@ -3328,6 +3338,15 @@ brief that no reader ever considered*, which every reader's `*)` then swallows: 
 **That gap is closed in this same MR**, by generalising the `awk` case-block extraction
 `inventory-counts.test.sh` already had. The same sixth-literal probe now reddens **four** arms instead
 of one.
+
+**A substring match against PROSE read as a mechanism, committed by the reviewer of the batch about
+exactly that (recorded 2026-09-01).** The gate's first pass ruled that *"16 of 16 suites have a step in
+`hooks-test.yml`"*; its probe matched each suite's **basename in comments** rather than a `run:` line,
+and the true split is **15 plus `inventory-counts.test.sh` in `docs-test.yml`**. The ruling it
+supported is unchanged — every suite does run in CI — but the defect is the same one this amendment
+records one section above: *a check that cannot tell a citation from a discussion of it*. It is written
+down because the batch's thesis is that an instrument reporting something other than what it measures
+is the failure, and the instrument was a reviewer this time.
 
 **Four, not five, and the fifth reader is worth naming rather than rounding up.** Rule 7c does *not*
 redden on an unconsidered literal — it **fails closed**, denying the merge, which is correct by default

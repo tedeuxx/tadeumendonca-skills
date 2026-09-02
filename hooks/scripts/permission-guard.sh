@@ -968,7 +968,7 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]
     #     out with NO decision at all, where before it was denied twice over. An exception in one
     #     rule silently became a bypass of the whole floor. Falling through is the only safe shape.
     case "$agent_type" in
-      *:developer) : ;;  # a no-op that CONTINUES to rules 7, 7b and 8 — see the `NOT exit 0` note above
+      *:developer) : ;;  # a no-op that CONTINUES to EVERY rule below this block — see the `NOT exit 0` note above
       *) deny "Blocked: a subagent does not open work. Filing tasks under an approved story belongs to \`developer\`, the persona that executes them — a review citing a story is still a review opening work. Report the finding in your verdict and let the owner decide whether it becomes an issue." ;;
     esac
     #     ~~AND THE PARENT IS VERIFIED, NEVER READ FROM THE COMMAND.~~ **Struck 2026-08-02, and the
