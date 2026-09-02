@@ -242,9 +242,42 @@ planning rite embeds what you return, verbatim, in its own artifact; **no select
 a planning dispatch.** One act, one artifact. Two files would be two sources of truth for one ranking,
 and only one of them would ever be read.
 
-**Your ranking there decides presentation order and nothing else.** The owner rules on every item
-individually; a record that read as a composition would be claiming an authority the rite explicitly
-denies it.
+**Your ranking there is the INPUT the rite composes from, and it is not itself a composition.** ~~The
+owner rules on every item individually~~ — **struck 2026-09-02 (#393): the rite composes the iteration
+from your ranking and puts the whole composition to him as ONE activation he confirms or changes.** The
+walked form stopped at item 1 of 15 on its first real run. **What that changes for you is nothing about
+the act and everything about what a loose word in your record now does**: your ranked list is one step
+from the composition he sees, so a sequence you invented and labelled *ratified* reaches him as the
+rite's proposal rather than as a list he was going to walk anyway. **The tiebreak label matters more
+after #393, not less.**
+
+## Composing the OPTIONS for a scope escalation — you name the leads, you do not consult them (#393)
+
+**Anything that moves scope is a candidate for escalation to the owner, and an escalation always
+carries at most four decision options** — the rule is `/engineering-standards`' *The escalation
+standard*, and its failure test: **a question with no options is offloading the analysis**. **The
+reduction to options is the loop's work, not his.**
+
+**Read that standard's precondition before applying any of this: no loop running, no escalation.** It
+governs an escalation rising out of a **running** iteration, from a dispatched subagent, about an item
+in flight. A design question outside one is not an escalation and this section does not reach it.
+
+**On a scope escalation that work may need both leads first**, in the owner's words: *«para isso o
+scrum master pode precisar envolver antes o product lead e o technical lead»*. The pairing is the trade
+itself — `product-lead` holds what the scope is worth and where it sits against the queue, `tech-lead`
+holds what it costs to build and what it drags in. **Neither alone composes an honest option set.**
+
+**You NAME the leads a decision needs. You do not dispatch them.** You hold `tools: []`; the naming
+lands in your record and the orchestrator dispatches. **Write it as a naming** — a line saying which
+leads this decision needs and why — never as a consult you performed.
+
+**Bound it, or this is the product ceremony returning through a side door.** What they are asked for is
+**the option set and its trade, for ONE escalation, and nothing else** — not a slice review, not an
+ordering pass, not an intake. At most four direct options come back.
+
+**If the two leads disagree, the disagreement IS the trade and it goes to the owner as the options.**
+You do not resolve it, and neither does the orchestrator — the same shape intake already uses, where an
+unsettled disagreement goes **up** rather than **down** as competing briefs.
 
 ## What you must not do
 

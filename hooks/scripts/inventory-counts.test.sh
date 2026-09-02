@@ -4050,7 +4050,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=48
+BP_HIGH_WATER=49
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
@@ -6645,7 +6645,13 @@ else
       list, which he has rejected repeatedly — the one-at-a-time clause is part of the rule, not of its
       presentation. And an estimate pendency at ENTRY is a different rule from one discovered MID-DRAIN,
       which escalates immediately and parks the item; collapsing the two either wakes him for every
-      doubt or holds a real blocker until the iteration closes."
+      doubt or holds a real blocker until the iteration closes.
+      A NOTE FROM #393, BECAUSE IT IS A KNOWN TENSION AND NOT AN OVERSIGHT. This arm requires N
+      pendencies to reach the owner as N surfacings, which is the shape /sprint-planning was corrected
+      FOR — it stopped at item 1 of 15. The preflight was NOT changed with it: it runs BEFORE a loop is
+      running, so by the escalation standard's own precondition («se nao tem loop nao é hitl») its
+      surfacings are not escalations and that standard does not reach them. Left as it is deliberately;
+      whether it should change is the owner's call and is not this slice's."
   else
     ok "estimation carrier — commands/autonomy.md blocks entry on the pendency set, one thing at a time"
   fi
@@ -7788,7 +7794,10 @@ else
     'dispatches `scrum-master` exactly once, to rank the assembled pool.' \
     '**Why dispatching it cannot leak placement, which is the property that makes this safe.**' \
     'nothing to rank against and the instruction is circular.' \
-    '**One question at a time. No multiple choice. No decision list.**' \
+    '**The rite COMPOSES. It presents ONE activation, not a queue.**' \
+    '**A change recomposes and re-activates once. That is the bound.**' \
+    'a sprint planning nao é uma atividade hitl' \
+    'The standing «one question at a time, no multiple choice» rule is NOT broken' \
     '**DROP means withhold, never close**' \
     'Never type a milestone title into a query' \
     'bash scripts/milestone-create.sh "<iteration>" --repo' \
@@ -7834,8 +7843,19 @@ else
         CIRCULAR         — scrum-master ranks against the order of record, and at planning the order of
                            record does not exist yet. Unstated, the next reader resolves it by inventing
                            an order, which is the one thing the dispatch exists to prevent.
-        ONE QUESTION     — a standing owner constraint, broken before. A batch of admissions is the
-                           decision list he has repeatedly said makes him rebuild the context each time.
+        COMPOSES /       — #393. The rite shipped walking the pool one item at a time and STOPPED AT
+        BOUND /            ITEM 1 OF 15 on its first real run; the owner's correction is that planning
+        THE QUOTE /        is AFK and only its CONFIRMATION is HITL. COMPOSES is the inversion itself.
+        NOT BROKEN         BOUND is the terminal condition — an unbounded confirm-change loop is the
+                           same fifteen-turn walk arriving one round later, so a rite carrying the
+                           inversion without the bound has not closed the defect. THE QUOTE is his
+                           wording, verbatim; a paraphrase would pass a looser needle and this ruling
+                           is the whole justification for the shape. NOT BROKEN is the reconciliation
+                           of two of his own rules that appear to collide — «one question at a time,
+                           no multiple choice» governs an INTERVIEW, «at most four options» governs an
+                           ACTIVATION — and without it the next reader resolves the collision by
+                           reverting to the walk, which is what the standing rule superficially reads
+                           as endorsing.
         DROP             — an Issue he opened is never closed on a rite's advice; DROP withholds.
         NEVER TYPE       — a milestone name that matches nothing returns empty with exit 0, which is
                            indistinguishable from a drained pool (rule 1).
@@ -7905,7 +7925,7 @@ else
                            needles because the exemption and the instruction live in two sections and
                            either alone leaves the other reading as absolute."
   else
-    ok "planning rite — the rite states its boundary, that the iteration is its PRODUCT rather than a step (in the owner's own words), its dispatch and why that dispatch cannot place work (and how narrowly), the circularity planning forces on the ranking, that the ratified rules partition rather than sequence and what the tiebreak is, the one-at-a-time rule, enumerate-then-select on BOTH inputs, the milestone route with the hole it depends on and the update route that is merely unwritten, what happens when creation fails, its own cost, that it produces no estimate and which preflight that names, both of its disclaimers, and the two classes it cannot see"
+    ok "planning rite — the rite states its boundary, that the iteration is its PRODUCT rather than a step (in the owner's own words), its dispatch and why that dispatch cannot place work (and how narrowly), the circularity planning forces on the ranking, that the ratified rules partition rather than sequence and what the tiebreak is, the one-activation rule and its two-activation bound, enumerate-then-select on BOTH inputs, the milestone route with the hole it depends on and the update route that is merely unwritten, what happens when creation fails, its own cost, that it produces no estimate and which preflight that names, both of its disclaimers, and the two classes it cannot see"
   fi
 fi
 
@@ -8194,6 +8214,151 @@ else
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
+# THE ESCALATION STANDARD — ITS FIVE CLAUSES, AND THE PRECONDITION THAT COMES FIRST (#393).
+#
+# WHY THIS IS A GATE. The owner asked to standardise ONE act — «eu apenas queria padronizar a escalacao
+# do loop» — and the standard was inflated twice while it was being written, both times in the same
+# direction: every question to him read as an escalation, and the four-option contract got applied to
+# conversations it was never about. His correction is a PRECONDITION, «se nao tem loop nao é hitl», and
+# a precondition is exactly the clause a later edit drops as throat-clearing, because the form beneath
+# it reads complete without it.
+#
+# THE ARMS ARE TWO AND THEY ARE DIFFERENT IN KIND:
+#   1  CONTENT — the five clauses, the precondition ahead of the form, the axes defined literally, the
+#      failure test, and the honest enforcement statement. Needled because each is the owner's own
+#      wording and a paraphrase satisfies a looser check.
+#   2  NEGATIVE — the portable half must NOT state reversibility as the escalation rule. It is the
+#      imported blueprint's rule, it is not his, and it is available from a real source, so the risk is
+#      RE-ADOPTION rather than invention. An absence is the only form that catches a rule arriving from
+#      outside.
+#
+# WHAT WAS DELIBERATELY NOT BUILT, and the reason belongs here rather than in a commit message. A
+# per-rite `## AFK or HITL` declaration arm was written and REMOVED when the ask narrowed: the two
+# closing rites are not redesigned by this slice, so an arm requiring them to declare would have gated
+# scope the owner cut. It is recorded because the arm existed, passed its mutations, and was dropped on
+# scope rather than on evidence — a later reader finding this absence should know it was decided.
+#
+# WHAT THESE CANNOT DO, and it is most of the standard: NOTHING OBSERVES AN ESCALATION. No permission
+# layer sees a message to a human, and no hook sees a turn. Clauses 2, 3 and 4 — that a subagent
+# raised it, that it rose through the protocol, that it was a genuine trade — are unreachable by any
+# layer here, and the files say so themselves. These arms assert the rules are WRITTEN.
+AH_PORTABLE="$ROOT/skills/engineering-standards/SKILL.md"
+AH_PRELOAD="$ROOT/skills/agents-configuration/SKILL.md"
+
+# ── 1 · the five clauses, the precondition first, and the honest enforcement statement ────────────
+ah_content_problems=""
+if [ ! -r "$AH_PORTABLE" ]; then
+  ah_content_problems="$ah_content_problems
+    skills/engineering-standards/SKILL.md is not readable, so the standard itself was not checked."
+else
+  for ah_needle in \
+    '## The escalation standard — when a running loop reaches the human, and in what form' \
+    '### The precondition comes FIRST, or the rest is misapplied' \
+    '> **No loop running, no escalation.**' \
+    '### The full definition — five clauses, all of them, or it is not one' \
+    '**All five. Four of five is not an escalation' \
+    '**time** | **hours of WORK and hours of WAITING — both.**' \
+    '**cost** | **tokens.**' \
+    'anything that MOVES SCOPE is a *potential* escalation' \
+    '### The failure test — a question with no options is not an escalation' \
+    '**A bare question is offloading the analysis.**' \
+    'ALWAYS carries the options.**' \
+    '### How much is NOT settled, and no threshold is authored' \
+    '**No number, no multiplier, no trigger condition.**' \
+    '### What enforces this — say it before anyone reads a green as coverage' \
+    '**Clauses 1 and 5 are partly mechanizable. Clauses 2, 3 and 4 are not, at all.**'
+  do
+    grep -qF -- "$ah_needle" "$AH_PORTABLE" || ah_content_problems="$ah_content_problems
+    missing from the portable half: \"$ah_needle\""
+  done
+fi
+if [ -r "$AH_PRELOAD" ]; then
+  for ah_pneedle in \
+    '## The escalation standard, as this loop applies it (#393)' \
+    'se nao tem loop nao é hitl' \
+    '**`scrum-master` NAMES the leads a decision needs; it cannot dispatch them.**' \
+    'the disagreement IS the trade' \
+    '**A WORKLOG does not exist.**' \
+    '**No AFK/HITL contract table is written into this harness.**'
+  do
+    grep -qF -- "$ah_pneedle" "$AH_PRELOAD" || ah_content_problems="$ah_content_problems
+    missing from the universal preload: \"$ah_pneedle\""
+  done
+else
+  ah_content_problems="$ah_content_problems
+    skills/agents-configuration/SKILL.md is not readable, so the LOCAL half — who composes the options,
+    what is instrumented, and what does not exist — was not checked."
+fi
+# THE RANKING PROFILE'S OWN BRIEF CARRIES THE SAME RULE, and the two must agree or the profile
+# improvises: it is the one being told to NAME leads it holds no tool to dispatch.
+if [ -r "$PLAN_SM" ]; then
+  grep -qF -- 'you name the leads, you do not consult them' "$PLAN_SM" \
+    || ah_content_problems="$ah_content_problems
+    missing from agents/scrum-master.md: \"you name the leads, you do not consult them\""
+else
+  ah_content_problems="$ah_content_problems
+    agents/scrum-master.md is not readable, so the profile told to NAME the leads was not checked."
+fi
+if [ -n "$ah_content_problems" ]; then
+  bad "escalation standard — a load-bearing clause is gone:$ah_content_problems
+      Each is the owner's own wording and a paraphrase would satisfy a looser needle:
+        PRECONDITION   — «se nao tem loop nao é hitl». It is FIRST because it is the clause a later
+                         edit drops: the form beneath it reads complete without it, and a reader who
+                         meets the form alone stamps every question to him as an escalation. That is
+                         not hypothetical — it happened twice while this standard was being written.
+        FIVE CLAUSES   — a loop running · a dispatched subagent · rising through the protocol · a
+        / ALL FIVE       trade · the form. ALL FIVE is the conjunction, and without it four-of-five
+                         passes as an escalation while being a design question or a status report.
+        TIME / COST    — defined LITERALLY, because a reader who takes 'cost' as money reaches for the
+                         wrong instrument, and one who forgets the WAITING half prices an unattended
+                         chain at zero.
+        SCOPE TEST     — the operational trigger, and POTENTIAL is load-bearing: escalate every scope
+                         touch and the brevity buys nothing, escalate none and he finds out after.
+        FAILURE TEST   — a question with no options is offloading the analysis. This catches the
+                         deferential shape — asking what he wants instead of composing what the loop
+                         already worked out — which is why 'always carries the options' is needled in
+                         the contract AND as its own test.
+        NO THRESHOLD   — the calibration is his, from metrics and worklog over real iterations. A
+                         number authored here would be a decision nobody made in a file that reads as
+                         if someone had.
+        ENFORCES       — the honest split, stated IN the file rather than only in a commit: two
+                         clauses partly mechanizable, three not at all. Without it a reader takes the
+                         standard for a control, which is the failure this whole block is about.
+        WORKLOG /      — the LOCAL half: the worklog he named does not exist in this tree, and no
+        NO TABLE         AFK/HITL contract table is written here because that is HIS design work. A
+                         reader who assumes the metrics hook is the worklog has closed a gap on paper.
+        LEADS          — scrum-master NAMES which leads a scope escalation needs and cannot dispatch
+                         them (tools: []), and a disagreement between them IS the trade and rises as
+                         the options. Without both clauses this reads as the product ceremony
+                         returning through a side door."
+else
+  ok "escalation standard — the portable half carries the precondition ahead of the form, all five clauses with ALL-FIVE stated, the axes defined literally, the moves-scope test with its 'potential' qualifier, the failure test, no threshold, and its own honest enforcement split; the preload carries the local half, the missing worklog, the absent contract table and the leads-are-named-not-dispatched rule (text only; nothing observes an escalation)"
+fi
+
+# ── 2 · the portable half must NOT state reversibility as the escalation rule ─────────────────────
+#
+# AN ABSENCE, AND THE ONLY FORM THAT CATCHES THIS. Reversibility is the governing escalation rule of a
+# blueprint the owner imported from another project, and it was relayed into this work as though it
+# were his. It is not. The risk is therefore RE-ADOPTION FROM A REAL SOURCE rather than invention: a
+# later reader meets the blueprint, finds a plausible rule, and writes it down. The needle allows the
+# word where the file is REJECTING it — it keys on the divergence sentence, not on the term.
+if [ -r "$AH_PORTABLE" ]; then
+  if grep -qF -- '**This is NOT *reversibility, not seniority*' "$AH_PORTABLE"; then
+    ok "escalation standard — the portable half records the divergence from 'reversibility, not seniority' and names it as an imported blueprint's rule rather than the owner's (text only; nothing stops a proposal citing it)"
+  else
+    bad "escalation standard — skills/engineering-standards/SKILL.md no longer records that the trade
+      test DIVERGES from 'reversibility, not seniority'.
+      That rule is not this owner's — it is the governing rule of a blueprint imported from another
+      project, and it was relayed here once already as though it were his. It sorts this loop's own
+      acts backwards: creating an iteration is barely reversible and trades nothing, deferring an item
+      is trivially reversible and trades scope for time. Without the recorded divergence, the next
+      proposal that meets the blueprint adopts it as a plausible rule and nothing says otherwise. Note
+      what this arm does NOT assert: it cannot stop reversibility being cited elsewhere, and it must
+      not be read as doing so."
+  fi
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
 # THE SPRINT REVIEW RITE, AND THE TWO GROUNDS ITS REFUSAL DEMANDED (#379).
 #
 # WHY THIS EXISTS. The review half was REFUSED for as long as it was — not deferred on effort — on two
@@ -8307,10 +8472,16 @@ fi
 if [ -r "$REV_CMD" ]; then
   # Both patterns are normalised to a BARE path before filtering, so one filter serves both. The known
   # command identifiers are the only leading-slash tokens this file legitimately carries.
+  #
+  # `engineering-standards` WAS ADDED AT #393, and it is the arm's first live false positive — which
+  # is the trade the comment above priced and accepted in advance: the rite's AFK/HITL declaration
+  # cites `/engineering-standards` for the escalation rule, the filter did not know the identifier,
+  # and the arm reddened LOUDLY rather than missing anything. One filter entry, in the same commit,
+  # said out loud here as that instruction requires.
   rev_routes="$( { grep -oE '`/(pt|en|[a-z][a-z-]*)(/[a-z][a-z-]*)*`' "$REV_CMD" | tr -d '`'
                    grep -oE '^[[:space:]]*([-*][[:space:]]+)?/[a-z][a-z-]*(/[a-z][a-z-]*)*' "$REV_CMD" \
                      | grep -oE '/[a-z][a-z-]*(/[a-z][a-z-]*)*' ; } \
-                  | grep -vE '^/(sprint-review|sprint-retrospective|sprint-planning|autonomy|new-issue|blueprint|agents-configuration|published-voice|code-review|quality-gates|devops|shell)$' \
+                  | grep -vE '^/(sprint-review|sprint-retrospective|sprint-planning|autonomy|new-issue|blueprint|agents-configuration|engineering-standards|published-voice|code-review|quality-gates|devops|shell)$' \
                   || true)"
   if [ -n "$rev_routes" ]; then
     bad "sprint review rite — commands/sprint-review.md appears to carry a hand-written ROUTE LIST:

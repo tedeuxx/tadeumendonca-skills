@@ -172,6 +172,148 @@ report evidence. The human is left only the residual — approving (or redirecti
 architectural/contract decisions and giving the **go/no-go on the irreversible act**. Designing the
 loop so that residual stays small is the whole point.
 
+## The escalation standard — when a running loop reaches the human, and in what form
+
+**This is a standard for ONE act: an escalation rising out of a running loop to the human who owns it.**
+It is not a rule about every question anyone has for that human, and reading it as one is the failure it
+was written after — a design conversation, an interview, an ad-hoc request typed at a terminal are none
+of them escalations, whatever their subject.
+
+### The precondition comes FIRST, or the rest is misapplied
+
+> **No loop running, no escalation.** The protocol exists *inside* a running iteration. Outside one
+> there is no pendency to escalate, whatever the topic.
+
+**Say this before the form, always.** A reader who meets the form without the precondition stamps every
+question to the human as an escalation and applies a four-option contract to conversations it was never
+about. That is not hypothetical: it is what happened to this standard while it was being written.
+
+### The full definition — five clauses, all of them, or it is not one
+
+1. **A loop is running** — an iteration is in flight.
+2. **A dispatched subagent** hits something on a work item *in that iteration*.
+3. **It rises through the protocol** — subagent → main session → the human. Not laterally, and not from
+   a context that was never dispatched.
+4. **The trigger is a TRADE** of time, cost or scope against each other, for that item.
+5. **The form is the contract below**, and it always carries options.
+
+**All five. Four of five is not an escalation, and the missing clause tells you what it is instead** —
+clause 1 missing makes it a conversation, clause 2 a design question, clause 4 a status report.
+
+### Clause 4 — what a trade IS, with the axes defined literally
+
+> **A decision rises when it trades TIME, COST or SCOPE against each other for that work item.** A
+> decision that moves none of them is the loop's, and the loop takes it.
+
+It is the classic project-management triangle, **scoped per item** rather than per project, and the
+three axes are meant literally:
+
+| axis | what it means here |
+|---|---|
+| **time** | **hours of WORK and hours of WAITING — both.** The waiting half is the one that gets forgotten, and it is the half an unattended loop generates most of |
+| **cost** | **tokens.** The spend of running the work, not money in the abstract and not effort — a reader who takes *cost* as money reaches for the wrong instrument |
+| **scope** | what the item contains or promises |
+
+**Scope influences cost and time.** The axes are not independent: adding to what an item promises spends
+tokens and hours, and cutting it returns them. **A decision presented as *only* a scope change is
+usually a decision about all three.**
+
+**The operational test: anything that MOVES SCOPE is a *potential* escalation.** Keep the word
+*potential* — it is doing the work. Touching scope makes an act a **candidate**, not automatically an
+escalation, and both failure modes are live: escalate every scope touch and the form's brevity buys
+nothing because the human is back in a queue; escalate none and they find out afterwards.
+
+**Two consequences, and both cut against intuition:**
+
+- **An act with no trade is the loop's, however irreversible it is.** Executing a decision already made
+  trades nothing — performing it is not a second decision.
+- **An act with a trade is the human's, however cheap and reversible it is.** Deferring an item trades
+  scope for time; dropping one trades scope for cost.
+
+**This is NOT *reversibility, not seniority*, and the divergence is worth recording rather than
+performing silently.** Reversibility is a plausible rule and a common one — it governs at least one
+widely-circulated loop blueprint — and it sorts the wrong acts: the irreversible-but-already-decided act
+becomes attended, the cheap-but-genuinely-contested one unattended. **If you inherit a blueprint whose
+escalation rule is reversibility, this is the line where you diverge from it, and say so where the
+divergence is visible.**
+
+**Do not confuse either with the permission floor's own irreversibility test**, which is untouched and
+answers a different question. A permission layer asks *what must never execute without a human* — about
+the **act**. This asks *whose decision a choice is* — about the **choice**. They coexist.
+
+### Clause 5 — the form, and it is part of the design rather than presentation polish
+
+**An escalation interrupts a person doing something else.** The work is unattended by design; the human
+is not sitting in the loop waiting to be addressed. **So the cost is not the decision, it is the context
+they have to rebuild to take it**, and every word that does not shorten that rebuild lengthens it.
+
+> **Succinct, direct, objective — a tweet at most.** **At most FOUR options**, each described directly,
+> for a fast decision. **High-level, but in the decider's own technical register: name the objects, not
+> the process.** **The FIRST escalation of a topic is terse — depth is PULLED, not pushed.** **And it
+> ALWAYS carries the options.**
+
+**The register is the decider's, and it is an executive one.** State **the decision and its consequence,
+and stop.** Do not narrate how the answer was reached, do not hedge, do not show the work — **the work
+still exists, in an artifact they can open.** That is what makes terseness honest rather than lossy:
+nothing is withheld, it is *placed* where pulling it costs one question instead of where reading past it
+costs a paragraph every time.
+
+**Address the DECIDER, not the engineer — even when they are the same person.** On a small team they
+usually are, and the temptation is to write to the half that would enjoy the reasoning. **Write to the
+half that has to answer.**
+
+**Four is a ceiling, not a target.** Two is better than four; one clear recommendation plus *"or tell me
+otherwise"* is often better than either.
+
+### The failure test — a question with no options is not an escalation
+
+**A bare question is offloading the analysis.** That is this standard's own failure test, and it catches
+the shape that feels like deference: *asking what they want* instead of *composing what the loop already
+worked out and asking them to pick*.
+
+**It is also what makes the scope test affordable.** A scope-touching act becomes an escalation only
+once it is reduced to choices, and **the reduction is the loop's work**. So: **if it cannot be reduced
+to at most four direct options, it is not ready to rise** — the loop owes more work before it interrupts
+anybody. That is the correct response to *"this is complicated"*: do the analysis, then bring the
+choices.
+
+**Where the options need composing, compose them below the human rather than at them.** A trade with a
+value half and a build half needs both read before the options are honest — and **where two consulted
+opinions disagree, the disagreement IS the trade**: it rises as the options rather than being resolved
+underneath. Which roles those are is a property of the roster, not of this standard.
+
+### How much is NOT settled, and no threshold is authored
+
+**No number, no multiplier, no trigger condition.** How far a spend runs before the trade is worth
+escalating does not follow from this standard and is not stated here. **The calibration comes later,
+from metrics and a worklog collected over real iterations** — and a threshold invented before those
+exist would be a decision nobody made in a record that reads as if someone had.
+
+**So the question is open rather than answered:** *how does the loop decide that an item's cost or time
+has gone wrong?* Nothing here answers it.
+
+**The honest state to write down rather than assume:** the instrument usually exists — a harness
+recording per-dispatch tokens and duration is already measuring two of the three axes — and **nothing
+reads it against anything**, which is an instrument and not a control. And **a worklog is a different
+artifact from per-dispatch metrics**; a loop that has the second does not thereby have the first.
+
+### What enforces this — say it before anyone reads a green as coverage
+
+**Clauses 1 and 5 are partly mechanizable. Clauses 2, 3 and 4 are not, at all.**
+
+- **Whether a loop is running** is a query, so a hook can read it.
+- **The FORM is string-checkable** — option count and length — **but only once something says an
+  escalation is happening.** Nothing infers that from prose without failing open.
+- **Whether a question was a genuine trade, whether it rose through the protocol, and whether four
+  options were the right four are none of them checkable by any layer.** Do not build something that
+  pretends otherwise: a detector that fails open is worse than none.
+- **And every layer available is DETECTION, one turn late.** A permission layer reads a command string
+  and an escalation is a message to a human; no layer intercepts one.
+
+By the test at the top of this file — *would something stop me, or only my memory?* — **most of this
+standard is an intention.** It is written down so that it is at least a shared one, and so that the
+part which can be detected has something to be detected against.
+
 ## Using this skill
 
 When an agent works in a consuming repo, these eleven principles are the lens for every choice: plan
