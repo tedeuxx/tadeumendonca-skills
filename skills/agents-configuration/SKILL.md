@@ -371,10 +371,15 @@ them:**
    loop estimates by isolated subagent dispatch with a median (`/planning-poker` is a reference
    pattern, explicitly not run as a human ceremony), and **nothing bounds how many items the owner
    admits to one iteration** — there is no commitment to under-fill against.
-2. **`sprint-review` implies a stakeholder demo of an Increment.** Here **merge is deploy**, the owner
-   reviews live after the fact, and the rite is *refused on its shape* rather than deferred on effort:
-   a route list rots, and a looker's finding is not falsifiable, so it must not be a gate. **The rite
-   does not exist and typing it returns `Unknown command:`, which is correct behaviour.**
+2. **`sprint-review` implies a stakeholder demo of an Increment.** There is none:
+   **no audience, no acceptance moment and no ruler.** Merge is deploy here, so the increment has been live since each
+   merge; the rite sweeps the running site and returns observations, and it gates nothing.
+   ~~the rite is *refused on its shape* rather than deferred on effort: a route list rots, and a
+   looker's finding is not falsifiable, so it must not be a gate. **The rite does not exist and typing
+   it returns `Unknown command:`, which is correct behaviour.**~~ **Struck 2026-09-02 (#379) — the rite
+   EXISTS and typing it runs a sweep.** The refusal was **satisfied, not lifted**: it ships no route
+   list and it returns no verdict. **The deviation a Scrum reader must still not import is the demo**,
+   and that one is not fixable by building anything.
 3. **`sprint-retrospective` is the closest match and still imports one falsehood.** Scrum's
    retrospective is *the team in one room*. This one is **N isolated contexts that never see each
    other's output** — which the rite calls its mechanism, not its formatting, because a persona at

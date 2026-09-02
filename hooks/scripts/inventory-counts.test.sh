@@ -6150,8 +6150,9 @@ fi
 # `/sprint-retrospective` so a Scrum-literate reader could tell what the rite IS without reading the
 # loop. That works precisely BECAUSE a Scrum name carries expectations — and three of the ones in play
 # are expectations this loop does not honour: planning has no team commitment and no human estimation
-# ceremony, review is REFUSED on its shape rather than deferred on effort, and the retrospective is N
-# isolated contexts rather than a team in a room. A name that imports a false promise is a worse
+# ceremony, review has no demo and no stakeholder — no audience, no acceptance moment and no ruler —
+# and the retrospective is N isolated contexts rather than a team in a room. A name that imports a false
+# promise is a worse
 # legibility outcome than the name it replaced, so the disclaimer is part of the rename, not a caveat
 # on it.
 #
@@ -6162,8 +6163,20 @@ fi
 #
 # WHAT A GREEN HERE MEANS, stated because the wording invites the wrong reading: THE DISCLAIMER IS
 # WRITTEN. Not that it is true, not that anyone read it, and not that the three deviations are still
-# the right three. If `sprint-review` is ever built, this arm keeps passing while its clause goes
-# stale — that is a review's job, and there is no instrument for it.
+# the right three.
+#
+# THE PREDICTED STALENESS ARRIVED IN THREE DAYS, AND THE PREDICTION IS LEFT VISIBLE BECAUSE IT WAS
+# RIGHT. This block said: "If `sprint-review` is ever built, this arm keeps passing while its clause
+# goes stale — that is a review's job, and there is no instrument for it." #379 built the rite and the
+# arm was GREEN over a clause reading "The rite does not exist and typing it returns `Unknown
+# command:`". The needle that failed to notice was the bare word `refused`, and the reason generalises:
+# it kept matching INSIDE THE STRIKE of the sentence it was pinning. A needle a strike cannot falsify
+# has stopped asserting anything, and this repository's own convention guarantees strikes stay in the
+# file. So the needle moved to the deviation that OUTLIVES the build — a Scrum reader importing
+# `sprint-review` imports a DEMO, and there is none, which no amount of building fixes.
+#
+# READ THAT AS THE STANDING RULE FOR THIS BLOCK: when a rite named here is built, its needle must move
+# to what is still false. Matching is not the test; being falsifiable by the change is.
 SCRUM372_PRELOAD="$ROOT/skills/agents-configuration/SKILL.md"
 SCRUM372_README="$README"
 scrum372_missing=""
@@ -6177,7 +6190,7 @@ for scrum372_pair in "$SCRUM372_PRELOAD" "$SCRUM372_README"; do
     'implies estimation-as-ceremony and a team commitment' \
     'implies a stakeholder demo of an Increment' \
     'isolated contexts that never see each' \
-    'refused' \
+    'no audience, no acceptance moment' \
     'legibility'
   do
     grep -qF -- "$scrum372_needle" "$scrum372_pair" \
@@ -6189,9 +6202,11 @@ if [ -n "$scrum372_missing" ]; then
   bad "Scrum vocabulary — a rite name is published without the expectation it falsely imports:$scrum372_missing
       Each of the three needles is a DEVIATION a Scrum-literate reader would otherwise assume away, and
       each is independently load-bearing: PLANNING is the commitment that does not exist, REVIEW is the
-      refusal-on-shape that a reader would otherwise read as not-built-yet, RETROSPECTIVE is the
-      isolation that IS the mechanism rather than the formatting. REFUSED and LEGIBILITY are the two
-      words that stop the section reading as a roadmap and as a Scrum-conformance exercise respectively.
+      stakeholder demo that does not exist, RETROSPECTIVE is the isolation that IS the mechanism rather
+      than the formatting. NO-AUDIENCE replaced the bare word 'refused' at #379, when the rite shipped
+      and that needle went on matching inside the STRIKE of the sentence it pinned — the demo is the
+      deviation that survives the build. LEGIBILITY is what stops the section reading as a
+      Scrum-conformance exercise.
       BOTH FILES ARE REQUIRED. The README alone reproduces #329 — prose no agent carries. The preload
       alone leaves the external audience the naming was FOR without the caveat.
       If this is a deliberate rewording, update the needles in this file in the same commit."

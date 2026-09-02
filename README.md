@@ -518,9 +518,11 @@ more can always be found — but what the reader or the next maintainer actually
 
 ### The Scrum names are for legibility, and three of them import expectations this loop does not honour
 
-**The rites are named after the official Scrum events** — `/sprint-retrospective` and `/sprint-planning`
-today, `/sprint-review` when it is built — **so a reader who has never seen this loop can tell what is
-happening and how to control it.** The bound is legibility, not Scrum coverage: `loop` stays, because it
+**The rites are named after the official Scrum events** — `/sprint-review`, `/sprint-retrospective` and
+`/sprint-planning`, **all three built as of #379**, running in Scrum's own order — **so a reader who has
+never seen this loop can tell what is happening and how to control it.** ~~`/sprint-review` when it is
+built~~ — **struck 2026-09-02: the set is complete.** What that does *not* mean is stated below and in
+the universal preload: **nothing fires any of the three.** The bound is legibility, not Scrum coverage: `loop` stays, because it
 already reads to a stranger, and so do `ready`, `blocked`, `product`, `content`, every persona name,
 Definition of Done, Definition of Ready and story points. A word that already reads needs no Scrum
 equivalent.
@@ -530,9 +532,13 @@ false here, and stating them is part of the naming decision rather than a caveat
 
 1. **`sprint-planning` implies estimation-as-ceremony and a team commitment.** Neither exists — estimation
    is isolated subagent dispatch with a median, and nothing bounds how many items one iteration holds.
-2. **`sprint-review` implies a stakeholder demo of an Increment.** Merge is deploy here, the owner reviews
-   live after the fact, and the rite is **refused on its shape** rather than deferred: a route list rots,
-   and a looker's finding is not falsifiable, so it must not be a gate.
+2. **`sprint-review` implies a stakeholder demo of an Increment.** There is none —
+   **no audience, no acceptance moment, no ruler.** Merge is deploy here, so the increment has been live since each merge,
+   and the rite is a sweep of the running site that returns observations and no verdict. ~~the rite is
+   **refused on its shape** rather than deferred: a route list rots, and a looker's finding is not
+   falsifiable, so it must not be a gate.~~ **Struck 2026-09-02 (#379): the rite is built.** The refusal
+   was **satisfied rather than lifted** — it ships no route list and it is not a gate — which is why the
+   deviation that survives the build is the *demo*, not the absence.
 3. **`sprint-retrospective` is the closest match and still imports one falsehood.** Scrum's retrospective
    is the team in one room; this one is N isolated contexts that never see each other's output — the
    rite's mechanism, not its formatting.
