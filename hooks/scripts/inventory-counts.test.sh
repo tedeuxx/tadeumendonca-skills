@@ -675,8 +675,31 @@ $multi_ev
 EOF
     fi
 
+    # WHY THIS IS NOT `grep -v '~~'`, AND IT WAS FOUND BY MUTATION RATHER THAN BY READING.
+    #
+    # The first form of this arm filtered out any line CONTAINING `~~`. That is defeatable, and the
+    # defeat is not exotic: put the false claim back LIVE and leave any unrelated struck span
+    # anywhere on the same line, and the filter drops the line before the claim is ever examined.
+    # Measured on 2026-09-02, README line 1466, claim live + `~~unrelated struck aside~~` appended:
+    #     196 passed, 0 failed  —  and the arm printed "no LIVE singular claim".
+    # It failed CLOSED in the likely direction (a correct strike stays green) and OPEN in this one,
+    # which is the direction that matters: a green over a live false claim.
+    #
+    # THE FIX IS PARITY, not presence. This repo's strike convention is paired `~~` delimiters, so
+    # the phrase is inside a strike exactly when an ODD number of `~~` precede it on its line. An
+    # unrelated strike that opens AND closes before the phrase leaves the count even, so the claim is
+    # still read as live — which is the case the presence filter got wrong.
+    #
+    # BOUND, stated rather than discovered later: parity is computed for the FIRST occurrence on a
+    # line. A line carrying the phrase twice with different strike states reports the first; nothing
+    # here handles that, and no such line exists in this repo today.
     ev_only_phrase='is the only hook registered on **two** events'
-    ev_only_live="$(grep -nF -- "$ev_only_phrase" "$README" | grep -v '~~' || true)"
+    ev_only_live="$(awk -v phrase="$ev_only_phrase" '
+      { idx = index($0, phrase)
+        if (idx == 0) next
+        prefix = substr($0, 1, idx - 1)
+        n = gsub(/~~/, "&", prefix)
+        if (n % 2 == 0) printf "%d:%s\n", NR, $0 }' "$README" || true)"
     if [ "$multi_n" -eq 1 ] && [ -n "$ev_only_live" ]; then
       ok "hooks/ (multi-event) — README's singular claim is live and exactly one script ($multi_ev) is multi-event"
     elif [ -n "$ev_only_live" ]; then

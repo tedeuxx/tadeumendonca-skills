@@ -3799,8 +3799,23 @@ reason for not being a bound.
 **Struck as a heading rather than deleted, because it stood in a published body and the two verdicts
 under it were open for a round.** Each is resolved below by a different route — one by a measurement
 this harness cannot take itself, one by re-deriving against a tree that moved while the audit was
-being written. **Neither reopens anything else**: the three cuts, the nine survivors and the inventory
+being written. **Neither reopens anything else**: the three cuts, the survivors and the inventory
 are untouched by both.
+
+~~the nine survivors~~ — **struck 2026-09-02: the table 150 lines above says TWELVE, and the number
+was minted by the commit that made it false.** At `80dc6a2` the table read eleven `survives`;
+`5d8ab1b` resolved the two contested verdicts, moved it to twelve, and wrote *nine* in the same
+commit — **so it has never been true at any commit on this branch**, and no exclusion lands on it
+(eleven without the census, ten without `permission-guard`). **The count is deleted rather than
+corrected to twelve, exactly as this record already chose for `10 of the 14`: the table is the
+claim, and a prose figure beside a derived one is the arrangement this repository's own gate exists
+because it rots.** The falsifier, runnable, and it selects by content rather than by position:
+
+```
+grep -E '^\| [0-9]+ \| `' docs/adr/0004-controls-and-enforcement.md \
+  | awk -F'|' '{print $5}' | grep -ci survives
+→ 12
+```
 
 #### `permission-guard.sh` rule 7 (the trunk push) — SURVIVES, and it is the only verdict here settled by a read this loop cannot perform
 
