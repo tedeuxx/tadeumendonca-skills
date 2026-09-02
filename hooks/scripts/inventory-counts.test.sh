@@ -73,6 +73,45 @@
 # for the same reason the chaining rule above is — the next person to mutate this suite will be
 # working somewhere else in it.
 #
+# ── A NEEDLE A STRIKE CANNOT FALSIFY HAS STOPPED ASSERTING ANYTHING (#379) ──────────────────────────
+#
+# THE RULE: when a claim a needle pins is STRUCK, that needle must move to what is still false.
+# Matching is not the test; BEING FALSIFIABLE BY THE CHANGE is.
+#
+# Why it needs a home at the top of the file. Most arms below are `grep -qF` on a full sentence, and
+# this repo's convention is amend-by-appending and STRIKE IN PLACE (`~~…~~`) — never rewrite. So a
+# corrected sentence STAYS IN THE FILE FOREVER, inside its strike, and its needle goes on matching
+# while the claim it was guarding has been reversed. The arm is then green over the reversal.
+#
+# MEASURED, TWICE, AND THE SECOND ONE IS THE ARGUMENT FOR PUTTING IT HERE:
+#   1. The Scrum-vocabulary block's `refused` needle survived the sentence being struck when the
+#      sprint-review rite shipped. That block's own comment had PREDICTED it and could not act on it.
+#   2. In the very same PR that wrote the prediction down, the `rite_preload` arm's
+#      `Read *"the closing ceremonies"* anywhere in this loop as` needle was left pinning a sentence
+#      that slice had just struck. Restoring the false claim to LIVE in the universal preload ran
+#      `193 passed, 0 failed` — identical to control.
+#
+# So the rule was stated inside ONE block and broken in ANOTHER, one round later, by the author who
+# had just written it. That is the same shape the chaining rule above records, and it gets the same
+# remedy: stated HERE, once, because the next person to strike a pinned sentence will be working
+# somewhere else in this file.
+#
+# THE REMEDY IS THE FENCES: spell the needle `'~~<the whole struck sentence>~~'` so it asserts THE
+# SENTENCE IS STRUCK rather than THE SENTENCE EXISTS. Un-striking it then reddens. Two live examples:
+# `'~~**PLANNING is genuinely unbuilt and no claim is made about it.**~~'` (#378) and the `rite_preload`
+# arm's ceremonies needle (#379). Where a strike spans several source lines, REFLOW THE SOURCE ONTO ONE
+# LINE first — `grep -qF` is line-oriented, so a needle written across a wrap matches nothing and reads
+# exactly like absence.
+#
+# WHEN THE BARE FORM IS STILL RIGHT: where the pinned claim is LIVE. The fenced form is for a claim
+# that has been struck and must stay struck; choosing it for a live claim asserts the opposite of what
+# is wanted.
+#
+# WHAT NOTHING HERE DETECTS: a needle that is ABOUT to die. A generic sweep — extract every needle,
+# check each still matches text outside a `~~…~~` span — is buildable in ~40 lines and is deliberately
+# NOT built: it finds only already-dead needles, and it needs the fenced form whitelisted or it reports
+# one false positive per correctly-pinned strike. Prose and review hold this rule.
+#
 # Run: bash hooks/scripts/inventory-counts.test.sh
 
 set -uo pipefail
@@ -6175,33 +6214,16 @@ fi
 # file. So the needle moved to the deviation that OUTLIVES the build — a Scrum reader importing
 # `sprint-review` imports a DEMO, and there is none, which no amount of building fixes.
 #
-# READ THAT AS THE STANDING RULE, AND IT IS NOT SCOPED TO THIS BLOCK: when a claim a needle pins is
-# struck, that needle must move to what is still false. Matching is not the test; being falsifiable by
-# the change is.
+# THE STANDING RULE THIS PRODUCED IS AT THE TOP OF THIS FILE, not here — see "A NEEDLE A STRIKE CANNOT
+# FALSIFY HAS STOPPED ASSERTING ANYTHING" in the header, beside the chaining rule and the
+# verify-the-mutation-landed rule, which are there for the identical reason.
 #
-# AND THE RULE NOW NAMES ITS REMEDY, because stating the rule without it was not enough — this slice
-# wrote the rule and committed the defect in the same PR, one block away, in the `rite_preload` arm.
-# THE REMEDY IS TO PUT THE '~~' FENCES INSIDE THE NEEDLE. A needle spelled
-#
-#     '~~<the whole struck sentence>~~'
-#
-# asserts THE SENTENCE IS STRUCK rather than THE SENTENCE EXISTS, so un-striking it reddens and the
-# needle cannot quietly retire into a strike. The exemplar was already in this file and nobody read it
-# as one: '~~**PLANNING is genuinely unbuilt and no claim is made about it.**~~' (#378). Where a strike
-# spans several source lines, REFLOW THE SOURCE ONTO ONE LINE — `grep -qF` is line-oriented, so a needle
-# written across a wrap matches nothing and reads exactly like absence.
-#
-# WHEN THE OTHER FORM IS RIGHT: where the pinned claim is still LIVE, pin the bare sentence. The fenced
-# form is for a claim that has been struck and must stay struck. Choosing it for a live claim would
-# assert the opposite of what is wanted.
-#
-# WHAT NEITHER FORM BUYS, and it is the systemic residual: almost every needle in this file is a full
-# sentence that a future correction would strike IN PLACE, so this tension is between the gate's design
-# and this repo's strike-never-delete convention rather than incidental to any one arm. Nothing here
-# detects a needle that is about to die — only prose and review do. A generic sweep (extract every
-# needle, check each still matches text outside a '~~' span) is buildable, ~40 lines, and is NOT built
-# here: it detects only already-dead needles and needs the fenced form whitelisted or it reports one
-# false positive per correctly-pinned strike. Named as a decision, not as an omission.
+# IT WAS WRITTEN HERE FIRST, DECLARING ITSELF "NOT SCOPED TO THIS BLOCK", AND THAT PLACEMENT WAS THE
+# DEFECT REPEATING ONE LAYER UP. A rule that announces its own scope from the middle of an 8,000-line
+# file is relying on the reader having got there — which is #329's finding (operative wording living
+# where nobody who acts will read it), and which this file's own header already answers for two other
+# rules in as many words: "stated HERE, once, rather than only beside the blocks that were repaired."
+# The instance that proved it is one block below and is what the header now cites.
 SCRUM372_PRELOAD="$ROOT/skills/agents-configuration/SKILL.md"
 SCRUM372_README="$README"
 scrum372_missing=""
@@ -8152,27 +8174,36 @@ fi
 #
 # NOT A NEEDLE. Every other arm in this block asserts a sentence is present; this one asserts a THING
 # IS ABSENT, which is the only form that can catch the erosion the refusal was actually about. The
-# pattern is a leading-slash path token wrapped in BACKTICKS — the shape a hand-written route list takes
-# and the shape nothing else in this file needs. The rite's own text names no route.
+# rite's own text names no route, and this arm is what keeps that true.
 #
-# WHAT IT WOULD MISS, and the list is longer than this comment first claimed. It said "a fenced or
-# inline code span", which is FALSE of the fenced case and was corrected in this MR's first review round
-# after an independent lens ran the arm verbatim against five shapes appended to the rite:
+# TWO PATTERNS, AND THE SECOND WAS ADDED IN THIS MR'S FIRST REVIEW ROUND. The comment here used to claim
+# the arm caught "a fenced or inline code span"; an independent lens ran it verbatim against five shapes
+# appended to the rite and the fenced case was GREEN:
 #
-#   A · inline backticked list                 -> REDDENS
-#   B · FENCED block, one route per line       -> GREEN   <- the comment used to claim this
-#   C · markdown bullet list, no backticks     -> GREEN
-#   D · prose                                  -> GREEN
-#   E · table of backticked routes             -> REDDENS
+#   A · inline backticked list                 -> REDDENS  (pattern 1)
+#   B · FENCED block, one route per line       -> was GREEN, now REDDENS  (pattern 2)
+#   C · markdown bullet list, no backticks     -> was GREEN, now REDDENS  (pattern 2)
+#   D · prose ("sweep home, about and …")      -> GREEN, and not closable by a grep
+#   E · table of backticked routes             -> REDDENS  (pattern 1)
 #
-# So the misses are: a fenced block, a bullet list, and prose. **The comment is narrowed rather than the
-# pattern widened**, deliberately. Widening to a line-anchored `^/[a-z]` would cover B and false-positive
-# on any fenced shell block carrying an absolute path — and this rite already uses fenced blocks for its
-# commands. A gate whose comment matches its reach is worth more than a wider grep nobody trusts, and a
-# comment claiming coverage the arm lacks is the same defect class as everything else this block guards.
+# WHY WIDEN RATHER THAN NARROW THE COMMENT, which was this round's first answer and was the weaker one.
+# The stated cost of widening was a false positive on a fenced shell block carrying an absolute path.
+# THAT COST WAS MEASURED AND IS ZERO TODAY — `grep -rnE '^ *[-*] */[a-z]|^/[a-z]' commands/ agents/`
+# returns nothing at head. And B is precisely the shape a pasted route list most naturally takes, so
+# the narrower arm was blind exactly where the erosion would arrive. A future fenced block starting a
+# line with an absolute path WOULD false-positive — that cost is real and it is in the future — but it
+# is LOUD and one filter entry away, which this repo prefers over a silent miss every time.
+#
+# D IS THE HONEST RESIDUAL AND STAYS OPEN. Prose carrying route names in words is a reviewer's read and
+# there is no instrument for it. A comment claiming coverage the arm lacks is the same defect class as
+# everything else this block guards, which is why the table above is measured rather than asserted.
 if [ -r "$REV_CMD" ]; then
-  rev_routes="$(grep -oE '`/(pt|en|[a-z][a-z-]*)(/[a-z][a-z-]*)*`' "$REV_CMD" \
-                  | grep -vE '^`/(sprint-review|sprint-retrospective|sprint-planning|autonomy|new-issue|blueprint|agents-configuration|published-voice|code-review|quality-gates|devops|shell)`$' \
+  # Both patterns are normalised to a BARE path before filtering, so one filter serves both. The known
+  # command identifiers are the only leading-slash tokens this file legitimately carries.
+  rev_routes="$( { grep -oE '`/(pt|en|[a-z][a-z-]*)(/[a-z][a-z-]*)*`' "$REV_CMD" | tr -d '`'
+                   grep -oE '^[[:space:]]*([-*][[:space:]]+)?/[a-z][a-z-]*(/[a-z][a-z-]*)*' "$REV_CMD" \
+                     | grep -oE '/[a-z][a-z-]*(/[a-z][a-z-]*)*' ; } \
+                  | grep -vE '^/(sprint-review|sprint-retrospective|sprint-planning|autonomy|new-issue|blueprint|agents-configuration|published-voice|code-review|quality-gates|devops|shell)$' \
                   || true)"
   if [ -n "$rev_routes" ]; then
     bad "sprint review rite — commands/sprint-review.md appears to carry a hand-written ROUTE LIST:

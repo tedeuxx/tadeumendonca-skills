@@ -4484,6 +4484,20 @@ three rites now exist and run in Scrum's order. Nothing fires any of them.
    in place where it is partial retires a residual that is two-thirds open, and nothing downstream would
    ever have reopened it — the booked residual is the only thing that remembers.
 
+8. **A REVIEWED BRANCH IS NOT REBASED, and the reason is ADR-0006's, not convenience.** This MR's PR
+   body carried a false base SHA; the two available repairs were *correct the line* or *rebase onto the
+   commit the line named*. **Rebasing was refused, and the general rule is worth having beyond this
+   MR:** a rebase rewrites every commit on the branch, so **the SHA a head-scoped verdict names stops
+   existing.** [ADR-0006](./0006-verification-and-its-artifacts.md) head-scopes the gatekeeper's verdict
+   precisely so a verdict on a moved head fails loudly instead of reading as approval — and a rebase
+   does not move the head, it **deletes the commit the verdict points at**, which is strictly worse: the
+   marker resolves to nothing rather than to something stale. The `agents-lead` marker is affected
+   identically and has *less* protection, being a presence check rather than a head check.
+
+   **So: once any head-scoped verdict has been posted against a branch, correct the claim, never the
+   history.** The cost of the correction is one struck line; the cost of the rebase is a verification
+   artifact that can no longer be resolved to what it verified.
+
 ### The driver, measured — and it is a hook, not an opinion
 
 **#379's body names `quality-assurance`, imported from the foreign harness's own choice. At head that

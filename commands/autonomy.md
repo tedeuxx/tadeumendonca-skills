@@ -397,6 +397,15 @@ shipped. Removing it without a replacement makes that named residual bite, on pu
 voice. The replacement — a boundary-merge notification — was scoped **out** of #327 on his own call.
 The argument is ADR-0002's eighteenth amendment.
 
+**This paragraph is STILL TRUE at head and is not a fourth stale surface — checked 2026-09-02 (#379)
+rather than assumed, because it reads like one.** `/sprint-review` shipped and amendment #16's residual
+is now **partially** discharged, so a sweep for *"amendment #16 books it as missing"* lands here. **The
+clause this paragraph depends on is the boundary-merge NOTIFICATION** — *nothing records that the owner
+looked*, and *nothing surfaces to him that something boundary shipped* — and **both of those are still
+open.** The sweep's report closes only the third clause (a post-deploy look now leaves an artifact) and
+it surfaces nothing per-merge, which is exactly what this paragraph is about. **Do not strike it**; if
+the `APPROVE-AND-MERGE-BOUNDARY` `SessionStart` arm is ever built, that is when this paragraph changes.
+
 **Enforcement, and its exact limits.** `hooks/scripts/premature-pr-link-detect.sh` is a `Stop` hook that
 reads the turn's own assistant prose and flags a PR URL whose PR is not open-green-and-pending-human. It
 is **detection, never prevention** — it fires after the text has already reached him, so it makes the
