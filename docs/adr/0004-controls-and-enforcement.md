@@ -3865,7 +3865,10 @@ each with why it fails today:
   note that if it is **true**, it is itself a finding about the floor rather than a convenience.
 - **Re-asking the owner.** The only route that works today, and it is a habit, not a mechanism.
 
-**So rule 7's verdict carries an expiry nobody can observe.** That is recorded here so the next reader
+**So rule 7's verdict carries an expiry nobody observes.** ~~nobody can observe~~ — **corrected
+2026-09-02 in the same breath as the skill that quoted it**: the three candidates listed directly
+above are *buildable*, *could* and *works today*, so *cannot* contradicts this record's own evidence
+two lines up. The gap is **unwatched**, not **unwatchable**. That is recorded here so the next reader
 finds a dated, sourced measurement and a named blind spot rather than a bare *"survives"*.
 
 #### `orchestrator-tool-census.sh` — SURVIVES, re-derived at head after the tree moved under the audit

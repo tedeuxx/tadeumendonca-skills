@@ -422,9 +422,12 @@ gh api repos/<owner>/<repo>/branches/main/protection --jq '.enforce_admins.enabl
 
 **Carry the caveat wherever that fact is repeated:** if `enforce_admins` is ever enabled the forge
 starts refusing this actor and the local rule becomes the redundant layer — **and nothing in this
-plugin can observe that**. The setting lives at the forge, changes without a commit, and the command
-above is denied to every context inside the loop by the `Bash(gh api:*)` floor entry, so the reading
-is a human's. Treat it as dated, not as settled.
+plugin observes that today**. The setting lives at the forge and changes without a commit, and the
+command above is denied to every context **inside the loop** by the `Bash(gh api:*)` floor entry, so
+the reading is a human's. **Treat it as dated, not as settled — and note the gap is unwatched rather
+than unwatchable**: CI is not an in-loop context and that floor entry does not reach it, so a job
+that re-reads the setting is buildable, one token-scope decision away. Nothing here forecloses
+closing it.
 
 ## Why this doesn't cost cadence
 
