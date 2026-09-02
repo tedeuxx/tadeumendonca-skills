@@ -3602,13 +3602,14 @@ Three consequences, and each disposes of a whole class:
 | 7 | `session-wip` | no | survives | observer — and it inherits #2's detection |
 | 8 | `session-plugin-version` | no | survives | observer; no element reads the installed build |
 | 9 | `zombie-loop-detect` | no | survives | observer; reads the gate's verdict at head |
-| 10 | `orchestrator-tool-census` | no | **contested** | a selection artifact — the criterion names it, and it exists |
+| 10 | `orchestrator-tool-census` | no | ~~contested~~ **survives** (resolved below, 2026-09-02) | it reads an artifact the observed party did not author; the selection record is self-attested |
 | 11 | `premature-pr-link-detect` | no | survives | observer; the condition is conjunctive over live CI state |
 | 12 | `owed-pr-link-detect` | no | survives | observer; same |
 | 13 | `dispatch-metrics-start` | no | **CUT** | `preflight` — measured above, and it blocks where this only warns |
 | 14 | `dispatch-metrics-stop` | no | survives | observer, **and it has a consumer**: `/sprint-retrospective` step 2 |
 
-**Plus one rule-level cut and one rule-level contest inside `permission-guard`**, because that file is
+**Plus one rule-level cut and one rule-level verdict that was contested and now SURVIVES (rule 7,
+resolved 2026-09-02) inside `permission-guard`**, because that file is
 fourteen controls in one script and a per-file verdict would hide both.
 
 ### The three that lose, each with what detects the act afterwards
@@ -3702,27 +3703,15 @@ under a thesis of defence in depth and not under a thesis of fewer mechanical lo
 execution through more allow entries than anyone has enumerated, which is the rule's own stated
 reason for not being a bound.
 
-### Contested, and the owner's to rule — two, for two different reasons
+### ~~Contested, and the owner's to rule — two, for two different reasons~~ — BOTH RESOLVED 2026-09-02, and both to SURVIVES
 
-**`orchestrator-tool-census.sh` — the criterion names its replacement, and the replacement exists.**
+**Struck as a heading rather than deleted, because it stood in a published body and the two verdicts
+under it were open for a round.** Each is resolved below by a different route — one by a measurement
+this harness cannot take itself, one by re-deriving against a tree that moved while the audit was
+being written. **Neither reopens anything else**: the three cuts, the nine survivors and the inventory
+are untouched by both.
 
-This is the only hook where the criterion's own list supplies a candidate: *a selection or verdict
-artifact*. `scrum-master`'s selection record names who should act **before** acting, where the census
-reports what the main agent did **after**. The census's stated purpose is to keep an unmechanised
-delegation habit observable and therefore correctable; a record naming the intended actor makes the
-deviation legible from the other end.
-
-**Three things keep this from being a clean cut, and they pull in opposite directions.** The record is
-self-attested — the orchestrator lands it — and nothing greps `SELECTION-RECORD`, so it detects only
-what its author chose to write down. The census reads the transcript, which the orchestrator does not
-author. But #371 measured the census wrong about its own classes: it classifies on the first token, so
-a wrapper prefix lands a mutation in the read bucket. **A reporter that is measurably blind and a
-record that is self-attested are two weak halves, and this audit will not pretend either is the
-answer.** It is the one verdict that should be decided together with #371 rather than ahead of it — if
-the census is cut, #371 dissolves; if it is repaired, #371 is the repair.
-
-**`permission-guard.sh` rule 7 (the trunk push) — the alternative exists, and the read that would
-settle it is denied to this harness.**
+#### `permission-guard.sh` rule 7 (the trunk push) — SURVIVES, and it is the only verdict here settled by a read this loop cannot perform
 
 Rule 7 is the case the owner predicted: *the two acts the permission layer already reaches — trunk
 push and merge — are exactly where the hook may turn out to be the redundant layer.* Half of it
@@ -3737,25 +3726,108 @@ Bash(git -C <repo-a> push origin main) · Bash(git -C <repo-a> push origin main:
 **So somebody already explored this alternative and implemented it by hand, per repository.** What the
 settings layer still cannot express is the *semantic* case — a bare `git push` while `HEAD` is `main`,
 where the target is in the checkout and not in the string — and the wrapped case. That is this record's
-routing rule working exactly as written, and on it alone rule 7 survives.
+routing rule working exactly as written.
 
-**The element that could carry it whole is the forge, and this audit could not read it.** Branch
-protection refusing a non-PR push to `main` would hold the control at the only layer where the act
-actually lands, for every spelling at once, semantic case included. The attempt:
+**The element that could have carried it whole is the forge, and the forge does not refuse this actor.**
+Branch protection refusing a non-PR push to `main` would hold the control at the only layer where the
+act actually lands, for every spelling at once, semantic case included. **Measured 2026-09-02:**
 
 ```
-gh api repos/<owner>/<repo>/branches/main/protection --jq '.required_pull_request_reviews, .allow_force_pushes'
-→ Permission to use Bash with command gh api … has been denied.
+gh api repos/<owner>/<repo>/branches/main/protection --jq '.enforce_admins.enabled'
+→ false
 ```
 
-`Bash(gh api:*)` is a **global deny**, so the harness cannot read its own forge perimeter. **What is
-documented rather than measured points the other way and is the reason this is contested rather than
-cut:** `/devops` records protection on `main` as *PR required, 0 approvals, no force-push*, **with
-`enforce_admins=false`** so the owner and the version-bump actor can push directly. Every agent in
-this loop acts through the owner's own credential. **If `enforce_admins` is false, the forge does not
-refuse this actor, and the local rule is the only layer that does.** That is one read away from
-settled, and the read is the owner's: `gh api repos/<owner>/<repo>/branches/main/protection`, or the
-repository's Settings → Branches page.
+**That read is the OWNER'S, and the provenance is part of the finding rather than a footnote.**
+`Bash(gh api:*)` is a **global deny**, so no context inside this loop can run it — not a dispatched
+persona, not the orchestrator. The audit's own attempt returned
+`Permission to use Bash with command gh api … has been denied.` **A harness that cannot read its own
+forge perimeter cannot audit the layer it most wants to delegate to**, and that is why this verdict
+took a human round-trip where every other verdict in this amendment did not.
+
+**What `false` decides.** `enforce_admins` disabled means protection is not applied to administrators,
+and **every agent in this loop acts through the owner's own credential**, which is an admin credential.
+So the forge would accept a direct push to `main` from exactly the actor rule 7 exists to stop.
+**Remove rule 7 and nothing refuses a direct trunk push** — not the forge, and not the settings layer
+for the semantic and wrapped spellings. It survives, and it survives on evidence rather than on the
+documented posture `/devops` records (*PR required, 0 approvals, no force-push,
+`enforce_admins=false`*), which pointed the same way but was read rather than measured.
+
+**The fragility is the interesting half, and it is stated beside the verdict rather than below it.**
+**This survival is contingent on one repository setting that nothing in this tree can observe.** If
+`enforce_admins` is ever flipped to `true`, the forge starts refusing this actor, rule 7 becomes the
+redundant layer the owner predicted — **and nobody here can find out.** The setting lives at the forge,
+changes without a commit, produces no diff, and the one command that reads it is denied to every
+context in this loop.
+
+**What would detect that flip: nothing does.** Stated plainly rather than softened. The candidates,
+each with why it fails today:
+
+- **A gate arm.** It would have to call `gh api` from CI. Buildable, and it is a different slice with a
+  token-scope decision inside it; nothing like it exists.
+- **A `SessionStart` hook.** ***Hypothesis, in those words, and it is the one worth testing:*** a hook
+  runs as a subprocess rather than as a model tool call, so the permission matcher may never see its
+  `gh api` invocation — in which case a hook **could** read branch protection where the model cannot.
+  **Not measured.** No registered hook in this tree calls `gh api` at all, so there is no instance to
+  read the answer off. What would settle it: register a throwaway `SessionStart` hook that runs
+  `gh api repos/<owner>/<repo>/branches/main/protection` and observe whether it returns JSON or is
+  refused. Until that is run, treat *"a hook can bypass the floor's `gh api` deny"* as unverified — and
+  note that if it is **true**, it is itself a finding about the floor rather than a convenience.
+- **Re-asking the owner.** The only route that works today, and it is a habit, not a mechanism.
+
+**So rule 7's verdict carries an expiry nobody can observe.** That is recorded here so the next reader
+finds a dated, sourced measurement and a named blind spot rather than a bare *"survives"*.
+
+#### `orchestrator-tool-census.sh` — SURVIVES, re-derived at head after the tree moved under the audit
+
+**The framing this amendment carried for one round is stale, and the correction is worth more than the
+verdict.** It read: *"#371 measured the census wrong about its own classes: it classifies on the first
+token … a reporter that is measurably blind."* **#371 shipped while this audit was being written** —
+`3ec315f`, then `a6827e0`, merged in **PR #389** (`df891a5`), both already in this branch's base:
+
+```
+git log --oneline -- hooks/scripts/orchestrator-tool-census.sh
+# a6827e0 fix(loop): the batch's own correction did not travel … (#370, #371, #374)
+# 3ec315f fix(hooks): the census reported four mutations as reads; it now declares what it did not recognise (#371)
+```
+
+Re-derived at head rather than relayed — `bash hooks/scripts/orchestrator-tool-census.test.sh` →
+**`56 passed, 0 failed`**. *(The pre-fix total was relayed to this audit and is deliberately not
+republished: running the old suite against the new hook measures nothing, and no figure here is
+carried from someone else's context.)*
+
+**And the repair is NOT "the misclassification is fixed" — the file says so in its own words, which is
+why this is a correction and not a ratification.** Two things changed: the wrapper strip now lands
+**first** (so `env -C … claude plugin update` no longer takes its label from `env`), and a **third
+class `?` — meaning not recognised** — replaced `R` as the default for anything the explicit lists do
+not name. The header states what was *not* fixed: *"the argument is that the COVERAGE is unbounded, not
+that the MATCHING is wrong, and only the second was ever the defect,"* and **`?` deliberately does not
+trigger the notice**. So the instrument's gaps are now **declared instead of silent**. That is exactly
+the change that makes the verdict decidable — a declared gap can be weighed; a silent one cannot — and
+it is not the same claim as *correct*.
+
+**The verdict against the criterion, and the candidate is the one the criterion itself names.**
+*A selection or verdict artifact* is the alternative, and `scrum-master`'s selection record is it.
+**It cannot carry this control, for three reasons that are about the object rather than about quality:**
+
+1. **Its input is authored by the observed party.** The orchestrator lands the selection record itself.
+   The census reads the **transcript**, which the orchestrator does not author — the only input in this
+   harness that the observed context did not write. That is the same distinction ADR-0006 draws between
+   the gatekeeper's own posted verdict and a relayed claim, and it is the load-bearing one.
+2. **They observe different things at different times.** The record states **intent, before the act**;
+   the census reports **acts, after them**. A record naming who *should* act says nothing about what was
+   then done, so it cannot be the equivalent control for *what did this context do with its own hands*.
+3. **Since #375 deleted `orchestrator-write-guard.sh`, the census is the only observer of main-context
+   `Edit`/`Write` that exists at all.** The selection record cannot see a file edit; nothing else fires
+   on one. Cutting the census removes the last observation of a class the same audit already recorded
+   as unrefused.
+
+**So no other harness element carries it, and it survives.** **Its residuals are unchanged by #371 and
+are restated rather than retired:** it counts attempts and not effects (a denied call still appears in
+the transcript); its coverage is unbounded by its own header's admission; `?` holds genuine readers
+until someone lists them; and it fires after the act, so it detects and never prevents.
+
+**#371 is therefore closed as the repair rather than dissolved by a cut** — the disposition this
+amendment left open in the previous round, now settled in the direction that keeps the hook.
 
 ### Cost priced where the criterion is silent — the eight reporters
 
@@ -3789,8 +3861,15 @@ dispatch comments landed on #381, and #384, #372 and #368 carry none.** Under th
 permission this record's companion skill already grants — one branch may carry several `loop` Issues —
 the instrument attributes the whole batch to whichever Issue is named first, and the retrospective
 then reads *no persona ran* for every other Issue in the batch. **Not repaired here** (this slice
-removes nothing and repairs nothing), and not filed: it is named for the owner in the MR body, per
-*Review does not open work*.
+removes nothing and repairs nothing).
+
+**And it is TRACKED rather than merely noticed — it is #382, `ready`, next in this batch.** That Issue
+already names the branch grep as its first item and carries its own probes
+(`fix/adr-0002-rewrite-355 → 0002`, `feat/v2-api-355 → 2`), so what this audit adds is a **live
+instance on a real batch branch** rather than a new item. Verified at head:
+`gh issue view 382 --repo <owner>/<repo> --json state,labels` → `OPEN`, labels `ready`, `loop`.
+**Nothing is filed by this slice** — per *Review does not open work*, a finding of the audit's own goes
+to the owner in the MR body, and this one had a home before the audit found it.
 
 **`owed-pr-link-detect.sh` states in its own header that it does not address the incident that
 produced it** — the defect was placement, not absence, and an absence detector is silent on both of
@@ -3817,18 +3896,29 @@ Proposed order, smallest blast radius first:
 3. **rule 9** — a rule-grain deletion inside `permission-guard`, with its three measured escape
    classes rehomed into this record. Mutation-check the suite: the arms asserting rule 9's denials go
    with it, and no other arm may go green over their absence.
-4. **`orchestrator-tool-census`** — decided **with** #371, never before it.
-5. **rule 7** — decided **after** the owner reads the branch-protection settings. If
+~~4. **`orchestrator-tool-census`** — decided **with** #371, never before it.~~
+~~5. **rule 7** — decided **after** the owner reads the branch-protection settings. If
    `enforce_admins` is true for the actor this loop uses, the semantic half is the only part worth
-   keeping and the rest is duplication.
+   keeping and the rest is duplication.~~
 
-**Each of the five is a `loop` change to the loop's own floor**, so each is `ready` on the owner's
-transition alone.
+**Both struck 2026-09-02 — they were items on a removal order and both resolved to SURVIVES**, so
+there is nothing left to sequence for either. Struck rather than deleted because an order is the
+surface a later reader executes from, and a silently shortened list and a deliberately shortened one
+must not look alike. The rulings are in the section above.
+
+~~**Each of the five**~~ **Each of the three remaining is a `loop` change to the loop's own floor**, so
+each is `ready` on the owner's transition alone.
 
 ### What could NOT be checked, so nobody re-walks it
 
-- **The forge perimeter.** `Bash(gh api:*)` is denied at the global layer, and there is no `gh`
-  subcommand for branch protection. The command that would settle rule 7 is named above.
+- ~~**The forge perimeter.** `Bash(gh api:*)` is denied at the global layer, and there is no `gh`
+  subcommand for branch protection. The command that would settle rule 7 is named above.~~
+  **Struck 2026-09-02 — it WAS checked, by the owner, because it cannot be checked from here.**
+  `enforce_admins.enabled` → `false`; the ruling is in the rule 7 section above. **The half that
+  survives the strike is the reason it was listed at all:** this loop still cannot read its own forge
+  perimeter, so the *answer* is now known and the *capability* is not. A second question came out of
+  it and is open — whether a **hook**, as a subprocess rather than a tool call, escapes the `gh api`
+  deny. **Labelled a hypothesis**; the settling probe is named above.
 - **Whether any of the eight reporters is ever read by a human.** `/sprint-retrospective` reads one of
   them mechanically; for the other seven there is no artifact that would record a read, so *"does this
   notice change behaviour"* is unmeasurable from inside the harness and is the owner's judgement.
