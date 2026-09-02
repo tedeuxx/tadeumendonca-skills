@@ -432,6 +432,9 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # typed for the same reason `sprint-retrospective` is and for one more: at planning the iteration does
 # not exist yet, so there is nothing in the tracker a default could be derived FROM — the title is
 # supplied by the human or the rite has no subject.
+# Then 5 → 6 on #379, when `commands/sprint-review.md` shipped the sprint review rite — the third and
+# last of the Scrum-named ceremonies. Typed for the same reason as the other two rites: the fallback
+# route for an iteration worked by hand is a human naming it, and a name is an argument.
 #
 # THE ASSERTION IS NOT WEAKER FOR HAVING BEEN BUMPED, and that is the whole reason it is a pinned
 # literal rather than a `-ge`. It exists to catch the ACCIDENTAL root command — a skill dropped one
@@ -447,10 +450,10 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # So the failure this now catches is a LIBRARY SKILL LANDING IN `commands/` — where it is typed-only,
 # never matched, and absent from every count and table in this file.
 root_cmds=$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
-if [ "$root_cmds" -eq 5 ]; then
-  ok "commands/ root — exactly five owner-typed commands (autonomy, new-issue, blueprint, sprint-retrospective, sprint-planning), as the docs enumerate"
+if [ "$root_cmds" -eq 6 ]; then
+  ok "commands/ root — exactly six owner-typed commands (autonomy, new-issue, blueprint, sprint-review, sprint-retrospective, sprint-planning), as the docs enumerate"
 else
-  bad "commands/ root — $root_cmds file(s); the docs enumerate five owner-typed commands (autonomy, new-issue, blueprint, sprint-retrospective, sprint-planning).
+  bad "commands/ root — $root_cmds file(s); the docs enumerate six owner-typed commands (autonomy, new-issue, blueprint, sprint-review, sprint-retrospective, sprint-planning).
       A library skill belongs in skills/<name>/SKILL.md — under commands/ it is absent from every count
       and table here, and from the per-family breakdown a reader actually opens."
 fi
@@ -2233,7 +2236,7 @@ skill_stem() {
   esac
 }
 
-ARG_HINT_ALLOWED="autonomy new-issue blueprint sprint-retrospective sprint-planning"   # the five the OWNER types; a model-invoked skill has no typed argument
+ARG_HINT_ALLOWED="autonomy new-issue blueprint sprint-review sprint-retrospective sprint-planning"   # the six the OWNER types; a model-invoked skill has no typed argument
 
 # The frontmatter block, exclusive of its `---` fences. Empty for a file that has none, which is what
 # the presence assertion below reads.
@@ -3920,7 +3923,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=47
+BP_HIGH_WATER=48
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
@@ -7153,7 +7156,8 @@ else
     '**And the whole set is a LOWER BOUND, never the set.**' \
     '- **Nothing fires this.** There is no hook.' \
     '**A defect that lived between two contexts is invisible to this rite by construction.**' \
-    '## The sprint review half is NOT built, and this is where that is recorded'
+    '## The sprint review half IS built now — `/sprint-review` (#379), and the refusal it satisfied' \
+    '**The refusal below was SATISFIED, not lifted'
   do
     grep -qF -- "$rite_needle" "$RITE_CMD" || rite_missing="$rite_missing
     missing: \"$rite_needle\""
@@ -7196,8 +7200,15 @@ else
                            dozen paths, so it is 'at least these ran' and never 'these ran'.
         NOTHING FIRES    — no hook, by instruction only.
         BETWEEN CONTEXTS — what the rite cannot catch, by construction.
-        SWEEP NOT BUILT  — the review half is deferred and says so where the rite is defined, so the
-                           promise is not discovered unbuilt a second time.
+        SWEEP BUILT      — REPLACED 2026-09-02 (#379). The needle was
+                           '## The sprint review half is NOT built…' and it asserted the DEFERRAL was
+                           recorded where the rite is defined. The deferral is over, so the needle
+                           moved with the sentence rather than being dropped with it: what must stay
+                           written is that the refusal was **satisfied**, at the surface a reader of
+                           this rite arrives at. Two needles, because the heading alone would go green
+                           on a section that merely announces the rite and never says which grounds it
+                           had to meet — and those grounds are the design constraints on the OTHER
+                           file, which nothing else in this suite states.
       If a clause was deliberately reworded, move its needle here in the same commit."
   else
     ok "retrospective rite — the rite states its trigger, why the evidence travels with the question, why the artifact is one file per persona, its cap, its amplification cost and all four of its limits"
@@ -7211,21 +7222,27 @@ if [ ! -r "$RITE_DRAIN" ]; then
       EXECUTES the drain to the rite it fires cannot be checked."
 else
   for rite_drain_needle in \
-    '### On exhaustion, run `/sprint-retrospective` — the closing ceremony now has an object (#355)' \
+    '### On exhaustion, run `/sprint-review` FIRST, then `/sprint-retrospective` (#379)' \
     '**On the FIRST stop condition only**' \
-    '**HALF the promise now has an object and half still does not.**'
+    '**The review runs first, and the order is Scrum'"'"'s own**' \
+    '**Read "the closing ceremonies" as plural-and-satisfied in its COUNT and in nothing else.**'
   do
     grep -qF -- "$rite_drain_needle" "$RITE_DRAIN" || rite_drain_missing="$rite_drain_missing
     missing: \"$rite_drain_needle\""
   done
   if [ -n "$rite_drain_missing" ]; then
-    bad "retrospective rite — the drain no longer routes to the rite correctly:$rite_drain_missing
-      Three separate clauses. The HEADING is the pointer itself. FIRST STOP CONDITION scopes it to
-      snapshot exhaustion and away from the other two stops — a rite fired on a boundary event or an
-      owner interrupt reports on an iteration nobody finished. HALF THE PROMISE is what stops
-      'the closing ceremonies' being read as plural-and-satisfied while the sweep half is unbuilt."
+    bad "retrospective rite — the drain no longer routes to the rites correctly:$rite_drain_missing
+      Four separate clauses. The HEADING is the pointer, and since #379 it names BOTH rites. FIRST STOP
+      CONDITION scopes them to snapshot exhaustion and away from the other two stops — a rite fired on a
+      boundary event or an owner interrupt reports on an iteration nobody finished. SCRUM'S OWN ORDER is
+      the sequencing clause: the review runs first, which is the whole point of the Scrum names and is
+      also the mechanically right order, since the retrospective feeds each persona its own artifacts and
+      the sweep's report is one of them. COUNT AND NOTHING ELSE replaces the old HALF THE PROMISE needle
+      (#379): the plural is satisfied in count now, and the clause that has to survive is the one saying
+      that two objects existing is not two rites running — losing it turns a true count into a false
+      claim of coverage, which is strictly worse than the state the old needle guarded."
   else
-    ok "retrospective rite — autonomy names /sprint-retrospective, scopes it to snapshot exhaustion alone, and says which half of its own plural is still owed"
+    ok "retrospective rite — autonomy names both closing rites, scopes them to snapshot exhaustion alone, fixes the review-first order, and refuses to read the satisfied plural as coverage"
   fi
 fi
 
@@ -7269,8 +7286,9 @@ else
   for rite_preload_needle in \
     '**Struck 2026-08-30 (#355), and it was wrong in two different ways.**' \
     'Read *"the closing ceremonies"* anywhere in this loop as' \
-    '**And nothing FIRES the one that exists.**' \
-    '**the rite is not engineered.**'
+    '**And nothing FIRES either of them.**' \
+    '**neither rite is engineered.**' \
+    'Two objects existing is not two rites running.'
   do
     grep -qF -- "$rite_preload_needle" "$RITE_PRELOAD" || rite_preload_missing="$rite_preload_missing
     missing: \"$rite_preload_needle\""
@@ -7282,14 +7300,20 @@ else
       because the rite exists, the second because product-lead holds a browser (#356). The
       CEREMONIES-AS-ONE-BUILT-ONE-OWED needle is the other direction: this is the file every persona
       preloads, so a plural read as satisfied here is read as satisfied everywhere.
-      The NOTHING-FIRES and NOT-ENGINEERED needles are a separate clause from both, added after the
+      The NOTHING-FIRES and NEITHER-ENGINEERED needles are a separate clause from both, added after the
       copy lens measured that ADR-0002's twenty-sixth amendment claimed the enforcement admission was
       in four surfaces and it was in three — present in the rite, the drain and registry row 0042, and
       ABSENT from this one. That is the surface where its absence costs most: a persona meets
       '/sprint-retrospective is the method half' here, always-on, and would learn the rite exists without
-      learning that nothing fires it. A promise a persona believes is worse than one it never read."
+      learning that nothing fires it. A promise a persona believes is worse than one it never read.
+      BOTH WERE SINGULAR UNTIL #379 ('the one that exists', 'the rite is not engineered') and moved to
+      the plural with the sentences they pin, because the sweep half shipped. THE THIRD NEEDLE IS NEW
+      AND IS THE ONE THIS SLICE ADDS: with both rites built, the plural is satisfied in COUNT, and a
+      preload that says so without saying what it does NOT mean hands every persona a coverage claim.
+      'Two objects existing is not two rites running' is that clause — nothing fires either, and the
+      sweep is a lower bound by its own declaration."
   else
-    ok "retrospective rite — the preload strikes the claim that the ceremonies are unbuilt, says which half is still owed, and admits that nothing fires the half that exists"
+    ok "retrospective rite — the preload strikes the claim that the ceremonies are unbuilt, names both halves, admits that nothing fires either, and refuses to let the satisfied plural read as coverage"
   fi
 fi
 
@@ -7730,7 +7754,7 @@ else
   plan_drain_missing=""
   for plan_dneedle in \
     '/sprint-planning` (#378)' \
-    'It runs AFTER the retrospective, not instead of it' \
+    '**It runs AFTER both closing rites, not instead of them**' \
     'ordinarily refuses the first drain on the estimate class.'
   do
     grep -qF -- "$plan_dneedle" "$PLAN_DRAIN" || plan_drain_missing="$plan_drain_missing
@@ -7739,11 +7763,14 @@ else
   if [ -n "$plan_drain_missing" ]; then
     bad "planning rite — the drain no longer routes to the planning rite correctly:$plan_drain_missing
       The drain is where a reader learns the rite exists at all — nothing fires it. And the ordering
-      matters: the retrospective's proposals are one of the planning rite's two inputs, so a planning
-      run first reads an empty second input and nobody would notice. The estimate clause is the
-      agreement between the two files: the drain refuses on sp:N and the rite deliberately makes none."
+      matters: the closing rites' proposals are the planning rite's inputs, so a planning run first
+      reads empty inputs and nobody would notice. The needle read 'AFTER the retrospective' until #379
+      added a SECOND closing rite whose judgement half is also an input; it moved to the plural with the
+      sentence rather than being dropped, because the property it pins — planning is last — is unchanged
+      and only the number of things it is last after moved. The estimate clause is the agreement between
+      the two files: the drain refuses on sp:N and the rite deliberately makes none."
   else
-    ok "planning rite — the drain names /sprint-planning, sequences it after the retrospective, and states the estimate gap the rite leaves it (string agreement only; nothing fires either rite)"
+    ok "planning rite — the drain names /sprint-planning, sequences it after BOTH closing rites, and states the estimate gap the rite leaves it (string agreement only; nothing fires any of the three)"
   fi
 fi
 
@@ -7995,6 +8022,136 @@ elif [ -n "$plan_pre_problems" ]; then
   bad "planning rite — the universal preload or the rite's citation of it went stale:$plan_pre_problems"
 else
   ok "planning rite — the universal preload carries the planning-is-unbuilt claim STRUCK rather than live, keeps the nothing-fires-it limit, and the rite marks its citation as the state it closed (text agreement only; powers/ identity is kiro-power.test.sh's)"
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+# THE SPRINT REVIEW RITE, AND THE TWO GROUNDS ITS REFUSAL DEMANDED (#379).
+#
+# WHY THIS EXISTS. The review half was REFUSED for as long as it was — not deferred on effort — on two
+# grounds about its SHAPE: a route list rots, and a looker's finding is not falsifiable so it must not
+# be a gate. Those grounds were satisfied rather than lifted, and a satisfaction is exactly the thing a
+# later edit erodes without noticing: a hand-typed route list added "just for now", or a verdict line
+# added because a reader expected one from a ceremony. Both would pass every other arm in this suite.
+#
+# WHAT THESE ARMS ASSERT AND WHAT THEY CANNOT. They assert the rite's rules are WRITTEN. They cannot
+# observe that a sweep ran, that it ran over the right iteration, that it visited every route it
+# emitted, or that its report is honest — no hook here reads the queue or opens a browser, and the
+# report file lands in the CONSUMING repository, which this suite never sees at all. That last limit is
+# sharper than the retrospective's and is stated rather than implied.
+#
+# ONE ARM IS NOT A NEEDLE AND IS THE ONLY MECHANICAL CHECK IN THIS BLOCK: the rite must ship no route
+# list. It is a NEGATIVE assertion over the file's own body, and it is the arm that survives a rewrite
+# of every sentence around it.
+REV_CMD="$ROOT/commands/sprint-review.md"
+REV_DRIVER="$ROOT/agents/product-lead.md"
+
+# ── 1 · the rite carries the two satisfied grounds, its driver, its axes and its lower bound ──
+rev_missing=""
+if [ ! -r "$REV_CMD" ]; then
+  bad "sprint review rite — commands/sprint-review.md is not readable, so NOTHING about the rite was
+      asserted. The drain's terminal condition names this file first of three; without it the closing
+      ceremonies are a plural with one object again, which is the state #379 was filed to end."
+else
+  for rev_needle in \
+    '**It is NOT a gate, and it returns NO verdict.**' \
+    'a gate with no ruler grades taste' \
+    'this rite ships no list, deliberately' \
+    'consume.** A route that exists in the product is in that list *by construction*' \
+    'it is a list, and no, it does' \
+    '**Do not enumerate assets.**' \
+    'so it is stated as the one' \
+    '### And the sweep is INCOMPLETE. It says so, in the report, every time' \
+    'an emulated phone renders differently from a real one' \
+    '## The driver is `product-lead`, and that is a MEASUREMENT rather than a preference' \
+    'would fail at its first navigation' \
+    '**A sweep that could not reach the site reports FAILED, never "no findings".**' \
+    '- **Nothing fires this.**'
+  do
+    grep -qF -- "$rev_needle" "$REV_CMD" || rev_missing="$rev_missing
+    missing: \"$rev_needle\""
+  done
+  if [ -n "$rev_missing" ]; then
+    bad "sprint review rite — a load-bearing clause left commands/sprint-review.md:$rev_missing
+      Each needle is ONE clause and answers for itself:
+        NOT A GATE / NO RULER — ground 2 of the refusal, and the pair is deliberate: the first states
+                           the rule and the second states WHY, and a rule whose reason is dropped is
+                           the rule a later reader reverses on the first inconvenience.
+        SHIPS NO LIST / BY CONSTRUCTION / IT IS A LIST — ground 1, in three clauses because the honest
+                           answer has three parts: the rite carries none, the generator is the same
+                           function the product's own sitemap consumes, and the file ADMITS the result
+                           is a list while saying why that one cannot rot. Dropping the third leaves a
+                           claim that reads as evasion of the objection rather than an answer to it.
+        DO NOT ENUMERATE / ONE PLACE STALENESS — the asset axis is read off the page, and the viewport
+                           axis is the one enumerated set, named as the one place a list can rot here.
+        INCOMPLETE / EMULATED PHONE — the lower bound, and the residual that matters most: the defects
+                           that motivated this rite were found on a REAL phone and the sweep emulates
+                           one. A sweep that stops saying so reads as coverage.
+        DRIVER / FIRST NAVIGATION — who drives it and the measured reason. mcp-guard.sh grants the
+                           browser to one persona by name and denies every other agent_type by default,
+                           so a rite handed to any other driver dies at its first navigation. Losing
+                           this clause is how the driver gets 'simplified' back to the gatekeeper the
+                           Issue originally named.
+        FAILED / NOTHING FIRES — the fail-loud rule and the absent trigger. The rite runs at the one
+                           moment nobody is watching, so a clean-looking report is what a broken sweep
+                           produces if the file stops requiring FAILED.
+      If a clause was deliberately reworded, move its needle here in the same commit."
+  else
+    ok "sprint review rite — the rite states both satisfied grounds, its measured driver, its three coverage axes, its lower bound and its fail-loud rule"
+  fi
+fi
+
+# ── 2 · MECHANICAL: the rite ships no route list ──────────────────────────────────────────────────
+#
+# NOT A NEEDLE. Every other arm in this block asserts a sentence is present; this one asserts a THING
+# IS ABSENT, which is the only form that can catch the erosion the refusal was actually about. The
+# pattern is a leading-slash path token in a fenced or inline code span — the shape a hand-written
+# route list takes and the shape nothing else in this file needs. The rite's own text names no route.
+#
+# WHAT IT WOULD MISS: a list written in prose without code punctuation ("sweep home, about and
+# portfolio"). That is not closable by a grep and is a reviewer's read; the arm catches the form a
+# hurried edit actually produces, which is a pasted list.
+if [ -r "$REV_CMD" ]; then
+  rev_routes="$(grep -oE '`/(pt|en|[a-z][a-z-]*)(/[a-z][a-z-]*)*`' "$REV_CMD" \
+                  | grep -vE '^`/(sprint-review|sprint-retrospective|sprint-planning|autonomy|new-issue|blueprint|agents-configuration|published-voice|code-review|quality-gates|devops|shell)`$' \
+                  || true)"
+  if [ -n "$rev_routes" ]; then
+    bad "sprint review rite — commands/sprint-review.md appears to carry a hand-written ROUTE LIST:
+$rev_routes
+      Ground 1 of the refusal this rite satisfied is that a route list rots and a sweep whose list is
+      stale reports green over what nobody enumerated. The rite's targets come from the consuming
+      repo's own generator and are named NOWHERE here. If one of these tokens is a command identifier
+      the filter does not know about, add it to the filter in this same commit and say so; if it is a
+      route, delete it."
+  else
+    ok "sprint review rite — the rite ships no route list of its own (mechanical: no leading-slash path token outside the known command identifiers)"
+  fi
+fi
+
+# ── 3 · the driver's brief still holds the procedure, and points at the rite ──────────────────────
+#
+# TWO FILES, ONE RITE, AND THE SPLIT IS DELIBERATE — the rite is the WHEN and the WHY, the brief is the
+# HOW. Each says so about the other, because the failure mode of a two-file mechanism is one file
+# quietly growing the other's half and the two then disagreeing with nobody noticing which is
+# authoritative.
+if [ ! -r "$REV_DRIVER" ]; then
+  bad "sprint review rite — agents/product-lead.md is not readable, so the pointer from the rite to the
+      procedure that executes it cannot be checked. The rite deliberately restates none of it."
+else
+  rev_driver_missing=""
+  for rev_driver_needle in \
+    '**Since #379 the sweep has a RITE that names it: `/sprint-review`.**' \
+    '**This section is the PROCEDURE and stays the authority on it**'
+  do
+    grep -qF -- "$rev_driver_needle" "$REV_DRIVER" || rev_driver_missing="$rev_driver_missing
+    missing: \"$rev_driver_needle\""
+  done
+  if [ -n "$rev_driver_missing" ]; then
+    bad "sprint review rite — the driver's brief lost its half of the two-file split:$rev_driver_missing
+      NAMES IT is the pointer a persona reads at dispatch. PROCEDURE/AUTHORITY is what stops the rite
+      and the brief growing two copies of the same instructions and then disagreeing."
+  else
+    ok "sprint review rite — the driver's brief names the rite and declares itself the authority on the procedure (string agreement only; nothing fires either, and this suite never sees the report, which lands in the consuming repository)"
+  fi
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"

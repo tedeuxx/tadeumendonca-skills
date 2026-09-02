@@ -3242,8 +3242,14 @@ and a rite whose first execution predates its definition has no definition to be
    next persona's context, so the isolation would survive the dispatch and die at the write.
 5. **A cap of two findings per persona lives in the artifact template.** It is checkable by reading and
    by nothing else, and the rite says so in those terms.
-6. **The sprint review half is NOT built**, and the deferral is recorded inside the rite rather than in
-   a tracker comment, so the second half of *"the closing ceremonies"* cannot read as satisfied.
+6. ~~**The sprint review half is NOT built**, and the deferral is recorded inside the rite rather than in
+   a tracker comment, so the second half of *"the closing ceremonies"* cannot read as satisfied.~~
+   **REVERSED 2026-09-02 by the thirtieth amendment (#379): it is built, `commands/sprint-review.md`,
+   driven by `product-lead`, and it runs FIRST of the three.** Struck in place rather than deleted
+   because this item is what told every reader for three days that the half was refused. **The two
+   grounds behind the deferral were SATISFIED rather than lifted** — the rite ships no route list and
+   is not a gate — which is why the thirtieth amendment is a reversal of this decision and not of the
+   reasoning under it.
 7. **`agents/quality-assurance.md`'s Write rule gains its first exception, and a bound.** The two
    states, quoted as they are rather than as the change felt. **Before:** three occurrences already
    read *"a Write to any repo path is a defect **in the review**"* — in the description, in the
@@ -3272,9 +3278,13 @@ left no comment is indistinguishable from one that never ran.**
 **One claim in the universal preload was true when written and is false at head, and is struck rather
 than quietly edited.** *"REVIEW cannot run unattended in this harness — no MCP server is reachable from
 a dispatched subagent"* stopped being true on 2026-08-29, when `product-lead` gained a read-only
-`chrome-devtools` subset with a bounded origin (PR #356). **The review half is still refused, on grounds
+`chrome-devtools` subset with a bounded origin (PR #356). ~~**The review half is still refused, on grounds
 that survive the new capability**: a route list rots, and a looker's finding has no ruler, so it must
-never be a gate. The obstacle was never the browser.
+never be a gate.~~ **Struck 2026-09-02 (#379): the half is BUILT, and both grounds were satisfied inside
+the rite's shape rather than lifted — it ships no route list and it is not a gate.** The clause that
+survives untouched is the one worth keeping: **the obstacle was never the browser.** The capability
+arrived on 2026-08-29 and the rite was built three days later, by the persona it was granted to, on
+those same two grounds.
 
 **The amplification is a consequence of two rules merged three days earlier, and it is stated where the
 rite is defined rather than here.** A retrospective finding is `loop`-typed, so it joins the **active**
@@ -4381,6 +4391,124 @@ nothing else.**
   planning arms key on sentences across three files; whoever rewrites one of them will meet a red
   naming the clause. That is presence of a rule and never obedience to one, and the arms' own header
   says so.
+
+## Amendment (2026-09-02, thirtieth) — the sprint review is BUILT, its driver is `product-lead`, and the Scrum rite-naming set is complete (#379, #372)
+
+**Deciders:** the owner — on #379's ratified body (*"build the full sweep"*, 2026-08-31, taken over the
+cheap first slice he was offered). **Written by** `agents-lead` (#223 — pure loop machinery, no
+product-architecture stake, no `tech-lead` co-citation owed). **Two Issues, one amendment**, and that
+is a ruling rather than a convenience: see *One amendment, not two* below.
+
+**Why this is an amendment and not a new record.** It decides *what happens at the end of an
+iteration*, which is the twenty-sixth amendment's own object, and it **reverses that amendment's
+decision 6**. #283's rule is one document per capability name; a new number would create a second
+`roster-and-dev-loop`.
+
+### One amendment, not two — and #372's closure is a CONSEQUENCE, not a second decision
+
+**#372 asked for the rites to carry the official Scrum names, and for the record of why the other two
+stayed absent.** Its rename half shipped at #387; its remaining half is now answerable only as history,
+because both absent rites were built (#378, #379). **Nobody decided *"the naming set is complete"* — it
+became complete**, which is the definition of a consequence. Splitting it into its own amendment would
+put a decision heading over something no one chose, and this library already carries the rule that a
+record explains the current codebase rather than narrating how it got here.
+
+**What that closure actually is, stated so it is not read as a claim about the harness's quality.** The
+three rites now exist and run in Scrum's order. Nothing fires any of them.
+
+### The decision
+
+1. **`commands/sprint-review.md` is the rite**, typed by the owner and named by `/autonomy on` at its
+   terminal condition. **The twenty-sixth amendment's decision 6 — *"the sprint review half is NOT
+   built"* — is REVERSED**, and every surface carrying that claim is struck in place rather than
+   edited away: the retrospective rite's last section, `/autonomy on`'s *HALF the promise* clause, the
+   universal preload's *one built and one owed*, and the Scrum disclaimer's item 2 in both of its homes.
+2. **It runs FIRST of the three: `/sprint-review` → `/sprint-retrospective` → `/sprint-planning`.**
+   Two independent reasons, either sufficient. **Legibility** — Sprint Review precedes Sprint
+   Retrospective in Scrum, and a Scrum name that no longer predicts the order has stopped doing the one
+   thing #372 renamed it for. **Mechanics** — the retrospective feeds each consulted persona its own
+   artifacts, and the sweep's report is one of them; run second it would be produced after the
+   consultation that would have read it.
+3. **The driver is `product-lead`, NOT `quality-assurance`, and #379's body is overridden on this
+   point.** See *The driver, measured* below. This is the one place the build departs from a `ready`
+   Issue body, it is flagged in the PR rather than absorbed, and the Issue itself labelled that choice
+   a hypothesis.
+4. **The refusal's two grounds are SATISFIED, not lifted, and they are built into the rite's shape.**
+   *A route list rots* → the rite ships **no list**; targets come from the product's own route
+   generator, the same function its sitemap and prerender consume, and assets are read **off the page**
+   through the network log and the DOM snapshot. *A looker's finding has no ruler* → the rite is **not a
+   gate and returns no verdict**, stated in its second section rather than added afterwards.
+5. **The rite declares itself a LOWER BOUND.** Route × viewport × on-page assets is not the surface: the
+   viewport set is enumerated and can go stale, anything behind an interaction is unreachable under a
+   read-only browser grant, and **an emulated phone is not the phone the motivating defects were found
+   on.** An incomplete sweep that says so is worth more than a complete-looking one that is not.
+6. **The rite and the driver's brief are two halves of one mechanism and each declares which.**
+   `commands/sprint-review.md` is the WHEN and the WHY; `agents/product-lead.md`'s existing sweep
+   section is the HOW and remains the authority on it. Neither restates the other.
+7. **ADR-0002 amendment #16's booked residual is DISCHARGED** — *"the owner reviews live, after deploy"
+   has no artifact* — by the sweep's per-iteration report file. The `APPROVE-AND-MERGE-BOUNDARY`
+   `SessionStart` arm the retrospective named as the cheapest first slice is **not built** and is now an
+   optional addition to a rite that exists rather than a substitute for one that did not.
+
+### The driver, measured — and it is a hook, not an opinion
+
+**#379's body names `quality-assurance`, imported from the foreign harness's own choice. At head that
+rite would die at its first navigation.** `hooks/scripts/mcp-guard.sh` (#355) grants the browser to
+`product-lead` by name and denies every other `agent_type` by default:
+
+```
+printf '%s' '{"tool_name":"mcp__plugin_tadeumendonca-skills_chrome-devtools__navigate_page","agent_type":"tadeumendonca-skills:quality-assurance"}' \
+  | bash hooks/scripts/mcp-guard.sh
+# → {"permissionDecision":"deny", … "holds no MCP grant … New personas default to DENY here"}
+# the same payload with agent_type=…:product-lead exits 0 with no decision — allowed
+```
+
+**So the imported driver is not a preference this build declined; it is a configuration this harness
+already refuses.** Adopting it would have required a second MCP grant — widening, three days after
+#355 narrowed it to one persona and one read-only tool subset, a surface whose other members act
+irreversibly and in public in the owner's name.
+
+**And the second reason survives the hook changing, which is why it is recorded beside it rather than
+under it.** The gatekeeper's whole discipline is a ruler external to itself. **This rite deliberately
+has none.** Handing a rite with no ruler to the persona built around one produces either a verdict
+nobody asked for or a gate with no ground — the failure the rite's own shape refuses.
+
+**The owner had already decided this, at #355**, in terms this build did not have to re-derive:
+*«ele tem a visao de proposito conectada a engenharia»* — the purpose-view held together with enough
+engineering to know what a failed request was serving.
+
+### Considered options
+
+- **`quality-assurance` as driver, per #379's body** — rejected on the measurement above.
+- **A second MCP grant so the gatekeeper could drive it** — rejected. It reverses #355's narrowing to
+  buy a driver the rite is a worse fit for.
+- **Splitting the rite from the driver's brief and moving the procedure into the command file** —
+  rejected. The procedure names the consuming repository's own route-generator path, and
+  `inventory-counts.test.sh`'s consumer-reference lint scans `commands/` for exactly that: measured,
+  a `tadeumendonca-io` or `apps/fed` token in a command file reddens the suite. The brief is entitled
+  to name a consumer; the command file is not. **The two-file split is therefore a constraint of this
+  plugin's own publication rule, not a preference** — and it is stated here because the next person
+  who tries to consolidate them will meet the red before they meet the reason.
+- **Reserving the third rite's name and shipping the record only** — rejected; it is the *stub* shape
+  #372's struck section already priced, and the owner declined the cheap slice explicitly.
+- **A separate amendment for #372's closure** — rejected. See *One amendment, not two*.
+
+### What nothing enforces, said before any green is read
+
+- **Nothing fires the rite.** `/autonomy on` names it at its terminal condition; that is an instruction
+  in a command file. No hook can be built for it: nothing in `hooks/scripts/` reads the queue, and a
+  hook receives one `cwd` while an iteration is two milestone objects in two repositories. **Three
+  rites now exist and zero of them have a trigger** — the plural in *"the closing ceremonies"* is
+  satisfied in COUNT and in nothing else, which the preload now says in those words.
+- **Nothing observes the sweep, and this one is worse than the retrospective's equivalent.** The report
+  lands in the **consuming** repository, so `inventory-counts.test.sh` never sees it at all. A skipped
+  sweep, a sweep over the wrong iteration and a sweep that visited four routes of eighteen are
+  indistinguishable from everything this repo can read.
+- **The one mechanical arm is a NEGATIVE.** `inventory-counts.test.sh` asserts the rite ships no
+  leading-slash route token — the only form of ground 1's erosion a grep can catch. A route list
+  written as prose is a reviewer's read and has no instrument.
+- **Every other arm is presence of a sentence**, in the rite, the drain, the preload and the driver's
+  brief. Presence of a rule, never obedience to one.
 
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
