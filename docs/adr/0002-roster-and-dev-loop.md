@@ -1878,6 +1878,25 @@ the only thing most readers thought it decided.
   and surfaces them at `SessionStart`, and it is not built here because building the notification for a
   review nobody has yet skipped is speculative. If a boundary change is found to have shipped and gone
   unreviewed, that is the trigger to build it.
+
+  **PARTIALLY DISCHARGED 2026-09-02 by amendment #30 (#379), and the split is exact rather than
+  generous — this bullet books THREE things and `/sprint-review` delivers ONE.** Struck in place below
+  only for the third; the first two stand, live, and this bullet remains the place a reader looking up
+  the residual arrives at.
+
+  | this bullet's clause | `/sprint-review` |
+  |---|---|
+  | *"Nothing records that **the owner** looked"* | **open.** The report records that `product-lead` looked. |
+  | *"nothing surfaces **to him** that something boundary shipped"* | **open.** The rite reads merged PRs to *weight* its sweep; it surfaces nothing per-merge. |
+  | ~~a post-deploy look leaves no artifact at all~~ | **closed** — one report file per iteration, in the consuming repo. |
+
+  **And the trigger clause names a case the rite cannot cover, which is why the discharge is partial
+  rather than pending.** The one instance booked against this residual is `tadeumendonca-io#479`, an
+  article that reached production unreviewed — a **truth-of-a-published-claim** case, and the sweep bars
+  itself from that class twice: it runs *after* the merge gate where the blocking veto fires, and
+  `commands/sprint-review.md` states *"A sweep finding must never be relayed as a BLOCKING truth
+  finding."* **The `SessionStart` arm over `APPROVE-AND-MERGE-BOUNDARY` remains the open half of this
+  residual**, unbuilt, and is not an optional extra to the sweep.
 - **A fourth verdict literal is a wider drift surface**, mitigated by the new vocabulary gate rather than
   eliminated by it. The gate cannot check that the literal *means* what the brief says it means.
 - **Four holds is more than the one line it replaces**, and a reader who learns "boundary means the owner
@@ -4448,10 +4467,22 @@ three rites now exist and run in Scrum's order. Nothing fires any of them.
 6. **The rite and the driver's brief are two halves of one mechanism and each declares which.**
    `commands/sprint-review.md` is the WHEN and the WHY; `agents/product-lead.md`'s existing sweep
    section is the HOW and remains the authority on it. Neither restates the other.
-7. **ADR-0002 amendment #16's booked residual is DISCHARGED** — *"the owner reviews live, after deploy"
-   has no artifact* — by the sweep's per-iteration report file. The `APPROVE-AND-MERGE-BOUNDARY`
-   `SessionStart` arm the retrospective named as the cheapest first slice is **not built** and is now an
-   optional addition to a rite that exists rather than a substitute for one that did not.
+7. **Amendment #16's booked residual is PARTIALLY DISCHARGED.** ~~DISCHARGED — *"the owner reviews live,
+   after deploy" has no artifact* — by the sweep's per-iteration report file. The
+   `APPROVE-AND-MERGE-BOUNDARY` `SessionStart` arm … is now an **optional addition** to a rite that
+   exists rather than a substitute for one that did not.~~ **Struck in the first review round of this
+   same MR, before merge, on an independent lens's finding — and the correction is worth more than the
+   word.** The residual books **three** clauses and the sweep delivers **one**: a post-deploy look now
+   leaves an artifact, but the report records that **`product-lead`** looked rather than the owner, and
+   it surfaces **nothing per-merge**. The `SessionStart` arm is therefore **the open half of this
+   residual, not an optional extra** — and the one case the residual was booked against
+   (`tadeumendonca-io#479`) is a truth-of-a-published-claim case the rite bars itself from twice. The
+   clause-by-clause split lives with amendment #16's own bullet, where a reader looking the residual up
+   arrives; this item points there rather than restating it.
+
+   *Why the overclaim is worth recording rather than quietly narrowing:* a record asserting a control is
+   in place where it is partial retires a residual that is two-thirds open, and nothing downstream would
+   ever have reopened it — the booked residual is the only thing that remembers.
 
 ### The driver, measured — and it is a hook, not an opinion
 

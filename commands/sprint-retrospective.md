@@ -366,9 +366,11 @@ capability intact.
 ~~**The cheapest first slice of the review half is not a sweep at all**, and it is named here so the next
 person does not re-derive it: a `SessionStart` arm reading merged PRs that carry
 `APPROVE-AND-MERGE-BOUNDARY`.~~ **Struck 2026-09-02 (#379): the owner declined the cheap slice and
-chose the full rite, so this is no longer a first step and naming it as one would send the next reader
-at a slice nobody is taking.** ADR-0002 amendment #16's booked residual — *"the owner reviews live,
-after deploy" has no artifact* — **is DISCHARGED by the sweep's report file** rather than by the arm:
-the report is the artifact, per iteration rather than per boundary merge. The arm remains available and
-unbuilt, and it is now an *addition* to a sweep that exists rather than a substitute for one that did
-not.
+chose the full rite, so this is no longer a *first step*.** ~~ADR-0002 amendment #16's booked residual
+… **is DISCHARGED by the sweep's report file** … The arm … is now an *addition* to a sweep that exists
+rather than a substitute for one that did not.~~ **Struck in the same MR's first review round: that
+overclaimed, and the arm is NOT an optional addition.** The residual books three clauses and the sweep
+delivers one — a post-deploy look now leaves an artifact, but the report records that **`product-lead`**
+looked rather than the owner, and it surfaces **nothing per-merge**. **So the arm is the OPEN HALF of a
+partially-discharged residual**, still unbuilt, and it remains the right next thing to build for the two
+clauses the sweep cannot reach. The clause-by-clause split is with amendment #16's own bullet.

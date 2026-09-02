@@ -103,9 +103,13 @@ named in `agents/product-lead.md`, which is entitled to name it; the property is
 > added without appearing in it is broken for search engines before it is missed by this sweep.
 
 That is the whole of the answer to *"a list by another name?"* — **yes, it is a list, and no, it does
-not rot**, because nothing maintains it: it is generated, and its staleness is not a state the product
-can be in while working. **If the generator cannot be run, that is a FAILED sweep, not a sweep with a
-smaller list.**
+not rot**, because **nothing maintains it FOR THIS SWEEP**: the sweep's copy is generated at the moment
+it runs, and its staleness is not a state the product can be in while working. **The qualifier is
+load-bearing and is not hedging** — a generator may well hold a hand-written array inside it, and this
+one does. What makes the axis sound is not that no human ever edits anything upstream; it is the
+sentence above: **the sweep and the product's own published surface consume the same function**, so a
+route the sweep cannot see is a route the sitemap and the prerender cannot see either. **If the
+generator cannot be run, that is a FAILED sweep, not a sweep with a smaller list.**
 
 ### Axis 2 — the viewport is a closed set, and it is where the motivating defects lived
 

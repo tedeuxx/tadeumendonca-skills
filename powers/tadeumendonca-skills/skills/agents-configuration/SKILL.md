@@ -1066,9 +1066,8 @@ closing ceremonies run, and the stop moves to the planning handoff, which is the
 condition; it is stated once, there, rather than twice.
 
 ~~**One of those ceremonies exists and one does not, and the plural is where that gets lost (#355).**~~
-~~The **sprint review** half, which sweeps the running product and finds a completely different class of
-defect, **is not built**. Read *"the closing ceremonies"* anywhere in this loop as one built and one
-owed.~~ **Struck 2026-09-02 (#379). BOTH exist, and the strike lands HERE first because this is the
+~~The **sprint review** half, which sweeps the running product and finds a completely different class of defect, **is not built**. Read *"the closing ceremonies"* anywhere in this loop as one built and one owed.~~
+**Struck 2026-09-02 (#379). BOTH exist, and the strike lands HERE first because this is the
 file every persona carries always-on** — a persona that read *"one built and one owed"* would not reach
 for a rite that exists, which is the same damage the struck planning sentence did below.
 
