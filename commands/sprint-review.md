@@ -39,6 +39,30 @@ two lenses. This rite exists for the class no diff carries: a banner off-centre,
 rendering without its link, a layout that reads wrong at 390px. **Those were found by the owner on his
 phone, after every gate went green.** That is the gap, stated as the reason rather than as a slogan.
 
+## AFK or HITL — this rite is AFK, end to end, and activates him ZERO times (#393)
+
+**The loop is an AI-DLC split into AFK and HITL activities, and every rite declares which it is.** This
+one is **AFK in full**: it sweeps, it observes, it writes a report, and it ends. **It puts no question
+to the owner at any point** — not once, not at the end.
+
+**The argument is the TRADE-OFF, which is the governing rule for what is HITL at all — not seniority
+and not reversibility** (`/engineering-standards`, *What makes a decision the human's*; the owner's
+words are *«tradeoffs de tempo, custo e escopo relacionado ao issue»*, with **time = work hours plus
+wait hours** and **cost = tokens**). **This rite trades nothing on any of the three axes:** its scope
+is fixed by its own derivation, it decides nothing about any Issue, and it neither adds work nor
+removes it. A sweep that observes and reports has made no call for anybody to ratify.
+
+**The one place it CAN spend without deciding is the wait axis**, and that is worth naming rather than
+assuming away: a sweep is wall clock, and wall clock is time by the owner's own definition even when
+nobody is watching it. **No threshold exists and none is proposed here** — the calibration is his.
+
+**Its output is EVIDENCE HE READS, not an activation.** The mechanical half is a list of things that
+are broken and he acts on it directly; the judgement half is a candidate list `/sprint-planning` reads
+at the next composition. **Neither is a question, and neither may be turned into one** — a rite that
+sweeps a site and then walks him through its findings has converted an AFK observation into a queue of
+HITL turns, which is the defect #393 corrected one rite over. If a finding needs a decision, it becomes
+a candidate and reaches him inside planning's single activation.
+
 ## The trigger, and where it sits among the three rites
 
 **The drain reaching exhaustion of its ENTRY SNAPSHOT** — the same signal `/sprint-retrospective` uses,

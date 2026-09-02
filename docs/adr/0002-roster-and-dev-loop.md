@@ -4558,6 +4558,115 @@ engineering to know what a failed request was serving.
 - **Every other arm is presence of a sentence**, in the rite, the drain, the preload and the driver's
   brief. Presence of a rule, never obedience to one.
 
+## Amendment (2026-09-02, thirty-first) — the loop is AFK/HITL; planning COMPOSES and he confirms once; what makes a decision his is the trade-off triangle (#393)
+
+**Deciders:** the owner, in an interview conducted mid-session, on the rite's first real run. **Written
+by** `agents-lead` (#223 — pure loop machinery; the rules decided here govern rites and escalation
+form, not product architecture, so no `tech-lead` co-citation is owed).
+
+**Why this is an amendment and not a new record.** It decides *how work is composed into an iteration
+and when the human is addressed* — the same object as the twenty-sixth, twenty-ninth and thirtieth
+amendments, and it **corrects the twenty-ninth's step 3**. #283's rule is one document per capability
+name; a new number would create a second `roster-and-dev-loop`.
+
+### What broke, and it broke on the first run
+
+`/sprint-planning` shipped at #378 presenting the ranked pool **one item at a time**, waiting for a
+per-item ruling. Run against `sprint-02`, **it stopped at item 1 of 15.** The owner's correction, in
+order:
+
+> *«a sprint planning nao é uma atividade hitl»* · *«ela é confirmada pelo hitl»* · *«voce saiu
+> desenhando ritos sem me entrevistar como gostaria de trabalhar no scrum movido pelo loop»*
+
+**The third sentence is the finding and the first two are the fix.** The rite was authored without the
+elicitation step this repository's own process mandates — *scaffold, elicit the owner's layer,
+iterate* — which governs `commands/` as much as `skills/`. The walked form was one symptom.
+
+### The decisions
+
+1. **The loop is an AI-DLC split into AFK and HITL activities, and every rite declares which it is.**
+   `/sprint-review` and `/sprint-retrospective` are AFK end to end and activate him **zero** times;
+   `/sprint-planning` is AFK **confirmed by HITL exactly once**; `/autonomy on`'s preflight refuses with
+   **one activation by class**, replacing a one-pendency-at-a-time surfacing that was the same defect
+   one command over.
+2. **Planning COMPOSES.** It applies the already-ratified rules to the ranked pool, produces a proposed
+   composition, and puts the whole of it to him as one activation — confirm · change · defer/drop an
+   item · stop. **A change recomposes and re-activates once; two is the bound**, because an unbounded
+   confirm-change loop is the fifteen-turn walk arriving one round later. **Nothing about assembly,
+   ranking, the predicates or rule 10/11 placement changes.**
+3. **What makes a decision HITL is the TRADE-OFF triangle, scoped to the Issue** —
+   *«tradeoffs de tempo, custo e escopo relacionado ao issue»*, with **time = work hours plus wait
+   hours**, **cost = tokens**, **scope = what the Issue promises**. Scope influences the other two, so
+   **anything that moves scope is a *potential* escalation** — a candidate, not an automatic one.
+4. **An escalation ALWAYS carries at most four decision options** — *«voce deveria levar sempre opcoes
+   de decisao»* — in a form that is a tweet at most, CEO register, terse on first contact, depth pulled.
+   **A question with no options is offloading the analysis**, and if a decision cannot be reduced to
+   four direct options it is not ready to be escalated.
+5. **`scrum-master` may name `product-lead` and `tech-lead` as needed to compose those options**, for
+   **one** escalation and its trade and nothing else. It holds `tools: []`, so it **names** and the
+   orchestrator dispatches. **A disagreement between the two leads IS the trade and goes to him as the
+   options**, resolved by neither.
+
+### What this REPLACES, and the replacement is the part most likely to be re-adopted
+
+**The escalation rule is NOT *reversibility, not seniority*.** That rule came from a blueprint the
+owner imported, authored for a different project, and it was relayed into this work as though it were
+his. **It is not.** It sorts backwards for this loop's own live acts — creating an iteration is barely
+reversible and trades nothing; deferring an item is trivially reversible and trades scope for time.
+Recorded here, and in `skills/agents-configuration/SKILL.md`, so a later proposal citing reversibility
+is recognisable as the blueprint speaking rather than the owner. **The permission floor's own
+irreversibility test is untouched** — it decides what may never execute without a human, which is a
+different question from whose decision a choice is.
+
+### What is NOT decided, and must not be inferred from this record
+
+- **The AFK/HITL contract table is not written into this harness.** The imported blueprint carries one;
+  this repo has per-rite declarations in four command files and the general rule in
+  `skills/engineering-standards/SKILL.md`, and no table. **It is the owner's live design work and was
+  deliberately not authored here.**
+- **No threshold is authored** — no number, no multiplier, no trigger for how far a spend runs before
+  the trade is worth escalating. Calibration comes from metrics and worklog over real iterations.
+  **`sp:N` is explicitly NOT recorded as a denominator**: that was a build's construction, withdrawn
+  before it shipped, and the owner's statement was only that scope influences cost and time.
+- **A WORKLOG does not exist here.** He named *«metricas e worklog»*; `dispatch-metrics-stop.sh` is the
+  metrics half and there is no worklog. Do not read the metrics hook as one.
+- **The story-point-to-tokens-and-hours mapping does not exist**, and **the question *how does this loop
+  decide an item's cost or time has gone wrong* is open with no mechanism.**
+- **Rules 10 and 11 stay exactly as they are.** Under decision 3 they prompt on acts that trade nothing
+  once a composition is confirmed — placement and creation execute a call already made. **They are the
+  #365 floor and this amendment changes neither**; the tension is named for the owner in
+  `commands/sprint-planning.md`'s *What was never elicited* and left to him.
+
+### The worked example decision 3 was derived from, read correctly
+
+Three PRs in one week spent **nineteen review rounds**, almost all on corrections that minted fresh
+defects — a large spend of tokens and a larger one of wait hours against **no change in scope**. **By
+the operational test that is AFK: it was not an escalation the loop failed to make.** What it exposes is
+that the spend was instrumented and nothing compared it to anything. **A calibration gap, not a missing
+activation** — which is precisely why no threshold is authored above.
+
+### What nothing enforces
+
+**All of it is instruction.** No permission layer observes a message to a human; no hook observes a
+turn. `inventory-counts.test.sh` asserts these rules are **written** — in the rites, the two preloads,
+the ranking profile's brief and the registry — and cannot observe that a planning presented one
+activation or fifteen. **The artifact that would show it is written by the same context that would have
+broken it.** By this loop's own test, the AFK/HITL split, the trade-off rule and the activation contract
+are **intentions**.
+
+### Considered and rejected
+
+- **Keep the walk and shorten each item** — rejected. The cost is the turn count, not the per-item
+  length; fifteen short questions is still fifteen interruptions.
+- **Let the rite compose and place without confirming** — rejected. Composition trades scope, which is
+  his by decision 3, and it would collapse rule 10's floor by the back door.
+- **An unbounded confirm-change loop** — rejected as having no terminal state; two activations is the
+  bound, and a third round is a finding about the rules or the pool rather than another activation.
+- **Author the AFK/HITL contract table here** — rejected. It is his design work, and a table authored
+  from four command files would read as ratified.
+- **Adopt `sp:N` as the cost/time denominator** — rejected after being drafted. He stated a relation
+  between the axes, not a mechanism; recording it would attribute a design to him that he did not make.
+
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
   [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) · the DoD is

@@ -1173,8 +1173,10 @@ carried over), not a gate.
   (#378) — PLANNING IS BUILT, and this sentence is struck IN THE PRELOAD because that is where it did
   its damage.** `commands/sprint-planning.md` is a typed rite the owner invokes: it assembles the
   eligible unmilestoned work in both repositories plus the previous iteration's retrospective
-  proposals, has a tool-less profile rank it, presents each item alone for his ruling, and **produces
-  the iteration object** — his wording, *«o rito deveria sim criar a iteracao como produto ao final
+  proposals, has a tool-less profile rank it, ~~presents each item alone for his ruling~~ **composes the
+  iteration from that ranking and puts the WHOLE composition to him as ONE activation he confirms or
+  changes (struck 2026-09-02, #393 — the walked form stopped at item 1 of 15 on the rite's first real
+  run)**, and **produces the iteration object** — his wording, *«o rito deveria sim criar a iteracao como produto ao final
   dela»*, so a planning that ends without one has produced nothing. **Composition stays his**: every
   admission is a `permission-guard.sh` rule 10 prompt and creating the milestone is rule 11's.
   **Struck rather than deleted because this file is loaded on every dispatch** — a persona that read
@@ -1189,6 +1191,78 @@ carried over), not a gate.
 - **Anything that observes an iteration.** No hook reads the queue: every `gh issue` call in
   `hooks/scripts/` is a write path. This section is a rule the loop follows, and a gate asserts only that
   the rule is **written**, never that a session obeyed it.
+
+## AFK and HITL — what this loop applies today, and the contract it does NOT have (#393)
+
+**The owner is designing this loop as an AI-DLC split into AFK and HITL activities.** The rule for
+which is which, and the form an activation takes, are `/engineering-standards`' — stated there once,
+because they are true of any loop that runs unattended and escalates to a human. **This section is what
+is local: which rites declare which, what instrument exists here, and what is missing.**
+
+**The one-line form, so a persona acting mid-dispatch does not have to leave this file:** a decision is
+his when it trades **time** (work hours *plus* wait hours), **cost** (tokens) or **scope** (what the
+Issue promises) against each other for that Issue; **anything that moves scope is a candidate**; and
+**an escalation always carries at most four options** — a bare question is offloading the analysis.
+His words: *«tradeoffs de tempo, custo e escopo relacionado ao issue»*, *«custo entenda-se por
+tokens»*, *«tempo entenda-se como horas de trabalho e espera»*, *«coisa que mexem em escopo viram
+potencial decisao necessaria escalonamento hitl»*, *«voce deveria levar sempre opcoes de decisao»*.
+
+### Who composes the options — the leads, named by `scrum-master`, dispatched by the orchestrator
+
+**The reduction to at most four options is the loop's work, and on a scope escalation it may need both
+leads first.** The owner's words: *«para isso o scrum master pode precisar envolver antes o product
+lead e o technical lead»*.
+
+**The pairing is not arbitrary — it is the trade itself.** The escalation trades time, cost and scope.
+`product-lead` holds what the scope is worth and where it sits against the queue; `tech-lead` holds
+what it costs to build and what it drags in. **Neither alone can compose an honest option set for a
+trade with both halves**, which is why the answer is both or neither rather than whichever is nearer.
+
+**`scrum-master` NAMES the leads a decision needs; it cannot dispatch them.** It holds `tools: []` — no
+dispatch, no `Bash`, no label — so the naming lands in its selection record and **the orchestrator
+dispatches**. Read any wording that sounds like it consults them as the naming, never the act.
+
+**Bounded, or this is the product ceremony returning through a side door.** They are consulted **to
+produce the option set for ONE escalation and its trade — nothing else.** Not a slice review, not an
+ordering pass, not an intake. The output is **at most four direct options**, per the activation
+contract, and the consult ends there.
+
+**When the two leads disagree, the disagreement IS the trade and it goes to him as the options.**
+`scrum-master` does not resolve it and neither does the orchestrator — that is the same shape intake
+already uses, where an unsettled disagreement goes **up** rather than **down** as competing briefs.
+
+**Each rite declares its own half, in its own file:** `/sprint-review` and `/sprint-retrospective` are
+**AFK end to end and activate him zero times**; `/sprint-planning` is **AFK, confirmed by HITL exactly
+once**; `/autonomy on`'s preflight refuses with **one activation by class**, not one per pendency.
+
+**The instrument exists and nothing reads it.** `dispatch-metrics-stop.sh` records tokens and duration
+per dispatch, so the cost axis and the wait half of the time axis are both measured in this tree today.
+**No threshold exists anywhere and none is authored** — the calibration comes from metrics and worklog
+over real iterations, which is his decision and not a build's. By this loop's own test — *would
+something stop me, or only my memory?* — **the trade-off rule is an intention.**
+
+**Three things are missing, and they are named rather than assumed away:**
+
+1. **The AFK/HITL contract table itself is NOT written into this harness.** The owner imported a
+   blueprint carrying one, whose governing rule is **reversibility** — and **that is not his rule**
+   (see below). No table here enumerates which activities are AFK and which are HITL; what exists is a
+   per-rite declaration in four command files and the general rule in `/engineering-standards`. **The
+   table is his live design work and is not authored here.**
+2. **A WORKLOG does not exist.** He named *«metricas e worklog»*; the metrics half is
+   `dispatch-metrics-stop.sh` and the worklog half has no equivalent in this tree. **Do not read the
+   metrics hook as the worklog** — the imported blueprint carries a worklog with a fixed schema and
+   this harness has nothing of the kind.
+3. **The mapping from a story point to tokens and hours does not exist**, so `sp:N` cannot be used as a
+   denominator for anything today. **The question is open and asked rather than answered:** *how does
+   this loop decide that an item's cost or time has gone wrong?* There is no mechanism.
+
+**And one correction that must travel, because the wrong rule is available from a real source.** The
+imported blueprint's escalation rule is *reversibility, not seniority*. **This loop's rule is the
+trade-off triangle**, and the two disagree about live acts — creating an iteration is irreversible-ish
+and trades nothing; deferring an item is trivially reversible and trades scope for time. **If a
+proposal arrives citing reversibility as the escalation rule, that is the blueprint speaking and not
+the owner.** The permission floor's own irreversibility test is untouched and is a different
+question — it decides what may never execute without a human, not whose decision a choice is.
 
 ## Opening a session — decisions before work
 

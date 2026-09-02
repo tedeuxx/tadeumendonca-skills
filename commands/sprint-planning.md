@@ -1,5 +1,5 @@
 ---
-description: Assemble everything that could enter the next iteration — the eligible open work plus the proposals the closing rites produced — have it ranked by a context that did not run the session, and present it to the owner ONE item at a time so he composes the iteration himself. Use when an iteration is about to open, or when the drain hands off at its terminal condition. It assembles and ranks; it never places.
+description: Assemble everything that could enter the next iteration — the eligible open work plus the proposals the closing rites produced — have it ranked by a context that did not run the session, compose the iteration from that ranking against the ratified rules, and put the WHOLE composition to the owner as ONE activation he confirms or changes. Use when an iteration is about to open, or when the drain hands off at its terminal condition. It assembles, ranks and proposes; it never places.
 purpose: give iteration composition an object, so the pool the owner rules on is assembled and ranked by a fresh context rather than remembered by the session that produced it, and so the retrospective's proposals reach a moment where they can be ruled on at all
 argument-hint: "<iteration> (the title of the iteration being composed)"
 ---
@@ -22,6 +22,12 @@ owner's act (#365), held by `permission-guard.sh` rule 10, whose prompt reaches 
 Nothing in this rite may set a milestone without his answer to that prompt, and nothing in it decides
 what the iteration contains.
 
+**Since #393 it also COMPOSES, and composing is not deciding.** It applies rules that are already
+ratified to a pool it already assembled, and puts the result to him as one thing to confirm. Read the
+three verbs as a sequence with the boundary at the end: **assemble · rank · compose** is AFK,
+**confirm** is HITL, **place** is his prompt. A rite that walked him through the pool moved the first
+three onto the human, and its first real run stopped at item 1 of 15.
+
 ### THE ITERATION IS THIS RITE'S PRODUCT, and that is a completion condition rather than a step
 
 **Owner's ruling, 2026-09-01, verbatim:**
@@ -35,7 +41,7 @@ deliverable. That is a statement about whether the rite finished, and it is why 
 optional and not a nicety at the end of a list.
 
 **One branch is exempt, and naming it is what stops a legitimate outcome reading as a violation: the
-owner admitting NOTHING.** Step 3 permits *defer* and *drop* on every item, so an empty composition is
+owner admitting NOTHING.** Step 3's activation permits *defer*, *drop* and *stop*, so an empty composition is
 a real answer — and it creates no milestone, because a milestone with no items is an object nothing
 reads. See step 4a. **Every other path through this rite ends with the object or has not finished.**
 
@@ -71,12 +77,45 @@ file publishes the predicate and no number; the dated measurement that motivated
 ADR-0002's twenty-ninth amendment, where a record belongs.
 
 **None of those three is a missing decision** — the decision is his and stays his. What was missing is
-the thing that puts the decision in front of him, item by item, with the pool already assembled.
+the thing that puts the decision in front of him — **once, over a finished composition**, with the pool
+already assembled, ranked and composed. ~~item by item~~ **struck #393: that form stopped at item 1 of
+15 on the rite's first real run**, and the correction is step 3.
 
 **It is executed in the ORCHESTRATOR's context, and that is a requirement rather than a convenience.**
 Rule 10 (`--milestone`) and rule 11 (`scripts/milestone-create.sh`) both **deny a subagent and ask the
 orchestrator**, because a dispatched context has no prompt surface for an `ask` to reach. A rite that
 ran inside a persona could not perform a single one of its own writes.
+
+## AFK or HITL — this rite is AFK, confirmed by HITL, and activates him EXACTLY ONCE (#393)
+
+**The loop is an AI-DLC split into AFK and HITL activities, and every rite declares which it is.** The
+owner's ruling for this one, verbatim:
+
+> *«a sprint planning nao é uma atividade hitl»* · *«ela é confirmada pelo hitl»*
+
+**Assembling, ranking and composing are AFK. The confirmation is HITL, once. Placement is his prompt,
+per item, and is a separate control that the confirmation does not replace.** That is the whole of the
+split, and step 3 is where it is executed.
+
+**What makes an act HITL is the TRADE-OFF, and the confirmation is one.** The owner's rule, verbatim —
+*«tradeoffs de tempo, custo e escopo relacionado ao issue»* — is the classic triangle, **scoped to the
+Issue**: a decision that moves time, cost or scope against each other for that item is his; a decision
+that moves none of them is the loop's. **Composing an iteration is exactly that trade** — which items
+are in, which wait, what the iteration therefore costs and delivers — so the confirmation is HITL by
+the rule and not by courtesy, and *defer* and *drop* in step 3b are the two options that name the trade
+outright (scope against time, scope against cost).
+
+**This is NOT the reversibility rule, and the correction matters more than the substitution.**
+`/engineering-standards` records the full replacement; the short form is that *reversibility, not
+seniority* came from an imported blueprint authored for a different project, and it is **not this
+owner's rule**. **Do not adopt it from that source.** By reversibility this rite's confirmation would
+be hard to justify at all — a milestone closes with a click and `gh issue edit --remove-milestone` takes
+an item back out. By the triangle it is plainly his, and the two rules disagree about this very act.
+
+**One tension survives and is NOT resolved here, deliberately.** `permission-guard.sh` rules 10 and 11
+prompt on **placement** and **creation** — and once the composition is confirmed, neither of those acts
+trades anything: the composition already made the call. **They are the #365 floor and this slice
+changes neither**; see *What was never elicited* at the foot of this file.
 
 ## The trigger
 
@@ -148,10 +187,16 @@ composition candidate. **A missing sweep report is a finding about the handoff, 
 say so, naming the path that was read, exactly as the paragraph above requires of the retrospective's
 directory.
 
-Each finding is a **candidate**, not an item: it has no Issue, no `ready` and no estimate. Present it as
-itself and record his ruling; **an Issue exists only where he says so**, and it is filed with **no
-milestone** like every other Issue (#365), then admitted in step 4 by the same route as everything
-else.
+Each finding is a **candidate**, not an item: it has no Issue, no `ready` and no estimate.
+
+**A candidate cannot be composed into the iteration, and it does not get an activation of its own.** It
+has no Issue, so there is nothing to admit; and a second activation for the proposals is the queue
+returning through the second door — the exact shape step 3 exists to close. **So the candidates enter
+step 3's ONE activation as a COUNT, and the default is that none becomes an Issue.** He names any he
+wants filed under the *change* option; **an Issue exists only where he says so**, it is filed with **no
+milestone** like every other Issue (#365), and it reaches a composition at the **next** planning rather
+than this one — it has no `ready` and no estimate, so it is not eligible for this pool by predicate.
+The per-finding detail lives in `docs/planning/<iteration>.md`, where he pulls it if he wants it.
 
 **The handoff shape is unexercised and this rite is its first test.** `sprint-01`'s rite produced seven
 files and none of them has ever been ruled on. Read a mismatch between what those files carry and what
@@ -212,9 +257,9 @@ which is filing order.** It is mechanical, checkable by anyone, and it is **not*
 The record says so in those terms, and *What I could not see* carries the sentence **no ratified rule
 orders within a class; the intra-class sequence below is a filing-order tiebreak, not a ranking.**
 
-**Why a declared tiebreak rather than "return the classes unordered".** The owner rules item by item
-and needs a stable presentation order; an unordered set makes the rite's own order the orchestrator's
-again, silently. A stated mechanical rule has known provenance, which is the property the dispatch
+**Why a declared tiebreak rather than "return the classes unordered".** The composition step 3a
+produces IS an order, and it goes into the milestone description as the order of record; an unordered
+set makes that order the orchestrator's again, silently. A stated mechanical rule has known provenance, which is the property the dispatch
 exists to protect. **Why not ratify the tiebreak as an ordering rule:** filing order is not an argument
 about what matters, and promoting it would put a rule in the loop that nobody decided.
 
@@ -243,34 +288,93 @@ class this section exists to close, one field over:**
   `docs/planning/<iteration>.md` (step 5) and **no selection file is written**. One ranking, one
   artifact. Two files would be two sources of truth for one act, and only one of them would be read.
 
-### Its ranking is advisory and the owner overrules it item by item
+### Its ranking is advisory and the owner overrules it in the activation
 
 Nothing reads `SELECTION-RECORD` — its own brief says so — and this rite does not make it a gate. The
-ranking decides the **order the items are presented in**, and nothing else. Every admission is his.
+ranking is the input step 3a composes from, and nothing else. Every admission is still his, at rule
+10's prompt, one per item.
 
-## Step 3 — present ONE item at a time, and take his ruling on each
+## Step 3 — COMPOSE the iteration, then put the whole composition to him as ONE activation
 
-**One question at a time. No multiple choice. No decision list.** Two standing owner constraints, both
-broken before, and a batch of admissions is a decision list wearing a table.
+**The rite COMPOSES. It presents ONE activation, not a queue.** This is the inversion of #393, made on
+the owner's correction on the rite's first real run, which stopped at item 1 of 15:
 
-Per item, in the presented order, give: the number, the title, its type, its labels, its `sp:N` if it
-has one, and **one line of why it sits where it does — which is either a ratified rule or the literal
-`tiebreak only — no ratified rule orders within this class`.** Never a composed rationale: the second
-form is the honest one whenever the class was not partitioned, and saying so is what stops an invented
-order reading as a ruling. Take one of four rulings:
+> *«a sprint planning nao é uma atividade hitl»* · *«ela é confirmada pelo hitl»*
 
-| ruling | what the rite does |
+**Read those two sentences as one rule with a boundary in it.** Composing an iteration is **AFK work** —
+it applies rules that are already ratified to a pool that is already assembled, and every input it needs
+is in the tracker. What is HITL is the **confirmation**, once, over the finished composition. A rite
+that walks him through the pool has moved the AFK half onto the human, which is the loop's own
+*"a loop that asks the human on in-pattern work is a design defect"* arriving inside a rite.
+
+**Nothing about assembly or ranking changes.** Steps 1 and 2 are untouched: the same predicates, the
+same classes, the same single dispatch, the same ratified rules, the same declared filing-order
+tiebreak. What changes is who walks the list — the rite does, and then asks once.
+
+### 3a · compose
+
+Take the ranked eligible pool and produce a **proposed composition**: the ordered list of items the
+iteration would hold, and the list it would leave out. Apply only what is already ratified — `loop`
+before `product` among the eligible (#339), the pool predicate's eligibility, and the declared
+tiebreak. **Invent no ordering rule and no worth judgement**; where nothing ratified decides, the
+tiebreak decides and the artifact says so in those words.
+
+**What the rite proposes must be defensible without him, and the defence goes in the ARTIFACT.** For
+every item in the pool — admitted and not — `docs/planning/<iteration>.md` carries one line: the
+number, the title, in or out, and **the predicate or ratified rule that put it there**, or the literal
+`tiebreak only — no ratified rule orders within this class`. **That reasoning does not go in the
+activation.** It is the depth he pulls if he wants it, and the whole point of writing it down is that
+he does not have to be shown it to rule.
+
+### 3b · activate — once, and in the form `/engineering-standards` fixes
+
+**The activation is a HITL activation and obeys that rule rather than this rite's taste.** Succinct,
+direct, objective — a tweet at most; at most four options; his technical register, naming the objects;
+terse on first escalation, because depth is pulled and it is already written down in 3a.
+
+The shape, and it is a ceiling rather than a template: **what the iteration is** (count, and the
+`loop`/`product` split), **what it leaves out** (count), **and four options.**
+
+| option | what the rite does |
 |---|---|
-| **admit** | it joins the composition being assembled in step 4 |
-| **defer** | nothing; it stays unmilestoned and returns at the next planning |
-| **drop** | nothing in the tracker. **DROP means withhold, never close** — an Issue he opened is not closed on a rite's advice |
-| **needs a decision first** | apply `blocked` and record the question on the Issue |
+| **confirm** | step 4 runs against this composition |
+| **change** | he names what moves — an item out, an item in, an order — and the rite RECOMPOSES (3c) |
+| **defer / drop an item** | the ruling is recorded and the composition is recomposed without it. **DROP means withhold, never close** — an Issue he opened is not closed on a rite's advice |
+| **stop** | the rite ends, the rulings and the composition are recorded, and no milestone is created |
 
-**Do not proceed to the next item before his ruling on the current one is recorded.** A rite that
-presents five and collects five answers has produced the decision list the constraint forbids.
+**`needs a decision first` is not a fifth option and did not survive as one.** Where the rite already
+knows an item is waiting on him, it is not eligible and never reached the composition — step 1's
+`awaiting the owner` class. Where *he* says an item needs a decision, that is a **change**: the rite
+records the question on the Issue, applies `blocked`, and recomposes without it.
+
+**The standing «one question at a time, no multiple choice» rule is NOT broken by the four options, and
+the two rules govern different acts.** *No multiple choice* governs an **interview** — eliciting what
+he thinks, where a menu puts words in his mouth. *At most four options* governs an **activation** — a
+decision he has to take, where the options are what make it fast. This rite now asks **one** question,
+which is the strictest reading of the standing rule it has ever satisfied; it is the fifteen-question
+form that broke it.
+
+### 3c · recompose, and the loop terminates at TWO activations
+
+**A change recomposes and re-activates once. That is the bound.** The second activation carries the
+recomposed iteration and is **confirm or stop**: he confirms and step 4 runs, or he stops and the rite
+ends with everything recorded and no milestone.
+
+**Two, because the bound has to be a number and not a judgement.** An unbounded confirm-change loop is
+the fifteen-turn walk arriving one round later and wearing a different name — which is the failure this
+step exists to close, so a rite that could reproduce it has not closed it. If the second composition is
+still wrong, that is a finding about the ratified rules or about the pool, not something another round
+of activation fixes: **stop, record it, and the next planning starts from a corrected input.** The
+count is visible in the artifact's activation log and by nothing else.
 
 **It does not estimate.** No `sp:N` is produced, requested or required here; estimation is
 `/agents-configuration`'s *Estimation* section, with its own estimator sets and its own trigger.
+
+**Placement is still his, and this step changes none of it.** The confirmation is what precedes the
+placement prompts; it does not replace them. Step 4 still creates the milestone under rule 11's prompt
+and still admits each item under rule 10's, one prompt per item, his answer each time. **A confirmation
+is not an authorisation to place** — the two controls are independent, and this rite performs neither
+without him.
 
 ## Step 4 — produce the iteration, then admit the items, in that order
 
@@ -308,9 +412,9 @@ nothing saying so. The rule now matches `milestone-[a-z0-9-]*.sh` in the same tw
 next script in that family arrives guarded on the day it is written rather than on the day someone
 notices. That widening ships in this slice; it is not a follow-up.
 
-**If NOTHING was admitted, 4a does not run and the rite has still finished.** Step 3's table permits
-*defer* and *drop* on every item, so the owner ruling everything out is a legitimate outcome, not a
-failure — and **an empty composition creates no milestone**, because a milestone with no items is an
+**If NOTHING was admitted, 4a does not run and the rite has still finished.** Step 3's activation
+permits *defer*, *drop* and *stop*, so the owner ruling everything out — or stopping at the first
+activation — is a legitimate outcome, not a failure — and **an empty composition creates no milestone**, because a milestone with no items is an
 object nothing reads. **That is the one branch where "a planning that ends without an iteration object
 has produced nothing" does not apply**, and it is named here so a legitimate outcome cannot read as a
 violated completion condition. Say it in the artifact — *nothing admitted, no iteration created, and
@@ -339,7 +443,7 @@ Three things make it sharper here than the general shape:
   ```
 
 - **The text is not trusted.** Both repositories are public (`gh repo view --json isPrivate` → `false`,
-  twice), so the Issue titles step 1 reads and step 3 presents are attacker-supplied strings, and step
+  twice), so the Issue titles step 1 reads and step 3 composes are attacker-supplied strings, and step
   4a is where they would have been composed into that argument.
 - **The corruption is unrecoverable from here.** The description IS the order of record and no update
   route is built (above), so a body that lands mangled is a browser delete-and-recreate.
@@ -399,8 +503,8 @@ follow that the retrospective does not have to face, and they are stated rather 
   branch is cut *for the artifact*, not found.
 - **The tracker writes in step 4 are LIVE and the artifact is not.** If the PR carrying this file is
   rejected, the milestone and the N admissions stand and the only record that the rite ran does not.
-  **So write and commit the pool, the ranking and the rulings BEFORE step 4 runs**, and append the
-  composition, the pendency and the failures after. That does not make the writes reversible — nothing
+  **So write and commit the pool, the ranking, the proposed composition and the activation log BEFORE
+  step 4 runs**, and append the confirmed composition, the pendency and the failures after. That does not make the writes reversible — nothing
   here does; `--remove-milestone` is the corrective act and it is the owner's — it makes them
   *recorded* even in the branch that never merges.
 
@@ -419,10 +523,14 @@ proposals read from docs/retrospective/<previous>/: <n findings across <n> files
 ## The ranking as returned
 <scrum-master's ranked list, verbatim, and its process findings>
 
-## The rulings
-| # | item | ruling | note |
+## The composition as proposed — every item in the pool, in or out, with WHY
+| # | item | in/out | the predicate or ratified rule that decided it, or `tiebreak only` |
 
-## The composition
+## The activation log
+<activation 1: what was put to him, in the form it was put · his answer · activation 2 if there was
+one, and the bound is two — see step 3c>
+
+## The composition as confirmed
 <the ordered body, as written into the milestone description — or the reason it could not be>
 
 ## Estimation pendency this leaves
@@ -459,7 +567,11 @@ a known next act instead of a surprise at the drain's door.
 ## What this rite does NOT do
 
 - **It does not place work.** He rules; the prompt is his answer.
-- **It does not decide what an iteration should contain.** It assembles, ranks and asks.
+- **It does not decide what an iteration should contain — it PROPOSES what an iteration should
+  contain, and the distinction is the whole of #393.** It assembles, ranks, composes against rules that
+  are already ratified, and asks once. **A composition nobody confirmed is not an iteration**: the
+  milestone and every admission still go through his prompt, and *stop* at the activation ends the rite
+  with nothing placed.
 - **It does not estimate.** Step 6.
 - **It does not open work of its own.** A proposal becomes an Issue only on his ruling, and never a
   finding of this rite's own — *Review does not open work* applies to a rite exactly as it applies to a
@@ -473,13 +585,18 @@ a known next act instead of a surprise at the drain's door.
 
 - **Nothing fires this rite**, and no hook can. See *The trigger*.
 - **Nothing observes that it ran, or that it ran correctly.** A planning skipped, a planning run over a
-  mistyped iteration title, and a planning that presented three items instead of thirty are
+  mistyped iteration title, and a planning that composed three items out of thirty are
   indistinguishable from the tracker.
 - **Nothing observes that `scrum-master` was dispatched.** `dispatch-metrics-stop.sh` reads an Issue
   number out of the branch name, and a planning branch need not carry one; the profile holds no tools,
   so it leaves no other trace.
-- **Nothing observes the one-at-a-time rule.** It is a discipline, checkable by reading the artifact's
-  rulings table and by nothing else.
+- **Nothing observes the ONE-ACTIVATION rule or the two-activation bound.** Both are disciplines,
+  checkable by reading the artifact's activation log and by nothing else — and the log is written by
+  the same context that would have broken the bound. **A rite that walked him through fifteen items
+  and then wrote `activation 1` in its own artifact would be green everywhere**, which is the honest
+  statement of what #393 did and did not close: it fixed the instruction, and there is no layer that
+  could hold it. A `PreToolUse` hook sees a command string and this act is a message to a human; no
+  hook in this harness observes a turn at all.
 - **`hooks/scripts/inventory-counts.test.sh` asserts this file's rules are WRITTEN.** It cannot assert
   that a session obeyed any of them, and no arm anywhere claims otherwise.
 
@@ -524,3 +641,32 @@ a known next act instead of a surprise at the drain's door.
   will stay still. What is stable is the property: **an Issue with no routing label matches no class
   here and is dropped without a word**, and the predicate above is how anyone reads who is in that
   state now.
+
+## What was never elicited — the questions, left as questions (#393)
+
+**This rite was authored without the elicitation step this repository's own process mandates** —
+*scaffold, elicit the owner's layer, iterate* — which governs `commands/` as much as `skills/`. The
+owner's diagnosis, verbatim: *«voce saiu desenhando ritos sem me entrevistar como gostaria de trabalhar
+no scrum movido pelo loop»*. The fifteen-turn walk was a consequence of that, not the whole of it.
+
+**These are open questions, not deferred work, and none of them is answered by inference.** Where a
+premise is missing, the honest act is to name the question rather than invent the answer — which is the
+same discipline the rest of this file applies to a count.
+
+1. **Do rules 10 and 11 still prompt for the right reason?** Under the trade-off rule, **placement and
+   creation trade nothing once the composition is confirmed** — the composition made the call and these
+   two acts execute it. **Both rules stay exactly as they are: they are the #365 floor and this slice
+   changes neither.** But the prompt at 4a is now justified by *the floor requires a human
+   verification*, not by *this is a decision he is taking* — and N admissions is N prompts on a
+   composition he has already confirmed once. **Whether that is the right shape is his call**, and it
+   is the tension this rite most wants him to look at.
+2. **What is the right size of an iteration?** Nothing anywhere bounds how many items may be admitted,
+   and this rite composes without a target. An over-filled iteration reproduces the unbounded drain
+   inside one milestone — `/agents-configuration` names that residual and proposes no mechanism.
+3. **What should the activation actually contain?** The four options and the tweet bound are his rule;
+   the specific four in step 3b are this file's reading of it and were never put to him.
+4. **Is two the right activation bound?** It is a number chosen because the bound had to be a number.
+   He has not ruled on it, and the artifact's activation log is the only place it is visible.
+
+**None of these blocks the rite.** They are named here so that the next person to change this file
+knows which of its rules are ratified and which are a build's best reading.

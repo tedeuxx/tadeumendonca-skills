@@ -4050,7 +4050,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=48
+BP_HIGH_WATER=49
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
@@ -6632,8 +6632,9 @@ else
   for est_cmd_needle in \
     '## Preflight — outstanding HITL work blocks ENTRY (#326)' \
     'todas pendencias HITL devem ser zeradas no momento da invocacao do comando' \
-    '| **an item with no estimate** |' \
-    '**one thing at a time**, never'
+    '| **no `sp:N`** |' \
+    '**What replaces it: ONE activation, by class' \
+    '~~It surfaces what is missing — **one thing at a time**,'
   do
     grep -qF -- "$est_cmd_needle" "$EST_CMD" || est_cmd_missing="$est_cmd_missing
     missing: \"$est_cmd_needle\""
@@ -6641,13 +6642,23 @@ else
   if [ -n "$est_cmd_missing" ]; then
     bad "estimation carrier — commands/autonomy.md no longer gates ENTRY on the pendency set:$est_cmd_missing
       The owner's rule is quoted rather than paraphrased because it is the rule: zero outstanding HITL
-      work AT INVOCATION. A preflight that surfaces a LIST instead of one thing at a time is a decision
-      list, which he has rejected repeatedly — the one-at-a-time clause is part of the rule, not of its
-      presentation. And an estimate pendency at ENTRY is a different rule from one discovered MID-DRAIN,
-      which escalates immediately and parks the item; collapsing the two either wakes him for every
-      doubt or holds a real blocker until the iteration closes."
+      work AT INVOCATION.
+      THE ONE-AT-A-TIME CLAUSE WAS STRUCK AT #393 AND THE NEEDLE FOLLOWED IT RATHER THAN BEING
+      DELETED. Until then this arm required the preflight to surface pendencies ONE THING AT A TIME,
+      never as a list — read as protection, because it cited the right standing constraint. It was the
+      same defect /sprint-planning stopped at item 1 of 15 on: N unestimated items became N turns of
+      his attention. What replaces it is ONE activation by CLASS, with at most four options, which is
+      a stricter reading of the same standing rule — that rule forbids a DECISION LIST, and fifteen
+      sequential questions is a decision list served one row at a time.
+      THE STRUCK FORM IS NEEDLED, NOT THE ABSENCE, and that is a two-way check in one string: it
+      disappears if someone un-strikes the sentence (reinstating the walk) and equally if someone
+      deletes it (dropping the correction, so the next reader re-derives the walk from the standing
+      rule it superficially matches).
+      And an estimate pendency at ENTRY is a different rule from one discovered MID-DRAIN, which
+      escalates immediately and parks the item; collapsing the two either wakes him for every doubt or
+      holds a real blocker until the iteration closes."
   else
-    ok "estimation carrier — commands/autonomy.md blocks entry on the pendency set, one thing at a time"
+    ok "estimation carrier — commands/autonomy.md blocks entry on the pendency set, in ONE activation by class, and carries the struck one-at-a-time form so the walk cannot quietly return"
   fi
 fi
 
@@ -7788,7 +7799,10 @@ else
     'dispatches `scrum-master` exactly once, to rank the assembled pool.' \
     '**Why dispatching it cannot leak placement, which is the property that makes this safe.**' \
     'nothing to rank against and the instruction is circular.' \
-    '**One question at a time. No multiple choice. No decision list.**' \
+    '**The rite COMPOSES. It presents ONE activation, not a queue.**' \
+    '**A change recomposes and re-activates once. That is the bound.**' \
+    'a sprint planning nao é uma atividade hitl' \
+    'The standing «one question at a time, no multiple choice» rule is NOT broken' \
     '**DROP means withhold, never close**' \
     'Never type a milestone title into a query' \
     'bash scripts/milestone-create.sh "<iteration>" --repo' \
@@ -7834,8 +7848,19 @@ else
         CIRCULAR         — scrum-master ranks against the order of record, and at planning the order of
                            record does not exist yet. Unstated, the next reader resolves it by inventing
                            an order, which is the one thing the dispatch exists to prevent.
-        ONE QUESTION     — a standing owner constraint, broken before. A batch of admissions is the
-                           decision list he has repeatedly said makes him rebuild the context each time.
+        COMPOSES /       — #393. The rite shipped walking the pool one item at a time and STOPPED AT
+        BOUND /            ITEM 1 OF 15 on its first real run; the owner's correction is that planning
+        THE QUOTE /        is AFK and only its CONFIRMATION is HITL. COMPOSES is the inversion itself.
+        NOT BROKEN         BOUND is the terminal condition — an unbounded confirm-change loop is the
+                           same fifteen-turn walk arriving one round later, so a rite carrying the
+                           inversion without the bound has not closed the defect. THE QUOTE is his
+                           wording, verbatim; a paraphrase would pass a looser needle and this ruling
+                           is the whole justification for the shape. NOT BROKEN is the reconciliation
+                           of two of his own rules that appear to collide — «one question at a time,
+                           no multiple choice» governs an INTERVIEW, «at most four options» governs an
+                           ACTIVATION — and without it the next reader resolves the collision by
+                           reverting to the walk, which is what the standing rule superficially reads
+                           as endorsing.
         DROP             — an Issue he opened is never closed on a rite's advice; DROP withholds.
         NEVER TYPE       — a milestone name that matches nothing returns empty with exit 0, which is
                            indistinguishable from a drained pool (rule 1).
@@ -7905,7 +7930,7 @@ else
                            needles because the exemption and the instruction live in two sections and
                            either alone leaves the other reading as absolute."
   else
-    ok "planning rite — the rite states its boundary, that the iteration is its PRODUCT rather than a step (in the owner's own words), its dispatch and why that dispatch cannot place work (and how narrowly), the circularity planning forces on the ranking, that the ratified rules partition rather than sequence and what the tiebreak is, the one-at-a-time rule, enumerate-then-select on BOTH inputs, the milestone route with the hole it depends on and the update route that is merely unwritten, what happens when creation fails, its own cost, that it produces no estimate and which preflight that names, both of its disclaimers, and the two classes it cannot see"
+    ok "planning rite — the rite states its boundary, that the iteration is its PRODUCT rather than a step (in the owner's own words), its dispatch and why that dispatch cannot place work (and how narrowly), the circularity planning forces on the ranking, that the ratified rules partition rather than sequence and what the tiebreak is, the one-activation rule and its two-activation bound, enumerate-then-select on BOTH inputs, the milestone route with the hole it depends on and the update route that is merely unwritten, what happens when creation fails, its own cost, that it produces no estimate and which preflight that names, both of its disclaimers, and the two classes it cannot see"
   fi
 fi
 
@@ -8194,6 +8219,169 @@ else
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
+# AFK/HITL — EVERY RITE DECLARES ITS HALF, AND THE ESCALATION RULE LIVES IN THE PORTABLE HALF (#393).
+#
+# WHY THIS IS A GATE. `/sprint-planning` shipped walking the owner through the pool one item at a time
+# and STOPPED AT ITEM 1 OF 15 on its first real run. The correction is not a wording change to one
+# rite: it is a rule about which activities are unattended and which address the human, and the same
+# defect was live in `/autonomy`'s preflight (one pendency at a time) at the moment it was found. A
+# rule of that shape decays in ONE direction — a later rite is written without a declaration, or a
+# declaration is added that says "HITL" because a ceremony feels like one — and nothing else in this
+# suite would notice, because every individual file would still read well.
+#
+# THE ARMS ARE THREE AND THEY ARE DELIBERATELY DIFFERENT IN KIND:
+#   3a  STRUCTURAL — every rite command carries an AFK-or-HITL declaration, discovered by GLOB over
+#       commands/sprint-*.md rather than by a hard-coded list, so a FOURTH rite added later is covered
+#       on the day it lands instead of on the day someone remembers this block. That is the anchoring
+#       the suite's own convention asks for: anchor on structure, not on a line or an enumeration.
+#   3b  CONTENT — the escalation rule and the activation contract are in the PORTABLE half, with the
+#       three axes defined literally and the failure test written. Needled because each clause is the
+#       owner's wording and a paraphrase passes a looser check.
+#   3c  NEGATIVE — the portable half must NOT state reversibility as the escalation rule. It is the
+#       imported blueprint's rule, it is not the owner's, and it is available from a real source, so
+#       the risk is re-adoption rather than invention. Asserting an absence is the only form that
+#       catches a rule arriving from outside.
+#
+# WHAT THESE CANNOT DO, and it is the whole of the honest scope: nothing observes a message to a human.
+# No permission layer sees one and no hook sees a turn. A rite that walked fifteen items and then wrote
+# `activation 1` in its own artifact would be GREEN here and everywhere. These arms assert the rules
+# are WRITTEN.
+AH_PORTABLE="$ROOT/skills/engineering-standards/SKILL.md"
+AH_PRELOAD="$ROOT/skills/agents-configuration/SKILL.md"
+
+# ── 3a · every rite command declares AFK or HITL, and the set is DISCOVERED, not listed ───────────
+ah_rites="$(find "$ROOT/commands" -maxdepth 1 -name 'sprint-*.md' 2>/dev/null | sort || true)"
+ah_rite_count="$(printf '%s\n' "$ah_rites" | grep -c . || true)"
+ah_decl_problems=""
+if [ "$ah_rite_count" -eq 0 ]; then
+  bad "AFK/HITL — NOT ONE rite command was found under commands/ matching sprint-*.md, and there were
+      three when this was written. Either the rites left the repo — delete this block in the same
+      commit — or the naming changed and every arm here is vacuous, which is the failure-open shape
+      this suite exists to remove."
+else
+  while IFS= read -r ah_rite; do
+    [ -z "$ah_rite" ] && continue
+    grep -qE '^## AFK or HITL — ' "$ah_rite" || ah_decl_problems="$ah_decl_problems
+    $(basename "$ah_rite") — no '## AFK or HITL — …' declaration"
+  done <<< "$ah_rites"
+  if [ -n "$ah_decl_problems" ]; then
+    bad "AFK/HITL — a rite does not declare which half of the loop it is:$ah_decl_problems
+      The owner is designing this loop as an AI-DLC split into AFK and HITL activities, and #393 is
+      what a rite costs when it does not declare: /sprint-planning walked him through a queue and
+      stopped at item 1 of 15. The heading is discovered by glob rather than listed, so a FOURTH rite
+      is covered the day it lands — which is the point. Add the declaration and the argument behind
+      it: what this rite trades on the time/cost/scope axes, and therefore how many times it
+      activates him."
+  else
+    ok "AFK/HITL — all $ah_rite_count rite commands (discovered by glob, not listed) declare which half of the loop they are (presence of a heading only; nothing observes a rite running or a human being addressed)"
+  fi
+fi
+
+# ── 3b · the escalation rule and the activation contract are in the PORTABLE half ─────────────────
+ah_content_problems=""
+if [ ! -r "$AH_PORTABLE" ]; then
+  ah_content_problems="$ah_content_problems
+    skills/engineering-standards/SKILL.md is not readable, so the rule every rite cites was not
+    checked at all."
+else
+  for ah_needle in \
+    '## What makes a decision the human'"'"'s — the triangle, scoped to the work item' \
+    '**time** | **hours of WORK and hours of WAITING — both.**' \
+    '**cost** | **tokens.**' \
+    '### The operational test — anything that MOVES SCOPE is a candidate' \
+    'Keep the word *potential*, because it is doing the work.' \
+    '### The failure test — a question with no options is not an escalation' \
+    '**An escalation always carries decision options. A bare question is offloading the analysis.**' \
+    '**And it ALWAYS carries the options.**' \
+    '### How much is NOT settled, and no threshold is authored' \
+    '**No number, no multiplier, no trigger condition.**' \
+    '## How to ACTIVATE the human — the form is part of the design, not presentation polish'
+  do
+    grep -qF -- "$ah_needle" "$AH_PORTABLE" || ah_content_problems="$ah_content_problems
+    missing from the portable half: \"$ah_needle\""
+  done
+fi
+if [ -r "$AH_PRELOAD" ]; then
+  for ah_pneedle in \
+    '## AFK and HITL — what this loop applies today, and the contract it does NOT have (#393)' \
+    '**The AFK/HITL contract table itself is NOT written into this harness.**' \
+    '**A WORKLOG does not exist.**' \
+    '**`scrum-master` NAMES the leads a decision needs; it cannot dispatch them.**' \
+    'the disagreement IS the trade'
+  do
+    grep -qF -- "$ah_pneedle" "$AH_PRELOAD" || ah_content_problems="$ah_content_problems
+    missing from the universal preload: \"$ah_pneedle\""
+  done
+  # THE RANKING PROFILE'S OWN BRIEF CARRIES THE SAME RULE, and the two must agree or the profile
+  # improvises: it is the one being told to name leads it holds no tool to dispatch.
+  if [ -r "$PLAN_SM" ]; then
+    grep -qF -- 'you name the leads, you do not consult them' "$PLAN_SM" \
+      || ah_content_problems="$ah_content_problems
+    missing from agents/scrum-master.md: \"you name the leads, you do not consult them\""
+  else
+    ah_content_problems="$ah_content_problems
+    agents/scrum-master.md is not readable, so the profile told to NAME the leads was not checked."
+  fi
+else
+  ah_content_problems="$ah_content_problems
+    skills/agents-configuration/SKILL.md is not readable, so the LOCAL half — which rites declare what,
+    what instrument exists, and what is missing — was not checked."
+fi
+if [ -n "$ah_content_problems" ]; then
+  bad "AFK/HITL — a load-bearing clause of the escalation rule or the activation contract is gone:$ah_content_problems
+      Each is the owner's own wording and a paraphrase would satisfy a looser needle:
+        TRIANGLE       — what makes a decision his: it trades time, cost or scope for that Issue. The
+                         alternatives are seniority (sorts by who feels senior) and reversibility
+                         (sorts backwards — see arm 3c).
+        TIME / COST    — defined LITERALLY, because a reader who takes 'cost' as money reaches for the
+                         wrong instrument and one who forgets the WAITING half prices an unattended
+                         chain at zero. An unattended loop does not make time cheap, it makes it
+                         invisible.
+        SCOPE TEST     — the operational trigger, and POTENTIAL is load-bearing: escalate every scope
+                         touch and the tweet rule is worthless, escalate none and he finds out after.
+        FAILURE TEST   — a question with no options is offloading the analysis. This is the clause that
+                         catches the deferential shape — asking what he wants instead of composing
+                         what the loop already worked out — and it is why 'always carries the options'
+                         is needled twice, once in the contract and once as its own test.
+        NO THRESHOLD   — the calibration is his, from metrics and worklog over real iterations. A
+                         number authored here would be a decision nobody made in a file that reads as
+                         if someone had.
+        CONTRACT / -   — the LOCAL half: the AFK/HITL contract table is HIS live design work and is
+        WORKLOG          NOT authored here, and the worklog he named does not exist in this tree. A
+                         reader who assumes the metrics hook is the worklog has closed a gap on paper.
+        LEADS          — scrum-master NAMES which leads a scope escalation needs and cannot dispatch
+                         them (tools: []), and a disagreement between them IS the trade and goes up as
+                         the options. Without both clauses this reads as the product ceremony
+                         returning through a side door."
+else
+  ok "AFK/HITL — the portable half carries the trade-off triangle with all three axes defined literally, the moves-scope test with its 'potential' qualifier, the activation contract and its failure test, and no threshold; the preload carries the local half, the unwritten contract table, the missing worklog and the leads-are-named-not-dispatched rule (text only; nothing observes an escalation)"
+fi
+
+# ── 3c · the portable half must NOT state reversibility as the escalation rule ────────────────────
+#
+# AN ABSENCE, AND THE ONLY FORM THAT CATCHES THIS. Reversibility is the governing escalation rule of a
+# blueprint the owner imported from another project, and it was relayed into this work as though it
+# were his. It is not. The risk is therefore RE-ADOPTION FROM A REAL SOURCE rather than invention: a
+# later reader meets the blueprint, finds a plausible rule, and writes it down. The needle allows the
+# word where the file is REJECTING it — which is why it keys on the assertion form rather than on the
+# term.
+if [ -r "$AH_PORTABLE" ]; then
+  if grep -qF -- '**This REPLACES *reversibility, not seniority*' "$AH_PORTABLE"; then
+    ok "AFK/HITL — the portable half records that the triangle REPLACED 'reversibility, not seniority' and names it as an imported blueprint's rule rather than the owner's (text only; nothing stops a proposal citing it)"
+  else
+    bad "AFK/HITL — skills/engineering-standards/SKILL.md no longer records that the trade-off rule
+      REPLACED 'reversibility, not seniority'.
+      That rule is not this owner's — it is the governing rule of a blueprint imported from another
+      project, and it was relayed here once already as though it were his. It sorts this loop's own
+      acts backwards: creating an iteration is barely reversible and trades nothing, deferring an item
+      is trivially reversible and trades scope for time. Without the recorded replacement, the next
+      proposal that meets the blueprint adopts it as a plausible rule and nothing says otherwise. Note
+      what this arm does NOT assert: it cannot stop reversibility being cited elsewhere, and it must
+      not be read as doing so."
+  fi
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
 # THE SPRINT REVIEW RITE, AND THE TWO GROUNDS ITS REFUSAL DEMANDED (#379).
 #
 # WHY THIS EXISTS. The review half was REFUSED for as long as it was — not deferred on effort — on two
@@ -8307,10 +8495,16 @@ fi
 if [ -r "$REV_CMD" ]; then
   # Both patterns are normalised to a BARE path before filtering, so one filter serves both. The known
   # command identifiers are the only leading-slash tokens this file legitimately carries.
+  #
+  # `engineering-standards` WAS ADDED AT #393, and it is the arm's first live false positive — which
+  # is the trade the comment above priced and accepted in advance: the rite's AFK/HITL declaration
+  # cites `/engineering-standards` for the escalation rule, the filter did not know the identifier,
+  # and the arm reddened LOUDLY rather than missing anything. One filter entry, in the same commit,
+  # said out loud here as that instruction requires.
   rev_routes="$( { grep -oE '`/(pt|en|[a-z][a-z-]*)(/[a-z][a-z-]*)*`' "$REV_CMD" | tr -d '`'
                    grep -oE '^[[:space:]]*([-*][[:space:]]+)?/[a-z][a-z-]*(/[a-z][a-z-]*)*' "$REV_CMD" \
                      | grep -oE '/[a-z][a-z-]*(/[a-z][a-z-]*)*' ; } \
-                  | grep -vE '^/(sprint-review|sprint-retrospective|sprint-planning|autonomy|new-issue|blueprint|agents-configuration|published-voice|code-review|quality-gates|devops|shell)$' \
+                  | grep -vE '^/(sprint-review|sprint-retrospective|sprint-planning|autonomy|new-issue|blueprint|agents-configuration|engineering-standards|published-voice|code-review|quality-gates|devops|shell)$' \
                   || true)"
   if [ -n "$rev_routes" ]; then
     bad "sprint review rite — commands/sprint-review.md appears to carry a hand-written ROUTE LIST:
