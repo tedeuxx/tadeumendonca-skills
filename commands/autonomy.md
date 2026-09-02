@@ -180,33 +180,9 @@ The owner's rule, in his words:
 
 > *"todas pendencias HITL devem ser zeradas no momento da invocacao do comando"*
 
-**If any exists, the drain does not enter.** ~~It surfaces what is missing — **one thing at a time**,
-never as a list — and waits.~~ **Struck 2026-09-02 (#393): that is the same defect `/sprint-planning`
-step 3 was corrected for, one command over.** N unestimated items became N turns of his attention, and
-the rule that produced it read as protective because it cited the right standing constraint.
-
-**What replaces it: ONE activation, by class, in the form `/engineering-standards` fixes.** Succinct,
-a tweet at most, at most four options, terse on first escalation, depth pulled. It names each pendency
-class and its count, not each member — the members are one query away and the activation says which
-query. **The standing «one question at a time, no multiple choice» rule is satisfied more strictly by
-this than by the form it replaces**: that rule forbids a *decision list*, and fifteen sequential
-questions is a decision list served one row at a time.
-
-**And most of the preflight's pendency set is NOT a decision at all, which is why the old form was
-expensive as well as slow.** By the trade-off rule (`/engineering-standards`, *What makes a decision
-the human's* — *«tradeoffs de tempo, custo e escopo relacionado ao issue»*, **time = work hours plus
-wait hours**, **cost = tokens**):
-
-| pendency class | trades anything? | so what does the activation offer |
-|---|---|---|
-| **no `sp:N`** | **no.** An estimate is a dispatch, not a call — the estimator sets are ratified and the median is mechanical | **run the estimation pass** — one option, and the tokens and wall clock it will spend are the trade he is actually ruling on |
-| **no `ready` on the `loop` lane** | **yes — scope.** It is his transition alone | **his ruling**, and it is the one class that genuinely needs him |
-| **`blocked`** | **yes — it is already his question** | surface the count and the query; the questions themselves live on the Issues |
-| **outstanding `APPROVE-PENDING-HUMAN`** | **yes — go/no-go** | the PR link, per the standing rule that a link goes to him only at a mergeable head |
-
-**That table is a reading of his rule and not a ruling of his**, and the estimate row is the one most
-worth his eye: it says the loop may run 2N dispatches on his single yes, rather than asking him 2N
-times. **No threshold anywhere bounds that spend, and none is proposed here.**
+**If any exists, the drain does not enter.** It surfaces what is missing — **one thing at a time**, never
+as a list — and waits. The one-at-a-time rule is not presentation: a batch of pendencies is a decision
+list, and he has said repeatedly that a decision list makes him rebuild the context for each item.
 
 **The classes, and what queries each:**
 

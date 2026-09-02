@@ -1192,31 +1192,41 @@ carried over), not a gate.
   `hooks/scripts/` is a write path. This section is a rule the loop follows, and a gate asserts only that
   the rule is **written**, never that a session obeyed it.
 
-## AFK and HITL — what this loop applies today, and the contract it does NOT have (#393)
+## The escalation standard, as this loop applies it (#393)
 
-**The owner is designing this loop as an AI-DLC split into AFK and HITL activities.** The rule for
-which is which, and the form an activation takes, are `/engineering-standards`' — stated there once,
-because they are true of any loop that runs unattended and escalates to a human. **This section is what
-is local: which rites declare which, what instrument exists here, and what is missing.**
+**The standard itself is `/engineering-standards`'** — *The escalation standard*, stated there once
+because it is true of any loop that runs unattended and escalates to a human. **This section is what is
+local: who composes the options here, and what this harness does and does not have.**
 
-**The one-line form, so a persona acting mid-dispatch does not have to leave this file:** a decision is
-his when it trades **time** (work hours *plus* wait hours), **cost** (tokens) or **scope** (what the
-Issue promises) against each other for that Issue; **anything that moves scope is a candidate**; and
-**an escalation always carries at most four options** — a bare question is offloading the analysis.
-His words: *«tradeoffs de tempo, custo e escopo relacionado ao issue»*, *«custo entenda-se por
-tokens»*, *«tempo entenda-se como horas de trabalho e espera»*, *«coisa que mexem em escopo viram
-potencial decisao necessaria escalonamento hitl»*, *«voce deveria levar sempre opcoes de decisao»*.
+**The five clauses, so a persona acting mid-dispatch does not have to leave this file. ALL FIVE, or it
+is not an escalation:** (1) a loop is running — an iteration in flight; (2) a **dispatched subagent**
+hits something on an Issue *in that iteration*; (3) it rises **subagent → main session → the owner**;
+(4) the trigger is a **trade** of time (work *plus* wait hours), cost (tokens) or scope (what the Issue
+promises) for that item — **anything moving scope is a candidate, not an automatic escalation**; (5) the
+form is a tweet at most, **at most four direct options**, his technical register, terse first, depth
+pulled — **and it always carries the options**, because a bare question is offloading the analysis.
 
-### Who composes the options — the leads, named by `scrum-master`, dispatched by the orchestrator
+**The precondition is first for a reason: «se nao tem loop nao é hitl».** Outside a running iteration —
+a design conversation, an interview, an ad-hoc request typed at the terminal — **there is no HITL
+pendency, whatever the subject.** A reader who meets the form without the precondition stamps every
+question to the owner as an escalation, which is exactly what happened while this was being written.
+
+His words, so the rule is not a paraphrase: *«eu apenas queria padronizar a escalacao do loop»*,
+*«pendencias hitl sao apenas derivadas o protocolo de escalnomaneto padrao de subagents ate a sessao
+principal»*, *«relacionados a issues em andamento em um sprint»*, *«se nao tem loop nao é hitl»*,
+*«tradeoffs de tempo, custo e escopo relacionado ao issue»*, *«custo entenda-se por tokens»*, *«tempo
+entenda-se como horas de trabalho e espera»*, *«coisa que mexem em escopo viram potencial decisao
+necessaria escalonamento hitl»*, *«voce deveria levar sempre opcoes de decisao»*.
+
+### Who composes the options — the leads, NAMED by `scrum-master`, dispatched by the orchestrator
 
 **The reduction to at most four options is the loop's work, and on a scope escalation it may need both
 leads first.** The owner's words: *«para isso o scrum master pode precisar envolver antes o product
 lead e o technical lead»*.
 
-**The pairing is not arbitrary — it is the trade itself.** The escalation trades time, cost and scope.
-`product-lead` holds what the scope is worth and where it sits against the queue; `tech-lead` holds
-what it costs to build and what it drags in. **Neither alone can compose an honest option set for a
-trade with both halves**, which is why the answer is both or neither rather than whichever is nearer.
+**The pairing is the trade itself.** The escalation trades time, cost and scope. `product-lead` holds
+what the scope is worth and where it sits against the queue; `tech-lead` holds what it costs to build
+and what it drags in. **Neither alone can compose an honest option set for a trade with both halves.**
 
 **`scrum-master` NAMES the leads a decision needs; it cannot dispatch them.** It holds `tools: []` — no
 dispatch, no `Bash`, no label — so the naming lands in its selection record and **the orchestrator
@@ -1224,45 +1234,52 @@ dispatches**. Read any wording that sounds like it consults them as the naming, 
 
 **Bounded, or this is the product ceremony returning through a side door.** They are consulted **to
 produce the option set for ONE escalation and its trade — nothing else.** Not a slice review, not an
-ordering pass, not an intake. The output is **at most four direct options**, per the activation
-contract, and the consult ends there.
+ordering pass, not an intake. At most four direct options come back.
 
 **When the two leads disagree, the disagreement IS the trade and it goes to him as the options.**
-`scrum-master` does not resolve it and neither does the orchestrator — that is the same shape intake
-already uses, where an unsettled disagreement goes **up** rather than **down** as competing briefs.
+`scrum-master` does not resolve it and neither does the orchestrator — the same shape intake already
+uses, where an unsettled disagreement goes **up** rather than **down** as competing briefs.
 
-**Each rite declares its own half, in its own file:** `/sprint-review` and `/sprint-retrospective` are
-**AFK end to end and activate him zero times**; `/sprint-planning` is **AFK, confirmed by HITL exactly
-once**; `/autonomy on`'s preflight refuses with **one activation by class**, not one per pendency.
+### What is instrumented here, and what does not exist
 
 **The instrument exists and nothing reads it.** `dispatch-metrics-stop.sh` records tokens and duration
 per dispatch, so the cost axis and the wait half of the time axis are both measured in this tree today.
 **No threshold exists anywhere and none is authored** — the calibration comes from metrics and worklog
-over real iterations, which is his decision and not a build's. By this loop's own test — *would
-something stop me, or only my memory?* — **the trade-off rule is an intention.**
+over real iterations, which is his decision and not a build's.
 
-**Three things are missing, and they are named rather than assumed away:**
+**Three things are missing and are named rather than assumed away:**
 
-1. **The AFK/HITL contract table itself is NOT written into this harness.** The owner imported a
-   blueprint carrying one, whose governing rule is **reversibility** — and **that is not his rule**
-   (see below). No table here enumerates which activities are AFK and which are HITL; what exists is a
-   per-rite declaration in four command files and the general rule in `/engineering-standards`. **The
-   table is his live design work and is not authored here.**
-2. **A WORKLOG does not exist.** He named *«metricas e worklog»*; the metrics half is
+1. **A WORKLOG does not exist.** He named *«metricas e worklog»*; the metrics half is
    `dispatch-metrics-stop.sh` and the worklog half has no equivalent in this tree. **Do not read the
-   metrics hook as the worklog** — the imported blueprint carries a worklog with a fixed schema and
-   this harness has nothing of the kind.
-3. **The mapping from a story point to tokens and hours does not exist**, so `sp:N` cannot be used as a
-   denominator for anything today. **The question is open and asked rather than answered:** *how does
-   this loop decide that an item's cost or time has gone wrong?* There is no mechanism.
+   metrics hook as the worklog.**
+2. **The mapping from a story point to tokens and hours does not exist**, so `sp:N` is not a denominator
+   for anything today. **The question is open and asked rather than answered:** *how does this loop
+   decide that an item's cost or time has gone wrong?* There is no mechanism.
+3. **No AFK/HITL contract table is written into this harness.** The owner imported a blueprint carrying
+   one; what exists here is the five-clause standard above and nothing tabular. **The table is his live
+   design work and is deliberately not authored here.**
 
-**And one correction that must travel, because the wrong rule is available from a real source.** The
-imported blueprint's escalation rule is *reversibility, not seniority*. **This loop's rule is the
-trade-off triangle**, and the two disagree about live acts — creating an iteration is irreversible-ish
-and trades nothing; deferring an item is trivially reversible and trades scope for time. **If a
-proposal arrives citing reversibility as the escalation rule, that is the blueprint speaking and not
-the owner.** The permission floor's own irreversibility test is untouched and is a different
-question — it decides what may never execute without a human, not whose decision a choice is.
+**And one correction that must travel, because the wrong rule is available from a real source.** That
+imported blueprint's escalation rule is *reversibility, not seniority*. **This loop's rule is the trade
+test**, and the two disagree about live acts — creating an iteration is barely reversible and trades
+nothing; deferring an item is trivially reversible and trades scope for time. **If a proposal arrives
+citing reversibility as the escalation rule, that is the blueprint speaking and not the owner.** The
+permission floor's own irreversibility test is untouched and is a different question — it decides what
+may never execute without a human, not whose decision a choice is.
+
+### What enforces this — almost nothing, and the honest split is worth carrying
+
+**Clauses 2, 3 and 4 are not checkable by any layer in this harness.** Nothing records that a subagent's
+return was an escalation rather than its ordinary output; nothing distinguishes a relayed escalation
+from the orchestrator's own prose; and whether a question was a genuine trade is a judgement no string
+check reaches. **Do not build something that pretends to check them** — a detector that fails open is
+worse than none, which is this loop's own rule.
+
+**Clause 1 is a query and clause 5's shape is string-checkable**, but only once something declares that
+an escalation is happening — inferring it from prose fails open. And **every layer available here is
+DETECTION, one turn late**: a permission layer reads a command string, and an escalation is a message to
+a human, which no matcher sees. By this loop's own test — *would something stop me, or only my memory?*
+— **the escalation standard is an intention.**
 
 ## Opening a session — decisions before work
 

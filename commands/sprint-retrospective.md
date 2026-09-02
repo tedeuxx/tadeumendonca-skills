@@ -32,31 +32,6 @@ removed. **Isolated speculation is still speculation.** So the dispatch feeds ea
 evidence, and asks it to reason from that. That is what step 3 is for, and it is the reason this rite is
 worth running at all.
 
-## AFK or HITL — this rite is AFK, end to end, and activates him ZERO times (#393)
-
-**The loop is an AI-DLC split into AFK and HITL activities, and every rite declares which it is.** This
-one is **AFK in full**: it derives a consult set, dispatches, reads artifacts, writes files, and ends.
-**It puts no question to the owner at any point.**
-
-**The argument is the TRADE-OFF, which is the governing rule for what is HITL at all — not seniority
-and not reversibility** (`/engineering-standards`, *What makes a decision the human's*; the owner's
-words are *«tradeoffs de tempo, custo e escopo relacionado ao issue»*, with **time = work hours plus
-wait hours** and **cost = tokens**). **This rite trades nothing:** it decides no Issue's scope, admits
-nothing and removes nothing. The one act that WOULD trade scope is **filing work**, and the rite is
-denied that by rule 5c rather than by restraint — a finding becomes an Issue only where he says so.
-
-**Its own spend is real and lands on two axes**, which is the honest reading rather than a clean one:
-N dispatches is N × tokens and N × wall clock, and the cap of two findings per persona is the only
-thing bounding either. **The cap was set before the axes were named and no threshold exists** — that
-calibration is his, and this rite does not invent one.
-
-**Its output is a PROPOSAL he rules on inside `/sprint-planning`'s single activation, and not one turn
-sooner.** A rite that consulted six personas and then walked him through twelve findings would be the
-fifteen-turn walk #393 corrected one rite over, arriving through the closing ceremony instead of the
-opening one. **The cap of two findings per persona is a bound on the artifact, not a licence to spend
-his turns** — twelve findings still reach him as one line in one activation, with the detail in the
-files he pulls if he wants them.
-
 ## The trigger
 
 **The drain reaching exhaustion of its ENTRY SNAPSHOT** — the owner's ratified end-of-sprint signal

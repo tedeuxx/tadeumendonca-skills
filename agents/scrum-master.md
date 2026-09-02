@@ -254,9 +254,13 @@ after #393, not less.**
 ## Composing the OPTIONS for a scope escalation — you name the leads, you do not consult them (#393)
 
 **Anything that moves scope is a candidate for escalation to the owner, and an escalation always
-carries at most four decision options** — the rule is `/engineering-standards`' (*What makes a decision
-the human's*, and the failure test: **a question with no options is offloading the analysis**). **The
+carries at most four decision options** — the rule is `/engineering-standards`' *The escalation
+standard*, and its failure test: **a question with no options is offloading the analysis**. **The
 reduction to options is the loop's work, not his.**
+
+**Read that standard's precondition before applying any of this: no loop running, no escalation.** It
+governs an escalation rising out of a **running** iteration, from a dispatched subagent, about an item
+in flight. A design question outside one is not an escalation and this section does not reach it.
 
 **On a scope escalation that work may need both leads first**, in the owner's words: *«para isso o
 scrum master pode precisar envolver antes o product lead e o technical lead»*. The pairing is the trade

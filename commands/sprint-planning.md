@@ -86,31 +86,20 @@ Rule 10 (`--milestone`) and rule 11 (`scripts/milestone-create.sh`) both **deny 
 orchestrator**, because a dispatched context has no prompt surface for an `ask` to reach. A rite that
 ran inside a persona could not perform a single one of its own writes.
 
-## AFK or HITL — this rite is AFK, confirmed by HITL, and activates him EXACTLY ONCE (#393)
+## The rite is unattended; only its CONFIRMATION addresses him (#393)
 
-**The loop is an AI-DLC split into AFK and HITL activities, and every rite declares which it is.** The
-owner's ruling for this one, verbatim:
+**The owner's ruling, verbatim:**
 
 > *«a sprint planning nao é uma atividade hitl»* · *«ela é confirmada pelo hitl»*
 
-**Assembling, ranking and composing are AFK. The confirmation is HITL, once. Placement is his prompt,
-per item, and is a separate control that the confirmation does not replace.** That is the whole of the
-split, and step 3 is where it is executed.
+**Assembling, ranking and composing are the loop's work. The confirmation is his, once. Placement is
+his prompt, per item, and is a separate control that the confirmation does not replace.** That is the
+whole of the split, and step 3 is where it is executed.
 
-**What makes an act HITL is the TRADE-OFF, and the confirmation is one.** The owner's rule, verbatim —
-*«tradeoffs de tempo, custo e escopo relacionado ao issue»* — is the classic triangle, **scoped to the
-Issue**: a decision that moves time, cost or scope against each other for that item is his; a decision
-that moves none of them is the loop's. **Composing an iteration is exactly that trade** — which items
-are in, which wait, what the iteration therefore costs and delivers — so the confirmation is HITL by
-the rule and not by courtesy, and *defer* and *drop* in step 3b are the two options that name the trade
-outright (scope against time, scope against cost).
-
-**This is NOT the reversibility rule, and the correction matters more than the substitution.**
-`/engineering-standards` records the full replacement; the short form is that *reversibility, not
-seniority* came from an imported blueprint authored for a different project, and it is **not this
-owner's rule**. **Do not adopt it from that source.** By reversibility this rite's confirmation would
-be hard to justify at all — a milestone closes with a click and `gh issue edit --remove-milestone` takes
-an item back out. By the triangle it is plainly his, and the two rules disagree about this very act.
+**The confirmation qualifies as a trade**, which is what makes it his under
+`/engineering-standards`' escalation standard rather than by courtesy: composing an iteration moves
+**scope** — which items are in, which wait — and scope moves cost and time with it. *Defer* and *drop*
+in step 3b are the two options that name that trade outright.
 
 **One tension survives and is NOT resolved here, deliberately.** `permission-guard.sh` rules 10 and 11
 prompt on **placement** and **creation** — and once the composition is confirmed, neither of those acts
@@ -328,9 +317,15 @@ he does not have to be shown it to rule.
 
 ### 3b · activate — once, and in the form `/engineering-standards` fixes
 
-**The activation is a HITL activation and obeys that rule rather than this rite's taste.** Succinct,
-direct, objective — a tweet at most; at most four options; his technical register, naming the objects;
-terse on first escalation, because depth is pulled and it is already written down in 3a.
+**It takes the FORM of `/engineering-standards`' escalation standard, and it is NOT an instance of
+it — say both or the standard gets stretched.** That standard governs an escalation rising out of a
+**running** iteration, from a dispatched subagent, about an item in flight. **Planning is none of
+those**: it runs between iterations, on a pool, from the orchestrator. What the rite borrows is the
+form, because the form is right for any moment that interrupts him — and borrowing a form is not
+membership in a class.
+
+Succinct, direct, objective — a tweet at most; at most four options; his technical register, naming
+the objects; terse, because depth is pulled and it is already written down in 3a.
 
 The shape, and it is a ceiling rather than a template: **what the iteration is** (count, and the
 `loop`/`product` split), **what it leaves out** (count), **and four options.**
