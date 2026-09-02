@@ -805,6 +805,79 @@ this section, which supersedes it.
   moved a stale claim into a live document.
 - **The record's own `Links` block**, whose pointers are folded into the sentences that use them.
 
+## Amendment, 2026-09-02 — the Definition of Done accepted CORRECT as DELIVERED, and gains a criterion that cannot be gated
+
+**Driven by [#362](https://github.com/tedeuxx/tadeumendonca-skills/issues/362), opened by the owner on
+his own finding; written by `agents-lead` under the domain split (#223).** It belongs to this capability
+rather than to `skills-and-preload` because its subject is **what the DoD asks and what artifact answers
+it** — where the DoD physically lives is #380's, recorded as an amendment to
+[ADR-0011](./0011-skills-and-preload.md) in the same MR.
+
+### The defect, stated as a property rather than as the incident
+
+**The criteria verify that a change is CORRECT. None of them asked whether it is USED.** For most slices
+those coincide — a guard that denies denies, a rule that is written is written. **They come apart exactly
+where a feature's consumer is an artifact somebody has to AUTHOR**, and there this list had nothing.
+
+**The measured instance passed every layer, and nobody was wrong about their own.** A slice shipped two
+review affordances behind a preview parameter; one renders only when an article declares a front-matter
+field, and only the test fixture written to prove the feature declared one. **The feature worked for its
+own fixture and for nothing else** — with six E2E tests, a mutation-checked assertion suite, and the
+limitation **disclosed in the builder's own report**. The builder wrote it as a limitation, correctly.
+The gate read it and approved, correctly by every criterion it then had. The orchestrator relayed it,
+twice, as prose. The owner found it by opening the page himself.
+
+**It is not "it was not tested."** The mechanism was proven and the outcome was never looked at.
+
+### The decision
+
+**A criterion is added — `quality-assurance` criterion 11, `/definition-of-done` row 9 — and it is
+admitted to the list with its right-hand column reading `no, and it cannot be`.**
+
+> Where the slice's consumer is an artifact somebody has to **author**, name that artifact and state
+> whether it exists.
+
+**What it does is convert a disclosed limitation into a question handed to the owner**, in the verdict,
+as an ask — rather than a sentence in a report he reads and is never asked about. **It does not block.**
+Building a mechanism ahead of its consumer stays legitimate here and is recorded as such.
+
+### Considered and rejected
+
+**A blanket *"prove it is used."*** Rejected: it would block every mechanism built ahead of its consumer,
+which this repo does deliberately — `published-voice` was extracted ahead of its second consumer and
+[ADR-0011](./0011-skills-and-preload.md) records that as an accepted exception, not a defect.
+
+**Tighten the existing `invocable:` declaration instead.** Rejected on the predicate, which is the whole
+distinction: `hooks/scripts/closure-artifact-guard.sh` tests **EXISTENCE** of a named artifact, and in
+the measured instance an honest declaration would have named a component path that resolves perfectly
+while the feature still reached nobody. Row 9's predicate is **REACH**. Same shape, different question,
+and conflating them would have produced a green that means less than it looks like.
+
+**Leave it to the iteration-close sweep.** Rejected on a measurement, and this is the finding most worth
+carrying: the sweep derives its target list from the application's own route generator, and a held or
+unpublished artifact is by construction not emitted by that generator. **The rite that looks most like a
+backstop here is structurally blind to the exact case.** Closing #362 by pointing at the sweep would have
+closed it with nothing covering it, on a premise that is false at head.
+
+**Mechanise the relay** (the Issue's open question 4 — *the limitation reached the owner twice as prose
+and neither time as a question*). **Named, not built.** Every layer was walked: a `PreToolUse` hook reads
+a command string, and `shell` requires every comment body to go through `--body-file`, so the prose a
+relay consists of is never in the string a hook sees; a `Stop` hook cannot tell narration from a
+question. A behaviour rule with no artifact is what this loop keeps measuring as not holding, and adding
+a third layer of paper over the same sentence is not a fix.
+
+### Consequences
+
+**Good.** The gap surfaces at the merge rather than at iteration close, which is earlier and cheaper, and
+it surfaces as a **question** rather than as a disclosure that reads as handled.
+
+**Bad, and it is the honest cost.** **Nothing observes that anyone asked.** No hook can — the subject is
+an artifact outside the diff and usually outside the repository. By this loop's own test — *would
+something stop me, or only my memory?* — **criterion 11 is not engineered.** It joins four other criteria
+that are already in that state, and the seam table added by #380 is what makes that visible instead of
+implied. A reviewer who answers it perfunctorily produces exactly the green this record exists to
+distrust, and there is no instrument that would say so.
+
 ## Links
 - [ADR-0002](./0002-roster-and-dev-loop.md) amendment #10 — the roster change that removed the
   reading party; the four costs of the absorption are recorded there, cost 3 being this one

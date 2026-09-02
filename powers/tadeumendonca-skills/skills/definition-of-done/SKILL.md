@@ -162,8 +162,74 @@ gate tables, the thresholds and the enforcement wiring, which are CI/CD metrics 
 | 6 | **Docs/Mermaid updated**; debt named in the review | **no** |
 | 7 | **Conventional-commit** subject (the commit log is the changelog) | **no** — a convention this repo keeps and does not enforce; the derived commit↔issue coverage check that would is deliberately deferred, per `/agents-configuration` |
 | 8 | **Validated locally**, with real command output rather than a claim | **no** — the report is the only artifact |
+| 9 | **Where the slice's consumer is an artifact somebody has to AUTHOR, that artifact is named and its existence stated** (#362) | **no, and it cannot be** — see below; the row is admitted knowing that |
 
 Anything short of all of these is in-progress, not done.
+
+### Row 9 — the DoD accepted CORRECT as DELIVERED, and this is the narrowest honest repair (#362)
+
+**The gap, as a property rather than as an incident: the criteria above verify that a change is
+CORRECT. Until row 9, nothing asked whether it is USED.** For most slices those coincide — a guard that
+denies denies, a rule that is written is written. **They come apart exactly where a feature's consumer
+is an artifact somebody has to author**, and there the loop had no criterion at all.
+
+**The measured instance, and it passed every layer.** A slice shipped two review affordances behind a
+preview parameter; one of them renders only when an article declares a field in its front matter. Only
+the test fixture written to prove the feature declared one. **So the feature worked for its own fixture
+and for nothing else** — with six E2E tests, a mutation-checked assertion suite, and the limitation
+*disclosed in the builder's own report*. The builder was right about the diff. The gate was right about
+the diff. The relay was right about what it relayed. **Nobody owned whether the feature reached its
+consumer**, and the owner found it by opening the page himself.
+
+**This is not "it was not tested."** The mechanism was proven and the outcome was never looked at.
+
+#### What row 9 deliberately is NOT
+
+**It is not a blanket *"prove it is used."*** That would block every mechanism built ahead of its
+consumer, which this repo does deliberately and correctly — `published-voice` was extracted ahead of its
+second consumer and that is recorded as an accepted exception, not a defect. The scope is the narrow
+one: **a slice whose consumer is an authored artifact.** Where the consumer is code, a caller, a hook or
+a reader following a link, rows 1–8 already cover it and row 9 has no subject.
+
+**It is not gateable, and saying so is the point rather than an apology.** *"Does this reach its
+consumer"* has no mechanical form in the general case, and a criterion nobody can check is the shape
+this repository names as its worst. Row 9 is admitted to the list **with its right-hand column reading
+`no, and it cannot be`** — which is precisely what the seam table exists to make sayable. A criterion
+that is honest about having no gate is worth more than one that implies it has one.
+
+**It is not the existing `invocable:` field under another name, and the difference is the predicate.**
+`hooks/scripts/closure-artifact-guard.sh` reads a declared `invocable:` line and refuses a manual close
+when the named artifact does not exist. **Its predicate is EXISTENCE; row 9's is REACH.** In the measured
+instance an honest `invocable:` declaration would have named a component path that resolves perfectly —
+the guard would have passed, and the feature would still have reached nobody. Read row 9 as covering
+what that guard cannot see rather than as a tightening of it.
+
+#### How it is actually satisfied, and by whom
+
+**At review, in one sentence, in the verdict.** The reviewer asks: *what has to exist, outside this
+diff, for this change to do anything for a reader — and does it exist?* Three honest answers, and the
+third is the one this row was written for:
+
+- **"Nothing does; the consumer is code already in this diff."** Row 9 has no subject. Say so and move on.
+- **"X exists."** Name it. That is the evidence.
+- **"X does not exist yet."** *This is the answer that used to pass silently as a disclosed
+  limitation.* It does not stop the merge — building a mechanism ahead of its consumer stays legitimate
+  — but it is a finding the owner is handed as a **question**, not as a sentence in a report. The
+  measured instance reached him twice as prose and neither time as a question.
+
+#### The residual, named because nothing catches it
+
+**Nothing observes that anyone asked.** No hook can: the question is about an artifact outside the diff,
+in another repository more often than not, and a `PreToolUse` guard reads a command string while a
+`Stop` hook reads committed state. **By this loop's own test — *would something stop me, or only my
+memory?* — row 9 is not engineered.** It is a criterion with a reviewer behind it and no instrument,
+which is exactly what four of the other eight rows already are; it is listed with them rather than
+pretending to be a ninth gate.
+
+**And the sweep will not cover it either.** The iteration-close review rite derives its target list
+from the application's own route generator, and a held or unpublished artifact is by construction not
+in that list — so the rite that looks most like a backstop here is structurally blind to the very case
+row 9 names. That is stated so nobody closes this gap twice by pointing at the sweep.
 
 ### The seam — a green gate is not a met DoD, and this is the sentence that makes it visible
 
@@ -174,7 +240,8 @@ repository's own gate exists because it rots:
 
 - **fully proved by a gate:** rows 1 and 3;
 - **proved in part, with the uncovered part named in the row:** rows 2 and 5;
-- **not proved by anything mechanical:** rows 4, 6, 7 and 8.
+- **not proved by anything mechanical:** rows 4, 6, 7, 8 and 9 — and row 9 is the one that **cannot**
+  be, by construction rather than for want of someone building it.
 
 A pipeline that is entirely green has established rows 1 and 3, part of 2 and part of 5, **and nothing
 else**.

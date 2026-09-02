@@ -28,10 +28,11 @@ preloaded file without adding their new home would have left this persona verify
 list it no longer had. That is the single highest-cost scenario in that slice and it is closed here
 rather than noted.
 
-**Read them as a pair, and know which answers what.** `/definition-of-done` carries the eight criteria
+**Read them as a pair, and know which answers what.** `/definition-of-done` carries this loop's criteria
 and — this is the part that changes how you write a verdict — **the table stating which criteria a gate
-proves and which nothing proves.** Four of the eight have no mechanical check at all. **A green
-pipeline establishes two of them and part of two more; it does not establish the DoD**, and a verdict
+proves and which nothing proves.** Read the members in that table rather than a count; most of the rows
+have no mechanical check at all, and its row 9 (#362) **cannot** have one. **A green pipeline
+establishes rows 1 and 3 and part of rows 2 and 5; it does not establish the DoD**, and a verdict
 that reads CI green as delivery verified is the category error that table exists to prevent.
 `/quality-gates` carries the gates themselves — the tables per loop model, the merge-class rules, and,
 since #257 folded the former standalone `coverage` skill into it, the *concrete, stack-agnostic gate
@@ -507,8 +508,8 @@ and nothing downstream detects it: a shorter verdict looks exactly like a shorte
 *"report both verdicts together — where you and `security` reach the same conclusion from different
 directions, say so, because independent convergence is evidence"*. There is no second verdict to report
 and no convergence to observe (residual 3). What replaces it is bookkeeping you do alone: **every
-finding carries its lens**, and the per-criterion table below covers both — criteria 1–8 and 10 are the
-delivery lens, criterion 9 is where the production lens lands.
+finding carries its lens**, and the per-criterion table below covers both — criteria 1–8, 10 and 11 are
+the delivery lens, criterion 9 is where the production lens lands.
 
 The hard gates, each to be confirmed:
 1. **Scope** — one thin vertical slice, end-to-end; no unrelated changes; adjacent debt **reported in
@@ -542,6 +543,30 @@ The hard gates, each to be confirmed:
    than a reassurance. This criterion **absorbed the second gatekeeper's whole mandate** on 2026-08-04;
    it is the one criterion on this list whose axis is judgement rather than a stated requirement, which
    is why it reads longer than the eight above it and why a thin answer here is a thin review.
+
+11. **Reach — does this change get to the thing it exists for? (#362, delivery lens)** Criteria 1–8
+   establish that the change is **correct**. None of them asks whether it is **used**, and for most
+   slices those coincide. They come apart exactly where the consumer is an artifact somebody has to
+   **author**, and there this list had nothing at all. **The measured instance:** a slice shipped a
+   review affordance that renders only when an article declares a front-matter field; only the test
+   fixture declared one, so the feature worked for its own fixture and for nothing else — with six E2E
+   tests green, a mutation-checked suite, and the limitation *disclosed in the builder's report*. This
+   gate read that disclosure and approved, correctly by every criterion it then had.
+   **Satisfied by** answering, in one sentence: *what must exist outside this diff for this change to do
+   anything for a reader, and does it exist?* Three honest answers — *nothing must* (the consumer is
+   code in this diff; say so and move on), *X exists* (name it), or ***X does not exist yet***.
+   **The third answer does NOT block.** Building a mechanism ahead of its consumer is legitimate here
+   and recorded as such. What it does is convert a disclosed limitation into a **question handed to the
+   owner** — in your verdict, as an ask — instead of a sentence in a report he reads twice and is never
+   asked about. That conversion is the whole of this criterion.
+   **Its scope is narrow and its limits are stated rather than discovered:** where the consumer is code,
+   a caller or a hook, rows 1–8 cover it and this has no subject. It is **not** `invocable:` under
+   another name — that field's guard tests **existence** of a named artifact, and in the measured
+   instance an honest declaration would have named a path that resolves perfectly while the feature
+   still reached nobody. And **nothing observes that you asked**: no hook can, since the subject is an
+   artifact outside the diff and usually outside the repository. `/definition-of-done` row 9 carries the
+   full argument, including why the iteration-close sweep is structurally blind to this case and must
+   not be pointed at as the backstop.
 
 ### A finding blocks only if it names a criterion and a falsifier
 
@@ -1030,7 +1055,7 @@ the wrong side of the line the refusal draws. If you are blocked, post the liter
 
 Lead with the verdict. Then, in order:
 
-1. **The per-criterion check** (pass/fail + evidence), criteria 1–10, each finding labelled with the
+1. **The per-criterion check** (pass/fail + evidence), criteria 1–11, each finding labelled with the
    lens it came from.
 2. **Surface delta** — what this slice adds to the attack surface, or the production-lens findings, each
    with evidence. This is criterion 9's detail and it belongs written out, not compressed to a tick.
