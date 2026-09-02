@@ -93,9 +93,25 @@ two limits into one cell.
 stored** — not here, not in the consuming repo's manifest, not in prose. It carries a **mode**
 (`injected` | `discoverable`), not just a pairing, because the pairing alone names a mechanism of one
 harness while the mode is the harness-agnostic question: *is this knowledge placed in the actor by
-construction, or must the actor find it?* Measured at the time of the decision: **8 of 14 injected, 6
-reachable only through their trigger description.** The association references a row's **id**, never its
-`nome`. **It is not implemented in this slice** — see *Consequences*.
+construction, or must the actor find it?*
+
+**Measured 2026-08-24, the day of this decision: 8 of 14 injected, 6 reachable only through their
+trigger description.** The association references a row's **id**, never its `nome`. **It is not
+implemented in this slice** — see *Consequences*.
+
+**That figure is a DATED SNAPSHOT and is deliberately not maintained (#382 rider).** It carried no date
+until 2026-09-02, which is the only thing that was wrong with it — the split moves whenever a persona's
+`skills:` list changes, so a reader who found it undated had no way to know whether it described the
+tree in front of them. The date is the fix; **no current figure replaces it**, because a second number
+here would rot on the next roster slice exactly as the first one did. Re-derive it instead, and read
+the members rather than the split:
+
+```
+for f in agents/*.md; do sed -n '/^skills:/,/^[a-z-]*:/p' "$f" | grep '^  - '; done | sort -u
+jq -r '.skills[]' .claude-plugin/plugin.json
+```
+
+Everything in the second list and absent from the first is **discoverable**; the rest is **injected**.
 
 ### Why not the others
 
@@ -182,11 +198,28 @@ description a forker actually meets.
 **What was offered first, and why it was refuted before it was built.** The proposal was that the
 README has two halves — *inventory*, projected from `docs/blueprint-registry.md`, and *argument*, left
 authored. Measured, that split would have caught **none** of the three drift examples that justified
-the work: all three sat in the authored half, none was a numeric count, and
-`grep -c 'subagent personas\|14 skills' docs/blueprint-registry.md` → `0` says the registry does not
+the work: all three sat in the authored half, none was a numeric count, and the registry does not
 hold the figures the README publishes anyway. Routing the README's counts through an authored
 intermediary would have been **worse than the status quo**, since the existing arms compare README
 against the **tree**.
+
+~~`grep -c 'subagent personas\|14 skills' docs/blueprint-registry.md` → `0`~~ — **the command is kept
+and its published output is WITHDRAWN, 2026-09-02 (#382).** It returned `0` on 2026-08-24 when this
+amendment was written and returns **3** at head, so a reader running it got a number the page beside it
+contradicted and no way to tell which was wrong. **The conclusion is untouched, and that is the whole
+reason this is a restatement rather than an erratum:** the three matches are the registry publishing
+**its own** derivation of the skill count, not the README's figures — emit the members and it is
+immediate rather than argued:
+
+```
+grep -n 'subagent personas\|14 skills' docs/blueprint-registry.md
+```
+
+**Do not re-pin an expected output here.** The base of that number lives in a file this record does not
+control and which moves on every registry slice; a figure whose base is outside its own diff is exactly
+what went stale, and pinning a fresh one would restart the same clock. What the argument needs is
+*whether the registry holds the README's figures*, which the member list answers on the day it is run
+and a frozen count cannot.
 
 **The decision.** The defect class is **a claim published with no falsifier beside it**, not a number
 that disagrees with a directory listing. A README section may carry

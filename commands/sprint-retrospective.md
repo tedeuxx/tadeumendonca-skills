@@ -115,8 +115,8 @@ The scope record carries, each with the command that produced it:
 
 ## Step 2 — the consult set is DERIVED, and it is a lower bound
 
-**Do not consult a fixed set.** `hooks/scripts/dispatch-metrics-stop.sh` posts one comment per
-dispatch onto the Issue whose number it reads from the branch, under the marker
+**Do not consult a fixed set.** `hooks/scripts/dispatch-metrics-stop.sh` posts one comment **per stop,
+onto every Issue the dispatch resolved**, under the marker
 `<!-- dispatch-metrics: <plugin>:<agent_type> #<issue> -->`. Per Issue in the iteration:
 
 ```
@@ -132,24 +132,51 @@ the iteration to report on it. *(The measurement above is dated and is left at i
 roster held seven when `sprint-01` ran and holds **eight** since #375, which is exactly why the consult
 set is derived rather than written down.)*
 
-**Three measured limits travel WITH the set, and the artifact states them rather than implying them:**
+**Measured limits travel WITH the set, and the artifact states them rather than implying them. One of
+the three was REPAIRED at #382 and is struck rather than deleted, because a reader who took it from
+here adjusted their reading of `sprint-01`'s numbers by it:**
 
-1. **The Issue number comes from the branch, by a fragile grep** —
+1. ~~**The Issue number comes from the branch, by a fragile grep** —
    `printf '%s' "$branch" | grep -oE '[0-9]+' | head -1`. Probed directly:
    `fix/adr-0002-rewrite-355` yields `0002`, `feat/v2-api-355` yields `2`, and `main` yields nothing at
-   all. So a branch carrying an earlier number **misattributes the record to another Issue**, and every
-   dispatch that ran on `main` is **unrecorded** — which is precisely the intake dispatches. The
-   recorded set is *builders and gates*, not *intake*.
+   all. So a branch carrying an earlier number **misattributes the record to another Issue**~~ —
+   **STRUCK 2026-09-02 (#382), and the misattribution half is now FALSE.** The hook resolves a **set**,
+   unioned from the PR's own `closingIssuesReferences` and from the branch name tokenised on
+   non-alphanumerics, keeping only all-digit tokens with no leading zero and at most five digits. Each
+   clause is asserted by its own arm in `hooks/scripts/dispatch-metrics-stop.test.sh` and each was
+   mutation-checked on the source. **The `main` half SURVIVES and is not struck:** a dispatch whose
+   branch carries no qualifying token and has no PR still posts nothing — chiefly intake work — so the
+   recorded set is still *builders and gates* rather than *intake*, and that gap is now asserted
+   (`no-issue-resolved`) rather than merely known.
+   **The defect this repaired is the one that produced a whole batch reading as one slice:** on PR
+   #391 a four-Issue batch branch put every comment on the first number and none on the other three,
+   and this step then read *no persona ran* for three quarters of the batch.
 2. **`agent_type` is namespaced** — `tadeumendonca-skills:agents-lead`. A consumer matching the bare
    name returns nothing.
 3. **It is per-repository.** The other half of the iteration carries its own comments and must be
    queried separately.
+4. **The record is CUMULATIVE AT ONE STOP, not one per dispatch — so never sum across comments.**
+   `SubagentStop` fires more than once per dispatch and every firing re-reads the same cumulative
+   transcript. Group by the `dedupe_key` field (the `agent_id`), keep the record with the greatest
+   `duration_seconds`, then sum across `agent_id`s. Measured on `#342`: the naive sum reads 8,931 s
+   against a true 5,292 s, **+69%**. The hook's own header claimed one-per-dispatch until #382; every
+   comment now carries this rule in its own trailer, so a future consumer gets it from the artifact
+   rather than from this file.
 
-**And the whole set is a LOWER BOUND, never the set.** `dispatch-metrics-stop.sh` exits 0 silently on
-about a dozen paths — no `jq`, no `gh`, no branch, no number in the branch, a `mktemp` failure, and a
-trailing `|| true` on the post itself. **A persona that ran and left no comment is indistinguishable
-from one that never ran.** Read the query result as *"at least these ran"*, write that phrase into the
-scope record, and add a persona by hand when the owner knows it ran.
+**And the whole set is a LOWER BOUND, never the set.** That is unchanged by #382 — the repair narrowed
+the silent set, it did not close it. `dispatch-metrics-stop.sh` exits 0 silently on several paths, and
+since #382 each one is **named in the source** rather than estimated here — read the members, not a
+count:
+
+```
+grep -n 'silent-exit:' hooks/scripts/dispatch-metrics-stop.sh
+```
+
+`dispatch-metrics-stop.test.sh` asserts that no `exit 0` in that file lacks such an annotation, so the
+list cannot go stale silently. **A persona that ran and left no comment is still indistinguishable from
+one that never ran** — that property is unchanged by #382 and is the reason this remains a lower bound.
+Read the query result as *"at least these ran"*, write that phrase into the scope record, and add a
+persona by hand when the owner knows it ran.
 
 **Then SUBTRACT every profile that cannot `Write`, and record the subtraction in the scope record by
 name.** The rite's artifact is a file the consulted persona writes itself (step 4), so a profile whose
