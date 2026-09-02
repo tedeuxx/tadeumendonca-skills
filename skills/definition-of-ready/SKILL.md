@@ -1,14 +1,16 @@
 ---
-description: Set the bar a work item must clear before a builder can pick it up, and recognize an item that looks ready but is not. Use when writing acceptance criteria, running intake on a story, sizing a backlog, or diagnosing why in-progress work keeps stalling on undecided scope. Not for what "done" means at delivery (see quality-gates), or this repo's own two-lead intake mechanism (see agents-configuration).
+description: Set the bar a work item must clear before a builder can pick it up, generically and for THIS loop — what `ready` asserts and which of its criteria anything actually checks. Use when writing acceptance criteria, running intake, sizing a backlog, or diagnosing why in-progress work stalls on undecided scope. Not for what "done" means at delivery (see definition-of-done), or the state machine of who acts at each transition (see agents-configuration).
 purpose: set the bar a work item clears before a builder picks it up, so the gate at the other end has something external to itself to measure against
 ---
 
 # Definition of Ready — the bar a work item clears before it is buildable
 
-Apply this SDLC-generic concept in any `<project>` — it defines what makes an item **ready to build**,
-independent of which loop, tracker or team runs it. `/agents-configuration` and `/quality-gates` are the
-two ends of the same lifecycle this skill sits between: **ready** is the entry gate to building, **done**
-(`quality-gates`) is the exit gate out of it. Neither substitutes for the other, and a loop that only
+Apply this concept in any `<project>` — it defines what makes an item **ready to build**,
+independent of which loop, tracker or team runs it, **and since #380 it also carries this loop's own
+concrete bar**, so the name and the ruler are in one place. `/definition-of-done` is the other end of
+the same lifecycle: **ready** is the entry gate to building, **done** is the exit gate out of it.
+~~`/quality-gates`~~ — **struck #380: the DoD moved to `/definition-of-done`; `/quality-gates` is the
+CI/CD half.** Neither substitutes for the other, and a loop that only
 enforces one of them fails at the end it left open — a strong Definition of Done cannot repair a story
 that was ambiguous when the builder started, and a strong Definition of Ready does not verify what was
 actually shipped.
@@ -38,7 +40,7 @@ would otherwise have to invent — and what a builder would have to invent depen
 project's surfaces are. **A checklist item that names a surface the project does not have is not a higher
 bar; it is an unsatisfiable one**, and an unsatisfiable gate teaches the team to rubber-stamp it or to
 skip it quietly — the same failure mode this whole platform's engineering floor names for a Definition of
-Done (`/quality-gates`) is exactly this on the other end of the lifecycle.
+Done (`/definition-of-done`) is exactly this on the other end of the lifecycle.
 
 So the right move is not "adopt the universal checklist" — it is "read the project, then name the items
 that actually remove ambiguity for it." Three worked examples, same discipline, different shape:
@@ -104,6 +106,58 @@ teams reach for* — is a separate concern from what this skill defines, and bel
 **`/planning-poker`** (#266). This skill states only the relationship: sizing is a
 readiness signal as much as it is a planning input, and a checklist that drops it loses a cheap probe for
 exactly the failure mode named above.
+
+## THIS loop's concrete readiness bar — what `ready` asserts, and what checks it
+
+**Added at #380, and the reason is the exact symmetry the owner named:** *«assim como temos o
+definition-of-ready tbm»*. The Definition of Done had its concept in one skill and its real ruler in
+another; so did this. Fixing only one end would have taught a reader that one of the two names means
+what it says and the other does not — worse than both being wrong the same way.
+
+**What is here and what is deliberately NOT here.** This section is the **bar** — what a description
+must contain before `ready` is honest. The **state machine** — who acts at each transition and what
+artifact records it — stays in `/agents-configuration`, where #329 put the canonical `filed →
+description closed` rows on a mechanical argument that has not changed: that file is the universal
+preload every persona carries at the moment it acts, and a rule about *who may act* has to be where
+whoever dispatches will read it. *When* an item moves is that file's; *what makes it eligible to* is
+this one's.
+
+### What the `ready` label asserts
+
+**`ready` means: the description is closed on that item's lane, so a builder will not have to make a
+product or architecture call mid-build.** It is the entry gate, and an item without it is not
+executable — a mechanism, not something a persona must remember.
+
+Applied to this repo, the CLI/library shape from the three worked examples above is the one that
+governs, so the bar is short and complete rather than long and partly unsatisfiable:
+
+- **a clear statement of the convention or mechanism being added** — not "improve X";
+- **acceptance criteria stated as an observable artifact or a passing check** — the same
+  *evidence-producing* property `/definition-of-done` requires at the other end;
+- **the seam read against neighbouring Issues**, per *How to recognize an item that looks ready but
+  isn't* above. This is the one item on the list that no single-issue review can perform;
+- **an `sp:N` estimate**, which is a readiness *signal* as much as a planning input — see *Ready and
+  estimation* above for why it belongs here and what it actually measures;
+- **an `invocable:` declaration** — what this Issue promises a reader will be able to type or open, or
+  `none`. It is a parsing contract, read literally, and `none` is a real answer and the common one.
+
+### The seam — which of these is checked by something, and which is discipline
+
+**The same sentence `/definition-of-done` owes at the exit gate, owed here at the entry gate.** State it
+by member rather than by count, for the reason that file gives:
+
+- **Checked by a mechanism:** the `invocable:` declaration (`hooks/scripts/closure-artifact-guard.sh`
+  refuses a manual close on an unmet one), and the presence of `sp:N` (the drain's preflight refuses to
+  enter with an item that lacks one).
+- **Checked by nobody:** whether the description is genuinely closed, whether the acceptance criteria
+  are observable, and whether the seam against neighbouring Issues was read at all. **Nothing observes
+  a dispatch.** An Issue whose intake was skipped entirely is indistinguishable, from the tracker and
+  from the diff, from one run correctly — the artifact of record is a closed description, and a
+  description says nothing about who was asked.
+
+**So `ready` is attributable and auditable, and it is not proven.** That is the honest form, and it is
+the same shape as the label's own entry rule: something must *query* it, which two things do. Nothing
+verifies that the personas who were supposed to close the description actually did.
 
 ## Pros & cons
 

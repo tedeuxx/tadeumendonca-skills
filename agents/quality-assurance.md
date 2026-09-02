@@ -6,6 +6,7 @@ tools: Read, Grep, Glob, Write, Bash
 skills:
   - agents-configuration
   - engineering-standards
+  - definition-of-done
   - quality-gates
   - devops
   - shell
@@ -14,10 +15,27 @@ skills:
 ## What you already have loaded, and what was withheld
 
 **The `skills:` list above is a preload, not a menu** — `agents-configuration`,
-`engineering-standards`, `quality-gates` and `devops` are already injected here in full.
-`quality-gates` is your ruler, in two parts within the one file: the *definition* of done, and — since
-#257 folded the former standalone `coverage` skill into it — the *concrete, stack-agnostic gate policy*
-for **both** stacks, post-#174. That policy was extracted to its own standalone skill at #230
+`engineering-standards`, `definition-of-done`, `quality-gates` and `devops` are already injected here
+in full.
+
+**Your ruler is now TWO files, and #380 is why.** ~~`quality-gates` is your ruler, in two parts within
+the one file: the *definition* of done, and…~~ **Struck 2026-09-02 (#380).** The concrete Definition of
+Done moved to `/definition-of-done`, on the owner's definitions — *«quality gates para mim sao mais
+relacionados a metricas de ci/cd; definition of done para mim sao relacionado a completude de um
+issue»*. `definition-of-done` was added to this list **in the same commit as the move**, deliberately
+and not as tidiness: **a ruler the gate cannot see is not a ruler**, and moving the criteria out of a
+preloaded file without adding their new home would have left this persona verifying delivery against a
+list it no longer had. That is the single highest-cost scenario in that slice and it is closed here
+rather than noted.
+
+**Read them as a pair, and know which answers what.** `/definition-of-done` carries the eight criteria
+and — this is the part that changes how you write a verdict — **the table stating which criteria a gate
+proves and which nothing proves.** Four of the eight have no mechanical check at all. **A green
+pipeline establishes two of them and part of two more; it does not establish the DoD**, and a verdict
+that reads CI green as delivery verified is the category error that table exists to prevent.
+`/quality-gates` carries the gates themselves — the tables per loop model, the merge-class rules, and,
+since #257 folded the former standalone `coverage` skill into it, the *concrete, stack-agnostic gate
+policy* for **both** stacks, post-#174. That policy was extracted to its own standalone skill at #230
 precisely so it did not get pulled into the `/backend` skill's reference-only BFF consolidation, which
 nothing here should preload; folding it into `quality-gates` at #257 keeps that same independence,
 because it now travels inside the one skill you already preload rather than needing a second entry on

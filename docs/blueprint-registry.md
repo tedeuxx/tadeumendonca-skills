@@ -574,7 +574,7 @@ jq -r '.skills[]' .claude-plugin/plugin.json | wc -l                            
 - **propósito:** Every actor in this loop needs the same answer to *where am I, who acts next, and what records that it happened* — and, above that, *why the loop is shaped this way*, because a state table cannot enumerate the cases an actor will actually meet. It is preloaded by every profile so that the one thing nobody may improvise is the loop.
 - **o que faz:** States the two loop models and how to tell which one a repository runs, the issue types and their states with the artifact that records each transition, the iteration axis and how the active one is derived, the closing criteria, and the merge classes — each with the intent that produced it rather than the rule alone.
 - **o que não faz:** It does not carry the portable engineering judgment (that half was split out at #381), it does not define **done** or hold the gate tables, it does not carry the permission zones or the branching topology, and it does not define the SDLC-generic meaning of *ready* — four neighbours own those, and the boundary is stated in its own trigger so the model does not reach here for them.
-- **citação:** > "Not the portable judgment (see engineering-standards), what "done" means (see quality-gates), the permission zones (see devops), or the generic meaning of ready (see definition-of-ready)."
+- **citação:** > "Not the portable judgment (see engineering-standards), what "done" means (see definition-of-done), the CI/CD gates (see quality-gates), the permission zones (see devops), or what makes an item ready (see definition-of-ready)."
 
 ### 0045 · the engineering judgment that survives leaving this loop
 
@@ -644,7 +644,7 @@ jq -r '.skills[]' .claude-plugin/plugin.json | wc -l                            
 - **propósito:** A gate is only a ruler if it is **external to the reviewer**. A vague description leaves the gate nothing to anchor on, so it falls back on impression — and impression has no stopping rule. The regression invariant is the other half: every feature that ships adds its regression, so the suite is the proof that nothing broke.
 - **o que faz:** States the definition of done, the full-coverage regression invariant, the gate table per loop model, and the concrete thresholds — zero lint and typecheck errors, a coverage floor, contract and end-to-end suites where they exist, dependency and secret scanning, static analysis.
 - **o que não faz:** It is not the **author-side** pass that runs before the request is opened, it does not carry the quality-platform mechanics, and it does not teach what a definition of done generically *is* or how to design one — three neighbours own those. Which suites constitute the regression is per repository, deliberately: a floor stated in components a repository does not have is not a higher standard, it is an unsatisfiable one, and unsatisfiable gates get faked.
-- **citação:** > "Not for the pre-merge pass (see code-review), Sonar mechanics (see devops), or what a DoD generically is and how to design one (see definition-of-done)."
+- **citação:** > "Not for the criteria that make a slice complete (see definition-of-done), the pre-merge pass (see code-review), or Sonar mechanics (see devops)."
 
 ### 0031 · the author's own completeness pass
 
@@ -664,7 +664,7 @@ jq -r '.skills[]' .claude-plugin/plugin.json | wc -l                            
 - **propósito:** A strong definition of done **cannot repair a story that was ambiguous when the builder started**. The two gates sit at opposite ends of the same lifecycle, and a loop that enforces only one fails at the end it left open.
 - **o que faz:** Gives the checklist shape conditional on the project's surfaces, names the flagship failure — scope fragmented across overlapping items — and states the relationship to estimation.
 - **o que não faz:** It is generic by construction, so it holds **this** loop's intake mechanism nowhere: the two-lead chain, the label, and who may apply it live with the state machine. It also does not verify what shipped, which is the other gate's job.
-- **citação:** > "Not for what "done" means at delivery (see quality-gates), or this repo's own two-lead intake mechanism (see agents-configuration)."
+- **citação:** > "Not for what "done" means at delivery (see definition-of-done), or the state machine of who acts at each transition (see agents-configuration)."
 
 ### 0033 · the ruler for anything published in the owner's voice
 

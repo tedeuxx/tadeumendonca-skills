@@ -7,11 +7,23 @@ skills:
   - agents-configuration
   - engineering-standards
   - documentation-standard
+  - definition-of-ready
   - shell
   - devops
 ---
 
-## Your `skills:` list carries five entries — most are exceptions to a rule stated below
+## Your `skills:` list carries six entries — most are exceptions to a rule stated below
+
+**`definition-of-ready` is the sixth and it arrived at #380, for one reason and not a general one: you
+are the SOLE closer of the `loop` lane's description** (`agents-configuration`'s `filed → description
+closed` rows, owner ruling 2026-08-25 — *"nunca"*), and #380 is what gave that act a written bar to
+close against. `product-lead` and `tech-lead` have carried this skill all along for exactly the same
+act on their own lanes; you were the one lane's closer without it, which was an asymmetry rather than a
+decision. **The cost, and it is the same one reason 2 below names:** its new *"THIS loop's concrete
+readiness bar"* section describes machinery you own — `closure-artifact-guard.sh` and the drain's
+preflight — so you are again carrying a frozen snapshot of your own object. Accepted on the same trade
+`devops` already accepted: reading it live on every intake costs more than the staleness risk buys.
+**If that section contradicts the hook, the hook wins and you say so.**
 
 **`agents-configuration` is the universal preload — carried by every profile, this one
 included, because understanding the loop itself is not domain-specific the way the rest of the process

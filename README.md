@@ -353,8 +353,11 @@ full two-lens Definition of Done — the DoD review already happened, in tier 1,
 **Struck #335.** It was live from 2026-08-12 to 2026-08-28 here and in the universal preload, and it was
 wrong twice over: Corollary 2 **adds** the marker to the gate's checks rather than substituting it for
 the DoD, and the justification was false on the DoD's own terms — tier 1 on a `loop` Issue closes a
-*description*, and every criterion in `skills/quality-gates/SKILL.md`'s Definition of Done has a subject
-that only exists after the build. **Struck here rather than corrected outright**, because
+*description*, and every criterion in this loop's Definition of Done has a subject
+that only exists after the build. *(That list was in `skills/quality-gates/SKILL.md` when this
+correction was written and is in `skills/definition-of-done/SKILL.md` since #380 — the path is updated
+rather than left pointing at a file that no longer carries it, because a citation that resolves to the
+wrong content is worse than one that fails.)* **Struck here rather than corrected outright**, because
 `tadeumendonca-io` published a page from this section and a reader who took the old claim deserves to
 find out it changed; **corrected outright in `skills/agents-configuration/SKILL.md`**, where struck text
 is tokens every persona pays on every dispatch to read a rule that no longer holds. The corrected
@@ -768,11 +771,18 @@ figure goes stale invisibly.
   it is harmless: nothing in Part I describes machinery this brief owns, so there is nothing new to go
   stale. `versioning` used to be a fifth entry here;
   #258 folded it into `devops`, so the entry disappeared and the content travels inside the skill already
-  loaded. **`definition-of-ready` was deliberately NOT added here** — `agents-lead` takes no part in
+  loaded. ~~**`definition-of-ready` was deliberately NOT added here** — `agents-lead` takes no part in
   closing a `product`/`content` description (`/agents-configuration`, *Intake*); it is dispatched on
-  `loop`-typed proposals only, where `ready` is an owner-only transition it never performs. It remains
+  `loop`-typed proposals only, where `ready` is an owner-only transition it never performs.~~
+  **STRUCK 2026-09-02 (#380): it IS preloaded here now, and the struck reasoning was right about a
+  clause that was never the argument.** `agents-lead` performs no `ready` transition — true, and
+  neither does `tech-lead` on its own lane, which carries this skill regardless. What all three do is
+  **close a description**, and `agents-lead` is the SOLE closer of the `loop` lane's. Until #380 the
+  skill held no concrete bar to close against; now that it does, the persona applying it on one of the
+  three lanes carries it like the two applying it on the other two. It remains
   the persona most exposed to staleness, a real tension a frozen
-  preload creates that its own brief names as a residual rather than resolves.
+  preload creates that its own brief names as a residual rather than resolves — and this entry **adds**
+  to that tension rather than easing it, since the section it gains describes hooks this persona owns.
 - **`content-writer` — 163,349 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice`.
   Renamed from `writer` at #317; the figure moved for one reason and it is not the rename, which costs
   nothing — `harness-engineering` grew in the same slice, by the state-machine rows this pair required.
@@ -824,14 +834,33 @@ figure goes stale invisibly.
   editorial:** this profile declares `tools: []`, so it writes no file and runs no command, and a rule
   about where scratch files go has no subject here — the brief says so in its own words.
 
-**`definition-of-done` (15,233 B, #265) is deliberately preloaded by NO persona.** Argued rather than
+~~**`definition-of-done` (15,233 B, #265) is deliberately preloaded by NO persona.** Argued rather than
 assumed, unlike `definition-of-ready`'s addition to `product-lead` and `tech-lead` above: those two
 *perform the act the skill defines* at every intake dispatch (closing a description to `ready`). No
 persona in this roster *designs* a Definition of Done at dispatch time — `quality-assurance` **applies**
 one that already exists (`quality-gates`, this loop's own concrete instance), it does not construct one
 from scratch, and the new skill's actual audience — someone standing up a DoD for a *new* project — is
 not a role any of the eight plays inside this loop's own operation (`ls agents/*.md | wc -l` -> 8; the figure read `six` from #265 until here, having survived two roster additions). It stays reachable the same way every
-non-preloaded skill is: typed as `/definition-of-done`, or via the `Skill` tool on demand.
+non-preloaded skill is: typed as `/definition-of-done`, or via the `Skill` tool on demand.~~
+
+**STRUCK 2026-09-02 (#380). `quality-assurance` preloads it now, and the argument did not survive its
+own premise moving.** The reasoning above turns on the parenthetical *"`quality-gates`, this loop's own
+concrete instance"* — the gate did not need this skill because the concrete list it applies lived in a
+file it already carried. **#380 moved that list here**, on the owner's definitions, so the same sentence
+now argues the opposite: the gate applies a Definition of Done, and the Definition of Done is in this
+file. Leaving the preload alone would have left the gate verifying delivery against a list it could no
+longer see — the highest-cost consequence of the move, and it is closed in the move's own commit rather
+than noted as a follow-up.
+
+**What survives untouched:** nobody in this roster *designs* a DoD from scratch, so the generic half
+above the new section is still carried for no persona's own act. That is a reason it is a cheap
+addition, not a reason it was avoidable. **`product-lead`, `tech-lead` and `agents-lead` still do not
+carry it** — they close descriptions at the entry gate, which is `definition-of-ready`'s object.
+
+**No byte figure is restated for this entry or for `quality-assurance`'s total.** Both bases sit inside
+this diff — the skill grew by the section that moved in, and `quality-gates` shrank by the same content
+— so any number published here would be measured from the change that publishes it, which is the defect
+this repository has now paid for repeatedly. The membership is the claim; `grep -c` is not.
 
 **`planning-poker` (13,262 B, #266) is deliberately preloaded by NO persona either, and for a stronger
 reason than `definition-of-done`'s.** This loop runs no human estimation ceremony at all — the roster

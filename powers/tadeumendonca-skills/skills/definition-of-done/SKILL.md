@@ -137,6 +137,91 @@ test in *Why a Definition of Done is a mechanism, not a phrase* (does a criterio
 person still decide and the criterion just gets cited afterwards?) is what separates a real DoD from any
 of these four.
 
+## THIS loop's concrete Definition of Done — the criteria, and which of them a gate proves
+
+**Moved here from `/quality-gates` at #380, on the owner's own definitions, quoted because they are the
+ruler rather than a preference:**
+
+> *«quality gates para mim sao mais relacionados a metricas de ci/cd.»*
+> *«definition of done para mim sao relacionado a completude de um issue.»*
+
+A reader asking *"what is this project's Definition of Done?"* used to open the skill called
+`definition-of-done` and find only theory, while the actual list lived in the skill named after CI/CD
+mechanisms. **Nothing above this heading changed and no threshold moved** — `/quality-gates` keeps the
+gate tables, the thresholds and the enforcement wiring, which are CI/CD metrics and belong there.
+
+### The criteria (a slice is "done" only when all hold)
+
+| # | criterion | is it PROVED by a gate? |
+|---|---|---|
+| 1 | Unit/integration tests written alongside the code, **coverage ≥ 85%**, green | **yes** — CI, threshold in `/quality-gates` Part II |
+| 2 | **Regression added for the feature** (the 100% invariant below) | **partly** — CI proves the suite is green, nothing proves a regression was *added for this feature* |
+| 3 | Lint + typecheck clean | **yes** — CI |
+| 4 | **Observability instrumented for the new behaviour**, in whatever form this repo's runtime supports | **no** — a reviewer's judgement |
+| 5 | Security/resilience posture applied (least-privilege, idempotency, fail-fast/open, retries) | **partly** — SAST and dependency scanning catch a subset; the posture is not enumerable |
+| 6 | **Docs/Mermaid updated**; debt named in the review | **no** |
+| 7 | **Conventional-commit** subject (the commit log is the changelog) | **no** — a convention this repo keeps and does not enforce; the derived commit↔issue coverage check that would is deliberately deferred, per `/agents-configuration` |
+| 8 | **Validated locally**, with real command output rather than a claim | **no** — the report is the only artifact |
+
+Anything short of all of these is in-progress, not done.
+
+### The seam — a green gate is not a met DoD, and this is the sentence that makes it visible
+
+**This is the most valuable line in the move, and it was not statable while the two lived in one file.**
+Read the right-hand column above as the whole of the claim, and **read the members rather than a count**
+— a tally beside a table is a second source of truth for one fact, and it is the arrangement this
+repository's own gate exists because it rots:
+
+- **fully proved by a gate:** rows 1 and 3;
+- **proved in part, with the uncovered part named in the row:** rows 2 and 5;
+- **not proved by anything mechanical:** rows 4, 6, 7 and 8.
+
+A pipeline that is entirely green has established rows 1 and 3, part of 2 and part of 5, **and nothing
+else**.
+
+The consequence runs in both directions, and the second one is the one that gets missed:
+
+- **A DoD criterion with no gate is not thereby weaker** — it is checked by a person, at review, and its
+  evidence is whatever that person can point at. It fails the way a person fails: quietly, under time
+  pressure, on the day it matters.
+- **A gate that proves no DoD criterion is not thereby pointless, and must not be read as delivery
+  evidence.** `hooks/scripts/inventory-counts.test.sh` proves inventory consistency; nothing in the list
+  above depends on it. Its green says something true and says nothing about whether a slice is done.
+
+**The failure this prevents is a category error, not a missing check:** a DoD living inside the gates
+file inherits the gates' authority, so *"CI is green"* silently reads as *"the DoD is met"*. It is not,
+it never was, and the table above is the cheapest form of saying so.
+
+### The regression invariant — 100% functional coverage
+
+The regression suite must **functionally cover 100% of the repo's implemented features** — not a
+representative sample. Every feature that ships adds its own regression; the collective suite is the
+proof that *nothing already working broke*. This is the one criterion that does **not** bend to
+blast-radius — it is the floor that lets the platform be evolved incrementally without fear. A change
+that adds behaviour without its regression breaks the invariant and is not done.
+
+**Which suites this means is per repo.** E2E (browser) always, where there is a UI. An **API/contract
+suite only where an API exists.** Demanding coverage of a surface the repo does not have is not rigor —
+it is an unsatisfiable gate, and an unsatisfiable gate teaches the agent to fabricate evidence or quietly
+skip the check. This is *Designing a DoD from scratch* step 1 applied to this repo rather than restated;
+read the repo, then name the suites.
+
+**Observability (row 4) is scoped the same way.** "Instrumented" means structured logs, metrics and
+tracing where there is a server to emit them; for a static frontend it means analytics, the client-side
+error surface, and a build/prerender smoke. Neither is a lesser standard — both must prove the change is
+working where it runs.
+
+### Local validation, and post-deploy
+
+Development is validated **locally and automatically before the deploy** — not by a manual
+click-through. Run the repo's regression against the local environment; what "locally" requires depends
+on the loop model (a static repo runs fully offline; a repo with backing services points at them per
+`/devops`). *"The regression passes locally"* is the concrete pre-deploy gate.
+
+**A deploy is not finished at "merged."** After it lands — in every environment it lands in — run a smoke
+and confirm health through the repo's observability before considering it complete. That closes the loop
+with row 4: the proof a change works is that you can *see* it working where it runs.
+
 ## Ready is a precondition of done
 
 **A DoD cannot rescue an item that was never properly ready.** This is not a general truism weakened for
