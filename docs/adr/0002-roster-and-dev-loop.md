@@ -3210,7 +3210,7 @@ amendment's remedy clause and the refusal to synthesise a purpose were closed in
 labelled as such rather than attributed to him. Driven by
 [#343](https://github.com/tedeuxx/tadeumendonca-skills/issues/343).
 
-## Amendment (2026-08-30, twenty-sixth) — an iteration closes with a retrospective rite; the sprint review half is refused for now
+## Amendment (2026-08-30, twenty-sixth) — an iteration closes with a retrospective rite; ~~the sprint review half is refused for now~~ **REVERSED 2026-09-02 by the thirtieth (#379)**
 
 **Why this is an amendment and not record 0022.** It decides *what happens at the end of an iteration*,
 which is the same capability the iteration axis itself was recorded under (#326, the twentieth
@@ -3345,9 +3345,12 @@ reads as installed and is inert.
   `loop` diff — but it is not free, and it lands at the moment an iteration is trying to close.
 - **The rite may fire twice per iteration**, once per repository drain, and nothing can prevent it. The
   per-persona files are what make the second firing idempotent rather than duplicative.
-- **The sprint review half stays unbuilt**, so the three defects that motivated the Issue — all found by
+- ~~**The sprint review half stays unbuilt**, so the three defects that motivated the Issue — all found by
   the owner opening the running site himself, all through every green gate — remain uncaught by anything
-  in this loop.
+  in this loop.~~ **Struck 2026-09-02 (#379): the half is built and `/sprint-review` is aimed at exactly
+  that class.** The residual is NARROWER rather than gone, and the narrowing is what the rite claims:
+  the three defects were found on a **real phone** and the sweep emulates one, so the class is covered
+  by a mechanism that declares itself a **lower bound** rather than by nothing at all.
 - **The same phrase-keyed coupling as the last six amendments.** The arms key on sentences; whoever
   rewords edits the needles in the same commit.
 
