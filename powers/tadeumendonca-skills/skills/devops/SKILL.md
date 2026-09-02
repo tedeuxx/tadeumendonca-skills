@@ -394,9 +394,25 @@ floor (rule 7c) fails CLOSED since 2026-08-28** — if it cannot READ the gateke
 naming which precondition was missing, rather than passing silently. The owner's rule for that case is
 *no readable verdict, no merge*, and the unblock is his. **Do not read that as the guard's general
 posture** — everything else here still fails open, and the criterion for the exception is that this one
-rule's degradation lands on the irreversible act itself. **It is deliberately branch-agnostic**: no `git
-branch`/`rev-parse` call, no environment-name matching, so the same hook is correct under both models —
-a branch-dependent rule belongs in the repo's own `settings.json`, never the shared hook.
+rule's degradation lands on the irreversible act itself. ~~**It is deliberately branch-agnostic**: no
+`git branch`/`rev-parse` call, no environment-name matching~~ — **STRUCK 2026-09-02 (#383): the
+property is false, and the sentence was technically-true-and-misleading, which is the worse shape.**
+The literal half held (no `git branch`, no `rev-parse`); the property it asserted did not. The trunk-push
+rule **resolves the checked-out branch and denies on it**, using a third command the sentence did not
+name:
+
+```
+branch="$(git -C "$dir" symbolic-ref --short HEAD 2>/dev/null || true)"
+case "$branch" in main|master) deny "…HEAD is '$branch', so this push lands on the trunk…" ;; esac
+```
+
+`symbolic-ref` rather than `rev-parse` is deliberate in the guard — it reports the branch even on an
+unborn HEAD, where `rev-parse` fails and the check would silently skip. **So the hook reads the branch;
+what it does not read is an ENVIRONMENT NAME**, and that is the property that actually makes one hook
+correct under both loop models. A rule keyed on `staging`/`production` belongs in the repo's own
+`settings.json`, never the shared hook. **The trunk-push rule was measured and ruled on in #383**: it
+survives, because `enforce_admins` is `false` on `main` (owner's read, 2026-09-02), so the forge does
+not refuse the admin credential every agent here acts through.
 
 ## Why this doesn't cost cadence
 

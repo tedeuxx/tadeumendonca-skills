@@ -3559,7 +3559,7 @@ load-bearing part:
 | element | sees WHO is asking | sees WHAT is asked | reads live state at decision time | can refuse |
 |---|---|---|---|---|
 | a persona brief · a skill · a command | it *is* the caller's text | yes, as prose | no | **no** |
-| `settings.json` `allow`/`ask`/`deny` | **no** | a command **prefix** only | no | yes |
+| `settings.json` `allow`/`ask`/`deny` | **no** | a `Bash` command **prefix**, **or a tool name × path glob** (`Edit(<glob>)`) — corrected 2026-09-02, see below | no | yes |
 | a profile's `tools:` grant | yes | tool **name** only | no | yes |
 | the forge/CI perimeter | the forge actor | only acts that reach the forge | yes | yes |
 | a selection or verdict artifact | yes | yes | yes | **no — after the fact** |
@@ -3589,12 +3589,46 @@ Three consequences, and each disposes of a whole class:
 > already holds.** That is a narrower cut than the Issue anticipated, and saying so is the finding. It
 > found three.
 
+#### CORRECTION 2026-09-02 — the `settings.json` row said *"a command prefix only"* and that is FALSE
+
+**Struck as a claim, corrected in the row above, and recorded here because this is the table a later
+reader applies rather than a detail.** The permission layer refuses on **two** shapes, not one: a
+`Bash` command prefix **and** a tool name × path glob. Measured, both settings files, all four
+non-`Bash` entries emitted rather than counted:
+
+```
+jq -r '.permissions.ask[]?, .permissions.deny[]?' \
+  .claude/settings.json ~/.claude/settings.json | grep -v '^Bash('
+→ Edit(.claude/**)                                        (project, ask)
+→ Edit(//Users/…/.claude/settings.json)                   (global, ask)
+→ Edit(//Users/…/.claude/plugins/**)                      (global, ask)
+→ Edit(//…/tadeumendonca-io/.claude/**)                   (global, deny)
+→ Edit(//…/tadeumendonca-skills/.claude/**)               (global, deny)
+```
+
+**No verdict in this amendment changes** — settings still cannot see the caller, which is the property
+every caller × command verdict rests on. **But the false row was doing real damage in one specific
+place, and it is the amendment arguing against its own strongest surviving verdict:** as written it
+forecloses `Edit(<glob>)` as a candidate alternative for exactly the `orchestrator-write-guard` class
+that the census's ground 3 rests on. A reader applying the table would have concluded no layer can
+refuse a file edit at all. One can.
+
+**So ground 3 is re-checked rather than asserted, and it narrows.** ~~The census is the only observer
+of main-context `Edit`/`Write` that exists at all.~~ **Too strong.** `Edit(<glob>)` in settings *can*
+refuse a file edit, path-scoped, before it happens. What it **cannot** do is refuse it **selectively by
+caller** — an `Edit(**)` deny denies `developer` too, and `developer` editing the tree is the entire
+build. That is the same caller-blindness that makes rule 7b inexpressible in settings, arriving at a
+different rule. **Ground 3 as it now binds:** *no layer can refuse a main-context file edit without
+also refusing every persona's, and no layer but the census can OBSERVE one after the fact.* The
+conclusion holds; the sentence that carried it did not, and the difference is the kind a later reader
+would have executed on.
+
 ### The verdicts
 
 | # | hook | refuses? | verdict | the element that carries it instead, or the pair that makes it inexpressible |
 |---|---|---|---|---|
 | 1 | `permission-guard` | yes | **survives** | caller × command, four times; and enumeration in the floor was measured not to converge |
-| 2 | `wip-guard` | yes | **CUT** | a skill — WIP=1 in the universal preload, which is strictly stricter |
+| 2 | `wip-guard` | yes | **CUT** | **its own precondition is dead** — 0 concurrency across 22 PRs, all states. ~~a skill — WIP=1 in the universal preload~~ (a preload is not a control; see the re-argument) |
 | 3 | `closure-artifact-guard` | yes (`PreToolUse`) | survives | live remote state; no element reads an Issue body |
 | 4 | `dispatch-premise-guard` | yes | survives | live remote state × the dispatch's own text |
 | 5 | `mcp-guard` | yes | survives | caller × tool name — the canonical pair |
@@ -3614,31 +3648,58 @@ fourteen controls in one script and a per-file verdict would hide both.
 
 ### The three that lose, each with what detects the act afterwards
 
-**1 · `wip-guard.sh` — CUT. A skill already carries a strictly stronger rule.**
+**1 · `wip-guard.sh` — CUT, and the ground is the DEAD PRECONDITION, not the preload.**
 
-Its control is *a new PR may not be opened when it overlaps an already-open PR by the same author*.
-`/agents-configuration` states WIP=1 — *one worktree, one in-flight branch, one open PR at a time,
-full stop* — in the **universal preload every profile carries**. That rule forbids the second PR
-whether or not it overlaps, so the hook's control is a proper subset of one already stated where every
-actor reads it.
+~~A skill already carries a strictly stronger rule.~~ **Re-argued 2026-09-02, and the strike is the
+most important edit in this amendment** — not because the verdict moves (it does not) but because the
+argument as written was **a precedent for cutting `permission-guard`'s persona-keyed rules**, which
+this same amendment lists as load-bearing.
 
-**And under that rule the hook's precondition is never true.** It reads `gh pr list --state open
---author @me` and exits before computing a single path when the list is empty. Re-measured at head
-over the twenty most recent merged PRs — the guard's own question, *how many other PRs of this author
-were open at the instant this one was created*:
+**Why that argument was invalid on this amendment's own table.** *"A skill states it, so the hook is
+redundant"* requires the skill to be an **equivalent control**, and the layer table two sections up
+says in its own column that a persona brief, a skill and a command **cannot refuse**. A rule stated in
+a preload is read by a cooperating actor; a hook denies a tool call. **They are not the same kind of
+object, and the criterion asks for an equivalent MECHANISM rather than an equivalent SENTENCE.**
+
+**Say the consequence out loud, because a later reader will otherwise reach for it:** `Review does not
+open work` appears three times in the universal preload, and rule **5c survives** — this amendment says
+so itself. **If "a preload says it too" were a ground for cutting, 5c, 5d, 5e and 7b would all fall**,
+and every one of them is listed here as inexpressible in any other layer. **It is NOT a ground. It is
+never a ground.** A preload is context; a hook is a refusal; the criterion grades layers, not
+restatements.
+
+**The ground that actually holds is the one measured, and it is about this hook specifically.** The
+guard reads `gh pr list --state open --author @me` and exits at `[ -z "$open_prs" ] && exit 0` before
+computing a single path. **Its precondition — another PR of the same author open at the instant this
+one is created — has not been true once.** Re-derived at head, and **widened past the form published in
+the first round**, which was merged-only and therefore blind to a PR that was closed without merging:
 
 ```
-gh pr list --repo <owner>/<repo> --state merged --limit 20 --json number,createdAt,mergedAt \
-  --jq '[.[]] as $p | [$p[] | .number as $n | .createdAt as $c
-        | {pr:$n, others_open_at_create: [$p[]
-            | select(.number != $n and .createdAt < $c and .mergedAt > $c)] | length}]'
-→ others_open_at_create: 0, twenty times out of twenty
+gh pr list --repo <owner>/<repo> --state all --limit 200 \
+  --json number,createdAt,closedAt,state \
+  --jq '[.[]|select(.number>=349)] as $p
+        | {n:($p|length),
+           never_concurrent:([$p[]|.number as $x|.createdAt as $c
+             |{pr:$x, others:[$p[]|select(.number!=$x and .createdAt<$c
+                 and ((.closedAt==null) or (.closedAt>$c)))]|length}]
+             |map(select(.others>0))|length)}'
+→ {"n":22,"never_concurrent":0}
 ```
 
-*(Bounds: this repository only, the twenty most recent merged PRs, and the query does **not** filter by
-author where the guard does — filtering can only shrink the set, so zero stays zero.)* This restates a
-measurement `/agents-configuration` already published over fourteen; it is re-derived here rather than
-carried, and the window has widened without the answer moving.
+**Twenty-two PRs, every state, zero concurrency.** ~~twenty most recent merged PRs … zero, twenty times
+out of twenty~~ — **superseded by the wider form above, and the widening was not cosmetic.** The
+merged-only query cannot see `#367`, which is `CLOSED` with `mergedAt: null`
+(`gh pr view 367 --json state,mergedAt` → `CLOSED`, `null`) and was open for 26 seconds inside the
+window. A concurrency claim that cannot see an unmerged PR is measuring the wrong set; this one can,
+and the answer did not move.
+
+*(Bounds, stated so the next reader knows what is NOT covered: this repository only, PRs numbered ≥349,
+and the query does **not** filter by author where the guard does — filtering can only shrink the set,
+so zero stays zero.)*
+
+**So the cut rests on: the hook's own entry condition is dead in practice, and its removal therefore
+removes no refusal that has ever fired.** That argument does not generalise to 5c/5d/5e/7b — each of
+those fires, and this amendment keeps every one of them.
 
 **What detects the act afterwards:** `session-wip.sh` lists the open PR queue at every session start,
 so a second open PR is visible one session late — the same class of trade the removal of
@@ -3670,8 +3731,19 @@ to fail silently*. **`preflight.sh` carries that, and carries it harder.** It de
 set from `command -v` declarations across every registered script, so `jq` is required transitively:
 
 ```
-grep -lE 'command -v jq' hooks/scripts/<the 14 registered scripts>   → 10 of the 14, permission-guard among them
+grep -lE 'command -v jq' hooks/scripts/<the 14 registered scripts>
+→ permission-guard · closure-artifact-guard · dispatch-premise-guard · preflight
+  zombie-loop-detect · session-plugin-version · orchestrator-tool-census
+  premature-pr-link-detect · dispatch-metrics-start · dispatch-metrics-stop · owed-pr-link-detect
 ```
+
+~~→ 10 of the 14, permission-guard among them~~ — **struck 2026-09-02: the command returns ELEVEN, at
+head and at this branch's base `a547acf`.** The miscount was `preflight.sh` itself, whose own match is
+real code (`if command -v jq >/dev/null 2>&1; then`) and not a comment. **The defect is the one this
+same MR corrects four screens away in `README.md`** — a figure published beside a command that refutes
+it — which is why the count is not corrected to `11` but **replaced by its members**: this repository's
+own rule is that a set claim ships the criterion and the list, and a bare number beside a `grep -l`
+buys nothing the list does not.
 
 and the probe above shows what happens when it is missing: `exit 2`, the prompt refused, with the
 missing binary named. **A warning is strictly weaker than a refusal of the same condition.** The
@@ -3787,8 +3859,21 @@ token … a reporter that is measurably blind."* **#371 shipped while this audit
 ```
 git log --oneline -- hooks/scripts/orchestrator-tool-census.sh
 # a6827e0 fix(loop): the batch's own correction did not travel … (#370, #371, #374)
+# 21d77fb fix(loop): the 57-programs figure was inherited, not re-derived — it is 61 at head (#371)
 # 3ec315f fix(hooks): the census reported four mutations as reads; it now declares what it did not recognise (#371)
+# a987f2a refactor(skills): command-hygiene becomes shell, license folds into documentation-standard (#384)
+# ac3cbb2 fix(hooks): orchestrator-write-guard was a contingency … (#375)
+# 0d218e1 feat(harness): every mechanism declares its purpose, and every declaration names a mechanism
+# 53a9125 feat(hooks): the orchestrator does not edit a repository directly — one deny, one census
 ```
+
+**The block above is the command's WHOLE output, and it was not on 2026-09-02.** It showed two of
+seven lines — and the omitted `21d77fb` is itself a **#371** commit to this file, dropped from the
+paragraph whose entire argument is *what #371 did to this file*. **An elision that removes evidence
+FOR the claim it sits under is the same defect class as a count beside a refuting command:** the
+command is published so a reader can re-run it, and a reader who re-ran this one found three #371
+commits where the text showed two. Published whole rather than trimmed, because trimming is what
+produced the defect.
 
 Re-derived at head rather than relayed — `bash hooks/scripts/orchestrator-tool-census.test.sh` →
 **`56 passed, 0 failed`**. *(The pre-fix total was relayed to this audit and is deliberately not
@@ -3816,10 +3901,16 @@ it is not the same claim as *correct*.
 2. **They observe different things at different times.** The record states **intent, before the act**;
    the census reports **acts, after them**. A record naming who *should* act says nothing about what was
    then done, so it cannot be the equivalent control for *what did this context do with its own hands*.
-3. **Since #375 deleted `orchestrator-write-guard.sh`, the census is the only observer of main-context
-   `Edit`/`Write` that exists at all.** The selection record cannot see a file edit; nothing else fires
-   on one. Cutting the census removes the last observation of a class the same audit already recorded
-   as unrefused.
+3. **Since #375 deleted `orchestrator-write-guard.sh`, no layer refuses a main-context file edit
+   SELECTIVELY, and nothing but the census OBSERVES one.** ~~the census is the only observer of
+   main-context `Edit`/`Write` that exists at all~~ — **narrowed 2026-09-02**, because the layer table
+   it rested on was wrong: `settings.json` **can** refuse an edit by tool name × path glob
+   (`Edit(<glob>)`, five live entries across the two files), so *"no layer can refuse a file edit"* was
+   never true. What no layer can do is refuse it **by caller** — an `Edit(**)` deny stops `developer`
+   too, and that is the build. The selection record still cannot see an edit, and nothing else fires on
+   one. Cutting the census removes the last observation of a class the same audit already recorded as
+   unrefused. **The ground holds on the narrowed statement; it did not hold on the one it was written
+   with**, and the correction section above carries the measurement.
 
 **So no other harness element carries it, and it survives.** **Its residuals are unchanged by #371 and
 are restated rather than retired:** it counts attempts and not effects (a denied call still appears in
