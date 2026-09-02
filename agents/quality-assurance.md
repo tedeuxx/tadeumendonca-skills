@@ -358,7 +358,8 @@ Required shape, because the reader is a record and not only a person:
 
 ```
 <!-- gatekeeper-verdict: quality-assurance -->
-APPROVE-AND-MERGE   ← or APPROVE-AND-MERGE-BOUNDARY, or APPROVE-PENDING-HUMAN, or REQUEST-CHANGES
+APPROVE-AND-MERGE   ← or APPROVE-AND-MERGE-BOUNDARY, or APPROVE-PENDING-HUMAN,
+                      or APPROVE-EXECUTOR-BLOCKED, or REQUEST-CHANGES
 head: <the headRefOid you reviewed>
 closes: <every Issue number this PR will close, space-separated — omit the line if it closes none>
 

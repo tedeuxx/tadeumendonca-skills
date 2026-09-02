@@ -1907,6 +1907,63 @@ EOF
 done
 
 # ---------------------------------------------------------------------------------------------------
+# THE BRIEF'S OWN TEMPLATE AGAINST THE BRIEF'S OWN SET (#374, gate round 1). Every arm above compares
+# the definition list to a READER. Nothing compared it to the block a gate actually COPIES — and that
+# is where the fifth literal failed to arrive: `agents/quality-assurance.md` added
+# `APPROVE-EXECUTOR-BLOCKED` to *"Your verdict — exactly one of"* and left the *"Required shape"* block
+# offering four. The file states the invariant ninety lines below the template — *"a change to either
+# changes both"* — and the sixth-literal probe reddened four arms, NONE of them about that block.
+#
+# IT IS THE MIRROR OF THE `APPROVED` DEFECT this repo already paid for: then the template offered a
+# literal the set never defined; now the set defined one the template never offered. Same file, same
+# two vocabularies, opposite direction — which is why this is written over BOTH directions rather than
+# only the one that bit.
+#
+# WHY THE FENCED BLOCK AND NOT A LINE NUMBER: the template wrapped onto two lines when the fifth
+# literal was added, so a check anchored on a single line would have broken on the fix itself. The
+# extraction takes the fenced block following the `Required shape` heading — stable against rewrapping
+# and against the block growing more fields.
+qa_template="$(awk '/^Required shape, because the reader is a record/{f=1} f&&/^```/{n++} f{print} f&&n==2{exit}' \
+  "$ROOT/agents/quality-assurance.md" 2>/dev/null || true)"
+if [ -z "$qa_verdicts" ] || [ -z "$qa_template" ]; then
+  bad "verdict template — nothing was extracted from
+      $([ -z "$qa_verdicts" ] && printf 'the verdict list ')$([ -z "$qa_template" ] && printf 'the Required shape block ')— a green
+      here would be an artifact of the parse breaking, not a finding."
+else
+  missing_in_tmpl=""
+  while IFS= read -r v; do
+    [ -z "$v" ] && continue
+    printf '%s\n' "$qa_template" | grep -qF -- "$v" || missing_in_tmpl="${missing_in_tmpl} ${v}"
+  done <<EOF
+$qa_verdicts
+EOF
+  if [ -n "$missing_in_tmpl" ]; then
+    bad "verdict template — the 'Required shape' block a gate COPIES does not offer:${missing_in_tmpl}.
+      The brief's own invariant is 'a change to either changes both'. A gate composing from that block
+      cannot post a literal it does not list, so the definition set is decoration for exactly the state
+      the missing literal names — which is how APPROVE-EXECUTOR-BLOCKED shipped unusable at #374."
+  else
+    ok "verdict template — the 'Required shape' block offers every literal quality-assurance.md defines"
+  fi
+  # THE PHANTOM DIRECTION, and it is the one the `APPROVED` incident actually took.
+  tmpl_extra=""
+  tmpl_lits="$(printf '%s\n' "$qa_template" | grep -oE 'APPROVE[A-Z-]*|REQUEST-CHANGES' | sort -u || true)"
+  while IFS= read -r v; do
+    [ -z "$v" ] && continue
+    printf '%s\n' "$qa_verdicts" | grep -qx "$v" || tmpl_extra="${tmpl_extra} ${v}"
+  done <<EOF
+$tmpl_lits
+EOF
+  if [ -n "$tmpl_extra" ]; then
+    bad "verdict template — the 'Required shape' block offers literal(s) the verdict list does not
+      define:${tmpl_extra}. This is the ORIGINAL direction of the defect (\`APPROVED\`): a gate copies
+      the template, posts a literal nothing downstream recognises, and every reader falls to its \`*)\`."
+  else
+    ok "verdict template — every literal the 'Required shape' block offers is one the verdict list defines"
+  fi
+fi
+
+# ---------------------------------------------------------------------------------------------------
 # THE THIRD DUPLICATED LITERAL, AND WHY IT MUST NOT BE RENAMED: `agents-lead`#291 kept the exact
 # marker string `harness-lead-verdict` unchanged when the persona that produces it was renamed from
 # `harness-lead` to `agents-lead`, on the argument that every marker already posted to a GitHub

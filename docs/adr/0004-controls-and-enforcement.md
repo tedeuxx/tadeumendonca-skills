@@ -3314,7 +3314,25 @@ brief that no reader ever considered*, which every reader's `*)` then swallows: 
 
 **That gap is closed in this same MR**, by generalising the `awk` case-block extraction
 `inventory-counts.test.sh` already had. The same sixth-literal probe now reddens **four** arms instead
-of one. Two arm classes, and they are deliberately not the same strength:
+of one.
+
+**Four, not five, and the fifth reader is worth naming rather than rounding up.** Rule 7c does *not*
+redden on an unconsidered literal — it **fails closed**, denying the merge, which is correct by default
+and is why no arm is owed there. So the five readers are covered as **four that redden plus one that
+fails closed**, and a reader expecting a fifth red will not get one. Stated because the sentence above
+reads as *five arms* if the distinction is left to inference.
+
+**A third class was added at the gate's first pass, and it covers the surface the other two do not.**
+Both classes above compare the definition list to a **reader**; nothing compared it to the block a gate
+actually **copies**. That is exactly where this amendment's own fifth literal failed to arrive — the
+*"Required shape"* template kept offering four while the definition list defined five, and the
+sixth-literal probe reddened four arms, none of them about it. It is the mirror of the `APPROVED`
+incident this record's Context section already measured: then the template offered a literal the set
+never defined; now the set defined one the template never offered. **The arm therefore asserts both
+directions**, and it anchors on the fenced block rather than a line, because adding the fifth literal
+wrapped the template onto two lines — a line-anchored check would have broken on its own fix.
+
+Two arm classes below, and they are deliberately not the same strength:
 
 - **Named-anywhere, across the three `Stop` readers.** *"Every literal must appear in every reader's
   case block"* was **rejected rather than merely not chosen**: `zombie-loop-detect.sh` deliberately
