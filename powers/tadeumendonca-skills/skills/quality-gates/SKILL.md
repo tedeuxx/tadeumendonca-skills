@@ -31,7 +31,7 @@ so the two halves of one concept stopped living in two skills. What is left here
 definitions put here: **CI/CD metrics.**
 
 **Read `/definition-of-done` for what a slice must satisfy to be complete** — both the generic
-discipline and this loop's own eight criteria, with the table saying which of them a gate proves. **Read
+discipline and this loop's own criteria, with the table saying which of them a gate proves. **Read
 this file for the gates themselves.** The two are a pair and neither is sufficient: a slice can clear
 every gate below and still fail the DoD, which is exactly what the seam table in the other file is for.
 
