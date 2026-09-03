@@ -744,11 +744,11 @@ each records a decision, and they are **not** re-derivable against the totals ab
 and a bullet's total no longer belong to the same measurement, and pretending they do is how the next
 figure goes stale invisibly.
 
-- **`developer` — 225,288 B** — `code-review` · `quality-gates` · `agents-configuration` · `engineering-standards` ·
+- **`developer` — 226,687 B** (~~225,288 B~~, struck 2026-09-03: this slice grew `agents-configuration`, which every brief carries) — `code-review` · `quality-gates` · `agents-configuration` · `engineering-standards` ·
   `shell` · `devops`. `quality-gates` grew 763 B at #265 — a pointer
   paragraph repointing its former generic DoD framing at the new `definition-of-done` skill — which
   moves this total by the same amount, since this brief carries the whole file.
-- **`quality-assurance` — 229,519 B** — `agents-configuration` · `engineering-standards` · `quality-gates` ·
+- **`quality-assurance` — 230,918 B** (~~229,519 B~~, struck 2026-09-03, same cause) — `agents-configuration` · `engineering-standards` · `quality-gates` ·
   `devops` · `shell`. `coverage` used to be a fifth, separate entry here; #257 folded its
   content into `quality-gates`, so the same policy is still fully preloaded — the entry disappeared, not
   the content. `sonarcloud` used to be the third entry; #259 folded it into `devops`, and this brief now
@@ -757,7 +757,7 @@ figure goes stale invisibly.
   canonical source for three of this brief's own production-lens criteria (IAM least-privilege, the
   immutable OIDC subject, SHA-pinning) that this file previously restated in compressed form.
   `quality-gates`'s #265 growth (see `developer`, above) moves this total by the same 763 B.
-- **`tech-lead` — 237,480 B** — `documentation-standard` · `agents-configuration` · `engineering-standards` ·
+- **`tech-lead` — 238,879 B** (~~237,480 B~~, struck 2026-09-03, same cause) — `documentation-standard` · `agents-configuration` · `engineering-standards` ·
   `definition-of-ready` · `shell` · `devops`. This used to be five entries (`adr`,
   `documentation-standard`, `harness-engineering`, `shell`, `devops`); #260 folded `adr` into
   `documentation-standard` as its Part II, so the entry count temporarily dropped to four before #264
@@ -773,12 +773,12 @@ figure goes stale invisibly.
   argued rather than assumed: closing an Issue's description with `product-lead` is not an occasional
   reference for this persona, it happens at every intake dispatch, which is the same class of necessity
   that justifies a preload rather than a `Read` on demand.
-- **`product-lead` — 173,398 B** — `agents-configuration` · `engineering-standards` · `definition-of-ready` · `shell`.
+- **`product-lead` — 174,797 B** (~~173,398 B~~, struck 2026-09-03, same cause) — `agents-configuration` · `engineering-standards` · `definition-of-ready` · `shell`.
   `definition-of-ready` (11,265 B, #264) is a new, deliberate second domain-specific entry alongside the
   universal preloads — the same reasoning as `tech-lead`'s addition above: this persona performs the act
   the skill defines (closing a description to the point it earns `ready`) at every dispatch, not
   occasionally.
-- **`agents-lead` — 237,480 B** — `agents-configuration` · `engineering-standards` · `documentation-standard` · `shell` ·
+- **`agents-lead` — 238,879 B** (~~237,480 B~~, struck 2026-09-03, same cause) — `agents-configuration` · `engineering-standards` · `documentation-standard` · `shell` ·
   `devops`. `harness-engineering` was the one exception to what used to be `skills: []`; the other three
   followed for reasons its own brief states (`documentation-standard`'s Part II — the ADR practice
   formerly the standalone `adr` skill, folded in at #260 — for loop/harness ADRs since #223,
@@ -801,14 +801,17 @@ figure goes stale invisibly.
   the persona most exposed to staleness, a real tension a frozen
   preload creates that its own brief names as a residual rather than resolves — and this entry **adds**
   to that tension rather than easing it, since the section it gains describes hooks this persona owns.
-- **`content-writer` — 219,996 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice` · `content-publishing`.
-  ~~209,904 B~~ — **struck 2026-09-03, and THIS PR is the cause**: the same branch grew
-  `published-voice` by 10,092 B (the ratified register), and this brief carries it. Re-derived at this
+- **`content-writer` — 224,928 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice` · `content-publishing`.
+  ~~209,904 B~~ ~~219,996 B~~ — **struck twice on 2026-09-03, and a different PR is the cause each
+  time**: the register commit grew `published-voice` by 10,092 B, and the copy-lens slice grew both
+  `agents-configuration` and `content-publishing`, which this brief carries. Re-derived at this
   head with the per-persona script published above this list, which prints
-  `content-writer 219,996 B` and `content-reviewer 219,996 B`.
-  **`content-publishing` (24,038 B) is the fifth entry, added 2026-09-02, and it is the LANE rather than
-  a second ruler** — the owner's selection, the round bound, the truth veto's timing, the held preview at
-  the real URL, release and the social pair. It is carried by both halves of the pair because the gate
+  `content-writer 224,928 B` and `content-reviewer 224,928 B`.
+  **`content-publishing` (27,571 B; ~~24,038 B~~ struck 2026-09-03, grown by the copy-lens slice) is the
+  fifth entry, added 2026-09-02, and it is the LANE rather than
+  a second ruler** — the owner's selection, the round bound, the reviewer's repair-in-place on two named
+  grounds (~~the truth veto's timing~~, struck 2026-09-03), the held preview at the real URL, release
+  and the social pair. It is carried by both halves of the pair because the gate
   asserting those two lists are identical makes that the only admissible shape, and because a reviewer
   that cannot see the steps on either side of its rounds prices its own findings wrong.
   Renamed from `writer` at #317; the figure moved for one reason and it is not the rename, which costs
@@ -850,10 +853,10 @@ figure goes stale invisibly.
   and the only defence is re-deriving as the last act before the merge rather than as the last act
   before the commit. `wc -c` at this head returns **39,353**; `git show 0d218e1:skills/published-voice/SKILL.md | wc -c`
   still returns 29,261, which is why that half stands unstruck.
-- **`content-reviewer` — 219,996 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice` · `content-publishing`.
-  ~~209,904 B~~ — **struck 2026-09-03 for the same cause as the bullet above, and the two moved
-  together by construction**, which is the identity below doing its job on the figure as well as on the
-  ruler.
+- **`content-reviewer` — 224,928 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice` · `content-publishing`.
+  ~~209,904 B~~ ~~219,996 B~~ — **struck twice on 2026-09-03 for the same causes as the bullet above,
+  and the two moved together both times by construction**, which is the identity below doing its job on
+  the figure as well as on the ruler.
   **Byte-identical to `content-writer`'s, because the list is identical — and that identity is the
   design rather than a copy-paste.** The pair
   is only worth its cost if both halves judge against one file; giving the reviewer a skill the writer
@@ -864,7 +867,7 @@ figure goes stale invisibly.
   protocol is stated in this brief and not in `content-writer`'s**, which carries only the four rules
   that bind the drafter — a deliberate asymmetry, because two copies of a protocol is the failure the
   ruler extraction was performed to avoid, one layer down.
-- **`scrum-master` — 149,586 B** — `agents-configuration` · `engineering-standards`. **The smallest
+- **`scrum-master` — 150,985 B** (~~149,586 B~~, struck 2026-09-03, same cause) — `agents-configuration` · `engineering-standards`. **The smallest
   preload in the roster, and the only list with no third entry.** It arrived at #375 declaring
   `harness-engineering`, a skill this batch renamed out of existence at #381; the profile's two halves
   were decided here on the same per-persona basis as the other seven rather than by find-and-replace.
@@ -914,9 +917,16 @@ where `quality-assurance` at least *applies* a concrete instance of the concept 
 here even touches this skill's subject at any dispatch. It stays reachable the same way every
 non-preloaded skill is: typed as `/planning-poker`, or via the `Skill` tool on demand.
 
-**1,692,743 B as billed across the eight, 365,702 B distinct — 57.8% of the library (633,075 B across
-15 skills; `find skills -name SKILL.md | xargs wc -c`), and the largest preload is a TIE at 237,480 B
-between `tech-lead` and `agents-lead`, with `developer` third at 225,288 B.**
+**1,711,001 B as billed across the eight, 370,634 B distinct — 58.1% of the library (638,007 B across
+15 skills; `find skills -name SKILL.md | xargs wc -c`), and the largest preload is a TIE at 238,879 B
+between `tech-lead` and `agents-lead`, with `developer` third at 226,687 B.**
+~~1,692,743 / 365,702 / 57.8% / 633,075, tie at 237,480 B, `developer` at 225,288 B~~ — **struck
+2026-09-03, and the cause is again INSIDE this PR**: this slice grew `agents-configuration` (carried by
+all eight briefs) and `content-publishing` (carried by two), so the billed total moved by eight times
+the first growth plus twice the second, and the distinct and library totals by once each. **The tie and
+the third place are unaffected** — every brief carries `agents-configuration`, so the universal growth
+moves all eight totals identically and reorders none of them. Re-derived after the last content edit of
+this slice with the script above this list.
 ~~1,672,559 / 355,610 / 57.1% / 622,983~~ — **struck 2026-09-03, and the cause is INSIDE this PR**:
 `6606a07` re-derived those four, and `357306d`, on the same branch, then grew `published-voice` by
 10,092 B. That skill is carried by two briefs, so the billed total moved by twice the growth and the
@@ -947,15 +957,20 @@ nobody has selected by criterion, which is the defect one paragraph up.
 **The corrected figures are the ones stated in the aggregate above, derived after the last edit of this
 slice, with the two commands this section already publishes:** the per-persona script above this list
 returns ~~`BILLED 1,672,559  DISTINCT 355,610  LIBRARY 622,983 across 15  PCT 57.1%`~~
-`BILLED 1,692,743  DISTINCT 365,702  LIBRARY 633,075 across 15  PCT 57.8%` (struck 2026-09-03 — the
-register commit on this same branch, per the aggregate above), and
-`find skills -name SKILL.md -exec wc -c {} +` returns `24038` for
+~~`BILLED 1,692,743  DISTINCT 365,702  LIBRARY 633,075 across 15  PCT 57.8%`~~
+`BILLED 1,711,001  DISTINCT 370,634  LIBRARY 638,007 across 15  PCT 58.1%` (first strike 2026-09-03 —
+the register commit on this same branch; second strike 2026-09-03 — the copy-lens slice, which grew the
+universal preload and the content lane skill), and
+`find skills -name SKILL.md -exec wc -c {} +` returns ~~`24038`~~ `27571` for
 `skills/content-publishing/SKILL.md`.
 
 **The largest error was never staleness, which is what makes it worth a paragraph rather than a
-substitution.** `content-publishing` was published at **18,395 B** and the file has been **24,038 B**
-since it first existed — checked at all three commits of the branch that introduced it, where
-`git show <rev>:skills/content-publishing/SKILL.md | wc -c` returns 24038 every time. The number never
+substitution.** `content-publishing` was published at **18,395 B** and the file was **24,038 B**
+throughout the branch that introduced it — checked at all three of its commits, where
+`git show <rev>:skills/content-publishing/SKILL.md | wc -c` returns 24038 every time. *(It is 27,571 B
+at head: the copy-lens slice of 2026-09-03 grew it. The historical claim is about that branch and is
+stated in the past tense for that reason — ~~"has been … since it first existed"~~ was a present-perfect
+form that this very slice falsified.)* The number never
 described the artifact, so no re-run at any moment could have produced it, and it is not the `powers/`
 export either (23,880 B). **What it was measured off is not established**, and that is stated as an
 open question rather than guessed at, because a plausible explanation here would be exactly the kind of
@@ -1044,7 +1059,8 @@ library and is carried by all six briefs.~~ **Struck here rather than restamped,
 were wrong in different ways and only one of them is this batch's doing.** The identifier died at #381;
 the *ranking* had been false for longer — `cloud-infrastructure` (155,998 B) is the largest single
 skill in the library and is preloaded by **nobody**, while the largest *preloaded* one is
-`agents-configuration` at 127,393 B, carried by all **eight** briefs. The two figures (billed vs.
+`agents-configuration` at 128,792 B (~~127,393 B~~, struck 2026-09-03 — the copy-lens slice grew it),
+carried by all **eight** briefs. The two figures (billed vs.
 distinct) differ because several skills — `agents-configuration`, `engineering-standards`, `shell`,
 `quality-gates`, `documentation-standard`, `devops` — are each carried by more than one persona: there
 is no dedupe, so each is billed once per persona and the library sees it once. Note what this list and
@@ -1083,7 +1099,7 @@ The library: 15 skills, one directory each, at one level under `skills/`.
 | `backend` | Backend (BFF-on-Lambda) | `developer` |
 | `cloud-infrastructure` | Cloud infrastructure (AWS) | `developer` |
 | `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `developer` |
-| `content-publishing` | Content publishing — the lane a piece travels from selection to live, and who waits at each step | `content-writer` · `content-reviewer` · `product-lead` — the pair that runs the lane, and the lens that opens it and holds the truth veto that closes it |
+| `content-publishing` | Content publishing — the lane a piece travels from selection to live, and who waits at each step | `content-writer` · `content-reviewer` · `product-lead` — the pair that runs the lane, one half of it holding the copy lens as a REPAIR (ADR-0002's thirty-second amendment), and the lens that opens it at intake |
 | `definition-of-done` | Definition of Done — the ruler that decides when work stops | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `definition-of-ready` | Definition of Ready — the bar a work item clears before it is buildable | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `devops` | Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and | `developer` · `agents-lead` · `tech-lead` (#227) |
