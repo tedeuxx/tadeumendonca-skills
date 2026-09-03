@@ -68,7 +68,7 @@ WIELDER = {
     "backend": DEVELOPER,
     "cloud-infrastructure": DEVELOPER,
     "code-review": DEVELOPER,
-    "content-publishing": "`content-writer` · `content-reviewer` · `product-lead` — the pair that runs the lane, and the lens that opens it and holds the truth veto that closes it",
+    "content-publishing": "`content-writer` · `content-reviewer` · `product-lead` — the pair that runs the lane, one half of it holding the copy lens as a REPAIR (ADR-0002's thirty-second amendment), and the lens that opens it at intake",
     "definition-of-done": JUDGES,
     "definition-of-ready": JUDGES,
     "devops": "`developer` · `agents-lead` · `tech-lead` (#227)",

@@ -254,7 +254,7 @@ owner works that decision out with; it does not make it.
 | ready → **in progress** | `product` | `developer` | an open PR |
 | ready → **in progress** | `content` | `content-writer` — **not `developer`**, which has never been dispatched at a draft (ADR-0002, thirteenth amendment; this row said `developer` until #317 and was wrong for nine days) | an open PR |
 | ready → **in progress** | `loop` | `agents-lead` (ADR-0002, record 0015's Corollary 1) | an open PR |
-| in progress → **drafted** | `content` only | `content-reviewer`, at most **two** rounds against `published-voice` (ADR-0002, seventeenth amendment) | **`docs/content-review/<slug>.md` on the branch** — one `## Round` section per round, each closed with `CONTENT-REVIEW-FINDINGS` or `CONTENT-REVIEW-CLEAR`; terminal on the first `CLEAR` or the second section, whichever comes first |
+| in progress → **drafted** | `content` only | `content-reviewer`, at most **two** rounds against `published-voice`, **repairing the draft in place rather than blocking or handing back** (ADR-0002, seventeenth and thirty-second amendments) | **`docs/content-review/<slug>.md` on the branch** — one `## Round` section per round, each closed with `CONTENT-REVIEW-FINDINGS` or `CONTENT-REVIEW-CLEAR`; terminal on the first `CLEAR` or the second section, whichever comes first |
 | in progress → **reviewed** | `product` · `content` | `quality-assurance`, against the full two-lens DoD | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
 | in progress → **reviewed** | `loop` | `quality-assurance`, against the full two-lens DoD **exactly as on any other lane**, **plus** an `agents-lead` verdict marker that must be on the PR before it may classify the diff safe or merge it (ADR-0002, record 0015's Corollary 2). The marker is an **added** control, never a substitute for the DoD | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
 | reviewed → **closed** | all | `quality-assurance` — safe **and** boundary since 2026-08-23 (ADR-0002 amendment #16) · the owner only on the four surviving holds | the merge, plus the verdict literal that authorised it (`APPROVE-AND-MERGE` or `APPROVE-AND-MERGE-BOUNDARY`); on a hold, the owner's ratifying comment |
@@ -310,11 +310,22 @@ decides whether the Issue should exist never enters that flow. ~~The split is a 
 flagged as unsupported.** Reinforcing it: nobody else in the roster orders a `content` queue or judges
 what it is worth to the reader.
 
-**Its BLOCKING truth veto on published claims survives untouched** — it fires at the merge gate, relayed
+~~**Its BLOCKING truth veto on published claims survives untouched** — it fires at the merge gate, relayed
 by `quality-assurance` under criterion 10, rather than inside a round. **Only the craft opinion left, and
 what that costs is WHEN those checks land, not WHETHER they run:** they arrive on a finished draft
-instead of inside a round where acting on them costs a paragraph. If the reading is still wrong, the row
-above is where to correct it.
+instead of inside a round where acting on them costs a paragraph.~~ **Struck 2026-09-03 (ADR-0002,
+thirty-second amendment).** The owner moved the copy lens off this persona for the `content` stream
+entirely: *«essa lente de copy nao deveria mais ser o product lead interferindo na stream de content»*.
+
+**What replaced it is a REPAIR, not a second veto, and saying so is the point of this paragraph.**
+`content-reviewer` now edits the draft on two grounds — it can quote a clause of `published-voice`, or
+the claim is false against the source — and the corrected piece goes to the held preview. **There is no
+copy block left on this lane**, and a reader who sees the veto struck must not conclude the check
+vanished: it moved one step earlier and changed form. **What genuinely went unreplaced is the
+world-check** — cross-surface staleness, evidence proximity, the machine/ATS read, durability. **`content`
+INTAKE is untouched**: `product-lead` still closes that lane's description and decides `ready`, because
+intake judges the Issue and a round judges the prose. If the reading is still wrong, the row above is
+where to correct it.
 
 **Since [ADR-0006](https://github.com/tedeuxx/tadeumendonca-skills/blob/main/docs/adr/0006-verification-and-its-artifacts.md)** the
 `reviewed` row's artifact is real — the gatekeeper posts a marker comment carrying the head SHA it
@@ -1494,7 +1505,10 @@ clause under another name. On any of these the gate returns `APPROVE-PENDING-HUM
 3. **Anything in `iac/`** — the merge applies, a destroyed resource is not recovered by a revert, and
    there *is* a preview here: the plan posted on the PR.
 4. **An explicit lens `ESCALATE`**, or a `BLOCKING` truth finding from `product-lead` — a lens has one
-   path to the owner and this is it.
+   path to the owner and this is it. **It cannot fire on a `content` diff since 2026-09-03**: that lens
+   does not run there, so this hold has no object on that lane, and the honest statement is that a
+   `content` piece reaches merge with none of the four holds available rather than with one
+   (ADR-0002, thirty-second amendment).
 
 *Significance beats in-pattern:* when the class is unclear, it is boundary — which now means the gate
 merges it under the boundary literal rather than holding it, so **when what is unclear is whether one of

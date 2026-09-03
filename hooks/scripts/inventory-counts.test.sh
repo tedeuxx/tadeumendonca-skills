@@ -2249,6 +2249,39 @@ else
   ok "content pair — no CONTENT-REVIEW-* literal outside the defined set of two, across both briefs, the guard rule and the state table"
 fi
 
+# ── ARM D: the REPAIR rule and its two grounds are stated wherever they operate (2026-09-03) ────────
+# ADR-0002's thirty-second amendment moved the copy lens off `product-lead` for the content stream and
+# made it a REPAIR rather than a veto. Three surfaces have to agree or the lane has two answers: the
+# reviewer that performs the edit, the lane skill that describes the step, and the gate whose criterion
+# 10 changed shape on this diff class. Same construction as arms A-C: a string-drift check over prose
+# that lives in more than one file, which is this repo's most-paid-for defect class.
+#
+# WHAT IT CANNOT DO, said before any green is read: it cannot observe an edit, so it cannot tell whether
+# a repair was placed under a ground the reviewer could actually quote. NO layer can — `hooks/hooks.json`
+# registers `PreToolUse` on the `Bash` matcher only, so `Write` and `Edit` are observed by nothing. The
+# two-grounds bar is held by the persona and by the owner reading the diff. This arm holds the WORDING.
+cp_repair_missing=""
+for cp_pair in \
+  "$CP_R|false against the source" \
+  "$ROOT/skills/content-publishing/SKILL.md|false against the source" \
+  "$ROOT/docs/adr/0002-roster-and-dev-loop.md|false against the source" \
+  "$ROOT/agents/quality-assurance.md|no verdict, no fence" \
+  ; do
+  cp_f="${cp_pair%%|*}"; cp_lit="${cp_pair#*|}"
+  grep -qF -- "$cp_lit" "$cp_f" 2>/dev/null \
+    || cp_repair_missing="$cp_repair_missing $(basename "$cp_f"):\"$cp_lit\""
+done
+if [ -n "$cp_repair_missing" ]; then
+  bad "content pair — the repair rule's wording is missing from a surface that must carry it:$cp_repair_missing
+      The reviewer edits on exactly two grounds (a quoted clause, or a claim false against the source),
+      and criterion 10 takes a second shape on a content diff (no relayed verdict, no copy-verdict
+      fence — the review file instead). If one surface drops that wording the lane has two answers, and
+      the reader of the surface that dropped it is the one who acts. Recorded in ADR-0002's
+      thirty-second amendment; change it in all four or in none."
+else
+  ok "content pair — the repair rule's two grounds and criterion 10's content-lane shape are stated on all four surfaces that carry them"
+fi
+
 # ---------------------------------------------------------------------------------------------------
 # THE `content` INTERVIEW'S OWNER-TAKE MARKER IS A CLOSED SET OF TWO.
 #
