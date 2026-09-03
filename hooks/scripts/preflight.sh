@@ -15,7 +15,9 @@
 #   command="$(… jq -r '.tool_input.command' …)"
 #   [ -z "$command" ] && exit 0
 #
-# One missing binary disables every rule in a 115 KB file and emits nothing. Not one arm — the
+# One missing binary disables every rule in the largest guard in this directory and emits nothing —
+# the size figure that stood here read "115 KB", was true when written and is not now, and is dropped
+# rather than refreshed because nothing gates it. Not one arm — the
 # recursive-delete rule, `terraform apply`, force-push, the trunk-push floor, the merge floor, every
 # persona boundary, all of it, at once, quietly. `wip-guard.sh`'s own header already records losing
 # three rules to exactly this with `jq` off `PATH`, and nobody noticed at the time.

@@ -146,6 +146,145 @@ when the question is about voice. And do not inflate: he objected to a summary t
 statements into headed sections with examples he never gave — *"você sempre torna algo maior do que a
 realidade ali"*.
 
+## The register — *poesia para developers*, and it is RESTRAINT rather than style
+
+**Ratified by him on 2026-08-08, on a shipped article, in his own words:** *"acertaram exatamente o tom
+que fica interessante artigos falando de ia, pois parece poesia para developers."*
+
+**The form is his too, refined in three steps in one conversation:** *"um diário do orquestrador do meu
+loop"* → *"algo que voce dissesse como é trabalhar comigo"* → *"seja sempre ludico e polido, mas seja um
+pouco sacana tbm."* So: **the agent's diary of running his loop** — first person, playful, polished, and
+a little sly.
+
+**Everything below is dated 2026-08-08 and the 2026-08-22 interview above is later, so where the two
+disagree the interview wins** — *Precedence* already says so and this section claims no exemption from
+it. The one place a reader will expect a collision is self-deprecation, and it is resolved rather than
+averaged: see *the filter* under *Empathy and encouragement*.
+
+**The tone is produced by four constraints, not by a style, and that is the whole reason it is written
+down as a mechanism.** A register described as *lyrical* is unreproducible by anyone who did not read
+the piece that earned the praise, and undefendable against a single edit that looks like an
+improvement. Described as restraint, it is both.
+
+1. **Every claim resolves to a file the reader can open.** It forces specificity and it kills
+   adjectives, which is the mechanism — not a citation habit. **This is not *The sourcing constraint*'s
+   *Practical test* restated:** that one asks whether the drafter can point at where a claim came from,
+   and is answered privately, before the draft exists. This one asks whether the **reader** can, and is
+   answered in the published text. A claim can pass the first and fail this one.
+2. **Admissions cost the author.** Measured on that article, and it is the sharpest evidence in this
+   section: *every testimony that cost him landed correctly; the one that paid him was the one that did
+   not survive checking.* **This is a hand reading of one published piece** — no command in this repo
+   returns it and none is machine-checkable, the same standing as the corpus counts below.
+3. **Limits are stated before the reader thinks of them.** A limit the reader reaches first is a defect
+   they now have to decide about; the same limit stated first is a demonstration of knowing where the
+   thing ends.
+4. **Short declarative after long technical.** The rhythm is one rule, not a feel. It is also the only
+   one of the four a reviewer can check without leaving the paragraph.
+
+### What keeps *sacana* from becoming smug
+
+- **The joke lands on the writer or on the machinery — never on a third party who cannot answer.**
+  Clients, employers, competitors and the reader are off limits; the agents, the hooks, the gates and
+  the records are fair game. This is *The journey rule*'s second corollary and the no-client-references
+  rule arriving at the same line from the humour side, so it is one boundary rather than three.
+- **It must be TRUE.** Wit with a fact is funny; wit without one is sneering, and sneering on a surface
+  whose whole thesis is rigor collapses everything at once — the piece, the claim it was making, and the
+  posture behind both. **The humour is therefore never exempt from *The sourcing constraint*; it is the
+  place that rule is most tempting to spend.**
+- **Polish is the brake: short sentences, no exclamation marks, no emoji.** The humour is **the dry gap
+  between what was claimed and what was there** — a structural move, like the title's punchline, not a
+  comic one.
+- **It only works if it costs him sometimes.** A diary saying he is wonderful to work with is
+  unpublishable, and a reader detects it in one sentence.
+
+**Read this against the corpus finding below rather than instead of it.** The corpus records humour as
+*rare* — on the order of ten instances across 26 articles — and that finding is untouched: it is
+evidence about what he **did**, and the instruction there, *do not model it as something every piece
+needs*, still governs the pieces this register does not cover. What 2026-08-08 adds is that in the
+diary register the slyness is **constant and structural**. The two are not in conflict; they describe
+different pieces, and *Precedence* is what makes the later, narrower instruction the operative one where
+they overlap.
+
+### Empathy and encouragement — two of his instructions in tension, and the craft rule that resolves them
+
+> *"nao esconda os lados nao tao legais nem nossos erros. isso empatiza."* · *"precisa ter um tom para
+> encorajar as pessoas a se aventurarem igual a como estamos fazendo."*
+
+- **Encouragement is a BY-PRODUCT, never the objective of a sentence.** This is the same shape as
+  relevance in *The goal, the filter, and the byproduct*, and it fails the same way: the moment a
+  sentence exists **in order to** encourage, it is a motivational post and the register dies. What
+  encourages is **demonstrated reachability** — showing the thing can be done by showing what it cost.
+  **Test: if the sentence could appear in a LinkedIn carousel, cut it.** That is his blanket objection to
+  conventional LinkedIn writing given a usable edge, not a second rule.
+- **The filter between empathy and self-pity — and between empathy and the humblebrag — is that the
+  error must leave a CHECKABLE MARK.** *"I got it wrong twice in the same sentence"* works, because the
+  commits prove it. *"It was hard"* does not, because it opens no file. **This is also what reconciles
+  the admission constraint with the 2026-08-22 rule that self-deprecation is not his signature:** a
+  specific error with an artifact behind it is an admission; a hedge about his own work is the thing he
+  is working against, and it is exactly the sentence that opens nothing.
+
+### Two audiences, one text — the hardest constraint in the set
+
+> *"manter a linguagem acessivel e apreciada por pessoas leigas porem nao desestimulante para pessoas
+> do nicho profissional da area de tecnologia. precisa ser tom interessante e divertido."*
+
+**It is hardest because the two audiences fail in OPPOSITE directions** — simplify and the engineer
+stops reading; go deep and the lay reader stops — so there is no dose that satisfies both and averaging
+produces a text neither finishes.
+
+- **The sentence carries the story; the link carries the proof.** A lay reader follows the piece without
+  the jargon; an engineer opens the file. **Neither is asked to skip anything**, which is the property
+  that makes it a resolution rather than a compromise.
+- **The failure mode is explaining the term inline.** It bores the engineer *and* slows the lay reader,
+  and it is the natural instinct of anyone trying to be accessible. **Leave jargon unexplained but
+  non-blocking, and put the CONSEQUENCE in plain language.** Jargon as texture, never as a toll.
+- **This does not overturn the corpus's gloss discipline, and the distinction is worth stating because a
+  reviewer will read them as contradictory.** A parenthetical gloss on first use is *the aside* — the
+  move the corpus section already calls the two-tier tone in one move. What is ruled out here is the
+  **explanatory paragraph**: a second version of the point, written for the other reader. One is a wink;
+  the other is a toll booth.
+
+### One register across BOTH tracks, and it binds hardest where it feels least necessary
+
+**His clarification the same day: the register applies whether a piece is tagged `pessoal` or
+`engenharia`.** The temptation is to read the personal track as the loose one, and that is the reading
+to refuse: **the personal track is the on-ramp a lay reader meets first**, so if it is the loose one the
+surface teaches, at the first contact, that the rigor is optional.
+
+**The honest adaptation is not dropping the proof — it is changing what counts as proof.** On the
+personal track a config, a prompt, or a before/after with a number all satisfy constraint 1. **If
+nothing opens, it is testimony, and testimony gets marked as testimony.** That is the same discipline
+*The sourcing constraint* applies to a claim, applied to the evidence a paragraph is standing on.
+
+### The edit that must never happen
+
+**No name for the habit. No coined term. No numbered framework.** A register this consistent is one
+heading away from becoming a branded method, and **that single edit converts the strongest asset on the
+surface into the thing the peer-not-authority posture exists to prevent** — *"não quero estabelecer
+autoridade"*, and the corpus's guru-borrowing failure wearing the author's own name instead of someone
+else's.
+
+**Repeat this check whenever he is pleased with a piece, which is exactly when the temptation peaks.**
+Poetry for developers works while it stays a report.
+
+### Open, and deliberately NOT resolved here: whose byline a diary entry carries
+
+**One decision in this material is the owner's and is unanswered.** It is recorded rather than decided,
+because a skill that picks it would be a persona deciding something on a surface whose whole subject is
+his image. The two readings, with what each buys and costs:
+
+- **His byline, with the agent cited.** Keeps the piece unambiguously his — which is what the surface is
+  for — and keeps *The subject is bounded* straightforwardly applicable. **Cost:** the register's own
+  first person is the agent's (*"um diário do orquestrador"*), so a reader who takes the byline
+  literally reads a claim about who typed it that the text quietly contradicts.
+- **Labelled agent-written under his curation.** Matches the form exactly, and the label is itself an
+  instance of constraint 3 — a limit stated before the reader thinks of it. **Cost:** it moves the piece
+  one step away from him on a surface whose value is that it is his, and it makes the curation, rather
+  than the work, the thing being claimed.
+
+**Do not resolve it in a draft.** Where a piece needs the answer, that is a question back to him, the
+same as any other missing source.
+
 ## The corpus he actually wrote — 26 articles, and half of them are the model
 
 26 articles on his Medium blog, **Sep 2020 → Jun 2023**, read in full on 2026-08-22 at his request.
