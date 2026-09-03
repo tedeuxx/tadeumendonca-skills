@@ -219,6 +219,55 @@ The piece is merged and deployed **held**: built, compiled, reachable at its fin
 components and the real chrome, and absent from every public enumeration. **You send the link. He reads
 it there.**
 
+#### The link is FORMED from the artifact, and only then sent
+
+**No link reaches him that was not built from the file it points at.** This is a rule about
+**formation**, applied at the moment the URL is composed — not a verification performed afterwards,
+because on this architecture the verification that would rescue a wrongly-composed URL does not exist.
+
+**IS:** every segment is read out of the artifact. The **locale prefix** of the edition you are
+sending, and the **slug from that edition's own front matter**. Each edition declares its own slug, and
+the two are different strings — translating a title translates its slug with it.
+
+**IS NOT**, and each of these has produced or would produce a link that does not open:
+
+- **Not the other edition's slug.** Sending one language's edition under the other language's slug is
+  the defect that actually shipped. Slugs are per-edition and the lookup is scoped to the locale asked
+  for, so the wrong-language slug matches nothing at all.
+- **Not the slug inferred from the filename.** On a multi-edition piece the filename base is the
+  **grouping key**, not the slug — it is only what a slug falls back to when the front matter declares
+  none, and any piece whose editions have distinct addresses declares one.
+- **Not a slug composed from the title.** A slug is authored, and a piece can be retitled without being
+  re-addressed.
+- **Not "it returned `200`."** This one is stated in full, because it is what let the wrong link
+  through. The catch-all rewrite answers `200` for **every** path, including one that does not exist —
+  so a status code cannot distinguish a real address from a typo. And a **held** piece is dropped from
+  the route enumeration, so it is prerendered in **no** edition: the right URL and the wrong one are
+  served **the same bytes**, and only the client-side render tells them apart. A status code, a header
+  and a grep of the served HTML are all blind here by construction rather than by oversight. **This is
+  the general class in `/engineering-standards` — *a check whose positive result is unconditional is
+  not a check* — arriving on this lane.**
+
+**What the two outcomes look like, since anything that ever does check must key on this and not on the
+status:** the right slug renders the piece — its own title, its body, the review affordances. A wrong
+slug renders the **not-found state**, at the same URL and the same status code. A right slug reached
+**without** the preview parameter is a third outcome again, a redirect to the locale landing — which is
+why *"it opened something"* is not the observation either.
+
+**Reading the URL out of a generator would be stronger than reading front matter, and for this step it
+is not available.** Every generator that emits a piece's URL derives it from the **one route
+enumeration** — the sitemap and the prerender read it directly, the social-draft kit resolves against it
+by lookup and refuses when nothing matches — and that enumeration **drops a held piece by construction**.
+So the one state in which a link is sent to a human is the one state with no generated string to copy,
+and the kit skips a held piece outright rather than letting its own lookup refuse.
+**If this lane ever gains a generator that emits held-preview URLs, the rule becomes "read it from
+there" and this section narrows to say so:** lookup removes the composition step entirely, where front
+matter only makes the composition correct.
+
+**Nothing enforces any of this.** No layer can tell a URL read from front matter from one typed from
+memory — they are the same string in the same message. Read the rule as an instruction, and read a
+sent link as unverified unless the person who composed it says which file each segment came from.
+
 **The worked mechanism, and get it exact — this is the step that has been described wrongly more than
 once.** The hold is:
 
