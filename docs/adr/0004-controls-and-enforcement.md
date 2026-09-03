@@ -4081,3 +4081,89 @@ is not.**
 Arm: *sets a cross-cutting pattern others will follow* — it records the test by which a mechanical
 lock is kept or removed in this harness, and the layer table that answers it. `Deciders`: the owner
 (the criterion); written by `agents-lead` per the domain split (#223), whose object is the machinery.
+
+## Amendment (2026-09-03) — an escalation raised THROUGH A TOOL is refusable, which falsifies this record's own "no layer sees a message to a human"
+
+### What changed
+
+The owner corrected a pending merge that had been raised as a four-option picker, and named the class
+rather than the instance:
+
+> *«agora entendi. se voce quer que eu faza merge isso nao é preciso mostrar em formato assim.
+> precisa ser algo direto como uma ordem e o link.»*
+> *«lembre-se disso para esse tipo especifico de pendencia hitl»* · *«que nao é uma pendencia de
+> decisao»* · *«é uma pendencia de acao»* · *«enforce isso»* · *«na config do harness customizada»*
+
+**Two things rise out of a running loop, and only one of them is a decision.** A **decision** pendency
+hands up *judgement* — the loop reduced a trade to alternatives and cannot pick, so the options are
+the work. An **action** pendency hands up *execution* — the decision is taken and the human's hand on
+the object is all that remains. The escalation standard carried one form and applied it to both.
+
+**Why the wrong form is a cost rather than a blemish.** A set of options asserts that a choice exists.
+Where none does, the human reads the alternatives, hunts for the trade, finds none, and must
+reconstruct the already-taken decision in order to discover that it was already taken. That is exactly
+the context-rebuild the AFK/HITL split exists to keep short — **the wrong form spends the thing the
+standard protects.**
+
+**And an action pendency does not contradict clause 4** (*an act with no trade is the loop's*). It
+rises because the loop **cannot perform the act** — rules 7 and 7b refuse the orchestrator the merge
+and the trunk push; a credential or an external surface is the owner's alone. **Escalation by
+incapacity, never by judgement**, which is why it carries no options.
+
+### The measurement that changes this record
+
+**This ADR and `/engineering-standards` both stated that no layer can see an escalation**, because an
+escalation is a message to a human and prose passes through nothing. **That is false where the
+escalation is raised through a TOOL.** A structured picker is a tool call like any other, so a
+`PreToolUse` layer reads its payload *before* the human sees it, and can deny it.
+
+So the escalation standard splits into two enforcement regimes, and this is the general form worth
+keeping:
+
+> **The clause that travels through a TOOL is enforceable. The clause that travels through LANGUAGE is
+> not.** Not *escalations are unenforceable* — that was a claim about the medium, generalised from the
+> only medium anyone had considered.
+
+`hooks/scripts/action-pendency-guard.sh` (`PreToolUse`, matcher `AskUserQuestion`) is the first
+control in this harness that **prevents** rather than detects on the escalation surface.
+
+### What it matches, and why the match is a conjunction
+
+An execution verb in an option **label**, AND a forge-object URL anywhere in the payload. Each half
+disarms the other's false positives: a decision citing a pull request carries no execution verb in a
+label, and a description that merely mentions a merge is not the act being offered.
+
+**`approve` is deliberately absent from the verb set**, although it looks like it belongs. Approving is
+judgement; *approve, or request changes* is a real decision with two defensible options. **A
+preventive control's one unacceptable failure is denying the genuine article**, so the set holds only
+verbs naming pure execution of a decision already taken.
+
+### Two options rejected
+
+- **A `Stop` detector reading the turn's prose**, the shape every other escalation-adjacent hook in
+  this tree takes. Rejected because the picker is a tool call: refusing it *before* it interrupts the
+  owner is available here, and a detector one turn late would still have cost him the interruption
+  this rule exists to prevent.
+- **Matching the option COUNT, or the absence of a recommendation.** Rejected as unfalsifiable — a
+  legitimate decision may carry two options and an illegitimate one four; the count carries no
+  information about whether a choice exists.
+
+### What this does not reach, recorded so a green is not read as coverage
+
+Three shapes, all named in the guard's own header. An action pendency raised **in prose** — no tool
+call to intercept. One about an object with **no address** — an article, a profile, a bill. And one
+whose labels **paraphrase** the act: *now · later · tomorrow* beside a pull-request URL is the same
+defect spelled without a verb, is the likeliest next violation, and **no widening of the verb list
+reaches it** — widening only starts denying real decisions.
+
+**The bare `#NNN` form the standard recommends is the form this guard cannot classify**, since a forge
+shares one number space between issues and pull requests and this layer makes no network call. That is
+the same blind spot, for the same reason, as `premature-pr-link-detect.sh`: **each of these two hooks
+polices the form its own rule discourages and is blind to the form it endorses.**
+
+### Significance
+
+Arm: *sets a cross-cutting pattern others will follow* — it replaces a general claim about
+enforceability with a distinction by **medium**, which applies to every future rule about what the
+loop says to the human. `Deciders`: the owner (the partition, and the instruction to enforce it);
+written by `agents-lead` per the domain split (#223).

@@ -1215,7 +1215,46 @@ hits something on an Issue *in that iteration*; (3) it rises **subagent → main
 (4) the trigger is a **trade** of time (work *plus* wait hours), cost (tokens) or scope (what the Issue
 promises) for that item — **anything moving scope is a candidate, not an automatic escalation**; (5) the
 form is a tweet at most, **at most four direct options**, his technical register, terse first, depth
-pulled — **and it always carries the options**, because a bare question is offloading the analysis.
+pulled — because a bare question is offloading the analysis. ~~**and it always carries the
+options**~~ **— struck 2026-09-03: it carries options when it is a DECISION, and none when it is an
+ACTION. See the partition immediately below, which the unqualified sentence caused.**
+
+### DECISION or ACTION — ask this before the form, and this loop enforces one half of it
+
+**His correction, verbatim, after a pending merge was raised as a four-option picker:**
+
+> *«se voce quer que eu faza merge isso nao é preciso mostrar em formato assim. precisa ser algo
+> direto como uma ordem e o link.»* · *«que nao é uma pendencia de decisao»* · *«é uma pendencia de
+> acao»* · *«enforce isso»* · *«na config do harness customizada»*
+
+- **DECISION** — he supplies **judgement**. The loop reduced a trade and cannot pick. → the picker,
+  at most four options. **`AskUserQuestion`, never a numbered list typed into prose** — his ask:
+  *«use esse padrao multipla escolha para todas pendencias hitl»*, which is about decisions.
+- **ACTION** — he supplies **execution**. The decision is taken; his hand on the object is all that
+  remains. → **one line: the act and the link.** `Merge #397: <url>`. No options, no recommendation,
+  no framing.
+
+**The test: is there a second option the loop would actually defend?** If not, it is an instruction.
+**The tell in a bad one is that every option is the same act at a different time** — *now · later ·
+tomorrow · something else* is one instruction and three deferrals.
+
+**Why an ACTION pendency reaches him at all, since clause 4 says an act with no trade is the loop's.**
+Not because a trade exists — because **the loop cannot perform the act**. Merge and trunk push are
+refused to the orchestrator by `permission-guard.sh` rules 7 and 7b; a credential or an external
+surface is his alone. **Escalation by incapacity, never by judgement**, which is exactly why it
+carries no options.
+
+**This half is MECHANICALLY PREVENTED, and it is the only clause of the standard that is.**
+`hooks/scripts/action-pendency-guard.sh` (`PreToolUse`, matcher `AskUserQuestion`) refuses a picker
+that offers an execution verb in an option **label** beside a link to the object. **The conjunction
+is the design**: a decision citing a PR passes, and so does a description that merely mentions a
+merge. **`approve` is deliberately not an execution verb** — approving is judgement, and
+*approve-or-request-changes* is a real decision.
+
+**What it cannot see, said here and not only in its header:** an action pendency raised **in prose**,
+one about an object with no address, and one whose labels **paraphrase** the act without naming it.
+The third is the likeliest next violation and no string rule closes it. **A silent turn is not
+evidence the form was right.**
 
 **The precondition is first for a reason: «se nao tem loop nao é hitl».** Outside a running iteration —
 a design conversation, an interview, an ad-hoc request typed at the terminal — **there is no HITL

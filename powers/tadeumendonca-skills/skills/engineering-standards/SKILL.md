@@ -256,7 +256,8 @@ about. That is not hypothetical: it is what happened to this standard while it w
 3. **It rises through the protocol** — subagent → main session → the human. Not laterally, and not from
    a context that was never dispatched.
 4. **The trigger is a TRADE** of time, cost or scope against each other, for that item.
-5. **The form is the contract below**, and it always carries options.
+5. **The form is the contract below** — which of the two forms depends on whether the human is
+   supplying **judgement** or **execution**. See *Before clause 5*.
 
 **All five. Four of five is not an escalation, and the missing clause tells you what it is instead** —
 clause 1 missing makes it a conversation, clause 2 a design question, clause 4 a status report.
@@ -302,7 +303,42 @@ divergence is visible.**
 answers a different question. A permission layer asks *what must never execute without a human* — about
 the **act**. This asks *whose decision a choice is* — about the **choice**. They coexist.
 
-### Clause 5 — the form, and it is part of the design rather than presentation polish
+### Before clause 5 — WHICH KIND of pendency this is, because the form follows from it
+
+**Two things rise to the human out of a running loop, and only one of them is a decision.**
+
+| | a **DECISION** pendency | an **ACTION** pendency |
+|---|---|---|
+| what is left | the loop reduced a trade to alternatives and cannot pick between them | the decision is already taken; the human's hand on the object is the only remaining act |
+| what the human supplies | **judgement** | **execution** |
+| the form | the options — the reduction *is* the work | **an order and the object.** One line: the act, and where it is |
+| options | always, at most four | **none. Manufacturing them is the defect** |
+
+**The test, and it is one question: is there a second option you would actually defend?** If yes, it
+is a decision and clause 5's form applies. If no, it is an instruction, and dressing it as a choice
+is the failure below.
+
+**Why options on an action pendency are actively harmful rather than merely redundant.** A set of
+options *asserts that a choice exists*. Where none does, the human reads the alternatives, looks for
+the trade between them, finds none, and has to **reconstruct the decision that was already taken in
+order to discover that it was already taken**. That is the exact cost — rebuilding context for a
+question nobody is asking — that the whole unattended/attended split exists to avoid. **A wrong form
+here does not merely waste words; it spends the thing the standard is protecting.**
+
+**The tell in a bad one: every option is the same act at a different time.** *Do it now · remind me
+later · tomorrow · something else* is not four options. It is one instruction and three ways of
+deferring it, and the human can defer anything without being offered the choice.
+
+**Clause 4 still holds and this does not weaken it.** An act with no trade is the loop's — *executing
+a decision already made trades nothing*. An action pendency reaches the human not because a trade
+exists but because **the loop cannot perform the act**: a permission floor refuses it, a credential
+is theirs, or the object is outside the machine. So an action pendency is an escalation by
+**incapacity**, never by judgement, and that is why its form carries no options.
+
+**Say the ask FIRST and say it as an act.** Not *"when you have a moment, there's a thing"* — the
+verb and the object, then stop. Depth is still pulled, never pushed.
+
+### Clause 5 — the form for a DECISION, and it is part of the design rather than presentation polish
 
 **An escalation interrupts a person doing something else.** The work is unattended by design; the human
 is not sitting in the loop waiting to be addressed. **So the cost is not the decision, it is the context
@@ -326,11 +362,17 @@ half that has to answer.**
 **Four is a ceiling, not a target.** Two is better than four; one clear recommendation plus *"or tell me
 otherwise"* is often better than either.
 
-### The failure test — a question with no options is not an escalation
+### The failure test — a DECISION with no options is not an escalation
 
 **A bare question is offloading the analysis.** That is this standard's own failure test, and it catches
 the shape that feels like deference: *asking what they want* instead of *composing what the loop already
 worked out and asking them to pick*.
+
+**Scoped to decisions, and the scope is load-bearing.** An action pendency carries no options **by
+design**, so this test does not apply to it and must not be read as demanding options everywhere.
+**The two failures are mirror images and the same reader makes both**: options withheld where the
+loop owed the reduction, and options manufactured where nothing was ever in question. *Which class
+is this?* comes first; the test comes second.
 
 **It is also what makes the scope test affordable.** A scope-touching act becomes an escalation only
 once it is reduced to choices, and **the reduction is the loop's work**. So: **if it cannot be reduced
@@ -368,12 +410,29 @@ artifact from per-dispatch metrics**; a loop that has the second does not thereb
 - **Whether a question was a genuine trade, whether it rose through the protocol, and whether four
   options were the right four are none of them checkable by any layer.** Do not build something that
   pretends otherwise: a detector that fails open is worse than none.
-- **And every layer available is DETECTION, one turn late.** A permission layer reads a command string
-  and an escalation is a message to a human; no layer intercepts one.
+- ~~**And every layer available is DETECTION, one turn late.** A permission layer reads a command
+  string and an escalation is a message to a human; no layer intercepts one.~~ **Struck: false where
+  the escalation is raised THROUGH A TOOL.** The premise was that an escalation is prose, and prose
+  reaches the human without passing any layer. That holds for a typed message and fails for a
+  **structured picker**, which is a tool call like any other — so a `PreToolUse` layer sees its
+  payload *before* the human does, and can refuse it. **The DECISION/ACTION partition above is
+  therefore genuinely PREVENTED in one shape**, not detected after the fact: a picker offering an
+  execution verb beside a link to the object is refused outright.
+- **That prevention is narrow, and its narrowness is a design choice rather than a limitation to be
+  fixed later.** It reads two string properties of a payload and nothing else. An action pendency
+  raised in prose, one about an object with no address, and one whose options paraphrase the act
+  without naming it are all invisible to it — and the third is the likeliest next violation.
+  Widening the match cannot close it, and a widened match would start refusing genuine decisions,
+  which is the one failure a *preventive* control must not have.
 
 By the test at the top of this file — *would something stop me, or only my memory?* — **most of this
-standard is an intention.** It is written down so that it is at least a shared one, and so that the
-part which can be detected has something to be detected against.
+standard is still an intention, and exactly one clause of it is not.** It is written down so that the
+rest is at least a shared intention, and so that the part which can be checked has something to be
+checked against.
+
+**A harness adopting this standard should expect the same split** rather than expecting to mechanize
+it whole: the clause that travels through a *tool* is enforceable, and every clause that travels
+through *language* is not.
 
 ## Using this skill
 
