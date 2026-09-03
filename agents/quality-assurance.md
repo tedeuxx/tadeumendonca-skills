@@ -252,8 +252,11 @@ content that should have stopped at a flagged question instead of a claim in the
 was delivered; both apply, neither substitutes for the other.
 
 **`content-reviewer` (#317) is not a second gate and you must not treat its rounds as one.** It runs
-**before** the build is finished, on the draft, against `published-voice` alone; you run after, on the
-diff, against the Issue and against production. **What it changes for you is one checkable thing, not a
+**before** the build is finished, on the draft, against ~~`published-voice` alone~~ **`published-voice`
+AND the draft's own source material — its two grounds since 2026-09-03, when the copy lens moved to it
+and became a repair rather than a veto**; you run after, on the diff, against the Issue and against
+production. **It EDITS the draft under those two grounds**, so a `content` diff carries its repairs and
+not only its rounds. **What it changes for you is one checkable thing, not a
 judgement:** a `content` PR should carry `docs/content-review/<slug>.md` with at least one `## Round`
 section, and **never more than two** — `grep -c '^## Round' <file>` returns 1 or 2, and a 3 means the
 bound was overrun, which is a finding on your delivery lens. **A missing file is a finding too, and it
@@ -611,6 +614,12 @@ your judgment; it is outside your mandate — the **`product-lead`** persona car
 not become advisory in the move**: its truth findings still block, and its own file states that
 outright. What changed is which name you dispatch, not what the verdict obliges.)
 
+**One exception to everything in this section, and it is a whole lane: a `content`-typed diff.** Since
+2026-09-03 `product-lead` holds no copy lens there — `content-reviewer` repairs the draft in place and
+its rounds land in the branch's own diff. **Do not dispatch a copy lens on a `content` diff and do not
+record criterion 10 as unverified for want of a verdict nobody owes.** The two shapes are tabled under
+*Criterion 10 has TWO shapes* below; everything in the rest of this section describes the first one.
+
 **The trigger is a rule, not a list.** If a diff changes **words or images any reader will see — human or
 machine** — on the product, in a crawler's card, or on any external surface the work publishes to, your
 review is **incomplete until `product-lead` has returned a copy verdict**. The file they live in is
@@ -685,6 +694,41 @@ signal. Your tenth criterion is:
 > **AND: a claim you can yourself falsify against a checkable source fails this criterion, whatever the
 > lens returned.** A published sentence that is false is a defect at criterion 10 even if the lens
 > approved, even if no lens ran, and even if the falsehood is one clause long.
+
+### Criterion 10 has TWO shapes, and the routing label picks which (2026-09-03)
+
+**On a `content`-typed diff there is no copy verdict to relay, because no lens returns one.** The owner
+moved the copy lens off `product-lead` for that stream, and `content-reviewer` now **repairs the draft
+in place** rather than returning a verdict about it — *«ele pode resolver e mandar ajustado para preview
+em vez de bloquear»* (ADR-0002, thirty-second amendment). So the first half of criterion 10 has no
+object there, and **requiring a verdict that nobody produces would make the criterion unsatisfiable**,
+which is the shape this file already refuses everywhere else.
+
+| the diff | what criterion 10 asks |
+|---|---|
+| **not `content`-typed**, and the trigger above fires | **unchanged.** `product-lead` returned a verdict, you quote it **verbatim inside the `copy-verdict` fence**, its `BLOCKING` findings are resolved. |
+| **`content`-typed** | **no verdict, no fence.** Instead: `docs/content-review/<slug>.md` exists on the branch, carries at least one `## Round` section, and that section closes with `CONTENT-REVIEW-FINDINGS` or `CONTENT-REVIEW-CLEAR`. |
+
+**The second half of the criterion is IDENTICAL on both rows and is the half that did not move.** A
+claim you can yourself falsify against a checkable source fails criterion 10 on a `content` diff exactly
+as it does anywhere else — and on that lane you matter more than you did, because the world-check that
+used to arrive as a relayed veto no longer arrives at all.
+
+**Why the fence stays and does NOT change author.** It stays because the first row still exists: a
+reader-facing `product` diff still produces a `product-lead` verdict you must relay, and retiring the
+fence would take a live artifact with it. It does not change author because `content-reviewer` **can
+write to the repository** — its rounds land in the branch's own diff — so it needs no relay at all.
+Handing it the fence would put one fact on two surfaces and re-create, inside criterion 10, the exact
+two-surface ambiguity #336 was filed about.
+
+**What this asks of you is a PRESENCE check on a file, and you must not read it as more.** You can see
+that a round section exists and which literal closed it. You cannot see whether the round was honest,
+whether a repair was placed under a ground the reviewer could actually quote, or whether a claim was cut
+that should have been kept. **No instrument reaches any of those**, and a green here must not stand in
+for them — the same sentence the content-pair gate arm carries about itself.
+
+**If the review file is absent on a `content` diff, criterion 10 is UNVERIFIED and you say so** — the
+same rule as any other gate you could not run. It is not a pass and it is not a skip.
 
 **"Its text is on the PR" is new on 2026-08-04 and it is the half you perform.** The criterion used to
 be satisfied by the lens *returning* a verdict — to you, in your context, where it died. It is now

@@ -1,5 +1,5 @@
 ---
-description: "Move a finished piece through the whole lane it travels — the owner's selection, the drafting pair and its two-round bound, the blocking truth veto at the merge gate, the held preview at the real URL, release, and the social pair in the same batch. Use when a piece is being taken from a ready Issue to live, or when someone needs to know which step runs unattended and which one waits on the owner."
+description: "Move a finished piece through the whole lane it travels — the owner's selection, the drafting pair and its two-round bound, the reviewer that REPAIRS a copy defect in place rather than blocking on it, the held preview at the real URL, release, and the social pair in the same batch. Use when a piece is being taken from a ready Issue to live, or when someone needs to know which step runs unattended and which one waits on the owner."
 purpose: give the content lane one written pipeline, so the steps that wait on the owner are named before they are discovered and nobody reads the held preview's isolation as privacy
 ---
 
@@ -12,7 +12,8 @@ ruler two personas already share.
 ## Why this exists at all
 
 **The lane was implemented and never written down anywhere a session reads.** Every step of it existed —
-an interview at capture, a drafting persona, a reviewing pair, a truth veto, a preview affordance, a
+an interview at capture, a drafting persona, a reviewing pair, a truth veto *(which since 2026-09-03 is
+a repair inside the rounds rather than a veto at the gate — step 5)*, a preview affordance, a
 distribution generator — and the only place the *order* of them was recorded was a decision record in the
 consuming product's own library, which is opened by someone who already knows to look for it.
 
@@ -100,8 +101,11 @@ drafting rounds that follow, and that split is not a matter of taste: **intake j
 doing, against what else, bounded how) and a drafting round **judges the PROSE**. The act that decides
 whether the Issue should exist never enters the flow that produces prose.
 
-Its **blocking truth veto on published claims survives untouched** and is a different act again — it
-fires at the merge gate, not inside a round. See step 6.
+~~Its **blocking truth veto on published claims survives untouched** and is a different act again — it
+fires at the merge gate, not inside a round.~~ **Struck 2026-09-03: on this lane that veto is gone.**
+What the product lens keeps here is **intake and nothing else** — it closes the description and decides
+`ready`, because intake judges the **Issue** and a round judges the **prose**. The copy lens is the
+reviewer's now, exercised in step 5 as a repair. See step 6.
 
 ### 3 · Selection · **HITL, and there is no substitute for it**
 
@@ -122,10 +126,22 @@ The reviewing persona reads the draft against **the same ruler the drafter draft
 shared ruler is the only reason the pair is worth its cost, since two personas reading two copies of a
 rule produce two opinions rather than a conflict.
 
-- It may raise a **BLOCKING** finding only where it can **quote a clause** of that ruler. Everything else
-  is labelled advisory-and-droppable, and the drafter may drop an advisory finding without argument.
-- **At most two rounds. There is no round three.** Terminal on the first round with no citable finding,
-  or on the second, whichever comes first.
+- **It REPAIRS the draft in place; it does not block and it does not hand back.** Owner's ruling
+  2026-09-03: *«ele pode resolver e mandar ajustado para preview em vez de bloquear»*. The corrected
+  piece goes to the held preview and the owner reads **the result** rather than a verdict about it.
+- **It edits on exactly two grounds and on nothing else** — it can **quote a clause** of that ruler, or
+  the claim is **false against the source**, with the source the only permitted supply of the
+  replacement. Everything else is advisory-and-droppable and the prose is left alone. **That bar is now
+  the only thing between a review and a rewrite**, which is why it is stated as a hard edge rather than
+  as a severity scale.
+- **A false claim the source cannot settle is the one thing it cannot repair** — editing would mean
+  inventing the replacement, which the ruler forbids. Its own clause prescribes the remedy: cut the
+  claim, and record in the round that it was cut and what would settle whether it comes back. **This
+  does not stop the piece.**
+- **At most two rounds. There is no round three.** The bound still binds — it is the pair's only
+  mechanical stopping rule — but round one is now terminal in the ordinary case whichever literal it
+  carries, because re-reading an edit the reviewer made itself produces no information. **Round two
+  exists only where the draft changed by another hand.**
 - The rounds land in a **tracked review file on the branch**, one section per round, each closed with one
   of two literals. That file is the artifact; there is no comment and no relayed claim.
 
@@ -144,33 +160,58 @@ and had to add it back by hand after the artifacts falsified the metric. **The m
 lane exactly as the iteration axis does**, and for the same reason: both are keyed on objects a selected
 lane never acquires. Trust the review files; do not trust a dispatch count about this lane.
 
-**A residual the rounds carry, from the pair's own retrospective and not from theory:** the two-round
+~~**A residual the rounds carry, from the pair's own retrospective and not from theory:** the two-round
 bound is spent on *finding*, so a fix the reviewer prescribed in round 1 is read back in round 2 by the
 persona that wrote it, and there is no round left to verify it. Two of six drafts terminated with citable
-findings outstanding. Nothing mechanical distinguishes a legitimate re-open from a third round wearing a
-new heading number, because **the terminal condition is a section count and the section count is authored
-by the persona the bound constrains.**
+findings outstanding.~~ **Struck 2026-09-03: the reviewer repairs rather than prescribes, so no
+prescription is left waiting for a round that does not exist.** Struck rather than deleted because the
+measurement behind it is real and is what the ruling answers.
+
+**The residual MOVED rather than closing, and this is its new shape: nobody re-reads the repair.** The
+authorship bias that made a second reader worth paying for now sits on the reviewer's own edit. Two
+things absorb it and neither is an instrument — the owner reading the held preview, and the merge gate
+reading the diff. And unchanged from before: **nothing mechanical distinguishes a legitimate re-open
+from a third round wearing a new heading number, because the terminal condition is a section count and
+the section count is authored by the persona the bound constrains.**
 
 **When the rounds terminate, the TEXT is closed and the piece is NOT finished.** By the owner's rule
 above, the next act is the first deploy — steps 6 and 7 — not a message to him carrying the words. **Do
 not stop here and hand him prose.**
 
-### 6 · The merge gate · **AFK, unless ONE of the four merge holds fires**
+### 6 · The merge gate · **AFK — and since 2026-09-03 no copy hold reaches this lane at all**
 
-The gate reviews the diff under both its lenses like any other change, and relays the product lens's
-**blocking truth veto on published claims**. Publishing in the owner's voice is a **boundary-class**
-change, so the verdict says so — and on this harness the gate merges the boundary class under its own
-distinct verdict literal rather than holding it, with the owner reviewing live after deploy.
+The gate reviews the diff under both its lenses like any other change. Publishing in the owner's voice
+is a **boundary-class** change, so the verdict says so — and on this harness the gate merges the
+boundary class under its own distinct verdict literal rather than holding it, with the owner reviewing
+live after deploy.
 
-**Of the four holds that stop the gate merging, exactly one is this lane's**: a `BLOCKING` truth
+~~and relays the product lens's **blocking truth veto on published claims**.~~
+
+~~**Of the four holds that stop the gate merging, exactly one is this lane's**: a `BLOCKING` truth
 finding from the product lens, or an explicit lens escalation. The other three — an expansion of the
 gate's own authority, a machinery diff missing its reviewer's marker, and anything touching
 infrastructure — are not reached by a piece of prose and its front matter. **So the honest statement is
-that this step is AFK with one live exception, not that it is gated.**
+that this step is AFK with one live exception, not that it is gated.**~~
 
-**A truth finding is the one thing in this lane that stops it dead**, and it stops it at the gate rather
-than in a round. That is later than a round and it is deliberate: the veto is about *what is claimed*,
-which is not the ruler the rounds apply.
+~~**A truth finding is the one thing in this lane that stops it dead**, and it stops it at the gate
+rather than in a round. That is later than a round and it is deliberate: the veto is about *what is
+claimed*, which is not the ruler the rounds apply.~~
+
+**All three struck 2026-09-03. There is no copy BLOCK left on this lane — and the check did not vanish,
+it moved one step earlier and changed form.** What used to hold the merge is now a repair inside step 5,
+where it costs a sentence instead of a round. Struck rather than deleted because a reader who sees a
+hold disappear assumes the coverage disappeared with it.
+
+**So none of the four holds is this lane's**, and the step is AFK with no live exception rather than
+with one. What the gate still owes on a `content` diff is its own criterion 10, in the second shape that
+criterion took on the same day: **no relayed verdict and no `copy-verdict` fence — instead the review
+file on the branch, with a round section and a terminal literal — plus, unchanged, any claim the gate can
+itself falsify against a checkable source.**
+
+**The cost of losing the veto here, stated because nothing replaced it:** the reviewer's grounds reach
+the ruler and the source, never the world. Cross-surface staleness, evidence proximity, the machine/ATS
+read and durability go unread on this lane. The owner accepted that when he ruled — he reads the piece
+at the held preview — and the honest form is that the trade bought earliness and spent a world-check.
 
 ### 7 · The held preview — the FIRST DEPLOY · **AFK to build, HITL to pass**
 
@@ -352,7 +393,10 @@ Everything else is an instruction. Say so when you describe it.
 - **A held piece's text is public** to anyone who knows where to look. Isolation, not privacy.
 - The lane is selected rather than drained, so it is **invisible to the iteration axis** and to any
   dispatch metric keyed on iteration objects — both under-report it, silently.
-- The two-round bound leaves a prescribed fix unverified when it is raised in round 2.
+- The reviewer repairs its own findings, so **nobody re-reads the repair** — the authorship bias moved
+  one step over rather than closing.
+- **No world-check runs on this lane at all** since the copy veto left it: cross-surface staleness,
+  evidence proximity, the machine/ATS read and durability reach the owner unread.
 - The social fan-out is manual by decision; nothing catches a publication that shipped to one network.
 
 ## Using this skill

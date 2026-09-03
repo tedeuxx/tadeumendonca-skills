@@ -1519,8 +1519,10 @@ pair. The owner's words, and the second is the one that set the scope:
 > *«pense no fluxo de trabalho de um issue do tipo content como voce automatizaria toda esteira»*
 
 So the file is not the preview step; it is **the whole lane** — the interview at capture, the
-description closed by one lens, the owner's selection, the draft, the two-round review bound, the truth
-veto at the merge gate, the held preview at the real URL, release, and the social pair in the same
+description closed by one lens, the owner's selection, the draft, the two-round review bound, ~~the truth
+veto at the merge gate~~ **the reviewer's repair-in-place on two named grounds (struck 2026-09-03: the
+copy lens moved to `content-reviewer` and there is no copy block left on this lane — ADR-0002's
+thirty-second amendment)**, the held preview at the real URL, release, and the social pair in the same
 batch.
 
 **A skill and not a command, on this library's own distinction**: a command is a file a human *types*
@@ -1541,13 +1543,16 @@ only admissible shape rather than a choice. A third actor is described by the fi
 it: the merge gate, whose truth-veto relay is one step in the lane. That is the ordinary state of a
 transversal skill, not a strain on the test.
 
-**What it costs, priced rather than waved through.** 24,038 B, always-on, into two briefs — the same
-48,076 B of billed context the aggregate in `README.md` now carries, re-derived there against a separate
-checkout of `main`. ~~18,395 B … 40,912 B~~ — **both struck 2026-09-03, and the pair is worth one line
+**What it costs, priced rather than waved through.** 27,670 B, always-on, into two briefs — the same
+55,340 B of billed context the aggregate in `README.md` now carries. ~~24,038 B … 48,076 B~~
+~~27,571 B … 55,142 B~~ — **struck
+2026-09-03 by the copy-lens slice, which grew this skill; it is struck here as well as in `README.md`
+because these are the two surfaces that have already disagreed with each other about this one quantity
+once.** ~~18,395 B … 40,912 B~~ — **both struck 2026-09-03, and the pair is worth one line
 rather than a silent substitution.** The first number never described the file (24,038 B at every commit
 of the branch that introduced it), and the second was not twice the first, so this sentence disagreed
 with `README.md`, which published 36,790 B for the same quantity, **and with itself**. The current pair
-is derived — `wc -c skills/content-publishing/SKILL.md` → 24038, doubled because two briefs carry it —
+is derived — `wc -c skills/content-publishing/SKILL.md` → 27670, doubled because two briefs carry it —
 and the full record of the eleven propagated sites is in `README.md`'s persona-preload section. A preloaded skill is exactly as always-on as brief prose, and its `description`
 is additionally always-on in every session that loads the library. Accepted because the alternative is
 the two personas that run the lane not knowing where their step sits in it, which is the defect the
