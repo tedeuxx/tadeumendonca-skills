@@ -362,14 +362,17 @@ half that has to answer.**
 **Four is a ceiling, not a target.** Two is better than four; one clear recommendation plus *"or tell me
 otherwise"* is often better than either.
 
-### The failure test — a DECISION with no options is not an escalation
+### The failure test — a question with no options is not an escalation
 
 **A bare question is offloading the analysis.** That is this standard's own failure test, and it catches
 the shape that feels like deference: *asking what they want* instead of *composing what the loop already
 worked out and asking them to pick*.
 
-**Scoped to decisions, and the scope is load-bearing.** An action pendency carries no options **by
+**It is scoped to DECISIONS, and the scope is load-bearing.** An action pendency carries no options **by
 design**, so this test does not apply to it and must not be read as demanding options everywhere.
+**The heading keeps its original wording deliberately** — it is the clause as it was first stated, and
+narrowing it by rewriting the sentence would put the scope where nobody looking for the rule would
+read it. The scope is stated here, under it, where it qualifies rather than replaces.
 **The two failures are mirror images and the same reader makes both**: options withheld where the
 loop owed the reduction, and options manufactured where nothing was ever in question. *Which class
 is this?* comes first; the test comes second.

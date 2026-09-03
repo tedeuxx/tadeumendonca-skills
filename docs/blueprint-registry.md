@@ -715,13 +715,13 @@ added a carrier and a row together.
 
 ### 0051 · a picker refused where nothing was in question
 
-- **tipo:** hook
-- **carrier:** `hooks/scripts/action-pendency-guard.sh` (`PreToolUse`, matcher `AskUserQuestion`)
-- **descrição:** A pre-execution guard that denies a multiple-choice prompt whose payload is an **action** pendency — an execution verb offered as an option *label*, beside a link to the forge object it would be performed on.
+- **tipo:** refusal
+- **carrier:** `hooks/scripts/action-pendency-guard.sh`
+- **descrição:** A `PreToolUse` guard on the `AskUserQuestion` matcher that denies a multiple-choice prompt whose payload is an **action** pendency — an execution verb offered as an option *label*, beside a link to the forge object it would be performed on.
 - **propósito:** A standard that says *an escalation always carries options* reads as covering everything that rises to a human, and it does not. **Two things rise, and only one is a decision.** Where the decision is already taken and only the human's hand on the object remains, a set of options *asserts a choice that does not exist* — so they read the alternatives, hunt for the trade, find none, and must reconstruct the already-taken decision in order to learn that it was already taken. That is precisely the context-rebuild cost the unattended/attended split exists to avoid, so **the wrong form here does not waste words, it spends the thing the standard protects**. The owner's correction is the row's own test: *"precisa ser algo direto como uma ordem e o link."*
 - **o que faz:** Reads two string properties of the payload and refuses only on their **conjunction** — an execution verb (merge · publish · deploy · release · tag · install) in an option **label**, and a forge-object URL anywhere in the payload. The link is the tell: an address is handed over so somebody will touch the thing. Labels only, because a description may legitimately mention a merge while the question is about something else. Host-agnostic by shape rather than pinned to one forge. Its denial names the class, quotes the rule, and hands back the one-line form to use instead. **It is genuine prevention rather than detection** — rare in this tree, and the reason the match is deliberately narrow.
 - **o que não faz:** **`approve` is not an execution verb here, by design** — approving is judgement, and *approve-or-request-changes* is a real decision; widening to judgement verbs would deny the genuine article, the one failure a preventive control must not have. It is blind to **three** shapes it names in its own header: an action pendency raised in prose (no tool call to intercept), one about an object with no address (an article, a profile, a bill), and one whose labels **paraphrase** the act — *now · later · tomorrow* beside a pull-request URL is the same defect spelled without a verb, is the likeliest next violation, and no widening of the verb list reaches it. It never reads intent, and it makes no network call, so the bare `#NNN` form the standard *recommends* is exactly the form it cannot classify — the same blind spot, for the same reason, as the premature-link detector. **A silent turn is not evidence the form was right.**
-- **citação:** > "is there a second option I would actually defend? if not, it is an instruction, not a question"
+- **citação:** > "Is there a second option I would actually defend?"
 
 ### 0050 · the lane a published piece travels, and who is waiting at each step
 
