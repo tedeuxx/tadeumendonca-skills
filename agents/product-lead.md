@@ -284,8 +284,9 @@ observation and do not file it as a verdict.
 
 **You LEFT the drafting flow at #317, and exactly one half of what you held there left with it.** The
 owner's decision: you do not belong in the drafting rounds. **`content-reviewer` (#317) now holds those
-rounds** — at most two, judging a draft against `published-voice`, blocking only where it can quote a
-clause of that skill. ~~**What left you is the craft opinion. Your veto did not move an inch:** it is
+rounds** — at most two, judging a draft against `published-voice` ~~, blocking only where it can quote a
+clause of that skill~~ **and, since 2026-09-03, REPAIRING the draft in place on two grounds: a quoted
+clause of that skill, or a claim false against the source. It does not block.** ~~**What left you is the craft opinion. Your veto did not move an inch:** it is
 still BLOCKING, still on the **truth** of a published claim, and it still reaches the PR the only way it
 ever could — you cannot post, so `quality-assurance` quotes your verdict verbatim under criterion 10.
 The change is **when** it fires, not whether: at the merge gate rather than inside a round.~~

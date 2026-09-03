@@ -801,13 +801,15 @@ figure goes stale invisibly.
   the persona most exposed to staleness, a real tension a frozen
   preload creates that its own brief names as a residual rather than resolves — and this entry **adds**
   to that tension rather than easing it, since the section it gains describes hooks this persona owns.
-- **`content-writer` — 224,928 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice` · `content-publishing`.
-  ~~209,904 B~~ ~~219,996 B~~ — **struck twice on 2026-09-03, and a different PR is the cause each
-  time**: the register commit grew `published-voice` by 10,092 B, and the copy-lens slice grew both
-  `agents-configuration` and `content-publishing`, which this brief carries. Re-derived at this
+- **`content-writer` — 225,027 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice` · `content-publishing`.
+  ~~209,904 B~~ ~~219,996 B~~ ~~224,928 B~~ — **struck three times on 2026-09-03**: the register commit
+  grew `published-voice` by 10,092 B; the copy-lens slice grew `agents-configuration` and
+  `content-publishing`; and **its own review round grew `content-publishing` again by 99 B**, which is
+  the third occurrence of *a figure invalidated by a later commit on the branch that published it* and
+  is recorded rather than silently substituted. Re-derived at this
   head with the per-persona script published above this list, which prints
-  `content-writer 224,928 B` and `content-reviewer 224,928 B`.
-  **`content-publishing` (27,571 B; ~~24,038 B~~ struck 2026-09-03, grown by the copy-lens slice) is the
+  `content-writer 225,027 B` and `content-reviewer 225,027 B`.
+  **`content-publishing` (27,670 B; ~~24,038 B~~ ~~27,571 B~~ struck 2026-09-03) is the
   fifth entry, added 2026-09-02, and it is the LANE rather than
   a second ruler** — the owner's selection, the round bound, the reviewer's repair-in-place on two named
   grounds (~~the truth veto's timing~~, struck 2026-09-03), the held preview at the real URL, release
@@ -853,10 +855,10 @@ figure goes stale invisibly.
   and the only defence is re-deriving as the last act before the merge rather than as the last act
   before the commit. `wc -c` at this head returns **39,353**; `git show 0d218e1:skills/published-voice/SKILL.md | wc -c`
   still returns 29,261, which is why that half stands unstruck.
-- **`content-reviewer` — 224,928 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice` · `content-publishing`.
-  ~~209,904 B~~ ~~219,996 B~~ — **struck twice on 2026-09-03 for the same causes as the bullet above,
-  and the two moved together both times by construction**, which is the identity below doing its job on
-  the figure as well as on the ruler.
+- **`content-reviewer` — 225,027 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice` · `content-publishing`.
+  ~~209,904 B~~ ~~219,996 B~~ ~~224,928 B~~ — **struck three times on 2026-09-03 for the same causes as
+  the bullet above, and the two moved together every time by construction**, which is the identity below
+  doing its job on the figure as well as on the ruler.
   **Byte-identical to `content-writer`'s, because the list is identical — and that identity is the
   design rather than a copy-paste.** The pair
   is only worth its cost if both halves judge against one file; giving the reviewer a skill the writer
@@ -917,9 +919,12 @@ where `quality-assurance` at least *applies* a concrete instance of the concept 
 here even touches this skill's subject at any dispatch. It stays reachable the same way every
 non-preloaded skill is: typed as `/planning-poker`, or via the `Skill` tool on demand.
 
-**1,711,001 B as billed across the eight, 370,634 B distinct — 58.1% of the library (638,007 B across
+**1,711,199 B as billed across the eight, 370,733 B distinct — 58.1% of the library (638,106 B across
 15 skills; `find skills -name SKILL.md | xargs wc -c`), and the largest preload is a TIE at 238,879 B
 between `tech-lead` and `agents-lead`, with `developer` third at 226,687 B.**
+~~1,711,001 / 370,634 / 638,007~~ — **struck within this PR's own review round**: the round grew
+`content-publishing` by 99 B, which two briefs carry, so the billed total moved by 198 B and the
+distinct and library totals by 99 B each. The tie, the third place and the percentage are unmoved.
 ~~1,692,743 / 365,702 / 57.8% / 633,075, tie at 237,480 B, `developer` at 225,288 B~~ — **struck
 2026-09-03, and the cause is again INSIDE this PR**: this slice grew `agents-configuration` (carried by
 all eight briefs) and `content-publishing` (carried by two), so the billed total moved by eight times
@@ -958,17 +963,18 @@ nobody has selected by criterion, which is the defect one paragraph up.
 slice, with the two commands this section already publishes:** the per-persona script above this list
 returns ~~`BILLED 1,672,559  DISTINCT 355,610  LIBRARY 622,983 across 15  PCT 57.1%`~~
 ~~`BILLED 1,692,743  DISTINCT 365,702  LIBRARY 633,075 across 15  PCT 57.8%`~~
-`BILLED 1,711,001  DISTINCT 370,634  LIBRARY 638,007 across 15  PCT 58.1%` (first strike 2026-09-03 —
-the register commit on this same branch; second strike 2026-09-03 — the copy-lens slice, which grew the
-universal preload and the content lane skill), and
-`find skills -name SKILL.md -exec wc -c {} +` returns ~~`24038`~~ `27571` for
+~~`BILLED 1,711,001  DISTINCT 370,634  LIBRARY 638,007 across 15  PCT 58.1%`~~
+`BILLED 1,711,199  DISTINCT 370,733  LIBRARY 638,106 across 15  PCT 58.1%` (first strike 2026-09-03 —
+the register commit on this same branch; second — the copy-lens slice, which grew the
+universal preload and the content lane skill; third — that slice's own review round), and
+`find skills -name SKILL.md -exec wc -c {} +` returns ~~`24038`~~ ~~`27571`~~ `27670` for
 `skills/content-publishing/SKILL.md`.
 
 **The largest error was never staleness, which is what makes it worth a paragraph rather than a
 substitution.** `content-publishing` was published at **18,395 B** and the file was **24,038 B**
 throughout the branch that introduced it — checked at all three of its commits, where
-`git show <rev>:skills/content-publishing/SKILL.md | wc -c` returns 24038 every time. *(It is 27,571 B
-at head: the copy-lens slice of 2026-09-03 grew it. The historical claim is about that branch and is
+`git show <rev>:skills/content-publishing/SKILL.md | wc -c` returns 24038 every time. *(It is 27,670 B
+at head: the copy-lens slice of 2026-09-03 grew it, twice. The historical claim is about that branch and is
 stated in the past tense for that reason — ~~"has been … since it first existed"~~ was a present-perfect
 form that this very slice falsified.)* The number never
 described the artifact, so no re-run at any moment could have produced it, and it is not the `powers/`

@@ -252,8 +252,11 @@ content that should have stopped at a flagged question instead of a claim in the
 was delivered; both apply, neither substitutes for the other.
 
 **`content-reviewer` (#317) is not a second gate and you must not treat its rounds as one.** It runs
-**before** the build is finished, on the draft, against `published-voice` alone; you run after, on the
-diff, against the Issue and against production. **What it changes for you is one checkable thing, not a
+**before** the build is finished, on the draft, against ~~`published-voice` alone~~ **`published-voice`
+AND the draft's own source material — its two grounds since 2026-09-03, when the copy lens moved to it
+and became a repair rather than a veto**; you run after, on the diff, against the Issue and against
+production. **It EDITS the draft under those two grounds**, so a `content` diff carries its repairs and
+not only its rounds. **What it changes for you is one checkable thing, not a
 judgement:** a `content` PR should carry `docs/content-review/<slug>.md` with at least one `## Round`
 section, and **never more than two** — `grep -c '^## Round' <file>` returns 1 or 2, and a 3 means the
 bound was overrun, which is a finding on your delivery lens. **A missing file is a finding too, and it

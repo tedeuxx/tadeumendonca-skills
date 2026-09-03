@@ -115,16 +115,26 @@ converted one slice into a queue.
 - `CONTENT-REVIEW-CLEAR` — this round acted under neither ground. Advisory findings may still be listed
   under it; they do not change the literal, which is the point of the split.
 
-**Terminal condition, mechanical rather than "when it is good":** the pair stops when a round section
-carries `CONTENT-REVIEW-CLEAR`, **or** when a second `## Round` section exists — whichever happens
-first. Nothing else ends it, and neither persona judges that it is over. Two literals and a section
-count are all a reader — or a later gate — has to look at.
+**The UPPER BOUND is mechanical and is the half that did not move:** the pair is over when a round
+section carries `CONTENT-REVIEW-CLEAR`, **or** when a second `## Round` section exists — whichever
+happens first. Two literals and a section count are all a reader — or a later gate — has to look at,
+and no judgement can push past that cap.
+
+~~Nothing else ends it, and neither persona judges that it is over.~~ **Struck 2026-09-03, and this is
+the one place the repair ruling genuinely COSTS something rather than trading it.** Under handback,
+round 2's precondition was mechanical — the previous literal was `CONTENT-REVIEW-FINDINGS`. Under
+repair it is a **judgement**: *has the draft changed by another hand since my round one?* **So the
+ordinary-case stopping rule moved from mechanical to judged, while the cap stayed mechanical.** Say
+which of the two you are relying on when you stop, because a reader cannot tell them apart from the
+file: a single `## Round` section closed with `FINDINGS` is what both a correct terminal and a skipped
+second round look like.
 
 ### The bound still binds, and the arithmetic under it changed — read both
 
 **It binds, and it is kept for the reason it was built rather than out of habit:** it is the only
-*mechanical* stopping rule this pair has, observable as a section count by anyone, and removing it
-returns the pair to *"stop when it is good enough"*, which is not a state.
+*mechanical* **cap** this pair has, observable as a section count by anyone, and removing it returns
+the pair to *"stop when it is good enough"*, which is not a state. **It is the cap that is mechanical,
+not the ordinary terminal** — see the strike above.
 
 **What changed is when it is reached.** The bound used to be spent on **finding**, with the fix
 prescribed in round 1 and read back in round 2 by the persona that wrote it — the residual this pair's

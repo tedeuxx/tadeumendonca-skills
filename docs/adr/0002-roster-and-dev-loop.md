@@ -2057,9 +2057,11 @@ operative surface and not only in the record.
 contradiction check, no durability check, no positioning-rule check.
 
 **The inference this paragraph exists to make survives the correction and gets sharper:** a reviewed
-draft has been checked for **sourcing**, never for **correctness against the world**. `product-lead`'s
-veto at the merge gate is still the only thing that does the latter, and a reader who takes two clear
-rounds as a fact-check has read the wrong guarantee off a real one.
+draft has been checked for **sourcing**, never for **correctness against the world**. ~~`product-lead`'s
+veto at the merge gate is still the only thing that does the latter~~ — **struck by the thirty-second
+amendment (2026-09-03): on this lane that veto is gone and NOTHING replaced it as a world-check.** The
+inference is unchanged and sharper still: a reader who takes two clear rounds as a fact-check has read
+the wrong guarantee off a real one, and now there is no later gate to catch what they missed.
 
 ### The rename rode in this slice, and the argument is arithmetic
 
@@ -2100,8 +2102,11 @@ there is no second copy to drift.
   merge-to-deploy path has no preview. The cap is what bounds this, and two rounds was chosen over three
   for exactly that reason.
 - **`product-lead` keeps two roles in `content` and loses one**, which is a harder sentence to hold than
-  "it left". Accepted as the price of not moving a blocking truth veto that nothing else in the roster
-  can hold.
+  "it left". ~~Accepted as the price of not moving a blocking truth veto that nothing else in the roster
+  can hold.~~ **Struck by the thirty-second amendment (2026-09-03): the owner moved it anyway, to
+  `content-reviewer`, and as a REPAIR rather than a veto — so the cost this bullet accepted was paid
+  for six days and then the trade was taken.** What the bullet got right is that nothing else in the
+  roster holds a world-check, which is exactly what went unreplaced.
 
 ### The `-io` consequence, named and not touched
 

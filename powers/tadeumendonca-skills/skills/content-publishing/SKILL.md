@@ -12,7 +12,8 @@ ruler two personas already share.
 ## Why this exists at all
 
 **The lane was implemented and never written down anywhere a session reads.** Every step of it existed —
-an interview at capture, a drafting persona, a reviewing pair, a truth veto, a preview affordance, a
+an interview at capture, a drafting persona, a reviewing pair, a truth veto *(which since 2026-09-03 is
+a repair inside the rounds rather than a veto at the gate — step 5)*, a preview affordance, a
 distribution generator — and the only place the *order* of them was recorded was a decision record in the
 consuming product's own library, which is opened by someone who already knows to look for it.
 
