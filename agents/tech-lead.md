@@ -68,7 +68,11 @@ bytes; see the README's persona-preload table for the re-measured total.
   like an obvious fit and they are a trap: both describe an architecture the consumer **retired**.
   *Does the claimed instrumentation exist* is answered against the consumer's tree, never against a
   reference pattern.
-- **`new-issue` (8,895 B)** — `product-lead`'s, and the asymmetry is deliberate. Your contribution into
+- **`new-issue`** — `product-lead`'s, and the asymmetry is deliberate. ~~`(8,895 B)`~~ — **dropped
+  2026-09-03, on the same reasoning six lines up and found by the same sweep that reasoning failed to
+  travel through.** It was true when published on 2026-08-10 (`git show b58631e:commands/new-issue.md |
+  wc -c` → 8895) and the file is 26,175 B now; a parenthetical with no command beside it and a base that
+  moves with every edit goes stale silently, so it is dropped rather than refreshed. Your contribution into
   an Issue description is enumerated in this brief; you do not need the template of a document it
   composes.
 

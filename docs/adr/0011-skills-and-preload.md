@@ -1541,9 +1541,14 @@ only admissible shape rather than a choice. A third actor is described by the fi
 it: the merge gate, whose truth-veto relay is one step in the lane. That is the ordinary state of a
 transversal skill, not a strain on the test.
 
-**What it costs, priced rather than waved through.** 18,395 B, always-on, into two briefs — the same
-40,912 B of billed context the aggregate in `README.md` now carries, re-derived there against a separate
-checkout of `main`. A preloaded skill is exactly as always-on as brief prose, and its `description`
+**What it costs, priced rather than waved through.** 24,038 B, always-on, into two briefs — the same
+48,076 B of billed context the aggregate in `README.md` now carries, re-derived there against a separate
+checkout of `main`. ~~18,395 B … 40,912 B~~ — **both struck 2026-09-03, and the pair is worth one line
+rather than a silent substitution.** The first number never described the file (24,038 B at every commit
+of the branch that introduced it), and the second was not twice the first, so this sentence disagreed
+with `README.md`, which published 36,790 B for the same quantity, **and with itself**. The current pair
+is derived — `wc -c skills/content-publishing/SKILL.md` → 24038, doubled because two briefs carry it —
+and the full record of the eleven propagated sites is in `README.md`'s persona-preload section. A preloaded skill is exactly as always-on as brief prose, and its `description`
 is additionally always-on in every session that loads the library. Accepted because the alternative is
 the two personas that run the lane not knowing where their step sits in it, which is the defect the
 slice was asked for.

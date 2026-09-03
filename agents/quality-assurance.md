@@ -76,7 +76,11 @@ DoD criterion or a stated requirement is not a blocker, exactly as before.
 `Skill` is not grantable through `tools:` (#177) and `printenv CLAUDE_PLUGIN_ROOT` exits 1 in a subagent
 shell, so this list is the whole channel. One exclusion remains, and it is not about size:
 
-- **`code-review` (19,680 B)** — the **author-side** pass, which the developer runs before
+- **`code-review`** — ~~`(19,680 B)`~~, **dropped 2026-09-03 for the reason `agents/tech-lead.md`
+  already gives about its own two figures**: true when published on 2026-08-10
+  (`git show b58631e:commands/workflow/code-review.md | wc -c` → 19680, the path it lived at then),
+  22,376 B now, and nothing gates it. The derived per-persona table in `README.md` is where a current
+  figure belongs. It is the **author-side** pass, which the developer runs before
   opening the MR. Your own criteria already cover the same ground, and this brief is the largest in the
   roster, so per-dispatch headroom is tightest exactly here.
 
