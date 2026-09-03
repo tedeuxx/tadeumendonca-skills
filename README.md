@@ -801,8 +801,8 @@ figure goes stale invisibly.
   the persona most exposed to staleness, a real tension a frozen
   preload creates that its own brief names as a residual rather than resolves — and this entry **adds**
   to that tension rather than easing it, since the section it gains describes hooks this persona owns.
-- **`content-writer` — 204,261 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice` · `content-publishing`.
-  **`content-publishing` (18,395 B) is the fifth entry, added 2026-09-02, and it is the LANE rather than
+- **`content-writer` — 209,904 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice` · `content-publishing`.
+  **`content-publishing` (24,038 B) is the fifth entry, added 2026-09-02, and it is the LANE rather than
   a second ruler** — the owner's selection, the round bound, the truth veto's timing, the held preview at
   the real URL, release and the social pair. It is carried by both halves of the pair because the gate
   asserting those two lists are identical makes that the only admissible shape, and because a reviewer
@@ -834,7 +834,7 @@ figure goes stale invisibly.
   sharpest form of this defect** — it reads as freshly checked and is the least likely line in the
   section to be re-checked. It is why the class sentence above now publishes a criterion instead of a
   list of three.
-- **`content-reviewer` — 204,261 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice` · `content-publishing`.
+- **`content-reviewer` — 209,904 B** — `agents-configuration` · `engineering-standards` · `shell` · `published-voice` · `content-publishing`.
   **Byte-identical to `content-writer`'s, because the list is identical — and that identity is the
   design rather than a copy-paste.** The pair
   is only worth its cost if both halves judge against one file; giving the reviewer a skill the writer
@@ -895,12 +895,50 @@ where `quality-assurance` at least *applies* a concrete instance of the concept 
 here even touches this skill's subject at any dispatch. It stays reachable the same way every
 non-preloaded skill is: typed as `/planning-poker`, or via the `Skill` tool on demand.
 
-**1,661,273 B as billed across the eight, 349,967 B distinct — 56.7% of the library (617,340 B across
+**1,672,559 B as billed across the eight, 355,610 B distinct — 57.1% of the library (622,983 B across
 15 skills; `find skills -name SKILL.md | xargs wc -c`), and the largest preload is a TIE at 237,480 B
-between `tech-lead` and `agents-lead`, with `developer` third at 225,288 B.** **Every figure in this
+between `tech-lead` and `agents-lead`, with `developer` third at 225,288 B.** ~~**Every figure in this
 section — the eight per-persona bullets above and this aggregate — was re-derived against THIS tree**,
 with the script published above this list, as the last step before the commit. Nothing here is carried
-forward.
+forward.~~
+
+**STRUCK 2026-09-03. The claim was FALSE when it was published, and it is struck rather than deleted
+because it is the sentence a reader's confidence in this section rested on.** The figures it vouched
+for were wrong across this file and `docs/adr/0011`, and this sentence is what made them unlikely to
+be re-checked: a reader told the numbers were derived as the last step before the commit does not run
+the script. **The corrected sites are not published here as a count**, per this file's own rule that a
+number is stated with the command that selects its members or not at all — the criterion is *a byte
+figure about a preload or a skill*, and it is re-derivable with
+`grep -rnE '[0-9][0-9,]{2,} ?B\b' README.md docs/adr/0011-skills-and-preload.md agents/*.md` read
+against `find skills -name SKILL.md -exec wc -c {} +`.
+
+**What is new about this occurrence is the KIND, not its position in a series.** The occurrences
+recorded above are a stale base, a base inside the diff, and a re-derivation invalidated four commits
+later — all three failures of *when* the script ran. This one is a failure of **whether it ran at
+all**, and no ordinal is attached to it deliberately: numbering the series would be a claim about a set
+nobody has selected by criterion, which is the defect one paragraph up.
+
+**The corrected figures are the ones stated in the aggregate above, derived after the last edit of this
+slice, with the two commands this section already publishes:** the per-persona script above this list
+returns `BILLED 1,672,559  DISTINCT 355,610  LIBRARY 622,983 across 15  PCT 57.1%`, and
+`find skills -name SKILL.md -exec wc -c {} +` returns `24038` for
+`skills/content-publishing/SKILL.md`.
+
+**The largest error was never staleness, which is what makes it worth a paragraph rather than a
+substitution.** `content-publishing` was published at **18,395 B** and the file has been **24,038 B**
+since it first existed — checked at all three commits of the branch that introduced it, where
+`git show <rev>:skills/content-publishing/SKILL.md | wc -c` returns 24038 every time. The number never
+described the artifact, so no re-run at any moment could have produced it, and it is not the `powers/`
+export either (23,880 B). **What it was measured off is not established**, and that is stated as an
+open question rather than guessed at, because a plausible explanation here would be exactly the kind of
+claim this section exists to stop. Its propagation is arithmetic: low by 5,643 B once in the distinct
+and library totals and twice in the billed one, since two briefs carry it.
+
+**The two surfaces additionally disagreed with EACH OTHER before either disagreed with the tree** —
+this section published 36,790 B for the doubled figure and `docs/adr/0011` published 40,912 B for the
+same quantity, and neither is 2 × 24,038 = 48,076. **Two published values for one quantity is a defect
+that needs no tree to detect, and nothing detected it** — which is the sharper half of this occurrence,
+because it means the failure was reachable by reading the two files side by side.
 
 **And they had drifted again before this slice touched them, which is the third occurrence of the same
 class and is recorded rather than quietly corrected.** The figures published here read 1,380,234 /
@@ -909,8 +947,8 @@ class and is recorded rather than quietly corrected.** The figures published her
 base cannot be read out of the diff that is changing it — the same commands returned **1,624,483 /
 331,572 / 55.4% / 598,945**, and `tech-lead` at **237,480 B**. **So every figure was already wrong at
 `main`, before this addition existed**, and the *largest preload* claim had additionally become a tie
-that a single-name sentence cannot express. This addition accounts for 36,790 B of the billed total and
-18,395 B of the distinct one; the rest is pre-existing drift under merges that grew a preloaded skill
+that a single-name sentence cannot express. This addition accounts for 48,076 B of the billed total and
+24,038 B of the distinct one; the rest is pre-existing drift under merges that grew a preloaded skill
 without touching this list.
 
 **That claim was FALSE at the previous head, and the class the paragraph below names as *not
