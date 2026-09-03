@@ -1996,10 +1996,13 @@ inverse of `ready`'s and is the same one named above: not queryable from outside
 **Only the craft opinion left.** Two things did not move an inch, and both are recorded here because the
 recurring deviation in this roster is precisely a reader inferring more from this sentence than it says:
 
-- **Its BLOCKING veto on the truth of published claims survives, unchanged in mechanism.** It cannot
+- ~~**Its BLOCKING veto on the truth of published claims survives, unchanged in mechanism.** It cannot
   post, so it reaches the PR the way it always has: `quality-assurance` quotes the verdict verbatim
   under criterion 10 (ADR-0006). What changed is **when** it fires — at the merge gate rather than
-  inside a drafting round — not whether.
+  inside a drafting round — not whether.~~ **Struck by the thirty-second amendment (2026-09-03): on the
+  `content` stream that veto is gone and `content-reviewer` holds the copy lens as a repair.** Struck in
+  place because this bullet is the clause every downstream surface cited, and because what it got right
+  survives — the veto did not move at #317, which is exactly why it took a second ruling to move it.
 - **Its `content` intake survives**: it still **decides** `ready` alone. ~~applies~~ — corrected on the
   copy lens's advisory, and the word mattered by exactly one step: `agents/product-lead.md` says *"You
   do not apply labels; hand the label to the invoking context"*, and the orchestrator holds label
@@ -4693,6 +4696,161 @@ likely to be got wrong, and it would read as covering the four it cannot.
   closing rites ask him nothing and were not the defect.
 - **Adopt `sp:N` as the cost/time denominator** — rejected after being drafted, as above.
 - **Build the envelope detector in this slice** — deferred, not dropped. See above.
+
+## Amendment (2026-09-03, thirty-second) — the copy lens leaves `product-lead` for the content stream, and it arrives as a REPAIR rather than as a veto
+
+**Deciders:** the owner (decided directly, mid-session — no Issue owed) · written by `agents-lead`.
+
+### The decision, in two rulings taken minutes apart
+
+**First:**
+
+> *«eu acho que essa lente de copy nao deveria mais ser o product lead interferindo na stream de
+> content. o content-reviewer pode assumir isso.»*
+
+**Then, before anything was built on it:**
+
+> *«na verdade eu acho que ele pode resolver e mandar ajustado para preview em vez de bloquear.»*
+
+**The second ruling is the load-bearing one and it changed the shape of the first.** The interim design
+— which this amendment records as *considered and superseded within the hour*, because it was put to him
+and he answered — gave `content-reviewer` a **two-grounds blocking bar**: it could block where it could
+quote a clause of `published-voice`, **or** where the claim was false against the source. He replaced
+the block with a **repair**: the reviewer fixes what it finds and the corrected piece goes to the held
+preview, where he reads **the result** rather than a verdict about it.
+
+**So the two grounds survive; what they authorise changed from a veto to an edit.**
+
+### What is struck, and it is struck rather than deleted for one reason
+
+**`product-lead`'s BLOCKING veto on published claims — this record's own ratified clause when
+`marketing-lead` merged into it (amendment #10) and the clause the seventeenth amendment insisted had
+*"not moved an inch"* — no longer reaches the `content` stream.**
+
+**Say the consequence plainly, because a reader who sees a veto struck will assume the check vanished:
+IT DID NOT VANISH. It moved one step earlier and changed form.** What used to hold a merge is now an
+edit inside a drafting round, where it costs a sentence rather than a round of handback. **There is no
+copy BLOCK left on this lane at all**, and no persona holds one.
+
+**Struck in place rather than deleted, because the clause was ratified and acted on.** The criterion
+that selects the surfaces, and the command that returns them **at the base this branch cut from** — the
+base is outside the diff deliberately, since running it at head would return the set my own edits left
+behind rather than the set that had to be swept:
+
+```
+git grep -l -e 'truth veto' -e 'BLOCKING veto' -e 'veto on published' -e 'veto on the truth' \
+  origin/main -- agents skills docs commands README.md CLAUDE.md hooks
+# 11 files at 88d3783 — this record among them (the seventeenth amendment's bullet, struck above),
+# plus CLAUDE.md, README.md, four briefs, blueprint-registry, two skills, and skills-table.py.
+```
+
+**Every one of the eleven is touched by this slice.** Note that `hooks/scripts/skills-table.py` is a
+generator: the README row it emits is a *derived* copy of the claim, so the fix is the map entry and the
+regenerated row, not the row alone.
+
+### The bar for EDITING is now the only thing between review and rewrite
+
+**This is the half most likely to go wrong, and it is why the grounds are stated as a hard edge rather
+than as a severity scale.** When the alternative was blocking, an over-broad ground cost a merge hold
+somebody would notice. Now it costs **the writer's prose, silently**, and the draft stops being
+`content-writer`'s work without anyone deciding that it should.
+
+**`content-reviewer` edits on exactly two grounds:**
+
+1. it can **quote the clause** of `published-voice` the draft violates; or
+2. the claim is **false against the source** — and **the source material is the only permitted supply of
+   the replacement**.
+
+**Everything else stays advisory-and-droppable and the prose is left alone.**
+
+### The third path — a false claim the source cannot settle
+
+**It is not a block and it is not a new rule.** Where the reviewer can show a claim is false but the
+source does not settle what the true statement is, editing would mean **inventing** it, which
+`published-voice`'s *sourcing constraint* forbids outright — and that clause already prescribes the
+remedy, verbatim: *"Cut it, flag it as a question back to him"*.
+
+**So: the claim is cut, and the round records that it was cut and what would settle whether it comes
+back.** The piece still goes to the preview. The reviewer is not exercising judgement over him; it has
+nothing to write.
+
+### Criterion 10 gets a second shape, keyed on the routing label — it does NOT collapse
+
+**On a `content` diff nobody returns a copy verdict, so the relay half of criterion 10 has no object,
+and a criterion that requires an artifact nobody produces is unsatisfiable — the shape
+`agents/quality-assurance.md` refuses everywhere else.** It does not follow that the criterion is empty
+there.
+
+| the diff | what criterion 10 asks |
+|---|---|
+| **not `content`-typed**, trigger fires | unchanged — `product-lead` returned a verdict, the gate quotes it verbatim inside the `copy-verdict` fence, `BLOCKING` findings resolved |
+| **`content`-typed** | no verdict and no fence — instead `docs/content-review/<slug>.md` exists on the branch with a `## Round` section closed by one of the two terminal literals |
+
+**The second half of the criterion is identical on both rows and did not move**: a claim the gate can
+itself falsify against a checkable source fails criterion 10 regardless. On this lane that half matters
+*more* than it did, because it is now one of only two things reading the draft after the reviewer.
+
+**The `copy-verdict` fence stays and does NOT change author.** It stays because the first row still
+exists — a reader-facing `product` diff still produces a verdict to relay. It does not change author
+because `content-reviewer` **can write to the repository**: its rounds land in the branch's own diff, so
+it needs no relay. Handing it the fence would put one fact on two surfaces and re-create, inside
+criterion 10, the two-surface ambiguity #336 was filed about.
+
+### The two-round bound still binds, and the arithmetic under it changed
+
+**It binds.** It is the pair's only *mechanical* stopping rule — a section count and a terminal literal
+that any reader can run — and removing it returns the pair to *"stop when it is good enough"*, which
+`/agents-configuration` calls no state at all.
+
+**What changed is when it is reached.** The bound used to be spent on **finding**: the reviewer
+prescribed in round 1 and read the fix back in round 2, and the pair's own retrospective measured two of
+six drafts terminating with citable findings outstanding. **That residual closes** — there is no
+prescription, because there is no handback.
+
+**So round one is terminal in the ordinary case whichever literal it carries.** Round two exists only
+where the draft changed by another hand. **`CONTENT-REVIEW-FINDINGS` keeps its spelling and changes its
+meaning** — *findings raised and resolved in the draft*, not *raised and handed back*. No third literal
+was invented, deliberately: `inventory-counts.test.sh`'s content-pair arm C reddens on one, and a third
+spelling would buy no reader anything.
+
+### What this COSTS, named rather than absorbed
+
+- **Nobody re-reads the repair.** The authorship bias that made a second reader worth paying for now
+  sits on the reviewer's own edit. Two things absorb it and neither is an instrument: the owner reading
+  the held preview, and the merge gate reading the diff.
+- **No world-check runs on this lane at all.** `content-reviewer`'s grounds reach the ruler and the
+  source; they do not reach the code, another surface, or how a claim ages. **Cross-surface staleness,
+  evidence proximity, the machine/ATS read and durability now go unread on `content`** — the same four
+  the seventeenth amendment said were merely arriving *late*. They no longer arrive.
+- **Merge hold 4 has no object on this lane.** A `content` piece now reaches merge with **none** of the
+  four holds available rather than with one.
+
+### What did NOT move, and each would be a plausible over-read
+
+- **`product-lead`'s `content` INTAKE.** It still closes that lane's description and decides `ready`.
+  Intake judges the **Issue**; a round judges the **prose**. The ruling was about the copy lens.
+- **`product-lead`'s veto everywhere else** — a reader-facing `product` diff, a claim `-skills`
+  publishes (amendment #14's first item). One lane moved, not the mandate.
+- **Rule 5e and every permission.** `content-reviewer` already held `Edit`; it is still denied every
+  posting route. **No hook observes `Write` or `Edit` at all** (`hooks/hooks.json` registers `PreToolUse`
+  on the `Bash` matcher only), so **the two-grounds bar is held by the persona and by the owner reading
+  the diff, and by nothing else.**
+- **The pair's preload identity.** Neither brief's `skills:` list changed, so arm A is untouched — which
+  matters because that arm asserts the two lists are *identical*, never that a given skill is *in* them,
+  and a symmetric edit would pass straight through it.
+
+### Considered and rejected
+
+- **Keep the veto and merely move it to `content-reviewer`** — the interim design, superseded by the
+  owner within the hour. Recorded because it was built to and answered, not because it was wrong to ask.
+- **Retire criterion 10 on `content` entirely** — rejected. Its falsification half is not about a lens
+  and is the only world-check left on the lane; retiring it would have removed the check the ruling did
+  not touch.
+- **Give `content-reviewer` the `copy-verdict` fence** — rejected as a second surface for one fact.
+- **A third `CONTENT-REVIEW-*` literal for "repaired"** — rejected. Arm C reddens on it and no reader
+  needs it; the three round headings carry the distinction inside the section.
+- **A gate on the two grounds** — impossible in this harness rather than deferred. No hook sees `Edit`,
+  so no layer can observe an edit made under no ground.
 
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
