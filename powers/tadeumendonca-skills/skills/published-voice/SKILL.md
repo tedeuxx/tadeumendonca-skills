@@ -462,11 +462,26 @@ words. **Six rules, RANKED and not a checklist** — 1 is a gate the other five 
    a stop, a reversal — fully intact. *(The generator script's path is a fact about that repo and is
    cited in the brief of the persona that reads it; the rule here does not depend on the path.)*
 
-## The teaser — a different artifact, and three lines cannot carry the article's argument
+## The social post — a DIGEST of the content, and the turn is what the click buys
+
+~~## The teaser — a different artifact, and three lines cannot carry the article's argument~~
+
+**Struck 2026-09-04 (#400) — narrowed, not reversed, and struck rather than retitled because the old
+form is a rule the owner himself ratified after a real failure** (a draft that gave away the whole
+piece) **and that failure is still real.** What moved is the prohibition's SCOPE: *"three lines cannot
+carry the article's argument"* was applied as a bound on how much **content** a post may carry, and it
+now bounds the **turn** only. His words:
+
+> *«o fora do site precisa ser um drops/digest do conteudo que a pessoa encontraria ao entrar no artigo
+> do site.»* · *«assim as pessoas ja devem reagir e comentar logo de cara mesmo nao lendo o artigo.»*
+
+**Content is what happened; the argument is what it meant and how it resolved.** The first goes in the
+post. The second is what the click buys — rules 3 and 4 below are untouched and still govern it.
 
 Elicited across four rejected drafts on 2026-08-23, for the badge article. These are craft rules for the
 **social post** (LinkedIn/X) that points at a published piece — distinct from the article's own voice
-above, and they do not override it.
+above, and they do not override it. **Rules 1–7 predate the narrowing and are unedited**; rule 8 and the
+sections after it are where the digest form is stated.
 
 1. **Follow the article's arc, chronologically, with the industry's moment beside it.** His words:
    *"você deveria seguir a ordem de construção da narrativa do momento que cheguei na aws e o momento
@@ -497,80 +512,144 @@ above, and they do not override it.
 7. **Where the playfulness lives:** the thing called clumsy is **his own current practice**. Self-
    deflating and dry — the corpus register above, never an exclamation.
 
-### The first line carries a claim — the counterweight rules 1–7 did not have
+### The post is a DIGEST — the counterweight rules 1–7 did not have
 
-**A post has three jobs and rules 1–7 name one of them.** They are a withholding discipline with
-nothing pulling the other way, so a post that obeys them perfectly is safe, spoils nothing, and
-provokes nothing:
+**A post has two jobs, they are complementary, and rules 1–7 serve neither.** Rules 1–7 are a
+withholding discipline with nothing pulling the other way, so a post that obeys them perfectly is safe,
+spoils nothing, and provokes nothing.
 
-1. **Earn distribution.** Reactions and comments are what buy the reach. **Most of the audience will
-   never click, and that is fine** — the interaction is supposed to happen *without* the click, which
-   means the post itself must contain something to react to.
-2. **Earn the click.** A concrete promise of payload.
-3. **Not spoil.** Withhold the resolution — rules 3 and 4 above, unchanged.
+The owner's statement of both, and the correction he made when the first draft of this section ranked
+them:
 
-**They do not conflict.** A claim without its resolution satisfies all three at once.
+> *«o ponto é que para sermos impulsionados pelo linkedin nao basta somente alcance, precisamos de
+> reacoes e comentarios.»*
+> *«o objetivo é fazer sim o cara passar a ir ao site e ver todo conteudo, mas nao abandonando os
+> mecanismos atuais da rede social. sao complementares.»*
 
-#### The rule — TRACEABLE, and self-sufficient in the feed
+> **Earn the response that buys the next distribution, and bring the reader to the site where the rest
+> of the work is. Neither at the other's expense.**
 
-> **8. The first line carries a claim the drafter can point at, by quotation, in the article — and the
-> claim stands alone in the feed, comprehensible and arguable to someone who has not read the article
-> and may never read it.**
+**Impressions are not a score — they are fuel, and engagement is what buys the next tank.** A post is
+distributed because people responded to it, not because it was published.
 
-**Two conditions, and both are checkable. Neither is *"is it substantive"*, which is taste** — and a
-clause in this file is quotable, which makes it a licence to repair someone's opening sentence in
-place. A ruler that cannot be checked and is still citable is the worst of the three available options.
+**The failure modes are symmetric, and a drafter given only one objective produces the other's defect:**
+
+- **Optimised only for the click** → the pure teaser that asserts nothing. **This is the state the rule
+  was written against**, and because it earns no response it buys no distribution either — so it fails
+  the objective it was optimised for as well.
+- **Optimised only for the reaction** → a standalone opinion that never needs the site. It would engage,
+  and it would stop being an entrance.
+
+**The digest is the form that serves both**, which is why it is the right shape rather than merely what
+was asked for.
+
+**And the reaction happens BEFORE the click.** A first line that only works for someone who has already
+read the article has failed, however faithful to the article it is.
+
+#### The rule
+
+> **8. The post is a DIGEST of the content — pieces of the material the reader would meet by clicking
+> (facts, findings, numbers, observations), enough that they have something to answer without clicking.
+> The first line carries a claim the drafter can point at, by quotation, in the article, stated in the
+> reader's vocabulary rather than the article's. What stays withheld is the TURN, not the content.**
+
+The owner's own framing, in three statements that converge:
+
+> *«migalhas do que encontrar no conteudo … antes de ler o artigo»* · *«vestigios do que o cara
+> encontraria ao clicar no link»* · *«drops/digest do conteudo … reagir e comentar logo de cara mesmo
+> nao lendo o artigo»*
+
+**Three conditions. Two of them are checkable and one is not, and the difference decides what a reviewer
+may do about them** — see *What is a RULE here and what is ADVISORY* below, which is not a formality: a
+clause in this file is quotable, and a quotable clause is a licence to repair someone's opening sentence
+in place.
 
 - **Traceable** — *does the pointer exist; does the quoted sentence say that.* Two questions with
-  answers, reusing the source-relative machinery a draft is already judged with. It still fails the
-  post that produced this rule: that post's own candidate claim sits in the article and not in the post.
-- **Self-sufficient** — **a quotation that only makes sense once you have read the article is not a
-  crumb.** The owner's framing is *«migalhas do que encontrar no conteúdo … antes de ler o artigo»*:
-  the crumb has to provoke a reaction from someone who has not read and may never read. **The
-  drafter's test: read the first line as someone who will never click. Is there something there to
-  agree with, disagree with, or add to?**
+  answers, reusing the source-relative machinery a draft is already judged with. It still fails the post
+  that produced this rule: that post's own candidate claim sat in the article and not in the post.
+- **In the reader's vocabulary** — **the claim is traceable to the article; the WORDS are the reader's.**
+  Where the article's own term needs the article to be understood, translate it into the vocabulary the
+  audience already has, **without changing what is claimed**. Also two questions: *does this word appear
+  in the post, and did the article have to define it first?*
+- **Self-sufficient in the feed** — *read the first line as someone who will never click: is there
+  something there to agree with, disagree with, or add to?* **This is what the rule is FOR and it is
+  the one condition with no ruler behind it**, so it is advisory below rather than a repair ground.
 
-**And it names what the crumb is OF** — *what you will find in the content*, a taste of the payload —
-not any arguable sentence the article happens to contain. A crumb previews the finding's **shape**
-without its **resolution**, which is the partition below.
+**Traceable-and-unreadable is the failure the third condition exists to catch, and it is not
+hypothetical.** The first post drafted under this rule quoted its article verbatim and used the term the
+article spends two thousand words building; the owner edited the live post himself to replace it with
+the word the audience already had. **The article can afford to build a term as it goes. A post has no
+build-up.**
+
+**And it names what the digest is OF** — *what you will find in the content*, a taste of the payload —
+not any arguable sentence the article happens to contain.
 
 **The claim goes in the first line because on a feed the first line is the whole post.** Setup, context
 and scene-setting come after it or not at all.
 
-#### The partition — which rule a given sentence is in
+#### The partition — what is withheld is the TURN, not the content
 
-Without this, rules 3 and 8 sit next to each other with no way to tell which one a sentence falls
-under, which is a dose rule wearing a hard edge — and rule 3 says in its own words that it is not one.
+Without this, rules 3 and 8 sit next to each other with no way to tell which one a sentence falls under,
+which is a dose rule wearing a hard edge — and rule 3 says in its own words that it is not one.
 
-> **The claim is the problem, or the observation. The turn is the resolution.** Rule 3 forbids the
-> resolution; rule 8 requires the problem.
+> **Content is what happened, or what was found. The turn is what it meant and how it resolved.** Rule 3
+> forbids the resolution; rule 8 requires the content.
 >
-> **The drafter's test: does my first line say what happened or what I found — or what it meant and how
-> it ended?** The first is the claim and belongs there. The second is the turn and never appears.
+> **The drafter's test: does this line say what happened or what I found — or what it meant and how it
+> ended?** The first is the digest and belongs in the post. The second is the turn and never appears.
 
-**Rule 3 is quoted here rather than replaced, and nothing in rule 8 loosens it:** *"Never state the
-turn … Softer restatements fail the same way, so this is not a dose rule. The turn is what the click
-buys."* Rule 4 (*withheld ≠ omitted*) is untouched too. This is documented rather than theoretical: a
-review round on the very post that produced rule 8 correctly **cut** its most reactable line under rule
-3. The partition is what stops rule 8 pushing a drafter back toward exactly that sentence.
+**Rule 3 is quoted here rather than replaced, and nothing in rule 8 loosens it:** *"Never state the turn
+… Softer restatements fail the same way, so this is not a dose rule. The turn is what the click buys."*
+Rule 4 (*withheld ≠ omitted*) is untouched too. **What the narrowing moved is the scope of the
+prohibition, never its strength**: it bounds the turn and no longer bounds the content.
+
+~~This is documented rather than theoretical: a review round on the very post that produced rule 8
+correctly **cut** its most reactable line under rule 3. The partition is what stops rule 8 pushing a
+drafter back toward exactly that sentence.~~
+
+**Struck 2026-09-04 — the example was wrong, and it was wrong in the direction that would have taught a
+reviewer to under-cut.** The cut line was *"count how many of them found the same thing twice"*, and
+**finding the same thing twice IS the withheld resolution** — so the cut was correct under the old rule
+and is still correct under the narrowed one. It is not an oscillation and it must not be shown as one.
+Struck rather than deleted because it was published and read, and because a reader who took it as
+licence to restore that class of line would be restoring the turn.
+
+**The example that actually shows the partition** is the modelling lesson from the same piece: *too many
+actors at the same level, all of them having to agree — it felt like rigour, and nothing shipped.* That
+is a finding, stated whole, arguable by someone who never clicks — **and it was in the article and absent
+from the post.** What stays out of the post is what that cost him and how he noticed, which is the turn.
 
 #### Per language block
 
 **The first line of each language block, and the leading block's first line is the one that buys the
-reach.** Where a post is bilingual, there is exactly one line in the truncated view; the other
-language's opener sits far below the fold and appears in no truncated view at all, so a rule written
-as *"the first line"* governs one language and leaves the other audience governed by nothing.
+reach.** Where a post is bilingual, there is exactly one line in the truncated view; the other language's
+opener sits far below the fold and appears in no truncated view at all, so a rule written as *"the first
+line"* governs one language and leaves the other audience governed by nothing.
 
-#### Per medium — the substance travels, the truncation reason does not
+#### Per medium — the digest travels, the truncation reason does not
 
-- **Substance (rule 8 and the partition): both media.** A short-form post with no fold shows the same
-  defect — an opening of circumstances that asserts nothing — while the truncation mechanism is
-  entirely absent from it. Writing the reason as universal is what makes a drafter read the rule as
-  inapplicable where nothing truncates.
+- **The digest and the partition (rule 8, and what is withheld): both media.** A short-form post with no
+  fold shows the same defect — an opening of circumstances that asserts nothing — while the truncation
+  mechanism is entirely absent from it. Writing the reason as universal is what makes a drafter read the
+  rule as inapplicable where nothing truncates. **The character budget changes what fits, never what the
+  post is for**: on a hard-capped medium the digest is one claim plus one or two facts, not a teaser.
 - **Placement and the fold: the fold-bearing medium only** (LinkedIn, of the two networks in play).
   **The fold is ~140 characters. That figure is attributed to the Issue that produced this rule and is
   UNVERIFIED here** — nobody in this loop holds a credential on that network, so it has never been
   measured.
+
+#### The budget — what a digest displaces, since the post did not get longer
+
+**Rules 1–7 and rule 8 compete for the same lines, and rule 8 wins the first one.** Two consequences,
+observed on the first pair drafted under this rule rather than predicted:
+
+- **Rule 1's chronological arc starts AFTER the claim line, not at the top.** The arc is not dropped —
+  the claim is stated, then the piece places the reader in time. Rule 1's *"the parallel is the point"*
+  is unaffected; only its position moves.
+- **Rule 5's industry line is the first thing a digest squeezes out**, because it is the paragraph that
+  carries no content of the article's own. That is a real loss and it is a judgement each time, not a
+  standing permission: if the industry parallel is what makes the claim legible, it stays and something
+  else goes.
 
 #### Check the mechanical thing FIRST — does the first line finish?
 
@@ -584,57 +663,84 @@ is the cheaper check and it comes first.
 character count is falsifiable in one command; **it is not offered as the cause of how any post
 performed**, and the corpus reading below is why no such inference is available. **Bounded:** the cut
 holds for any fold between 85 and 149 and dissolves if the real fold is ≥150, which is unverified per
-the clause above. The 60-character figure is a **lower bound** — that opener is quoted mid-clause in
-the source. **Complying with both this and rule 8 is cheap; nothing here says which one matters.**
+the clause above. The 60-character figure is a **lower bound** — that opener is quoted mid-clause in the
+source. **Complying with both this and rule 8 is cheap; nothing here says which one matters.**
 
 #### What is a RULE here and what is ADVISORY
 
+**The line is drawn on one test, and it is deliberately strict: a condition is a RULE only if checking it
+is two questions with answers.** Everything about *how much* content a digest carries, or *which* of the
+article's findings it takes, is a judgement — and a judgement written as a clause becomes an edit licence
+over the whole post body, which is a wider pen than any reviewer in this loop is meant to hold.
+
 - **Rules** — quotable, checkable, and therefore a ground on which a draft may be repaired in place:
-  rule 8's two conditions (traceable; self-sufficient in the feed), the first line of each language
-  block, and completeness inside the fold on the fold-bearing medium.
-- **Advisory, and labelled so deliberately** — whether a traceable claim is the *best* one available,
-  or the most reactable sentence in the piece. That is a reader's judgement with no ruler behind it.
-  **Say it, and drop it if the drafter disagrees. Do not rewrite prose on it.**
+  rule 8's **traceability** condition, its **reader's-vocabulary** condition, the first line of each
+  language block, and completeness inside the fold on the fold-bearing medium.
+- **Advisory, and labelled so deliberately** — whether the post carries **enough** of the content or too
+  much; **which** findings it takes; whether a traceable claim is **self-sufficient**, or the best one
+  available, or the most reactable sentence in the piece. **Say it, and drop it if the drafter disagrees.
+  Do not rewrite prose on it.**
+
+**Self-sufficiency being advisory is not a demotion of the rule's purpose — it is the admission that the
+purpose has no ruler.** *Is there something here to agree with* is a reader's judgement; a reviewer that
+may repair on it may rewrite any opening sentence it does not respond to. The two conditions that survive
+the test are what carry the pen, and they were chosen because they fail the post the rule was written
+against.
 
 #### The evidence this rests on, carried in the clause rather than left in an Issue
 
-**The base is the corpus, not three posts.** The owner's own reading, 2026-09-04: since the launch
-piece, **no post has earned a reaction that was not personal network** — delivery figures moved,
-reactions did not. That is one observation over the whole published run and a longer window, with a
-consistent result, and it is a better base than any per-post comparison.
+**The base is the corpus, not three posts.** The owner's own reading, 2026-09-04: since the launch piece,
+**no post has earned a reaction that was not personal network** — delivery figures moved, reactions did
+not. That is one observation over the whole published run and a longer window, with a consistent result,
+and it is a better base than any per-post comparison.
 
 **It also retires the per-post gradient that first suggested this rule.** Three posts appeared to show
 reactions falling as first lines got longer; with the non-zero counts identified as personal network,
-**that gradient is noise and must not be quoted as evidence anywhere** — the ordering of three points
-is a coincidence. What survives it, and survives better for not depending on reaction counts at all, is
-the character count above.
+**that gradient is noise and must not be quoted as evidence anywhere** — the ordering of three points is
+a coincidence. What survives it, and survives better for not depending on reaction counts at all, is the
+character count above.
 
 **Where any figure from that reading is quoted anywhere, it ships with its n AND its exposure window.**
-Raw counts across posts of different ages are not like-for-like: normalised for age, the post that
-earned zero reactions had roughly **twelve times** the impression *rate* of the one it was first
-compared against — **reach was not the failure**, and any sentence reading the raw totals as a reach
-problem is false.
+Raw counts across posts of different ages are not like-for-like: normalised for age, the post that earned
+zero reactions had roughly **twelve times** the impression *rate* of the one it was first compared
+against — **reach was not the failure**, and any sentence reading the raw totals as a reach problem is
+false.
 
-**The owner has ruled on the cause, and the ruling is his to make**: the teaser leaves nothing to react
-to before the article is read. **The rule is still the cheapest lever rather than a proven cause, and
-that is worth saying plainly rather than letting the rule claim the fix** — a corpus-wide zero is
-consistent with this diagnosis and nothing available *proves* it. **What would settle it is one post
-shipped under this rule**, which is exactly why it is worth doing first.
+**The owner has ruled on the cause, and the ruling is his to make**: the post leaves nothing to react to
+before the article is read. An alternative was raised — that a corpus-wide zero is equally consistent
+with reach landing outside the audience that would react — and **he ruled against it**; it is recorded
+here as ruled-against rather than carried as an equal candidate. **The rule is still the cheapest lever
+rather than a proven cause, and that is worth saying plainly rather than letting the rule claim the
+fix.** **What would settle it is one post shipped under this rule**, which is exactly why it was worth
+doing first.
+
+#### Where the reading happens — and where nothing reads at all
+
+**Two objectives invite the assumption that both are measured. Only one of them is, and it is the one
+this rule is not about.**
+
+**The reaction happens before the click, on the network, where the site has no visibility by
+construction.** Site instrumentation — however complete — begins at the click and therefore cannot see
+whether a digest earned a response. **So the two are not each other's evidence in either direction: a
+finished funnel does not tell anyone whether this rule worked, and a rise in reactions is not a site
+metric.** The evaluation surface for rule 8 is the network's own reaction and comment counts, read by
+the only actor holding a credential there, which is the owner.
 
 #### An open scoping question, recorded rather than resolved
 
 **Is the withholding rule about the post's own TEXT, or about the whole unit a reader sees** — the post
 plus whatever preview card the network renders from the link in it?
 
-It matters because on the piece that produced rule 8 the article's own title states the turn outright,
-so if the network unfurls a body link into a card, the teaser's withheld hole is answered inside the
-same view and part of the caution rule 3 imposes is being spent for nothing. **The title text is
-measured. Whether the network unfurls a body link into a card is a hypothesis** — unmeasured, and no
-profile in this loop holds a credential that would settle it.
+It matters because on the piece that produced rule 8 the article's own title states the turn outright, so
+if the network unfurls a body link into a card, the turn is answered inside the same view and part of the
+caution rule 3 imposes is being spent for nothing. **The title text is measured. Whether the network
+unfurls a body link into a card is a hypothesis** — unmeasured, and no profile in this loop holds a
+credential that would settle it.
 
-**Until it is settled, draft as if rule 3 governs the text, and know the reader may be seeing more than
-the text.** This is written down because it is a real scoping gap in this section and it should not be
-discovered a third time.
+**Until it is settled, the instruction about the post text is unchanged in both directions: write the
+post as if its own text is all the reader gets.** Do not restate the turn because a card may already
+carry it, and do not relax the withhold because a card may already have broken it. This is written down
+because it is a real scoping gap in this section and it should not be discovered a third time.
 
 **What is deliberately not here:** the per-medium distribution conventions (which language on which
 network, where the canonical link sits, hashtags, where a draft is stored). Those are mechanics of
