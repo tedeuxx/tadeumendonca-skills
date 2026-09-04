@@ -79,6 +79,24 @@
 # verbs: a detector that fires one turn late costs a correction, while a guard that fires wrongly
 # costs the loop the one instrument it has for raising a real trade.
 #
+# ── THE PREMISE THE WHOLE CONTROL RESTS ON IS UNMEASURED. READ THIS BEFORE TRUSTING ANY GREEN ───
+# **Whether Claude Code routes `AskUserQuestion` to a `PreToolUse` hook at all has NOT been measured
+# in this tree.** The suite beside this file feeds the script a payload directly: it proves the
+# script's logic and proves nothing about whether the harness ever hands it a call.
+#
+# **If the routing does not happen, this control is INERT WHILE READING AS INSTALLED** — registered
+# in `hooks.json`, green in CI, listed in the README, and refusing nothing. That is the failure shape
+# this repository names by name, and it is why the premise is stated here rather than assumed.
+#
+# **What was attempted:** a probe plugin registering a `PreToolUse` hook on this matcher, loaded with
+# `claude --plugin-dir <probe> -p "<call AskUserQuestion>"`. **A print-mode session has no
+# `AskUserQuestion` tool at all**, so there was no call to route and no denial to observe.
+# INCONCLUSIVE, not negative.
+#
+# **What would settle it:** the same probe plugin loaded in an INTERACTIVE session, where the tool
+# exists — if the picker is refused with the probe's nonce, the routing is real; if the picker
+# appears, it is not, and this file should be deleted rather than kept as a control nobody holds.
+#
 # Contract: receives the PreToolUse JSON on stdin; denies by printing a permissionDecision JSON and
 # exiting 0. FAILS OPEN (allows) on a missing `jq`, an unreadable payload, an absent `questions`
 # array, or either half of the conjunction being absent — the same trade `permission-guard.sh` and
@@ -113,7 +131,17 @@ link="$(printf '%s' "$payload" \
 # Execution only. No judgement verbs — see the header for why `approve` is absent by design.
 VERBS='merge|mergeia|mergeio|mergear|mergeando|publica|publicar|publish|publishing|deploy|deploi|release|releasa|tag|tagueia|install|instala|plugin update|atualiza o plugin|atualizar o plugin'
 
-hit="$(printf '%s\n' "$labels" | grep -iE "(^|[^a-zA-Z])($VERBS)([^a-zA-Z]|\$)" | head -1 || true)"
+# ANCHORED TO THE LEADING POSITION, and the anchor is the whole correctness of this half.
+# An option label is an imperative: the act it offers is the verb it STARTS with. A verb anywhere in
+# the label is a different claim and it is false — measured on the exact scenario this file's own
+# header cites as the reason it reads labels only:
+#
+#   label `Revert the merge` beside a pull-request URL   -> unanchored: DENIED (wrong)
+#                                                          anchored:   allowed
+#
+# `revert` is the act; `merge` is its OBJECT. The header defended that scenario in its *description*
+# spelling and the match defended nothing in its *label* spelling, which is where it matters.
+hit="$(printf '%s\n' "$labels" | grep -iE "^[[:space:]]*($VERBS)([^a-zA-Z]|\$)" | head -1 || true)"
 [ -z "$hit" ] && exit 0
 
 reason="ACTION PENDENCY — this is not a decision, so it does not take a picker.

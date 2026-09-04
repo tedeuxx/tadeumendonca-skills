@@ -4125,7 +4125,30 @@ keeping:
 > only medium anyone had considered.
 
 `hooks/scripts/action-pendency-guard.sh` (`PreToolUse`, matcher `AskUserQuestion`) is the first
-control in this harness that **prevents** rather than detects on the escalation surface.
+control this harness has ever placed on the escalation surface at all, and the first one **shaped** to
+prevent rather than detect there.
+
+### The premise it rests on is UNMEASURED, and the record says so rather than inheriting the optimism
+
+**Whether Claude Code routes `AskUserQuestion` to `PreToolUse` is undocumented**, and this record will
+not assert it. What is documented: the event fires on tool calls; matchers filter on tool name; and
+exactly one tool — `EndConversation` — carries a published exemption. **`AskUserQuestion` is not on
+that exception list, and absence from an exception list is not presence.** Neither the shape of the
+`tool_input` it would pass nor whether a `deny` is honoured for it is written down anywhere.
+
+**What was attempted:** a probe plugin registering a `PreToolUse` hook on the matcher, loaded with
+`claude --plugin-dir <probe> -p "<call AskUserQuestion>"`. **A print-mode session exposes no
+`AskUserQuestion` tool**, so there was no call to route and no refusal to observe — **inconclusive,
+not negative.** The probe that settles it must run in an **interactive** session, where the tool
+exists: if the picker is refused carrying the probe's nonce the routing is real; if the picker appears,
+it is not, and the guard should be deleted rather than kept as a control nobody holds.
+
+**Why this is recorded at full strength instead of as a caveat.** A control on an unverified routing
+is **inert while reading as installed** — registered in `hooks.json`, green in CI, drawn in the README,
+and refusing nothing. This ADR has already named that failure shape twice about other people's
+mechanisms; it would be the harness's own, inside the mechanism built to prevent a different silent
+failure. **A green suite is evidence about the script and about nothing else**, and the suite says so
+in its own header after having claimed the opposite.
 
 ### What it matches, and why the match is a conjunction
 

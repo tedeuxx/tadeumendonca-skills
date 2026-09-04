@@ -1244,12 +1244,21 @@ refused to the orchestrator by `permission-guard.sh` rules 7 and 7b; a credentia
 surface is his alone. **Escalation by incapacity, never by judgement**, which is exactly why it
 carries no options.
 
-**This half is MECHANICALLY PREVENTED, and it is the only clause of the standard that is.**
-`hooks/scripts/action-pendency-guard.sh` (`PreToolUse`, matcher `AskUserQuestion`) refuses a picker
-that offers an execution verb in an option **label** beside a link to the object. **The conjunction
-is the design**: a decision citing a PR passes, and so does a description that merely mentions a
-merge. **`approve` is deliberately not an execution verb** — approving is judgement, and
-*approve-or-request-changes* is a real decision.
+**This half has the only PREVENTIVE guard in this harness's escalation surface — and whether it fires
+at all is UNMEASURED.** `hooks/scripts/action-pendency-guard.sh` (`PreToolUse`, matcher
+`AskUserQuestion`) refuses a picker that offers an execution verb in an option **label** beside a link
+to the object. **The conjunction is the design**: a decision citing a PR passes, and so does a
+description that merely mentions a merge. **`approve` is deliberately not an execution verb** —
+approving is judgement, and *approve-or-request-changes* is a real decision.
+
+**Read the unmeasured premise before treating this as held.** Whether Claude Code routes
+`AskUserQuestion` to `PreToolUse` is **undocumented**: the event is documented to fire on tool calls,
+`AskUserQuestion` is not on the published exception list (`EndConversation` is), **and absence from
+that list is not presence.** The probe that would settle it needs an interactive session — a
+print-mode session has no `AskUserQuestion` tool at all, so `claude --plugin-dir <probe> -p …`
+returns nothing either way. **Until someone runs it, this guard may be inert while reading as
+installed**, which is this repository's own named failure shape appearing inside the mechanism built
+to prevent one. The suite proves the script's logic and nothing about the routing.
 
 **What it cannot see, said here and not only in its header:** an action pendency raised **in prose**,
 one about an object with no address, and one whose labels **paraphrase** the act without naming it.

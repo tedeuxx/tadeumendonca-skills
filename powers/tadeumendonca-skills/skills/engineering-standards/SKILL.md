@@ -418,9 +418,19 @@ artifact from per-dispatch metrics**; a loop that has the second does not thereb
   the escalation is raised THROUGH A TOOL.** The premise was that an escalation is prose, and prose
   reaches the human without passing any layer. That holds for a typed message and fails for a
   **structured picker**, which is a tool call like any other — so a `PreToolUse` layer sees its
-  payload *before* the human does, and can refuse it. **The DECISION/ACTION partition above is
-  therefore genuinely PREVENTED in one shape**, not detected after the fact: a picker offering an
-  execution verb beside a link to the object is refused outright.
+  payload *before* the human does, and can refuse it. **So the DECISION/ACTION partition above is the
+  one clause of this standard where prevention is even AVAILABLE** — build there rather than adding
+  another detector.
+- **Whether prevention is achieved IN PRACTICE rests on a premise this file does not measure, and the
+  honest form of the claim is conditional.** Whether a harness routes its question-asking tool to a
+  pre-execution layer **is undocumented** in the one harness checked: that layer is documented to fire
+  on tool calls, the tool is not on the published exception list, **and absence from an exception list
+  is not presence.** Neither the payload's shape nor whether a refusal is honoured is written down
+  anywhere either.
+- **A control resting on an unverified routing is INERT WHILE READING AS INSTALLED** — registered,
+  green, documented, and refusing nothing. That is worse than no control, because it is believed. **So
+  probe the routing on the harness you are actually on, and write down what the probe returned**,
+  before writing anywhere that the clause is held.
 - **That prevention is narrow, and its narrowness is a design choice rather than a limitation to be
   fixed later.** It reads two string properties of a payload and nothing else. An action pendency
   raised in prose, one about an object with no address, and one whose options paraphrase the act
@@ -429,7 +439,8 @@ artifact from per-dispatch metrics**; a loop that has the second does not thereb
   which is the one failure a *preventive* control must not have.
 
 By the test at the top of this file — *would something stop me, or only my memory?* — **most of this
-standard is still an intention, and exactly one clause of it is not.** It is written down so that the
+standard is an intention, and exactly one clause of it is a candidate for more than that** — a
+candidate, because the routing that would make it more has not been measured. It is written down so that the
 rest is at least a shared intention, and so that the part which can be checked has something to be
 checked against.
 

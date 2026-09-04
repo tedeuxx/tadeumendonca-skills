@@ -27,10 +27,24 @@
 # gate. That lesson is `orchestrator-write-guard.test.sh`'s, paid for once already.
 #
 # WHAT A GREEN HERE DOES NOT MEAN, stated so nobody over-reads it:
-#   * it does not prove Claude Code routes `AskUserQuestion` to a `PreToolUse` hook. That is a
-#     property of the harness, established by live probe and recorded in the guard's header; if the
-#     routing regresses this suite stays green and the control is gone, and there is no assertion
-#     available here that would catch it.
+#   * **it does not prove Claude Code routes `AskUserQuestion` to a `PreToolUse` hook, AND THAT
+#     ROUTING IS UNMEASURED.** This suite feeds the script a payload directly, so it proves the
+#     script's logic and says nothing about whether the harness ever hands it a call.
+#
+#     ~~established by live probe and recorded in the guard's header~~ — **STRUCK. That sentence was
+#     false when it was written and no probe had been run.** It is struck rather than deleted because
+#     it is the exact defect this repository names as its recurring one: prose asserting a state that
+#     was inferred instead of read, and it shipped inside the suite for a control whose whole value
+#     depends on the claim.
+#
+#     **What WAS attempted, and why it settled nothing:** a probe plugin registering a `PreToolUse`
+#     hook on this matcher, loaded with `claude --plugin-dir <probe> -p "<call AskUserQuestion>"`.
+#     **A print-mode session has no `AskUserQuestion` tool at all** — `ToolSearch` returns no match —
+#     so there was no call to route and no denial to observe. The probe is INCONCLUSIVE, not negative.
+#
+#     **The consequence, stated at full strength: if the routing does not happen, this control is
+#     INERT while reading as installed** — which is the failure shape this repository names by name.
+#     Nothing in this suite, and nothing in CI, can tell the two apart.
 #   * it does not prove the loop stopped raising action pendencies. Three of the four blind spots in
 #     the guard's header are unreachable from any string test, and one of them — labels that
 #     paraphrase the act without naming it — is the likeliest next violation.
@@ -113,6 +127,22 @@ assert_allow 'a genuine decision citing a PR is NOT denied — no execution verb
   "O gate reprovou $PR." \
   'Reverter' 'volta ao estado anterior' \
   'Corrigir para frente' 'novo commit sobre o merge'
+
+# THE ARM ABOVE PASSED FOR THE WRONG REASON AND THE GATE CAUGHT IT. Its labels are Portuguese, where
+# the object noun never appears — `Reverter` contains no `merge` — so it asserted nothing about
+# whether a verb in a NON-LEADING position fires. The English spelling of the identical scenario was
+# DENIED by the guard, and it is the exact scenario the guard's own header cites as its reason for
+# reading labels only. Kept as-is and paired below rather than replaced: the pair is the record that
+# a green arm is not evidence until you know which input would redden it.
+assert_allow 'the ENGLISH spelling of the same decision — `merge` as the OBJECT of `revert`' \
+  "The gate rejected $PR." \
+  'Revert the merge' 'back to the previous state' \
+  'Fix forward' 'a new commit on top of it'
+
+assert_allow 'a verb in any non-leading position is not the act being offered' \
+  "About $PR" \
+  'Undo the deploy' 'roll it back' \
+  'Keep it' 'leave as is'
 
 assert_allow 'approve/request-changes is a JUDGEMENT and survives — the header argues this by name' \
   "Revisei $PR." \
