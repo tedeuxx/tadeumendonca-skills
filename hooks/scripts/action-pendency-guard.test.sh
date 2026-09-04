@@ -159,6 +159,18 @@ assert_allow 'an execution verb with NO object link passes — the named blind s
   'Merge agora' 'sem link nenhum aqui' \
   'Depois' 'amanhã'
 
+# TWO OR MORE VERB-INITIAL LABELS MEANS THE ACT IS SETTLED AND THE PARAMETER IS THE QUESTION.
+# Both shapes below are produced by this repository and both were DENIED by the anchored-only match.
+assert_allow 'same verb on every label — the act is settled, the PARAMETER is the decision' \
+  "Ready to cut: $PR" \
+  'Release minor' 'new skill, additive' \
+  'Release patch' 'content fix only'
+
+assert_allow 'two verb-initial labels differing in WHEN, not whether' \
+  "About $PR" \
+  'Deploy on merge' 'immediately' \
+  'Deploy on tag' 'held until the release'
+
 assert_allow 'a scope trade with no link and no verb is untouched' \
   'O item cresceu.' \
   'Fatiar em dois' 'entrega metade agora' \

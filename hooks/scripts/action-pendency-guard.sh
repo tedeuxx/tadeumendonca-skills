@@ -141,6 +141,26 @@ VERBS='merge|mergeia|mergeio|mergear|mergeando|publica|publicar|publish|publishi
 #
 # `revert` is the act; `merge` is its OBJECT. The header defended that scenario in its *description*
 # spelling and the match defended nothing in its *label* spelling, which is where it matters.
+verbed="$(printf '%s\n' "$labels" | grep -icE "^[[:space:]]*($VERBS)([^a-zA-Z]|\$)" || true)"
+[ "${verbed:-0}" -eq 0 ] && exit 0
+
+# EXACTLY ONE, and this second condition is as load-bearing as the anchor. Measured on shapes this
+# repository actually produces:
+#
+#   `Release minor` / `Release patch` / `Release major`   -> three verb-initial labels
+#   `Deploy on merge` / `Deploy on tag`                    -> two verb-initial labels
+#
+# **Both are genuine DECISIONS and the anchored match denied both.** When every option leads with the
+# SAME execution verb, the act is already settled and what is being chosen is its PARAMETER — which
+# is exactly a decision the loop reduced and cannot take. One verb-initial label means the picker
+# offers *whether/when to act*; two or more mean it offers *how*.
+#
+# It is also the failure this file must not have, in its worst form: prevention means the picker never
+# renders, and this guard's own refusal text then pushes the model into prose — converting one named
+# failure of the escalation standard into its mirror. A missed action pendency costs one correction;
+# a denied decision costs the loop the instrument.
+[ "${verbed:-0}" -gt 1 ] && exit 0
+
 hit="$(printf '%s\n' "$labels" | grep -iE "^[[:space:]]*($VERBS)([^a-zA-Z]|\$)" | head -1 || true)"
 [ -z "$hit" ] && exit 0
 
