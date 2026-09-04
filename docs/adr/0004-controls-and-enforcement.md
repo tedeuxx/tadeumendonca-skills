@@ -4082,7 +4082,12 @@ Arm: *sets a cross-cutting pattern others will follow* — it records the test b
 lock is kept or removed in this harness, and the layer table that answers it. `Deciders`: the owner
 (the criterion); written by `agents-lead` per the domain split (#223), whose object is the machinery.
 
-## Amendment (2026-09-03) — an escalation raised THROUGH A TOOL is refusable, which falsifies this record's own "no layer sees a message to a human"
+## Amendment (2026-09-03) — an escalation raised THROUGH A TOOL is refusable, and refusing it was still the wrong call
+
+**Read the two halves in order.** The first records a real correction to this ADR: a claim it made
+about what no layer can see was false. The second records that the control built on that correction
+was **deleted in the same slice** — so nothing below describes a mechanism that exists, and the
+section headed *"A guard was built here and DELETED IN THE SAME SLICE"* is the operative one.
 
 ### What changed
 
@@ -4124,96 +4129,99 @@ keeping:
 > not.** Not *escalations are unenforceable* — that was a claim about the medium, generalised from the
 > only medium anyone had considered.
 
-`hooks/scripts/action-pendency-guard.sh` (`PreToolUse`, matcher `AskUserQuestion`) is the first
-control this harness has ever placed on the escalation surface at all, and the first one **shaped** to
-prevent rather than detect there.
+### A guard was built here and DELETED IN THE SAME SLICE — read this before the paragraphs above
 
-### The premise it rests on is UNMEASURED, and the record says so rather than inheriting the optimism
+**`hooks/scripts/action-pendency-guard.sh` (`PreToolUse`, matcher `AskUserQuestion`) existed for the
+length of one branch and does not exist at head.** Everything this amendment said about *what it
+matches*, *what it does not reach* and *the premise it rests on* described a control that is gone, and
+that prose is removed rather than left to be read as live. **What replaces it is the reason**, because
+the reason generalises and the mechanism did not.
 
-**Whether Claude Code routes `AskUserQuestion` to `PreToolUse` is undocumented**, and this record will
-not assert it. What is documented: the event fires on tool calls; matchers filter on tool name; and
-exactly one tool — `EndConversation` — carries a published exemption. **`AskUserQuestion` is not on
-that exception list, and absence from an exception list is not presence.** Neither the shape of the
-`tool_input` it would pass nor whether a `deny` is honoured for it is written down anywhere.
+**The owner's ruling, after the third review round:** delete the hook, keep the partition.
 
-**What was attempted:** a probe plugin registering a `PreToolUse` hook on the matcher, loaded with
-`claude --plugin-dir <probe> -p "<call AskUserQuestion>"`. **A print-mode session exposes no
-`AskUserQuestion` tool**, so there was no call to route and no refusal to observe — **inconclusive,
-not negative.** The probe that settles it must run in an **interactive** session, where the tool
-exists: if the picker is refused carrying the probe's nonce the routing is real; if the picker appears,
-it is not, and the guard should be deleted rather than kept as a control nobody holds.
+#### Why it went
 
-**Why this is recorded at full strength instead of as a caveat.** A control on an unverified routing
-is **inert while reading as installed** — registered in `hooks.json`, green in CI, drawn in the README,
-and refusing nothing. This ADR has already named that failure shape twice about other people's
-mechanisms; it would be the harness's own, inside the mechanism built to prevent a different silent
-failure. **A green suite is evidence about the script and about nothing else**, and the suite says so
-in its own header after having claimed the opposite.
-
-### What it matches, and why the match is a conjunction
-
-An execution verb **leading exactly one** option label, AND a forge-object URL anywhere in the
-payload. Each half disarms the other's false positives: a description that merely mentions a merge is
-not the act being offered, and a link with no verb offered is not an act at all.
-
-~~a decision citing a pull request carries no execution verb in a label~~ — **struck, and it was
-false when written.** The harness lens found the class this record had just declared impossible, on
-shapes this repository produces itself:
+It refused a picker whose option labels carried an execution verb beside a link to the object. Three
+narrowings — labels only, then anchored to the leading position, then **exactly one** verb-initial
+label — and **each round of review found a new class of genuine decision it refused.** The last round
+found it denying **all four of this loop's own merge-gate holds**, and this:
 
 ```
-Release minor / Release patch / Release major   -> DENIED under the first form
-Deploy on merge / Deploy on tag                 -> DENIED under the first form
+"Merge it"   / "Hold — I want to read it first"    -> DENIED
+"Merge it"   / "Request changes"                    -> DENIED
+"Approve it" / "Hold — I want to read it first"    -> allowed   (control)
 ```
 
-**Both are genuine decisions.** When every label leads with the SAME execution verb, the act is
-already settled and what is being chosen is its **parameter** — precisely a trade the loop reduced and
-cannot take. **One verb-initial label offers whether or when to act; two or more offer how.** Hence
-*exactly one*.
+The second is the exact class its verb set excluded `approve` to protect, **defeated by a synonym**.
 
-**Two corrections were needed before the match was right, and both were found by someone else** — the
-anchor (a verb anywhere in a label, so `Revert the merge` was denied) and the count. **That is twice
-that a preventive control's most dangerous direction was closed by review rather than by the author**,
-and it is the argument for why this class of hook does not ship on one pair of eyes.
+**The diagnosis: it classified by LABEL SPELLING, not by CHOICE SHAPE.** Verb set → anchor →
+exactly-one was a search over spellings rather than a convergence, so a fourth reviewer would have
+found a fourth class. Both of its documented exemptions survived in exactly one spelling each.
 
-**`approve` is deliberately absent from the verb set**, although it looks like it belongs. Approving is
-judgement; *approve, or request changes* is a real decision with two defensible options. **A
-preventive control's one unacceptable failure is denying the genuine article**, so the set holds only
-verbs naming pure execution of a decision already taken.
+#### The argument that ended it, and it is the transferable part
 
-### Two options rejected
+> **The failure it prevented cost the owner one sentence. The failure it caused was invisible to him BY
+> CONSTRUCTION** — `PreToolUse` denies before he sees anything, so a suppressed decision reaches him as
+> prose that reads like a decision already taken. **That is this control's own target defect, produced
+> by the control, where nobody can observe it.**
 
-- **A `Stop` detector reading the turn's prose**, the shape every other escalation-adjacent hook in
-  this tree takes. Rejected because the picker is a tool call: refusing it *before* it interrupts the
-  owner is available here, and a detector one turn late would still have cost him the interruption
-  this rule exists to prevent.
+**So the rule this record now sets, and it governs every future control of this class:**
+
+> **A preventive control whose false positives are unobservable by the person it protects is worse than
+> no control, however good its true positives.** Before building one, ask which direction its errors
+> run and who can see them. If the answer is *nobody*, do not build it — or invert the condition so the
+> errors run toward letting something through, where they are at least visible.
+
+**And the enforceability claim above gains a second split it did not have.** The first is by medium:
+what travels through a TOOL is interceptable, what travels through LANGUAGE is not. **The second is the
+one that actually decides whether to build: interceptable is not the same as worth intercepting.**
+
+#### What survives the deletion
+
+- **The DECISION/ACTION partition**, in `/engineering-standards` and `/agents-configuration`, as an
+  **intention** — which is what the rest of that standard already is. Nothing was lost that was held.
+- **The routing measurement, because it is about the LAYER rather than about the hook.** Read off the
+  installed bundle (`claude --version` → `2.1.260`): the tool-execution loop calls the `PreToolUse`
+  generator for every tool, its exemption set is `np = new Set([END_CONVERSATION_TOOL_NAME])` — **one
+  member** — and the resolver honours a hook `deny` **before** consulting `requiresUserInteraction`.
+  **Bounded exactly:** one build, one machine, control flow read rather than a live refusal watched,
+  and undocumented by the vendor. **So prevention on this surface is genuinely available; it was this
+  design that failed, not the possibility of one.**
+- **The asymmetry that caused the invisibility, which is the most reusable fact here:** a hook on that
+  matcher **can only ever DENY**. An `allow` on a tool requiring user interaction returns `null` and
+  the dialog renders anyway. **It can suppress a question and can never skip one.**
+
+#### The rejected-options list, kept because it is now a record of a thing not built
+
+- **A `Stop` detector reading the turn's prose.** Rejected at the time because refusing *before* the
+  interruption was available. **In hindsight this was the safer shape**, and the reason is the rule
+  above: a detector's errors run toward letting something through, where the owner sees them.
 - **Matching the option COUNT, or the absence of a recommendation.** Rejected as unfalsifiable — a
-  legitimate decision may carry two options and an illegitimate one four; the count carries no
-  information about whether a choice exists.
-- **REWRITING the picker instead of refusing it.** Added to this list after the fact, because the
-  option existed and this record did not know it: the host supports a hook returning `updatedInput`,
-  and reports the interaction satisfied that way. So a third shape was always available — collapse the
-  manufactured options into the single act rather than deny and make the model start over. **Not
-  adopted**, and the reason is that it would have the harness *author the escalation* rather than
-  refuse a malformed one, which is a larger claim than this control is making. **It is listed because a
-  rejected-options list that omits an option is not a record of a decision, it is a record of what
-  someone happened to think of** — and this one was found by review, not by the author.
+  legitimate decision may carry two options and an illegitimate one four.
+- **REWRITING the picker instead of refusing it.** Added to this list *after the fact*, because the
+  option existed and this record did not know it: the host supports a hook returning `updatedInput`.
+  Not adopted — it would have the harness *author* the escalation rather than refuse a malformed one.
+  **It is listed because a rejected-options list that omits an option is not a record of a decision, it
+  is a record of what someone happened to think of** — and this one was found by review, not by the
+  author.
+- **Inverting the deny condition** — refuse only where *no substantive alternative is present*, every
+  non-verb label a bare deferral token. **Offered by the gate as the falsifiable alternative to
+  deletion**, and not taken. Recorded because it is the shape a future attempt should start from: its
+  gaps cost a missed action pendency, which is visible, rather than a suppressed decision, which is not.
 
-### What this does not reach, recorded so a green is not read as coverage
+#### How this record came to describe a deleted control for two commits
 
-Three shapes, all named in the guard's own header. An action pendency raised **in prose** — no tool
-call to intercept. One about an object with **no address** — an article, a profile, a bill. And one
-whose labels **paraphrase** the act: *now · later · tomorrow* beside a pull-request URL is the same
-defect spelled without a verb, is the likeliest next violation, and **no widening of the verb list
-reaches it** — widening only starts denying real decisions.
-
-**The bare `#NNN` form the standard recommends is the form this guard cannot classify**, since a forge
-shares one number space between issues and pull requests and this layer makes no network call. That is
-the same blind spot, for the same reason, as `premature-pr-link-detect.sh`: **each of these two hooks
-polices the form its own rule discourages and is blind to the form it endorses.**
+**The deletion rewrote five surfaces by hand and missed this one**, and the mechanism is worth naming
+because it defeats the obvious check: **the sweep was by filename, and this amendment describes the
+control without naming the file.** A `grep` for `action-pendency-guard` matched one of the seven rows
+that needed changing. **A strike travels by concept, not by identifier**, and a filename sweep is
+evidence about filenames only.
 
 ### Significance
 
-Arm: *sets a cross-cutting pattern others will follow* — it replaces a general claim about
-enforceability with a distinction by **medium**, which applies to every future rule about what the
-loop says to the human. `Deciders`: the owner (the partition, and the instruction to enforce it);
-written by `agents-lead` per the domain split (#223).
+Arm: *sets a cross-cutting pattern others will follow* — two of them. It replaces a general claim about
+enforceability with a distinction by **medium**, and it adds the rule that decides whether an
+interceptable clause is worth intercepting: **the direction of the control's errors, and who can see
+them.** `Deciders`: the owner — the partition, the instruction to enforce it, **and the ruling to
+delete the enforcement while keeping the partition**; written by `agents-lead` per the domain split
+(#223).
