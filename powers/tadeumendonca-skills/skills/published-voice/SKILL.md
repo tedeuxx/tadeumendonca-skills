@@ -497,6 +497,145 @@ above, and they do not override it.
 7. **Where the playfulness lives:** the thing called clumsy is **his own current practice**. Self-
    deflating and dry — the corpus register above, never an exclamation.
 
+### The first line carries a claim — the counterweight rules 1–7 did not have
+
+**A post has three jobs and rules 1–7 name one of them.** They are a withholding discipline with
+nothing pulling the other way, so a post that obeys them perfectly is safe, spoils nothing, and
+provokes nothing:
+
+1. **Earn distribution.** Reactions and comments are what buy the reach. **Most of the audience will
+   never click, and that is fine** — the interaction is supposed to happen *without* the click, which
+   means the post itself must contain something to react to.
+2. **Earn the click.** A concrete promise of payload.
+3. **Not spoil.** Withhold the resolution — rules 3 and 4 above, unchanged.
+
+**They do not conflict.** A claim without its resolution satisfies all three at once.
+
+#### The rule — TRACEABLE, and self-sufficient in the feed
+
+> **8. The first line carries a claim the drafter can point at, by quotation, in the article — and the
+> claim stands alone in the feed, comprehensible and arguable to someone who has not read the article
+> and may never read it.**
+
+**Two conditions, and both are checkable. Neither is *"is it substantive"*, which is taste** — and a
+clause in this file is quotable, which makes it a licence to repair someone's opening sentence in
+place. A ruler that cannot be checked and is still citable is the worst of the three available options.
+
+- **Traceable** — *does the pointer exist; does the quoted sentence say that.* Two questions with
+  answers, reusing the source-relative machinery a draft is already judged with. It still fails the
+  post that produced this rule: that post's own candidate claim sits in the article and not in the post.
+- **Self-sufficient** — **a quotation that only makes sense once you have read the article is not a
+  crumb.** The owner's framing is *«migalhas do que encontrar no conteúdo … antes de ler o artigo»*:
+  the crumb has to provoke a reaction from someone who has not read and may never read. **The
+  drafter's test: read the first line as someone who will never click. Is there something there to
+  agree with, disagree with, or add to?**
+
+**And it names what the crumb is OF** — *what you will find in the content*, a taste of the payload —
+not any arguable sentence the article happens to contain. A crumb previews the finding's **shape**
+without its **resolution**, which is the partition below.
+
+**The claim goes in the first line because on a feed the first line is the whole post.** Setup, context
+and scene-setting come after it or not at all.
+
+#### The partition — which rule a given sentence is in
+
+Without this, rules 3 and 8 sit next to each other with no way to tell which one a sentence falls
+under, which is a dose rule wearing a hard edge — and rule 3 says in its own words that it is not one.
+
+> **The claim is the problem, or the observation. The turn is the resolution.** Rule 3 forbids the
+> resolution; rule 8 requires the problem.
+>
+> **The drafter's test: does my first line say what happened or what I found — or what it meant and how
+> it ended?** The first is the claim and belongs there. The second is the turn and never appears.
+
+**Rule 3 is quoted here rather than replaced, and nothing in rule 8 loosens it:** *"Never state the
+turn … Softer restatements fail the same way, so this is not a dose rule. The turn is what the click
+buys."* Rule 4 (*withheld ≠ omitted*) is untouched too. This is documented rather than theoretical: a
+review round on the very post that produced rule 8 correctly **cut** its most reactable line under rule
+3. The partition is what stops rule 8 pushing a drafter back toward exactly that sentence.
+
+#### Per language block
+
+**The first line of each language block, and the leading block's first line is the one that buys the
+reach.** Where a post is bilingual, there is exactly one line in the truncated view; the other
+language's opener sits far below the fold and appears in no truncated view at all, so a rule written
+as *"the first line"* governs one language and leaves the other audience governed by nothing.
+
+#### Per medium — the substance travels, the truncation reason does not
+
+- **Substance (rule 8 and the partition): both media.** A short-form post with no fold shows the same
+  defect — an opening of circumstances that asserts nothing — while the truncation mechanism is
+  entirely absent from it. Writing the reason as universal is what makes a drafter read the rule as
+  inapplicable where nothing truncates.
+- **Placement and the fold: the fold-bearing medium only** (LinkedIn, of the two networks in play).
+  **The fold is ~140 characters. That figure is attributed to the Issue that produced this rule and is
+  UNVERIFIED here** — nobody in this loop holds a credential on that network, so it has never been
+  measured.
+
+#### Check the mechanical thing FIRST — does the first line finish?
+
+**Before judging whether an opening asserts anything, count its characters.** The post that produced
+rule 8 opens at **150 characters** and is therefore cut mid-word at a ~140 fold — the reader sees a
+fragment ending inside a word. Recent posts that were not truncated open at 84 and 60 characters.
+**A first line that does not finish is objectively verifiable where *"asserts nothing"* is not**, so it
+is the cheaper check and it comes first.
+
+**Read this as a mechanism to check, never as an explanation of anything.** It is stated here because a
+character count is falsifiable in one command; **it is not offered as the cause of how any post
+performed**, and the corpus reading below is why no such inference is available. **Bounded:** the cut
+holds for any fold between 85 and 149 and dissolves if the real fold is ≥150, which is unverified per
+the clause above. The 60-character figure is a **lower bound** — that opener is quoted mid-clause in
+the source. **Complying with both this and rule 8 is cheap; nothing here says which one matters.**
+
+#### What is a RULE here and what is ADVISORY
+
+- **Rules** — quotable, checkable, and therefore a ground on which a draft may be repaired in place:
+  rule 8's two conditions (traceable; self-sufficient in the feed), the first line of each language
+  block, and completeness inside the fold on the fold-bearing medium.
+- **Advisory, and labelled so deliberately** — whether a traceable claim is the *best* one available,
+  or the most reactable sentence in the piece. That is a reader's judgement with no ruler behind it.
+  **Say it, and drop it if the drafter disagrees. Do not rewrite prose on it.**
+
+#### The evidence this rests on, carried in the clause rather than left in an Issue
+
+**The base is the corpus, not three posts.** The owner's own reading, 2026-09-04: since the launch
+piece, **no post has earned a reaction that was not personal network** — delivery figures moved,
+reactions did not. That is one observation over the whole published run and a longer window, with a
+consistent result, and it is a better base than any per-post comparison.
+
+**It also retires the per-post gradient that first suggested this rule.** Three posts appeared to show
+reactions falling as first lines got longer; with the non-zero counts identified as personal network,
+**that gradient is noise and must not be quoted as evidence anywhere** — the ordering of three points
+is a coincidence. What survives it, and survives better for not depending on reaction counts at all, is
+the character count above.
+
+**Where any figure from that reading is quoted anywhere, it ships with its n AND its exposure window.**
+Raw counts across posts of different ages are not like-for-like: normalised for age, the post that
+earned zero reactions had roughly **twelve times** the impression *rate* of the one it was first
+compared against — **reach was not the failure**, and any sentence reading the raw totals as a reach
+problem is false.
+
+**The owner has ruled on the cause, and the ruling is his to make**: the teaser leaves nothing to react
+to before the article is read. **The rule is still the cheapest lever rather than a proven cause, and
+that is worth saying plainly rather than letting the rule claim the fix** — a corpus-wide zero is
+consistent with this diagnosis and nothing available *proves* it. **What would settle it is one post
+shipped under this rule**, which is exactly why it is worth doing first.
+
+#### An open scoping question, recorded rather than resolved
+
+**Is the withholding rule about the post's own TEXT, or about the whole unit a reader sees** — the post
+plus whatever preview card the network renders from the link in it?
+
+It matters because on the piece that produced rule 8 the article's own title states the turn outright,
+so if the network unfurls a body link into a card, the teaser's withheld hole is answered inside the
+same view and part of the caution rule 3 imposes is being spent for nothing. **The title text is
+measured. Whether the network unfurls a body link into a card is a hypothesis** — unmeasured, and no
+profile in this loop holds a credential that would settle it.
+
+**Until it is settled, draft as if rule 3 governs the text, and know the reader may be seeing more than
+the text.** This is written down because it is a real scoping gap in this section and it should not be
+discovered a third time.
+
 **What is deliberately not here:** the per-medium distribution conventions (which language on which
 network, where the canonical link sits, hashtags, where a draft is stored). Those are mechanics of
 publishing, not of voice, and they belong with the persona or the repo that performs the distribution.
