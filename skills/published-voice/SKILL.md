@@ -575,11 +575,26 @@ in place.
   something there to agree with, disagree with, or add to?* **This is what the rule is FOR and it is
   the one condition with no ruler behind it**, so it is advisory below rather than a repair ground.
 
-**Traceable-and-unreadable is the failure the third condition exists to catch, and it is not
-hypothetical.** The first post drafted under this rule quoted its article verbatim and used the term the
-article spends two thousand words building; the owner edited the live post himself to replace it with
-the word the audience already had. **The article can afford to build a term as it goes. A post has no
-build-up.**
+**Traceable-and-unreadable is the failure this condition exists to catch, and it is not
+hypothetical.** The first post drafted under this rule quoted its article verbatim, carrying across a
+term of the article's own modelling vocabulary; the owner edited the live post himself to replace it
+with the word the audience already had.
+
+**The condition is that the term is INTERNAL VOCABULARY THE READER HAS NOT BEEN GIVEN — never that the
+article built it up over many words.** Measured on the piece this came from, substituting the term and
+the article file (both named in the Issue that produced this rule, and not repeated in this file):
+
+```
+grep -c -o "<term>" <article>    #  1   — one occurrence in the whole article
+grep -n -o "<term>" <article>    # 79:  — the line that states the lesson
+sed -n '1,78p' <article> | wc -w # 1376 — words before it
+```
+
+**That is a SHARPER case than an article that builds a term, not a weaker one:** the post inherited a
+word its own source barely explains. A rule written as *the article spends many words building it*
+would look for a build-up, fail to find one, and **pass the exact word the owner fixed by hand.** The
+article can afford to introduce a term in the sentence that needs it, because everything around it is
+doing the explaining. **A post has none of that around it.**
 
 **And it names what the digest is OF** — *what you will find in the content*, a taste of the payload —
 not any arguable sentence the article happens to contain.
@@ -680,6 +695,12 @@ over the whole post body, which is a wider pen than any reviewer in this loop is
   much; **which** findings it takes; whether a traceable claim is **self-sufficient**, or the best one
   available, or the most reactable sentence in the piece. **Say it, and drop it if the drafter disagrees.
   Do not rewrite prose on it.**
+
+**And nothing here contains the DRAFTER, which is the limit this split does not cover.** The
+RULE/ADVISORY line bounds what a reviewer may repair; **a drafter who compresses one beat too far — who
+carries the turn across as content — is caught by no condition above, because the turn's boundary is
+the one judgement in this section with no checkable test.** Said plainly rather than left to the
+density of the limits around it, which would otherwise read as coverage.
 
 **Self-sufficiency being advisory is not a demotion of the rule's purpose — it is the admission that the
 purpose has no ruler.** *Is there something here to agree with* is a reader's judgement; a reviewer that
