@@ -1244,45 +1244,53 @@ refused to the orchestrator by `permission-guard.sh` rules 7 and 7b; a credentia
 surface is his alone. **Escalation by incapacity, never by judgement**, which is exactly why it
 carries no options.
 
-**This half carries the only PREVENTIVE guard on this harness's escalation surface.**
-`hooks/scripts/action-pendency-guard.sh` (`PreToolUse`, matcher `AskUserQuestion`) refuses a picker
-where an execution verb **leads exactly one** option label and a link to the object sits in the
-payload.
+**A guard was built to enforce this half and DELETED in the same slice, on the owner's ruling. Read
+why, because the reason is a rule about controls and not a detail about one hook.**
 
-**Three narrowings, and each closed a real denial of a real decision:**
+`hooks/scripts/action-pendency-guard.sh` refused a picker whose option labels carried an execution
+verb beside a link to the object. Three successive narrowings — labels only, then anchored to the
+leading position, then exactly one verb-initial label — and **each round of review found a new class
+of genuine decision it refused.** The last round found it denying **all four of this gate's own
+holds**, and `Merge it / Request changes`, which is the exact class its verb set excluded `approve` to
+protect, defeated by a synonym.
 
-- **labels only** — a description may mention a merge while the question is about something else;
-- **anchored to the leading position** — `Revert the merge` offers *revert*; `merge` is its object;
-- **exactly one verb-initial label** — when every option leads with the same verb (`Release minor /
-  Release patch`), the act is settled and the **parameter** is the question. One offers whether or
-  when; two or more offer how.
+**The diagnosis: it classified by LABEL SPELLING, not by CHOICE SHAPE.** Verb set → anchor →
+exactly-one was a search over spellings, not a convergence, so a fourth reviewer would have found a
+fourth class.
 
-**`approve` is deliberately not an execution verb** — approving is judgement, and
-*approve-or-request-changes* is a real decision.
+**And the argument that ended it is about the DIRECTION of its error, which is the part worth
+carrying:**
 
-**Two of those three were found by review rather than by the author**, which is the argument for why
-a preventive control does not ship on one pair of eyes: its dangerous direction is denying the genuine
-article, and that direction is invisible from inside the change.
+> The failure it prevented cost the owner one sentence. **The failure it caused was invisible to him
+> by construction** — a `PreToolUse` layer denies before he sees anything, so a suppressed decision
+> reaches him as prose that reads like a decision already taken. **That is this hook's own target
+> defect, produced by the hook, where nobody can see it.**
 
-**The routing is MEASURED-REAL and still UNDOCUMENTED — a third state, and the distinction matters.**
-Read against the installed host bundle (`claude --version` → `2.1.260`) rather than against docs: the
-tool-execution loop calls the `PreToolUse` generator for every tool, and its only exemption set is
-`np = new Set([END_CONVERSATION_TOOL_NAME])` — **one member, and it is not this tool.** The decision
-resolver honours a hook `deny` for `AskUserQuestion` **before** it ever consults
-`requiresUserInteraction`.
+**The general rule: a preventive control whose false positives are unobservable by the person it
+protects is worse than no control**, however good its true positives. Before building one, ask which
+direction its errors run and whether anyone can see them.
 
-**Bound it exactly:** one build, one machine, **control flow read rather than a live picker watched**.
-An interactive probe would confirm it and is not a gate on trusting it. **Nothing here is documented
-by the vendor**, so a future build could change it silently and this suite would stay green —
-the suite proves the script's logic and never the routing.
+**So this half is an INTENTION, like the rest of the escalation standard.** That is the honest state
+and it is not a regression — nothing was lost that was ever held.
 
-**One property of this matcher is unguessable and worth stating:** it can only ever DENY. A hook
-`allow` on a tool that requires user interaction returns `null` and the dialog renders anyway.
+**One measurement survives the deletion and is worth keeping, because it is about the LAYER and not
+about the hook that used it.** `AskUserQuestion` **is** routed to `PreToolUse` — measured against the
+installed host bundle (`claude --version` → `2.1.260`) rather than read from docs: the tool-execution
+loop calls the `PreToolUse` generator for every tool, its only exemption set is
+`np = new Set([END_CONVERSATION_TOOL_NAME])` — **one member** — and the decision resolver honours a
+hook `deny` **before** it consults `requiresUserInteraction`.
 
-**What it cannot see, said here and not only in its header:** an action pendency raised **in prose**,
-one about an object with no address, and one whose labels **paraphrase** the act without naming it.
-The third is the likeliest next violation and no string rule closes it. **A silent turn is not
-evidence the form was right.**
+**Bound it exactly:** one build, one machine, **control flow read rather than a live picker watched**,
+and **undocumented by the vendor**, so a future build can change it silently.
+
+**Two consequences that outlive the deleted hook:**
+
+- **A structured picker is interceptable, so prevention IS available on the escalation surface** — it
+  was the design of that particular control that failed, not the possibility of one. Whoever tries
+  again starts from a measured layer rather than from a guess.
+- **A hook on this matcher can only ever DENY.** An `allow` on a tool that requires user interaction
+  returns `null` and the dialog renders anyway — so this layer can suppress a question and can never
+  skip one, which is precisely the asymmetry that made the deleted guard's errors invisible.
 
 **The precondition is first for a reason: «se nao tem loop nao é hitl».** Outside a running iteration —
 a design conversation, an interview, an ad-hoc request typed at the terminal — **there is no HITL

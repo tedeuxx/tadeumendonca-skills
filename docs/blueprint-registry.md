@@ -713,15 +713,43 @@ added a carrier and a row together.
 - **o que não faz:** **It authors no threshold** — no number, no multiplier, no trigger for how far a spend runs before the trade is worth escalating; that calibration comes from metrics and worklog over real iterations. It does not settle *how* a loop detects that an item's cost or time has gone wrong: that question is open with no mechanism. It is **not** the permission floor's irreversibility test, which is untouched and asks what may never execute without a human rather than whose decision a choice is. And **it is almost entirely unenforced, which the carrier states itself**: clauses 2, 3 and 4 are not mechanizable at all — nothing records that a subagent's return was an escalation, and no layer sees a message typed to a human. ~~clauses 1 and 5 are partly mechanizable … and every available layer is detection one turn late.~~ **Struck 2026-09-03: the last clause was false about escalations raised THROUGH A TOOL** — a structured picker is a tool call, so a pre-execution layer reads its payload before the human does. **One shape of clause 5 is now genuinely prevented** (`0051`); everything raised in prose remains exactly as unenforced as this row said.
 - **citação:** > "a question with no options is not an escalation"
 
-### 0051 · a picker refused where nothing was in question
+### 0051 · a picker refused where nothing was in question — **BUILT AND DELETED IN ONE SLICE**
+
+**TOMBSTONE. The mechanism does not exist and must not be adopted.** The row survives because the
+*reason it was removed* is more transferable than the mechanism was, and because an id leaves this
+registry as a tombstone and never as an absence.
+
+**Why it went, in one sentence:** it classified by **label spelling** rather than by **choice shape**,
+so three rounds of review each found a new class of genuine decision it refused — ending with
+*"merge it / request changes"*, the exact class its verb set excluded `approve` to protect, defeated
+by a synonym.
+
+**The argument that decided it, and this is what an adopting harness should take instead of the
+code:**
+
+> **The failure it prevented cost the human one sentence. The failure it caused was invisible to them
+> by construction** — a pre-execution layer denies before they see anything, so a suppressed decision
+> arrives as prose that reads like a decision already taken. That is the defect the control existed to
+> prevent, produced by the control, where nobody can observe it.
+>
+> **A preventive control whose false positives are unobservable by the person it protects is worse
+> than no control, however good its true positives.**
+
+**One measurement outlives it and is worth keeping**: a structured picker **is** routed to the
+pre-execution layer on the origin runtime, so prevention on the escalation surface is genuinely
+available — it was this control's design that failed, not the possibility of one. And **a hook on that
+matcher can only ever DENY**: an `allow` on a tool requiring user interaction returns null and the
+dialog renders anyway, which is exactly the asymmetry that made the errors invisible.
+
+**The DECISION/ACTION partition it enforced survives** as an intention, in the escalation standard.
 
 - **tipo:** refusal
-- **carrier:** `hooks/scripts/action-pendency-guard.sh`
+- **carrier:** retired
 - **descrição:** A `PreToolUse` guard on the `AskUserQuestion` matcher that denies a multiple-choice prompt whose payload is an **action** pendency — an execution verb offered as an option *label*, beside a link to the forge object it would be performed on.
 - **propósito:** A standard that says *an escalation always carries options* reads as covering everything that rises to a human, and it does not. **Two things rise, and only one is a decision.** Where the decision is already taken and only the human's hand on the object remains, a set of options *asserts a choice that does not exist* — so they read the alternatives, hunt for the trade, find none, and must reconstruct the already-taken decision in order to learn that it was already taken. That is precisely the context-rebuild cost the unattended/attended split exists to avoid, so **the wrong form here does not waste words, it spends the thing the standard protects**. The owner's correction is the row's own test: *"precisa ser algo direto como uma ordem e o link."*
 - **o que faz:** Reads two string properties of the payload and refuses only on their **conjunction** — an execution verb (merge · publish · deploy · release · tag · install) in an option **label**, and a forge-object URL anywhere in the payload. The link is the tell: an address is handed over so somebody will touch the thing. Labels only, because a description may legitimately mention a merge while the question is about something else. Host-agnostic by shape rather than pinned to one forge. Its denial names the class, quotes the rule, and hands back the one-line form to use instead. **It is SHAPED as prevention rather than detection** — rare in this tree, and the reason the match is deliberately narrow.
 - **o que não faz:** **`approve` is not an execution verb here, by design** — approving is judgement, and *approve-or-request-changes* is a real decision; widening to judgement verbs would deny the genuine article, the one failure a preventive control must not have. It is blind to **three** shapes it names in its own header: an action pendency raised in prose (no tool call to intercept), one about an object with no address (an article, a profile, a bill), and one whose labels **paraphrase** the act — *now · later · tomorrow* beside a pull-request URL is the same defect spelled without a verb, is the likeliest next violation, and no widening of the verb list reaches it. It never reads intent, and it makes no network call, so the bare `#NNN` form the standard *recommends* is exactly the form it cannot classify — the same blind spot, for the same reason, as the premature-link detector. **A silent turn is not evidence the form was right.** **The routing is MEASURED-REAL on the origin harness and UNDOCUMENTED by its vendor — a third state, and an adopting reader needs both halves.** It was settled by reading the shipped bundle's control flow: the tool-execution loop calls the pre-execution generator for every tool, the exemption set holds one member, and that member is a different tool. **Bounded exactly: one build, one machine, control flow read rather than a live refusal watched.** **Adopting this row means measuring that routing on YOUR runtime**, not inheriting this measurement — a control resting on an unverified route is inert while reading as installed, registered and green and refusing nothing. **And one property is unguessable: this matcher can only ever DENY** — an `allow` on a tool that requires user interaction returns null and the dialog renders anyway.
-- **citação:** > "Is there a second option I would actually defend?"
+- **citação:** no limit stated in the source
 
 ### 0050 · the lane a published piece travels, and who is waiting at each step
 

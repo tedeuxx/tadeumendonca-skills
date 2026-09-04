@@ -435,22 +435,45 @@ artifact from per-dispatch metrics**; a loop that has the second does not thereb
   green, documented, refusing nothing. That is worse than no control, because it is believed. **So
   measure the routing on the harness you are actually on, and write down what you read**, before
   writing anywhere that the clause is held.
-- **That prevention is narrow, and its narrowness is a design choice rather than a limitation to be
-  fixed later.** It reads two string properties of a payload and nothing else. An action pendency
-  raised in prose, one about an object with no address, and one whose options paraphrase the act
-  without naming it are all invisible to it — and the third is the likeliest next violation.
-  Widening the match cannot close it, and a widened match would start refusing genuine decisions,
-  which is the one failure a *preventive* control must not have.
 
-By the test at the top of this file — *would something stop me, or only my memory?* — **most of this
-standard is an intention, and exactly one clause of it is a candidate for more than that** — a
-candidate, because the routing that would make it more has not been measured. It is written down so that the
-rest is at least a shared intention, and so that the part which can be checked has something to be
-checked against.
+### But AVAILABLE is not the same as WORTH BUILDING — this was tried, and deleted
 
-**A harness adopting this standard should expect the same split** rather than expecting to mechanize
-it whole: the clause that travels through a *tool* is enforceable, and every clause that travels
-through *language* is not.
+**A guard enforcing the ACTION half was built and removed in the same slice**, and the reason is a
+rule about controls rather than a note about one hook.
+
+It refused a picker whose option labels carried an execution verb beside a link to the object. Three
+narrowings — labels only, then leading position, then exactly one verb-initial label — and **each
+round of review found a new class of genuine decision it refused**, ending with *"merge it / request
+changes"*: the exact class its verb set excluded *approve* to protect, defeated by a synonym.
+
+**The diagnosis: it classified by LABEL SPELLING, not by CHOICE SHAPE**, so the narrowings were a
+search over spellings rather than a convergence, and a fourth reviewer would have found a fourth
+class.
+
+> **The failure it prevented cost the human one sentence. The failure it caused was invisible to them
+> by CONSTRUCTION** — a pre-execution layer denies before they see anything, so a suppressed decision
+> arrives as prose that reads like a decision already taken. **That is the defect the control existed
+> to prevent, produced by the control, where nobody can observe it.**
+
+**The general rule, and it is the transferable part:**
+
+> **A preventive control whose false positives are unobservable by the person it protects is worse
+> than no control, however good its true positives.** Before building one, ask which direction its
+> errors run and who can see them. If the answer is *nobody*, do not build it — or invert the
+> condition so the errors run toward letting something through, where they are at least visible.
+
+**So this clause is an intention, like the rest of the standard.** Nothing was lost that was ever
+held.
+
+By the test at the top of this file — *would something stop me, or only my memory?* — **this standard
+is an intention, in every clause.** One clause was briefly more than that, and the attempt is recorded
+above rather than deleted, because *what was tried and why it was removed* is the useful part.
+
+**A harness adopting this standard should expect two splits, not one.** The first is by medium: what
+travels through a **tool** is interceptable, what travels through **language** is not. The second is
+the one that actually decides whether to build: **interceptable is not the same as worth
+intercepting** — and the question that separates them is which direction the control's errors run, and
+whether anyone can see them.
 
 ## Using this skill
 
