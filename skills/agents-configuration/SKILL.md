@@ -1215,7 +1215,82 @@ hits something on an Issue *in that iteration*; (3) it rises **subagent → main
 (4) the trigger is a **trade** of time (work *plus* wait hours), cost (tokens) or scope (what the Issue
 promises) for that item — **anything moving scope is a candidate, not an automatic escalation**; (5) the
 form is a tweet at most, **at most four direct options**, his technical register, terse first, depth
-pulled — **and it always carries the options**, because a bare question is offloading the analysis.
+pulled — because a bare question is offloading the analysis. ~~**and it always carries the
+options**~~ **— struck 2026-09-03: it carries options when it is a DECISION, and none when it is an
+ACTION. See the partition immediately below, which the unqualified sentence caused.**
+
+### DECISION or ACTION — ask this before the form, and this loop enforces one half of it
+
+**His correction, verbatim, after a pending merge was raised as a four-option picker:**
+
+> *«se voce quer que eu faza merge isso nao é preciso mostrar em formato assim. precisa ser algo
+> direto como uma ordem e o link.»* · *«que nao é uma pendencia de decisao»* · *«é uma pendencia de
+> acao»* · *«enforce isso»* · *«na config do harness customizada»*
+
+- **DECISION** — he supplies **judgement**. The loop reduced a trade and cannot pick. → the picker,
+  at most four options. **`AskUserQuestion`, never a numbered list typed into prose** — his ask:
+  *«use esse padrao multipla escolha para todas pendencias hitl»*, which is about decisions.
+- **ACTION** — he supplies **execution**. The decision is taken; his hand on the object is all that
+  remains. → **one line: the act and the link.** `Merge #397: <url>`. No options, no recommendation,
+  no framing.
+
+**The test: is there a second option the loop would actually defend?** If not, it is an instruction.
+**The tell in a bad one is that every option is the same act at a different time** — *now · later ·
+tomorrow · something else* is one instruction and three deferrals.
+
+**Why an ACTION pendency reaches him at all, since clause 4 says an act with no trade is the loop's.**
+Not because a trade exists — because **the loop cannot perform the act**. Merge and trunk push are
+refused to the orchestrator by `permission-guard.sh` rules 7 and 7b; a credential or an external
+surface is his alone. **Escalation by incapacity, never by judgement**, which is exactly why it
+carries no options.
+
+**A guard was built to enforce this half and DELETED in the same slice, on the owner's ruling. Read
+why, because the reason is a rule about controls and not a detail about one hook.**
+
+`hooks/scripts/action-pendency-guard.sh` refused a picker whose option labels carried an execution
+verb beside a link to the object. Three successive narrowings — labels only, then anchored to the
+leading position, then exactly one verb-initial label — and **each round of review found a new class
+of genuine decision it refused.** The last round found it denying **all four of this gate's own
+holds**, and `Merge it / Request changes`, which is the exact class its verb set excluded `approve` to
+protect, defeated by a synonym.
+
+**The diagnosis: it classified by LABEL SPELLING, not by CHOICE SHAPE.** Verb set → anchor →
+exactly-one was a search over spellings, not a convergence, so a fourth reviewer would have found a
+fourth class.
+
+**And the argument that ended it is about the DIRECTION of its error, which is the part worth
+carrying:**
+
+> The failure it prevented cost the owner one sentence. **The failure it caused was invisible to him
+> by construction** — a `PreToolUse` layer denies before he sees anything, so a suppressed decision
+> reaches him as prose that reads like a decision already taken. **That is this hook's own target
+> defect, produced by the hook, where nobody can see it.**
+
+**The general rule: a preventive control whose false positives are unobservable by the person it
+protects is worse than no control**, however good its true positives. Before building one, ask which
+direction its errors run and whether anyone can see them.
+
+**So this half is an INTENTION, like the rest of the escalation standard.** That is the honest state
+and it is not a regression — nothing was lost that was ever held.
+
+**One measurement survives the deletion and is worth keeping, because it is about the LAYER and not
+about the hook that used it.** `AskUserQuestion` **is** routed to `PreToolUse` — measured against the
+installed host bundle (`claude --version` → `2.1.260`) rather than read from docs: the tool-execution
+loop calls the `PreToolUse` generator for every tool, its only exemption set is
+`np = new Set([END_CONVERSATION_TOOL_NAME])` — **one member** — and the decision resolver honours a
+hook `deny` **before** it consults `requiresUserInteraction`.
+
+**Bound it exactly:** one build, one machine, **control flow read rather than a live picker watched**,
+and **undocumented by the vendor**, so a future build can change it silently.
+
+**Two consequences that outlive the deleted hook:**
+
+- **A structured picker is interceptable, so prevention IS available on the escalation surface** — it
+  was the design of that particular control that failed, not the possibility of one. Whoever tries
+  again starts from a measured layer rather than from a guess.
+- **A hook on this matcher can only ever DENY.** An `allow` on a tool that requires user interaction
+  returns `null` and the dialog renders anyway — so this layer can suppress a question and can never
+  skip one, which is precisely the asymmetry that made the deleted guard's errors invisible.
 
 **The precondition is first for a reason: «se nao tem loop nao é hitl».** Outside a running iteration —
 a design conversation, an interview, an ad-hoc request typed at the terminal — **there is no HITL

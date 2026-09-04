@@ -53,6 +53,67 @@ If only memory, it is not engineered yet — it is an intention.
 rules are labelled *not engineered* under it. That is the intended use: the test is worth having
 because it produces that admission, not because it produces a green.
 
+## Before you trust a green, break it on purpose
+
+The test above asks whether a control **exists**. This one asks whether the control that exists **can
+fail** — a separate question with a separate answer, because a guarantee can be fully mechanised and
+still be worthless if the mechanism returns the same answer whatever the world is doing.
+
+> **A check whose positive result is unconditional is not a check.**
+
+**IS:** before a green is used as evidence, make the thing it watches actually wrong — on purpose, in
+the subject rather than in the checker — and confirm it goes red. Then restore, and confirm it goes
+green again. A check observed failing and recovering has been **calibrated**; a check that has only
+ever passed has been **observed passing**, which is a far smaller claim and is routinely spent as if it
+were the larger one.
+
+**IS NOT — and each of these is a thing this rule keeps being confused with:**
+
+- **Not "distrust every green."** The cost is paid once, when a check is written or changed, and the
+  result is durable. A standing posture of suspicion produces nothing checkable and spends the
+  attention the calibration itself needs.
+- **Not "add another check."** A second check resting on the same blind premise is more noise with the
+  same blindness — two greens where there was one, and still nothing that can go red. The move is to
+  break the check you have, not to acquire a second one you have not broken either.
+- **Not reading the check.** Reading catches a check that is obviously wrong; the expensive ones look
+  right. The instances below were found by breaking a subject and waiting for a red that never came,
+  and none of them by re-reading.
+- **Not mutating the CHECKER.** Editing the assertion, the pattern or the threshold proves only that
+  the checker responds to being edited. Change the **subject** — the source, the file, the served
+  artifact, the world — and leave the checker untouched.
+
+**The shapes it takes outside a test suite**, because this is usually filed as a testing rule and its
+costly instances are not tests:
+
+- **A response code that is the same for every input.** An app served behind a catch-all rewrite
+  answers `200` for a path that does not exist, so *"I fetched it and it worked"* is true of an address
+  nobody can open.
+- **A search whose pattern is dead.** A published falsifier that matches nothing emits nothing, and
+  emitting nothing reads as *nothing to worry about*. **A check that fails open is the worst member of
+  this set**, because its silence is indistinguishable from success.
+- **An exemption, allowance or suppression whose subject is gone.** It stops excusing anything and goes
+  on passing, so nothing announces that the rule it was carved out of is now unexercised.
+- **A step that reports success having done no work** — a job printing a verdict its command never
+  produced, a guard registered where it never observes the act it names, a double that answers
+  identically whatever it is asked.
+- **A literal that a superset also satisfies.** Tightening a pinned string to something a broader match
+  still contains leaves the assertion strictly weaker while reading as an update.
+
+**What it costs, said rather than skipped:** breaking a green means deliberately putting a working
+system into a wrong state, and the restore is the half that gets forgotten — so restore-and-re-green is
+part of the rule, not a courtesy. It is also work demanded at exactly the moment the change already
+looks finished.
+
+**And nothing enforces it, on any machinery.** No layer can distinguish a mutation that landed from one
+that silently no-opped: the evidence is a red that appeared and then went away, which leaves no
+artifact behind. By the test above this rule is **not engineered, and cannot be** — it is held by
+whoever writes the check and whoever reviews it. Say so out loud wherever a green from an uncalibrated
+check is being offered as evidence.
+
+**The test-suite instance is stated once, in `/code-review`** — mutate the source, count the reds,
+restore — and is deliberately not restated here. This section is the class that instance belongs to;
+`/content-publishing` carries another instance of the same class, at the point a link is composed.
+
 ## The judgment — eleven principles, two tiers
 
 The lens every agent applies while working, not a separate concern from the work. Read it as defaults
@@ -195,7 +256,8 @@ about. That is not hypothetical: it is what happened to this standard while it w
 3. **It rises through the protocol** — subagent → main session → the human. Not laterally, and not from
    a context that was never dispatched.
 4. **The trigger is a TRADE** of time, cost or scope against each other, for that item.
-5. **The form is the contract below**, and it always carries options.
+5. **The form is the contract below** — which of the two forms depends on whether the human is
+   supplying **judgement** or **execution**. See *Before clause 5*.
 
 **All five. Four of five is not an escalation, and the missing clause tells you what it is instead** —
 clause 1 missing makes it a conversation, clause 2 a design question, clause 4 a status report.
@@ -241,7 +303,42 @@ divergence is visible.**
 answers a different question. A permission layer asks *what must never execute without a human* — about
 the **act**. This asks *whose decision a choice is* — about the **choice**. They coexist.
 
-### Clause 5 — the form, and it is part of the design rather than presentation polish
+### Before clause 5 — WHICH KIND of pendency this is, because the form follows from it
+
+**Two things rise to the human out of a running loop, and only one of them is a decision.**
+
+| | a **DECISION** pendency | an **ACTION** pendency |
+|---|---|---|
+| what is left | the loop reduced a trade to alternatives and cannot pick between them | the decision is already taken; the human's hand on the object is the only remaining act |
+| what the human supplies | **judgement** | **execution** |
+| the form | the options — the reduction *is* the work | **an order and the object.** One line: the act, and where it is |
+| options | always, at most four | **none. Manufacturing them is the defect** |
+
+**The test, and it is one question: is there a second option you would actually defend?** If yes, it
+is a decision and clause 5's form applies. If no, it is an instruction, and dressing it as a choice
+is the failure below.
+
+**Why options on an action pendency are actively harmful rather than merely redundant.** A set of
+options *asserts that a choice exists*. Where none does, the human reads the alternatives, looks for
+the trade between them, finds none, and has to **reconstruct the decision that was already taken in
+order to discover that it was already taken**. That is the exact cost — rebuilding context for a
+question nobody is asking — that the whole unattended/attended split exists to avoid. **A wrong form
+here does not merely waste words; it spends the thing the standard is protecting.**
+
+**The tell in a bad one: every option is the same act at a different time.** *Do it now · remind me
+later · tomorrow · something else* is not four options. It is one instruction and three ways of
+deferring it, and the human can defer anything without being offered the choice.
+
+**Clause 4 still holds and this does not weaken it.** An act with no trade is the loop's — *executing
+a decision already made trades nothing*. An action pendency reaches the human not because a trade
+exists but because **the loop cannot perform the act**: a permission floor refuses it, a credential
+is theirs, or the object is outside the machine. So an action pendency is an escalation by
+**incapacity**, never by judgement, and that is why its form carries no options.
+
+**Say the ask FIRST and say it as an act.** Not *"when you have a moment, there's a thing"* — the
+verb and the object, then stop. Depth is still pulled, never pushed.
+
+### Clause 5 — the form for a DECISION, and it is part of the design rather than presentation polish
 
 **An escalation interrupts a person doing something else.** The work is unattended by design; the human
 is not sitting in the loop waiting to be addressed. **So the cost is not the decision, it is the context
@@ -270,6 +367,15 @@ otherwise"* is often better than either.
 **A bare question is offloading the analysis.** That is this standard's own failure test, and it catches
 the shape that feels like deference: *asking what they want* instead of *composing what the loop already
 worked out and asking them to pick*.
+
+**It is scoped to DECISIONS, and the scope is load-bearing.** An action pendency carries no options **by
+design**, so this test does not apply to it and must not be read as demanding options everywhere.
+**The heading keeps its original wording deliberately** — it is the clause as it was first stated, and
+narrowing it by rewriting the sentence would put the scope where nobody looking for the rule would
+read it. The scope is stated here, under it, where it qualifies rather than replaces.
+**The two failures are mirror images and the same reader makes both**: options withheld where the
+loop owed the reduction, and options manufactured where nothing was ever in question. *Which class
+is this?* comes first; the test comes second.
 
 **It is also what makes the scope test affordable.** A scope-touching act becomes an escalation only
 once it is reduced to choices, and **the reduction is the loop's work**. So: **if it cannot be reduced
@@ -307,12 +413,67 @@ artifact from per-dispatch metrics**; a loop that has the second does not thereb
 - **Whether a question was a genuine trade, whether it rose through the protocol, and whether four
   options were the right four are none of them checkable by any layer.** Do not build something that
   pretends otherwise: a detector that fails open is worse than none.
-- **And every layer available is DETECTION, one turn late.** A permission layer reads a command string
-  and an escalation is a message to a human; no layer intercepts one.
+- ~~**And every layer available is DETECTION, one turn late.** A permission layer reads a command
+  string and an escalation is a message to a human; no layer intercepts one.~~ **Struck: false where
+  the escalation is raised THROUGH A TOOL.** The premise was that an escalation is prose, and prose
+  reaches the human without passing any layer. That holds for a typed message and fails for a
+  **structured picker**, which is a tool call like any other — so a `PreToolUse` layer sees its
+  payload *before* the human does, and can refuse it. **So the DECISION/ACTION partition above is the
+  one clause of this standard where prevention is even AVAILABLE** — build there rather than adding
+  another detector.
+- **Whether prevention is achieved IN PRACTICE rests on a premise about the RUNTIME, and it is a
+  premise you have to measure rather than read.** In the one harness checked it is **measured-real and
+  undocumented at the same time** — a third state worth naming, because a reader who only asks *is it
+  documented?* concludes the wrong thing in both directions. What settled it was reading the shipped
+  bundle's control flow: the tool-execution loop calls the pre-execution generator for every tool, its
+  exemption set has **one** member, and that member is a different tool.
+- **Bound a measurement like that exactly, or it becomes the next false claim:** one build, one
+  machine, **control flow read rather than a live refusal watched**. A vendor who changes it silently
+  breaks the control while every suite stays green, because a suite that feeds the script a payload
+  proves the script and never the routing.
+- **A control resting on an UNVERIFIED routing is INERT WHILE READING AS INSTALLED** — registered,
+  green, documented, refusing nothing. That is worse than no control, because it is believed. **So
+  measure the routing on the harness you are actually on, and write down what you read**, before
+  writing anywhere that the clause is held.
 
-By the test at the top of this file — *would something stop me, or only my memory?* — **most of this
-standard is an intention.** It is written down so that it is at least a shared one, and so that the
-part which can be detected has something to be detected against.
+### But AVAILABLE is not the same as WORTH BUILDING — this was tried, and deleted
+
+**A guard enforcing the ACTION half was built and removed in the same slice**, and the reason is a
+rule about controls rather than a note about one hook.
+
+It refused a picker whose option labels carried an execution verb beside a link to the object. Three
+narrowings — labels only, then leading position, then exactly one verb-initial label — and **each
+round of review found a new class of genuine decision it refused**, ending with *"merge it / request
+changes"*: the exact class its verb set excluded *approve* to protect, defeated by a synonym.
+
+**The diagnosis: it classified by LABEL SPELLING, not by CHOICE SHAPE**, so the narrowings were a
+search over spellings rather than a convergence, and a fourth reviewer would have found a fourth
+class.
+
+> **The failure it prevented cost the human one sentence. The failure it caused was invisible to them
+> by CONSTRUCTION** — a pre-execution layer denies before they see anything, so a suppressed decision
+> arrives as prose that reads like a decision already taken. **That is the defect the control existed
+> to prevent, produced by the control, where nobody can observe it.**
+
+**The general rule, and it is the transferable part:**
+
+> **A preventive control whose false positives are unobservable by the person it protects is worse
+> than no control, however good its true positives.** Before building one, ask which direction its
+> errors run and who can see them. If the answer is *nobody*, do not build it — or invert the
+> condition so the errors run toward letting something through, where they are at least visible.
+
+**So this clause is an intention, like the rest of the standard.** Nothing was lost that was ever
+held.
+
+By the test at the top of this file — *would something stop me, or only my memory?* — **this standard
+is an intention, in every clause.** One clause was briefly more than that, and the attempt is recorded
+above rather than deleted, because *what was tried and why it was removed* is the useful part.
+
+**A harness adopting this standard should expect two splits, not one.** The first is by medium: what
+travels through a **tool** is interceptable, what travels through **language** is not. The second is
+the one that actually decides whether to build: **interceptable is not the same as worth
+intercepting** — and the question that separates them is which direction the control's errors run, and
+whether anyone can see them.
 
 ## Using this skill
 
