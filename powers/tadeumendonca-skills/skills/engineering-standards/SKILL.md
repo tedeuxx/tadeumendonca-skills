@@ -421,16 +421,20 @@ artifact from per-dispatch metrics**; a loop that has the second does not thereb
   payload *before* the human does, and can refuse it. **So the DECISION/ACTION partition above is the
   one clause of this standard where prevention is even AVAILABLE** — build there rather than adding
   another detector.
-- **Whether prevention is achieved IN PRACTICE rests on a premise this file does not measure, and the
-  honest form of the claim is conditional.** Whether a harness routes its question-asking tool to a
-  pre-execution layer **is undocumented** in the one harness checked: that layer is documented to fire
-  on tool calls, the tool is not on the published exception list, **and absence from an exception list
-  is not presence.** Neither the payload's shape nor whether a refusal is honoured is written down
-  anywhere either.
-- **A control resting on an unverified routing is INERT WHILE READING AS INSTALLED** — registered,
-  green, documented, and refusing nothing. That is worse than no control, because it is believed. **So
-  probe the routing on the harness you are actually on, and write down what the probe returned**,
-  before writing anywhere that the clause is held.
+- **Whether prevention is achieved IN PRACTICE rests on a premise about the RUNTIME, and it is a
+  premise you have to measure rather than read.** In the one harness checked it is **measured-real and
+  undocumented at the same time** — a third state worth naming, because a reader who only asks *is it
+  documented?* concludes the wrong thing in both directions. What settled it was reading the shipped
+  bundle's control flow: the tool-execution loop calls the pre-execution generator for every tool, its
+  exemption set has **one** member, and that member is a different tool.
+- **Bound a measurement like that exactly, or it becomes the next false claim:** one build, one
+  machine, **control flow read rather than a live refusal watched**. A vendor who changes it silently
+  breaks the control while every suite stays green, because a suite that feeds the script a payload
+  proves the script and never the routing.
+- **A control resting on an UNVERIFIED routing is INERT WHILE READING AS INSTALLED** — registered,
+  green, documented, refusing nothing. That is worse than no control, because it is believed. **So
+  measure the routing on the harness you are actually on, and write down what you read**, before
+  writing anywhere that the clause is held.
 - **That prevention is narrow, and its narrowness is a design choice rather than a limitation to be
   fixed later.** It reads two string properties of a payload and nothing else. An action pendency
   raised in prose, one about an object with no address, and one whose options paraphrase the act

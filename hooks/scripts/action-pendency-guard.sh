@@ -79,23 +79,28 @@
 # verbs: a detector that fires one turn late costs a correction, while a guard that fires wrongly
 # costs the loop the one instrument it has for raising a real trade.
 #
-# ── THE PREMISE THE WHOLE CONTROL RESTS ON IS UNMEASURED. READ THIS BEFORE TRUSTING ANY GREEN ───
-# **Whether Claude Code routes `AskUserQuestion` to a `PreToolUse` hook at all has NOT been measured
-# in this tree.** The suite beside this file feeds the script a payload directly: it proves the
-# script's logic and proves nothing about whether the harness ever hands it a call.
+# ── THE PREMISE THE WHOLE CONTROL RESTS ON: MEASURED-REAL, AND STILL UNDOCUMENTED ──────────────
+# **The routing exists.** Read off the installed host bundle (`claude --version` -> 2.1.260), not off
+# documentation: the tool-execution loop calls the `PreToolUse` generator for every tool, gated only
+# by `nz(e,n){return !_Xe(e) && !n.options.bareFork}`, and `_Xe` consults
+# `np = new Set([END_CONVERSATION_TOOL_NAME])` -- ONE member, and it is not this tool. The decision
+# resolver honours a hook `deny` for `AskUserQuestion` BEFORE it consults `requiresUserInteraction`:
 #
-# **If the routing does not happen, this control is INERT WHILE READING AS INSTALLED** — registered
-# in `hooks.json`, green in CI, listed in the README, and refusing nothing. That is the failure shape
-# this repository names by name, and it is why the premise is stated here rather than assumed.
+#     if(e?.behavior==="deny") return t(`Hook denied tool use for ${n.name}`),{decision:e,input:r};
 #
-# **What was attempted:** a probe plugin registering a `PreToolUse` hook on this matcher, loaded with
-# `claude --plugin-dir <probe> -p "<call AskUserQuestion>"`. **A print-mode session has no
-# `AskUserQuestion` tool at all**, so there was no call to route and no denial to observe.
-# INCONCLUSIVE, not negative.
+# **BOUND IT EXACTLY, because an over-read measurement is the next false claim.** One build, one
+# machine, and **control flow read rather than a live refusal watched.** Nothing here is documented by
+# the vendor, so a future build can change it silently and this suite stays green -- the suite feeds
+# the script a payload, so it proves the script's logic and NEVER the routing.
 #
-# **What would settle it:** the same probe plugin loaded in an INTERACTIVE session, where the tool
-# exists — if the picker is refused with the probe's nonce, the routing is real; if the picker
-# appears, it is not, and this file should be deleted rather than kept as a control nobody holds.
+# **A prior version of this header said the premise was unmeasured and a probe was inconclusive.**
+# That was true of the probe attempted -- `claude --plugin-dir <probe> -p ...`, where a print-mode
+# session has no `AskUserQuestion` tool at all, so there was no call to route. It was the wrong
+# instrument, not a negative result. **The bundle answered what the probe could not.**
+#
+# **ONE PROPERTY OF THIS MATCHER IS UNGUESSABLE AND IS NOT A LIMITATION OF THIS SCRIPT:** it can only
+# ever DENY. A hook `allow` on a tool that requires user interaction returns `null`, and the dialog
+# renders anyway. There is no way to use this layer to skip a picker.
 #
 # Contract: receives the PreToolUse JSON on stdin; denies by printing a permissionDecision JSON and
 # exiting 0. FAILS OPEN (allows) on a missing `jq`, an unreadable payload, an absent `questions`

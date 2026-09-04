@@ -4152,9 +4152,28 @@ in its own header after having claimed the opposite.
 
 ### What it matches, and why the match is a conjunction
 
-An execution verb in an option **label**, AND a forge-object URL anywhere in the payload. Each half
-disarms the other's false positives: a decision citing a pull request carries no execution verb in a
-label, and a description that merely mentions a merge is not the act being offered.
+An execution verb **leading exactly one** option label, AND a forge-object URL anywhere in the
+payload. Each half disarms the other's false positives: a description that merely mentions a merge is
+not the act being offered, and a link with no verb offered is not an act at all.
+
+~~a decision citing a pull request carries no execution verb in a label~~ — **struck, and it was
+false when written.** The harness lens found the class this record had just declared impossible, on
+shapes this repository produces itself:
+
+```
+Release minor / Release patch / Release major   -> DENIED under the first form
+Deploy on merge / Deploy on tag                 -> DENIED under the first form
+```
+
+**Both are genuine decisions.** When every label leads with the SAME execution verb, the act is
+already settled and what is being chosen is its **parameter** — precisely a trade the loop reduced and
+cannot take. **One verb-initial label offers whether or when to act; two or more offer how.** Hence
+*exactly one*.
+
+**Two corrections were needed before the match was right, and both were found by someone else** — the
+anchor (a verb anywhere in a label, so `Revert the merge` was denied) and the count. **That is twice
+that a preventive control's most dangerous direction was closed by review rather than by the author**,
+and it is the argument for why this class of hook does not ship on one pair of eyes.
 
 **`approve` is deliberately absent from the verb set**, although it looks like it belongs. Approving is
 judgement; *approve, or request changes* is a real decision with two defensible options. **A
@@ -4170,6 +4189,14 @@ verbs naming pure execution of a decision already taken.
 - **Matching the option COUNT, or the absence of a recommendation.** Rejected as unfalsifiable — a
   legitimate decision may carry two options and an illegitimate one four; the count carries no
   information about whether a choice exists.
+- **REWRITING the picker instead of refusing it.** Added to this list after the fact, because the
+  option existed and this record did not know it: the host supports a hook returning `updatedInput`,
+  and reports the interaction satisfied that way. So a third shape was always available — collapse the
+  manufactured options into the single act rather than deny and make the model start over. **Not
+  adopted**, and the reason is that it would have the harness *author the escalation* rather than
+  refuse a malformed one, which is a larger claim than this control is making. **It is listed because a
+  rejected-options list that omits an option is not a record of a decision, it is a record of what
+  someone happened to think of** — and this one was found by review, not by the author.
 
 ### What this does not reach, recorded so a green is not read as coverage
 
