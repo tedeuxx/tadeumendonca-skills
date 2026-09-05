@@ -465,7 +465,9 @@ property this record was implying and does not have.**
 2. **The `permission-guard` hook — wrapped and composed forms.** It reads the raw command string
    semantically, so it sees the `rm -rf` inside `bash -c '…'`, and rules 7 and 8 exist precisely
    because trunk-push spellings and command composition *provably cannot* be expressed by a prefix
-   matcher.
+   matcher. **Narrowed 2026-09-05 (#383): true of the trunk-push spellings and of substitution/env-var
+   prefixes, FALSE of chain operators — measured, see the 2026-09-05 amendment. The chain half of rule
+   8 is removed; the sentence is kept because it is right about everything else it names.**
 3. **Neither is a sandbox, and the perimeter model does not claim one.** Inside the perimeter,
    arbitrary code execution is granted **deliberately** — ~~`node`, `python3`, `perl`, `ruby`, `bash`,
    `sh`~~ **`node` and `python3` as of `cb9a2f3`; `perl`, `ruby`, `bash` and `sh` came out of `allow`
@@ -643,8 +645,11 @@ times, **none of the three being a decision about the floor's architecture**:
 cannot drift into two different rules:
 
 1. **Wrapped** — `bash -c '<payload>'`. The prefix is the shell; the payload is invisible to the matcher.
-2. **Composed** — `&&`, `||`, `;`, `$( )`, backticks, a `VAR=x` prefix. The matcher reads one prefix and
-   cannot decompose the rest.
+2. **Composed** — ~~`&&`, `||`, `;`,~~ `$( )`, backticks, a `VAR=x` prefix. ~~The matcher reads one
+   prefix and cannot decompose the rest.~~ **Struck 2026-09-05 (#383) for the CHAIN operators only:
+   the matcher is element-wise and decomposes them — see the 2026-09-05 amendment. Substitution and
+   the env-var prefix are unaffected and were re-measured stopping for a human, which is why they are
+   still listed here and still carried by the hook.**
 3. **Semantic** — the act is not in the string. `git push` lands on the trunk or not depending on the
    checked-out branch; `gh api` reads or writes depending on whether `-f` is present.
 4. **Shadowed by an `allow`.** The general form is the one worth quoting, because it is why this class is
@@ -4380,3 +4385,105 @@ interceptable clause is worth intercepting: **the direction of the control's err
 them.** `Deciders`: the owner — the partition, the instruction to enforce it, **and the ruling to
 delete the enforcement while keeping the partition**; written by `agents-lead` per the domain split
 (#223).
+
+## Amendment (2026-09-05) — the permission matcher is ELEMENT-WISE, so a whole control class was never a control (#383, slice S2)
+
+**Status: `accepted`.** `Deciders`: the owner, whose criterion (#383) grades the alternatives rather
+than the hook; measurement and record by `agents-lead` per the domain split (#223).
+
+### What was believed, and where it was written
+
+`permission-guard.sh` rule 8 denied `&&`, `||` and `;` on a premise stated in its own deny text and
+copied into four other surfaces:
+
+> *"The matcher reads one command prefix, so a chain prompts the human even when every part is
+> allowlisted."*
+
+It is the **most-fired rule in the directory** — 2,140 of 2,703 measured denies — and this record's own
+*"The four routing reasons"* section carried it as routing reason 2, which is what made it a claim about
+**which layer can carry a control** rather than a claim about one hook.
+
+### What was measured
+
+A scratch copy of the guard with rules 8 and 8b deleted, loaded into a nested session with
+`claude --plugin-dir` — the probe-plugin method #182 and #286 established — against build 2.1.261. The
+installed plugin was excluded with `--setting-sources local`, an allow/deny list was supplied with
+`--settings`, and `--permission-prompts none` turned *"would prompt"* into an observable automatic
+denial instead of a hang. **The probe plugin's own hooks were proven live by a marker hook, and every
+verdict below was confirmed on disk rather than taken from the nested session's report.**
+
+| payload | verdict |
+|---|---|
+| `mkdir <A> && mkdir <B>` — both allowlisted | **executed, no prompt** |
+| `mkdir <A> ; mkdir <B>` — both allowlisted | **executed, no prompt** |
+| `mkdir <A> && mkdir -p <B>` — second in `deny` | **whole call denied**, neither directory created |
+| `mkdir <A> && touch <B>` — second in neither list | stopped: *"What required approval: touch in `<B>`"* |
+| `mkdir <A>` / `touch <A>` — controls | executed / required approval |
+| `mkdir <A>-$(basename /x/y)` | stopped: *"What required approval: Contains command_substitution"* |
+| `FOO=1 mkdir <A>` | stopped, naming `mkdir` |
+| `cmd > file` (primary working dir) · `cmd 2> file` | stopped: *"Output redirection to `<file>`"* |
+| `cmd 2>/dev/null` · `cmd >/dev/null` · `[[ zzz > aaa ]]` | **executed, no prompt** |
+
+**The matcher decomposes a composition and evaluates each element on its own.** It approves the call
+when every element is approved and stops when one is not, naming the element that stopped it.
+
+### The decision
+
+**Routing reason 2 loses its chain operators, and rule 8's chain branch is removed** (struck in place
+above rather than rewritten). Substitution and the env-var prefix stay in both, on the measurement
+rather than on the old story: a substitution is flagged **by name** by the runtime, and an env-var
+prefix defeats the **allow entry** rather than the decomposition — two different mechanisms, neither of
+them "reads one prefix".
+
+**Rule 8b keeps its branch and loses two false positives.** Its premise held; what did not hold is that
+it was as precise as the layer beneath it. The runtime's redirection check is **destination-aware** —
+it ran `2>/dev/null` and stopped for `2>somefile` — so the hook was denying acts the permission system
+would have allowed **silently**. A `/dev/null` target and a `[[ … ]]` span are now stripped before the
+test.
+
+### The rule this adds to *Which layer carries a control*
+
+> **A hook whose purpose is to convert a prompt into a self-correcting instruction must fire on a
+> SUBSET of what the runtime stops for, never on more. Where it cannot tell, it abstains and lets the
+> layer that parses shell decide.**
+
+This is a **different test from the ones already in this record**, and it applies only to the UX class.
+For a floor rule the question is *which layer can carry this at all*; for a UX rule the layer beneath is
+already carrying it correctly and the hook is only choosing the **form of the interruption**. An excess
+there is not a stricter control — it is an over-block with nothing behind it, and it is invisible to the
+person it inconveniences, which is this repository's own standing objection to a preventive control.
+
+### What this does NOT change, and it is the half that makes the removal safe
+
+**Every rule in `permission-guard.sh` matches a SUBSTRING of `$bare`** — `(^|[^[:alnum:]_])rm…`,
+`(^|[^[:alnum:]_])gh…` — so prefixing a denied act with a harmless first element does not walk past it.
+`echo hi && gh pr merge 1 --merge` still meets rule 7b, `echo hi && rm -rf /tmp/zz` still meets rule 4,
+`echo hi ; git push origin main` still meets rule 7. Four regression cases assert exactly this, and the
+mutation that would break them (anchoring 7b at `^`) reddens those cases plus six existing merge cases.
+
+### The cost, priced rather than waved past
+
+**A chain carrying an unapproved element now produces a permission prompt for the human instead of a
+deny the agent can act on.** That is a real UX regression on the minority of chains, bought with the
+removal of a 2,140-fire tax on the majority. It is not a floor change and it is not claimed as one.
+
+### Considered options
+
+- **Keep the rule and fix its comment.** Rejected: the comment was the whole justification, and a rule
+  whose justification is measured false is a rule with no argument, however cheap it is to keep.
+- **Narrow the chain branch to compositions containing an unlisted element.** Rejected as
+  unimplementable at this layer for the reason this record already gives about the hook: it reads a
+  command string and holds no allow list, so it cannot know which elements are approved. The layer that
+  does know is the one already doing it.
+- **Remove rule 8b along with the chain branch, since the runtime covers it.** Rejected. The runtime
+  covers the *control*; what 8b buys is the *form* — an instruction the agent can act on instead of an
+  interruption the owner must answer, 445 times measured. The over-blocking was fixed instead.
+- **Exempt `2>` generally rather than a `/dev/null` target.** Rejected on measurement: `2>somefile`
+  creates a file and the runtime stops for it, so a blanket `2>` exemption would put the hook *below*
+  the runtime, which is the opposite error and the one that hides an act.
+
+### Significance
+
+Arm: *alters a previously-recorded decision* — routing reason 2, in this record — and *sets a
+cross-cutting pattern others will follow*: the subset rule above, which governs every future hook whose
+object is friction rather than irreversibility.

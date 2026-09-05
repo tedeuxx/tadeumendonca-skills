@@ -161,15 +161,15 @@ carrier that cannot state a limit is usually a carrier that is not a capability.
 - **o que não faz:** It matches a **string**, not a program. It cannot decide anything that depends on the *class* of a change rather than its spelling — which is why the merge decision is a persona's and not a rule's — and it cannot claim completeness over the set of spellings that reach it. It fails **open** on a parse error, by design: a floor that crashes closed stops a session that has done nothing wrong.
 - **citação:** > "a regex over a shell grammar is not provably complete."
 
-### 0002 · a command the matcher cannot decompose is refused before it reaches a human
+### 0002 · a shell shape that WOULD stop for a human is refused first, with the replacement in the refusal
 
 - **tipo:** refusal
 - **carrier:** `hooks/scripts/permission-guard.sh`
-- **descrição:** The same guard's rules on shell *shape* — chained commands, command substitution, output redirection into a file.
-- **propósito:** A permission matcher reads **one command prefix**. A chain, a substitution or an env-var prefix cannot be decomposed by it, so an otherwise-allowlisted command stops for a human on its punctuation alone. Refusing the shape immediately, with a message that says how to spell it instead, converts an unbounded stream of prompts into one corrected habit.
-- **o que faz:** Denies `&&` / `;` / pipe chains, and denies `>` / `>>` redirection that would create a file, returning the replacement route in the denial text (`git -C`, `npm --prefix`, the `Write` tool). The redirect rule was made mechanical only after guidance alone was measured to keep failing.
-- **o que não faz:** It does not distinguish a redirect that creates a file from one that does not, beyond the stream-to-stream forms it excludes by construction: `2>/dev/null` creates nothing and is denied anyway. That false positive is **named here rather than worked around** — it cost three retried calls in the dispatch that authored this row — and it is not in the rule's own list of accepted false positives. Repairing it is a one-token exemption, and it is a decision for whatever slice next touches that file.
-- **citação:** > "The matcher reads one command prefix, so a chain prompts the human even when every part is allowlisted."
+- **descrição:** The same guard's rules on shell *shape* — command substitution, env-var prefixes, and output redirection that creates a file. ~~chained commands~~ **struck 2026-09-05 (#383): the chain rule is removed, because a chain does not stop for a human.**
+- **propósito:** Where a shape genuinely stops for a human, refusing it immediately — with a message saying how to spell it instead — converts an unbounded stream of interruptions into one corrected habit. ~~A permission matcher reads **one command prefix**. A chain, a substitution or an env-var prefix cannot be decomposed by it.~~ **Struck: measured false for chains.** The matcher is **element-wise** — it decomposes a composition, evaluates each element, and stops only when one is unapproved, naming it. The surviving justification is narrower and is the portable half: **this kind of hook must fire on a SUBSET of what the runtime stops for, never on more**, because every excess is an over-block with no control behind it.
+- **o que faz:** Denies `$(...)`/backticks and `VAR=x cmd` prefixes — both measured to stop for a human with the rule absent — and denies `>` / `>>` redirection that would create a file, returning the replacement route in the denial text (`git -C`, `npm --prefix`, the `Write` tool). The redirect rule was made mechanical only after guidance alone was measured to keep failing.
+- **o que não faz:** It does not parse shell, so it cannot see a `>` inside a heredoc body that feeds no redirect, and denies it — the one accepted false positive left. ~~`2>/dev/null` creates nothing and is denied anyway~~ **fixed 2026-09-05 (#383), not merely named:** the runtime's own check is destination-aware (it ran `2>/dev/null` and `>/dev/null`, stopped for `2>somefile`), so a `/dev/null` target and a `[[ … ]]` comparison are now stripped before the test.
+- **citação:** > "on a SUBSET of what the runtime stops for, never on more"
 
 ### 0003 · the actor that orchestrates may not perform the irreversible act
 
@@ -711,9 +711,9 @@ added a carrier and a row together.
 - **carrier:** `skills/shell/SKILL.md`
 - **descrição:** The second body of knowledge in the same carrier: one atomic call, the flag position, and `--body-file` without exception.
 - **propósito:** Permission friction is almost never a missing allowlist entry — it is the **shape** of the command. And the posting half is not friction at all but silent damage: backticks and `$` are eaten from an inline body by the shell, and this platform paid for that more than once in a single session before the rule was written down.
-- **o que faz:** One atomic command per call, `git -C` and `npm --prefix` instead of a directory change, the repository flag placed *after* the subcommand so the matcher's prefix still matches, and any body longer than one line written to a file and posted with `--body-file`.
+- **o que faz:** One atomic command per call — **a legibility preference since #383, no longer a permission necessity**, the matcher having been measured element-wise across a chain — plus `git -C` and `npm --prefix` instead of a directory change, the repository flag placed *after* the subcommand so the matcher's prefix still matches, and any body longer than one line written to a file and posted with `--body-file`.
 - **o que não faz:** It is a **habit**, not a control — only the redirect half is mechanically enforced, by the floor, and the rest passes every gate when ignored. It also states no exception for the posting rule on purpose: a rule with a per-case judgement is the step that failed, four times, before it became unconditional.
-- **citação:** > "A few extra calls is the price of zero permission prompts."
+- **citação:** > "The permission matcher is ELEMENT-WISE across a composition."
 
 ### 0027 · how the system is documented
 

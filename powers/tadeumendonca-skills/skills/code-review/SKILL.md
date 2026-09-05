@@ -147,7 +147,9 @@ The convention you are about to break is usually **your own**, from earlier the 
 - bodies and multi-line text go through `--body-file`, never inline;
 - merge with a real merge commit, never squash;
 - `git -C <dir>` / `npm --prefix <dir>` instead of `cd`;
-- one atomic command per call, no `&&` chains.
+- one atomic command per call — a preference for legibility, ~~no `&&` chains~~ **not a permission
+  necessity since #383**, which measured that the matcher decomposes a chain and evaluates each element
+  (`shell` carries the table).
 
 **If your change makes a repo convention impossible to follow, the change is wrong** — not the convention.
 

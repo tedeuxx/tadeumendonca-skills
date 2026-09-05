@@ -47,17 +47,48 @@ tool-granted route available, that is a posting failure to report as one — not
 an inline argument that strips backticks and `$`, and not a reason to reach for `>` because it is
 quicker.
 
-## Command hygiene — one atomic Bash call
+## Command hygiene — what actually stops for a human, and what never did
 
-**Run one atomic command per `Bash` call.** Do NOT chain with `&&` / `;` / pipes, and avoid `$(...)` /
-backticks and `VAR=x cmd` env-var prefixes — the permission matcher can't decompose a compound or
-substituted command, so it prompts a human even for an otherwise-allowlisted tool. Prefer the repo's own
-scripts (`npm --prefix <app> run <script>`, a project's own test entrypoint) over inline env-prefixed
-commands. A few extra calls is the price of zero permission prompts.
+**The permission matcher is ELEMENT-WISE across a composition. That is the fact this section is built
+on, and it was measured rather than read.** A composition is decomposed and each element evaluated on
+its own; the call is approved when every element is approved, and stopped — naming the offending
+element — when one is not. Measured 2026-09-05 against build 2.1.261, in a nested session carrying
+this platform's guard **minus** its composition rules, with every verdict confirmed on disk rather
+than taken from the session's own report:
+
+| payload | result |
+|---|---|
+| `mkdir <A> && mkdir <B>` — both allowlisted | **executed, no prompt** |
+| `mkdir <A> ; mkdir <B>` — both allowlisted | **executed, no prompt** |
+| `mkdir <A> && mkdir -p <B>` — second in `deny` | **whole call denied**, neither directory created |
+| `mkdir <A> && touch <B>` — second in neither list | stopped: *"What required approval: touch in `<B>`"* |
+| `mkdir <A>-$(basename /x/y)` | stopped: *"What required approval: Contains command_substitution"* |
+| `FOO=1 mkdir <A>` | stopped, naming `mkdir` — although bare `mkdir <A>` executed |
+| `cmd 2>/dev/null` · `cmd >/dev/null` · `[[ zzz > aaa ]]` | **executed, no prompt** |
+| `cmd > file` · `cmd 2> file` | stopped: *"Output redirection to `<file>`"* |
+
+~~Do NOT chain with `&&` / `;` / pipes … the permission matcher can't decompose a compound.~~
+**STRUCK 2026-09-05: the first clause is false and had been the whole reason for the rule.** A chain
+of allowlisted commands does not prompt; a chain carrying an unapproved element is caught anyway, by
+the element. On this platform the chain deny was removed for exactly that reason, and it is struck
+rather than deleted because every persona here wrote its commands to it for months.
+
+**What still stops for a human, and is therefore still worth avoiding:**
+
+- **`$(...)` and backticks.** Flagged by name, whatever the command is.
+- **`VAR=x cmd` env-var prefixes.** The prefix defeats the allow entry — a different mechanism from
+  decomposition, and the reason this bullet is separate. Prefer the repo's own scripts
+  (`npm --prefix <app> run <script>`) over an inline env-prefixed command.
+- **A redirect that CREATES a file** — see the `>` rule below.
+
+**Prefer one atomic command per call anyway, and know that the reason changed.** It is now a
+legibility and attribution preference — one call, one verdict, one thing to read in a transcript —
+not a permission necessity. Where a chain is genuinely the clearer expression, it costs nothing.
 
 **`git -C <dir>` and `npm --prefix <dir>`, never `cd X && …`.** The workspace root is not a repository
-itself in a multi-repo layout, and a `cd` compound both chains commands (tripping the rule above) and
-risks leaving a shell in the wrong directory for the next call.
+itself in a multi-repo layout, and a `cd` compound risks leaving a shell in the wrong directory for the
+next call. ~~and a `cd` compound both chains commands (tripping the rule above)~~ — struck with the
+rule it cited; the directory reason is the one that survives and it is sufficient on its own.
 
 **Target another repo with `gh <subcommand> --repo <owner/repo>`, never `gh -R <owner/repo> <subcommand>`.**
 The permission matcher reads a command **prefix**, and an allowlist is typically spelled per-subcommand
@@ -75,6 +106,15 @@ for: content the agent is composing itself goes through `Write`; content that is
 is obtained by running the command *without* the redirect (the output already returns to the caller) and
 `Write`-ing it from there if it needs to persist. `2>&1` / `1>&2` / `>&2` (redirecting one stream to
 another) are unaffected — they create no file.
+
+**And a `/dev/null` target is unaffected too, because the runtime's own check is DESTINATION-AWARE.**
+Measured 2026-09-05 in the same rule-less session: `cmd 2>/dev/null` and `cmd >/dev/null` ran with no
+prompt, while `cmd 2>somefile` stopped for a human naming that file. `[[ a > b ]]`, bash's string
+comparison, ran untouched. Those three were being denied by this platform's guard and by nothing else,
+which is a control that only ever over-blocks; both are exempt since #383. **The general rule the fix
+follows is worth more than the fix: a hook that exists to turn a prompt into a self-correcting
+instruction must fire on a SUBSET of what the runtime stops for, never on more.** Where it cannot tell,
+it should abstain and let the layer that parses shell decide.
 
 ## `--body-file`, always, for anything longer than one line
 

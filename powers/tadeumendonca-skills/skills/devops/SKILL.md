@@ -385,6 +385,26 @@ register the guard hook, protecting every repo even with no local config. Per-pr
 `settings.local.json`. **Deny from any layer wins**, so the global floor is inescapable and the project
 layer only adds autonomy. **Never `--dangerously-skip-permissions`.**
 
+**The two layers are NOT peers, and which one answers first decides what a removal costs.** The
+`PreToolUse` hook decides **before** the permission system: a hook `deny` is final and the static
+lists are never consulted, while a hook that abstains hands the command on to allow/deny/prompt.
+Measured 2026-09-05 with a payload both layers match — the hook's text came back, not the permission
+system's. **Two consequences worth carrying into any decision to delete a hook rule.** First, removing
+a rule whose act sits in `allow` is a **real** removal with silent execution, not a downgrade to a
+prompt — that is the difference between *nothing changes but the message* and *nothing stops it at
+all*. Second, a hook rule can only ever be **stricter** than the layer beneath it, never more
+permissive, so every case where it fires and the permission system would not is an **over-block with
+no control behind it**. For a rule whose object is friction rather than irreversibility, that is the
+governing test: fire on a subset of what the runtime stops for, never on more.
+
+**The permission matcher is ELEMENT-WISE across a composition**, which is the fact that test was
+derived from. Measured against build 2.1.261: `a && b` with both elements allowlisted **executes with
+no prompt**; the same chain with one element denied is **refused whole**; with one element merely
+unlisted, the runtime stops and **names that element**. A chain is not a blind spot. What does stop
+for a human is `$(...)`/backticks (flagged by name), a `VAR=x cmd` prefix (it defeats the allow entry),
+and a redirect that **creates a file** — and that last check is destination-aware, so `2>/dev/null`
+passes and `2>somefile` does not. `/shell` carries the payload table.
+
 **Enforcement = static deny + the guard hook.** Static allow/deny covers every case where the target is
 visible in the command string. The `PreToolUse` guard hook (`hooks/permission-guard.sh`, matcher `Bash`)
 is the backstop for the irreversible floor in every repo regardless of model — inspects the command
