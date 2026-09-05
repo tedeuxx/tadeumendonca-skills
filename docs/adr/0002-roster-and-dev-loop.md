@@ -4629,8 +4629,25 @@ recomposes and re-activates once; two is the bound**, because an unbounded confi
 fifteen-turn walk arriving one round later. The per-item reasoning — why each item is in or out, by
 predicate — goes to `docs/planning/<iteration>.md`, **never into the activation**.
 
-**Nothing about assembly, ranking, the predicates or rule 10/11 placement changes.** The confirmation
-precedes the placement prompts and does not replace them.
+~~**Nothing about assembly, ranking, the predicates or rule 10/11 placement changes.** The confirmation
+precedes the placement prompts and does not replace them.~~
+
+**STRUCK 2026-09-04 (#383) — rules 10 and 11 are DELETED, so there are no placement prompts left for
+the confirmation to precede.** The sentence describes the confirmation as one of two independent
+controls when it is now the **only** one: step 4b's per-item admissions fire no prompt at all, and step
+4a's surviving prompt on the milestone script is an **absence** from every allow list rather than a
+control. That is the same arithmetic-that-no-longer-works this slice already struck one page up, in
+*"Why the dispatch cannot leak the composition"*.
+
+**What survives, and it is what the sentence was written to protect:** *a confirmation is not an
+authorisation to place* — now carried by the confirmation alone, because there is no second control for
+it to be independent of. Assembly, ranking and the predicates are genuinely unchanged; only the
+placement half of the claim is dead.
+
+**Struck rather than edited, and the reason is the pair.** `commands/sprint-planning.md`'s own placement
+paragraph was struck in this slice and this one was not, so for the length of that gap the record and
+the command file disagreed about a live control with nothing saying which was current — the worse half
+of the defect this slice exists to close.
 
 ### Decision 2 — the escalation protocol has ONE standard, and a precondition
 
