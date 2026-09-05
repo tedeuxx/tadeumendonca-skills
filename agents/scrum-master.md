@@ -82,7 +82,7 @@ what to read, and `hooks/hooks.json` is what the table is answerable to.
 | `zombie-loop-detect.sh` | an outstanding gate verdict on the current head, one turn late |
 | `premature-pr-link-detect.sh` | a PR link handed to the owner before it is his act |
 | `permission-guard.sh` rule 10 | an item admitted to a running iteration without the owner answering a prompt |
-| `closure-artifact-guard.sh` | an Issue closing with a declared `invocable:` artifact that does not resolve |
+| `closure-artifact-guard.sh` | an Issue that has ALREADY closed with a declared `invocable:` artifact that does not resolve — **reported at turn end, not refused** (its `PreToolUse` arm was removed at #383) |
 
 **Do not re-derive any of those, do not report them as findings, and do not describe yourself as
 covering them.** If one of them is wrong, that is a finding about the machinery and it belongs to

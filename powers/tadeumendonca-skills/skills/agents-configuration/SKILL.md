@@ -1444,8 +1444,14 @@ invocable-waived: /blueprint <reason>    the promise was narrowed, and here is w
 and no new label. `none` is a real answer and the common one; the field exists so that *promised* and
 *promised nothing* stop looking alike.
 
-**What it buys, and the two facts that bound it — both measured, neither assumed.** A manual
-`gh issue close` on an Issue with an unmet declaration is **refused**. ~~A close by closing keyword is
+**What it buys, and the two facts that bound it — both measured, neither assumed.** ~~A manual
+`gh issue close` on an Issue with an unmet declaration is **refused**.~~ **Struck 2026-09-04 (#383):
+it is not. That hook's `PreToolUse` arm was removed — zero fires in thirty days, a predicate covering
+only the minority route, and an act undone by reopening the Issue — so a manual close on an unmet
+declaration now EXECUTES SILENTLY (`gh issue close` is allowlisted in both settings layers) and is
+REPORTED at the end of the turn by the surviving `Stop` arm. Struck rather than edited because this
+file is loaded on every dispatch, and a persona that read "refused" would believe a bound exists.**
+~~A close by closing keyword is
 **executed by the forge on merge**, so nothing in this harness can refuse it — that case is *reported*
 at the end of the turn instead, one turn late, exactly the class `zombie-loop-detect` is.~~
 

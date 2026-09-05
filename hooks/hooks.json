@@ -8,11 +8,6 @@
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/scripts/permission-guard.sh",
             "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/scripts/closure-artifact-guard.sh",
-            "timeout": 15
           }
         ]
       },

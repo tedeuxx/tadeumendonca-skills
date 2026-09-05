@@ -266,14 +266,26 @@ is reachable at `git show <deleting-commit>^:hooks/scripts/wip-guard.sh`.)*
 - **o que não faz:** It checks the **tree**, never the lines: a `file:line` citation is out of scope by decision, since whether a file says what a brief claims is prose-reading and a guard that reached for it would fail open on exactly the half that matters. **A bare SHA is never checked** — a merge-base, a PR head or a quoted verdict marker is a reference, not a premise, and treating one as a premise denied 8.0% of 859 real briefs for no reason. A **cross-repository** brief is not checked at all: one stamp, two repositories, no fact available to attribute it, so a guess reported as a control would be worse than the declared gap. And it decides nothing about a **stale Issue** — the check lives at dispatch, against the brief; an Issue that described finished work was already stale before any dispatch happened, which is a different mechanism at a different moment.
 - **citação:** > "So passing this guard means the TREE is what the brief says, never that the LINES are."
 
-### 0037 · an Issue is not closed by hand while the artifact it promised is missing
+### 0037 · an Issue that closed while the artifact it promised is missing is REPORTED
 
-- **tipo:** refusal
+**`tipo` changed `refusal` → `record` on 2026-09-04 (#383), and the id did not.** The `PreToolUse` arm
+that refused a manual `gh issue close` was removed; the `Stop` arm that reports an already-closed Issue
+was not. **This is a downgrade and it is stated as one**: a foreign implementer reading this row before
+2026-09-04 could have built a control, and reading it now can only build an observer. The obligation is
+unchanged and is not tombstoned — it moved layers, it was not abandoned.
+
+**Why the refusal lost, and it is the transferable half:** its predicate was a *manual* close, and the
+route this loop actually uses is the forge's, executed on merge by GitHub's servers where no
+pre-execution hook exists. It fired **zero times in thirty days**. **Do not rebuild the refusal on the
+manual route** — build the comparison one step upstream, at the merge, which is a tool call and is
+refusable; this harness does that in `permission-guard.sh` rule 7d.
+
+- **tipo:** record
 - **carrier:** `hooks/scripts/closure-artifact-guard.sh`
-- **descrição:** A `PreToolUse` guard on `gh issue close`, resolving the `invocable:` lines of the Issue's own body against this tree.
+- **descrição:** A `Stop` hook resolving the `invocable:` lines of a recently-closed Issue's own body against this tree, and reporting the unmet ones once per session.
 - **propósito:** A closing keyword knows nothing about whether the thing an Issue promised exists. Measured here: three Issues closed with their operable half unbuilt, one of them twice, and every instance was caught by a human asking. The obligation is that **the tracker's word for "done" is held against an artifact a reader can reach**, at the moment the state changes rather than in a review that may not happen — because the authorable half always ships first, and the half that ships second is the one nobody re-checks.
-- **o que faz:** On a close aimed at this checkout's own repository, reads the Issue body, extracts every entry declared at column 0 as `invocable:`, and resolves each one: a `/name` against `commands/name.md` or a `skills/name/SKILL.md` **that `plugin.json` also declares**; anything else as a repo-relative path. An entry carrying an `invocable-waived:` line with a reason of at least twelve characters is passed. Anything left unresolved denies the call and names it, with the three exits stated in the deny text — build it, record the narrowing, or leave the Issue open.
-- **o que não faz:** **An Issue that declares nothing is invisible to it, and nothing forces the declaration** — the field is written at intake by instruction, so this refuses a stated promise and never discovers an unstated one. It deliberately does **not** derive the promise from prose: measured over twenty closed Issues, the tightest derivation worth trying produced eleven unresolved identifiers and zero true positives, so a derived form would redden on honest work until it was loosened into nothing. It resolves **existence, never behaviour** — an empty file passes. A close aimed at another repository is skipped rather than guessed at. And it **fails open** on a missing `gh`, an API error or an unreadable body, so a silence from it can mean *checked and clean* or *could not check*.
+- **o que faz:** At the end of every turn, reads the Issues closed inside a rolling server-side window, extracts every entry declared at column 0 as `invocable:` in each body, and resolves each one: a `/name` against `commands/name.md` or a `skills/name/SKILL.md` **that `plugin.json` also declares**; anything else as a repo-relative path. An entry carrying an `invocable-waived:` line with a reason of at least twelve characters is passed. Anything left unresolved is reported once per session, with the three exits stated in the notice — build it, record the narrowing, or reopen the Issue.
+- **o que não faz:** **It refuses nothing, as of 2026-09-04.** The act it describes has already happened when it speaks, so every finding is one turn late; and the manual-close route it used to refuse now executes with no decision from any layer, because that command is allowlisted. **An Issue that declares nothing is invisible to it, and nothing forces the declaration** — the field is written at intake by instruction, so this reports on a stated promise and never discovers an unstated one. It deliberately does **not** derive the promise from prose: measured over twenty closed Issues, the tightest derivation worth trying produced eleven unresolved identifiers and zero true positives, so a derived form would redden on honest work until it was loosened into nothing. It resolves **existence, never behaviour** — an empty file passes. A close aimed at another repository is skipped rather than guessed at. And it **fails open** on a missing `gh`, an API error or an unreadable body, so a silence from it can mean *checked and clean* or *could not check*.
 - **citação:** > "AN ISSUE THAT DECLARES NOTHING IS INVISIBLE HERE, AND NOTHING FORCES THE DECLARATION."
 
 ### 0043 · nothing joins the iteration that is being worked without a human saying so
