@@ -1587,9 +1587,45 @@ fi
 #     does not OVER-block, which is the constraint that shapes them: the last two payloads above run
 #     with no prompt, so a `[[ … ]]` in command position — start of string, after `; & | ( ) { } !`,
 #     or after `if`/`while`/`until`/`elif`/`then`/`else`/`do` — must still be stripped, while one in
-#     argument position must not. The `/dev/null` strip now requires whitespace or end-of-string after
-#     the target, which additionally makes `> /dev/null/../…` deny — matching the runtime, which
-#     refuses it on traversal.
+#     argument position must not. The `/dev/null` strip now requires whitespace, a shell separator or
+#     end-of-string after the target, which additionally makes `> /dev/null/../…` deny — matching the
+#     runtime, which refuses it on traversal.
+#
+#     ── THE RIGHT-ANCHOR OVER-CORRECTED, AND THE SEPARATOR CLASS IS THE REPAIR (#383 S2, round 3). ──
+#
+#     The anchor first shipped as `([[:space:]]|$)`, which fired the strip ONLY on whitespace or end of
+#     string — so `date >/dev/null;echo hi`, `… &&echo hi`, `(date >/dev/null)`, `{ date >/dev/null; }`
+#     and `… 2>/dev/null|head -1` all fell through to the deny. All five were ALLOW one commit earlier,
+#     none creates a file, and they are the exact shapes S1 had just un-taxed by removing rule 8's chain
+#     branch. The trailing class therefore carries `; & | ) }` as well.
+#
+#     MEASURED against the runtime on build 2.1.261 — same nested `claude --plugin-dir` rig as above,
+#     this hook absent, `--permission-prompts none` making a would-prompt observable, verdicts confirmed
+#     on disk rather than from the session's own report:
+#
+#       date >/dev/null;touch m1      -> EXECUTED, no prompt (the marker file appears)
+#       (touch m2 >/dev/null)         -> "uses shell operators (subshell and redirection)" — APPROVAL
+#       date >/dev/null · date > c2   -> executed, no prompt / approval required (controls, unchanged)
+#
+#     SO THE TWO HALVES OF THE WIDENING ARE NOT THE SAME CLAIM, AND THE WEAKER ONE IS SAID OUT LOUD.
+#     For `;` the widening restores PARITY with the runtime. For `( … )` the runtime prompts anyway, so
+#     the widened rule fires on LESS than the runtime stops for — the safe side of ADR-0004's subset
+#     rule, and deliberately not narrowed back: what is lost there is this rule's instruction, never a
+#     block, because the runtime is the backstop. The pipe form was probed and is INCONCLUSIVE — the
+#     nested session refused it naming the `grep` element rather than the redirect, so nothing is
+#     claimed about `|` in either direction.
+#
+#     THE KEYWORD ALTERNATIVE OF THE `[[ … ]]` STRIP IS KNOWN-LOOSE AND IS DELIBERATELY LEFT (#383 S2).
+#     It is not itself position-checked, so any of `if|while|until|elif|then|else|do` immediately before
+#     a bracket span makes it read as command position wherever it sits — `echo hello do [[ a > F ]] b`
+#     is stripped and reaches ALLOW, and it IS a real redirect in bash. The narrowing was attempted and
+#     REVERTED, on measurement rather than on effort: requiring the keyword to follow `^` or a separator
+#     denies a multi-line `if … / then / [[ … ]] / fi`, because `bare` flattens newlines to spaces
+#     upstream and the keyword then sits mid-string. Repairing that needs a fixpoint LOOP over the
+#     strip, not a character class, which is a different shape from this edit. It stays because the
+#     direction is safe and it was probed: the runtime stopped `echo hello do [[ a > m4 ]] b` with
+#     "Redirect has multiple targets — post-redirect args swallowed", so the hook fires on LESS than
+#     the runtime here too.
 #
 #     STILL NOT CAUGHT, AND STILL ACCEPTED: a heredoc body (`<<EOF … EOF`) that happens to contain a
 #     literal `>` (e.g. a markdown blockquote line) and is NOT itself feeding a redirect will still be
@@ -1600,7 +1636,7 @@ fi
 #     false positive that bites this repository's own harness reviewer hardest, which is why it is
 #     named in `agents/agents-lead.md` as well as here.
 redirect_probe="$(printf '%s' "$bare" | sed -E 's%(^|[;&|(){}!]|(^|[[:space:]])(if|while|until|elif|then|else|do))[[:space:]]*\[\[[^]]*\]\]%\1%g')"
-redirect_probe="$(printf '%s' "$redirect_probe" | sed -E 's%[0-9]?>{1,2}[[:space:]]*/dev/null([[:space:]]|$)%\1%g')"
+redirect_probe="$(printf '%s' "$redirect_probe" | sed -E 's%[0-9]?>{1,2}[[:space:]]*/dev/null([[:space:];&|)}]|$)%\1%g')"
 if printf '%s' "$redirect_probe" | grep -Eq '>{1,2}([^&]|$)'; then
   deny "Blocked: shell output redirection ('>' or '>>') to create or overwrite a file. Content you are composing yourself goes through the Write tool, never a heredoc piped into '>'. Content that is a command's own stdout: run the command WITHOUT the redirect (its output returns to you) and Write it from there if it needs to persist. (If this fired on a heredoc body containing a literal '>' rather than an actual redirect: rephrase without it — this floor does not parse shell and cannot tell the two apart. '[[ a > b ]]' string comparison and a '/dev/null' target are exempt since #383 and should not reach you.)"
 fi

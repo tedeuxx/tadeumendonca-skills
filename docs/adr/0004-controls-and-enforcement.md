@@ -4504,6 +4504,49 @@ exactly the `/dev/nullx` case, making the bracket strip lexical again reddens ex
 argument-position case, and narrowing the positional strip to start-of-string only reddens exactly the
 two keyword/separator cases.
 
+### It DID re-introduce an over-block, on the other axis, and the sentence above is the one that missed it
+
+~~or the repair would have re-introduced an over-block while removing an under-fire~~ — **struck
+2026-09-05, and struck rather than deleted because it is the clause that told a reader the bounding had
+covered both directions.** It bounded the **`[[ … ]]`** strip and said nothing about the **`/dev/null`**
+one, which shipped its right-anchor as `([[:space:]]|$)` — firing only on whitespace or end of string.
+Every other shell separator fell through to the deny, so `cmd >/dev/null;cmd2`, `… &&cmd2`,
+`(cmd >/dev/null)`, `{ cmd >/dev/null; }` and `… 2>/dev/null|cmd2` all denied. All five were ALLOW one
+commit earlier, none creates a file, and they are precisely the shapes the removal of rule 8's chain
+branch had just un-taxed. **The merge gate found it; four mutation-proven arms did not, because none of
+them pointed at the direction the tightening broke.**
+
+**The trailing class now carries the separators, and the two halves of that widening are NOT the same
+claim.** Probed on the same rig and the same build (`2.1.261`), this hook absent,
+`--permission-prompts none` making a would-prompt observable, verdicts confirmed on disk:
+
+| payload | runtime verdict |
+|---|---|
+| `date >/dev/null;touch m1` | **executed, no prompt** — the marker file appears |
+| `(touch m2 >/dev/null)` | required approval — *"uses shell operators (subshell and redirection)"* |
+| `echo hello do [[ a > m4 ]] b` | required approval — *"Redirect has multiple targets — post-redirect args swallowed"* |
+| `date >/dev/null` · `date > c2` | executed, no prompt / required approval (controls) |
+
+For `;` the widening restores **parity**. For `( … )` the runtime prompts anyway, so the widened rule
+fires on **less** than the runtime stops for — the safe side of the subset rule, and left there
+deliberately: what is lost is this rule's instruction, never a block. The pipe form is **inconclusive**
+and nothing is claimed about it in either direction: the nested session refused it naming the `grep`
+element rather than the redirect.
+
+**And the keyword alternative of the `[[ … ]]` strip is known-loose and is deliberately LEFT.** It is
+not itself position-checked, so any of `if|while|until|elif|then|else|do` immediately before a bracket
+span reads as command position wherever it sits — `echo hello do [[ a > F ]] b` reaches ALLOW and is a
+real redirect. The narrowing was **attempted and reverted on measurement, not on effort**: requiring the
+keyword to follow start-of-string or a separator denies a multi-line `if … / then / [[ … ]] / fi`,
+because `bare` flattens newlines to spaces upstream and the keyword then sits mid-string. Repairing it
+needs a **fixpoint loop** over the strip rather than a character class, which is a different shape from
+a one-class edit. The third row above is why leaving it is safe rather than merely cheap.
+
+**The lesson, and it generalises past this hook:** a mutation arm proves the direction it points at and
+says nothing about the opposite one. Tightening a rule needs an arm on **both** sides of the boundary it
+moves, or the round that removes an under-fire ships an over-block with every gate green — which is what
+happened here, twice in a row, in the file whose whole subject is that distinction.
+
 ### What this does NOT change, and it is the half that makes the removal safe
 
 **Every rule in `permission-guard.sh` matches a SUBSTRING of `$bare`** — `(^|[^[:alnum:]_])rm…`,

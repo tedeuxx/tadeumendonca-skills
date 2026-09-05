@@ -119,7 +119,22 @@ narrow, and the bound is measured rather than assumed:** a target merely *beginn
 (`date > /dev/nullx`, `date > /dev/null/../x`) and a `[[ … ]]` span in *argument* position
 (`echo x [[ a > /tmp/evil ]] b`, a real redirect in bash) are **not** exempt — the runtime required
 approval for all three on build 2.1.261, so exempting them would have put this hook *above* the layer
-it is supposed to sit under. **The general rule the fix
+it is supposed to sit under.
+
+**Two bounds on that paragraph, both measured on 2026-09-05 and both in the permissive direction.**
+The `/dev/null` exemption first shipped requiring whitespace or end-of-string after the target, so
+`cmd >/dev/null;cmd2`, `… &&cmd2`, `(cmd >/dev/null)` and `… 2>/dev/null|cmd2` were denied although
+none creates a file; the trailing class now carries the shell separators too, and `date >/dev/null;touch m1`
+was confirmed **executing with no prompt** on build 2.1.261 with this hook absent. And the `[[ … ]]`
+bound above is **false for one subset of argument position**: the strip's keyword alternative is not
+itself position-checked, so `echo x do [[ a > /tmp/evil ]] b` — any of `if|while|until|elif|then|else|do`
+immediately before the span — reaches ALLOW even though it is a real redirect. That is left rather than
+fixed, because the narrowing that would fix it denies a multi-line `if … / then / [[ … ]] / fi`. It is
+safe in the direction that matters and it is stated rather than left to be discovered: the runtime
+stopped that payload with *"Redirect has multiple targets"*, so the hook fires on **less** than the
+runtime, which is the side of the rule below that costs an instruction and never a block.
+
+**The general rule the fix
 follows is worth more than the fix: a hook that exists to turn a prompt into a self-correcting
 instruction must fire on a SUBSET of what the runtime stops for, never on more.** Where it cannot tell,
 it should abstain and let the layer that parses shell decide.

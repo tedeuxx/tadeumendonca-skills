@@ -1150,6 +1150,19 @@ check DENY  "a /dev/null PREFIX is not /dev/null (#383)"    "date > /dev/nullx"
 check DENY  "[[ ]] in argument position IS a redirect (#383)" "echo hello [[ a > /tmp/evil ]] b"
 check ALLOW "[[ ]] after a test keyword still strips (#383)"  "if [[ zzz > aaa ]]; then echo yes; fi"
 check ALLOW "[[ ]] after a separator still strips (#383)"     "echo x; [[ a > b ]]"
+# THE RIGHT-ANCHOR OVER-CORRECTED ON THE ROUND IT LANDED, AND THESE TWO ARMS ARE WHAT WITNESSES THE
+# REPAIR (#383 S2, round 3). The first form required whitespace or end-of-string after the target, so a
+# '/dev/null' followed by ANY OTHER SEPARATOR fell through to the deny — six shapes that were ALLOW one
+# commit earlier, none of which creates a file, on the commonest redirect idiom in this repo's own
+# scripts. The trailing class now carries the shell separators as well.
+#   MEASURED against the runtime on build 2.1.261, this hook absent, nested `claude --plugin-dir` rig:
+#     date >/dev/null;touch m1   -> EXECUTED, no prompt (marker on disk) — the hook must not fire
+#     (touch m2 >/dev/null)      -> runtime REQUIRED APPROVAL, naming the subshell + redirect
+#   So ';' is restored to parity, while '(' … ')' is a case where the widened rule fires on LESS than
+#   the runtime stops for. That is the SAFE side of ADR-0004's subset rule and it is stated rather than
+#   assumed: the runtime is the backstop, and what is lost there is the instruction, never the block.
+check ALLOW "/dev/null before a separator is still /dev/null (#383)" "date >/dev/null;echo hi"
+check ALLOW "/dev/null inside a subshell is still /dev/null (#383)"  "(date >/dev/null)"
 
 echo "--- rule 5b: gh secret writes survive the -R convention ---"
 check DENY  "secret set, plain"             "gh secret set MY_TOKEN"
