@@ -483,6 +483,33 @@ fi
 #    Defence in depth, not the only control: the static `deny` lists in all three settings layers
 #    now spell these four forms out. The hook and the floor should agree, and this is the half that
 #    reads the command semantically rather than by prefix.
+#
+#    A THIRD FALSE POSITIVE, MEASURED 2026-09-04 (#383) AND RECORDED RATHER THAN FIXED — IT IS S2's,
+#    NOT S1's. This rule matches `$cmd`, not `$bare`. So a READ-ONLY command whose quoted SEARCH
+#    PATTERN names the act is denied AS the act. Measured against this guard at head, two payloads
+#    differing only in the character after the flag cluster:
+#
+#      grep -rn 'rm -rf'   <dir>   -> NO decision   (the closing quote breaks the trailing class)
+#      grep -rn 'rm -rf /' <dir>   -> DENY          ("recursive force delete ... escapes git")
+#
+#    Nothing is being deleted in either. The second is denied because the pattern's own trailing `/`
+#    satisfies `([[:space:]]|$|/)`. So whether a read-only grep runs depends on how the caller
+#    punctuated their search string — which is the exact property the comment above says a floor must
+#    not have, arriving from the other side of the same regex.
+#
+#    THIS IS A KNOWN, ALREADY-SOLVED DEFECT CLASS IN THIS FILE, WHICH IS WHY IT IS WORTH PINNING.
+#    Rule 5b's own comment records the identical finding against itself — `git commit -m "gh secret
+#    set X"`, a message ABOUT the act, denied as the act — and its fix was one token: `$cmd` -> `$bare`.
+#    `$bare` is computed above this rule, and it collapses single- and double-quoted spans, so the same
+#    substitution here abstains on both payloads above. It costs no false negative that was measured:
+#    a genuine `rm -rf '/some path'` leaves the FLAGS unquoted, so `$bare` still carries `rm -rf ` and
+#    the trailing space still matches.
+#
+#    NOT CHANGED HERE, DELIBERATELY. S1's scope is removals; changing a floor rule's input is a
+#    behaviour change to a surviving irreversible-floor rule and needs its own mutation proof — the
+#    same reasoning that left the `inventory-counts` purpose-declarer gap reported rather than fixed
+#    in this slice. It is pinned beside the rule so the UX pass over rules 8/8b meets it in the file
+#    it will already be editing, instead of rediscovering it by being bitten.
 rm_flag='([[:space:]]+(--[[:alpha:]][[:alpha:]-]*|-[[:alnum:]]+))*'
 rm_rec='[[:space:]]+(--recursive|-[[:alnum:]]*[rR][[:alnum:]]*)'
 rm_force='[[:space:]]+(--force|-[[:alnum:]]*[fF][[:alnum:]]*)'
