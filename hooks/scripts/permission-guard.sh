@@ -539,21 +539,44 @@ fi
 #
 #    So `:*` is a TOKEN boundary, not a raw prefix — which is why `--force-with-lease` had to be listed
 #    separately from `--force` in the first place, and it generalises: a settings entry cannot express
-#    "this flag ANYWHERE in the command". These all walk past every static entry, and the hook is the
-#    only layer that sees them:
+#    "this flag ANYWHERE in the command". ~~These all walk past every static entry~~ — ONE of the two
+#    does, and the example that did not is corrected here rather than deleted, because it is the one a
+#    reader would have checked first:
 #
-#      git push origin main --force        (flag after the refspec — no entry is a prefix of this)
-#      git -C <dir> push --force           (prefix is `git -C`, which is ALLOWLISTED)
+#      git push origin main --force        ~~(flag after the refspec — no entry is a prefix of this)~~
+#                                          WRONG. `Bash(git push origin main:*)` is in the deny list of
+#                                          BOTH settings layers, and a token boundary matches an entry
+#                                          plus ANY trailing tokens — so this spelling IS denied
+#                                          statically. Measured 2026-09-05, same technique as the
+#                                          BOUND/BOUNDX probe above, third arm added for exactly this:
+#                                            deny Bash(mkdir -p <P>/out/main:*)
+#                                              mkdir -p <P>/out/main            -> DENIED  (control)
+#                                              mkdir -p <P>/out/main <P>/EXTRA  -> DENIED  <- the point
+#                                              mkdir -p <P>/out/mainX           -> CREATED (control)
+#      git -C <dir> push --force           (prefix is `git -C`, which is ALLOWLISTED) — this one is
+#                                          real, and it is what the branch is actually for. Measured by
+#                                          EXECUTION: with the plugin disabled, `git -C <repo> push
+#                                          --force origin main` against a local bare remote moved that
+#                                          remote's `main` (d7e5677 -> 42b3173, forced).
 #
 #    Keeping the branch as `ask` is therefore strictly better than removing it: the spellings the
 #    static layer already denies STAY DENIED — measured, a static `deny` beats a hook `ask` — and the
-#    spellings it cannot express become a prompt instead of a silent execution. See the helper comment
+#    one it cannot express becomes a prompt instead of a silent execution. See the helper comment
 #    above for the full probe, including that an `ask` in a dispatched subagent FAILS CLOSED.
+#
+#    ── WHERE 3b's EXECUTABLE BLOCK LIVES, AND WHY IT IS NOT HERE ────────────────────────────────────
+#    **3b's `if` is BELOW rule 7, not here, and that position is LOAD-BEARING.** `ask()` calls
+#    `exit 0`, so a matching `ask` ends the script and every rule after it is unreachable. 3b's pattern
+#    matches `git -C <repo> push --force origin main` — which is ALSO rule 7's trunk push, the one
+#    member of this pair that stays irreparable — so with 3b above rule 7 the trunk classification was
+#    never reached and a force-push to the trunk came out `ask`. Measured at 9aca9d4, before the move:
+#      git -C <repo> push --force origin main   -> ASK    (3b)
+#      same, with 3b neutralised                -> DENY   (rule 7 DOES match; it was never reached)
+#    The same shape as 5g's ordering, recorded the same way: **rule 7's deny must stay ABOVE 3b's ask,
+#    or the trunk's one irreparable member becomes a prompt.** Do not move 3b back up to sit beside 3a
+#    for tidiness — the adjacency is cosmetic and the ordering is the control. Arms pin both sides.
 if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*reset[[:space:]]+--hard'; then
   deny "Blocked: 'git reset --hard' discards uncommitted work, and uncommitted work has no other copy — not in the reflog, not on the remote, not in the index. That is the irreparable half of what this rule used to refuse in one sentence; the force-push half is now rule 3b and asks instead. Use a safe alternative: commit first, 'git stash', or 'git revert' for something already committed."
-fi
-if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*push([[:space:]].*)?([[:space:]](--force|--force-with-lease|-f)([[:space:]]|$))'; then
-  ask "This force-pushes. It is no longer a floor deny (#383): a force-pushed branch survives in your own reflog and in the remote's unreachable objects, so it is loud and costly but REPARABLE, and this guard's floor is irreparability alone. It still asks, because whether it is right is not visible in the command — force-pushing your own throwaway branch and force-pushing a branch someone else has already pulled are the same string, and only you can tell them apart. Before answering: is anyone else's checkout downstream of this ref? If it is your own short-lived branch, say yes. If it is a shared or protected branch, say no and rebase-then-push, or push a new branch instead. Note that the trunk spellings the settings floor denies outright ('git push --force' and friends at the start of the command) are refused by that layer before this prompt is reached."
 fi
 
 # 4. Recursive force delete (escapes git).
@@ -683,6 +706,32 @@ fi
 #    THE SIBLING THAT DID NOT MOVE, said here so the asymmetry is not read as an oversight: `gh secret
 #    set/delete` (5b) KEEPS ITS DENY. GitHub Actions secrets have no version history and no recovery
 #    window — the old value is gone the moment it is overwritten. Same word, different act.
+#
+#    ── DISCLOSED NARROWING: THIS RULE PRE-EMPTS RULE 6 FOR `delete-secret` ─────────────────────────
+#    `ask()` exits, so where this rule matches, rule 6 below never runs. One command is in both:
+#    `aws secretsmanager delete-secret` matches rule 6's `aws <service> (delete|terminate|...)-` family
+#    as well, and rule 6 is a `deny`. So this downgrade did not only move `delete-secret` off THIS
+#    rule's floor — it took it off rule 6's too. Measured 2026-09-05:
+#      aws secretsmanager delete-secret --secret-id x   origin/main -> DENY (rule 6) · head -> ASK (5)
+#
+#    **THAT NARROWING IS ARGUED ON THE MERITS AND IS KEPT; what was missing was saying so where the
+#    reader meets the rule, and that is the whole of this paragraph.** The merits: `delete-secret` is a
+#    SCHEDULED deletion with a 7–30 day recovery window that `restore-secret` cancels, so it restores
+#    and the narrowed criterion — «situacoes irreparaveis» — does not reach it under EITHER rule's
+#    number. Rule 6's verdict on this one member was wrong for the same reason rule 5's was, which is
+#    why the pre-emption produces the right answer rather than merely a different one.
+#
+#    **The contrast with 3b's ordering defect, because the two look identical and are not.** There,
+#    rule 7 was the STRICTER rule and was correct about its member, so pre-empting it was a hole and
+#    the fix was to reorder. Here rule 6 is stricter and WRONG about this member, so pre-empting it is
+#    the intended verdict and reordering would restore a deny that the criterion does not support. The
+#    test is never "which rule is stricter" — it is "which rule is right about the act", and only the
+#    second one licenses an earlier `ask`. **What is NOT covered: the rest of rule 6.** Every other
+#    `aws ... delete-*`/`terminate-*` still denies, and nothing about this paragraph loosens it.
+#
+#    ~~undisclosed~~ — this narrowing shipped at 9aca9d4 with no note anywhere, and was found by the
+#    merge gate rather than by the slice. Recorded as the finding it was, not as a decision that was
+#    always written down.
 if printf '%s' "$cmd" | grep -Eq 'aws[[:space:]]+secretsmanager[[:space:]]+(put-secret-value|create-secret|update-secret|delete-secret|restore-secret)'; then
   ask "This writes a secret through the AWS CLI. It is no longer a floor deny (#383) because Secrets Manager is versioned — the previous value stays behind the AWSPREVIOUS stage, and 'delete-secret' only SCHEDULES a deletion with a recovery window that 'restore-secret' cancels — so this is reparable, and this guard's floor is irreparability alone. It still asks, because the standing rule is unchanged: secrets are provisioned by the pipeline, not by the agent. Answer no unless you specifically intended this write. Note that 'gh secret set/delete' is a DIFFERENT act and stays denied — GitHub Actions secrets have no version history, so there is nothing to roll back to."
 fi
@@ -1309,6 +1358,23 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
     main|master)
       deny "Blocked: HEAD is '$branch', so this push lands on the trunk. Merging to main is the deploy and the human's go/no-go. Branch first, then push the branch." ;;
   esac
+fi
+
+# 3b. Force-push — DOWNGRADED TO `ask` (#383 S3). The argument for the downgrade, the token-boundary
+#     measurement and the reason this is an `ask` rather than a removal are all at rule 3's site above,
+#     where a reader meets the 3a/3b split; only the executable block lives here.
+#
+#     **IT SITS AFTER RULE 7 DELIBERATELY, AND THE ORDER IS THE CONTROL — NOT LAYOUT.** `ask()` exits,
+#     so whichever of the two matches first is the whole verdict. A force-push to the trunk matches
+#     BOTH: 3b (reparable — the old tip survives in the reflog and in the remote's unreachable objects)
+#     and rule 7 (a push to the trunk is the deploy, and that is not reparable by pushing again). Rule 7
+#     is the stricter of the two and must win, so it runs first. Moving this block back above rule 7 —
+#     for adjacency with 3a, which is the tempting reason — silently reopens a trunk force-push as a
+#     prompt. That is not hypothetical: it is what 9aca9d4 shipped, and the suite now pins both sides
+#     (`git -C <path> push --force origin main` -> DENY, `git push origin feature-x --force` -> ASK),
+#     so a revert in either direction reddens something instead of passing quietly.
+if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*push([[:space:]].*)?([[:space:]](--force|--force-with-lease|-f)([[:space:]]|$))'; then
+  ask "This force-pushes. It is no longer a floor deny (#383): a force-pushed branch survives in your own reflog and in the remote's unreachable objects, so it is loud and costly but REPARABLE, and this guard's floor is irreparability alone. It still asks, because whether it is right is not visible in the command — force-pushing your own throwaway branch and force-pushing a branch someone else has already pulled are the same string, and only you can tell them apart. Before answering: is anyone else's checkout downstream of this ref? If it is your own short-lived branch, say yes. If it is a shared or protected branch, say no and rebase-then-push, or push a new branch instead. Note that a force-push landing on the TRUNK never reaches this prompt at all: rule 7 above denies it outright, in every spelling, which is why this prompt can only ever be about a non-trunk ref."
 fi
 
 # 7b. Merging a PR is the deploy — ADR-0004 makes it the quality-assurance's act alone,

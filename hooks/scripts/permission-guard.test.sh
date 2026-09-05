@@ -1480,10 +1480,15 @@ check DENY  "3a: reset --hard behind -C"       "git -C /some/repo reset --hard o
 check ASK   "3b: --force"                      "git push --force"
 check ASK   "3b: --force-with-lease"           "git push --force-with-lease origin feat/x"
 check ASK   "3b: short -f"                     "git push -f origin feat/x"
-# The two spellings NO settings entry can express, because `:*` is a TOKEN boundary (measured #383 S3):
-# the flag after the refspec, and the `git -C` prefix that is itself allowlisted. These are the whole
-# reason 3b is an ASK rather than a removal — removed, they would execute in silence.
-check ASK   "3b: flag AFTER the refspec"       "git push origin main --force"
+# The spelling NO settings entry can express, because `:*` is a TOKEN boundary (measured #383 S3): the
+# `git -C` prefix, which is itself allowlisted. That is the whole reason 3b is an ASK rather than a
+# removal — removed, it would execute in silence.
+#
+# ~~check ASK "3b: flag AFTER the refspec" "git push origin main --force"~~ — MOVED to the ordering
+# block below and FLIPPED to DENY. It was asserting the defect: that spelling lands on the trunk, so
+# rule 7 owns it. (It was also cited as a spelling the static layer cannot express, which is false —
+# `Bash(git push origin main:*)` is in both deny lists and a token boundary matches an entry plus any
+# trailing tokens, measured 2026-09-05.)
 check ASK   "3b: behind an allowlisted -C"     "git -C /some/repo push --force origin feat/x"
 check ALLOW "3: a plain push is neither half"  "git push origin feat/x"
 check ALLOW "3: --soft is not --hard"          "git reset --soft HEAD~1"
@@ -1497,6 +1502,27 @@ check ALLOW "3: --soft is not --hard"          "git reset --soft HEAD~1"
 # These two arms are the record. When someone fixes rule 3 to read `$bare`, both flip to ALLOW.
 check ASK   "3: KNOWN DEFECT, msg about 3b"    "git commit -m 'git push --force notes'"
 check DENY  "3: KNOWN DEFECT, msg about 3a"    "git commit -m 'git reset --hard notes'"
+
+echo "--- 3b x rule 7: the ORDERING is the control — a force-push to the TRUNK is rule 7's, not 3b's ---"
+# WHAT THIS PINS, AND WHY IT NEEDED ARMS ON BOTH SIDES. `ask()` exits, so of two matching rules only
+# the first returns a verdict. `git -C <repo> push --force origin main` matches BOTH 3b (reparable) and
+# rule 7 (the trunk push, which is not), and at 9aca9d4 3b sat ABOVE rule 7 and won — so the floor's
+# one irreparable member came out as a PROMPT and no arm noticed, the intersection being untested.
+#
+# A one-sided battery would not have caught it and will not catch its return: reverting the order is a
+# LOOSENING, and a loosening can only redden an arm that already exists on the strict side. So the
+# strict side (trunk -> DENY) and the loose side (non-trunk -> ASK) are both asserted here. Move 3b
+# back above rule 7 and the DENY arms redden; widen rule 7 over every force-push and the ASK arms do.
+check DENY  "7 wins: -C, trunk, --force"       "git -C /some/repo push --force origin main"
+check DENY  "7 wins: flag after the refspec"   "git push origin main --force"
+check DENY  "7 wins: --force before the ref"   "git push --force origin main"
+check DENY  "7 wins: --force-with-lease trunk" "git -C /some/repo push --force-with-lease origin main"
+check DENY  "7 wins: short -f, trunk"          "git push -f origin master"
+# The loose side. These must stay ASK — if any of them denies, rule 7 has been widened over the whole
+# force-push class and the #383 S3 downgrade has been silently reverted.
+check ASK   "3b keeps: non-trunk ref"          "git push origin feature-x --force"
+check ASK   "3b keeps: non-trunk behind -C"    "git -C /some/repo push --force origin feature-x"
+check ASK   "3b keeps: 'maintenance' is not 'main'" "git push origin maintenance --force"
 
 echo "--- rule 5: AWS secret writes ASK; the gh sibling still DENIES ---"
 # The asymmetry is the assertion. AWS versions its secrets (AWSPREVIOUS, a 30-day recovery window,
