@@ -1084,11 +1084,13 @@ else
       A path prefix is a STRING prefix, not a directory scope: '<allowed-prefix>/../../../tmp/x.sh' carries it.
       permission-guard.sh does not look inside a script file, so that suffix is arbitrary code with no decision from any layer.
       Measured on #160 against a live floor: 'bash .scratch/.\"\"./.\"\"./<other-repo>/VERSION' runs with NO decision from any layer.
-      That spelling is deliberate. The obvious one ('.scratch/../../<other-repo>/VERSION') was the original measurement and
-      permission-guard rule 9 now DENIES it — so quoting it here would offer, as the evidence, the one string this repo closed.
-      The empty quoted span has no '..' adjacency at all, which is why no pattern reaches it and why the property survives.
-      Use exact-match entries (one per script). DO NOT reach for a hook rule: rule 9 was written to bound this directory and
-      CANNOT — a lexical instrument cannot decide a filesystem property. If you add an exception here, tie it to a RECORD that
+      That spelling was deliberate WHEN THE PLAIN ONE WAS DENIED, and since #383 both run: permission-guard's rule 9 — the
+      speed bump that denied '<prefix>/../../x' — was REMOVED 2026-09-04, so the obvious spelling is no longer closed either.
+      The empty quoted span remains the sharper witness for a different reason: it has no '..' adjacency at all, which is why
+      no pattern could ever have reached it and why the property survives independently of whether any rule denies anything.
+      Use exact-match entries (one per script). DO NOT reach for a hook rule: rule 9 was written to bound this directory,
+      COULD NOT, and was deleted for that reason (ADR-0004, 'A path in an `allow` entry is a string prefix, not a directory
+      scope') — a lexical instrument cannot decide a filesystem property. If you add an exception here, tie it to a RECORD that
       states the accepted grant AND tie it to a mechanism you can execute. The one exception this file
       once carried was tied to a record by filename, printed a green describing a grant that had already
       left the floor, and was deleted at #283 slice 1 rather than repointed."

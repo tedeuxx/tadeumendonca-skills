@@ -849,6 +849,45 @@ entries can reach an interpreter*, a property of an open grammar rather than a l
 *"More entries than anyone has enumerated"* is a claim about **enumeration effort** with no falsifier;
 the existential form above has exactly one, and it is cheap.
 
+**The three escape spellings, moved here 2026-09-04 (#383) when the speed bump was removed.** They lived
+only in `permission-guard.sh`'s rule 9 and in that rule's own suite, both of which are now deleted — so
+without this paragraph the sentence above (*"no widening of a character class finds them"*) would have
+kept its conclusion and lost its evidence. Each was measured reaching a file in **another repository**
+with the rule live:
+
+```
+bash .scratch/\.\./\.\./other/VERSION      ALLOW  — backslash escape; `\.` is `.` to the shell, and the
+                                                   escape character is not in the preceding-character class
+bash .scratch/.""./.""./other/VERSION      ALLOW  — empty quoted span; there is NO `..` ADJACENCY anywhere
+                                                   in the string, so nothing exists for a pattern to find
+bash .scratch/link.sh                      ALLOW  — symlink out; the guard never resolves paths
+bash .scratch/\.\./../other/VERSION        DENY   — the asymmetry that fools a single probe: escaping ONE
+                                                   pair still denies on the next
+```
+
+**The middle one is the decisive member and the reason this is an instrument problem rather than a
+pattern problem:** a lexical check is being asked to assert a **filesystem** property, and between the
+command string and the file that opens sit quote removal, escape processing and symlink resolution. A
+guard that does none of the three — deliberately, since doing them means parsing shell — can *express*
+the property and can never *evaluate* it. **Expressing it reads exactly like enforcing it**, which is
+the failure this whole section exists to name.
+
+**And a guard-authoring lesson that was recorded nowhere else, kept because the shape recurs.** Rule 9
+shipped as **two independent greps over the whole string with no positional relation** — *a shell name
+appears somewhere* AND *a `..` appears somewhere* — and that denied ordinary work:
+
+```
+grep -rn bash  ../other/hooks    DENY   <- `bash` is a SEARCH TERM. No shell is invoked.
+grep -rn bashx ../other/hooks    ALLOW  <- one character apart, which is how the cause was proved
+```
+
+Twenty-two suite cases covered that rule and **not one put the shell name in argument position**,
+because the table was written by whoever wrote the pattern. **A hard deny on ordinary work is worse
+than the hole it failed to close.** The fix was positional — find the interpreter in *command* position
+(first word, or after a known wrapper) and inspect **only the first non-flag token after it**, which is
+the script path and nothing else. Any future rule keyed on a token's *presence* rather than its
+*position* inherits this defect.
+
 ### The third layer: ask which SYSTEM authorises the act (2026-08-08)
 
 Raised by `agents-lead` on `-io`#402, where `terraform apply` was reachable from a `workflow_dispatch`
