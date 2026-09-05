@@ -4639,17 +4639,70 @@ deny  Bash(mkdir <P>/BOUND:*)   vs   mkdir <P>/BOUND    -> DENIED   (control)
                                      mkdir <P>/OTHER    -> CREATED  (control)
 ```
 
-So no settings entry can express *"this flag anywhere in the command"*, and both of these walk past
-every entry in both layers — the second because its prefix, `git -C`, is itself allowlisted:
+So no settings entry can express *"this flag anywhere in the command"*, and ~~both of these walk past
+every entry in both layers~~ **one of these does — the first was wrong, and it is corrected rather than
+deleted because it is the example a reader would have checked first:**
 
 ```
-git push origin main --force
-git -C <dir> push --force
+git push origin main --force     <- ~~walks past~~ WRONG: `Bash(git push origin main:*)` is in the
+                                    deny list of BOTH layers, and a token boundary matches an entry
+                                    plus ANY trailing tokens. This spelling IS denied statically.
+git -C <dir> push --force        <- real: its prefix, `git -C`, is itself allowlisted.
 ```
 
-Removing rule 3b would therefore have denied the spellings already denied and **silently executed the
-two the hook was written for**. As an `ask`, the static denies still fire (measured: a static `deny`
-beats a hook `ask`) and the rest become a prompt.
+The correction is measured, not re-read — the same probe as above with a third arm added for exactly
+the *entry plus a trailing token* case, 2026-09-05, verdict off disk:
+
+```
+deny  Bash(mkdir -p <P>/out/main:*)  vs  mkdir -p <P>/out/main            -> DENIED   (control)
+                                        mkdir -p <P>/out/main <P>/EXTRA  -> DENIED   <- the point
+                                        mkdir -p <P>/out/mainX           -> CREATED  (control)
+```
+
+**The argument survives on the second example, which is real and was measured by execution** — plugin
+disabled, a throwaway repo with a local bare remote: `git -C <repo> push --force origin main` ran and
+moved the remote's `main` (`d7e5677 -> 42b3173`, forced). Removing rule 3b would therefore have denied
+the spellings already denied and **silently executed the one the hook was written for**. As an `ask`,
+the static denies still fire (measured: a static `deny` beats a hook `ask`) and the rest become a
+prompt.
+
+### The ordering of the two rules is itself a control, and S3 shipped it wrong
+
+**`ask()` exits, so where two rules match, only the first returns a verdict — which makes RULE ORDER a
+floor decision and not layout.** S3 placed rule 3b (force-push, `ask`) above rule 7 (trunk push,
+`deny`). Both match `git -C <repo> push --force origin main`, so the trunk classification was never
+reached and **the one member of that intersection this record keeps as irreparable came out as a
+prompt.** Measured at `9aca9d4`:
+
+| guard | `git -C <repo> push --force origin main` |
+|---|---|
+| `origin/main` (`8c49382`) | **deny** |
+| `9aca9d4` (S3 as shipped) | **ask** |
+| `9aca9d4`, 3b neutralised | **deny** — rule 7 *does* match; it was simply never reached |
+
+**It was an error, not a decision, and the record is the evidence:** the paragraph above says in this
+same document that a trunk push *"still answer[s] no"*, and 3b's own `ask` text told the owner the
+trunk spellings were handled by the settings layer — at the moment that was false, and while he was
+deciding whether to permit exactly that act. A preventive control whose errors are invisible to whoever
+it protects is worse than no control; here the error was not merely invisible, it was **contradicted in
+writing at the decision point.**
+
+**The rule this generalises to, which is the reusable half:** where two rules match one act and their
+verdicts differ, the stricter one must run first *if it is right about that act*. The test is never
+which rule is stricter — it is **which rule is right about the act**, and only that licenses an earlier
+`ask`. The fix moves 3b's executable block below rule 7's closing `fi`, records the ordering as
+load-bearing at both sites, and pins it with arms on **both** sides of the boundary — trunk → `DENY`,
+non-trunk → `ASK` — because reverting the order is a *loosening*, and a loosening can only redden an arm
+that already exists on the strict side. Mutation-checked in both directions: re-raising 3b above rule 7
+reddens 5 arms; widening rule 7 over the whole force-push class reddens 9.
+
+**A second pre-emption of the same shape is DISCLOSED and KEPT, and the contrast is the point.** Rule 5's
+`ask` also pre-empts rule 6's `deny` for `aws secretsmanager delete-secret` (measured: `origin/main` →
+deny, head → ask). That one is *argued on the merits in the same slice* — a scheduled deletion with a
+7–30 day window that `restore-secret` cancels restores, so rule 6's verdict on this one member is wrong
+under the narrowed criterion and the pre-emption produces the right answer. What was missing was saying
+so where the rule's reader meets it, which is now written into rule 5's own comment. **Nothing else in
+rule 6 is loosened.**
 
 ### The behaviour this record said was unmeasured, now measured
 

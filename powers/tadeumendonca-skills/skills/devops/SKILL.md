@@ -372,10 +372,22 @@ genuinely do not restore — `git reset --hard` (uncommitted work has no other c
 so every OIDC trust pinned to it breaks permanently). **Note the two secret rows are split on the
 provider, not on the word** — that pair is the clearest illustration of the test.
 
-**A caveat specific to these rows, from the token-boundary section below:** the static layer can only
-express the spellings where the flag follows the subcommand immediately, so `git push --force` is
-denied by settings while `git push origin main --force` and `git -C <dir> push --force` are not. The
-hook is what covers those, as an `ask`. A project copying this table gets the first and not the second.
+**A caveat specific to these rows, from the token-boundary section below:** a settings entry is a
+**token-bounded prefix**, so it matches an entry plus any trailing tokens but cannot express *"this flag
+anywhere in the command"*. `git push --force` and `git push origin main --force` are both denied by
+settings — the second because `git push origin main` is a deny entry and `--force` is just a trailing
+token. What no entry reaches is `git -C <dir> push --force`, whose prefix (`git -C`) is itself
+allowlisted. The hook is what covers that one, as an `ask`. **A project copying this table gets the
+static spellings and not that one.**
+
+~~`git push origin main --force` … [is] not [denied by settings]~~ — **struck: measured false
+2026-09-05.** Kept visible because it was the example a reader would have checked first, and it argued
+for a hole that is not there.
+
+**And a force-push landing on the TRUNK is not in the Ask row at all — it is a Deny.** Two rules match
+it (force-push, reparable; trunk push, not), and the guard runs the trunk rule first deliberately, so
+the stricter verdict wins. Read the Ask row's *force-push* as meaning **a force-push to a non-trunk
+ref**; the trunk case is the `direct git push to main` row above it.
 
 **`gh pr merge` is deliberately NOT in the Ask row (#62).** It used to sit there as *"this is the deploy,
 so it is the go/no-go"* — true about the merge, wrong about the mechanism, and it contradicted
