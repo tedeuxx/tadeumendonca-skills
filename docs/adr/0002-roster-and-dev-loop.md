@@ -1,6 +1,42 @@
 # 0002. Roster and dev-loop — who exists in the loop, what each actor is for, and how work moves
 through them
 
+> **BANNER — 2026-09-04 (#383): `permission-guard.sh` RULES 10 AND 11 ARE DELETED. Every present-tense
+> claim anywhere in this record that a milestone act reaches the owner as a prompt is DEAD — whether or
+> not it carries a strike.** Read this before any amendment below, including the ones that carry none.
+>
+> **What actually happens now — measured against the head guard, not read off a rule list:**
+>
+> - **Admission** (`gh issue create|edit --milestone`, which was rule 10's act). `Bash(gh issue edit:*)`
+>   is an `allow` entry in **both** settings layers, and allow entries are **prefixes**, so the flag
+>   rides in behind the subcommand. The hook that used to answer first is gone: the payload draws **no
+>   decision from any layer**, for a dispatched persona as well as for the orchestrator. **It EXECUTES
+>   SILENTLY. It does NOT degrade to a prompt.** That is the fact every stale sentence in this file gets
+>   wrong.
+> - **Creation** (`bash scripts/milestone-create.sh`, which was rule 11's act). Also draws no decision
+>   from the hook. It still prompts — and **only** because `scripts/` matches no `allow` entry in either
+>   layer. **That is an absence, not a control:** one unrelated allow entry added later removes it
+>   silently, and nothing anywhere would say so.
+>
+> **The criterion that deleted them, in the owner's words:** «o risco de permitir essa operacao passar é
+> one way door decision», narrowed to «situacoes irreparaveis». **A milestone assignment is repaired by
+> removing it**, so it was never that act — and a floor standing over a repairable act is a floor that
+> teaches whoever meets it to route around floors.
+>
+> **What this banner does NOT cover, so it is not read wider than it is.** A rationale inside a
+> *Considered and rejected* list remains a true statement about the world at the time it was written and
+> is left alone; a strike, tombstone or past-tense paragraph describing either deleted rule is correct by
+> construction. This covers **present-indicative prose** only.
+>
+> **Why a banner and not a fifth sweep.** The class has **no mechanical falsifier**:
+> `hooks/scripts/inventory-counts.test.sh` asserts string agreement between surfaces and cannot tell a
+> live claim about a deleted rule from a tombstone describing the same rule. Three sweeps in a row each
+> found exactly what they knew to look for and missed the rest — the twenty-ninth amendment was left
+> **half-repaired inside itself**, carrying 2026-09-04 strikes at its `tools: []` and rule-11 paragraphs
+> while its *Placement / Creation* pair and its *"stays his, prompt by prompt"* sentence stood unmarked.
+> A fifth pass would find a sixth site. **Its known weakness, accepted by the owner rather than
+> overlooked: a reader who lands mid-file on one amendment may never reach this.**
+
 **This is the `roster-and-dev-loop` capability document.** It was titled *Agentic dev-loop architecture
 — per-task subagents, ADRs as the durable brain* until 2026-08-20, when the owner's decision that an
 anchor is named for its capability ([#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283))
@@ -3850,11 +3886,18 @@ a iteracao corrente»*); that was read as a one-off and was the rule appearing f
 
 1. **No Issue is filed with a milestone, for any type.** Composition into an iteration is the owner's act
    at planning. Carrier: `commands/new-issue.md`'s *Open it* step.
-2. **The rule is enforced, not merely written** — `permission-guard.sh` rule 10, denied to every
+2. ~~**The rule is enforced, not merely written** — `permission-guard.sh` rule 10, denied to every
    dispatched persona and asked of the orchestrator. **This is the first rule in this family to reach
    prevention**, and the reason is in ADR-0004's amendment: the wall that forced #337, #339 and #363 into
    detection is a property of guards that must *know*, not of guards, and one that may **ask** does not
-   have to.
+   have to.~~ **STRUCK 2026-09-04 (#383): rule 10 is DELETED, and the count went with it.** *"The first
+   rule in this family to reach prevention"* is arithmetic over a set that is now empty — **this family
+   is back to zero prevention**, and #337, #339 and #363 are again the whole of it, all detection. It is
+   also no longer true that the rule is *enforced rather than written*: **the act is allowlisted**
+   (`Bash(gh issue edit:*)`, in both settings layers, and allow entries are prefixes) **and no layer
+   answers it, so an admission now executes silently rather than degrading to a prompt** — see the banner
+   at the top of this record. The ADR-0004 argument this decision cited — a guard that may *ask* need not
+   *know* — is untouched and still true; what is false is that this family holds a live instance of it.
 3. **The scope is the ADMISSION, never the creation.** `gh issue create` without a milestone is untouched
    and rules 5c/5d are unchanged.
 
@@ -4078,10 +4121,15 @@ route) rather than its scope. **A lapsed reason is not a widened scope**, so the
 asked instead of inferring the decision from what had become convenient. The ruling is the widening,
 made explicitly, and it lives on #378 rather than only here.
 
-**What this does NOT loosen, because the two acts are different objects and the rite keeps both
-guarded.** *Placement* is an **item** acquiring a milestone — rule 10, one prompt per item. *Creation*
-is the **iteration object** — rule 11, one prompt. Both remain the owner's, answered by him; the
-widening moves what the rite is **for**, not who decides.
+**What this does NOT loosen, because the two acts are different objects and ~~the rite keeps both
+guarded~~ *(struck 2026-09-04, #383 — it keeps neither guarded; it merely does not act alone)*.**
+*Placement* is an **item** acquiring a milestone — ~~rule 10, one prompt per item~~ **now a
+SILENT allowlisted edit, N times, with nothing asking anyone (#383)**. *Creation* is the **iteration
+object** — ~~rule 11, one prompt~~ **still a prompt, but only because `scripts/` sits in no allow list;
+that is an absence rather than a control, and one unrelated allow entry removes it with nothing to say
+so**. Both remain the owner's **by rule**; the rite performs neither without him **by discipline**, which
+is a weaker sentence than the one this paragraph used to make. The widening moves what the rite is
+**for**, not who decides.
 
 **Why this is an amendment and not a new record.** It decides *what happens before an iteration
 starts*, which is the same object as the twenty-sixth amendment's *what happens when one ends* and the
@@ -4091,8 +4139,10 @@ the capability is the dev loop and this document is it.
 ### What was actually missing, and it was not a decision
 
 **Nothing here moves a decision away from the owner, and that is the whole design.** Composition was
-already his (twenty-seventh amendment, held by `permission-guard.sh` rule 10), and it stays his,
-prompt by prompt. What did not exist was the thing that **puts the decision in front of him**: the pool
+already his (twenty-seventh amendment, ~~held by `permission-guard.sh` rule 10~~ — **struck 2026-09-04,
+#383: rule 10 is deleted and nothing holds it; the admission is allowlisted in both settings layers and
+executes silently**), and it stays his ~~prompt by prompt~~ **by discipline, with no prompt anywhere in
+it**. What did not exist was the thing that **puts the decision in front of him**: the pool
 assembled, the ordering rules applied, one item at a time.
 
 Three instances, measured rather than argued:
