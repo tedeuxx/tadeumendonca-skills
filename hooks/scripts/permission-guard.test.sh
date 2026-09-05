@@ -714,7 +714,12 @@ check_agent DENY  "tadeumendonca-skills:developer" "allow does not unreach rule 
 #   which runs BEFORE 5d, so it denied whether or not the fall-through worked. Found by mutating
 #   the allow back to `exit 0`: cases 7 and 7b reddened and that one did not. Replaced with rule
 #   8, which is genuinely downstream of 5d, so the assertion witnesses what it names.
-check_agent DENY  "tadeumendonca-skills:developer" "allow does not unreach rule 8 (composition)" "gh issue create --title t --body b ; echo done"
+#
+#   RE-POINTED 2026-09-05 (#383 S2). It used to compose with `;`, which was rule 8's chain branch;
+#   that branch is gone and the payload now falls through, so the case would have gone green for the
+#   wrong reason. It is re-pointed at rule 8b (redirection), which is the LAST rule in the file and
+#   therefore the strictest fall-through witness available — stricter than the chain branch was.
+check_agent DENY  "tadeumendonca-skills:developer" "allow does not unreach rule 8b (redirect)" "gh issue create --title t --body b > out.txt"
 
 # THE SAME THREE FOR THE MAIN AGENT, added 2026-08-03 with the change that made them necessary. The
 # main agent now takes the same fall-through path `developer` does, so it inherits the same failure
@@ -723,7 +728,7 @@ check_agent DENY  "tadeumendonca-skills:developer" "allow does not unreach rule 
 # not three, is the whole reason this change is safe to make.
 check_agent DENY  "" "main agent: allow does not unreach rule 7 (trunk push)"  "gh issue create --title t --body b && git push origin main"
 check_agent DENY  "" "main agent: allow does not unreach rule 7b (merge)"      "gh issue create --title t --body b && gh pr merge 1 --merge"
-check_agent DENY  "" "main agent: allow does not unreach rule 8 (composition)" "gh issue create --title t --body b ; echo done"
+check_agent DENY  "" "main agent: allow does not unreach rule 8b (redirect)" "gh issue create --title t --body b > out.txt"
 
 # A message ABOUT the act is not the act — matched on `$bare`, after quoted spans collapse.
 check_agent ALLOW "tadeumendonca-skills:developer" "a commit message mentioning the act"        "git commit -m 'gh issue create notes'"
@@ -890,7 +895,7 @@ check ALLOW "a grep for the pattern"     "grep -rn 'gh api -f' docs"
 # lesson is that someone eventually adds an early return to a rule that did not have one. Rules 7 and 8
 # run strictly after 5f, so a read reaching them is what proves the fall-through is intact.
 check DENY  "read does not unreach rule 7" "gh api repos/o/r/releases/latest && git push origin main"
-check DENY  "read does not unreach rule 8" "gh api repos/o/r/releases/latest ; echo done"
+check DENY  "read does not unreach rule 8b" "gh api repos/o/r/releases/latest > out.txt"
 
 echo "--- rule 5e: product-lead does not write to a public surface ---"
 # The roster merge folded `marketing-lead` (tools: Read, Grep, Glob — no Bash, deliberately) into
@@ -1034,17 +1039,36 @@ echo "--- rule 5e: allowing must remain FALLING THROUGH, not exiting ---"
 # rule itself covers.
 check_agent DENY "" "allow does not unreach rule 7 (trunk push)"  "gh pr comment 1 --body b && git push origin main"
 check_agent DENY "" "allow does not unreach rule 7b (merge)"      "gh pr comment 1 --body b && gh pr merge 1 --merge"
-check_agent DENY "" "allow does not unreach rule 8 (composition)" "gh pr comment 1 --body b ; echo done"
+check_agent DENY "" "allow does not unreach rule 8b (redirect)" "gh pr comment 1 --body b > out.txt"
 check_agent DENY "tadeumendonca-skills:quality-assurance" "reviewer: still reaches rule 7"  "gh pr comment 1 --body b && git push origin main"
-check_agent DENY "tadeumendonca-skills:agents-lead"  "harness lens: still reaches rule 8" "gh issue comment 1 --body b ; echo done"
+check_agent DENY "tadeumendonca-skills:agents-lead"  "harness lens: still reaches rule 8b" "gh issue comment 1 --body b > out.txt"
 
-echo "--- rule 8: composition the permission matcher cannot decompose ---"
-check DENY  "cd compound"                   "cd /tmp && ls"
-check DENY  "&& chain"                      "git status && git diff"
-check DENY  "; chain"                       "ls; pwd"
+echo "--- rule 8: the two branches that were MEASURED to stop for a human ---"
+# #383 S2. The chain branch is gone (see the block below); these two survive because a nested session
+# carrying this guard MINUS rules 8/8b reported, verbatim, "What required approval: Contains
+# command_substitution" for the first pair, and named the allowlisted command itself for the third —
+# an env-var prefix defeats the allow entry, which is a different mechanism from decomposition and
+# the reason the rule's premise was rewritten rather than merely re-cited.
 check DENY  "command substitution"          'echo $(date)'
 check DENY  "backticks"                     'echo `date`'
 check DENY  "env-var prefix"                "E2E_ENV=local npx playwright test"
+
+echo "--- rule 8's chain branch is REMOVED (#383 S2) — a chain now falls through ---"
+# Measured with the rule absent, verdicts confirmed on disk rather than from a model's report:
+# two allowlisted commands joined by '&&' or ';' EXECUTED with no prompt, and a chain carrying a
+# denied or unlisted element was denied by the permission system, which named the offending element.
+# So the deny converted work into a retry rather than a prompt into an instruction.
+check ALLOW "cd compound"                   "cd /tmp && ls"
+check ALLOW "&& chain"                      "git status && git diff"
+check ALLOW "; chain"                       "ls; pwd"
+check ALLOW "|| chain"                      "ls /nope || pwd"
+# AND THE HALF THAT MUST NOT HAVE CHANGED: every rule in the guard matches a SUBSTRING of $bare, so
+# hiding a denied act behind a harmless first element does not walk past it. These are the regression
+# that makes the removal safe; each was measured DENY against the edited guard before being written.
+check DENY  "chain does not hide the merge gate"  "echo hi && gh pr merge 1 --merge"
+check DENY  "chain does not hide rm -rf"          "echo hi && rm -rf /tmp/zz"
+check DENY  "chain does not hide the trunk push"  "echo hi ; git push origin main"
+check DENY  "chain does not hide terraform apply" "echo hi && terraform apply"
 
 echo "--- rule 8: single commands MUST survive ---"
 check ALLOW "a pipe is fine"                "grep -rn foo src | head -20"
@@ -1067,14 +1091,21 @@ check ALLOW "operator inside a quoted arg"  "git commit -m 'fix: a && b handling
 # Each one below was re-checked by reverting the collapse and watching it go red.
 check ALLOW "substitution between escaped quotes" 'gh pr comment 1 --body "said \"$(date)\" today"'
 check ALLOW "backticks between escaped quotes"    'gh pr comment 1 --body "said \"`date`\" today"'
-check ALLOW "operator between escaped quotes"     'gh pr comment 1 --body "both \"a && b\" hold"'
 check ALLOW "escaped quote inside singles"        "git commit -m 'it\\'s \$(fine)'"
+# ~~check ALLOW "operator between escaped quotes" 'gh pr comment 1 --body "both \"a && b\" hold"'~~
+# RETIRED 2026-09-05 (#383 S2), not re-pointed. Its subject was the chain branch, and with that branch
+# gone the payload is ALLOW under every possible state of the quote collapse — an assertion that
+# cannot fail, which this workspace treats as a defect rather than as coverage. The two cases above it
+# carry the same #66 property with a witness that is still live.
 
 # The three cases the issue feared this fix would break. A false NEGATIVE here is far worse
 # than the false positive above, so they are asserted rather than reasoned about.
-check DENY  "operator OUTSIDE quotes still caught"    'git commit -m "msg" && npx tsc'
-check DENY  "unbalanced quote fails CLOSED"           'echo "unterminated && npx tsc'
-check DENY  "escaped-quote span then a REAL operator" 'gh pr comment 1 --body "said \"hi\"" && npx tsc'
+# RE-POINTED 2026-09-05 (#383 S2) from '&& npx tsc' to '$(date)': the property under test is that a
+# REAL operator outside the quoted spans still reaches rule 8, and the operator that still has a
+# branch is command substitution. Each was re-verified by reverting the collapse and watching it go red.
+check DENY  "operator OUTSIDE quotes still caught"    'git commit -m "msg" $(date)'
+check DENY  "unbalanced quote fails CLOSED"           'echo "unterminated $(date)'
+check DENY  "escaped-quote span then a REAL operator" 'gh pr comment 1 --body "said \"hi\"" $(date)'
 
 echo "--- rule 8b: shell redirection ('>'/'>>') to create or overwrite a file ---"
 # #244 — measured 2026-08-13 that a redirect to a NEW file path prompts regardless of destination or
@@ -1095,11 +1126,43 @@ check ALLOW "stdout merged into stderr (1>&2)"     "echo hi 1>&2"
 check ALLOW "bare fd dup (>&2)"                    "echo hi >&2"
 check ALLOW "an ordinary read-only command"        "gh pr view 243 --json state"
 check ALLOW "no redirect at all"                   "git status"
-# A known, accepted false positive — pinned rather than hidden, the same shape as the escape classes
-# rule 9 used to pin in this suite before #383 removed it (they live in ADR-0004 now). This
-# floor does not parse shell, so bash's string-comparison operator inside '[[ ]]' is indistinguishable
-# from a redirect by construction.
-check DENY  "false positive: [[ ]] string compare, documented" '[[ "a" > "b" ]]'
+# ~~A known, accepted false positive … check DENY "false positive: [[ ]] string compare, documented"~~
+# FIXED 2026-09-05 (#383 S2) rather than documented. Measured with this rule absent: the runtime ran
+# `[[ zzz > aaa ]]` with no prompt at all, so the deny was pure over-block with no control behind it.
+# A '[[ … ]]' span is now stripped before the redirect test — an ABSTENTION, not a claim: this file
+# still does not parse shell, and it hands the case to the layer that does.
+check ALLOW "[[ ]] string compare is not a redirect (#383)" '[[ "a" > "b" ]]'
+# The other measured false positive, and the sharper one: the runtime's own check is DESTINATION-aware.
+# It ran `2>/dev/null` and `>/dev/null` with no prompt and required approval for `2>somefile` — so a
+# '/dev/null' target creates nothing and this rule must not fire on it. All four verdicts below were
+# taken from the rule-8-less session before the exemption was written.
+check ALLOW "stderr to /dev/null creates no file"  "grep -r foo /Users/x 2>/dev/null"
+check ALLOW "stdout to /dev/null creates no file"  "npm test >/dev/null"
+check ALLOW "both streams to /dev/null"            "npm test &>/dev/null"
+check DENY  "stderr to a REAL file still creates one" "npm test 2> err.txt"
+# Both strips were too loose on the round they landed. Re-measured against the runtime on build
+# 2.1.261 with this hook absent: `date > /dev/nullx` and `echo x [[ a > P ]] b` BOTH required approval
+# (the second is a real redirect in bash — confirmed by execution, the file appears), so neither
+# looseness was a route to an act. It cost the conversion this rule exists for, and that is what these
+# four arms hold. The last two are the OVER-block guard: the runtime ran both with no prompt, so a
+# '[[ … ]]' in COMMAND position must stay stripped while one in ARGUMENT position must not.
+check DENY  "a /dev/null PREFIX is not /dev/null (#383)"    "date > /dev/nullx"
+check DENY  "[[ ]] in argument position IS a redirect (#383)" "echo hello [[ a > /tmp/evil ]] b"
+check ALLOW "[[ ]] after a test keyword still strips (#383)"  "if [[ zzz > aaa ]]; then echo yes; fi"
+check ALLOW "[[ ]] after a separator still strips (#383)"     "echo x; [[ a > b ]]"
+# THE RIGHT-ANCHOR OVER-CORRECTED ON THE ROUND IT LANDED, AND THESE TWO ARMS ARE WHAT WITNESSES THE
+# REPAIR (#383 S2, round 3). The first form required whitespace or end-of-string after the target, so a
+# '/dev/null' followed by ANY OTHER SEPARATOR fell through to the deny — six shapes that were ALLOW one
+# commit earlier, none of which creates a file, on the commonest redirect idiom in this repo's own
+# scripts. The trailing class now carries the shell separators as well.
+#   MEASURED against the runtime on build 2.1.261, this hook absent, nested `claude --plugin-dir` rig:
+#     date >/dev/null;touch m1   -> EXECUTED, no prompt (marker on disk) — the hook must not fire
+#     (touch m2 >/dev/null)      -> runtime REQUIRED APPROVAL, naming the subshell + redirect
+#   So ';' is restored to parity, while '(' … ')' is a case where the widened rule fires on LESS than
+#   the runtime stops for. That is the SAFE side of ADR-0004's subset rule and it is stated rather than
+#   assumed: the runtime is the backstop, and what is lost there is the instruction, never the block.
+check ALLOW "/dev/null before a separator is still /dev/null (#383)" "date >/dev/null;echo hi"
+check ALLOW "/dev/null inside a subshell is still /dev/null (#383)"  "(date >/dev/null)"
 
 echo "--- rule 5b: gh secret writes survive the -R convention ---"
 check DENY  "secret set, plain"             "gh secret set MY_TOKEN"
