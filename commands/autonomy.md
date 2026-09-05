@@ -309,16 +309,19 @@ Follow `/agents-configuration`. Nothing here relaxes it:
 ## What autonomy does NOT extend to
 
 Unchanged, and this command grants nothing: pushing or merging to `main` outside the reviewer's
-verdict, `terraform apply`/`destroy`, direct cloud mutation, `rm -rf`, `git reset --hard`, GitHub
-secret writes, repository deletion, `--dangerously-skip-permissions`. Autonomy is about **not asking
-on in-pattern work**, never about widening the floor.
+verdict, `terraform apply`/`destroy`, direct cloud mutation, `rm -rf`, the hard reset, force-push,
+secret writes, repository deletion/archive/rename, `--dangerously-skip-permissions`. Autonomy is
+about **not asking on in-pattern work**, never about widening the floor.
 
-**Three acts moved from *denied* to *asked* at #383 S3, and autonomy does not cover them either** —
-force-push, AWS secret writes, `gh repo archive`/`rename`. They are reparable, so they are no longer
-on the floor; they still stop for the owner, because whether each is right is not visible in the
-command. **Autonomy mode does not pre-answer that prompt.** If one fires mid-drain, it is an owner
-decision the slice did not expect — handle it the way this command already prescribes for that case:
-write the question on the Issue, cut the slice to what can still finish, and move on.
+~~**Three acts moved from *denied* to *asked* at #383 S3, and autonomy does not cover them either.**
+… **Autonomy mode does not pre-answer that prompt.**~~ **STRUCK 2026-09-05 (#383 S3-revert), and the
+struck sentence is the one that was measured false.** The three — force-push, AWS secret writes,
+`gh repo archive`/`rename` — are **denied again**, because **autonomy mode DOES answer that prompt**.
+Measured in the owner's own interactive session: the guard returned `ask` for the exact force-push
+command and the act executed with **no prompt at all**. The earlier claim that an unanswerable `ask`
+fails closed was measured in a headless session and in a dispatched subagent, and holds there; it does
+not describe the mode this command is about. **The general rule this command inherits: a mitigation
+that reads *"it becomes a prompt"* does not fire under autonomy.**
 
 ## Between dispatch and verdict
 
@@ -662,8 +665,9 @@ summary.
 - It does not revoke anything the permission floor already denies. Mode `on` never granted
   `terraform apply`/`destroy`, direct cloud mutation, `rm -rf`, `git reset --hard`, GitHub secret
   writes, or merging outside the gatekeeper's verdict — this mode has nothing to take back on that
-  axis. Nor did it ever grant the acts that now **ask** rather than deny (force-push, AWS secret
-  writes, `gh repo archive`/`rename`, #383 S3): an `ask` is not autonomy, and neither mode answers it.
+  axis. ~~Nor did it ever grant the acts that now **ask** rather than deny … neither mode answers
+  it.~~ **Struck (#383 S3-revert): there are no such acts any more — all three are denies again,
+  precisely BECAUSE autonomy mode answers an `ask`.** See *What autonomy does NOT extend to* above.
 - **It is not a mechanism.** Nothing in this repo tracks "the session is in autonomy mode" as state —
   no flag, no file, no hook reads it. `on` and `off` are both **instructions to the
   agent reading them**, not a state machine. A session transcript that never invokes either mode

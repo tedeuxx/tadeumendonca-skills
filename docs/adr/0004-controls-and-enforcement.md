@@ -2818,11 +2818,15 @@ A PR that closes nothing never reaches the comparison.
   a keyword living only in a commit message is invisible to this rule — **the one surface that is
   hardest to edit afterwards**, since amending a pushed commit needs a force-push. ~~the one surface
   that cannot be edited afterwards … a force-push the floor denies~~ — **struck 2026-09-05 (#383 S3):
-  the floor no longer denies it, it asks.** A force-push is reparable (reflog, and the remote's
-  unreachable objects), so it came off the irreparable floor. **The inference this bullet drew from
-  the deny is what changes, and it is worth stating rather than quietly softening:** "cannot be
-  edited" was resting on a mechanism, and the mechanism is now a prompt the owner can answer yes to.
-  Read this as *nobody edits it in practice*, which is a claim about habit, not about a control.
+  the floor no longer denies it, it asks.** ~~**Second strike the same day (S3-revert): the floor
+  denies it again.**~~ A force-push is reparable (reflog, and the remote's unreachable objects), so it
+  came off the irreparable floor — and went back on, not because that reasoning failed but because a
+  hook `ask` is answered automatically in this harness's auto mode. **The verdict has been `deny`,
+  `ask`, `deny`; the CORRECTION to this bullet stands through all three and is the reason it is not
+  simply un-struck.** "Cannot be edited" was resting on a mechanism, and a claim that rests on a
+  mechanism is exactly as stable as the mechanism — which this one demonstrated twice in a day. **Read
+  it as *nobody edits it in practice*: a claim about habit, correct under every verdict, and the form
+  the sentence should have had from the start.**
 - **It is deliberately NOT widened to scan commit messages.** That needs the PR's head branch and
   merge-base resolved inside a rule that fails closed, so every resolution failure becomes a wedged
   merge; and a hand-rolled keyword regex is measurably both over- and under-inclusive against the forge's
@@ -4668,6 +4672,13 @@ prompt.
 
 ### The ordering of the two rules is itself a control, and S3 shipped it wrong
 
+> **READ WITH THE S3-REVERT AMENDMENT BELOW.** 3b is a `deny` again, so rule 7 and 3b now agree on the
+> verdict and this section's table can no longer be reproduced at head. **The finding is unchanged and
+> the ordering is unchanged**; what changed is that the ordering now decides which *reason* the caller
+> reads rather than which *verdict* they get — so it is asserted by matching the reason, and a
+> verdict-only battery would pass under either order. **That is a strictly harder defect to catch than
+> the one recorded here**, which is why the arms moved rather than being retired.
+
 **`ask()` exits, so where two rules match, only the first returns a verdict — which makes RULE ORDER a
 floor decision and not layout.** S3 placed rule 3b (force-push, `ask`) above rule 7 (trunk push,
 `deny`). Both match `git -C <repo> push --force origin main`, so the trunk classification was never
@@ -4725,11 +4736,19 @@ is present, and never a silent hole. **It also settles the layer question this r
 generally:** a hook `deny` is final, a hook `ask` is *weaker* than a static `deny`, and a hook that
 abstains hands the command on. The two layers are not peers, and the ordering differs by verdict.
 
-**NOT measured, and named rather than assumed: the interactive main session.** Both readings are
-headless, where there is no prompt surface at all, so they are the **floor** of an `ask`'s behaviour
-rather than its intent. If an interactive `ask` also merely refused, these three downgrades would
-deliver no autonomy and would be deny-with-a-softer-message. It fails safe either way, which is why
-the slice shipped without it; a nested interactive session cannot be driven from a hook-bound probe.
+~~**NOT measured, and named rather than assumed: the interactive main session.**~~ **MEASURED THE
+SAME DAY, AND IT REVERSED ALL THREE DOWNGRADES — see the S3-revert amendment below. This paragraph
+named the gap correctly, priced it in the safe direction, and was wrong about the direction.**
+
+The struck text guessed that the worst case was *"an interactive `ask` also merely refuses"*, i.e.
+deny-with-a-softer-message — *"it fails safe either way."* **It does not fail safe. Under auto mode
+the `ask` is answered automatically and the act EXECUTES with no prompt.** So the two rows above are
+complete for the contexts they name and there is a third context, which is the one the owner works in.
+
+**The lesson is about the probe, not about the rules.** Both readings above are headless or subagent,
+and both are correct — they measured the *floor* of an `ask`'s behaviour. The context that decides the
+verdict is the one a hook-bound probe cannot drive, and it was left as an assumption **in the safe
+direction**, which is the assumption a floor may never make.
 
 ### Rule 5f was scoped into this slice as a fourth downgrade and was NOT shipped
 
@@ -4780,11 +4799,14 @@ for everyone who is not the owner.
 
 ### What this does not claim
 
-**Nothing here observes whether an owner answers a prompt well.** An `ask` relocates a decision to the
-one party who can see what the command cannot show; it does not verify the answer. By this loop's own
-test — *would something stop me, or only my memory?* — the three downgraded acts are now stopped by a
-question rather than by a wall, and a question answered carelessly is indistinguishable from one
-answered well. That is the accepted cost of the narrowing, and it is the cost the owner priced.
+~~**Nothing here observes whether an owner answers a prompt well.** … the three downgraded acts are
+now stopped by a question rather than by a wall.~~ **STRUCK (S3-revert): they were stopped by
+NOTHING.** The paragraph priced the cost of a question answered carelessly, which was the right cost
+to price for the mechanism it assumed. The measured mechanism is that in auto mode the question is not
+asked at all, so the cost was not carelessness but silence. The three acts are back behind a wall.
+**The general observation survives and is worth keeping: an `ask` relocates a decision to the one
+party who can see what the command cannot show, and it never verifies the answer — but that is a claim
+about an `ask` that REACHES someone.**
 
 **And the ordering inside rule 5g is load-bearing, discovered by mutation rather than by reading.**
 Folding `delete` back into the archive/rename `ask` branch left the suite at 412/0 — which reads as an
@@ -4797,3 +4819,185 @@ Recorded in the rule, because the next person to reorder those blocks will not r
 Arm: *alters a previously-recorded decision* — this record's own *"the line as decided"*, whose list of
 what escapes git is corrected in place — and *sets a cross-cutting pattern others will follow*: the
 restore test, which governs every future entry to or exit from this floor.
+
+## Amendment (2026-09-05) — `ask` is not an available remedy when the operating mode answers it automatically (#383, S3-revert)
+
+**Owner's ruling, two words: «reverte os três».** The three acts S3 moved from `deny` to `ask` —
+force-push (rule 3b), AWS secret writes (rule 5) and `gh repo archive`/`rename` (rule 5g) — are `deny`
+again, the same day, on the same branch's own measurement.
+
+**This is not a reversal of S3's reasoning and must not be read as one.** The restore test stands. The
+three acts are still reparable, the three siblings that kept their deny are still irreparable, and the
+sibling pairs are still the sharpest evidence this record has that the old floor was reading the kind
+of act rather than its recoverability. **What is withdrawn is one inference, and it was not about the
+acts at all — it was about the harness.**
+
+### The finding, stated first because everything else here is its consequence
+
+> **`ask` is not an available remedy when the operating mode answers it automatically.**
+>
+> The criterion is unchanged — **irreparability still decides** what belongs on this floor — but **the
+> ladder `deny → ask → context → nothing` has a rung that does not hold in this harness's default
+> working mode.** Every future downgrade to `ask` inherits that.
+
+**So any remaining proposal in this audit whose mitigation is *"it becomes a prompt"* is proposing a
+mitigation that does not fire.** That binds S4 and the rest of the audit, which is why it is recorded
+here rather than left in a commit message: a mitigation is a load-bearing part of a downgrade's
+argument, and this one is unavailable until something changes at the host.
+
+### The measurement, and why the earlier one did not catch it
+
+Measured in the owner's own **interactive** session immediately after the S3 merge, with the new build
+confirmed live:
+
+| probe | result |
+|---|---|
+| the guard's source, fed the exact force-push command, two payloads | **`ask`** |
+| the same force-push **executed for real**, in his session | **executed — no prompt** |
+| a `>` redirect (rule 8b, still a `deny`) — the control | **denied**, with the post-S2 message |
+| the session's mode | **auto mode**, declared by the harness |
+
+**The hooks fire, the build is live, and a hook `ask` is answered without reaching him.** The three
+downgraded acts were therefore **not gated at all** in his working session: they went from denied to
+silently executed, which is the opposite of what the downgrade promised.
+
+**The earlier safety measurement was not wrong — it was taken in the wrong context, and this record
+already named the gap.** S3's *"The behaviour this record said was unmeasured, now measured"* section
+established that an unanswerable `ask` fails **closed** in a **headless** main session and in a
+**dispatched subagent**. Both readings stand. Neither describes the interactive main session under
+auto mode, and that is the context the owner works in. Two correct measurements, two different
+contexts; **the context that decides the rule is the one that was never measured.**
+
+### The three contexts, complete — this supersedes the two-row reading above
+
+| context | what an unattended `ask` does |
+|---|---|
+| main session, headless (`-p`) | **refused**, hook's reason surfaced |
+| dispatched subagent (`Task`) | **refused**, hook's reason surfaced |
+| **interactive main session, auto mode** | **EXECUTED, no prompt** |
+
+**Two consequences that generalise past these three rules**, and they are the reason this amendment
+exists rather than a one-line verdict flip:
+
+1. **`deny → ask` is a silent hole exactly where the human is closest to the machine** — the inverse
+   of the intuition that made the omission feel safe. A downgrade is at its most dangerous in the
+   context nobody thought needed measuring, because that context is the *normal* one.
+2. **Whether an `ask` reaches a human is a property of the HOST'S MODE, not of the hook.** It is a
+   measurement, not a reading of the verdict's name. A control resting on an unverified rung is inert
+   while reading as installed — which is this record's own standing failure shape, one layer up from
+   where it usually appears.
+
+### What would make `ask` viable again — named, not built
+
+**An auto mode that EXCLUDES hook `ask`.** The owner named it himself as one of his three options. It
+is not built here and nothing in this repository can build it: it is a host capability, and the guard
+has no say in whether its verdict is consulted. **It is recorded as the condition under which these
+three rules could be revisited** — not as work, and not as a plan.
+
+Until then the honest statement of this floor's vocabulary is: **`deny`, and nothing.** A
+reparable-but-serious act has no intermediate rung available, so the choice is a wall or an allow, and
+this floor chooses the wall for the three acts the owner ruled on.
+
+### What S3 shipped that is KEPT, and it is most of the slice
+
+Named individually, because a revert of a verdict is routinely read as a revert of a slice:
+
+- **The 3b-below-rule-7 ordering fix**, and its arms. The lesson is correct and untouched: *the
+  stricter rule runs first only where it is right about the act.* **What changed is what the ordering
+  buys** — with both rules denying, it decides which reason the caller reads rather than the verdict,
+  so the arms moved from asserting a verdict to asserting the reason. Same at rule 5/rule 6 and inside
+  rule 5g: **three instances of one shape, all converged by the revert.**
+- **The token-boundary establishment** — a settings entry's `:*` is a token boundary, not a raw prefix,
+  so no static entry can express *"this flag anywhere in the command"* — and the five struck sites.
+  This is now the argument for the DENY living in the hook rather than for an `ask`: `git -C <dir>
+  push --force` is the spelling no settings entry reaches, so without a hook rule it executes in
+  silence.
+- **The struck arm that was asserting the defect.**
+- **The rule 5 → rule 6 pre-emption disclosure, re-checked rather than assumed to unwind.** See below.
+- **The restore test itself**, and the enumeration work behind it.
+
+### The rule 5 → rule 6 pre-emption: it SURVIVES and its ARGUMENT DISSOLVES
+
+S3 disclosed that rule 5's `ask` pre-empted rule 6's `deny` for `aws secretsmanager delete-secret`.
+Re-checked at the revert rather than assumed to unwind, because a pre-emption is a property of
+ordering and ordering does not revert with a verdict. Measured across all three states:
+
+```
+aws secretsmanager delete-secret --secret-id x
+  pre-S3 (8c49382) -> DENY  (rule 5, pre-empting rule 6's identical verdict)
+  S3 head          -> ASK   (rule 5)   <- the narrowing
+  this revert      -> DENY  (rule 5, pre-empting rule 6 again)
+```
+
+**The mechanism is unchanged and there is nothing left to disclose as a narrowing.** The pre-emption
+now decides only which message the caller reads, and rule 5's is the more useful of the two — it names
+the recovery window and points at `restore-secret`. It is kept as an attribution note rather than
+deleted, because the mechanism is live and any future downgrade placed above rule 6 inherits it.
+
+**The 3b-versus-5 contrast survives the collapse, and it is the part worth carrying, because it is the
+test rather than the instance.** Rule 7 was stricter and **right** about its member, so pre-empting it
+was a hole. Rule 6 was stricter and the criterion did not reach its member, so pre-empting it was the
+intended verdict. **The test is never "which rule is stricter" — it is "which rule is right about the
+act."**
+
+### Where the sibling-split argument survives, marked NOT-APPLIED
+
+**The observation that the old floor used *escapes git* as evidence for *cannot be restored* — and
+that the two secret rows differ only in their PROVIDER (AWS versions its secrets, GitHub Actions does
+not) — is still a true and useful finding, and it is deliberately kept.** It stops being an argument
+for a downgrade, because the remedy the downgrade relied on does not exist in the owner's mode. It
+does not stop being an argument about what the floor is *for*.
+
+**So it is carried as reasoning rather than as a rule**, and the six acts remain two classes in the
+guard's messages even though they are one class in its verdicts. A reader who finds the sibling pairs
+and concludes *"therefore three of these should ask"* has re-derived S3 exactly, which is why the
+missing rung is stated next to the finding rather than filed away in this amendment alone.
+
+### The named cost of the revert, since a revert has costs like anything else
+
+- **`restore-secret` — the REPAIR — is denied again.** S3 was right that the one-regex rule refused the
+  act that undoes a scheduled deletion. Carving it out is a fourth decision; this slice is scoped to
+  three, so the defect is asserted as it **is** rather than as it should be, in the suite, using the
+  same convention rule 3's known defect uses. It is defensible on its own terms — the deletion it
+  repairs is denied to the agent too — and it should be decided deliberately rather than inherited.
+- **The `ask()` helper has no caller again**, and it is **kept**, which deviates from the file's own
+  convention that a helper nothing calls is a mechanism the file claims and does not run. The reason
+  it has no caller is now an external, dated property of the host rather than a finding that no act
+  belongs in the class, and deleting it would erase the only place that distinction sits next to the
+  code. **Read it as parked, not as available**: adding a caller today ships a rule that does not fire.
+- **Every autonomy claim about the three acts had to be re-swept**, on S1's lesson — sweep for the
+  behaviour, not the rule number. The strike-in-place convention costs a reader two hops on those
+  surfaces now (`deny` → `ask` → `deny`), and that is preferred to a silent third rewrite.
+
+### Considered options
+
+- **Revert all three (chosen).** The acts are ungated in the owner's mode; that is the whole argument.
+- **Keep the `ask` and add a detector.** Rejected: a detector fires after the act, and the acts in
+  question are the ones a floor exists to stop before they happen.
+- **Keep the `ask` and wait for a host mode that excludes it.** Rejected: it leaves three acts ungated
+  for an unbounded interval, on a promise no one here controls.
+- **Revert only force-push, keeping the two lower-frequency ones.** Rejected by the owner's ruling, and
+  it is the wrong shape regardless: the defect is one property of the harness, not three properties of
+  three acts, and a partial revert would leave the same false premise standing under two rules.
+
+### What this does not claim
+
+**It does not claim `ask` is broken.** It claims a hook `ask` is not honoured as a prompt in one
+measured mode, on one build, on one machine — measured by execution rather than read from
+documentation, and undocumented by the vendor either way. **A future build can change it silently, and
+nothing here would notice**, which is exactly the property that made relying on it unsafe.
+
+**It does not claim the floor is complete.** The three acts are denied in the spellings the guard
+matches; the guard matches a string and cannot claim completeness over a shell grammar. That limit is
+unchanged by this amendment.
+
+**And it does not claim the revert is verified by a green suite.** The suite asserts verdicts and, since
+this slice, reasons — it cannot observe the owner's session, which is where the finding came from and
+where nothing in this repository can measure.
+
+### Significance
+
+Arm: *alters a previously-recorded decision* — the S3 amendment immediately above, whose `ask`
+verdicts are withdrawn while its criterion is kept — and *sets a cross-cutting pattern others will
+follow*: **before a control's ladder is used as an argument, measure which rungs the host honours in
+the mode the human actually runs.**
