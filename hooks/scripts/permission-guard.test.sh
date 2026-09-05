@@ -1533,6 +1533,7 @@ check ALLOW "3: --soft is not --hard"          "git reset --soft HEAD~1"
 # not `$bare`, so a commit message ABOUT the act is treated as the act — the same false positive the
 # file fixed for 5b, 5c, 5e and 5f and calls "convention rather than case-by-case care". Measured on
 # origin/main's guard, both halves were DENY before this slice; S3 changed the force-push half to ASK
+# and the S3-revert changed it back, so both halves are DENY again and these two arms read alike.
 # and did not touch the matching surface, because moving rule 3 to `$bare` changes WHAT IT SEES
 # (including how it interacts with the `bash -c` unwrap) and that is its own slice with its own probe
 # battery, not a two-token drive-by inside a downgrade slice.

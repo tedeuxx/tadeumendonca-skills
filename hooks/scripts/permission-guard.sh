@@ -261,13 +261,31 @@ ask() {
 # only rule that was ever in the class.
 #
 # ── RESTORED A SECOND TIME, 2026-09-05 (#383, slice S3), ON THOSE SAME TERMS ──────────────────────
-# ~~THIS GUARD NOW EMITS NO `ask` VERDICT AT ALL~~ — struck: it emits four, and the tombstone above is
-# left standing because its RULE is what authorised the restore. Rules arrived that are in the class:
-# S3 downgraded four acts the owner's narrowed criterion prices below `deny` — force-push (3b), AWS
-# secret writes (5), and `gh repo archive`/`rename` (5g). Each is REPARABLE, so `deny` would be the lie
-# this comment names ("never", when the truth is "not unless the owner agrees"); and for each, whether
-# the act is right is not visible in the command — a force-push onto a shared branch and a force-push
-# onto the agent's own throwaway branch are the same string.
+# ~~struck: it emits four~~ **AND WITHDRAWN THE SAME DAY (#383, S3-revert). THIS GUARD EMITS NO `ask`
+# VERDICT AGAIN, AND THE HELPER HAS NO CALLER.** The three S3 downgrades — force-push (3b), AWS secret
+# writes (5), `gh repo archive`/`rename` (5g) — are back to `deny` on the owner's ruling.
+#
+# **THE CLASS ARGUMENT WAS NOT WRONG. THE MECHANISM IS NOT AVAILABLE.** Each of those acts is genuinely
+# REPARABLE, and for each, whether it is right is genuinely invisible in the command — a force-push
+# onto a shared branch and onto the agent's own throwaway branch are the same string. That is the class
+# this helper exists for and the acts are still in it. What the revert established is narrower and
+# fatal to the remedy: **a hook `ask` is answered automatically in this harness's default working
+# mode**, measured in the owner's own interactive session, so the prompt that was supposed to carry
+# the verification never reached him. See rule 3's site for the measurement.
+#
+# **SO THE LADDER HAS A MISSING RUNG, AND THAT IS THE THING TO CARRY FORWARD RATHER THAN THIS
+# TOMBSTONE.** `deny -> ask -> context -> nothing`: the second rung does not hold here. Any future rule
+# in this class faces the same wall, and the condition that would lift it is an auto mode that
+# EXCLUDES hook `ask` — the owner named it himself. Until then, a reparable-but-serious act has only
+# `deny` or nothing.
+#
+# **THE HELPER IS KEPT WITH NO CALLER, DELIBERATELY, AND THAT IS A DEVIATION FROM THIS FILE'S OWN
+# CONVENTION.** The 2026-08-03 tombstone above says a helper nothing calls is "a mechanism the file
+# claims and does not run", and by that rule it should be deleted for the second time. It is not,
+# because the reason it has no caller is now an external, dated property of the host — not a finding
+# that no act belongs in the class — and deleting it would erase the only place that distinction is
+# written next to the code. **Read `ask()` as parked, not as available**: adding a caller today ships a
+# rule that does not fire.
 #
 # ── WHAT AN UNANSWERABLE `ask` ACTUALLY DOES — MEASURED 2026-09-05, AND IT WAS THE OPEN QUESTION ──
 # The paragraph above says a dispatched subagent has no prompt surface, so `ask` there "resolves to
@@ -289,23 +307,42 @@ ask() {
 #     hook `deny`                    -> REFUSED (control)
 #     hook abstains, cmd allowlisted -> EXECUTED (control — proves the subagent really ran)
 #
-# **AN `ask` FAILS CLOSED WHERE THERE IS NOBODY TO ANSWER IT.** That is the fact the downgrades in this
-# slice rest on: deny -> ask is a genuine loosening only where a human is present to say yes, and it is
-# NOT a silent hole anywhere else. A subagent gets a refusal carrying the reason, which is the same
-# actionable instruction a `deny` gave it.
+# **AN `ask` FAILS CLOSED WHERE THERE IS NOBODY TO ANSWER IT.** ~~That is the fact the downgrades in
+# this slice rest on~~ — **the FACT is untouched and the DOWNGRADES ARE REVERTED (#383, S3-revert).**
+# The reading above is correct and stays: in a headless main session and in a dispatched subagent, an
+# unanswerable `ask` refuses and surfaces its reason. **What it does not describe is the context the
+# owner works in**, which is the paragraph flagged NOT MEASURED at the bottom of this block — and that
+# is the one that decided the revert. Read this measurement as scoped to the two contexts it names.
 #
 # **AND A STATIC `deny` IS NOT WEAKENED BY A HOOK `ask` OVER THE SAME COMMAND.** Every act downgraded in
 # S3 keeps whatever static deny already covered it; the downgrade only reaches the spellings the static
 # layer cannot express (`git -C <dir> push --force`, `gh -R o/r repo archive`), and those become a
 # prompt rather than a silent execution.
 #
-# **NOT MEASURED, AND NAMED RATHER THAN ASSUMED: the INTERACTIVE main session.** Both readings above are
-# headless (`-p`), where there is no prompt surface at all — so what was observed is the *floor* of an
-# `ask`'s behaviour, not its intended one. In the owner's interactive session an `ask` is expected to
-# render an approvable prompt, which is the whole point of the verdict; that expectation is untested
-# here because a nested interactive session cannot be driven from a hook-bound probe. **If it turned out
-# that an interactive `ask` also merely refuses, these four downgrades would deliver no autonomy at all
-# and would be deny-with-a-softer-message** — worth knowing, and it fails safe either way.
+# ~~NOT MEASURED, AND NAMED RATHER THAN ASSUMED: the INTERACTIVE main session.~~ **MEASURED THE SAME
+# DAY, IN THE OWNER'S OWN SESSION, AND IT IS WHY THE THREE DOWNGRADES WERE REVERTED. THIS PARAGRAPH IS
+# THE MOST IMPORTANT ONE IN THE BLOCK: it named the gap correctly, priced it in the safe direction, and
+# was wrong about the direction.**
+#
+# The old text guessed that the worst case was "an interactive `ask` also merely refuses", i.e.
+# deny-with-a-softer-message — *"it fails safe either way."* **It does not fail safe. Under AUTO MODE
+# the `ask` is answered automatically and the act EXECUTES.** Measured in the owner's interactive
+# session immediately after the S3 merge, new build confirmed live:
+#
+#   this guard's source, fed the exact force-push command, two payloads  -> ask
+#   the same force-push EXECUTED for real                                -> executed, NO PROMPT
+#   a `>` redirect (rule 8b, a deny) as a control                        -> denied, message shown
+#   the session's mode                                                    -> AUTO, harness-declared
+#
+# So the hooks fire and the build is live; the `ask` verdict is simply consumed. **The three downgraded
+# acts were not gated at all in the one session that matters.**
+#
+# **THE LESSON IS ABOUT THE PROBE, NOT ABOUT THE RULES.** Both readings above are headless (`-p`) or
+# subagent, and both are correct — they measured the *floor* of an `ask`'s behaviour. The context that
+# decides the verdict is the one a hook-bound probe cannot drive, and it was left as an assumption in
+# the SAFE direction, which is the assumption a floor may never make. **A downgrade whose remedy is a
+# prompt must be measured in the mode the human actually runs.** Nothing here can measure that; the
+# owner can, in one command, and did.
 
 # Single-line, collapsed whitespace for matching.
 cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
@@ -619,7 +656,7 @@ fi
 #    apart, so the ordering arms now assert the REASON (`check_reason`), and a verdict-only battery
 #    that reads green over a reordering would be exactly the uncalibrated check this repo hunts for.
 if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*reset[[:space:]]+--hard'; then
-  deny "Blocked: 'git reset --hard' discards uncommitted work, and uncommitted work has no other copy — not in the reflog, not on the remote, not in the index. That is the irreparable half of what this rule used to refuse in one sentence; the force-push half is now rule 3b and asks instead. Use a safe alternative: commit first, 'git stash', or 'git revert' for something already committed."
+  deny "Blocked: 'git reset --hard' discards uncommitted work, and uncommitted work has no other copy — not in the reflog, not on the remote, not in the index. That is the irreparable half of what this rule used to refuse in one sentence; the force-push half is rule 3b, which denies too (#383 S3-revert) — briefly an 'ask', reverted because a hook 'ask' is answered automatically in this harness's auto mode. Use a safe alternative: commit first, 'git stash', or 'git revert' for something already committed."
 fi
 
 # 4. Recursive force delete (escapes git).

@@ -153,17 +153,23 @@ carrier that cannot state a limit is usually a carrier that is not a capability.
 
 ### 0001 · the irreversible floor
 
-> **THE NAME SAYS *irreversible*; THE CRITERION IS *irreparable*, AND THE TWO CAME APART AT #383 S3.**
+> **THE NAME SAYS *irreversible*; THE CRITERION IS *irreparable*, AND THE TWO CAME APART AT #383.**
 > The element keeps its name because other surfaces cite it by that name and renaming it buys nothing
 > a sentence cannot. What changed is the membership test. *Escaping git* is not the same property as
-> *cannot be restored*, and the floor had been using the first as evidence for the second — so three
-> acts that escape git and nonetheless reverse (force-push, AWS secret writes, `gh repo
-> archive`/`rename`) left the deny list and became `ask`. Read "irreversible floor" throughout this
-> repository as the NAME of this element, never as its definition.
+> *cannot be restored*, and the floor had been using the first as evidence for the second. Read
+> "irreversible floor" throughout this repository as the NAME of this element, never as its definition.
+>
+> **THE MEMBERSHIP DID NOT ACTUALLY CHANGE, AND THE ROUND TRIP IS THE FINDING.** S3 moved three acts
+> that escape git and nonetheless reverse (force-push, AWS secret writes, `gh repo archive`/`rename`)
+> from `deny` to `ask`; the S3-revert moved them back the same day, on the owner's ruling. **The
+> criterion is not what failed — the RUNG did.** A hook `ask` is answered automatically in this
+> harness's default working mode (measured in the owner's own session: the guard returned `ask` and
+> the act executed with no prompt), so `deny → ask` is not a downgrade here, it is a removal.
+> **This element therefore has three verdicts on paper and two in practice: `deny`, and nothing.**
 
 - **tipo:** refusal
 - **carrier:** `hooks/scripts/permission-guard.sh`
-- **descrição:** A `PreToolUse` hook on the `Bash` matcher, shipped with the plugin, that inspects the command string and denies the acts whose effect cannot be restored — and, since #383 S3, asks on the reversible acts next to them rather than pretending they are the same.
+- **descrição:** A `PreToolUse` hook on the `Bash` matcher, shipped with the plugin, that inspects the command string and denies the acts whose effect cannot be restored — and, since #383, keeps the reversible acts next to them under the SAME verdict with a DIFFERENT message, because the intermediate verdict this harness offers (`ask`) is consumed by its own auto mode rather than reaching a human.
 - **propósito:** The danger is never "the wrong environment" — it is **irreversibility that escapes version control**: cloud state, secrets, remote refs on a protected branch, live traffic. A harness whose floor is a written instruction has no floor, because the same model that would skip the instruction is the one trusted to remember it.
 - **o que faz:** Reads the tool call's command string before it runs and returns a `deny` decision for the acts on the floor — infrastructure mutation, `rm -rf`, hard reset, GitHub secret writes, repository deletion, `--dangerously-skip-permissions`. ~~secret writes, force-push and hard reset~~ — **struck 2026-09-05 (#383 S3): the floor is IRREPARABILITY, and three acts that reverse were moved off it.** It now returns `ask` rather than `deny` for force-push (the reflog and the remote's unreachable objects both hold the old tip), AWS secret writes (version stages, a 30-day recovery window, SSM parameter history) and `gh repo archive`/`rename` (both undo, and the OIDC trusts pin the immutable id rather than the name). Each was split from an irreparable sibling that keeps its deny — `git reset --hard`, `gh secret set`, `gh repo delete` respectively. **An unanswerable `ask` was measured to fail CLOSED**, in a headless main session and in a dispatched subagent alike, so this is a loosening only where a human is present to answer. It unwraps the common indirections (`bash -c`, quoting forms) so a wrapped payload is matched rather than hidden. ~~It is deliberately **branch-agnostic**: no `git branch` call, no environment-name matching, so one hook is correct under both loop models.~~ **Struck 2026-09-02 (#383).** The trunk-push rule resolves the checked-out branch (`git -C "$dir" symbolic-ref --short HEAD`) and denies when it is `main`/`master`; "no `git branch` call" was literally true and the property was false. What is genuinely absent is **environment-name matching**, and that alone is what makes one hook correct under both loop models.
 - **o que não faz:** It matches a **string**, not a program. It cannot decide anything that depends on the *class* of a change rather than its spelling — which is why the merge decision is a persona's and not a rule's — and it cannot claim completeness over the set of spellings that reach it. It fails **open** on a parse error, by design: a floor that crashes closed stops a session that has done nothing wrong.

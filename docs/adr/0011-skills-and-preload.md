@@ -1495,20 +1495,25 @@ printf '…"command":"git push --force-with-lease …"…' | bash hooks/scripts/
 ```~~
 
 **Struck 2026-09-05 (#383 S3): that message no longer exists, because the rule it came from was split
-in two.** Force-push is no longer on the irreparable floor — the reflog and the remote's unreachable
-objects both hold the pre-push tip — so it now returns `ask` under its own text, while `git reset
---hard` keeps the `deny`. Re-probed at head:
+in two.** Force-push and the hard reset are two acts with two messages now — the first is REPARABLE
+(the reflog and the remote's unreachable objects both hold the pre-push tip), the second is not.
+**The SPLIT stands; the `ask` verdict it briefly carried does not** — reverted the same day
+(#383 S3-revert), because a hook `ask` is answered automatically in this harness's auto mode.
+Re-probed at head rather than paraphrased:
 
 ```
 printf '…"command":"git push --force-with-lease …"…' | bash hooks/scripts/permission-guard.sh
-→ permissionDecision "ask": "This force-pushes. It is no longer a floor deny (#383)…"
+→ permissionDecision "deny": "Blocked: force-push rewrites a ref that others may already have
+   pulled. It was briefly an 'ask' (#383 S3) on the argument that it is REPARABLE…"
 ```
 
-**The disposition below is unchanged, and it is worth saying why rather than letting the strike imply
-otherwise.** The reason this was never repaired was never *"the floor forbids it"* — it was that
-rewriting a pushed branch is the wrong trade for a misfiled amendment. An `ask` makes that a decision
-the owner could take rather than one the guard refuses; it does not make it a good one. The quoted
-verdict was evidence for a conclusion that does not depend on it.
+**The disposition below is unchanged, and it never depended on the verdict — which is why this was
+re-probed rather than re-argued.** The reason this was never repaired was never *"the floor forbids
+it"*; it is that rewriting a pushed branch is the wrong trade for a misfiled amendment. The verdict
+has now been `deny`, then `ask`, then `deny` again, and the disposition did not move once. **A
+conclusion that survives three verdicts on its cited evidence was never resting on it** — worth
+noticing, because the reverse case, a conclusion quietly resting on a mechanism that changed, is the
+defect this whole passage exists to record.
 
 So the honest disposition is the one this repository already uses for a published claim it cannot
 withdraw: **say it where the reader is, rather than leave the commit history reading as if the split
