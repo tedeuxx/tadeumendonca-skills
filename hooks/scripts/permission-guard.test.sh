@@ -1568,15 +1568,27 @@ check DENY  "3b keeps: 'maintenance' is not 'main'" "git push origin maintenance
 check_reason DENY "7 answers the TRUNK force-push"     "pushing to the trunk" "git -C /some/repo push --force origin main"
 check_reason DENY "3b answers the NON-TRUNK force-push" "force-push"        "git push origin feature-x --force"
 
-echo "--- rule 5: AWS secret writes ASK; the gh sibling still DENIES ---"
-# The asymmetry is the assertion. AWS versions its secrets (AWSPREVIOUS, a 30-day recovery window,
-# SSM parameter history); GitHub Actions secrets have no version history at all. Collapse the two
-# back into one verdict in either direction and this block reddens.
-check ASK   "5: put-secret-value"              "aws secretsmanager put-secret-value --secret-id x"
-check ASK   "5: create-secret"                 "aws secretsmanager create-secret --name x"
-check ASK   "5: delete-secret is SCHEDULED"    "aws secretsmanager delete-secret --secret-id x"
-check ASK   "5: restore-secret is the REPAIR"  "aws secretsmanager restore-secret --secret-id x"
-check ASK   "5: ssm SecureString"              "aws ssm put-parameter --name x --type SecureString"
+echo "--- rule 5: AWS secret writes DENY again (#383 S3-revert); the gh sibling never moved ---"
+# S3 made these ASK on the reparability argument; the revert made them DENY again, because a hook
+# `ask` is answered automatically in this harness's auto mode. The AWS/gh asymmetry S3 introduced in
+# the MESSAGES survives — AWS versions its secrets, GitHub Actions secrets have no history — but it is
+# no longer an asymmetry of VERDICT, so no verdict arm can see it. Stated rather than left implied:
+# this block is now a one-sided battery, and it is the reason arms below that keep it honest.
+#
+# `restore-secret` is denied again, which is the REPAIR of a scheduled deletion. That is the revert's
+# named cost, asserted as it IS rather than as it should be — the same convention rule 3's known
+# defect uses. When someone carves it out, this arm flips to ALLOW and the rule's comment says so.
+check DENY  "5: put-secret-value"              "aws secretsmanager put-secret-value --secret-id x"
+check DENY  "5: create-secret"                 "aws secretsmanager create-secret --name x"
+check DENY  "5: delete-secret is SCHEDULED"    "aws secretsmanager delete-secret --secret-id x"
+check DENY  "5: NAMED COST, repair is denied"  "aws secretsmanager restore-secret --secret-id x"
+check DENY  "5: ssm SecureString"              "aws ssm put-parameter --name x --type SecureString"
+# THE RULE-6 PRE-EMPTION, asserted where a verdict cannot see it. `delete-secret` matches rule 5 AND
+# rule 6, both DENY, so only the reason says which answered. Remove rule 5's secretsmanager branch and
+# the verdict stays DENY (rule 6 catches it) while this arm reddens — which is the whole point: the
+# pre-emption is still live, it just no longer changes the outcome.
+check_reason DENY "5 pre-empts 6 for delete-secret" "recovery window" "aws secretsmanager delete-secret --secret-id x"
+check_reason DENY "6 owns the rest of the family"   "destructive direct cloud mutation" "aws ec2 delete-volume --volume-id x"
 check DENY  "5b: gh secret set has no history" "gh secret set MY_TOKEN"
 check DENY  "5b: gh secret delete behind -R"   "gh -R owner/repo secret delete MY_TOKEN"
 check ALLOW "5: reading a secret is untouched" "aws secretsmanager get-secret-value --secret-id x"

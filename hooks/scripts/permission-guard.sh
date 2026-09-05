@@ -724,9 +724,18 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   deny "Blocked: 'git clean -f' deletes UNTRACKED files — the one class git cannot restore, so it is as irreversible as 'rm -rf'. Remove the specific paths you mean, or use 'git clean -n' to see what it would take."
 fi
 
-# 5. AWS secret writes — DOWNGRADED TO `ask` 2026-09-05 (#383, slice S3).
+# 5. AWS secret writes — ~~DOWNGRADED TO `ask` 2026-09-05 (#383, slice S3)~~ **REVERTED TO `deny` the
+#    same day (#383, S3-revert, owner: «reverte os três»).**
 #
-#    THE ACT IS REPARABLE, AND THAT IS THE ONLY REASON IT MOVED. AWS keeps a prior version of both
+#    **THE REPARABILITY ARGUMENT BELOW IS UNCHANGED AND STILL TRUE. What failed is the REMEDY.** A hook
+#    `ask` is answered automatically in this harness's default working mode — measured in the owner's
+#    own interactive session right after the S3 merge, where the guard returned `ask` for the exact
+#    command and the act then EXECUTED with no prompt. So these writes were not gated at all in the one
+#    session that matters. The full measurement, and the general rule it produces — *the ladder
+#    `deny -> ask -> context -> nothing` has a rung that does not hold here* — are recorded once, at
+#    rule 3's site above, rather than three times.
+#
+#    THE ACT IS REPARABLE, AND THAT IS WHY THE DOWNGRADE WAS DEFENSIBLE. AWS keeps a prior version of both
 #    things this rule matches, so a wrong write here is recoverable without a restore from anywhere
 #    else:
 #      · Secrets Manager versions every value and labels the previous one `AWSPREVIOUS`, so a bad
@@ -735,51 +744,69 @@ fi
 #        `restore-secret` — which this rule also matched, i.e. it was denying the REPAIR — cancels it.
 #      · SSM keeps parameter history, so a `put-parameter --overwrite` has the prior value behind it.
 #
-#    **DO NOT READ THIS AS "SECRET WRITES ARE FINE NOW."** The pipeline still provisions secrets and the
-#    agent still does not; what changed is which layer says so. This is the class the `ask` helper's
-#    comment describes exactly — the command cannot show whether the write is the owner's intent, and
-#    his answer to the prompt IS the verification.
+#    ~~This is the class the `ask` helper's comment describes exactly — the command cannot show whether
+#    the write is the owner's intent, and his answer to the prompt IS the verification.~~ **STRUCK: the
+#    class description is right and the mechanism is not available.** His answer is the verification
+#    only where he is asked, and in auto mode he is not. **The pipeline still provisions secrets and the
+#    agent still does not** — and now the guard is what says so again, rather than a prompt nobody sees.
 #
-#    WHAT THIS COSTS, AND IT IS SMALLER THAN IT LOOKS: `aws` is in NEITHER the allow nor the deny list
-#    of EITHER settings layer (both read at head, 2026-09-05), so removing this rule outright would
-#    already have landed on a permission prompt rather than on silent execution. The downgrade buys a
-#    prompt that arrives WITH THE REASON attached instead of a bare "needs approval", which is the
-#    difference between the owner deciding and the owner guessing.
+#    **WHAT THE REVERT COSTS, NAMED RATHER THAN GLOSSED: `restore-secret` — the REPAIR — is denied
+#    again.** S3 correctly observed that the old one-regex rule was refusing the act that undoes a
+#    scheduled deletion. That defect returns with the revert, and it is accepted here rather than
+#    quietly fixed, because carving `restore-secret` out is a FOURTH decision and this slice is
+#    scoped to three. It is defensible on its own terms — the delete it repairs is itself denied to
+#    the agent, so the repair is the owner's act by the same route — but it is a real narrowing and
+#    the next person to touch rule 5 should decide it deliberately rather than inherit it.
+#
+#    ~~WHAT THIS COSTS, AND IT IS SMALLER THAN IT LOOKS: `aws` is in NEITHER the allow nor the deny list
+#    of EITHER settings layer, so removing this rule outright would already have landed on a permission
+#    prompt.~~ **The observation stands and it now argues the other way.** `aws` is unlisted in both
+#    settings layers (re-read at head, 2026-09-05), so the layer beneath this rule offers a prompt —
+#    and a prompt is exactly what auto mode answers. The hook `deny` is decided BEFORE the permission
+#    system and is not softened by anything under it, which is why the verdict has to be here.
 #
 #    THE SIBLING THAT DID NOT MOVE, said here so the asymmetry is not read as an oversight: `gh secret
 #    set/delete` (5b) KEEPS ITS DENY. GitHub Actions secrets have no version history and no recovery
 #    window — the old value is gone the moment it is overwritten. Same word, different act.
 #
-#    ── DISCLOSED NARROWING: THIS RULE PRE-EMPTS RULE 6 FOR `delete-secret` ─────────────────────────
-#    `ask()` exits, so where this rule matches, rule 6 below never runs. One command is in both:
-#    `aws secretsmanager delete-secret` matches rule 6's `aws <service> (delete|terminate|...)-` family
-#    as well, and rule 6 is a `deny`. So this downgrade did not only move `delete-secret` off THIS
-#    rule's floor — it took it off rule 6's too. Measured 2026-09-05:
-#      aws secretsmanager delete-secret --secret-id x   origin/main -> DENY (rule 6) · head -> ASK (5)
+#    ── THE RULE-6 PRE-EMPTION: STILL THERE, NO LONGER A NARROWING ──────────────────────────────────
+#    **RE-CHECKED AT THE REVERT, because the question is exactly the kind that a revert answers
+#    silently if nobody asks it. The answer: the pre-emption SURVIVES and its ARGUMENT DISSOLVES.**
 #
-#    **THAT NARROWING IS ARGUED ON THE MERITS AND IS KEPT; what was missing was saying so where the
-#    reader meets the rule, and that is the whole of this paragraph.** The merits: `delete-secret` is a
-#    SCHEDULED deletion with a 7–30 day recovery window that `restore-secret` cancels, so it restores
-#    and the narrowed criterion — «situacoes irreparaveis» — does not reach it under EITHER rule's
-#    number. Rule 6's verdict on this one member was wrong for the same reason rule 5's was, which is
-#    why the pre-emption produces the right answer rather than merely a different one.
+#    The mechanism is unchanged — `deny()` and `ask()` both exit, so where this rule matches, rule 6
+#    below never runs, and `aws secretsmanager delete-secret` matches both (rule 6's
+#    `aws <service> (delete|terminate|...)-` family). What changed is that the two rules no longer
+#    DISAGREE. Measured 2026-09-05, the same command across all three states:
+#      aws secretsmanager delete-secret --secret-id x
+#        pre-S3 (origin/main at 8c49382)  -> DENY   (rule 5, pre-empting rule 6's identical verdict)
+#        S3 head (01069ca8)               -> ASK    (rule 5) <- the narrowing
+#        this revert                      -> DENY   (rule 5, pre-empting rule 6 again)
 #
-#    **The contrast with 3b's ordering defect, because the two look identical and are not.** There,
-#    rule 7 was the STRICTER rule and was correct about its member, so pre-empting it was a hole and
-#    the fix was to reorder. Here rule 6 is stricter and WRONG about this member, so pre-empting it is
-#    the intended verdict and reordering would restore a deny that the criterion does not support. The
-#    test is never "which rule is stricter" — it is "which rule is right about the act", and only the
-#    second one licenses an earlier `ask`. **What is NOT covered: the rest of rule 6.** Every other
-#    `aws ... delete-*`/`terminate-*` still denies, and nothing about this paragraph loosens it.
+#    So there is **nothing left to disclose as a narrowing**: the pre-emption now only decides which
+#    MESSAGE the caller reads, and rule 5's is the more useful of the two (it names the recovery
+#    window and points at `restore-secret`). It is kept as an attribution note rather than deleted,
+#    because the mechanism is still live and the next downgrade proposed anywhere above rule 6 inherits
+#    it. **The reader-facing consequence is now zero and the shape is not** — a rule that exits above
+#    another rule is still pre-empting it, and that stays true whether or not the verdicts differ.
 #
-#    ~~undisclosed~~ — this narrowing shipped at 9aca9d4 with no note anywhere, and was found by the
-#    merge gate rather than by the slice. Recorded as the finding it was, not as a decision that was
-#    always written down.
+#    ~~The contrast with 3b's ordering defect, because the two look identical and are not.~~ **Both
+#    collapsed into the same state at the revert, and the CONTRAST is what survives, because it is the
+#    test rather than the instance.** There, rule 7 was stricter and RIGHT about its member, so
+#    pre-empting it was a hole. Here rule 6 was stricter and the criterion did not reach this member,
+#    so pre-empting it was the intended verdict. **The test is never "which rule is stricter" — it is
+#    "which rule is right about the act."** Both pairs now agree on the verdict and differ only in the
+#    message, so in both places the ordering is asserted by reason rather than by verdict.
+#    **What is NOT covered: the rest of rule 6.** Every other `aws ... delete-*`/`terminate-*` denies,
+#    and nothing here has ever loosened it.
+#
+#    ~~undisclosed~~ — the narrowing shipped at 9aca9d4 with no note anywhere, and was found by the
+#    merge gate rather than by the slice. Recorded as the finding it was. It is also the reason this
+#    paragraph was re-checked at the revert instead of assumed to unwind on its own.
 if printf '%s' "$cmd" | grep -Eq 'aws[[:space:]]+secretsmanager[[:space:]]+(put-secret-value|create-secret|update-secret|delete-secret|restore-secret)'; then
-  ask "This writes a secret through the AWS CLI. It is no longer a floor deny (#383) because Secrets Manager is versioned — the previous value stays behind the AWSPREVIOUS stage, and 'delete-secret' only SCHEDULES a deletion with a recovery window that 'restore-secret' cancels — so this is reparable, and this guard's floor is irreparability alone. It still asks, because the standing rule is unchanged: secrets are provisioned by the pipeline, not by the agent. Answer no unless you specifically intended this write. Note that 'gh secret set/delete' is a DIFFERENT act and stays denied — GitHub Actions secrets have no version history, so there is nothing to roll back to."
+  deny "Blocked: writing secrets via CLI. Secrets are provisioned by the pipeline, not by the agent. This was briefly an 'ask' (#383 S3) on the argument that Secrets Manager is REPARABLE — the previous value stays behind the AWSPREVIOUS stage, and 'delete-secret' only SCHEDULES a deletion with a recovery window that 'restore-secret' cancels — and that argument is still true. What failed is the remedy: a hook 'ask' is answered automatically in this harness's auto mode, measured in the owner's own session, so the downgrade produced a silent write rather than a prompt. Note this also denies 'restore-secret', which is the REPAIR — an accepted cost of the revert, since the deletion it repairs is denied to the agent too. If a secret genuinely must be written by hand, it is the human's own act."
 fi
 if printf '%s' "$cmd" | grep -Eq 'aws[[:space:]]+ssm[[:space:]]+put-parameter([[:space:]].*)?SecureString'; then
-  ask "This writes a SecureString parameter. It is no longer a floor deny (#383) because SSM keeps parameter history, so the prior value survives an --overwrite and this is reparable. It still asks: secrets are provisioned by the pipeline, not by the agent. Answer no unless you specifically intended this write."
+  deny "Blocked: writing a SecureString parameter. Secrets are provisioned by the pipeline, not by the agent. This was briefly an 'ask' (#383 S3) because SSM keeps parameter history, so the prior value survives an --overwrite — still true, and still not enough: a hook 'ask' is answered automatically in this harness's auto mode, so the downgrade produced a silent write. If this parameter genuinely must be written by hand, it is the human's own act."
 fi
 
 # 5b. Secret writes via gh, in any spelling. Same prefix-matcher blind spot as rule 7:
