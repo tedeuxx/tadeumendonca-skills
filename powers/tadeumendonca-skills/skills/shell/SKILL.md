@@ -15,9 +15,12 @@ apenas»* — during the pass that put every distributed mechanism to him one at
 not change; the identifier did, because *hygiene* names a virtue and *shell* names the object.
 
 **One mechanism difference is NOT renamed away, and it is the part worth knowing if this file is read
-on other machinery:** here the discipline is **enforced** — `permission-guard.sh` denies chained
-commands, stdout redirects and `2>/dev/null` outright, which is why the rules below read as facts
-rather than as advice. On a harness without that guard the same file is an instruction only, and a
+on other machinery:** here **part of** the discipline is **enforced** — `permission-guard.sh` denies
+`$(...)`/backticks, `VAR=x` prefixes and a redirect that creates a file, which is why those rules read
+as facts rather than as advice. ~~denies chained commands, stdout redirects and `2>/dev/null`
+outright~~ — **struck 2026-09-05 (#383): the chain branch is removed and a `/dev/null` target is
+exempt, both measured. See the table below.** The atomic-call preference is an instruction here too.
+On a harness without that guard the same file is an instruction only, and a
 reader who takes the confident tone as evidence that something is stopping them will be wrong.
 
 Two behaviors — where scratch files go, and how a shell command avoids tripping the permission matcher —
@@ -111,7 +114,12 @@ another) are unaffected — they create no file.
 Measured 2026-09-05 in the same rule-less session: `cmd 2>/dev/null` and `cmd >/dev/null` ran with no
 prompt, while `cmd 2>somefile` stopped for a human naming that file. `[[ a > b ]]`, bash's string
 comparison, ran untouched. Those three were being denied by this platform's guard and by nothing else,
-which is a control that only ever over-blocks; both are exempt since #383. **The general rule the fix
+which is a control that only ever over-blocks; both are exempt since #383. **Both exemptions are
+narrow, and the bound is measured rather than assumed:** a target merely *beginning* `/dev/null`
+(`date > /dev/nullx`, `date > /dev/null/../x`) and a `[[ … ]]` span in *argument* position
+(`echo x [[ a > /tmp/evil ]] b`, a real redirect in bash) are **not** exempt — the runtime required
+approval for all three on build 2.1.261, so exempting them would have put this hook *above* the layer
+it is supposed to sit under. **The general rule the fix
 follows is worth more than the fix: a hook that exists to turn a prompt into a self-correcting
 instruction must fire on a SUBSET of what the runtime stops for, never on more.** Where it cannot tell,
 it should abstain and let the layer that parses shell decide.
