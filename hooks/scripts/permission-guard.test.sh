@@ -1188,8 +1188,8 @@ check DENY  "repo delete"                   "gh repo delete owner/repo --yes"
 check DENY  "repo delete behind -R"         "gh -R owner/repo repo delete --yes"
 check DENY  "repo delete, -R attached"      "gh -Rowner/repo repo delete --yes"
 check DENY  "repo delete, --repo= attached" "gh --repo=owner/repo repo delete --yes"
-check DENY  "repo archive"                  "gh repo archive owner/repo"
-check DENY  "repo rename breaks OIDC trust" "gh repo rename newname"
+check ASK   "repo archive reverses"         "gh repo archive owner/repo"
+check ASK   "repo rename reverses"          "gh repo rename newname"
 check DENY  "release create publishes"      "gh release create v1.2.3"
 check DENY  "release delete behind -R"      "gh -R owner/repo release delete v1.2.3"
 check DENY  "workflow run dispatches CI"    "gh workflow run deploy.yml"
@@ -1439,7 +1439,7 @@ check ALLOW "boundary: quoted arg stays inert" "npm run finish -c 'git push orig
 echo "--- the pre-existing floor still holds ---"
 check DENY  "terraform apply"               "terraform apply -auto-approve"
 check DENY  "terraform destroy"             "terraform -chdir=iac destroy"
-check DENY  "force push"                    "git push --force origin feat/x"
+check ASK   "force push (3b, downgraded)"   "git push --force origin feat/x"
 check DENY  "reset --hard"                  "git reset --hard HEAD~1"
 check DENY  "rm -rf"                        "rm -rf build"
 check DENY  "skip-permissions bypass"       "claude --dangerously-skip-permissions"
@@ -1463,6 +1463,75 @@ check ALLOW "force without recursive"       "rm -f /some/path"
 check ALLOW "--force alone"                 "rm --force /some/path"
 check ALLOW "plain rm"                      "rm /some/path"
 check ALLOW "a word merely ENDING in rm"    "npm run confirm -r -f"
+
+echo "--- #383 S3: the three downgraded boundaries, asserted on BOTH sides ---"
+# THE CORRECTION THIS BLOCK IS WRITTEN AGAINST, from the gate's final S2 verdict and now ADR-0004's:
+# a mutation proves an assertion's SENSITIVITY, never the assertion set's COMPLETENESS. A revert-to-
+# loose mutation can only redden arms that already exist on the loose side, so "each mutation kills
+# exactly its own arm" is the symptom, not the strength. Every boundary S3 moved therefore gets arms
+# on BOTH sides: the act that was downgraded AND the neighbouring act that was not, so reverting the
+# split in either direction reddens something.
+
+echo "--- 3a/3b: the split between reset --hard (DENY) and force-push (ASK) ---"
+# Revert the split by widening 3b back over reset --hard -> the DENY arms redden.
+# Revert it by widening 3a back over force-push  -> the ASK arms redden.
+check DENY  "3a: reset --hard, no other copy"  "git reset --hard HEAD~1"
+check DENY  "3a: reset --hard behind -C"       "git -C /some/repo reset --hard origin/main"
+check ASK   "3b: --force"                      "git push --force"
+check ASK   "3b: --force-with-lease"           "git push --force-with-lease origin feat/x"
+check ASK   "3b: short -f"                     "git push -f origin feat/x"
+# The two spellings NO settings entry can express, because `:*` is a TOKEN boundary (measured #383 S3):
+# the flag after the refspec, and the `git -C` prefix that is itself allowlisted. These are the whole
+# reason 3b is an ASK rather than a removal — removed, they would execute in silence.
+check ASK   "3b: flag AFTER the refspec"       "git push origin main --force"
+check ASK   "3b: behind an allowlisted -C"     "git -C /some/repo push --force origin feat/x"
+check ALLOW "3: a plain push is neither half"  "git push origin feat/x"
+check ALLOW "3: --soft is not --hard"          "git reset --soft HEAD~1"
+# KNOWN DEFECT, PRE-EXISTING, ASSERTED AS IT IS RATHER THAN AS IT SHOULD BE. Rule 3 matches `$cmd`,
+# not `$bare`, so a commit message ABOUT the act is treated as the act — the same false positive the
+# file fixed for 5b, 5c, 5e and 5f and calls "convention rather than case-by-case care". Measured on
+# origin/main's guard, both halves were DENY before this slice; S3 changed the force-push half to ASK
+# and did not touch the matching surface, because moving rule 3 to `$bare` changes WHAT IT SEES
+# (including how it interacts with the `bash -c` unwrap) and that is its own slice with its own probe
+# battery, not a two-token drive-by inside a downgrade slice.
+# These two arms are the record. When someone fixes rule 3 to read `$bare`, both flip to ALLOW.
+check ASK   "3: KNOWN DEFECT, msg about 3b"    "git commit -m 'git push --force notes'"
+check DENY  "3: KNOWN DEFECT, msg about 3a"    "git commit -m 'git reset --hard notes'"
+
+echo "--- rule 5: AWS secret writes ASK; the gh sibling still DENIES ---"
+# The asymmetry is the assertion. AWS versions its secrets (AWSPREVIOUS, a 30-day recovery window,
+# SSM parameter history); GitHub Actions secrets have no version history at all. Collapse the two
+# back into one verdict in either direction and this block reddens.
+check ASK   "5: put-secret-value"              "aws secretsmanager put-secret-value --secret-id x"
+check ASK   "5: create-secret"                 "aws secretsmanager create-secret --name x"
+check ASK   "5: delete-secret is SCHEDULED"    "aws secretsmanager delete-secret --secret-id x"
+check ASK   "5: restore-secret is the REPAIR"  "aws secretsmanager restore-secret --secret-id x"
+check ASK   "5: ssm SecureString"              "aws ssm put-parameter --name x --type SecureString"
+check DENY  "5b: gh secret set has no history" "gh secret set MY_TOKEN"
+check DENY  "5b: gh secret delete behind -R"   "gh -R owner/repo secret delete MY_TOKEN"
+check ALLOW "5: reading a secret is untouched" "aws secretsmanager get-secret-value --secret-id x"
+check ALLOW "5: reading a parameter"           "aws ssm get-parameter --name x"
+check ALLOW "5: ssm String is not SecureString" "aws ssm put-parameter --name x --type String"
+
+echo "--- rule 5g: repo delete DENIES; archive/rename ASK ---"
+# delete does not reverse: the immutable OIDC subject id is not reissued on a re-create, so every AWS
+# trust pinned to it breaks permanently. archive/rename both reverse, and the trusts survive a rename
+# precisely BECAUSE the subject pins the id rather than the name.
+check DENY  "5g: repo delete"                  "gh repo delete owner/repo --yes"
+check DENY  "5g: repo delete behind -R"        "gh -R owner/repo repo delete --yes"
+check ASK   "5g: archive unarchives"           "gh repo archive owner/repo"
+check ASK   "5g: rename renames back"          "gh repo rename newname"
+check ASK   "5g: archive behind --repo="       "gh --repo=owner/repo repo archive"
+check ASK   "5g: rename behind -R attached"    "gh -Rowner/repo repo rename newname"
+check ALLOW "5g: repo view is neither"         "gh repo view owner/repo"
+
+echo "--- #383 S3: what did NOT move, asserted so a later slice notices if it does ---"
+# 5f was scoped into S3 as a downgrade and was NOT shipped — see the rule's own comment for the
+# measurement that stopped it. These arms pin the verdict that survived, so "5f still denies the raw
+# API write" is a checked fact rather than a claim in a PR body.
+check DENY  "5f: raw-API repo delete"          "gh api -X DELETE repos/owner/repo"
+check DENY  "5f: -f alone makes it a POST"     "gh api repos/owner/repo/issues -f title=x"
+check ALLOW "5f: a read is still a read"       "gh api repos/owner/repo/issues/1/comments"
 
 rm -rf "$FEAT"
 rm -rf "$GH_STUB_DIR"
