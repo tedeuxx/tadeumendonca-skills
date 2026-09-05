@@ -123,10 +123,21 @@ The eleven principles:
 
 ### Permissions
 
-**Pre-authorize the inner loop**, which is git-reversible. **Deny the irreversible boundary** —
-`terraform apply`/`destroy`, direct cloud mutation, force-push, history rewrite, hard reset, recursive
-delete, secret writes, and any flag that disables the permission system itself — and gate at the repo's
+**Pre-authorize the inner loop**, which is git-reversible. **Deny the irreparable boundary** —
+`terraform apply`/`destroy`, direct cloud mutation, hard reset, recursive delete, GitHub secret writes,
+repository deletion, and any flag that disables the permission system itself — and gate at the repo's
 point of no return. Never `--dangerously-skip-permissions`.
+
+**The word is *irreparable*, not *irreversible*, and #383 S3 is where the difference was paid for.**
+Escaping git and being unrecoverable are different properties, and the floor had been using the first
+as evidence for the second. Three acts that escape git and nonetheless **reverse** came off the deny
+list and became `ask`: **force-push** (the old tip survives in the reflog and in the remote's
+unreachable objects), **AWS secret writes** (version stages, a 30-day recovery window, SSM parameter
+history) and **`gh repo archive`/`rename`** (both undo; the OIDC trusts pin the immutable repository
+id, not its name). Each was split from a neighbour that genuinely does not reverse and keeps its deny
+— `git reset --hard`, `gh secret set`, `gh repo delete`. **An `ask` was measured to fail CLOSED where
+nobody can answer it**, in a headless session and in a dispatched subagent alike, so this narrows what
+the floor claims without opening a silent hole.
 
 **Permissions are a versioned repo contract**: the committed `settings.json`, never the gitignored local
 overlay. A prohibition that lives only in an unreviewed local file is one "allow always" click from
@@ -1549,8 +1560,9 @@ in three classes, one of which is an admission.
 `preflight` is the newest and the only one that stops the session rather than an action (#342). Every
 other hook here fails open on a missing dependency and says nothing — `permission-guard.sh` reads its
 payload with `jq` and exits before rule 1 when `jq` is absent, so one binary off `PATH` silently
-disables the merge floor, the trunk-push floor, `terraform apply`, force-push, `rm -rf`, secret writes
-and every persona boundary at once. The owner ruled it **blocking**, in one word, with the cost named
+disables the merge floor, the trunk-push floor, `terraform apply`, `rm -rf`, `git reset --hard`,
+GitHub secret writes, repository deletion and every persona boundary at once — **plus the three
+`ask` rules #383 S3 added, which fail closed only while the guard runs at all**. The owner ruled it **blocking**, in one word, with the cost named
 first. **Where it is registered was a measurement, not a preference**: `SessionStart` cannot deny — in
 the shipped bundle a `SessionStart` hook's `blockingError` is pushed into the session's context as
 *text*, and the event sits in that bundle's own non-blocking set — while `UserPromptSubmit` blocks for

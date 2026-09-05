@@ -309,9 +309,16 @@ Follow `/agents-configuration`. Nothing here relaxes it:
 ## What autonomy does NOT extend to
 
 Unchanged, and this command grants nothing: pushing or merging to `main` outside the reviewer's
-verdict, `terraform apply`/`destroy`, direct cloud mutation, force-push, `rm -rf`, secret writes,
-`--dangerously-skip-permissions`. Autonomy is about **not asking on in-pattern work**, never about
-widening the floor.
+verdict, `terraform apply`/`destroy`, direct cloud mutation, `rm -rf`, `git reset --hard`, GitHub
+secret writes, repository deletion, `--dangerously-skip-permissions`. Autonomy is about **not asking
+on in-pattern work**, never about widening the floor.
+
+**Three acts moved from *denied* to *asked* at #383 S3, and autonomy does not cover them either** —
+force-push, AWS secret writes, `gh repo archive`/`rename`. They are reparable, so they are no longer
+on the floor; they still stop for the owner, because whether each is right is not visible in the
+command. **Autonomy mode does not pre-answer that prompt.** If one fires mid-drain, it is an owner
+decision the slice did not expect — handle it the way this command already prescribes for that case:
+write the question on the Issue, cut the slice to what can still finish, and move on.
 
 ## Between dispatch and verdict
 
@@ -653,8 +660,10 @@ summary.
 ## What this does NOT do
 
 - It does not revoke anything the permission floor already denies. Mode `on` never granted
-  `terraform apply`/`destroy`, direct cloud mutation, force-push, `rm -rf`, secret writes, or merging
-  outside the gatekeeper's verdict — this mode has nothing to take back on that axis.
+  `terraform apply`/`destroy`, direct cloud mutation, `rm -rf`, `git reset --hard`, GitHub secret
+  writes, or merging outside the gatekeeper's verdict — this mode has nothing to take back on that
+  axis. Nor did it ever grant the acts that now **ask** rather than deny (force-push, AWS secret
+  writes, `gh repo archive`/`rename`, #383 S3): an `ask` is not autonomy, and neither mode answers it.
 - **It is not a mechanism.** Nothing in this repo tracks "the session is in autonomy mode" as state —
   no flag, no file, no hook reads it. `on` and `off` are both **instructions to the
   agent reading them**, not a state machine. A session transcript that never invokes either mode

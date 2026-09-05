@@ -205,6 +205,17 @@ deny() {
   exit 0
 }
 
+ask() {
+  jq -n --arg r "$1" '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "ask",
+      permissionDecisionReason: $r
+    }
+  }'
+  exit 0
+}
+
 # For the class where the thing that makes an act right or wrong is NOT visible in the command, and
 # the owner is the only one who can see it. `deny` would be a lie there — it says "never", when the
 # truth is "not unless the owner agrees" — and a denial the owner has to work around by typing the
@@ -248,6 +259,53 @@ deny() {
 # for that class the owner's answer to a prompt IS the verification — the guard never has to
 # distinguish *he told me to* from *I decided it myself*. What is gone is not the argument. It is the
 # only rule that was ever in the class.
+#
+# ── RESTORED A SECOND TIME, 2026-09-05 (#383, slice S3), ON THOSE SAME TERMS ──────────────────────
+# ~~THIS GUARD NOW EMITS NO `ask` VERDICT AT ALL~~ — struck: it emits four, and the tombstone above is
+# left standing because its RULE is what authorised the restore. Rules arrived that are in the class:
+# S3 downgraded four acts the owner's narrowed criterion prices below `deny` — force-push (3b), AWS
+# secret writes (5), and `gh repo archive`/`rename` (5g). Each is REPARABLE, so `deny` would be the lie
+# this comment names ("never", when the truth is "not unless the owner agrees"); and for each, whether
+# the act is right is not visible in the command — a force-push onto a shared branch and a force-push
+# onto the agent's own throwaway branch are the same string.
+#
+# ── WHAT AN UNANSWERABLE `ask` ACTUALLY DOES — MEASURED 2026-09-05, AND IT WAS THE OPEN QUESTION ──
+# The paragraph above says a dispatched subagent has no prompt surface, so `ask` there "resolves to
+# whatever the harness does with an unanswerable prompt, which is a behaviour this file has NOT
+# measured." **It is measured now, because S3 could not ship a downgrade whose failure direction was
+# unknown.** Probe plugin loaded with `claude --plugin-dir`, build 2.1.261, one hook returning `ask`
+# on one marker and `deny` on another, every verdict confirmed on disk rather than taken from the
+# nested model's narration:
+#
+#   MAIN session, headless `-p`:
+#     hook `ask`                     -> REFUSED, hook's reason surfaced, directory NOT created
+#     hook `ask` + settings `deny`   -> REFUSED by the PERMISSION LAYER; the hook's ask text never
+#                                       appeared, so a static `deny` BEATS a hook `ask`
+#     hook `deny`                    -> REFUSED, hook's reason surfaced (control)
+#     hook abstains, cmd allowlisted -> EXECUTED (control)
+#
+#   DISPATCHED SUBAGENT (Task, general-purpose), the case this file called unmeasured:
+#     hook `ask`                     -> REFUSED, hook's reason surfaced, directory NOT created
+#     hook `deny`                    -> REFUSED (control)
+#     hook abstains, cmd allowlisted -> EXECUTED (control — proves the subagent really ran)
+#
+# **AN `ask` FAILS CLOSED WHERE THERE IS NOBODY TO ANSWER IT.** That is the fact the downgrades in this
+# slice rest on: deny -> ask is a genuine loosening only where a human is present to say yes, and it is
+# NOT a silent hole anywhere else. A subagent gets a refusal carrying the reason, which is the same
+# actionable instruction a `deny` gave it.
+#
+# **AND A STATIC `deny` IS NOT WEAKENED BY A HOOK `ask` OVER THE SAME COMMAND.** Every act downgraded in
+# S3 keeps whatever static deny already covered it; the downgrade only reaches the spellings the static
+# layer cannot express (`git -C <dir> push --force`, `gh -R o/r repo archive`), and those become a
+# prompt rather than a silent execution.
+#
+# **NOT MEASURED, AND NAMED RATHER THAN ASSUMED: the INTERACTIVE main session.** Both readings above are
+# headless (`-p`), where there is no prompt surface at all — so what was observed is the *floor* of an
+# `ask`'s behaviour, not its intended one. In the owner's interactive session an `ask` is expected to
+# render an approvable prompt, which is the whole point of the verdict; that expectation is untested
+# here because a nested interactive session cannot be driven from a hook-bound probe. **If it turned out
+# that an interactive `ask` also merely refuses, these four downgrades would deliver no autonomy at all
+# and would be deny-with-a-softer-message** — worth knowing, and it fails safe either way.
 
 # Single-line, collapsed whitespace for matching.
 cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
@@ -455,9 +513,70 @@ if printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])terraform([[:space:]].*)?[[:s
   deny "Blocked: 'terraform apply/destroy' is pipeline-only — IaC mutations run in CI, never locally. Use 'terraform plan' to inspect."
 fi
 
-# 3. Irreversible git history / ref rewrites.
-if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*(push([[:space:]].*)?([[:space:]](--force|--force-with-lease|-f)([[:space:]]|$))|reset[[:space:]]+--hard)'; then
-  deny "Blocked: force-push / 'git reset --hard' rewrites history irreversibly. Use a safe alternative (git revert, a new commit)."
+# 3. Irreversible git history / ref rewrites. SPLIT IN TWO 2026-09-05 (#383, slice S3), and the split
+#    is the whole content of the change: the two acts this rule matched with one regex and refused with
+#    one sentence are NOT the same act under the owner's narrowed criterion — «situacoes irreparaveis».
+#
+#    3a. `git reset --hard` — KEEPS ITS DENY. Uncommitted work has no other copy anywhere. Nothing in
+#        the reflog, nothing on the remote, nothing in the index once it is gone. It passes the strict
+#        test on the merits.
+#
+#    3b. force-push — DOWNGRADED TO `ask`. A force-pushed branch is recoverable from two independent
+#        places: the pusher's own reflog, which still names the pre-push tip, and the remote's
+#        unreachable objects, which survive until that repository is garbage-collected. It is costly
+#        and loud; it is not irreparable, and this file's floor is now irreparability alone.
+#
+#    WHY `ask` AND NOT REMOVAL, WHICH IS THE PART A LATER READER WILL WANT TO SECOND-GUESS. Removing
+#    the branch would not degrade this to a prompt — it would degrade it UNEVENLY, and the uneven half
+#    executes in silence. The static layers deny only the spellings where the flag follows `push`
+#    IMMEDIATELY (`Bash(git push --force:*)`, `--force-with-lease`, `-f`), because a settings entry is
+#    a token-bounded PREFIX. Measured 2026-09-05 with a probe settings file loaded via `--settings`,
+#    the verdict read off disk:
+#
+#      deny  Bash(mkdir <P>/BOUND:*)   vs  mkdir <P>/BOUND    -> DENIED   (control)
+#                                          mkdir <P>/BOUNDX   -> CREATED  <- the finding
+#                                          mkdir <P>/OTHER    -> CREATED  (control)
+#
+#    So `:*` is a TOKEN boundary, not a raw prefix — which is why `--force-with-lease` had to be listed
+#    separately from `--force` in the first place, and it generalises: a settings entry cannot express
+#    "this flag ANYWHERE in the command". ~~These all walk past every static entry~~ — ONE of the two
+#    does, and the example that did not is corrected here rather than deleted, because it is the one a
+#    reader would have checked first:
+#
+#      git push origin main --force        ~~(flag after the refspec — no entry is a prefix of this)~~
+#                                          WRONG. `Bash(git push origin main:*)` is in the deny list of
+#                                          BOTH settings layers, and a token boundary matches an entry
+#                                          plus ANY trailing tokens — so this spelling IS denied
+#                                          statically. Measured 2026-09-05, same technique as the
+#                                          BOUND/BOUNDX probe above, third arm added for exactly this:
+#                                            deny Bash(mkdir -p <P>/out/main:*)
+#                                              mkdir -p <P>/out/main            -> DENIED  (control)
+#                                              mkdir -p <P>/out/main <P>/EXTRA  -> DENIED  <- the point
+#                                              mkdir -p <P>/out/mainX           -> CREATED (control)
+#      git -C <dir> push --force           (prefix is `git -C`, which is ALLOWLISTED) — this one is
+#                                          real, and it is what the branch is actually for. Measured by
+#                                          EXECUTION: with the plugin disabled, `git -C <repo> push
+#                                          --force origin main` against a local bare remote moved that
+#                                          remote's `main` (d7e5677 -> 42b3173, forced).
+#
+#    Keeping the branch as `ask` is therefore strictly better than removing it: the spellings the
+#    static layer already denies STAY DENIED — measured, a static `deny` beats a hook `ask` — and the
+#    one it cannot express becomes a prompt instead of a silent execution. See the helper comment
+#    above for the full probe, including that an `ask` in a dispatched subagent FAILS CLOSED.
+#
+#    ── WHERE 3b's EXECUTABLE BLOCK LIVES, AND WHY IT IS NOT HERE ────────────────────────────────────
+#    **3b's `if` is BELOW rule 7, not here, and that position is LOAD-BEARING.** `ask()` calls
+#    `exit 0`, so a matching `ask` ends the script and every rule after it is unreachable. 3b's pattern
+#    matches `git -C <repo> push --force origin main` — which is ALSO rule 7's trunk push, the one
+#    member of this pair that stays irreparable — so with 3b above rule 7 the trunk classification was
+#    never reached and a force-push to the trunk came out `ask`. Measured at 9aca9d4, before the move:
+#      git -C <repo> push --force origin main   -> ASK    (3b)
+#      same, with 3b neutralised                -> DENY   (rule 7 DOES match; it was never reached)
+#    The same shape as 5g's ordering, recorded the same way: **rule 7's deny must stay ABOVE 3b's ask,
+#    or the trunk's one irreparable member becomes a prompt.** Do not move 3b back up to sit beside 3a
+#    for tidiness — the adjacency is cosmetic and the ordering is the control. Arms pin both sides.
+if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*reset[[:space:]]+--hard'; then
+  deny "Blocked: 'git reset --hard' discards uncommitted work, and uncommitted work has no other copy — not in the reflog, not on the remote, not in the index. That is the irreparable half of what this rule used to refuse in one sentence; the force-push half is now rule 3b and asks instead. Use a safe alternative: commit first, 'git stash', or 'git revert' for something already committed."
 fi
 
 # 4. Recursive force delete (escapes git).
@@ -562,12 +681,62 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   deny "Blocked: 'git clean -f' deletes UNTRACKED files — the one class git cannot restore, so it is as irreversible as 'rm -rf'. Remove the specific paths you mean, or use 'git clean -n' to see what it would take."
 fi
 
-# 5. Secret writes (sensitive, escape git).
+# 5. AWS secret writes — DOWNGRADED TO `ask` 2026-09-05 (#383, slice S3).
+#
+#    THE ACT IS REPARABLE, AND THAT IS THE ONLY REASON IT MOVED. AWS keeps a prior version of both
+#    things this rule matches, so a wrong write here is recoverable without a restore from anywhere
+#    else:
+#      · Secrets Manager versions every value and labels the previous one `AWSPREVIOUS`, so a bad
+#        `put-secret-value` is undone by moving the `AWSCURRENT` stage back.
+#      · `delete-secret` is a SCHEDULED deletion with a recovery window (7–30 days, 30 by default), and
+#        `restore-secret` — which this rule also matched, i.e. it was denying the REPAIR — cancels it.
+#      · SSM keeps parameter history, so a `put-parameter --overwrite` has the prior value behind it.
+#
+#    **DO NOT READ THIS AS "SECRET WRITES ARE FINE NOW."** The pipeline still provisions secrets and the
+#    agent still does not; what changed is which layer says so. This is the class the `ask` helper's
+#    comment describes exactly — the command cannot show whether the write is the owner's intent, and
+#    his answer to the prompt IS the verification.
+#
+#    WHAT THIS COSTS, AND IT IS SMALLER THAN IT LOOKS: `aws` is in NEITHER the allow nor the deny list
+#    of EITHER settings layer (both read at head, 2026-09-05), so removing this rule outright would
+#    already have landed on a permission prompt rather than on silent execution. The downgrade buys a
+#    prompt that arrives WITH THE REASON attached instead of a bare "needs approval", which is the
+#    difference between the owner deciding and the owner guessing.
+#
+#    THE SIBLING THAT DID NOT MOVE, said here so the asymmetry is not read as an oversight: `gh secret
+#    set/delete` (5b) KEEPS ITS DENY. GitHub Actions secrets have no version history and no recovery
+#    window — the old value is gone the moment it is overwritten. Same word, different act.
+#
+#    ── DISCLOSED NARROWING: THIS RULE PRE-EMPTS RULE 6 FOR `delete-secret` ─────────────────────────
+#    `ask()` exits, so where this rule matches, rule 6 below never runs. One command is in both:
+#    `aws secretsmanager delete-secret` matches rule 6's `aws <service> (delete|terminate|...)-` family
+#    as well, and rule 6 is a `deny`. So this downgrade did not only move `delete-secret` off THIS
+#    rule's floor — it took it off rule 6's too. Measured 2026-09-05:
+#      aws secretsmanager delete-secret --secret-id x   origin/main -> DENY (rule 6) · head -> ASK (5)
+#
+#    **THAT NARROWING IS ARGUED ON THE MERITS AND IS KEPT; what was missing was saying so where the
+#    reader meets the rule, and that is the whole of this paragraph.** The merits: `delete-secret` is a
+#    SCHEDULED deletion with a 7–30 day recovery window that `restore-secret` cancels, so it restores
+#    and the narrowed criterion — «situacoes irreparaveis» — does not reach it under EITHER rule's
+#    number. Rule 6's verdict on this one member was wrong for the same reason rule 5's was, which is
+#    why the pre-emption produces the right answer rather than merely a different one.
+#
+#    **The contrast with 3b's ordering defect, because the two look identical and are not.** There,
+#    rule 7 was the STRICTER rule and was correct about its member, so pre-empting it was a hole and
+#    the fix was to reorder. Here rule 6 is stricter and WRONG about this member, so pre-empting it is
+#    the intended verdict and reordering would restore a deny that the criterion does not support. The
+#    test is never "which rule is stricter" — it is "which rule is right about the act", and only the
+#    second one licenses an earlier `ask`. **What is NOT covered: the rest of rule 6.** Every other
+#    `aws ... delete-*`/`terminate-*` still denies, and nothing about this paragraph loosens it.
+#
+#    ~~undisclosed~~ — this narrowing shipped at 9aca9d4 with no note anywhere, and was found by the
+#    merge gate rather than by the slice. Recorded as the finding it was, not as a decision that was
+#    always written down.
 if printf '%s' "$cmd" | grep -Eq 'aws[[:space:]]+secretsmanager[[:space:]]+(put-secret-value|create-secret|update-secret|delete-secret|restore-secret)'; then
-  deny "Blocked: writing secrets via CLI. Secrets are provisioned by the pipeline, not by the agent."
+  ask "This writes a secret through the AWS CLI. It is no longer a floor deny (#383) because Secrets Manager is versioned — the previous value stays behind the AWSPREVIOUS stage, and 'delete-secret' only SCHEDULES a deletion with a recovery window that 'restore-secret' cancels — so this is reparable, and this guard's floor is irreparability alone. It still asks, because the standing rule is unchanged: secrets are provisioned by the pipeline, not by the agent. Answer no unless you specifically intended this write. Note that 'gh secret set/delete' is a DIFFERENT act and stays denied — GitHub Actions secrets have no version history, so there is nothing to roll back to."
 fi
 if printf '%s' "$cmd" | grep -Eq 'aws[[:space:]]+ssm[[:space:]]+put-parameter([[:space:]].*)?SecureString'; then
-  deny "Blocked: writing a SecureString parameter. Secrets are provisioned by the pipeline, not by the agent."
+  ask "This writes a SecureString parameter. It is no longer a floor deny (#383) because SSM keeps parameter history, so the prior value survives an --overwrite and this is reparable. It still asks: secrets are provisioned by the pipeline, not by the agent. Answer no unless you specifically intended this write."
 fi
 
 # 5b. Secret writes via gh, in any spelling. Same prefix-matcher blind spot as rule 7:
@@ -628,8 +797,28 @@ fi
 #       `claude --dangerously-skip-permissions` — already rule 1, which matches the flag anywhere in
 #         the string.
 #       `gh pr merge --squash` — belongs with the merge gate, so it is enforced in 7b rather than here.
-if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+repo[[:space:]]+(delete|archive|rename)([[:space:]]|\$)"; then
-  deny "Blocked: 'gh repo delete/archive/rename' changes or destroys the repository itself, and it escapes git entirely. A rename also breaks every AWS OIDC trust pinned to the immutable subject (repo:<org>@<id>/<repo>@<id>:*). This is the human's act, on the GitHub UI, never the agent's."
+# SPLIT IN THREE 2026-09-05 (#383, slice S3). One regex matched `delete`, `archive` and `rename` and
+# refused all three with one sentence; under the narrowed criterion only the first is irreparable.
+#   delete  — KEEPS ITS DENY. The repository, its history, its Issues and its immutable OIDC subject id
+#             are gone, and the id is not reissued on a re-create, so every AWS trust pinned to it
+#             breaks in a way that re-creating the repo does NOT repair.
+#   archive — `gh repo unarchive` exists. Reparable.
+#   rename  — rename it back. The OIDC breakage the old deny text cited is real and IS repaired by the
+#             same act, because the subject pins the immutable ID rather than the name — which is the
+#             very property that makes a rename survivable and a delete not.
+#
+# THE ORDER OF THESE TWO BRANCHES IS LOAD-BEARING, AND IT IS RECORDED BECAUSE A MUTATION FOUND IT.
+# The `delete` deny MUST stay above the archive/rename ask: `deny` exits, so whatever runs first wins.
+# Widening the ask branch to include `delete` while it sits below is UNREACHABLE dead code — measured,
+# the suite stayed 412/0 under exactly that mutation, which reads like an uncaught defect and is not
+# one. Made reachable by swapping the two blocks, the same mutation turns `gh repo delete` into an
+# `ask` and reddens 8 arms. Keep them in this order; if they are ever reordered, the deny must move
+# with the ask or the floor's one irreparable member becomes a prompt.
+if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+repo[[:space:]]+delete([[:space:]]|\$)"; then
+  deny "Blocked: 'gh repo delete' destroys the repository itself — history, Issues, PRs and its immutable OIDC subject id, which is NOT reissued if you re-create a repository with the same name, so every AWS trust pinned to 'repo:<org>@<id>/<repo>@<id>:*' breaks permanently. This is the irreparable member of the family; 'archive' and 'rename' both reverse and now ask instead. This is the human's act, on the GitHub UI, never the agent's."
+fi
+if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+repo[[:space:]]+(archive|rename)([[:space:]]|\$)"; then
+  ask "This archives or renames the repository. It is no longer a floor deny (#383): 'gh repo unarchive' undoes an archive, and a rename is undone by renaming back — the AWS OIDC trusts pin the repository's IMMUTABLE id, not its name, so they survive the round trip. Both are reparable, and this guard's floor is irreparability alone. It still asks because it changes what the repository IS to everyone looking at it, and the command cannot show whether you meant to. Note 'gh repo delete' is a different act and stays denied — the id is not reissued, so that one does not reverse."
 fi
 if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+release[[:space:]]+(create|delete)([[:space:]]|\$)"; then
   deny "Blocked: creating or deleting a Release publishes or unpublishes a public artifact. The deploy workflow's 'release' job owns this — it bumps VERSION, tags and publishes in one pass, and a hand-made release desynchronises the three. Use 'gh release view/list' to inspect."
@@ -646,6 +835,49 @@ fi
 
 # 5f. `gh api` THAT WRITES (owner, 2026-08-04). The back door that rules 5c and 7b each booked as a
 #     permanently accepted gap, closed here — in the layer that can tell a read from a write.
+#
+#     ── SCOPED INTO #383 SLICE S3 AS A DOWNGRADE AND **NOT SHIPPED**. UNCHANGED AT HEAD. ───────────
+#     The audit scored 5f a downgrade on the ground that it "cannot tell `-X DELETE repos/o/r` from a
+#     comment POST", so it does not distinguish the case it exists for. S3's brief made shipping it
+#     conditional on a `Bash(gh api:*)` line landing in the PROJECT `.claude/settings.json` first,
+#     since only the GLOBAL layer carries one and that layer is out of scope for this Issue.
+#
+#     **THE PRECONDITION TURNED OUT NOT TO BE THE REASON TO STOP, AND SAYING SO PRECISELY MATTERS
+#     MORE THAN STOPPING.** Measured 2026-09-05, rule 5f neutralised in a probe copy loaded with
+#     `claude --plugin-dir`, the real plugin disabled, build 2.1.261:
+#
+#       session rooted IN the skills repo        `gh api probe-nonexistent -f a=b` -> DENIED
+#       session rooted OUTSIDE any repo          same command                      -> DENIED
+#         (both refusals were the PERMISSION LAYER's text, not a hook's)
+#
+#     So the audit's stated gap — "a session rooted elsewhere loses the project deny" — is **false on
+#     this machine**: user-level settings are not repo-scoped, they apply at every root. The project
+#     line is REDUNDANT here, not required. **Which removes the precondition and, in the same stroke,
+#     removes the benefit**: where the static deny already shadows this rule completely, deleting the
+#     rule changes nothing anyone can observe.
+#
+#     **AND WHERE IT IS NOT SHADOWED, DELETING IT IS A FLOOR REGRESSION.** `.claude/settings.json` does
+#     NOT travel with a plugin install, so every consumer of this plugin has these hooks and none of
+#     those deny entries. Asked directly, source-level, against a copy with 5f neutralised:
+#
+#       gh api -X DELETE repos/o/r          5f present -> deny        5f absent -> ABSTAIN
+#       gh api repos/o/r/issues -f title=x  5f present -> deny        5f absent -> ABSTAIN
+#       gh api repos/o/r/issues/1/comments  5f present -> ABSTAIN     5f absent -> ABSTAIN  (control)
+#
+#     The first row is the raw-API spelling of `gh repo delete` — the one member of 5g that THIS SAME
+#     SLICE keeps as irreparable, because the immutable OIDC subject id is not reissued. 5f is the only
+#     rule in this file that sees it in that spelling.
+#
+#     **THE HONEST VERDICT, WHICH IS NOT THE AUDIT'S: over-broad is a UX complaint, not an
+#     irreparability finding.** The criterion asks whether the class CONTAINS an irreparable act, and
+#     this one does. A rule that over-blocks reads is worth NARROWING; it is not worth deleting while
+#     it is the only layer standing in front of repository destruction for everyone who is not the
+#     owner. Narrowing it — and the KNOWN, ACCEPTED OVER-BLOCK noted further down is where that would
+#     start — is a different slice with a different argument, and it is not this one.
+#
+#     WHAT WOULD CHANGE THIS: an endpoint-aware narrowing that keeps the destructive routes denied and
+#     lets a comment POST through, or a decision that the plugin's floor is only ever the owner's floor
+#     and consumers are on their own. The second is the owner's to make, not the audit's.
 #
 #     NUMBERED 5f, PLACED FIRST AMONG THE `gh` RULES, same convention as 5e below: the NUMBER is
 #     lineage, the POSITION is deliberate. It runs before 5c and 7b because it is the route BOTH of
@@ -1126,6 +1358,23 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
     main|master)
       deny "Blocked: HEAD is '$branch', so this push lands on the trunk. Merging to main is the deploy and the human's go/no-go. Branch first, then push the branch." ;;
   esac
+fi
+
+# 3b. Force-push — DOWNGRADED TO `ask` (#383 S3). The argument for the downgrade, the token-boundary
+#     measurement and the reason this is an `ask` rather than a removal are all at rule 3's site above,
+#     where a reader meets the 3a/3b split; only the executable block lives here.
+#
+#     **IT SITS AFTER RULE 7 DELIBERATELY, AND THE ORDER IS THE CONTROL — NOT LAYOUT.** `ask()` exits,
+#     so whichever of the two matches first is the whole verdict. A force-push to the trunk matches
+#     BOTH: 3b (reparable — the old tip survives in the reflog and in the remote's unreachable objects)
+#     and rule 7 (a push to the trunk is the deploy, and that is not reparable by pushing again). Rule 7
+#     is the stricter of the two and must win, so it runs first. Moving this block back above rule 7 —
+#     for adjacency with 3a, which is the tempting reason — silently reopens a trunk force-push as a
+#     prompt. That is not hypothetical: it is what 9aca9d4 shipped, and the suite now pins both sides
+#     (`git -C <path> push --force origin main` -> DENY, `git push origin feature-x --force` -> ASK),
+#     so a revert in either direction reddens something instead of passing quietly.
+if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*push([[:space:]].*)?([[:space:]](--force|--force-with-lease|-f)([[:space:]]|$))'; then
+  ask "This force-pushes. It is no longer a floor deny (#383): a force-pushed branch survives in your own reflog and in the remote's unreachable objects, so it is loud and costly but REPARABLE, and this guard's floor is irreparability alone. It still asks, because whether it is right is not visible in the command — force-pushing your own throwaway branch and force-pushing a branch someone else has already pulled are the same string, and only you can tell them apart. Before answering: is anyone else's checkout downstream of this ref? If it is your own short-lived branch, say yes. If it is a shared or protected branch, say no and rebase-then-push, or push a new branch instead. Note that a force-push landing on the TRUNK never reaches this prompt at all: rule 7 above denies it outright, in every spelling, which is why this prompt can only ever be about a non-trunk ref."
 fi
 
 # 7b. Merging a PR is the deploy — ADR-0004 makes it the quality-assurance's act alone,
