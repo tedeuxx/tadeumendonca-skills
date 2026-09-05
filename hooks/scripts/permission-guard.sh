@@ -877,18 +877,27 @@ fi
 #             same act, because the subject pins the immutable ID rather than the name — which is the
 #             very property that makes a rename survivable and a delete not.
 #
-# THE ORDER OF THESE TWO BRANCHES IS LOAD-BEARING, AND IT IS RECORDED BECAUSE A MUTATION FOUND IT.
-# The `delete` deny MUST stay above the archive/rename ask: `deny` exits, so whatever runs first wins.
-# Widening the ask branch to include `delete` while it sits below is UNREACHABLE dead code — measured,
-# the suite stayed 412/0 under exactly that mutation, which reads like an uncaught defect and is not
-# one. Made reachable by swapping the two blocks, the same mutation turns `gh repo delete` into an
-# `ask` and reddens 8 arms. Keep them in this order; if they are ever reordered, the deny must move
-# with the ask or the floor's one irreparable member becomes a prompt.
+# **THE SPLIT IS KEPT; ARCHIVE/RENAME's VERDICT IS REVERTED TO `deny` the same day (#383, S3-revert,
+# owner: «reverte os três»).** The three-way reading above is correct and stays — the acts genuinely
+# differ, and they now carry different MESSAGES saying so. What is withdrawn is only the conclusion
+# that *reparable* licenses an `ask` here, because a hook `ask` is answered automatically in this
+# harness's default working mode: measured in the owner's own session, the guard returned `ask` and the
+# act executed with no prompt. The full measurement and the general rule are at rule 3's site, once.
+#
+# ~~THE ORDER OF THESE TWO BRANCHES IS LOAD-BEARING~~ — **the ORDER is kept and what it buys shrank,
+# exactly as at 3b and at rule 5's pre-emption; this is the third instance of one shape.** `deny`
+# exits, so whatever runs first wins — but both branches now deny, so the order decides which reason
+# the caller reads (delete's names the un-reissued OIDC subject id; archive/rename's names the undo).
+# The measurement that produced this note is kept because it is still the reason not to reorder
+# casually: widening the SECOND branch to include `delete` while it sits below is UNREACHABLE dead
+# code — the suite stayed 412/0 under exactly that mutation, which reads like an uncaught defect and
+# is not one. Under the revert the same mutation is invisible to every verdict arm as well, so the
+# branch that answers is asserted by reason instead.
 if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+repo[[:space:]]+delete([[:space:]]|\$)"; then
-  deny "Blocked: 'gh repo delete' destroys the repository itself — history, Issues, PRs and its immutable OIDC subject id, which is NOT reissued if you re-create a repository with the same name, so every AWS trust pinned to 'repo:<org>@<id>/<repo>@<id>:*' breaks permanently. This is the irreparable member of the family; 'archive' and 'rename' both reverse and now ask instead. This is the human's act, on the GitHub UI, never the agent's."
+  deny "Blocked: 'gh repo delete' destroys the repository itself — history, Issues, PRs and its immutable OIDC subject id, which is not reissued if you re-create a repository with the same name, so every AWS trust pinned to 'repo:<org>@<id>/<repo>@<id>:*' breaks permanently. This is the irreparable member of the family: 'archive' and 'rename' both reverse, and they are denied too (#383 S3-revert) for a different reason — not because they cannot be undone, but because a hook 'ask' does not reach the human in this harness's auto mode. This one would stand even if it did. This is the human's act, on the GitHub UI, never the agent's."
 fi
 if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+repo[[:space:]]+(archive|rename)([[:space:]]|\$)"; then
-  ask "This archives or renames the repository. It is no longer a floor deny (#383): 'gh repo unarchive' undoes an archive, and a rename is undone by renaming back — the AWS OIDC trusts pin the repository's IMMUTABLE id, not its name, so they survive the round trip. Both are reparable, and this guard's floor is irreparability alone. It still asks because it changes what the repository IS to everyone looking at it, and the command cannot show whether you meant to. Note 'gh repo delete' is a different act and stays denied — the id is not reissued, so that one does not reverse."
+  deny "Blocked: 'gh repo archive/rename' changes what the repository IS to everyone looking at it. This was briefly an 'ask' (#383 S3) on the argument that both REVERSE — 'gh repo unarchive' undoes an archive, a rename is undone by renaming back, and the AWS OIDC trusts survive because they pin the repository's IMMUTABLE id rather than its name — and that argument is still true. What failed is the remedy: a hook 'ask' is answered automatically in this harness's auto mode, measured in the owner's own session, so the downgrade produced a silent archive/rename rather than a prompt. Note 'gh repo delete' is a different act with a different message: the id is NOT reissued, so that one does not reverse at all. This is the human's act, on the GitHub UI, never the agent's."
 fi
 if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+release[[:space:]]+(create|delete)([[:space:]]|\$)"; then
   deny "Blocked: creating or deleting a Release publishes or unpublishes a public artifact. The deploy workflow's 'release' job owns this — it bumps VERSION, tags and publishes in one pass, and a hand-made release desynchronises the three. Use 'gh release view/list' to inspect."

@@ -1214,8 +1214,8 @@ check DENY  "repo delete"                   "gh repo delete owner/repo --yes"
 check DENY  "repo delete behind -R"         "gh -R owner/repo repo delete --yes"
 check DENY  "repo delete, -R attached"      "gh -Rowner/repo repo delete --yes"
 check DENY  "repo delete, --repo= attached" "gh --repo=owner/repo repo delete --yes"
-check ASK   "repo archive reverses"         "gh repo archive owner/repo"
-check ASK   "repo rename reverses"          "gh repo rename newname"
+check DENY  "repo archive (#383 revert)"    "gh repo archive owner/repo"
+check DENY  "repo rename (#383 revert)"     "gh repo rename newname"
 check DENY  "release create publishes"      "gh release create v1.2.3"
 check DENY  "release delete behind -R"      "gh -R owner/repo release delete v1.2.3"
 check DENY  "workflow run dispatches CI"    "gh workflow run deploy.yml"
@@ -1595,17 +1595,28 @@ check ALLOW "5: reading a secret is untouched" "aws secretsmanager get-secret-va
 check ALLOW "5: reading a parameter"           "aws ssm get-parameter --name x"
 check ALLOW "5: ssm String is not SecureString" "aws ssm put-parameter --name x --type String"
 
-echo "--- rule 5g: repo delete DENIES; archive/rename ASK ---"
+echo "--- rule 5g: delete and archive/rename BOTH deny again (#383 S3-revert); the split is in the text ---"
 # delete does not reverse: the immutable OIDC subject id is not reissued on a re-create, so every AWS
 # trust pinned to it breaks permanently. archive/rename both reverse, and the trusts survive a rename
-# precisely BECAUSE the subject pins the id rather than the name.
+# precisely BECAUSE the subject pins the id rather than the name. THAT READING IS UNCHANGED — what was
+# withdrawn is the conclusion that reparable licenses an `ask`, since a hook `ask` is answered
+# automatically in this harness's auto mode.
 check DENY  "5g: repo delete"                  "gh repo delete owner/repo --yes"
 check DENY  "5g: repo delete behind -R"        "gh -R owner/repo repo delete --yes"
-check ASK   "5g: archive unarchives"           "gh repo archive owner/repo"
-check ASK   "5g: rename renames back"          "gh repo rename newname"
-check ASK   "5g: archive behind --repo="       "gh --repo=owner/repo repo archive"
-check ASK   "5g: rename behind -R attached"    "gh -Rowner/repo repo rename newname"
+check DENY  "5g: archive (#383 S3-revert)"     "gh repo archive owner/repo"
+check DENY  "5g: rename (#383 S3-revert)"      "gh repo rename newname"
+check DENY  "5g: archive behind --repo="       "gh --repo=owner/repo repo archive"
+check DENY  "5g: rename behind -R attached"    "gh -Rowner/repo repo rename newname"
 check ALLOW "5g: repo view is neither"         "gh repo view owner/repo"
+# THE SPLIT IS KEPT AND ONLY THE MESSAGES CARRY IT NOW. delete and archive/rename are two branches
+# with two reasons; both DENY, so no verdict arm can tell which answered. Collapse them back into one
+# regex with one message and every verdict arm stays green while these two redden.
+# THE FIRST NEEDLE HERE WAS NOT DISCRIMINATING AND A MUTATION CAUGHT IT, WHICH IS WHY THIS COMMENT
+# EXISTS. "NOT reissued" appeared in BOTH messages, so a reachable collapse of the two branches left
+# the suite at 427/0 — an assertion that could not fail, inside the very block whose job is to detect
+# that collapse. Needles are now fragments each message alone carries.
+check_reason DENY "5g: delete names DESTRUCTION"        "destroys the repository itself" "gh repo delete owner/repo --yes"
+check_reason DENY "5g: archive/rename name the UNDO"    "unarchive"                      "gh repo archive owner/repo"
 
 echo "--- #383 S3: what did NOT move, asserted so a later slice notices if it does ---"
 # 5f was scoped into S3 as a downgrade and was NOT shipped — see the rule's own comment for the
