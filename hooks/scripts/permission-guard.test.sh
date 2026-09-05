@@ -1509,6 +1509,17 @@ echo "--- 3a/3b: BOTH halves DENY again (#383 S3-revert); the split survives in 
 # `check DENY` over both halves passes whether they are one regex or two — the exact shape of an
 # assertion that cannot fail. The `check_reason` arms below are what still discriminate: collapse 3a
 # and 3b back into one rule with one message and they redden, while every verdict arm stays green.
+#
+# THE TOTAL IS PLACEMENT-DEPENDENT, so re-run it rather than quoting a number from memory. Measured
+# 2026-09-05 (#383, gate round 1) on a copy with the suite untouched, collapsing into one regex with
+# one generic message carrying neither half's needle:
+#   collapsed at 3b's site (BELOW rule 7) -> 424 passed, 3 failed
+#     3a still speaks about uncommitted work · 3b still speaks about a rewritten ref
+#     · 3b answers the NON-TRUNK force-push
+#   collapsed at 3a's site (ABOVE rule 7) -> 423 passed, 4 failed  (the three above, plus
+#     `7 answers the TRUNK force-push`, because the widened rule now pre-empts rule 7 on the trunk)
+# The invariant across both is THREE arms; the fourth is an ordering side effect of where the
+# collapsed rule lands, not a property of the collapse. Every verdict arm stays green in both.
 check DENY  "3a: reset --hard, no other copy"  "git reset --hard HEAD~1"
 check DENY  "3a: reset --hard behind -C"       "git -C /some/repo reset --hard origin/main"
 check DENY  "3b: --force"                      "git push --force"
@@ -1551,8 +1562,25 @@ echo "--- 3b x rule 7: the ORDERING survives the revert, and it is now a claim a
 # survives. At 9aca9d4, 3b sat ABOVE rule 7 and won the intersection, so the trunk's one irreparable
 # member came out a PROMPT — a defect a verdict arm could see, because the two rules disagreed on the
 # verdict. They no longer disagree. A verdict-only battery is now green under BOTH orderings, so the
-# ordering is asserted by REASON below. Move 3b back above rule 7 and the two `check_reason` arms
-# redden while all eight verdict arms stay green; that gap is the whole reason the helper exists.
+# ordering is asserted by REASON below.
+#
+# EXACTLY ONE ARM CAN SEE A REORDER, AND SAYING WHICH IS THE POINT OF THIS PARAGRAPH. Move 3b back
+# above rule 7 and `7 answers the TRUNK force-push` reddens ALONE — 426 passed, 1 failed — while all
+# eight verdict arms stay green; that gap is the whole reason the helper exists. Its sibling,
+# `3b answers the NON-TRUNK force-push`, is STRUCTURALLY INCAPABLE of reddening here: rule 7 does not
+# match a non-trunk refspec at all, so 3b answers that payload under either ordering. It is in this
+# block to catch 3b's REMOVAL, not a reorder, and reading it as ordering cover is how someone deletes
+# the one arm that does the work and still believes the comment.
+#
+# ~~the two `check_reason` arms redden~~ — struck 2026-09-05 (#383, gate round 1). It was published
+# with this block and it does not reproduce; the arms are right and the sentence about them was not.
+# Re-run it like this, on a COPY of this directory, with the suite left untouched — cut 3b's `if`
+# block out of the source and paste it back in at each of the two plausible placements, then
+#   bash <copy>/permission-guard.test.sh | grep -E '^FAIL|passed,'
+#   placement 1, immediately above rule 7's comment      -> 426 passed, 1 failed
+#   placement 2, back beside 3a (the 9aca9d4 position)   -> 426 passed, 1 failed
+#   restored                                             -> 427 passed, 0 failed
+# Both placements fail the SAME single arm, `7 answers the TRUNK force-push`.
 check DENY  "7 wins: -C, trunk, --force"       "git -C /some/repo push --force origin main"
 check DENY  "7 wins: flag after the refspec"   "git push origin main --force"
 check DENY  "7 wins: --force before the ref"   "git push --force origin main"
