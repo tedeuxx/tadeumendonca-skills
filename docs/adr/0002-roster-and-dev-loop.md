@@ -4681,9 +4681,19 @@ question.
 - **A WORKLOG does not exist here.** He named *«metricas e worklog»*; `dispatch-metrics-stop.sh` is the
   metrics half and there is no worklog. Do not read the metrics hook as one.
 - **Open with no mechanism:** *how does this loop decide an item's cost or time has gone wrong?*
-- **Rules 10 and 11 stay exactly as they are.** Under decision 2 they prompt on acts that trade nothing
+- ~~**Rules 10 and 11 stay exactly as they are.** Under decision 2 they prompt on acts that trade nothing
   once a composition is confirmed. **They are the #365 floor and this amendment changes neither**; the
-  tension is named for the owner in `commands/sprint-planning.md` and left to him.
+  tension is named for the owner in `commands/sprint-planning.md` and left to him.~~
+
+  **Struck 2026-09-04 (#383): both rules are DELETED, and the second clause is the more damaging half.**
+  The owner priced the act below the audit's criterion of *irreparable* — *«mexer em milestones nao é um
+  risco crucial a iniciativa»* — so an admission is now allowlisted in both permission layers with no
+  hook answering first: **it executes silently rather than prompting.** And the pointer routed a reader
+  onward to an **open** question that is now **closed**: `commands/sprint-planning.md` records it
+  answered, not outstanding — *"N admissions is now zero prompts, not N"* — so a reader following this
+  bullet would arrive at a settled question having been told it awaits him. Struck rather than deleted
+  because this list's own heading says its contents must not be inferred away, which is the strongest
+  framing a false claim can have.
 - **`/sprint-review`, `/sprint-retrospective` and `/autonomy`'s preflight are UNTOUCHED.** An earlier
   draft of this slice declared an AFK/HITL half in each and rewrote the preflight's surfacing; the
   owner narrowed the ask and all of it was reverted. **The preflight still surfaces pendencies one at a

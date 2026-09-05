@@ -2960,6 +2960,22 @@ this section is for. They are recoverable from git history if anyone rebuilds it
 
 ### 2 · The three persona-keyed rules, reassessed against the thesis — and the answer is KEEP, three times, for three different reasons
 
+> **AMENDED 2026-09-04 (#383): rule 10 is REMOVED, so the heading above is false for one of its three
+> and the section below should be read with that subtraction.** The heading is part of the claim and is
+> named here rather than rewritten: *"KEEP, three times"* is now **KEEP twice** — rules 5c/5d and 5e
+> stand exactly as reassessed, and the **rule 10** paragraph immediately following describes a rule that
+> no longer exists.
+>
+> **What is now false in it:** every present-tense claim that `--milestone` is denied to a persona or
+> asked of the orchestrator. The act is allowlisted in both permission layers and the hook that answered
+> first is gone, so **it executes silently** — it does not degrade to a prompt. The removal's ground was
+> the owner's pricing of the act against a criterion of **irreparable**, not a re-argument about the
+> perimeter: *«mexer em milestones nao é um risco crucial a iniciativa»*.
+>
+> **What survives and is why the paragraph is not struck:** its unreconciled case — *if a future profile
+> is ever given composition, the rule offers only two verdicts and neither works* — was a finding about
+> `ask` and `deny` as a verdict pair, and that finding outlives the rule that occasioned it.
+
 **Rule 10 — `--milestone` denied to every persona, asked of the orchestrator (#365).** **Keep, unchanged.**
 It denies subagents an act **no persona's mandate includes**: composing an iteration is the owner's at
 planning, and the profile most likely to want it — `scrum-master` — is explicitly barred from placing

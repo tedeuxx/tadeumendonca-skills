@@ -501,9 +501,22 @@ fi
 #    Rule 5b's own comment records the identical finding against itself — `git commit -m "gh secret
 #    set X"`, a message ABOUT the act, denied as the act — and its fix was one token: `$cmd` -> `$bare`.
 #    `$bare` is computed above this rule, and it collapses single- and double-quoted spans, so the same
-#    substitution here abstains on both payloads above. It costs no false negative that was measured:
-#    a genuine `rm -rf '/some path'` leaves the FLAGS unquoted, so `$bare` still carries `rm -rf ` and
-#    the trailing space still matches.
+#    substitution here abstains on both payloads above. On the DIRECT form it costs nothing: a genuine
+#    `rm -rf '/some path'` leaves the FLAGS unquoted, so `$bare` still carries `rm -rf ` and the
+#    trailing space still matches.
+#
+#    BUT IT COSTS A FALSE NEGATIVE ON THE WRAPPED FORM, AND THAT IS THE FORM ADR-0004 ASSIGNS TO THIS
+#    HOOK — its layering amendment splits them in as many words: "the deny list holds the direct form,
+#    the hook holds the wrapped form". In an interpreter-wrapped payload the quoted span IS the
+#    command, so collapsing it deletes the act. Measured at this head, the same payload twice:
+#
+#      $cmd  = bash -c 'rm -rf /tmp/probe-x'   -> DENY   (this rule, today)
+#      $bare = bash -c ''                      -> no match, rule 4 abstains
+#
+#    `python3 -c "..."` and `node -e "..."` are both granted in the project allow and degrade the same
+#    way. So the one-token fix is NOT safe as measured, and its error runs in the dangerous direction:
+#    the CURRENT defect over-blocks a read, the PROPOSED fix under-blocks an irreversible act. Whatever
+#    S2 does here needs to keep the wrapped form covered — a bare substitution does not.
 #
 #    NOT CHANGED HERE, DELIBERATELY. S1's scope is removals; changing a floor rule's input is a
 #    behaviour change to a surviving irreversible-floor rule and needs its own mutation proof — the
