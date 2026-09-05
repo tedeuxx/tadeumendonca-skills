@@ -111,9 +111,19 @@
 # here. The reason it still fails open is now a different and weaker one, accepted with the cost named:
 #
 #   FAIL-CLOSED WEDGES THE AGENT, WITH NO REPAIR ROUTE THAT DOES NOT GO THROUGH THE HUMAN. This is not
-#   hypothetical — `wip-guard.sh` records the measured case: with `jq` off `PATH` the guard emitted no
-#   decision at all. A guard that denies everything when its own dependency is missing cannot be fixed
-#   by the agent, because fixing it requires running commands.
+#   hypothetical. THE MEASURED CASE, REHOMED HERE 2026-09-04 (#383) BECAUSE ITS ONLY RECORD WAS
+#   `wip-guard.sh`'S HEADER AND THAT FILE IS DELETED — three surviving hooks cited it there
+#   (`preflight.sh`, `session-plugin-version.sh` and this line), so the deletion would have left three
+#   live citations resolving to nothing:
+#
+#     WITH `jq` OFF `PATH`, THIS GUARD EMITTED NO DECISION AT ALL — silently. Every semantic rule it
+#     carries was off, and a main-agent `git push origin main` was allowed. Nothing anywhere said so.
+#     The failure is not that the guard broke; it is that a missing DEPENDENCY and a clean verdict are
+#     indistinguishable downstream. (That specific hole is what `preflight.sh` was later built to
+#     close, at `UserPromptSubmit`, by refusing the prompt rather than the command.)
+#
+#   A guard that denies everything when its own dependency is missing cannot be fixed by the agent,
+#   because fixing it requires running commands.
 #
 # **THE COST IS NOW LARGER THAN IT WAS, AND IT GROWS.** The layer that fails open is the layer carrying
 # the semantic cases — so a hook failure is not a degraded floor, it is an OPEN DOOR for every control
@@ -223,16 +233,21 @@ deny() {
 # to whatever the harness does with an unanswerable prompt, which is a behaviour this file has NOT
 # measured. Rule 10 therefore denies the subagent case outright and asks only the orchestrator; see
 # its own comment.
-ask() {
-  jq -n --arg r "$1" '{
-    hookSpecificOutput: {
-      hookEventName: "PreToolUse",
-      permissionDecision: "ask",
-      permissionDecisionReason: $r
-    }
-  }'
-  exit 0
-}
+#
+# ── THE HELPER IS DELETED AGAIN 2026-09-04 (#383), ON THE EXACT TERMS THIS COMMENT ALREADY SET ───
+# Rules 10 and 11 were its only callers, and both went when the owner priced the milestone act below
+# the audit's bar. The rule this helper's own history establishes, applied for the second time:
+# **leaving a helper nothing calls would be a mechanism the file claims and does not run.**
+#
+# THIS GUARD NOW EMITS NO `ask` VERDICT AT ALL — it denies, or it abstains. Nothing else. Know that
+# before writing the next rule: reaching for `ask` means re-adding those ten lines deliberately,
+# which is the point of removing them rather than leaving them idle.
+#
+# EVERYTHING ABOVE IS KEPT UNSTRUCK, because the ARGUMENT is still correct and is what a future rule
+# would re-derive: there is a real class of act whose rightness the command string cannot show, and
+# for that class the owner's answer to a prompt IS the verification — the guard never has to
+# distinguish *he told me to* from *I decided it myself*. What is gone is not the argument. It is the
+# only rule that was ever in the class.
 
 # Single-line, collapsed whitespace for matching.
 cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
@@ -468,6 +483,46 @@ fi
 #    Defence in depth, not the only control: the static `deny` lists in all three settings layers
 #    now spell these four forms out. The hook and the floor should agree, and this is the half that
 #    reads the command semantically rather than by prefix.
+#
+#    A THIRD FALSE POSITIVE, MEASURED 2026-09-04 (#383) AND RECORDED RATHER THAN FIXED — IT IS S2's,
+#    NOT S1's. This rule matches `$cmd`, not `$bare`. So a READ-ONLY command whose quoted SEARCH
+#    PATTERN names the act is denied AS the act. Measured against this guard at head, two payloads
+#    differing only in the character after the flag cluster:
+#
+#      grep -rn 'rm -rf'   <dir>   -> NO decision   (the closing quote breaks the trailing class)
+#      grep -rn 'rm -rf /' <dir>   -> DENY          ("recursive force delete ... escapes git")
+#
+#    Nothing is being deleted in either. The second is denied because the pattern's own trailing `/`
+#    satisfies `([[:space:]]|$|/)`. So whether a read-only grep runs depends on how the caller
+#    punctuated their search string — which is the exact property the comment above says a floor must
+#    not have, arriving from the other side of the same regex.
+#
+#    THIS IS A KNOWN, ALREADY-SOLVED DEFECT CLASS IN THIS FILE, WHICH IS WHY IT IS WORTH PINNING.
+#    Rule 5b's own comment records the identical finding against itself — `git commit -m "gh secret
+#    set X"`, a message ABOUT the act, denied as the act — and its fix was one token: `$cmd` -> `$bare`.
+#    `$bare` is computed above this rule, and it collapses single- and double-quoted spans, so the same
+#    substitution here abstains on both payloads above. On the DIRECT form it costs nothing: a genuine
+#    `rm -rf '/some path'` leaves the FLAGS unquoted, so `$bare` still carries `rm -rf ` and the
+#    trailing space still matches.
+#
+#    BUT IT COSTS A FALSE NEGATIVE ON THE WRAPPED FORM, AND THAT IS THE FORM ADR-0004 ASSIGNS TO THIS
+#    HOOK — its layering amendment splits them in as many words: "the deny list holds the direct form,
+#    the hook holds the wrapped form". In an interpreter-wrapped payload the quoted span IS the
+#    command, so collapsing it deletes the act. Measured at this head, the same payload twice:
+#
+#      $cmd  = bash -c 'rm -rf /tmp/probe-x'   -> DENY   (this rule, today)
+#      $bare = bash -c ''                      -> no match, rule 4 abstains
+#
+#    `python3 -c "..."` and `node -e "..."` are both granted in the project allow and degrade the same
+#    way. So the one-token fix is NOT safe as measured, and its error runs in the dangerous direction:
+#    the CURRENT defect over-blocks a read, the PROPOSED fix under-blocks an irreversible act. Whatever
+#    S2 does here needs to keep the wrapped form covered — a bare substitution does not.
+#
+#    NOT CHANGED HERE, DELIBERATELY. S1's scope is removals; changing a floor rule's input is a
+#    behaviour change to a surviving irreversible-floor rule and needs its own mutation proof — the
+#    same reasoning that left the `inventory-counts` purpose-declarer gap reported rather than fixed
+#    in this slice. It is pinned beside the rule so the UX pass over rules 8/8b meets it in the file
+#    it will already be editing, instead of rediscovering it by being bitten.
 rm_flag='([[:space:]]+(--[[:alpha:]][[:alpha:]-]*|-[[:alnum:]]+))*'
 rm_rec='[[:space:]]+(--recursive|-[[:alnum:]]*[rR][[:alnum:]]*)'
 rm_force='[[:space:]]+(--force|-[[:alnum:]]*[fF][[:alnum:]]*)'
@@ -653,7 +708,7 @@ fi
 #     The long forms keep `([[:space:]=]|$)`, which is what stops `--fieldwork` matching `--field`.
 gh_api_write='(--method|-X)[[:space:]=]*(POST|PUT|PATCH|DELETE)|(-f|-F)|(--field|--raw-field|--input)([[:space:]=]|$)'
 if printf '%s' "$bare" | grep -Eqi "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+api([[:space:]]+[^[:space:]]+)*[[:space:]]+(${gh_api_write})"; then
-  deny "Blocked: this \`gh api\` call WRITES (it carries --method POST/PUT/PATCH/DELETE, -X, -f/-F/--field/--raw-field, or --input; note that -f and -F make the request a POST on their own). The raw API is the back door around the rules that own these acts — opening an issue (5c/5d) and merging a PR (7b) — so a write here is the one spelling those gates cannot see. Use the gh subcommand for the act instead, so the rule that owns it applies: \`gh issue create\`, \`gh pr merge\`, \`gh pr comment\`. THIS RULE leaves READS untouched — drop the field flags and pass query parameters in the endpoint (\`gh api 'repos/o/r/issues?state=open'\`) — but a static \`Bash(gh api:*)\` deny may sit in the settings floor ABOVE this hook and refuse the read anyway; that is a different layer and this message cannot see it. And where an act has NO gh subcommand at all — creating a milestone, measured: \`gh milestone --help\` -> unknown command — this rule's remedy is unexecutable and the act needs its own reviewed route (see rule 11)."
+  deny "Blocked: this \`gh api\` call WRITES (it carries --method POST/PUT/PATCH/DELETE, -X, -f/-F/--field/--raw-field, or --input; note that -f and -F make the request a POST on their own). The raw API is the back door around the rules that own these acts — opening an issue (5c/5d) and merging a PR (7b) — so a write here is the one spelling those gates cannot see. Use the gh subcommand for the act instead, so the rule that owns it applies: \`gh issue create\`, \`gh pr merge\`, \`gh pr comment\`. THIS RULE leaves READS untouched — drop the field flags and pass query parameters in the endpoint (\`gh api 'repos/o/r/issues?state=open'\`) — but a static \`Bash(gh api:*)\` deny may sit in the settings floor ABOVE this hook and refuse the read anyway; that is a different layer and this message cannot see it. And where an act has NO gh subcommand at all — creating a milestone, measured: \`gh milestone --help\` -> unknown command — this rule's remedy is unexecutable and the act needs its own reviewed route: \`bash scripts/milestone-create.sh\`. NOTHING IN THIS FILE GUARDS THAT ROUTE — the rule that did (11) was removed 2026-09-04 (#383). It prompts only because \`scripts/\` matches no allow entry in either settings layer, which is an absence and not a control."
 fi
 
 # 5e. THE COPY LENS DOES NOT WRITE TO A PUBLIC SURFACE (owner, 2026-08-04).
@@ -1426,7 +1481,8 @@ fi
 #     operator, is lexically indistinguishable from a redirect by a tool that does not parse shell (the
 #     standing rule two rules up: this file expresses a property, it does not evaluate one), so a
 #     command using it will be denied too — a known, accepted false positive, the same shape and the
-#     same honesty as rule 9's own escape classes below. Likewise a heredoc body (`<<EOF … EOF`) that
+#     same honesty as the escape classes rule 9 used to pin here and ADR-0004 now holds (that rule was
+#     removed at #383; see the tombstone below). Likewise a heredoc body (`<<EOF … EOF`) that
 #     happens to contain a literal `>` (e.g. a markdown blockquote line) and is NOT itself feeding a
 #     redirect will still be denied — `bare` strips quoted-string CONTENTS upstream (line ~337) but a
 #     heredoc is not a quoted span in that sed's sense. Both are accepted rather than chased, because the
@@ -1436,302 +1492,72 @@ if printf '%s' "$bare" | grep -Eq '>{1,2}([^&]|$)'; then
   deny "Blocked: shell output redirection ('>' or '>>') to create or overwrite a file. Content you are composing yourself goes through the Write tool, never a heredoc piped into '>'. Content that is a command's own stdout: run the command WITHOUT the redirect (its output returns to you) and Write it from there if it needs to persist. (If this fired on '[[ a > b ]]' string comparison or a heredoc body containing a literal '>' rather than an actual redirect: rephrase without it — this floor does not parse shell and cannot tell the two apart.)"
 fi
 
-# 9. A SPEED BUMP ON THE NAIVE TRAVERSAL. **NOT A BOUND, AND IT MUST NEVER BE CITED AS ONE.**
+# 9. REMOVED 2026-09-04 (#383, slice S1). THE NUMBER IS LEFT VACANT DELIBERATELY — a rule list that
+#    silently renumbers makes every citation of "rule 9" in this repo's records point at whatever
+#    moved up into the slot.
 #
-#    ~~This is the control that makes a directory-scoped wildcard mean what it says.~~ **STRUCK the
-#    day it was written, 2026-08-07, by the gate that reviewed it.** It does not. `Bash(bash .scratch/*)`
-#    remains `bash <any path on disk>`; the owner accepted that knowingly (option A), and the record of
-#    the acceptance — not this rule — is what makes the floor honest.
+#    WHAT IT WAS: a deny on a `..` segment in the first non-flag token after a shell in command
+#    position. WHAT IT CLAIMED: nothing. Its own header called it "A SPEED BUMP ON THE NAIVE
+#    TRAVERSAL — NOT A BOUND, AND IT MUST NEVER BE CITED AS ONE", and three measured escape classes
+#    walked through it, one of which (`.""./`) has no `..` adjacency at all, so no widening of any
+#    pattern could ever have reached it.
 #
-#    THREE ESCAPE CLASSES, ALL MEASURED AGAINST THIS RULE IN FORCE:
+#    WHY IT WENT: the owner's criterion (#383) — a mechanical lock survives only where no other
+#    harness element can carry the control. This one carried no control to relocate. ADR-0004's
+#    section "A path in an `allow` entry is a string prefix, not a directory scope" already held the
+#    whole of what it knew, and now also holds the three escape spellings and the positional-parsing
+#    lesson that were only ever recorded here.
 #
-#      bash .scratch/\.\./\.\./other-repo/VERSION    ALLOW — backslash escape; `\` is not in the
-#                                                    preceding-character class, and `\.` is `.` to the shell
-#      bash .scratch/.""./.""./other-repo/VERSION    ALLOW — empty quoted span; there is no `..` ADJACENCY
-#                                                    anywhere in the string, so NO widening of the
-#                                                    character class can find it. This is the one that
-#                                                    settles the question.
-#      bash .scratch/link.sh                         ALLOW — symlink out; the guard never resolves paths
-#
-#    Note the asymmetry that would fool a single probe: escaping ONE dot pair still denies on the next.
-#    A prober who tried one escape and saw a deny would have concluded the rule held.
-#
-#    THE CAUSE, WHICH IS WHY THIS IS NOT A REGEX BUG. **Rule 9 asserts a FILESYSTEM property with a
-#    LEXICAL instrument.** Between the command string and the file that opens sit quote removal, escape
-#    processing and symlink resolution. This guard does none of the three — deliberately, since doing
-#    them means parsing shell — and every escape above is one of them. Widening the pattern a fourth
-#    time would repeat the week's defect at a higher altitude: the shape was never the problem.
-#
-#    WHY IT IS KEPT ANYWAY. It costs one grep, it catches the spelling a person or an agent reaches for
-#    without thinking, and a speed bump that announces itself as a speed bump is honest. What it must
-#    not do is appear in any sentence containing the word *bounded*. It buys no containment: the floor
-#    grants UNINSPECTED EXECUTION THROUGH MORE ENTRIES THAN ANYONE HAS ENUMERATED, so every act it
-#    denies is one interpreter away regardless. `python3` and `node` are the obvious ones; `perl` and
-#    `ruby` were removed BY NAME and are still reachable through `Bash(command:*)`, and `Bash(awk:*)`
-#    and `Bash(find:*)` each execute arbitrary code without naming an interpreter at all.
-#    **DO NOT REPLACE THIS WITH A LIST.** Two attempts to state the set as a number ("six", then "four")
-#    were each false one round later — a closed enumeration answering an open grammar. The claim is the
-#    PROPERTY, and the count is not part of it.
-#
-#    ── the original reasoning, kept because the standing rule it invokes is still right ──
-#    It is here because THE MATCHER CANNOT EXPRESS IT — the standing rule for the next rule, applied.
-#    That rule remains correct; what this episode adds to it is a SECOND question it did not ask:
-#    **can THIS LAYER hold the control, or only express it?** A hook can express a filesystem property
-#    it cannot evaluate, and expressing it reads exactly like enforcing it.
-#
-#    THE HOLE, MEASURED TWICE, THREE MONTHS APART BY DIFFERENT AUTHORS. `inventory-counts.test.sh`'s
-#    assertion 3 recorded it first (round 4, in its own comment): *"a path prefix is a STRING prefix …
-#    The prefix bounded the characters, not the directory."* It was measured again on #160, against a
-#    live floor, with the entry `Bash(bash .scratch/*)` in force:
-#
-#      $ bash .scratch/../../tadeumendonca-io/VERSION
-#      .scratch/../../tadeumendonca-io/VERSION: line 1: 0.1.193: command not found
-#
-#    No prompt, no denial. `bash` opened and executed a file in ANOTHER REPOSITORY; exit 127 is bash
-#    choking on the contents, and the permission decision was ALLOW. `.scratch/` was not a boundary,
-#    it was a PASSWORD — a required prefix token, after which any path on disk is reachable.
-#
-#    WHY THE RULE IS NOT "FORBID THE WILDCARD". That was the previous answer and it is a real one; it
-#    is written out in `inventory-counts.test.sh`, in the comment above its shell-wildcard assertion,
-#    which also says a future need "should arrive as a deliberate change to THIS assertion, reviewed,
-#    rather than as a quiet line in the floor." (The line locator this cited, `:461-464`, was stale and
-#    pointed at unrelated code; replaced 2026-08-19, #283 slice 1, per `documentation-standard`'s
-#    "cite the clause, not the line".)
-#    This is that change. Forbidding the wildcard restores the friction the scratch work exists to
-#    remove — one frozen absolute path per probe, and agents generate distinct paths.
-#
-#    ~~So the trade taken here is to keep the wildcard and make the DIRECTORY real, which only a hook
-#    can do.~~ **STRUCK the same day.** A hook cannot do it either — see the three escape classes above.
-#    THE TRADE ACTUALLY TAKEN (owner, 2026-08-07, option A) is to keep the wildcard and **record what it
-#    is**: `bash <any path on disk>`. The honesty lives in the RECORD, not in a mechanism, because no
-#    mechanism available at this layer delivers it. A floor that says what it does is worth more than a
-#    floor that claims a bound and has none — which is the state this PR was opened in.
-#
-#    WHAT IT DOES NOT BUY, stated because the opposite reading is the dangerous one. The floor grants
-#    uninspected execution through more entries than anyone has enumerated — `Bash(command:*)` alone
-#    restores `perl` and `ruby` after both were removed by name — so anything this rule denies in a
-#    shell spelling remains reachable one interpreter over. This rule does not narrow the agent's REACH
-#    by a single act. ~~It narrows what ONE ENTRY CLAIMS.~~ **It does not do that either** — the entry's
-#    claim is fixed by the record, above. That gap is ADR-0004's priced, accepted one; it is not closed
-#    as closed.
-#
-#    Reads `$cmd`, not `$bare`: `$bare` collapses quoted spans, so `bash '.scratch/../x'` would arrive
-#    as `bash ''` and walk through. Quoting must not be a spelling that exempts.
-#    ── THE FALSE DENY, AND WHY THE FIRST VERSION HAD IT ──
-#    Shipped as TWO INDEPENDENT greps over the whole string with NO POSITIONAL RELATION: "a shell name
-#    appears somewhere" AND "a `..` appears somewhere". Measured by the gate at round 3:
-#
-#      grep -rn bash ../tadeumendonca-io/hooks    DENY   <- `bash` is a SEARCH TERM. No shell invoked.
-#      grep -rn bashx ../tadeumendonca-io/hooks   ALLOW  <- one character apart, proving the cause
-#      bash .scratch/probe.sh --repo ../other     DENY   <- the `..` is in an ARGUMENT, not the path
-#
-#    And the deny message described a match that had not happened. A hard deny on ordinary work is
-#    worse than the hole it failed to close: the hole costs nothing today, this wedged the loop.
-#
-#    Twenty-two cases covered this rule and NOT ONE put the shell name in argument position. The table
-#    was written by whoever wrote the pattern, which is the miss this file already records twice under
-#    assertion 3 — a table samples the spellings its author had in mind.
-#
-#    NOW POSITIONAL: find the shell in COMMAND position (first word, or after a known wrapper), then
-#    check ONLY THE FIRST NON-FLAG TOKEN AFTER IT. That token is the script path and nothing else is.
-script_arg="$(printf '%s' "$cmd" | awk '
-  function base(p) { sub(/^.*\//, "", p); return p }
-  BEGIN { seen = 0 }
-  {
-    for (i = 1; i <= NF; i++) {
-      w = $i
-      if (seen) { if (substr(w, 1, 1) != "-") { print w; exit } ; continue }
-      b = base(w)
-      if (b == "bash" || b == "sh" || b == "zsh" || b == "ksh" || b == "dash") { seen = 1; continue }
-      # wrappers that may legitimately precede the interpreter; anything else means the shell name is
-      # an ARGUMENT to some other tool and this rule has no business firing.
-      if (b == "env" || b == "exec" || b == "command" || b == "busybox" || b == "nohup" || b == "time") continue
-      if (substr(w, 1, 1) == "-") continue
-      if (w ~ /^[A-Za-z_][A-Za-z0-9_]*=/) continue
-      exit
-    }
-  }')"
-if [ -n "$script_arg" ] \
-   && printf '%s' "$script_arg" | grep -Eq '(^|/|'"'"'|")\.\.(/|'"'"'|"|$)'; then
-  deny "Blocked: a script path handed to a shell contains a '..' segment. A path in an allow entry is a STRING prefix, not a directory scope — '<allowed-prefix>/../../x.sh' carries the prefix while reaching any file on disk, and permission-guard.sh deliberately does not look inside a script. Use the path without traversal, or run the script from the directory that owns it."
-fi
+#    WHAT ITS ABSENCE COSTS, MEASURED AND NOT SOFTENED. The global floor allows
+#    `Bash(bash <repo>/hooks/scripts/*)`, so a traversal carrying that prefix now EXECUTES SILENTLY —
+#    no prompt, no record. A path carrying no allowed prefix falls to a permission prompt. Neither
+#    outcome is new reach: every act rule 9 denied was already reachable one interpreter over
+#    (`command perl -e …` runs with no decision from any layer), which is exactly why the deny bought
+#    nothing. Do not re-add it without reading ADR-0004's section first.
 
-# 10. ADMITTING AN ITEM INTO AN ITERATION (#365). The owner's rule, 2026-08-30, verbatim:
+# 10 and 11. REMOVED 2026-09-04 (#383, slice S1) — THE MILESTONE PAIR. Numbers left vacant, for the
+#    reason rule 9's tombstone gives.
 #
-#       "itens nao podem ser criados dentro do sprint automaticamente sem verificacao HITL"
+#    WHAT THEY WERE. Rule 10 matched `gh issue create`/`gh issue edit` carrying `--milestone`/`-m` and
+#    split on `agent_type`: a subagent was DENIED, the orchestrator was ASKED. Rule 11 did the same for
+#    the `scripts/milestone-*.sh` family, the sanctioned milestone-write route. Together they were this
+#    file's only `ask` verdicts and its only PREVENTIVE answer to #365's *«itens nao podem ser criados
+#    dentro do sprint automaticamente sem verificacao HITL»* — the owner's answer to the prompt WAS
+#    that verification.
 #
-#     THE ACT THIS GUARDS IS NOT "AN ISSUE EXISTS" — it is "an issue carries a milestone", which is
-#     what changes a running iteration's contents and its completion bar. Those are different commands
-#     and only the second is this rule's business. `gh issue create` with no `--milestone` is untouched
-#     here and stays governed by 5c/5d alone.
+#    WHY THEY WENT, AND IT IS THE OWNER'S OWN PRICING RATHER THAN THE AUDIT'S PREFERENCE. The audit
+#    surfaced them as DROPs that collided with a standing instruction and refused to resolve it. He
+#    ruled:
 #
-#     WHY THIS LAYER, AND WHY THERE IS NO OTHER CANDIDATE. ADR-0004's standing question is which layer
-#     can carry a control. Measured 2026-08-30: `Bash(gh issue edit:*)` sits in BOTH the project floor
-#     and the global one, unscoped by caller, and this file carried no rule about it — so every persona
-#     and the orchestrator could assign any milestone to any issue with no decision from any layer. It
-#     cannot be expressed statically either: allow/deny entries are command PREFIXES and the issue
-#     number sits between `edit` and `--milestone`, so no prefix reaches the flag. One candidate, not a
-#     trade — which is rare enough in this file to be worth writing down.
+#        «mexer em milestones nao é um risco crucial a iniciativa»
 #
-#     TWO VERDICTS, SPLIT ON `agent_type`, AND THE SPLIT IS THE SAFETY PROPERTY RATHER THAN A NICETY:
+#    The criterion for this whole audit is IRREPARABLE, not costly and not merely traceable. A
+#    milestone assignment is undone by `--remove-milestone` — which rule 10 deliberately never matched,
+#    precisely because removal is the corrective act — and a milestone is deleted. Nothing latches.
 #
-#       A SUBAGENT IS DENIED. Composition is the owner's act at planning; no persona in the roster has
-#       any business assigning a milestone, so there is no legitimate call to prompt about. And an
-#       `ask` returned to a subagent reaches nobody — there is no prompt surface in a dispatched
-#       context — so asking there would trade a deterministic refusal for an unmeasured behaviour on a
-#       call that should be refused anyway. Deny is both the correct answer AND the one with no
-#       unknown in it.
+#    ── WHAT THIS COSTS, AND IT IS NOT A DOWNGRADE. READ THIS BEFORE ASSUMING THE FLOOR COVERS IT. ──
 #
-#       THE ORCHESTRATOR IS ASKED. That is the session the owner is sitting in, so the prompt reaches
-#       a person and his answer is the HITL verification the rule demands. This is the whole reason
-#       the rule is prevention rather than the `Stop`-hook detection its Issue expected: the wall that
-#       stopped #337, #339 and #363 — a guard cannot tell "he told me" from "I did it myself" — does
-#       not apply when the guard is allowed to ASK instead of having to KNOW.
+#    RULE 10 IS A REAL REMOVAL WITH SILENT EXECUTION. `Bash(gh issue edit:*)` is allowlisted in BOTH
+#    settings layers, and this hook decides BEFORE the permission system does. So an item is admitted
+#    to a running iteration with NO prompt, NO deny and NO record. **#365's objection was never that
+#    the act is dangerous — it was that it silently changes a running iteration's contents and its
+#    completion bar. That failure mode is unchanged; what is gone is the prompt that made it visible
+#    at the moment it happened.** Nothing detects it either: no hook in this directory reads the queue.
 #
-#     PLACED LAST, AFTER EVERY DENY, AND THAT POSITION IS LOAD-BEARING. `ask` exits, exactly as `deny`
-#     does. Sited next to rule 5c it would have exited BEFORE rules 7, 7b, 8 and 9, so
-#     `gh issue edit 5 --milestone x && git push origin main` would have come out ASK where rule 8
-#     denies it — an ask that SOFTENS a deny is a hole, not a prompt. This is the same "falling
-#     through is the only safe shape" lesson rule 5d already memorialises, and the cheapest way to
-#     obey it is to be the last rule in the file rather than to remember. Nothing may be appended
-#     below this block that denies.
+#    RULE 11 IS DIFFERENT AND MUST NOT BE DESCRIBED WITH RULE 10'S SENTENCE. `scripts/` matches no
+#    allow entry in either layer (the global floor allows `bash <repo>/hooks/scripts/*`, a different
+#    directory), so a milestone-script run still reaches a PERMISSION PROMPT for the orchestrator, and
+#    an unanswerable one for a subagent. **Its removal is close to behaviour-neutral; what is lost is
+#    the rule's own text, which explained WHY the prompt was there.**
 #
-#     WHAT IT DOES NOT CATCH, so nobody reads it as a bound. `gh api` would reach the same endpoint
-#     and is denied for writes by 5f, so that route is closed by a different rule and not by this one.
-#     The GitHub web UI is outside every layer here — which is correct rather than a gap, since a
-#     human clicking in a browser IS the verification. And the rule reads a flag, not an intent: an
-#     owner-directed admission and a self-directed one produce the same prompt, which is precisely
-#     why the prompt exists.
+#    AND THAT SURVIVING PROMPT IS AN ABSENCE, NOT A CONTROL — which is the shape ADR-0004 books under
+#    "Permission entries have three states, and absent is not one". Rule 11's own comment said so while
+#    it existed: leaning on the absence means an allow entry added later for an unrelated reason
+#    silently removes the verification, and nothing would say so. That is now the standing state.
 #
-#     `--remove-milestone` IS DELIBERATELY NOT MATCHED. Removing an item from a running iteration is
-#     the corrective act the owner performed by hand on #357 — it is what the rule wants to be easy,
-#     not what it guards. It also does not match by accident: the pattern requires `--milestone`
-#     preceded by start-or-space, and `--remove-milestone` contains no such substring.
-if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]=]*|--repo[[:space:]=]*)[^[:space:]]+)?[[:space:]]+issue[[:space:]]+(create|edit)([[:space:]]|$)' \
-   && printf '%s' "$bare" | grep -Eq '(^|[[:space:]])(--milestone|-m)([[:space:]=]|$)'; then
-  if [ -n "$agent_type" ]; then
-    deny "Blocked: a subagent does not admit an item into an iteration. Composing an iteration is the owner's act at planning (#365) — file or edit the issue without --milestone and say in your return which iteration you believe it belongs to, so he assigns it."
-  fi
-  ask "This assigns an iteration (--milestone), which changes what the running iteration contains. The owner's rule is that nothing enters it without human verification (#365), and answering this prompt IS that verification. Approve if he asked for this admission; refuse and file without a milestone if you are composing on your own."
-fi
-
-# 11. CREATING AN ITERATION'S MILESTONE (#375). Rule 10 guards ADMITTING an item into an iteration;
-#     this guards CREATING the iteration object itself, which is the one act in the Scrum rites that had
-#     no route at all.
-#
-#     THE ACT IS IMPOSSIBLE THROUGH THE ROUTE THIS FILE PRESCRIBES, MEASURED:
-#
-#       gh milestone --help   ->   unknown command "milestone" for "gh"
-#
-#     So rule 5f's remedy — "use the gh subcommand for the act instead, so the rule that owns it
-#     applies" — is UNEXECUTABLE here. 5f was written on the assumption that every act has an owning
-#     subcommand, and this is the counterexample: the act is not routed, it is unreachable.
-#
-#     THE ROUTE THIS RULE GUARDS IS AN EXPLOITATION, NOT A DESIGN, AND THIS COMMENT SAYS SO BECAUSE THE
-#     ALTERNATIVE IS AN ARTIFACT THAT READS AS A CLEAN LAYER. `scripts/milestone-create.sh` reaches the
-#     API because NEITHER the settings matcher NOR this file looks inside a script — the same sentence
-#     the `..`-traversal rule above already states about itself. Measured against this file, live:
-#
-#       gh api -X POST repos/o/r/milestones -f title=x            -> deny (5f)
-#       python3 -c "…subprocess.run(['gh','api','-X','POST',…])"  -> NO decision from any layer
-#       bash <repo>/<any>/<any>.sh …                              -> NO decision from any layer
-#
-#     **So 5f stops the convenient spelling of a raw-API write and not the available one.** Nobody is
-#     attacking; what changes is the argument. "A carve-out could be widened later" is decisive only if
-#     the thing being carved is load-bearing, and it is not. NO CHEAP MITIGATION EXISTS: closing the
-#     hole means removing `python3:*` / `node:*` / `npx:*` from the allow lists, which breaks the loop's
-#     own tooling. The price of accepting it is that no comment in this file, and no record, may claim
-#     the raw-API route is closed.
-#
-#     WHY NOT CARVE THE ENDPOINT INTO 5f INSTEAD, WHICH WOULD BE THE PRECISE FIX. Two reasons, and the
-#     second is decisive on its own. (a) Carving by endpoint is the precedent to avoid: the regex becomes
-#     a list, the list grows by request, each addition individually reasonable. (b) `Bash(gh api:*)` sits
-#     unqualified in the USER-LEVEL floor's `deny`, which is evaluated whatever this hook returns, and
-#     that file is untracked — nothing this plugin ships can change it. **The precise fix would ship
-#     inert**, which is worse than an honest exploitation, because it would read as a control.
-#
-#     TWO VERDICTS, SPLIT ON `agent_type`, AND IT IS RULE 10's SPLIT FOR RULE 10's REASON. A subagent is
-#     DENIED: no persona in the roster creates an iteration, `scrum-master` is barred from placing work
-#     in its own brief, and an `ask` returned to a dispatched context reaches no prompt surface. The
-#     orchestrator is ASKED, because that is the session the owner sits in and his answer IS the human
-#     verification #365 demands.
-#
-#     THE `ask` IS A DECISION AND NOT A GAP, WHICH IS THE WHOLE REASON THIS RULE EXISTS AT ALL. The
-#     script is deliberately NOT under `hooks/scripts/`, so it does not match the user floor's
-#     `Bash(bash <repo>/hooks/scripts/*)` allow entry and would prompt anyway. Leaning on that ABSENCE
-#     would be the "Permission entries have three states, and absent is not one" shape ADR-0004 books
-#     for the AWS floor: an allow entry added later for an unrelated reason would silently remove the
-#     verification. So the rule states it.
-#
-#     MATCHED ON THE BASENAME, NOT AN ABSOLUTE PATH, and that is deliberate rather than lax. The same
-#     repository is checked out at several paths in this workspace — the main clone and one or more
-#     `git worktree`s — so an absolute prefix would fire in one checkout and not another, which is a
-#     control decided by which directory a session happens to sit in. The cost is stated rather than
-#     hidden: a file of this name ANYWHERE would match, including one in another repository. That is the
-#     safe direction (it over-asks, it never under-asks) and the deny message names the script so a false
-#     positive is legible rather than mysterious.
-#
-#     PLACED LAST, AFTER RULE 10, AND THE POSITION IS LOAD-BEARING FOR THE SAME REASON RULE 10's IS.
-#     `ask` exits exactly as `deny` does. Sited earlier, `bash scripts/milestone-create.sh x && git push
-#     origin main` would come out ASK where rule 8 DENIES it — an ask that softens a deny is a hole, not
-#     a prompt. Rule 10's own comment already states this; this rule obeys it. Rule 11's DENY branch is
-#     safe here because every deny above has already had its chance.
-#
-#     Matched on `$bare`, so `git commit -m "add scripts/milestone-create.sh"` — a message ABOUT the
-#     file — is not the act. Same trap, same convention, as 5c/5e/5f.
-#     THE PATH MUST BE IN A POSITION WHERE IT IS BEING **RUN**, NOT MERELY NAMED — and that is two
-#     patterns rather than one, each earned by a probe that went the wrong way:
-#
-#       DRAFT 1 required a non-`/` character before the basename. `/` is the one character that always
-#         precedes it in a real call (`scripts/milestone-create.sh`), so BOTH branches returned no
-#         decision at all and the rule read as a working control while matching nothing.
-#       DRAFT 2 matched the basename anywhere in `$bare`. That made `cat scripts/milestone-create.sh`
-#         — a plain READ of a tracked file — come out ASK. A floor that prompts on reading a file is
-#         the cry-wolf failure this repo books twice already, and it was caught by an ALLOW assertion
-#         in the suite rather than by reading the pattern.
-#
-#     So the rule fires only when the path is in COMMAND POSITION (start of the string, or after a
-#     `;`/`&`/`|` separator — the `./scripts/…` and bare-path spellings) or when it follows an
-#     INTERPRETER (`bash`/`sh`/`zsh`/`ksh`/`dash`/`exec`/`env`/`command`). Naming the file to any other
-#     program — `cat`, `grep`, `git add`, `shellcheck` — is untouched.
-#
-#     WHAT THIS STILL OVER-ASKS, said rather than left to be discovered: an interpreter invoked with
-#     options between it and the path (`bash -x scripts/milestone-create.sh`) matches, which is correct,
-#     and so would `bash --rcfile scripts/milestone-create.sh`, which is not running it as a script. That
-#     is the safe direction and the deny/ask message names the script, so the false positive is legible.
-#
-#     THE FAMILY, NOT THE ONE FILE — WIDENED PRE-EMPTIVELY ON #378, BEFORE THE SECOND SCRIPT EXISTS.
-#     This rule shipped pinned to the literal basename `milestone-create.sh`. `/sprint-planning` then
-#     booked a residual that INVITES a second script in the same family: the order of record lives in a
-#     milestone's description, the create route can set one at creation, and nothing built here can
-#     amend one afterwards — so a `milestone-update.sh` is the obvious next slice. Measured against
-#     this file BEFORE the widening, one payload per line, verdict read off `permissionDecision`:
-#
-#       [ORCH]         bash scripts/milestone-create.sh "s2" --repo o/r  -> ask   (this rule)
-#       [scrum-master] bash scripts/milestone-create.sh "s2" --repo o/r  -> deny  (this rule)
-#       [ORCH]         gh api -X PATCH repos/o/r/milestones/2 -f d=x     -> deny  (rule 5f)
-#       [ORCH]         bash scripts/milestone-update.sh 2 --repo o/r     -> NO decision from any layer
-#       [scrum-master] bash scripts/milestone-update.sh 2 --repo o/r     -> NO decision from any layer
-#
-#     **A milestone write with neither the `ask` nor the `deny`, on a route that looks exactly like the
-#     sanctioned one, for a subagent as well as the orchestrator.** #365's human verification would be
-#     absent and nothing would say so — the "absent is not a state" shape ADR-0004 books, arriving
-#     through a file nobody had written yet. So the basename becomes the FAMILY
-#     `milestone-[a-z0-9-]*.sh`, and the next script in it is guarded on the day it is written rather
-#     than on the day someone notices it was not.
-#
-#     THE COST OF THE FAMILY FORM, STATED RATHER THAN DISCOVERED. It over-asks: a `milestone-report.sh`
-#     that only READS would prompt. That is the same safe direction the basename matching already
-#     chose. What genuinely changes is the MESSAGE: the rule can no longer claim to know which act is
-#     being performed, so it names the family and the act class rather than asserting a create.
-sm_run_cmdpos='(^|[;&|])[[:space:]]*(\./)?[^[:space:];&|]*milestone-[a-z0-9-]*\.sh([[:space:]]|$)'
-sm_run_interp='(^|[^[:alnum:]_.-])(bash|sh|zsh|ksh|dash|exec|env|command)[[:space:]]+([^[:space:]]+[[:space:]]+)*(\./)?[^[:space:]]*milestone-[a-z0-9-]*\.sh([[:space:]]|$)'
-if printf '%s' "$bare" | grep -Eq "$sm_run_cmdpos" \
-   || printf '%s' "$bare" | grep -Eq "$sm_run_interp"; then
-  if [ -n "$agent_type" ]; then
-    deny "Blocked: a subagent does not compose an iteration. Creating the milestone an iteration is represented by — and amending it — are the owner's acts at planning (#375, #365); say in your return what the iteration object needs, so he does it. This matched the scripts/milestone-*.sh family, the only sanctioned milestone-write route; read scripts/milestone-create.sh's header for why the family exists and what open hole it depends on. agent_type='${agent_type}'."
-  fi
-  ask "This runs a milestone-write route (the scripts/milestone-*.sh family) — creating or amending the object an iteration is represented by. Composing an iteration is the owner's act at planning, and answering this prompt IS the human verification his rule demands (#365). Approve if he asked for this; refuse otherwise. Note what this route actually is: the script reaches the write API because no permission layer reads inside a script, so this prompt — not rule 5f — is the only thing standing here. The pattern matches the FAMILY by name, so a read-only script named this way prompts too; that is the safe direction."
-fi
+#    NOTHING IS APPENDED BELOW THIS POINT. Both rules were placed last because `ask` exits exactly as
+#    `deny` does, so an `ask` sited earlier would have SOFTENED a deny. With the asks gone that hazard
+#    is gone with them, but the rule stays: a verdict added here runs after every deny above and must
+#    be one that is safe in that position.
 
 exit 0

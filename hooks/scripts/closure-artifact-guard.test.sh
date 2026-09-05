@@ -63,239 +63,150 @@ teardown() { rm -rf "$root"; }
 
 body() { printf '%s\n' "$1" > "$root/fix/view.txt"; }
 
-# Run the PreToolUse arm with a given command string.
-run_pre() {
-  payload="$(jq -n --arg cwd "$repo" --arg c "$1" \
-    '{hook_event_name:"PreToolUse", cwd:$cwd, session_id:"sess-1", tool_input:{command:$c}}')"
-  ( export PATH="$root/bin:/usr/bin:/bin"; printf '%s' "$payload" | bash "$HOOK" 2>/dev/null )
-}
-
 run_stop() { # session_id · stop_hook_active
   payload="$(jq -n --arg cwd "$repo" --arg sid "$1" --argjson active "${2:-false}" \
     '{hook_event_name:"Stop", cwd:$cwd, session_id:$sid, stop_hook_active:$active}')"
   ( export PATH="$root/bin:/usr/bin:/bin"; printf '%s' "$payload" | bash "$HOOK" 2>/dev/null )
 }
 
-denied()  { printf '%s' "$1" | grep -q '"permissionDecision": *"deny"'; }
 silent()  { [ -z "$(printf '%s' "$1" | tr -d '[:space:]')" ]; }
 calls()   { grep -c . "$root/calls.log"; }
 
-# ══ ARM 1 · PreToolUse ═════════════════════════════════════════════════════════════════════════
-
-# 1 · a command that is not a close is not the hook's business — and costs no network call
-setup
-out="$(run_pre 'gh pr view 12 --json body')"
-if silent "$out" && [ "$(calls)" -eq 0 ]; then
-  ok "PreToolUse — a non-close Bash command is silent and makes no gh call"
-else
-  bad "PreToolUse — a non-close Bash command" "output='$out' gh calls=$(calls)"
-fi
-teardown
-
-# 2 · the founding case: a declared command that does not exist
-setup
-body 'invocable: /blueprint'
-out="$(run_pre 'gh issue close 313')"
-if denied "$out" && printf '%s' "$out" | grep -q '/blueprint'; then
-  ok "PreToolUse — DENIES a close whose declared /command does not resolve, naming the entry"
-else
-  bad "PreToolUse — declared /command missing" "$out"
-fi
-teardown
-
-# 3 · the same declaration, once the command exists — the repair must turn it green
-setup
-body 'invocable: /blueprint'
-printf 'x\n' > "$repo/commands/blueprint.md"
-out="$(run_pre 'gh issue close 313')"
-if silent "$out"; then
-  ok "PreToolUse — ALLOWS once commands/<name>.md exists (the arm reddens on repair, in reverse)"
-else
-  bad "PreToolUse — declared /command present" "$out"
-fi
-teardown
-
-# 4 · a skill resolves only when the file exists AND plugin.json declares it
-setup
-body 'invocable: /declared'
-mkdir -p "$repo/skills/declared"
-printf 'x\n' > "$repo/skills/declared/SKILL.md"
-out="$(run_pre 'gh issue close 1')"
-if silent "$out"; then
-  ok "PreToolUse — a declared skill with a SKILL.md resolves"
-else
-  bad "PreToolUse — declared skill present" "$out"
-fi
-teardown
-
-setup
-body 'invocable: /undeclared'
-mkdir -p "$repo/skills/undeclared"
-printf 'x\n' > "$repo/skills/undeclared/SKILL.md"
-out="$(run_pre 'gh issue close 1')"
-if denied "$out"; then
-  ok "PreToolUse — a SKILL.md absent from plugin.json does NOT resolve (it does not exist to the model)"
-else
-  bad "PreToolUse — undeclared skill" "$out"
-fi
-teardown
-
-# 5 · the path route — this is what covers a hook or a detector, not just a typed command
-setup
-body 'invocable: hooks/scripts/detector.sh'
-out="$(run_pre 'gh issue close 431')"
-if denied "$out" && printf '%s' "$out" | grep -q 'detector.sh'; then
-  ok "PreToolUse — DENIES a declared repo-relative path that does not exist"
-else
-  bad "PreToolUse — declared path missing" "$out"
-fi
-teardown
-
-setup
-body 'invocable: hooks/scripts/detector.sh'
-printf 'x\n' > "$repo/hooks/scripts/detector.sh"
-out="$(run_pre 'gh issue close 431')"
-if silent "$out"; then
-  ok "PreToolUse — ALLOWS a declared repo-relative path that exists"
-else
-  bad "PreToolUse — declared path present" "$out"
-fi
-teardown
-
-# 6 · `none` is a declaration, not an absence
-setup
-body 'invocable: none'
-out="$(run_pre 'gh issue close 1')"
-if silent "$out"; then
-  ok "PreToolUse — 'invocable: none' is an explicit declaration and allows"
-else
-  bad "PreToolUse — invocable: none" "$out"
-fi
-teardown
-
-# 6b · and the SPELLING is load-bearing: a leading slash routes into the plugin-identifier branch,
-# where `none` resolves to nothing. This arm exists because the preload shipped `/none` in its own
-# prose nine lines under a contract block spelling it `none` (caught at review of PR #351) — an
-# instruction that, followed literally, produces a false deny on an Issue that promised nothing.
-# A prose fence would have been defeated by an inserted character; this asserts the BEHAVIOUR that
-# makes the wrong spelling wrong, so the trap is exhibited where an editor meets it.
-setup
-body 'invocable: /none'
-out="$(run_pre 'gh issue close 1')"
-if denied "$out"; then
-  ok "PreToolUse — '/none' is NOT the null value: a leading slash makes it an unresolvable identifier"
-else
-  bad "PreToolUse — /none must not be treated as the null value" "$out"
-fi
-teardown
-
-# 7 · the waiver, and its reason floor
-setup
-body 'invocable: /blueprint
-invocable-waived: /blueprint scope narrowed to the registry, ADR-0021'
-out="$(run_pre 'gh issue close 313')"
-if silent "$out"; then
-  ok "PreToolUse — a waiver carrying a reason allows the close"
-else
-  bad "PreToolUse — waiver with reason" "$out"
-fi
-teardown
-
-setup
-body 'invocable: /blueprint
-invocable-waived: /blueprint later'
-out="$(run_pre 'gh issue close 313')"
-if denied "$out"; then
-  ok "PreToolUse — a waiver with a reason under 12 characters does NOT waive"
-else
-  bad "PreToolUse — waiver with a stub reason" "$out"
-fi
-teardown
-
-# 8 · THE STATED LIMIT, asserted so it stays visible: no declaration, no check
-setup
-body 'This Issue promises `/blueprint` and mentions /architecture and commands/nothing.md in prose.'
-out="$(run_pre 'gh issue close 313')"
-if silent "$out"; then
-  ok "PreToolUse — an Issue that DECLARES nothing is invisible here (the limit, asserted not assumed)"
-else
-  bad "PreToolUse — prose-only issue must not be derived from" "$out"
-fi
-teardown
-
-# 9 · a close aimed at another repository is not answerable from this tree — and costs no gh call
-setup
-body 'invocable: /blueprint'
-out="$(run_pre 'gh issue close 313 --repo other/elsewhere')"
-if silent "$out" && [ "$(calls)" -eq 0 ]; then
-  ok "PreToolUse — a cross-repo close is skipped before any network call"
-else
-  bad "PreToolUse — cross-repo close" "output='$out' gh calls=$(calls)"
-fi
-teardown
-
-# 9b · the same flag naming THIS repo is checked normally
-setup
-body 'invocable: /blueprint'
-out="$(run_pre 'gh issue close 313 --repo probe/tree')"
-if denied "$out"; then
-  ok "PreToolUse — --repo naming this checkout's own origin is checked, not skipped"
-else
-  bad "PreToolUse — --repo naming this origin" "$out"
-fi
-teardown
-
-# 10 · the issue number is read from a bare number, a #-form and a URL
-setup
-body 'invocable: /blueprint'
-out="$(run_pre 'gh issue close #313 --comment x')"
-if denied "$out"; then ok "PreToolUse — reads the issue number from the #N form"
-else bad "PreToolUse — #N form" "$out"; fi
-out="$(run_pre 'gh issue close https://github.com/probe/tree/issues/313')"
-if denied "$out"; then ok "PreToolUse — reads the issue number from an issue URL"
-else bad "PreToolUse — URL form" "$out"; fi
-teardown
-
-# 11 · a namespaced identifier reduces to the innermost name, which is what the loader reads
-setup
-body 'invocable: /tadeumendonca-skills:blueprint'
-printf 'x\n' > "$repo/commands/blueprint.md"
-out="$(run_pre 'gh issue close 313')"
-if silent "$out"; then
-  ok "PreToolUse — /plugin:name resolves through its bare innermost name"
-else
-  bad "PreToolUse — namespaced identifier" "$out"
-fi
-teardown
-
-# 12 · FAIL-OPEN is asserted, because it is the direction that misleads
-setup
-body ''
-out="$(run_pre 'gh issue close 313')"
-if silent "$out"; then
-  ok "PreToolUse — an unfetchable body fails OPEN (a green here can mean 'could not check')"
-else
-  bad "PreToolUse — empty body" "$out"
-fi
-teardown
-
-# 13 · the call shape, since the stub cannot test the --jq expression
-setup
-body 'invocable: none'
-run_pre 'gh issue close 313' >/dev/null
-if grep -q -- 'issue view 313 --json body,title' "$root/calls.log"; then
-  ok "PreToolUse — reads the body with 'gh issue view <n> --json body,title'"
-else
-  bad "PreToolUse — issue view call shape" "$(cat "$root/calls.log")"
-fi
-teardown
-
-# ══ ARM 2 · Stop ═══════════════════════════════════════════════════════════════════════════════
+# ══ THE ONLY ARM · Stop ════════════════════════════════════════════════════════════════════════
+#
+# THE `PreToolUse` ARM AND ITS THIRTEEN CASES WERE REMOVED AT #383 WITH THE ARM ITSELF. What did NOT
+# go with them is the coverage of the SHARED PREDICATE — `entry_resolves` and `unmet_entries` are
+# called by both arms, and every resolution rule they implement was asserted only through the deleted
+# arm. **Deleting a control's tests along with the control is correct; deleting a shared predicate's
+# tests because the caller that happened to exercise them left is not**, and it is the silent kind of
+# coverage loss this repository keeps paying for. So the predicate cases below are PORTED to this arm
+# rather than dropped — same fixtures, same assertions, one caller instead of two.
+#
+# The cases that genuinely went are the ones about the REFUSAL and nothing else: the start-anchored
+# command match, the issue-number forms (`N`, `#N`, a URL), the cross-repo `--repo` skip, the
+# no-network-call-on-a-non-close arm, and the `gh issue view` call shape. Those asserted properties of
+# a code path that no longer exists.
 
 list_one() { # number · title · body
   jq -n --argjson n "$1" --arg t "$2" --arg b "$3" \
     '[{number:$n, title:$t, body:$b, url:"u"}]' > "$root/fix/list.json"
 }
+
+reported() { printf '%s' "$1" | grep -q 'additionalContext' && printf '%s' "$1" | grep -q "$2"; }
+
+# ── the shared predicate, ported from the removed PreToolUse arm ────────────────────────────────
+
+# P1 · a declared skill resolves only when plugin.json ALSO declares it
+setup
+list_one 401 'declared skill' 'invocable: /declared'
+mkdir -p "$repo/skills/declared"
+printf 'x\n' > "$repo/skills/declared/SKILL.md"
+out="$(run_stop sess-A)"
+if silent "$out"; then
+  ok "predicate — a declared skill with a SKILL.md resolves"
+else
+  bad "predicate — declared skill present" "$out"
+fi
+teardown
+
+# P2 · and the control: a SKILL.md absent from plugin.json does NOT resolve
+setup
+list_one 402 'undeclared skill' 'invocable: /undeclared'
+mkdir -p "$repo/skills/undeclared"
+printf 'x\n' > "$repo/skills/undeclared/SKILL.md"
+# WITHOUT THE `mkdir` THIS CASE PASSED FOR THE WRONG REASON, and it was caught by P1 going red beside
+# it rather than by reading: with no `skills/undeclared/` the redirect failed, the SKILL.md never
+# existed, and `/undeclared` was unmet because the FILE was missing rather than because plugin.json
+# does not declare it. A green asserting the wrong cause is worse than a red.
+out="$(run_stop sess-A)"
+if reported "$out" 402; then
+  ok "predicate — a SKILL.md absent from plugin.json does NOT resolve (it does not exist to the model)"
+else
+  bad "predicate — undeclared skill" "$out"
+fi
+teardown
+
+# P3 · a declared repo-relative path that does not exist
+setup
+list_one 403 'a detector' 'invocable: hooks/scripts/detector.sh'
+out="$(run_stop sess-A)"
+if reported "$out" 403; then
+  ok "predicate — a declared repo-relative path that does not exist is unmet"
+else
+  bad "predicate — declared path missing" "$out"
+fi
+teardown
+
+# P4 · and resolves once it is there
+setup
+list_one 404 'a detector' 'invocable: hooks/scripts/detector.sh'
+printf 'x\n' > "$repo/hooks/scripts/detector.sh"
+out="$(run_stop sess-A)"
+if silent "$out"; then
+  ok "predicate — a declared repo-relative path that exists resolves (the arm reddens on repair, in reverse)"
+else
+  bad "predicate — declared path present" "$out"
+fi
+teardown
+
+# P5 · `invocable: none` is an explicit declaration, not an absence
+setup
+list_one 405 'promises nothing' 'invocable: none'
+out="$(run_stop sess-A)"
+if silent "$out"; then
+  ok "predicate — 'invocable: none' is an explicit declaration and is met"
+else
+  bad "predicate — invocable: none" "$out"
+fi
+teardown
+
+# P6 · and `/none` is NOT the null value — a leading slash makes it an identifier that must resolve
+setup
+list_one 406 'slash none' 'invocable: /none'
+out="$(run_stop sess-A)"
+if reported "$out" 406; then
+  ok "predicate — '/none' is NOT the null value: a leading slash makes it an unresolvable identifier"
+else
+  bad "predicate — /none must not be treated as the null value" "$out"
+fi
+teardown
+
+# P7 · a waiver carrying a reason of at least 12 characters waives
+setup
+list_one 407 'narrowed' 'invocable: /blueprint
+invocable-waived: /blueprint the registry ships first, the command later'
+out="$(run_stop sess-A)"
+if silent "$out"; then
+  ok "predicate — a waiver carrying a reason waives the declaration"
+else
+  bad "predicate — waiver with reason" "$out"
+fi
+teardown
+
+# P8 · and a stub reason does not — the length bound is the whole of what makes the waiver auditable
+setup
+list_one 408 'narrowed' 'invocable: /blueprint
+invocable-waived: /blueprint later'
+out="$(run_stop sess-A)"
+if reported "$out" 408; then
+  ok "predicate — a waiver with a reason under 12 characters does NOT waive"
+else
+  bad "predicate — waiver with a stub reason" "$out"
+fi
+teardown
+
+# P9 · THE LOAD-BEARING LIMIT: an Issue that declares nothing is invisible, and is never derived from
+setup
+list_one 409 'ships /blueprint' 'This issue delivers the `/blueprint` command and its registry.'
+out="$(run_stop sess-A)"
+if silent "$out"; then
+  ok "predicate — an Issue that DECLARES nothing is invisible here (the limit, asserted not assumed)"
+else
+  bad "predicate — prose-only issue must not be derived from" "$out"
+fi
+teardown
+
+# ── the reporting behaviour itself ──────────────────────────────────────────────────────────────
 
 # 14 · a closed Issue whose declaration is unmet is reported
 setup

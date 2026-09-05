@@ -543,16 +543,27 @@ scrum»* — and creation had **no route at all**: `gh milestone` does not exist
 reaches the write API because **neither the settings matcher nor `permission-guard.sh` looks inside a
 script** — the same blindness that makes `python3 -c "…gh api -X POST…"` a back door, measured against
 the live guard. **So nothing here may claim the raw-API route is closed**, and the floor entry the
-struck sentence protects is untouched: it was never the thing standing in the way. What guards the act
+struck sentence protects is untouched: it was never the thing standing in the way. ~~What guards the act
 is `permission-guard.sh` **rule 11** — a subagent is denied, the orchestrator is asked, rule 10's exact
-split, and the owner's answer to that prompt is the HITL verification #365 demands. The full argument,
-the rejected endpoint carve-out and the price of accepting the hole are in ADR-0004's 2026-08-31
-amendment.
+split, and the owner's answer to that prompt is the HITL verification #365 demands.~~ **Struck
+2026-09-04 (#383): rule 11 is deleted with rule 10.** The full argument, the rejected endpoint carve-out
+and the price of accepting the hole are still in ADR-0004's 2026-08-31 amendment, and the hole is still
+open.
 
-**One measurement that could make the route unnecessary is NOT taken:** whether
-`gh issue edit --milestone "<new title>"` *creates* a missing milestone. `--help` says *"by name"*,
-which is a read of documentation and not a measurement, and rule 10 denies that command to the very
-persona that would settle it. If it turns out to create, delete the script rather than keeping it.
+**What stands there now is an ABSENCE, and the difference matters more here than anywhere else in this
+slice.** `scripts/` matches no `allow` entry in either settings layer, so running the script still
+reaches a **permission prompt** for the orchestrator and an unanswerable one for a subagent — so unlike
+rule 10, removing rule 11 is close to behaviour-neutral. **But rule 11's own comment said, while it
+existed, why leaning on that is wrong:** it is ADR-0004's *"Permission entries have three states, and
+absent is not one"* shape. **An allow entry added later for an unrelated reason silently removes the
+verification, and nothing anywhere would say so.** That is now the standing state rather than a
+hypothetical the rule protected against.
+
+**One measurement that could make the route unnecessary is still NOT taken, and one obstacle to taking
+it is gone:** whether `gh issue edit --milestone "<new title>"` *creates* a missing milestone. `--help`
+says *"by name"*, which is a read of documentation and not a measurement. ~~and rule 10 denies that
+command to the very persona that would settle it~~ — **struck: rule 10 is gone, so any persona can now
+run it and settle this.** If it turns out to create, delete the script rather than keeping it.
 
 ### `loop`-typed items ARE iteration-assignable
 
@@ -577,24 +588,55 @@ milestone assignment to a transition he already performs. It adds no new gate an
 planning — the moment he is present and the milestone object exists. The operative instruction lives in
 `commands/new-issue.md`'s *Open it* step; this is the rule it executes, stated once here.
 
-**And it is the first rule in this section that is not merely an instruction.** `permission-guard.sh`
+~~**And it is the first rule in this section that is not merely an instruction.** `permission-guard.sh`
 **rule 10** matches `gh issue create`/`gh issue edit` carrying `--milestone` (or `-m`) and **denies it to
 every dispatched persona, asking the orchestrator**. The owner's answer to that prompt is the human
-verification the rule demands. **`--remove-milestone` is deliberately unmatched** — taking an item back
-out of a running iteration is the corrective act, not the guarded one.
+verification the rule demands.~~
 
-**Why prevention was available here when it was not for #337, #339 or #363.** Each of those shipped as
-detection because the act was invisible to every layer — ordering, batch composition, an uncommitted
-edit. Here the act is a `Bash` command string, in a matcher this harness already registers, and the wall
-those Issues hit — *a guard cannot tell "he told me" from "I did it myself"* — **dissolves the moment the
-guard is allowed to ASK instead of having to KNOW.** The measurement that made it available: the
-installed build accepts `permissionDecision: "ask"` on `PreToolUse`, and `PreToolUse` hooks run even
-under `bypassPermissions`.
+**STRUCK 2026-09-04 (#383) — RULE 10 IS DELETED, AND THIS IS THE SENTENCE THAT TOLD EVERY PERSONA A
+PROMPT WOULD FIRE.** It is struck rather than edited because this file is loaded on every dispatch:
+a reader who took *"not merely an instruction"* from it would believe a mechanism stands where none
+does. **It is merely an instruction again, and it is the only thing here.**
 
-**What it costs, priced rather than shrugged at:** planning assigns N milestones, so the prompt fires N
+The owner's ruling, on the audit's criterion of **irreparable** rather than costly:
+*«mexer em milestones nao é um risco crucial a iniciativa»*. A milestone assignment is undone by
+`--remove-milestone` and a milestone is deleted; nothing latches.
+
+**What that costs, said here rather than left to be inferred, because the reading it invites is
+wrong.** `gh issue edit` is allowlisted in this harness's permission layer and the hook decided
+*before* that layer, so **an item is now admitted to a running iteration with no prompt, no denial and
+no record.** It does **not** fall through to a permission prompt. **#365's objection is unchanged** —
+it was never that the act is dangerous, it was that it silently changes a running iteration's contents
+and its completion bar — and what is gone is the prompt that made it visible at the moment it happened.
+Nothing detects it either: no hook here reads the queue.
+
+**`--remove-milestone` was deliberately unmatched** — taking an item back out of a running iteration is
+the corrective act, not the guarded one — and that asymmetry is now the *reason the rule lost* rather
+than a nicety of its design.
+
+**Why prevention was available here when it was not for #337, #339 or #363.** *(This paragraph is kept
+UNSTRUCK on purpose: it is the one thing in this section that outlived the rule.)* Each of
+those shipped as detection because the act was invisible to every layer — ordering, batch composition,
+an uncommitted edit. Here the act is a `Bash` command string, in a matcher this harness already
+registers, and the wall those Issues hit — *a guard cannot tell "he told me" from "I did it myself"* —
+**dissolves the moment the guard is allowed to ASK instead of having to KNOW.** The measurement that
+made it available: the installed build accepts `permissionDecision: "ask"` on `PreToolUse`, and
+`PreToolUse` hooks run even under `bypassPermissions`.
+
+**That finding is untouched by #383 and is the most portable thing in this section.** What was decided
+in 2026-09-04 is narrower and must not be read back onto it: *this particular act* was priced below the
+bar. **Available is not the same as worth building** — the same sentence the escalation standard
+already carries — and the next obligation that genuinely needs a human's answer should reach for `ask`
+on this evidence. **Note the one thing that did change mechanically: `permission-guard.sh` now emits no
+`ask` verdict anywhere**, and its `ask` helper was deleted with its last caller, so reaching for it
+means re-adding it deliberately.
+
+~~**What it costs, priced rather than shrugged at:** planning assigns N milestones, so the prompt fires N
 times. Accepted, because planning is an owner-present act by construction — there is no path where this
 prompt fires at a moment he is absent and should have been present, which is the property that stops an
-`ask` training a bypass.
+`ask` training a bypass.~~ **Struck 2026-09-04 (#383): there is no prompt, so there is no N-prompts
+cost. What replaces it is the opposite cost — planning now assigns N milestones with N silent edits,
+and the owner sees each one only because he is the one driving the rite.**
 
 ~~#### A `loop` Issue joins the ACTIVE iteration at FILING, never a later one (#338)~~
 
@@ -983,7 +1025,8 @@ loop-first `Stop` hook, and it is named here rather than filed.
 - **#338 governs the ITERATION; this governs the BRANCH — and #338 was struck one hour before this line
   was corrected, which moves the premise and leaves the distinction standing.**
   ~~A `loop` Issue joins the active iteration at filing;~~ **struck 2026-08-30 (#365)** — no Issue is
-  filed with a milestone now, for any type, and `permission-guard.sh` rule 10 holds it. **The
+  filed with a milestone now, for any type — ~~and `permission-guard.sh` rule 10 holds it~~ **struck
+  2026-09-04 (#383): rule 10 is deleted, so that is an instruction again and nothing holds it.** **The
   distinction this bullet exists to make is untouched:** *which iteration an item belongs to* is
   composed by the owner at planning, and *whether an item joins an **open batch branch*** is a
   different question with its own answer — admitting one means either re-opening a diff that already
@@ -1189,7 +1232,11 @@ carried over), not a gate.
   changes (struck 2026-09-02, #393 — the walked form stopped at item 1 of 15 on the rite's first real
   run)**, and **produces the iteration object** — his wording, *«o rito deveria sim criar a iteracao como produto ao final
   dela»*, so a planning that ends without one has produced nothing. **Composition stays his**: every
-  admission is a `permission-guard.sh` rule 10 prompt and creating the milestone is rule 11's.
+  admission is his act at the rite — ~~a `permission-guard.sh` rule 10 prompt and creating the
+  milestone is rule 11's~~ **struck 2026-09-04 (#383): both rules are deleted. Admission is now a
+  SILENT edit (the command is allowlisted), and creating the milestone still prompts only because
+  `scripts/` is in no allow list — an absence, not a control. "Composition stays his" is now held by
+  the rite's own procedure and by his presence at it, not by any layer.**
   **Struck rather than deleted because this file is loaded on every dispatch** — a persona that read
   *"planning is unbuilt"* would not reach for a rite that exists, and the strike is what tells it the
   claim changed rather than leaving the absence to be inferred. **What has NOT changed: nothing fires
@@ -1444,8 +1491,14 @@ invocable-waived: /blueprint <reason>    the promise was narrowed, and here is w
 and no new label. `none` is a real answer and the common one; the field exists so that *promised* and
 *promised nothing* stop looking alike.
 
-**What it buys, and the two facts that bound it — both measured, neither assumed.** A manual
-`gh issue close` on an Issue with an unmet declaration is **refused**. ~~A close by closing keyword is
+**What it buys, and the two facts that bound it — both measured, neither assumed.** ~~A manual
+`gh issue close` on an Issue with an unmet declaration is **refused**.~~ **Struck 2026-09-04 (#383):
+it is not. That hook's `PreToolUse` arm was removed — zero fires in thirty days, a predicate covering
+only the minority route, and an act undone by reopening the Issue — so a manual close on an unmet
+declaration now EXECUTES SILENTLY (`gh issue close` is allowlisted in both settings layers) and is
+REPORTED at the end of the turn by the surviving `Stop` arm. Struck rather than edited because this
+file is loaded on every dispatch, and a persona that read "refused" would believe a bound exists.**
+~~A close by closing keyword is
 **executed by the forge on merge**, so nothing in this harness can refuse it — that case is *reported*
 at the end of the turn instead, one turn late, exactly the class `zombie-loop-detect` is.~~
 
@@ -1661,17 +1714,23 @@ same repo's history, removed after merge — is **not** struck; it remains the c
 for a single build. Only the license to run two of them at once is struck. A future session may
 reverse this by the same route: an explicit owner decision, recorded the same way.
 
-**Named residual: the policy above and the mechanism disagree.** `hooks/scripts/wip-guard.sh` still
+~~**Named residual: the policy above and the mechanism disagree.** `hooks/scripts/wip-guard.sh` still
 denies a second PR only on file **overlap**, not on a raw count — the mechanism
 [ADR-0002](../../docs/adr/0002-roster-and-dev-loop.md)'s twelfth amendment (2026-08-13)
 describes, unchanged by this correction. So today the hook permits a second, disjoint PR that this
-written policy now forbids. Follow the written policy regardless of what the hook allows; ~~closing the
+written policy now forbids. Follow the written policy regardless of what the hook allows;~~ ~~closing the
 gap is a `wip-guard.sh` change, not a docs one, and is not this skill's job to make.~~ **Struck
 2026-08-29 (#343): it is true of the count half and FALSE of the half that actually cost something.**
-No change to `wip-guard.sh` can close the checkout gap, for the reason recorded immediately below —
-the hook fires at `gh pr create` and the failure happens hours earlier. Struck rather than deleted
+No change to `wip-guard.sh` could close the checkout gap, for the reason recorded immediately below —
+the hook fired at `gh pr create` and the failure happens hours earlier. Struck rather than deleted
 because it stood for sixteen days and it is the sentence that told every reader the gap had a known
 remedy and merely needed doing.
+
+**And the outer strike is 2026-09-04 (#383): THE HOOK IS DELETED, so there is no longer a mechanism
+for the policy to disagree with.** The residual did not shrink — **it grew, and it is now the whole
+of the situation**: nothing whatsoever bounds work in progress. Read the next section as the record
+of a hook that is gone rather than of one that underdelivers, and read the policy above as held by
+instruction alone, which is what the next section already concluded while the file still existed.
 
 ### What WIP=1 is PROTECTING — recorded 2026-08-29 (#343), because it was never written down
 
@@ -1735,10 +1794,12 @@ which was a `-20` display cap read as a total — the exact defect this repo pub
 prevent, caught by re-running the command without the limit.)*
 
 **Neither is a file-overlap failure, and that is the whole finding.** A shared *checkout* is not a
-shared *file*, so `wip-guard.sh` would have permitted both — it intersects path lists, and the two
+shared *file*, so `wip-guard.sh` would have permitted both — it intersected path lists, and the two
 slices' path lists need not intersect at all for the tree underneath them to be one object. **On the
 `profile.ts` instance it is worse than permitted: three agents on one branch share one path list, so
-there is no second PR for the guard to intersect against at all.**
+there was no second PR for the guard to intersect against at all.** *(That hook was deleted on
+2026-09-04, #383. The tense is past throughout this paragraph for that reason; the finding is about
+the failure class and does not depend on the hook still existing.)*
 
 **Layer 3 — what remains unrecorded, stated so nobody mistakes layer 2 for it.** Layer 2 says what the
 rule catches. It does **not** say what the owner wanted caught, and those are different claims. If the
@@ -1746,52 +1807,79 @@ purpose turns out to be *"I want to see every change as it happens"*, no amount 
 satisfies it and separate worktrees answer nothing. **That question is still open and only he can
 close it** — which is precisely why the proposal he asked for is a different artifact from this one.
 
-### `wip-guard.sh` does NOT enforce WIP=1, and a reader who thinks it does is wrong about what protects them
+### `wip-guard.sh` did NOT enforce WIP=1, which is why REMOVING it (#383) changed nothing about what protects you
 
-**Two independent facts, both measured at head on 2026-08-29, and each one alone is enough.** *(The
+**The hook was deleted on 2026-09-04**, under the owner's dehydration criterion — *a mechanical lock
+survives only where no other harness element can carry the control*. The two facts below are why that
+removal costs nothing: **they were measured while the file still existed, and each concludes that the
+file was not holding WIP=1.** A reader who thought it was is wrong in exactly the same way before and
+after the deletion; the only thing that changed is that the misreading is no longer available.
+
+**What the removal DOES cost, stated plainly rather than folded into the sentence above:** the hook
+bounded one real thing — a second PR of the same author overlapping an open one's file list — and
+nothing bounds that now. `gh pr create` is allowlisted in both `settings.json` layers, so the act
+**executes silently**; it does not fall through to a prompt. Under WIP=1 that bound had no work to do
+(fact 1), which is the whole argument for accepting the loss, and it is an argument about the policy
+being obeyed rather than about the act being safe.
+
+**Two independent facts, both measured at head on 2026-08-29 and re-derived on 2026-09-04 where they
+are still re-derivable, and each one alone is enough.** *(The
 two dates in this section differ on purpose: an EVENT is dated from the artifact that reports it — the
 owner's comment on #343, `createdAt` 2026-08-28 — and a MEASUREMENT from the day it was run. A record
 that dates an event off the authoring session's clock post-dates its own source, which is how this
 section read for one round.)*
 
-**1 · Under WIP=1 the hook never runs its overlap check at all.** It reads
-`gh pr list --state open --author @me`, so with the previous PR already merged the list comes back
-empty and the script exits at `[ -z "$open_prs" ] && exit 0` before computing a single path. Measured
-over the last fourteen merged PRs in this repo — the whole `sprint-01` `loop` block and its
-neighbours — **zero had any other PR of the same author open at their creation instant**:
+**1 · Under WIP=1 the hook never ran its overlap check at all.** It read
+`gh pr list --state open --author @me`, so with the previous PR already merged the list came back
+empty and the script exited at `[ -z "$open_prs" ] && exit 0` before computing a single path. **This
+half is still re-derivable at any head, because its subject is the PR queue rather than the deleted
+file** — re-run 2026-09-04 over the fourteen most recently merged PRs (#402 down to #377), **zero had
+any other PR of the same author open at their creation instant**:
 
 ```
 gh pr list --repo <owner>/<repo> --state merged --limit 14 --json number,createdAt,mergedAt \
   --jq '[.[]] as $p | [$p[] | .number as $n | .createdAt as $c
         | {pr:$n, open_at_create: [$p[]
             | select(.number != $n and .createdAt < $c and .mergedAt > $c)] | length}]'
-# → open_at_create: 0, fourteen times out of fourteen
+# → open_at_create: 0, fourteen times out of fourteen (2026-08-29 and again 2026-09-04)
 ```
 
-**It bounds concurrency; it has never bounded a count per iteration, and across nine consecutive
-`loop` slices it did not fire once.** *(Bounds of the measurement: this repo only, the fourteen most
+**It bounded concurrency; it never bounded a count per iteration, and across the whole `sprint-01`
+`loop` block it did not fire once.** *(Bounds of the measurement: this repo only, the fourteen most
 recent merged PRs only, and `--author @me` scoping means a bot's PR is outside it either way.)*
 
-**2 · It is structurally blind to checkout identity, by construction and not by oversight.**
-`grep -c worktree hooks/scripts/wip-guard.sh` → **0**. It derives its own side from
-`git diff --name-only <merge-base> HEAD` in whatever directory it happens to run in, so two agents in
-one checkout produce the *same* answer and it cannot tell them apart. Three other hooks in this same
-directory *do* reason about worktrees explicitly — `dispatch-premise-guard.sh`, `zombie-loop-detect.sh`
-and `orchestrator-tool-census.sh` — so the harness knows the object exists; this guard simply is not
-about it.
+**2 · It was structurally blind to checkout identity, by construction and not by oversight.**
+~~`grep -c worktree hooks/scripts/wip-guard.sh` → **0**.~~ **That falsifier died with the file on
+2026-09-04 and is struck rather than left standing: a command that now matches nothing reads to
+whoever runs it as *"nothing to worry about"*, which is the failure this repo names most often.** The
+claim is still falsifiable, against git history rather than against the working tree:
 
-**And no version of this hook could be.** It is a `PreToolUse` on `gh pr create`, which is the *last*
-act of a slice. The 2026-08-28 collision did its damage during the build — a measurement read off the
-wrong branch, an edit written to the wrong tree — **hours before any PR was created**. A control that
-fires at the merge boundary cannot observe a failure that completes before the boundary is reached.
-That is a moment problem, not a matcher problem, and it is why the struck clause above was wrong to
-promise the gap away as a hook change.
+```
+git log --oneline --all --diff-filter=D -- hooks/scripts/wip-guard.sh   # the deleting commit
+git show <that-commit>^:hooks/scripts/wip-guard.sh | grep -c worktree   # → 0
+```
+
+It derived its own side from `git diff --name-only <merge-base> HEAD` in whatever directory it
+happened to run in, so two agents in one checkout produced the *same* answer and it could not tell
+them apart. Other hooks in this same directory *do* reason about worktrees explicitly —
+`zombie-loop-detect.sh` and `orchestrator-tool-census.sh` — so the harness knows the object exists;
+that guard simply was not about it.
+
+**And no version of that hook could have been.** It was a `PreToolUse` on `gh pr create`, which is the
+*last* act of a slice. The 2026-08-28 collision did its damage during the build — a measurement read
+off the wrong branch, an edit written to the wrong tree — **hours before any PR was created**. A
+control that fires at the merge boundary cannot observe a failure that completes before the boundary
+is reached. That is a moment problem, not a matcher problem; it is why the struck clause above was
+wrong to promise the gap away as a hook change, and it is the load-bearing reason the deletion is not
+a loss of protection.
 
 **So: WIP=1 is held by instruction and by nothing else.** By this loop's own test — *would something
 stop me, or only my memory?* — **it is not engineered**, and the 2026-08-28 collision is what that
-costs when the memory is a fresh context that never had it. Read the hook as protecting the **merge
-queue** from stale overlapping branches, and read WIP=1 as protecting the **working tree** from being
-two things at once. Different objects, different moments, and only one of them has a mechanism.
+costs when the memory is a fresh context that never had it. That sentence was true while the hook
+existed and is unchanged by its removal, which is the point: read WIP=1 as protecting the **working
+tree** from being two things at once, and note that the **merge queue** — which the hook did protect
+from stale overlapping branches — now has no mechanism either. Different objects, different moments,
+and since #383 neither of them has one.
 
 ## Using this skill
 

@@ -49,7 +49,18 @@ exactly like a derived one and be neither. Publishing the mapping makes the deri
 
 1. **A row whose `carrier` is `none` or `retired` emits `absent`, whatever its `tipo`.** An obligation
    nothing carries enforces nothing, and this override is what keeps `absent` a *value* rather than a
-   sixth `tipo`. At this commit exactly one row is in that state (`0017`).
+   sixth `tipo`. ~~At this commit exactly one row is in that state (`0017`).~~ **Struck 2026-09-04
+   (#383) — it was already false when this slice arrived, and the correction is worth more than the
+   number.** `0051` took `carrier: retired` on 2026-09-03 and this sentence was not re-read, so it
+   published *one* while the answer was *two*; this slice makes it three. **A count beside a derivable
+   set is the arrangement this repository's own gate exists because it rots**, which is the same rule
+   the `sp:N` label table already applies to itself. State the criterion and publish the command:
+
+   ```
+   grep -n '^- \*\*carrier:\*\*' docs/blueprint-registry.md | grep -v '`'
+   ```
+
+   Every row it returns emits `absent`. Read the members off that, never off a sentence.
 2. **A row that deviates from the mapping declares the deviation here, as an exception with its
    reason**, and the export carries the declared value. **At this commit there are no declared
    exceptions.** A declared exception is a decision somebody took once and can be argued with; a
@@ -209,45 +220,136 @@ from `refusal` to `routing`, which moves this row's `enforcement` from `denies` 
 is the honest form and it is a downgrade: a foreign implementer reading this row before #375 could have
 built a control, and reading it now can only build an influence.
 
-### 0007 · one slice in flight
+### 0007 · one slice in flight — **THE CARRIER IS RETIRED; THE OBLIGATION IS NOT**
+
+**The mechanism was deleted on 2026-09-04 (#383) and this row is NOT a tombstone**, because the two are
+different things and this registry's own rule says so: *only an **abandoned** obligation is tombstoned —
+one that stopped being wanted, not one that moved.* **WIP=1 is actively wanted** — the owner reaffirmed
+it on 2026-08-28 (*«por enquanto siga com a regra de wip»*) after an Issue was opened to reverse it.
+What left is the carrier, so `carrier` reads `retired` and the mapping's first rule takes over:
+**`enforcement` is `absent`**, whatever `tipo` says.
+
+**Why an adopting harness should care about the removal more than about the mechanism:** the row below
+already recorded, before the deletion, that the hook *never ran its own overlap check while the policy
+was obeyed* and *could not see a shared checkout at all*. **A control whose own registry row says it
+does not reach the failure it is named for is a control that was already absent** — the deletion made
+the row's `enforcement` agree with its `o que não faz`, which had disagreed for months. **If you are
+building this obligation, build the lease on the CHECKOUT, taken at the first write. Do not build the
+file-overlap guard; it is measured here as the wrong moment, not merely the wrong matcher.**
+
+**What the deletion cost, stated so the row is not read as a free tidy-up:** the one thing the hook did
+bound — a second pull request overlapping an open one's file list — is now bounded by nothing, and the
+act **executes silently** rather than prompting, because pull-request creation is allowlisted in this
+harness's permission layer.
 
 - **tipo:** refusal
-- **carrier:** `hooks/scripts/wip-guard.sh`
+- **carrier:** retired
 - **descrição:** A `PreToolUse` guard bounding work in progress at the pull-request boundary.
 - **propósito:** Stacked branches go stale and turn their own merge into a conflict resolution. The obligation is that the queue is **drained**, not grown — and it is worth a mechanism because the pressure to start a second thing is highest exactly when the first one is blocked on someone else.
-- **o que faz:** Intersects the changed files of the proposed pull request against those of the open ones and denies on overlap, with a sibling-task exemption for two pull requests whose source Issues declare the same parent.
-- **o que não faz:** **The mechanism and the written policy disagree, and the policy is the stricter of the two.** The hook bounds on file *overlap*; the loop's own rule has been one worktree, one branch, one open pull request since 2026-08-13, full stop. So the hook permits a second, disjoint pull request that the policy forbids. **It also never runs its own overlap check while that policy is obeyed** — it lists only *open* pull requests, so with the previous one already merged the list is empty and it exits before comparing a single path; measured across fourteen consecutive merged pull requests, not one had another of the same author open at its creation. **And it is blind to the object the policy is actually about.** A shared *checkout* is not a shared *file*: two agents in one working tree produce the same file list, and this guard cannot distinguish them — it never asks which tree it is in. **That gap cannot be closed here, and the reason is the moment rather than the matcher.** It fires on the pull-request creation, the last act of a slice, while a two-agents-in-one-tree failure — a measurement read off the wrong branch, an edit written to the wrong tree — completes during the build. The control that would hold it is a lease on the checkout taken at the first write, which is a different mechanism and is named as owed. **Follow the policy; nothing here enforces it.**
-- **citação:** > "The bound is FILE OVERLAP, not a count. ONE level, and there is no second."
+- **o que faz:** *(Past tense throughout: this describes the retired carrier, kept because the design is what a foreign implementer would otherwise rebuild.)* Intersected the changed files of the proposed pull request against those of the open ones and denied on overlap, with a sibling-task exemption for two pull requests whose source Issues declare the same parent.
+- **o que não faz:** **The mechanism and the written policy disagreed, and the policy was the stricter of the two.** The hook bounded on file *overlap*; the loop's own rule has been one worktree, one branch, one open pull request since 2026-08-13, full stop. So the hook permitted a second, disjoint pull request that the policy forbids — **and since 2026-09-04 nothing permits or refuses anything here at all.** **It also never runs its own overlap check while that policy is obeyed** — it lists only *open* pull requests, so with the previous one already merged the list is empty and it exits before comparing a single path; measured across fourteen consecutive merged pull requests, not one had another of the same author open at its creation. **And it is blind to the object the policy is actually about.** A shared *checkout* is not a shared *file*: two agents in one working tree produce the same file list, and this guard cannot distinguish them — it never asks which tree it is in. **That gap cannot be closed here, and the reason is the moment rather than the matcher.** It fires on the pull-request creation, the last act of a slice, while a two-agents-in-one-tree failure — a measurement read off the wrong branch, an edit written to the wrong tree — completes during the build. The control that would hold it is a lease on the checkout taken at the first write, which is a different mechanism and is named as owed. **Follow the policy; nothing here enforces it.**
+- **citação:** no limit stated in the source
 
-### 0035 · a dispatch is refused when the premise its brief states is not true
+*(That cell read `> "The bound is FILE OVERLAP, not a count. ONE level, and there is no second."` until
+2026-09-04. It quoted the carrier's own header, and the carrier is gone — a quote with no file to
+resolve against is exactly the dangling citation this registry's `citação` arm exists to catch, so it
+is replaced by the literal rather than left to redden or, worse, silently pass. The retired file's text
+is reachable at `git show <deleting-commit>^:hooks/scripts/wip-guard.sh`.)*
+
+### 0035 · a dispatch is refused when the premise its brief states is not true — **CARRIER RETIRED**
+
+**The mechanism was deleted on 2026-09-04 (#383).** Not a tombstone: the obligation — *the premise of a
+dispatch is an object something reads back* — was not abandoned, and nobody has argued it should be.
+The carrier reads `retired`, so `enforcement` is **`absent`** by the mapping's first rule, and **nothing
+in this harness now observes a dispatch at all.**
+
+**Why it went, and this is the part an adopting harness should weigh rather than the code:** the
+criterion applied was *irreparable*, and what this prevented was a **wasted subagent context** — the
+founding incident spent roughly 210k tokens reviewing copy that had already been corrected. That is
+expensive and it is **repaired by re-dispatching**. A control that buys cost avoidance rather than
+irreversibility loses under that criterion, and saying so is more useful than the mechanism was.
+
+**If you build it anyway, build it from the third row of the corpus table, not the first.** The
+grammar measurement below — 859 real briefs — is the transferable artifact here, and it is about how
+briefs are written rather than about any runtime: **a bare SHA is a reference, not a premise**, and
+accepting one denies roughly one dispatch in twelve for no reason.
 
 - **tipo:** refusal
-- **carrier:** `hooks/scripts/dispatch-premise-guard.sh`
+- **carrier:** retired
 - **descrição:** A `PreToolUse` guard on the dispatch tool, comparing a brief's stamped commit and branch against the repository the brief's own citations resolve to.
 - **propósito:** A dispatched actor inherits its brief's premise and cannot check it — it was not present when the measurement was taken. So a brief that cites one tree and stamps another spends a full review on a state that no longer exists, and nothing anywhere says so: measured once, two lead dispatches and roughly 210k tokens against copy that had already been corrected. The obligation is that **the premise of a dispatch is an object something reads back**, before the dispatch and not after, because after is a report with the bill already paid.
-- **o que faz:** Reads the brief out of the dispatch payload and extracts claims of ONE declared shape — a ref and the commit it is stamped at, together, where the ref resolves in the target repository. A local branch asserts where the tree *is* (branch and HEAD both checked); a remote-tracking ref asserts only where that ref points. The stamp is attributed to a single repository using only the brief's **distinguishing** citations — a path present in several repositories attributes nothing and is dropped — falling back to the caller's working directory when none distinguishes. A claim that fails there denies the call outright, naming the tree it read and what it found.
-- **o que não faz:** It checks the **tree**, never the lines: a `file:line` citation is out of scope by decision, since whether a file says what a brief claims is prose-reading and a guard that reached for it would fail open on exactly the half that matters. **A bare SHA is never checked** — a merge-base, a PR head or a quoted verdict marker is a reference, not a premise, and treating one as a premise denied 8.0% of 859 real briefs for no reason. A **cross-repository** brief is not checked at all: one stamp, two repositories, no fact available to attribute it, so a guess reported as a control would be worse than the declared gap. And it decides nothing about a **stale Issue** — the check lives at dispatch, against the brief; an Issue that described finished work was already stale before any dispatch happened, which is a different mechanism at a different moment.
-- **citação:** > "So passing this guard means the TREE is what the brief says, never that the LINES are."
+- **o que faz:** *(Past tense: this describes the retired carrier, kept because the design is what a foreign implementer would otherwise rebuild from scratch.)* Read the brief out of the dispatch payload and extracted claims of ONE declared shape — a ref and the commit it is stamped at, together, where the ref resolves in the target repository. A local branch asserts where the tree *is* (branch and HEAD both checked); a remote-tracking ref asserts only where that ref points. The stamp is attributed to a single repository using only the brief's **distinguishing** citations — a path present in several repositories attributes nothing and is dropped — falling back to the caller's working directory when none distinguishes. A claim that fails there denies the call outright, naming the tree it read and what it found.
+- **o que não faz:** **Since 2026-09-04 it does nothing: the carrier is deleted and no layer replaced it, so a brief stamping a false premise is dispatched with no decision from anywhere.** What it did NOT do while it ran: it checked the **tree**, never the lines — a `file:line` citation is out of scope by decision, since whether a file says what a brief claims is prose-reading and a guard that reached for it would fail open on exactly the half that matters. **A bare SHA is never checked** — a merge-base, a PR head or a quoted verdict marker is a reference, not a premise, and treating one as a premise denied 8.0% of 859 real briefs for no reason. A **cross-repository** brief is not checked at all: one stamp, two repositories, no fact available to attribute it, so a guess reported as a control would be worse than the declared gap. And it decides nothing about a **stale Issue** — the check lives at dispatch, against the brief; an Issue that described finished work was already stale before any dispatch happened, which is a different mechanism at a different moment.
+- **citação:** no limit stated in the source
 
-### 0037 · an Issue is not closed by hand while the artifact it promised is missing
+*(That cell read `> "So passing this guard means the TREE is what the brief says, never that the LINES
+are."` until 2026-09-04, quoting the carrier's own header. The carrier is gone, so the quote has
+nothing to resolve against — the dangling-citation case this registry's own `citação` arm exists to
+catch, replaced by the literal rather than left to redden. The retired file is at
+`git show <deleting-commit>^:hooks/scripts/dispatch-premise-guard.sh`, and the limits it stated are
+preserved in `o que não faz` above and in ADR-0004.)*
 
-- **tipo:** refusal
+### 0037 · an Issue that closed while the artifact it promised is missing is REPORTED
+
+**`tipo` changed `refusal` → `record` on 2026-09-04 (#383), and the id did not.** The `PreToolUse` arm
+that refused a manual `gh issue close` was removed; the `Stop` arm that reports an already-closed Issue
+was not. **This is a downgrade and it is stated as one**: a foreign implementer reading this row before
+2026-09-04 could have built a control, and reading it now can only build an observer. The obligation is
+unchanged and is not tombstoned — it moved layers, it was not abandoned.
+
+**Why the refusal lost, and it is the transferable half:** its predicate was a *manual* close, and the
+route this loop actually uses is the forge's, executed on merge by GitHub's servers where no
+pre-execution hook exists. It fired **zero times in thirty days**. **Do not rebuild the refusal on the
+manual route** — build the comparison one step upstream, at the merge, which is a tool call and is
+refusable; this harness does that in `permission-guard.sh` rule 7d.
+
+- **tipo:** record
 - **carrier:** `hooks/scripts/closure-artifact-guard.sh`
-- **descrição:** A `PreToolUse` guard on `gh issue close`, resolving the `invocable:` lines of the Issue's own body against this tree.
+- **descrição:** A `Stop` hook resolving the `invocable:` lines of a recently-closed Issue's own body against this tree, and reporting the unmet ones once per session.
 - **propósito:** A closing keyword knows nothing about whether the thing an Issue promised exists. Measured here: three Issues closed with their operable half unbuilt, one of them twice, and every instance was caught by a human asking. The obligation is that **the tracker's word for "done" is held against an artifact a reader can reach**, at the moment the state changes rather than in a review that may not happen — because the authorable half always ships first, and the half that ships second is the one nobody re-checks.
-- **o que faz:** On a close aimed at this checkout's own repository, reads the Issue body, extracts every entry declared at column 0 as `invocable:`, and resolves each one: a `/name` against `commands/name.md` or a `skills/name/SKILL.md` **that `plugin.json` also declares**; anything else as a repo-relative path. An entry carrying an `invocable-waived:` line with a reason of at least twelve characters is passed. Anything left unresolved denies the call and names it, with the three exits stated in the deny text — build it, record the narrowing, or leave the Issue open.
-- **o que não faz:** **An Issue that declares nothing is invisible to it, and nothing forces the declaration** — the field is written at intake by instruction, so this refuses a stated promise and never discovers an unstated one. It deliberately does **not** derive the promise from prose: measured over twenty closed Issues, the tightest derivation worth trying produced eleven unresolved identifiers and zero true positives, so a derived form would redden on honest work until it was loosened into nothing. It resolves **existence, never behaviour** — an empty file passes. A close aimed at another repository is skipped rather than guessed at. And it **fails open** on a missing `gh`, an API error or an unreadable body, so a silence from it can mean *checked and clean* or *could not check*.
+- **o que faz:** At the end of every turn, reads the Issues closed inside a rolling server-side window, extracts every entry declared at column 0 as `invocable:` in each body, and resolves each one: a `/name` against `commands/name.md` or a `skills/name/SKILL.md` **that `plugin.json` also declares**; anything else as a repo-relative path. An entry carrying an `invocable-waived:` line with a reason of at least twelve characters is passed. Anything left unresolved is reported once per session, with the three exits stated in the notice — build it, record the narrowing, or reopen the Issue.
+- **o que não faz:** **It refuses nothing, as of 2026-09-04.** The act it describes has already happened when it speaks, so every finding is one turn late; and the manual-close route it used to refuse now executes with no decision from any layer, because that command is allowlisted. **An Issue that declares nothing is invisible to it, and nothing forces the declaration** — the field is written at intake by instruction, so this reports on a stated promise and never discovers an unstated one. It deliberately does **not** derive the promise from prose: measured over twenty closed Issues, the tightest derivation worth trying produced eleven unresolved identifiers and zero true positives, so a derived form would redden on honest work until it was loosened into nothing. It resolves **existence, never behaviour** — an empty file passes. A close aimed at another repository is skipped rather than guessed at. And it **fails open** on a missing `gh`, an API error or an unreadable body, so a silence from it can mean *checked and clean* or *could not check*.
 - **citação:** > "AN ISSUE THAT DECLARES NOTHING IS INVISIBLE HERE, AND NOTHING FORCES THE DECLARATION."
 
-### 0043 · nothing joins the iteration that is being worked without a human saying so
+### 0043 · nothing joins the iteration that is being worked without a human saying so — **CARRIER RETIRED**
+
+**Rules 10 and 11 were removed on 2026-09-04 (#383), on the owner's own pricing of the act:**
+*«mexer em milestones nao é um risco crucial a iniciativa»*. The audit's criterion is **irreparable**,
+and a milestone assignment is undone by `--remove-milestone` — which rule 10 deliberately never
+matched, because removal is the corrective act — while a milestone is deleted outright. Nothing
+latches, so the rule loses even though the obligation is real.
+
+**Not a tombstone.** The obligation was **not abandoned**: #365's rule stands, and the owner still
+composes an iteration at planning. What went is its only mechanism. `carrier` reads `retired`, so
+`enforcement` is **`absent`**.
+
+**This row is the most valuable one in the registry to read against its own history, and an adopting
+harness should read all three states.** It was the first obligation here to reach **prevention**, on a
+finding that generalises — *the wall those adjacent obligations hit is not a property of guards, it is
+a property of guards that must KNOW; a guard permitted to **ask** does not have to distinguish "the
+human asked for this" from "I decided it myself".* **That finding is untouched and is still the most
+portable thing here.** What was decided is narrower: this particular act was not worth the prompt.
+
+**What the removal costs, and it is not a wash.** #365's objection was never that the act is dangerous
+— it was that it **silently changes a running iteration's contents and its completion bar**. That
+failure mode is unchanged; what is gone is the prompt that made it visible at the moment it happened.
+And the act now **executes silently** rather than falling through to a prompt, because the
+item-to-iteration assignment command is allowlisted in this harness's permission layer. **Nothing
+detects it either** — no hook here reads the queue.
 
 - **tipo:** refusal
-- **carrier:** `hooks/scripts/permission-guard.sh`
+- **carrier:** retired
 - **descrição:** A `PreToolUse` rule on the act that assigns an iteration to a work item — denied to every dispatched actor, and put to the human in the one context where a human is sitting.
 - **propósito:** A loop that files its own findings into the iteration it is currently working changes that iteration's contents while draining it, and nobody decided to. The obligation is that **the unit of work is composed by a person, once, in front of the whole set** — not accreted item by item by the machine that is producing the items. What makes this portable is the shape of the answer rather than the rule: the adjacent obligations in this registry all shipped as *detection*, because a guard cannot tell *the human asked for this* from *I decided it myself*. **That wall is not a property of guards. It is a property of guards that must KNOW.** A guard permitted to **ask** does not have to distinguish the two cases — the human's answer to the prompt is the verification — and this is the first obligation here to reach prevention on that observation.
-- **o que faz:** Matches the item-to-iteration assignment in every spelling the tool accepts (long flag, short flag, attached value, the repository flag placed before the subcommand, and the same command wrapped in a shell payload). A **dispatched** actor is refused outright, with the exit named: file without the assignment and say in the return which iteration you believe it belongs to. The **orchestrating** actor is asked, because that is the session the human is in. Removing an item from an iteration is deliberately unmatched — taking work back out is the corrective act, not the guarded one.
-- **o que não faz:** **It reads a flag, never an intent** — an assignment the human directed and one the loop invented produce the identical prompt, which is the whole reason a prompt is the answer and a verdict is not. **An `ask` needs a surface**, so the split is not severity but reachability: a prompt returned to a dispatched context reaches nobody, and what happens to an unanswerable prompt in a fully unattended run **is not measured here** — no automated path in this harness reaches the guarded act, which is why the measurement was not owed and not taken. It cannot reach a human clicking in the web interface, which is correct rather than a gap. And it holds only the *admission*: nothing observes whether the composition a human approved was a good one, and nothing bounds how many items that human admits.
-- **citação:** > "the rule reads a flag, not an intent"
+- **o que faz:** *(Past tense: this describes the retired rules, kept because the design — and above all the ask-rather-than-know finding — is what a foreign implementer would otherwise have to rediscover.)* Matched the item-to-iteration assignment in every spelling the tool accepts (long flag, short flag, attached value, the repository flag placed before the subcommand, and the same command wrapped in a shell payload). A **dispatched** actor was refused outright, with the exit named: file without the assignment and say in the return which iteration you believe it belongs to. The **orchestrating** actor was asked, because that is the session the human is in. Removing an item from an iteration was deliberately unmatched — taking work back out is the corrective act, not the guarded one, and that asymmetry is why the act is reparable and why the rule ultimately lost.
+- **o que não faz:** **Since 2026-09-04 it does nothing, and the act it guarded now executes with no decision from any layer.** What it did NOT do while it ran: **it read a flag, never an intent** — an assignment the human directed and one the loop invented produce the identical prompt, which is the whole reason a prompt is the answer and a verdict is not. **An `ask` needs a surface**, so the split is not severity but reachability: a prompt returned to a dispatched context reaches nobody, and what happens to an unanswerable prompt in a fully unattended run **is not measured here** — no automated path in this harness reaches the guarded act, which is why the measurement was not owed and not taken. It cannot reach a human clicking in the web interface, which is correct rather than a gap. And it holds only the *admission*: nothing observes whether the composition a human approved was a good one, and nothing bounds how many items that human admits.
+- **citação:** no limit stated in the source
+
+*(That cell read `> "the rule reads a flag, not an intent"` until 2026-09-04, quoting rule 10's own
+comment. The rules are deleted, so the quote resolves against nothing — the dangling-citation case the
+`citação` arm exists to catch, and it did catch it. The rules' text is at
+`git show <deleting-commit>^:hooks/scripts/permission-guard.sh`; the limits they stated are preserved
+in `o que não faz` above.)*
 
 ### 0044 · a merge does not auto-close a work item the review record never named
 

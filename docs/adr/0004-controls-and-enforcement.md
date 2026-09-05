@@ -849,6 +849,45 @@ entries can reach an interpreter*, a property of an open grammar rather than a l
 *"More entries than anyone has enumerated"* is a claim about **enumeration effort** with no falsifier;
 the existential form above has exactly one, and it is cheap.
 
+**The three escape spellings, moved here 2026-09-04 (#383) when the speed bump was removed.** They lived
+only in `permission-guard.sh`'s rule 9 and in that rule's own suite, both of which are now deleted — so
+without this paragraph the sentence above (*"no widening of a character class finds them"*) would have
+kept its conclusion and lost its evidence. Each was measured reaching a file in **another repository**
+with the rule live:
+
+```
+bash .scratch/\.\./\.\./other/VERSION      ALLOW  — backslash escape; `\.` is `.` to the shell, and the
+                                                   escape character is not in the preceding-character class
+bash .scratch/.""./.""./other/VERSION      ALLOW  — empty quoted span; there is NO `..` ADJACENCY anywhere
+                                                   in the string, so nothing exists for a pattern to find
+bash .scratch/link.sh                      ALLOW  — symlink out; the guard never resolves paths
+bash .scratch/\.\./../other/VERSION        DENY   — the asymmetry that fools a single probe: escaping ONE
+                                                   pair still denies on the next
+```
+
+**The middle one is the decisive member and the reason this is an instrument problem rather than a
+pattern problem:** a lexical check is being asked to assert a **filesystem** property, and between the
+command string and the file that opens sit quote removal, escape processing and symlink resolution. A
+guard that does none of the three — deliberately, since doing them means parsing shell — can *express*
+the property and can never *evaluate* it. **Expressing it reads exactly like enforcing it**, which is
+the failure this whole section exists to name.
+
+**And a guard-authoring lesson that was recorded nowhere else, kept because the shape recurs.** Rule 9
+shipped as **two independent greps over the whole string with no positional relation** — *a shell name
+appears somewhere* AND *a `..` appears somewhere* — and that denied ordinary work:
+
+```
+grep -rn bash  ../other/hooks    DENY   <- `bash` is a SEARCH TERM. No shell is invoked.
+grep -rn bashx ../other/hooks    ALLOW  <- one character apart, which is how the cause was proved
+```
+
+Twenty-two suite cases covered that rule and **not one put the shell name in argument position**,
+because the table was written by whoever wrote the pattern. **A hard deny on ordinary work is worse
+than the hole it failed to close.** The fix was positional — find the interpreter in *command* position
+(first word, or after a known wrapper) and inspect **only the first non-flag token after it**, which is
+the script path and nothing else. Any future rule keyed on a token's *presence* rather than its
+*position* inherits this defect.
+
 ### The third layer: ask which SYSTEM authorises the act (2026-08-08)
 
 Raised by `agents-lead` on `-io`#402, where `terraform apply` was reachable from a `workflow_dispatch`
@@ -2494,6 +2533,27 @@ becomes load-bearing for a merge decision, that judgement changes, and it should
 **Status:** accepted · **Deciders:** owner (decision), written by `agents-lead` (loop/machinery domain,
 #223) · **Issue:** #365, `loop`, boundary
 
+> **REVERSED IN PART, 2026-09-04 (#383) — read this before the amendment.** The **mechanism** this
+> amendment describes (rules 10 and 11) was **removed**; the **rule** it enforces was not. The owner
+> priced the act below the audit's bar — *«mexer em milestones nao é um risco crucial a iniciativa»* —
+> against a criterion of **irreparable**, and a milestone assignment is undone by `--remove-milestone`
+> while a milestone is deleted outright.
+>
+> **What is now false in what follows:** every present-tense claim that an admission is denied to a
+> persona or asked of the orchestrator. `gh issue edit --milestone` is allowlisted and the hook that
+> answered first is gone, so **the act executes silently** — it does not degrade to a prompt. The
+> milestone-script route still prompts, but only because `scripts/` is in no allow list, which is this
+> record's own *"absent is not a state"* shape rather than a control.
+>
+> **What is still true and is the reason this amendment is not struck wholesale:** the finding that
+> *the wall a guard hits — it cannot tell "he told me" from "I did it myself" — dissolves when the guard
+> is allowed to ASK rather than having to KNOW.* That generalises past this act and is the thing to
+> reach for next. **Available is not the same as worth building**, and #383 decided only the second.
+>
+> One mechanical consequence to know before citing this: **`permission-guard.sh` now emits no `ask`
+> verdict at all**, and its `ask` helper was deleted with its last caller, so a future rule in this
+> class re-adds it deliberately.
+
 ### The rule, and the act it actually guards
 
 The owner's rule, verbatim, 2026-08-30:
@@ -2849,7 +2909,72 @@ The next author of any guard over file-writing tools meets both:
 **Bound on all three: measured on build 2.1.241, once.** Nothing re-measures them now that the hook is
 gone, so treat them as dated facts about a build rather than as invariants.
 
+#### The same rehoming, one slice later — `dispatch-premise-guard.sh` (#383, 2026-09-04)
+
+**That hook was removed under the dehydration criterion, and it had measured more about this runtime
+than any other file in the directory.** Its facts land here for the same reason the three above did.
+
+- **THE DISPATCH TOOL IS NAMED `Agent`, NOT `Task`, IN THE `PreToolUse` PAYLOAD.** Probe and control,
+  headless, one variable: `matcher "Agent"` + a real subagent dispatch **fired**; `matcher "Task"` +
+  the identical dispatch **fired not once**. Anyone wiring a hook to a dispatch by reading the tool's
+  name in a transcript will get this wrong.
+- **AND IT COMPLETES THE MATCHER FACT ABOVE INTO A SHARPER ONE.** The 2026-08-31 probe established
+  that `Edit|Write` does **not** match `NotebookEdit` — a matcher is not an unanchored substring
+  search. This hook's header records the complementary trap: `"Task"` would still match `TaskCreate`,
+  because the matcher is a **regex evaluated from the start of the tool name**. **Both facts together
+  say: anchored at the front, open at the back.** *(The `NotebookEdit` half was measured; the
+  `TaskCreate` half is stated in that header as an inference from regex semantics and was NOT probed.
+  It is recorded here with that distinction intact rather than promoted to a measurement.)*
+- **The dispatch payload's shape**, read verbatim off the captured probe: `.tool_input.prompt` carries
+  the **full brief**, so a brief's own claims are readable at that layer at all; `.tool_input.
+  subagent_type` is present **only when the model names a persona** and is **absent for the default
+  general-purpose agent**, so any guard keyed on the persona silently skips that whole class; and the
+  payload carries `cwd` but **not** the harness's additional working directories, which is why sibling
+  trees can only ever be discovered heuristically here.
+- **A BARE SHA IN A BRIEF IS A REFERENCE, NOT A PREMISE — and this is the most portable fact of the
+  set, because it is about how briefs are actually written rather than about this runtime.** Measured
+  over **859 unique real dispatch briefs** taken from this repository's own transcripts:
+
+  | grammar accepted | briefs evaluated | ≥2 distinct SHAs = guaranteed deny |
+  |---|---|---|
+  | bare SHA + ref-and-SHA | 354 (41.2%) | 69 (8.0%) |
+  | ref-and-SHA only | 11 (1.3%) | 0 (0.0%) |
+  | ref-and-SHA, ref must RESOLVE | 9 (1.0%) | 0 (0.0%) |
+
+  **A merge-base, a PR head and a quoted verdict marker are all bare SHAs**, so the permissive grammar
+  would have denied one dispatch in twelve for no reason. Anyone building premise-checking anywhere
+  should start from the third row.
+
+**What the removal costs, and it is a cost rather than a wash.** What this guard saved was a **wasted
+subagent context** — the founding incident spent roughly 210k tokens reviewing copy that had already
+been corrected. That is expensive and it is **reparable**: the remedy is to re-dispatch. Under the
+criterion the owner ruled — *irreparable*, not *costly* — it does not survive, and no other layer sees
+a dispatch at all: neither `settings.json` file contains any `Task`/`Agent` entry
+(`grep -n 'Task\|Agent' <both settings files>` returns nothing), so **the removal is real and silent,
+not a downgrade to a prompt.** A brief stamping a state the tree does not have now dispatches.
+
+**What is NOT rehomed, deliberately:** the guard's claim grammar, its repository-attribution algorithm
+and its candidate-set heuristic. Those are the *design of a mechanism* that was judged not worth
+having, and copying them here would preserve the thing while deleting the code — the opposite of what
+this section is for. They are recoverable from git history if anyone rebuilds it.
+
 ### 2 · The three persona-keyed rules, reassessed against the thesis — and the answer is KEEP, three times, for three different reasons
+
+> **AMENDED 2026-09-04 (#383): rule 10 is REMOVED, so the heading above is false for one of its three
+> and the section below should be read with that subtraction.** The heading is part of the claim and is
+> named here rather than rewritten: *"KEEP, three times"* is now **KEEP twice** — rules 5c/5d and 5e
+> stand exactly as reassessed, and the **rule 10** paragraph immediately following describes a rule that
+> no longer exists.
+>
+> **What is now false in it:** every present-tense claim that `--milestone` is denied to a persona or
+> asked of the orchestrator. The act is allowlisted in both permission layers and the hook that answered
+> first is gone, so **it executes silently** — it does not degrade to a prompt. The removal's ground was
+> the owner's pricing of the act against a criterion of **irreparable**, not a re-argument about the
+> perimeter: *«mexer em milestones nao é um risco crucial a iniciativa»*.
+>
+> **What survives and is why the paragraph is not struck:** its unreconciled case — *if a future profile
+> is ever given composition, the rule offers only two verdicts and neither works* — was a finding about
+> `ask` and `deny` as a verdict pair, and that finding outlives the rule that occasioned it.
 
 **Rule 10 — `--milestone` denied to every persona, asked of the orchestrator (#365).** **Keep, unchanged.**
 It denies subagents an act **no persona's mandate includes**: composing an iteration is the owner's at
@@ -2933,6 +3058,19 @@ receives and that the catch-all's *"New personas default to DENY here"* is not, 
 assertion cannot tell the two routes apart by construction.
 
 ### 3 · The milestone route — and it works BECAUSE a hole is open, which is the finding, not the design
+
+> **AMENDED 2026-09-04 (#383): rule 11 is REMOVED, and the section below should be read with one
+> substitution.** Everywhere it says the route is guarded by rule 11's prompt, the truth is now that the
+> route is guarded by **the absence of an `allow` entry for `scripts/`** — which still produces a
+> prompt, and which this record elsewhere names as *not a state*. **The hole is unchanged, the route is
+> unchanged, and what was a decision by a rule is now a gap that happens to behave the same way.**
+> The removal's ground was the owner's pricing of the act, not a re-argument about the hole:
+> *«mexer em milestones nao é um risco crucial a iniciativa»*.
+>
+> **The finding this section exists for is untouched and is why it is not struck:** no permission layer
+> reads inside a script, so `scripts/milestone-create.sh` and `python3 -c "…gh api…"` are the same door.
+> **No document here may claim the raw-API route is closed** — that sentence binds harder now, not less,
+> because the rule that used to stand in front of one spelling of it is gone.
 
 **The act has no route at all, measured three ways.** `gh milestone` does not exist
 (`gh milestone --help` → `unknown command "milestone" for "gh"`). `gh api` that writes is denied by rule
@@ -3648,8 +3786,8 @@ would have executed on.
 |---|---|---|---|---|
 | 1 | `permission-guard` | yes | **survives** | caller × command, four times; and enumeration in the floor was measured not to converge |
 | 2 | `wip-guard` | yes | **CUT** | **its own precondition is dead** — 0 concurrency across 22 PRs, all states. ~~a skill — WIP=1 in the universal preload~~ (a preload is not a control; see the re-argument) |
-| 3 | `closure-artifact-guard` | yes (`PreToolUse`) | survives | live remote state; no element reads an Issue body |
-| 4 | `dispatch-premise-guard` | yes | survives | live remote state × the dispatch's own text |
+| 3 | `closure-artifact-guard` | yes (`PreToolUse`) | ~~survives~~ **CUT at ARM grain** | ~~live remote state; no element reads an Issue body~~ — **the `Stop` arm of the same file, plus rule 7d one step upstream at the merge** |
+| 4 | `dispatch-premise-guard` | yes | ~~survives~~ **CUT** | ~~live remote state × the dispatch's own text~~ — **nothing. Its object is a wasted context, which is cost rather than irreparability** |
 | 5 | `mcp-guard` | yes | survives | caller × tool name — the canonical pair |
 | 6 | `preflight` | yes | survives | nothing else can refuse a **session**; and it is the only fail-closed layer |
 | 7 | `session-wip` | no | survives | observer — and it inherits #2's detection |
@@ -3664,6 +3802,23 @@ would have executed on.
 **Plus one rule-level cut and one rule-level verdict that was contested and now SURVIVES (rule 7,
 resolved 2026-09-02) inside `permission-guard`**, because that file is
 fourteen controls in one script and a per-file verdict would hide both.
+
+**Correction 2026-09-04 — rows 3 and 4 flipped, and the CAUSE is that the criterion moved, not that
+this table was carelessly written.** This table was produced against the criterion as first ruled —
+*can another harness element carry this control* — and the owner narrowed it mid-audit to
+**irreparable** (*«o risco de permitir essa operacao passar é one way door decision»* · *«situacoes
+irreparaveis»*). Nine units change verdict between the two readings; rows 3 and 4 are two of them, and
+`permission-guard`'s rules 9, 10 and 11 are three more. **Read this table as the FIRST reading and the
+2026-09-04 build slice as the second.** The rows are struck in place rather than rewritten because
+someone acted on them: a reader between 2026-09-02 and 2026-09-04 would have taken *survives* as
+settled.
+
+**What actually shipped on 2026-09-04 (#383, slice S1), so the record and the tree agree:** rule 9,
+`wip-guard` entire, `closure-artifact-guard`'s `PreToolUse` arm, `dispatch-premise-guard` entire, and
+rules 10 and 11 — the last pair on the owner's own pricing of the act, *«mexer em milestones nao é um
+risco crucial a iniciativa»*. Every removal's fall-through was classified against both `settings.json`
+layers before it shipped; **four of the six fall through to SILENT EXECUTION rather than to a prompt**,
+which is stated in each affected surface rather than only here.
 
 ### The three that lose, each with what detects the act afterwards
 

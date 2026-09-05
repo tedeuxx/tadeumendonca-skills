@@ -1206,13 +1206,20 @@ the gate reviews is the unit that has product meaning, at whichever level it sit
 `gh issue develop <n>` links the branch to whichever issue it is run against, story or task, the same
 way — GitHub holds that link as structured data rather than as a naming convention (see below).
 
-**Sibling tasks touching the same file, as this repo's mechanism stands today:** `wip-guard.sh`'s overlap
+~~**Sibling tasks touching the same file, as this repo's mechanism stands today:** `wip-guard.sh`'s overlap
 rule denies a new PR that touches a file an open PR by the same author already has open, with no
 parent-story carve-out — so two sibling tasks under one story that would both touch the same file are
 blocked until that exemption is rebuilt (tracked as #195, not yet merged as of this writing). Read
 `hooks/scripts/wip-guard.sh`'s overlap logic directly for the mechanism as it currently stands rather than
 trusting this paragraph's date — the restriction lifts the moment #195 lands, and this text is not
-guaranteed to be updated at that instant.
+guaranteed to be updated at that instant.~~
+
+**Struck 2026-09-04 (#383): `wip-guard.sh` is deleted, so there is no overlap rule, no sibling-task
+question and nothing to read the logic of.** The paragraph is struck rather than edited because it
+told readers to resolve the question by reading a file, and that instruction now sends them to a path
+that does not exist. **Two sibling tasks touching the same file are blocked by nothing.** What still
+bounds them is the written WIP=1 policy — one worktree, one branch, one open PR — which was always the
+stricter rule and was never the hook's.
 
 ```
 feat/<issue>-<slug>     a user story
@@ -1358,7 +1365,6 @@ flowchart LR
   end
 
   H1["permission-guard"]
-  H2["wip-guard"]
   H3["session-wip"]
   H4["session-plugin-version"]
   H5["dispatch-metrics-start"]
@@ -1367,18 +1373,13 @@ flowchart LR
   H9["orchestrator-tool-census"]
   H10["premature-pr-link-detect"]
   H17["owed-pr-link-detect"]
-  H11["dispatch-premise-guard"]
-  H12["closure-artifact-guard<br/>(refuses a manual close)"]
   H13["closure-artifact-guard<br/>(reports one already closed)"]
   H14["preflight<br/>(refuses a degraded session)"]
   H15["preflight<br/>(reports at the door)"]
   H16["mcp-guard"]
 
   E1 --> H1
-  E1 --> H2
-  E1 --> H11
   E1 --> H16
-  E1 --> H12
   E2 --> H14
   O1 --> H15
   O1 --> H3
@@ -1396,7 +1397,7 @@ flowchart LR
 
 | event | when it fires | denies? | hooks wired here | purpose |
 |---|---|---|---|---|
-| **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard`, `wip-guard` (matcher `Bash`) · `dispatch-premise-guard` (matcher `Agent`) · `closure-artifact-guard` (matcher `Bash`) · `mcp-guard` (matcher `mcp__.*`) | refuse the irreversible floor and a PR that overlaps an open one, *before* either happens. ~~`action-pendency-guard` (matcher `AskUserQuestion`) — refuse a picker raising an **action** pendency rather than a decision~~ **built and DELETED in the same slice, on the owner's ruling.** It matched by label spelling, not by choice shape, and three successive reviews each found a new class of genuine decision it refused — including all four of the merge gate's own holds and `Merge it / Request changes`, the exact class its verb set excluded `approve` to protect. **The argument that ended it is about the DIRECTION of its error:** the failure it prevented cost the owner one sentence; the failure it caused was invisible to him **by construction**, since `PreToolUse` denies before he sees anything, so a suppressed decision reaches him as prose reading like a decision already taken. That is the hook's own target defect, produced by the hook, where nobody can see it. **The DECISION/ACTION partition it enforced survives in `/engineering-standards` as an intention**, which is what the rest of that standard already is — refuse a dispatch whose brief stamps a repository state that is not true, verified in the repository the brief's own citations resolve to rather than in `cwd` (#326) — and refuse `gh issue close` on an Issue whose own body declares an invocable artifact that does not resolve in this tree (#337). ~~`orchestrator-write-guard` (matcher `Edit\|Write\|MultiEdit\|NotebookEdit`) — refuse the main agent's own edits inside a git working tree, a ROUTING rule rather than a floor one (#319)~~ **removed 2026-08-31 (#375)** — the owner's diagnosis was that it was a contingency rather than a design, and what replaces it is `scrum-master`'s selection record naming who acts before acting: detection, not prevention. **This is the only registration this repo has ever removed, and the matcher going with it is the reason the next paragraph exists.** |
+| **`PreToolUse`** | before a tool call executes | **yes** | `permission-guard` (matcher `Bash`) · `mcp-guard` (matcher `mcp__.*`) | refuse the irreversible floor *before* it happens. ~~and a PR that overlaps an open one~~ — **`wip-guard` was deleted 2026-09-04 (#383)**, under the criterion that a mechanical lock survives only where no other harness element can carry the control; its own registry row already stated it never reached its overlap loop while WIP=1 was obeyed. ~~`action-pendency-guard` (matcher `AskUserQuestion`) — refuse a picker raising an **action** pendency rather than a decision~~ **built and DELETED in the same slice, on the owner's ruling.** It matched by label spelling, not by choice shape, and three successive reviews each found a new class of genuine decision it refused — including all four of the merge gate's own holds and `Merge it / Request changes`, the exact class its verb set excluded `approve` to protect. **The argument that ended it is about the DIRECTION of its error:** the failure it prevented cost the owner one sentence; the failure it caused was invisible to him **by construction**, since `PreToolUse` denies before he sees anything, so a suppressed decision reaches him as prose reading like a decision already taken. That is the hook's own target defect, produced by the hook, where nobody can see it. **The DECISION/ACTION partition it enforced survives in `/engineering-standards` as an intention**, which is what the rest of that standard already is — ~~refuse a dispatch whose brief stamps a repository state that is not true, verified in the repository the brief's own citations resolve to rather than in `cwd` (#326)~~ **struck 2026-09-04 (#383): `dispatch-premise-guard` is deleted, and with it the only hook this harness ever wired to the dispatch tool.** What it prevented was a wasted subagent context — expensive, and repaired by re-dispatching — which the owner's criterion (*irreparable*, not *costly*) does not keep. **No other layer sees a dispatch**, so a brief stamping a false premise now runs: neither settings file carries any `Task`/`Agent` entry. ~~and refuse `gh issue close` on an Issue whose own body declares an invocable artifact that does not resolve in this tree (#337)~~ **struck 2026-09-04 (#383): `closure-artifact-guard`'s `PreToolUse` arm is removed and that hook now refuses nothing.** It fired zero times in the thirty days before removal — its predicate is a *manual* close, and the route this loop uses is the forge's, on a merge, which rule 7d already answers upstream. **A manual close on an unmet declaration now executes silently**, because `gh issue close` is allowlisted; the `Stop` arm reports it one turn later. ~~`orchestrator-write-guard` (matcher `Edit\|Write\|MultiEdit\|NotebookEdit`) — refuse the main agent's own edits inside a git working tree, a ROUTING rule rather than a floor one (#319)~~ **removed 2026-08-31 (#375)** — the owner's diagnosis was that it was a contingency rather than a design, and what replaces it is `scrum-master`'s selection record naming who acts before acting: detection, not prevention. ~~**This is the only registration this repo has ever removed**~~ — **struck 2026-09-04 (#383), when `wip-guard`'s registration became the second, and the singular is what makes it worth striking rather than editing: a reader took "only" as evidence that removing a registration is exceptional here, and it is now a policy.** **The matcher going with it is still the reason the next paragraph exists**, which is the half of the sentence that was never about the count. |
 | **`SessionStart`** | a session begins or resumes | no | `preflight`, `session-wip`, `session-plugin-version` | say at the door that the session is degraded and will be refused at the first prompt — inject the open queue — and warn when the installed build is not the merged one |
 | **`SubagentStart`** | a subagent is dispatched | no | `dispatch-metrics-start` | best-effort dependency probe only — see below; does not post |
 | **`SubagentStop`** | a subagent finishes | no | `dispatch-metrics-stop` | log rework rounds, time, output size and token cost for the dispatch as a structured Issue comment (#209) |
@@ -1457,9 +1458,13 @@ does not degrade at all.
   exception list above as unchanged: one rule fails closed, the rest fail open, and now nothing is
   supposed to reach them in that state.
 
-`permission-guard` denies the irreversible floor before the command runs. `wip-guard` refuses a pull
+`permission-guard` denies the irreversible floor before the command runs. ~~`wip-guard` refuses a pull
 request that touches files an open one already touches — the bound is file overlap, not a count, because
-counting blocks disjoint work while doing nothing about the real risk. `session-wip` lists the open queue.
+counting blocks disjoint work while doing nothing about the real risk.~~ **Struck 2026-09-04 (#383) —
+that hook is deleted.** Its own registry row already recorded that it never reached its overlap loop
+while WIP=1 was obeyed and could not see a shared checkout at all; removing it made `enforcement` agree
+with a limit that had been published for months. **Pull-request creation is allowlisted, so a second
+overlapping PR now executes silently rather than prompting.** `session-wip` lists the open queue.
 `session-plugin-version` says when the build the session is **running** is not the merged one — derived
 from that build's own manifest via `$0`, since #370 measured that reading the shared marketplace clone
 instead had let a project install sit **69 published releases** behind for 17 days with this hook
@@ -1584,8 +1589,18 @@ subagent. And if `hooks.json` never registered at all — the container case nob
 file never runs, and its silence is indistinguishable from a clean pass. That last one is unfixable
 from inside a hook, by construction.
 
-`dispatch-premise-guard` (#326) is the only hook wired to the **dispatch** tool, and it denies a
-dispatch whose brief stamps a repository state that is not true right now. It exists because two leads
+**`dispatch-premise-guard` (#326) was DELETED on 2026-09-04 (#383), and this repo now wires no hook to
+the dispatch tool at all.** The paragraphs below are kept in the past tense rather than removed,
+because the measurements in them are properties of the runtime and of how briefs are written — not of
+the hook — and because the reason it went is the transferable part: **what it prevented was a wasted
+subagent context, which is expensive and is repaired by re-dispatching.** Under the criterion the owner
+ruled for this audit — *irreparable*, not *costly* — that does not survive. **Nothing else observes a
+dispatch**, so the removal is real and silent: a brief stamping a state the tree does not have now
+runs, and neither `settings.json` layer contains any `Task`/`Agent` entry to fall through to. The
+runtime facts are rehomed in [ADR-0004](./docs/adr/0004-controls-and-enforcement.md).
+
+~~`dispatch-premise-guard` (#326) is the only hook wired to the **dispatch** tool, and it denies a
+dispatch whose brief stamps a repository state that is not true right now.~~ It existed because two leads
 were once dispatched on a brief citing one tree and stamping another; the review ran to completion
 against copy that had already been corrected, and nothing in the loop could have said so — the premise
 of a dispatch was never an object anything read back. **Three properties are the whole design.** The
@@ -1616,31 +1631,33 @@ remote-tracking ref reads as a false stamp; a brief about a linked worktree othe
 checked against its repository's main worktree; and a **cross-repository brief is not checked at all**,
 because one stamp and two repositories leaves no fact that says which one it is about.
 
-`closure-artifact-guard` (#337) ~~is the only hook registered on **two** events~~ is registered on
-**two** events, and the split is forced rather than chosen. **Struck 2026-09-02 (#383): the "only" was
-false from #342 onward — and it was found while DERIVING the hook
-inventory for that audit, not by anyone re-reading the sentence.** Two scripts carry two registrations
-each, and the pair is derived rather than asserted:
+~~`closure-artifact-guard` (#337) is the only hook registered on **two** events~~ ~~is registered on
+**two** events, and the split is forced rather than chosen.~~ **The "only" was struck 2026-09-02 (#383)
+as false from #342 onward — found while DERIVING the hook inventory for that audit, not by anyone
+re-reading the sentence. The rest was struck 2026-09-04 by the same Issue's first build slice: this
+hook is registered on ONE event now**, `Stop`, and **`preflight` is the only script carrying two
+registrations.** Derived rather than asserted, at head:
 
 ```
 jq -r '[.hooks|to_entries[]|.key as $e|.value[]|.hooks[]|{e:$e,s:(.command|split("/")|last)}]
        |group_by(.s)|map(select(length>1))|map(.[0].s + " -> " + (map(.e)|join(", ")))|.[]' hooks/hooks.json
-→ closure-artifact-guard.sh -> PreToolUse, Stop
-→ preflight.sh             -> UserPromptSubmit, SessionStart
+→ preflight.sh -> UserPromptSubmit, SessionStart
 ```
 
 **The event table above was already correct** — it lists `preflight` in both its rows — so only the
-prose was wrong, which is the half nothing re-reads. `inventory-counts.test.sh` now holds this claim in
+prose was wrong, which is the half nothing re-reads. `inventory-counts.test.sh` holds this claim in
 both directions off that same command, so the next hook registered on a second event reddens instead of
-quietly refuting a sentence. What the struck clause got right survives untouched: this guard holds one
-rule — *an Issue whose own body declares an invocable artifact does not
-reach `closed` while that artifact does not resolve* — against a route it can refuse and a route nobody
-can. **Measured 2026-08-28: every Issue this loop closed in the preceding week closed by a closing
+quietly refuting a sentence. What survives of the rule this guard holds is **half of what it was**: *an
+Issue whose own body declares an invocable artifact does not reach `closed` while that artifact does not
+resolve* was held against a route it could refuse and a route nobody can, and **it is now held against
+neither by this hook** — only reported, after the fact, on both. **Measured 2026-08-28: every Issue this loop closed in the preceding week closed by a closing
 keyword in a merged PR body** (`Closes #313's slice 1`, PR #345; the same shape in #333, #340,
 #347, #348, #349). That close is executed by GitHub on merge, so **no hook in this harness observes it**
 — which is why the `Stop` arm exists and is detection only, one turn late, exactly the class
-`zombie-loop-detect` is. The `PreToolUse` arm refuses the manual `gh issue close` route, which is the
-minority route today.
+`zombie-loop-detect` is. ~~The `PreToolUse` arm refuses the manual `gh issue close` route, which is the
+minority route today.~~ **Struck 2026-09-04 (#383): that arm is removed, and the struck sentence's own
+concession — *the minority route* — is why. Zero fires in thirty days, against an act that is undone by
+reopening the Issue.**
 
 ~~and no permission layer can deny it~~ · ~~and is still the only refusal surface that exists at all~~
 — **struck 2026-08-30 (#363).** Both halves were true about the **close** and false about the **merge**
@@ -1708,7 +1725,7 @@ by hand:
 | **Skills** | yes — **15** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
 | **Commands (legacy)** | yes — **6 files** (`autonomy`, `new-issue`, `blueprint`, `sprint-review`, `sprint-retrospective`, `sprint-planning`), derived from `ls commands/` — `autonomy` and `blueprint` each carry **three** dispatch rows, so the count of things a human can TYPE is larger than the count of files and the two must not be conflated. **The criterion is the dispatch row, not the operating mode** — it is what each command file's own `## The three modes` heading counts, and it is the right unit here because a bare `/autonomy` is a thing a human types: two operating modes (`on`\|`off`, `export`\|`import`) plus the bare form that prints help and does nothing. Each command's *operating* set is separately closed at two, which is what `commands/autonomy.md`'s *"The set is closed at two"* means and is not a second count of the same thing | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **8 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`, `scrum-master`) | dispatched by name via `Task` |
-| **Hooks** | yes — **`hooks.json` registers 16** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `wip-guard`, `dispatch-premise-guard`, `closure-artifact-guard`, `mcp-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `owed-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **16 registrations over 14 scripts**, re-derived rather than adjusted: `jq '[.hooks[][].hooks[].command]｜{registrations:length, scripts:([.[]｜sub(".*/";"")]｜unique｜length)}' hooks/hooks.json` → `{16, 14}`. `closure-artifact-guard` and `preflight` are each registered twice, on the two events their two halves need, and that is why the registration count is the honest number rather than a file count. **Both figures fell by one at #375**, when `orchestrator-write-guard` was removed — **returned to 16/14 at #374**, a coincidence of arithmetic and not a restoration (the script that left refused an act, the one that arrived only reports one) — **and returned to 16/14 a second time**, after `action-pendency-guard` was built and deleted in one slice. **That is now TWO registrations this repo has deleted, and both were refusals** — one a routing rule the owner ruled a contingency, one a preventive control whose false positives its own owner could never have seen |
+| **Hooks** | yes — **`hooks.json` registers 13** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `mcp-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `owed-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **13 registrations over 12 scripts**, re-derived rather than adjusted: `jq '[.hooks[][].hooks[].command]｜{registrations:length, scripts:([.[]｜sub(".*/";"")]｜unique｜length)}' hooks/hooks.json` → `{13, 12}`. ~~`closure-artifact-guard` and `preflight` are each registered twice~~ — **only `preflight` is, since #383 removed `closure-artifact-guard`'s `PreToolUse` arm**; the registration count is still the honest number rather than a file count, and the gap between 14 and 13 is now that one script. **Both figures fell by one at #375**, when `orchestrator-write-guard` was removed — **returned to 16/14 at #374**, a coincidence of arithmetic and not a restoration (the script that left refused an act, the one that arrived only reports one) — **and returned to 16/14 a second time**, after `action-pendency-guard` was built and deleted in one slice. **Both fell again on 2026-09-04 (#383), when `wip-guard` was deleted under the owner's dehydration criterion — and this time nothing arrived to restore the arithmetic.** **That is now FIVE registrations this repo has deleted, and every one was a refusal** — a routing rule the owner ruled a contingency (#375), a preventive control whose false positives its own owner could never have seen, and three in one slice under the dehydration criterion (#383): the WIP overlap guard whose own registry row already recorded that it never reached the failure it was named for, the closure guard's manual-close arm which fired zero times in thirty days, and the dispatch-premise guard, whose object was a wasted subagent context rather than an irreparable act. **The direction is now a policy rather than a series of exceptions**, and the honest summary is that this harness prevents strictly less than it did a week ago and says so in each place rather than in one |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
 | MCP servers | **no** | — | no `.mcp.json`, no `mcpServers` key in any manifest |
 | LSP servers | **no** | — | no `.lsp.json` |
@@ -1815,10 +1832,12 @@ and any price written here would go stale. The link carries the current answer.
 **`bash` and [`jq`](https://jqlang.github.io/jq/)** — the hooks are shell scripts and parse tool
 input as JSON. Both are present or one `brew`/`apt` install away on macOS and Linux.
 
-**[`gh`](https://cli.github.com/), and this one degrades quietly.** `wip-guard` and `session-wip`
-read the open PR queue through it, and both **exit clean when it is missing** rather than erroring —
-so without `gh` you get no warning, no failure, and no WIP guard. Named here at full weight because a
-guard that silently is not running is worse than one you know you skipped.
+**[`gh`](https://cli.github.com/), and this one degrades quietly.** `session-wip` reads the open PR
+queue through it and **exits clean when it is missing** rather than erroring — so without `gh` you get
+no warning, no failure, and no queue notice. Named here at full weight because a hook that silently is
+not running is worse than one you know you skipped. *(`wip-guard` was the second half of this sentence
+and had the same degradation; it was deleted at #383, so the fail-open it contributed is gone with
+it — one fewer silent hole rather than one more.)*
 
 **A git repo to install it into.** The loop is about pull requests, so the value lands in a repo with
 a remote.

@@ -1,7 +1,33 @@
 #!/usr/bin/env bash
 # purpose: hold an Issue's closure against the artifact it promised, so the half a reader can invoke has to exist before the tracker says the work is done
-# closure-artifact-guard.sh — two events, one predicate: an Issue that DECLARES an invocable
-# artifact does not reach `closed` while that artifact does not resolve.
+# closure-artifact-guard.sh — ONE event since #383: an Issue that DECLARES an invocable artifact and
+# has ALREADY closed while that artifact does not resolve is REPORTED at the end of the turn.
+#
+# ── IT REFUSES NOTHING AS OF 2026-09-04, AND THE NAME NO LONGER MATCHES THE BEHAVIOUR ────────────
+# `guard` is kept in the filename deliberately rather than renamed: the string is registered in
+# `hooks.json`, named in `README.md`, carried as a `carrier` in `docs/blueprint-registry.md` and cited
+# by several records, and a rename would move all of that for a file whose behaviour is what actually
+# changed. READ THE NAME AS HISTORICAL. This is a REPORTER.
+#
+# The `PreToolUse` arm — which denied a manual `gh issue close` on an unmet declaration — was removed
+# under the owner's dehydration criterion (#383): a mechanical lock survives only where no other
+# harness element can carry the control. Three facts decided it, and none is about the control being
+# unimportant:
+#
+#   1. IT NEVER FIRED. Zero fires in the transcript record over the thirty days before its removal.
+#      Its predicate is a MANUAL close, and the route this loop actually uses is the forge's, on a
+#      closing keyword in a merged PR body — measured below, and executed by GitHub's servers where
+#      no `PreToolUse` hook exists.
+#   2. THE ROUTE THAT DOES HAPPEN WAS ALREADY COVERED UPSTREAM, one step earlier and by a different
+#      artifact comparison: `permission-guard.sh` rule 7d denies the MERGE when the PR's
+#      `closingIssuesReferences` contains an Issue the gate's head-scoped verdict does not declare.
+#   3. WHAT IT PREVENTED IS REPARABLE IN ONE CLICK. An Issue closed with an unmet promise is
+#      reopened; nothing latches.
+#
+# WHAT ITS ABSENCE COSTS, and it is not softened: `Bash(gh issue close:*)` is allowlisted in BOTH
+# settings layers, and this hook decided BEFORE that layer, so a manual close on an Issue with an
+# unmet declaration now EXECUTES SILENTLY. It does not fall through to a prompt. The `Stop` arm
+# reports it at the end of the same turn — one turn late, never prevented.
 #
 # ── WHAT THIS EXISTS FOR (#337) ─────────────────────────────────────────────────────────────────
 # Three Issues closed with their operable half unbuilt. #313 shipped `docs/blueprint-registry.md`
@@ -58,11 +84,15 @@
 # Prevention is therefore unavailable on the route that is actually used, and this script does not
 # pretend otherwise:
 #
-#   PreToolUse (Bash) — PREVENTS, on the manual `gh issue close` route only. Measurably the
+#   ~~PreToolUse (Bash) — PREVENTS, on the manual `gh issue close` route only. Measurably the
 #                       minority route today. ~~It is the only refusal surface that exists~~
 #                       (struck 2026-08-30, #363), it costs one string comparison on calls that are
 #                       not `gh issue close`, and the "close with a criterion" rite in
-#                       `/agents-configuration` is a real user of it.
+#                       `/agents-configuration` is a real user of it.~~
+#                       REMOVED 2026-09-04 (#383) — the header above carries why. Note what the
+#                       struck text concedes in its own words: "Measurably the minority route".
+#                       A refusal on the minority route, with zero fires in thirty days, against a
+#                       reparable act, is the exact shape the dehydration criterion removes.
 #
 # ── CORRECTION 2026-08-30 (#363) — TRUE OF THE CLOSE, FALSE OF THE MERGE ───────────────────────
 # The two struck clauses above were the reasoning everything downstream inherited, and the second
@@ -121,9 +151,11 @@
 # 4. A cross-repo close (`gh issue close N --repo other/repo` from this tree) is NOT checked — the
 #    tree that would answer the question is not the tree this process can see. It exits silently
 #    rather than guessing.
-# 5. The PreToolUse arm anchors at the START of the command string. A `gh issue close` buried after
+# 5. ~~The PreToolUse arm anchors at the START of the command string. A `gh issue close` buried after
 #    a `&&` is not seen — and does not need to be, because `permission-guard.sh` denies the chain
-#    itself on the same matcher.
+#    itself on the same matcher.~~ **Moot since #383: there is no PreToolUse arm.** The limit that
+#    replaces it is larger and is stated in the header — a manual close is now not checked at all
+#    before it happens, only reported after.
 #
 # ── EXIT-CODE DISCIPLINE, AND THE DIRECTION IT FAILS IN ────────────────────────────────────────
 # FAILS OPEN, everywhere: no `jq`, no `gh`, no `git`, an unreadable payload, an API error, a body
@@ -134,9 +166,9 @@
 # a green from this hook can mean "checked and clean" or "could not check", and nothing downstream
 # can tell the two apart.
 #
-# Contract: reads the hook payload on stdin. On `PreToolUse`, prints a permissionDecision JSON and
-# exits 0. On `Stop`, prints hookSpecificOutput carrying `additionalContext` and exits 0. Silent on
-# every other event.
+# Contract: reads the hook payload on stdin. On `Stop`, prints hookSpecificOutput carrying
+# `additionalContext` and exits 0. Silent on every other event — including `PreToolUse`, which it is
+# no longer registered on and which it now falls through as an unknown event rather than answering.
 
 set -uo pipefail
 
@@ -197,70 +229,6 @@ issue_body() {
   gh issue view "$1" --json body,title \
     --jq '(.title // "") + "\n" + (.body // "")' 2>/dev/null || true
 }
-
-# ════════════════════════════════════════════════════════════════════════════════════════════════
-# ARM 1 · PreToolUse — refuse a manual close whose declaration is unmet
-# ════════════════════════════════════════════════════════════════════════════════════════════════
-if [ "$event" = "PreToolUse" ]; then
-  cmd="$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null || true)"
-  [ -z "$cmd" ] && exit 0
-
-  # Anchored at the start — see limit 5 in the header.
-  case "$cmd" in
-    "gh issue close "*) : ;;
-    *) exit 0 ;;
-  esac
-
-  # A close aimed at another repository cannot be answered from this tree (limit 4).
-  repo_flag="$(printf '%s\n' "$cmd" | sed -nE 's/.*(--repo|-R)[[:space:]=]+([A-Za-z0-9._-]+\/[A-Za-z0-9._-]+).*/\2/p')"
-  if [ -n "$repo_flag" ]; then
-    origin="$(git -C "$ROOT" remote get-url origin 2>/dev/null || true)"
-    case "$origin" in
-      *"$repo_flag"*) : ;;
-      *) exit 0 ;;
-    esac
-  fi
-
-  # The Issue number: the first operand that is a bare number, a #-prefixed number, or an issue URL.
-  num="$(printf '%s\n' "${cmd#gh issue close }" | tr ' ' '\n' \
-    | sed -nE 's@^#?([0-9]+)$@\1@p; s@^https?://[^[:space:]]+/issues/([0-9]+)/?$@\1@p' | head -1)"
-  [ -z "$num" ] && exit 0
-
-  body="$(issue_body "$num")"
-  [ -z "$body" ] && exit 0
-
-  unmet="$(unmet_entries "$body")"
-  [ -z "$unmet" ] && exit 0
-
-  reason="Denied: issue #${num} declares an invocable artifact that does not resolve in this tree.
-
-unmet:
-$(printf '%s\n' "$unmet" | sed 's/^/  /')
-
-This is closure-artifact-guard.sh (#337), a PreToolUse guard. The Issue's own body carries an
-'invocable:' line naming what a reader must be able to invoke when this closes, and the named
-artifact is not there. Three Issues closed this way before this hook existed; each was caught by a
-human asking.
-
-Three exits, and only the third is free:
-  1. build it — the artifact resolves and this call goes straight through;
-  2. record the narrowing — replace the line with
-       invocable-waived: <entry> <why the promise was narrowed, in a sentence>
-     which is an auditable edit to the Issue body, not a flag;
-  3. leave the Issue open — a promise with no artifact and no recorded narrowing is open work.
-
-What this did NOT check: whether the artifact WORKS (existence only), and whether the Issue declared
-everything it promised (nothing forces the declaration)."
-
-  jq -n --arg r "$reason" '{
-    hookSpecificOutput: {
-      hookEventName: "PreToolUse",
-      permissionDecision: "deny",
-      permissionDecisionReason: $r
-    }
-  }'
-  exit 0
-fi
 
 # ════════════════════════════════════════════════════════════════════════════════════════════════
 # ARM 2 · Stop — report an Issue that ALREADY closed with its declaration unmet

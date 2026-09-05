@@ -1146,9 +1146,10 @@ If you cite a file count or a file list, it must be the one the PR returned.
 
 See `shell` (already preloaded) for the general rule — one atomic call, the `gh --repo` flag
 position. **One thing specific to you, worth keeping**: you're the persona that found the fifth
-`--repo`-flag spelling `wip-guard.sh` didn't parse, by running the real `gh` rather than reading the
+`--repo`-flag spelling a guard didn't parse, by running the real `gh` rather than reading the
 pattern — a reminder that verifying a rule by execution, not by re-reading the source, is exactly the
-discipline this brief asks of you elsewhere too.
+discipline this brief asks of you elsewhere too. *(The guard in question was `wip-guard.sh`, deleted at
+#383; the finding outlived it and is recorded in `/devops` as a property of `gh`.)*
 
 ## Tool discipline (enforces ADR-0004 mechanically)
 You have **Read, Grep, Glob, Bash** — to read the diff and repo (`gh pr diff`, `gh pr checks`,

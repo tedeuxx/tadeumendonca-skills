@@ -333,14 +333,24 @@ kind.
 **Struck 2026-08-30 (#365) — this is the line that performed the act.** The filing command is
 `gh issue create --body-file <path>`, with no `--milestone`, always.
 
-**And it is no longer only an instruction: `permission-guard.sh` rule 10 holds it.** A
+~~**And it is no longer only an instruction: `permission-guard.sh` rule 10 holds it.** A
 `gh issue create`/`gh issue edit` carrying `--milestone` (or `-m`) is **denied** to every dispatched
 persona and **asked** of the orchestrator, so the owner's answer to the prompt *is* the HITL
 verification his rule demands. **That is why this rule is prevention rather than the one-turn-late
-detection its Issue expected** — the wall that stopped #337, #339 and #363 is that a guard cannot tell
-*he told me* from *I did it myself*, and a guard that is allowed to **ask** does not have to.
-`--remove-milestone` is deliberately unmatched: taking an item back out is the corrective act, not the
-one under guard.
+detection its Issue expected**~~ — **STRUCK 2026-09-04 (#383): rule 10 is deleted, on the owner's own
+pricing of the act (*«mexer em milestones nao é um risco crucial a iniciativa»*). IT IS ONLY AN
+INSTRUCTION AGAIN, and this is the sentence that said otherwise.**
+
+**File without `--milestone` because the rule says so, not because anything will stop you.** The
+command is allowlisted and the hook that used to answer first is gone, so a `--milestone` on a filing
+now **executes silently** — no prompt, no denial, no record, and no detection either, since no hook
+here reads the queue.
+
+**What survives the strike, and it is worth more than the rule was:** the wall that stopped #337, #339
+and #363 is that a guard cannot tell *he told me* from *I did it myself*, and **a guard that is allowed
+to ask does not have to.** That finding is untouched and is the reason to reach for `ask` on the next
+obligation that needs a human's answer. `--remove-milestone` was deliberately unmatched — taking an
+item back out is the corrective act — and that reparability is precisely why the rule lost.
 
 **A wrong milestone name FAILS LOUDLY, and this was the open unknown #338 flagged.** Kept because it is
 still true of the assignment the owner makes at planning, and because the next person to type a

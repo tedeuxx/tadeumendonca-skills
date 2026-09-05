@@ -1084,11 +1084,13 @@ else
       A path prefix is a STRING prefix, not a directory scope: '<allowed-prefix>/../../../tmp/x.sh' carries it.
       permission-guard.sh does not look inside a script file, so that suffix is arbitrary code with no decision from any layer.
       Measured on #160 against a live floor: 'bash .scratch/.\"\"./.\"\"./<other-repo>/VERSION' runs with NO decision from any layer.
-      That spelling is deliberate. The obvious one ('.scratch/../../<other-repo>/VERSION') was the original measurement and
-      permission-guard rule 9 now DENIES it — so quoting it here would offer, as the evidence, the one string this repo closed.
-      The empty quoted span has no '..' adjacency at all, which is why no pattern reaches it and why the property survives.
-      Use exact-match entries (one per script). DO NOT reach for a hook rule: rule 9 was written to bound this directory and
-      CANNOT — a lexical instrument cannot decide a filesystem property. If you add an exception here, tie it to a RECORD that
+      That spelling was deliberate WHEN THE PLAIN ONE WAS DENIED, and since #383 both run: permission-guard's rule 9 — the
+      speed bump that denied '<prefix>/../../x' — was REMOVED 2026-09-04, so the obvious spelling is no longer closed either.
+      The empty quoted span remains the sharper witness for a different reason: it has no '..' adjacency at all, which is why
+      no pattern could ever have reached it and why the property survives independently of whether any rule denies anything.
+      Use exact-match entries (one per script). DO NOT reach for a hook rule: rule 9 was written to bound this directory,
+      COULD NOT, and was deleted for that reason (ADR-0004, 'A path in an `allow` entry is a string prefix, not a directory
+      scope') — a lexical instrument cannot decide a filesystem property. If you add an exception here, tie it to a RECORD that
       states the accepted grant AND tie it to a mechanism you can execute. The one exception this file
       once carried was tied to a record by filename, printed a green describing a grant that had already
       left the floor, and was deleted at #283 slice 1 rather than repointed."
@@ -1755,80 +1757,28 @@ for brief in "$ROOT"/agents/*.md; do
   fi
 done
 
+
 # ---------------------------------------------------------------------------------------------------
-# THE TWO HOOKS PARSE `-R`/`--repo` WITH THE SAME CHARACTER CLASS.
+# THE REPO-FLAG CLASS, WITHIN permission-guard.sh — and the CROSS-HOOK half of this check was DELETED
+# at #383 because its second subject was.
 #
-# `permission-guard.sh` defines `gh_repo_flag` and interpolates it into every `gh` rule; `wip-guard.sh`
-# writes the same class inline, twice, because a hook cannot source a variable out of another hook.
-# They are DUPLICATED LITERALS, and `wip-guard.sh` claimed otherwise — its comment said a sixth spelling
-# would be "fixed in one place and both hooks move". Measured false: editing one file alone leaves the
-# other behind and both suites stay green.
+# Until 2026-09-04 two arms above this one compared `wip-guard.sh`'s two inline copies of the
+# `-R`/`--repo` character class against `permission-guard.sh`'s `gh_repo_flag`. `wip-guard.sh` is
+# removed (#383, S1), so there is no second file to drift against and those arms would have asserted
+# over an empty list — a green that is an artifact of the break, which is the exact shape both of them
+# guarded against and the reason they are deleted rather than left to pass.
 #
-# THIS IS WHAT MAKES THE CLAIM TRUE, and it is deliberately weaker than the sentence it replaces. It
-# does not make them move together — nothing can. It makes them unable to DRIFT APART in silence, which
-# is the property that was actually missing: `wip-guard` spent a week a spelling behind `permission-guard`
-# on exactly this flag, and no check anywhere could say so.
-# THE ANCHOR IS DELIBERATELY LOOSER THAN THE CLASS IT COMPARES. Anchoring on the full literal made
-# the third branch DEAD BY CONSTRUCTION: both sides searched for the same fixed string, so `grep -oE`
-# could only ever emit that string and `grep -qvxF` had nothing to find. Measured — mutating one file
-# reached branch 2, mutating both reached branch 2, mutating the guard reached branch 1, and branch 3
-# never fired. Matching `(` + the flag + anything-up-to-`)` lets the two sides emit DIFFERENT text,
-# which is the only way a difference can be reported at all.
-guard_class="$(grep -oE '\((-R|--repo)[^)]*\)' "$ROOT/hooks/scripts/permission-guard.sh" | head -1)"
-wip_classes="$(grep -oE '\((-R|--repo)[^)]*\)' "$ROOT/hooks/scripts/wip-guard.sh")"
-wip_count="$(printf '%s' "$wip_classes" | grep -c . || true)"
-
-# TWO SUBJECTS, TWO INDEPENDENT VERDICTS — see THE CHAINING RULE in this file's header.
+# WHAT THE DELETED ARMS ESTABLISHED IS NOT LOST, AND IT IS TWO SEPARATE FACTS:
+#   1. A HOOK CANNOT SOURCE A VARIABLE OUT OF ANOTHER HOOK, so a shared class is DUPLICATED LITERALS
+#      and editing one file leaves the other behind with both suites green. That precedent is still
+#      live and still enforced — see the `session-wip.sh` verdict-literal arm below, which is the same
+#      shape over the surviving second consumer.
+#   2. `gh` ACCEPTS FIVE SPELLINGS OF THE REPO FLAG (`-R x`, `-R=x`, `-Rx`, `--repo x`, `--repo=x`),
+#      and a space-only regex silently turns a whole guard OFF rather than loosening it. That is a
+#      property of the `gh` CLI rather than of any hook here, and it is rehomed to `/devops`.
 #
-# HOW MANY copies wip-guard.sh carries and WHETHER they match permission-guard.sh are different
-# assertions, and they were one `if/elif` chain until #283 slice 2's re-review. A wrong count returned
-# `bad` from the second arm, so the drift comparison below it was never reached and emitted NEITHER
-# `PASS` NOR `FAIL`. Measured, not argued: mutating wip-guard.sh with two independent defects at once —
-# the trigger's flag segment deleted (count 2 → 1) and the extraction's class drifted (`=` dropped) —
-# reported ONLY `carries 1 copies of the class` at `62 passed, 1 failed`. The drift was real, present,
-# and computable from a one-element list, and no verdict said so.
-#
-# This is the same defect as 4a/4b in the citation block and as the numbering pair, and it shipped in
-# the SWEEP that fixed those two: the sweep cleared this chain by re-reading its own justification
-# instead of mutating it. A reason that survives re-reading is not evidence.
-#
-# The vacuity guard is repeated in both arms rather than shared, for the reason the header gives: a
-# permission-guard.sh with no class at all makes BOTH verdicts vacuous, so both must redden.
-
-# ── how many copies wip-guard.sh carries ──
-if [ -z "$guard_class" ]; then
-  bad "flag class — permission-guard.sh no longer contains the shared -R/--repo class this asserts on,
-      so the copy count below cannot be judged against anything.
-      If it was deliberately reshaped, reshape this assertion with it — do not delete it: the drift it
-      catches is the one that already happened once."
-elif [ "$wip_count" -ne 2 ]; then
-  bad "flag class — wip-guard.sh carries $wip_count copies of the class, expected 2 (trigger + extraction).
-      A copy that disappeared is a parse that silently narrowed."
-else
-  ok "flag class — wip-guard.sh carries both copies of the -R/--repo class (trigger + extraction)"
-fi
-
-# ── and whether they are the SAME class as permission-guard.sh's ──
-# Judged over whatever copies exist, deliberately, rather than only when the count is right: a copy that
-# went missing AND a copy that drifted are two defects, and the second must not wait on the first being
-# repaired. `wip_classes` empty is the one state where this is genuinely uncomputable — an empty list has
-# nothing to compare — so it is a guard here rather than a silent pass.
-if [ -z "$guard_class" ] || [ -z "$wip_classes" ]; then
-  bad "flag class — the -R/--repo class could not be extracted from
-      $([ -z "$guard_class" ] && printf 'permission-guard.sh ')$([ -z "$wip_classes" ] && printf 'wip-guard.sh ')— nothing was
-      found to compare, so a green here would be an artifact of the break and not a finding."
-elif printf '%s\n' "$wip_classes" | grep -qvxF -- "$guard_class"; then
-  bad "flag class — wip-guard.sh and permission-guard.sh parse the repo flag DIFFERENTLY.
-      permission-guard: $guard_class
-      wip-guard:        $(printf '%s' "$wip_classes" | tr '\n' ' ')
-      One of them is a spelling behind. That is how \`gh -R=owner/x pr create\` turned wip-guard off."
-else
-  ok "flag class — every copy in wip-guard.sh parses -R/--repo with permission-guard.sh's identical class"
-fi
-
-# ── AND WITHIN permission-guard.sh ITSELF, which is where the drift actually was (2026-08-23) ────────────
-# The two arms above compare wip-guard.sh against permission-guard.sh's FIRST class and stop there.
-# Measured at origin/main, that was a blind spot big enough to hold two live fail-opens: the same grep
+# ── WITHIN permission-guard.sh ITSELF, which is where the drift actually was (2026-08-23) ────────────
+# Measured at origin/main, this was a blind spot big enough to hold two live fail-opens: the same grep
 # pointed at permission-guard.sh alone returned THREE DIFFERENT classes —
 #
 #   `gh_repo_flag` (the shared definition)   (-R[[:space:]=]*|--repo[[:space:]=]*)   correct
@@ -1840,10 +1790,10 @@ fi
 # gate's verdict check off for `gh pr merge N --repo owner/x`, which is the spelling `shell`
 # MANDATES. A rule defeated by following the instructions.
 #
-# THIS IS DELIBERATELY THE SAME SHAPE AS THE ARMS ABOVE and not a cleverer one: emit every copy, and
-# report any that is not the first. The first is `gh_repo_flag`'s own definition, which is the class
-# every rule interpolates when it does not hand-roll one — so "identical to the first" is exactly
-# "identical to the shared class".
+# THE SHAPE IS: emit every copy, and report any that is not the first. The first is `gh_repo_flag`'s
+# own definition, which is the class every rule interpolates when it does not hand-roll one — so
+# "identical to the first" is exactly "identical to the shared class".
+guard_class="$(grep -oE '\((-R|--repo)[^)]*\)' "$ROOT/hooks/scripts/permission-guard.sh" | head -1)"
 guard_classes="$(grep -oE '\((-R|--repo)[^)]*\)' "$ROOT/hooks/scripts/permission-guard.sh")"
 if [ -z "$guard_class" ] || [ -z "$guard_classes" ]; then
   bad "flag class — no -R/--repo class could be extracted from permission-guard.sh, so its copies
@@ -1863,10 +1813,14 @@ fi
 # THE SAME PRECEDENT, FOR A SECOND DUPLICATED LITERAL: rule 7c (permission-guard.sh) re-checks the
 # gatekeeper-verdict marker at merge time, and session-wip.sh's verdict_suffix() reads it to annotate
 # the open-PR queue. Both need the SAME jq literal-extraction + SHA/author-matching program, and a
-# hook cannot source code out of another hook — same reason wip-guard.sh carries its own copy of
-# `gh_repo_flag` rather than importing permission-guard.sh's. Anchored on `def literal` through the
-# `if length == 0 …` line, which is the whole selection pipeline; a drift here is exactly the shape
-# that let `gh -R=owner/x pr create` slip past wip-guard for a week on the OTHER duplicated literal.
+# hook cannot source code out of another hook — the same reason the removed wip-guard.sh carried its
+# own copy of `gh_repo_flag` rather than importing permission-guard.sh's. Anchored on `def literal`
+# through the `if length == 0 …` line, which is the whole selection pipeline; a drift here is exactly
+# the shape that let `gh -R=owner/x pr create` slip past wip-guard for a week on that other duplicated
+# literal, silently, with both suites green.
+#
+# THIS IS NOW THE ONLY CROSS-HOOK DUPLICATED-LITERAL ARM IN THIS FILE (#383 removed the other subject),
+# so it carries the whole of the precedent rather than half of it.
 guard_literal="$(grep -A11 'def literal(\$lines; \$m):' "$ROOT/hooks/scripts/permission-guard.sh" 2>/dev/null || true)"
 wip_literal="$(grep -A11 'def literal(\$lines; \$m):' "$ROOT/hooks/scripts/session-wip.sh" 2>/dev/null || true)"
 if [ -z "$guard_literal" ] || [ -z "$wip_literal" ]; then
@@ -6498,7 +6452,7 @@ else
   # commit that was updating the literal correctly in every other respect.
   for wip343_head_needle in \
     '### What WIP=1 is PROTECTING — recorded 2026-08-29 (#343), because it was never written down' \
-    '### `wip-guard.sh` does NOT enforce WIP=1, and a reader who thinks it does is wrong about what protects them'
+    '### `wip-guard.sh` did NOT enforce WIP=1, which is why REMOVING it (#383) changed nothing about what protects you'
   do
     grep -qxF -- "$wip343_head_needle" "$WIP343_SKILL" || wip343_skill_missing="$wip343_skill_missing
     missing (exact line, heading depth included): \"$wip343_head_needle\""
@@ -6510,11 +6464,13 @@ else
     'an EVENT is dated from the artifact that reports it' \
     'and a MEASUREMENT from the day it was run' \
     '**Layer 3 — what remains unrecorded, stated so nobody mistakes layer 2 for it.**' \
-    '**It bounds concurrency; it has never bounded a count per iteration, and across nine consecutive' \
-    'grep -c worktree hooks/scripts/wip-guard.sh' \
+    '**It bounded concurrency; it never bounded a count per iteration, and across the whole `sprint-01`' \
+    'git show <that-commit>^:hooks/scripts/wip-guard.sh | grep -c worktree   # → 0' \
+    'That falsifier died with the file on' \
     'That is a moment problem, not a matcher problem' \
     '**So: WIP=1 is held by instruction and by nothing else.**' \
-    'it is true of the count half and FALSE of the half that actually cost something.'
+    'it is true of the count half and FALSE of the half that actually cost something.' \
+    '**executes silently**; it does not fall through to a prompt.'
   do
     grep -qF -- "$wip343_needle" "$WIP343_SKILL" || wip343_skill_missing="$wip343_skill_missing
     missing: \"$wip343_needle\""
@@ -6546,9 +6502,15 @@ else
       failures blur into a single claim, and the record reads as a rationale he gave. He gave none —
       #88 rejects a count, the 2026-08-13 correction imposes one, the 2026-08-29 answer keeps it while
       naming an unrelated precondition. The TWO MEASUREMENT needles are what stop a reader inferring
-      that \`wip-guard.sh\` enforces WIP=1: it lists only OPEN PRs, so under WIP=1 it never reaches its
-      overlap loop, and it contains the word 'worktree' zero times, so two agents in one checkout are
-      indistinguishable to it. MOMENT-NOT-MATCHER is why no version of that hook could hold the gap —
+      that \`wip-guard.sh\` enforced WIP=1: it listed only OPEN PRs, so under WIP=1 it never reached its
+      overlap loop, and it contained the word 'worktree' zero times, so two agents in one checkout were
+      indistinguishable to it. SINCE #383 THAT HOOK IS DELETED, and the second measurement's falsifier
+      went with it — a \`grep\` over a path that no longer exists returns zero and reads as a clean
+      result, so the needle now pins the GIT-HISTORY form of the same falsifier plus the strike that
+      says why. The needle asserting the act EXECUTES SILENTLY is the removal's own cost, and it is
+      required because that is the half a reader would otherwise assume the permission layer still
+      covers: \`gh pr create\` is allowlisted in both layers. MOMENT-NOT-MATCHER is why no version of
+      that hook could hold the gap —
       it fires at \`gh pr create\` and the failure completes during the build. HELD-BY-INSTRUCTION is
       the admission this loop's own test demands. And the LAST needle is the strike of the twelfth
       amendment's remedy clause, which promised the gap away as a pending hook change.
@@ -6603,8 +6565,9 @@ fi
 # ("inteiro. estimar antes é positivo"). The build refused to write "void — owner's decision" into a
 # durable record on an agent message's authority, and he confirmed the ratified design stands.
 #
-# NOTHING MECHANICAL CAUGHT THAT, and this block does not pretend to. dispatch-premise-guard.sh checks
-# TREE-SHAPED premises — a SHA, a branch, a path — because those resolve against a repository. "The
+# NOTHING MECHANICAL CAUGHT THAT, and this block does not pretend to. dispatch-premise-guard.sh checked
+# TREE-SHAPED premises — a SHA, a branch, a path — because those resolve against a repository, and it
+# was DELETED at #383, so today nothing checks a dispatch's premise in any shape at all. "The
 # owner decided X" is not tree-shaped: its truth-maker is an Issue comment, and no PreToolUse payload
 # carries one. What these arms hold is the far narrower thing a file CAN hold: that the decision, once
 # taken, is still written where the loop reads it.
@@ -7754,13 +7717,26 @@ if [ -r "$MS_SCRIPT" ]; then
     || ms_problems="$ms_problems
     scripts/milestone-create.sh no longer forbids the claim that the raw-API route is closed"
 fi
+# THE GUARD'S HALF INVERTED ON 2026-09-04 (#383), AND THAT IS THE POINT OF KEEPING THE ARM RATHER
+# THAN DELETING IT. Rules 10 and 11 were removed on the owner's pricing of the act
+# («mexer em milestones nao é um risco crucial a iniciativa»), so the guard no longer stands there.
+# The old needles asserted that rule 11 EXPLAINED the route; asserting that now would demand a rule
+# that does not exist. **What replaces them asserts the ABSENCE is stated**, which is the thing a
+# later reader is most likely to get wrong: `scripts/` matches no allow entry in either settings
+# layer, so a permission PROMPT still fires there — and a prompt that exists only because nobody has
+# written an allow entry is an absence, not a control. If someone adds one, the verification
+# disappears with nothing to say so. That sentence is what this arm now pins.
 if [ -r "$MS_GUARD" ]; then
   ms_checked=$((ms_checked + 1))
-  grep -qF -- 'AN EXPLOITATION, NOT A DESIGN' "$MS_GUARD" || ms_problems="$ms_problems
-    permission-guard.sh rule 11 no longer states that the route it guards is an exploitation"
-  grep -qF -- 'milestone-create' "$MS_GUARD" || ms_problems="$ms_problems
-    permission-guard.sh does not mention milestone-create at all; rule 11 is gone and the script is
-    guarded by nothing, which is strictly worse than never having built the route"
+  grep -qF -- 'THE MILESTONE PAIR' "$MS_GUARD" || ms_problems="$ms_problems
+    permission-guard.sh no longer records that rules 10 and 11 were REMOVED. The numbers must stay
+    vacant and the removal must stay explained, or the next reader re-derives a control that was
+    deliberately dropped — or worse, renumbers and repoints every 'rule 10' citation in the records"
+  grep -qF -- 'IS AN ABSENCE, NOT A CONTROL — which is the shape' "$MS_GUARD" || ms_problems="$ms_problems
+    permission-guard.sh no longer states that the prompt still standing in front of the milestone
+    script is an ABSENCE rather than a control. That is the load-bearing half now: rule 11 is gone,
+    and what remains is 'scripts/ is in no allow list', which one unrelated allow entry removes
+    silently. This is ADR-0004's own 'absent is not a state' shape, and it is now live"
 fi
 if [ -r "$MS_SKILL" ]; then
   ms_checked=$((ms_checked + 1))
@@ -7776,11 +7752,12 @@ if [ "$ms_checked" -lt 4 ]; then
       asserted:$ms_problems"
 elif [ -n "$ms_problems" ]; then
   bad "milestone route — a surface stopped saying what the route actually is:$ms_problems
-      The route reaches a write API because no permission layer reads inside a script. Rule 11's prompt,
-      not rule 5f, is the only thing standing there. A surface that stops saying so hands the next
-      reader a control that does not exist."
+      The route reaches a write API because no permission layer reads inside a script. Since #383 NO
+      hook rule stands there at all — what is left is a permission prompt that exists only because
+      'scripts/' is in no allow list. A surface that stops saying so hands the next reader a control
+      that does not exist."
 else
-  ok "milestone route — the script, rule 11 and the universal preload each state that the route is an exploitation of an open hole (string agreement only; nothing here checks the hole or the script's behaviour)"
+  ok "milestone route — the script and the universal preload state that the route is an exploitation of an open hole, and the guard records that rules 10/11 were removed and that what replaced them is an absence rather than a control (string agreement only; nothing here checks the hole or the script's behaviour)"
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
@@ -7842,7 +7819,7 @@ else
     '**Nothing observes that it ran, or that it ran correctly.**' \
     '**The count ships with the command that produces it, or not at all.**' \
     '**ENUMERATE, then select — the same discipline step 1 states for milestones' \
-    'second layer is ACT-specific, not agent-specific' \
+    'the only thing standing between this profile and a milestone' \
     '**They partition. They do not sequence.**' \
     'is a DECLARED TIEBREAK and is labelled as one: issue number ascending,' \
     '- **The `### Selection` block is OMITTED at planning.**' \
@@ -7912,9 +7889,12 @@ else
         ENUMERATE        — the retrospective directory was hand-typed one screen after the rite states
                            enumerate-then-select for milestones. A wrong name yields "0 findings", which
                            is what an honest empty retrospective looks like: a falsifier failing open.
-        ACT-SPECIFIC     — "two independent layers" is true and narrower than it reads. Rule 10 keys on
-                           a flag and rule 11 on a script name; a subagent holding Bash reaches any
-                           spelling neither names. The safety today is `tools: []`, layer one.
+        ONE-LAYER        — "two independent layers" was true, narrower than it read, and is now false:
+                           rules 10 and 11 were REMOVED at #383, so a subagent holding Bash reaches
+                           every spelling and no rule is left to name one. The needle pins the
+                           surviving sentence — that `tools: []` is the ONLY thing standing between
+                           this profile and a milestone write. It was layer one and is now the whole
+                           stack, which is exactly the sentence a reader must not lose.
         PARTITION /      — loop-before-product does not order two `loop` items, and the live pool is
         TIEBREAK           7 items of one class. Without these two clauses the profile must compose a
                            sequence and return it under the word "ratified" — laundering an invented
@@ -8077,14 +8057,25 @@ plan_guard="$ROOT/hooks/scripts/permission-guard.sh"
 plan_rite="$ROOT/commands/sprint-planning.md"
 plan_fam_problems=""
 plan_fam_checked=0
+# ── INVERTED 2026-09-04 (#383) ──────────────────────────────────────────────────────────────────
+# The family pattern is GONE, because rule 11 is gone. Asserting the pattern's presence would demand
+# a rule the owner decided not to keep, and asserting nothing would let the widening's whole argument
+# vanish with it. **So the arm now pins the argument rather than the pattern.** The residual #378
+# booked is unchanged and is what makes this worth keeping: an unwritten `milestone-update.sh` is
+# still invited by the rite, and it now arrives guarded by exactly what `milestone-create.sh` is
+# guarded by — a permission prompt that exists because `scripts/` is in no allow list. **The family
+# widening's finding survives its own mechanism: a control pinned to one basename ships the next
+# name in the family unguarded, silently. Whoever re-adds a guard here must re-add it as a family.**
 if [ -r "$plan_guard" ]; then
   plan_fam_checked=$((plan_fam_checked + 1))
-  grep -qF -- 'milestone-[a-z0-9-]*\.sh' "$plan_guard" || plan_fam_problems="$plan_fam_problems
-    permission-guard.sh no longer matches the milestone script FAMILY. Pinned to one basename, the next
-    script in it — which this rite's own residual invites — ships with neither the ask nor the deny."
-  grep -qF -- 'THE FAMILY, NOT THE ONE FILE' "$plan_guard" || plan_fam_problems="$plan_fam_problems
-    permission-guard.sh no longer records WHY rule 11 matches a family, so the next reader sees an
-    over-broad pattern with no reason and narrows it back to the basename."
+  grep -qF -- 'the `scripts/milestone-*.sh` family' "$plan_guard" || plan_fam_problems="$plan_fam_problems
+    permission-guard.sh no longer names the milestone script FAMILY at all. Rules 10/11 were removed at
+    #383, and the tombstone must keep naming the family rather than the one basename — the finding that
+    a basename-pinned control ships the next name unguarded outlives the control, and whoever rebuilds
+    one needs it."
+  grep -qF -- 'IS AN ABSENCE, NOT A CONTROL — which is the shape' "$plan_guard" || plan_fam_problems="$plan_fam_problems
+    permission-guard.sh no longer records that what stands in front of the milestone-write family is an
+    absence rather than a control, so the next reader reads the surviving prompt as a floor."
 fi
 if [ -r "$plan_rite" ]; then
   plan_fam_checked=$((plan_fam_checked + 1))
@@ -8098,7 +8089,7 @@ if [ "$plan_fam_checked" -lt 2 ]; then
 elif [ -n "$plan_fam_problems" ]; then
   bad "planning rite — the milestone-write family is no longer guarded or no longer explained:$plan_fam_problems"
 else
-  ok "planning rite — rule 11 matches the milestone script FAMILY and says why, and the rite states that the missing update route is a missing script rather than a control (text agreement only; permission-guard.test.sh exercises the verdicts)"
+  ok "planning rite — the guard's tombstone names the milestone script FAMILY and states that what replaced rules 10/11 is an absence rather than a control, and the rite states that the missing update route is a missing script rather than a control (text agreement only; nothing fires on this route since #383)"
 fi
 
 # ── 6 · the milestone description travels as a FILE, and the inline route is GONE rather than unused ──

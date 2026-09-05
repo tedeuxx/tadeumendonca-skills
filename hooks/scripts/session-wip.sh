@@ -170,9 +170,12 @@ An UNMARKED line is still not proof of review: the annotation is omitted wheneve
 failed, so absence means reviewed-and-clear OR unknown.
 
 Drain these: for each, the resolution is merge it, or close it with a reason —
-leaving it open is neither. They do NOT block a new slice by count: a slice that
-touches none of their files may start now, and \`wip-guard\` denies only on file
-overlap, naming the PR and the files. What rots is a PR sitting behind one that
+leaving it open is neither. NOTHING MECHANICAL STOPS YOU STARTING ANOTHER SLICE
+WHILE ONE OF THESE IS OPEN: the guard that used to deny an overlapping pull
+request was removed on 2026-09-04 (#383), and pull-request creation is
+allowlisted, so a second one now executes silently. The bound is the WRITTEN
+policy — one worktree, one branch, one open pull request — and it is held by you
+reading this and by nothing else. What rots is a PR sitting behind one that
 edits the same lines, so the one to finish first is whichever this next slice
 would collide with. A bot's dependency PR counts as something to drain."
 

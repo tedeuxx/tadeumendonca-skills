@@ -385,10 +385,14 @@ rest of this file's non-negotiable sections, because nothing else is holding the
 ~~No hook observes a `Task` dispatch~~ — **struck 2026-08-26 (#326), and the correction matters here
 more than most because this file is preloaded on every dispatch of you: you were reading a false
 sentence at the moment you acted.** A `PreToolUse` hook on matcher **`Agent`** does observe a dispatch,
-and can deny one — `hooks/scripts/dispatch-premise-guard.sh` refuses a dispatch whose brief stamps a
-repository state that is not true. **The paragraph's conclusion is unchanged**, which is why only the
-clause is struck: that guard checks a brief's *premise*, never its *scope*, so nothing mechanical still
-decides whether this dispatch is inside your lane. The line is still held by you reading this.
+and can deny one — ~~`hooks/scripts/dispatch-premise-guard.sh` refuses a dispatch whose brief stamps a
+repository state that is not true.~~ **Struck again 2026-09-04 (#383): that hook is deleted, and this
+harness now registers nothing on the dispatch tool.** The mechanical *possibility* is unchanged and is
+why the first strike still stands — a hook on `Agent` CAN observe and deny a dispatch — but **no hook
+here does**, so the sentence a reader needs is that nothing observes a dispatch today.
+**The paragraph's conclusion never depended on either**: a premise guard checked a brief's *premise*,
+never its *scope*, so nothing mechanical has ever decided whether this dispatch is inside your lane.
+The line is held by you reading this, and now that is true of the premise as well.
 
 ## You hold a browser — the ITERATION-CLOSE REGRESSION SWEEP of the live site (#355)
 

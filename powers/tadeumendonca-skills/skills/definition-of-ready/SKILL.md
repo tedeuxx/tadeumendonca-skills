@@ -151,9 +151,18 @@ An earlier form of this list had *checked by a mechanism* and *checked by nobody
 in the first — which is false, and false in the **permissive** direction, on the one table whose entire
 job is separating an instrument from a memory.
 
-- **Checked by a hook:** the `invocable:` declaration.
+- ~~**Checked by a hook:** the `invocable:` declaration.
   `hooks/scripts/closure-artifact-guard.sh` is registered in `hooks/hooks.json` and refuses a manual
-  close on an unmet one. This is the only bullet here where something fires.
+  close on an unmet one. This is the only bullet here where something fires.~~
+  **Struck 2026-09-04 (#383), and the bucket is now EMPTY — which is the finding, not a formatting
+  change.** That hook's `PreToolUse` arm was removed; it is registered on `Stop` alone and **refuses
+  nothing**. So **nothing at this entry gate fires**, and the honest reading of this list is that all
+  three bullets are downstream of the first one's disappearance.
+- **Reported by a hook AFTER the fact, which is a different thing and must not be read as the first
+  bucket:** the `invocable:` declaration. `closure-artifact-guard.sh`'s surviving `Stop` arm reports an
+  Issue that has **already closed** with an unmet declaration, once per session, one turn late. The act
+  it describes has happened; `gh issue close` is allowlisted, so a manual close on an unmet declaration
+  executes silently. **A report is evidence for a human, never a bound.**
 - **Checked by an instruction the session follows, not by a hook:** the presence of `sp:N`. The drain's
   preflight *"refuses to enter"* while an item in the active iteration lacks one — and that preflight
   is **prose in `commands/autonomy.md` executed by the session**, not `hooks/scripts/preflight.sh`.
@@ -174,11 +183,15 @@ job is separating an instrument from a memory.
   description says nothing about who was asked.
 
 **Why the middle bucket is not a softer version of the first.** By this loop's own test — *would
-something stop me, or only my memory?* — buckets two and three are **both** memory, and a reader who
-needs to know what protects them should read them together. The split exists because their *failure
-modes* differ: bucket two fails when a session skips a written step, bucket three has no step to skip.
-**Do not promote anything into bucket one without naming the registered hook that fires**, which is the
-error this list already made once.
+something stop me, or only my memory?* — the bucket that fires is **empty since #383**, and every
+surviving bucket is memory or after-the-fact evidence. A reader who needs to know what protects them
+should read them together. The split exists because their *failure modes* differ: the reporting bucket
+fails by arriving too late to change anything, the instruction bucket fails when a session skips a
+written step, and the last has no step to skip. **Do not promote anything into the firing bucket
+without naming the registered hook AND the event it is registered on**, which is the error this list
+has now made twice — once by putting `sp:N` there, and once by leaving `invocable:` there through a
+removal that took only one of a hook's two registrations. **A hook can survive a slice and stop
+refusing in it**, and the registration is the only thing that says which.
 
 **So `ready` is attributable and auditable, and it is not proven.** That is the honest form, and it is
 the same shape as the label's own entry rule: something must *query* it, which two things do. Nothing

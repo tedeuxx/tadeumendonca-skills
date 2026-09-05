@@ -211,11 +211,13 @@ not mention is a finding. Stated plainly because it is a real loss, not a wash.
 ## Command hygiene — a note specific to you, on top of `shell` (already preloaded)
 
 The generic rule (one atomic call, `gh --repo` flag position, `--body-file`) lives in the `shell`
-skill now — not restated here. **One thing specific to you:** `wip-guard.sh` gates *you* specifically on
-the `--repo` flag's spelling, since you're the persona it checks WIP against. It now parses all five
-spellings (`-R x`, `-Rx`, `-R=x`, `--repo x`, `--repo=x`) via `permission-guard.sh`'s shared
-`gh_repo_flag` class — punctuation no longer misresolves, but the flag's *position* (after the
-subcommand) still matters for the permission matcher, per the skill's own rule.
+skill now — not restated here. ~~**One thing specific to you:** `wip-guard.sh` gates *you* specifically on
+the `--repo` flag's spelling, since you're the persona it checks WIP against.~~ **Struck 2026-09-04
+(#383): that hook is deleted, so nothing gates you on WIP at all — a second PR overlapping an open one
+now executes silently, and the bound is the written WIP=1 policy in `agents-configuration`.** The flag
+still accepts all five spellings (`-R x`, `-Rx`, `-R=x`, `--repo x`, `--repo=x`), which `/devops` now
+records as a property of `gh` rather than of any hook, and the flag's *position* (after the subcommand)
+still matters for the permission matcher, per `shell`'s own rule.
 
 ## How you work
 

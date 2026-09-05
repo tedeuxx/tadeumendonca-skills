@@ -659,9 +659,21 @@ out here rather than summarised as *"the sentence was wrong"*. It was not; the s
 **This instruction was written six hours after #338 merged and was already acting on it, which is why
 the strike is here and not only in the rule's home file.**
 
-**Also note what did NOT need to change: the guard now refuses the old form anyway.** `permission-guard.sh`
+~~**Also note what did NOT need to change: the guard now refuses the old form anyway.** `permission-guard.sh`
 rule 10 denies `gh issue create --milestone` to every dispatched persona, so if any part of an import is
-ever delegated, the struck instruction is unexecutable rather than merely stale.
+ever delegated, the struck instruction is unexecutable rather than merely stale.~~
+
+**STRUCK 2026-09-04 (#383): rule 10 is deleted, so the struck instruction above is merely stale after
+all.** Re-measured against the head guard — the payload the sentence rests on, and it draws no decision
+from any layer:
+
+```
+[x:developer] gh issue create --repo o/r --title t --milestone "s2"  -> NO decision from any layer
+```
+
+**Nothing replaces it, and that is the finding rather than a gap to be filled.** If any part of an
+import is ever delegated, the struck instruction is executable and only this file's prose says not to
+do it. Read the instruction above as a rule someone follows, not as a form the guard refuses.
 
 **Do not route the item into a batch, and do not name one.** Whether adopted items are later grouped is
 a separate decision with its own tracked item; referencing a batch that has not been composed would make

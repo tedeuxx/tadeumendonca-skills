@@ -1,6 +1,42 @@
 # 0002. Roster and dev-loop — who exists in the loop, what each actor is for, and how work moves
 through them
 
+> **BANNER — 2026-09-04 (#383): `permission-guard.sh` RULES 10 AND 11 ARE DELETED. Every present-tense
+> claim anywhere in this record that a milestone act reaches the owner as a prompt is DEAD — whether or
+> not it carries a strike.** Read this before any amendment below, including the ones that carry none.
+>
+> **What actually happens now — measured against the head guard, not read off a rule list:**
+>
+> - **Admission** (`gh issue create|edit --milestone`, which was rule 10's act). `Bash(gh issue edit:*)`
+>   is an `allow` entry in **both** settings layers, and allow entries are **prefixes**, so the flag
+>   rides in behind the subcommand. The hook that used to answer first is gone: the payload draws **no
+>   decision from any layer**, for a dispatched persona as well as for the orchestrator. **It EXECUTES
+>   SILENTLY. It does NOT degrade to a prompt.** That is the fact every stale sentence in this file gets
+>   wrong.
+> - **Creation** (`bash scripts/milestone-create.sh`, which was rule 11's act). Also draws no decision
+>   from the hook. It still prompts — and **only** because `scripts/` matches no `allow` entry in either
+>   layer. **That is an absence, not a control:** one unrelated allow entry added later removes it
+>   silently, and nothing anywhere would say so.
+>
+> **The criterion that deleted them, in the owner's words:** «o risco de permitir essa operacao passar é
+> one way door decision», narrowed to «situacoes irreparaveis». **A milestone assignment is repaired by
+> removing it**, so it was never that act — and a floor standing over a repairable act is a floor that
+> teaches whoever meets it to route around floors.
+>
+> **What this banner does NOT cover, so it is not read wider than it is.** A rationale inside a
+> *Considered and rejected* list remains a true statement about the world at the time it was written and
+> is left alone; a strike, tombstone or past-tense paragraph describing either deleted rule is correct by
+> construction. This covers **present-indicative prose** only.
+>
+> **Why a banner and not a fifth sweep.** The class has **no mechanical falsifier**:
+> `hooks/scripts/inventory-counts.test.sh` asserts string agreement between surfaces and cannot tell a
+> live claim about a deleted rule from a tombstone describing the same rule. Three sweeps in a row each
+> found exactly what they knew to look for and missed the rest — the twenty-ninth amendment was left
+> **half-repaired inside itself**, carrying 2026-09-04 strikes at its `tools: []` and rule-11 paragraphs
+> while its *Placement / Creation* pair and its *"stays his, prompt by prompt"* sentence stood unmarked.
+> A fifth pass would find a sixth site. **Its known weakness, accepted by the owner rather than
+> overlooked: a reader who lands mid-file on one amendment may never reach this.**
+
 **This is the `roster-and-dev-loop` capability document.** It was titled *Agentic dev-loop architecture
 — per-task subagents, ADRs as the durable brain* until 2026-08-20, when the owner's decision that an
 anchor is named for its capability ([#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283))
@@ -3850,11 +3886,18 @@ a iteracao corrente»*); that was read as a one-off and was the rule appearing f
 
 1. **No Issue is filed with a milestone, for any type.** Composition into an iteration is the owner's act
    at planning. Carrier: `commands/new-issue.md`'s *Open it* step.
-2. **The rule is enforced, not merely written** — `permission-guard.sh` rule 10, denied to every
+2. ~~**The rule is enforced, not merely written** — `permission-guard.sh` rule 10, denied to every
    dispatched persona and asked of the orchestrator. **This is the first rule in this family to reach
    prevention**, and the reason is in ADR-0004's amendment: the wall that forced #337, #339 and #363 into
    detection is a property of guards that must *know*, not of guards, and one that may **ask** does not
-   have to.
+   have to.~~ **STRUCK 2026-09-04 (#383): rule 10 is DELETED, and the count went with it.** *"The first
+   rule in this family to reach prevention"* is arithmetic over a set that is now empty — **this family
+   is back to zero prevention**, and #337, #339 and #363 are again the whole of it, all detection. It is
+   also no longer true that the rule is *enforced rather than written*: **the act is allowlisted**
+   (`Bash(gh issue edit:*)`, in both settings layers, and allow entries are prefixes) **and no layer
+   answers it, so an admission now executes silently rather than degrading to a prompt** — see the banner
+   at the top of this record. The ADR-0004 argument this decision cited — a guard that may *ask* need not
+   *know* — is untouched and still true; what is false is that this family holds a live instance of it.
 3. **The scope is the ADMISSION, never the creation.** `gh issue create` without a milestone is untouched
    and rules 5c/5d are unchanged.
 
@@ -4078,10 +4121,15 @@ route) rather than its scope. **A lapsed reason is not a widened scope**, so the
 asked instead of inferring the decision from what had become convenient. The ruling is the widening,
 made explicitly, and it lives on #378 rather than only here.
 
-**What this does NOT loosen, because the two acts are different objects and the rite keeps both
-guarded.** *Placement* is an **item** acquiring a milestone — rule 10, one prompt per item. *Creation*
-is the **iteration object** — rule 11, one prompt. Both remain the owner's, answered by him; the
-widening moves what the rite is **for**, not who decides.
+**What this does NOT loosen, because the two acts are different objects and ~~the rite keeps both
+guarded~~ *(struck 2026-09-04, #383 — it keeps neither guarded; it merely does not act alone)*.**
+*Placement* is an **item** acquiring a milestone — ~~rule 10, one prompt per item~~ **now a
+SILENT allowlisted edit, N times, with nothing asking anyone (#383)**. *Creation* is the **iteration
+object** — ~~rule 11, one prompt~~ **still a prompt, but only because `scripts/` sits in no allow list;
+that is an absence rather than a control, and one unrelated allow entry removes it with nothing to say
+so**. Both remain the owner's **by rule**; the rite performs neither without him **by discipline**, which
+is a weaker sentence than the one this paragraph used to make. The widening moves what the rite is
+**for**, not who decides.
 
 **Why this is an amendment and not a new record.** It decides *what happens before an iteration
 starts*, which is the same object as the twenty-sixth amendment's *what happens when one ends* and the
@@ -4091,8 +4139,10 @@ the capability is the dev loop and this document is it.
 ### What was actually missing, and it was not a decision
 
 **Nothing here moves a decision away from the owner, and that is the whole design.** Composition was
-already his (twenty-seventh amendment, held by `permission-guard.sh` rule 10), and it stays his,
-prompt by prompt. What did not exist was the thing that **puts the decision in front of him**: the pool
+already his (twenty-seventh amendment, ~~held by `permission-guard.sh` rule 10~~ — **struck 2026-09-04,
+#383: rule 10 is deleted and nothing holds it; the admission is allowlisted in both settings layers and
+executes silently**), and it stays his ~~prompt by prompt~~ **by discipline, with no prompt anywhere in
+it**. What did not exist was the thing that **puts the decision in front of him**: the pool
 assembled, the ordering rules applied, one item at a time.
 
 Three instances, measured rather than argued:
@@ -4142,14 +4192,38 @@ twenty-eighth amendment justified the profile's existence.
 
 **It is the first dispatch of that profile.** It shipped on 2026-08-31 and had never been used.
 
-**Why the dispatch cannot leak the composition, which is what makes it safe rather than merely
+~~**Why the dispatch cannot leak the composition, which is what makes it safe rather than merely
 reasonable — two independent layers, neither depending on a brief being obeyed:** the profile declares
 `tools: []`, so it holds no `Bash`, no `Edit` and no dispatch; and rule 10 denies `--milestone` to
-**every** non-empty `agent_type`. Its ranking decides the order items are presented in and nothing
+**every** non-empty `agent_type`.~~ Its ranking decides the order items are presented in and nothing
 else.
 
+**STRUCK 2026-09-04 (#383): rule 10 is deleted, so there is ONE layer and not two — and the sentence is
+replaced rather than merely struck, because its whole claim was the arithmetic.**
+
+**What stands: `tools: []`, and it is the stronger of the two anyway.** The profile holds no `Bash`, so
+there is no command to spell a milestone write *with* — not `gh issue edit --milestone`, not
+`bash scripts/milestone-create.sh`, not `python3 -c`. A grant that does not exist cannot be walked
+around by finding an unnamed spelling, which is exactly what the second layer could not survive: rule 10
+keyed on a **flag** and rule 11 on a **script name**, so both were floors over named acts rather than a
+fence around the profile. The paragraph below already said so in its own words — *"What makes the
+dispatch safe today is the FIRST layer, and the second is a floor over named acts rather than a fence
+around the profile"* — and that is now the whole of it rather than the narrower half of it.
+
+**What the missing layer covered and nothing now does: a `scrum-master` that is ever given `Bash`.** The
+paragraph below already warns that a subagent holding `Bash` reaches any spelling neither rule names;
+with the rules gone it reaches every spelling, named or not. **So the safety of this dispatch is now
+wholly a property of the profile's frontmatter**, and the day that frontmatter grows a tool there is no
+second layer to catch it. `tools: []` must be read as load-bearing rather than as belt-and-braces —
+which is the reason it is declared explicitly rather than omitted (#386: an absent key inherits every
+tool the parent holds).
+
 **Read the second layer NARROWLY, because it is ACT-specific and not agent-specific, and this sentence
-is what a future reader will lean on the day the profile is given a tool.** Rule 10 keys on a flag and
+is what a future reader will lean on the day the profile is given a tool.** *(Read the whole paragraph
+in the PAST TENSE from 2026-09-04 — both rules are deleted, per the strike above. It is kept unstruck
+because its ARGUMENT is what the replacement above rests on; only its tense is stale. It is a sixth
+site of the same defect the five-site sweep found, and the sweep's falsifier did not reach it because
+it names the rules without using any of the three matched forms.)* Rule 10 keys on a flag and
 rule 11 on a script name. Measured against the head guard: `bash scripts/milestone-update.sh …` — a
 script that does not exist — drew **no decision from any layer, for a subagent as well as the
 orchestrator**, before this slice widened rule 11. **A subagent holding `Bash` reaches any spelling
@@ -4225,8 +4299,14 @@ all** — measured then and unchanged now: `gh milestone --help` → `unknown co
 "gh"`, and `gh api` writes are denied by rule 5f. #386 merged `scripts/milestone-create.sh` and rule
 11 the same day.
 
-**So the rite PRODUCES the iteration, through that route, and it is the route's first exercise.** Rule
-11 asks the orchestrator; his answer is the verification. **Read *produces* rather than *may create*:**
+**So the rite PRODUCES the iteration, through that route, and it is the route's first exercise.**
+~~Rule 11 asks the orchestrator; his answer is the verification.~~ **STRUCK 2026-09-04 (#383): rule 11
+is deleted.** The prompt survives, and its source is now the permission system rather than a rule —
+`scripts/` matches no `allow` entry in either settings layer. **That is an absence, not a control**, so
+the verification #365 asked for is held by nothing having been written down: one unrelated `allow` entry
+added later removes it silently, and nothing anywhere would say so. Treat the prompt's survival as luck
+rather than as design, which is how `commands/sprint-planning.md` states it at the step that fires it.
+**Read *produces* rather than *may create*:**
 the ruling's own wording — «como produto ao final dela» — makes the object the rite's deliverable, so a
 planning that ends without one has not finished. **Nothing about that is claimed to be
 closed:** the route reaches the write API because no permission layer reads inside a script, which is
@@ -4599,8 +4679,25 @@ recomposes and re-activates once; two is the bound**, because an unbounded confi
 fifteen-turn walk arriving one round later. The per-item reasoning — why each item is in or out, by
 predicate — goes to `docs/planning/<iteration>.md`, **never into the activation**.
 
-**Nothing about assembly, ranking, the predicates or rule 10/11 placement changes.** The confirmation
-precedes the placement prompts and does not replace them.
+~~**Nothing about assembly, ranking, the predicates or rule 10/11 placement changes.** The confirmation
+precedes the placement prompts and does not replace them.~~
+
+**STRUCK 2026-09-04 (#383) — rules 10 and 11 are DELETED, so there are no placement prompts left for
+the confirmation to precede.** The sentence describes the confirmation as one of two independent
+controls when it is now the **only** one: step 4b's per-item admissions fire no prompt at all, and step
+4a's surviving prompt on the milestone script is an **absence** from every allow list rather than a
+control. That is the same arithmetic-that-no-longer-works this slice already struck one page up, in
+*"Why the dispatch cannot leak the composition"*.
+
+**What survives, and it is what the sentence was written to protect:** *a confirmation is not an
+authorisation to place* — now carried by the confirmation alone, because there is no second control for
+it to be independent of. Assembly, ranking and the predicates are genuinely unchanged; only the
+placement half of the claim is dead.
+
+**Struck rather than edited, and the reason is the pair.** `commands/sprint-planning.md`'s own placement
+paragraph was struck in this slice and this one was not, so for the length of that gap the record and
+the command file disagreed about a live control with nothing saying which was current — the worse half
+of the defect this slice exists to close.
 
 ### Decision 2 — the escalation protocol has ONE standard, and a precondition
 
@@ -4651,9 +4748,19 @@ question.
 - **A WORKLOG does not exist here.** He named *«metricas e worklog»*; `dispatch-metrics-stop.sh` is the
   metrics half and there is no worklog. Do not read the metrics hook as one.
 - **Open with no mechanism:** *how does this loop decide an item's cost or time has gone wrong?*
-- **Rules 10 and 11 stay exactly as they are.** Under decision 2 they prompt on acts that trade nothing
+- ~~**Rules 10 and 11 stay exactly as they are.** Under decision 2 they prompt on acts that trade nothing
   once a composition is confirmed. **They are the #365 floor and this amendment changes neither**; the
-  tension is named for the owner in `commands/sprint-planning.md` and left to him.
+  tension is named for the owner in `commands/sprint-planning.md` and left to him.~~
+
+  **Struck 2026-09-04 (#383): both rules are DELETED, and the second clause is the more damaging half.**
+  The owner priced the act below the audit's criterion of *irreparable* — *«mexer em milestones nao é um
+  risco crucial a iniciativa»* — so an admission is now allowlisted in both permission layers with no
+  hook answering first: **it executes silently rather than prompting.** And the pointer routed a reader
+  onward to an **open** question that is now **closed**: `commands/sprint-planning.md` records it
+  answered, not outstanding — *"N admissions is now zero prompts, not N"* — so a reader following this
+  bullet would arrive at a settled question having been told it awaits him. Struck rather than deleted
+  because this list's own heading says its contents must not be inferred away, which is the strongest
+  framing a false claim can have.
 - **`/sprint-review`, `/sprint-retrospective` and `/autonomy`'s preflight are UNTOUCHED.** An earlier
   draft of this slice declared an AFK/HITL half in each and rewrote the preflight's surfacing; the
   owner narrowed the ask and all of it was reverted. **The preflight still surfaces pendencies one at a
@@ -4856,6 +4963,37 @@ spelling would buy no reader anything.
   needs it; the three round headings carry the distinction inside the section.
 - **A gate on the two grounds** — impossible in this harness rather than deferred. No hook sees `Edit`,
   so no layer can observe an edit made under no ground.
+
+## Amendment (2026-09-04) — the dispatch layer is observable and refusable, and NOTHING HERE OBSERVES IT ANY MORE (#383)
+
+**This record names `hooks/scripts/dispatch-premise-guard.sh` in five places** — the status line's
+amendment-#14 entry, the fourteenth amendment's own 2026-08-28 correction, the twenty-third
+amendment's worktree-aware list, and two more — always as the **existence proof** that a dispatch is
+observable and refusable at all. **That file was deleted on 2026-09-04.** The amendment is appended
+rather than the sentences rewritten, per this library's own convention, because each of those
+sentences was true when written and someone read it.
+
+**The two halves come apart, and only one of them changed:**
+
+- **STILL TRUE, and it is what those corrections were actually about:** a `PreToolUse` hook on matcher
+  **`Agent`** *can* observe a dispatch and *can* deny it. The clause struck at #344 —
+  *"no hook layer can observe or refuse a `Task` dispatch"* — stays struck, and re-instating it would
+  be a second error rather than a return to the first. The tool is named `Agent`, not `Task`; that
+  measurement is rehomed in ADR-0004.
+- **NO LONGER TRUE:** that any hook in this harness does. **This repository now registers nothing on
+  the dispatch tool**, and no other layer sees one — neither `settings.json` file contains a `Task` or
+  `Agent` entry. So a dispatch whose brief stamps a repository state the tree does not have runs, with
+  no decision from anywhere, and **the removal is silent rather than a downgrade to a prompt.**
+
+**Why it was removed, under the criterion the owner narrowed this audit to:** what it prevented was a
+**wasted subagent context** — roughly 210k tokens in the founding incident — which is expensive and is
+repaired by re-dispatching. *Irreparable* is the ruler, and cost is not irreparability.
+
+**What this changes for the roster rule it was cited under, and the answer is nothing.** Amendment #14
+cited the guard only to correct a false mechanical claim; its conclusion was always that **nothing
+mechanical enforces a dispatch's SCOPE**, which no version of that guard ever did. `product-lead`'s
+boundary is held by its brief and by review, exactly as before. What is newly unenforced is the
+dispatch's **premise**, which is a different object and had one mechanism for nine days.
 
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
