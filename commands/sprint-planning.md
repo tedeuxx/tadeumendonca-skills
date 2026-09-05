@@ -117,10 +117,23 @@ whole of the split, and step 3 is where it is executed.
 **scope** — which items are in, which wait — and scope moves cost and time with it. *Defer* and *drop*
 in step 3b are the two options that name that trade outright.
 
-**One tension survives and is NOT resolved here, deliberately.** `permission-guard.sh` rules 10 and 11
+~~**One tension survives and is NOT resolved here, deliberately.** `permission-guard.sh` rules 10 and 11
 prompt on **placement** and **creation** — and once the composition is confirmed, neither of those acts
 trades anything: the composition already made the call. **They are the #365 floor and this slice
-changes neither**; see *What was never elicited* at the foot of this file.
+changes neither**; see *What was never elicited* at the foot of this file.~~
+
+**STRUCK 2026-09-04 (#383): rules 10 and 11 are deleted, so there is no floor here to be in tension
+with.** The tension it named is resolved by the removal rather than by a decision about the rite — the
+owner priced the act below the bar (*«mexer em milestones nao é um risco crucial a iniciativa»*), so the
+prompt whose justification was in question no longer fires.
+
+**What still prompts, and it is one of the two, from a different source.** Placement
+(`gh issue edit --milestone`) draws no decision from any layer. Creation
+(`bash scripts/milestone-create.sh …`) still prompts — because `scripts/` matches no `allow` entry in
+either settings layer, which is **an absence, not a control**: an unrelated `allow` entry added later
+removes it silently and nothing would say so. Step 4a's own text carries the same reading; this is the
+same fact stated where the tension used to be, so a reader meeting it here is not told the opposite of
+what they meet there.
 
 ## The trigger
 
@@ -690,13 +703,23 @@ no scrum movido pelo loop»*. The fifteen-turn walk was a consequence of that, n
 premise is missing, the honest act is to name the question rather than invent the answer — which is the
 same discipline the rest of this file applies to a count.
 
-1. **Do rules 10 and 11 still prompt for the right reason?** Under the trade-off rule, **placement and
+1. ~~**Do rules 10 and 11 still prompt for the right reason?** Under the trade-off rule, **placement and
    creation trade nothing once the composition is confirmed** — the composition made the call and these
    two acts execute it. **Both rules stay exactly as they are: they are the #365 floor and this slice
    changes neither.** But the prompt at 4a is now justified by *the floor requires a human
    verification*, not by *this is a decision he is taking* — and N admissions is N prompts on a
    composition he has already confirmed once. **Whether that is the right shape is his call**, and it
-   is the tension this rite most wants him to look at.
+   is the tension this rite most wants him to look at.~~
+
+   **ANSWERED 2026-09-04 (#383) — and it is recorded as an answer rather than struck, because a struck
+   question and an answered one read differently to the next person and only one of them closes.** The
+   owner ruled on the premise: *«mexer em milestones nao é um risco crucial a iniciativa»*. Rules 10 and
+   11 were deleted in that slice, so the shape he was being asked about no longer exists — **N
+   admissions is now zero prompts, not N.** What survives is the *creation* prompt at 4a, and its
+   source is not a rule: `scripts/` matches no `allow` entry in either settings layer, which is an
+   absence rather than a control. **The question is closed. What replaces it, if anything is wanted, is
+   whether an absence is an acceptable carrier for the one verification #365 asked for** — a different
+   question, not this one reworded, and it is not put to him here.
 2. **What is the right size of an iteration?** Nothing anywhere bounds how many items may be admitted,
    and this rite composes without a target. An over-filled iteration reproduces the unbounded drain
    inside one milestone — `/agents-configuration` names that residual and proposes no mechanism.

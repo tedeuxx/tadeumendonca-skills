@@ -4142,14 +4142,38 @@ twenty-eighth amendment justified the profile's existence.
 
 **It is the first dispatch of that profile.** It shipped on 2026-08-31 and had never been used.
 
-**Why the dispatch cannot leak the composition, which is what makes it safe rather than merely
+~~**Why the dispatch cannot leak the composition, which is what makes it safe rather than merely
 reasonable — two independent layers, neither depending on a brief being obeyed:** the profile declares
 `tools: []`, so it holds no `Bash`, no `Edit` and no dispatch; and rule 10 denies `--milestone` to
-**every** non-empty `agent_type`. Its ranking decides the order items are presented in and nothing
+**every** non-empty `agent_type`.~~ Its ranking decides the order items are presented in and nothing
 else.
 
+**STRUCK 2026-09-04 (#383): rule 10 is deleted, so there is ONE layer and not two — and the sentence is
+replaced rather than merely struck, because its whole claim was the arithmetic.**
+
+**What stands: `tools: []`, and it is the stronger of the two anyway.** The profile holds no `Bash`, so
+there is no command to spell a milestone write *with* — not `gh issue edit --milestone`, not
+`bash scripts/milestone-create.sh`, not `python3 -c`. A grant that does not exist cannot be walked
+around by finding an unnamed spelling, which is exactly what the second layer could not survive: rule 10
+keyed on a **flag** and rule 11 on a **script name**, so both were floors over named acts rather than a
+fence around the profile. The paragraph below already said so in its own words — *"What makes the
+dispatch safe today is the FIRST layer, and the second is a floor over named acts rather than a fence
+around the profile"* — and that is now the whole of it rather than the narrower half of it.
+
+**What the missing layer covered and nothing now does: a `scrum-master` that is ever given `Bash`.** The
+paragraph below already warns that a subagent holding `Bash` reaches any spelling neither rule names;
+with the rules gone it reaches every spelling, named or not. **So the safety of this dispatch is now
+wholly a property of the profile's frontmatter**, and the day that frontmatter grows a tool there is no
+second layer to catch it. `tools: []` must be read as load-bearing rather than as belt-and-braces —
+which is the reason it is declared explicitly rather than omitted (#386: an absent key inherits every
+tool the parent holds).
+
 **Read the second layer NARROWLY, because it is ACT-specific and not agent-specific, and this sentence
-is what a future reader will lean on the day the profile is given a tool.** Rule 10 keys on a flag and
+is what a future reader will lean on the day the profile is given a tool.** *(Read the whole paragraph
+in the PAST TENSE from 2026-09-04 — both rules are deleted, per the strike above. It is kept unstruck
+because its ARGUMENT is what the replacement above rests on; only its tense is stale. It is a sixth
+site of the same defect the five-site sweep found, and the sweep's falsifier did not reach it because
+it names the rules without using any of the three matched forms.)* Rule 10 keys on a flag and
 rule 11 on a script name. Measured against the head guard: `bash scripts/milestone-update.sh …` — a
 script that does not exist — drew **no decision from any layer, for a subagent as well as the
 orchestrator**, before this slice widened rule 11. **A subagent holding `Bash` reaches any spelling
@@ -4225,8 +4249,14 @@ all** — measured then and unchanged now: `gh milestone --help` → `unknown co
 "gh"`, and `gh api` writes are denied by rule 5f. #386 merged `scripts/milestone-create.sh` and rule
 11 the same day.
 
-**So the rite PRODUCES the iteration, through that route, and it is the route's first exercise.** Rule
-11 asks the orchestrator; his answer is the verification. **Read *produces* rather than *may create*:**
+**So the rite PRODUCES the iteration, through that route, and it is the route's first exercise.**
+~~Rule 11 asks the orchestrator; his answer is the verification.~~ **STRUCK 2026-09-04 (#383): rule 11
+is deleted.** The prompt survives, and its source is now the permission system rather than a rule —
+`scripts/` matches no `allow` entry in either settings layer. **That is an absence, not a control**, so
+the verification #365 asked for is held by nothing having been written down: one unrelated `allow` entry
+added later removes it silently, and nothing anywhere would say so. Treat the prompt's survival as luck
+rather than as design, which is how `commands/sprint-planning.md` states it at the step that fires it.
+**Read *produces* rather than *may create*:**
 the ruling's own wording — «como produto ao final dela» — makes the object the rite's deliverable, so a
 planning that ends without one has not finished. **Nothing about that is claimed to be
 closed:** the route reaches the write API because no permission layer reads inside a script, which is
