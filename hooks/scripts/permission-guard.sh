@@ -1438,18 +1438,58 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
   esac
 fi
 
-# 8. Command composition that defeats the permission matcher. The matcher reads a
-#    command PREFIX; it cannot decompose `a && b`, expand `$(...)`, or see past a
-#    `VAR=x` prefix, so an allowlisted tool still interrupts the human for approval.
-#    Denying here converts that human interruption into an instruction the agent can
-#    act on by itself — the whole point, since guidance alone did not hold. Pipes are
-#    deliberately NOT blocked: the matcher handles them.
+# 8. Composition forms that make the permission system stop for a human. TWO BRANCHES SURVIVE AND ONE
+#    IS GONE, and the difference between them is a measurement rather than a judgement.
+#
+#    ~~The matcher reads a command PREFIX; it cannot decompose `a && b`, expand `$(...)`, or see past
+#    a `VAR=x` prefix, so an allowlisted tool still interrupts the human for approval.~~
+#
+#    STRUCK 2026-09-05 (#383, slice S2). THE FIRST CLAUSE IS FALSE. The matcher DOES decompose a
+#    composition and evaluates each element on its own; it stops for a human only when some element
+#    is not approved. Measured in a nested session carrying this guard MINUS rules 8 and 8b, loaded
+#    with `claude --plugin-dir` (the #182/#286 probe-plugin method), against build 2.1.261. Each
+#    verdict was confirmed on disk rather than taken from the nested model's report:
+#
+#      mkdir <A> && mkdir <B>     both allowlisted   -> EXECUTED, no prompt (both dirs created)
+#      mkdir <A> ;  mkdir <B>     both allowlisted   -> EXECUTED, no prompt (both dirs created)
+#      mkdir <A> && mkdir -p <B>  second DENIED      -> whole call DENIED  (neither dir created)
+#      mkdir <A> && touch <B>     second not listed  -> "What required approval: touch in '<B>'"
+#      mkdir <A>                  control            -> EXECUTED
+#      touch <A>                  control            -> required approval
+#
+#    So the chain deny was not converting a prompt into an instruction. It was converting WORK INTO A
+#    RETRY: a chain of allowlisted commands had nothing to prompt about, and a chain carrying a denied
+#    or unlisted element is caught by the permission system anyway, element by element, naming the
+#    offending element. That branch is deleted — see the tombstone below. It fired 2,140 times.
+#
+#    THE OTHER TWO BRANCHES MEASURED THE OTHER WAY, WHICH IS WHY THEY ARE STILL HERE. In the same
+#    rule-8-less session:
+#
+#      mkdir <A>-$(basename /x/y)   -> "What required approval: Contains command_substitution"
+#      FOO=1 mkdir <A>              -> "What required approval: mkdir in '<A>'" (the allow entry
+#                                       no longer matched, although the bare form above executed)
+#
+#    Both genuinely stop for a human, so denying them here still buys what this rule was written for:
+#    an instruction the agent can act on by itself instead of an interruption. **The premise is now
+#    the measurement above, not the prefix story** — a substitution is flagged BY NAME by the runtime,
+#    and an env-var prefix defeats the allow entry rather than the decomposition.
+#
+#    Pipes are deliberately NOT blocked: the matcher handles them.
 if printf '%s' "$bare" | grep -Eq '(\$\(|`)'; then
   deny "Blocked: command substitution (\$(...) or backticks) forces a permission prompt even for allowlisted tools, because the matcher cannot expand it. Run the inner command as its own call and use the literal result."
 fi
-if printf '%s' "$bare" | grep -Eq '(&&|\|\||;)'; then
-  deny "Blocked: chained command (&& / || / ;). The matcher reads one command prefix, so a chain prompts the human even when every part is allowlisted. Issue one atomic command per call — use 'git -C <dir>' / 'npm --prefix <dir>' / absolute paths instead of 'cd X && ...'."
-fi
+# 8-chain. REMOVED 2026-09-05 (#383, slice S2). It denied `&&`, `||` and `;` on the premise struck
+#    above, and that premise was false for every form reachable with the rule absent. It is not
+#    renumbered away: this file's convention since S1 is that a removed rule leaves a tombstone rather
+#    than a gap someone later fills, and "rule 8" is cited across briefs, skills and records.
+#
+#    WHAT ITS ABSENCE COSTS, AND IT IS NOT NOTHING. A chained command now reaches the permission
+#    system, which approves it only if EVERY element is approved. Where one element is not, the human
+#    sees a prompt naming that element instead of the agent seeing an instruction it can act on. That
+#    is a real UX regression on the minority of chains and the removal of a 2,140-fire tax on the
+#    majority. It is not a floor change: every rule in this file matches a SUBSTRING of `$bare`
+#    (`(^|[^[:alnum:]_])rm…`, `(^|[^[:alnum:]_])gh…`), so prefixing a denied act with a harmless
+#    command does not walk past it — `echo x && gh pr merge 1` still meets rule 7b.
 if printf '%s' "$bare" | grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*='; then
   deny "Blocked: env-var prefix (VAR=x cmd) hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
 fi
@@ -1477,19 +1517,47 @@ fi
 #     to another FILE DESCRIPTOR — they create no file, and are excluded by construction: the `&`
 #     following the `>` marks a descriptor target, not a path. `&>`/`&>>` (bash's "redirect both
 #     stdout+stderr to a file" shorthand) are the opposite case — the `&` PRECEDES the `>` there, the
-#     target is still a path, and they ARE caught, correctly. `[[ a > b ]]`, bash's string comparison
-#     operator, is lexically indistinguishable from a redirect by a tool that does not parse shell (the
-#     standing rule two rules up: this file expresses a property, it does not evaluate one), so a
-#     command using it will be denied too — a known, accepted false positive, the same shape and the
-#     same honesty as the escape classes rule 9 used to pin here and ADR-0004 now holds (that rule was
-#     removed at #383; see the tombstone below). Likewise a heredoc body (`<<EOF … EOF`) that
-#     happens to contain a literal `>` (e.g. a markdown blockquote line) and is NOT itself feeding a
-#     redirect will still be denied — `bare` strips quoted-string CONTENTS upstream (line ~337) but a
-#     heredoc is not a quoted span in that sed's sense. Both are accepted rather than chased, because the
-#     remedy this rule exists to push — compose with `Write`, capture stdout by not redirecting it — makes
-#     the heredoc-into-redirect pattern that would trigger it disappear from normal use in the first place.
-if printf '%s' "$bare" | grep -Eq '>{1,2}([^&]|$)'; then
-  deny "Blocked: shell output redirection ('>' or '>>') to create or overwrite a file. Content you are composing yourself goes through the Write tool, never a heredoc piped into '>'. Content that is a command's own stdout: run the command WITHOUT the redirect (its output returns to you) and Write it from there if it needs to persist. (If this fired on '[[ a > b ]]' string comparison or a heredoc body containing a literal '>' rather than an actual redirect: rephrase without it — this floor does not parse shell and cannot tell the two apart.)"
+#     target is still a path, and they ARE caught, correctly.
+#
+#     ── THIS RULE'S PREMISE WAS TESTED AT #383 S2 AND HELD; TWO OF ITS FALSE POSITIVES DID NOT. ──
+#
+#     Measured in the same rule-8-less nested session described above (build 2.1.261), so these are
+#     the RUNTIME's own verdicts with this rule absent, not this rule's:
+#
+#       basename /x/y > <file, inside the primary working dir>  -> "What required approval: Output
+#                                                                   redirection to '<file>'"
+#       mkdir <A> 2>/private/.../err.txt                        -> same, naming err.txt
+#       mkdir <A> 2>/dev/null                                   -> EXECUTED, no prompt (dir created)
+#       mkdir <A> >/dev/null                                    -> EXECUTED, no prompt (dir created)
+#       [[ zzz > aaa ]]                                         -> EXECUTED, no prompt, exit 0
+#
+#     So the premise stands — a redirect that CREATES a file stops for a human whatever the command
+#     is — and the runtime's own check is DESTINATION-AWARE where this rule was not. It allowed
+#     `2>/dev/null` and denied `2>somefile`, which is exactly the distinction this rule failed to make.
+#     Every payload in the third, fourth and fifth rows was a case where this hook denied an act the
+#     permission system would have let through silently: a false positive with no control behind it.
+#
+#     THE NARROWING THAT FOLLOWS, AND THE PRINCIPLE BEHIND IT. This rule exists only to convert a
+#     prompt the runtime would raise into an instruction the agent can act on. It must therefore fire
+#     on a SUBSET of what the runtime stops for, never on more — where it cannot tell, it abstains and
+#     the runtime decides, which is the outcome that was correct all along. Two spans are removed from
+#     a working copy of `$bare` before the test: a `/dev/null` target (with or without a leading file
+#     descriptor, and `&>` included), which creates no file; and a `[[ … ]]` span, which is bash's
+#     string comparison and not a redirect at all. The second is an ABSTENTION rather than a claim —
+#     this file does not parse shell, so it hands `[[ … ]]` to the layer that does.
+#
+#     STILL NOT CAUGHT, AND STILL ACCEPTED: a heredoc body (`<<EOF … EOF`) that happens to contain a
+#     literal `>` (e.g. a markdown blockquote line) and is NOT itself feeding a redirect will still be
+#     denied — `bare` strips quoted-string CONTENTS upstream (line ~337) but a heredoc is not a quoted
+#     span in that sed's sense. Accepted rather than chased, because the remedy this rule exists to
+#     push — compose with `Write`, capture stdout by not redirecting it — makes the heredoc-into-redirect
+#     pattern that would trigger it disappear from normal use in the first place. It is also the one
+#     false positive that bites this repository's own harness reviewer hardest, which is why it is
+#     named in `agents/agents-lead.md` as well as here.
+redirect_probe="$(printf '%s' "$bare" | sed -E 's|\[\[[^]]*\]\]||g')"
+redirect_probe="$(printf '%s' "$redirect_probe" | sed -E 's|[0-9]?>{1,2}[[:space:]]*/dev/null||g')"
+if printf '%s' "$redirect_probe" | grep -Eq '>{1,2}([^&]|$)'; then
+  deny "Blocked: shell output redirection ('>' or '>>') to create or overwrite a file. Content you are composing yourself goes through the Write tool, never a heredoc piped into '>'. Content that is a command's own stdout: run the command WITHOUT the redirect (its output returns to you) and Write it from there if it needs to persist. (If this fired on a heredoc body containing a literal '>' rather than an actual redirect: rephrase without it — this floor does not parse shell and cannot tell the two apart. '[[ a > b ]]' string comparison and a '/dev/null' target are exempt since #383 and should not reach you.)"
 fi
 
 # 9. REMOVED 2026-09-04 (#383, slice S1). THE NUMBER IS LEFT VACANT DELIBERATELY — a rule list that
