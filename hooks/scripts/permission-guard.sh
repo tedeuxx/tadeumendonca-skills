@@ -523,6 +523,23 @@ fi
 #    same reasoning that left the `inventory-counts` purpose-declarer gap reported rather than fixed
 #    in this slice. It is pinned beside the rule so the UX pass over rules 8/8b meets it in the file
 #    it will already be editing, instead of rediscovering it by being bitten.
+#
+#    ── S2 MET IT, RE-VERIFIED IT, AND STILL DID NOT FIX IT. THAT IS THE POINT OF THIS PARAGRAPH. ──
+#
+#    The pin worked: the UX pass ran into this comment in the file it was already editing. All three
+#    payloads above were re-run against this guard at head on 2026-09-05 and reproduced exactly what is
+#    written — `grep -rn 'rm -rf' <dir>` NO DECISION, `grep -rn 'rm -rf /' <dir>` DENY, and the wrapped
+#    `bash -c 'rm -rf /tmp/probe-x'` DENY. The record survived S1's merge intact.
+#
+#    IT IS NOT FIXED BECAUSE THE FIX IS A DIFFERENT KIND OF CHANGE, and S2's own subject is what
+#    separates them. Rules 8 and 8b govern FRICTION: their errors run toward over-blocking, and the
+#    test S2 established for that class is "fire on a subset of what the runtime stops for, never on
+#    more". THIS rule governs an IRREPARABLE act, so its errors run the other way, and the one-token
+#    substitution measured above trades a false positive on a read for a FALSE NEGATIVE on a wrapped
+#    delete. A repair has to keep the wrapped form covered — plausibly by matching `$cmd` and `$bare`
+#    under different anchors rather than by swapping the input — and it needs a mutation proof of its
+#    own, against the wrapped cases in the suite. **Do not fold it into a UX slice on the strength of
+#    it being one token.** That is the whole reason it is still here.
 rm_flag='([[:space:]]+(--[[:alpha:]][[:alpha:]-]*|-[[:alnum:]]+))*'
 rm_rec='[[:space:]]+(--recursive|-[[:alnum:]]*[rR][[:alnum:]]*)'
 rm_force='[[:space:]]+(--force|-[[:alnum:]]*[fF][[:alnum:]]*)'
