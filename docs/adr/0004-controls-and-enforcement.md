@@ -4597,3 +4597,150 @@ removal of a 2,140-fire tax on the majority. It is not a floor change and it is 
 Arm: *alters a previously-recorded decision* — routing reason 2, in this record — and *sets a
 cross-cutting pattern others will follow*: the subset rule above, which governs every future hook whose
 object is friction rather than irreversibility.
+
+---
+
+## Amendment (2026-09-05) — escaping git is not the same property as being irreparable, and three rules were on the floor by conflation (#383, slice S3)
+
+**Status: `accepted`.** `Deciders`: the owner, whose criterion (#383) is *«o risco de permitir essa
+operacao passar é one way door decision»*, narrowed by him mid-audit to **«situacoes irreparaveis»**.
+**Written by** `agents-lead`, which also authored the audit this slice executes and built the change —
+per ADR-0002, it may implement the harness changes it stress-tests, and it neither merges nor gates.
+
+### The decision
+
+**Three acts leave the deny list and become `ask`. Each is split from a neighbour that stays denied.**
+
+| downgraded to `ask` | why it reverses | the sibling that KEEPS its deny | why that one does not |
+|---|---|---|---|
+| force-push (rule 3b) | the pre-push tip survives in the pusher's reflog **and** in the remote's unreachable objects | `git reset --hard` (rule 3a) | uncommitted work has no other copy — not the reflog, not the remote, not the index |
+| AWS secret writes (rule 5) | Secrets Manager versions values behind `AWSPREVIOUS`; `delete-secret` only *schedules*, with a recovery window `restore-secret` cancels; SSM keeps parameter history | `gh secret set/delete` (rule 5b) | GitHub Actions secrets have **no version history**; the old value is gone on overwrite |
+| `gh repo archive` / `rename` (rule 5g) | `unarchive` exists; a rename reverses, and the OIDC trusts survive it because they pin the immutable id rather than the name | `gh repo delete` (rule 5g) | that id is **never reissued**, so every trust pinned to it breaks in a way re-creating the repository does not repair |
+
+**The pattern the table is really recording, and it is the reusable part:** this record's own line — *"a
+force-push, `rm -rf`, a secret write, a push to the trunk all escape git, and no later commit undoes
+them"* — used **escaping git** as evidence for **irreparability**. They are different properties. Every
+row above escapes git; three of the six restore anyway. The membership test is *can the prior state be
+restored*, and nothing weaker.
+
+**Note that two rows differ only in their provider.** "A secret write" was one floor item and is two
+acts with opposite answers. That pair is the sharpest available illustration that the old test was
+reading the *kind* of act rather than its *recoverability*.
+
+### Why `ask` and not removal — measured, and the reason is the token boundary
+
+The audit's ladder offers removal where a downgrade lands on a static deny. **It does not land evenly
+here, and the uneven half executes in silence.** A settings entry's `:*` is a **token boundary, not a
+raw prefix** — probed 2026-09-05 with a probe settings file via `--settings`, verdict read off disk:
+
+```
+deny  Bash(mkdir <P>/BOUND:*)   vs   mkdir <P>/BOUND    -> DENIED   (control)
+                                     mkdir <P>/BOUNDX   -> CREATED  <- the finding
+                                     mkdir <P>/OTHER    -> CREATED  (control)
+```
+
+So no settings entry can express *"this flag anywhere in the command"*, and both of these walk past
+every entry in both layers — the second because its prefix, `git -C`, is itself allowlisted:
+
+```
+git push origin main --force
+git -C <dir> push --force
+```
+
+Removing rule 3b would therefore have denied the spellings already denied and **silently executed the
+two the hook was written for**. As an `ask`, the static denies still fire (measured: a static `deny`
+beats a hook `ask`) and the rest become a prompt.
+
+### The behaviour this record said was unmeasured, now measured
+
+`permission-guard.sh`'s own helper comment stated that an `ask` in a dispatched subagent "resolves to
+whatever the harness does with an unanswerable prompt, which is a behaviour this file has NOT
+measured." **S3 could not ship a downgrade whose failure direction was unknown, so it was measured** —
+probe plugin via `claude --plugin-dir`, build 2.1.261, every verdict confirmed on disk rather than
+taken from the nested model's narration:
+
+| context | hook returns | outcome |
+|---|---|---|
+| main session, headless `-p` | `ask` | **refused**, hook's reason surfaced, nothing created |
+| main session, headless `-p` | `ask` + a settings `deny` on the same command | **refused by the permission layer**; the hook's text never appeared |
+| **dispatched subagent** (`Task`) | `ask` | **refused**, hook's reason surfaced, nothing created |
+| dispatched subagent | `deny` | refused (control) |
+| dispatched subagent | abstain, command allowlisted | **executed** (control — proves the subagent ran) |
+
+**An unanswerable `ask` fails CLOSED.** That is what makes `deny -> ask` a loosening only where a human
+is present, and never a silent hole. **It also settles the layer question this record asks
+generally:** a hook `deny` is final, a hook `ask` is *weaker* than a static `deny`, and a hook that
+abstains hands the command on. The two layers are not peers, and the ordering differs by verdict.
+
+**NOT measured, and named rather than assumed: the interactive main session.** Both readings are
+headless, where there is no prompt surface at all, so they are the **floor** of an `ask`'s behaviour
+rather than its intent. If an interactive `ask` also merely refused, these three downgrades would
+deliver no autonomy and would be deny-with-a-softer-message. It fails safe either way, which is why
+the slice shipped without it; a nested interactive session cannot be driven from a hook-bound probe.
+
+### Rule 5f was scoped into this slice as a fourth downgrade and was NOT shipped
+
+**The audit scored it a downgrade** on the ground that it cannot tell `-X DELETE repos/o/r` from a
+comment POST, so it does not distinguish the case it exists for. The slice's brief made shipping it
+conditional on a `Bash(gh api:*)` line landing in the project `.claude/settings.json` first, that layer
+being out of scope.
+
+**The precondition dissolved and the rule still should not ship, and the two are separate findings.**
+
+- **The precondition was not required.** Measured with 5f neutralised in a probe copy and the real
+  plugin disabled: `gh api … -f a=b` was **denied by the permission layer** from a session rooted
+  inside the repo *and* from one rooted outside it. User-level settings are not repo-scoped, so the
+  audit's stated gap — *"a session rooted elsewhere loses the project deny"* — is false on this
+  machine. The project line is redundant here.
+- **Which removes the benefit too.** Where a broader static deny already shadows the rule completely,
+  deleting it changes nothing observable.
+- **And where it is not shadowed, deleting it is a floor regression.** `.claude/settings.json` does not
+  travel with a plugin install, so every consumer has these hooks and none of those entries. Asked
+  directly at source level: `gh api -X DELETE repos/o/r` is `deny` with 5f present and **abstain**
+  without it. That is the raw-API spelling of `gh repo delete` — the one act this same slice keeps as
+  irreparable — and 5f is the only rule in the file that sees it in that spelling.
+
+**The correction to the audit, stated plainly because it is the audit's own error and this record is
+where it belongs: over-broad is a UX complaint, not an irreparability finding.** The criterion asks
+whether the class *contains* an irreparable act. This one does. A rule that over-blocks reads is worth
+**narrowing**; it is not worth deleting while it is the only layer in front of repository destruction
+for everyone who is not the owner.
+
+### Considered options
+
+- **Remove the three rules outright rather than downgrade them.** Rejected on the token-boundary
+  measurement above: removal is uneven, and the half it does not cover executes in silence. This is
+  the same argument S1 used to *keep* nothing and S2 used to *remove* rule 8's chain branch — the
+  verdict differs because the measurement differs, not because the criterion moved.
+- **Keep all three as `deny` and treat the criterion as advisory.** Rejected: the owner narrowed the
+  criterion himself, mid-audit, in one phrase, and a floor that keeps reparable acts is a floor whose
+  membership nobody can predict — which is how it accumulated them in the first place.
+- **Ship 5f's downgrade behind the project settings line.** Rejected on the measurement above: the line
+  is redundant on this machine and would not have reached a consumer anyway, since project settings do
+  not travel with a plugin install. The line would have looked like the fix and been unrelated to it.
+- **Fix rule 3's `$cmd`/`$bare` defect in the same slice.** Rejected as scope. Rule 3 matches `$cmd`,
+  so a commit message *about* a force-push is treated as the act — pre-existing, both halves `deny` on
+  `origin/main`, and it bit this very slice when a probe payload mentioning the act was refused as the
+  act. Moving rule 3 to `$bare` changes **what it sees**, including how it meets the `bash -c` unwrap,
+  and that needs its own probe battery. Two suite arms pin the current behaviour so the fix has
+  somewhere to land.
+
+### What this does not claim
+
+**Nothing here observes whether an owner answers a prompt well.** An `ask` relocates a decision to the
+one party who can see what the command cannot show; it does not verify the answer. By this loop's own
+test — *would something stop me, or only my memory?* — the three downgraded acts are now stopped by a
+question rather than by a wall, and a question answered carelessly is indistinguishable from one
+answered well. That is the accepted cost of the narrowing, and it is the cost the owner priced.
+
+**And the ordering inside rule 5g is load-bearing, discovered by mutation rather than by reading.**
+Folding `delete` back into the archive/rename `ask` branch left the suite at 412/0 — which reads as an
+uncaught defect and is not one: the deny runs first and exits, so the widened branch is unreachable.
+Swapping the blocks makes the same mutation turn `gh repo delete` into an `ask` and reddens 8 arms.
+Recorded in the rule, because the next person to reorder those blocks will not re-derive it.
+
+### Significance
+
+Arm: *alters a previously-recorded decision* — this record's own *"the line as decided"*, whose list of
+what escapes git is corrected in place — and *sets a cross-cutting pattern others will follow*: the
+restore test, which governs every future entry to or exit from this floor.
