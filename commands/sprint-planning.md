@@ -18,9 +18,16 @@ the citation honest in both directions.
 ## What this is, and the one thing it is not
 
 **It ASSEMBLES and RANKS. It does not PLACE.** Placement — an item acquiring a milestone — is the
-owner's act (#365), held by `permission-guard.sh` rule 10, whose prompt reaches him and nobody else.
-Nothing in this rite may set a milestone without his answer to that prompt, and nothing in it decides
-what the iteration contains.
+owner's act (#365). ~~held by `permission-guard.sh` rule 10, whose prompt reaches him and nobody else.
+Nothing in this rite may set a milestone without his answer to that prompt~~ — **STRUCK 2026-09-04
+(#383): rules 10 and 11 are deleted, on the owner's own pricing of the act
+(*«mexer em milestones nao é um risco crucial a iniciativa»*).**
+
+**READ THIS BEFORE RUNNING THE RITE.** Setting a milestone is now **allowlisted and silent** — no
+prompt, no denial, no record. **The rule that placement is his did not change; the mechanism that
+enforced it did, and there is none.** So every placement this rite performs is performed on his
+authority as expressed in the rite's own confirmation step, and nowhere else. If you are running this
+without him present, you are violating #365 and nothing will stop you.
 
 **Since #393 it also COMPOSES, and composing is not deciding.** It applies rules that are already
 ratified to a pool it already assembled, and puts the result to him as one thing to confirm. Read the
@@ -46,9 +53,12 @@ a real answer — and it creates no milestone, because a milestone with no items
 reads. See step 4a. **Every other path through this rite ends with the object or has not finished.**
 
 **This does NOT loosen the sentence above it, and the two are about different objects.** *Placement* is
-an **item** acquiring a milestone — rule 10, one prompt per item, his answer each time. *Creation* is
-the **iteration object itself** — rule 11, one prompt, his answer. Both are still his; the rite performs
-neither without him. What the ruling settles is that producing the object is **in scope and is the
+an **item** acquiring a milestone — ~~rule 10, one prompt per item, his answer each time~~ **now a
+SILENT allowlisted edit, N times, with nothing asking anyone**. *Creation* is the **iteration object
+itself** — ~~rule 11, one prompt, his answer~~ **still a prompt, but only because `scripts/` sits in no
+allow list; that is an absence rather than a control, and one unrelated allow entry removes it with
+nothing to say so**. Both are still his **by rule**; the rite performs neither without him **by
+discipline**, which is a weaker sentence than the one this paragraph used to be able to make. What the ruling settles is that producing the object is **in scope and is the
 point**, after a period when no route to it existed at all.
 
 **It also supersedes #378's own body**, which reads *"It does not create an iteration. Milestone
@@ -81,10 +91,16 @@ the thing that puts the decision in front of him — **once, over a finished com
 already assembled, ranked and composed. ~~item by item~~ **struck #393: that form stopped at item 1 of
 15 on the rite's first real run**, and the correction is step 3.
 
-**It is executed in the ORCHESTRATOR's context, and that is a requirement rather than a convenience.**
-Rule 10 (`--milestone`) and rule 11 (`scripts/milestone-create.sh`) both **deny a subagent and ask the
-orchestrator**, because a dispatched context has no prompt surface for an `ask` to reach. A rite that
-ran inside a persona could not perform a single one of its own writes.
+**It is executed in the ORCHESTRATOR's context, and that is STILL a requirement — but the reason
+changed on 2026-09-04 (#383) and the new reason is weaker.** ~~Rule 10 (`--milestone`) and rule 11
+(`scripts/milestone-create.sh`) both **deny a subagent and ask the orchestrator**, because a dispatched
+context has no prompt surface for an `ask` to reach. A rite that ran inside a persona could not perform
+a single one of its own writes.~~ **Both rules are deleted.** A persona could now perform the
+`--milestone` writes — nothing denies it. What still stops one is the milestone-script prompt, which a
+dispatched context cannot answer, and **that is an absence rather than a rule**. So: run this in the
+orchestrator's context because the rite requires the owner to be present at its confirmation, not
+because a layer would refuse you anywhere else. **Only one of its two writes is still mechanically
+out of a persona's reach, and that one by accident.**
 
 ## The rite is unattended; only its CONFIRMATION addresses him (#393)
 
@@ -206,22 +222,27 @@ bias in a ranking."*
 
 **Why dispatching it cannot leak placement, which is the property that makes this safe.** It holds
 `tools: []` — no `Bash`, no `Edit`, no dispatch — so it cannot assign a milestone, file an Issue or
-apply a label even if it tried. And rule 10 denies `--milestone` to **every** non-empty `agent_type`
-regardless. Two independent layers, neither of which depends on the brief being obeyed.
+apply a label even if it tried. ~~And rule 10 denies `--milestone` to **every** non-empty `agent_type`
+regardless. Two independent layers, neither of which depends on the brief being obeyed.~~
 
-**And that second layer is ACT-specific, not agent-specific — read it narrowly or it will be leaned on
-the day this profile is given a tool.** Rule 10 keys on the `--milestone` flag and rule 11 on a script
-basename. Measured against the head guard, one payload per line:
+**STRUCK 2026-09-04 (#383): rules 10 and 11 are deleted, so there is ONE layer, not two.** Re-measured
+against the head guard, same payloads, one per line:
 
 ```
-[scrum-master] gh issue edit 5 --repo o/r --milestone "s2"      -> deny   (rule 10)
-[scrum-master] bash scripts/milestone-create.sh "s2" --repo o/r -> deny   (rule 11)
+[scrum-master] gh issue edit 5 --repo o/r --milestone "s2"      -> NO decision from any layer
+[scrum-master] bash scripts/milestone-create.sh "s2" --repo o/r -> NO decision from any layer
 [scrum-master] bash scripts/milestone-update.sh 2  --repo o/r   -> NO decision from any layer
 ```
 
-**A subagent holding `Bash` reaches any spelling neither rule names**, because no permission layer
-reads inside a script. What makes the dispatch safe today is the FIRST layer — `tools: []`, so there is
-no `Bash` to spell anything with. The second is a floor over one act, not a fence around the profile.
+**The paragraph below already argued that the surviving layer is the one doing the work, and that
+argument is why this removal is tolerable here rather than alarming.** It read: *"What makes the
+dispatch safe today is the FIRST layer — `tools: []`, so there is no `Bash` to spell anything with. The
+second is a floor over one act, not a fence around the profile."* That is now the whole of it. **A
+subagent holding `Bash` reaches every spelling, because there is no rule left to name one and no
+permission layer reads inside a script.** So the warning it ended on is no longer about a future
+loosening — **it is the current state, and the only thing standing between this profile and a milestone
+write is its empty `tools:` line.** That line is declared explicitly rather than omitted for exactly
+this reason (#386: an absent `tools:` key inherits everything the parent holds).
 
 **What it is given:** the three classes from step 1, verbatim, both repositories, with labels and
 `sp:N` where present. **What it returns:** a ranked eligible pool and its process findings, in its
@@ -365,11 +386,19 @@ count is visible in the artifact's activation log and by nothing else.
 **It does not estimate.** No `sp:N` is produced, requested or required here; estimation is
 `/agents-configuration`'s *Estimation* section, with its own estimator sets and its own trigger.
 
-**Placement is still his, and this step changes none of it.** The confirmation is what precedes the
+**Placement is still his, and this step changes none of it.** ~~The confirmation is what precedes the
 placement prompts; it does not replace them. Step 4 still creates the milestone under rule 11's prompt
 and still admits each item under rule 10's, one prompt per item, his answer each time. **A confirmation
 is not an authorisation to place** — the two controls are independent, and this rite performs neither
-without him.
+without him.~~
+
+**STRUCK 2026-09-04 (#383), and this is the strike with the most operational consequence in the rite.**
+Rules 10 and 11 are deleted. **The confirmation is now the ONLY thing standing between this rite and N
+milestone writes** — the per-item prompts it was explicitly described as *not replacing* do not exist,
+so it replaces them by default rather than by design. Step 4a still prompts (the milestone script is in
+no allow list — an absence, not a control); step 4b's per-item admissions are silent. **Read "a
+confirmation is not an authorisation to place" as the rule it always was and as the only remaining
+carrier of it: there is no second control to be independent of.**
 
 ## Step 4 — produce the iteration, then admit the items, in that order
 
@@ -448,9 +477,13 @@ Measured at head: `bash scripts/milestone-create.sh "probe" --description "x"` �
 --description`, exit 2. Keeping both would have fixed this caller and not the script — a later caller
 picks the convenient spelling, which is the whole reason `/shell`'s rule is written without exceptions.
 
-**This PROMPTS, and the prompt is the point.** Rule 11 asks the orchestrator; his answer is the human
-verification #365 demands. The script refuses a duplicate title in that repository and prints what the
-API returned.
+**This still PROMPTS, and since 2026-09-04 the prompt has a different source — read the difference.**
+~~Rule 11 asks the orchestrator; his answer is the human verification #365 demands.~~ **Rule 11 is
+deleted (#383).** The prompt you will see comes from the permission system, because `scripts/` matches
+no `allow` entry in either settings layer. **That is an absence, not a control**: an allow entry added
+later for an unrelated reason removes this verification silently, and nothing anywhere would say so.
+Treat the prompt as the human verification #365 demands, and treat its survival as luck rather than
+design. The script refuses a duplicate title in that repository and prints what the API returned.
 
 **It works because a hole is open, and this rite repeats that rather than relying on the script's own
 header to say it.** Neither the settings matcher nor `permission-guard.sh` looks inside a script, which
@@ -477,9 +510,17 @@ failure in step 5 and hand it back.
 gh issue edit <n> --repo <owner>/<repo> --milestone "<iteration>"
 ```
 
-**Each one prompts under rule 10, and each prompt is his verification of that admission.** N items is N
+~~**Each one prompts under rule 10, and each prompt is his verification of that admission.** N items is N
 prompts, which is the cost #365 priced and accepted: planning is owner-present by construction, so there
-is no path where this prompt fires at a moment he is absent.
+is no path where this prompt fires at a moment he is absent.~~
+
+**STRUCK 2026-09-04 (#383): rule 10 is deleted and `gh issue edit` is allowlisted, so NONE of these
+prompt. N items is N silent writes.** The cost #365 priced has been replaced by its inverse: instead of
+N interruptions at a moment he is present, there are zero interruptions whether he is present or not.
+**His verification of each admission is now the confirmation in step 3 and nothing else** — one answer
+covering N writes, given before any of them happen, rather than N answers given as each one does.
+Whether that is acceptable is his call and he made it; what must not happen is a reader believing the
+per-item verification still occurs.
 
 **An iteration is TWO milestone objects paired by nothing but their title.** Type it identically in both
 repositories or the iteration silently becomes two, each derivation succeeding and each reporting a
@@ -611,8 +652,9 @@ a known next act instead of a surprise at the drain's door.
   `gh issue list --repo <owner>/<repo> --state open --limit 200 --json number,milestone --jq '[.[]|select(.milestone!=null)|.number]'`
   over both repositories. It is populated whenever an iteration does not fully drain, which is the
   ordinary case planning exists for. **The corrective act exists and is his:**
-  `gh issue edit <n> --remove-milestone`, which rule 10 deliberately does not match precisely because
-  taking an item back out is what the loop wants to be easy. **The rite does not do it and does not
+  `gh issue edit <n> --remove-milestone`, which rule 10 deliberately did not match precisely because
+  taking an item back out is what the loop wants to be easy — **and that asymmetry is what retired rule
+  10 at #383: an act undone by one command is reparable, and the audit's criterion is irreparable.** **The rite does not do it and does not
   surface it**, and closing that is its own slice — it needs a second assembly pass over milestoned
   open items, and a rule for which iteration they return to.
 - **AN ISSUE CARRYING NO ROUTING LABEL.** Step 1's three classes are keyed on `product`, `loop` and

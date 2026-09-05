@@ -2533,6 +2533,27 @@ becomes load-bearing for a merge decision, that judgement changes, and it should
 **Status:** accepted · **Deciders:** owner (decision), written by `agents-lead` (loop/machinery domain,
 #223) · **Issue:** #365, `loop`, boundary
 
+> **REVERSED IN PART, 2026-09-04 (#383) — read this before the amendment.** The **mechanism** this
+> amendment describes (rules 10 and 11) was **removed**; the **rule** it enforces was not. The owner
+> priced the act below the audit's bar — *«mexer em milestones nao é um risco crucial a iniciativa»* —
+> against a criterion of **irreparable**, and a milestone assignment is undone by `--remove-milestone`
+> while a milestone is deleted outright.
+>
+> **What is now false in what follows:** every present-tense claim that an admission is denied to a
+> persona or asked of the orchestrator. `gh issue edit --milestone` is allowlisted and the hook that
+> answered first is gone, so **the act executes silently** — it does not degrade to a prompt. The
+> milestone-script route still prompts, but only because `scripts/` is in no allow list, which is this
+> record's own *"absent is not a state"* shape rather than a control.
+>
+> **What is still true and is the reason this amendment is not struck wholesale:** the finding that
+> *the wall a guard hits — it cannot tell "he told me" from "I did it myself" — dissolves when the guard
+> is allowed to ASK rather than having to KNOW.* That generalises past this act and is the thing to
+> reach for next. **Available is not the same as worth building**, and #383 decided only the second.
+>
+> One mechanical consequence to know before citing this: **`permission-guard.sh` now emits no `ask`
+> verdict at all**, and its `ask` helper was deleted with its last caller, so a future rule in this
+> class re-adds it deliberately.
+
 ### The rule, and the act it actually guards
 
 The owner's rule, verbatim, 2026-08-30:
@@ -3021,6 +3042,19 @@ receives and that the catch-all's *"New personas default to DENY here"* is not, 
 assertion cannot tell the two routes apart by construction.
 
 ### 3 · The milestone route — and it works BECAUSE a hole is open, which is the finding, not the design
+
+> **AMENDED 2026-09-04 (#383): rule 11 is REMOVED, and the section below should be read with one
+> substitution.** Everywhere it says the route is guarded by rule 11's prompt, the truth is now that the
+> route is guarded by **the absence of an `allow` entry for `scripts/`** — which still produces a
+> prompt, and which this record elsewhere names as *not a state*. **The hole is unchanged, the route is
+> unchanged, and what was a decision by a rule is now a gap that happens to behave the same way.**
+> The removal's ground was the owner's pricing of the act, not a re-argument about the hole:
+> *«mexer em milestones nao é um risco crucial a iniciativa»*.
+>
+> **The finding this section exists for is untouched and is why it is not struck:** no permission layer
+> reads inside a script, so `scripts/milestone-create.sh` and `python3 -c "…gh api…"` are the same door.
+> **No document here may claim the raw-API route is closed** — that sentence binds harder now, not less,
+> because the rule that used to stand in front of one spelling of it is gone.
 
 **The act has no route at all, measured three ways.** `gh milestone` does not exist
 (`gh milestone --help` → `unknown command "milestone" for "gh"`). `gh api` that writes is denied by rule

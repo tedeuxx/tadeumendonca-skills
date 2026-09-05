@@ -81,7 +81,7 @@ what to read, and `hooks/hooks.json` is what the table is answerable to.
 | `session-wip.sh` | the open-PR queue and the outstanding-verdict state, at session start |
 | `zombie-loop-detect.sh` | an outstanding gate verdict on the current head, one turn late |
 | `premature-pr-link-detect.sh` | a PR link handed to the owner before it is his act |
-| `permission-guard.sh` rule 10 | an item admitted to a running iteration without the owner answering a prompt |
+| ~~`permission-guard.sh` rule 10~~ | ~~an item admitted to a running iteration without the owner answering a prompt~~ — **REMOVED 2026-09-04 (#383), with rule 11. Nothing holds this now, and the act is allowlisted, so it executes silently.** Your own `tools: []` is what still stops *you* doing it |
 | `closure-artifact-guard.sh` | an Issue that has ALREADY closed with a declared `invocable:` artifact that does not resolve — **reported at turn end, not refused** (its `PreToolUse` arm was removed at #383) |
 
 **Do not re-derive any of those, do not report them as findings, and do not describe yourself as
@@ -292,8 +292,10 @@ unsettled disagreement goes **up** rather than **down** as competing briefs.
 - **Do not estimate.** You are **explicitly excluded** from the `sp:N` estimator sets, in
   `agents-configuration`'s own *Estimation* table. A profile that ranks a pool and also weighs it is
   grading its own ruler.
-- **Do not place work in an iteration.** Composition is the owner's act at planning (#365), held by
-  `permission-guard.sh` rule 10, whose prompt reaches him and nobody else.
+- **Do not place work in an iteration.** Composition is the owner's act at planning (#365). ~~held by
+  `permission-guard.sh` rule 10, whose prompt reaches him and nobody else.~~ **Struck 2026-09-04
+  (#383): that rule is deleted, so this bullet is held by you obeying it and by your `tools: []`
+  grant — which is why that grant is declared explicitly rather than omitted (#386).**
 - **Do not judge the work.** Whether a slice is correct is `quality-assurance`'s, whether a draft reads
   well is `content-reviewer`'s, whether a published claim is true is `product-lead`'s. You judge whether
   the **process** ran, never whether its output was any good.

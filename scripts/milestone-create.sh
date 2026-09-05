@@ -38,18 +38,31 @@
 # user-level floor's `deny`, in an UNTRACKED file nothing this plugin ships can change, so the precise
 # fix — carving the milestones endpoint into 5f — would ship inert.
 #
-# ── WHY THIS PROMPTS, AND WHY THAT IS THE FEATURE ──────────────────────────────────────────────
-# `permission-guard.sh` rule 11 keys on this script's basename plus `agent_type`: a subagent is DENIED
+# ── WHY THIS PROMPTS — AND SINCE 2026-09-04 IT IS A GAP RATHER THAN A DECISION ─────────────────
+# ~~`permission-guard.sh` rule 11 keys on this script's basename plus `agent_type`: a subagent is DENIED
 # (no persona in the roster composes an iteration), the orchestrator is ASKED. That is rule 10's exact
 # verdict split, for rule 10's exact reason — the owner's answer to the prompt IS the human verification
 # #365 demands, and a dispatched context has no prompt surface for an `ask` to reach.
 #
 # Relying on the mere ABSENCE of an allow entry would have been the "absent is not a state" shape
-# ADR-0004 already books for the AWS floor. The prompt is a decision by a rule, not a gap.
+# ADR-0004 already books for the AWS floor. The prompt is a decision by a rule, not a gap.~~
+#
+# **STRUCK 2026-09-04 (#383). RULES 10 AND 11 ARE DELETED**, on the owner's pricing of the act —
+# «mexer em milestones nao é um risco crucial a iniciativa» — against the audit's criterion of
+# IRREPARABLE. A milestone is deleted and an assignment is removed; nothing latches.
+#
+# **THIS SCRIPT STILL PROMPTS, AND THE STRUCK PARAGRAPH ABOVE IS NOW THE EXACT DESCRIPTION OF WHY THAT
+# IS WRONG.** `scripts/` matches no `allow` entry in either settings layer, so the permission system
+# asks — which is precisely the "absent is not a state" shape the old text was written to avoid relying
+# on. **The prompt is now a gap, not a decision by a rule.** An allow entry added later for an
+# unrelated reason removes the verification silently and nothing anywhere will say so.
+#
+# Read that as the standing state rather than as a risk: it is what the removal chose, knowingly.
 #
 # ── WHAT THIS DOES NOT DO ──────────────────────────────────────────────────────────────────────
 # It does not close a milestone, does not assign one to an Issue (that is `gh issue edit --milestone`,
-# governed by rule 10), does not read a milestone's state (no command available to this loop can — the
+# ~~governed by rule 10~~ — governed by nothing since #383, and allowlisted, so it runs silently),
+# does not read a milestone's state (no command available to this loop can — the
 # `milestone` sub-object returned by `gh issue list --json milestone` carries four keys and no `state`),
 # and does not compose an iteration. It creates one object and prints what the API returned.
 #
@@ -59,9 +72,11 @@
 #
 # ── AN UNSETTLED QUESTION THAT COULD MAKE THIS FILE UNNECESSARY ────────────────────────────────
 # Whether `gh issue edit --milestone "<new title>"` CREATES a missing milestone is NOT measured. `--help`
-# says "by name", which is a READ of documentation and not a measurement. It could not be measured from
+# says "by name", which is a READ of documentation and not a measurement. ~~It could not be measured from
 # the persona that wrote this file, because rule 10 denies every `gh issue edit --milestone` to a
-# subagent. If it turns out to create, this whole route is moot and should be deleted rather than kept.
+# subagent.~~ **Struck 2026-09-04 (#383): rule 10 is gone, so the obstacle to measuring this is gone
+# with it — any persona can now settle it in one command.** If it turns out to create, this whole route
+# is moot and should be deleted rather than kept.
 
 set -euo pipefail
 

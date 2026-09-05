@@ -487,8 +487,12 @@ repositories plus the proposals the two closing rites just produced — has them
 that did not run this drain, and presents them to the owner **one item at a time**.
 
 **It runs AFTER both closing rites, not instead of them**, because their proposal files are its
-inputs — the retrospective's per-persona findings and, since #379, the sweep's judgement half. **It composes nothing on its own**: every milestone write is the owner answering
-a `permission-guard.sh` prompt (rule 10 for an admission, rule 11 for creating the iteration).
+inputs — the retrospective's per-persona findings and, since #379, the sweep's judgement half. **It composes nothing on its own**: every milestone write is the owner's act at the rite.
+~~every milestone write is the owner answering a `permission-guard.sh` prompt (rule 10 for an
+admission, rule 11 for creating the iteration).~~ **Struck 2026-09-04 (#383): both rules are deleted.
+An admission is now a silent allowlisted write, and creating the iteration prompts only because
+`scripts/` is in no allow list — an absence rather than a control. The rule that composition is his
+did not change; the mechanism did, and there is none.**
 
 **Nothing fires it either**, for the reason stated one paragraph up: no layer here reads the queue. Read
 this as the drain naming where it hands off, never as a chain that runs itself.

@@ -311,15 +311,45 @@ refusable; this harness does that in `permission-guard.sh` rule 7d.
 - **o que não faz:** **It refuses nothing, as of 2026-09-04.** The act it describes has already happened when it speaks, so every finding is one turn late; and the manual-close route it used to refuse now executes with no decision from any layer, because that command is allowlisted. **An Issue that declares nothing is invisible to it, and nothing forces the declaration** — the field is written at intake by instruction, so this reports on a stated promise and never discovers an unstated one. It deliberately does **not** derive the promise from prose: measured over twenty closed Issues, the tightest derivation worth trying produced eleven unresolved identifiers and zero true positives, so a derived form would redden on honest work until it was loosened into nothing. It resolves **existence, never behaviour** — an empty file passes. A close aimed at another repository is skipped rather than guessed at. And it **fails open** on a missing `gh`, an API error or an unreadable body, so a silence from it can mean *checked and clean* or *could not check*.
 - **citação:** > "AN ISSUE THAT DECLARES NOTHING IS INVISIBLE HERE, AND NOTHING FORCES THE DECLARATION."
 
-### 0043 · nothing joins the iteration that is being worked without a human saying so
+### 0043 · nothing joins the iteration that is being worked without a human saying so — **CARRIER RETIRED**
+
+**Rules 10 and 11 were removed on 2026-09-04 (#383), on the owner's own pricing of the act:**
+*«mexer em milestones nao é um risco crucial a iniciativa»*. The audit's criterion is **irreparable**,
+and a milestone assignment is undone by `--remove-milestone` — which rule 10 deliberately never
+matched, because removal is the corrective act — while a milestone is deleted outright. Nothing
+latches, so the rule loses even though the obligation is real.
+
+**Not a tombstone.** The obligation was **not abandoned**: #365's rule stands, and the owner still
+composes an iteration at planning. What went is its only mechanism. `carrier` reads `retired`, so
+`enforcement` is **`absent`**.
+
+**This row is the most valuable one in the registry to read against its own history, and an adopting
+harness should read all three states.** It was the first obligation here to reach **prevention**, on a
+finding that generalises — *the wall those adjacent obligations hit is not a property of guards, it is
+a property of guards that must KNOW; a guard permitted to **ask** does not have to distinguish "the
+human asked for this" from "I decided it myself".* **That finding is untouched and is still the most
+portable thing here.** What was decided is narrower: this particular act was not worth the prompt.
+
+**What the removal costs, and it is not a wash.** #365's objection was never that the act is dangerous
+— it was that it **silently changes a running iteration's contents and its completion bar**. That
+failure mode is unchanged; what is gone is the prompt that made it visible at the moment it happened.
+And the act now **executes silently** rather than falling through to a prompt, because the
+item-to-iteration assignment command is allowlisted in this harness's permission layer. **Nothing
+detects it either** — no hook here reads the queue.
 
 - **tipo:** refusal
-- **carrier:** `hooks/scripts/permission-guard.sh`
+- **carrier:** retired
 - **descrição:** A `PreToolUse` rule on the act that assigns an iteration to a work item — denied to every dispatched actor, and put to the human in the one context where a human is sitting.
 - **propósito:** A loop that files its own findings into the iteration it is currently working changes that iteration's contents while draining it, and nobody decided to. The obligation is that **the unit of work is composed by a person, once, in front of the whole set** — not accreted item by item by the machine that is producing the items. What makes this portable is the shape of the answer rather than the rule: the adjacent obligations in this registry all shipped as *detection*, because a guard cannot tell *the human asked for this* from *I decided it myself*. **That wall is not a property of guards. It is a property of guards that must KNOW.** A guard permitted to **ask** does not have to distinguish the two cases — the human's answer to the prompt is the verification — and this is the first obligation here to reach prevention on that observation.
-- **o que faz:** Matches the item-to-iteration assignment in every spelling the tool accepts (long flag, short flag, attached value, the repository flag placed before the subcommand, and the same command wrapped in a shell payload). A **dispatched** actor is refused outright, with the exit named: file without the assignment and say in the return which iteration you believe it belongs to. The **orchestrating** actor is asked, because that is the session the human is in. Removing an item from an iteration is deliberately unmatched — taking work back out is the corrective act, not the guarded one.
-- **o que não faz:** **It reads a flag, never an intent** — an assignment the human directed and one the loop invented produce the identical prompt, which is the whole reason a prompt is the answer and a verdict is not. **An `ask` needs a surface**, so the split is not severity but reachability: a prompt returned to a dispatched context reaches nobody, and what happens to an unanswerable prompt in a fully unattended run **is not measured here** — no automated path in this harness reaches the guarded act, which is why the measurement was not owed and not taken. It cannot reach a human clicking in the web interface, which is correct rather than a gap. And it holds only the *admission*: nothing observes whether the composition a human approved was a good one, and nothing bounds how many items that human admits.
-- **citação:** > "the rule reads a flag, not an intent"
+- **o que faz:** *(Past tense: this describes the retired rules, kept because the design — and above all the ask-rather-than-know finding — is what a foreign implementer would otherwise have to rediscover.)* Matched the item-to-iteration assignment in every spelling the tool accepts (long flag, short flag, attached value, the repository flag placed before the subcommand, and the same command wrapped in a shell payload). A **dispatched** actor was refused outright, with the exit named: file without the assignment and say in the return which iteration you believe it belongs to. The **orchestrating** actor was asked, because that is the session the human is in. Removing an item from an iteration was deliberately unmatched — taking work back out is the corrective act, not the guarded one, and that asymmetry is why the act is reparable and why the rule ultimately lost.
+- **o que não faz:** **Since 2026-09-04 it does nothing, and the act it guarded now executes with no decision from any layer.** What it did NOT do while it ran: **it read a flag, never an intent** — an assignment the human directed and one the loop invented produce the identical prompt, which is the whole reason a prompt is the answer and a verdict is not. **An `ask` needs a surface**, so the split is not severity but reachability: a prompt returned to a dispatched context reaches nobody, and what happens to an unanswerable prompt in a fully unattended run **is not measured here** — no automated path in this harness reaches the guarded act, which is why the measurement was not owed and not taken. It cannot reach a human clicking in the web interface, which is correct rather than a gap. And it holds only the *admission*: nothing observes whether the composition a human approved was a good one, and nothing bounds how many items that human admits.
+- **citação:** no limit stated in the source
+
+*(That cell read `> "the rule reads a flag, not an intent"` until 2026-09-04, quoting rule 10's own
+comment. The rules are deleted, so the quote resolves against nothing — the dangling-citation case the
+`citação` arm exists to catch, and it did catch it. The rules' text is at
+`git show <deleting-commit>^:hooks/scripts/permission-guard.sh`; the limits they stated are preserved
+in `o que não faz` above.)*
 
 ### 0044 · a merge does not auto-close a work item the review record never named
 

@@ -543,16 +543,27 @@ scrum»* — and creation had **no route at all**: `gh milestone` does not exist
 reaches the write API because **neither the settings matcher nor `permission-guard.sh` looks inside a
 script** — the same blindness that makes `python3 -c "…gh api -X POST…"` a back door, measured against
 the live guard. **So nothing here may claim the raw-API route is closed**, and the floor entry the
-struck sentence protects is untouched: it was never the thing standing in the way. What guards the act
+struck sentence protects is untouched: it was never the thing standing in the way. ~~What guards the act
 is `permission-guard.sh` **rule 11** — a subagent is denied, the orchestrator is asked, rule 10's exact
-split, and the owner's answer to that prompt is the HITL verification #365 demands. The full argument,
-the rejected endpoint carve-out and the price of accepting the hole are in ADR-0004's 2026-08-31
-amendment.
+split, and the owner's answer to that prompt is the HITL verification #365 demands.~~ **Struck
+2026-09-04 (#383): rule 11 is deleted with rule 10.** The full argument, the rejected endpoint carve-out
+and the price of accepting the hole are still in ADR-0004's 2026-08-31 amendment, and the hole is still
+open.
 
-**One measurement that could make the route unnecessary is NOT taken:** whether
-`gh issue edit --milestone "<new title>"` *creates* a missing milestone. `--help` says *"by name"*,
-which is a read of documentation and not a measurement, and rule 10 denies that command to the very
-persona that would settle it. If it turns out to create, delete the script rather than keeping it.
+**What stands there now is an ABSENCE, and the difference matters more here than anywhere else in this
+slice.** `scripts/` matches no `allow` entry in either settings layer, so running the script still
+reaches a **permission prompt** for the orchestrator and an unanswerable one for a subagent — so unlike
+rule 10, removing rule 11 is close to behaviour-neutral. **But rule 11's own comment said, while it
+existed, why leaning on that is wrong:** it is ADR-0004's *"Permission entries have three states, and
+absent is not one"* shape. **An allow entry added later for an unrelated reason silently removes the
+verification, and nothing anywhere would say so.** That is now the standing state rather than a
+hypothetical the rule protected against.
+
+**One measurement that could make the route unnecessary is still NOT taken, and one obstacle to taking
+it is gone:** whether `gh issue edit --milestone "<new title>"` *creates* a missing milestone. `--help`
+says *"by name"*, which is a read of documentation and not a measurement. ~~and rule 10 denies that
+command to the very persona that would settle it~~ — **struck: rule 10 is gone, so any persona can now
+run it and settle this.** If it turns out to create, delete the script rather than keeping it.
 
 ### `loop`-typed items ARE iteration-assignable
 
@@ -577,24 +588,55 @@ milestone assignment to a transition he already performs. It adds no new gate an
 planning — the moment he is present and the milestone object exists. The operative instruction lives in
 `commands/new-issue.md`'s *Open it* step; this is the rule it executes, stated once here.
 
-**And it is the first rule in this section that is not merely an instruction.** `permission-guard.sh`
+~~**And it is the first rule in this section that is not merely an instruction.** `permission-guard.sh`
 **rule 10** matches `gh issue create`/`gh issue edit` carrying `--milestone` (or `-m`) and **denies it to
 every dispatched persona, asking the orchestrator**. The owner's answer to that prompt is the human
-verification the rule demands. **`--remove-milestone` is deliberately unmatched** — taking an item back
-out of a running iteration is the corrective act, not the guarded one.
+verification the rule demands.~~
 
-**Why prevention was available here when it was not for #337, #339 or #363.** Each of those shipped as
-detection because the act was invisible to every layer — ordering, batch composition, an uncommitted
-edit. Here the act is a `Bash` command string, in a matcher this harness already registers, and the wall
-those Issues hit — *a guard cannot tell "he told me" from "I did it myself"* — **dissolves the moment the
-guard is allowed to ASK instead of having to KNOW.** The measurement that made it available: the
-installed build accepts `permissionDecision: "ask"` on `PreToolUse`, and `PreToolUse` hooks run even
-under `bypassPermissions`.
+**STRUCK 2026-09-04 (#383) — RULE 10 IS DELETED, AND THIS IS THE SENTENCE THAT TOLD EVERY PERSONA A
+PROMPT WOULD FIRE.** It is struck rather than edited because this file is loaded on every dispatch:
+a reader who took *"not merely an instruction"* from it would believe a mechanism stands where none
+does. **It is merely an instruction again, and it is the only thing here.**
 
-**What it costs, priced rather than shrugged at:** planning assigns N milestones, so the prompt fires N
+The owner's ruling, on the audit's criterion of **irreparable** rather than costly:
+*«mexer em milestones nao é um risco crucial a iniciativa»*. A milestone assignment is undone by
+`--remove-milestone` and a milestone is deleted; nothing latches.
+
+**What that costs, said here rather than left to be inferred, because the reading it invites is
+wrong.** `gh issue edit` is allowlisted in this harness's permission layer and the hook decided
+*before* that layer, so **an item is now admitted to a running iteration with no prompt, no denial and
+no record.** It does **not** fall through to a permission prompt. **#365's objection is unchanged** —
+it was never that the act is dangerous, it was that it silently changes a running iteration's contents
+and its completion bar — and what is gone is the prompt that made it visible at the moment it happened.
+Nothing detects it either: no hook here reads the queue.
+
+**`--remove-milestone` was deliberately unmatched** — taking an item back out of a running iteration is
+the corrective act, not the guarded one — and that asymmetry is now the *reason the rule lost* rather
+than a nicety of its design.
+
+**Why prevention was available here when it was not for #337, #339 or #363.** *(This paragraph is kept
+UNSTRUCK on purpose: it is the one thing in this section that outlived the rule.)* Each of
+those shipped as detection because the act was invisible to every layer — ordering, batch composition,
+an uncommitted edit. Here the act is a `Bash` command string, in a matcher this harness already
+registers, and the wall those Issues hit — *a guard cannot tell "he told me" from "I did it myself"* —
+**dissolves the moment the guard is allowed to ASK instead of having to KNOW.** The measurement that
+made it available: the installed build accepts `permissionDecision: "ask"` on `PreToolUse`, and
+`PreToolUse` hooks run even under `bypassPermissions`.
+
+**That finding is untouched by #383 and is the most portable thing in this section.** What was decided
+in 2026-09-04 is narrower and must not be read back onto it: *this particular act* was priced below the
+bar. **Available is not the same as worth building** — the same sentence the escalation standard
+already carries — and the next obligation that genuinely needs a human's answer should reach for `ask`
+on this evidence. **Note the one thing that did change mechanically: `permission-guard.sh` now emits no
+`ask` verdict anywhere**, and its `ask` helper was deleted with its last caller, so reaching for it
+means re-adding it deliberately.
+
+~~**What it costs, priced rather than shrugged at:** planning assigns N milestones, so the prompt fires N
 times. Accepted, because planning is an owner-present act by construction — there is no path where this
 prompt fires at a moment he is absent and should have been present, which is the property that stops an
-`ask` training a bypass.
+`ask` training a bypass.~~ **Struck 2026-09-04 (#383): there is no prompt, so there is no N-prompts
+cost. What replaces it is the opposite cost — planning now assigns N milestones with N silent edits,
+and the owner sees each one only because he is the one driving the rite.**
 
 ~~#### A `loop` Issue joins the ACTIVE iteration at FILING, never a later one (#338)~~
 
@@ -983,7 +1025,8 @@ loop-first `Stop` hook, and it is named here rather than filed.
 - **#338 governs the ITERATION; this governs the BRANCH — and #338 was struck one hour before this line
   was corrected, which moves the premise and leaves the distinction standing.**
   ~~A `loop` Issue joins the active iteration at filing;~~ **struck 2026-08-30 (#365)** — no Issue is
-  filed with a milestone now, for any type, and `permission-guard.sh` rule 10 holds it. **The
+  filed with a milestone now, for any type — ~~and `permission-guard.sh` rule 10 holds it~~ **struck
+  2026-09-04 (#383): rule 10 is deleted, so that is an instruction again and nothing holds it.** **The
   distinction this bullet exists to make is untouched:** *which iteration an item belongs to* is
   composed by the owner at planning, and *whether an item joins an **open batch branch*** is a
   different question with its own answer — admitting one means either re-opening a diff that already
@@ -1189,7 +1232,11 @@ carried over), not a gate.
   changes (struck 2026-09-02, #393 — the walked form stopped at item 1 of 15 on the rite's first real
   run)**, and **produces the iteration object** — his wording, *«o rito deveria sim criar a iteracao como produto ao final
   dela»*, so a planning that ends without one has produced nothing. **Composition stays his**: every
-  admission is a `permission-guard.sh` rule 10 prompt and creating the milestone is rule 11's.
+  admission is his act at the rite — ~~a `permission-guard.sh` rule 10 prompt and creating the
+  milestone is rule 11's~~ **struck 2026-09-04 (#383): both rules are deleted. Admission is now a
+  SILENT edit (the command is allowlisted), and creating the milestone still prompts only because
+  `scripts/` is in no allow list — an absence, not a control. "Composition stays his" is now held by
+  the rite's own procedure and by his presence at it, not by any layer.**
   **Struck rather than deleted because this file is loaded on every dispatch** — a persona that read
   *"planning is unbuilt"* would not reach for a rite that exists, and the strike is what tells it the
   claim changed rather than leaving the absence to be inferred. **What has NOT changed: nothing fires

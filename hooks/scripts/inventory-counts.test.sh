@@ -7717,13 +7717,26 @@ if [ -r "$MS_SCRIPT" ]; then
     || ms_problems="$ms_problems
     scripts/milestone-create.sh no longer forbids the claim that the raw-API route is closed"
 fi
+# THE GUARD'S HALF INVERTED ON 2026-09-04 (#383), AND THAT IS THE POINT OF KEEPING THE ARM RATHER
+# THAN DELETING IT. Rules 10 and 11 were removed on the owner's pricing of the act
+# («mexer em milestones nao é um risco crucial a iniciativa»), so the guard no longer stands there.
+# The old needles asserted that rule 11 EXPLAINED the route; asserting that now would demand a rule
+# that does not exist. **What replaces them asserts the ABSENCE is stated**, which is the thing a
+# later reader is most likely to get wrong: `scripts/` matches no allow entry in either settings
+# layer, so a permission PROMPT still fires there — and a prompt that exists only because nobody has
+# written an allow entry is an absence, not a control. If someone adds one, the verification
+# disappears with nothing to say so. That sentence is what this arm now pins.
 if [ -r "$MS_GUARD" ]; then
   ms_checked=$((ms_checked + 1))
-  grep -qF -- 'AN EXPLOITATION, NOT A DESIGN' "$MS_GUARD" || ms_problems="$ms_problems
-    permission-guard.sh rule 11 no longer states that the route it guards is an exploitation"
-  grep -qF -- 'milestone-create' "$MS_GUARD" || ms_problems="$ms_problems
-    permission-guard.sh does not mention milestone-create at all; rule 11 is gone and the script is
-    guarded by nothing, which is strictly worse than never having built the route"
+  grep -qF -- 'THE MILESTONE PAIR' "$MS_GUARD" || ms_problems="$ms_problems
+    permission-guard.sh no longer records that rules 10 and 11 were REMOVED. The numbers must stay
+    vacant and the removal must stay explained, or the next reader re-derives a control that was
+    deliberately dropped — or worse, renumbers and repoints every 'rule 10' citation in the records"
+  grep -qF -- 'IS AN ABSENCE, NOT A CONTROL — which is the shape' "$MS_GUARD" || ms_problems="$ms_problems
+    permission-guard.sh no longer states that the prompt still standing in front of the milestone
+    script is an ABSENCE rather than a control. That is the load-bearing half now: rule 11 is gone,
+    and what remains is 'scripts/ is in no allow list', which one unrelated allow entry removes
+    silently. This is ADR-0004's own 'absent is not a state' shape, and it is now live"
 fi
 if [ -r "$MS_SKILL" ]; then
   ms_checked=$((ms_checked + 1))
@@ -7739,11 +7752,12 @@ if [ "$ms_checked" -lt 4 ]; then
       asserted:$ms_problems"
 elif [ -n "$ms_problems" ]; then
   bad "milestone route — a surface stopped saying what the route actually is:$ms_problems
-      The route reaches a write API because no permission layer reads inside a script. Rule 11's prompt,
-      not rule 5f, is the only thing standing there. A surface that stops saying so hands the next
-      reader a control that does not exist."
+      The route reaches a write API because no permission layer reads inside a script. Since #383 NO
+      hook rule stands there at all — what is left is a permission prompt that exists only because
+      'scripts/' is in no allow list. A surface that stops saying so hands the next reader a control
+      that does not exist."
 else
-  ok "milestone route — the script, rule 11 and the universal preload each state that the route is an exploitation of an open hole (string agreement only; nothing here checks the hole or the script's behaviour)"
+  ok "milestone route — the script and the universal preload state that the route is an exploitation of an open hole, and the guard records that rules 10/11 were removed and that what replaced them is an absence rather than a control (string agreement only; nothing here checks the hole or the script's behaviour)"
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
@@ -7805,7 +7819,7 @@ else
     '**Nothing observes that it ran, or that it ran correctly.**' \
     '**The count ships with the command that produces it, or not at all.**' \
     '**ENUMERATE, then select — the same discipline step 1 states for milestones' \
-    'second layer is ACT-specific, not agent-specific' \
+    'the only thing standing between this profile and a milestone' \
     '**They partition. They do not sequence.**' \
     'is a DECLARED TIEBREAK and is labelled as one: issue number ascending,' \
     '- **The `### Selection` block is OMITTED at planning.**' \
@@ -7875,9 +7889,12 @@ else
         ENUMERATE        — the retrospective directory was hand-typed one screen after the rite states
                            enumerate-then-select for milestones. A wrong name yields "0 findings", which
                            is what an honest empty retrospective looks like: a falsifier failing open.
-        ACT-SPECIFIC     — "two independent layers" is true and narrower than it reads. Rule 10 keys on
-                           a flag and rule 11 on a script name; a subagent holding Bash reaches any
-                           spelling neither names. The safety today is `tools: []`, layer one.
+        ONE-LAYER        — "two independent layers" was true, narrower than it read, and is now false:
+                           rules 10 and 11 were REMOVED at #383, so a subagent holding Bash reaches
+                           every spelling and no rule is left to name one. The needle pins the
+                           surviving sentence — that `tools: []` is the ONLY thing standing between
+                           this profile and a milestone write. It was layer one and is now the whole
+                           stack, which is exactly the sentence a reader must not lose.
         PARTITION /      — loop-before-product does not order two `loop` items, and the live pool is
         TIEBREAK           7 items of one class. Without these two clauses the profile must compose a
                            sequence and return it under the word "ratified" — laundering an invented
@@ -8040,14 +8057,25 @@ plan_guard="$ROOT/hooks/scripts/permission-guard.sh"
 plan_rite="$ROOT/commands/sprint-planning.md"
 plan_fam_problems=""
 plan_fam_checked=0
+# ── INVERTED 2026-09-04 (#383) ──────────────────────────────────────────────────────────────────
+# The family pattern is GONE, because rule 11 is gone. Asserting the pattern's presence would demand
+# a rule the owner decided not to keep, and asserting nothing would let the widening's whole argument
+# vanish with it. **So the arm now pins the argument rather than the pattern.** The residual #378
+# booked is unchanged and is what makes this worth keeping: an unwritten `milestone-update.sh` is
+# still invited by the rite, and it now arrives guarded by exactly what `milestone-create.sh` is
+# guarded by — a permission prompt that exists because `scripts/` is in no allow list. **The family
+# widening's finding survives its own mechanism: a control pinned to one basename ships the next
+# name in the family unguarded, silently. Whoever re-adds a guard here must re-add it as a family.**
 if [ -r "$plan_guard" ]; then
   plan_fam_checked=$((plan_fam_checked + 1))
-  grep -qF -- 'milestone-[a-z0-9-]*\.sh' "$plan_guard" || plan_fam_problems="$plan_fam_problems
-    permission-guard.sh no longer matches the milestone script FAMILY. Pinned to one basename, the next
-    script in it — which this rite's own residual invites — ships with neither the ask nor the deny."
-  grep -qF -- 'THE FAMILY, NOT THE ONE FILE' "$plan_guard" || plan_fam_problems="$plan_fam_problems
-    permission-guard.sh no longer records WHY rule 11 matches a family, so the next reader sees an
-    over-broad pattern with no reason and narrows it back to the basename."
+  grep -qF -- 'the `scripts/milestone-*.sh` family' "$plan_guard" || plan_fam_problems="$plan_fam_problems
+    permission-guard.sh no longer names the milestone script FAMILY at all. Rules 10/11 were removed at
+    #383, and the tombstone must keep naming the family rather than the one basename — the finding that
+    a basename-pinned control ships the next name unguarded outlives the control, and whoever rebuilds
+    one needs it."
+  grep -qF -- 'IS AN ABSENCE, NOT A CONTROL — which is the shape' "$plan_guard" || plan_fam_problems="$plan_fam_problems
+    permission-guard.sh no longer records that what stands in front of the milestone-write family is an
+    absence rather than a control, so the next reader reads the surviving prompt as a floor."
 fi
 if [ -r "$plan_rite" ]; then
   plan_fam_checked=$((plan_fam_checked + 1))
@@ -8061,7 +8089,7 @@ if [ "$plan_fam_checked" -lt 2 ]; then
 elif [ -n "$plan_fam_problems" ]; then
   bad "planning rite — the milestone-write family is no longer guarded or no longer explained:$plan_fam_problems"
 else
-  ok "planning rite — rule 11 matches the milestone script FAMILY and says why, and the rite states that the missing update route is a missing script rather than a control (text agreement only; permission-guard.test.sh exercises the verdicts)"
+  ok "planning rite — the guard's tombstone names the milestone script FAMILY and states that what replaced rules 10/11 is an absence rather than a control, and the rite states that the missing update route is a missing script rather than a control (text agreement only; nothing fires on this route since #383)"
 fi
 
 # ── 6 · the milestone description travels as a FILE, and the inline route is GONE rather than unused ──
