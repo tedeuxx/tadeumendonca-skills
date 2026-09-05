@@ -521,12 +521,45 @@ fi
 #        the reflog, nothing on the remote, nothing in the index once it is gone. It passes the strict
 #        test on the merits.
 #
-#    3b. force-push — DOWNGRADED TO `ask`. A force-pushed branch is recoverable from two independent
+#    3b. force-push — ~~DOWNGRADED TO `ask`~~ **REVERTED TO `deny` 2026-09-05 (#383, S3-revert, owner:
+#        «reverte os três»). The reparability argument below is UNCHANGED and still true; what failed
+#        is the REMEDY it relied on.** A force-pushed branch is recoverable from two independent
 #        places: the pusher's own reflog, which still names the pre-push tip, and the remote's
 #        unreachable objects, which survive until that repository is garbage-collected. It is costly
-#        and loud; it is not irreparable, and this file's floor is now irreparability alone.
+#        and loud; it is not irreparable. That reasoning is why the downgrade was defensible, and it
+#        is not what this revert disputes.
 #
-#    WHY `ask` AND NOT REMOVAL, WHICH IS THE PART A LATER READER WILL WANT TO SECOND-GUESS. Removing
+#    ── WHY IT CAME BACK: `ask` IS NOT AN AVAILABLE REMEDY IN THE MODE THIS HARNESS RUNS IN ──────────
+#    The downgrade's load-bearing premise was that `deny -> ask` converts a refusal into a question the
+#    owner answers. Measured in the owner's own interactive session immediately after the S3 merge,
+#    with the new build confirmed live:
+#      · this guard's source, fed the exact force-push command, two payloads   -> ask
+#      · the same force-push EXECUTED for real, in that session                -> executed, NO PROMPT
+#      · a `>` redirect (rule 8b, still a deny) in the same session            -> denied, new message
+#      · the session's mode                                                     -> AUTO, declared by
+#                                                                                 the harness
+#    So the hooks fire, the build is live, and a hook `ask` is answered automatically without reaching
+#    him. **The three downgraded acts were not gated at all in his working session** — they went from
+#    denied to silently executed, which is the opposite of what the downgrade promised.
+#
+#    **THE EARLIER SAFETY MEASUREMENT WAS NOT WRONG — IT WAS TAKEN IN THE WRONG CONTEXT.** It
+#    established that an unanswerable `ask` FAILS CLOSED **in a dispatched subagent**, where there is
+#    no prompt surface at all. That still holds. Nobody measured the MAIN SESSION under auto mode, and
+#    that is the context the owner works in. Two correct measurements, two different contexts; the one
+#    that decides this rule is the one that was never taken.
+#
+#    **THE GENERAL RULE, which binds every future downgrade in this file:** the ladder
+#    `deny -> ask -> context -> nothing` has a rung that does not hold in this harness's default
+#    working mode. The criterion is unchanged — irreparability still decides what belongs on the floor
+#    — but *reparable* now licenses a downgrade only to a rung that actually fires. Any proposal whose
+#    mitigation is *"it becomes a prompt"* is proposing a mitigation that does not fire. What would
+#    make `ask` viable again is an auto mode that EXCLUDES hook `ask` — the owner named it himself as
+#    one of his three options. It is not built here; it is the condition under which these three rules
+#    could be revisited.
+#
+#    ~~WHY `ask` AND NOT REMOVAL, WHICH IS THE PART A LATER READER WILL WANT TO SECOND-GUESS.~~
+#    **KEPT UNSTRUCK BELOW THIS LINE, because it is the argument for the DENY too, and it is the part
+#    that decides this rule must live in the hook at all rather than in `settings.json`.** Removing
 #    the branch would not degrade this to a prompt — it would degrade it UNEVENLY, and the uneven half
 #    executes in silence. The static layers deny only the spellings where the flag follows `push`
 #    IMMEDIATELY (`Bash(git push --force:*)`, `--force-with-lease`, `-f`), because a settings entry is
@@ -559,22 +592,32 @@ fi
 #                                          --force origin main` against a local bare remote moved that
 #                                          remote's `main` (d7e5677 -> 42b3173, forced).
 #
-#    Keeping the branch as `ask` is therefore strictly better than removing it: the spellings the
-#    static layer already denies STAY DENIED — measured, a static `deny` beats a hook `ask` — and the
-#    one it cannot express becomes a prompt instead of a silent execution. See the helper comment
-#    above for the full probe, including that an `ask` in a dispatched subagent FAILS CLOSED.
+#    ~~Keeping the branch as `ask` is therefore strictly better than removing it~~ — the conclusion
+#    changed with the verdict; the PREMISE it rests on is what survives and is why this branch still
+#    exists at all: **`git -C <dir> push --force` is a spelling no settings entry can express**, so
+#    without this rule it executes in silence. That is now an argument for the DENY living here rather
+#    than for an `ask`. A hook `deny` is also final — it is decided BEFORE the permission system and
+#    is never softened by an `allow` beneath it — so unlike an `ask`, this verdict does not depend on
+#    the session's mode.
 #
 #    ── WHERE 3b's EXECUTABLE BLOCK LIVES, AND WHY IT IS NOT HERE ────────────────────────────────────
-#    **3b's `if` is BELOW rule 7, not here, and that position is LOAD-BEARING.** `ask()` calls
-#    `exit 0`, so a matching `ask` ends the script and every rule after it is unreachable. 3b's pattern
-#    matches `git -C <repo> push --force origin main` — which is ALSO rule 7's trunk push, the one
-#    member of this pair that stays irreparable — so with 3b above rule 7 the trunk classification was
+#    **3b's `if` is BELOW rule 7, not here, and that position is KEPT — but what it buys CHANGED with
+#    the revert, and saying so is the honest form.** `ask()` and `deny()` both call `exit 0`, so the
+#    first matching rule is the whole verdict. 3b's pattern matches `git -C <repo> push --force origin
+#    main` — which is ALSO rule 7's trunk push — so with 3b above rule 7 the trunk classification was
 #    never reached and a force-push to the trunk came out `ask`. Measured at 9aca9d4, before the move:
 #      git -C <repo> push --force origin main   -> ASK    (3b)
 #      same, with 3b neutralised                -> DENY   (rule 7 DOES match; it was never reached)
-#    The same shape as 5g's ordering, recorded the same way: **rule 7's deny must stay ABOVE 3b's ask,
-#    or the trunk's one irreparable member becomes a prompt.** Do not move 3b back up to sit beside 3a
-#    for tidiness — the adjacency is cosmetic and the ordering is the control. Arms pin both sides.
+#    **WITH 3b BACK TO `deny` THE ORDERING NO LONGER CHANGES THE VERDICT — BOTH RULES DENY — SO IT NOW
+#    DECIDES ONLY WHICH REASON THE CALLER READS.** That is a smaller thing than it was and it is still
+#    worth keeping: the two messages prescribe different remedies (rule 7 says *branch first and open a
+#    PR*; 3b says *do not rewrite a pushed ref*), and a trunk force-push is rule 7's problem first.
+#    **The lesson generalises past this rule and is the reason the block is not moved back for
+#    tidiness:** where two rules match one act, the stricter one runs first ONLY where it is right
+#    about the act — the same test rule 5's pre-emption note states from the other side.
+#    **The arms had to change with it.** A verdict-only assertion can no longer tell the two orders
+#    apart, so the ordering arms now assert the REASON (`check_reason`), and a verdict-only battery
+#    that reads green over a reordering would be exactly the uncalibrated check this repo hunts for.
 if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*reset[[:space:]]+--hard'; then
   deny "Blocked: 'git reset --hard' discards uncommitted work, and uncommitted work has no other copy — not in the reflog, not on the remote, not in the index. That is the irreparable half of what this rule used to refuse in one sentence; the force-push half is now rule 3b and asks instead. Use a safe alternative: commit first, 'git stash', or 'git revert' for something already committed."
 fi
@@ -1360,21 +1403,20 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   esac
 fi
 
-# 3b. Force-push — DOWNGRADED TO `ask` (#383 S3). The argument for the downgrade, the token-boundary
-#     measurement and the reason this is an `ask` rather than a removal are all at rule 3's site above,
-#     where a reader meets the 3a/3b split; only the executable block lives here.
+# 3b. Force-push — ~~DOWNGRADED TO `ask` (#383 S3)~~ **BACK TO `deny` (#383 S3-revert)**. The
+#     reparability argument, the measurement that reverted it, the token-boundary finding and the
+#     reason this rule cannot live in `settings.json` are all at rule 3's site above, where a reader
+#     meets the 3a/3b split; only the executable block lives here.
 #
-#     **IT SITS AFTER RULE 7 DELIBERATELY, AND THE ORDER IS THE CONTROL — NOT LAYOUT.** `ask()` exits,
-#     so whichever of the two matches first is the whole verdict. A force-push to the trunk matches
-#     BOTH: 3b (reparable — the old tip survives in the reflog and in the remote's unreachable objects)
-#     and rule 7 (a push to the trunk is the deploy, and that is not reparable by pushing again). Rule 7
-#     is the stricter of the two and must win, so it runs first. Moving this block back above rule 7 —
-#     for adjacency with 3a, which is the tempting reason — silently reopens a trunk force-push as a
-#     prompt. That is not hypothetical: it is what 9aca9d4 shipped, and the suite now pins both sides
-#     (`git -C <path> push --force origin main` -> DENY, `git push origin feature-x --force` -> ASK),
-#     so a revert in either direction reddens something instead of passing quietly.
+#     **IT STILL SITS AFTER RULE 7 DELIBERATELY, AND WHAT THAT BUYS IS NOW SMALLER AND STATED AS
+#     SUCH.** Both rules exit, so whichever matches first is the whole verdict — but both now DENY, so
+#     the order decides the REASON rather than the outcome. A force-push to the trunk is rule 7's act
+#     first: its message prescribes the right remedy (branch and open a PR), 3b's does not. The
+#     ordering is kept, the verdict-only arms can no longer see it, and `check_reason` arms are what
+#     pin it now. Moving this block back above rule 7 no longer opens a hole; it silently swaps the
+#     advice the caller gets, which is why it is still asserted rather than left to habit.
 if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*push([[:space:]].*)?([[:space:]](--force|--force-with-lease|-f)([[:space:]]|$))'; then
-  ask "This force-pushes. It is no longer a floor deny (#383): a force-pushed branch survives in your own reflog and in the remote's unreachable objects, so it is loud and costly but REPARABLE, and this guard's floor is irreparability alone. It still asks, because whether it is right is not visible in the command — force-pushing your own throwaway branch and force-pushing a branch someone else has already pulled are the same string, and only you can tell them apart. Before answering: is anyone else's checkout downstream of this ref? If it is your own short-lived branch, say yes. If it is a shared or protected branch, say no and rebase-then-push, or push a new branch instead. Note that a force-push landing on the TRUNK never reaches this prompt at all: rule 7 above denies it outright, in every spelling, which is why this prompt can only ever be about a non-trunk ref."
+  deny "Blocked: force-push rewrites a ref that others may already have pulled. It was briefly an 'ask' (#383 S3) on the argument that it is REPARABLE — the pre-push tip survives in your reflog and in the remote's unreachable objects — and that argument is still true. What failed is the remedy: a hook 'ask' is answered automatically in this harness's auto mode, measured in the owner's own session, so the downgrade produced silent execution rather than a prompt. Until an auto mode exists that excludes hook 'ask', a reparable-but-serious act has no rung between deny and nothing. Use a safe alternative: push a new branch, or rebase-then-push without --force. If the force-push is genuinely right, it is the human's own act."
 fi
 
 # 7b. Merging a PR is the deploy — ADR-0004 makes it the quality-assurance's act alone,

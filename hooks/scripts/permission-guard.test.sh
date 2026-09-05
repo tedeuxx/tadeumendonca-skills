@@ -134,6 +134,32 @@ check_agent() {
   fi
 }
 
+# ADDED #383 S3-revert. `check` classifies a verdict and nothing else, which was sufficient while two
+# overlapping rules returned DIFFERENT verdicts. Reverting 3b to `deny` made rule 7 and 3b agree on the
+# verdict, so a verdict-only battery went green over BOTH orderings — an assertion that cannot fail,
+# which is this repo's own named defect. This helper asserts WHICH rule answered, by matching a
+# distinctive fragment of its reason.
+#
+# IT ASSERTS THE REASON, NOT THE MESSAGE. The needle is a short fragment chosen to be unique across the
+# file's messages; rewording a message around it is free, and rewording it away is meant to redden.
+check_reason() {
+  want="$1"
+  desc="$2"
+  needle="$3"
+  cmd="$4"
+  out=$(printf '%s' "$cmd" | jq -R '{tool_input:{command:.}}' | bash "$GUARD")
+  got=$(verdict "$out")
+  reason=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""')
+  if [ "$got" = "$want" ] && printf '%s' "$reason" | grep -qF "$needle"; then
+    pass=$((pass + 1))
+    printf 'ok    %-6s %s\n' "$got" "$desc"
+  else
+    fail=$((fail + 1))
+    printf 'FAIL  want=%s/%s got=%s  %s\n      cmd: %s\n      reason: %s\n' \
+      "$want" "$needle" "$got" "$desc" "$cmd" "$reason"
+  fi
+}
+
 echo "--- rule 7: pushing to the trunk, in every spelling ---"
 check DENY  "explicit origin main"          "git push origin main"
 check DENY  "explicit with -C"              "git -C /some/repo push origin main"
@@ -1439,7 +1465,7 @@ check ALLOW "boundary: quoted arg stays inert" "npm run finish -c 'git push orig
 echo "--- the pre-existing floor still holds ---"
 check DENY  "terraform apply"               "terraform apply -auto-approve"
 check DENY  "terraform destroy"             "terraform -chdir=iac destroy"
-check ASK   "force push (3b, downgraded)"   "git push --force origin feat/x"
+check DENY  "force push (3b, reverted #383)"  "git push --force origin feat/x"
 check DENY  "reset --hard"                  "git reset --hard HEAD~1"
 check DENY  "rm -rf"                        "rm -rf build"
 check DENY  "skip-permissions bypass"       "claude --dangerously-skip-permissions"
@@ -1472,14 +1498,25 @@ echo "--- #383 S3: the three downgraded boundaries, asserted on BOTH sides ---"
 # on BOTH sides: the act that was downgraded AND the neighbouring act that was not, so reverting the
 # split in either direction reddens something.
 
-echo "--- 3a/3b: the split between reset --hard (DENY) and force-push (ASK) ---"
-# Revert the split by widening 3b back over reset --hard -> the DENY arms redden.
-# Revert it by widening 3a back over force-push  -> the ASK arms redden.
+echo "--- 3a/3b: BOTH halves DENY again (#383 S3-revert); the split survives in the MESSAGES ---"
+# S3 made 3b an ASK; the revert made it a DENY again, because a hook `ask` is answered automatically in
+# this harness's auto mode — measured in the owner's own session, where the force-push executed with no
+# prompt. The 3a/3b SPLIT is not reverted: the two acts still differ (uncommitted work has no other
+# copy; a force-pushed tip survives in the reflog), they still carry different messages prescribing
+# different remedies, and rule 3's comment still records which is which.
+#
+# SO THE VERDICT ARMS NO LONGER SEPARATE THEM, AND SAYING THAT OUT LOUD IS THE POINT. A battery of
+# `check DENY` over both halves passes whether they are one regex or two — the exact shape of an
+# assertion that cannot fail. The `check_reason` arms below are what still discriminate: collapse 3a
+# and 3b back into one rule with one message and they redden, while every verdict arm stays green.
 check DENY  "3a: reset --hard, no other copy"  "git reset --hard HEAD~1"
 check DENY  "3a: reset --hard behind -C"       "git -C /some/repo reset --hard origin/main"
-check ASK   "3b: --force"                      "git push --force"
-check ASK   "3b: --force-with-lease"           "git push --force-with-lease origin feat/x"
-check ASK   "3b: short -f"                     "git push -f origin feat/x"
+check DENY  "3b: --force"                      "git push --force"
+check DENY  "3b: --force-with-lease"           "git push --force-with-lease origin feat/x"
+check DENY  "3b: short -f"                     "git push -f origin feat/x"
+# The split itself, asserted where a verdict cannot see it.
+check_reason DENY "3a still speaks about uncommitted work" "no other copy"  "git reset --hard HEAD~1"
+check_reason DENY "3b still speaks about a rewritten ref"  "force-push"     "git push --force origin feat/x"
 # The spelling NO settings entry can express, because `:*` is a TOKEN boundary (measured #383 S3): the
 # `git -C` prefix, which is itself allowlisted. That is the whole reason 3b is an ASK rather than a
 # removal — removed, it would execute in silence.
@@ -1489,7 +1526,7 @@ check ASK   "3b: short -f"                     "git push -f origin feat/x"
 # rule 7 owns it. (It was also cited as a spelling the static layer cannot express, which is false —
 # `Bash(git push origin main:*)` is in both deny lists and a token boundary matches an entry plus any
 # trailing tokens, measured 2026-09-05.)
-check ASK   "3b: behind an allowlisted -C"     "git -C /some/repo push --force origin feat/x"
+check DENY  "3b: behind an allowlisted -C"     "git -C /some/repo push --force origin feat/x"
 check ALLOW "3: a plain push is neither half"  "git push origin feat/x"
 check ALLOW "3: --soft is not --hard"          "git reset --soft HEAD~1"
 # KNOWN DEFECT, PRE-EXISTING, ASSERTED AS IT IS RATHER THAN AS IT SHOULD BE. Rule 3 matches `$cmd`,
@@ -1500,29 +1537,36 @@ check ALLOW "3: --soft is not --hard"          "git reset --soft HEAD~1"
 # (including how it interacts with the `bash -c` unwrap) and that is its own slice with its own probe
 # battery, not a two-token drive-by inside a downgrade slice.
 # These two arms are the record. When someone fixes rule 3 to read `$bare`, both flip to ALLOW.
-check ASK   "3: KNOWN DEFECT, msg about 3b"    "git commit -m 'git push --force notes'"
+check DENY  "3: KNOWN DEFECT, msg about 3b"    "git commit -m 'git push --force notes'"
 check DENY  "3: KNOWN DEFECT, msg about 3a"    "git commit -m 'git reset --hard notes'"
 
-echo "--- 3b x rule 7: the ORDERING is the control — a force-push to the TRUNK is rule 7's, not 3b's ---"
-# WHAT THIS PINS, AND WHY IT NEEDED ARMS ON BOTH SIDES. `ask()` exits, so of two matching rules only
-# the first returns a verdict. `git -C <repo> push --force origin main` matches BOTH 3b (reparable) and
-# rule 7 (the trunk push, which is not), and at 9aca9d4 3b sat ABOVE rule 7 and won — so the floor's
-# one irreparable member came out as a PROMPT and no arm noticed, the intersection being untested.
+echo "--- 3b x rule 7: the ORDERING survives the revert, and it is now a claim about the REASON ---"
+# THE SIX-ROW TABLE THIS BLOCK WAS BUILT AROUND NOW READS DENY ON EVERY ROW, INCLUDING THE ONE ASK ROW.
+# That is the S3-revert's ONLY intended change to it — 3b returns `deny`, so the non-trunk force-push
+# that was the table's single ASK joins the other five. No row's rule changed hands and no spelling
+# moved: rule 7 still owns every trunk row and 3b still owns every non-trunk row.
 #
-# A one-sided battery would not have caught it and will not catch its return: reverting the order is a
-# LOOSENING, and a loosening can only redden an arm that already exists on the strict side. So the
-# strict side (trunk -> DENY) and the loose side (non-trunk -> ASK) are both asserted here. Move 3b
-# back above rule 7 and the DENY arms redden; widen rule 7 over every force-push and the ASK arms do.
+# WHAT WAS LOST AND WHAT REPLACES IT, because pretending nothing was lost is how an uncalibrated check
+# survives. At 9aca9d4, 3b sat ABOVE rule 7 and won the intersection, so the trunk's one irreparable
+# member came out a PROMPT — a defect a verdict arm could see, because the two rules disagreed on the
+# verdict. They no longer disagree. A verdict-only battery is now green under BOTH orderings, so the
+# ordering is asserted by REASON below. Move 3b back above rule 7 and the two `check_reason` arms
+# redden while all eight verdict arms stay green; that gap is the whole reason the helper exists.
 check DENY  "7 wins: -C, trunk, --force"       "git -C /some/repo push --force origin main"
 check DENY  "7 wins: flag after the refspec"   "git push origin main --force"
 check DENY  "7 wins: --force before the ref"   "git push --force origin main"
 check DENY  "7 wins: --force-with-lease trunk" "git -C /some/repo push --force-with-lease origin main"
 check DENY  "7 wins: short -f, trunk"          "git push -f origin master"
-# The loose side. These must stay ASK — if any of them denies, rule 7 has been widened over the whole
-# force-push class and the #383 S3 downgrade has been silently reverted.
-check ASK   "3b keeps: non-trunk ref"          "git push origin feature-x --force"
-check ASK   "3b keeps: non-trunk behind -C"    "git -C /some/repo push --force origin feature-x"
-check ASK   "3b keeps: 'maintenance' is not 'main'" "git push origin maintenance --force"
+# The non-trunk side. These are 3b's, and they are DENY again since the S3-revert — if any of them
+# returns ASK, the downgrade has come back; if any returns ALLOW, 3b has been removed rather than
+# reverted, and `git -C <dir> push --force` executes in silence.
+check DENY  "3b keeps: non-trunk ref"          "git push origin feature-x --force"
+check DENY  "3b keeps: non-trunk behind -C"    "git -C /some/repo push --force origin feature-x"
+check DENY  "3b keeps: 'maintenance' is not 'main'" "git push origin maintenance --force"
+# THE ORDERING ITSELF. Rule 7's message prescribes branching and opening a PR; 3b's prescribes not
+# rewriting a pushed ref. Both are correct advice for their own act and wrong for the other's.
+check_reason DENY "7 answers the TRUNK force-push"     "pushing to the trunk" "git -C /some/repo push --force origin main"
+check_reason DENY "3b answers the NON-TRUNK force-push" "force-push"        "git push origin feature-x --force"
 
 echo "--- rule 5: AWS secret writes ASK; the gh sibling still DENIES ---"
 # The asymmetry is the assertion. AWS versions its secrets (AWSPREVIOUS, a 30-day recovery window,
