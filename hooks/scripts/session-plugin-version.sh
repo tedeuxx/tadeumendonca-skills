@@ -108,8 +108,10 @@ PLUGIN_KEY="tadeumendonca-skills@tadeumendonca"
 # SILENT — and separating those two is what makes this fixable without reopening the rejected option.
 # Removing the silence does not make the guard fail closed. It makes an accepted cost observable.
 #
-# THE EVIDENCE THAT SILENCE IS THE DANGEROUS HALF IS ALREADY IN THIS REPO: `wip-guard.sh` records
-# losing three rules to exactly this, with `jq` off `PATH`, and nobody noticed.
+# THE EVIDENCE THAT SILENCE IS THE DANGEROUS HALF IS ALREADY IN THIS REPO: with `jq` off `PATH` the
+# permission guard emitted no decision at all, and nobody noticed. That measurement was recorded in
+# `wip-guard.sh`'s header until #383 deleted it; it is now in `permission-guard.sh`'s own header,
+# under the fail-open decision.
 #
 # WHY IT LIVES HERE: this hook already runs at every session start and already never blocks. A probe
 # is observation, not enforcement, so it belongs in the observing hook rather than in the guard —

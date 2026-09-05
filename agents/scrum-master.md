@@ -65,14 +65,19 @@ acts that mandate implies, not the whole of it.
 
 ## The overlap with the hooks, decided rather than inherited
 
-**Six mechanisms already guard parts of "the loop runs in Scrum format", and they guard it
-mechanically.** A profile whose mission duplicates a hook becomes a second, weaker classifier over the
-same state — the defect measured on `orchestrator-tool-census.sh` (#371). So the split is stated here
-once, and **the left column is not yours**:
+**The mechanisms in the table below already guard parts of "the loop runs in Scrum format", and they
+guard it mechanically.** A profile whose mission duplicates a hook becomes a second, weaker classifier
+over the same state — the defect measured on `orchestrator-tool-census.sh` (#371). So the split is
+stated here once, and **the left column is not yours**:
+
+~~Six mechanisms~~ — **struck 2026-09-04 (#383): the set is SHRINKING as the harness dehydrates, so a
+number in this sentence would be wrong on the next removal and would be read as the table's authority
+rather than as a summary of it. The members are the claim; the count is not part of it.** The table is
+what to read, and `hooks/hooks.json` is what the table is answerable to.
 
 | already held by a layer that can refuse or report | what it holds |
 |---|---|
-| `wip-guard.sh` | a second concurrent slice, on file overlap, at `gh pr create` |
+| ~~`wip-guard.sh`~~ | ~~a second concurrent slice, on file overlap, at `gh pr create`~~ — **REMOVED 2026-09-04 (#383). Nothing holds this now.** It is struck rather than deleted because its absence is a finding you may legitimately report: a second concurrent slice is bounded by the written WIP=1 policy alone |
 | `session-wip.sh` | the open-PR queue and the outstanding-verdict state, at session start |
 | `zombie-loop-detect.sh` | an outstanding gate verdict on the current head, one turn late |
 | `premature-pr-link-detect.sh` | a PR link handed to the owner before it is his act |

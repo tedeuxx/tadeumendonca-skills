@@ -1661,17 +1661,23 @@ same repo's history, removed after merge — is **not** struck; it remains the c
 for a single build. Only the license to run two of them at once is struck. A future session may
 reverse this by the same route: an explicit owner decision, recorded the same way.
 
-**Named residual: the policy above and the mechanism disagree.** `hooks/scripts/wip-guard.sh` still
+~~**Named residual: the policy above and the mechanism disagree.** `hooks/scripts/wip-guard.sh` still
 denies a second PR only on file **overlap**, not on a raw count — the mechanism
 [ADR-0002](https://github.com/tedeuxx/tadeumendonca-skills/blob/main/docs/adr/0002-roster-and-dev-loop.md)'s twelfth amendment (2026-08-13)
 describes, unchanged by this correction. So today the hook permits a second, disjoint PR that this
-written policy now forbids. Follow the written policy regardless of what the hook allows; ~~closing the
+written policy now forbids. Follow the written policy regardless of what the hook allows;~~ ~~closing the
 gap is a `wip-guard.sh` change, not a docs one, and is not this skill's job to make.~~ **Struck
 2026-08-29 (#343): it is true of the count half and FALSE of the half that actually cost something.**
-No change to `wip-guard.sh` can close the checkout gap, for the reason recorded immediately below —
-the hook fires at `gh pr create` and the failure happens hours earlier. Struck rather than deleted
+No change to `wip-guard.sh` could close the checkout gap, for the reason recorded immediately below —
+the hook fired at `gh pr create` and the failure happens hours earlier. Struck rather than deleted
 because it stood for sixteen days and it is the sentence that told every reader the gap had a known
 remedy and merely needed doing.
+
+**And the outer strike is 2026-09-04 (#383): THE HOOK IS DELETED, so there is no longer a mechanism
+for the policy to disagree with.** The residual did not shrink — **it grew, and it is now the whole
+of the situation**: nothing whatsoever bounds work in progress. Read the next section as the record
+of a hook that is gone rather than of one that underdelivers, and read the policy above as held by
+instruction alone, which is what the next section already concluded while the file still existed.
 
 ### What WIP=1 is PROTECTING — recorded 2026-08-29 (#343), because it was never written down
 
@@ -1735,10 +1741,12 @@ which was a `-20` display cap read as a total — the exact defect this repo pub
 prevent, caught by re-running the command without the limit.)*
 
 **Neither is a file-overlap failure, and that is the whole finding.** A shared *checkout* is not a
-shared *file*, so `wip-guard.sh` would have permitted both — it intersects path lists, and the two
+shared *file*, so `wip-guard.sh` would have permitted both — it intersected path lists, and the two
 slices' path lists need not intersect at all for the tree underneath them to be one object. **On the
 `profile.ts` instance it is worse than permitted: three agents on one branch share one path list, so
-there is no second PR for the guard to intersect against at all.**
+there was no second PR for the guard to intersect against at all.** *(That hook was deleted on
+2026-09-04, #383. The tense is past throughout this paragraph for that reason; the finding is about
+the failure class and does not depend on the hook still existing.)*
 
 **Layer 3 — what remains unrecorded, stated so nobody mistakes layer 2 for it.** Layer 2 says what the
 rule catches. It does **not** say what the owner wanted caught, and those are different claims. If the
@@ -1746,52 +1754,79 @@ purpose turns out to be *"I want to see every change as it happens"*, no amount 
 satisfies it and separate worktrees answer nothing. **That question is still open and only he can
 close it** — which is precisely why the proposal he asked for is a different artifact from this one.
 
-### `wip-guard.sh` does NOT enforce WIP=1, and a reader who thinks it does is wrong about what protects them
+### `wip-guard.sh` did NOT enforce WIP=1, which is why REMOVING it (#383) changed nothing about what protects you
 
-**Two independent facts, both measured at head on 2026-08-29, and each one alone is enough.** *(The
+**The hook was deleted on 2026-09-04**, under the owner's dehydration criterion — *a mechanical lock
+survives only where no other harness element can carry the control*. The two facts below are why that
+removal costs nothing: **they were measured while the file still existed, and each concludes that the
+file was not holding WIP=1.** A reader who thought it was is wrong in exactly the same way before and
+after the deletion; the only thing that changed is that the misreading is no longer available.
+
+**What the removal DOES cost, stated plainly rather than folded into the sentence above:** the hook
+bounded one real thing — a second PR of the same author overlapping an open one's file list — and
+nothing bounds that now. `gh pr create` is allowlisted in both `settings.json` layers, so the act
+**executes silently**; it does not fall through to a prompt. Under WIP=1 that bound had no work to do
+(fact 1), which is the whole argument for accepting the loss, and it is an argument about the policy
+being obeyed rather than about the act being safe.
+
+**Two independent facts, both measured at head on 2026-08-29 and re-derived on 2026-09-04 where they
+are still re-derivable, and each one alone is enough.** *(The
 two dates in this section differ on purpose: an EVENT is dated from the artifact that reports it — the
 owner's comment on #343, `createdAt` 2026-08-28 — and a MEASUREMENT from the day it was run. A record
 that dates an event off the authoring session's clock post-dates its own source, which is how this
 section read for one round.)*
 
-**1 · Under WIP=1 the hook never runs its overlap check at all.** It reads
-`gh pr list --state open --author @me`, so with the previous PR already merged the list comes back
-empty and the script exits at `[ -z "$open_prs" ] && exit 0` before computing a single path. Measured
-over the last fourteen merged PRs in this repo — the whole `sprint-01` `loop` block and its
-neighbours — **zero had any other PR of the same author open at their creation instant**:
+**1 · Under WIP=1 the hook never ran its overlap check at all.** It read
+`gh pr list --state open --author @me`, so with the previous PR already merged the list came back
+empty and the script exited at `[ -z "$open_prs" ] && exit 0` before computing a single path. **This
+half is still re-derivable at any head, because its subject is the PR queue rather than the deleted
+file** — re-run 2026-09-04 over the fourteen most recently merged PRs (#402 down to #377), **zero had
+any other PR of the same author open at their creation instant**:
 
 ```
 gh pr list --repo <owner>/<repo> --state merged --limit 14 --json number,createdAt,mergedAt \
   --jq '[.[]] as $p | [$p[] | .number as $n | .createdAt as $c
         | {pr:$n, open_at_create: [$p[]
             | select(.number != $n and .createdAt < $c and .mergedAt > $c)] | length}]'
-# → open_at_create: 0, fourteen times out of fourteen
+# → open_at_create: 0, fourteen times out of fourteen (2026-08-29 and again 2026-09-04)
 ```
 
-**It bounds concurrency; it has never bounded a count per iteration, and across nine consecutive
-`loop` slices it did not fire once.** *(Bounds of the measurement: this repo only, the fourteen most
+**It bounded concurrency; it never bounded a count per iteration, and across the whole `sprint-01`
+`loop` block it did not fire once.** *(Bounds of the measurement: this repo only, the fourteen most
 recent merged PRs only, and `--author @me` scoping means a bot's PR is outside it either way.)*
 
-**2 · It is structurally blind to checkout identity, by construction and not by oversight.**
-`grep -c worktree hooks/scripts/wip-guard.sh` → **0**. It derives its own side from
-`git diff --name-only <merge-base> HEAD` in whatever directory it happens to run in, so two agents in
-one checkout produce the *same* answer and it cannot tell them apart. Three other hooks in this same
-directory *do* reason about worktrees explicitly — `dispatch-premise-guard.sh`, `zombie-loop-detect.sh`
-and `orchestrator-tool-census.sh` — so the harness knows the object exists; this guard simply is not
-about it.
+**2 · It was structurally blind to checkout identity, by construction and not by oversight.**
+~~`grep -c worktree hooks/scripts/wip-guard.sh` → **0**.~~ **That falsifier died with the file on
+2026-09-04 and is struck rather than left standing: a command that now matches nothing reads to
+whoever runs it as *"nothing to worry about"*, which is the failure this repo names most often.** The
+claim is still falsifiable, against git history rather than against the working tree:
 
-**And no version of this hook could be.** It is a `PreToolUse` on `gh pr create`, which is the *last*
-act of a slice. The 2026-08-28 collision did its damage during the build — a measurement read off the
-wrong branch, an edit written to the wrong tree — **hours before any PR was created**. A control that
-fires at the merge boundary cannot observe a failure that completes before the boundary is reached.
-That is a moment problem, not a matcher problem, and it is why the struck clause above was wrong to
-promise the gap away as a hook change.
+```
+git log --oneline --all --diff-filter=D -- hooks/scripts/wip-guard.sh   # the deleting commit
+git show <that-commit>^:hooks/scripts/wip-guard.sh | grep -c worktree   # → 0
+```
+
+It derived its own side from `git diff --name-only <merge-base> HEAD` in whatever directory it
+happened to run in, so two agents in one checkout produced the *same* answer and it could not tell
+them apart. Other hooks in this same directory *do* reason about worktrees explicitly —
+`zombie-loop-detect.sh` and `orchestrator-tool-census.sh` — so the harness knows the object exists;
+that guard simply was not about it.
+
+**And no version of that hook could have been.** It was a `PreToolUse` on `gh pr create`, which is the
+*last* act of a slice. The 2026-08-28 collision did its damage during the build — a measurement read
+off the wrong branch, an edit written to the wrong tree — **hours before any PR was created**. A
+control that fires at the merge boundary cannot observe a failure that completes before the boundary
+is reached. That is a moment problem, not a matcher problem; it is why the struck clause above was
+wrong to promise the gap away as a hook change, and it is the load-bearing reason the deletion is not
+a loss of protection.
 
 **So: WIP=1 is held by instruction and by nothing else.** By this loop's own test — *would something
 stop me, or only my memory?* — **it is not engineered**, and the 2026-08-28 collision is what that
-costs when the memory is a fresh context that never had it. Read the hook as protecting the **merge
-queue** from stale overlapping branches, and read WIP=1 as protecting the **working tree** from being
-two things at once. Different objects, different moments, and only one of them has a mechanism.
+costs when the memory is a fresh context that never had it. That sentence was true while the hook
+existed and is unchanged by its removal, which is the point: read WIP=1 as protecting the **working
+tree** from being two things at once, and note that the **merge queue** — which the hook did protect
+from stale overlapping branches — now has no mechanism either. Different objects, different moments,
+and since #383 neither of them has one.
 
 ## Using this skill
 

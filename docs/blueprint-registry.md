@@ -49,7 +49,18 @@ exactly like a derived one and be neither. Publishing the mapping makes the deri
 
 1. **A row whose `carrier` is `none` or `retired` emits `absent`, whatever its `tipo`.** An obligation
    nothing carries enforces nothing, and this override is what keeps `absent` a *value* rather than a
-   sixth `tipo`. At this commit exactly one row is in that state (`0017`).
+   sixth `tipo`. ~~At this commit exactly one row is in that state (`0017`).~~ **Struck 2026-09-04
+   (#383) — it was already false when this slice arrived, and the correction is worth more than the
+   number.** `0051` took `carrier: retired` on 2026-09-03 and this sentence was not re-read, so it
+   published *one* while the answer was *two*; this slice makes it three. **A count beside a derivable
+   set is the arrangement this repository's own gate exists because it rots**, which is the same rule
+   the `sp:N` label table already applies to itself. State the criterion and publish the command:
+
+   ```
+   grep -n '^- \*\*carrier:\*\*' docs/blueprint-registry.md | grep -v '`'
+   ```
+
+   Every row it returns emits `absent`. Read the members off that, never off a sentence.
 2. **A row that deviates from the mapping declares the deviation here, as an exception with its
    reason**, and the export carries the declared value. **At this commit there are no declared
    exceptions.** A declared exception is a decision somebody took once and can be argued with; a
@@ -209,15 +220,41 @@ from `refusal` to `routing`, which moves this row's `enforcement` from `denies` 
 is the honest form and it is a downgrade: a foreign implementer reading this row before #375 could have
 built a control, and reading it now can only build an influence.
 
-### 0007 · one slice in flight
+### 0007 · one slice in flight — **THE CARRIER IS RETIRED; THE OBLIGATION IS NOT**
+
+**The mechanism was deleted on 2026-09-04 (#383) and this row is NOT a tombstone**, because the two are
+different things and this registry's own rule says so: *only an **abandoned** obligation is tombstoned —
+one that stopped being wanted, not one that moved.* **WIP=1 is actively wanted** — the owner reaffirmed
+it on 2026-08-28 (*«por enquanto siga com a regra de wip»*) after an Issue was opened to reverse it.
+What left is the carrier, so `carrier` reads `retired` and the mapping's first rule takes over:
+**`enforcement` is `absent`**, whatever `tipo` says.
+
+**Why an adopting harness should care about the removal more than about the mechanism:** the row below
+already recorded, before the deletion, that the hook *never ran its own overlap check while the policy
+was obeyed* and *could not see a shared checkout at all*. **A control whose own registry row says it
+does not reach the failure it is named for is a control that was already absent** — the deletion made
+the row's `enforcement` agree with its `o que não faz`, which had disagreed for months. **If you are
+building this obligation, build the lease on the CHECKOUT, taken at the first write. Do not build the
+file-overlap guard; it is measured here as the wrong moment, not merely the wrong matcher.**
+
+**What the deletion cost, stated so the row is not read as a free tidy-up:** the one thing the hook did
+bound — a second pull request overlapping an open one's file list — is now bounded by nothing, and the
+act **executes silently** rather than prompting, because pull-request creation is allowlisted in this
+harness's permission layer.
 
 - **tipo:** refusal
-- **carrier:** `hooks/scripts/wip-guard.sh`
+- **carrier:** retired
 - **descrição:** A `PreToolUse` guard bounding work in progress at the pull-request boundary.
 - **propósito:** Stacked branches go stale and turn their own merge into a conflict resolution. The obligation is that the queue is **drained**, not grown — and it is worth a mechanism because the pressure to start a second thing is highest exactly when the first one is blocked on someone else.
-- **o que faz:** Intersects the changed files of the proposed pull request against those of the open ones and denies on overlap, with a sibling-task exemption for two pull requests whose source Issues declare the same parent.
-- **o que não faz:** **The mechanism and the written policy disagree, and the policy is the stricter of the two.** The hook bounds on file *overlap*; the loop's own rule has been one worktree, one branch, one open pull request since 2026-08-13, full stop. So the hook permits a second, disjoint pull request that the policy forbids. **It also never runs its own overlap check while that policy is obeyed** — it lists only *open* pull requests, so with the previous one already merged the list is empty and it exits before comparing a single path; measured across fourteen consecutive merged pull requests, not one had another of the same author open at its creation. **And it is blind to the object the policy is actually about.** A shared *checkout* is not a shared *file*: two agents in one working tree produce the same file list, and this guard cannot distinguish them — it never asks which tree it is in. **That gap cannot be closed here, and the reason is the moment rather than the matcher.** It fires on the pull-request creation, the last act of a slice, while a two-agents-in-one-tree failure — a measurement read off the wrong branch, an edit written to the wrong tree — completes during the build. The control that would hold it is a lease on the checkout taken at the first write, which is a different mechanism and is named as owed. **Follow the policy; nothing here enforces it.**
-- **citação:** > "The bound is FILE OVERLAP, not a count. ONE level, and there is no second."
+- **o que faz:** *(Past tense throughout: this describes the retired carrier, kept because the design is what a foreign implementer would otherwise rebuild.)* Intersected the changed files of the proposed pull request against those of the open ones and denied on overlap, with a sibling-task exemption for two pull requests whose source Issues declare the same parent.
+- **o que não faz:** **The mechanism and the written policy disagreed, and the policy was the stricter of the two.** The hook bounded on file *overlap*; the loop's own rule has been one worktree, one branch, one open pull request since 2026-08-13, full stop. So the hook permitted a second, disjoint pull request that the policy forbids — **and since 2026-09-04 nothing permits or refuses anything here at all.** **It also never runs its own overlap check while that policy is obeyed** — it lists only *open* pull requests, so with the previous one already merged the list is empty and it exits before comparing a single path; measured across fourteen consecutive merged pull requests, not one had another of the same author open at its creation. **And it is blind to the object the policy is actually about.** A shared *checkout* is not a shared *file*: two agents in one working tree produce the same file list, and this guard cannot distinguish them — it never asks which tree it is in. **That gap cannot be closed here, and the reason is the moment rather than the matcher.** It fires on the pull-request creation, the last act of a slice, while a two-agents-in-one-tree failure — a measurement read off the wrong branch, an edit written to the wrong tree — completes during the build. The control that would hold it is a lease on the checkout taken at the first write, which is a different mechanism and is named as owed. **Follow the policy; nothing here enforces it.**
+- **citação:** no limit stated in the source
+
+*(That cell read `> "The bound is FILE OVERLAP, not a count. ONE level, and there is no second."` until
+2026-09-04. It quoted the carrier's own header, and the carrier is gone — a quote with no file to
+resolve against is exactly the dangling citation this registry's `citação` arm exists to catch, so it
+is replaced by the literal rather than left to redden or, worse, silently pass. The retired file's text
+is reachable at `git show <deleting-commit>^:hooks/scripts/wip-guard.sh`.)*
 
 ### 0035 · a dispatch is refused when the premise its brief states is not true
 

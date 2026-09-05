@@ -111,9 +111,19 @@
 # here. The reason it still fails open is now a different and weaker one, accepted with the cost named:
 #
 #   FAIL-CLOSED WEDGES THE AGENT, WITH NO REPAIR ROUTE THAT DOES NOT GO THROUGH THE HUMAN. This is not
-#   hypothetical — `wip-guard.sh` records the measured case: with `jq` off `PATH` the guard emitted no
-#   decision at all. A guard that denies everything when its own dependency is missing cannot be fixed
-#   by the agent, because fixing it requires running commands.
+#   hypothetical. THE MEASURED CASE, REHOMED HERE 2026-09-04 (#383) BECAUSE ITS ONLY RECORD WAS
+#   `wip-guard.sh`'S HEADER AND THAT FILE IS DELETED — three surviving hooks cited it there
+#   (`preflight.sh`, `session-plugin-version.sh` and this line), so the deletion would have left three
+#   live citations resolving to nothing:
+#
+#     WITH `jq` OFF `PATH`, THIS GUARD EMITTED NO DECISION AT ALL — silently. Every semantic rule it
+#     carries was off, and a main-agent `git push origin main` was allowed. Nothing anywhere said so.
+#     The failure is not that the guard broke; it is that a missing DEPENDENCY and a clean verdict are
+#     indistinguishable downstream. (That specific hole is what `preflight.sh` was later built to
+#     close, at `UserPromptSubmit`, by refusing the prompt rather than the command.)
+#
+#   A guard that denies everything when its own dependency is missing cannot be fixed by the agent,
+#   because fixing it requires running commands.
 #
 # **THE COST IS NOW LARGER THAN IT WAS, AND IT GROWS.** The layer that fails open is the layer carrying
 # the semantic cases — so a hook failure is not a degraded floor, it is an OPEN DOOR for every control

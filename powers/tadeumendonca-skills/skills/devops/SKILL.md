@@ -429,6 +429,38 @@ than unwatchable**: CI is not an in-loop context and that floor entry does not r
 that re-reads the setting is buildable, one token-scope decision away. Nothing here forecloses
 closing it.
 
+### The forge CLI accepts five spellings of the repo flag, and a space-only regex turns a rule OFF
+
+**A property of `gh` rather than of any guard, and it decides whether a rule keyed on a flag works at
+all.** All five are accepted and mean the same thing:
+
+```
+-R owner/repo      -R=owner/repo      -Rowner/repo      --repo owner/repo      --repo=owner/repo
+```
+
+The same is true of every other `gh` option — `--base owner`, `--base=owner`, `-Bowner` — because
+attached values are the CLI's convention and not a quirk of one subcommand.
+
+**The failure mode is the reason this is written down: a rule that misses a spelling does not loosen,
+it turns OFF, silently.** Measured in this repository — a guard's trigger matched only the spaced
+form, so `gh -R=owner/x pr create` fell through with **no decision, no denial and no trace**, for any
+repository rather than only the cross-repo case. It was found by a gate running the **real** `gh`, not
+by reading the pattern. Two further consequences worth carrying:
+
+- **An extraction regex must accept the same set as the trigger.** A command that passed the trigger on
+  the bare subcommand and then failed extraction produced a guard judging one repository's request
+  against **another repository's** queue — internally coherent, entirely wrong, and its denial named a
+  real pull request and a real file list, so the author believed it. **A confidently wrong verdict is
+  worse than a missed one.**
+- **A hook cannot source a variable out of another hook.** Two guards needing the same class carry
+  **duplicated literals**, so editing one leaves the other a spelling behind with both suites green.
+  Nothing makes them move together; the most that is available is a check asserting they cannot drift
+  apart in silence.
+
+*(This lived only in `hooks/scripts/wip-guard.sh`'s header until #383 deleted that file, which is why
+it is here: it is a fact about the tool every repo on this platform drives, not about the hook that
+happened to record it.)*
+
 ## Why this doesn't cost cadence
 
 Strong local validation is the keystone: the agent proves "done" locally without ever needing the denied

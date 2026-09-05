@@ -102,9 +102,10 @@ jobs:
       - name: Run the permission-guard suite
         run: bash hooks/scripts/permission-guard.test.sh
 
-      - name: Run the wip-guard suite
-        run: bash hooks/scripts/wip-guard.test.sh
-
+      # The `wip-guard` step was removed 2026-09-04 (#383) with the hook and its suite. Recorded here
+      # rather than deleted silently: this list is the one place a reader can see which guards CI
+      # actually exercises, and a step that disappears with no trace reads as a step someone forgot to
+      # add — which is the exact failure four comments below this one are about, in reverse.
       - name: Run the session-wip suite
         run: bash hooks/scripts/session-wip.test.sh
 

@@ -19,8 +19,10 @@
 # the size figure that stood here read "115 KB", was true when written and is not now, and is dropped
 # rather than refreshed because nothing gates it. Not one arm — the
 # recursive-delete rule, `terraform apply`, force-push, the trunk-push floor, the merge floor, every
-# persona boundary, all of it, at once, quietly. `wip-guard.sh`'s own header already records losing
-# three rules to exactly this with `jq` off `PATH`, and nobody noticed at the time.
+# persona boundary, all of it, at once, quietly. The measured case — the guard emitting no decision at
+# all with `jq` off `PATH`, and nobody noticing at the time — was recorded in `wip-guard.sh`'s header
+# until that file was deleted (#383, 2026-09-04); it now lives in `permission-guard.sh`'s own header,
+# beside the fail-open decision it argues about, which is where it should have been all along.
 #
 # The owner's ruling, asked as a single question and answered in one word — «bloqueante»: the session
 # does not start when the guards' preconditions are absent. The cost was named to him first (a missing
