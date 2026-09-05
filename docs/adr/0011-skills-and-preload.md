@@ -1487,12 +1487,28 @@ to ADR-0011"* while that same commit adds 81 lines to ADR-0011. The message asse
 what the commit does.
 
 **Not repaired, and the constraint is measured rather than assumed.** Moving it means rewriting a
-pushed branch, and the floor refuses — probed at head against the guard itself:
+pushed branch, and the guard stops it — probed at head against the guard itself:
+
+~~```
+printf '…"command":"git push --force-with-lease …"…' | bash hooks/scripts/permission-guard.sh
+→ Blocked: force-push / 'git reset --hard' rewrites history irreversibly.
+```~~
+
+**Struck 2026-09-05 (#383 S3): that message no longer exists, because the rule it came from was split
+in two.** Force-push is no longer on the irreparable floor — the reflog and the remote's unreachable
+objects both hold the pre-push tip — so it now returns `ask` under its own text, while `git reset
+--hard` keeps the `deny`. Re-probed at head:
 
 ```
 printf '…"command":"git push --force-with-lease …"…' | bash hooks/scripts/permission-guard.sh
-→ Blocked: force-push / 'git reset --hard' rewrites history irreversibly.
+→ permissionDecision "ask": "This force-pushes. It is no longer a floor deny (#383)…"
 ```
+
+**The disposition below is unchanged, and it is worth saying why rather than letting the strike imply
+otherwise.** The reason this was never repaired was never *"the floor forbids it"* — it was that
+rewriting a pushed branch is the wrong trade for a misfiled amendment. An `ask` makes that a decision
+the owner could take rather than one the guard refuses; it does not make it a good one. The quoted
+verdict was evidence for a conclusion that does not depend on it.
 
 So the honest disposition is the one this repository already uses for a published claim it cannot
 withdraw: **say it where the reader is, rather than leave the commit history reading as if the split

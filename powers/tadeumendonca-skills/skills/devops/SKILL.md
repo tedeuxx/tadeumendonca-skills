@@ -351,16 +351,31 @@ test is model-independent; what changes between models is only *which command* c
 | Zone | Contents |
 |---|---|
 | **Allow** | Edit/Write · git on feature branches · `gh pr` create/view/diff/checks + merge to `develop` · issue ops · npm/npx · test runners · node/tsx/python3 · `terraform fmt/validate/plan` · `aws` read-only · curl local |
-| **Ask** | `gh pr merge --base main` (promotion) · the release action |
-| **Deny** | push/merge to `main` · `terraform apply`/`destroy` · direct `aws` mutations · `--force`/`git reset --hard` · `rm -rf` · secrets writes · anything targeting production · `--dangerously-skip-permissions` |
+| **Ask** | `gh pr merge --base main` (promotion) · the release action · **force-push · AWS secret writes · `gh repo archive`/`rename`** |
+| **Deny** | push/merge to `main` · `terraform apply`/`destroy` · direct `aws` mutations · `git reset --hard` · `rm -rf` · **GitHub** secret writes · `gh repo delete` · anything targeting production · `--dangerously-skip-permissions` |
 
 **`trunk-single-env` zones:**
 
 | Zone | Contents |
 |---|---|
 | **Allow** | Edit/Write · git on feature branches (incl. push) · `gh pr` create/view/diff/checks · issue ops · npm/npx · test runners · node/tsx/python3 · `terraform fmt/validate/plan` · `aws` read-only · curl local |
-| **Ask** | the release action |
-| **Deny** | direct `git push` to `main` · `terraform apply`/`destroy` · direct `aws` mutations · `--force`/`git reset --hard` · `rm -rf` · secrets writes · `--dangerously-skip-permissions` |
+| **Ask** | the release action · **force-push · AWS secret writes · `gh repo archive`/`rename`** |
+| **Deny** | direct `git push` to `main` · `terraform apply`/`destroy` · direct `aws` mutations · `git reset --hard` · `rm -rf` · **GitHub** secret writes · `gh repo delete` · `--dangerously-skip-permissions` |
+
+**The Ask row's last three moved there from Deny at #383 S3, and the test that moved them is worth
+carrying into any project that copies these tables: not *does the effect escape git*, but *can the
+prior state be restored*.** A force-push leaves the old tip in the reflog and in the remote's
+unreachable objects; an AWS secret write sits behind a version stage, a 30-day recovery window or SSM
+parameter history; `gh repo archive`/`rename` both undo. Their neighbours stay in Deny because they
+genuinely do not restore — `git reset --hard` (uncommitted work has no other copy), `gh secret set`
+(Actions secrets have no version history) and `gh repo delete` (the repository id is never reissued,
+so every OIDC trust pinned to it breaks permanently). **Note the two secret rows are split on the
+provider, not on the word** — that pair is the clearest illustration of the test.
+
+**A caveat specific to these rows, from the token-boundary section below:** the static layer can only
+express the spellings where the flag follows the subcommand immediately, so `git push --force` is
+denied by settings while `git push origin main --force` and `git -C <dir> push --force` are not. The
+hook is what covers those, as an `ask`. A project copying this table gets the first and not the second.
 
 **`gh pr merge` is deliberately NOT in the Ask row (#62).** It used to sit there as *"this is the deploy,
 so it is the go/no-go"* — true about the merge, wrong about the mechanism, and it contradicted
@@ -404,6 +419,49 @@ unlisted, the runtime stops and **names that element**. A chain is not a blind s
 for a human is `$(...)`/backticks (flagged by name), a `VAR=x cmd` prefix (it defeats the allow entry),
 and a redirect that **creates a file** — and that last check is destination-aware, so `2>/dev/null`
 passes and `2>somefile` does not. `/shell` carries the payload table.
+
+### An entry's `:*` is a TOKEN boundary, not a raw prefix — and it is why some rules cannot live here
+
+**The single most portable fact about this layer, and it decides which controls a settings file can
+carry at all.** `Bash(<prefix>:*)` matches only where `<prefix>` ends at a token break. Measured
+2026-09-05 with a probe settings file loaded via `--settings`, verdict read off disk:
+
+```
+deny  Bash(mkdir <P>/BOUND:*)   vs   mkdir <P>/BOUND    -> DENIED   (control)
+                                     mkdir <P>/BOUNDX   -> CREATED  <- the finding
+                                     mkdir <P>/OTHER    -> CREATED  (control)
+```
+
+**Three consequences, and the third is the one that sends rules into a hook.**
+
+1. **Sibling flags must each be listed.** `Bash(git push --force:*)` does **not** cover
+   `--force-with-lease`, which is why both appear in these deny lists. The same is true of every
+   `rm -rf` spelling — the flags are a **set**, not a token, so `rm -fR`, `rm -r -f` and `rm -f -r`
+   are the same act and each needs its own entry.
+2. **An allow entry does not weaken one deny; it weakens all of them together.** `gh -R <repo> <sub>`
+   and `git -C <dir> <sub>` both carry the prefix past *every* per-subcommand deny beneath them. Put
+   the flag **after** the subcommand (`gh <sub> --repo o/r`) and the per-subcommand entry matches
+   again — which is the whole reason this skill prescribes that flag position.
+3. **A settings file cannot express "this flag ANYWHERE in the command."** `git push origin main
+   --force` is a prefix of nothing in the list. A control of that shape has to be a hook, and that is
+   a structural limit of this layer rather than a gap in the list.
+
+### The two layers are not peers — which one answers, and in what order
+
+Measured on build 2.1.261, all four read off disk in a probe plugin loaded with `claude --plugin-dir`:
+
+| situation | who answers |
+|---|---|
+| hook returns `deny` | **the hook** — final, and its reason is what the caller sees |
+| hook returns `ask`, no settings entry matches | **the hook** — refused in headless, with its reason |
+| hook returns `ask`, a settings `deny` also matches | **the permission layer** — a static `deny` beats a hook `ask` |
+| hook abstains | the permission layer: allow / deny / prompt as listed |
+
+**An unanswerable `ask` fails CLOSED.** In a headless session and in a dispatched subagent alike — the
+case with no prompt surface at all — the act is refused and the hook's reason is surfaced. So
+`deny -> ask` is a real loosening only where a human is present to answer, and never a silent hole.
+**Not measured: the interactive main session**, where an `ask` is expected to render an approvable
+prompt; treat the readings above as the floor of the behaviour rather than its intent.
 
 **Enforcement = static deny + the guard hook.** Static allow/deny covers every case where the target is
 visible in the command string. The `PreToolUse` guard hook (`hooks/permission-guard.sh`, matcher `Bash`)

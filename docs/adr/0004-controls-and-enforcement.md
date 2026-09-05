@@ -122,7 +122,17 @@ and that silence had a price: the loop's default became "if a rule matters, writ
 
 **The line as decided.** If the act **cannot be undone**, it needs a hook — `terraform destroy`, a
 force-push, `rm -rf`, a secret write, a push to the trunk all escape git, and no later commit undoes
-them. If it **can be fixed in the next commit**, a hook costs more than it returns. WIP discipline, who
+them. If it **can be fixed in the next commit**, a hook costs more than it returns.
+
+> **Two of that list are wrong, and the correction is #383 S3's rather than a re-reading.** *Escaping
+> git* and *being irreparable* are different properties, and this sentence used the first as evidence
+> for the second. A **force-push** leaves the old tip in the pusher's reflog and in the remote's
+> unreachable objects; an **AWS secret write** is behind a version stage, a 30-day recovery window or
+> SSM parameter history. Both escape git and both reverse. They are `ask` now, not `deny`. What
+> survives the correction is the rest of the list and the rule's shape — the test is *can the prior
+> state be restored*, and `terraform destroy`, `rm -rf`, `git reset --hard` and a trunk push still
+> answer no. **A `gh secret set` also still answers no**, which is why "a secret write" splits: GitHub
+> Actions secrets have no version history at all. WIP discipline, who
 may open an Issue, how a story is decomposed, what "finished" means are all reversible, and all are
 rules about judgement.
 
@@ -2805,8 +2815,14 @@ A PR that closes nothing never reaches the comparison.
 
 - **`closingIssuesReferences` is PR-body-derived.** Probed 2026-08-30 with a throwaway PR whose body
   carried no keyword and whose single commit message carried `Closes #358`: the field returned `[]`. So
-  a keyword living only in a commit message is invisible to this rule — **the one surface that cannot be
-  edited afterwards**, since amending needs a force-push the floor denies.
+  a keyword living only in a commit message is invisible to this rule — **the one surface that is
+  hardest to edit afterwards**, since amending a pushed commit needs a force-push. ~~the one surface
+  that cannot be edited afterwards … a force-push the floor denies~~ — **struck 2026-09-05 (#383 S3):
+  the floor no longer denies it, it asks.** A force-push is reparable (reflog, and the remote's
+  unreachable objects), so it came off the irreparable floor. **The inference this bullet drew from
+  the deny is what changes, and it is worth stating rather than quietly softening:** "cannot be
+  edited" was resting on a mechanism, and the mechanism is now a prompt the owner can answer yes to.
+  Read this as *nobody edits it in practice*, which is a claim about habit, not about a control.
 - **It is deliberately NOT widened to scan commit messages.** That needs the PR's head branch and
   merge-base resolved inside a rule that fails closed, so every resolution failure becomes a wedged
   merge; and a hand-rolled keyword regex is measurably both over- and under-inclusive against the forge's
