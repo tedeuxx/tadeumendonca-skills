@@ -658,6 +658,23 @@ cannot drift into two different rules:
    > **An `allow` entry does not weaken one `deny`; it weakens every `deny` for the same tool, at once,
    > and silently.**
 
+**The four reasons say when a control MAY be routed to the hook. One more says how wide it may be once
+it is there, and it applies only to the UX class** — a rule whose purpose is to convert a permission
+prompt into a self-correcting instruction rather than to hold a floor:
+
+> **A hook that converts a prompt into a self-correcting instruction must fire on a SUBSET of what the
+> runtime stops for, never on more.** Where it cannot tell, it abstains and the layer that parses shell
+> decides. Firing on less costs a prompt; firing on more is a control with nothing behind it, denying an
+> act the authorising system would have allowed.
+
+**And that target is not fixed, which is why every measurement of it ships with a build number.** What
+the runtime stops for depends on the session's `allow`/`deny` lists — routing reason 4's own subject —
+and on the CLI build's own checks, and **the hook can read neither**. So the rule is checkable against a
+*stated configuration* and not in the abstract: the 2026-09-05 amendment's verdicts are true of build
+`2.1.261` under the settings the probe supplied, and a reader re-deriving the subset on a different
+build is re-running an experiment, not consulting a constant. **A subset claim with no build beside it
+is a hypothesis.**
+
 And the property that goes with it, stated because it is the half a reader will otherwise assume away:
 
 > **The authoritative layer fails open.** On a parse error, a missing `jq`, or a malformed payload,
@@ -4452,6 +4469,40 @@ For a floor rule the question is *which layer can carry this at all*; for a UX r
 already carrying it correctly and the hook is only choosing the **form of the interruption**. An excess
 there is not a stricter control — it is an over-block with nothing behind it, and it is invisible to the
 person it inconveniences, which is this repository's own standing objection to a preventive control.
+
+### The rule's first application got the width wrong in BOTH strips, and the correction is measured
+
+**The two exemptions this amendment added to rule 8b were too loose on the round they landed, and the
+merge gate caught both.** The `/dev/null` strip was not right-anchored, so any target merely *beginning*
+`/dev/null` was swallowed; the `[[ … ]]` strip was lexical rather than positional, so a bracket span in
+**argument** position was swallowed too — and `echo x [[ a > P ]] b` is a real redirect in bash,
+confirmed by execution (the file appears, carrying `hello [[ a ]] b`).
+
+**The gap was settled by probe rather than by argument**, on the same rig and the same build (`2.1.261`)
+as the measurement above, this hook absent:
+
+| payload | runtime verdict |
+|---|---|
+| `date > /dev/nullx` | required approval — *"Output redirection to '/dev/nullx' was blocked"* |
+| `echo hello [[ a > <wd>/evil1 ]] b` | required approval — *"Redirect has multiple targets — post-redirect args swallowed"* |
+| `date > /dev/null/../wd/evil3` | required approval — *"Path contains '..' traversal after a directory segment"* |
+| `date > /dev/null` · `date >/dev/null` · `date 2>/dev/null` | executed, no prompt |
+| `[[ zzz > aaa ]]` · `if [[ zzz > aaa ]]; then echo yes; fi` | executed, no prompt |
+
+**So neither looseness was a route to an act** — the runtime is the backstop and both degraded to a
+prompt, never to a silent write. **Which is exactly what the rule above predicts, and it is worth saying
+that the failure ran in the permitted direction rather than pretending it was a near miss:** firing on
+*less* than the subset is safe by construction; what it costs is this rule's entire purpose, a prompt
+that should have been an instruction.
+
+**The tightening is bounded by the same rule from the other side, which is what fixed its shape.** The
+last two rows run with no prompt, so a `[[ … ]]` in **command** position — start of string, after
+`; & | ( ) { } !`, or after `if`/`while`/`until`/`elif`/`then`/`else`/`do` — must still be stripped, or
+the repair would have re-introduced an over-block while removing an under-fire. Four regression arms
+hold both directions, each mutation-proven independently: un-anchoring the `/dev/null` strip reddens
+exactly the `/dev/nullx` case, making the bracket strip lexical again reddens exactly the
+argument-position case, and narrowing the positional strip to start-of-string only reddens exactly the
+two keyword/separator cases.
 
 ### What this does NOT change, and it is the half that makes the removal safe
 

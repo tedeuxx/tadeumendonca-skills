@@ -1140,6 +1140,16 @@ check ALLOW "stderr to /dev/null creates no file"  "grep -r foo /Users/x 2>/dev/
 check ALLOW "stdout to /dev/null creates no file"  "npm test >/dev/null"
 check ALLOW "both streams to /dev/null"            "npm test &>/dev/null"
 check DENY  "stderr to a REAL file still creates one" "npm test 2> err.txt"
+# Both strips were too loose on the round they landed. Re-measured against the runtime on build
+# 2.1.261 with this hook absent: `date > /dev/nullx` and `echo x [[ a > P ]] b` BOTH required approval
+# (the second is a real redirect in bash — confirmed by execution, the file appears), so neither
+# looseness was a route to an act. It cost the conversion this rule exists for, and that is what these
+# four arms hold. The last two are the OVER-block guard: the runtime ran both with no prompt, so a
+# '[[ … ]]' in COMMAND position must stay stripped while one in ARGUMENT position must not.
+check DENY  "a /dev/null PREFIX is not /dev/null (#383)"    "date > /dev/nullx"
+check DENY  "[[ ]] in argument position IS a redirect (#383)" "echo hello [[ a > /tmp/evil ]] b"
+check ALLOW "[[ ]] after a test keyword still strips (#383)"  "if [[ zzz > aaa ]]; then echo yes; fi"
+check ALLOW "[[ ]] after a separator still strips (#383)"     "echo x; [[ a > b ]]"
 
 echo "--- rule 5b: gh secret writes survive the -R convention ---"
 check DENY  "secret set, plain"             "gh secret set MY_TOKEN"

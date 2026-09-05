@@ -1563,6 +1563,34 @@ fi
 #     string comparison and not a redirect at all. The second is an ABSTENTION rather than a claim —
 #     this file does not parse shell, so it hands `[[ … ]]` to the layer that does.
 #
+#     ── BOTH STRIPS WERE TOO LOOSE ON THE ROUND THEY LANDED, AND BOTH ARE TIGHTENED HERE (#383 S2). ──
+#
+#     The first form of the `/dev/null` strip was not right-anchored, so any target merely BEGINNING
+#     `/dev/null` was swallowed and reached ALLOW; the `[[ … ]]` strip was lexical rather than
+#     positional, so a bracket span in ARGUMENT position was swallowed too — and `echo x [[ a > P ]] b`
+#     is a real redirect in bash, confirmed by execution (the file appears, carrying `hello [[ a ]] b`).
+#     Measured against the runtime on build 2.1.261, same rig and same build as the probe above, this
+#     hook absent:
+#
+#       date > /dev/nullx                        -> "What required approval: Output redirection to
+#                                                    '/dev/nullx' was blocked"
+#       echo hello [[ a > <wd>/evil1 ]] b        -> "What required approval: Redirect has multiple
+#                                                    targets — post-redirect args swallowed"
+#       date > /dev/null/../wd/evil3             -> "What required approval: Path contains '..'
+#                                                    traversal after a directory segment"
+#       date > /dev/null · date >/dev/null · date 2>/dev/null   -> EXECUTED, no prompt
+#       [[ zzz > aaa ]] · if [[ zzz > aaa ]]; then echo yes; fi -> EXECUTED, no prompt
+#
+#     SO THE RUNTIME IS THE BACKSTOP AND NEITHER LOOSENESS WAS A ROUTE TO AN ACT: both degraded to a
+#     prompt, never to a silent write. What they cost is this rule's whole purpose — a prompt that
+#     should have been an instruction. The strips are therefore tightened to the narrowest form that
+#     does not OVER-block, which is the constraint that shapes them: the last two payloads above run
+#     with no prompt, so a `[[ … ]]` in command position — start of string, after `; & | ( ) { } !`,
+#     or after `if`/`while`/`until`/`elif`/`then`/`else`/`do` — must still be stripped, while one in
+#     argument position must not. The `/dev/null` strip now requires whitespace or end-of-string after
+#     the target, which additionally makes `> /dev/null/../…` deny — matching the runtime, which
+#     refuses it on traversal.
+#
 #     STILL NOT CAUGHT, AND STILL ACCEPTED: a heredoc body (`<<EOF … EOF`) that happens to contain a
 #     literal `>` (e.g. a markdown blockquote line) and is NOT itself feeding a redirect will still be
 #     denied — `bare` strips quoted-string CONTENTS upstream (line ~337) but a heredoc is not a quoted
@@ -1571,8 +1599,8 @@ fi
 #     pattern that would trigger it disappear from normal use in the first place. It is also the one
 #     false positive that bites this repository's own harness reviewer hardest, which is why it is
 #     named in `agents/agents-lead.md` as well as here.
-redirect_probe="$(printf '%s' "$bare" | sed -E 's|\[\[[^]]*\]\]||g')"
-redirect_probe="$(printf '%s' "$redirect_probe" | sed -E 's|[0-9]?>{1,2}[[:space:]]*/dev/null||g')"
+redirect_probe="$(printf '%s' "$bare" | sed -E 's%(^|[;&|(){}!]|(^|[[:space:]])(if|while|until|elif|then|else|do))[[:space:]]*\[\[[^]]*\]\]%\1%g')"
+redirect_probe="$(printf '%s' "$redirect_probe" | sed -E 's%[0-9]?>{1,2}[[:space:]]*/dev/null([[:space:]]|$)%\1%g')"
 if printf '%s' "$redirect_probe" | grep -Eq '>{1,2}([^&]|$)'; then
   deny "Blocked: shell output redirection ('>' or '>>') to create or overwrite a file. Content you are composing yourself goes through the Write tool, never a heredoc piped into '>'. Content that is a command's own stdout: run the command WITHOUT the redirect (its output returns to you) and Write it from there if it needs to persist. (If this fired on a heredoc body containing a literal '>' rather than an actual redirect: rephrase without it — this floor does not parse shell and cannot tell the two apart. '[[ a > b ]]' string comparison and a '/dev/null' target are exempt since #383 and should not reach you.)"
 fi
