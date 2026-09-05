@@ -4857,6 +4857,37 @@ spelling would buy no reader anything.
 - **A gate on the two grounds** — impossible in this harness rather than deferred. No hook sees `Edit`,
   so no layer can observe an edit made under no ground.
 
+## Amendment (2026-09-04) — the dispatch layer is observable and refusable, and NOTHING HERE OBSERVES IT ANY MORE (#383)
+
+**This record names `hooks/scripts/dispatch-premise-guard.sh` in five places** — the status line's
+amendment-#14 entry, the fourteenth amendment's own 2026-08-28 correction, the twenty-third
+amendment's worktree-aware list, and two more — always as the **existence proof** that a dispatch is
+observable and refusable at all. **That file was deleted on 2026-09-04.** The amendment is appended
+rather than the sentences rewritten, per this library's own convention, because each of those
+sentences was true when written and someone read it.
+
+**The two halves come apart, and only one of them changed:**
+
+- **STILL TRUE, and it is what those corrections were actually about:** a `PreToolUse` hook on matcher
+  **`Agent`** *can* observe a dispatch and *can* deny it. The clause struck at #344 —
+  *"no hook layer can observe or refuse a `Task` dispatch"* — stays struck, and re-instating it would
+  be a second error rather than a return to the first. The tool is named `Agent`, not `Task`; that
+  measurement is rehomed in ADR-0004.
+- **NO LONGER TRUE:** that any hook in this harness does. **This repository now registers nothing on
+  the dispatch tool**, and no other layer sees one — neither `settings.json` file contains a `Task` or
+  `Agent` entry. So a dispatch whose brief stamps a repository state the tree does not have runs, with
+  no decision from anywhere, and **the removal is silent rather than a downgrade to a prompt.**
+
+**Why it was removed, under the criterion the owner narrowed this audit to:** what it prevented was a
+**wasted subagent context** — roughly 210k tokens in the founding incident — which is expensive and is
+repaired by re-dispatching. *Irreparable* is the ruler, and cost is not irreparability.
+
+**What this changes for the roster rule it was cited under, and the answer is nothing.** Amendment #14
+cited the guard only to correct a false mechanical claim; its conclusion was always that **nothing
+mechanical enforces a dispatch's SCOPE**, which no version of that guard ever did. `product-lead`'s
+boundary is held by its brief and by review, exactly as before. What is newly unenforced is the
+dispatch's **premise**, which is a different object and had one mechanism for nine days.
+
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
   [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) · the DoD is

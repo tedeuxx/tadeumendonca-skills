@@ -6565,8 +6565,9 @@ fi
 # ("inteiro. estimar antes é positivo"). The build refused to write "void — owner's decision" into a
 # durable record on an agent message's authority, and he confirmed the ratified design stands.
 #
-# NOTHING MECHANICAL CAUGHT THAT, and this block does not pretend to. dispatch-premise-guard.sh checks
-# TREE-SHAPED premises — a SHA, a branch, a path — because those resolve against a repository. "The
+# NOTHING MECHANICAL CAUGHT THAT, and this block does not pretend to. dispatch-premise-guard.sh checked
+# TREE-SHAPED premises — a SHA, a branch, a path — because those resolve against a repository, and it
+# was DELETED at #383, so today nothing checks a dispatch's premise in any shape at all. "The
 # owner decided X" is not tree-shaped: its truth-maker is an Issue comment, and no PreToolUse payload
 # carries one. What these arms hold is the far narrower thing a file CAN hold: that the decision, once
 # taken, is still written where the loop reads it.

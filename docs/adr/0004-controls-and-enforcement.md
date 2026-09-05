@@ -2888,6 +2888,55 @@ The next author of any guard over file-writing tools meets both:
 **Bound on all three: measured on build 2.1.241, once.** Nothing re-measures them now that the hook is
 gone, so treat them as dated facts about a build rather than as invariants.
 
+#### The same rehoming, one slice later — `dispatch-premise-guard.sh` (#383, 2026-09-04)
+
+**That hook was removed under the dehydration criterion, and it had measured more about this runtime
+than any other file in the directory.** Its facts land here for the same reason the three above did.
+
+- **THE DISPATCH TOOL IS NAMED `Agent`, NOT `Task`, IN THE `PreToolUse` PAYLOAD.** Probe and control,
+  headless, one variable: `matcher "Agent"` + a real subagent dispatch **fired**; `matcher "Task"` +
+  the identical dispatch **fired not once**. Anyone wiring a hook to a dispatch by reading the tool's
+  name in a transcript will get this wrong.
+- **AND IT COMPLETES THE MATCHER FACT ABOVE INTO A SHARPER ONE.** The 2026-08-31 probe established
+  that `Edit|Write` does **not** match `NotebookEdit` — a matcher is not an unanchored substring
+  search. This hook's header records the complementary trap: `"Task"` would still match `TaskCreate`,
+  because the matcher is a **regex evaluated from the start of the tool name**. **Both facts together
+  say: anchored at the front, open at the back.** *(The `NotebookEdit` half was measured; the
+  `TaskCreate` half is stated in that header as an inference from regex semantics and was NOT probed.
+  It is recorded here with that distinction intact rather than promoted to a measurement.)*
+- **The dispatch payload's shape**, read verbatim off the captured probe: `.tool_input.prompt` carries
+  the **full brief**, so a brief's own claims are readable at that layer at all; `.tool_input.
+  subagent_type` is present **only when the model names a persona** and is **absent for the default
+  general-purpose agent**, so any guard keyed on the persona silently skips that whole class; and the
+  payload carries `cwd` but **not** the harness's additional working directories, which is why sibling
+  trees can only ever be discovered heuristically here.
+- **A BARE SHA IN A BRIEF IS A REFERENCE, NOT A PREMISE — and this is the most portable fact of the
+  set, because it is about how briefs are actually written rather than about this runtime.** Measured
+  over **859 unique real dispatch briefs** taken from this repository's own transcripts:
+
+  | grammar accepted | briefs evaluated | ≥2 distinct SHAs = guaranteed deny |
+  |---|---|---|
+  | bare SHA + ref-and-SHA | 354 (41.2%) | 69 (8.0%) |
+  | ref-and-SHA only | 11 (1.3%) | 0 (0.0%) |
+  | ref-and-SHA, ref must RESOLVE | 9 (1.0%) | 0 (0.0%) |
+
+  **A merge-base, a PR head and a quoted verdict marker are all bare SHAs**, so the permissive grammar
+  would have denied one dispatch in twelve for no reason. Anyone building premise-checking anywhere
+  should start from the third row.
+
+**What the removal costs, and it is a cost rather than a wash.** What this guard saved was a **wasted
+subagent context** — the founding incident spent roughly 210k tokens reviewing copy that had already
+been corrected. That is expensive and it is **reparable**: the remedy is to re-dispatch. Under the
+criterion the owner ruled — *irreparable*, not *costly* — it does not survive, and no other layer sees
+a dispatch at all: neither `settings.json` file contains any `Task`/`Agent` entry
+(`grep -n 'Task\|Agent' <both settings files>` returns nothing), so **the removal is real and silent,
+not a downgrade to a prompt.** A brief stamping a state the tree does not have now dispatches.
+
+**What is NOT rehomed, deliberately:** the guard's claim grammar, its repository-attribution algorithm
+and its candidate-set heuristic. Those are the *design of a mechanism* that was judged not worth
+having, and copying them here would preserve the thing while deleting the code — the opposite of what
+this section is for. They are recoverable from git history if anyone rebuilds it.
+
 ### 2 · The three persona-keyed rules, reassessed against the thesis — and the answer is KEEP, three times, for three different reasons
 
 **Rule 10 — `--milestone` denied to every persona, asked of the orchestrator (#365).** **Keep, unchanged.**
@@ -3687,8 +3736,8 @@ would have executed on.
 |---|---|---|---|---|
 | 1 | `permission-guard` | yes | **survives** | caller × command, four times; and enumeration in the floor was measured not to converge |
 | 2 | `wip-guard` | yes | **CUT** | **its own precondition is dead** — 0 concurrency across 22 PRs, all states. ~~a skill — WIP=1 in the universal preload~~ (a preload is not a control; see the re-argument) |
-| 3 | `closure-artifact-guard` | yes (`PreToolUse`) | survives | live remote state; no element reads an Issue body |
-| 4 | `dispatch-premise-guard` | yes | survives | live remote state × the dispatch's own text |
+| 3 | `closure-artifact-guard` | yes (`PreToolUse`) | ~~survives~~ **CUT at ARM grain** | ~~live remote state; no element reads an Issue body~~ — **the `Stop` arm of the same file, plus rule 7d one step upstream at the merge** |
+| 4 | `dispatch-premise-guard` | yes | ~~survives~~ **CUT** | ~~live remote state × the dispatch's own text~~ — **nothing. Its object is a wasted context, which is cost rather than irreparability** |
 | 5 | `mcp-guard` | yes | survives | caller × tool name — the canonical pair |
 | 6 | `preflight` | yes | survives | nothing else can refuse a **session**; and it is the only fail-closed layer |
 | 7 | `session-wip` | no | survives | observer — and it inherits #2's detection |
@@ -3703,6 +3752,23 @@ would have executed on.
 **Plus one rule-level cut and one rule-level verdict that was contested and now SURVIVES (rule 7,
 resolved 2026-09-02) inside `permission-guard`**, because that file is
 fourteen controls in one script and a per-file verdict would hide both.
+
+**Correction 2026-09-04 — rows 3 and 4 flipped, and the CAUSE is that the criterion moved, not that
+this table was carelessly written.** This table was produced against the criterion as first ruled —
+*can another harness element carry this control* — and the owner narrowed it mid-audit to
+**irreparable** (*«o risco de permitir essa operacao passar é one way door decision»* · *«situacoes
+irreparaveis»*). Nine units change verdict between the two readings; rows 3 and 4 are two of them, and
+`permission-guard`'s rules 9, 10 and 11 are three more. **Read this table as the FIRST reading and the
+2026-09-04 build slice as the second.** The rows are struck in place rather than rewritten because
+someone acted on them: a reader between 2026-09-02 and 2026-09-04 would have taken *survives* as
+settled.
+
+**What actually shipped on 2026-09-04 (#383, slice S1), so the record and the tree agree:** rule 9,
+`wip-guard` entire, `closure-artifact-guard`'s `PreToolUse` arm, `dispatch-premise-guard` entire, and
+rules 10 and 11 — the last pair on the owner's own pricing of the act, *«mexer em milestones nao é um
+risco crucial a iniciativa»*. Every removal's fall-through was classified against both `settings.json`
+layers before it shipped; **four of the six fall through to SILENT EXECUTION rather than to a prompt**,
+which is stated in each affected surface rather than only here.
 
 ### The three that lose, each with what detects the act afterwards
 

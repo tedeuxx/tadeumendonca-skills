@@ -145,12 +145,11 @@ jobs:
       - name: Run the session-plugin-version suite
         run: bash hooks/scripts/session-plugin-version.test.sh
 
-      # Added with the hook itself (#326), in the same slice, deliberately: the two suites named in the
-      # comment above were written and then left to a habit for weeks, and a guard whose suite runs only
-      # by hand is the same "installed-looking and inert" shape this guard's own matcher measurement is
-      # about. Adding the hook and its CI step in different slices is how that gap opens.
-      - name: Run the dispatch-premise-guard suite
-        run: bash hooks/scripts/dispatch-premise-guard.test.sh
+      # The `dispatch-premise-guard` step was removed 2026-09-04 (#383) with the hook and its suite.
+      # Its comment argued that adding a hook and its CI step in different slices is how a gate ends up
+      # installed-looking and inert; the converse is recorded here — removing a hook and leaving its
+      # step would have turned CI red on a missing file, and removing both with no trace would leave
+      # this list unable to say what it stopped covering.
 
       # Same rule as the comment above, applied in the same slice as the hook (#337). This suite stubs
       # `gh` and builds a real temporary git repository, so it needs no network and no token — the hook
