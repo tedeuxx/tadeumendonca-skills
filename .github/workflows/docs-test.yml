@@ -34,6 +34,13 @@ on:
       - "skills/**"
       - "README.md"
       - "CLAUDE.md"
+      # `AGENTS.md` — the harness-neutral root brief, tracked since #411 and gated by
+      # `hooks/scripts/agents-md.test.sh` in the job below. This entry is the EIGHTH occurrence of the
+      # miss enumerated in this block and the first one that was foreseen rather than found: the brief
+      # is a root file matched by no other glob here, so without this line a change that edits only it
+      # starts no gate at all — which is precisely the state the file was in for the month before it
+      # was tracked, one layer up.
+      - "AGENTS.md"
       # `hooks/**`, not just this suite's own file. The suite now asserts the hook inventory too, so
       # registering a hook falsifies the README exactly the way adding a skill does — and until this
       # line existed, adding one could not START the gate that would have caught it. That is how the
@@ -157,3 +164,11 @@ jobs:
 
       - name: Assert the published inventory counts match the repo
         run: bash hooks/scripts/inventory-counts.test.sh
+
+      # Four MECHANICAL properties of the harness-neutral root brief: tracked, under the character
+      # budget with headroom, free of tokens specific to one harness, and every repository-relative
+      # path it names resolves. It asserts NONE of the following, which the script's own header says
+      # at greater length: that the brief is true, or that it is neutral rather than merely free of
+      # the tokens on a declared list.
+      - name: Assert the harness-neutral root brief holds its properties
+        run: bash hooks/scripts/agents-md.test.sh
