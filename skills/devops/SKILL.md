@@ -351,26 +351,40 @@ test is model-independent; what changes between models is only *which command* c
 | Zone | Contents |
 |---|---|
 | **Allow** | Edit/Write · git on feature branches · `gh pr` create/view/diff/checks + merge to `develop` · issue ops · npm/npx · test runners · node/tsx/python3 · `terraform fmt/validate/plan` · `aws` read-only · curl local |
-| **Ask** | `gh pr merge --base main` (promotion) · the release action · **force-push · AWS secret writes · `gh repo archive`/`rename`** |
-| **Deny** | push/merge to `main` · `terraform apply`/`destroy` · direct `aws` mutations · `git reset --hard` · `rm -rf` · **GitHub** secret writes · `gh repo delete` · anything targeting production · `--dangerously-skip-permissions` |
+| **Ask** | `gh pr merge --base main` (promotion) · the release action |
+| **Deny** | push/merge to `main` · `terraform apply`/`destroy` · direct `aws` mutations · `git reset --hard` · `rm -rf` · **force-push** · **all** secret writes · `gh repo delete`/`archive`/`rename` · anything targeting production · `--dangerously-skip-permissions` |
 
 **`trunk-single-env` zones:**
 
 | Zone | Contents |
 |---|---|
 | **Allow** | Edit/Write · git on feature branches (incl. push) · `gh pr` create/view/diff/checks · issue ops · npm/npx · test runners · node/tsx/python3 · `terraform fmt/validate/plan` · `aws` read-only · curl local |
-| **Ask** | the release action · **force-push · AWS secret writes · `gh repo archive`/`rename`** |
-| **Deny** | direct `git push` to `main` · `terraform apply`/`destroy` · direct `aws` mutations · `git reset --hard` · `rm -rf` · **GitHub** secret writes · `gh repo delete` · `--dangerously-skip-permissions` |
+| **Ask** | the release action |
+| **Deny** | direct `git push` to `main` · `terraform apply`/`destroy` · direct `aws` mutations · `git reset --hard` · `rm -rf` · **force-push** · **all** secret writes · `gh repo delete`/`archive`/`rename` · `--dangerously-skip-permissions` |
 
-**The Ask row's last three moved there from Deny at #383 S3, and the test that moved them is worth
-carrying into any project that copies these tables: not *does the effect escape git*, but *can the
-prior state be restored*.** A force-push leaves the old tip in the reflog and in the remote's
-unreachable objects; an AWS secret write sits behind a version stage, a 30-day recovery window or SSM
-parameter history; `gh repo archive`/`rename` both undo. Their neighbours stay in Deny because they
-genuinely do not restore — `git reset --hard` (uncommitted work has no other copy), `gh secret set`
-(Actions secrets have no version history) and `gh repo delete` (the repository id is never reissued,
-so every OIDC trust pinned to it breaks permanently). **Note the two secret rows are split on the
-provider, not on the word** — that pair is the clearest illustration of the test.
+**~~The Ask row's last three moved there from Deny at #383 S3~~ — they moved BACK the same day, and
+the round trip is the most transferable thing in this section.** The test that moved them out is
+correct and is worth carrying into any project that copies these tables: not *does the effect escape
+git*, but *can the prior state be restored*. A force-push leaves the old tip in the reflog and in the
+remote's unreachable objects; an AWS secret write sits behind a version stage, a 30-day recovery
+window or SSM parameter history; `gh repo archive`/`rename` both undo. Their neighbours genuinely do
+not restore — `git reset --hard` (uncommitted work has no other copy), `gh secret set` (Actions
+secrets have no version history) and `gh repo delete` (the repository id is never reissued, so every
+OIDC trust pinned to it breaks permanently). **Note the two secret rows are split on the provider, not
+on the word** — that pair is the clearest illustration of the test.
+
+**What sent them back to Deny is not the test but the LADDER.** `deny → ask → context → nothing`
+assumes the middle rungs reach a human. Measured on this harness, in the owner's own interactive
+session under **auto mode**: the guard returned `ask` for the exact force-push command and **the act
+executed with no prompt**. An earlier measurement showing an unanswerable `ask` fails CLOSED was
+taken in a **headless** session and in a **dispatched subagent** — both correct, neither the context
+that decides.
+
+**So the rule for any project copying this table: before you downgrade an act from Deny to Ask,
+measure what an Ask does in the mode your humans actually run.** Two contexts can give opposite
+answers, and the safe-looking one is the easy one to measure. Where the middle rung is not honoured,
+a reparable-but-serious act has only Deny or nothing — and the honest response is to keep the Deny
+and say why, rather than ship an Ask that reads like a control and behaves like an allow.
 
 **A caveat specific to these rows, from the token-boundary section below:** a settings entry is a
 **token-bounded prefix**, so it matches an entry plus any trailing tokens but cannot express *"this flag
@@ -384,10 +398,14 @@ static spellings and not that one.**
 2026-09-05.** Kept visible because it was the example a reader would have checked first, and it argued
 for a hole that is not there.
 
-**And a force-push landing on the TRUNK is not in the Ask row at all — it is a Deny.** Two rules match
-it (force-push, reparable; trunk push, not), and the guard runs the trunk rule first deliberately, so
-the stricter verdict wins. Read the Ask row's *force-push* as meaning **a force-push to a non-trunk
-ref**; the trunk case is the `direct git push to main` row above it.
+**A force-push to the TRUNK and to any other ref are both Deny, and two different rules answer them.**
+The guard runs the trunk rule first deliberately, so a trunk force-push gets the trunk message
+(*branch and open a PR*) rather than the force-push one. While the two rules returned different
+verdicts that ordering was a floor decision; now that both deny, it decides only which remedy the
+caller is told to use — smaller, still worth pinning, and pinned by asserting the REASON rather than
+the verdict. **The general point for a copied table: when two overlapping rules converge on one
+verdict, a verdict-only test can no longer tell which rule answered, and a reordering becomes
+invisible.**
 
 **`gh pr merge` is deliberately NOT in the Ask row (#62).** It used to sit there as *"this is the deploy,
 so it is the go/no-go"* — true about the merge, wrong about the mechanism, and it contradicted
@@ -470,10 +488,26 @@ Measured on build 2.1.261, all four read off disk in a probe plugin loaded with 
 | hook abstains | the permission layer: allow / deny / prompt as listed |
 
 **An unanswerable `ask` fails CLOSED.** In a headless session and in a dispatched subagent alike — the
-case with no prompt surface at all — the act is refused and the hook's reason is surfaced. So
-`deny -> ask` is a real loosening only where a human is present to answer, and never a silent hole.
-**Not measured: the interactive main session**, where an `ask` is expected to render an approvable
-prompt; treat the readings above as the floor of the behaviour rather than its intent.
+case with no prompt surface at all — the act is refused and the hook's reason is surfaced. ~~So
+`deny -> ask` is a real loosening only where a human is present to answer, and never a silent hole.~~
+
+**STRUCK, AND THE STRIKE IS THE MOST USEFUL LINE IN THIS SECTION.** ~~Not measured: the interactive
+main session.~~ It was measured, and the answer was the opposite of the safe one the omission implied:
+**under auto mode the `ask` is answered automatically and the act EXECUTES with no prompt.** So the
+row above is complete only for the two contexts it names, and there is a **third**:
+
+| context | what an unanswerable / unattended `ask` does |
+|---|---|
+| headless main session (`-p`) | **refused**, hook's reason surfaced |
+| dispatched subagent | **refused**, hook's reason surfaced |
+| **interactive main session, AUTO mode** | **EXECUTED, no prompt** |
+
+**Three consequences for anyone designing a control on any harness.** First, `deny -> ask` is a
+**silent hole** exactly where the human is closest to the machine, which is the inverse of the
+intuition. Second, **an `ask` is not a rung you may assume exists** — whether it reaches a human is a
+property of the host's operating mode, not of the hook, and it is a measurement rather than a reading.
+Third, **measure the mode your humans actually run before you rely on it**: two contexts here give
+opposite answers, and the reassuring one is the cheap one to obtain.
 
 **Enforcement = static deny + the guard hook.** Static allow/deny covers every case where the target is
 visible in the command string. The `PreToolUse` guard hook (`hooks/permission-guard.sh`, matcher `Bash`)

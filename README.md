@@ -124,20 +124,36 @@ The eleven principles:
 ### Permissions
 
 **Pre-authorize the inner loop**, which is git-reversible. **Deny the irreparable boundary** —
-`terraform apply`/`destroy`, direct cloud mutation, hard reset, recursive delete, GitHub secret writes,
-repository deletion, and any flag that disables the permission system itself — and gate at the repo's
-point of no return. Never `--dangerously-skip-permissions`.
+`terraform apply`/`destroy`, direct cloud mutation, hard reset, recursive delete, force-push, secret
+writes, repository deletion/archive/rename, and any flag that disables the permission system itself —
+and gate at the repo's point of no return. Never `--dangerously-skip-permissions`.
 
-**The word is *irreparable*, not *irreversible*, and #383 S3 is where the difference was paid for.**
-Escaping git and being unrecoverable are different properties, and the floor had been using the first
-as evidence for the second. Three acts that escape git and nonetheless **reverse** came off the deny
-list and became `ask`: **force-push** (the old tip survives in the reflog and in the remote's
-unreachable objects), **AWS secret writes** (version stages, a 30-day recovery window, SSM parameter
-history) and **`gh repo archive`/`rename`** (both undo; the OIDC trusts pin the immutable repository
-id, not its name). Each was split from a neighbour that genuinely does not reverse and keeps its deny
-— `git reset --hard`, `gh secret set`, `gh repo delete`. **An `ask` was measured to fail CLOSED where
-nobody can answer it**, in a headless session and in a dispatched subagent alike, so this narrows what
-the floor claims without opening a silent hole.
+**The word is *irreparable*, not *irreversible*, and #383 is where the difference was paid for — twice,
+in opposite directions, which is the part worth reading.** Escaping git and being unrecoverable are
+different properties, and the floor had been using the first as evidence for the second. S3 corrected
+that: three acts that escape git and nonetheless **reverse** came off the deny list and became `ask` —
+**force-push** (the old tip survives in the reflog and in the remote's unreachable objects), **AWS
+secret writes** (version stages, a 30-day recovery window, SSM parameter history) and **`gh repo
+archive`/`rename`** (both undo; the OIDC trusts pin the immutable repository id, not its name). Each
+was split from a neighbour that genuinely does not reverse — `git reset --hard`, `gh secret set`,
+`gh repo delete`.
+
+~~**An `ask` was measured to fail CLOSED where nobody can answer it**, so this narrows what the floor
+claims without opening a silent hole.~~ **STRUCK, AND ALL THREE ARE DENIES AGAIN (owner's ruling,
+«reverte os três»). The measurement was correct and was taken in the wrong context.** It established
+that an unanswerable `ask` fails closed **in a headless session and in a dispatched subagent** — where
+there is no prompt surface. Nobody measured **the interactive main session under auto mode**, which is
+where the owner works. Measured there immediately after the merge: the guard returned `ask` for the
+exact force-push command, and **the force-push then executed with no prompt**. The three acts went from
+denied to silently executed in the one session that matters.
+
+**The finding, which binds every future downgrade here:** the criterion is unchanged — irreparability
+still decides — but **the ladder `deny → ask → context → nothing` has a rung that does not hold in this
+harness's default working mode.** Any proposal whose mitigation is *"it becomes a prompt"* is proposing
+a mitigation that does not fire. What would make `ask` viable again is **an auto mode that excludes hook
+`ask`**; that is not built, and it is the condition under which these three could be revisited. **The
+split itself survives** — the six acts are still two classes with two messages, and the reasoning that
+separated them was never what failed.
 
 **Permissions are a versioned repo contract**: the committed `settings.json`, never the gitignored local
 overlay. A prohibition that lives only in an unreviewed local file is one "allow always" click from
@@ -1560,9 +1576,10 @@ in three classes, one of which is an admission.
 `preflight` is the newest and the only one that stops the session rather than an action (#342). Every
 other hook here fails open on a missing dependency and says nothing — `permission-guard.sh` reads its
 payload with `jq` and exits before rule 1 when `jq` is absent, so one binary off `PATH` silently
-disables the merge floor, the trunk-push floor, `terraform apply`, `rm -rf`, `git reset --hard`,
-GitHub secret writes, repository deletion and every persona boundary at once — **plus the three
-`ask` rules #383 S3 added, which fail closed only while the guard runs at all**. The owner ruled it **blocking**, in one word, with the cost named
+disables the merge floor, the trunk-push floor, `terraform apply`, `rm -rf`, the hard reset,
+force-push, secret writes, repository deletion/archive/rename and every persona boundary at once.
+~~plus the three `ask` rules #383 S3 added~~ — struck: those three are denies again (#383 S3-revert),
+so what one missing binary disables is one class rather than two. The owner ruled it **blocking**, in one word, with the cost named
 first. **Where it is registered was a measurement, not a preference**: `SessionStart` cannot deny — in
 the shipped bundle a `SessionStart` hook's `blockingError` is pushed into the session's context as
 *text*, and the event sits in that bundle's own non-blocking set — while `UserPromptSubmit` blocks for

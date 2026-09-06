@@ -261,13 +261,31 @@ ask() {
 # only rule that was ever in the class.
 #
 # ── RESTORED A SECOND TIME, 2026-09-05 (#383, slice S3), ON THOSE SAME TERMS ──────────────────────
-# ~~THIS GUARD NOW EMITS NO `ask` VERDICT AT ALL~~ — struck: it emits four, and the tombstone above is
-# left standing because its RULE is what authorised the restore. Rules arrived that are in the class:
-# S3 downgraded four acts the owner's narrowed criterion prices below `deny` — force-push (3b), AWS
-# secret writes (5), and `gh repo archive`/`rename` (5g). Each is REPARABLE, so `deny` would be the lie
-# this comment names ("never", when the truth is "not unless the owner agrees"); and for each, whether
-# the act is right is not visible in the command — a force-push onto a shared branch and a force-push
-# onto the agent's own throwaway branch are the same string.
+# ~~struck: it emits four~~ **AND WITHDRAWN THE SAME DAY (#383, S3-revert). THIS GUARD EMITS NO `ask`
+# VERDICT AGAIN, AND THE HELPER HAS NO CALLER.** The three S3 downgrades — force-push (3b), AWS secret
+# writes (5), `gh repo archive`/`rename` (5g) — are back to `deny` on the owner's ruling.
+#
+# **THE CLASS ARGUMENT WAS NOT WRONG. THE MECHANISM IS NOT AVAILABLE.** Each of those acts is genuinely
+# REPARABLE, and for each, whether it is right is genuinely invisible in the command — a force-push
+# onto a shared branch and onto the agent's own throwaway branch are the same string. That is the class
+# this helper exists for and the acts are still in it. What the revert established is narrower and
+# fatal to the remedy: **a hook `ask` is answered automatically in this harness's default working
+# mode**, measured in the owner's own interactive session, so the prompt that was supposed to carry
+# the verification never reached him. See rule 3's site for the measurement.
+#
+# **SO THE LADDER HAS A MISSING RUNG, AND THAT IS THE THING TO CARRY FORWARD RATHER THAN THIS
+# TOMBSTONE.** `deny -> ask -> context -> nothing`: the second rung does not hold here. Any future rule
+# in this class faces the same wall, and the condition that would lift it is an auto mode that
+# EXCLUDES hook `ask` — the owner named it himself. Until then, a reparable-but-serious act has only
+# `deny` or nothing.
+#
+# **THE HELPER IS KEPT WITH NO CALLER, DELIBERATELY, AND THAT IS A DEVIATION FROM THIS FILE'S OWN
+# CONVENTION.** The 2026-08-03 tombstone above says a helper nothing calls is "a mechanism the file
+# claims and does not run", and by that rule it should be deleted for the second time. It is not,
+# because the reason it has no caller is now an external, dated property of the host — not a finding
+# that no act belongs in the class — and deleting it would erase the only place that distinction is
+# written next to the code. **Read `ask()` as parked, not as available**: adding a caller today ships a
+# rule that does not fire.
 #
 # ── WHAT AN UNANSWERABLE `ask` ACTUALLY DOES — MEASURED 2026-09-05, AND IT WAS THE OPEN QUESTION ──
 # The paragraph above says a dispatched subagent has no prompt surface, so `ask` there "resolves to
@@ -289,23 +307,42 @@ ask() {
 #     hook `deny`                    -> REFUSED (control)
 #     hook abstains, cmd allowlisted -> EXECUTED (control — proves the subagent really ran)
 #
-# **AN `ask` FAILS CLOSED WHERE THERE IS NOBODY TO ANSWER IT.** That is the fact the downgrades in this
-# slice rest on: deny -> ask is a genuine loosening only where a human is present to say yes, and it is
-# NOT a silent hole anywhere else. A subagent gets a refusal carrying the reason, which is the same
-# actionable instruction a `deny` gave it.
+# **AN `ask` FAILS CLOSED WHERE THERE IS NOBODY TO ANSWER IT.** ~~That is the fact the downgrades in
+# this slice rest on~~ — **the FACT is untouched and the DOWNGRADES ARE REVERTED (#383, S3-revert).**
+# The reading above is correct and stays: in a headless main session and in a dispatched subagent, an
+# unanswerable `ask` refuses and surfaces its reason. **What it does not describe is the context the
+# owner works in**, which is the paragraph flagged NOT MEASURED at the bottom of this block — and that
+# is the one that decided the revert. Read this measurement as scoped to the two contexts it names.
 #
 # **AND A STATIC `deny` IS NOT WEAKENED BY A HOOK `ask` OVER THE SAME COMMAND.** Every act downgraded in
 # S3 keeps whatever static deny already covered it; the downgrade only reaches the spellings the static
 # layer cannot express (`git -C <dir> push --force`, `gh -R o/r repo archive`), and those become a
 # prompt rather than a silent execution.
 #
-# **NOT MEASURED, AND NAMED RATHER THAN ASSUMED: the INTERACTIVE main session.** Both readings above are
-# headless (`-p`), where there is no prompt surface at all — so what was observed is the *floor* of an
-# `ask`'s behaviour, not its intended one. In the owner's interactive session an `ask` is expected to
-# render an approvable prompt, which is the whole point of the verdict; that expectation is untested
-# here because a nested interactive session cannot be driven from a hook-bound probe. **If it turned out
-# that an interactive `ask` also merely refuses, these four downgrades would deliver no autonomy at all
-# and would be deny-with-a-softer-message** — worth knowing, and it fails safe either way.
+# ~~NOT MEASURED, AND NAMED RATHER THAN ASSUMED: the INTERACTIVE main session.~~ **MEASURED THE SAME
+# DAY, IN THE OWNER'S OWN SESSION, AND IT IS WHY THE THREE DOWNGRADES WERE REVERTED. THIS PARAGRAPH IS
+# THE MOST IMPORTANT ONE IN THE BLOCK: it named the gap correctly, priced it in the safe direction, and
+# was wrong about the direction.**
+#
+# The old text guessed that the worst case was "an interactive `ask` also merely refuses", i.e.
+# deny-with-a-softer-message — *"it fails safe either way."* **It does not fail safe. Under AUTO MODE
+# the `ask` is answered automatically and the act EXECUTES.** Measured in the owner's interactive
+# session immediately after the S3 merge, new build confirmed live:
+#
+#   this guard's source, fed the exact force-push command, two payloads  -> ask
+#   the same force-push EXECUTED for real                                -> executed, NO PROMPT
+#   a `>` redirect (rule 8b, a deny) as a control                        -> denied, message shown
+#   the session's mode                                                    -> AUTO, harness-declared
+#
+# So the hooks fire and the build is live; the `ask` verdict is simply consumed. **The three downgraded
+# acts were not gated at all in the one session that matters.**
+#
+# **THE LESSON IS ABOUT THE PROBE, NOT ABOUT THE RULES.** Both readings above are headless (`-p`) or
+# subagent, and both are correct — they measured the *floor* of an `ask`'s behaviour. The context that
+# decides the verdict is the one a hook-bound probe cannot drive, and it was left as an assumption in
+# the SAFE direction, which is the assumption a floor may never make. **A downgrade whose remedy is a
+# prompt must be measured in the mode the human actually runs.** Nothing here can measure that; the
+# owner can, in one command, and did.
 
 # Single-line, collapsed whitespace for matching.
 cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
@@ -521,12 +558,45 @@ fi
 #        the reflog, nothing on the remote, nothing in the index once it is gone. It passes the strict
 #        test on the merits.
 #
-#    3b. force-push — DOWNGRADED TO `ask`. A force-pushed branch is recoverable from two independent
+#    3b. force-push — ~~DOWNGRADED TO `ask`~~ **REVERTED TO `deny` 2026-09-05 (#383, S3-revert, owner:
+#        «reverte os três»). The reparability argument below is UNCHANGED and still true; what failed
+#        is the REMEDY it relied on.** A force-pushed branch is recoverable from two independent
 #        places: the pusher's own reflog, which still names the pre-push tip, and the remote's
 #        unreachable objects, which survive until that repository is garbage-collected. It is costly
-#        and loud; it is not irreparable, and this file's floor is now irreparability alone.
+#        and loud; it is not irreparable. That reasoning is why the downgrade was defensible, and it
+#        is not what this revert disputes.
 #
-#    WHY `ask` AND NOT REMOVAL, WHICH IS THE PART A LATER READER WILL WANT TO SECOND-GUESS. Removing
+#    ── WHY IT CAME BACK: `ask` IS NOT AN AVAILABLE REMEDY IN THE MODE THIS HARNESS RUNS IN ──────────
+#    The downgrade's load-bearing premise was that `deny -> ask` converts a refusal into a question the
+#    owner answers. Measured in the owner's own interactive session immediately after the S3 merge,
+#    with the new build confirmed live:
+#      · this guard's source, fed the exact force-push command, two payloads   -> ask
+#      · the same force-push EXECUTED for real, in that session                -> executed, NO PROMPT
+#      · a `>` redirect (rule 8b, still a deny) in the same session            -> denied, new message
+#      · the session's mode                                                     -> AUTO, declared by
+#                                                                                 the harness
+#    So the hooks fire, the build is live, and a hook `ask` is answered automatically without reaching
+#    him. **The three downgraded acts were not gated at all in his working session** — they went from
+#    denied to silently executed, which is the opposite of what the downgrade promised.
+#
+#    **THE EARLIER SAFETY MEASUREMENT WAS NOT WRONG — IT WAS TAKEN IN THE WRONG CONTEXT.** It
+#    established that an unanswerable `ask` FAILS CLOSED **in a dispatched subagent**, where there is
+#    no prompt surface at all. That still holds. Nobody measured the MAIN SESSION under auto mode, and
+#    that is the context the owner works in. Two correct measurements, two different contexts; the one
+#    that decides this rule is the one that was never taken.
+#
+#    **THE GENERAL RULE, which binds every future downgrade in this file:** the ladder
+#    `deny -> ask -> context -> nothing` has a rung that does not hold in this harness's default
+#    working mode. The criterion is unchanged — irreparability still decides what belongs on the floor
+#    — but *reparable* now licenses a downgrade only to a rung that actually fires. Any proposal whose
+#    mitigation is *"it becomes a prompt"* is proposing a mitigation that does not fire. What would
+#    make `ask` viable again is an auto mode that EXCLUDES hook `ask` — the owner named it himself as
+#    one of his three options. It is not built here; it is the condition under which these three rules
+#    could be revisited.
+#
+#    ~~WHY `ask` AND NOT REMOVAL, WHICH IS THE PART A LATER READER WILL WANT TO SECOND-GUESS.~~
+#    **KEPT UNSTRUCK BELOW THIS LINE, because it is the argument for the DENY too, and it is the part
+#    that decides this rule must live in the hook at all rather than in `settings.json`.** Removing
 #    the branch would not degrade this to a prompt — it would degrade it UNEVENLY, and the uneven half
 #    executes in silence. The static layers deny only the spellings where the flag follows `push`
 #    IMMEDIATELY (`Bash(git push --force:*)`, `--force-with-lease`, `-f`), because a settings entry is
@@ -559,24 +629,34 @@ fi
 #                                          --force origin main` against a local bare remote moved that
 #                                          remote's `main` (d7e5677 -> 42b3173, forced).
 #
-#    Keeping the branch as `ask` is therefore strictly better than removing it: the spellings the
-#    static layer already denies STAY DENIED — measured, a static `deny` beats a hook `ask` — and the
-#    one it cannot express becomes a prompt instead of a silent execution. See the helper comment
-#    above for the full probe, including that an `ask` in a dispatched subagent FAILS CLOSED.
+#    ~~Keeping the branch as `ask` is therefore strictly better than removing it~~ — the conclusion
+#    changed with the verdict; the PREMISE it rests on is what survives and is why this branch still
+#    exists at all: **`git -C <dir> push --force` is a spelling no settings entry can express**, so
+#    without this rule it executes in silence. That is now an argument for the DENY living here rather
+#    than for an `ask`. A hook `deny` is also final — it is decided BEFORE the permission system and
+#    is never softened by an `allow` beneath it — so unlike an `ask`, this verdict does not depend on
+#    the session's mode.
 #
 #    ── WHERE 3b's EXECUTABLE BLOCK LIVES, AND WHY IT IS NOT HERE ────────────────────────────────────
-#    **3b's `if` is BELOW rule 7, not here, and that position is LOAD-BEARING.** `ask()` calls
-#    `exit 0`, so a matching `ask` ends the script and every rule after it is unreachable. 3b's pattern
-#    matches `git -C <repo> push --force origin main` — which is ALSO rule 7's trunk push, the one
-#    member of this pair that stays irreparable — so with 3b above rule 7 the trunk classification was
+#    **3b's `if` is BELOW rule 7, not here, and that position is KEPT — but what it buys CHANGED with
+#    the revert, and saying so is the honest form.** `ask()` and `deny()` both call `exit 0`, so the
+#    first matching rule is the whole verdict. 3b's pattern matches `git -C <repo> push --force origin
+#    main` — which is ALSO rule 7's trunk push — so with 3b above rule 7 the trunk classification was
 #    never reached and a force-push to the trunk came out `ask`. Measured at 9aca9d4, before the move:
 #      git -C <repo> push --force origin main   -> ASK    (3b)
 #      same, with 3b neutralised                -> DENY   (rule 7 DOES match; it was never reached)
-#    The same shape as 5g's ordering, recorded the same way: **rule 7's deny must stay ABOVE 3b's ask,
-#    or the trunk's one irreparable member becomes a prompt.** Do not move 3b back up to sit beside 3a
-#    for tidiness — the adjacency is cosmetic and the ordering is the control. Arms pin both sides.
+#    **WITH 3b BACK TO `deny` THE ORDERING NO LONGER CHANGES THE VERDICT — BOTH RULES DENY — SO IT NOW
+#    DECIDES ONLY WHICH REASON THE CALLER READS.** That is a smaller thing than it was and it is still
+#    worth keeping: the two messages prescribe different remedies (rule 7 says *branch first and open a
+#    PR*; 3b says *do not rewrite a pushed ref*), and a trunk force-push is rule 7's problem first.
+#    **The lesson generalises past this rule and is the reason the block is not moved back for
+#    tidiness:** where two rules match one act, the stricter one runs first ONLY where it is right
+#    about the act — the same test rule 5's pre-emption note states from the other side.
+#    **The arms had to change with it.** A verdict-only assertion can no longer tell the two orders
+#    apart, so the ordering arms now assert the REASON (`check_reason`), and a verdict-only battery
+#    that reads green over a reordering would be exactly the uncalibrated check this repo hunts for.
 if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*reset[[:space:]]+--hard'; then
-  deny "Blocked: 'git reset --hard' discards uncommitted work, and uncommitted work has no other copy — not in the reflog, not on the remote, not in the index. That is the irreparable half of what this rule used to refuse in one sentence; the force-push half is now rule 3b and asks instead. Use a safe alternative: commit first, 'git stash', or 'git revert' for something already committed."
+  deny "Blocked: 'git reset --hard' discards uncommitted work, and uncommitted work has no other copy — not in the reflog, not on the remote, not in the index. That is the irreparable half of what this rule used to refuse in one sentence; the force-push half is rule 3b, which denies too (#383 S3-revert) — briefly an 'ask', reverted because a hook 'ask' is answered automatically in this harness's auto mode. Use a safe alternative: commit first, 'git stash', or 'git revert' for something already committed."
 fi
 
 # 4. Recursive force delete (escapes git).
@@ -681,9 +761,18 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   deny "Blocked: 'git clean -f' deletes UNTRACKED files — the one class git cannot restore, so it is as irreversible as 'rm -rf'. Remove the specific paths you mean, or use 'git clean -n' to see what it would take."
 fi
 
-# 5. AWS secret writes — DOWNGRADED TO `ask` 2026-09-05 (#383, slice S3).
+# 5. AWS secret writes — ~~DOWNGRADED TO `ask` 2026-09-05 (#383, slice S3)~~ **REVERTED TO `deny` the
+#    same day (#383, S3-revert, owner: «reverte os três»).**
 #
-#    THE ACT IS REPARABLE, AND THAT IS THE ONLY REASON IT MOVED. AWS keeps a prior version of both
+#    **THE REPARABILITY ARGUMENT BELOW IS UNCHANGED AND STILL TRUE. What failed is the REMEDY.** A hook
+#    `ask` is answered automatically in this harness's default working mode — measured in the owner's
+#    own interactive session right after the S3 merge, where the guard returned `ask` for the exact
+#    command and the act then EXECUTED with no prompt. So these writes were not gated at all in the one
+#    session that matters. The full measurement, and the general rule it produces — *the ladder
+#    `deny -> ask -> context -> nothing` has a rung that does not hold here* — are recorded once, at
+#    rule 3's site above, rather than three times.
+#
+#    THE ACT IS REPARABLE, AND THAT IS WHY THE DOWNGRADE WAS DEFENSIBLE. AWS keeps a prior version of both
 #    things this rule matches, so a wrong write here is recoverable without a restore from anywhere
 #    else:
 #      · Secrets Manager versions every value and labels the previous one `AWSPREVIOUS`, so a bad
@@ -692,51 +781,69 @@ fi
 #        `restore-secret` — which this rule also matched, i.e. it was denying the REPAIR — cancels it.
 #      · SSM keeps parameter history, so a `put-parameter --overwrite` has the prior value behind it.
 #
-#    **DO NOT READ THIS AS "SECRET WRITES ARE FINE NOW."** The pipeline still provisions secrets and the
-#    agent still does not; what changed is which layer says so. This is the class the `ask` helper's
-#    comment describes exactly — the command cannot show whether the write is the owner's intent, and
-#    his answer to the prompt IS the verification.
+#    ~~This is the class the `ask` helper's comment describes exactly — the command cannot show whether
+#    the write is the owner's intent, and his answer to the prompt IS the verification.~~ **STRUCK: the
+#    class description is right and the mechanism is not available.** His answer is the verification
+#    only where he is asked, and in auto mode he is not. **The pipeline still provisions secrets and the
+#    agent still does not** — and now the guard is what says so again, rather than a prompt nobody sees.
 #
-#    WHAT THIS COSTS, AND IT IS SMALLER THAN IT LOOKS: `aws` is in NEITHER the allow nor the deny list
-#    of EITHER settings layer (both read at head, 2026-09-05), so removing this rule outright would
-#    already have landed on a permission prompt rather than on silent execution. The downgrade buys a
-#    prompt that arrives WITH THE REASON attached instead of a bare "needs approval", which is the
-#    difference between the owner deciding and the owner guessing.
+#    **WHAT THE REVERT COSTS, NAMED RATHER THAN GLOSSED: `restore-secret` — the REPAIR — is denied
+#    again.** S3 correctly observed that the old one-regex rule was refusing the act that undoes a
+#    scheduled deletion. That defect returns with the revert, and it is accepted here rather than
+#    quietly fixed, because carving `restore-secret` out is a FOURTH decision and this slice is
+#    scoped to three. It is defensible on its own terms — the delete it repairs is itself denied to
+#    the agent, so the repair is the owner's act by the same route — but it is a real narrowing and
+#    the next person to touch rule 5 should decide it deliberately rather than inherit it.
+#
+#    ~~WHAT THIS COSTS, AND IT IS SMALLER THAN IT LOOKS: `aws` is in NEITHER the allow nor the deny list
+#    of EITHER settings layer, so removing this rule outright would already have landed on a permission
+#    prompt.~~ **The observation stands and it now argues the other way.** `aws` is unlisted in both
+#    settings layers (re-read at head, 2026-09-05), so the layer beneath this rule offers a prompt —
+#    and a prompt is exactly what auto mode answers. The hook `deny` is decided BEFORE the permission
+#    system and is not softened by anything under it, which is why the verdict has to be here.
 #
 #    THE SIBLING THAT DID NOT MOVE, said here so the asymmetry is not read as an oversight: `gh secret
 #    set/delete` (5b) KEEPS ITS DENY. GitHub Actions secrets have no version history and no recovery
 #    window — the old value is gone the moment it is overwritten. Same word, different act.
 #
-#    ── DISCLOSED NARROWING: THIS RULE PRE-EMPTS RULE 6 FOR `delete-secret` ─────────────────────────
-#    `ask()` exits, so where this rule matches, rule 6 below never runs. One command is in both:
-#    `aws secretsmanager delete-secret` matches rule 6's `aws <service> (delete|terminate|...)-` family
-#    as well, and rule 6 is a `deny`. So this downgrade did not only move `delete-secret` off THIS
-#    rule's floor — it took it off rule 6's too. Measured 2026-09-05:
-#      aws secretsmanager delete-secret --secret-id x   origin/main -> DENY (rule 6) · head -> ASK (5)
+#    ── THE RULE-6 PRE-EMPTION: STILL THERE, NO LONGER A NARROWING ──────────────────────────────────
+#    **RE-CHECKED AT THE REVERT, because the question is exactly the kind that a revert answers
+#    silently if nobody asks it. The answer: the pre-emption SURVIVES and its ARGUMENT DISSOLVES.**
 #
-#    **THAT NARROWING IS ARGUED ON THE MERITS AND IS KEPT; what was missing was saying so where the
-#    reader meets the rule, and that is the whole of this paragraph.** The merits: `delete-secret` is a
-#    SCHEDULED deletion with a 7–30 day recovery window that `restore-secret` cancels, so it restores
-#    and the narrowed criterion — «situacoes irreparaveis» — does not reach it under EITHER rule's
-#    number. Rule 6's verdict on this one member was wrong for the same reason rule 5's was, which is
-#    why the pre-emption produces the right answer rather than merely a different one.
+#    The mechanism is unchanged — `deny()` and `ask()` both exit, so where this rule matches, rule 6
+#    below never runs, and `aws secretsmanager delete-secret` matches both (rule 6's
+#    `aws <service> (delete|terminate|...)-` family). What changed is that the two rules no longer
+#    DISAGREE. Measured 2026-09-05, the same command across all three states:
+#      aws secretsmanager delete-secret --secret-id x
+#        pre-S3 (origin/main at 8c49382)  -> DENY   (rule 5, pre-empting rule 6's identical verdict)
+#        S3 head (01069ca8)               -> ASK    (rule 5) <- the narrowing
+#        this revert                      -> DENY   (rule 5, pre-empting rule 6 again)
 #
-#    **The contrast with 3b's ordering defect, because the two look identical and are not.** There,
-#    rule 7 was the STRICTER rule and was correct about its member, so pre-empting it was a hole and
-#    the fix was to reorder. Here rule 6 is stricter and WRONG about this member, so pre-empting it is
-#    the intended verdict and reordering would restore a deny that the criterion does not support. The
-#    test is never "which rule is stricter" — it is "which rule is right about the act", and only the
-#    second one licenses an earlier `ask`. **What is NOT covered: the rest of rule 6.** Every other
-#    `aws ... delete-*`/`terminate-*` still denies, and nothing about this paragraph loosens it.
+#    So there is **nothing left to disclose as a narrowing**: the pre-emption now only decides which
+#    MESSAGE the caller reads, and rule 5's is the more useful of the two (it names the recovery
+#    window and points at `restore-secret`). It is kept as an attribution note rather than deleted,
+#    because the mechanism is still live and the next downgrade proposed anywhere above rule 6 inherits
+#    it. **The reader-facing consequence is now zero and the shape is not** — a rule that exits above
+#    another rule is still pre-empting it, and that stays true whether or not the verdicts differ.
 #
-#    ~~undisclosed~~ — this narrowing shipped at 9aca9d4 with no note anywhere, and was found by the
-#    merge gate rather than by the slice. Recorded as the finding it was, not as a decision that was
-#    always written down.
+#    ~~The contrast with 3b's ordering defect, because the two look identical and are not.~~ **Both
+#    collapsed into the same state at the revert, and the CONTRAST is what survives, because it is the
+#    test rather than the instance.** There, rule 7 was stricter and RIGHT about its member, so
+#    pre-empting it was a hole. Here rule 6 was stricter and the criterion did not reach this member,
+#    so pre-empting it was the intended verdict. **The test is never "which rule is stricter" — it is
+#    "which rule is right about the act."** Both pairs now agree on the verdict and differ only in the
+#    message, so in both places the ordering is asserted by reason rather than by verdict.
+#    **What is NOT covered: the rest of rule 6.** Every other `aws ... delete-*`/`terminate-*` denies,
+#    and nothing here has ever loosened it.
+#
+#    ~~undisclosed~~ — the narrowing shipped at 9aca9d4 with no note anywhere, and was found by the
+#    merge gate rather than by the slice. Recorded as the finding it was. It is also the reason this
+#    paragraph was re-checked at the revert instead of assumed to unwind on its own.
 if printf '%s' "$cmd" | grep -Eq 'aws[[:space:]]+secretsmanager[[:space:]]+(put-secret-value|create-secret|update-secret|delete-secret|restore-secret)'; then
-  ask "This writes a secret through the AWS CLI. It is no longer a floor deny (#383) because Secrets Manager is versioned — the previous value stays behind the AWSPREVIOUS stage, and 'delete-secret' only SCHEDULES a deletion with a recovery window that 'restore-secret' cancels — so this is reparable, and this guard's floor is irreparability alone. It still asks, because the standing rule is unchanged: secrets are provisioned by the pipeline, not by the agent. Answer no unless you specifically intended this write. Note that 'gh secret set/delete' is a DIFFERENT act and stays denied — GitHub Actions secrets have no version history, so there is nothing to roll back to."
+  deny "Blocked: writing secrets via CLI. Secrets are provisioned by the pipeline, not by the agent. This was briefly an 'ask' (#383 S3) on the argument that Secrets Manager is REPARABLE — the previous value stays behind the AWSPREVIOUS stage, and 'delete-secret' only SCHEDULES a deletion with a recovery window that 'restore-secret' cancels — and that argument is still true. What failed is the remedy: a hook 'ask' is answered automatically in this harness's auto mode, measured in the owner's own session, so the downgrade produced a silent write rather than a prompt. Note this also denies 'restore-secret', which is the REPAIR — an accepted cost of the revert, since the deletion it repairs is denied to the agent too. If a secret genuinely must be written by hand, it is the human's own act."
 fi
 if printf '%s' "$cmd" | grep -Eq 'aws[[:space:]]+ssm[[:space:]]+put-parameter([[:space:]].*)?SecureString'; then
-  ask "This writes a SecureString parameter. It is no longer a floor deny (#383) because SSM keeps parameter history, so the prior value survives an --overwrite and this is reparable. It still asks: secrets are provisioned by the pipeline, not by the agent. Answer no unless you specifically intended this write."
+  deny "Blocked: writing a SecureString parameter. Secrets are provisioned by the pipeline, not by the agent. This was briefly an 'ask' (#383 S3) because SSM keeps parameter history, so the prior value survives an --overwrite — still true, and still not enough: a hook 'ask' is answered automatically in this harness's auto mode, so the downgrade produced a silent write. If this parameter genuinely must be written by hand, it is the human's own act."
 fi
 
 # 5b. Secret writes via gh, in any spelling. Same prefix-matcher blind spot as rule 7:
@@ -807,18 +914,27 @@ fi
 #             same act, because the subject pins the immutable ID rather than the name — which is the
 #             very property that makes a rename survivable and a delete not.
 #
-# THE ORDER OF THESE TWO BRANCHES IS LOAD-BEARING, AND IT IS RECORDED BECAUSE A MUTATION FOUND IT.
-# The `delete` deny MUST stay above the archive/rename ask: `deny` exits, so whatever runs first wins.
-# Widening the ask branch to include `delete` while it sits below is UNREACHABLE dead code — measured,
-# the suite stayed 412/0 under exactly that mutation, which reads like an uncaught defect and is not
-# one. Made reachable by swapping the two blocks, the same mutation turns `gh repo delete` into an
-# `ask` and reddens 8 arms. Keep them in this order; if they are ever reordered, the deny must move
-# with the ask or the floor's one irreparable member becomes a prompt.
+# **THE SPLIT IS KEPT; ARCHIVE/RENAME's VERDICT IS REVERTED TO `deny` the same day (#383, S3-revert,
+# owner: «reverte os três»).** The three-way reading above is correct and stays — the acts genuinely
+# differ, and they now carry different MESSAGES saying so. What is withdrawn is only the conclusion
+# that *reparable* licenses an `ask` here, because a hook `ask` is answered automatically in this
+# harness's default working mode: measured in the owner's own session, the guard returned `ask` and the
+# act executed with no prompt. The full measurement and the general rule are at rule 3's site, once.
+#
+# ~~THE ORDER OF THESE TWO BRANCHES IS LOAD-BEARING~~ — **the ORDER is kept and what it buys shrank,
+# exactly as at 3b and at rule 5's pre-emption; this is the third instance of one shape.** `deny`
+# exits, so whatever runs first wins — but both branches now deny, so the order decides which reason
+# the caller reads (delete's names the un-reissued OIDC subject id; archive/rename's names the undo).
+# The measurement that produced this note is kept because it is still the reason not to reorder
+# casually: widening the SECOND branch to include `delete` while it sits below is UNREACHABLE dead
+# code — the suite stayed 412/0 under exactly that mutation, which reads like an uncaught defect and
+# is not one. Under the revert the same mutation is invisible to every verdict arm as well, so the
+# branch that answers is asserted by reason instead.
 if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+repo[[:space:]]+delete([[:space:]]|\$)"; then
-  deny "Blocked: 'gh repo delete' destroys the repository itself — history, Issues, PRs and its immutable OIDC subject id, which is NOT reissued if you re-create a repository with the same name, so every AWS trust pinned to 'repo:<org>@<id>/<repo>@<id>:*' breaks permanently. This is the irreparable member of the family; 'archive' and 'rename' both reverse and now ask instead. This is the human's act, on the GitHub UI, never the agent's."
+  deny "Blocked: 'gh repo delete' destroys the repository itself — history, Issues, PRs and its immutable OIDC subject id, which is not reissued if you re-create a repository with the same name, so every AWS trust pinned to 'repo:<org>@<id>/<repo>@<id>:*' breaks permanently. This is the irreparable member of the family: 'archive' and 'rename' both reverse, and they are denied too (#383 S3-revert) for a different reason — not because they cannot be undone, but because a hook 'ask' does not reach the human in this harness's auto mode. This one would stand even if it did. This is the human's act, on the GitHub UI, never the agent's."
 fi
 if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+repo[[:space:]]+(archive|rename)([[:space:]]|\$)"; then
-  ask "This archives or renames the repository. It is no longer a floor deny (#383): 'gh repo unarchive' undoes an archive, and a rename is undone by renaming back — the AWS OIDC trusts pin the repository's IMMUTABLE id, not its name, so they survive the round trip. Both are reparable, and this guard's floor is irreparability alone. It still asks because it changes what the repository IS to everyone looking at it, and the command cannot show whether you meant to. Note 'gh repo delete' is a different act and stays denied — the id is not reissued, so that one does not reverse."
+  deny "Blocked: 'gh repo archive/rename' changes what the repository IS to everyone looking at it. This was briefly an 'ask' (#383 S3) on the argument that both REVERSE — 'gh repo unarchive' undoes an archive, a rename is undone by renaming back, and the AWS OIDC trusts survive because they pin the repository's IMMUTABLE id rather than its name — and that argument is still true. What failed is the remedy: a hook 'ask' is answered automatically in this harness's auto mode, measured in the owner's own session, so the downgrade produced a silent archive/rename rather than a prompt. Note 'gh repo delete' is a different act with a different message: the id is NOT reissued, so that one does not reverse at all. This is the human's act, on the GitHub UI, never the agent's."
 fi
 if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+release[[:space:]]+(create|delete)([[:space:]]|\$)"; then
   deny "Blocked: creating or deleting a Release publishes or unpublishes a public artifact. The deploy workflow's 'release' job owns this — it bumps VERSION, tags and publishes in one pass, and a hand-made release desynchronises the three. Use 'gh release view/list' to inspect."
@@ -1360,21 +1476,20 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   esac
 fi
 
-# 3b. Force-push — DOWNGRADED TO `ask` (#383 S3). The argument for the downgrade, the token-boundary
-#     measurement and the reason this is an `ask` rather than a removal are all at rule 3's site above,
-#     where a reader meets the 3a/3b split; only the executable block lives here.
+# 3b. Force-push — ~~DOWNGRADED TO `ask` (#383 S3)~~ **BACK TO `deny` (#383 S3-revert)**. The
+#     reparability argument, the measurement that reverted it, the token-boundary finding and the
+#     reason this rule cannot live in `settings.json` are all at rule 3's site above, where a reader
+#     meets the 3a/3b split; only the executable block lives here.
 #
-#     **IT SITS AFTER RULE 7 DELIBERATELY, AND THE ORDER IS THE CONTROL — NOT LAYOUT.** `ask()` exits,
-#     so whichever of the two matches first is the whole verdict. A force-push to the trunk matches
-#     BOTH: 3b (reparable — the old tip survives in the reflog and in the remote's unreachable objects)
-#     and rule 7 (a push to the trunk is the deploy, and that is not reparable by pushing again). Rule 7
-#     is the stricter of the two and must win, so it runs first. Moving this block back above rule 7 —
-#     for adjacency with 3a, which is the tempting reason — silently reopens a trunk force-push as a
-#     prompt. That is not hypothetical: it is what 9aca9d4 shipped, and the suite now pins both sides
-#     (`git -C <path> push --force origin main` -> DENY, `git push origin feature-x --force` -> ASK),
-#     so a revert in either direction reddens something instead of passing quietly.
+#     **IT STILL SITS AFTER RULE 7 DELIBERATELY, AND WHAT THAT BUYS IS NOW SMALLER AND STATED AS
+#     SUCH.** Both rules exit, so whichever matches first is the whole verdict — but both now DENY, so
+#     the order decides the REASON rather than the outcome. A force-push to the trunk is rule 7's act
+#     first: its message prescribes the right remedy (branch and open a PR), 3b's does not. The
+#     ordering is kept, the verdict-only arms can no longer see it, and `check_reason` arms are what
+#     pin it now. Moving this block back above rule 7 no longer opens a hole; it silently swaps the
+#     advice the caller gets, which is why it is still asserted rather than left to habit.
 if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*push([[:space:]].*)?([[:space:]](--force|--force-with-lease|-f)([[:space:]]|$))'; then
-  ask "This force-pushes. It is no longer a floor deny (#383): a force-pushed branch survives in your own reflog and in the remote's unreachable objects, so it is loud and costly but REPARABLE, and this guard's floor is irreparability alone. It still asks, because whether it is right is not visible in the command — force-pushing your own throwaway branch and force-pushing a branch someone else has already pulled are the same string, and only you can tell them apart. Before answering: is anyone else's checkout downstream of this ref? If it is your own short-lived branch, say yes. If it is a shared or protected branch, say no and rebase-then-push, or push a new branch instead. Note that a force-push landing on the TRUNK never reaches this prompt at all: rule 7 above denies it outright, in every spelling, which is why this prompt can only ever be about a non-trunk ref."
+  deny "Blocked: force-push rewrites a ref that others may already have pulled. It was briefly an 'ask' (#383 S3) on the argument that it is REPARABLE — the pre-push tip survives in your reflog and in the remote's unreachable objects — and that argument is still true. What failed is the remedy: a hook 'ask' is answered automatically in this harness's auto mode, measured in the owner's own session, so the downgrade produced silent execution rather than a prompt. Until an auto mode exists that excludes hook 'ask', a reparable-but-serious act has no rung between deny and nothing. Use a safe alternative: push a new branch, or rebase-then-push without --force. If the force-push is genuinely right, it is the human's own act."
 fi
 
 # 7b. Merging a PR is the deploy — ADR-0004 makes it the quality-assurance's act alone,

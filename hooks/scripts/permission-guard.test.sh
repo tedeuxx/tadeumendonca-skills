@@ -134,6 +134,32 @@ check_agent() {
   fi
 }
 
+# ADDED #383 S3-revert. `check` classifies a verdict and nothing else, which was sufficient while two
+# overlapping rules returned DIFFERENT verdicts. Reverting 3b to `deny` made rule 7 and 3b agree on the
+# verdict, so a verdict-only battery went green over BOTH orderings — an assertion that cannot fail,
+# which is this repo's own named defect. This helper asserts WHICH rule answered, by matching a
+# distinctive fragment of its reason.
+#
+# IT ASSERTS THE REASON, NOT THE MESSAGE. The needle is a short fragment chosen to be unique across the
+# file's messages; rewording a message around it is free, and rewording it away is meant to redden.
+check_reason() {
+  want="$1"
+  desc="$2"
+  needle="$3"
+  cmd="$4"
+  out=$(printf '%s' "$cmd" | jq -R '{tool_input:{command:.}}' | bash "$GUARD")
+  got=$(verdict "$out")
+  reason=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""')
+  if [ "$got" = "$want" ] && printf '%s' "$reason" | grep -qF "$needle"; then
+    pass=$((pass + 1))
+    printf 'ok    %-6s %s\n' "$got" "$desc"
+  else
+    fail=$((fail + 1))
+    printf 'FAIL  want=%s/%s got=%s  %s\n      cmd: %s\n      reason: %s\n' \
+      "$want" "$needle" "$got" "$desc" "$cmd" "$reason"
+  fi
+}
+
 echo "--- rule 7: pushing to the trunk, in every spelling ---"
 check DENY  "explicit origin main"          "git push origin main"
 check DENY  "explicit with -C"              "git -C /some/repo push origin main"
@@ -1188,8 +1214,8 @@ check DENY  "repo delete"                   "gh repo delete owner/repo --yes"
 check DENY  "repo delete behind -R"         "gh -R owner/repo repo delete --yes"
 check DENY  "repo delete, -R attached"      "gh -Rowner/repo repo delete --yes"
 check DENY  "repo delete, --repo= attached" "gh --repo=owner/repo repo delete --yes"
-check ASK   "repo archive reverses"         "gh repo archive owner/repo"
-check ASK   "repo rename reverses"          "gh repo rename newname"
+check DENY  "repo archive (#383 revert)"    "gh repo archive owner/repo"
+check DENY  "repo rename (#383 revert)"     "gh repo rename newname"
 check DENY  "release create publishes"      "gh release create v1.2.3"
 check DENY  "release delete behind -R"      "gh -R owner/repo release delete v1.2.3"
 check DENY  "workflow run dispatches CI"    "gh workflow run deploy.yml"
@@ -1439,7 +1465,7 @@ check ALLOW "boundary: quoted arg stays inert" "npm run finish -c 'git push orig
 echo "--- the pre-existing floor still holds ---"
 check DENY  "terraform apply"               "terraform apply -auto-approve"
 check DENY  "terraform destroy"             "terraform -chdir=iac destroy"
-check ASK   "force push (3b, downgraded)"   "git push --force origin feat/x"
+check DENY  "force push (3b, reverted #383)"  "git push --force origin feat/x"
 check DENY  "reset --hard"                  "git reset --hard HEAD~1"
 check DENY  "rm -rf"                        "rm -rf build"
 check DENY  "skip-permissions bypass"       "claude --dangerously-skip-permissions"
@@ -1472,14 +1498,36 @@ echo "--- #383 S3: the three downgraded boundaries, asserted on BOTH sides ---"
 # on BOTH sides: the act that was downgraded AND the neighbouring act that was not, so reverting the
 # split in either direction reddens something.
 
-echo "--- 3a/3b: the split between reset --hard (DENY) and force-push (ASK) ---"
-# Revert the split by widening 3b back over reset --hard -> the DENY arms redden.
-# Revert it by widening 3a back over force-push  -> the ASK arms redden.
+echo "--- 3a/3b: BOTH halves DENY again (#383 S3-revert); the split survives in the MESSAGES ---"
+# S3 made 3b an ASK; the revert made it a DENY again, because a hook `ask` is answered automatically in
+# this harness's auto mode — measured in the owner's own session, where the force-push executed with no
+# prompt. The 3a/3b SPLIT is not reverted: the two acts still differ (uncommitted work has no other
+# copy; a force-pushed tip survives in the reflog), they still carry different messages prescribing
+# different remedies, and rule 3's comment still records which is which.
+#
+# SO THE VERDICT ARMS NO LONGER SEPARATE THEM, AND SAYING THAT OUT LOUD IS THE POINT. A battery of
+# `check DENY` over both halves passes whether they are one regex or two — the exact shape of an
+# assertion that cannot fail. The `check_reason` arms below are what still discriminate: collapse 3a
+# and 3b back into one rule with one message and they redden, while every verdict arm stays green.
+#
+# THE TOTAL IS PLACEMENT-DEPENDENT, so re-run it rather than quoting a number from memory. Measured
+# 2026-09-05 (#383, gate round 1) on a copy with the suite untouched, collapsing into one regex with
+# one generic message carrying neither half's needle:
+#   collapsed at 3b's site (BELOW rule 7) -> 424 passed, 3 failed
+#     3a still speaks about uncommitted work · 3b still speaks about a rewritten ref
+#     · 3b answers the NON-TRUNK force-push
+#   collapsed at 3a's site (ABOVE rule 7) -> 423 passed, 4 failed  (the three above, plus
+#     `7 answers the TRUNK force-push`, because the widened rule now pre-empts rule 7 on the trunk)
+# The invariant across both is THREE arms; the fourth is an ordering side effect of where the
+# collapsed rule lands, not a property of the collapse. Every verdict arm stays green in both.
 check DENY  "3a: reset --hard, no other copy"  "git reset --hard HEAD~1"
 check DENY  "3a: reset --hard behind -C"       "git -C /some/repo reset --hard origin/main"
-check ASK   "3b: --force"                      "git push --force"
-check ASK   "3b: --force-with-lease"           "git push --force-with-lease origin feat/x"
-check ASK   "3b: short -f"                     "git push -f origin feat/x"
+check DENY  "3b: --force"                      "git push --force"
+check DENY  "3b: --force-with-lease"           "git push --force-with-lease origin feat/x"
+check DENY  "3b: short -f"                     "git push -f origin feat/x"
+# The split itself, asserted where a verdict cannot see it.
+check_reason DENY "3a still speaks about uncommitted work" "no other copy"  "git reset --hard HEAD~1"
+check_reason DENY "3b still speaks about a rewritten ref"  "force-push"     "git push --force origin feat/x"
 # The spelling NO settings entry can express, because `:*` is a TOKEN boundary (measured #383 S3): the
 # `git -C` prefix, which is itself allowlisted. That is the whole reason 3b is an ASK rather than a
 # removal — removed, it would execute in silence.
@@ -1489,67 +1537,115 @@ check ASK   "3b: short -f"                     "git push -f origin feat/x"
 # rule 7 owns it. (It was also cited as a spelling the static layer cannot express, which is false —
 # `Bash(git push origin main:*)` is in both deny lists and a token boundary matches an entry plus any
 # trailing tokens, measured 2026-09-05.)
-check ASK   "3b: behind an allowlisted -C"     "git -C /some/repo push --force origin feat/x"
+check DENY  "3b: behind an allowlisted -C"     "git -C /some/repo push --force origin feat/x"
 check ALLOW "3: a plain push is neither half"  "git push origin feat/x"
 check ALLOW "3: --soft is not --hard"          "git reset --soft HEAD~1"
 # KNOWN DEFECT, PRE-EXISTING, ASSERTED AS IT IS RATHER THAN AS IT SHOULD BE. Rule 3 matches `$cmd`,
 # not `$bare`, so a commit message ABOUT the act is treated as the act — the same false positive the
 # file fixed for 5b, 5c, 5e and 5f and calls "convention rather than case-by-case care". Measured on
 # origin/main's guard, both halves were DENY before this slice; S3 changed the force-push half to ASK
+# and the S3-revert changed it back, so both halves are DENY again and these two arms read alike.
 # and did not touch the matching surface, because moving rule 3 to `$bare` changes WHAT IT SEES
 # (including how it interacts with the `bash -c` unwrap) and that is its own slice with its own probe
 # battery, not a two-token drive-by inside a downgrade slice.
 # These two arms are the record. When someone fixes rule 3 to read `$bare`, both flip to ALLOW.
-check ASK   "3: KNOWN DEFECT, msg about 3b"    "git commit -m 'git push --force notes'"
+check DENY  "3: KNOWN DEFECT, msg about 3b"    "git commit -m 'git push --force notes'"
 check DENY  "3: KNOWN DEFECT, msg about 3a"    "git commit -m 'git reset --hard notes'"
 
-echo "--- 3b x rule 7: the ORDERING is the control — a force-push to the TRUNK is rule 7's, not 3b's ---"
-# WHAT THIS PINS, AND WHY IT NEEDED ARMS ON BOTH SIDES. `ask()` exits, so of two matching rules only
-# the first returns a verdict. `git -C <repo> push --force origin main` matches BOTH 3b (reparable) and
-# rule 7 (the trunk push, which is not), and at 9aca9d4 3b sat ABOVE rule 7 and won — so the floor's
-# one irreparable member came out as a PROMPT and no arm noticed, the intersection being untested.
+echo "--- 3b x rule 7: the ORDERING survives the revert, and it is now a claim about the REASON ---"
+# THE SIX-ROW TABLE THIS BLOCK WAS BUILT AROUND NOW READS DENY ON EVERY ROW, INCLUDING THE ONE ASK ROW.
+# That is the S3-revert's ONLY intended change to it — 3b returns `deny`, so the non-trunk force-push
+# that was the table's single ASK joins the other five. No row's rule changed hands and no spelling
+# moved: rule 7 still owns every trunk row and 3b still owns every non-trunk row.
 #
-# A one-sided battery would not have caught it and will not catch its return: reverting the order is a
-# LOOSENING, and a loosening can only redden an arm that already exists on the strict side. So the
-# strict side (trunk -> DENY) and the loose side (non-trunk -> ASK) are both asserted here. Move 3b
-# back above rule 7 and the DENY arms redden; widen rule 7 over every force-push and the ASK arms do.
+# WHAT WAS LOST AND WHAT REPLACES IT, because pretending nothing was lost is how an uncalibrated check
+# survives. At 9aca9d4, 3b sat ABOVE rule 7 and won the intersection, so the trunk's one irreparable
+# member came out a PROMPT — a defect a verdict arm could see, because the two rules disagreed on the
+# verdict. They no longer disagree. A verdict-only battery is now green under BOTH orderings, so the
+# ordering is asserted by REASON below.
+#
+# EXACTLY ONE ARM CAN SEE A REORDER, AND SAYING WHICH IS THE POINT OF THIS PARAGRAPH. Move 3b back
+# above rule 7 and `7 answers the TRUNK force-push` reddens ALONE — 426 passed, 1 failed — while all
+# eight verdict arms stay green; that gap is the whole reason the helper exists. Its sibling,
+# `3b answers the NON-TRUNK force-push`, is STRUCTURALLY INCAPABLE of reddening here: rule 7 does not
+# match a non-trunk refspec at all, so 3b answers that payload under either ordering. It is in this
+# block to catch 3b's REMOVAL, not a reorder, and reading it as ordering cover is how someone deletes
+# the one arm that does the work and still believes the comment.
+#
+# ~~the two `check_reason` arms redden~~ — struck 2026-09-05 (#383, gate round 1). It was published
+# with this block and it does not reproduce; the arms are right and the sentence about them was not.
+# Re-run it like this, on a COPY of this directory, with the suite left untouched — cut 3b's `if`
+# block out of the source and paste it back in at each of the two plausible placements, then
+#   bash <copy>/permission-guard.test.sh | grep -E '^FAIL|passed,'
+#   placement 1, immediately above rule 7's comment      -> 426 passed, 1 failed
+#   placement 2, back beside 3a (the 9aca9d4 position)   -> 426 passed, 1 failed
+#   restored                                             -> 427 passed, 0 failed
+# Both placements fail the SAME single arm, `7 answers the TRUNK force-push`.
 check DENY  "7 wins: -C, trunk, --force"       "git -C /some/repo push --force origin main"
 check DENY  "7 wins: flag after the refspec"   "git push origin main --force"
 check DENY  "7 wins: --force before the ref"   "git push --force origin main"
 check DENY  "7 wins: --force-with-lease trunk" "git -C /some/repo push --force-with-lease origin main"
 check DENY  "7 wins: short -f, trunk"          "git push -f origin master"
-# The loose side. These must stay ASK — if any of them denies, rule 7 has been widened over the whole
-# force-push class and the #383 S3 downgrade has been silently reverted.
-check ASK   "3b keeps: non-trunk ref"          "git push origin feature-x --force"
-check ASK   "3b keeps: non-trunk behind -C"    "git -C /some/repo push --force origin feature-x"
-check ASK   "3b keeps: 'maintenance' is not 'main'" "git push origin maintenance --force"
+# The non-trunk side. These are 3b's, and they are DENY again since the S3-revert — if any of them
+# returns ASK, the downgrade has come back; if any returns ALLOW, 3b has been removed rather than
+# reverted, and `git -C <dir> push --force` executes in silence.
+check DENY  "3b keeps: non-trunk ref"          "git push origin feature-x --force"
+check DENY  "3b keeps: non-trunk behind -C"    "git -C /some/repo push --force origin feature-x"
+check DENY  "3b keeps: 'maintenance' is not 'main'" "git push origin maintenance --force"
+# THE ORDERING ITSELF. Rule 7's message prescribes branching and opening a PR; 3b's prescribes not
+# rewriting a pushed ref. Both are correct advice for their own act and wrong for the other's.
+check_reason DENY "7 answers the TRUNK force-push"     "pushing to the trunk" "git -C /some/repo push --force origin main"
+check_reason DENY "3b answers the NON-TRUNK force-push" "force-push"        "git push origin feature-x --force"
 
-echo "--- rule 5: AWS secret writes ASK; the gh sibling still DENIES ---"
-# The asymmetry is the assertion. AWS versions its secrets (AWSPREVIOUS, a 30-day recovery window,
-# SSM parameter history); GitHub Actions secrets have no version history at all. Collapse the two
-# back into one verdict in either direction and this block reddens.
-check ASK   "5: put-secret-value"              "aws secretsmanager put-secret-value --secret-id x"
-check ASK   "5: create-secret"                 "aws secretsmanager create-secret --name x"
-check ASK   "5: delete-secret is SCHEDULED"    "aws secretsmanager delete-secret --secret-id x"
-check ASK   "5: restore-secret is the REPAIR"  "aws secretsmanager restore-secret --secret-id x"
-check ASK   "5: ssm SecureString"              "aws ssm put-parameter --name x --type SecureString"
+echo "--- rule 5: AWS secret writes DENY again (#383 S3-revert); the gh sibling never moved ---"
+# S3 made these ASK on the reparability argument; the revert made them DENY again, because a hook
+# `ask` is answered automatically in this harness's auto mode. The AWS/gh asymmetry S3 introduced in
+# the MESSAGES survives — AWS versions its secrets, GitHub Actions secrets have no history — but it is
+# no longer an asymmetry of VERDICT, so no verdict arm can see it. Stated rather than left implied:
+# this block is now a one-sided battery, and it is the reason arms below that keep it honest.
+#
+# `restore-secret` is denied again, which is the REPAIR of a scheduled deletion. That is the revert's
+# named cost, asserted as it IS rather than as it should be — the same convention rule 3's known
+# defect uses. When someone carves it out, this arm flips to ALLOW and the rule's comment says so.
+check DENY  "5: put-secret-value"              "aws secretsmanager put-secret-value --secret-id x"
+check DENY  "5: create-secret"                 "aws secretsmanager create-secret --name x"
+check DENY  "5: delete-secret is SCHEDULED"    "aws secretsmanager delete-secret --secret-id x"
+check DENY  "5: NAMED COST, repair is denied"  "aws secretsmanager restore-secret --secret-id x"
+check DENY  "5: ssm SecureString"              "aws ssm put-parameter --name x --type SecureString"
+# THE RULE-6 PRE-EMPTION, asserted where a verdict cannot see it. `delete-secret` matches rule 5 AND
+# rule 6, both DENY, so only the reason says which answered. Remove rule 5's secretsmanager branch and
+# the verdict stays DENY (rule 6 catches it) while this arm reddens — which is the whole point: the
+# pre-emption is still live, it just no longer changes the outcome.
+check_reason DENY "5 pre-empts 6 for delete-secret" "recovery window" "aws secretsmanager delete-secret --secret-id x"
+check_reason DENY "6 owns the rest of the family"   "destructive direct cloud mutation" "aws ec2 delete-volume --volume-id x"
 check DENY  "5b: gh secret set has no history" "gh secret set MY_TOKEN"
 check DENY  "5b: gh secret delete behind -R"   "gh -R owner/repo secret delete MY_TOKEN"
 check ALLOW "5: reading a secret is untouched" "aws secretsmanager get-secret-value --secret-id x"
 check ALLOW "5: reading a parameter"           "aws ssm get-parameter --name x"
 check ALLOW "5: ssm String is not SecureString" "aws ssm put-parameter --name x --type String"
 
-echo "--- rule 5g: repo delete DENIES; archive/rename ASK ---"
+echo "--- rule 5g: delete and archive/rename BOTH deny again (#383 S3-revert); the split is in the text ---"
 # delete does not reverse: the immutable OIDC subject id is not reissued on a re-create, so every AWS
 # trust pinned to it breaks permanently. archive/rename both reverse, and the trusts survive a rename
-# precisely BECAUSE the subject pins the id rather than the name.
+# precisely BECAUSE the subject pins the id rather than the name. THAT READING IS UNCHANGED — what was
+# withdrawn is the conclusion that reparable licenses an `ask`, since a hook `ask` is answered
+# automatically in this harness's auto mode.
 check DENY  "5g: repo delete"                  "gh repo delete owner/repo --yes"
 check DENY  "5g: repo delete behind -R"        "gh -R owner/repo repo delete --yes"
-check ASK   "5g: archive unarchives"           "gh repo archive owner/repo"
-check ASK   "5g: rename renames back"          "gh repo rename newname"
-check ASK   "5g: archive behind --repo="       "gh --repo=owner/repo repo archive"
-check ASK   "5g: rename behind -R attached"    "gh -Rowner/repo repo rename newname"
+check DENY  "5g: archive (#383 S3-revert)"     "gh repo archive owner/repo"
+check DENY  "5g: rename (#383 S3-revert)"      "gh repo rename newname"
+check DENY  "5g: archive behind --repo="       "gh --repo=owner/repo repo archive"
+check DENY  "5g: rename behind -R attached"    "gh -Rowner/repo repo rename newname"
 check ALLOW "5g: repo view is neither"         "gh repo view owner/repo"
+# THE SPLIT IS KEPT AND ONLY THE MESSAGES CARRY IT NOW. delete and archive/rename are two branches
+# with two reasons; both DENY, so no verdict arm can tell which answered. Collapse them back into one
+# regex with one message and every verdict arm stays green while these two redden.
+# THE FIRST NEEDLE HERE WAS NOT DISCRIMINATING AND A MUTATION CAUGHT IT, WHICH IS WHY THIS COMMENT
+# EXISTS. "NOT reissued" appeared in BOTH messages, so a reachable collapse of the two branches left
+# the suite at 427/0 — an assertion that could not fail, inside the very block whose job is to detect
+# that collapse. Needles are now fragments each message alone carries.
+check_reason DENY "5g: delete names DESTRUCTION"        "destroys the repository itself" "gh repo delete owner/repo --yes"
+check_reason DENY "5g: archive/rename name the UNDO"    "unarchive"                      "gh repo archive owner/repo"
 
 echo "--- #383 S3: what did NOT move, asserted so a later slice notices if it does ---"
 # 5f was scoped into S3 as a downgrade and was NOT shipped — see the rule's own comment for the
