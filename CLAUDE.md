@@ -170,8 +170,10 @@ description of that repository's `main`. Every sentence crossing the repository 
 the day **its own** repository merges, never on the day the other one does.
 
 **What is shared with its checker at `scripts/agents-md.test.sh` is the executable BODY, not the
-file.** Everything below the first column-zero `set -uo` line is byte-for-byte identical; the header
-deliberately differs, because the duplication cost is a fact about that copy and has no subject here.
+file.** The invariant a sync maintains is that everything below the first column-zero `set -uo` line
+is byte-for-byte identical — an obligation, not a claim about either copy's current state, which
+nothing here can check. The header deliberately differs, because the duplication cost is a fact about
+that copy and has no subject here.
 So a sync copies the body, never the file — copying the whole file destroys the sibling's header,
 which is the artifact that records the cost and carries its own falsifier. From a workspace holding
 both checkouts:

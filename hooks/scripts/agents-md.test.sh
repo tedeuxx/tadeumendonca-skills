@@ -33,11 +33,12 @@
 # root from git rather than from its own position in the tree, so it runs unchanged from any depth in
 # any repository that has an `AGENTS.md`. `tadeumendonca-io` is to carry the same artifact under the
 # same rule, in its own merge request (`-io`#610) — stated as the rule rather than as that
-# repository's current state, which is a claim this file cannot check and must not make. Its copy at
-# `scripts/agents-md.test.sh` shares everything below the first column-zero `set -uo` line
-# byte-for-byte; its header deliberately differs, because the duplication cost is a fact about that
-# copy and has no subject here. So a sync copies the body, never the file. Falsifiable from a
-# workspace holding both checkouts:
+# repository's current state, which is a claim this file cannot check and must not make. The invariant
+# a sync maintains between this file and its copy at `scripts/agents-md.test.sh` is that everything
+# below the first column-zero `set -uo` line is byte-for-byte identical — an obligation, not an
+# assertion about either copy right now. The headers deliberately differ, because the duplication cost
+# is a fact about that copy and has no subject here. So a sync copies the body, never the file.
+# Falsifiable from a workspace holding both checkouts:
 #
 #   diff <(sed -n '/^set -uo/,$p' hooks/scripts/agents-md.test.sh) \
 #        <(sed -n '/^set -uo/,$p' ../tadeumendonca-io/scripts/agents-md.test.sh)
