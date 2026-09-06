@@ -2,7 +2,7 @@
 # Asserts the four MECHANICAL properties of this repository's harness-neutral root brief, `AGENTS.md`.
 #
 # WHY THIS EXISTS. `AGENTS.md` is read as always-on steering by at least one agent harness that never
-# reads this repository's other root brief — measured against Kiro 1.0.337, whose bundle resolves
+# reads this repository's other root brief — measured against Kiro 1.0.437, whose bundle resolves
 # `AGENTS.md` at the workspace root with `inclusion:"always"` and contains zero references to the other
 # filename. For that harness this file is not a courtesy copy; it is the ENTIRE brief. So a defect in
 # it is not cosmetic, and until #411 the file was UNTRACKED in both repositories of this workspace —
@@ -77,8 +77,9 @@ else
     bad "arm 2 — could not measure $BRIEF; the length assertion did NOT run"
   elif [ "$chars" -ge "$LIMIT" ]; then
     bad "arm 2 — $BRIEF is $chars characters, at or past the $LIMIT headroom limit (consumer cap
-      $BUDGET, measured on Kiro 1.0.337, which truncates silently and reports the loss on a debug
-      channel only). Cut content; do not raise the limit without re-measuring the consumer."
+      $BUDGET, measured on Kiro 1.0.437, which truncates the file, logs the loss on a debug channel,
+      and appends a '[Truncated: …]' marker to the text the model reads — so the reader is told
+      something went, never what). Cut content; do not raise the limit without re-measuring."
   else
     ok "arm 2 — $BRIEF is $chars characters, under the $LIMIT limit ($((LIMIT - chars)) to spare; consumer cap $BUDGET)"
   fi
@@ -97,16 +98,106 @@ fi
 TOKENS_CI='claude|codex'
 TOKENS_CS='PreToolUse|SessionStart|UserPromptSubmit|SubagentStop|PostToolUse|hooks\.json|settings\.json|agent_type|--dangerously-skip-permissions|/plugin:|/tadeumendonca-skills:|slash.command'
 
+# ONE FIXTURE PER DECLARED ALTERNATIVE, IN DECLARATION ORDER. The calibration below asserts that every
+# alternative is LOAD-BEARING for its own fixture, which is what makes a deleted token reddenable.
+#
+# WHY NOT A SINGLE CONTROL LINE, which is what this arm carried until it was calibrated properly. The
+# line was `Claude Code reads settings.json on PreToolUse`, and it exercised 3 of the 14 declared
+# alternatives — so the other 11 could be deleted from the patterns with this arm green. Measured
+# end to end: drop `codex` from TOKENS_CI, plant `This is a Codex plugin.` in the brief, and all four
+# arms pass. That is the exact vendor token whose presence opened #411, undetected by the gate written
+# to detect it. A guard that only ever confirms the tokens it happens to name is not a vacuity guard.
+#
+# WHY THIS MATTERS MORE HERE THAN IT WOULD ELSEWHERE: this checker is HAND-SYNCED across two
+# repositories, and the characteristic failure of a hand-synced pair is a PARTIAL edit — a token added
+# or removed on one side only. That is precisely the class a whole-pattern check is blind to, with both
+# suites green.
+#
+# THE FIXTURES ARE ALIGNED BY INDEX with the alternatives, and the counts are asserted equal, so an
+# alternative ADDED without a fixture reddens too. The split is on a literal `|`, which assumes the
+# patterns use no grouped alternation `(a|b)`; if you ever add a group, this count breaks and you must
+# rework the split rather than raise the count.
+FIXTURES_CI=(
+  'the Claude Code harness'
+  'the Codex harness'
+)
+FIXTURES_CS=(
+  'a PreToolUse matcher'
+  'a SessionStart notice'
+  'a UserPromptSubmit hook'
+  'a SubagentStop event'
+  'a PostToolUse event'
+  'registered in hooks.json'
+  'declared in settings.json'
+  'the agent_type field'
+  'the --dangerously-skip-permissions flag'
+  'typed as /plugin:name'
+  'typed as /tadeumendonca-skills:frontend'
+  'a slash command file'
+)
+# The negative direction, because a pattern can rot by becoming too BROAD as well as too narrow: a
+# degenerate `.` or `.*` matches every fixture, passes the calibration, and then reddens the brief for
+# every line in it. This line must match NEITHER pattern.
+NEGATIVE='a portable brief that names no vendor and no mechanism'
+
+# Prints one alternative per line. Safe for these patterns because no alternative contains a literal
+# pipe; see the grouped-alternation caveat above.
+split_alts() { printf '%s' "$1" | tr '|' '\n'; }
+
+# Joins every alternative EXCEPT index $2 (0-based) back into a pattern.
+drop_alt() {
+  printf '%s' "$1" | tr '|' '\n' | awk -v skip="$2" '
+    NR-1 == skip { next } { out = (out == "" ? $0 : out "|" $0) } END { printf "%s", out }'
+}
+
+# Asserts each alternative of $1 is load-bearing for its own fixture. $3.. are the fixtures.
+# Emits one diagnostic line per defect on stdout; silence means calibrated.
+calibrate() {
+  _pat="$1"; _flags="$2"; shift 2
+  _n_alt=0
+  while IFS= read -r _a; do _n_alt=$((_n_alt + 1)); done <<CAL_EOF
+$(split_alts "$_pat")
+CAL_EOF
+  if [ "$_n_alt" -ne "$#" ]; then
+    printf '  %d declared alternatives but %d fixtures — the arrays are misaligned, so at least one\n' "$_n_alt" "$#"
+    printf '    alternative has no fixture and cannot be shown to be load-bearing.\n'
+    return
+  fi
+  _i=0
+  for _f in "$@"; do
+    if ! printf '%s\n' "$_f" | grep -q$_flags -- "$_pat"; then
+      printf '  fixture %d (%s) is NOT matched by the current pattern — the alternative it pins is\n' "$_i" "$_f"
+      printf '    missing or mangled.\n'
+    else
+      _red="$(drop_alt "$_pat" "$_i")"
+      if [ -n "$_red" ] && printf '%s\n' "$_f" | grep -q$_flags -- "$_red"; then
+        printf '  fixture %d (%s) still matches with its own alternative removed — a sibling covers it,\n' "$_i" "$_f"
+        printf '    so deleting that alternative would go unnoticed. Make the fixture more specific.\n'
+      fi
+    fi
+    _i=$((_i + 1))
+  done
+}
+
 if [ ! -f "$ROOT/$BRIEF" ]; then
   bad "arm 3 — $ROOT/$BRIEF does not exist; the token assertion did NOT run"
 else
-  # Vacuity guard for the arm itself: the lists must be non-empty AND must actually match something
-  # when pointed at a file that has the tokens. The cheapest honest form is to assert the patterns
-  # match a synthetic control line, so a mangled pattern reddens instead of passing everything.
-  control='Claude Code reads settings.json on PreToolUse'
-  if ! printf '%s\n' "$control" | grep -qiE "$TOKENS_CI" || ! printf '%s\n' "$control" | grep -qE "$TOKENS_CS"; then
-    bad "arm 3 — the token patterns do not match their own control line; this arm is INERT and did not
-      really run. Fix the patterns before trusting any green from it."
+  # Vacuity guard for the arm itself, per alternative rather than per pattern. See the fixture block
+  # above for why a single control line was not enough.
+  vac="$(calibrate "$TOKENS_CI" iE "${FIXTURES_CI[@]}")
+$(calibrate "$TOKENS_CS" E "${FIXTURES_CS[@]}")"
+  for _neg_pat_flags in "$TOKENS_CI:iE" "$TOKENS_CS:E"; do
+    _neg_pat="${_neg_pat_flags%:*}"; _neg_flags="${_neg_pat_flags##*:}"
+    if printf '%s\n' "$NEGATIVE" | grep -q$_neg_flags -- "$_neg_pat"; then
+      vac="$vac
+  the negative control matches a pattern — it has become over-broad and would flag innocent prose."
+    fi
+  done
+  vac="$(printf '%s' "$vac" | grep -v '^$' || true)"
+  if [ -n "$vac" ]; then
+    bad "arm 3 — the token patterns are NOT calibrated; this arm did not really run. Fix these before
+      trusting any green from it:
+$vac"
   else
     hits_ci="$(grep -niE "$TOKENS_CI" "$ROOT/$BRIEF" || true)"
     hits_cs="$(grep -nE  "$TOKENS_CS" "$ROOT/$BRIEF" || true)"

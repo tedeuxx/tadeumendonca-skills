@@ -130,14 +130,16 @@ person can falsify it in one command instead of trusting the date.
 ## `AGENTS.md` is a SECOND root brief, it is AUTHORED, and it is not this file (#411)
 
 **`AGENTS.md` at this repo's root is the whole brief for any harness that reads that filename — and one
-of them reads THIS file never.** Measured against Kiro `1.0.337`'s shipped bundle: `grep -c 'CLAUDE\.md'`
+of them reads THIS file never.** Measured against Kiro `1.0.437`'s shipped bundle: `grep -c 'CLAUDE\.md'`
 over its agent extension returns **0**, while `AGENTS.md` is a bundle constant resolved at the workspace
 root with `inclusion:"always"`. So it is not a compatibility copy of this file; for that reader it is the
 only brief there is.
 
 **It is authored beside this file. It is NOT generated from it, and a generator is not available as a
-fallback** — Kiro truncates `AGENTS.md` at **50,000 characters** and announces the loss on a debug
-channel only, while this file is far past that, so a rename-only transform cannot produce a loadable
+fallback** — Kiro truncates `AGENTS.md` at **50,000 characters**, logging the loss on a debug channel
+and appending a literal `[Truncated: …]` marker into the text the model reads (so the LOSS is announced
+to the reader, never to a human watching, and never says WHAT was lost), while this file is far past
+that, so a rename-only transform cannot produce a loadable
 artifact at all. Both figures with the command that produced them:
 
 ```

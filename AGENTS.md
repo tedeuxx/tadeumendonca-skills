@@ -10,9 +10,15 @@ file's budget, so a generator could not produce a loadable artifact at all.
 ## The budget, and whose it is
 
 **Keep this file under 50,000 characters.** That number is **one consumer's measured floor, not a
-standard**: Kiro `1.0.337` loads `AGENTS.md` as always-on steering and truncates it at 50,000
-characters, announcing the loss only on a debug channel. **Every other harness's budget is unmeasured.**
-Read it as a ceiling that is known to bite somewhere, not as a limit anyone published.
+standard**: Kiro `1.0.437` loads `AGENTS.md` as always-on steering and truncates it at 50,000
+characters. **Every other harness's budget is unmeasured.** Read it as a ceiling that is known to bite
+somewhere, not as a limit anyone published.
+
+**The loss is announced to the READER and only logged for the human**, which is a sharper thing than
+"silently": the truncating branch writes a debug record *and* appends a literal
+`[Truncated: AGENTS.md exceeds the maximum steering document size.]` into the text the model is given.
+So a model reading a truncated brief can tell; a human watching a normal session cannot. Do not lean on
+the in-band marker — it says content was lost, never which content, and by then the tail is gone.
 
 The measurement is a read of the shipped bundle's control flow on a machine where that tool has never
 authenticated. It has not been confirmed against a live session.
@@ -26,7 +32,7 @@ A **library of engineering knowledge and agent configuration** for a two-reposit
 - `skills/` — one directory per skill, each holding one skill file. This is the knowledge layer: dense,
   scenario-covering architecture and process guides, written to be reusable in any project.
 - `commands/` — the guides a human invokes by name, with arguments.
-- `agents/` — the persona briefs. Eight profiles, one file each.
+- `agents/` — the persona briefs, one file per profile. `ls agents/*.md` is the roster.
 - `hooks/` — the enforcement scripts and their test suites. **Harness-specific by construction**; see
   *What is enforced* below before assuming any of it runs for you.
 - `docs/adr/` — the decision library for the loop and the machinery. Read the record before changing
@@ -98,8 +104,11 @@ routing types — `product` (the deliverable), `content` (published in the owner
 machinery) — and two state labels, `ready` (the description is closed and the item is buildable) and
 `blocked`. An item without `ready` is not executable.
 
-**Eight profiles, and each exists because a specific disagreement or a specific fresh context is
-wanted** — not to complete an organisation chart:
+**Each profile exists because a specific disagreement or a specific fresh context is wanted** — not to
+complete an organisation chart. **The table below is a convenience, not the roster**; `ls agents/*.md`
+is, and this file states no count of its own, per *Counts* at the end. A row here whose brief is missing
+reddens the brief's own path check; **a profile ADDED with no row here reddens nothing**, so read a
+mismatch against the directory as this table being behind, never as the profile not existing:
 
 | profile | brief | what it holds |
 |---|---|---|
@@ -142,7 +151,7 @@ are written above as rules rather than as descriptions of a guard.
 
 The same split is deliberate in what this repository exports. The generated package under `powers/`
 carries the **knowledge** layer and none of the **enforcement** layer, because the enforcement is
-shaped for one harness and porting it is work nobody has done. Measured against Kiro `1.0.337`: its
+shaped for one harness and porting it is work nobody has done. Measured against Kiro `1.0.437`: its
 installer copies a package's whole tree, but its loader resolves only the manifest, `skills/`, the MCP
 declaration and its own directory — so shipping briefs or enforcement scripts there would put them on
 disk **inert**, which reads as installed and is worse than an absent file.

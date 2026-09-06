@@ -172,3 +172,25 @@ jobs:
       # the tokens on a declared list.
       - name: Assert the harness-neutral root brief holds its properties
         run: bash hooks/scripts/agents-md.test.sh
+
+      # THE CAVEAT GOES WHERE THE GREEN IS READ, and until this step existed it did not. The two arms
+      # of this job surface to a human as a check name and a tick; what that tick does NOT mean lived
+      # only in a script header and in the YAML comment above — neither of which is on the page where
+      # someone decides the brief is fine. `tadeumendonca-io`'s own brief workflow already put the
+      # sentence in a `::notice::` for exactly this reason, and this adopts that shape rather than
+      # inventing a second one.
+      #
+      # WHY IT IS NOT THREE CASES HERE, unlike the sibling: there the gate filters INSIDE the job, so
+      # "the filter matched nothing" is a real third outcome that must not read like a pass. Here the
+      # workflow-level `paths:` filter decides, so a run that does not match simply does not exist and
+      # there is no green to qualify. Two cases is the honest count for this shape; do not copy the
+      # third one across just because the sibling has it.
+      - name: Report what a green here does and does not mean
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ "${{ job.status }}" != "success" ]; then
+            echo "::notice::the inventory/brief gate did NOT complete — read the failing step, not this line."
+            exit 0
+          fi
+          echo "::notice::AGENTS.md is tracked, under budget, free of the declared harness-specific tokens, and every repository-relative path it names exists. This says NOTHING about whether the brief is TRUE, or NEUTRAL rather than merely free of the tokens on a declared list — a sentence describing one harness's mechanism without naming it passes every arm. That half is held by review."
