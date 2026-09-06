@@ -127,6 +127,68 @@ person can falsify it in one command instead of trusting the date.
 
 ---
 
+## `AGENTS.md` is a SECOND root brief, it is AUTHORED, and it is not this file (#411)
+
+**`AGENTS.md` at this repo's root is the whole brief for any harness that reads that filename — and one
+of them reads THIS file never.** Measured against Kiro `1.0.437`'s shipped bundle: `grep -c 'CLAUDE\.md'`
+over its agent extension returns **0**, while `AGENTS.md` is a bundle constant resolved at the workspace
+root with `inclusion:"always"`. So it is not a compatibility copy of this file; for that reader it is the
+only brief there is.
+
+**It is authored beside this file. It is NOT generated from it, and a generator is not available as a
+fallback** — Kiro truncates `AGENTS.md` at **50,000 characters**, logging the loss on a debug channel
+and appending a literal `[Truncated: …]` marker into the text the model reads (so the LOSS is announced
+to the reader, never to a human watching, and never says WHAT was lost), while this file is far past
+that, so a rename-only transform cannot produce a loadable
+artifact at all. Both figures with the command that produced them:
+
+```
+python3 -c "
+for p in ['AGENTS.md','CLAUDE.md']:
+    print(p, len(open(p,encoding='utf-8').read()))"
+```
+
+**The 50,000 budget is ONE consumer's measured floor, not a standard**, read out of a shipped bundle on
+a machine where that tool has never authenticated. Every other harness's budget is unmeasured.
+
+**Three rules, and the first two are what a substitution pass violates.** The brief states the floor as
+**obligations addressed to the agent, never as descriptions of the enforcement** — the test is *would
+this sentence still be true on a harness with no hooks?* It names **no Claude-Code-shaped token**: a
+substitution renames the token and leaves the mechanism, which is how the pre-#411 file came to instruct
+its reader to open `.Codex-plugin/plugin.json` and three sibling identifiers that exist nowhere. And it
+is **tracked**, which is the precondition for the other two being reviewable at all — it was untracked
+and referenced by nothing until #411, so no PR ever contained it.
+
+`hooks/scripts/agents-md.test.sh` gates four mechanical properties (tracked · under budget with headroom
+· no declared harness-specific token · every repo-relative path resolves). **It cannot assert that the
+brief is true, or that it is neutral rather than merely token-free** — a sentence describing one
+harness's mechanism without naming it passes every arm. That half is held by review.
+
+**`tadeumendonca-io` is to carry the same artifact under the same rule** — in its own merge request
+(`-io`#610), which had not landed when this sentence was written, so read it as the rule and not as a
+description of that repository's `main`. Every sentence crossing the repository boundary is true on
+the day **its own** repository merges, never on the day the other one does.
+
+**What is shared with its checker at `scripts/agents-md.test.sh` is the executable BODY, not the
+file.** The invariant a sync maintains is that everything below the first column-zero `set -uo` line
+is byte-for-byte identical — an obligation, not a claim about either copy's current state, which
+nothing here can check. The header deliberately differs, because the duplication cost is a fact about
+that copy and has no subject here.
+So a sync copies the body, never the file — copying the whole file destroys the sibling's header,
+which is the artifact that records the cost and carries its own falsifier. From a workspace holding
+both checkouts:
+
+```
+diff <(sed -n '/^set -uo/,$p' hooks/scripts/agents-md.test.sh) \
+     <(sed -n '/^set -uo/,$p' ../tadeumendonca-io/scripts/agents-md.test.sh)
+```
+
+Nothing makes the two copies move together — a pipeline is independent per repo — so a change to the
+token list, the fixtures or the budget is a two-repo batch, and until the sibling's merge request
+lands that command is expected to print the body changes made here.
+
+---
+
 ## Installation (Claude Code plugin)
 
 This repo is a **Claude Code plugin + marketplace** — the native way to reuse skills across

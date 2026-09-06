@@ -34,6 +34,13 @@ on:
       - "skills/**"
       - "README.md"
       - "CLAUDE.md"
+      # `AGENTS.md` — the harness-neutral root brief, tracked since #411 and gated by
+      # `hooks/scripts/agents-md.test.sh` in the job below. This entry is the EIGHTH occurrence of the
+      # miss enumerated in this block and the first one that was foreseen rather than found: the brief
+      # is a root file matched by no other glob here, so without this line a change that edits only it
+      # starts no gate at all — which is precisely the state the file was in for the month before it
+      # was tracked, one layer up.
+      - "AGENTS.md"
       # `hooks/**`, not just this suite's own file. The suite now asserts the hook inventory too, so
       # registering a hook falsifies the README exactly the way adding a skill does — and until this
       # line existed, adding one could not START the gate that would have caught it. That is how the
@@ -157,3 +164,33 @@ jobs:
 
       - name: Assert the published inventory counts match the repo
         run: bash hooks/scripts/inventory-counts.test.sh
+
+      # Four MECHANICAL properties of the harness-neutral root brief: tracked, under the character
+      # budget with headroom, free of tokens specific to one harness, and every repository-relative
+      # path it names resolves. It asserts NONE of the following, which the script's own header says
+      # at greater length: that the brief is true, or that it is neutral rather than merely free of
+      # the tokens on a declared list.
+      - name: Assert the harness-neutral root brief holds its properties
+        run: bash hooks/scripts/agents-md.test.sh
+
+      # THE CAVEAT GOES WHERE THE GREEN IS READ, and until this step existed it did not. The two arms
+      # of this job surface to a human as a check name and a tick; what that tick does NOT mean lived
+      # only in a script header and in the YAML comment above — neither of which is on the page where
+      # someone decides the brief is fine. The sibling repair pending in `tadeumendonca-io` (`-io`#610,
+      # not merged when this was written) puts the sentence in a `::notice::` for exactly this reason,
+      # and this adopts that shape rather than inventing a second one.
+      #
+      # WHY IT IS NOT THREE CASES HERE, unlike that one: there the gate filters INSIDE the job, so
+      # "the filter matched nothing" is a real third outcome that must not read like a pass. Here the
+      # workflow-level `paths:` filter decides, so a run that does not match simply does not exist and
+      # there is no green to qualify. Two cases is the honest count for this shape; do not copy the
+      # third one across just because that repair carries it.
+      - name: Report what a green here does and does not mean
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ "${{ job.status }}" != "success" ]; then
+            echo "::notice::the inventory/brief gate did NOT complete — read the failing step, not this line."
+            exit 0
+          fi
+          echo "::notice::AGENTS.md is tracked, under budget, free of the declared harness-specific tokens, and every repository-relative path it names exists. This says NOTHING about whether the brief is TRUE, or NEUTRAL rather than merely free of the tokens on a declared list — a sentence describing one harness's mechanism without naming it passes every arm. That half is held by review."
