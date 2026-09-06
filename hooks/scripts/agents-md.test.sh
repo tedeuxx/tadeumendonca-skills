@@ -29,9 +29,22 @@
 #     on a machine where that tool has never authenticated. Every other harness's budget is unmeasured,
 #     and this arm is not evidence that any of them is larger.
 #
-# COPYABILITY IS DELIBERATE. `tadeumendonca-io` carries the same artifact under the same rule and needs
-# the same four arms. This script derives its root from git rather than from its own position in the
-# tree, so it runs unchanged from any depth in any repository that has an `AGENTS.md`.
+# COPYABILITY IS DELIBERATE, AND WHAT IS COPIED IS THE BODY, NEVER THE FILE. This script derives its
+# root from git rather than from its own position in the tree, so it runs unchanged from any depth in
+# any repository that has an `AGENTS.md`. `tadeumendonca-io` is to carry the same artifact under the
+# same rule, in its own merge request (`-io`#610) — stated as the rule rather than as that
+# repository's current state, which is a claim this file cannot check and must not make. Its copy at
+# `scripts/agents-md.test.sh` shares everything below the first column-zero `set -uo` line
+# byte-for-byte; its header deliberately differs, because the duplication cost is a fact about that
+# copy and has no subject here. So a sync copies the body, never the file. Falsifiable from a
+# workspace holding both checkouts:
+#
+#   diff <(sed -n '/^set -uo/,$p' hooks/scripts/agents-md.test.sh) \
+#        <(sed -n '/^set -uo/,$p' ../tadeumendonca-io/scripts/agents-md.test.sh)
+#
+# Nothing makes the two move together — a pipeline is independent per repository — so a change to the
+# token list, the fixtures or the budget is a two-repository batch, and until the sibling's own merge
+# request lands, that diff is expected to show the body changes made here.
 
 set -uo pipefail
 
@@ -117,23 +130,30 @@ TOKENS_CS='PreToolUse|SessionStart|UserPromptSubmit|SubagentStop|PostToolUse|hoo
 # alternative ADDED without a fixture reddens too. The split is on a literal `|`, which assumes the
 # patterns use no grouped alternation `(a|b)`; if you ever add a group, this count breaks and you must
 # rework the split rather than raise the count.
+# EACH FIXTURE IS THE BARE TOKEN, AND THAT IS LOAD-BEARING RATHER THAN TERSE. These were sentences
+# EMBEDDING the token until this revision, and a sentence fixture leaves a second way to defeat the
+# arm that is not a deletion: NARROW the alternative to the fixture's own text. Measured — with the
+# fixture `the Codex harness`, narrowing the alternative `codex` to `the Codex harness` keeps the
+# fixture matched, keeps it load-bearing, passes every arm, and stops catching the bare vendor token
+# in the brief. Same for `agent_type` narrowed to `the agent_type field`. A bare fixture closes it:
+# any narrowing of the alternative makes it stop matching its own fixture, so the calibration reddens.
 FIXTURES_CI=(
-  'the Claude Code harness'
-  'the Codex harness'
+  'claude'
+  'codex'
 )
 FIXTURES_CS=(
-  'a PreToolUse matcher'
-  'a SessionStart notice'
-  'a UserPromptSubmit hook'
-  'a SubagentStop event'
-  'a PostToolUse event'
-  'registered in hooks.json'
-  'declared in settings.json'
-  'the agent_type field'
-  'the --dangerously-skip-permissions flag'
-  'typed as /plugin:name'
-  'typed as /tadeumendonca-skills:frontend'
-  'a slash command file'
+  'PreToolUse'
+  'SessionStart'
+  'UserPromptSubmit'
+  'SubagentStop'
+  'PostToolUse'
+  'hooks.json'
+  'settings.json'
+  'agent_type'
+  '--dangerously-skip-permissions'
+  '/plugin:'
+  '/tadeumendonca-skills:'
+  'slash command'
 )
 # The negative direction, because a pattern can rot by becoming too BROAD as well as too narrow: a
 # degenerate `.` or `.*` matches every fixture, passes the calibration, and then reddens the brief for
@@ -172,7 +192,9 @@ CAL_EOF
       _red="$(drop_alt "$_pat" "$_i")"
       if [ -n "$_red" ] && printf '%s\n' "$_f" | grep -q$_flags -- "$_red"; then
         printf '  fixture %d (%s) still matches with its own alternative removed — a sibling covers it,\n' "$_i" "$_f"
-        printf '    so deleting that alternative would go unnoticed. Make the fixture more specific.\n'
+        printf '    so deleting that alternative would go unnoticed. Fix the PATTERN — one alternative\n'
+        printf '    subsumes another — and do NOT lengthen the fixture past the bare token to escape\n'
+        printf '    this, which trades a deletion hole for a narrowing one. See the fixture block.\n'
       fi
     fi
     _i=$((_i + 1))

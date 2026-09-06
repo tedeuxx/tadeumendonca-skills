@@ -164,9 +164,26 @@ and referenced by nothing until #411, so no PR ever contained it.
 brief is true, or that it is neutral rather than merely token-free** — a sentence describing one
 harness's mechanism without naming it passes every arm. That half is held by review.
 
-**`tadeumendonca-io` carries the same artifact under the same rule**, with a verbatim copy of the
-checker at `scripts/agents-md.test.sh` there. Nothing makes the two copies move together — a pipeline is
-independent per repo — so a change to the token list or the budget is a two-repo batch.
+**`tadeumendonca-io` is to carry the same artifact under the same rule** — in its own merge request
+(`-io`#610), which had not landed when this sentence was written, so read it as the rule and not as a
+description of that repository's `main`. Every sentence crossing the repository boundary is true on
+the day **its own** repository merges, never on the day the other one does.
+
+**What is shared with its checker at `scripts/agents-md.test.sh` is the executable BODY, not the
+file.** Everything below the first column-zero `set -uo` line is byte-for-byte identical; the header
+deliberately differs, because the duplication cost is a fact about that copy and has no subject here.
+So a sync copies the body, never the file — copying the whole file destroys the sibling's header,
+which is the artifact that records the cost and carries its own falsifier. From a workspace holding
+both checkouts:
+
+```
+diff <(sed -n '/^set -uo/,$p' hooks/scripts/agents-md.test.sh) \
+     <(sed -n '/^set -uo/,$p' ../tadeumendonca-io/scripts/agents-md.test.sh)
+```
+
+Nothing makes the two copies move together — a pipeline is independent per repo — so a change to the
+token list, the fixtures or the budget is a two-repo batch, and until the sibling's merge request
+lands that command is expected to print the body changes made here.
 
 ---
 
