@@ -91,6 +91,13 @@ asking and open the Issue.
 time**, and **no multiple choice**. A questionnaire is not an interview — four questions in one message is
 a form, and offering options to pick from decides the answer for him.
 
+**This is the interview half of rule 5 of the HITL escalation format, and the canonical statement of that
+rule is `CLAUDE.md`'s *The HITL escalation format* section — not this paragraph** (#409). It is cited here
+rather than restated independently, because the rule governs the orchestrator and `CLAUDE.md` is the only
+surface measured to reach it; three surfaces each stating a rule with no canonical home is drift this
+repository has already paid for. **What is local here is the application, not the rule:** an interview
+takes no options, and an escalation always does.
+
 **And it must not block the capture.** He is often mid-something else. **One line and stop still opens the
 Issue**: question 1 unblocks the machine, the rest only improve the piece. An interview that costs him a
 sitting is one he routes around inside a week, and then there is no interview at all.

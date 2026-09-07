@@ -605,6 +605,132 @@ always-on in every session that loads the library.
 
 ---
 
+<!-- hitl-escalation-format -->
+## The HITL escalation format — five rules, and they bind THIS context (tedeuxx/tadeumendonca-skills#409)
+
+**These rules address the ORCHESTRATOR — the main session — and this file is their carrier.** The
+orchestrator is not a persona, is dispatched by nobody and preloads nothing, so it is the one actor in
+this loop that no brief reaches. Measured with one nonce per candidate surface, read back by a headless
+main session on build `2.1.263`: a repo-root `CLAUDE.md` reaches this context, a **skill body does not**
+(only its name and its `description` do), and neither does `AGENTS.md`. So the rules are written here,
+in the imperative, rather than in the skill library — **a rule preloaded by every profile and binding on
+none of them is the shape this repository already fails at.**
+
+**Scope: an escalation rising out of a running loop.** Not every question anyone has for the owner — a
+design conversation, an interview, an ad-hoc request typed at the terminal is none of them an
+escalation, whatever its subject. What makes something qualify is the escalation standard's five
+clauses; what follows is the FORM, once it does.
+
+### The five rules
+
+1. **One decision per activation.** Two, however short, is a decision list — he has to rebuild context
+   twice. Ask the first; carry the second to its own activation.
+2. **The activation is a tweet. The context lives in the OPTIONS.** Terse is not context-free: each
+   option states its own consequence, and that is the whole preamble. The reasoning belongs in an
+   artifact he can open, never in the interruption.
+3. **A picker, never prose numbering. At most four options** — a ceiling, not a target. **Bounded:**
+   `AskUserQuestion` is absent from a headless session (`claude -p`), where the model degrades silently
+   to exactly the prose numbering this rule forbids. Every escalation path today is interactive, so the
+   rule is obeyable today; a headless path added later would break it and nothing would say so.
+4. **A merge is an order plus a link, not a question.** The test: *is there a second option you would
+   actually defend?* If not it is an instruction — one line, the act and the object, no options and no
+   recommendation. The tell in a bad one is that every option is the same act at a different time.
+5. **An interview question takes NO options; an escalation always does.** Opposite rules, different
+   acts: an interview elicits what he thinks, and a menu puts words in his mouth; an activation asks him
+   to take a decision the loop has already reduced, and the options are what make it fast.
+
+### Rule 4 was BUILT as a hook and DELETED — do not build it again
+
+It shipped as `hooks/scripts/action-pendency-guard.sh` in `tedeuxx/tadeumendonca-skills` and was deleted
+at `bce25676` on the owner's ruling. Three successive narrowings were each found refusing a genuine
+decision, ending with all four of this loop's own merge-gate holds and with `Merge it / Request changes`
+— the class its verb set excluded `approve` in order to protect. It classified by **label spelling**
+rather than by **choice shape**, so the narrowings were a search over spellings and not a convergence.
+
+**The transferable half: a preventive control whose false positives are unobservable by the person it
+protects is worse than no control, however good its true positives.** A `PreToolUse` denial lands before
+he sees anything, so a suppressed decision reaches him as prose that reads like a decision already taken
+— the defect the control existed to prevent, produced by the control, where nobody can see it. **Rule 4
+is held by review, and landing it as text is precisely what survived that deletion.**
+
+### Rule 4 does not contradict the two PR-link hooks — it governs a case they do not reach
+
+`hooks/scripts/premature-pr-link-detect.sh` and `hooks/scripts/owed-pr-link-detect.sh`, both in
+`tedeuxx/tadeumendonca-skills`, answer **may** a link go at all: the PR is open, every check concluded
+successfully, and the gate's verdict at that head is one of the two terminal literals. Rule 4 answers
+**in what form**, once it may. A link failing their predicate never reaches rule 4; a link passing it is
+still free to arrive as a four-option picker, which rule 4 forbids and neither hook observes.
+`premature-pr-link-detect.sh`'s own header already names rule 4's test as a limb it cannot implement —
+*"'Is this ask a decision he holds' is not knowable at any layer, and making it guessable would be
+theatre."* **So rule 4 supplies vocabulary for a hole that hook already admits, rather than a second
+opinion about a question it already answers.**
+
+### This block is rule 5's CANONICAL statement
+
+Rule 5 already existed, operatively, in two files of `tedeuxx/tadeumendonca-skills` —
+`commands/new-issue.md`'s interview constraint and `commands/sprint-planning.md`'s
+interview-versus-activation split, the second the fuller of the two. **Both now cite this block rather
+than state the rule independently**, because a third independent statement with no canonical home is the
+drift this repository has already paid for once. **There is deliberately no string-identity gate arm:**
+with one copy of the sentence there is nothing for two copies to disagree about. The cost is the mirror
+of that — nothing mechanical stops a fourth restatement appearing, and only review will catch it.
+
+### What enforces this — PER RULE, and the answers differ
+
+**Do not flatten these into *nothing enforces this*.** That sentence is false, and false in the
+permissive direction: it reads as *do not try*, and one of the five is cheaply detectable.
+
+- **Rule 1 is a COUNT, and detection is possible.** An activation is an `AskUserQuestion` tool-use block
+  written to the transcript in full, so `questions | length != 1` is a predicate rather than a judgement
+  about what an option *means* — precisely the property the deleted guard lacked. **The detector is NOT
+  built and is a separate slice**, with its own predicate, test file and calibration. That is a forward
+  reference and not a promise with a date: it is possible, and today it does not exist.
+- **Rule 3's option ceiling has never been violated, and rule 2's mechanical half is clean too** — no
+  question has ever carried more than four options, and no option has ever carried an empty description.
+  A gate on either would be a green that has never been red.
+- **Rule 2's live half — the preamble — is HYPOTHESIS-GRADE and no threshold may be built on it.** The
+  characters preceding an activation can be counted, but no layer separates an escalation's preamble
+  from ordinary work narration, so the number is not a predicate.
+- **Rules 2, 4 and 5 are held by REVIEW.** That is their ceiling, and saying so is the point.
+
+**The three figures above, with the command that produced them** — measured 2026-09-07 over this
+machine's own transcripts, a corpus that grows, so read them as a snapshot rather than as a constant:
+
+```
+jq -rs '[.[]|select(.type=="assistant")|.message.content[]?
+        |select(.type=="tool_use" and .name=="AskUserQuestion")|.input.questions]
+        |"activations=\(length) multi_question=\(map(select(length!=1))|length)"' \
+   ~/.claude/projects/<project-dirs>/*.jsonl
+# activations=199 multi_question=16      -> rule 1: an 8% live base rate
+# swap the trailing filter for `.[]?|.options` and count `select(length>4)` -> 0 of 225 questions
+#                                        and count options with an empty `.description`   -> 0 of 633
+```
+
+**Both zeroes were calibrated rather than trusted:** loosening the ceiling from `length>4` to `length>3`
+returns **25**, and counting options whose description is *non*-empty returns **633 of 633** — so each
+selector can produce a non-zero answer and the zero is a real zero rather than a dead pattern.
+
+### The two copies of this block must stay identical
+
+**It is shared, byte for byte, between `CLAUDE.md` at the root of `tedeuxx/tadeumendonca-skills` and
+`CLAUDE.md` at the root of `tedeuxx/tadeumendonca-io`** — the escalation precondition is a running loop,
+a loop is two milestone objects in two repositories, and a session rooted in one repository does not
+load the other's `CLAUDE.md`. A rule landed in one is half a rule. From a workspace holding both
+checkouts:
+
+```
+diff <(sed -n '/^<!-- hitl-escalation-format -->$/,/^<!-- \/hitl-escalation-format -->$/p' tadeumendonca-skills/CLAUDE.md) \
+     <(sed -n '/^<!-- hitl-escalation-format -->$/,/^<!-- \/hitl-escalation-format -->$/p' tadeumendonca-io/CLAUDE.md)
+```
+
+**That is an OBLIGATION and not a claim about either copy's current state — nothing checks it, and
+nothing makes the two move together.** Pipelines are independent per repository, so a change to these
+rules is a two-repository batch, and the command above is expected to print a difference in the window
+between the two merges.
+<!-- /hitl-escalation-format -->
+
+---
+
 ## Scratch — the session scratchpad, not a repo directory (#245)
 
 **A repo-root `.scratch/` used to be the documented place for throwaway files. It is retired.** It was

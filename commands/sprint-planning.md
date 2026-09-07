@@ -383,6 +383,13 @@ decision he has to take, where the options are what make it fast. This rite now 
 which is the strictest reading of the standing rule it has ever satisfied; it is the fifteen-question
 form that broke it.
 
+**That paragraph is this rite's APPLICATION of rule 5 of the HITL escalation format; the canonical
+statement of the rule is `CLAUDE.md`'s *The HITL escalation format* section** (#409). It is left standing
+verbatim rather than replaced by a bare pointer for two reasons: a gate arm in
+`hooks/scripts/inventory-counts.test.sh` pins its opening clause as a literal, and it is the one place
+the two rules are shown colliding on a concrete act. **It is not an independent source** — if it ever
+disagrees with `CLAUDE.md`, `CLAUDE.md` wins and this paragraph is the defect.
+
 ### 3c · recompose, and the loop terminates at TWO activations
 
 **A change recomposes and re-activates once. That is the bound.** The second activation carries the
