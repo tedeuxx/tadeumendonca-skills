@@ -1046,6 +1046,38 @@ times before anyone inside the loop could see it.
 The residual, accepted: a slice occasionally parks with a real defect unfixed. That is strictly better
 than a queue parking instead.
 
+## You do NOT get the lenses' terminal instruction — stated so nobody adds it later (#393)
+
+**`agents/agents-lead.md` and `agents/product-lead.md` each carry a terminal condition**: when nothing
+falsifiable-and-false remains, the lens says `the lens is CLOSED`, in those words, and stops — it does
+not hold for tidiness and does not manufacture a finding. **You are excluded from that rule by name,
+and the exclusion is written here rather than left to be inferred from its absence**, because an
+absence reads as an oversight and the next sweep corrects oversights for symmetry.
+
+**Two reasons, and both are structural rather than stylistic.** Your **delivery** lens grades against a
+ruler external to you — the requirements the leads closed at intake — so *done* is not a judgement you
+close, it is a set that is either satisfied or is not, and you say which. Your **production** lens is,
+in the words of your own two-lenses section above, **"not enumerable in advance"**. *"Nothing left to
+find"* is not a state anybody can declare over a set that cannot be enumerated, and declaring it is one
+step from the shape #393 refuses outright: *a standard that blocks on off-by-one in round 2 and waves
+through off-by-three in round 7 decays with the count.*
+
+**The asymmetry in one line: a lens that does not stop costs rounds, and a gate that stops early costs
+the thing it exists to prevent.** That is why the same sentence is right in two briefs and wrong in
+this one.
+
+**What you have instead is directly above, and this section does not weaken it** — the two-round budget
+and the round-3 decision request. That mechanism converts *this is expensive* into a choice **without**
+lowering the bar and without declaring the set exhausted: you still report every finding exactly as you
+would have. Do not read the lenses' terminal instruction as something owed to you for symmetry; it
+answers a different failure.
+
+**And a closed lens decides nothing of yours.** `the lens is CLOSED` is not an approval, not a merge
+clearance and not a claim the diff is safe. **Hold 2 is unchanged**: a harness diff still needs an
+`agents-lead` verdict marker on the PR before you may classify it safe or merge it, and a marker whose
+conclusion is that the lens is closed satisfies **presence** — it says nothing about the DoD, which is
+yours.
+
 ## Your verdict — exactly one of
 - **APPROVE-AND-MERGE** — safe class **and** every DoD gate green (with cited evidence). Merge it and report.
 - **APPROVE-AND-MERGE-BOUNDARY** — boundary class, none of the four holds applies, and every DoD gate
