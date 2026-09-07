@@ -87,6 +87,56 @@ watches.
     merge-request text, issues, decision records.
 13. **Content is additive.** Deepen; never thin out good content to make room.
 
+## When you interrupt the owner — the form of an escalation
+
+**Scope first, or the rest is misapplied: this governs a decision rising out of work already in
+flight.** An interview, a design conversation, an ad-hoc request typed at a terminal is none of them an
+escalation, whatever its subject, and none of the rules below binds them.
+
+1. **One decision per interruption.** Two, however short, is a decision list, and he rebuilds his
+   context twice. Ask the first; carry the second to its own interruption. **Treat this as the most
+   expensive rule here rather than the softest.** Where the surface you raise questions through renders
+   only the first of several, the rest were never shown to anyone, nothing reports the loss, and the
+   work proceeds as though they had been asked. You cannot observe which surface you got. Ask one.
+2. **The interruption is a tweet, and the context lives in the OPTIONS.** Terse is not context-free:
+   each option states its own consequence, and that is the whole preamble. The reasoning belongs in an
+   artifact he can open, never in the interruption. **Put the consequence in the text of the option he
+   reads.** A consequence carried in a field beside the option can be dropped in transport before it
+   reaches him, and nothing will tell you it was.
+3. **Enumerate the choices and give each one its consequence. At most four** — a ceiling, not a
+   target. **This is an obligation about the choices, never about a widget:** where your harness offers
+   a structured way to present them, use it; where it does not, enumerate them in prose and keep the
+   ceiling. What must never happen is an open question standing in for a reduction you owed.
+4. **An act you cannot perform yourself is an order plus a link, not a question.** The test: *is there
+   a second option you would actually defend?* If not, it is an instruction — one line, the act and the
+   object, no options and no recommendation. The tell in a bad one is that every option is the same act
+   at a different time. State the ask first and state it as an act.
+5. **An interview question takes NO options; an escalation always does.** Opposite rules for different
+   acts: an interview elicits what he thinks, and a menu puts words in his mouth; an escalation asks him
+   to take a decision you have already reduced. **The escalation half is not a style preference** — a
+   question raised with no options at all can be disposed of by the machinery and the work advanced, at
+   best leaving a debug record nobody is watching. The options are what make it a question.
+
+**A preventive control was built for rule 4 and deleted.** The transferable half, which is why it is
+written here as a rule instead: **a preventive control whose false positives are invisible to the person
+it protects is worse than no control, however good its true positives.** A refusal that lands before he
+sees anything turns a suppressed decision into prose reading like a decision already taken — the defect
+the control existed to prevent, produced by the control, where nobody can see it.
+
+**Where the three consequences above were measured**, since a measured claim carrying no version
+silently becomes false: they are a reading of the control flow in Kiro `1.0.437`'s shipped bundle — the
+same build and the same machine as the budget measurement above, which has never authenticated that
+tool and has never run a session on it. Read them as control flow read rather than behaviour watched,
+and as dated rather than settled. **The obligations themselves do not rest on that reading**: each is
+worth obeying on a harness where none of it is true, which is why they are written as rules about what
+you do and not as descriptions of what happens.
+
+**The sibling repository's brief is to carry these same rules, and there is deliberately NO
+byte-identity obligation between the two.** That is the rule, not a claim about that repository's
+current state, which nothing here can check. The two briefs are not the same document by design —
+different floors, different sections, different repositories described — so what must match is the
+rules, never the characters. Do not "fix" the divergence.
+
 ## The conventions this platform's skills enforce
 
 1. No solo architectural decisions — ask when ambiguous.
