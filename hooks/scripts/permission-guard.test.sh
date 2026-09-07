@@ -160,6 +160,33 @@ check_reason() {
   fi
 }
 
+# ADDED #413. `check_reason` cannot reach rule 7c: that rule only runs for the ONE agent rule 7b
+# admits, so an unstamped payload is denied by 7b and never gets there. This is `check_reason` with
+# `check_agent`'s stamping — the two existing helpers, composed, not a third semantics.
+#
+# WHY IT HAD TO EXIST AT ALL: before this, every 7c arm in this file asserted the VERDICT and nothing
+# else, and 7c denies on all four causes — so the whole battery stayed green under any rewrite of the
+# messages, including one that deleted the cause it names. #413 rewrote those messages, and a rewrite
+# with no assertion behind it is untested by construction.
+check_agent_reason() {
+  want="$1"
+  agent="$2"
+  desc="$3"
+  needle="$4"
+  cmd="$5"
+  out=$(jq -n --arg c "$cmd" --arg a "$agent" '{tool_input:{command:$c}, agent_type:$a}' | bash "$GUARD")
+  got=$(verdict "$out")
+  reason=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""')
+  if [ "$got" = "$want" ] && printf '%s' "$reason" | grep -qF "$needle"; then
+    pass=$((pass + 1))
+    printf 'ok    %-6s %s\n' "$got" "$desc"
+  else
+    fail=$((fail + 1))
+    printf 'FAIL  want=%s/%s got=%s  %s\n      cmd: %s\n      reason: %s\n' \
+      "$want" "$needle" "$got" "$desc" "$cmd" "$reason"
+  fi
+}
+
 echo "--- rule 7: pushing to the trunk, in every spelling ---"
 check DENY  "explicit origin main"          "git push origin main"
 check DENY  "explicit with -C"              "git -C /some/repo push origin main"
@@ -331,6 +358,12 @@ chmod +x "$GHFAIL_7C/gh"
 REAL_PATH_7C="$PATH"
 PATH="$GHFAIL_7C:$PATH"
 check_agent DENY  "tadeumendonca-skills:quality-assurance" "cause 2 — the API call fails (no network / expired auth / rate limit): denied (#341)" "gh pr merge 149 --merge"
+# #413 — THE STDERR REACHES THE MESSAGE. The read used to end `2>/dev/null`, so the one line that
+# says WHICH cause fired was deleted before anything could read it and the deny had to enumerate all
+# four. This needle is the stub's own stderr: it is in the message only if the capture survives.
+# Restore `2>/dev/null` on the read and this arm goes red while every verdict arm stays green, which
+# is the gap it was added to close.
+check_agent_reason DENY "tadeumendonca-skills:quality-assurance" "cause 2 — gh's own stderr is carried into the deny, not discarded (#413)" "error connecting to api.github.com" "gh pr merge 149 --merge"
 PATH="$REAL_PATH_7C"
 rm -rf "$GHFAIL_7C"
 
@@ -356,6 +389,21 @@ REAL_PATH_7C="$PATH"
 PATH="$GHREF_7C:$PATH"
 check_agent DENY  "tadeumendonca-skills:quality-assurance" "cause 3 — the PR ref resolves to no pull request: denied (#341)" "gh pr merge 999999 --merge"
 check_agent ALLOW "tadeumendonca-skills:quality-assurance" "cause 3's control — the SAME stub clears PR 149, so the stub discriminates on the ref" "gh pr merge 149 --merge"
+# #413 — THE CAUSE IS ATTRIBUTED, AND IT LEADS. Where `gh` names the reference failure, the message
+# must say so rather than list four causes with this one last. The needle is the attribution, so a
+# revert to the enumerating form reddens here.
+check_agent_reason DENY "tadeumendonca-skills:quality-assurance" "cause 3 — the reference cause is ATTRIBUTED and leads the message (#413)" "names NO pull request" "gh pr merge 999999 --merge"
+# #413 — THE REPOSITORY THE READ RESOLVED AGAINST IS NAMED, on the IMPLICIT spelling. This is the
+# incident's own shape: no `--repo`, so the old message interpolated nothing and the operator could
+# not learn which repository was looked in. The needle is deliberately the STRUCTURAL clause and not
+# this checkout's slug — a slug would pin the assertion to one clone's `origin` and go red on a fork
+# for a reason that has nothing to do with the rule.
+check_agent_reason DENY "tadeumendonca-skills:quality-assurance" "cause 3 — an absent --repo is stated as resolving against the cwd repository (#413)" "resolved the reference against the cwd repository" "gh pr merge 999999 --merge"
+# #413's OTHER HALF — the EXPLICIT spelling names the slug the command itself carried. Asserting this
+# one against a literal is safe precisely because the test supplies it, so nothing about the machine
+# it runs on can move it. Without this arm the clause above could be satisfied by a message that
+# always says "the cwd repository" and never reads `--repo` at all.
+check_agent_reason DENY "tadeumendonca-skills:quality-assurance" "cause 3 — an explicit --repo is echoed back as the resolved repository (#413)" "'probeowner/proberepo', named by this command's own --repo flag" "gh pr merge 999999 --repo probeowner/proberepo --merge"
 PATH="$REAL_PATH_7C"
 rm -rf "$GHREF_7C"
 

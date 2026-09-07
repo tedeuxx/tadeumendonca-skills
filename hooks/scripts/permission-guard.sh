@@ -1633,6 +1633,42 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
       case "$qa_ref" in -*|'') qa_ref="" ;; esac
       qa_repo="$(printf '%s' "$bare" | sed -nE 's/.*[[:space:]](-R[[:space:]=]*|--repo[[:space:]=]*)([^[:space:]]+).*/\2/p')"
       qa_pr_json=""
+      qa_err=""
+      # WHERE THE READ RESOLVED, NAMED (#413). The deny used to interpolate `${qa_repo:+ --repo …}`,
+      # so on the IMPLICIT spelling — no `--repo`, which is the everyday one — the repository was
+      # omitted from the message ENTIRELY. The operator read `'gh pr view 610' returned nothing` and
+      # could not learn the single most diagnostic fact: which repository was looked in. Measured on
+      # `-io#610`: the same reference merged cleanly with an explicit `--repo`, and nothing in the
+      # deny pointed at the difference.
+      #
+      # THIS RESOLVES THE REPOSITORY FOR THE MESSAGE ONLY. It does NOT feed `gh`, and it must not:
+      # the whole reason #413 is a message fix is that having this hook GUESS a repository would read
+      # a verdict from a PR the merge command is not going to merge — a confidently wrong ALLOW, the
+      # shape this file's own comments already record shipping once. The decision logic below is
+      # byte-for-byte what it was; only the words change.
+      #
+      # `git remote get-url` is LOCAL — no network call, and rule 7 already reads local git through
+      # `git -C … symbolic-ref`, so this is in-pattern rather than a new dependency. It runs in the
+      # hook's own cwd, which is the same cwd `gh` would resolve against, so it answers the question
+      # actually asked. If it fails (not a repo, no `origin`, no `git`), the message degrades to the
+      # FLOOR the Issue named: it still says an absent `--repo` resolves against the cwd repository.
+      qa_repo_shown=""
+      if [ -z "$qa_repo" ]; then
+        qa_origin="$(git remote get-url origin 2>/dev/null || true)"
+        qa_origin="${qa_origin%.git}"
+        qa_origin="${qa_origin%/}"
+        case "$qa_origin" in
+          */*) qa_repo_shown="$(printf '%s' "$qa_origin" | sed -E 's#^.*[:/]([^/:]+/[^/:]+)$#\1#')" ;;
+        esac
+        case "$qa_repo_shown" in */*) : ;; *) qa_repo_shown="" ;; esac
+      fi
+      if [ -n "$qa_repo" ]; then
+        qa_where="'$qa_repo', named by this command's own --repo flag"
+      elif [ -n "$qa_repo_shown" ]; then
+        qa_where="'$qa_repo_shown' — this command carries NO --repo, so 'gh' resolved the reference against the cwd repository, and that is its 'origin'"
+      else
+        qa_where="the cwd repository — this command carries NO --repo, so 'gh' resolved the reference against the cwd repository, whose 'origin' could not be read from here"
+      fi
       # `qa_unavailable` IS THE SENTINEL THE OLD `''` ARM DID NOT HAVE. Non-empty means "the read did
       # not happen", and it carries the reason in the words the deny message needs — one string per
       # cause, so the message attributes rather than shrugging.
@@ -1642,17 +1678,43 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
       elif ! command -v jq >/dev/null 2>&1; then
         qa_unavailable="'jq' is not on PATH, so the verdict comment cannot be parsed"
       else
+        # THE DISCRIMINATOR WAS BEING THROWN AWAY (#413). The read below used to end `2>/dev/null`,
+        # which discards the ONE string that separates "this reference names no pull request" from
+        # "the network is down" — 'gh' emits `Could not resolve to a PullRequest` on stderr and this
+        # hook deleted it, then wrote a deny listing four causes in the order that puts the actual
+        # one LAST. Capturing it costs no extra call.
+        #
+        # CAPTURED TO A FILE RATHER THAN MERGED WITH `2>&1`, and that is not fastidiousness: 'gh'
+        # writes update notices and other chatter to stderr on a SUCCESSFUL read too, so merging the
+        # streams would hand `jq` an unparseable payload and turn a READABLE verdict into a deny. On
+        # this rule that trades a cosmetic defect for a wedge on the irreversible act.
+        qa_errfile="$(mktemp 2>/dev/null || printf '%s' "${TMPDIR:-/tmp}/permission-guard-7c-$$.err")"
         if [ -n "$qa_repo" ]; then
-          qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --repo "$qa_repo" --json headRefOid,comments,closingIssuesReferences 2>/dev/null || true)"
+          qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --repo "$qa_repo" --json headRefOid,comments,closingIssuesReferences 2>"$qa_errfile" || true)"
         else
-          qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --json headRefOid,comments,closingIssuesReferences 2>/dev/null || true)"
+          qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --json headRefOid,comments,closingIssuesReferences 2>"$qa_errfile" || true)"
         fi
+        qa_err="$(head -n 1 "$qa_errfile" 2>/dev/null || true)"
+        rm -f "$qa_errfile"
         if [ -z "$qa_pr_json" ]; then
-          qa_unavailable="'gh pr view ${qa_ref:-<the current branch>}${qa_repo:+ --repo $qa_repo}' returned nothing — no network, missing or expired auth, a rate limit, or a PR reference that resolves to no pull request"
+          # THE CAUSES ARE ORDERED BY WHAT ACTUALLY HAPPENS, not by what is easiest to list. The
+          # reference cause leads in every arm, and where 'gh' named it the message ATTRIBUTES
+          # instead of enumerating.
+          case "$qa_err" in
+            *'Could not resolve to a PullRequest'*|*'no pull requests found'*|*'Could not resolve to a Repository'*)
+              qa_unavailable="the PR reference in this command names NO pull request in the repository the read resolved against, which is ${qa_where} — 'gh' said so itself: \"${qa_err}\". This is a wrong-reference or wrong-repository error, NOT a network or auth one"
+              ;;
+            '')
+              qa_unavailable="'gh pr view ${qa_ref:-<the current branch>}${qa_repo:+ --repo $qa_repo}' returned nothing, against ${qa_where}. 'gh' printed nothing on stderr to say why, so the causes cannot be told apart from here — in the order they actually occur: the PR reference names no pull request in that repository, or auth is missing or expired, or a rate limit was hit, or there is no network"
+              ;;
+            *)
+              qa_unavailable="'gh pr view ${qa_ref:-<the current branch>}${qa_repo:+ --repo $qa_repo}' returned nothing, against ${qa_where} — 'gh' said: \"${qa_err}\". Read that line first: it, and not this hook, knows whether the reference, the auth or the network is at fault"
+              ;;
+          esac
         fi
       fi
       if [ -n "$qa_unavailable" ]; then
-        deny "Blocked: the merge floor could not READ your gate verdict, and since #341 that denies instead of passing — ${qa_unavailable}. This is NOT a finding about the PR: the floor is not saying your verdict is wrong, it is saying it could not confirm one exists on the current head, and the owner's rule for that case is 'no readable verdict, no merge'. Fix the precondition named above and run this again — check 'gh auth status', check the network, and check that the PR reference in this command names a real pull request in the intended repo. If it cannot be fixed from here, the unblock is manual and the owner's: hand him the PR and say which precondition was missing."
+        deny "Blocked: the merge floor could not READ your gate verdict, and since #341 that denies instead of passing — ${qa_unavailable}. This is NOT a finding about the PR: the floor is not saying your verdict is wrong, it is saying it could not confirm one exists on the current head, and the owner's rule for that case is 'no readable verdict, no merge'. Fix the precondition named above and run this again — check FIRST that the PR reference in this command names a real pull request in the repository named above, and that you passed '--repo <owner/repo>' if the PR does not live in the cwd repository; only then 'gh auth status' and the network. If it cannot be fixed from here, the unblock is manual and the owner's: hand him the PR and say which precondition was missing."
       fi
       if [ -n "$qa_pr_json" ]; then
         # ── BEGIN duplicated from session-wip.sh's verdict_suffix() — keep byte-identical ──
