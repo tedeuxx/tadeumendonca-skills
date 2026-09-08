@@ -731,6 +731,124 @@ between the two merges.
 
 ---
 
+<!-- review-chain-routing -->
+## The review chain is routed by TYPE — one table, and it binds THIS context (tedeuxx/tadeumendonca-skills#393)
+
+**Like the block above, these rules address the ORCHESTRATOR — the main session — and this file is
+their carrier.** The orchestrator is not a persona, is dispatched by nobody and preloads nothing, so a
+brief cannot reach it and neither can a skill body. **Every persona that loads the states table is a
+dispatchee, and a dispatchee cannot select its own dispatch.** That is why the operative wording is
+here and the `agents-configuration` states table carries a pointer instead.
+
+**Re-measured 2026-09-08 on build `2.1.263` rather than inherited from #409** — three headless probes,
+every tool disallowed, each asking only whether a heading unique to one repository's root brief was in
+the loaded context:
+
+```
+cat <prompt-file> | claude -p --disallowed-tools Read Grep Glob Bash Task Edit Write
+# rooted in -skills                            -> SKILLS=YES  IO=NO
+# rooted in -skills, --add-dir <the -io path>  -> SKILLS=YES  IO=NO
+# rooted in -io                                -> SKILLS=NO   IO=YES
+```
+
+**The middle row is the one that is not obvious, and it is why this block lives in two repositories
+rather than one:** an additional working directory does **not** bring its `CLAUDE.md` with it. A
+session can read, edit and commit in a sibling checkout while loading none of that repository's root
+brief. A rule landed in one repository is half a rule.
+
+### The table
+
+| type | which lenses run on the review |
+|---|---|
+| **`loop`** | **one lens pass — `agents-lead` — plus `quality-assurance`.** No copy lens, no `tech-lead` |
+| **`product`** | **the full chain** — the leads' lenses as the slice warrants, plus `quality-assurance` |
+| **`content`** | **the content pair** — `content-writer` drafts, `content-reviewer` repairs in place, at most two rounds — plus `quality-assurance` |
+
+**`quality-assurance` appears in every row and is not a variable.** It runs on every merge request
+under both its lenses, whatever the type. **Nothing in this table narrows a gate, removes a hold or
+changes a verdict literal.** In particular the `loop` row does not relax hold 2 — a harness diff still
+needs an `agents-lead` verdict marker **on the PR** before the gate may merge it — it says that the
+marker plus the gate is the *whole* chain rather than the first half of a longer one.
+
+**It is a routing default, not a lock.** `CLAUDE.md` already leaves the orchestrator the judgment of
+whether a given review specialist needs dispatching **at all** on a particular diff; this table
+answers *which lenses are eligible for this type*, and that judgment still runs inside the row.
+**Adding a lens that the row does not name is the deviation this table exists to make visible** —
+so if a `loop` diff genuinely needs a second opinion, say why in the dispatch rather than letting the
+default drift back to the full ceremony.
+
+### It is NOT an alternative to the terminal instruction — the two answer different questions
+
+`agents/agents-lead.md` and `agents/product-lead.md` carry a terminal condition: **a lens now knows how
+to stop.** This table decides **which lenses run at all.** They compose — one bounds the length of a
+pass, the other bounds how many passes there are — and a reader who meets the table without this
+sentence will read the two as competing remedies for the same nineteen rounds and pick one.
+
+### What this buys is DURABILITY, not behaviour — and the measurement says so plainly
+
+**Across the nine merge requests measured on 2026-09-07, ZERO copy-lens verdicts ran.** The chain that
+actually executed was `agents-lead` marker → gate, which is exactly what the `loop` row above
+prescribes — **with nothing anywhere routing it.**
+
+**So this table changes nothing about today.** It makes the current practice survive the orchestrator
+forgetting it, and that is the whole of the claim. **Do not read it as fixing a live misrouting; there
+is none to fix.** What it removes is the dependency on a fresh context happening to know the rule,
+which is the dependency that failed five times.
+
+### And it is text — the Issue's own admission, carried rather than buried
+
+**A correct rule saying the same thing already existed and was overridden five times running.** It
+lived in the orchestrator's memory and in a retrospective; no artifact the loop reads carried it.
+**`CLAUDE.md` is the carrier because it is the surface the measurement above shows actually reaches
+this context — not because text became enforcement.** By this loop's own test — *would something stop
+me, or only my memory?* — **this is an instruction**, and it is the right kind, because the failure it
+prevents is delay rather than escape.
+
+### The `content` row does NOT touch criterion 10, and must never be read as narrowing it
+
+Criterion 10 fires on a reader-facing diff regardless of type, and it is deliberately phrased to fail
+closed. **It did not fire on the `loop` diffs measured because the gate reasoned about it explicitly
+and ruled correctly, not because the trigger is loose** — `-io#616`'s verdict states the reasoning on
+the record. **A routing label that could override a fail-closed copy trigger would be a loosening
+disguised as a routing change.** This table names which lenses are dispatched; it says nothing about
+which criteria the gate applies, and the gate's criteria are untouched by it.
+
+### No round counter, and no gate arm — both refusals are deliberate
+
+**No rule here is keyed on a round number.** *After N rounds, lower the bar* decays with the count and
+hands a gate a reason to wave through the thing it exists to catch.
+
+**And nothing gates this table.** A string-drift arm asserting the block exists and carries its three
+rows is buildable and is deliberately not built here — but note what even that would and would not
+buy: **nothing can observe which chain a dispatch actually ran.** No artifact records a dispatch, and
+the one lens whose participation would be visible posts nothing at all — `permission-guard.sh` rule 5e
+denies `product-lead` the comment subcommands, so its findings reach a PR only quoted inside the
+gate's own marker. **A green here could only ever mean the rule is written down.** That is the same
+limit the `filed → description closed` rows already carry in their own words.
+
+### The two copies of this block must stay identical
+
+**It is shared, byte for byte, between `CLAUDE.md` at the root of `tedeuxx/tadeumendonca-skills` and
+`CLAUDE.md` at the root of `tedeuxx/tadeumendonca-io`**, for the reason the probe above measured: a
+session rooted in one repository loads neither the other's root brief nor the sibling's, even with the
+sibling added as a working directory. And **the routing types are not repository-scoped** — `-io`
+carries `loop` Issues too (`gh issue list --repo tedeuxx/tadeumendonca-io --state all --label loop
+--limit 200 --json number --jq 'length'` → **3** on 2026-09-08), so no row here is dead in either
+tree. From a workspace holding both checkouts:
+
+```
+diff <(sed -n '/^<!-- review-chain-routing -->$/,/^<!-- \/review-chain-routing -->$/p' tadeumendonca-skills/CLAUDE.md) \
+     <(sed -n '/^<!-- review-chain-routing -->$/,/^<!-- \/review-chain-routing -->$/p' tadeumendonca-io/CLAUDE.md)
+```
+
+**That is an OBLIGATION and not a claim about either copy's current state — nothing checks it, and
+nothing makes the two move together.** Pipelines are independent per repository, so a change to these
+rules is a two-repository batch, and the command above is expected to print a difference in the window
+between the two merges.
+<!-- /review-chain-routing -->
+
+---
+
 ## Scratch — the session scratchpad, not a repo directory (#245)
 
 **A repo-root `.scratch/` used to be the documented place for throwaway files. It is retired.** It was
