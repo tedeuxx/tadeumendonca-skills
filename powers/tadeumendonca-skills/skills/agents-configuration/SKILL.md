@@ -292,6 +292,17 @@ from the diff, from one run correctly — the artifact column names the closed d
 description says nothing about who was asked. `hooks/scripts/inventory-counts.test.sh` asserts that these
 rows and the `new-issue.md` branch **exist and say this**; it cannot assert that anyone obeyed them.
 
+**These rows route INTAKE. The REVIEW chain is routed too, and its operative wording is NOT here (#393).**
+It lives in `CLAUDE.md` at each repository's root, as one table: `loop` → one lens pass plus the gate ·
+`product` → the full chain · `content` → the content pair plus the gate. **This paragraph is a pointer
+and nothing else** — it names the rows without stating their conditions, and the conditions are the
+rule. The carrier is a root brief rather than this skill because the actor that selects a review chain
+is the **orchestrator**, and a nonce probe (#409, re-measured on #393 against build `2.1.263`) shows a
+skill body does not reach it while a root `CLAUDE.md` does — while every persona that loads *this* file
+is a dispatchee, and a dispatchee cannot select its own dispatch. **Do not copy the table here.** One
+rule in two wordings with no canonical home is exactly #329, where the operative copy ended up in the
+surface nobody read.
+
 **`drafted` adds NO label, and that is why it is allowed to exist (#317).** It is a `content`-only
 sub-state between *in progress* and *reviewed*, and the only thing that records it is a file already in
 the branch's diff — so the *"what observable artifact says this rule was applied"* test is satisfied
