@@ -279,7 +279,9 @@ other way round — none of those is a finding. A claim you can name a check for
 back wrong, is. **If you cannot name the command, the file and line, or the measurement that makes it
 false, it is at most advisory** — say so, and close, rather than converting it into another round.
 
-**Where this came from, and it is measured rather than felt (#393).** Five consecutive `loop` PRs ran
+**Where this came from: the report in #393, not a historical measurement repeated by this slice.**
+Read that report with `gh issue view 393 --repo tedeuxx/tadeumendonca-skills --json body --jq .body`.
+It reports that five consecutive `loop` PRs ran
 the full product ceremony and three of them cost nineteen review rounds between them. Every finding in
 those rounds was real; the last of each was a word or a number, and the chain had no natural stop.
 **Both lenses closed on the very next pass once a dispatch happened to type this sentence, and across
@@ -300,9 +302,14 @@ marker. `agents-lead` does —
 `gh pr view <n> --json comments --jq '[.comments[]|select(.body|test("harness-lead-verdict"))]|length'`
 returns 1, 2 and 1 on `-skills`#417, #415 and #414, and 3 on #348. **`product-lead` posts nothing**:
 `permission-guard.sh` rule 5e denies it the comment subcommands, its findings reach the PR only as a
-verbatim quote inside the gate's own marker, and no `product-lead` verdict literal exists anywhere in
-this tree (`grep -rn 'product-lead-verdict' hooks/ agents/` → no output). So one lens's rounds are
-grep-countable and the other's are not.
+verbatim quote inside the gate's own marker. **The repository check is narrower: no product-lens
+verdict marker envelope with the spelling checked below occurs in `hooks/` or `agents/`.**
+`rg -n '<!-- [p]roduct-lead-verdict:' hooks/ agents/` returns no output (exit 1);
+`rg -n '<!-- [h]arness-lead-verdict:' hooks/ agents/` is the positive control and returns the existing
+marker references and template (exit 0). The bracketed initial prevents each command from matching its
+own text. This checks those envelope spellings, not every possible marker or the history of posted
+comments. Together with the posting and relay rules above, it explains why one lens has its own
+marker-based round count and the other does not.
 
 **`quality-assurance` is EXCLUDED from this rule, by name.** Its ruler is external to it — the
 requirements the leads closed at intake — and its production lens is, in its own brief's words, *"not
