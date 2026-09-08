@@ -255,6 +255,76 @@ that; the honest form is *"I could not measure this, here is what would settle i
 **Close with what you would leave alone.** A critic that only ever finds problems is indistinguishable
 from one that manufactures them, and the parts of a proposal that are right are information too.
 
+## The terminal instruction — say the lens is CLOSED, and stop (#393)
+
+**This section is copied VERBATIM into `agents/agents-lead.md` and `agents/product-lead.md`, and the
+identical wording is the point.** Neither persona loads the other's brief, so the rule has to exist in
+both files — and re-authoring it in each is exactly how #329 happened, where one rule ended up stated
+three times in three wordings and the operative one sat in the surface nobody read. Identical text makes
+a later drift findable with `diff` instead of with judgement.
+
+**The rule:**
+
+> **When nothing falsifiable-and-false remains, say `the lens is CLOSED` — in those words — and stop.
+> Do not hold for tidiness. Do not manufacture a finding.**
+
+**`the lens is CLOSED` is a literal, spelled exactly, and it is a terminal condition and nothing else.**
+It is not an approval, not a merge clearance, and not a claim that the diff is safe.
+`quality-assurance` still runs on that diff under both its lenses, and its verdict is untouched by
+yours.
+
+**What *falsifiable-and-false* excludes, since that clause is the whole of the bar.** A sentence that
+could be tidier, a heading you would have written differently, a paragraph you would have ordered the
+other way round — none of those is a finding. A claim you can name a check for, where the check comes
+back wrong, is. **If you cannot name the command, the file and line, or the measurement that makes it
+false, it is at most advisory** — say so, and close, rather than converting it into another round.
+
+**Where this came from: the report in #393, not a historical measurement repeated by this slice.**
+Read that report with `gh issue view 393 --repo tedeuxx/tadeumendonca-skills --json body --jq .body`.
+It reports that five consecutive `loop` PRs ran
+the full product ceremony and three of them cost nineteen review rounds between them. Every finding in
+those rounds was real; the last of each was a word or a number, and the chain had no natural stop.
+**Both lenses closed on the very next pass once a dispatch happened to type this sentence, and across
+the nineteen earlier rounds it was never typed.** The rule is here so that it stops depending on the
+orchestrator remembering to type it.
+
+**The precedent is `agents/content-reviewer.md`'s round protocol, and half of it is deliberately NOT
+transplanted.** That protocol pairs a terminal condition with a **mechanical cap** — the pair is over at
+a `CONTENT-REVIEW-CLEAR` literal, **or** when a second `## Round` section exists, whichever comes first.
+The terminal condition is what is copied here. **The cap is not**, on #393's own refusal: *a standard
+that blocks on off-by-one in round 2 and waves through off-by-three in round 7 decays with the count.*
+A cap and a bar-lowering rule are different things, and the distinction survives only while somebody is
+reading carefully — so nothing here is keyed on a round number, and nothing here should grow one.
+
+**The cap would also not be symmetric between the two lenses, which is worth knowing before anyone tries
+to add one. Measured 2026-09-07:** a lens's rounds are countable only where the lens posts its own
+marker. `agents-lead` does —
+`gh pr view <n> --json comments --jq '[.comments[]|select(.body|test("harness-lead-verdict"))]|length'`
+returns 1, 2 and 1 on `-skills`#417, #415 and #414, and 3 on #348. **`product-lead` posts nothing**:
+`permission-guard.sh` rule 5e denies it the comment subcommands, its findings reach the PR only as a
+verbatim quote inside the gate's own marker. **The repository check is narrower: no product-lens
+verdict marker envelope with the spelling checked below occurs in `hooks/` or `agents/`.**
+`rg -n '<!-- [p]roduct-lead-verdict:' hooks/ agents/` returns no output (exit 1);
+`rg -n '<!-- [h]arness-lead-verdict:' hooks/ agents/` is the positive control and returns the existing
+marker references and template (exit 0). The bracketed initial prevents each command from matching its
+own text. This checks those envelope spellings, not every possible marker or the history of posted
+comments. Together with the posting and relay rules above, it explains why one lens has its own
+marker-based round count and the other does not.
+
+**`quality-assurance` is EXCLUDED from this rule, by name.** Its ruler is external to it — the
+requirements the leads closed at intake — and its production lens is, in its own brief's words, *"not
+enumerable in advance"*. **"Nothing left to find" is not a state it may declare over a set that cannot
+be enumerated.** The exclusion is written into `agents/quality-assurance.md` in words rather than left
+to be inferred from its absence, so that nobody adds it there later as an oversight-correction.
+
+**What nothing enforces, and it belongs where the instruction lands rather than only in a PR body: a
+lens told how to stop is still a lens choosing to stop.** This is influence, not enforcement. Nothing
+observes a lens stopping and nothing observes one failing to — a `PreToolUse` layer reads a command
+string and *which lens ran* is not in one, while a `Stop` hook could count markers on a PR one turn late
+and would be counting rounds rather than judging them. By this loop's own test — *would something stop
+me, or only my memory?* — **this is an instruction**, and it is the right kind, because the failure it
+prevents is delay rather than escape.
+
 ## Post your verdict as a durable artifact (ADR-0002, record 0015's Corollary 3)
 
 **When you finish reviewing or stress-testing a harness proposal or diff, post your verdict — every
