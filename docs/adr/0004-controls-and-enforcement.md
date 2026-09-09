@@ -2005,8 +2005,13 @@ the reverse.
 | route | share, measured | surface | what it can do |
 |---|---|---|---|
 | closing keyword on merge | all of the last week's closes | `Stop` hook | **detect**, one turn late — ~~and nothing else~~ · **see the row below, added 2026-08-30** |
-| the same route, at the MERGE that causes it | same | `PreToolUse` on `Bash`, rule 7d (#363) | **refuse**, one step upstream — a different predicate, see the 2026-08-30 amendment |
-| `gh issue close` by hand | none in that window | `PreToolUse` on `Bash` | **refuse** |
+| the same route, at the MERGE that causes it | same | ~~`PreToolUse` on `Bash`, rule 7d (#363)~~ **retired 2026-09-08 (#383, S4)** | ~~**refuse**, one step upstream~~ — **nothing.** See the 2026-09-08 amendment |
+| `gh issue close` by hand | none in that window | ~~`PreToolUse` on `Bash`~~ **retired 2026-09-04 (#383, S1)** | ~~**refuse**~~ — **nothing** |
+
+**Read the table as it stands 2026-09-08: the only surviving row is the first, and it DETECTS.** Both
+refusal rows are retired, on the same criterion and in two different slices of the same audit. That the
+table had to be struck twice in five days is itself the finding — see the 2026-09-08 amendment on the
+second-order effect neither removal could see from inside itself.
 
 Both `Stop` and the hand-close refusal are `hooks/scripts/closure-artifact-guard.sh`, registered twice;
 the middle row is `permission-guard.sh` and is a **different obligation over a different artifact**, not
@@ -5128,3 +5133,130 @@ Arm: *introduces a new dependency or tool-class* — a third harness's control s
 repository's tracked set — and *sets a cross-cutting pattern others will follow*: **a control ported
 to a second harness is tracked in the repository it governs, gated on the half that is derivable, and
 made to declare the half that is not.**
+
+## Amendment (2026-09-08) — rule 7d is retired, and rules 7 and 7b are re-justified on grounds the audit had wrong (#383, slice S4)
+
+**This is the audit's last slice: the rules whose input was a decision rather than a diff.** Rules 10
+and 11 were resolved by the owner on 2026-09-04 and shipped in slice S1; what remained was rule 7d and
+the standing justification of rules 7 and 7b. The criterion is the owner's, in his words —
+*«o risco de permitir essa operacao passar é one way door decision»*, narrowed by him to *«situacoes
+irreparaveis»*. **Irreparable, not costly and not merely traceable.**
+
+### The decision, in three parts
+
+**1 · Rule 7d is REMOVED.** It compared the forge's resolved `closingIssuesReferences` against the
+`^closes:` lines of the gate's head-scoped verdict, and refused a merge about to auto-close an Issue the
+verdict never declared. What it refused is repaired **exactly** by `gh issue reopen`, at no cost, with
+nothing latched — no publication, no deploy, no tag, no distribution. It never fired in production. It
+was correct, and it loses anyway, which is the criterion behaving as designed: *a lock does not survive
+on a reparable act however correctly it fires.* Removal is **real, not a downgrade** —
+`Bash(gh pr merge:*)` is allowlisted in both `settings.json` layers and the hook decides before that
+layer, so the merge now executes silently.
+
+**2 · Rule 7 (trunk push) is KEPT, and NOT on the ground this record previously gave.** The audit's
+summary put rules 7 and 7b in one row and kept both on the *authorship* exception. **Measured, that is
+false of rule 7: it reads no `agent_type` at all** — the same payload denies under the orchestrator, the
+gatekeeper, the builder and a foreign value alike, and `permission-guard.test.sh` now pins that as three
+assertions calibrated by mutating the guard. **Push and merge are two cases, not one.**
+
+What rule 7 survives on is that **its predicate is coextensive with a latching publication.**
+`.github/workflows/version-main.yml` triggers on `push: branches: [main]` and runs
+`bump-my-version` → tag → `gh release create`. **A push to the trunk publishes a marketplace Release
+with no human act in between**, and a Release a consumer has already pulled with `/plugin update` does
+not un-happen — the same standard already applied to rule 5g's `gh release create` and
+`gh workflow run`. **The contrast with the merge floor is the whole point:** §5 of the audit refused to
+keep 7b on irreparability because a merge-time classifier cannot tell which merges latch. Rule 7 has no
+such gap. Every act it refuses publishes; every act it permits does not; the only exclusion is the
+workflow's own `bump:` loop guard.
+
+**3 · Rule 7b (the merge floor's caller check) is KEPT as a DERIVED control** — the reading already
+applied in this audit to rule 1 and `preflight`, and flagged there as an interpretation. On
+irreparability alone it would DROP, and this record says so rather than blending the grounds. Two
+measured grounds carry it, and the first alone is sufficient:
+
+- **Rule 7c is lexically INSIDE 7b's `*:quality-assurance)` arm.** Removing the caller check removes the
+  file's one fail-closed rule — the one the owner ruled on directly (#341, *«deveria travar»*) and the
+  only one whose degradation lands on the irreversible act itself. 7b is not a second opinion about the
+  merge; it is the scope 7c lives in.
+- **The verdict 7c reads cannot be attributed.** Rule 5e allowlists the *empty* `agent_type` for
+  `gh pr comment`, so the orchestrator may post; and every comment on a PR in this workspace returns
+  `authorAssociation: OWNER` whatever persona typed it — on PR #422 the `harness-lead-verdict` and the
+  `gatekeeper-verdict` are both `author: tedeuxx`, `assoc: OWNER`, which is exactly the filter 7c's `jq`
+  selects on. **A context that can post can satisfy 7c with a verdict it wrote itself.** `agent_type` is
+  the only signal separating the author of a verdict from the executor of the merge. That is this
+  ruling's own named exception in evidence: the control needs the caller **and** the command,
+  `settings.json` sees only the command and the `tools:` grant only the caller.
+
+### The second-order effect, which is the finding neither slice could see from inside itself
+
+**Slice S1 removed `closure-artifact-guard`'s `PreToolUse` arm on three facts, and its second fact was
+*"the route that does happen was already covered upstream … rule 7d denies the MERGE"*. Slice S4 removes
+rule 7d.** Each removal is defensible on the criterion — both acts are reparable at zero cost — and the
+pair leaves the whole class with **no preventive layer at all**. The surviving `Stop` arm detects only an
+Issue that DECLARES an `invocable:` promise, and #355 — the instance 7d was built from — declares none,
+so it could not have fired on that instance by any route. **An undeclared Issue auto-closed by a merge
+now has no mechanism of any kind behind it** — the same residue this record already states once above,
+now widened from two routes to the whole class.
+
+**This is a cost, not an error, and the distinction is the useful part.** The criterion grades
+*irreparability*, and a chain of reparable acts is still reparable. What the pair demonstrates is a
+sequencing hazard for any audit of this shape: **a removal justified partly by a sibling control is
+valid only until the sibling is audited, and nothing in the per-rule method notices the moment the leg
+goes away.** The struck fact is left in `closure-artifact-guard.sh` rather than deleted, so a reader
+re-auditing S1 meets the missing leg instead of an argument that still reads whole. **Price such
+removals together, or sequence them apart deliberately.**
+
+### The runtime and forge knowledge rehomed rather than deleted (#375's template)
+
+Four facts were established by probes and lived only inside 7d. All four are now in the tombstone at
+7d's former site, and are recorded here as the canonical copy:
+
+1. **`closingIssuesReferences` is PR-BODY-DERIVED.** Probed 2026-08-30 with a throwaway PR whose body
+   carried no keyword and whose single commit message carried one: the field returned `[]`. A keyword
+   living only in a commit message is invisible — and that surface cannot be edited afterwards, since
+   amending needs a force-push rule 3b denies.
+2. **A NEGATED closing keyword still creates the link** (#393, slice A). The forge parses the token, not
+   the sentence around it.
+3. **A prose mention is not a declaration.** Both gatekeeper verdicts on PR #356 contain the string for
+   Issue 355, the merge-authorising one included, *because* it was the verdict prescribing the keyword's
+   removal. Any future check over this material must anchor at column 0.
+4. **`closingIssuesReferences` and `--json files` ride on the SAME `gh pr view` call rule 7c already
+   makes, at zero additional round-trips.** A merge-time classifier is *reachable*. It remains unbuilt
+   because a path classifier cannot identify the latching case — the OG surface alone spans most of a
+   frontend, and a claim a reader has already read has no path at all.
+
+### Which layer carries this control, and the honest answer to the standing question
+
+| control | layer that holds it now |
+|---|---|
+| a merge must not auto-close an undeclared Issue | **none.** The gate's `closes:` line survives as an artifact with no machine reader; the comparison is a human's, in one command, against two artifacts that both still exist |
+| a trunk push must not publish an unreviewed Release | **rule 7**, and only rule 7 — `settings.json` cannot express *bare `git push` while HEAD is main*, `--all`, `--mirror`, `+main`, `HEAD:refs/heads/main` or `git -C <dir> push origin main`, and the forge is unavailable because `enforce_admins` on `main` is `false` |
+| only the gate merges | **rule 7b**, derived — it is the scope rule 7c lives in, and the verdict 7c reads is not attributable by any other means |
+
+### Considered options
+
+- **Keep 7d and re-justify it.** Rejected: no ground survives the criterion. Every honest justification
+  reduced to *it fires correctly and cheaply*, which is the argument the audit already refused for
+  `gh api` and the milestone pair. Exempting the merge floor from a test applied elsewhere would make
+  the criterion decorative.
+- **Keep 7d's fail-closed payload-shape arm alone.** Rejected: its object is the same reparable act, so
+  it inherits the same verdict. A fail-closed arm guarding a reparable act is a wedge with no payoff.
+- **Remove 7b and lift 7c out of its `case`.** Rejected on ground 2 above: 7c would then clear a merge
+  under a verdict the merging context could have written itself, since no layer can attribute the
+  comment. That is strictly worse than the state before 7c existed, because it reads as verified.
+- **Leave `closingIssuesReferences` in the `--json` fetch.** Rejected: a fetch requesting a field nothing
+  reads is what the next reader takes as evidence that a check lives there.
+
+### What this does not claim
+
+It does not claim the removal is free — the class has no preventive layer now, and the amendment says so
+in those words. It does not claim rules 7 or 7b would survive a criterion other than the one applied. It
+does not re-open S1's removal. And it does not claim any gate can observe whether the gate's `closes:`
+line is true; nothing ever could, which the rule's own text said while it existed.
+
+### Significance
+
+Arm: *alters a previously-recorded decision* — the 2026-08-30 amendment that built rule 7d is reversed,
+and the 2026-09-04 amendment's second fact loses a leg — and *sets a cross-cutting pattern others will
+follow*: **a removal justified partly by a sibling control must be re-priced when the sibling is
+audited, and the justification a rule ships with is a claim that ages like any other.**

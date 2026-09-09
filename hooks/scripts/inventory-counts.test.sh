@@ -7023,14 +7023,22 @@ else
 fi
 
 # ---------------------------------------------------------------------------------------------------
-# THE `closes:` DECLARATION IS A SECOND PARSING CONTRACT WITH A CONSUMER AND A PRODUCER (#363).
+# ~~THE `closes:` DECLARATION IS A SECOND PARSING CONTRACT WITH A CONSUMER AND A PRODUCER (#363).~~
+# ~~Rule 7d in `permission-guard.sh` greps `^closes:` out of the gate's own verdict comment …~~
 #
-# Rule 7d in `permission-guard.sh` greps `^closes:` out of the gate's own verdict comment; nothing but
-# `agents/quality-assurance.md` tells the gate to write it. Rename or re-anchor it in one place and the
-# other is instantly wrong, silently, in the direction that reads as "this PR declares no close" — i.e.
-# every merge that closes anything gets denied, or every declaration stops counting. Same class as the
-# `invocable:` block above and the `gh_repo_flag` identity arms: a field label read literally at
-# column 0.
+# **RE-SHAPED 2026-09-08 (#383, slice S4): THE CONSUMER IS GONE. THE DECLARATION IS NOW A PRODUCER
+# WITH NO READER, AND THESE ARMS SAY SO RATHER THAN BEING DELETED.** Rule 7d was removed under the
+# owner's criterion — «situacoes irreparaveis» — because the act it refused (the forge auto-closing an
+# Issue the verdict never named) is repaired exactly by `gh issue reopen`. So:
+#   · the two arms that asserted the CONSUMER's shape are inverted into ABSENCE arms. A removal
+#     asserted by deleting its arms leaves nothing that can go red if the rule walks back in — the
+#     "a check that has only ever passed" shape this repository's own standard names — so the arms
+#     stay and their polarity flips.
+#   · the arm that asserts the PRODUCER is told to write the line SURVIVES UNCHANGED IN PREDICATE and
+#     changes only its failure message: the line is now the artifact that keeps the divergence findable
+#     by a human, and `agents/quality-assurance.md` is the only place that says so.
+#   · the two arms about the LIMITS and the RESIDUE survive untouched and matter MORE, because with
+#     both refusal surfaces gone the residue is the whole class rather than two routes of it.
 #
 # EVERY NEEDLE IS ASSERTED AT COUNT EXACTLY 1 (or an explicit N, stated), not at "at least one". A
 # `grep -qF` arm's real property is *count >= 1*, so a line-deletion probe removes the needle only when
@@ -7050,42 +7058,56 @@ if [ ! -r "$closes_guard" ] || [ ! -r "$closes_brief" ]; then
 else
   closes_anchor="$(grep -c -F 'test("^closes:")' "$closes_guard" || true)"
   closes_query="$(grep -c -F -- '--json headRefOid,comments,closingIssuesReferences' "$closes_guard" || true)"
+  closes_tomb="$(grep -c -F '7d. REMOVED 2026-09-08' "$closes_guard" || true)"
   closes_taught="$(grep -c -F 'closes: <every Issue number this PR will close' "$closes_brief" || true)"
 
-  # ── arm 1 · the consumer reads the declaration, anchored at column 0 ──
-  if [ "${closes_anchor:-0}" -ne 1 ]; then
+  # ── arm 1 · THE CONSUMER IS GONE, and its absence is asserted rather than assumed ──
+  # Polarity inverted at #383 S4. Restoring 7d's extraction into the guard turns this red, which is the
+  # only thing that makes "the rule was removed" a checkable claim rather than a commit message. The
+  # tombstone is asserted in the same arm on purpose: an extraction absent because someone deleted the
+  # block wholesale and an extraction absent by decision are the same grep and different facts.
+  if [ "${closes_anchor:-0}" -ne 0 ]; then
     bad "closes declaration — permission-guard.sh carries the anchored extraction 'test(\"^closes:\")'
-      ${closes_anchor} time(s), not exactly 1. Drop the '^' and the rule passes on a verdict that merely
-      MENTIONS the Issue number in prose — which is the exact case it exists to refuse, because on the
-      live instance BOTH verdicts on PR #356 contain '#355', the merge-authorising one included."
+      ${closes_anchor} time(s), and rule 7d was REMOVED at #383 slice S4, so it must carry it 0 times.
+      If 7d is being deliberately restored, this arm and the two ALLOW cases in permission-guard.test.sh
+      are what must be re-inverted with it — and the owner's criterion («situacoes irreparaveis») has to
+      be answered again, because an Issue auto-close is repaired by 'gh issue reopen'."
+  elif [ "${closes_tomb:-0}" -ne 1 ]; then
+    bad "closes declaration — the extraction is absent but permission-guard.sh carries the 7d tombstone
+      ${closes_tomb} time(s), not exactly 1. An absence by DECISION and an absence by accident are the
+      same grep and different facts; the tombstone is what tells them apart, and it is where the four
+      forge properties 7d established are rehomed."
   else
-    ok "closes declaration — rule 7d extracts the declaration anchored at column 0, exactly once"
+    ok "closes declaration — rule 7d's extraction is absent and its removal is tombstoned, exactly once"
   fi
 
-  # ── arm 2 · the consumer actually ASKS the forge for the set it compares ──
-  # Asserted at 2 (both branches of the repo-flag split), spelled out rather than '>= 1': one branch
-  # silently losing the field is a rule that is OFF for the spelling that lost it, which is precisely
-  # how rule 7c was off for `gh pr merge N --repo owner/x` for a week.
-  if [ "${closes_query:-0}" -ne 2 ]; then
-    bad "closes declaration — the merge floor's own 'gh pr view --json' list requests
-      closingIssuesReferences in ${closes_query} of its 2 branches. A branch without it hands rule 7d a
-      payload with no field, which fails CLOSED and wedges the gate; a rule that asks for nothing
-      compares nothing."
+  # ── arm 2 · THE CONSUMER'S QUERY IS GONE TOO ──
+  # 7d was the only reader of `closingIssuesReferences` in this guard, so the field was dropped from
+  # both branches of the repo-flag split. Asserted at 0 rather than deleted, for arm 1's reason: a fetch
+  # that requests a field nothing reads is exactly what a later reader takes as evidence of a check.
+  if [ "${closes_query:-0}" -ne 0 ]; then
+    bad "closes declaration — the merge floor's 'gh pr view --json' list still requests
+      closingIssuesReferences in ${closes_query} branch(es), and nothing in the guard reads it since 7d
+      was removed. A fetch nothing consumes reads to the next person as a check that is there."
   else
-    ok "closes declaration — both branches of the merge floor's PR read request closingIssuesReferences"
+    ok "closes declaration — the merge floor no longer fetches the field its removed rule consumed"
   fi
 
-  # ── arm 3 · the producer is told to write it, in the shape the consumer parses ──
+  # ── arm 3 · the producer is STILL told to write it — unchanged predicate, changed reason ──
   if [ "${closes_taught:-0}" -ne 1 ]; then
     bad "closes declaration — agents/quality-assurance.md carries the verdict-template 'closes:' line
-      ${closes_taught} time(s), not exactly 1. Nothing else in this harness tells the gate to write it,
-      so without it rule 7d denies every merge that closes an Issue and the deny is the only place the
-      contract is stated."
+      ${closes_taught} time(s), not exactly 1. Since #383 S4 NOTHING READS IT, and that is precisely why
+      it must stay: with rule 7d removed and closure-artifact-guard's PreToolUse arm removed at S1, this
+      line is the only artifact from which a human can compare what the gate said it verified against
+      what the forge actually closed. Deleting it deletes the last trace of the obligation."
   else
-    ok "closes declaration — the gate's own brief teaches the line the merge floor parses"
+    ok "closes declaration — the gate's own brief still teaches the line, now as an artifact with no machine reader"
   fi
 
-  # ── arm 4 · both limits are stated wherever the rule is ──
+  # ── arm 4 · both limits are stated wherever the rule is (or wherever its removal is) ──
+  # UNCHANGED PREDICATE at #383 S4, and it still holds because `permission-guard.sh` states the
+  # body-derived limit inside 7d's tombstone — rehomed, per #375's template, rather than deleted with
+  # the code that measured it.
   # The rule is a REFUSAL with two holes, and a refusal whose holes are documented in only one of the
   # places that describe it is one somebody will read as complete coverage. Three surfaces: the
   # mechanism, the brief that acts on it, and the universal preload every persona carries.
@@ -7120,6 +7142,10 @@ CLOSES_LIMIT_HOLDERS
   fi
 
   # ── arm 5 · the RESIDUE is stated wherever either mechanism is described ──
+  # THIS ARM MATTERS MORE SINCE #383 S4, NOT LESS. Both refusal surfaces are now gone — this one at S1,
+  # rule 7d at S4 — so the residue it asserts is no longer "two routes the refusal cannot see"; it is
+  # the WHOLE class. The needle is unchanged and the six holders are unchanged; only the size of what
+  # they are admitting moved, which is why the arm was re-read rather than re-derived.
   # THIS ARM EXISTS BECAUSE THE FIRST ROUND OF #363 PUBLISHED THE OPPOSITE, IN FOUR PLACES AT ONCE:
   # that `closure-artifact-guard.sh`'s `Stop` arm covers rule 7d's two blind spots. It does not. That
   # arm's predicate is an Issue that DECLARES an `invocable:` line, and the Issue rule 7d was built
@@ -7247,12 +7273,13 @@ $retired_live
     ok "retired clause — all $retired_total occurrences of '$retired_clause' are struck or quoted"
   fi
 done <<'RETIRED_CLAUSES'
-only refusal surface that exists|Rule 7d (#363) is a second refusal surface, reaching the closing-keyword route one step upstream at the merge.
+only refusal surface that exists|The strike stands and its 2026-08-30 REASON does not: rule 7d was that second refusal surface and was removed at #383 slice S4, so the count is now ZERO refusal surfaces rather than two. Keep the clause struck — it was false when written, about the close-versus-merge distinction — and do not restore it as if the removal made it true again.
 joins the active iteration at|No Issue is filed with a milestone, for any type (#365; ADR-0002's twenty-seventh amendment, held by permission-guard.sh rule 10).
-covers that residue|The Stop arm's predicate is a DECLARED invocable promise, and the Issue rule 7d was built from declares none — so it covers the ROUTE, for a DIFFERENT obligation, and patches none of rule 7d's holes.
+covers that residue|The Stop arm's predicate is a DECLARED invocable promise, and the Issue rule 7d was built from declares none. Since #383 slice S4 removed 7d there is no other mechanism for it to cover the residue OF — the residue is the whole class, and an undeclared Issue auto-closed on merge is caught by nothing at all.
 editing a file inside a git working tree|orchestrator-write-guard.sh is DELETED and its registration removed (#375/#386), so the orchestrator's mechanically-enforced boundary is TWO acts again — merge and direct push to the trunk. permission-guard.sh runs on the Bash matcher and cannot see an Edit/Write call at all, so what the deletion leaves is no layer rather than another layer.
 already refused at runtime|Nothing refuses the orchestrator's write at runtime since #386 deleted orchestrator-write-guard.sh. Any sentence resting on that refusal — including one nine lines below its own strike, which is how this instance survived — is a control claimed where none exists.
 asserts the registration itself|hooks/scripts/orchestrator-write-guard.test.sh is deleted in #386 along with its CI step, so the matcher-enumeration lesson in ADR-0004 named a mitigation that no longer exists. The lesson stands; the reassurance does not.
+contains an Issue the gate|Rule 7d is REMOVED (#383, slice S4). Any sentence asserting that a merge is refused when the forge's resolved closing set contains an Issue the gate's verdict does not declare is a control claimed where none exists — the same shape as the orchestrator-write-guard entries above. The obligation survives as the gate's own `closes:` artifact, which nothing reads.
 RETIRED_CLAUSES
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════

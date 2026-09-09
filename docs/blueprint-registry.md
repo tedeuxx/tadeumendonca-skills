@@ -315,7 +315,13 @@ unchanged and is not tombstoned — it moved layers, it was not abandoned.
 route this loop actually uses is the forge's, executed on merge by GitHub's servers where no
 pre-execution hook exists. It fired **zero times in thirty days**. **Do not rebuild the refusal on the
 manual route** — build the comparison one step upstream, at the merge, which is a tool call and is
-refusable; this harness does that in `permission-guard.sh` rule 7d.
+refusable; ~~this harness does that in `permission-guard.sh` rule 7d~~ — **struck 2026-09-08 (#383,
+slice S4): rule 7d is REMOVED and this harness now does it nowhere.** The mechanism is still the right
+shape for a harness that wants it, which is why the row survives as a portable pattern; what changed is
+that this repository priced the act as REPARABLE (`gh issue reopen`) and dehydrated the lock. Anyone
+adopting the row should read it together with the second-order effect: the manual-route arm had already
+been removed partly *because* 7d covered the majority route, so removing both leaves the class caught by
+nothing preventive at all.
 
 - **tipo:** record
 - **carrier:** `hooks/scripts/closure-artifact-guard.sh`
@@ -367,13 +373,37 @@ in `o que não faz` above.)*
 
 ### 0044 · a merge does not auto-close a work item the review record never named
 
+**The mechanism was deleted on 2026-09-08 (#383, slice S4), and this row follows `0036`'s convention
+rather than inventing one.** Not a tombstone: the obligation — *the two artifacts agree at the moment of
+the irreversible act* — was not abandoned and nobody has argued it should be. The carrier reads
+`retired`, so `enforcement` is **`absent`** by the mapping's first rule.
+
+**Why it went, and this is the half worth porting rather than the code:** the criterion applied was
+*irreparable*, and what this refused was **the forge auto-closing a work item the review record never
+named**. That is repaired by reopening the item, at no cost and with nothing latched. A control that
+buys tidiness of the tracker rather than irreversibility loses under that criterion — and it lost while
+firing correctly, which is the uncomfortable part and the reason the row keeps its full description.
+
+**If you build it anyway, note what this harness learned by removing BOTH rows at once.** `0037`'s
+refusal arm had already been removed partly *because* this row covered the majority route; removing this
+one leaves the class with **no preventive layer at all**, detected only by `0038` and only for an item
+that DECLARES a promised artifact. Each removal is defensible alone; the pair is a real loss neither
+could see from inside itself. **Sequence them apart, or price them together.**
+
 - **tipo:** refusal
-- **carrier:** `hooks/scripts/permission-guard.sh`
+- **carrier:** retired
 - **descrição:** A `PreToolUse` rule on the merge, comparing the set of work items the forge says the merge request will close against the set the gate's own verdict — at that revision — declares it verified.
 - **propósito:** A closing keyword fires at merge and knows nothing about whether the thing the item promised exists. **The obligation is narrower than it first looks, and getting it wrong builds the wrong control.** Measured here, the defect was not *delivery was unverified*: the gate reviewed the change, judged the item undelivered, and prescribed dropping the keyword — it was **right**. What failed is that the prescription became a **body edit** and nothing verified the edit took; the keyword survived inside the very sentence explaining why it must not be used, and the item closed anyway. So the obligation is that **the two artifacts agree at the moment of the irreversible act** — never that a machine judge delivery, which no machine here can. What ports is the observation underneath: an adjacent obligation had been written off as unreachable because the *close* is not a tool call, and it is reachable because the *merge* is, one step upstream, on a call an existing rule already makes.
 - **o que faz:** Reads the forge's own resolved closing set as one more field on the request the merge floor already issues — no extra round trip — and denies the merge when that set contains an item the gate's verdict at the **current** revision does not declare on a positional `closes:` line. A wider declaration than the close is allowed on purpose; a partial one is not. A merge request that closes nothing never reaches the comparison. The deny names both exits: declare it, or drop the keyword and **verify the derived set is empty rather than reading the body and assuming**.
 - **o que não faz:** **It compares two artifacts and never judges delivery** — if the gate believes the work landed and declares it, the merge proceeds, so this catches the correction that did not hold and never a wrong judgement. The declaration is **positional**, because the obvious design fails on the very case that motivated it: both verdicts on the live instance mention the item number in prose, the merge-authorising one included, since it is the verdict that prescribed the fix. The forge's derived set is **body-derived only** — measured with a throwaway merge request whose keyword lived solely in a commit message, where the field came back empty — so a keyword on the one surface that cannot be edited afterwards is invisible, and the rule is **not** widened to scan commit messages because that resolution runs inside a rule that fails closed and every failure would become a wedged merge. It has **zero reach over a merge performed in a browser**, exactly like the verdict check it sits behind. **And the detection arm at `0038` does not cover those two routes** — a claim this row carried for one round and that is false against the very instance this obligation was built from: that arm's predicate is *an item that **declares** a promised artifact*, and the item in question declares none, so the arm could not have fired on it by any route. It covers the **route**, for a **different obligation**. **An undeclared item closed through a browser merge, or through a commit-message keyword the derived set never sees, is caught by nothing at all** — which is the honest statement of this obligation's residue and the reason both rows exist rather than one.
-- **citação:** > "It compares two artifacts and never judges delivery."
+- **citação:** no limit stated in the source
+
+*(That cell read `> "It compares two artifacts and never judges delivery."` until 2026-09-08, quoting
+the carrier's own comment. The rule is gone from that carrier, so the quote has nothing to resolve
+against — the dangling-citation case this registry's own `citação` arm exists to catch, replaced by the
+literal rather than left to redden. The retired rule is at
+`git show <deleting-commit>^:hooks/scripts/permission-guard.sh`, and the limits it stated are preserved
+in `o que não faz` above, in that file's own tombstone, and in ADR-0004.)*
 
 ---
 

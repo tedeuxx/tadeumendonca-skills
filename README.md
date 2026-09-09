@@ -1689,19 +1689,25 @@ concession — *the minority route* — is why. Zero fires in thirty days, again
 reopening the Issue.**
 
 ~~and no permission layer can deny it~~ · ~~and is still the only refusal surface that exists at all~~
-— **struck 2026-08-30 (#363).** Both halves were true about the **close** and false about the **merge**
-that causes it. The merge is a tool call; `permission-guard.sh` rule 7d now denies it when the PR's
-`closingIssuesReferences` — the forge's own resolved set, read on the call rule 7c was already making —
-contains an Issue the gate's verdict at the current head does not declare on a `closes:` line. So there
-are **two** refusal surfaces, and the second one reaches the majority route. It reaches it **one step
-upstream**: it refuses the merge, never the close, and a merge performed in a browser is outside it
-exactly as it is outside rule 7c.
+— **struck 2026-08-30 (#363).** ~~Both halves were true about the **close** and false about the **merge**~~
+~~that causes it. The merge is a tool call; `permission-guard.sh` rule 7d now denies it when the PR's~~
+~~`closingIssuesReferences` — the forge's own resolved set, read on the call rule 7c was already making —~~
+~~contains an Issue the gate's verdict at the current head does not declare on a `closes:` line. So there~~
+~~are **two** refusal surfaces, and the second one reaches the majority route.~~
 
-**And what it does inside its reach is narrower than "reaches the majority route" makes it sound: it
-compares two artifacts and never judges delivery.** The forge's resolved set must be inside the set the
-gate's own verdict declares. If the gate declares a close it did not verify, the merge proceeds. This
-control holds *the correction that did not hold* — the local defect, three times over — and holds
-nothing about whether the work was done.
+**RE-CORRECTED 2026-09-08 (#383, slice S4) — and the honest count is now ZERO.** Rule 7d is removed,
+under the owner's dehydration criterion (*«situacoes irreparaveis»*): what it refused is the forge
+auto-closing an Issue the gate's verdict never declared, and **`gh issue reopen` restores that state
+exactly**. `closure-artifact-guard`'s own `PreToolUse` arm went at slice S1 of the same audit, partly
+*because* 7d covered the route this one could not. **So the first half of the 2026-08-30 strike still
+stands — no permission layer can deny the forge's close — and its "two refusal surfaces" conclusion is
+false by two.** Nothing refuses a merge that auto-closes an undeclared Issue; the `Stop` arm below
+detects only the declared case, one turn late.
+
+**Say the second-order effect out loud, because neither removal could see it from inside itself.** Each
+was correct on the criterion — both acts are reparable at zero cost — and the pair leaves the class with
+no preventive layer at all. That is an accepted cost of the audit, not an oversight in it: the criterion
+grades *irreparability*, and a chain of reparable acts is still reparable.
 
 **The `Stop` arm does NOT cover the two routes rule 7d cannot see, and saying it did was wrong for one
 round.** That arm's predicate is *an Issue that **declares** an `invocable:` artifact*, and on the very
