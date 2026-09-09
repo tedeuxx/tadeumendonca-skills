@@ -8807,6 +8807,21 @@ fi
 #     whose own job is catching drift.
 #   - TREE-WIDE. The published selector was scoped to '*.md'.
 #
+# TWO FURTHER MISSES, closed on review (#432 round 1) after the gate attacked the pattern rather than
+# reading it. Neither was hypothetical:
+#   - THE HYPHENATED SPELLING. This file's own three corrections write the clause hyphenated, so the
+#     repository had a house spelling its own arm could not see — a reintroduction in that spelling
+#     would have stayed green. `gh[ -]issue` closes it, and it is calibrated by planting that form.
+#   - A PERIOD INSIDE THE SPAN. `[^.]*?` bounded the span to one sentence and therefore also stopped at
+#     a filename ("in hooks/scripts/foo.sh is a write path"). The span now admits a period that is NOT
+#     followed by whitespace, which keeps the one-sentence bound while letting a path through.
+#
+# WHAT IS NAMED RATHER THAN CLOSED, deliberately. A PLURAL REPHRASE ("every gh-issue call ... ARE write
+# paths") is invisible, and so is any other paraphrase. Chasing them is an enumeration claiming to be a
+# rule, which is the failure this file exists to prevent — the arm catches the CLAUSE AS WRITTEN in the
+# spellings this repository actually uses, and a deliberate reword defeats it. Say so rather than
+# implying the class is covered.
+#
 # THE CLAUSE IS NOT SPELLED OUT ANYWHERE IN THIS FILE'S PROSE, deliberately: the arm greps every tracked
 # file including this one, so a comment quoting it verbatim would redden the arm on the one paragraph
 # explaining it. The bracketed initials in the pattern below are the same reason — they keep the regex
@@ -8824,7 +8839,7 @@ fi
 # that cannot go red, so it is worth a sentence — it was caught here only by the vacuity guard below.
 wp_out="$(WP_ROOT="$ROOT" python3 - <<'PYEOF'
 import os, re, subprocess
-CLAIM = re.compile(r"ever[y] \W{0,3}gh issue\W{0,3} call [^.]*? is a writ[e] path", re.I)
+CLAIM = re.compile(r"ever[y] \W{0,3}gh[ -]issue\W{0,3} call (?:[^.]|\.(?!\s))*? is a writ[e] path", re.I)
 REPUD = re.compile(r"~~|struck|false|corrected|not because", re.I)
 WINDOW = 120
 root = os.environ["WP_ROOT"]

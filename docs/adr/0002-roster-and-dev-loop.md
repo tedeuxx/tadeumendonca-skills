@@ -4644,10 +4644,15 @@ engineering to know what a failed request was serving.
   **struck 2026-09-09 (#406): `hooks/scripts/cadence-notice.sh` is a hook built for exactly this rite.**
   It was found by the same sweep that corrected the write-path clause and is corrected here rather than
   left, because it is the same false absolute one line away from a sentence being rewritten anyway.
-  **NOTICING is built — FIRING is not, and the split is the correction:** the carrier reads a CLOCK (the
-  version-control date of the rite's artifact root) and makes no tracker call, so it sidesteps the two
-  bounds rather than defeating them — no registered hook selects a `--label` or a `--milestone`, and a
-  hook receives one `cwd` while an iteration is two milestone objects in two repositories. **Three
+  **The split is the correction, and for THIS rite both halves are negative.** The carrier reads a CLOCK
+  and makes no tracker call, so it sidesteps the two bounds rather than defeating them — but
+  **NOTICING is built only for the two rites whose artifact root is declared `here`.**
+  `docs/loop-cadence.md` declares `/sprint-review`'s root `sibling`; the carrier names the rite and
+  reports it *"in the CONSUMING repository. Not observable from this tree"*, returning before it reads
+  any date. **FIRING is not built for any of the three and did not move** — no registered hook selects
+  a `--label` or a `--milestone`, and a hook receives one `cwd` while an iteration is two milestone
+  objects in two repositories. **What the strike buys is therefore narrower than "a hook exists": a row
+  for this rite exists and is HANDLED, declared inert rather than forgotten.** **Three
   rites now exist and zero of them have a trigger** — the plural in *"the closing ceremonies"* is
   satisfied in COUNT and in nothing else, which the preload now says in those words.
 - **Nothing observes the sweep, and this one is worse than the retrospective's equivalent.** The report

@@ -1151,8 +1151,13 @@ path"* was a proxy for it and was false.
 **One conclusion did NOT survive, and it is a finding rather than a failure.**
 `commands/sprint-review.md` read *"No hook can be built for it"* — an absolute the cadence carrier
 falsified in the same way it falsified the preload's *"no hook can be built for either rite"*. It is
-corrected on the same split: **NOTICING is built** (`hooks/scripts/cadence-notice.sh` reads a clock and
-says a rite is overdue), **FIRING is not and did not move.** The identical absolute one line away in
+corrected on the same split — **and for THIS rite both halves are negative, which is sharper than the
+preload's case and was got wrong once before the gate caught it.** `docs/loop-cadence.md` declares
+`/sprint-review`'s artifact root `sibling`, so `hooks/scripts/cadence-notice.sh` names the rite and
+reports it *"in the CONSUMING repository. Not observable from this tree"*, returning before it reads any
+date: **NOTICING is built for the two rites declared `here` and is declared INERT for this one; FIRING
+is not built for any of the three and did not move.** What the strike buys is that a row for this rite
+**exists and is handled**, not that it is noticed. The identical absolute one line away in
 `docs/adr/0002-roster-and-dev-loop.md` was corrected with it, for the reason slice C already gave about
 this exact class: dropping a known-false absolute out of a section being rewritten anyway is cheaper
 than leaving it and cheaper than a round about it.
