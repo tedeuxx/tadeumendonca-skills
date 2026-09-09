@@ -67,6 +67,15 @@ objection to the lighter mode.
 | the quality gates | **yes** | **yes** |
 | the unit of work | a filed item | **a filed item** |
 
+***"Bounds nothing"* has a mechanical reading, and getting it wrong is the easiest defect in this whole
+design: it means the container is NOT A TERM OF THE QUEUE PREDICATE in the lighter mode.** Carrying it
+as a filter is the heavier mode wearing the lighter mode's name — the item still has to be admitted to
+the box before anyone may work it, which is precisely the enforcement the lighter mode exists without.
+**This was written the wrong way round once here** — a contract that said *"the predicate needs no
+per-mode branch for the container"* while its own table three rows above said *"bounds nothing"* — and
+neither the author nor the reviewer caught it, because both sentences read as true in isolation. **The
+test that catches it: run both predicates against one tracker state and check they differ.**
+
 **The bottom three rows are the point.** A lighter mode that also dropped the tracker or the gates
 would not be a mode — it would be a different loop, and it would not be reviewable. **Drop the ceremony
 and the container. Keep the tracker, the gates and the floor.**
@@ -309,6 +318,35 @@ retrospective can still read it when it runs; it stops being the only thing that
 **And the denominator must be TIME, not periods.** A *period* is an iteration, and the lighter mode has
 none — a metric denominated in periods inherits the same disappearing container. Weeks work.
 
+### 9a · A record is half of it — name the READER, and make the enum refuse rather than default
+
+**A mode nobody reads is a word in a file, and a record with no named reader is exactly that.** So write
+down, next to the record, **which artifact reads it and at what moment**. In a loop like this one the
+honest answer is usually *the file that executes the queue, at entry, before the query* — a rule a
+session performs, not a mechanism. **Say which of the two it is.** Both readings are available and they
+are worth different amounts: a rule a session executes is a real reader and is not a control, and
+collapsing that distinction in either direction is wrong.
+
+**Put the read BEFORE the query as a numbered step, not as a note.** §7a is why: the two modes' queue
+predicates are indistinguishable by their output, so a reader that consults the mode *after* seeing an
+empty result has already lost the information it needed.
+
+**And make the enum closed and REFUSING.** An unrecognised or missing value stops the session by name.
+Do not default to the older mode because it is older, and do not default to the lighter one because the
+queue happens to look like it — **defaulting is inference by another route**, and it fails in exactly the
+silent direction §7a describes. A mode selects a predicate; a session that cannot resolve one has no
+scope, and draining an unscoped queue is worse than refusing to drain.
+
+**Publish BOTH predicates in full, side by side, rather than one plus a description of how to edit it.**
+A described mutation of a published command is not a published command: *"drop the container term"* has
+more than one reading, and the readings return different results. This is cheap to get right once and
+expensive to discover from a wrong queue.
+
+**One test to run before you believe any of this landed: read the SAME tracker state under both
+predicates and check that they differ.** If they return the same thing, the mode is declarative and you
+have not made it operative yet — which is a fine state to be in deliberately and a bad one to be in by
+accident.
+
 **What the record is for, stated so it is not mistaken for a lock:** the risk this whole change carries
 is that the lighter mode becomes the default because it is pleasant, and the loop quietly stops
 exercising the discipline it was built to demonstrate. **The mitigation is visibility, not a lock.**
@@ -326,7 +364,7 @@ any layer, and a reader deserves to know which is which.
 
 | decision | what would hold it | what actually does |
 |---|---|---|
-| the mode is recorded | a tracked file — versioned, visible in a change request | **nothing reads it**; version history gives a human the proportion |
+| the mode is recorded | a tracked file — versioned, visible in a change request | **the artifact that executes the queue reads it** (§9a) — a rule a session performs, never a mechanism. **Nothing mechanical reads it**, and version history gives a human the proportion |
 | the mode is read before the queue query | nothing; no layer sees a query's intent | **an instruction** |
 | two roots agree on the mode | a per-session check — but it sees one root and must guess the other | **nothing**; a split mode is undetectable at session open |
 | the priority partition is honoured | nothing at any layer — ordering is not a property of a command string or a file tree | **the ordered artifact, and awkwardness** |

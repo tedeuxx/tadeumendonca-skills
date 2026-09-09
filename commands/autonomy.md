@@ -60,8 +60,50 @@ survives as the question **planning** asks.
 
 ## The queue
 
+### FIRST: read the LOOP MODE from its record — never infer it from what a query returns (#406)
+
+**The loop mode is `scrum` or `kanban`, it lives in `docs/loop-mode.md`, and it is READ before the pool
+predicate rather than after it.** The record, its history and the per-mode predicates in full are that
+file; the contract that governs what a mode may vary is the `<!-- loop-mode-contract -->` block in
+`CLAUDE.md`. Read the value with one command:
+
+```
+grep -m1 '^loop-mode: ' docs/loop-mode.md
+```
+
+**Run it in BOTH repositories.** A mode is a workspace property and this record is a repository object,
+so the two copies can disagree in silence — **stop on a disagreement and say which repository says
+what.** This drain already reads both trees; nothing else in the harness does, which is why the
+comparison is here and not in a hook.
+
+**An unrecognised or missing value is refused BY NAME.** Do not default to `scrum` because it is the
+older mode and do not default to `kanban` because it is what the queue happens to look like. A mode
+selects a predicate; a session that cannot resolve one has no scope, and draining an unscoped queue is
+worse than refusing.
+
+**And nothing may infer the mode from the pool.** Measured at head, in both repositories: the
+active-iteration derivation prints **nothing and exits 0** when no eligible item carries a milestone, so
+*"`kanban`, correctly no container"* and *"`scrum`, milestones dropped"* are byte-identical results with
+opposite correct behaviours. `echo '[]' | jq 'min'` returns `null`, exit 0. **This is the only place in
+this design where a wrong guess is silent**, which is why the read is a numbered step rather than a
+note.
+
+**`on`/`off` above are THIS COMMAND's modes and are a different enum.** They decide who holds the wheel
+for one session; `scrum`/`kanban` decides how work flows and persists in a tracked file. Nothing records
+whether autonomy is on; the loop mode is recorded. Do not conflate the two.
+
+### THEN: the pool, which is the one thing the mode selects here
+
 Open issues labelled **(`product` OR `loop`)** **and `ready`** — **and carrying the ACTIVE ITERATION'S
-milestone** (#326). If the repo has no such label, say so and stop
+milestone** (#326) **in `scrum` mode only**. **The `ready` limb does not vary by mode** (owner ruling
+2026-09-09, *«Mantém o `sp:N` nos dois modos»* — the readiness bar is identical on both sides), and the
+milestone limb does: in `kanban` the container is a **period label** rather than a batch commitment, so
+it is carried by items and is **not consulted by the predicate**. The owner's words are the ruler —
+*«nao ter os ritos do agil e enforcement de iteracao no github issues quando trabalhando em modo
+kanban»* — and a predicate limb is enforcement. **Both predicates are published in full in
+`docs/loop-mode.md`**; do not derive one from the other by describing an edit to it.
+
+If the repo has no such label, say so and stop
 rather than draining every open issue — a command that silently redefines its own scope is worse than
 one that refuses.
 
@@ -124,6 +166,15 @@ someone reading and judging, which is the failure the `ready` state exists to re
 The owner reconciled both repos to one vocabulary (`/agents-configuration`, *One vocabulary across every
 repo*), so **this command now runs on either repo.** Kept as a correction rather than deleted, because
 the gap is the evidence for why the assessment is a standing rule.
+
+**In `kanban` mode there is no order to state, and that is not a licence to invent one either (#406).**
+The ordering act is absent — nothing ranks and nothing estimates — so the order is **FIFO within the
+`loop`/`product` partition**: `loop` in arrival order, then `product` in arrival order. That is the
+owner's ruling that loop-first survives in both modes, plus the filing-order tiebreak
+`commands/sprint-planning.md` already defines and labels as arrival order rather than a ranking, so
+**`kanban`'s entire ordering rule is a rule this repository already carries**. The predicate that
+returns it, ordered, is published in full in `docs/loop-mode.md`. **The paragraphs below are `scrum`'s
+answer to the same question** — a ranked body composed at planning — and they are unchanged there.
 
 **Do not invent an order.** `product-lead` owns sequencing ~~(ADR-0002 amendment #5)~~ — **struck
 2026-08-28 (#339): that citation is wrong.** Amendment #5's own header reads *"`product-manager` gets a
@@ -459,7 +510,27 @@ opportunistically.
 fixed set, so *"the pool is empty"* is not a state a drain can reach by working; the terminal set is the
 pool **as it stood at entry**. See *The pool grows while it drains* below.
 
-### On exhaustion, run `/sprint-review` FIRST, then `/sprint-retrospective` (#379)
+### On exhaustion, run `/sprint-review` FIRST, then `/sprint-retrospective` (#379) — in `scrum` MODE ONLY (#406)
+
+**The stop condition is mode-invariant; what happens after it is not.** A drain that has drained its
+entry snapshot has nothing left to do in either mode, so the bullet above is unchanged. **What the mode
+selects is whether exhaustion hands off to the closing rites.**
+
+- **`scrum`** — exhaustion is the iteration's terminal condition, and the two rites run, in the order
+  below.
+- **`kanban`** — the container is a **period label** and **nothing depends on its emptiness**, so
+  exhaustion ends the drain and **fires no rite**. Report that the snapshot is exhausted and stop.
+
+**A rite must never be keyed on the pool being empty in `kanban`, and this is the sentence that would be
+violated first.** The owner authorised a **clock** carrier (2026-09-09, *«Constrói o gatilho por
+relógio»*) and it is `#406` slice C — not built here. **If a later slice fires a rite on emptiness
+instead, `kanban` silently inherits `scrum`'s trigger under a different name**, which is the exact
+failure the mode contract exists to make visible.
+
+**What that costs today: nothing that was being collected.** Neither rite has ever fired by this route
+in either mode — the trigger is an instruction, no layer here observes a snapshot going empty, and a
+hook receives one `cwd` while an iteration is two milestone objects in two repositories. **The honest
+comparison for slice C is clock versus nothing, not clock versus boundary.**
 
 **On the FIRST stop condition only** — the entry snapshot exhausted — **run
 `/tadeumendonca-skills:sprint-review <iteration>`, then
