@@ -8307,6 +8307,8 @@ else
     '### The precondition comes FIRST, or the rest is misapplied' \
     '> **No loop running, no escalation.**' \
     '### The full definition — five clauses, all of them, or it is not one' \
+    '1. **A loop is running** — a filed work item is being worked.' \
+    '2. **A dispatched subagent** hits something on *that item*.' \
     '**All five. Four of five is not an escalation' \
     '**time** | **hours of WORK and hours of WAITING — both.**' \
     '**cost** | **tokens.**' \
@@ -8327,6 +8329,7 @@ if [ -r "$AH_PRELOAD" ]; then
   for ah_pneedle in \
     '## The escalation standard, as this loop applies it (#393)' \
     'se nao tem loop nao é hitl' \
+    '(1) a loop is running — a filed Issue is being worked' \
     '**`scrum-master` NAMES the leads a decision needs; it cannot dispatch them.**' \
     'the disagreement IS the trade' \
     '**A WORKLOG does not exist.**' \
@@ -8407,6 +8410,83 @@ if [ -r "$AH_PORTABLE" ]; then
       what this arm does NOT assert: it cannot stop reversibility being cited elsewhere, and it must
       not be read as doing so."
   fi
+fi
+
+# ── 3 · the precondition's ANCHOR is a FILED ITEM BEING WORKED, and it must not re-base (#406) ────
+#
+# WHY THIS IS ITS OWN ARM AND NOT A NEEDLE. Arm 1 pins the new wording as a literal, which catches a
+# rewrite. It does NOT catch the failure this arm exists for: the anchor drifting back onto a CONTAINER
+# — an iteration, a sprint, a milestone — in a sentence nobody edited on purpose. That is exactly how
+# the clause became unreachable in the first place. The precondition was written against a container
+# being in flight; a later slice made the container optional in one mode and bound nothing in the
+# other, and NOTHING in this suite noticed that the whole HITL form contract had gone dark, because
+# every surface still read as though it were in force. A rule that is unreachable and looks enforced
+# is worse than one that is absent.
+#
+# THE OWNER'S RULING IS THE REASON THE ANCHOR IS WHAT IT IS: «Trocar por issue em andamento»
+# (2026-09-09). He was offered the additive form that keeps BOTH anchors and chose the substitution,
+# so a re-appearance of the container in these spans is a REVERSAL of a ruling, not a wording choice.
+#
+# IT IS WRAP-INSENSITIVE ON PURPOSE. Both files hard-wrap, so the anchor and its object routinely land
+# on different lines and a line-oriented check would pass on a re-based clause whose container sat one
+# line down. Whitespace is collapsed before matching — the same instrument this repository already had
+# to reach for once, after a line-oriented sweep returned two hits and missed the broken file.
+#
+# WHAT IT CANNOT DO. It reads a WINDOW of characters after a literal, so it is a vocabulary check on a
+# bounded span, not a reading of the clause. A re-basing written with the container's name filed off —
+# "the batch", "the current period" — passes every arm here. That half is a reviewer's read on the
+# diff, and there is no instrument for it.
+#
+# IT ASSERTS NOTHING ABOUT `CLAUDE.md`, AND THE REASON IS NOT THE ONE THIS COMMENT FIRST GAVE. An
+# earlier wording said that block "carries the same precondition" and was out of scope as a two-repo
+# batch. Measured: `grep -c "No loop running" CLAUDE.md` returns 0 in both trees. That block states a
+# SCOPE and defers to the standard's five clauses; the sentence itself lives in the portable carrier
+# arm 1 already needles, and nowhere else. So there is no second copy for this arm to check — which is
+# a stronger reason to leave it alone than the one that was written from a premise nobody ran.
+ah_anchor_out=""
+if [ -r "$AH_PORTABLE" ] && [ -r "$AH_PRELOAD" ] && [ -r "$PLAN_SM" ]; then
+  ah_anchor_out="$(AH_P="$AH_PORTABLE" AH_L="$AH_PRELOAD" AH_S="$PLAN_SM" python3 - <<'PYEOF'
+import io, os, re
+specs = [
+    ("engineering-standards precondition", "AH_P", "> **No loop running, no escalation.**", 145),
+    ("engineering-standards clause 1",      "AH_P", "1. **A loop is running** —",           50),
+    ("engineering-standards clause 2",      "AH_P", "2. **A dispatched subagent** hits something on", 60),
+    ("agents-configuration clause 1",       "AH_L", "(1) a loop is running —",              60),
+    ("agents-configuration precondition",   "AH_L", "«se nao tem loop nao é hitl».** Outside", 45),
+    ("scrum-master precondition",           "AH_S", "It governs an escalation rising out of", 60),
+]
+container = re.compile(r"iteration|sprint|milestone", re.I)
+cache = {}
+for label, envkey, anchor, window in specs:
+    path = os.environ[envkey]
+    if path not in cache:
+        cache[path] = re.sub(r"\s+", " ", io.open(path, encoding="utf-8").read())
+    body = cache[path]
+    n = body.count(anchor)
+    if n != 1:
+        print("%s — the anchor occurs %d times, expected exactly 1: %r" % (label, n, anchor))
+        continue
+    span = body[body.index(anchor) + len(anchor):][:window]
+    hit = container.search(span)
+    if hit:
+        print("%s — the anchor is CONTAINER-shaped again (%r) in: %r"
+              % (label, hit.group(0), anchor + span))
+PYEOF
+  )"
+else
+  ah_anchor_out="one of the three carriers is not readable, so the escalation precondition's anchor was not checked at all."
+fi
+if [ -n "$ah_anchor_out" ]; then
+  bad "escalation precondition — the anchor is not a filed item being worked:
+    $ah_anchor_out
+      Owner ruling 2026-09-09, one line: «Trocar por issue em andamento». The precondition is anchored
+      on a FILED ITEM BEING WORKED and never on a container. The additive form that keeps both was put
+      to him and declined, so a container re-appearing here reverses a ruling rather than rewording a
+      sentence. The failure it guards is silent by construction: a container that bounds nothing in one
+      mode, and no open item carrying one at all, makes the precondition unreachable — every clause
+      beneath it is dead and every surface still reads as though the contract were in force."
+else
+  ok "escalation precondition — the anchor is a filed item being worked in all three carriers, with no container vocabulary in the six spans (wrap-insensitive window check; a re-basing written with the container's name filed off would pass, and CLAUDE.md holds no copy of the sentence to check)"
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════

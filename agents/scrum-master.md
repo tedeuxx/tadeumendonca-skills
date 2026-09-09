@@ -293,8 +293,12 @@ standard*, and its failure test: **a question with no options is offloading the 
 reduction to options is the loop's work, not his.**
 
 **Read that standard's precondition before applying any of this: no loop running, no escalation.** It
-governs an escalation rising out of a **running** iteration, from a dispatched subagent, about an item
-in flight. A design question outside one is not an escalation and this section does not reach it.
+governs an escalation rising out of **work on a filed item**, from a dispatched subagent, about that
+item. A design question outside that is not an escalation and this section does not reach it.
+**The anchor was ~~a running iteration~~ until the owner re-based it on 2026-09-09 (#406)** —
+*«Trocar por issue em andamento»*. Read it as a substitution and not an addition: **which container
+the item sits in is no longer part of the test**, so this section reaches a filed item being worked
+whether or not any container is open.
 
 **On a scope escalation that work may need both leads first**, in the owner's words: *«para isso o
 scrum master pode precisar envolver antes o product lead e o technical lead»*. The pairing is the trade

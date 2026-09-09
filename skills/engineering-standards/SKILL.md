@@ -288,8 +288,20 @@ of them escalations, whatever their subject.
 
 ### The precondition comes FIRST, or the rest is misapplied
 
-> **No loop running, no escalation.** The protocol exists *inside* a running iteration. Outside one
-> there is no pendency to escalate, whatever the topic.
+> **No loop running, no escalation.** The protocol exists *inside* work on a filed item that is
+> being worked. Outside that there is no pendency to escalate, whatever the topic.
+
+**The precondition is a FILED ITEM being worked — not a container being open, and the difference is
+the whole reason this sentence is worth re-reading.** ~~an iteration is in flight~~ was the original
+anchor and it is struck: it makes the standard depend on a **configuration axis it was never about**.
+A loop that carries no batch container, or carries one that bounds nothing, has no iteration in
+flight — so read literally the precondition never holds, **every clause beneath it is unreachable, and
+the whole form contract goes dark in exactly the mode that interrupts a human most.** A filed item
+being worked exists under every configuration, which is why the anchor moved to it.
+
+**A container may still be present, and that is not what is being tested.** The question is whether
+there is an item, filed and in progress, that the thing rising is *about*. If there is not, whatever
+is happening is a conversation.
 
 **Say this before the form, always.** A reader who meets the form without the precondition stamps every
 question to the human as an escalation and applies a four-option contract to conversations it was never
@@ -297,8 +309,8 @@ about. That is not hypothetical: it is what happened to this standard while it w
 
 ### The full definition — five clauses, all of them, or it is not one
 
-1. **A loop is running** — an iteration is in flight.
-2. **A dispatched subagent** hits something on a work item *in that iteration*.
+1. **A loop is running** — a filed work item is being worked.
+2. **A dispatched subagent** hits something on *that item*.
 3. **It rises through the protocol** — subagent → main session → the human. Not laterally, and not from
    a context that was never dispatched.
 4. **The trigger is a TRADE** of time, cost or scope against each other, for that item.
