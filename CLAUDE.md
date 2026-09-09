@@ -891,9 +891,29 @@ sharper than #406's body proposed and it makes the enum smaller.
 
 **Two mechanical consequences, and the second is where this leaks if nobody writes it down.**
 
-1. **The pool predicate needs no per-mode branch for the milestone.** Both modes carry it, so
+1. ~~**The pool predicate needs no per-mode branch for the milestone.** Both modes carry it, so
    *enumerate-then-select* and the rule that no milestone name is ever typed into a query stand
-   unmodified in both.
+   unmodified in both.~~ **STRUCK 2026-09-09 (#406 slice B) — it contradicts the table three rows
+   above, and the table is the half that is right.** That row says `kanban`'s container **"bounds
+   nothing"**; a limb of the pool predicate bounds the pool, which is the only thing a container could
+   bound here. The owner's words settle it and were available the whole time: *«nao ter os ritos do
+   agil e **enforcement de iteracao no github issues** quando trabalhando em modo kanban»* — **a
+   predicate limb IS that enforcement.** Ruling 3 makes the iteration NUMBER usable in both modes; it
+   does not make the milestone a filter in both. Struck rather than edited because it merged, was
+   published to the marketplace, and is the sentence slice B would have built the wrong predicate
+   from. **The defect originates in the ruling-3 intake comment on #406, not in slice A's authoring** —
+   slice A carried it forward accurately.
+
+   **The correct rule, and both predicates are published in full in `docs/loop-mode.md` rather than as
+   an edit to one another:** in **`scrum`** the milestone is a limb and the active-iteration derivation
+   selects it, so *enumerate-then-select* and the never-type-a-milestone-name rule stand unmodified
+   **there**; in **`kanban`** the milestone is not consulted, so those two rules have **no subject**
+   rather than standing unmodified. **The `ready` limb does not vary in either direction** (ruling 2).
+
+   **This is what makes the mode operative rather than declarative, and it is measurable at head:** one
+   tracker state, read under the two predicates, returns an empty pool under `scrum` and a four-item
+   pool under `kanban` — because zero open items in either repository carry a milestone. **A mode
+   nobody had recorded was already selecting which of those two answers the loop got.**
 2. **Whatever later builds the cadence trigger must key on THE CLOCK and never on the pool being
    empty.** In `scrum` an empty active milestone is the terminal condition; in `kanban` it means
    nothing at all, and a rite firing on it would be firing on noise. **A trigger keyed on emptiness
@@ -903,9 +923,24 @@ sharper than #406's body proposed and it makes the enum smaller.
 **Unchanged by the ruling:** nothing enters a running iteration automatically, and composing one is
 the owner's act, in both modes. A period label is still placed by him.
 
-**`kanban` is SPECIFIED here and is not operative.** The pool predicate, the drain and the two gate
+~~**`kanban` is SPECIFIED here and is not operative.** The pool predicate, the drain and the two gate
 arms that pin the Scrum wording are slice B of #406 and have not landed. **Do not read this table as a
-switch that has been thrown**; read it as the contract a switch would have to honour.
+switch that has been thrown**; read it as the contract a switch would have to honour.~~ **Struck
+2026-09-09 — slice B landed and `kanban` IS operative**, which is what that paragraph promised would
+change. Struck rather than deleted because it stood in a marketplace-published version and a reader who
+took *"not operative"* from it would not look for a record that now exists.
+
+**The mode of record is `docs/loop-mode.md`** — a tracked file carrying the value, the enum, the
+back-dated start and both per-mode pool predicates in full. **It is READ before any pool query and never
+inferred from one**, and the only thing that reads it is `commands/autonomy.md`, which is a rule a
+session executes rather than a mechanism. **Nothing mechanical reads it, deliberately** — see the
+untouchable-list measurement below, which the moment a hook is taught the mode stops being true.
+
+**What slice B did NOT do**, so the table is not read as more than it is: it built **no cadence
+trigger** (slice C, authorised and not yet built), **no gate arm** asserting the record exists or
+parses, and it decided **no `wip` value** (`#385`). And the two gate arms that pin the Scrum wording did
+not move, because the Scrum wording did not move — the additions are additive and the drift check is
+blind to all of it.
 
 **And the honest starting state, because it is the argument for writing the contract down rather than
 a hypothetical about the future: the loop is already running with no container and no ceremony, and
@@ -1069,17 +1104,26 @@ named residual today and parallelism is what makes it live.
 
 | decision | what actually holds it |
 |---|---|
-| the mode is recorded at all | **nothing reads the record**; `git log` over one path gives the proportion to a human |
+| the mode is recorded at all | ~~**nothing reads the record**~~ — **corrected 2026-09-09 (slice B): `commands/autonomy.md` reads it, which is a rule a session executes and not a mechanism.** Nothing MECHANICAL reads it, and no gate asserts the record exists or parses. `git log` over one path still gives the proportion to a human |
 | the mode is read BEFORE any pool query | **an instruction.** No layer sees a query's intent |
-| the two repositories agree on the mode | **nothing.** A hook receives one `cwd`; a mode is a workspace property, so split-brain is undetectable at session open |
+| the two repositories agree on the mode | ~~**nothing.**~~ **Narrowed 2026-09-09 (slice B): an instruction, in one context only.** The drain already reads both trees, so it compares the two records at entry and stops on a disagreement. **Every other context — a rite, an ad-hoc session, a dispatched persona — still has nothing**, and a hook cannot close it: it receives one `cwd`, so it would have to guess where the sibling tree is in order to compare a string, which is assuming what it checks |
 | loop-first survives in either mode | **the ordered artifact, and awkwardness.** #339 already measured this ungateable at every layer |
 | the rites run at all | **nothing today, in either mode** |
 | `wip` is honoured | **nothing.** `wip-guard.sh` was deleted at #383 and nothing bounds work in progress |
 | a cadence trigger keys on the CLOCK and not on the pool being empty | **nothing — and the carrier is not built yet, so this is a rule written before its object.** That is deliberate: the constraint is cheapest to state while nobody has implemented the wrong thing |
 
-**Six of seven are instructions and one is a report.** By this loop's own test — *would something stop
-me, or only my memory?* — **the mode contract is not engineered, and it is not presented as if it
-were.** A configuration surface invites the reading that something reads it; nothing does.
+~~**Six of seven are instructions and one is a report.**~~ **Struck 2026-09-09 (slice B): the tally is
+stale and a tally beside a table is a second source of truth for one fact, which is the arrangement
+this repository's own gate exists because it rots.** The criterion is what survives: **not one row is
+held by a layer that could stop the act — every entry is an instruction, an artifact a human reads, or
+nothing at all.** Read the column and count if a number is wanted.
+
+By this loop's own test — *would something stop me, or only my memory?* — **the mode contract is not
+engineered, and it is not presented as if it were.** A configuration surface invites the reading that
+something reads it. ~~nothing does~~ — **corrected: `commands/autonomy.md` does, and no mechanism
+does.** That distinction is the whole of what slice B changed here, and collapsing it in either
+direction is wrong: claiming nothing reads the record understates it, and calling a rule a session
+executes a mechanism overstates it.
 
 **One rule in that table is worth stating twice, because it is the only place in this design where a
 wrong guess is SILENT: the mode is read from its record before any pool query, and nothing may infer
