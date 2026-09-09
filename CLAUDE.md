@@ -1081,79 +1081,96 @@ slice C), twice, and the second strike is the one worth reading.** The first fig
 second was *derived from a superset* — a line-oriented `grep` for `reads the queue|write path`, which
 matches two neighbouring sentences that are TRUE and need no sweep, and which counts **lines** rather
 than occurrences, so a site that wraps is counted twice or split in half. **The conclusion the clause
-supports still stands and its stated reason does not** — correcting it is still its own slice, and the
-list above is written so that it does not depend on it.
+supports still stands and its stated reason does not** — ~~correcting it is still its own slice~~,
+**that slice ran on 2026-09-09 (#406 slice D) and is recorded immediately below**; the list above was
+written so that it does not depend on it, and still does not.
 
-**The instrument, not the digits — the selector below picks the clause itself, and it is
-WRAP-INSENSITIVE.** It collapses whitespace before matching, because this repository has already paid
-for a line-oriented sweep that returned two hits and missed the broken file (#410). Its output is
-pasted beside it rather than described:
+**THE SWEEP IS DONE (#406 slice D, 2026-09-09), and what it found first was that the instrument
+published here was wrong in three ways — each in the permissive direction.** The paragraphs below are
+rewritten rather than annotated: a deferral left standing beside a discharged obligation is a reader
+stopping at it and waiting.
+
+~~**The instrument, not the digits — the selector below picks the clause itself, and it is
+WRAP-INSENSITIVE.**~~ **Struck: wrap-insensitive was one of three properties it needed and the only
+one it had.** It collapsed whitespace before matching, because this repository had already paid for a
+line-oriented sweep that returned two hits and missed the broken file (#410) — correct, and
+insufficient. Re-derived against a hardened selector on the same tree, it **under-counted by four**:
+
+| what it missed | why | cost |
+|---|---|---|
+| a sentence-initial `Every …` in `docs/adr/0002` | it was **case-sensitive** | 14 found, 15 present |
+| three occurrences inside `hooks/scripts/inventory-counts.test.sh` | it was scoped to `'*.md'`, and one of the three wraps across two `#`-prefixed comment lines, so the collapsed body reads `every # ` + backtick + `gh issue` and `\W?` matches **one** character | 15 found, 18 present |
+
+**Two of those three misses are the same lesson at different grains, and the third is the sharper
+one.** A sweep's instrument scoped to one file extension is an enumeration claiming to be a rule; and
+**the extension it excluded was `.sh`, which is where this repository's own GATE lives** — so three
+false claims sat in the comments of the file whose job is catching drift, invisible to the command
+published to find them.
+
+**The corrected instrument is published in full rather than as a mutation of the one above**, per the
+rule this file already carries: *a described mutation of a published command is not a published
+command.* It strips a leading comment marker per line **before** collapsing whitespace, matches
+case-insensitively, and reads every tracked file:
 
 ```
-git ls-files -z -- '*.md' | xargs -0 python3 -c '
+git ls-files -z | xargs -0 python3 -c '
 import re, sys
-claim = re.compile(r"every \W?gh issue\W? call [^.]*? is a write path")
+claim = re.compile(r"every \W{0,3}gh issue\W{0,3} call [^.]*? is a write path", re.I)
 for p in sys.argv[1:]:
-    body = re.sub(r"\s+", " ", open(p, encoding="utf-8").read())
+    try: raw = open(p, encoding="utf-8").read()
+    except Exception: continue
+    body = re.sub(r"\s+", " ", " ".join(re.sub(r"^\s*#\s?", "", l) for l in raw.split("\n")))
     n = len(claim.findall(body))
-    if n:
-        print(str(n) + "\t" + p)
+    if n: print(str(n) + "\t" + p)
 '
-# 1  CLAUDE.md
-# 1  agents/scrum-master.md
-# 2  commands/autonomy.md
-# 1  commands/new-issue.md
-# 1  commands/sprint-planning.md
-# 2  commands/sprint-retrospective.md
-# 1  commands/sprint-review.md
-# 2  docs/adr/0002-roster-and-dev-loop.md
-# 1  docs/adr/0004-controls-and-enforcement.md
-# 1  powers/tadeumendonca-skills/skills/agents-configuration/SKILL.md
-# 1  skills/agents-configuration/SKILL.md
 ```
 
-**`\W?` stands in for a backtick because a backtick in a command string is refused by this harness's
-own guard** — the pattern is `every ` + optional backtick + `gh issue` + optional backtick + ` call …`.
+**`\W{0,3}` stands in for a backtick — optionally preceded by a stripped comment marker's residue —
+because a backtick in a command string is refused by this harness's own guard.**
 
-**What the selector CANNOT distinguish, named so the totals are not over-read** — the same
-citation-versus-discussion blindness `documentation-standard` records about the record-citation gate:
+**The scope it returned, and it is bigger than the deferral claimed: 16 assertions across 10 authored
+files** (18 occurrences, minus `CLAUDE.md`'s own quotation and the generated `powers/` mirror). The
+four the old selector could not see were the `docs/adr/0002` sentence-initial one and the three in
+`hooks/scripts/inventory-counts.test.sh`.
 
-- **`CLAUDE.md`'s own hit is THIS paragraph**, quoting the clause in order to call it false. It is the
-  deferral, not a site of it.
-- **`powers/…` is the GENERATED mirror** of `skills/agents-configuration/SKILL.md` and moves with it;
-  it is not an independent site.
-- **`docs/adr/0004`'s hit reads *"a write path of another kind"***, inside a parenthetical about
-  milestone assignment. It still asserts the clause and it is the one a sweeper should read before
-  editing.
+**What no selector of this shape CAN distinguish, unchanged and now load-bearing** — the same
+citation-versus-discussion blindness `documentation-standard` records about the record-citation gate.
+**Every corrected site now QUOTES the clause in order to strike it**, per this repository's
+struck-not-deleted convention, so the occurrence count did **not** go to zero and must not be expected
+to: it went from 18 asserted to 15 quoted-and-repudiated. **A bare absence check would therefore demand
+deleting the very sentences that record the correction**, which is why the gate arm added in this slice
+requires a repudiation marker within 120 characters of each occurrence rather than requiring absence.
 
-**So the honest scope: 12 assertions across 9 authored files** — `agents/scrum-master.md`,
-`commands/autonomy.md` (2), `commands/new-issue.md`, `commands/sprint-planning.md`,
-`commands/sprint-retrospective.md` (2), `commands/sprint-review.md`,
-`docs/adr/0002-roster-and-dev-loop.md` (2), `docs/adr/0004-controls-and-enforcement.md`,
-`skills/agents-configuration/SKILL.md` — **plus the generated mirror, which needs no edit.**
+**What the repair WAS, per site rather than uniform.** Each site used the clause as a falsifier for a
+different conclusion, and a single replacement string pasted sixteen times would have turned sixteen
+true sentences into sixteen plausible ones. The conclusions all survive; the reason they now give is
+the property rather than the proxy — **no registered hook selects a `--label` or a `--milestone`**,
+which is the first command in this section and is directly falsifiable, where *"every call is a write
+path"* was a proxy for it and was false.
 
-**What #406 slice C actually changed, stated as the movement rather than as a total.** It was already
-rewriting one sentence in `skills/agents-configuration/SKILL.md` for a different reason — the *"no hook
-can be built for either rite"* clause, which the cadence carrier falsified — and dropping a known-false
-sub-clause out of a sentence being rewritten anyway is cheaper than leaving it and cheaper than a round
-about it. **In that file the count moved 2 → 1**, re-derived with the same selector against the merged
-state:
+**One conclusion did NOT survive, and it is a finding rather than a failure.**
+`commands/sprint-review.md` read *"No hook can be built for it"* — an absolute the cadence carrier
+falsified in the same way it falsified the preload's *"no hook can be built for either rite"*. It is
+corrected on the same split — **and for THIS rite both halves are negative, which is sharper than the
+preload's case and was got wrong once before the gate caught it.** `docs/loop-cadence.md` declares
+`/sprint-review`'s artifact root `sibling`, so `hooks/scripts/cadence-notice.sh` names the rite and
+reports it *"in the CONSUMING repository. Not observable from this tree"*, returning before it reads any
+date: **NOTICING is built for the two rites declared `here` and is declared INERT for this one; FIRING
+is not built for any of the three and did not move.** What the strike buys is that a row for this rite
+**exists and is handled**, not that it is noticed. The identical absolute one line away in
+`docs/adr/0002-roster-and-dev-loop.md` was corrected with it, for the reason slice C already gave about
+this exact class: dropping a known-false absolute out of a section being rewritten anyway is cheaper
+than leaving it and cheaper than a round about it.
 
-```
-git show origin/main:skills/agents-configuration/SKILL.md | python3 -c '
-import re, sys
-body = re.sub(r"\s+", " ", sys.stdin.read())
-print(len(re.findall(r"every \W?gh issue\W? call [^.]*? is a write path", body)))
-'
-# 2      (1 at this branch head)
-```
-
-**It swept nothing else, deliberately**, because a partial sweep presented as a fix is this
-repository's own named failure. **All twelve assertions listed above are the owed slice's subject —
-including the one left in the file this slice touched — and the command is what scopes it.** Re-run it
-rather than trusting any figure in this paragraph; it was re-run **after** this paragraph was written,
-because a number whose base sits inside the diff that publishes it is this repository's other named
-failure.
+**And the arm is calibrated by planting, not by reading.** `hooks/scripts/inventory-counts.test.sh`
+carries a tree-wide arm asserting the clause never appears unrepudiated. It was confirmed red twice by
+mutating the **source**: a plain occurrence appended to `README.md`, and a capital-`E` occurrence
+wrapped across two shell-comment lines appended to `hooks/scripts/preflight.sh` — the second exercising
+all three properties the old selector lacked at once. Both restored, both re-greened. It also carries a
+**vacuity guard**, and that guard earned its place immediately: the arm's first form piped `git
+ls-files` through `xargs` into `python3 -` with the script as a heredoc, **and `xargs` won the contest
+for stdin**, so the script never arrived and the arm matched nothing. A bare-count-of-zero would have
+read as *clean*.
 
 **So the property to preserve is deliberate, not inherited.** Slice B adds a mode-dependent predicate;
 the moment any hook is made to read it, the floor stops being mode-blind and this table stops being a

@@ -1328,8 +1328,12 @@ carried over), not a gate.
   as one built and one owed.~~ **Struck 2026-09-02 (#379): all three rites now exist, so the plural is
   satisfied in COUNT.** The limit is unchanged and is now the only thing left of that sentence —
   **three objects, zero triggers.**
-- **Anything that observes an iteration.** No hook reads the queue: every `gh issue` call in
-  `hooks/scripts/` is a write path. This section is a rule the loop follows, and a gate asserts only that
+- **Anything that observes an iteration.** No registered hook reads the queue — ~~every `gh issue` call
+  in `hooks/scripts/` is a write path~~, **struck 2026-09-09 (#406) as false at head**: two calls in
+  `closure-artifact-guard.sh` are live READS (an Issue body by number; **closed** Issues in a rolling
+  date window). **The conclusion is unchanged, and the reason that carries it is the property rather
+  than the proxy — no registered hook selects a `--label` or a `--milestone`**, so nothing can derive an
+  eligible pool. This section is a rule the loop follows, and a gate asserts only that
   the rule is **written**, never that a session obeyed it.
 
 ## The escalation standard, as this loop applies it (#393)

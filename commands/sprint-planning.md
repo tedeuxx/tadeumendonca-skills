@@ -145,8 +145,11 @@ what they meet there.
 - **The owner types it**, against an iteration he is about to open. That is the ordinary route while the
   loop is being reconfigured outside any iteration, and it is not a lesser path.
 
-**Nothing fires it.** No hook in `hooks/scripts/` reads the queue — every `gh issue` call there is a
-write path — and a `SessionStart` or `Stop` hook receives one `cwd` while an iteration is two milestone
+**Nothing fires it.** No registered hook reads the queue — ~~every `gh issue` call there is a write
+path~~, **struck as false at head** (`closure-artifact-guard.sh` reads an Issue body by number and lists
+**closed** Issues in a rolling window). The surviving reason is narrower and sufficient: **no registered
+hook selects a `--label` or a `--milestone`**, so no layer can derive an eligible pool — and a
+`SessionStart` or `Stop` hook receives one `cwd` while an iteration is two milestone
 objects in two repositories. By this loop's own test — *would something stop me, or only my memory?* —
 **this rite is not engineered**, and it must not be described as if it were.
 

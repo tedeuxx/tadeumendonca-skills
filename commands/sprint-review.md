@@ -260,9 +260,21 @@ the one door its driver holds. **This is an instruction and nothing enforces it.
 ## What nothing enforces, said before any green is read
 
 - **Nothing fires this.** `/autonomy on` names it at its terminal condition; that is an instruction in a
-  command file. No hook can be built for it: nothing in `hooks/scripts/` reads the queue — every
-  `gh issue` call there is a write path — so no layer here can observe a snapshot going empty, and a
-  hook receives one `cwd` while an iteration is two milestone objects in two repositories.
+  command file. ~~No hook can be built for it: nothing in `hooks/scripts/` reads the queue — every
+  `gh issue` call there is a write path~~ — **struck 2026-09-09, and BOTH halves were wrong, in
+  different ways.** *The reason:* two `gh issue` calls in `closure-artifact-guard.sh` are live READS —
+  an Issue body by number, and **closed** Issues in a rolling date window. *The conclusion:*
+  `hooks/scripts/cadence-notice.sh` **is** a hook built for this rite. **Keep the two words apart, which
+  is the whole of the correction — and this rite is the one where the second word is also negative:**
+  **NOTICING is built for the two rites whose artifact root is declared `here`, and is declared INERT
+  for THIS one.** `docs/loop-cadence.md` declares `/sprint-review`'s root `sibling`, so the carrier
+  names this rite and reports it *"in the CONSUMING repository. Not observable from this tree"* — it
+  returns before reading any date, and `sibling` is a static declaration in the record rather than a
+  path relative to `cwd`, so the answer is the same from either tree. **FIRING is not built for any of
+  the three, and did not move** — no
+  layer can observe a snapshot going empty, because no registered hook selects a `--label` or a
+  `--milestone`, and a hook receives one `cwd` while an iteration is two milestone objects in two
+  repositories. A notice is a report; a report is not a trigger and cannot dispatch.
 - **Nothing observes that it ran, or that it ran over the right iteration.** A skipped sweep, a sweep
   run over the wrong iteration and a sweep that visited four routes of eighteen are indistinguishable
   from the tracker.

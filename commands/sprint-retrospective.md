@@ -65,8 +65,14 @@ a rejected option kept alive by a struck sentence is how a design decision gets 
   label only he can apply, which is the same wedge under a different name.
 - **The trigger must be an event the running thing produces.** The drain is what runs; its snapshot going
   empty is a fact it observes about itself, at the moment it observes it. Iteration-emptiness is a fact
-  about the tracker that nothing in the loop is watching — `grep` any hook for a queue read and every
-  `gh issue` call in `hooks/scripts/` is a write path.
+  about the tracker that nothing in the loop is watching. ~~`grep` any hook for a queue read and every
+  `gh issue` call in `hooks/scripts/` is a write path.~~ **Struck: that instruction returns the opposite
+  of what it promises.** `grep` the registered hooks and two live READS come back, both in
+  `closure-artifact-guard.sh` — an Issue body by number, and **closed** Issues in a rolling date window.
+  **The conclusion is unchanged and its real reason is one grep further in:** neither read selects a
+  `--label` or a `--milestone`, and no registered hook does, so nothing watches the *eligible* set. This
+  site is struck rather than reworded because it told the reader to run a check — and a check whose
+  published result is the reverse of its actual output is worse than no check.
 
 **What #365 does change here is the SCOPE clause, and it changes it in the rite's favour:** an iteration
 whose contents are fixed at planning makes *"the iteration as it stands at that moment"* a far more
@@ -332,8 +338,9 @@ that the cap holds** — nothing measures it.
 - **Nothing fires this.** There is no hook. `/autonomy on` names it at its terminal condition; that is
   an instruction, and by this loop's own test — *would something stop me, or only my memory?* — it is
   not engineered.
-- **Nothing observes that it ran, or that it ran correctly.** No hook in `hooks/scripts/` reads the
-  queue; every `gh issue` call there is a write path. A rite skipped, a rite run over the wrong
+- **Nothing observes that it ran, or that it ran correctly.** No registered hook reads the
+  queue — because none selects a `--label` or a `--milestone`, **not** because every `gh issue` call
+  there is a write path, which is false at head (two are reads). A rite skipped, a rite run over the wrong
   iteration, and a rite run with three personas instead of six are indistinguishable from the tracker.
 - **Nothing bounds the volume.** The cap is in a template. See step 4.
 - **`hooks/scripts/inventory-counts.test.sh` asserts this file's rules are WRITTEN.** It cannot assert

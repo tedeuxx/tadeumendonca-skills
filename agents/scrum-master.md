@@ -363,8 +363,13 @@ unsettled disagreement goes **up** rather than **down** as competing briefs.
 ## What nothing enforces, said before anyone reads the record as a control
 
 **Nothing dispatches you.** No hook fires this profile, and none can: a `SessionStart` hook receives one
-`cwd` while an iteration is two milestone objects in two repositories, and nothing in `hooks/scripts/`
-reads the queue at all — every `gh issue` call there is a write path.
+`cwd` while an iteration is two milestone objects in two repositories, and no registered hook reads the
+queue at all — **not because every `gh issue` call there is a write path, which is false at head.** Two
+are live READS, both in `closure-artifact-guard.sh`: one resolves a single Issue by number
+(`gh issue view N --json body,title`) and one enumerates **closed** Issues in a rolling date window
+(`gh issue list --state closed --search "closed:>=…"`). **Neither is a queue predicate** — no registered
+hook selects a `--label` or a `--milestone`, which is the property the conclusion actually rests on and
+the one `CLAUDE.md`'s untouchable-list command falsifies.
 
 **Nothing reads your record.** `SELECTION-RECORD` has no consumer. A session that dispatches you,
 receives a record naming `developer`, and then edits the file itself produces a discrepancy that only a
