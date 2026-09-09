@@ -18,9 +18,20 @@
 #      Its predicate is a MANUAL close, and the route this loop actually uses is the forge's, on a
 #      closing keyword in a merged PR body — measured below, and executed by GitHub's servers where
 #      no `PreToolUse` hook exists.
-#   2. THE ROUTE THAT DOES HAPPEN WAS ALREADY COVERED UPSTREAM, one step earlier and by a different
-#      artifact comparison: `permission-guard.sh` rule 7d denies the MERGE when the PR's
-#      `closingIssuesReferences` contains an Issue the gate's head-scoped verdict does not declare.
+#   2. ~~THE ROUTE THAT DOES HAPPEN WAS ALREADY COVERED UPSTREAM, one step earlier and by a different~~
+#      ~~artifact comparison: `permission-guard.sh` rule 7d denies the MERGE when the PR's~~
+#      ~~`closingIssuesReferences` contains an Issue the gate's head-scoped verdict does not declare.~~
+#      **STRUCK 2026-09-08 (#383, slice S4): RULE 7d IS REMOVED TOO, so this fact is now false and the
+#      cover it named does not exist.** It is struck rather than deleted because it is one third of the
+#      argument that removed this arm, and a reader re-auditing that removal must see that the leg went
+#      away. **The removal is NOT reversed**, because facts 1 and 3 are untouched and either is
+#      sufficient on the criterion: zero fires in thirty days, and an act repaired by `gh issue reopen`.
+#      **What the pair costs, and it is the second-order effect neither slice could see alone: the whole
+#      class now has NO refusal surface.** S1 removed this arm partly because 7d covered the majority
+#      route; S4 removed 7d because the act is reparable. Each is right on the criterion; together they
+#      leave prevention nowhere, and only the `Stop` arm below — on a DECLARED promise only — detects
+#      anything at all. Written here so the next reader meets the consequence rather than the two
+#      individually reasonable halves.
 #   3. WHAT IT PREVENTED IS REPARABLE IN ONE CLICK. An Issue closed with an unmet promise is
 #      reopened; nothing latches.
 #
@@ -95,13 +106,21 @@
 #                       reparable act, is the exact shape the dehydration criterion removes.
 #
 # ── CORRECTION 2026-08-30 (#363) — TRUE OF THE CLOSE, FALSE OF THE MERGE ───────────────────────
-# The two struck clauses above were the reasoning everything downstream inherited, and the second
-# one was character-for-character what `README.md` and `docs/adr/0004` strike as false. Nothing can
-# deny the forge's CLOSE — that half stands. But the close only happens because a MERGE happened,
-# the merge IS a tool call, and `permission-guard.sh` rule 7d denies it when the PR's
-# `closingIssuesReferences` contains an Issue the gate's head-scoped verdict does not declare on a
-# `closes:` line. So there are two refusal surfaces, and the second one reaches the keyword route,
-# one step upstream.
+# ~~The two struck clauses above were the reasoning everything downstream inherited, and the second~~
+# ~~one was character-for-character what `README.md` and `docs/adr/0004` strike as false. Nothing can~~
+# ~~deny the forge's CLOSE — that half stands. But the close only happens because a MERGE happened,~~
+# ~~the merge IS a tool call, and `permission-guard.sh` rule 7d denies it when the PR's~~
+# ~~`closingIssuesReferences` contains an Issue the gate's head-scoped verdict does not declare on a~~
+# ~~`closes:` line. So there are two refusal surfaces, and the second one reaches the keyword route,~~
+# ~~one step upstream.~~
+#
+# ── RE-CORRECTED 2026-09-08 (#383, slice S4): THERE ARE **ZERO** REFUSAL SURFACES NOW ──────────
+# Rule 7d is removed. The 2026-08-30 correction was right when written — its half about the CLOSE
+# still stands, and nothing in this harness can ever deny the forge's close — but its conclusion,
+# *"two refusal surfaces"*, is now wrong by two. This arm went at #383 S1 and 7d at S4, both on the
+# same criterion and both correctly: an Issue close is repaired by `gh issue reopen`. **The count is
+# what changed, not the reasoning, and the count is the thing a reader trusts.** What remains is
+# detection: the `Stop` arm below, on an Issue that DECLARES an `invocable:` promise, one turn late.
 #
 # THAT IS A DIFFERENT OBLIGATION OVER A DIFFERENT ARTIFACT, AND THIS SCRIPT IS NOT MADE REDUNDANT
 # BY IT — BUT NEITHER DOES THIS SCRIPT PATCH RULE 7D'S HOLES, WHICH IS THE MISREADING TO REFUSE.

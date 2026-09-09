@@ -1518,13 +1518,23 @@ design of the missing control turned on the difference.** Nothing can refuse the
 half stands, and the `Stop` arm still covers it **for an Issue that declared a promise**. But the
 close only happens *because a merge happened*,
 **the merge is a tool call, and `permission-guard.sh` rule 7c was already intercepting it, already
-fetching the PR and already reading the gate's verdict head-scoped.** Rule 7d (#363) adds one field to
-that same call — `closingIssuesReferences`, the forge's own resolved set, **zero additional
-round-trips** — and denies the merge when it contains an Issue the gate's verdict at the current head
-does not declare on a `closes:` line. So the route is refusable one step upstream of the act everyone
-was looking at. **It compares two artifacts and never judges delivery**, which is the narrower and
-honest obligation: the local defect was never *delivery unverified* (the gate judged #355 correctly and
-prescribed `Refs`) but *the prescription became a body edit and nothing verified it took*.
+fetching the PR and already reading the gate's verdict head-scoped.** ~~Rule 7d (#363) adds one field to~~
+~~that same call — `closingIssuesReferences`, the forge's own resolved set, **zero additional**~~
+~~**round-trips** — and denies the merge when it contains an Issue the gate's verdict at the current head~~
+~~does not declare on a `closes:` line. So the route is refusable one step upstream of the act everyone~~
+~~was looking at.~~
+
+**STRUCK 2026-09-08 (#383, slice S4) — RULE 7d IS REMOVED, AND THE STRIKE LANDS HERE FIRST because this
+file is loaded on every dispatch.** A persona that read *"the route is refusable"* would believe a
+mechanism stands where none does. The owner's criterion is *«situacoes irreparaveis»*, and the act 7d
+refused — the forge auto-closing an Issue the verdict never declared — is repaired exactly by
+`gh issue reopen`. **`closure-artifact-guard`'s `PreToolUse` arm went at slice S1 of the same audit,
+partly because 7d covered the route it could not**, so the pair now leaves the class with **no refusal
+surface at all**. Both removals are correct on the criterion and the second-order effect is real; it is
+recorded rather than argued with. What survives 7d's removal, because it is a property of the forge and
+not of the hook: the forge's resolved closing set is derived from the merge request BODY alone, a
+NEGATED closing keyword still creates the link (#393 slice A), and a prose mention is not a
+declaration. The body-derived limit is stated once below, where it always was.
 
 **Two limits ride with it and are not closed by it:** `closingIssuesReferences` is **PR-body-derived**
 — measured with a throwaway PR carrying `Closes #358` only in a commit message, the field returned `[]`

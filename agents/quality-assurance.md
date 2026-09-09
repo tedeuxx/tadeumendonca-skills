@@ -392,12 +392,30 @@ closes: <every Issue number this PR will close, space-separated — omit the lin
 …then your verdict and the per-criterion table.
 ```
 
-**The `closes:` line, and it is read by a machine (#363).** `permission-guard.sh` rule 7d asks the forge
-which Issues this PR would close — `gh pr view <ref> --json closingIssuesReferences`, the parser's own
-answer rather than a regex over the body — and **denies the merge when that set contains a number your
-verdict at the current head does not declare on a `closes:` line at COLUMN 0.** So the line is required
-exactly when the PR closes something, and writing it is you asserting *I verified these delivered at
-this head*.
+~~**The `closes:` line, and it is read by a machine (#363).** `permission-guard.sh` rule 7d asks the forge~~
+~~which Issues this PR would close — `gh pr view <ref> --json closingIssuesReferences`, the parser's own~~
+~~answer rather than a regex over the body — and **denies the merge when that set contains a number your**~~
+~~**verdict at the current head does not declare on a `closes:` line at COLUMN 0.**~~
+
+**STRUCK 2026-09-08 (#383, slice S4) — RULE 7d IS REMOVED AND NOTHING READS THIS LINE ANY MORE.** Struck
+rather than deleted because it is the sentence that told you a machine was checking you, and a gate
+believing that when it is false is worse than a gate that never believed it. The owner's dehydration
+criterion is *«situacoes irreparaveis»*: what 7d refused — the forge auto-closing an Issue your verdict
+never declared — is repaired exactly by `gh issue reopen`, so the lock did not survive however correctly
+it fired.
+
+**KEEP WRITING THE LINE. It is now an ARTIFACT, not a precondition, and the difference is what it buys.**
+It is required exactly when the PR closes something, and writing it is you asserting *I verified these
+delivered at this head*. Nothing refuses you if you omit it and nothing refuses you if it is wrong.
+**What it still buys is that the divergence stays findable by a human**, in one command against two
+artifacts that both already exist:
+
+```
+gh pr view <ref> --repo <owner>/<repo> --json closingIssuesReferences --jq '[.closingIssuesReferences[].number]'
+```
+
+against the `closes:` numbers in your own verdict at that head. That comparison used to be the floor's;
+it is yours now, and it is the last place the check exists at all.
 
 **Why a declared line and not "the verdict mentions #N".** Measured on the live instance: PR #356 closed
 Issue #355 with nothing #355 asked for built, and **both** gatekeeper verdicts on that PR contain the
@@ -411,18 +429,24 @@ returning `[]` — **do not read the body and assume it took.** That is precisel
 #356: the prescription was made, the builder reported it done, and the keyword survived inside the
 sentence explaining why it must not be used.
 
-**Three limits, and none of them is closed by this line.**
+**Three limits, and none of them is closed by this line. Since #383 S4 they describe YOUR check rather
+than the floor's, and a fourth has joined them: nothing refuses you at all.**
 
 1. **`closingIssuesReferences` is PR-body-derived** — measured 2026-08-30 with a throwaway PR carrying
    the keyword only in a commit message: the field returned `[]` — so a keyword living only in a commit
-   message is invisible to the rule.
+   message is invisible, and that surface cannot be edited afterwards because amending needs a
+   force-push the floor denies.
 2. **No hook sees a browser merge.**
 3. **It compares two artifacts and never judges delivery.** A `closes:` line you write without
-   verifying is a line the floor accepts. **Do not read a clean merge as evidence the close was
+   verifying is a line nobody disputes. **Do not read a clean merge as evidence the close was
    earned — you are the evidence.**
+4. **A NEGATED closing keyword still creates the link** (#393 slice A). The forge parses the token, not
+   the sentence around it, so *"this does not close #N"* closes #N. Grep the body for the keyword class
+   before you post; do not read it.
 
 **Do NOT read the `Stop` arm in `closure-artifact-guard.sh` as covering limits 1 and 2. It does not,
-and this is the sentence that was wrong here for one round.** That arm's predicate is *an Issue that
+and this is the sentence that was wrong here for one round — and since #383 S4 it is the only mechanism
+left on this class at all, which makes reading it as wider than it is more expensive, not less.** That arm's predicate is *an Issue that
 **declares** an `invocable:` artifact*, so it fires on **declared** promises only. Re-derived on the
 instance rule 7d was built from:
 
@@ -938,12 +962,13 @@ the answer: the floor is not disputing your verdict, it is saying it could not r
 precondition cannot be fixed from where you are, say so in your return and hand the PR to the owner —
 the unblock is manual and his.
 
-**And since 2026-08-30 the same floor can deny you for a SECOND reason that is not about the diff
-either (#363, rule 7d).** If the PR would auto-close an Issue your verdict at the current head does not
-name on a `closes:` line, the merge is refused. **This is not a fifth hold and it is not a class** —
-holds route the decision to the owner; this one is repaired by you, in one line, in the artifact you
-were already posting, and the repair is described in full under *Your verdict is an ARTIFACT on the PR*
-above. It denies the merge, never the review.
+~~**And since 2026-08-30 the same floor can deny you for a SECOND reason that is not about the diff**~~
+~~**either (#363, rule 7d).** If the PR would auto-close an Issue your verdict at the current head does not~~
+~~name on a `closes:` line, the merge is refused.~~ **STRUCK 2026-09-08 (#383, S4): rule 7d is removed, so
+the merge floor denies you for exactly ONE reason that is not about the diff — an unreadable or
+non-authorising verdict at the current head (rule 7c).** The `closes:` line survives as your artifact and
+refuses nothing; see *Your verdict is an ARTIFACT on the PR* above for what it now buys and what it does
+not.
 - **Safe class** — docs · dependency bumps · test-only · in-pattern refactor · in-pattern implementation
   of an **already-approved** spec/ADR. If the DoD is fully green, you **approve and merge** it yourself
   (`gh pr merge --merge`, never squash).

@@ -41,12 +41,12 @@ chmod +x "$GH_STUB_DIR/gh"
 # jq builds the fixture — same reason session-wip.test.sh's add_pr_view() does: hand-rolled JSON
 # string escaping is exactly the kind of "obviously correct" code this repo's own standard distrusts.
 #
-# THE FIXTURE CARRIES `closingIssuesReferences` SINCE #363, AND CARRYING IT IS NOT COSMETIC. Rule 7d
-# denies when the payload lacks the key at all, so a stub that omits it would turn every pre-existing
-# reviewer-ALLOW case in this file red for a reason that has nothing to do with what those cases
-# assert. The default is the EMPTY array — a PR that closes nothing — which is what keeps them
-# asserting exactly what they always asserted. $3 and $4 exist for the 7d cases below: the set the
-# forge would act on, and the set the verdict declares.
+# ~~THE FIXTURE CARRIES `closingIssuesReferences` SINCE #363, AND CARRYING IT IS NOT COSMETIC. Rule 7d
+# denies when the payload lacks the key at all …~~ **STRUCK 2026-09-08 (#383, S4): RULE 7d IS REMOVED**
+# and the guard no longer even REQUESTS that field. The fixture still carries it, and the reason is now
+# the opposite of the struck one: a stub that returns a field the guard ignores is what lets the
+# post-removal assertion below prove the guard ignores it. $3 and $4 (the forge's closing set and the
+# verdict's declaration) are kept for exactly that one case; every other caller passes neither.
 write_gh_fixture() { # head · verdict-literal-or-empty ('' = no comments) · forge-closes · declared-closes
   head="$1"; verdict="$2"; forge_closes="${3:-}"; declared="${4:-}"
   # NO `grep .` HERE, AND THE OMISSION IS LOAD-BEARING under this file's `set -o pipefail`: an empty
@@ -249,12 +249,32 @@ git init -q -b main "$BARE"
 check DENY  "unborn HEAD on main"           "git -C $BARE push"
 rm -rf "$BARE"
 
+# RULE 7 READS NO `agent_type`, AND #383 SLICE S4 MAKES THAT A PINNED PROPERTY RATHER THAN A READING.
+# The hooks audit's own summary kept rules 7 and 7b together on the AUTHORSHIP exception (*only the
+# gate may do this, and no other layer sees the caller*). That is true of 7b and FALSE of 7: this rule
+# denies the same act under every caller, the gatekeeper included, which is why its re-justification
+# rests on the act's consequence (a push to `main` fires version-main.yml, which publishes a Release)
+# and not on who is pushing. Three callers, one act, one verdict.
+#
+# THE CASES ARE NOT REDUNDANT WITH THE `check DENY` FORM ABOVE: that helper sends no `agent_type` at
+# all, which is a fourth payload shape. These say the rule is INDIFFERENT to the field, so an exemption
+# added here later — the shape 7b has and 7 must not grow — turns one of them red.
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "rule 7 denies the GATEKEEPER a trunk push: it reads no agent_type" "git push origin main"
+check_agent DENY  "tadeumendonca-skills:developer"         "rule 7 denies the builder the same act, same reason"              "git push origin main"
+check_agent DENY  "not-a-persona-of-this-roster"           "rule 7 denies a foreign agent_type too"                           "git push origin main"
+
 echo "--- rule 7b: merging a PR is the quality-assurance's act alone ---"
 check       DENY  "main agent (no agent_type) cannot merge"          "gh pr merge 149 --merge"
 check_agent DENY  ""                                     "empty agent_type = main agent, denied"      "gh pr merge 149 --merge"
 check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer merges — it IS the gate"     "gh pr merge 149 --merge"
 check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer, behind --repo"              "gh --repo owner/repo pr merge 149 --merge"
 check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the reviewer, behind -R"                  "gh -R owner/repo pr merge 149 --merge"
+# THE CATCH-ALL IS WHAT 7b'S DERIVED JUSTIFICATION RESTS ON (#383, S4): rule 7c lives INSIDE the
+# `*:quality-assurance)` arm, so every caller this catch-all refuses is a caller that never reaches the
+# fail-closed verdict read. A foreign, unrecognised `agent_type` must therefore land on DENY and not on
+# a fall-through — the "absent is not a state" shape, asserted rather than assumed.
+check_agent DENY  "not-a-persona-of-this-roster"           "a foreign agent_type is denied, not fallen through"                "gh pr merge 149 --merge"
+check_agent DENY  "tadeumendonca-skills:agents-lead"       "the harness lens cannot merge its own diff either"                 "gh pr merge 149 --merge"
 # NOT `--squash`, in either of the two cases that used to spell it that way. The floor denies
 # `Bash(gh pr merge --squash:*)` and the owner's standing rule is never to squash, so a case asserting
 # ALLOW on that spelling certified something the loop forbids — it read as coverage of a capability
@@ -514,11 +534,11 @@ assert_gh_call() { # description · expected-args-line · command
     fail=$((fail + 1)); printf 'FAIL  ARGS   %s\n      want: %s\n      got:  %s\n' "$1" "$2" "${got:-<none>}"
   fi
 }
-assert_gh_call "explicit numeric ref, no --repo"        "pr view 149 --json headRefOid,comments,closingIssuesReferences"                "gh pr merge 149 --merge"
-assert_gh_call "no ref: falls to current-branch PR"     "pr view --json headRefOid,comments,closingIssuesReferences"                    "gh pr merge --merge"
-assert_gh_call "--repo, space form"                      "pr view 149 --repo owner/repo --json headRefOid,comments,closingIssuesReferences" "gh --repo owner/repo pr merge 149 --merge"
-assert_gh_call "-R, space form"                          "pr view 149 --repo owner/repo --json headRefOid,comments,closingIssuesReferences" "gh -R owner/repo pr merge 149 --merge"
-assert_gh_call "--repo=, no space"                       "pr view 149 --repo owner/repo --json headRefOid,comments,closingIssuesReferences" "gh --repo=owner/repo pr merge 149 --merge"
+assert_gh_call "explicit numeric ref, no --repo"        "pr view 149 --json headRefOid,comments"                "gh pr merge 149 --merge"
+assert_gh_call "no ref: falls to current-branch PR"     "pr view --json headRefOid,comments"                    "gh pr merge --merge"
+assert_gh_call "--repo, space form"                      "pr view 149 --repo owner/repo --json headRefOid,comments" "gh --repo owner/repo pr merge 149 --merge"
+assert_gh_call "-R, space form"                          "pr view 149 --repo owner/repo --json headRefOid,comments" "gh -R owner/repo pr merge 149 --merge"
+assert_gh_call "--repo=, no space"                       "pr view 149 --repo owner/repo --json headRefOid,comments" "gh --repo=owner/repo pr merge 149 --merge"
 
 # ── FLAG POSITION MUST NOT MATTER (2026-08-23) ──────────────────────────────────────────────────────────
 # The five cases above all put the flag BEFORE the subcommand, and the extractor they were written
@@ -533,21 +553,21 @@ assert_gh_call "--repo=, no space"                       "pr view 149 --repo own
 # extractor required at least one separator character (`[[:space:]=]+`), so a spelling `gh` accepts
 # and rule 7b's own matcher already recognised fell through the extraction below it. Same defect,
 # same rule, opposite side of the subcommand.
-assert_gh_call "--repo AFTER the subcommand (the mandated spelling)" "pr view 149 --repo owner/repo --json headRefOid,comments,closingIssuesReferences" "gh pr merge 149 --repo owner/repo"
-assert_gh_call "-R AFTER the subcommand"                 "pr view 149 --repo owner/repo --json headRefOid,comments,closingIssuesReferences" "gh pr merge 149 -R owner/repo"
-assert_gh_call "--repo= AFTER the subcommand"            "pr view 149 --repo owner/repo --json headRefOid,comments,closingIssuesReferences" "gh pr merge 149 --repo=owner/repo"
-assert_gh_call "-R attached, AFTER the subcommand"       "pr view 149 --repo owner/repo --json headRefOid,comments,closingIssuesReferences" "gh pr merge 149 -Rowner/repo"
-assert_gh_call "-R attached, BEFORE the subcommand"      "pr view 149 --repo owner/repo --json headRefOid,comments,closingIssuesReferences" "gh -Rowner/repo pr merge 149 --merge"
-assert_gh_call "-R= attached, BEFORE the subcommand"     "pr view 149 --repo owner/repo --json headRefOid,comments,closingIssuesReferences" "gh -R=owner/repo pr merge 149 --merge"
+assert_gh_call "--repo AFTER the subcommand (the mandated spelling)" "pr view 149 --repo owner/repo --json headRefOid,comments" "gh pr merge 149 --repo owner/repo"
+assert_gh_call "-R AFTER the subcommand"                 "pr view 149 --repo owner/repo --json headRefOid,comments" "gh pr merge 149 -R owner/repo"
+assert_gh_call "--repo= AFTER the subcommand"            "pr view 149 --repo owner/repo --json headRefOid,comments" "gh pr merge 149 --repo=owner/repo"
+assert_gh_call "-R attached, AFTER the subcommand"       "pr view 149 --repo owner/repo --json headRefOid,comments" "gh pr merge 149 -Rowner/repo"
+assert_gh_call "-R attached, BEFORE the subcommand"      "pr view 149 --repo owner/repo --json headRefOid,comments" "gh -Rowner/repo pr merge 149 --merge"
+assert_gh_call "-R= attached, BEFORE the subcommand"     "pr view 149 --repo owner/repo --json headRefOid,comments" "gh -R=owner/repo pr merge 149 --merge"
 # THE REF SURVIVES A REPO FLAG PLACED BEFORE IT. Now that the flag may legally follow the subcommand,
 # `--repo` would otherwise be handed to the ref extractor, which drops any token starting with `-` and
 # falls back to the CURRENT BRANCH's PR — a different PR, read with a straight face. The guard strips
 # the flag/value pair before reading the ref; this is what says so.
-assert_gh_call "repo flag between 'merge' and the ref"   "pr view 149 --repo owner/repo --json headRefOid,comments,closingIssuesReferences" "gh pr merge --repo owner/repo 149 --merge"
+assert_gh_call "repo flag between 'merge' and the ref"   "pr view 149 --repo owner/repo --json headRefOid,comments" "gh pr merge --repo owner/repo 149 --merge"
 # AND THE WINNING SPELLINGS STILL WIN — the five cases above this block are unchanged and still run.
 # Restated here only because a fix that quietly traded one position for the other would look identical
 # in a suite that only ever asserted the new one.
-assert_gh_call "no repo flag at all still infers from cwd" "pr view 149 --json headRefOid,comments,closingIssuesReferences"  "gh pr merge 149 --merge"
+assert_gh_call "no repo flag at all still infers from cwd" "pr view 149 --json headRefOid,comments"  "gh pr merge 149 --merge"
 
 # ── AND THE DENY ACTUALLY FIRES THROUGH THE PREVIOUSLY-LOSING SPELLING ────────────────────────────
 # THIS IS THE ASSERTION THE SECTION EXISTED WITHOUT. Everything above proves what 7c *asked gh for*;
@@ -609,100 +629,39 @@ STUB
 chmod +x "$GH_STUB_DIR/gh"
 write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE"
 
-echo "--- rule 7d (#363): the merge must not close an Issue the verdict never declared ---"
-# EVERY CASE HERE RUNS BEHIND A CLEAN, CURRENT-HEAD APPROVE-AND-MERGE, so 7c is satisfied in all of
-# them and any DENY below is 7d's alone. That is the whole design of this block: a case that also
-# tripped 7c would prove nothing about the rule it is named after.
+echo "--- rule 7d: REMOVED (#383, S4) — the removal is asserted, not merely undone ---"
+# 7d compared the forge's resolved `closingIssuesReferences` against the `^closes:` lines of the
+# head-scoped verdict and denied a merge that would close an undeclared Issue. It was removed under the
+# owner's criterion — «situacoes irreparaveis» — because `gh issue reopen` restores the prior state
+# exactly. See the tombstone in `permission-guard.sh` for what it did and what does NOT replace it.
 #
-# THE FIRST CASE IS THE LIVE INSTANCE, not a synthesised one. PR #356 carried `close #355` in its body
-# — inside the sentence explaining why the keyword must not be used — its `closingIssuesReferences`
-# returns `[355]` at head today, and the merge-authorising verdict on the merged head mentions `#355`
-# in prose without declaring it.
-write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE" "355" ""
-check_agent DENY  "tadeumendonca-skills:quality-assurance" "the live instance: the forge would close #355 and the verdict declares nothing" "gh pr merge 149 --merge"
-
-# THE DECLARATION IS THE EXIT, and this is the case that prices the false positive. A PR that
-# legitimately closes a delivered Issue is the COMMON case; if it could not merge, this rule would be
-# one people route around, which this repository has measured twice is worse than none.
-write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE" "355" "355"
-check_agent ALLOW "tadeumendonca-skills:quality-assurance" "a declared close merges — 'closes: 355' at column 0 in the verdict" "gh pr merge 149 --merge"
-
-# THE NEGATIVE CONTROL FOR THE ABOVE. Without it, a rule that simply never denied would pass the
-# ALLOW case, and a rule that always denied would pass the DENY case; only the pair distinguishes them.
-write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE" "355 337" "355"
-check_agent DENY  "tadeumendonca-skills:quality-assurance" "a PARTIAL declaration still denies — #337 is closed and undeclared" "gh pr merge 149 --merge"
-write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE" "355 337" "355 337"
-check_agent ALLOW "tadeumendonca-skills:quality-assurance" "both declared, both closed: merges" "gh pr merge 149 --merge"
-
-# A DECLARATION WIDER THAN THE CLOSE IS FINE. The comparison is one-directional by design — the forge's
-# set must be inside the verdict's, never equal to it — because a gate that reviewed two Issues and a PR
-# that closes one is a correct state, and denying it would teach the gate to declare narrowly.
-write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE" "355" "355 337"
-check_agent ALLOW "tadeumendonca-skills:quality-assurance" "the verdict may declare MORE than the PR closes" "gh pr merge 149 --merge"
-
-# A PR THAT CLOSES NOTHING NEVER REACHES THE COMPARISON — the overwhelmingly common shape in this repo,
-# and it must cost the gate nothing.
+# THE CASE BELOW IS THE LIVE INSTANCE 7d WAS BUILT FROM, INVERTED. PR #356 carried `close #355` inside
+# the sentence explaining why the keyword must not be used; its `closingIssuesReferences` resolved to
+# [355] and the merge-authorising verdict mentioned #355 in prose without ever declaring it. That
+# fixture DENIED until this slice and ALLOWS now.
 #
-# THIS ONE IS A CONTROL, NOT AN INDEPENDENT ASSERTION, AND IT IS LABELLED SO RATHER THAN COUNTED AS ONE.
-# No mutation of 7d turns it red on its own: every source mutation tried against this block either
-# leaves it green or reddens it only together with the live-instance case above. Its value is the PAIR
-# — same fixture, same verdict, ONE variable different (the forge's closing set) and opposite outcomes —
-# which is what says the rule discriminates on that set rather than on anything else in the payload.
-write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE" "" ""
-check_agent ALLOW "tadeumendonca-skills:quality-assurance" "an empty closing set is not a finding" "gh pr merge 149 --merge"
-
-# THE MEASUREMENT THAT KILLED THE OBVIOUS DESIGN, PINNED AS AN ASSERTION. Both verdicts on the real
-# #356 contain the string `#355` — the merge-authorising one included, because it is the verdict that
-# PRESCRIBED removing the keyword. A prose-mention check would have passed the exact case it exists to
-# refuse, so the anchor is `^closes:` at column 0 and this case is what holds it there.
+# IT IS A REAL ASSERTION RATHER THAN AN ABSENCE, AND THAT IS THE POINT OF WRITING IT. A removal
+# asserted by deleting its cases leaves nothing that can go red if the rule walks back in — the exact
+# "a check that has only ever passed" shape this repository's own standard names. Calibrated by
+# mutation against the SOURCE: restoring 7d's comparison into `permission-guard.sh` turns this one line
+# red and nothing else in this file moves.
 write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE" "355" ""
-jq --arg extra 'The Closes #355 in the body must become Refs #355 before this merges.' \
-  '.comments[0].body = (.comments[0].body + "\n\n" + $extra)' \
-  "$GH_STUB_DIR/fixture.json" > "$GH_STUB_DIR/fixture.tmp"
-mv "$GH_STUB_DIR/fixture.tmp" "$GH_STUB_DIR/fixture.json"
-check_agent DENY  "tadeumendonca-skills:quality-assurance" "a verdict that MENTIONS #355 in prose has not declared it" "gh pr merge 149 --merge"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "7d is gone: an undeclared close no longer refuses the merge" "gh pr merge 149 --merge"
 
-# THE DECLARATION IS POSITIONAL. `closes:` inside a wrapped sentence is prose, and this is the case
-# that says the difference is column 0 and not the token — the same contract `purpose:` carries in
-# this tree, for the same reason.
-write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE" "355" ""
-jq --arg extra 'The rule is that it closes: 355 only when delivery was verified.' \
-  '.comments[0].body = (.comments[0].body + "\n\n" + $extra)' \
-  "$GH_STUB_DIR/fixture.json" > "$GH_STUB_DIR/fixture.tmp"
-mv "$GH_STUB_DIR/fixture.tmp" "$GH_STUB_DIR/fixture.json"
-check_agent DENY  "tadeumendonca-skills:quality-assurance" "an indented/mid-sentence 'closes:' is prose, not a declaration" "gh pr merge 149 --merge"
-
-# THE DECLARATION IS HEAD-SCOPED, because it rides in the verdict and the verdict already is. TWO
-# comments, and the pair is what makes this assertion capable of failing at all: a STALE verdict at an
-# old head declaring `closes: 355`, and the CURRENT verdict at the current head declaring nothing. 7c
-# is satisfied — the current verdict is APPROVE-AND-MERGE against the current head — so the only thing
-# that can deny here is 7d, and it denies only if it reads the comment 7c selected rather than any
-# comment carrying the marker.
-#
-# THE ONE-COMMENT FORM OF THIS CASE WAS WRITTEN FIRST AND WAS AN ASSERTION THAT COULD NOT FAIL: a
-# single stale verdict makes 7c deny on its own, so the case went green with 7d disabled entirely.
-# Found by mutation, not by reading — which is this workspace's own standing finding about assertions.
-jq -n '{headRefOid:"new-head", closingIssuesReferences:[{number:355}],
-        comments:[{authorAssociation:"OWNER", body:"<!-- gatekeeper-verdict: quality-assurance -->\nAPPROVE-AND-MERGE\nhead: old-head\ncloses: 355"},
-                  {authorAssociation:"OWNER", body:"<!-- gatekeeper-verdict: quality-assurance -->\nAPPROVE-AND-MERGE\nhead: new-head"}]}' \
-  > "$GH_STUB_DIR/fixture.json"
-check_agent DENY  "tadeumendonca-skills:quality-assurance" "a declaration on a MOVED head clears nothing — the current verdict declares none" "gh pr merge 149 --merge"
-
-# THE FAIL-CLOSED BRANCH. A payload with no `closingIssuesReferences` key at all means the read that
-# would have decided did not happen — 7c's own criterion, one field wider. It is defensive rather than
-# reachable through a real `gh` (which errors on an unknown --json field, landing on 7c's deny
-# instead), and it is written and asserted anyway so a future edit that drops the field from the query
-# wedges loudly rather than silently disarming this rule.
+# THE GUARD NO LONGER READS THE FIELD AT ALL, which is a different claim from "it does not deny on it"
+# and needs its own case: a payload with NO `closingIssuesReferences` key used to be 7d's fail-closed
+# branch, and it must now be indistinguishable from any other clean payload.
 jq -n '{headRefOid:"h", comments:[{authorAssociation:"OWNER", body:"<!-- gatekeeper-verdict: quality-assurance -->\nAPPROVE-AND-MERGE\nhead: h"}]}' \
   > "$GH_STUB_DIR/fixture.json"
-check_agent DENY  "tadeumendonca-skills:quality-assurance" "no closingIssuesReferences key: the merge floor denies rather than passing" "gh pr merge 149 --merge"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "7d is gone: a payload without the closing field is no longer a fail-closed branch" "gh pr merge 149 --merge"
 
-# 7d NEVER REACHES A CALLER 7b ALREADY REFUSED, and never widens what 7c denies. Both re-asserted
-# against a fixture that WOULD trip 7d, so a green here cannot come from the closing set being clean.
+# 7b AND 7c ARE UNTOUCHED BY THE REMOVAL, and both are re-asserted against a fixture that WOULD have
+# tripped 7d — so a green here cannot come from the closing set being clean, and a future reader can
+# see that dropping 7d did not quietly widen either of the rules around it.
 write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE" "355" ""
-check_agent DENY  "tadeumendonca-skills:developer" "7b still refuses a non-gate caller before 7d is ever consulted" "gh pr merge 149 --merge"
+check_agent DENY  "tadeumendonca-skills:developer" "7b still refuses a non-gate caller on the very fixture 7d used to deny" "gh pr merge 149 --merge"
 write_gh_fixture "stubbed-head" "REQUEST-CHANGES" "355" "355"
-check_agent DENY  "tadeumendonca-skills:quality-assurance" "7c still denies a bad verdict even when the close IS declared" "gh pr merge 149 --merge"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "7c still denies a bad verdict, declaration or no declaration" "gh pr merge 149 --merge"
 
 write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE"
 

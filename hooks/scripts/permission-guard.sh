@@ -82,12 +82,18 @@
 # ── THE FAIL-OPEN CONTRACT, AND WHY IT SURVIVED THE INVERSION ────────────────────────────────────
 # Contract: receives the PreToolUse JSON on stdin; denies by printing a permissionDecision JSON and
 # exiting 0. **Fails OPEN (allows) on any parse error, a missing `jq`, or no network — EXCEPT the merge
-# floor, rules 7c AND 7d, which fail CLOSED since 2026-08-28 (#341) and 2026-08-30 (#363).**
+# floor, rule 7c, which fails CLOSED since 2026-08-28 (#341).**
 #
-# 7d IS NOT A SECOND EXCEPTION — IT IS THE SAME ONE, ONE FIELD WIDER. It runs only after 7c has already
-# read the PR and cleared the verdict, on the SAME payload, and it guards the same irreversible act. Its
-# one degradation branch (the payload came back without `closingIssuesReferences`) denies for exactly
-# 7c's reason: the read that would have decided did not happen. Nothing else in this file moved.
+# ~~7d IS NOT A SECOND EXCEPTION — IT IS THE SAME ONE, ONE FIELD WIDER … its one degradation branch (the
+# payload came back without `closingIssuesReferences`) denies for exactly 7c's reason.~~ **STRUCK
+# 2026-09-08 (#383, slice S4): RULE 7d IS REMOVED, so there is exactly one fail-closed rule again.**
+# The paragraph is struck rather than deleted because it is the sentence that told a reader this file
+# had two of them, and the count is the thing a later reader will want to trust. What 7d refused —
+# the forge auto-closing an Issue the gate's verdict never declared — is REPARABLE: `gh issue reopen`
+# restores the prior state exactly, at no cost, and nothing latches off an Issue close. Under the
+# owner's criterion (*«situacoes irreparaveis»*) a lock does not survive on a reparable act however
+# correctly it fires. The full verdict, what is lost with it and what does NOT replace it are at 7d's
+# former site, below rule 7c.
 #
 # ONE EXCEPTION, AND THE CRITERION FOR IT IS NOT "IMPORTANCE" — IT IS WHAT THE FAIL-OPEN LANDS ON.
 # Rule 7c is the only rule here whose degradation admits the IRREVERSIBLE act itself: it guards the
@@ -1445,6 +1451,58 @@ fi
 #    prefixes, so it cannot see that `git -C <path> push origin main` and
 #    `git push` while HEAD is main are the same act, and pattern-listing every form
 #    either misses one or (as happened) over-blocks every feature-branch push too.
+#
+#    ── RE-JUSTIFIED 2026-09-08 (#383, slice S4), AND THE OLD REASON DOES NOT SURVIVE ─────────────
+#    The audit's own summary put rule 7 and rule 7b in one row and kept both on the AUTHORSHIP
+#    exception (*only `quality-assurance` may do this, and no other layer sees the caller*). **That is
+#    false of rule 7, and measurably so: this rule reads no `agent_type` at all.** Piping the same
+#    payload in under four different callers returns the same deny four times:
+#
+#      agent_type=<empty/orchestrator>          git push origin main  -> deny
+#      agent_type=…:quality-assurance           git push origin main  -> deny
+#      agent_type=…:developer                   git push origin main  -> deny
+#      agent_type=some-foreign-thing            git push origin main  -> deny
+#
+#    **It denies the gatekeeper too.** So push and merge are NOT the same case, and whatever survives
+#    here has to survive on the act rather than on who is performing it. `permission-guard.test.sh`
+#    pins that property directly now, so a later edit that adds a persona exemption here reddens.
+#
+#    WHAT IT SURVIVES ON: THE CONSEQUENCE LATCHES, AND THE PREDICATE IS COEXTENSIVE WITH IT.
+#    The owner's criterion is «situacoes irreparaveis» — irreparable, not costly. A push to `main` in
+#    THIS repository is not merely a deploy: `.github/workflows/version-main.yml` triggers on
+#    `push: branches: [main]`, bumps the patch, tags `vX.Y.Z`, pushes the tag and runs
+#    `gh release create`. **The push publishes a marketplace Release with no human between the two
+#    acts.** A Release is deletable; a Release a consumer has already pulled with `/plugin update` is
+#    on their disk and does not un-happen. That is the same standard this audit already applied to
+#    rule 5g's `gh release create` and `gh workflow run`, and exempting the push would be applying it
+#    unevenly. In the consuming repository the same push is the site deploy, which can latch an OG card
+#    a scraper pins on first fetch and a GA4 event name that has begun collecting — both recorded in
+#    that repository's own decision library, cited by name there rather than numbered here, because a
+#    foreign record number in this tree reads to an agent as a live local citation.
+#
+#    AND THIS IS THE HALF THAT SEPARATES IT FROM THE MERGE FLOOR. §5 of the audit refused to keep 7b
+#    on irreparability because a merge-time classifier cannot identify WHICH merges latch — the OG
+#    surface alone is spread across most of a frontend, and "a claim a reader has already read" has no
+#    path at all. **Rule 7 has no such gap: the workflow's own trigger is `push to main`, so every act
+#    this rule refuses publishes, and every act it permits does not.** The one exclusion is the
+#    workflow's `bump:` loop guard, which is its own commit. A lock whose predicate is coextensive
+#    with the latching act is the opposite of the shape this audit is dehydrating.
+#
+#    WHY NOT THE OTHER LAYERS, EACH TRIED RATHER THAN ASSUMED UNAVAILABLE («explorados»):
+#      · `settings.json` — both layers deny `git push origin main`, `git push origin main:*` and
+#        `git push origin HEAD:main:*`, and both ALLOW `Bash(git push:*)`. Token-bounded prefixes
+#        cannot express *bare `git push` while HEAD is main*, `--all`, `--mirror`, `+main`,
+#        `HEAD:refs/heads/main`, or `git -C <dir> push origin main` (whose prefix `git -C` is itself
+#        allowlisted). So removal here is a REAL removal with silent execution for exactly the forms
+#        this rule was written for.
+#      · the forge — `enforce_admins` on `main` is `false` (read 2026-09-02, carried in `/devops`), so
+#        protection does not apply to the administrator credential every context in this loop acts
+#        through. **The forge would accept the push this rule refuses.** Not re-read here: the command
+#        is `gh api`, which the global floor denies in-loop. Treat it as dated rather than settled —
+#        and note the gap is unwatched rather than unwatchable, since CI is not an in-loop context.
+#      · a brief or a skill — an instruction, and the act is one keystroke from a context that has the
+#        credential. By this loop's own test that is memory, not a mechanism.
+#    KEEP.
 if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+push([[:space:]]|$)'; then
   # Any refspec landing on the trunk: `main`, `refs/heads/main`, `HEAD:main`, `+main`.
   if printf '%s' "$bare" | grep -Eq '[[:space:]]\+?([^[:space:]:]+:)?(refs/heads/)?(main|master)([[:space:]]|$)'; then
@@ -1514,6 +1572,46 @@ fi
 #     (`--method PUT`, `-X`, `-f`/`-F`, `--input`) rather than by parsing the endpoint.
 #     The suite covers the merge spelling specifically. It briefly lived in the floor's
 #     `deny` instead — see rule 5c's comment for why that was too broad and moved here.
+#
+#     ── RE-JUSTIFIED 2026-09-08 (#383, slice S4), AND THE SENTENCE ABOVE IS THE WRONG REASON ───────
+#     This block opens with *"Merging a PR is the deploy"*, and under the owner's narrowed criterion —
+#     «situacoes irreparaveis» — **that does not carry it.** Under `trunk-single-env` a bad deploy is
+#     repairable: revert, redeploy. What a deploy can LATCH (an OG card pinned on first fetch, a GA4
+#     event name that has begun collecting, a claim a reader has already read, a Release a consumer
+#     already pulled) is real, and **a `PreToolUse` classifier cannot tell those merges from the rest**
+#     — the audit measured that the OG surface alone spans most of a frontend and that a read claim has
+#     no path at all. A lock that cannot distinguish the case it exists for is precisely the shape this
+#     audit dehydrated elsewhere, and the merge floor gets no exemption from a test applied to
+#     `gh api`, to the milestone pair and to 7d.
+#
+#     IT SURVIVES AS A **DERIVED** CONTROL — the same reading the audit already applied to rule 1 and
+#     to `preflight`, and flagged as an interpretation rather than smuggled in. Two grounds, both
+#     measured, and the first alone is sufficient:
+#
+#     1. RULE 7c IS LEXICALLY INSIDE THIS RULE'S `*:quality-assurance)` ARM. Removing 7b's caller check
+#        removes the file's ONE fail-closed rule — the one the owner ruled on directly (#341,
+#        «deveria travar») and the one whose degradation lands on the irreversible act itself. 7b is
+#        not a second opinion about the merge; it is the scope 7c lives in. Whatever one thinks of
+#        authorship, deleting this deletes that.
+#
+#     2. THE VERDICT 7c READS CANNOT BE ATTRIBUTED, SO `agent_type` IS THE ONLY THING SEPARATING THE
+#        AUTHOR OF A VERDICT FROM THE EXECUTOR OF THE MERGE. Measured: rule 5e ALLOWLISTS the empty
+#        `agent_type` for `gh pr comment`, so the orchestrator may post one; and every comment on a PR
+#        in this workspace comes back `authorAssociation: OWNER`, whatever persona typed it — on PR
+#        #422 the `harness-lead-verdict` and the `gatekeeper-verdict` are both `author: tedeuxx`,
+#        `assoc: OWNER`, which is exactly the filter 7c's `jq` selects on. **So a context that can
+#        post can satisfy 7c with a verdict it wrote itself.** 7b is what stops the same context doing
+#        both. That is the ruling's own named exception in evidence rather than in assertion: the
+#        control needs the CALLER and the COMMAND together, `settings.json` sees only the command
+#        (`Bash(gh pr merge:*)` is ALLOWLISTED in both layers, so removal here is real and silent) and
+#        the `tools:` grant sees only the caller.
+#
+#     WHAT WAS TRIED AND DOES NOT CARRY IT: a brief (this rule exists because the prose version was
+#     read and executed by the same model it constrains — three verdict literals drifted in one day);
+#     the forge's review rules (a required approving review is a forge identity, and every context here
+#     shares one credential); a verdict artifact alone (ground 2 — it is forgeable from inside).
+#     KEEP, on the derived ground, NOT on «merging is the deploy». The opening sentence stays because
+#     it is the historical reason and this file strikes rather than rewrites; read it as superseded.
 if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+pr[[:space:]]+merge([[:space:]]|\$)"; then
   # SQUASH IS DENIED TO EVERYONE, THE REVIEWER INCLUDED, and it is checked BEFORE the persona case so
   # the exemption cannot carry it. The floor denies `gh pr merge --squash`; `Bash(gh -R:*)` walked
@@ -1688,11 +1786,16 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
         # writes update notices and other chatter to stderr on a SUCCESSFUL read too, so merging the
         # streams would hand `jq` an unparseable payload and turn a READABLE verdict into a deny. On
         # this rule that trades a cosmetic defect for a wedge on the irreversible act.
+        # THE `--json` LIST LOST `closingIssuesReferences` ON 2026-09-08 (#383, S4), WITH RULE 7d.
+        # It was requested for 7d alone and 7d is gone, so leaving it in would be a fetch nothing reads
+        # -- which the next reader would reasonably take as evidence that a check lives here. It is one
+        # token to add back: the field, and `files` alongside it, ride on THIS call at zero additional
+        # round-trips, which is the property 7d was built on and is recorded at 7d's tombstone below.
         qa_errfile="$(mktemp 2>/dev/null || printf '%s' "${TMPDIR:-/tmp}/permission-guard-7c-$$.err")"
         if [ -n "$qa_repo" ]; then
-          qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --repo "$qa_repo" --json headRefOid,comments,closingIssuesReferences 2>"$qa_errfile" || true)"
+          qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --repo "$qa_repo" --json headRefOid,comments 2>"$qa_errfile" || true)"
         else
-          qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --json headRefOid,comments,closingIssuesReferences 2>"$qa_errfile" || true)"
+          qa_pr_json="$(gh pr view ${qa_ref:+"$qa_ref"} --json headRefOid,comments 2>"$qa_errfile" || true)"
         fi
         qa_err="$(head -n 1 "$qa_errfile" 2>/dev/null || true)"
         rm -f "$qa_errfile"
@@ -1777,104 +1880,63 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
           *) deny "Blocked: the last quality-assurance verdict on this PR's CURRENT head is '${qa_verdict}', which is neither APPROVE-AND-MERGE (safe class) nor APPROVE-AND-MERGE-BOUNDARY (boundary class, merged by the gate since ADR-0002 amendment #16) — so this merge does not match its own review record (ADR-0004). This is not a caller problem: rule 7b already confirms you are quality-assurance. It means either the head moved since that verdict was posted, the verdict was never re-posted after a later round, or the literal drifted from the one 'Your verdict — exactly one of' in your own brief defines. Post a correct verdict against the CURRENT head before merging — or, if this is one of the four holds that survive (an expansion of your own authority, a harness diff with no agents-lead marker, anything in iac/, or a lens ESCALATE), never call this tool: APPROVE-PENDING-HUMAN and hand the go/no-go to the human." ;;
         esac
 
-        # 7d. THE MERGE MUST NOT CLOSE AN ISSUE THE VERDICT DID NOT NAME (#363, adopted from a foreign
-        # harness's `mr-selection-artifact-gate`, auto-close half only — the review half is rule 7c and
-        # was already here).
+        # -- 7d. REMOVED 2026-09-08 (#383, slice S4). THE NUMBER IS LEFT VACANT, like 9, 10 and 11. --
         #
-        # THE DEFECT IS NOT "DELIVERY WAS NOT VERIFIED", AND GETTING THAT WRONG BUILDS THE WRONG CONTROL.
-        # On the live instance — PR #356, Issue #355 — delivery WAS verified: the gate read the diff,
-        # judged that #355 was not delivered, and prescribed `Closes #355` → `Refs #355` with its
-        # reasoning. **The gate was right.** What failed is that the prescription became a PR-BODY EDIT
-        # and nothing verified the edit took. Measured at head, on the merged PR:
+        # WHAT IT DID, so the removal is legible without archaeology: after 7c had cleared the verdict,
+        # it compared the forge's own resolved `closingIssuesReferences` against the `^closes:` lines of
+        # that same head-scoped verdict, and denied the merge when the forge was about to close an Issue
+        # the gate never declared. It never judged delivery; it compared two artifacts. It was correct,
+        # it was cheap (zero additional round-trips -- the field rode on 7c's existing `gh pr view`), and
+        # it never fired in production: a transcript sweep for its own deny string returned 0 at removal
+        # (`grep -roh --include='*.jsonl' '"content":"Blocked: merging this PR would let the forge close'
+        # ~/.claude/projects/ | wc -l`).
         #
-        #   gh pr view 356 --repo <owner>/<repo> --json body --jq '.body' \
-        #     | grep -ioE '(clos(e|es|ed)|fix(e[sd])?|resolv(e|es|ed))[[:space:]]+#[0-9]+'   -> close #355
-        #   gh pr view 356 --repo <owner>/<repo> --json closingIssuesReferences               -> [355]
+        # WHY IT GOES -- THE CRITERION, NOT THE FIRING COUNT (owner, #383): «o risco de permitir essa
+        # operacao passar é one way door decision», narrowed by him to «situacoes irreparaveis».
+        # **The act 7d refused is an Issue auto-close, and `gh issue reopen` restores the prior state
+        # exactly, at no cost.** Nothing in this loop latches off a close: no publication, no deploy, no
+        # tag, no distribution. Measured rather than assumed -- the only consumers of a closed Issue in
+        # this tree are `closure-artifact-guard.sh`'s `Stop` arm, `dispatch-metrics-stop.sh`'s forge
+        # source and `commands/sprint-retrospective.md`'s consult set, and all three read the tracker
+        # live, so all three see the reopen. A lock does not survive on a reparable act however
+        # correctly it fires, and 7d fired correctly -- that is the whole discomfort of this removal and
+        # it is not a reason to exempt it from a test that was applied to `gh api` and to the milestone
+        # pair.
         #
-        # The survivor sits INSIDE the sentence explaining why the keyword must not be used. That is the
-        # third time this repository has paid for it, and it is why the check runs at MERGE rather than
-        # as a checklist step: the edit that re-arms the keyword is characteristically the last one, the
-        # one describing the correction, and a checklist finding is stale the moment the body changes
-        # after it.
+        # WHAT DOES **NOT** REPLACE IT, STATED PLAINLY BECAUSE THE OPPOSITE WAS ONCE WRITTEN DOWN AND
+        # WAS WRONG. `closure-artifact-guard.sh`'s surviving `Stop` arm is NOT the replacement. Its
+        # predicate is *an Issue that DECLARES an `invocable:` line*, and #355 -- the instance 7d was
+        # built from -- declares none. So that arm could not have fired on 7d's own instance by any
+        # route, and it does not fire on an undeclared Issue now. **NOTHING detects a merge auto-closing
+        # an undeclared Issue.** That is the honest cost, and it is a DETECTION gap rather than an
+        # exposure: the state it leaves is restored by one command.
         #
-        # SO THE OBLIGATION HAS NO JUDGEMENT IN IT.
-        # It compares two artifacts and never judges delivery.
-        # The forge's own derived set is one; the gate's own verdict at the current head is
-        # the other. Every number the forge will act on must be a number the verdict DECLARES. That is a
-        # string comparison over material rule 7c already fetched — see the `--json` list above, which
-        # gained one field and ZERO round-trips.
+        # WHAT SURVIVES THE REMOVAL, because these are properties of the FORGE rather than of the hook,
+        # and deleting the code would otherwise delete facts this repository paid probes to establish
+        # (#375's template, the rehoming half):
+        #   1. `closingIssuesReferences` is PR-BODY-DERIVED. Probed 2026-08-30 with a throwaway PR whose
+        #      body carried no keyword and whose single commit message carried a closing keyword: the
+        #      field returned an empty list. A keyword living only in a commit message is invisible to
+        #      it -- and a commit message cannot be edited afterwards, since amending needs a force-push
+        #      rule 3b denies.
+        #   2. A NEGATED closing keyword still creates the link (#393 slice A). The forge parses the
+        #      token, not the sentence around it, which is why a PR body is grepped for the keyword
+        #      class before posting rather than read.
+        #   3. A PROSE MENTION IS NOT A DECLARATION. Both gatekeeper verdicts on PR #356 contained the
+        #      string for Issue 355, the merge-authorising one included, precisely BECAUSE it was the
+        #      verdict prescribing the keyword's removal. Any future check over this material has to
+        #      anchor at column 0 -- the same positional contract `purpose:` uses, for the same reason.
+        #   4. The field rides on the SAME `gh pr view` call rule 7c already makes, at zero additional
+        #      round-trips, and so does `--json files`. A merge-time classifier is REACHABLE. It is not
+        #      built, and ADR-0004 records why: a path classifier cannot identify the latching case.
+        # All four are rehomed to ADR-0004's record of this removal; they are restated here because this
+        # is the file a reader arrives at when they wonder where 7d went.
         #
-        # WHAT MAKES A CLOSE LEGITIMATE HERE, STATED IN THE MECHANISM BECAUSE THE FALSE POSITIVE IS THE
-        # REAL RISK. A PR that closes a delivered Issue is the common case, and a refusal people learn to
-        # route around is worse than none (measured twice in this repository). So the legitimate close is
-        # not blocked — it is DECLARED: one line at column 0 in the verdict the gate is already posting,
-        # `closes: 355`, naming the Issues it verified delivered at that head. Cost: one line, in an
-        # artifact that already exists, written by the persona that already made the judgement. A PR that
-        # closes nothing declares nothing and never reaches the comparison at all.
-        #
-        # WHY A DECLARED LINE AND NOT "THE VERDICT MENTIONS #355" — THIS IS THE MEASUREMENT THAT KILLED
-        # THE OBVIOUS DESIGN. Both gatekeeper verdicts on #356 contain the string `#355`, the
-        # merge-authorising one included, BECAUSE it is the verdict that prescribed removing the keyword:
-        #
-        #   gh pr view 356 --repo <owner>/<repo> --json comments \
-        #     --jq '[.comments[]|select(.body|contains("gatekeeper-verdict"))]
-        #           |map({literal:(.body|split("\n")[1]), mentions:(.body|test("#355"))})'
-        #   -> [{"literal":"REQUEST-CHANGES","mentions":true},
-        #       {"literal":"APPROVE-AND-MERGE-BOUNDARY","mentions":true}]
-        #
-        # A prose-mention check passes the exact case it exists to refuse. The anchor is `^closes:` at
-        # column 0, case-sensitive, for the same reason `purpose:` is positional in this tree: the token
-        # occurs in ordinary wrapped prose, and a check that cannot tell a declaration from a sentence is
-        # not a check.
-        #
-        # THE BLIND SPOT, MEASURED RATHER THAN ASSUMED, AND NAMED RATHER THAN WIDENED AWAY.
-        # `closingIssuesReferences` is PR-BODY-DERIVED. Probed on 2026-08-30 with a throwaway PR whose
-        # body carried no keyword and whose single commit message carried `Closes #358`:
-        #
-        #   gh pr view 367 --repo <owner>/<repo> --json closingIssuesReferences   ->  []
-        #
-        # So this rule is blind to a closing keyword living only in a COMMIT MESSAGE — the one surface
-        # that cannot be edited afterwards, since amending needs a force-push the floor denies. It is
-        # NOT widened to scan commit messages, deliberately: that needs the PR's head branch and its
-        # merge-base resolved inside a rule that fails CLOSED, so every resolution failure would become
-        # a wedged merge, and a hand-rolled keyword regex is measurably both over- and under-inclusive
-        # against the forge's own parser (`Closes #313's slice 1.` matched by regex, resolved by GitHub
-        # to a different number entirely). Whether that route actually closes an Issue on merge here is
-        # **NOT measured** — this repository has no PR whose commits carry a keyword its body does not,
-        # so the two routes have never been separable in its history.
-        #
-        # AND IT HAS ZERO REACH OVER A BROWSER MERGE, exactly like 7c. Keep the `Stop`-hook detection
-        # arm in `closure-artifact-guard.sh`: it covers the route this refusal cannot see, and a refusal
-        # presented as complete coverage would be a worse artifact than one that names its hole.
-        if [ -n "$qa_pr_json" ]; then
-          qa_closing_present="$(printf '%s' "$qa_pr_json" | jq -r 'has("closingIssuesReferences")' 2>/dev/null || true)"
-          if [ "$qa_closing_present" != "true" ]; then
-            deny "Blocked: the merge floor could not read WHICH Issues this PR would close — 'gh pr view' answered, but the payload carries no closingIssuesReferences field, so rule 7d cannot tell whether the forge is about to close an Issue your verdict never named. Like rule 7c above it, this DENIES rather than passing (#363): the read that would have decided did not happen, and on the irreversible act that is not a silence to accept. Check that this rule's own 'gh pr view --json' list still requests closingIssuesReferences. If it does and the field is still absent, this is a finding about the tooling and not about your review — the unblock is manual and the owner's."
-          fi
-          qa_closing="$(printf '%s' "$qa_pr_json" | jq -r '[.closingIssuesReferences[]?.number // empty] | .[]' 2>/dev/null || true)"
-          if [ -n "$qa_closing" ]; then
-            qa_declared="$(printf '%s' "$qa_pr_json" | jq -r --arg m '<!-- gatekeeper-verdict: quality-assurance -->' '
-    (.headRefOid // "") as $h
-    | if $h == "" then ""
-      else [ .comments[]?
-             | select((.authorAssociation // "") as $a
-                      | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
-             | .body // ""
-             | select(contains($m)) | select(contains($h)) ]
-           | if length == 0 then ""
-             else (.[-1] | split("\n") | map(select(test("^closes:"))) | join(" ")) end
-      end' 2>/dev/null || true)"
-            qa_declared_nums="$(printf '%s' "$qa_declared" | grep -oE '[0-9]+' | sort -u || true)"
-            qa_undeclared=""
-            for qa_n in $qa_closing; do
-              printf '%s\n' "$qa_declared_nums" | grep -qx "$qa_n" && continue
-              qa_undeclared="$qa_undeclared #$qa_n"
-            done
-            if [ -n "$qa_undeclared" ]; then
-              deny "Blocked: merging this PR would let the forge close${qa_undeclared}, and your own verdict on this PR's CURRENT head declares no such close (#363). A closing keyword fires at merge and knows nothing about whether the thing the Issue promised exists — measured here: PR #356 closed Issue #355 with nothing #355 asked for built, and the keyword that did it survived inside the very sentence explaining why it must not be used. TWO EXITS, both cheap. If you verified those Issues delivered at this head: re-post your verdict with a 'closes:' line at COLUMN 0 naming every number above — 'closes: 355', or 'closes: 355 337' for several. If you did not: edit the PR body so the keyword reads 'Refs #N', then VERIFY with 'gh pr view <ref> --json closingIssuesReferences' returning [] — do not read the body and assume, because that is exactly the step that failed on #356. This rule compares two artifacts and never judges delivery: it cannot tell you whether the work was done, only whether the forge is about to act on a close your own review record does not name."
-            fi
-          fi
-        fi
+        # WHAT REMAINS AN INSTRUCTION: `agents/quality-assurance.md` still asks the gate to write a
+        # `closes:` line naming what it verified delivered at that head. **Nothing reads it now.** It is
+        # kept as the artifact that makes the divergence findable by a human comparing the verdict with
+        # the forge's own resolved set, and that brief says so in those words rather than implying a
+        # check that no longer exists.
       fi
       ;;
     *) deny "Blocked: merging a PR is the deploy and the quality-assurance's act, not the main agent's (ADR-0004). Route it through the quality-assurance subagent — invoke it with the human's go, and it performs the merge (approve-and-merge the safe class, or after your ratification for the boundary class). agent_type='${agent_type:-<main agent>}'." ;;
