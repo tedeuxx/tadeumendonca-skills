@@ -5001,3 +5001,130 @@ Arm: *alters a previously-recorded decision* — the S3 amendment immediately ab
 verdicts are withdrawn while its criterion is kept — and *sets a cross-cutting pattern others will
 follow*: **before a control's ladder is used as an argument, measure which rungs the host honours in
 the mode the human actually runs.**
+
+## Amendment (2026-09-08) — a THIRD harness's permission layer is tracked and gated, and the ceiling it declares is a SCOPE decision rather than a structural bound (#419)
+
+**Owner's ruling, four words: «Vira trabalho: versionar com gate».** A Codex exec-policy port of this
+workspace's Claude permission layer — `.codex/rules/claude-command-policy.rules`, one file per
+repository — was agent-authored on 2026-09-07, listed in each clone's `.git/info/exclude`, and had
+never appeared in a merge request. It is tracked from this slice on, in both repositories, with a
+gate in the same slice: the second half of the ruling is what makes the first half worth doing.
+
+**It is the #411 condition one harness over, and worse in one direction.** #411 tracked a *brief* that
+no merge request had ever contained. This is a *permission layer* in the same state, and a permission
+layer fails **permissive**: whoever finds it reads it as the floor, and it is a partial floor.
+
+### What was measured before anything was decided, and one measurement inverts the Issue's framing
+
+**The other harness HAS a hook layer.** Read out of the shipped bundle (`CFBundleShortVersionString`
+= `26.825.51511`, one build, one machine, control-flow strings read rather than a hook observed
+firing): the event set `PreToolUse PermissionRequest PostToolUse PreCompact PostCompact SessionStart
+SessionEnd SubagentStart SubagentStop Interrupt`, a handler config with `::Command`/`::Prompt`/
+`::Agent`/`::McpTool` variants, and a self-description of `.codex` as *"project-local config, hooks,
+and exec policies"*.
+
+**So the port's ceiling is a decision about what was ported, not a fact about the harness.** The
+misreading came from the port's own header sentence *"No sandbox, approval-mode, MCP, or harness-hook
+changes"* — a scope note read as a capability claim. The whole-command-string guard that backs the
+Claude floor is absent because nobody wrote it, which means it is **portable**. Everything downstream
+is unchanged: matching is a literal argv prefix from `argv[0]`, `xargs` is allowed bare, and no rule
+reaches into a chain, a redirect or a substitution.
+
+**This does NOT make the two floors equivalent and nothing here may be read as saying so.** The
+tracked file's header says it in its own words, and the gate's own header says what a green does not
+buy.
+
+### The decision, in four parts
+
+1. **One file per repository, tracked in that repository.** There is no shared home. The harness
+   resolves `.rules` at a user layer (`~/.codex/rules/`) and a project layer discovered as an
+   ancestor chain, so a session rooted in one repository never walks into its sibling — the same
+   asymmetry #409 and #416 recorded for the root brief, on a different mechanism. **The user layer is
+   a genuine cross-repository home and is the wrong answer**: it is in no repository, so using it
+   moves the floor back out of version control, which is precisely what the ruling reverses.
+2. **Every machine-specific absolute path is STRIPPED, not parameterised and not generated.** 113
+   lines in one file and 116 in the other carried the owner's home directory. A generator was
+   rejected on evidence rather than on effort: **235 of 421 rules have no verbatim source line** in
+   either `settings.json` — they are expansions the porting run invented — and the two files, written
+   in the same minute from the same tree, **already disagreed**, one of them still allowing a script
+   deleted at `e145cd0f`. A regenerate-and-diff gate on the `powers/` model needs a deterministic
+   transform, and the two ports are the proof that none exists.
+3. **The gate is ONE arm plus four cheap ones, and the load-bearing arm is deny coverage.** Every
+   `Bash()` entry in that repository's own `.claude/settings.json` `deny` list must appear verbatim,
+   as a token list, as a `decision="forbidden"` `prefix_rule`. Nothing else could notice the Claude
+   deny list moving and the port failing to move with it.
+4. **Nothing is written about the port in either `AGENTS.md`, and the `codex` token ban is KEPT.**
+   That brief's test is *would this sentence still be true on a harness with no hooks?*; a `.rules`
+   file is loaded mechanically and is not addressed to the agent, so it needs no sentence there. The
+   `kiro`/`codex` asymmetry #416 recorded is therefore still asymmetric and still unforced.
+
+### The cost of part 2, priced rather than waved past — a real narrowing of deny coverage
+
+Each git and terraform deny was carried in **six spellings**: bare, `-C .`, `-C ../<each sibling>`,
+and `-C <each absolute path>`. Stripping removes two of the six. Measured over both files: **0 of the
+22 removed `forbidden` rules leaves its act uncovered** — every one keeps four spellings — but **an
+invocation that types a machine-absolute path now matches none of them**, and that is the invocation
+form this workspace's own shell discipline prescribes.
+
+**It is forced, not chosen.** A public repository cannot carry `/Users/<name>`, and the two available
+alternatives are worse: a placeholder no consumer expands is a rule that reads as a control and
+matches nothing, and pushing the absolute spellings into the user layer puts a floor entry back
+outside git. **The Claude guard does not have this gap** — it reads the whole command string — so the
+asymmetry between the two floors is now explicit where it used to be hidden.
+
+**The allow side of the same strip costs friction only.** The 28 script allows in the product
+repository all pointed into the *sibling*, so no arm in that repository could ever have resolved them;
+they are dropped. In this repository they are re-expressed as repo-relative literals, the form the
+file already uses for `git -C .` and `terraform -chdir=iac`. **Whether the matcher compares a relative
+token literally or canonicalises it first is NOT measured**; either way the failure is a permission
+prompt, because every one of them is an allow.
+
+### What the gate proves, and the four things it cannot — none of them papered over
+
+It proves: the file parses, every `Bash()` deny is covered verbatim, no absolute path is present,
+every script path named resolves, and the suite is named by a workflow. It cannot see:
+
+- **the allow side**, 183 of 335 rules being unsourceable expansions — deliberate, because a missing
+  allow is a prompt and a missing deny is a hole, and the arm points at the hole;
+- **five denies that live only in `~/.claude/settings.json`**, which is in no git repository, so no CI
+  arm can ever read them;
+- **semantics** — a deny present verbatim is still an `argv[0]` prefix and still reachable through an
+  exec wrapper. The arm proves coverage of a **list**, never of an **act**;
+- **whether the tracked file is the one that harness loads.** Nothing in this loop runs inside Codex
+  and no Codex session has ever been observed here.
+
+### Which layer carries this control, and the honest answer to the standing question
+
+**No `PreToolUse` layer in this harness can carry it.** The port is authored by an agent *in another
+harness*, outside this loop's permission layer entirely, so the earliest any instrument here can see
+an edit is a CI arm on a PR — after the fact. It is **detection, one merge request late**, and that is
+the ceiling rather than a shortfall of this implementation.
+
+**And one step that no diff can contain was required first.** Both files were in `.git/info/exclude`,
+which is per-clone and unversioned: `git status` never showed them, and nothing anywhere recorded that
+hiding them had been decided. Removing those lines is a manual act on each clone, it leaves no trace
+in any artifact, and the merge request's own body is the only record it can have.
+
+### Considered options
+
+- **Leave them untracked** — the 2026-09-07 ruling, taken when `.codex/` was believed to hold only a
+  stale `config.toml`. Reversed on the fact, not on the reasoning.
+- **A generator, tracked instead of the file** — rejected on the 235-of-421 measurement above.
+- **A regenerate-and-diff gate on the `powers/` model** — same evidence, same rejection.
+- **A cross-repository sync arm on the `agents-md.test.sh` body-diff model** — rejected: that command
+  is explicitly runnable only from a workspace holding both checkouts, and CI has one.
+- **A `.gitignore` entry instead of tracking** — that is the status quo written down, and it protects
+  nothing.
+
+### What this does not claim
+
+Nothing here says the port is correct, that it is loaded, that it is equivalent to the Claude floor,
+or that the harness's hook layer will be ported. It says the artifact is now tracked, reviewable, and
+carries one drift check whose every arm was taken red by mutating its subject.
+
+### Significance
+
+Arm: *introduces a new dependency or tool-class* — a third harness's control surface enters this
+repository's tracked set — and *sets a cross-cutting pattern others will follow*: **a control ported
+to a second harness is tracked in the repository it governs, gated on the half that is derivable, and
+made to declare the half that is not.**

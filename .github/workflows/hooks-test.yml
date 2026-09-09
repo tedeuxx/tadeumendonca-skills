@@ -88,6 +88,15 @@ on:
       # the job it starts asserts nothing about the origin bound. **The glob made the coverage arm
       # green without gating the thing.** This entry is the one that actually starts the assertion.
       - ".mcp.json"
+      # `.codex/**` and `.claude/settings.json` — the two trees `codex-rules.test.sh` reads, and the
+      # SAME union rule this header states rather than a new consideration. That suite compares one
+      # against the other, so EITHER side falsifies it: add a `Bash()` deny to `.claude/settings.json`
+      # and the port no longer covers the floor; edit the port and it stops matching the floor it
+      # claims to carry. A filter naming only the port would start no gate on the half that moves more
+      # often, which is the settings file — the sixth-plus instance of the miss enumerated above,
+      # avoided here only because the header made it the first question asked.
+      - ".codex/**"
+      - ".claude/settings.json"
 
 permissions:
   contents: read
@@ -198,6 +207,14 @@ jobs:
       # for deletion is work aimed at the wrong end of the decision.
       - name: Run the dispatch-metrics-stop suite
         run: bash hooks/scripts/dispatch-metrics-stop.test.sh
+
+      # Added in the SAME slice as the artifact it gates (#419), which is the rule the five comments
+      # above all state. The subject is a THIRD harness's permission layer that was agent-authored,
+      # `.git/info/exclude`d and never reviewed; it is tracked from this slice on, and this step is
+      # the half of "versionar com gate" that is the gate. It asserts deny-coverage of a LIST and
+      # nothing about behaviour — the suite's own header says at length what it cannot see.
+      - name: Run the codex-rules suite
+        run: bash hooks/scripts/codex-rules.test.sh
 
       - name: Assert every hook script is committed executable
         run: bash hooks/scripts/hooks-executable.test.sh
