@@ -1,5 +1,5 @@
 ---
-description: Hand the wheel to the loop or take it back — `on` drains the active iteration's ready pool end to end without asking on in-pattern work, `off` finishes the in-flight slice, starts nothing new and posts a closing summary. Use when the owner says to work the backlog or keep going, when several ready issues are queued, when in-pattern work keeps stalling for permission, or when he wants the wheel back. Not for capturing a new request (see new-issue).
+description: Hand the wheel to the loop or take it back — `on` drains the ready pool the loop mode selects, end to end, without asking on in-pattern work, `off` finishes the in-flight slice, starts nothing new and posts a closing summary. Use when the owner says to work the backlog or keep going, when several ready issues are queued, when in-pattern work keeps stalling for permission, or when he wants the wheel back. Not for capturing a new request (see new-issue).
 purpose: put both directions of the autonomy decision behind one canonical command whose first token names the mode, so the mode cannot be entered by accident and an unresolved token fails loudly instead of guessing
 argument-hint: "on [repo] | off [repo] | (no argument prints help and does nothing)"
 ---
@@ -12,7 +12,7 @@ Resolve `$ARGUMENTS` to exactly one row. **The first token is the mode. Nothing 
 
 | mode | what it does | ends with |
 |---|---|---|
-| `on` | drains the active iteration's entry snapshot, one slice at a time, without asking on in-pattern work | the snapshot exhausted, then the closing ceremonies |
+| `on` | drains the entry snapshot of the pool **the loop mode selects**, one slice at a time, without asking on in-pattern work | the snapshot exhausted — then the closing ceremonies in `scrum`, and nothing in `kanban` |
 | `off` | finishes the in-flight slice to merge, starts nothing new | the closing summary, as the final message of the turn |
 | *(no argument)* | prints the help below and stops | nothing |
 
