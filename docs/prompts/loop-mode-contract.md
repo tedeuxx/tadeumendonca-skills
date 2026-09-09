@@ -37,17 +37,31 @@ something narrower than they read.
 
 ## 2 · What actually differs between the two modes — and it is smaller than it sounds
 
-**The honest finding, and the one most likely to be got wrong: the difference is mostly what replaces
-the ITERATION CONTAINER, not what replaces the work.**
+**The honest finding, and the one most likely to be got wrong: the difference is mostly what happens to
+the ITERATION CONTAINER, not what happens to the work.**
 
 The work is identical in both modes. The item is still filed in the tracker. The description is still
 closed before anyone builds. The build still opens a change request. The gate still runs on the diff.
 **What changes is the box the work sits in and the ceremonies at that box's edges.**
 
+**And the sharper finding, which took a separate ruling to reach: the container is DEMOTED, not
+removed.** The first draft of this comparison had the lighter mode carrying no container at all. That
+was wrong, and the correction is transferable because the container does **two** jobs:
+
+- **as an IDENTIFIER** — it names a period and groups the work, and where an effort spans more than one
+  repository it is often the only string the two sides pair on. **The lighter mode has no objection to
+  any of that**, and deleting it costs the grouping for no gain.
+- **as a BATCH BOUNDARY** — a scope commitment whose exhaustion is a terminal condition. **This is the
+  half the lighter mode drops.**
+
+**So the axis is *commitment versus label*, never *present versus absent*.** Ask that question of your
+own container before you write either mode down; it makes the enum smaller and it removes the strongest
+objection to the lighter mode.
+
 | | the heavier mode | the lighter mode |
 |---|---|---|
-| the container | a bounded iteration | **none** |
-| the ceremonies at its edges | planning, review, retrospective | **none run** |
+| the container | a **commitment** — it bounds a batch, and its exhaustion is terminal | a **label** — the same object names a period and bounds nothing |
+| the ceremonies at its edges | planning, review, retrospective | **none run at a boundary** — see §4 |
 | ordering | ranked at planning | **arrival order, within a priority partition** |
 | the queue | **the tracker** | **the tracker** |
 | the quality gates | **yes** | **yes** |
@@ -126,6 +140,15 @@ mechanism; you are naming an absence.
 **And if you build the clock: build a NOTICE, not a control.** Something that says *a rite is owed*
 at the start of a session, and nothing more. It cannot run a ceremony — a notice cannot dispatch — and
 converting it into something that refuses work would be a control with no ruler behind it.
+
+**The rule that decides whether the clock is real: key it on the CLOCK and never on the queue being
+empty.** This follows directly from §2's demotion and it is the single place this design leaks. Once
+the lighter mode keeps the container as a *label*, an empty container looks identical in both modes and
+means opposite things — **terminal in the heavier one, nothing at all in the lighter one.** A trigger
+keyed on emptiness therefore makes the lighter mode **silently inherit the heavier mode's trigger under
+a different name**, and fire a ceremony on noise. **Write that constraint down before the carrier is
+built**, not after: it costs one sentence while nobody has implemented the wrong thing, and a rewrite
+afterwards.
 
 **Three limits to carry with it:**
 
@@ -225,8 +248,22 @@ the estimate stays as a cost with no consumer.** Both are coherent; pick one, in
 
 **What makes it a trap rather than a choice is that the label carries no evidence of which bar applied
 to it.** Every consumer of *ready* — the builder that refuses an item without it, the queue predicate,
-any entry check — sees a label and cannot see a mode. **Price of accepting: a later switch back
-inherits items that were made ready under the other bar, and nothing will tell it to re-check them.**
+any entry check — sees a label and cannot see a mode. **Price of letting the bar vary: a later switch
+back inherits items that were made ready under the other bar, and nothing will tell it to re-check
+them.**
+
+**Which is the argument for the answer the loop this came from actually took: keep the estimate in
+BOTH modes, and let the readiness bar not vary at all.** The reasoning is worth more than the choice.
+The estimate was already a **size signal** rather than a velocity input there — no velocity is
+collected in either mode — so dropping it in the lighter mode would have saved two dispatches per item
+and bought nothing back, while making the one label the whole intake chain depends on mean two things.
+**Keeping it removes an axis**, and every axis a mode does not vary is a place the two modes cannot
+drift apart with nothing watching. **The cost, stated rather than absorbed:** the lighter mode carries
+a ceremony its own method does not ask for.
+
+**The general move: prefer the mode config that has FEWER axes.** A contract gets better by shrinking.
+Where an axis can be closed by making both modes agree, close it — the only thing you lose is a
+freedom nobody asked for, and what you gain is one fewer silent divergence.
 
 ---
 
@@ -295,7 +332,8 @@ any layer, and a reader deserves to know which is which.
 | the priority partition is honoured | nothing at any layer — ordering is not a property of a command string or a file tree | **the ordered artifact, and awkwardness** |
 | the ceremonies run | a cadence notice (§4), if you build one | **nothing today** |
 | the WIP parameter is honoured | a concurrency check | **nothing, if you deleted the one you had** |
-| which readiness bar applied to an item | nothing — the label carries no evidence | **nothing** |
+| which readiness bar applied to an item | nothing — the label carries no evidence | **nothing — which is the reason to close the axis (§7b) rather than to watch it** |
+| a cadence trigger keys on the clock, not on emptiness (§4) | nothing at any layer | **a rule written before its object, which is the cheapest moment to write one** |
 
 **Then apply the test once, out loud:** *if this rule were broken right now, would something stop me —
 or only my memory?* **If the answer is memory, the mode contract is an instruction, and it should be
@@ -310,8 +348,10 @@ anyone believe more is held than is held.
 ## What to take, in one paragraph
 
 **Name your modes after methods people already know. Write the untouchable list before the modes, and
-measure it rather than asserting it. Treat work-in-progress as a slot and decide its value separately.
-Check whether the ceremony trigger you are replacing ever fired. Check whether your escalation
-standard's precondition names the container you are making optional. Record the mode in a tracked file
-with time as the denominator. And state, per decision, what actually holds it — because on this
-surface, most of it is you.**
+measure it rather than asserting it. Ask whether your container is being removed or merely demoted —
+it is almost always demoted. Treat work-in-progress as a slot and decide its value separately. Close
+every axis you can rather than varying it. Check whether the ceremony trigger you are replacing ever
+fired, and key its replacement on the clock rather than on an empty queue. Check whether your
+escalation standard's precondition names the container you are making optional. Record the mode in a
+tracked file with time as the denominator. And state, per decision, what actually holds it — because
+on this surface, most of it is you.**

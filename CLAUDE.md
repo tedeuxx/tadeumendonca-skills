@@ -864,16 +864,44 @@ re-derived; the falsifier is in each block's own text.
 
 ### What a mode IS, and what it may contain
 
-**A mode names a widely-known agile method and fixes exactly two things: the CONTAINER that bounds a
-batch of work, and the CEREMONY SET that runs at its edges.** The owner's decision is that the
-configuration surface is an enum of industry names rather than an invented vocabulary — *«faria mto
-sentido a configuracao de loop remeter a modos de trabalho agil conhecidos amplamente»* — so a third
-mode later is a new member of a documented set, not a new design.
+**A mode names a widely-known agile method and fixes exactly two things: what the CONTAINER MEANS, and
+the CEREMONY SET that runs at its edges.** The owner's decision is that the configuration surface is an
+enum of industry names rather than an invented vocabulary — *«faria mto sentido a configuracao de loop
+remeter a modos de trabalho agil conhecidos amplamente»* — so a third mode later is a new member of a
+documented set, not a new design.
 
-| mode | container | ceremony set | ordering |
+**The container is NOT replaced by the lighter mode. It is DEMOTED** — owner ruling, 2026-09-09,
+unprompted: *«nao tem problema numero da iteracao ser utilizado nos dois modos»*. The milestone does
+two jobs and the ruling keeps one and drops the other:
+
+- **as an IDENTIFIER it is kept in BOTH modes** — it names a period, groups the work, and gives the two
+  repositories one string to pair on. Dropping it would have cost the loop its only cross-repo grouping
+  for no gain;
+- **as a BATCH BOUNDARY it is what `kanban` drops** — in `scrum` it is a scope commitment whose
+  exhaustion is the terminal condition; in `kanban` it is a period label and **nothing depends on its
+  emptiness**.
+
+**So the `iteration` axis is *commitment versus label*, never *present versus absent*.** That is
+sharper than #406's body proposed and it makes the enum smaller.
+
+| mode | the container | ceremony set | ordering |
 |---|---|---|---|
-| **`scrum`** | the iteration — two milestone objects in two repositories, paired by title alone | planning · review · retrospective | ranked at planning |
-| **`kanban`** | **none** | **none run** | **FIFO within a partition**: `loop` in arrival order, then `product` in arrival order |
+| **`scrum`** | a **commitment** — the milestone bounds a batch, and its exhaustion is the terminal condition | planning · review · retrospective | ranked at planning |
+| **`kanban`** | a **label** — the same milestone names a period and bounds nothing | **none run at a boundary** — see the clock rule below | **FIFO within a partition**: `loop` in arrival order, then `product` in arrival order |
+
+**Two mechanical consequences, and the second is where this leaks if nobody writes it down.**
+
+1. **The pool predicate needs no per-mode branch for the milestone.** Both modes carry it, so
+   *enumerate-then-select* and the rule that no milestone name is ever typed into a query stand
+   unmodified in both.
+2. **Whatever later builds the cadence trigger must key on THE CLOCK and never on the pool being
+   empty.** In `scrum` an empty active milestone is the terminal condition; in `kanban` it means
+   nothing at all, and a rite firing on it would be firing on noise. **A trigger keyed on emptiness
+   makes `kanban` silently inherit `scrum`'s trigger under a different name** — the exact failure this
+   contract exists to make visible.
+
+**Unchanged by the ruling:** nothing enters a running iteration automatically, and composing one is
+the owner's act, in both modes. A period label is still placed by him.
 
 **`kanban` is SPECIFIED here and is not operative.** The pool predicate, the drain and the two gate
 arms that pin the Scrum wording are slice B of #406 and have not landed. **Do not read this table as a
@@ -889,7 +917,7 @@ gh issue list --repo <owner>/<repo> --state open --limit 300 --json number,label
         ready:[.[]|select(.l|index("ready"))]|length,
         milestoned:[.[]|select(.m!=null)]|length,
         sp:[.[]|select(.l|map(startswith("sp:"))|any)]|length}'
-# -skills -> {"open":8,"ready":0,"milestoned":0,"sp":0}
+# -skills -> {"open":8,"ready":1,"milestoned":0,"sp":0}
 # -io     -> {"open":45,"ready":16,"milestoned":0,"sp":0}
 ```
 
@@ -898,16 +926,36 @@ gh issue list --repo <owner>/<repo> --state open --limit 300 --json number,label
 record must therefore be dated and back-dated honestly when one is introduced**, never written as
 though the day it lands is the first day of the mode it names.
 
+**`ready` in `-skills` read `0` earlier in this same slice and reads `1` now**, because the owner
+closed #406's description while it was being built. **That is the figure demonstrating its own rule:
+re-derive a number when the text around it changes, rather than restating the one you already had.**
+And the `1` carries no `sp:` label, which by the bar below is an unmet readiness item — a fact about
+the queue, not about this block, and not repaired here.
+
 ### The UNTOUCHABLE list — and it is a MEASUREMENT, not an intention
 
 | a mode MAY vary | a mode may NEVER touch |
 |---|---|
-| the pool predicate's container term (`active-iteration`) | **the permission floor** — every rule of `hooks/scripts/permission-guard.sh`, under both loop models |
+| what the container MEANS — a batch commitment, or a period label | **the permission floor** — every rule of `hooks/scripts/permission-guard.sh`, under both loop models |
 | whether the three rites run, and what fires them | **the merge gate** and both of its lenses, on every diff |
 | the ordering act — ranked at planning, or FIFO within the `loop`/`product` partition | **head-scoped verdicts** — a verdict names the commit it read, in every mode |
 | `wip` (the slot only — see below) | **only-the-owner-opens-work** (`permission-guard.sh` rules 5c/5d) |
-| whether `sp:N` is part of the readiness bar (**open — see below**) | the `product`/`content`/`loop` routing labels |
-| the container object itself (a milestone, or none) | **`content` has no second mode** |
+| — | **the READINESS BAR** — `sp:N` stays in both modes (2026-09-09) |
+| — | the `product`/`content`/`loop` routing labels · **`content` has no second mode** · **the container's EXISTENCE**, as against its meaning |
+
+**Two rows moved right on 2026-09-09, and a mode config that loses axes is the design working rather
+than shrinking.**
+
+- **The readiness bar does NOT vary by mode.** Owner ruling: *«Mantém o `sp:N` nos dois modos»*. The
+  estimate is kept as a **size signal**, not as a velocity input — which is what it already was here,
+  since `/planning-poker` sits in the library as a reference pattern and no velocity is collected in
+  either mode. **So `/definition-of-ready` needs no per-mode branch**, `ready` asserts the same thing
+  in both, and there is one fewer place for the two modes to drift apart. **The cost, recorded rather
+  than absorbed:** the lighter mode carries a ceremony its own method does not ask for, and the loop
+  pays two estimator dispatches per item in a mode that collects no velocity. He was told that and
+  took it.
+- **The container's EXISTENCE is untouchable; only its MEANING varies.** Ruling 3 above. A mode that
+  could delete the milestone would take the only string the two repositories pair on with it.
 
 **The one sentence to keep verbatim, because it is the failure this whole surface can produce:** *a
 mode selects a predicate and a ceremony set; it never selects a permission rule.* **A configuration
@@ -1008,7 +1056,7 @@ named residual today and parallelism is what makes it live.
 | loop-first survives in either mode | **the ordered artifact, and awkwardness.** #339 already measured this ungateable at every layer |
 | the rites run at all | **nothing today, in either mode** |
 | `wip` is honoured | **nothing.** `wip-guard.sh` was deleted at #383 and nothing bounds work in progress |
-| which readiness bar a `ready` label was applied under | **nothing.** The label carries no evidence of its bar |
+| a cadence trigger keys on the CLOCK and not on the pool being empty | **nothing — and the carrier is not built yet, so this is a rule written before its object.** That is deliberate: the constraint is cheapest to state while nobody has implemented the wrong thing |
 
 **Six of seven are instructions and one is a report.** By this loop's own test — *would something stop
 me, or only my memory?* — **the mode contract is not engineered, and it is not presented as if it
@@ -1016,23 +1064,37 @@ were.** A configuration surface invites the reading that something reads it; not
 
 **One rule in that table is worth stating twice, because it is the only place in this design where a
 wrong guess is SILENT: the mode is read from its record before any pool query, and nothing may infer
-the mode from an empty milestone set.** Measured — the Scrum active-iteration derivation prints
-nothing and exits 0 when no open item carries a milestone, which is exactly what *"Kanban, correctly no
-container"* looks like. `echo '[]' | jq 'min'` returns `null`, exit 0. **A drain that infers its mode
-from that reports a healthy queue over a dark one, with every check green.**
+the mode from what a pool query returns.** Measured — the active-iteration derivation prints nothing
+and exits 0 when the eligible set is empty; `echo '[]' | jq 'min'` returns `null`, exit 0.
 
-### Two owner decisions are OPEN, and this block decides neither
+**Ruling 3 did not remove that ambiguity — it MOVED it, and the new form is harder to see.** Before,
+the reading was *"no milestone at all"* versus *"Scrum with its milestones dropped"*. Now **both modes
+carry a milestone**, so the confusable pair is *an empty active milestone in `kanban`*, where it means
+nothing whatever, against *an empty active milestone in `scrum`*, where it is the terminal condition
+that hands off to the closing rites. **The two produce a byte-identical query result and opposite
+correct behaviours.** A drain that infers its mode from the result either reports a healthy queue over
+a dark one or fires a ceremony on noise, with every check green either way.
 
-1. **Does the cadence carrier get built, or is its refusal recorded?** A `SessionStart` notice saying a
-   rite is owed after N days is buildable — the event fires, a durable stamp already has a proven home
-   under `$git_dir`, and a clock is available. It would be a **notice**, never a control, and the
-   honest comparison is **clock versus nothing**: the boundary trigger it would replace has never fired
-   either. Whether a rite reminder is worth a hook is his.
-2. **Does Kanban's readiness bar drop `sp:N`?** FIFO consumes no estimate, so either the bar is four
-   items in that mode — making `ready` mean two things on two days — or estimation stays as a cost with
-   no consumer. `ready` is the one label the intake chain, the builder and the drain all depend on.
+### The three rulings this block is written against — all 2026-09-09, none of them decided here
 
-**Neither is decided here, and slice A depends on neither.**
+**This section named two decisions as OPEN until the owner answered them mid-build, and it is rewritten
+rather than annotated because a contract carrying a stale *"open"* is worse than one carrying a stale
+answer: a reader stops at it and waits.**
+
+1. **The cadence carrier is BUILT** — *«Constrói o gatilho por relógio»*. A `SessionStart` notice when
+   the interval has elapsed, **never a control**, on the honest comparison of **clock versus nothing**:
+   the boundary trigger it replaces has never fired either. **It is NOT built in this slice and must
+   not be** — a contract says what a mode may vary; a trigger is a mechanism, and keeping the two apart
+   is the whole point of writing the contract first. **What the ruling did not decide: the interval**,
+   which was not asked and is not inferred here.
+2. **`sp:N` stays in BOTH modes** — *«Mantém o `sp:N` nos dois modos»*. Recorded in the untouchable
+   list above with its cost, and it removes an axis rather than adding one.
+3. **The iteration NUMBER is used in both modes** — *«nao tem problema numero da iteracao ser utilizado
+   nos dois modos»*, unprompted. Recorded in the enum above as *commitment versus label*.
+
+**Rulings 2 and 3 each REMOVED an axis a mode may vary.** That is the useful shape to notice: a mode
+config gets better by shrinking, because every axis is a place the two modes can drift apart with
+nothing watching.
 
 ### The two copies of this block must stay identical
 
