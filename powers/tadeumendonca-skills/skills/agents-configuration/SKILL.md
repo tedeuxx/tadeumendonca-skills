@@ -1339,8 +1339,8 @@ because it is true of any loop that runs unattended and escalates to a human. **
 local: who composes the options here, and what this harness does and does not have.**
 
 **The five clauses, so a persona acting mid-dispatch does not have to leave this file. ALL FIVE, or it
-is not an escalation:** (1) a loop is running — an iteration in flight; (2) a **dispatched subagent**
-hits something on an Issue *in that iteration*; (3) it rises **subagent → main session → the owner**;
+is not an escalation:** (1) a loop is running — a filed Issue is being worked; (2) a **dispatched
+subagent** hits something on *that Issue*; (3) it rises **subagent → main session → the owner**;
 (4) the trigger is a **trade** of time (work *plus* wait hours), cost (tokens) or scope (what the Issue
 promises) for that item — **anything moving scope is a candidate, not an automatic escalation**; (5) the
 form is a tweet at most, **at most four direct options**, his technical register, terse first, depth
@@ -1421,10 +1421,27 @@ and **undocumented by the vendor**, so a future build can change it silently.
   returns `null` and the dialog renders anyway — so this layer can suppress a question and can never
   skip one, which is precisely the asymmetry that made the deleted guard's errors invisible.
 
-**The precondition is first for a reason: «se nao tem loop nao é hitl».** Outside a running iteration —
-a design conversation, an interview, an ad-hoc request typed at the terminal — **there is no HITL
-pendency, whatever the subject.** A reader who meets the form without the precondition stamps every
-question to the owner as an escalation, which is exactly what happened while this was being written.
+**The precondition is first for a reason: «se nao tem loop nao é hitl».** Outside work on a filed
+Issue — a design conversation, an interview, an ad-hoc request typed at the terminal — **there is no
+HITL pendency, whatever the subject.** A reader who meets the form without the precondition stamps
+every question to the owner as an escalation, which is exactly what happened while this was being
+written.
+
+**The anchor is a FILED ITEM BEING WORKED, and it was ~~a running iteration~~ until 2026-09-09
+(#406).** Owner ruling, one line: *«Trocar por issue em andamento»*. He was offered the additive form
+that keeps both anchors and chose the substitution, so **the word *sprint* leaves the sentence** —
+recorded rather than absorbed, because the original phrasing was ratified verbatim and this is the
+loop editing his own words on his instruction. **The quoted Portuguese below is UNTOUCHED and must
+stay so**: *«relacionados a issues em andamento em um sprint»* is what he said on the day he said it,
+and re-basing a rule never licenses re-writing the quotation it came from.
+
+**What the substitution buys is mode-independence.** A container that bounds a batch in one
+configuration and merely labels a period in another makes the precondition vary with an axis it was
+never about — and where no open item carries a container at all, the precondition never holds, so the
+entire form contract is dark while every surface still reads as though it were in force. An Issue
+being worked exists under every configuration this loop can be set to. **What it costs is that
+*which* container the item sits in stops being part of the test**; if that ever needs to be a
+condition, it is a separate rule and not this one.
 
 His words, so the rule is not a paraphrase: *«eu apenas queria padronizar a escalacao do loop»*,
 *«pendencias hitl sao apenas derivadas o protocolo de escalnomaneto padrao de subagents ate a sessao

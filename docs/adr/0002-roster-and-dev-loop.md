@@ -4707,13 +4707,15 @@ escalnomaneto padrao de subagents ate a sessao principal»*, *«relacionados a i
 sprint»*, *«se nao tem loop nao é hitl»*.
 
 **Five clauses, all required:** (1) a loop is running; (2) a **dispatched subagent** hits something on
-an Issue in that iteration; (3) it rises **subagent → main session → owner**; (4) the trigger is a
+~~an Issue in that iteration~~ **that Issue — re-based 2026-09-09, see the thirty-third amendment**;
+(3) it rises **subagent → main session → owner**; (4) the trigger is a
 **trade** of time (work *plus* wait hours), cost (**tokens**) or scope, for that item — anything moving
 scope is a *candidate*, not an automatic escalation; (5) the form is a tweet at most, **at most four
 direct options**, his technical register, terse first with depth pulled — **and it always carries the
 options**, because a bare question is offloading the analysis.
 
-**The precondition is stated first, deliberately.** Outside a running iteration there is no HITL
+**The precondition is stated first, deliberately.** Outside ~~a running iteration~~ **work on a filed
+Issue (re-based 2026-09-09, thirty-third amendment)** there is no HITL
 pendency, whatever the subject. It is recorded because the standard was mis-scoped **twice** while being
 written: every question to the owner read as an escalation, and the contract was applied to
 conversations it was never about.
@@ -4994,6 +4996,74 @@ cited the guard only to correct a false mechanical claim; its conclusion was alw
 mechanical enforces a dispatch's SCOPE**, which no version of that guard ever did. `product-lead`'s
 boundary is held by its brief and by review, exactly as before. What is newly unenforced is the
 dispatch's **premise**, which is a different object and had one mechanism for nine days.
+
+## Amendment (2026-09-09, thirty-third) — the escalation precondition is re-based onto a FILED ITEM BEING WORKED, and the container leaves the clause (#406)
+
+**Owner ruling, one line, 2026-09-09:** *«Trocar por issue em andamento»*. It was put to him as one
+activation with three options — the additive form (a container in flight **or** a filed item being
+worked, keeping the word *sprint*), the substitution, and leaving the sentence untouched with its cost
+stated. **He chose the substitution.**
+
+### What it reverses in decision 2, and it is a clause rather than the decision
+
+Decision 2's five clauses stand, its precondition stands, and the form contract is untouched. What
+moves is **what clause 1 is anchored to**. The two struck phrases above are the whole of the change to
+that decision's own text: *an Issue in that iteration* becomes *that Issue*, and *outside a running
+iteration* becomes *outside work on a filed Issue*.
+
+### Why it needed a RULING and not an edit
+
+**The wording was the owner's and was ratified verbatim** — *«relacionados a issues em andamento em um
+sprint»* — so re-basing it is a solo architectural call an agent may not take, and it was correctly
+declined twice by dispatched agents before he was asked. **The quotation is not edited by this
+amendment and must never be**: what he said on the day he said it is the record; the rule derived from
+it is what moved.
+
+### The defect it closes, and it is a control removed by a change that never mentioned it
+
+**The precondition was written against a container being in flight.** The loop-mode contract keeps a
+container in both modes but lets one of them reduce it to a period label that bounds nothing — so the
+clause became *ambiguous* rather than plainly false. **What made it live rather than theoretical is
+that no open item in either repository carries a container at all**, so under every reading of the
+clause the precondition never held. **The entire HITL form contract was dark, on every surface that
+states it, while every one of those surfaces read as though it were in force.** A rule that is
+unreachable and looks enforced is worse than one that is absent.
+
+**And it went dark in the wrong direction.** The lighter mode is the one chosen for fluidity, which
+makes it the mode with the most interruptions per hour — the mode where a contract for *how* a human
+is interrupted matters most.
+
+### What it costs, recorded rather than absorbed
+
+**The word *sprint* leaves the sentence**, and the additive form that would have kept it was on the
+table and was declined. So *which* container an item sits in is no longer part of the escalation test.
+**If that ever needs to be a condition again it is a new rule, not a restoration of this one** — the
+additive form is what it would look like, and it is recorded here so a later reader knows it was
+considered and refused rather than overlooked.
+
+### Considered and rejected
+
+- **The additive form — a container in flight OR a filed item being worked.** It keeps the ratified
+  wording intact and costs nothing to write. Rejected by the owner. Its real cost is that it keeps an
+  axis the standard was never about: the clause would still read as though the container mattered, and
+  a reader would still have to work out that one of the two limbs is always the operative one.
+- **Leaving the sentence and stating the cost.** Rejected: the cost is that the standard is
+  unreachable, and a standard nobody can satisfy is not a documented limitation, it is an inert
+  control that reads as installed.
+
+### What this does NOT touch, and each would be a plausible over-read
+
+- **The four remaining clauses, the DECISION/ACTION partition, the axes and the form.** Unchanged.
+- **The quoted Portuguese in every surface that carries it.** Unchanged, deliberately.
+- **The `CLAUDE.md` HITL-format block's own *"No loop running, no escalation."*** It is byte-identical
+  across two repositories, so re-basing it is a two-repository batch and its own slice. **It is
+  therefore live and unrepaired at this amendment's date**, and the sentence in it still reads against
+  a container. That is stated rather than left to be discovered.
+- **What enforces any of this: nothing, exactly as before.** No layer observes an escalation, and
+  re-basing a precondition does not make one observable. The one thing that changed on that axis is
+  that the clause's object is now a repo-local tracker item rather than one logical container
+  represented as two tracker objects in two repositories — so *whether a loop is running* is at least
+  no less queryable than it was, which is a smaller claim than a control.
 
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
