@@ -849,6 +849,220 @@ between the two merges.
 
 ---
 
+<!-- loop-mode-contract -->
+## The loop MODE is a NAMED agile method — and this is the contract's UNTOUCHABLE list (tedeuxx/tadeumendonca-skills#406)
+
+**Third block in a row addressing the ORCHESTRATOR, and it is here for the same reason as the other
+two.** A mode is not something a persona applies — it selects a pool predicate and a ceremony set
+**before** any dispatch happens, so the only context that can run one is the main session, which is
+dispatched by nobody and preloads nothing. **A skill body cannot carry a mode rule**: the block above
+measured, on build `2.1.263`, that a repo-root `CLAUDE.md` reaches this context and that adding a
+sibling checkout as a working directory does not bring its brief; #409 measured, with one nonce per
+candidate surface, that a skill body does not reach it at all — only the skill's name and its
+`description` do. **Neither measurement was re-run for this block**, and both are cited rather than
+re-derived; the falsifier is in each block's own text.
+
+### What a mode IS, and what it may contain
+
+**A mode names a widely-known agile method and fixes exactly two things: the CONTAINER that bounds a
+batch of work, and the CEREMONY SET that runs at its edges.** The owner's decision is that the
+configuration surface is an enum of industry names rather than an invented vocabulary — *«faria mto
+sentido a configuracao de loop remeter a modos de trabalho agil conhecidos amplamente»* — so a third
+mode later is a new member of a documented set, not a new design.
+
+| mode | container | ceremony set | ordering |
+|---|---|---|---|
+| **`scrum`** | the iteration — two milestone objects in two repositories, paired by title alone | planning · review · retrospective | ranked at planning |
+| **`kanban`** | **none** | **none run** | **FIFO within a partition**: `loop` in arrival order, then `product` in arrival order |
+
+**`kanban` is SPECIFIED here and is not operative.** The pool predicate, the drain and the two gate
+arms that pin the Scrum wording are slice B of #406 and have not landed. **Do not read this table as a
+switch that has been thrown**; read it as the contract a switch would have to honour.
+
+**And the honest starting state, because it is the argument for writing the contract down rather than
+a hypothetical about the future: the loop is already running with no container and no ceremony, and
+nothing anywhere records that.** Measured 2026-09-09, both repositories:
+
+```
+gh issue list --repo <owner>/<repo> --state open --limit 300 --json number,labels,milestone \
+  --jq '[.[]|{l:[.labels[].name],m:.milestone}] | {open:length,
+        ready:[.[]|select(.l|index("ready"))]|length,
+        milestoned:[.[]|select(.m!=null)]|length,
+        sp:[.[]|select(.l|map(startswith("sp:"))|any)]|length}'
+# -skills -> {"open":8,"ready":0,"milestoned":0,"sp":0}
+# -io     -> {"open":45,"ready":16,"milestoned":0,"sp":0}
+```
+
+**Both zeroes are calibrated rather than trusted** — the same two selectors over `--state all` in
+`-skills` return **17** milestoned and **12** carrying `sp:N`, so neither is a dead pattern. **A mode
+record must therefore be dated and back-dated honestly when one is introduced**, never written as
+though the day it lands is the first day of the mode it names.
+
+### The UNTOUCHABLE list — and it is a MEASUREMENT, not an intention
+
+| a mode MAY vary | a mode may NEVER touch |
+|---|---|
+| the pool predicate's container term (`active-iteration`) | **the permission floor** — every rule of `hooks/scripts/permission-guard.sh`, under both loop models |
+| whether the three rites run, and what fires them | **the merge gate** and both of its lenses, on every diff |
+| the ordering act — ranked at planning, or FIFO within the `loop`/`product` partition | **head-scoped verdicts** — a verdict names the commit it read, in every mode |
+| `wip` (the slot only — see below) | **only-the-owner-opens-work** (`permission-guard.sh` rules 5c/5d) |
+| whether `sp:N` is part of the readiness bar (**open — see below**) | the `product`/`content`/`loop` routing labels |
+| the container object itself (a milestone, or none) | **`content` has no second mode** |
+
+**The one sentence to keep verbatim, because it is the failure this whole surface can produce:** *a
+mode selects a predicate and a ceremony set; it never selects a permission rule.* **A configuration
+surface that can reach the irreversible floor is a hole with a nice name.**
+
+**Today that separation is structural rather than merely intended, and this is the command that says
+so.** Across all **thirteen** hook registrations, every occurrence of the mode vocabulary is a comment
+or a deny-message string, and **no registered hook selects a `milestone` or a `labels` field or passes
+a `--milestone`/`--label` flag**:
+
+```
+jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
+  | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort -u \
+  | xargs grep -nE -- '--milestone|--label|--json [^|"]*(milestone|labels)' \
+  | grep -vE ':[0-9]+:[[:space:]]*#'
+# -> no output
+
+jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
+  | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort -u \
+  | xargs grep -nE 'milestone|iteration|sprint' \
+  | grep -vE ':[0-9]+:[[:space:]]*#' | grep -vE 'deny "'
+# -> no output
+
+# the denominator, so "no output" is read against a non-empty set rather than against nothing:
+jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
+  | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort -u \
+  | xargs grep -hcE 'milestone|iteration|sprint' | paste -sd+ - | bc
+# -> 22        (20 comments + the 2 deny strings the filter above excluded)
+```
+
+**Both zeroes are calibrated, in the direction that matters — a selector that cannot go non-zero is
+not a check.** Swap `milestone|labels` for `headRefOid|comments` in the first — leaving its comment
+filter in place — and it returns **10** lines across **6** files; drop the `deny "` filter from the
+second and it returns the **2** deny strings it was excluding. *(Without the comment filter the first
+calibration returns 11; the figure published here is the one the command as written produces, which is
+the whole point of publishing them together.)*
+
+**What these commands do NOT say, stated here so the list does not inherit an overclaim that is
+already in circulation.** They do **not** say that no hook reads an Issue. Two registered hooks make
+live `gh issue` **reads** — `hooks/scripts/closure-artifact-guard.sh` resolves an Issue body
+(`gh issue view --json body,title`) and lists recently-closed Issues by a rolling date window
+(`gh issue list --state closed --search "closed:>=…"`). **Neither selects a label or a milestone**, and
+a date window is not a queue predicate, so the mode-blindness above survives them intact. **The
+sentence that does not survive is the falsifier published beside it elsewhere:** *"every `gh issue`
+call in `hooks/scripts/` is a write path"* is **false at head**, and it is repeated in
+`skills/agents-configuration/SKILL.md` at four sites. **The conclusion it supports still stands and its
+stated reason does not** — correcting it is its own slice, and the list above is written so that it does
+not depend on it.
+
+**So the property to preserve is deliberate, not inherited.** Slice B adds a mode-dependent predicate;
+the moment any hook is made to read it, the floor stops being mode-blind and this table stops being a
+measurement. **If a later slice needs a hook to know the mode, that is the review that has to happen
+before it is written, not after.**
+
+### `wip` is a SLOT here — the VALUE and the topology are `#385`
+
+**`WIP=1` is transitional scaffolding with a stated exit condition, not a pull-system choice.** The
+owner's correction, before #406 was filed: *«hoje o nosso scrum trabalha em wip=1 devido a necessidade
+de apurar o modelo antes de paralelizar a camada de developers»* · *«mas nao tem intuito de seguir
+assim»*. So **WIP is a parameter of the mode, not a constant of the loop** — and a mode contract that
+hard-coded it would bake the scaffolding into the configuration.
+
+**The boundary with `#385`, open since 2026-08-31, and it is stated in both bodies rather than one:**
+
+- **`#406` owns the SLOT** — that `wip` is a declared parameter of a mode. It decides **no value**, no
+  topology and nothing about what may run together.
+- **`#385` owns the VALUE and the topology** — worktrees, file collision, gate throughput, and what
+  parallel work actually costs.
+
+**Reading them against each other is the only instrument that finds this**, and it is
+`/definition-of-ready`'s named flagship failure occurring live between two individually well-formed
+Issues.
+
+**What breaks FIRST at WIP > 1, priced here because it is a contract input — and it is not the gate.**
+`permission-guard.sh` rule 7c head-scopes the **gatekeeper's** verdict per PR: it fetches `headRefOid`
+and the comment list in one call, and an unreadable head denies. **It is the `agents-lead` verdict
+marker**, which every reader treats as presence-only. Measured at head — every occurrence of the
+literal outside a test file is a **counter** (`hooks/scripts/dispatch-metrics-stop.sh`), a **comment**
+(`hooks/scripts/zombie-loop-detect.sh`, `hooks/scripts/permission-guard.sh`) or the prose of hold 2 in
+`agents/quality-assurance.md`, which reads *"a comment on the PR before you may merge it"*:
+
+```
+grep -rn 'harness-lead-verdict' hooks/scripts/ agents/ | grep -v '\.test\.'
+```
+
+**No rule reads it.** On a serialised loop that costs at most one slice's diff, and re-posting on a
+moved head covers it in practice. **At WIP > 1 two concurrent harness diffs would each satisfy hold 2
+with the other's marker.** That is the check to run **before** relaxing WIP, in either mode; it is a
+named residual today and parallelism is what makes it live.
+
+### What nothing enforces — per decision, because "nothing enforces this" flattened is false
+
+| decision | what actually holds it |
+|---|---|
+| the mode is recorded at all | **nothing reads the record**; `git log` over one path gives the proportion to a human |
+| the mode is read BEFORE any pool query | **an instruction.** No layer sees a query's intent |
+| the two repositories agree on the mode | **nothing.** A hook receives one `cwd`; a mode is a workspace property, so split-brain is undetectable at session open |
+| loop-first survives in either mode | **the ordered artifact, and awkwardness.** #339 already measured this ungateable at every layer |
+| the rites run at all | **nothing today, in either mode** |
+| `wip` is honoured | **nothing.** `wip-guard.sh` was deleted at #383 and nothing bounds work in progress |
+| which readiness bar a `ready` label was applied under | **nothing.** The label carries no evidence of its bar |
+
+**Six of seven are instructions and one is a report.** By this loop's own test — *would something stop
+me, or only my memory?* — **the mode contract is not engineered, and it is not presented as if it
+were.** A configuration surface invites the reading that something reads it; nothing does.
+
+**One rule in that table is worth stating twice, because it is the only place in this design where a
+wrong guess is SILENT: the mode is read from its record before any pool query, and nothing may infer
+the mode from an empty milestone set.** Measured — the Scrum active-iteration derivation prints
+nothing and exits 0 when no open item carries a milestone, which is exactly what *"Kanban, correctly no
+container"* looks like. `echo '[]' | jq 'min'` returns `null`, exit 0. **A drain that infers its mode
+from that reports a healthy queue over a dark one, with every check green.**
+
+### Two owner decisions are OPEN, and this block decides neither
+
+1. **Does the cadence carrier get built, or is its refusal recorded?** A `SessionStart` notice saying a
+   rite is owed after N days is buildable — the event fires, a durable stamp already has a proven home
+   under `$git_dir`, and a clock is available. It would be a **notice**, never a control, and the
+   honest comparison is **clock versus nothing**: the boundary trigger it would replace has never fired
+   either. Whether a rite reminder is worth a hook is his.
+2. **Does Kanban's readiness bar drop `sp:N`?** FIFO consumes no estimate, so either the bar is four
+   items in that mode — making `ready` mean two things on two days — or estimation stays as a cost with
+   no consumer. `ready` is the one label the intake chain, the builder and the drain all depend on.
+
+**Neither is decided here, and slice A depends on neither.**
+
+### The two copies of this block must stay identical
+
+**A mode is a WORKSPACE property, and a session rooted in one repository loads neither the other's root
+brief nor a sibling's** — measured in the block above. So this block is shared, byte for byte, between
+`CLAUDE.md` at the root of `tedeuxx/tadeumendonca-skills` and `CLAUDE.md` at the root of
+`tedeuxx/tadeumendonca-io`. From a workspace holding both checkouts:
+
+```
+diff <(sed -n '/^<!-- loop-mode-contract -->$/,/^<!-- \/loop-mode-contract -->$/p' tadeumendonca-skills/CLAUDE.md) \
+     <(sed -n '/^<!-- loop-mode-contract -->$/,/^<!-- \/loop-mode-contract -->$/p' tadeumendonca-io/CLAUDE.md)
+```
+
+**That is an OBLIGATION and not a claim about either copy's current state — nothing checks it, and
+nothing makes the two move together.** The sibling's merge request had not landed when this was
+written, so the command above is expected to print the whole block. **This is now the THIRD
+hand-maintained two-repository block in this file**, and that is a cost stated rather than discovered:
+each one is a place where two files can disagree in silence, and the only instrument is a `diff`
+somebody has to remember to run.
+
+**`AGENTS.md` deliberately does NOT carry this block**, and the reason is its own rule rather than
+budget: that brief states obligations addressed to an agent, never descriptions of enforcement, and the
+untouchable list above is a measurement of this harness's own hook layer. **The portable statement of
+the same contract is `docs/prompts/loop-mode-contract.md`**, which is what another harness adopts.
+**The residual: if a mode ever gains an operative rule a session on other machinery must obey, that
+rule is owed to `AGENTS.md` as an obligation, and nothing will say so.**
+<!-- /loop-mode-contract -->
+
+---
+
 ## Scratch — the session scratchpad, not a repo directory (#245)
 
 **A repo-root `.scratch/` used to be the documented place for throwaway files. It is retired.** It was
