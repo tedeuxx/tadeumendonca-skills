@@ -1074,22 +1074,86 @@ live `gh issue` **reads** — `hooks/scripts/closure-artifact-guard.sh` resolves
 (`gh issue list --state closed --search "closed:>=…"`). **Neither selects a label or a milestone**, and
 a date window is not a queue predicate, so the mode-blindness above survives them intact. **The
 sentence that does not survive is the falsifier published beside it elsewhere:** *"every `gh issue`
-call in `hooks/scripts/` is a write path"* is **false at head**, and it is repeated in
-`skills/agents-configuration/SKILL.md` at ~~four~~ **three** sites. **The conclusion it supports still
-stands and its stated reason does not** — correcting it is still its own slice, and the list above is
-written so that it does not depend on it.
+call in `hooks/scripts/` is a write path"* is **false at head** — the two reads above are the
+counter-example — **and its scope is TREE-WIDE rather than one file.** ~~it is repeated in
+`skills/agents-configuration/SKILL.md` at four sites~~ ~~at three sites~~ — **struck 2026-09-09 (#406
+slice C), twice, and the second strike is the one worth reading.** The first figure was carried; the
+second was *derived from a superset* — a line-oriented `grep` for `reads the queue|write path`, which
+matches two neighbouring sentences that are TRUE and need no sweep, and which counts **lines** rather
+than occurrences, so a site that wraps is counted twice or split in half. **The conclusion the clause
+supports still stands and its stated reason does not** — correcting it is still its own slice, and the
+list above is written so that it does not depend on it.
 
-**Why the count moved, said rather than silently edited.** #406 slice C was already rewriting one of
-those four sentences for a different reason — the *"no hook can be built for either rite"* clause, which
-the cadence carrier falsified — and dropping a known-false sub-clause out of a sentence being rewritten
-anyway is cheaper than leaving it and cheaper than a round about it. **It did not sweep the other
-three, deliberately**, because a partial sweep presented as a fix is this repository's own named failure
-and the remaining three are the owed slice's subject. Re-derive the set rather than trusting this
-number:
+**The instrument, not the digits — the selector below picks the clause itself, and it is
+WRAP-INSENSITIVE.** It collapses whitespace before matching, because this repository has already paid
+for a line-oriented sweep that returned two hits and missed the broken file (#410). Its output is
+pasted beside it rather than described:
 
 ```
-grep -n 'reads the queue\|write path' skills/agents-configuration/SKILL.md
+git ls-files -z -- '*.md' | xargs -0 python3 -c '
+import re, sys
+claim = re.compile(r"every \W?gh issue\W? call [^.]*? is a write path")
+for p in sys.argv[1:]:
+    body = re.sub(r"\s+", " ", open(p, encoding="utf-8").read())
+    n = len(claim.findall(body))
+    if n:
+        print(str(n) + "\t" + p)
+'
+# 1  CLAUDE.md
+# 1  agents/scrum-master.md
+# 2  commands/autonomy.md
+# 1  commands/new-issue.md
+# 1  commands/sprint-planning.md
+# 2  commands/sprint-retrospective.md
+# 1  commands/sprint-review.md
+# 2  docs/adr/0002-roster-and-dev-loop.md
+# 1  docs/adr/0004-controls-and-enforcement.md
+# 1  powers/tadeumendonca-skills/skills/agents-configuration/SKILL.md
+# 1  skills/agents-configuration/SKILL.md
 ```
+
+**`\W?` stands in for a backtick because a backtick in a command string is refused by this harness's
+own guard** — the pattern is `every ` + optional backtick + `gh issue` + optional backtick + ` call …`.
+
+**What the selector CANNOT distinguish, named so the totals are not over-read** — the same
+citation-versus-discussion blindness `documentation-standard` records about the record-citation gate:
+
+- **`CLAUDE.md`'s own hit is THIS paragraph**, quoting the clause in order to call it false. It is the
+  deferral, not a site of it.
+- **`powers/…` is the GENERATED mirror** of `skills/agents-configuration/SKILL.md` and moves with it;
+  it is not an independent site.
+- **`docs/adr/0004`'s hit reads *"a write path of another kind"***, inside a parenthetical about
+  milestone assignment. It still asserts the clause and it is the one a sweeper should read before
+  editing.
+
+**So the honest scope: 12 assertions across 9 authored files** — `agents/scrum-master.md`,
+`commands/autonomy.md` (2), `commands/new-issue.md`, `commands/sprint-planning.md`,
+`commands/sprint-retrospective.md` (2), `commands/sprint-review.md`,
+`docs/adr/0002-roster-and-dev-loop.md` (2), `docs/adr/0004-controls-and-enforcement.md`,
+`skills/agents-configuration/SKILL.md` — **plus the generated mirror, which needs no edit.**
+
+**What #406 slice C actually changed, stated as the movement rather than as a total.** It was already
+rewriting one sentence in `skills/agents-configuration/SKILL.md` for a different reason — the *"no hook
+can be built for either rite"* clause, which the cadence carrier falsified — and dropping a known-false
+sub-clause out of a sentence being rewritten anyway is cheaper than leaving it and cheaper than a round
+about it. **In that file the count moved 2 → 1**, re-derived with the same selector against the merged
+state:
+
+```
+git show origin/main:skills/agents-configuration/SKILL.md | python3 -c '
+import re, sys
+body = re.sub(r"\s+", " ", sys.stdin.read())
+print(len(re.findall(r"every \W?gh issue\W? call [^.]*? is a write path", body)))
+'
+# 2      (1 at this branch head)
+```
+
+**It swept nothing else, deliberately**, because a partial sweep presented as a fix is this
+repository's own named failure. **All twelve assertions listed above are the owed slice's subject —
+including the one left in the file this slice touched — and the command is what scopes it.** Re-run it
+rather than trusting any figure in this paragraph; it was re-run **after** this paragraph was written,
+because a number whose base sits inside the diff that publishes it is this repository's other named
+failure.
 
 **So the property to preserve is deliberate, not inherited.** Slice B adds a mode-dependent predicate;
 the moment any hook is made to read it, the floor stops being mode-blind and this table stops being a
