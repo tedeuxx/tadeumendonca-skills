@@ -27,7 +27,7 @@ is a real deprivation:
 `agents-configuration` and `engineering-standards`.** The first is the universal preload — the loop's
 state machine and intake chain, carried by every profile rather than by a subset, because understanding
 the loop itself is not domain-specific the way the rest of the process library is. The second is the
-eleven principles in two tiers, which is the `engineering-philosophy` content this entry was originally
+twelve principles in two tiers, which is the `engineering-philosophy` content this entry was originally
 about; **it is back under its own name and you still carry it.** ~~the eleven principles in one file~~
 — struck because the file is two now, and a brief that keeps saying *one file* is how the next reader
 concludes a preload is missing.

@@ -27,7 +27,7 @@ for the agents inside.** Same design intent, two audiences, neither a substitute
 with no instrument behind it, named here rather than discovered later.
 
 **Its companion is `engineering-standards`, split out of this file at #381** — the engineering
-preferences that would still be true in a project that never runs this loop: the two tiers, the eleven
+preferences that would still be true in a project that never runs this loop: the two tiers, the twelve
 principles, what counts as delivery, the human residual. **The cut test was one question, applied
 paragraph by paragraph:** *would this still be true in a project that does not run this loop?* Yes →
 `engineering-standards`. No → here. Where a principle has a local enforcement, the principle is named
@@ -1909,7 +1909,7 @@ what the rule says — that is what lets you act correctly in the cases the stat
 enumerate, which is most of them.
 
 See also: `/engineering-standards` (the judgment applied inside all of this — the two tiers, the
-eleven principles, delivery versus hygiene, the human residual), `/definition-of-done` (the Definition
+twelve principles, delivery versus hygiene, the human residual), `/definition-of-done` (the Definition
 of Done — the criteria and the seam table), `/quality-gates` (the CI/CD gate tables per loop model and
 the merge-class rules), `/devops` (the permission zones and guard hook, branching,
 per-environment topology, OIDC, the deploy workflows, TFC state), `/definition-of-ready` (the

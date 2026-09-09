@@ -1,9 +1,9 @@
 ---
 name: engineering-standards
-description: The owner's engineering preferences, portable to any project — two tiers (a non-negotiable floor, a risk-calibrated judgment layer), the eleven principles behind every call, delivered versus hygiene, and the human residual. Use when deciding how much rigor a change deserves, whether something counts as delivery, or what to do while blocked. Not this loop's machinery, state machine or WIP rule (see agents-configuration), and not what done means concretely (see definition-of-done).
+description: The owner's engineering preferences, portable to any project — two tiers (a non-negotiable floor, a risk-calibrated judgment layer), the twelve principles behind every call, delivered versus hygiene, and the human residual. Use when deciding how much rigor a change deserves, whether something counts as delivery, or what to do while blocked. Not this loop's machinery, state machine or WIP rule (see agents-configuration), and not what done means concretely (see definition-of-done).
 ---
 
-Apply the owner's engineering standards — the two tiers, the eleven principles, and the few rules
+Apply the owner's engineering standards — the two tiers, the twelve principles, and the few rules
 about delivery and the human residual that hold regardless of machinery — in any `<project>` repo.
 
 Context: $ARGUMENTS
@@ -114,10 +114,25 @@ check is being offered as evidence.
 restore — and is deliberately not restated here. This section is the class that instance belongs to;
 `/content-publishing` carries another instance of the same class, at the point a link is composed.
 
-## The judgment — eleven principles, two tiers
+## The judgment — twelve principles, two tiers
 
 The lens every agent applies while working, not a separate concern from the work. Read it as defaults
 plus the explicit triggers to deviate, not as rigid rules.
+
+~~plus the explicit triggers to deviate~~ — **struck #410, and it is struck rather than edited because
+a reader took a design decision from it.** Read in the plural beside a numbered list, it says *each
+principle carries one*, and that was false the day it was written: exactly **one** of the eleven did.
+**Four of them cannot**, by construction rather than by omission — the floor is the tier that never
+bends, so a deviation clause on it would contradict the tier it belongs to. **Two of twelve carry one
+now**, and the criterion is *an explicit clause naming the condition under which the principle
+yields*. The command prints both sides of the count — the principle openers and every deviation
+clause — so the number is read off the output rather than taken on trust:
+
+```
+awk '/^\*\*1\. Plan-first/,/^## What "delivered" means/' skills/engineering-standards/SKILL.md \
+  | grep -nE '^\*\*[0-9]+\.|\*When I '
+# -> 12 principle openers, 2 deviation clauses (principles 1 and 12)
+```
 
 ### The spine: agent-led verification, human-residual
 
@@ -204,6 +219,37 @@ bolted on at CI. Depth scales to criticality (calibrated), but the *posture* is 
 **11. Living docs.** Architecture and decisions live as Mermaid diagrams plus markdown in the repo,
 kept current with the code — not as an afterthought. The history (clean, conventional commits)
 carries the *why*; the docs carry the *shape*.
+
+### How I investigate
+
+**The twelfth sits after the floor and is NOT part of it.** It is tier 2 — preferred, not
+non-negotiable — and it is last only because the numbers are cited from outside this file, so
+inserting it in the middle would renumber principles other documents name. Position is not tier here;
+the label is.
+
+**12. Dive deep — a TRUE answer that closes the inquiry is the failure.** *(Tier 2.)* The defect this
+guards against is not a wrong answer. Wrong answers get corrected on contact; a **correct** one that
+satisfies the question and ends the investigation leaves the mechanism underneath unexamined, and
+nothing about it looks like a failure from the outside. Three moves separate an answer that is true
+from one that is finished:
+
+- **A repeating symptom is never explained by the actor's discipline alone.** *"I knew the rule and
+  broke it"* describes the failure; it does not cause it. The question that reopens the inquiry is
+  what made the rule **reachable at the moment of the act** — and where a rule is written into a
+  surface the acting context does not read, no amount of care would have changed the outcome.
+- **When two hypotheses disagree, measure before choosing between them.** The answer is often *both*,
+  and only the measured half is actionable.
+- **Name which of three a finding is** — a defect in what was built, a mismatch between the
+  configuration and the current shape of the tooling it runs on, or discipline. Blurring them aims
+  the work at a target no control can reach.
+
+*When I stop shallower:* a **first occurrence whose cause is already mechanically visible** — the
+command, the file and line, or the measurement is in hand, and nothing about it has recurred. Diving
+past that point turns every symptom into an investigation, which is a real cost and the reason this
+principle needs a stated floor rather than an *always*. **Two conditions override it:** the symptom
+**repeats**, or the answer that satisfies the question is *the actor should have been more careful*.
+That second one is a trigger to keep going and never a conclusion — it is the shape a true-and-closing
+answer takes most often, because it is unfalsifiable and always available.
 
 ## What "delivered" means
 
@@ -477,7 +523,7 @@ whether anyone can see them.
 
 ## Using this skill
 
-When an agent works in a consuming repo, these eleven principles are the lens for every choice: plan
+When an agent works in a consuming repo, these twelve principles are the lens for every choice: plan
 first, ask on the boundaries, slice thin, keep the floor green, and verify your own work before
 handing the residual to a human. The deep-dive component skills tell you *how* to build each piece;
 this tells you *how to decide* while you do. Today that means three reference skills — `/backend`,

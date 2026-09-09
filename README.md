@@ -104,14 +104,23 @@ assumed.
 **Calibrated judgment scales to blast-radius:** planning depth, threat-model depth, abstraction, when to
 ask. Heavy where a mistake is irreversible; product-speed where it is cheap to revert.
 
-The eleven principles:
+The twelve principles — **two of them state a trigger to deviate (1 and 12), not all twelve**, and the
+four floor principles cannot, because a tier that never bends has nothing to state a deviation from:
 
 1. **Plan-first** — design and align before coding.
 2. **Ask on the boundaries** — architecture, contracts, anything irreversible. In-pattern implementation
    is decided autonomously, and no architectural call is made alone.
-3. **Thin vertical slices, bounded by file overlap** — a second slice may start if it touches no file an
-   open one touches. Overlap rather than a count, because counting blocks disjoint work while doing
-   nothing about the real risk.
+3. **Thin vertical slices, bounded by a work-in-progress bound** — one in-flight branch and one open PR
+   at a time. ~~bounded by file overlap — a second slice may start if it touches no file an open one
+   touches. Overlap rather than a count, because counting blocks disjoint work while doing nothing
+   about the real risk.~~ **Struck #410, and it had been live and false for 27 days.** The
+   disjoint-files exception was tested that day — two disjoint-file issues built in separate worktrees
+   at once — and the owner struck it on sight: *"nao temos intencionalidade de trabalhar assim por
+   enquanto"*. The skill it summarises has carried the strike ever since
+   (`skills/agents-configuration/SKILL.md`, *WIP=1 — the struck exception, and why*); this summary went
+   on stating the reversed rule as current for 27 days. **Struck rather than deleted because a reader
+   who took the exception from here acted on it — that is exactly how it was found.** What the bound
+   is, what it protects, and the measurement showing nothing enforces it are all in that skill.
 4. **Surgical changes, tracked debt** — work around adjacent mess and file it.
 5. **Simple but extensible** — an abstraction must pay for itself.
 6. **No dogma** — honour a platform's conventions as its context.
@@ -120,6 +129,11 @@ The eleven principles:
 9. **Observability is part of done** — provable where it runs, and smoke after deploy.
 10. **Security and resilience by-design** — least privilege, idempotency, fail-fast, retries.
 11. **Living docs** — diagrams and decisions kept current.
+12. **Dive deep** — a *true* answer that closes the inquiry is the failure, not a wrong one. A repeating
+    symptom is never explained by the actor's discipline alone; *"I knew the rule and broke it"*
+    describes a failure and does not cause one. **Tier 2, and it stops shallower at a first occurrence
+    whose cause is already mechanically visible** — it keeps going when the symptom repeats, or when
+    the satisfying answer is *someone should have been more careful*.
 
 ### Permissions
 
@@ -1137,7 +1151,7 @@ The library: 15 skills, one directory each, at one level under `skills/`.
 | `definition-of-ready` | Definition of Ready — the bar a work item clears before it is buildable | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `devops` | Operate the DevOps capability for any `<project>` repo — GitHub Actions, Terraform Cloud, branching, and | `developer` · `agents-lead` · `tech-lead` (#227) |
 | `documentation-standard` | Documentation — the general standard and the ADR practice | `developer` (Part I, general docs) · `tech-lead` · `agents-lead` — Part II, ADR practice split by domain (#223) |
-| `engineering-standards` | Apply the owner's engineering standards — the two tiers, the eleven principles, and the few rules | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
+| `engineering-standards` | Apply the owner's engineering standards — the two tiers, the twelve principles, and the few rules | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `frontend` | Frontend (React SPA) | `developer` |
 | `planning-poker` | Planning Poker — consensus estimation, and what it is actually for | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `published-voice` | The owner's published voice — the shared ruler | `content-writer` · `content-reviewer` — the pair it was extracted for (#317) |

@@ -29,7 +29,7 @@ preflight — so you are again carrying a frozen snapshot of your own object. Ac
 included, because understanding the loop itself is not domain-specific the way the rest of the process
 library is.** It was `harness-engineering` from #224 until **#381 split it in two**:
 `agents-configuration` (this loop's intentional design — why it is shaped this way, its state machine,
-its intake chain) and **`engineering-standards`** (the portable judgment: the two tiers, the eleven
+its intake chain) and **`engineering-standards`** (the portable judgment: the two tiers, the twelve
 principles, delivery versus hygiene, the human residual). **You carry both, and the second is not a
 concession** — the cut test was *would this still be true in a project that does not run this loop?*,
 and everything that answered yes is content you apply when reviewing a proposal against the floor
