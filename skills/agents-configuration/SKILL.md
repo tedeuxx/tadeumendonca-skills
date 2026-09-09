@@ -1909,7 +1909,7 @@ what the rule says — that is what lets you act correctly in the cases the stat
 enumerate, which is most of them.
 
 See also: `/engineering-standards` (the judgment applied inside all of this — the two tiers, the
-eleven principles, delivery versus hygiene, the human residual), `/definition-of-done` (the Definition
+twelve principles, delivery versus hygiene, the human residual), `/definition-of-done` (the Definition
 of Done — the criteria and the seam table), `/quality-gates` (the CI/CD gate tables per loop model and
 the merge-class rules), `/devops` (the permission zones and guard hook, branching,
 per-environment topology, OIDC, the deploy workflows, TFC state), `/definition-of-ready` (the
