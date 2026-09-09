@@ -8435,9 +8435,14 @@ fi
 # WHAT IT CANNOT DO. It reads a WINDOW of characters after a literal, so it is a vocabulary check on a
 # bounded span, not a reading of the clause. A re-basing written with the container's name filed off —
 # "the batch", "the current period" — passes every arm here. That half is a reviewer's read on the
-# diff, and there is no instrument for it. It also asserts NOTHING about `CLAUDE.md`'s own HITL block,
-# which carries the same precondition, is byte-identical across two repositories, and is deliberately
-# out of this slice: re-basing it is a two-repository batch.
+# diff, and there is no instrument for it.
+#
+# IT ASSERTS NOTHING ABOUT `CLAUDE.md`, AND THE REASON IS NOT THE ONE THIS COMMENT FIRST GAVE. An
+# earlier wording said that block "carries the same precondition" and was out of scope as a two-repo
+# batch. Measured: `grep -c "No loop running" CLAUDE.md` returns 0 in both trees. That block states a
+# SCOPE and defers to the standard's five clauses; the sentence itself lives in the portable carrier
+# arm 1 already needles, and nowhere else. So there is no second copy for this arm to check — which is
+# a stronger reason to leave it alone than the one that was written from a premise nobody ran.
 ah_anchor_out=""
 if [ -r "$AH_PORTABLE" ] && [ -r "$AH_PRELOAD" ] && [ -r "$PLAN_SM" ]; then
   ah_anchor_out="$(AH_P="$AH_PORTABLE" AH_L="$AH_PRELOAD" AH_S="$PLAN_SM" python3 - <<'PYEOF'
@@ -8481,7 +8486,7 @@ if [ -n "$ah_anchor_out" ]; then
       mode, and no open item carrying one at all, makes the precondition unreachable — every clause
       beneath it is dead and every surface still reads as though the contract were in force."
 else
-  ok "escalation precondition — the anchor is a filed item being worked in all three carriers, with no container vocabulary in the six spans (wrap-insensitive window check; a re-basing written with the container's name filed off would pass, and CLAUDE.md's own copy is out of scope)"
+  ok "escalation precondition — the anchor is a filed item being worked in all three carriers, with no container vocabulary in the six spans (wrap-insensitive window check; a re-basing written with the container's name filed off would pass, and CLAUDE.md holds no copy of the sentence to check)"
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════

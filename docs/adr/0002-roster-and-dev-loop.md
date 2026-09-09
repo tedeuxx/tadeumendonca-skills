@@ -5055,10 +5055,32 @@ considered and refused rather than overlooked.
 
 - **The four remaining clauses, the DECISION/ACTION partition, the axes and the form.** Unchanged.
 - **The quoted Portuguese in every surface that carries it.** Unchanged, deliberately.
-- **The `CLAUDE.md` HITL-format block's own *"No loop running, no escalation."*** It is byte-identical
-  across two repositories, so re-basing it is a two-repository batch and its own slice. **It is
-  therefore live and unrepaired at this amendment's date**, and the sentence in it still reads against
-  a container. That is stated rather than left to be discovered.
+- **The `CLAUDE.md` HITL-format block.** It states its scope as *"an escalation rising out of a
+  running loop"* and then **defers to the standard's five clauses** rather than restating the
+  precondition's anchor — so **the ruling reaches it through the standard and its rule text needs no
+  edit.** What IS stale in it is one clause of the **two-copy rationale**: *"the escalation
+  precondition is a running loop, a loop is two milestone objects in two repositories."* That is a
+  **rationale, not the rule**, and the conclusion it supports — the block must live in both
+  repositories — is independently established by the `review-chain-routing` block's own nonce
+  measurement. Re-basing it is a two-repository byte-identical batch and is left as its own slice.
+
+  **This bullet asserted the opposite until it was measured, and that is worth recording plainly
+  rather than as a note.** It claimed the block carried the sentence *"No loop running, no
+  escalation."* and that the sentence was *live and unrepaired at this amendment's date*. **Both are
+  false**, and the second is the sharper one: the only copy of that sentence in either tree is
+  `skills/engineering-standards/SKILL.md`, which **this very amendment's own slice re-based** — so the
+  record contradicted its own diff. **The premise came from the dispatch that commissioned this work,
+  where it was asserted without being measured, and it was carried into a published record because it
+  was plausible and nobody ran the grep.** The falsifier is two commands and neither is expensive:
+
+  ```
+  grep -c "No loop running" CLAUDE.md ../tadeumendonca-io/CLAUDE.md   # 0 and 0
+  grep -rn "No loop running" --include="*.md" . | grep -v '^./powers/'
+  ```
+
+  **The transferable half: a claim about a file that names the file is not a claim anyone checked.**
+  A scope exclusion is the shape most likely to escape measurement, because excluding something reads
+  as caution and nothing downstream depends on the reason being right.
 - **What enforces any of this: nothing, exactly as before.** No layer observes an escalation, and
   re-basing a precondition does not make one observable. The one thing that changed on that axis is
   that the clause's object is now a repo-local tracker item rather than one logical container
