@@ -50,6 +50,11 @@
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/scripts/session-plugin-version.sh",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/scripts/cadence-notice.sh",
+            "timeout": 10
           }
         ]
       }

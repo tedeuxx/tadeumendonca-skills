@@ -154,6 +154,20 @@ jobs:
       - name: Run the session-plugin-version suite
         run: bash hooks/scripts/session-plugin-version.test.sh
 
+      # Same rule a SIXTH time (#406 slice C), and this one lands in the same commit as the hook it
+      # covers, which is what the five comments above all say to do. `cadence-notice.sh` gates nothing
+      # — it is a SessionStart notice — so a regression in it degrades no control; what it would do is
+      # go silent, and a notice that stops speaking is indistinguishable from a loop with nothing to
+      # report. That is exactly the failure this repo names as "a green that proves nothing", pointed
+      # at silence instead of at a verdict, which is why the suite is a gate rather than a habit.
+      #
+      # The suite needs no network and no token: it builds a real temporary git repository (the hook's
+      # clock is `git log`, so a stubbed git would be asserting the stub) and puts a RECORDER on PATH
+      # in place of `gh`, so "this hook makes no tracker call" is read off a file that can be
+      # non-empty rather than off a binary that was removed.
+      - name: Run the cadence-notice suite
+        run: bash hooks/scripts/cadence-notice.test.sh
+
       # The `dispatch-premise-guard` step was removed 2026-09-04 (#383) with the hook and its suite.
       # Its comment argued that adding a hook and its CI step in different slices is how a gate ends up
       # installed-looking and inert; the converse is recorded here — removing a hook and leaving its
