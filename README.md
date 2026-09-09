@@ -110,9 +110,17 @@ four floor principles cannot, because a tier that never bends has nothing to sta
 1. **Plan-first** — design and align before coding.
 2. **Ask on the boundaries** — architecture, contracts, anything irreversible. In-pattern implementation
    is decided autonomously, and no architectural call is made alone.
-3. **Thin vertical slices, bounded by file overlap** — a second slice may start if it touches no file an
-   open one touches. Overlap rather than a count, because counting blocks disjoint work while doing
-   nothing about the real risk.
+3. **Thin vertical slices, bounded by a work-in-progress bound** — one in-flight branch and one open PR
+   at a time. ~~bounded by file overlap — a second slice may start if it touches no file an open one
+   touches. Overlap rather than a count, because counting blocks disjoint work while doing nothing
+   about the real risk.~~ **Struck #410, and it had been live and false for 27 days.** The
+   disjoint-files exception was tested that day — two disjoint-file issues built in separate worktrees
+   at once — and the owner struck it on sight: *"nao temos intencionalidade de trabalhar assim por
+   enquanto"*. The skill it summarises has carried the strike ever since
+   (`skills/agents-configuration/SKILL.md`, *WIP=1 — the struck exception, and why*); this summary went
+   on stating the reversed rule as current for 27 days. **Struck rather than deleted because a reader
+   who took the exception from here acted on it — that is exactly how it was found.** What the bound
+   is, what it protects, and the measurement showing nothing enforces it are all in that skill.
 4. **Surgical changes, tracked debt** — work around adjacent mess and file it.
 5. **Simple but extensible** — an abstraction must pay for itself.
 6. **No dogma** — honour a platform's conventions as its context.
