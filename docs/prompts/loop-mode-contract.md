@@ -171,6 +171,28 @@ afterwards.
 - **A reminder nobody acts on is a nag.** Whatever you build needs a debounce, or it trains people to
   scroll past the one surface you wanted them to read.
 
+**Four more, added after the carrier was actually built rather than only specified.** Everything above
+survived the build unchanged; these are what the build itself taught, and each one is a decision you
+will otherwise take by accident:
+
+- **Read the clock off the RITE'S OWN ARTIFACT HISTORY, never off a stamp the notice writes.** Nothing
+  in a harness can observe a ceremony *running* — so a stamp the notice sets itself never advances, and
+  the notice fires forever. The version-control date of the path a rite writes into advances **exactly
+  when the rite lands something**, survives a fresh checkout, and needs no new state anywhere.
+- **An ARTIFACT IS NOT A RITE, and that bound rides with every number the notice prints.** A ceremony
+  that ran and wrote nothing is invisible to it; a change touching that path for an unrelated reason
+  resets its clock. It answers *when did an artifact of this rite last land* and never *did the rite
+  run, and run well*. Say so in the notice, not only in the design.
+- **The interval is the human's, and an undeclared one must REFUSE TO CONCLUDE rather than default.**
+  A default is inference by another route, and a carrier that quietly picked a number reports a verdict
+  nobody took. Keep a **declared opt-out** distinct from an **absent value**: absent means nobody has
+  decided and should be *loud*; the opt-out means somebody did and should be *silent*. Collapsing them
+  gives you a registered mechanism that says nothing and reads exactly like one that found nothing.
+- **Scope the notice to a DECLARED record, not to a directory it happens to find.** If your carrier
+  ships inside something installed elsewhere, it starts in every consuming repository — and *"no rite
+  has ever landed here"* is a false alarm by construction in a repository that never ran one. Make the
+  record's existence the scope signal, so a project opts in by declaring rather than by inheriting.
+
 ---
 
 ## 5 · Work-in-progress is a PARAMETER of the mode, not a constant of the loop
@@ -368,10 +390,11 @@ any layer, and a reader deserves to know which is which.
 | the mode is read before the queue query | nothing; no layer sees a query's intent | **an instruction** |
 | two roots agree on the mode | a per-session check — but it sees one root and must guess the other | **nothing**; a split mode is undetectable at session open |
 | the priority partition is honoured | nothing at any layer — ordering is not a property of a command string or a file tree | **the ordered artifact, and awkwardness** |
-| the ceremonies run | a cadence notice (§4), if you build one | **nothing today** |
+| the ceremonies run | **nothing.** A notice cannot dispatch, so building one does not move this row — it moves the row below it | **nothing.** In the loop this came from the notice now exists and the ceremonies still have no trigger: what changed is that the elapsed time is *said out loud*, not that anything runs |
 | the WIP parameter is honoured | a concurrency check | **nothing, if you deleted the one you had** |
 | which readiness bar applied to an item | nothing — the label carries no evidence | **nothing — which is the reason to close the axis (§7b) rather than to watch it** |
-| a cadence trigger keys on the clock, not on emptiness (§4) | nothing at any layer | **a rule written before its object, which is the cheapest moment to write one** |
+| how long since a ceremony last landed an artifact is KNOWN | a session-start notice reading the artifact history (§4) | **built in the loop this came from.** It is the one row on this table that moved from *nobody knows* to *stated*, and it is still a report rather than a bound |
+| a cadence trigger keys on the clock, not on emptiness (§4) | nothing at any layer — no layer reads a component's intent | **for the carrier that exists: construction plus a test** — it makes no queue call at all, asserted with a recorder standing in for the tracker client rather than by removing it, so the zero is a real zero. **For any future one: nothing.** The rule was written before its object, which is the cheapest moment; it does not become enforceable by being obeyed once |
 
 **Then apply the test once, out loud:** *if this rule were broken right now, would something stop me —
 or only my memory?* **If the answer is memory, the mode contract is an instruction, and it should be

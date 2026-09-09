@@ -1164,11 +1164,19 @@ from the product's own generator and assets are read off the page, but viewports
 emulated phone is not a phone. Two objects existing is not two rites running.
 
 **And nothing FIRES either of them.** `/autonomy on` names both at its terminal condition; that is an
-instruction in a command file and it is the whole of the mechanism. No hook can be built for either, and
-the reason is one this file already establishes for a different rule: **nothing in `hooks/scripts/` reads
-the queue** — every `gh issue` call there is a write path — so no layer here can observe a snapshot going
+instruction in a command file and it is the whole of the mechanism. ~~No hook can be built for either,
+and the reason is one this file already establishes for a different rule:~~ **struck 2026-09-09 (#406
+slice C) — the sentence was true about FIRING and read as true about NOTICING, and one of those is now
+built.** The reason it gave still holds for firing: **nothing in `hooks/scripts/` reads
+the queue** — so no layer here can observe a snapshot going
 empty, and a hook receives one `cwd` while the iteration is two milestone objects in two repositories.
+**What `hooks/scripts/cadence-notice.sh` does is sidestep that reason rather than defeat it: it reads a
+CLOCK — the version-control date of each rite's own artifact root — and makes no tracker call at all**,
+so the queue's invisibility and the one-`cwd` bound never arise. It says a rite is owed; it cannot run
+one, because a hook cannot dispatch. **The distinction is the whole content of this correction:
+NOTICING moved from impossible-looking to built; FIRING did not move.**
 By this loop's own test — *would something stop me, or only my memory?* — **neither rite is engineered.**
+A notice does not change that: it is a report, and a report is not a bound.
 **And the one profile whose mandate is *"did the rite run"* — `scrum-master` (#375) — cannot fire it
 either.** It holds no tools, so it can only *say* a rite is owed, in a selection record nothing reads.
 That is a smaller claim than "the gap is closed" and it is the honest one: the rite went from

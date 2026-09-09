@@ -156,9 +156,27 @@ sentence matter.
 ```
 jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
   | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort -u \
-  | xargs grep -nE 'loop-mode|docs/loop-mode'
+  | xargs grep -nE 'loop-mode|docs/loop-mode' \
+  | grep -vE ':[0-9]+:[[:space:]]*#'
 # -> no output
 ```
+
+**The trailing comment filter was ADDED 2026-09-09 (#406 slice C), and the reason is a finding rather
+than tidiness.** As first published this command carried no filter, while the two commands in
+`CLAUDE.md` backing the same untouchable list both did. That asymmetry was invisible while no hook
+mentioned this file — and the cadence carrier's header cites the constraint this record states, in two
+**comment** lines, which turned a true claim red:
+
+```
+hooks/scripts/cadence-notice.sh:24:# … CLAUDE.md's `loop-mode-contract` block states it:
+hooks/scripts/cadence-notice.sh:109:# … exactly as `invocable:`, `purpose:` and `loop-mode:` already
+```
+
+**Nothing about the property changed; the falsifier was weaker than its two siblings.** The filter
+costs nothing real — a hook that actually resolved this path would do so in a code line, and a code
+line is exactly what survives the filter. **What the filter does not close, said here rather than
+discovered later:** a hook reading this record through an interpolated path (`docs/loop-$x.md`) is
+invisible to this command with or without the filter. This is a grep, not a proof.
 
 **Calibrated, because a selector that cannot go non-zero is not a check** — the same command against a
 path the registered hooks genuinely do resolve returns lines:
@@ -229,7 +247,11 @@ their only trigger is a drain reaching exhaustion of its entry snapshot, which i
 than a mechanism, and no layer here observes a snapshot going empty. So *"`kanban` does not run the
 rites"* costs nothing that was being collected, which is the honest comparison — **clock versus nothing,
 never clock versus boundary** — and it is why the cadence carrier the owner authorised (`#406` slice C)
-is worth building rather than merely worth naming.
+was worth building rather than merely worth naming. **It is built** — `hooks/scripts/cadence-notice.sh`,
+against `docs/loop-cadence.md` — and it changes nothing in this file: it reads no mode, so both values
+above select the same cadence behaviour. **What it does not do is fire a rite.** A hook cannot dispatch,
+so *"the three rites have never fired in either mode"* is unchanged by it; what changed is that the
+elapsed time is now **said out loud** instead of known by nobody.
 
 **What it does change is measured above and is not small:** under `scrum` the pool is empty in both
 repositories at head, and under `kanban` it is four items. **A mode nobody had recorded was already
