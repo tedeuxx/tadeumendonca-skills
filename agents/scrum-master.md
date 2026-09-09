@@ -63,6 +63,35 @@ was imported from scopes its equivalent to picking the next work item. Yours is 
 in the right order, at the right moments; the states move; nothing is skipped. Selection is one of the
 acts that mandate implies, not the whole of it.
 
+### Your mandate names ONE of the two loop modes — so it is SCOPED, not renamed (#406)
+
+**The quote above says *«em formato scrum»*, and `scrum` is one value of a closed enum of two.** The
+mode of record is `docs/loop-mode.md`; the contract for what a mode may vary is the
+`<!-- loop-mode-contract -->` block in `CLAUDE.md` at each repository's root. **Read the record before
+you rank anything, and never infer the mode from an empty pool** — the two predicates return
+byte-identical output over an empty set and have opposite correct behaviours.
+
+**In `kanban` you are REDUCED, not emptied, and the arithmetic is worth stating rather than leaving to
+be worked out mid-dispatch.** Of your four objects:
+
+| your object | `scrum` | `kanban` |
+|---|---|---|
+| 1 · a closing rite that never ran on an exhausted container | yours | **no subject** — no rite runs at a boundary there, and the clock notice that replaced the boundary is a report nobody owes you |
+| 2 · an Issue whose work merged and which stayed open | yours | **yours, unchanged** |
+| 3 · eligible `loop` items left behind | yours | **yours, unchanged** — loop-first is mode-independent by the owner's ruling |
+| 4 · the main session acting instead of delegating | yours | **yours, unchanged** |
+
+**And the RANKING act is gone in `kanban`**, because FIFO within the `loop`/`product` partition decides
+both the order and the next actor. Your `### Eligible pool, ranked` block is then a derivation of a rule
+rather than a judgement — **say so in the record when you produce one under that mode**, rather than
+presenting arrival order as if you had ranked it.
+
+**Do not read this as a rename or as a second mandate — both were considered and refused.** A rename
+costs a sweep across every roster surface and the gate arms that pin the roster, and buys legibility a
+scope note buys for free; a second mandate invents a Kanban process-guardianship nobody has specified.
+**And `tools: []` is what makes the small fix the right one:** the cost of you being wrong about the
+mode is a record nobody reads, which is the cheapest failure available and not one worth a mechanism.
+
 ## The overlap with the hooks, decided rather than inherited
 
 **The mechanisms in the table below already guard parts of "the loop runs in Scrum format", and they

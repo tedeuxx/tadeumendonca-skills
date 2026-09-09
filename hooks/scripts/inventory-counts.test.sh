@@ -8574,5 +8574,123 @@ else
   fi
 fi
 
+# ═════════════════════════════════════════════════════════════════════════════════════════════════
+# THE LOOP MODE REACHES THE SURFACES A DISPATCHED PERSONA ACTUALLY LOADS (#406)
+#
+# WHY IT EXISTS. Slices A-C put the mode contract in `CLAUDE.md`, the record in `docs/loop-mode.md`
+# and one reader in `commands/autonomy.md`. Measured at the head those slices produced, the universal
+# preload every profile carries mentioned neither `kanban` nor the record even once, and so did the
+# brief whose mandate names one of the two modes verbatim. `CLAUDE.md` does not reach a dispatchee —
+# that measurement is the contract block's own, and it cuts both ways: the orchestrator reads the root
+# brief and a persona does not. So the mode was configured in a surface no persona reads and asserted
+# nowhere in the surface every persona reads on every dispatch.
+#
+# WHAT IT ASSERTS, AND IT IS THREE STRING PROPERTIES AND NOTHING MORE. That the preload carries a
+# mode section; that it POINTS at the two carriers rather than restating the untouchable list (#329's
+# rule, applied to a new subject); that the two sections whose claims are false under the lighter mode
+# carry their scoping sentence; and that the mode-named brief carries its scope note rather than a
+# rename.
+#
+# WHAT IT CANNOT ASSERT, said here so a green is not spent as more than it is. It cannot tell whether
+# any persona READ the section, whether the mode in the record is the mode anyone is working in, or
+# whether the pointer's target still says what the pointer claims. Nothing can: no artifact records a
+# dispatch, and no registered hook reads the mode — which is a property the contract's untouchable
+# list is measured against and this arm deliberately does not change, because it greps FILES rather
+# than resolving the record.
+MODE_PRELOAD="$ROOT/skills/agents-configuration/SKILL.md"
+MODE_SM="$ROOT/agents/scrum-master.md"
+MODE_RECORD="$ROOT/docs/loop-mode.md"
+
+mode_problems=""
+if [ ! -r "$MODE_PRELOAD" ] || [ ! -r "$MODE_SM" ]; then
+  bad "loop mode reach — skills/agents-configuration/SKILL.md or agents/scrum-master.md is not
+      readable, so NOTHING below ran: neither the preload's mode section, its two scoping sentences,
+      nor the mode-named brief's scope note was checked."
+else
+  # ── 1 · the preload carries the section, the pointer, and the read-before-query rule ────────────
+  #
+  # THE NO-COPY NEEDLE IS THE WHOLE SENTENCE, AND THAT IS A MEASUREMENT RATHER THAN A PREFERENCE.
+  # It was first written as the prefix '**Do not copy the', which is satisfied by a SUPERSET: this
+  # same file's review-chain pointer already carries '**Do not copy the table here.**' for an
+  # unrelated rule, so deleting the mode section's own sentence left the arm GREEN — an assertion
+  # that cannot fail for the thing it was written about. The second attempt pinned only the object
+  # ('untouchable list here.**') and survived a mutation that removed the INSTRUCTION while leaving
+  # the noun. Both were found by mutating the SOURCE; neither was findable by reading the pattern.
+  # The subject was reflowed onto one line so the full sentence can be pinned, because grep -qF does
+  # not match across a newline and a needle that stops at the line break is how both misses happened.
+  for mode_needle in \
+    '## Pick the loop MODE too — and READ it, never infer it (#406)' \
+    '**Do not copy the untouchable list here.**' \
+    'read the mode from the record BEFORE any pool query, and' \
+    '**And nothing MECHANICAL reads the record.**'
+  do
+    grep -qF -- "$mode_needle" "$MODE_PRELOAD" || mode_problems="$mode_problems
+    missing from skills/agents-configuration/SKILL.md: \"$mode_needle\""
+  done
+
+  # ── 2 · the two sections that are FALSE under the lighter mode say so at their own heading ──────
+  #
+  # SCOPED AT THE HEADING, NOT IN A LIST SOMEWHERE. A reader arrives at these sections by scrolling
+  # to the rule they need, not by reading the file top to bottom, so a scoping note held anywhere but
+  # the section itself is a note the reader who needs it does not meet.
+  for mode_scope_needle in \
+    '**SCOPED TO `scrum` — read this whole section against the mode in force (#406).**' \
+    '**SCOPED TO `scrum` (#406), and the difference is not cosmetic.**'
+  do
+    grep -qF -- "$mode_scope_needle" "$MODE_PRELOAD" || mode_problems="$mode_problems
+    missing from skills/agents-configuration/SKILL.md: \"$mode_scope_needle\""
+  done
+
+  # ── 3 · the pointer names both carriers by path, so it cannot rot into a mode nobody can find ───
+  grep -qF -- 'docs/loop-mode.md' "$MODE_PRELOAD" || mode_problems="$mode_problems
+    the preload's mode section names no path to the record; a pointer with no destination is prose."
+  grep -qF -- 'loop-mode-contract' "$MODE_PRELOAD" || mode_problems="$mode_problems
+    the preload's mode section does not name the contract block; the two carriers are the whole of
+    what it is for."
+
+  # ── 4 · the record it points at exists and declares a value from the closed enum ────────────────
+  #
+  # THE ONE ARM HERE THAT READS A SECOND FILE. It is a resolution check on the pointer, not a mode
+  # read: it asserts the destination exists and parses, never which value is in force.
+  if [ ! -r "$MODE_RECORD" ]; then
+    mode_problems="$mode_problems
+    the preload points at docs/loop-mode.md and that file does not exist."
+  else
+    mode_value="$(grep -E '^loop-mode: ' "$MODE_RECORD" | head -1 | sed 's/^loop-mode: //')"
+    case "$mode_value" in
+      scrum|kanban) : ;;
+      *) mode_problems="$mode_problems
+    docs/loop-mode.md declares loop-mode '$mode_value', which is outside the closed enum the preload's
+    table documents. An unrecognised value has no predicate, and guessing one drains a queue nobody
+    scoped." ;;
+    esac
+  fi
+
+  # ── 5 · the mode-named brief is SCOPED rather than renamed ──────────────────────────────────────
+  #
+  # THE RENAME IS THE TEMPTING REPAIR AND IT IS THE WRONG ONE. It costs a sweep across every roster
+  # surface and the arms that pin the roster, and buys legibility a scope note buys for free. This
+  # arm pins the note; the `name: scrum-master` frontmatter is pinned by the roster arms already, so
+  # a rename reddens there rather than here.
+  for mode_sm_needle in \
+    '### Your mandate names ONE of the two loop modes — so it is SCOPED, not renamed (#406)' \
+    'never infer the mode from an empty pool' \
+    '**In `kanban` you are REDUCED, not emptied' \
+    'loop-first is mode-independent by the owner'
+  do
+    grep -qF -- "$mode_sm_needle" "$MODE_SM" || mode_problems="$mode_problems
+    missing from agents/scrum-master.md: \"$mode_sm_needle\""
+  done
+fi
+
+if [ -n "$mode_problems" ]; then
+  bad "loop mode reach — the mode is configured in surfaces a dispatched persona does not read:$mode_problems
+      The contract lives in CLAUDE.md because the ORCHESTRATOR selects the mode and a skill body does
+      not reach it. The mirror of that measurement is this arm's whole subject: a persona reads the
+      preload and not CLAUDE.md, so a mode asserted only there is a mode no dispatchee knows about."
+else
+  ok "loop mode reach — the universal preload carries the mode section, points at both carriers by path, scopes the two sections that are false under the lighter mode, and the mode-named brief is scoped rather than renamed (string agreement plus one pointer resolution; nothing here observes a dispatch or reads the mode in force)"
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

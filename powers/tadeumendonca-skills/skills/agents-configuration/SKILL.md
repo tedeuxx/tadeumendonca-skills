@@ -184,6 +184,49 @@ promoted. Full branching diagrams, per-environment topology, and the CI wiring l
 look for an integration branch (`develop`) on the remote and more than one environment in CI. **If
 both signals are absent, it is `trunk-single-env`.**
 
+## Pick the loop MODE too — and READ it, never infer it (#406)
+
+**The loop MODEL above is how a change is PROMOTED. The loop MODE is how work FLOWS**, and the two are
+independent: either model runs under either mode. A mode names a widely-known agile method and fixes
+exactly two things — **what the container MEANS, and which ceremonies run at its edges.**
+
+**Two artifacts carry it and neither is this file.** The **contract** — what a mode may vary and what it
+may never touch — is the `<!-- loop-mode-contract -->` block in `CLAUDE.md` at each repository's root.
+The **record** — which value is in force — is `docs/loop-mode.md`, which carries the value, the closed
+enum, the back-dated start and both pool predicates in full. **This section is a POINTER plus the
+minimum a dispatched persona needs, and it is deliberately not a copy of either.** The contract's
+carrier is a root brief rather than this skill because the actor that *selects* a mode is the
+**orchestrator**, which a skill body does not reach (#409, re-measured on #393) — while every persona
+that loads *this* file is a dispatchee, and a dispatchee does not select its own mode.
+**Do not copy the untouchable list here.** One rule in two wordings with no canonical home is #329
+with a new subject.
+
+| | `scrum` | `kanban` |
+|---|---|---|
+| the container | a **commitment** — a limb of the pool predicate, and its exhaustion is the terminal condition | a **label** — it names a period, bounds nothing, and the pool predicate does not consult it |
+| the three rites at a boundary | run | **do not run** |
+| ordering | ranked at the planning rite | **FIFO within the `loop`/`product` partition** |
+
+**What does NOT vary, stated here so no persona has to go and look:** the permission floor, the merge
+gate and both its lenses, head-scoped verdicts, only-the-owner-opens-work, the `product`/`content`/`loop`
+routing labels, the readiness bar — **`sp:N` stays in both modes** (owner ruling 2026-09-09) — and the
+container's **EXISTENCE**. Only its MEANING varies, so the iteration axis below is *commitment versus
+label*, never *present versus absent*.
+
+**The one rule to carry into every dispatch: read the mode from the record BEFORE any pool query, and
+never infer it from what a query returns.** The two predicates are not distinguishable by their output —
+the active-iteration derivation prints **nothing and exits 0** over an empty set, so *"`kanban`,
+correctly no container"* and *"`scrum`, milestones dropped by mistake"* are byte-identical results with
+opposite correct behaviours. That is rule 1's own named failure below, arriving by default rather than
+by a typo, and it is the only place in this design where a wrong guess is silent.
+
+**And nothing MECHANICAL reads the record.** `commands/autonomy.md` reads it, which is a rule a session
+executes rather than a mechanism; no registered hook does, deliberately — the contract's untouchable
+list is backed by a measurement that no registered hook reads any object a mode varies, and teaching one
+the mode is what would end it. By this loop's own test — *would something stop me, or only my memory?* —
+**the mode is not engineered.** Every section below that reads as Scrum-only is scoped by this one and
+by nothing that fires.
+
 ## Intake — where work is born, and the chain it must walk
 
 **Nothing is worked that is not recorded in the issue tracker.** No exceptions, no size threshold.
@@ -435,6 +478,17 @@ already use. A gate arm asserts this section exists and carries its clauses; **i
 disclaimer is WRITTEN, never that it is true.**
 
 ## The iteration is the unit of work
+
+**SCOPED TO `scrum` — read this whole section against the mode in force (#406).** Everything below is
+the container as a **commitment**: the pool predicate's third limb, the terminal condition, the handoff
+to the closing rites. In `kanban` the same milestone is a period **label** — the pool predicate does not
+consult it, nothing depends on its emptiness, and the pool is `(product OR loop) AND ready` ordered FIFO
+within the type partition. **Rule 1 and rule 2 below are not RELAXED there, they have NO SUBJECT
+there:** *enumerate-then-select* and *never type a milestone name into a query* bind wherever a
+milestone is queried at all, and `kanban` queries none. **What crosses into both modes unchanged is the
+container's existence, the readiness bar including `sp:N`, and loop-first** — the section is scoped, not
+the rules it happens to sit above.
+
 
 **The pool a drain works is an ITERATION, not the whole `ready` queue.** Owner decision, 2026-08-24
 (#326). What the axis buys is stated narrowly on purpose: **a bounded pool and a reachable terminal
@@ -1137,6 +1191,15 @@ iteration's contents rather than by the backlog. Until it runs, every points-bas
 wrong, empty, and a chart drawn over it would be inventing its own subject.
 
 ### What exhaustion means now
+
+**SCOPED TO `scrum` (#406), and the difference is not cosmetic.** In `kanban` exhausting the entry
+snapshot ends the drain and **fires no rite** — an empty container means nothing there, and a ceremony
+fired on it would be firing on noise. What exists in both modes instead is a **clock**:
+`hooks/scripts/cadence-notice.sh` reports at session start how long since each rite's own artifact root
+last moved, reads no mode, no container and no queue, and **reports rather than fires**. So *"nothing
+fires either rite"* below is unchanged by it in either mode — a hook cannot dispatch — and the honest
+comparison the carrier was built on is **clock versus nothing**, never clock versus boundary.
+
 
 **Exhausting the drain's ENTRY SNAPSHOT is an internal transition, not the end of the session** — the
 closing ceremonies run, and the stop moves to the planning handoff, which is the owner's. See
