@@ -987,11 +987,30 @@ jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
 ```
 
 **Both zeroes are calibrated, in the direction that matters — a selector that cannot go non-zero is
-not a check.** Swap `milestone|labels` for `headRefOid|comments` in the first — leaving its comment
-filter in place — and it returns **10** lines across **6** files; drop the `deny "` filter from the
-second and it returns the **2** deny strings it was excluding. *(Without the comment filter the first
-calibration returns 11; the figure published here is the one the command as written produces, which is
-the whole point of publishing them together.)*
+not a check.** The two calibrations are written out in full below rather than described as edits to
+the commands above, because *"swap X for Y"* is ambiguous and this parenthetical published a wrong
+number twice while saying so:
+
+```
+# calibration A — the same selector against field names that ARE live code:
+jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
+  | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort -u \
+  | xargs grep -nE -- '--milestone|--label|--json [^|"]*(headRefOid|comments)' \
+  | grep -vE ':[0-9]+:[[:space:]]*#'
+# -> 10 lines, across 6 files
+
+# calibration B — the second command with its `deny "` filter removed:
+jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
+  | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort -u \
+  | xargs grep -nE 'milestone|iteration|sprint' | grep -vE ':[0-9]+:[[:space:]]*#'
+# -> 2 lines, the deny strings the filter was excluding
+```
+
+**Why they are spelled out, and it is a finding rather than tidiness.** *"Swap `milestone|labels` for
+`headRefOid|comments`"* has two readings — replace only the parenthesised group, or replace the whole
+pattern — and they return **different numbers** with the comment filter removed. Both readings return
+**10** with the filter in place, which is why the figure above was right while the sentence describing
+how to reach it was not. **A described mutation of a published command is not a published command.**
 
 **What these commands do NOT say, stated here so the list does not inherit an overclaim that is
 already in circulation.** They do **not** say that no hook reads an Issue. Two registered hooks make
