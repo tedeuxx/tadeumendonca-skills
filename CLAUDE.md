@@ -936,11 +936,20 @@ inferred from one**, and the only thing that reads it is `commands/autonomy.md`,
 session executes rather than a mechanism. **Nothing mechanical reads it, deliberately** — see the
 untouchable-list measurement below, which the moment a hook is taught the mode stops being true.
 
-**What slice B did NOT do**, so the table is not read as more than it is: it built **no cadence
-trigger** (slice C, authorised and not yet built), **no gate arm** asserting the record exists or
-parses, and it decided **no `wip` value** (`#385`). And the two gate arms that pin the Scrum wording did
-not move, because the Scrum wording did not move — the additions are additive and the drift check is
-blind to all of it.
+**What slice B did NOT do**, so the table is not read as more than it is: it built ~~**no cadence
+trigger** (slice C, authorised and not yet built)~~ **no cadence trigger — slice C built it on
+2026-09-09 (`hooks/scripts/cadence-notice.sh`, `docs/loop-cadence.md`), and the strike is here rather
+than a deletion because this sentence is what told a reader the carrier did not exist**, **no gate arm**
+asserting the record exists or parses, and it decided **no `wip` value** (`#385`). And the two gate arms
+that pin the Scrum wording did not move, because the Scrum wording did not move — the additions are
+additive and the drift check is blind to all of it.
+
+**What slice C did NOT do either, said in the same breath so the carrier is not over-read.** It decided
+**no interval** — that was never asked and is not inferred, so its record ships with the value
+undeclared and the carrier refuses to conclude rather than defaulting. It **added no gate arm** and is
+**not a gate**: it reports elapsed time and every exit path is success. And it **does not read this
+contract, the mode record, a container, a label or the queue** — which is what keeps the untouchable
+list's measurement below a measurement.
 
 **And the honest starting state, because it is the argument for writing the contract down rather than
 a hypothetical about the future: the loop is already running with no container and no ceremony, and
@@ -997,7 +1006,7 @@ mode selects a predicate and a ceremony set; it never selects a permission rule.
 surface that can reach the irreversible floor is a hole with a nice name.**
 
 **Today that separation is structural rather than merely intended, and this is the command that says
-so.** Across all **thirteen** hook registrations, every occurrence of the mode vocabulary is a comment
+so.** Across all **fourteen** hook registrations, every occurrence of the mode vocabulary is a comment
 or a deny-message string, and **no registered hook selects a `milestone` or a `labels` field or passes
 a `--milestone`/`--label` flag**:
 
@@ -1018,8 +1027,19 @@ jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
 jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
   | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort -u \
   | xargs grep -hcE 'milestone|iteration|sprint' | paste -sd+ - | bc
-# -> 22        (20 comments + the 2 deny strings the filter above excluded)
+# -> 25        (23 comments + the 2 deny strings the filter above excluded)
 ```
+
+~~`# -> 22        (20 comments + the 2 deny strings the filter above excluded)`~~ — **struck 2026-09-09
+(#406 slice C), and the STRIKE is worth more than the new figure.** The denominator moved because the
+cadence carrier's header names the rite artifact roots in three comment lines. **Nothing about the
+property changed** — both zeroes above are unchanged, re-derived at that slice's head — but a reader who
+saw only the number move would have to work out which. **So the standing warning is this: the second
+command is a VOCABULARY grep, and vocabulary is a PROXY for the property rather than the property.** A
+hook that names a rite in a *code* line would turn it red without reading any object a mode varies, and
+a hook that read the queue through an interpolated path would leave it green. **The first command —
+selecting `--milestone`/`--label`/`--json …` field names — targets the property directly and is the one
+to trust when the two disagree.**
 
 **Both zeroes are calibrated, in the direction that matters — a selector that cannot go non-zero is
 not a check.** The two calibrations are written out in full below rather than described as edits to
@@ -1055,9 +1075,21 @@ live `gh issue` **reads** — `hooks/scripts/closure-artifact-guard.sh` resolves
 a date window is not a queue predicate, so the mode-blindness above survives them intact. **The
 sentence that does not survive is the falsifier published beside it elsewhere:** *"every `gh issue`
 call in `hooks/scripts/` is a write path"* is **false at head**, and it is repeated in
-`skills/agents-configuration/SKILL.md` at four sites. **The conclusion it supports still stands and its
-stated reason does not** — correcting it is its own slice, and the list above is written so that it does
-not depend on it.
+`skills/agents-configuration/SKILL.md` at ~~four~~ **three** sites. **The conclusion it supports still
+stands and its stated reason does not** — correcting it is still its own slice, and the list above is
+written so that it does not depend on it.
+
+**Why the count moved, said rather than silently edited.** #406 slice C was already rewriting one of
+those four sentences for a different reason — the *"no hook can be built for either rite"* clause, which
+the cadence carrier falsified — and dropping a known-false sub-clause out of a sentence being rewritten
+anyway is cheaper than leaving it and cheaper than a round about it. **It did not sweep the other
+three, deliberately**, because a partial sweep presented as a fix is this repository's own named failure
+and the remaining three are the owed slice's subject. Re-derive the set rather than trusting this
+number:
+
+```
+grep -n 'reads the queue\|write path' skills/agents-configuration/SKILL.md
+```
 
 **So the property to preserve is deliberate, not inherited.** Slice B adds a mode-dependent predicate;
 the moment any hook is made to read it, the floor stops being mode-blind and this table stops being a
@@ -1110,7 +1142,7 @@ named residual today and parallelism is what makes it live.
 | loop-first survives in either mode | **the ordered artifact, and awkwardness.** #339 already measured this ungateable at every layer |
 | the rites run at all | **nothing today, in either mode** |
 | `wip` is honoured | **nothing.** `wip-guard.sh` was deleted at #383 and nothing bounds work in progress |
-| a cadence trigger keys on the CLOCK and not on the pool being empty | **nothing — and the carrier is not built yet, so this is a rule written before its object.** That is deliberate: the constraint is cheapest to state while nobody has implemented the wrong thing |
+| a cadence trigger keys on the CLOCK and not on the pool being empty | ~~**nothing — and the carrier is not built yet, so this is a rule written before its object**~~ — **the object exists since 2026-09-09 (#406 slice C), and the row splits.** *For the carrier that exists:* it is held by **construction plus a test** — `hooks/scripts/cadence-notice.sh` makes no tracker call at all, and its suite asserts that with a recorder on `PATH` in place of `gh` rather than by removing `gh`, so the zero is a real zero. *For any FUTURE trigger:* still **nothing**. No layer reads a hook's intent, and a second carrier keyed on emptiness would be caught by review or by nobody |
 
 ~~**Six of seven are instructions and one is a report.**~~ **Struck 2026-09-09 (slice B): the tally is
 stale and a tally beside a table is a second source of truth for one fact, which is the arrangement
@@ -1149,7 +1181,12 @@ answer: a reader stops at it and waits.**
    the boundary trigger it replaces has never fired either. **It is NOT built in this slice and must
    not be** — a contract says what a mode may vary; a trigger is a mechanism, and keeping the two apart
    is the whole point of writing the contract first. **What the ruling did not decide: the interval**,
-   which was not asked and is not inferred here.
+   which was not asked and is not inferred here. **BUILT 2026-09-09 in its own slice, as the sentence
+   above required** — `hooks/scripts/cadence-notice.sh` plus `docs/loop-cadence.md`. The *"not in this
+   slice"* clause is left standing rather than struck: it was, and remains, true of the slice it was
+   written in, and it is the reason the carrier is a separate merge request rather than a paragraph of
+   this one. **The interval is still not decided** — the carrier ships with it undeclared and reports
+   that fact once a day instead of choosing a number.
 2. **`sp:N` stays in BOTH modes** — *«Mantém o `sp:N` nos dois modos»*. Recorded in the untouchable
    list above with its cost, and it removes an axis rather than adding one.
 3. **The iteration NUMBER is used in both modes** — *«nao tem problema numero da iteracao ser utilizado
