@@ -8608,9 +8608,19 @@ if [ ! -r "$MODE_PRELOAD" ] || [ ! -r "$MODE_SM" ]; then
       nor the mode-named brief's scope note was checked."
 else
   # ── 1 · the preload carries the section, the pointer, and the read-before-query rule ────────────
+  #
+  # THE NO-COPY NEEDLE IS THE WHOLE SENTENCE, AND THAT IS A MEASUREMENT RATHER THAN A PREFERENCE.
+  # It was first written as the prefix '**Do not copy the', which is satisfied by a SUPERSET: this
+  # same file's review-chain pointer already carries '**Do not copy the table here.**' for an
+  # unrelated rule, so deleting the mode section's own sentence left the arm GREEN — an assertion
+  # that cannot fail for the thing it was written about. The second attempt pinned only the object
+  # ('untouchable list here.**') and survived a mutation that removed the INSTRUCTION while leaving
+  # the noun. Both were found by mutating the SOURCE; neither was findable by reading the pattern.
+  # The subject was reflowed onto one line so the full sentence can be pinned, because grep -qF does
+  # not match across a newline and a needle that stops at the line break is how both misses happened.
   for mode_needle in \
     '## Pick the loop MODE too — and READ it, never infer it (#406)' \
-    '**Do not copy the' \
+    '**Do not copy the untouchable list here.**' \
     'read the mode from the record BEFORE any pool query, and' \
     '**And nothing MECHANICAL reads the record.**'
   do

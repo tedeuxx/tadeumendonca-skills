@@ -197,8 +197,9 @@ enum, the back-dated start and both pool predicates in full. **This section is a
 minimum a dispatched persona needs, and it is deliberately not a copy of either.** The contract's
 carrier is a root brief rather than this skill because the actor that *selects* a mode is the
 **orchestrator**, which a skill body does not reach (#409, re-measured on #393) — while every persona
-that loads *this* file is a dispatchee, and a dispatchee does not select its own mode. **Do not copy the
-untouchable list here.** One rule in two wordings with no canonical home is #329 with a new subject.
+that loads *this* file is a dispatchee, and a dispatchee does not select its own mode.
+**Do not copy the untouchable list here.** One rule in two wordings with no canonical home is #329
+with a new subject.
 
 | | `scrum` | `kanban` |
 |---|---|---|
