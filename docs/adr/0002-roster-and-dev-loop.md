@@ -2581,7 +2581,11 @@ which configuration version, when generated"* header is a different object and i
   no longer terminal, so the loop would run the closing ceremonies over an iteration that never existed.
   The rule that answers it — enumerate the milestones from the items, never type a name — is prose, and
   nothing enforces it.
-- **Nothing observes an iteration.** Every `gh issue` call in `hooks/scripts/` is a write path. The gate
+- **Nothing observes an iteration.** ~~Every `gh issue` call in `hooks/scripts/` is a write path.~~
+  **Struck 2026-09-09 (#406): false at head** — `closure-artifact-guard.sh` resolves an Issue body by
+  number and lists **closed** Issues in a rolling date window. **The residual is unchanged and its
+  reason is now stated as the property rather than as a proxy:** no registered hook selects a `--label`
+  or a `--milestone`, so nothing can derive an iteration's eligible set. The gate
   added in this slice asserts that the rules are **written** in the canonical surface and in the executed
   command; it cannot assert that a session obeyed them. Same residual, same wording, as the nineteenth
   amendment's.
@@ -2944,8 +2948,10 @@ existing preflight meeting the new filing rule.
   like from the closing end. No mitigation is proposed.
 - **Nothing observes the snapshot.** No artifact records it, so a drain that terminated against its
   snapshot, one that terminated against the live pool, and one that quietly dropped an item are
-  indistinguishable from the tracker and from the diff. Same residual, same wording, as the twentieth
-  amendment's — every `gh issue` call in `hooks/scripts/` is a write path.
+  indistinguishable from the tracker and from the diff. Same residual as the twentieth amendment's —
+  and, since 2026-09-09 (#406), same **corrected** wording: ~~every `gh issue` call in `hooks/scripts/`
+  is a write path~~ is false at head, and the property the residual actually rests on is that **no
+  registered hook selects a `--label` or a `--milestone`**.
 - **A `loop` Issue filed with the wrong milestone, or with none while one existed, is equally invisible.**
   The `--milestone` failure is loud; *selecting* the wrong iteration is silent, which is why the carrier
   enumerates from the items instead of naming.
@@ -4487,7 +4493,9 @@ route is a `product-lead` dispatch on the diff, relayed verbatim under a `copy-v
 ### What nothing enforces, said before any green is read
 
 **Nothing fires this rite, nothing observes that it ran, and nothing observes that it ran correctly.**
-No hook in `hooks/scripts/` reads the queue — every `gh issue` call there is a write path — and a hook
+No registered hook reads the queue — ~~every `gh issue` call there is a write path~~, **struck 2026-09-09
+(#406) as false at head** (two are reads: an Issue body by number, and **closed** Issues in a rolling
+window), the surviving reason being that **none selects a `--label` or a `--milestone`** — and a hook
 receives one `cwd` while an iteration is two milestone objects in two repositories paired by a
 hand-typed title. A planning skipped, a planning over a mistyped title, and a planning that presented
 three items instead of thirty are indistinguishable from the tracker.
@@ -4632,7 +4640,13 @@ engineering to know what a failed request was serving.
 ### What nothing enforces, said before any green is read
 
 - **Nothing fires the rite.** `/autonomy on` names it at its terminal condition; that is an instruction
-  in a command file. No hook can be built for it: nothing in `hooks/scripts/` reads the queue, and a
+  in a command file. ~~No hook can be built for it: nothing in `hooks/scripts/` reads the queue~~ —
+  **struck 2026-09-09 (#406): `hooks/scripts/cadence-notice.sh` is a hook built for exactly this rite.**
+  It was found by the same sweep that corrected the write-path clause and is corrected here rather than
+  left, because it is the same false absolute one line away from a sentence being rewritten anyway.
+  **NOTICING is built — FIRING is not, and the split is the correction:** the carrier reads a CLOCK (the
+  version-control date of the rite's artifact root) and makes no tracker call, so it sidesteps the two
+  bounds rather than defeating them — no registered hook selects a `--label` or a `--milestone`, and a
   hook receives one `cwd` while an iteration is two milestone objects in two repositories. **Three
   rites now exist and zero of them have a trigger** — the plural in *"the closing ceremonies"* is
   satisfied in COUNT and in nothing else, which the preload now says in those words.

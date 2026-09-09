@@ -301,8 +301,13 @@ routing label at all**, which makes it invisible to every type-selecting query t
 above included. **`--limit 100` is part of the claim, not tidiness:** the default page is 30 against 32
 open issues, so the same command without it silently drops the tail — which is where stale items live.
 
-**Why the line belongs here and nowhere else.** Nothing in the loop reads the open queue: every
-`gh issue` call in `hooks/scripts/` is a write path. `/agents-configuration`'s *"Closing an issue is a
+**Why the line belongs here and nowhere else.** Nothing in the loop reads the **open** queue — and the
+reason is not that every `gh issue` call in `hooks/scripts/` is a write path, which is **false at head**:
+`closure-artifact-guard.sh` makes two live reads. Neither touches this pass's subject. One resolves a
+single Issue **by number**; the other enumerates **closed** Issues in a rolling date window, which is the
+opposite end of the queue from a stale *open* item. No registered hook selects a `--label` or a
+`--milestone` at all, so nothing can derive the eligible set this line is about.
+`/agents-configuration`'s *"Closing an issue is a
 step, with a criterion"* already specifies the pruning pass and gives it **no trigger** — a mandate with
 no trigger, which is the shape this repo names as a document rather than a mechanism. Naming staleness at
 session open is the trigger, and it is the cheapest one: the session is already reading the queue to pick
@@ -647,8 +652,12 @@ denominator** rather than as an event.
 
 **What nothing observes, said plainly.** No artifact records the snapshot. A drain that terminated against
 its snapshot, one that terminated against the live pool, and one that quietly dropped an item are
-**indistinguishable** from the tracker and from the diff — every `gh issue` call in `hooks/scripts/` is a
-write path, so nothing in this harness reads the queue at all. **And no detector is proposed**, unlike
+**indistinguishable** from the tracker and from the diff, because no registered hook reads the queue.
+~~every `gh issue` call in `hooks/scripts/` is a write path~~ — **struck, false at head:**
+`closure-artifact-guard.sh` reads an Issue body by number and lists **closed** Issues in a rolling date
+window. Neither reads the *eligible* set — no registered hook selects a `--label` or a `--milestone` —
+so the snapshot stays unobservable for the reason that survives rather than the one that was published.
+**And no detector is proposed**, unlike
 #337's closing rule, because the only mechanically checkable signal here — *the drain reported exhaustion
 while the iteration still holds open `ready` items* — is **true of every correct snapshot termination that
 saw an arrival**. A detector with zero precision by construction is worse than none: it trains the reader

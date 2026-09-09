@@ -260,9 +260,16 @@ the one door its driver holds. **This is an instruction and nothing enforces it.
 ## What nothing enforces, said before any green is read
 
 - **Nothing fires this.** `/autonomy on` names it at its terminal condition; that is an instruction in a
-  command file. No hook can be built for it: nothing in `hooks/scripts/` reads the queue — every
-  `gh issue` call there is a write path — so no layer here can observe a snapshot going empty, and a
-  hook receives one `cwd` while an iteration is two milestone objects in two repositories.
+  command file. ~~No hook can be built for it: nothing in `hooks/scripts/` reads the queue — every
+  `gh issue` call there is a write path~~ — **struck 2026-09-09, and BOTH halves were wrong, in
+  different ways.** *The reason:* two `gh issue` calls in `closure-artifact-guard.sh` are live READS —
+  an Issue body by number, and **closed** Issues in a rolling date window. *The conclusion:*
+  `hooks/scripts/cadence-notice.sh` **is** a hook built for this rite. **Keep the two words apart, which
+  is the whole of the correction:** NOTICING is built — the carrier reads the version-control date of
+  this rite's own artifact root and says a rite is overdue. **FIRING is not, and did not move** — no
+  layer can observe a snapshot going empty, because no registered hook selects a `--label` or a
+  `--milestone`, and a hook receives one `cwd` while an iteration is two milestone objects in two
+  repositories. A notice is a report; a report is not a trigger and cannot dispatch.
 - **Nothing observes that it ran, or that it ran over the right iteration.** A skipped sweep, a sweep
   run over the wrong iteration and a sweep that visited four routes of eighteen are indistinguishable
   from the tracker.

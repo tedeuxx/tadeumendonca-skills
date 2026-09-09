@@ -5766,8 +5766,11 @@ fi
 # condition. Delete or reword any of it and this reddens.
 #
 # WHAT NO ARM CAN OWN, and the amendment says so in the same words: that a SESSION obeyed any of it.
-# Every `gh issue` call in hooks/scripts/ is a write path — nothing in this harness reads the queue, so
-# a drain that ignored the milestone entirely is invisible to the tracker and to the diff. These arms
+# No registered hook reads the queue, so a drain that ignored the milestone entirely is invisible to
+# the tracker and to the diff. (The reason used to read "every gh-issue call in hooks/scripts/ is a
+# write path", corrected 2026-09-09 (#406): that is FALSE at head — closure-artifact-guard.sh makes two
+# live reads. The property that carries the claim is that no registered hook selects a --label or a
+# --milestone, which the absence arm at the end of this file now pins.) These arms
 # gate the PRESENCE OF A RULE. That is the whole claim.
 #
 # TWO INDEPENDENT `if` BLOCKS, EACH WITH ITS OWN VACUITY GUARD, DELIBERATELY. An arm that lives in an
@@ -5879,8 +5882,9 @@ fi
 # the rule live again. Anchoring on `^- ` is what tells a live *Stop when* bullet from a struck one.
 #
 # WHAT NO ARM CAN OWN. That any session took a snapshot, or that any Issue was filed with the right
-# milestone. Nothing in hooks/scripts/ reads the queue — every `gh issue` call there is a write path — so
-# a drain that terminated against the live pool and one that terminated against its snapshot are
+# milestone. No registered hook reads the queue — not because every gh-issue call there is a write path
+# (false at head, corrected 2026-09-09 (#406): two are reads) but because none selects a --label or a
+# --milestone — so a drain that terminated against the live pool and one that terminated against its snapshot are
 # indistinguishable from the tracker and from the diff. No detector is proposed either, and the reason is
 # in the file: the only checkable signal (exhaustion reported while the iteration still holds open `ready`
 # items) is TRUE of every correct snapshot termination that saw an arrival. These arms gate the PRESENCE
@@ -7293,8 +7297,9 @@ RETIRED_CLAUSES
 #
 # WHAT THESE ARMS ASSERT AND WHAT THEY CANNOT. They assert the rite's rules are WRITTEN, in the files
 # that execute them. THEY CANNOT OBSERVE THAT A RITE RAN, that it ran over the right iteration, or that
-# it ran with the personas it should have. Nothing in hooks/scripts/ reads the queue at all — every
-# `gh issue` call there is a write path — so no layer in this harness can see a snapshot go empty.
+# it ran with the personas it should have. No registered hook reads the queue at all — because none
+# selects a --label or a --milestone, NOT because every gh-issue call there is a write path (false at
+# head, corrected 2026-09-09 (#406)) — so no layer in this harness can see a snapshot go empty.
 # Same claim, same words, as the #326 and #339 arms above: PRESENCE OF A RULE. That is the whole of it.
 #
 # WHY THE LIMIT NEEDLES ARE HERE AT ALL, WHICH LOOKS LIKE GATING A DISCLAIMER AND IS THE LOAD-BEARING
@@ -7842,7 +7847,7 @@ else
     '**It does not estimate.** No `sp:N` is produced' \
     'will ordinarily refuse the first drain**.' \
     '**This is NOT the iteration Issue' \
-    '**Nothing fires it.** No hook in `hooks/scripts/` reads the queue' \
+    '**Nothing fires it.** No registered hook reads the queue' \
     '**Nothing observes that it ran, or that it ran correctly.**' \
     '**The count ships with the command that produces it, or not at all.**' \
     '**ENUMERATE, then select — the same discipline step 1 states for milestones' \
@@ -8770,6 +8775,98 @@ if [ -n "$mode_problems" ]; then
       preload and not CLAUDE.md, so a mode asserted only there is a mode no dispatchee knows about."
 else
   ok "loop mode reach — the universal preload carries the mode section, points at both carriers by path, scopes the two sections that are false under the lighter mode, and the mode-named brief is scoped rather than renamed (string agreement plus one pointer resolution; nothing here observes a dispatch or reads the mode in force)"
+fi
+
+# ── THE WRITE-PATH CLAUSE MUST NOT RETURN UNREPUDIATED (#406, 2026-09-09) ──────────────────────────
+#
+# WHAT IT PINS. A claim about hook behaviour that this repository published in sixteen places and that
+# is FALSE at head: it asserted that every gh-issue call under hooks/scripts/ mutates. Two are live
+# READS, both in closure-artifact-guard.sh — one resolves a single Issue by number, one enumerates
+# CLOSED Issues in a rolling date window. The conclusions those sixteen sites drew are still true; the
+# reason they gave is not, and the reason that carries them is narrower: NO REGISTERED HOOK SELECTS A
+# --label OR A --milestone, which the untouchable-list command in CLAUDE.md falsifies directly.
+#
+# WHY IT ASSERTS ABSENCE AND NOT THE REPLACEMENT WORDING, which is the defect this arm was written to
+# avoid rather than commit. An arm pinning the corrected sentences would go green on sixteen files that
+# say the right thing and stay green if the false clause were reintroduced in a seventeenth. So the
+# subject is the FALSE clause, tree-wide over every tracked file, and a reintroduction ANYWHERE reddens.
+#
+# WHY IT IS NOT A BARE ABSENCE CHECK. Every corrected site QUOTES the clause in order to strike it or
+# call it false — that is this repository's struck-not-deleted convention, and a bare absence check
+# would demand deleting exactly the sentences that record the correction. So the arm requires each
+# occurrence to sit inside a REPUDIATION WINDOW. Same instrument as the roster-membership arm 3,000
+# lines above, which distinguishes a superseded claim from a stale one by the same markers.
+#
+# THREE PROPERTIES OF THE MATCHER, each of which was a real miss in the selector published in CLAUDE.md
+# and each found by running the two against each other on this tree:
+#   - CASE-INSENSITIVE. The published selector was not, and missed one sentence-initial occurrence in
+#     docs/adr/0002 (14 found, 15 present).
+#   - COMMENT-PREFIX-INSENSITIVE. It strips a leading `#` per line BEFORE collapsing whitespace, so a
+#     clause wrapped across two lines of a shell comment still matches. Without that, three occurrences
+#     inside THIS file were invisible to a wrap-insensitive selector (15 found, 18 present) — the file
+#     whose own job is catching drift.
+#   - TREE-WIDE. The published selector was scoped to '*.md'.
+#
+# THE CLAUSE IS NOT SPELLED OUT ANYWHERE IN THIS FILE'S PROSE, deliberately: the arm greps every tracked
+# file including this one, so a comment quoting it verbatim would redden the arm on the one paragraph
+# explaining it. The bracketed initials in the pattern below are the same reason — they keep the regex
+# SOURCE from matching itself. That is the identical constraint documentation-standard records for the
+# record-citation gate, reached from a different direction.
+#
+# WHAT IT CANNOT DO. It cannot tell a repudiation from a nearby unrelated use of the word "false", and
+# it cannot tell whether a corrected sentence's NEW reason is true — only that the old one is not being
+# asserted. The window is deliberately tight (120 chars) rather than generous, because a loose window
+# is what would let an unrelated marker launder a fresh assertion.
+#
+# WHY PYTHON ENUMERATES THE FILES ITSELF instead of receiving them from `xargs`. `xargs -0 python3 -`
+# and a heredoc BOTH claim python's stdin, and xargs wins: the script never arrives, python reads the
+# file list as its program, and the arm silently matches nothing. That is the exact shape of a check
+# that cannot go red, so it is worth a sentence — it was caught here only by the vacuity guard below.
+wp_out="$(WP_ROOT="$ROOT" python3 - <<'PYEOF'
+import os, re, subprocess
+CLAIM = re.compile(r"ever[y] \W{0,3}gh issue\W{0,3} call [^.]*? is a writ[e] path", re.I)
+REPUD = re.compile(r"~~|struck|false|corrected|not because", re.I)
+WINDOW = 120
+root = os.environ["WP_ROOT"]
+listing = subprocess.run(["git", "-C", root, "ls-files", "-z"],
+                         capture_output=True, text=True).stdout
+found = 0
+for rel in [f for f in listing.split("\0") if f]:
+    p = os.path.join(root, rel)
+    try:
+        raw = open(p, encoding="utf-8").read()
+    except Exception:
+        continue
+    lines = [re.sub(r"^\s*#\s?", "", ln) for ln in raw.split("\n")]
+    body = re.sub(r"\s+", " ", " ".join(lines))
+    for m in CLAIM.finditer(body):
+        found += 1
+        lo, hi = max(0, m.start() - WINDOW), min(len(body), m.end() + WINDOW)
+        if not REPUD.search(body[lo:hi]):
+            print("BARE\t" + rel)
+print("TOTAL\t" + str(found))
+PYEOF
+)"
+wp_bare="$(printf '%s\n' "$wp_out" | grep '^BARE' | cut -f2 | sort -u || true)"
+wp_total="$(printf '%s\n' "$wp_out" | sed -n 's/^TOTAL\t//p')"
+
+# VACUITY GUARD, and it is not decoration. If the matcher stops matching anything at all — a rename, a
+# reword, a python failure — a bare-count of zero reads as "clean" and this arm becomes a green that
+# cannot go red. The clause is quoted in the corrections themselves, so a healthy tree has occurrences.
+if [ -z "$wp_total" ] || [ "$wp_total" = "0" ]; then
+  bad "write-path clause — the matcher found NO occurrence anywhere, which is vacuous rather than clean:
+      every corrected site quotes the clause in order to strike it, so a healthy tree returns a
+      non-zero total. A zero here means the pattern died, not that the tree is clean."
+elif [ -n "$wp_bare" ]; then
+  bad "write-path clause — asserted without repudiation in:
+      $(printf '%s' "$wp_bare" | tr '\n' ' ')
+      That clause is FALSE at head: closure-artifact-guard.sh makes two live \`gh issue\` READS (an Issue
+      body by number; CLOSED Issues in a rolling date window). The conclusion it is being used to
+      support is probably still true — the reason is not. Give it the reason that holds: no registered
+      hook selects a --label or a --milestone. If you are QUOTING the clause to correct it, keep the
+      strike markers or the word 'false' within 120 characters of it, as every other site does."
+else
+  ok "write-path clause — $wp_total occurrence(s) tree-wide, every one repudiated (tree-wide, case-insensitive, comment-prefix- and wrap-insensitive; it cannot judge whether a corrected site's NEW reason is true)"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"

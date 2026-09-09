@@ -387,9 +387,11 @@ is an owner-only act performed in the browser**. An unassigned `loop` Issue is n
 `/autonomy on`'s *"`ready` items carrying NO milestone"* line at session open, which exists for exactly
 this.
 
-**What nothing enforces.** No hook reads the queue — every `gh issue` call in `hooks/scripts/` is a write
-path — so an Issue filed with the wrong milestone, or with none while one existed, is invisible to the
-tracker and to the diff. The gate asserts this instruction is **present**. That is the whole claim.
+**What nothing enforces.** No registered hook reads the queue — **and not for the reason this line used
+to give.** *"Every `gh issue` call in `hooks/scripts/` is a write path"* is **false at head**:
+`closure-artifact-guard.sh` makes two reads. The reason that survives is exact and is the one this
+paragraph needs: **no registered hook selects a `--milestone` or a `--label`**, so an Issue filed with
+the wrong milestone, or with none while one existed, is invisible to the tracker and to the diff. The gate asserts this instruction is **present**. That is the whole claim.
 
 ## What this command does NOT do
 

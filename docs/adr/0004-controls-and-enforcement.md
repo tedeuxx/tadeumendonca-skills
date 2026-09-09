@@ -2666,9 +2666,11 @@ path except the orchestrator's own, which is by construction the session the hum
 
 The intake flagged one unknown: *does an `ask` hang rather than deny where no prompt can be shown?* It is
 **not measured**, and the reason is that no path reaches the guarded act unattended. Walked at head, in
-both repositories: no script in `hooks/scripts/` assigns a milestone (every `gh issue` call there is a
-write path of another kind, and the one `"gh issue edit"` string in `orchestrator-tool-census.sh` is a
-classification label, not a call); `commands/autonomy.md` and `commands/sprint-retrospective.md` never assign
+both repositories: no script in `hooks/scripts/` assigns a milestone (~~every `gh issue` call there is a
+write path of another kind~~ — **struck 2026-09-09 (#406): false at head**, `closure-artifact-guard.sh`
+makes two live READS, so the walk's conclusion rests on the narrower and still-true fact that **no
+registered hook passes `--milestone` at all**, in a write path or a read one; and the
+`"gh issue edit"` string in `orchestrator-tool-census.sh` is a classification label, not a call); `commands/autonomy.md` and `commands/sprint-retrospective.md` never assign
 one; and the only two files that did — `new-issue.md` and `blueprint.md` — are narrowed by this slice.
 
 ~~and the two CI workflows running `anthropics/claude-code-action` install no plugin, so this hook is not
