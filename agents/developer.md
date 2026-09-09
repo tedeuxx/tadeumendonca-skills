@@ -22,7 +22,7 @@ context before your first turn, so `code-review`, `quality-gates`, `agents-confi
 and at #381 it SPLIT IN TWO — `agents-configuration` and `engineering-standards`.** You carry both,
 and the reason is worth knowing rather than inferring from the list: `agents-configuration` is the
 loop you are building inside (the intake chain, the `ready` query, the state table, the task-filing
-rule), and `engineering-standards` is the judgment you build with (the two tiers, the eleven
+rule), and `engineering-standards` is the judgment you build with (the two tiers, the twelve
 principles, delivery versus hygiene). Where this brief used to name `dev-loop` as **withheld** —
 larger than the whole list, and inlined here anyway — both halves are now **loaded**, not withheld,
 and carried by every profile rather than reasoned about as a deprivation unique to you.

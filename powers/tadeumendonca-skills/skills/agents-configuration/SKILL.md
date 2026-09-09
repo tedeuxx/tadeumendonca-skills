@@ -27,7 +27,7 @@ for the agents inside.** Same design intent, two audiences, neither a substitute
 with no instrument behind it, named here rather than discovered later.
 
 **Its companion is `engineering-standards`, split out of this file at #381** — the engineering
-preferences that would still be true in a project that never runs this loop: the two tiers, the eleven
+preferences that would still be true in a project that never runs this loop: the two tiers, the twelve
 principles, what counts as delivery, the human residual. **The cut test was one question, applied
 paragraph by paragraph:** *would this still be true in a project that does not run this loop?* Yes →
 `engineering-standards`. No → here. Where a principle has a local enforcement, the principle is named
