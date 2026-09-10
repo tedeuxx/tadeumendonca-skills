@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# Asserts the four MECHANICAL properties of this repository's Codex exec-policy port,
+# Asserts the MECHANICAL properties of this repository's Codex exec-policy port,
 # `.codex/rules/claude-command-policy.rules`.
+#
+# No count of arms is stated here on purpose. The header read "the four" while the file carried six
+# verdicts, and a prose figure beside a derived one is the arrangement this repository's own gates
+# exist because it rots. Count the `ok`/`bad` calls if a number is wanted.
 #
 # WHY THIS EXISTS. That file is a THIRD harness's permission layer. It was agent-authored on
 # 2026-09-07, listed in `.git/info/exclude` — so `git status` never showed it — and no PR, no gate and
@@ -39,7 +43,22 @@
 #   arm 2  delete the ["gh","secret","set"] forbidden rule from the port           -> 1 failed
 #   arm 3  add a rule whose pattern carries /Users/zzznonce/x                      -> 2 failed
 #   arm 4  add an allow naming hooks/scripts/zzznonce.test.sh                      -> 1 failed
+#   arm 4  delete every `bash hooks/scripts/...` allow from the port               -> 2 failed
+#          (arm 4's own vacuity guard, plus arm 4b -- NOT "0 of 0 resolve, PASS")
+#   arm 4b `touch hooks/scripts/zzznonce.sh && git add` it, list it in no rule     -> 1 failed
+#   arm 4b delete the `bash hooks/scripts/permission-guard.sh` allow               -> 1 failed
 #   arm 5  observed red before this suite was wired into a workflow at all
+#
+# ARM 4b's SECOND MUTATION IS THE ONE THAT MATTERS, and the first alone would have been a weaker
+# claim than it looks. Adding an unlisted file proves the arm reads the disk; deleting a listed rule
+# proves it reads the rules. An arm that only ever saw new files could have been comparing the disk
+# against itself.
+#
+# AND ARM 4's VACUITY GUARD WAS ADDED BECAUSE IT WAS ALREADY PRINTING A ZERO AS A GREEN. The sibling
+# copy's run reported `arm 4 · all 0 script path(s) named in a rule resolve` -- a pass over an empty
+# set, in a green run, in the suite whose own header teaches that a check which has only ever passed
+# has been observed passing and not calibrated. A `0` is evidence only once something in the same run
+# has returned non-zero.
 #
 # THE FIRST MUTATION TRIED ON ARM 2 WAS DEAD, and it is published because the nonce result is
 # meaningless without it: adding `Bash(terraform apply:*)` to the deny list leaves the arm GREEN,
@@ -68,8 +87,22 @@
 
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-while [ ! -d "$ROOT/.git" ] && [ "$ROOT" != "/" ]; do ROOT="$(dirname "$ROOT")"; done
+# ROOT and SCRIPT_DIR are both resolved by asking git, never by walking for a `.git` DIRECTORY. In a
+# linked worktree `.git` is a FILE, so the old walk ran off the top of the tree and landed on `/`,
+# making RULES_DIR `//.codex/rules` and reporting a missing subject -- a red that pointed at the file
+# instead of at the walk. Fails closed: outside a repository no arm runs at all.
+ROOT="$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel 2>/dev/null || true)"
+if [ -z "$ROOT" ]; then
+  printf 'FAIL  cannot resolve a git root from %s; no arm ran\n' "$(dirname "${BASH_SOURCE[0]}")"
+  exit 1
+fi
+# `--show-prefix` is what absorbs the depth difference between the two copies (`hooks/scripts/` here,
+# `scripts/` in the sibling) without either one hard-coding the other's layout. Trailing slash included.
+SCRIPT_DIR="$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-prefix 2>/dev/null || true)"
+if [ -z "$SCRIPT_DIR" ]; then
+  printf 'FAIL  this suite resolves to the repository root; arm 4b would scan the whole tree\n'
+  exit 1
+fi
 SETTINGS="$ROOT/.claude/settings.json"
 RULES_DIR="$ROOT/.codex/rules"
 SELF="$(basename "$0")"
@@ -187,10 +220,57 @@ for p in $paths; do
     $p"
   fi
 done
-if [ "$unresolved" -ne 0 ]; then
+if [ "$path_total" -eq 0 ]; then
+  bad "arm 4 · no rule names a script path at all — the arm would pass vacuously"
+elif [ "$unresolved" -ne 0 ]; then
   bad "arm 4 · $unresolved of $path_total script path(s) named in a rule do not exist:$unresolved_list"
 else
   ok "arm 4 · all $path_total script path(s) named in a rule resolve under the repository root"
+fi
+
+# --- ARM 4b · every tracked shell script in THIS suite's own directory is named by a rule --------
+# THE REVERSE DIRECTION, and the reason it exists is that arm 4 alone cannot see the drift that
+# actually happens. Arm 4 is rule -> disk: it catches a rule outliving its file, which is how this
+# suite was calibrated (`wip-guard.test.sh`, deleted at e145cd0f). Nothing was disk -> rule, so a
+# script ARRIVING and never being listed was invisible: at the head this arm landed on, three tracked
+# scripts were named by no rule and the suite reported 8 passed, 0 failed.
+#
+# SCOPE IS THIS DIRECTORY, NOT THE TREE, and that is a decision rather than convenience. In this
+# repository `scripts/milestone-create.sh` is tracked, is run with `bash`, and is deliberately named
+# by no allow anywhere: the permission prompt its absence produces is what stands in for the deleted
+# rule 11 milestone verification. An arm scoped to the tree would have demanded a rule for it and
+# closed that prompt as a side effect of a drift check. WHAT THAT COSTS: a `*.sh` added outside this
+# directory is invisible here, and only review will see it.
+#
+# `*.sh` ONLY, because `bash` is not allowed bare while `python3` is, so a `.py` file needs no
+# per-file rule and requiring one would be decoration. Falsify with:
+#   grep -nE 'pattern=\["(bash|python3)"\]' .codex/rules/*.rules
+# If that ever prints a bare `bash` rule, every per-script allow below is redundant; if it stops
+# printing `python3`, this arm is under-scoped. Neither is checked.
+#
+# TRACKED files only (`git ls-files`): an untracked local script is not something a published port
+# must name, and CI never checks one out.
+unnamed=0
+unnamed_list=""
+script_total=0
+while IFS= read -r s; do
+  [ -n "$s" ] || continue
+  script_total=$((script_total + 1))
+  if ! printf '%s\n' "$paths" | grep -Fxq "$s"; then
+    unnamed=$((unnamed + 1))
+    unnamed_list="$unnamed_list
+    $s"
+  fi
+done <<EOF
+$(git -C "$ROOT" ls-files -- "${SCRIPT_DIR}*.sh")
+EOF
+
+if [ "$script_total" -eq 0 ]; then
+  bad "arm 4b · no tracked *.sh under ${SCRIPT_DIR} — the arm would pass vacuously"
+elif [ "$unnamed" -ne 0 ]; then
+  bad "arm 4b · $unnamed of $script_total tracked script(s) under ${SCRIPT_DIR} are named by no rule:$unnamed_list"
+else
+  ok "arm 4b · all $script_total tracked script(s) under ${SCRIPT_DIR} are named by a rule"
 fi
 
 # --- ARM 5 · this suite is wired into CI --------------------------------------------------------
