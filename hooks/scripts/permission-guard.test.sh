@@ -1086,6 +1086,29 @@ check DENY  "command substitution"          'echo $(date)'
 check DENY  "backticks"                     'echo `date`'
 check DENY  "env-var prefix"                "E2E_ENV=local npx playwright test"
 
+# #438: the branch was anchored at `^`, so it caught the honest spelling and only the honest spelling.
+# The direction was decided by measuring the premise nobody had measured -- whether the RUNTIME stops
+# the post-statement form. It does, and it names the offending element: on build 2.1.267, in a nested
+# session carrying this guard minus the branch, `true; FOO=1 wc -l <f>` came back "This Bash command
+# contains multiple operations. The following part requires approval: FOO=1 wc -l <f>", while the same
+# chain without the prefix EXECUTED. So the widened form is still a SUBSET of what the runtime stops
+# for, which is the only thing this rule's class is allowed to be.
+check DENY  "env-var prefix after ;"        "true; E2E_ENV=local npx playwright test"
+check DENY  "env-var prefix after &&"       "git status && E2E_ENV=local npx playwright test"
+check DENY  "env-var prefix after |"        "ls | FOO=1 grep x"
+check DENY  "env-var prefix after ("        "(FOO=1 npx playwright test)"
+check DENY  "env-var prefix after export"   "export PATH=/usr/bin; C=/usr/bin/git; ls"
+# AND THE OTHER SIDE, WHICH IS WHAT KEEPS THE WIDENING FROM BECOMING AN OVER-BLOCK. An `=` in ARGUMENT
+# position is not an env prefix, the runtime does not stop for it, and this rule must not either. Each
+# of these is ALLOW against the widened guard and DENY under the naive "assignment anywhere" pattern
+# that was rejected for exactly this reason -- so they are the arms that pin WHICH widening landed,
+# not merely that one did.
+check ALLOW "arg-position = is not a prefix"    "terraform plan -var foo=bar"
+check ALLOW "arg-position = after a flag"       "npx playwright test --grep=smoke"
+check ALLOW "make variable is an argument"      "make FOO=1 target"
+check ALLOW "quoted = is collapsed already"     "git commit -m 'x=1'"
+check ALLOW "chain with no assignment"          "git status; git diff"
+
 echo "--- rule 8's chain branch is REMOVED (#383 S2) — a chain now falls through ---"
 # Measured with the rule absent, verdicts confirmed on disk rather than from a model's report:
 # two allowlisted commands joined by '&&' or ';' EXECUTED with no prompt, and a chain carrying a
