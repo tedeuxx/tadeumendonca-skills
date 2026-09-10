@@ -2042,23 +2042,28 @@ fi
 #    could start: string start, or after `;`, `&`, `|` or `(`. Matching anywhere would fire on ordinary
 #    arguments that carry an `=` — `terraform plan -var foo=bar`, `docker run -e FOO=1`, `make FOO=1
 #    target`, `awk -F= …` — none of which is a prefix. That
-#    would be the over-block this rule's class must never be. Quoted spans need no handling: `$bare`
-#    has already collapsed them, which is what keeps `git commit -m "x=1"` out of reach.
+#    would be the over-block this rule's class must never be. The original leading check uses `$bare`
+#    with quoted spans collapsed; the added check below recognizes the original string instead.
 #
 #    WHAT IS STILL NOT COVERED, NAMED RATHER THAN IMPLIED AWAY. An assignment reachable only through a
 #    separator this pattern does not carry — a `case` arm's `)`, a `then`/`do`/`else` keyword — is an
 #    ABSTENTION, not a claim. This file does not parse shell; where it cannot tell, the runtime decides,
 #    which is the outcome that is correct either way.
-#    #438 review: punctuation alone is not command position. Consume escape pairs so an escaped
-#    separator becomes inert, while an even run of backslashes leaves the separator exposed.
-#    Keep this view LOCAL to rule 8. For the added positions, abstain when arithmetic syntax occurs
-#    anywhere in the view: identifying its end would need more shell parsing. This deliberately also
-#    misses `((FOO=1)); BAR=2 cmd`. The original leading predicate still runs on the original view.
-env_prefix_probe="$(printf '%s' "$bare" | sed -E 's/\\./@/g')"
+#    #438 review: punctuation is also present in comments, heredocs, expansions and patterns. The
+#    added check therefore recognizes ONLY a complete, simple composition in the ORIGINAL command:
+#    ASCII words, blanks, simple subshells and the listed separators. No quotes, escapes, expansions,
+#    redirects, glob syntax or newlines enter this language. Bash =~ anchors the entire string;
+#    grep's line-wise ^...$ would wrongly accept a simple line INSIDE a heredoc. This is deliberately
+#    narrower than shell: even a real prefix after a quoted/escaped word abstains in the extension.
+#    The original leading predicate remains independent, and no other rule uses this recognition.
+env_prefix_word='[-A-Za-z0-9_./,:=+%]+'
+env_prefix_simple="$env_prefix_word([[:blank:]]+$env_prefix_word)*"
+env_prefix_element="($env_prefix_simple|\([[:blank:]]*$env_prefix_simple[[:blank:]]*\))"
+env_prefix_sequence="^[[:blank:]]*$env_prefix_element([[:blank:]]*(;|&&|\|\||\||&)[[:blank:]]*$env_prefix_element)*[[:blank:]]*;?[[:blank:]]*$"
 if printf '%s' "$bare" | grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=' ||
-   { ! printf '%s' "$env_prefix_probe" | grep -Fq '((' &&
-     printf '%s' "$env_prefix_probe" | grep -Eq '[;&|(][[:space:]]*[A-Za-z_][A-Za-z0-9_]*='; }; then
-  deny "Blocked: env-var prefix (VAR=x cmd) at a leading or recognized post-statement position hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
+   { [[ "$command" =~ $env_prefix_sequence ]] &&
+     printf '%s' "$command" | grep -Eq '[;&|(][[:space:]]*[A-Za-z_][A-Za-z0-9_]*='; }; then
+  deny "Blocked: env-var prefix (VAR=x cmd) at a leading position or in a recognized simple composition hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
 fi
 
 # 8b. Shell output redirection (`>` / `>>`) to create or overwrite a file. THIS IS A DIFFERENT ROOT

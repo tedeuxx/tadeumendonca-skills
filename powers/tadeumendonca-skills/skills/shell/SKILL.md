@@ -99,13 +99,15 @@ rather than deleted because every persona here wrote its commands to it for mont
   **An `=` in ARGUMENT position is a different thing** — `terraform plan -var foo=bar`,
   `make FOO=1 target`, `npx playwright test --grep=smoke`. These are not env prefixes.
 
-  **The guard recognizes a bounded set of positions, not shell grammar.** It retains its original
-  leading predicate and checks after `;`, `&`, `|` or `(` with escaped character pairs made inert.
-  An odd run of backslashes escapes the separator; an even run leaves it exposed. The added check
-  abstains when its normalized view contains `((`, so `((FOO=1))` is not mistaken for a prefix.
-  This also misses the real later prefix in `((FOO=1)); BAR=2 cmd`; the original leading check and
-  the other guard rules still run. Quoted spans remain handled by the existing quote collapse.
-  The suite measures these guard decisions; it does not prove a runtime subset for untested forms.
+  **The guard recognizes only a bounded language of simple compositions for the added check.** The
+  whole original string must contain only plain ASCII words, blanks, simple subshells and the listed
+  separators (`;`, `&&`, `||`, `|`, `&`). Quotes, escapes, comments, newlines, redirections, expansions,
+  globs, arrays and arithmetic are outside that language. It never searches a heredoc body or comment
+  for a command position. Even real later prefixes in `echo "ok"; BAR=2 cmd` or
+  `((FOO=1)); BAR=2 cmd` therefore abstain in the extension. The original leading predicate still
+  uses the existing quote collapse and remains independent; other rules still run. The suite measures
+  guard decisions, not a runtime subset for untested forms. Where the extension abstains, the runtime
+  decides and may still require a human.
 
   **On this platform the enforcement matched the leading spelling only, until #438.** A rule whose
   incidence depends on how the author phrased the command rather than on the act is not a rule about

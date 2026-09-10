@@ -459,11 +459,13 @@ leading statement alone is harmless. **No case was found where an env-var prefix
 through**: it defeated an allow entry, the working-directory sandbox, and the sandbox's auto-approval
 of an unlisted command alike (`cp <in-cwd> <in-cwd>` executed; `FOO=1 cp`, same paths, blocked).
 **That supports widening to the measured forms, not a universal subset claim.** Rule 8 retains its
-leading check and adds separator matching over a view with escaped pairs made inert; the added check
-abstains on arithmetic-containing text. `echo foo\;BAR=1` and `((FOO=1))` therefore abstain, while
-the tested real prefixes still deny. A later real prefix in `((FOO=1)); BAR=2 cmd` also abstains:
-the runtime decides that case. These are guard-suite results; Claude runtime over-blocking on the
-non-prefix forms was not measured. The governing subset constraint remains an obligation.
+original leading check. Its extension first recognizes the entire original string as a simple
+composition: plain ASCII words, blanks, simple subshells and separators. It abstains on strings with
+quotes, escapes, comments, newlines, redirections, expansions, globs, arrays or arithmetic. Thus both
+`echo ok #;BAR=1` and a real prefix in `echo "ok"; BAR=2 cmd` abstain in the extension; the runtime
+decides. The simple tested prefixes still deny, and the other rules remain independent. These are
+guard-suite results; they do not measure Claude's effective permissions for either quoted or unquoted
+heredocs. The governing subset constraint remains an obligation.
 
 ### An entry's `:*` is a TOKEN boundary, not a raw prefix — and it is why some rules cannot live here
 

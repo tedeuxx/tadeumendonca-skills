@@ -1109,16 +1109,16 @@ check ALLOW "make variable is an argument"      "make FOO=1 target"
 check ALLOW "quoted = is collapsed already"     "git commit -m 'x=1'"
 check ALLOW "chain with no assignment"          "git status; git diff"
 
-# #438 review: escaped punctuation is argument text, and ((...)) is arithmetic. Pair odd escapes
-# with even-escape controls: a literal backslash does not escape the separator that follows it.
+# #438 review: the extension recognizes a complete simple composition, not selected punctuation in
+# arbitrary shell text. Escapes of either parity are outside it; actual simple prefixes stay above.
 check ALLOW "escaped semicolon is argument text" 'echo foo\;BAR=1'
 check ALLOW "escaped ampersand is argument text" 'echo foo\&BAR=1'
 check ALLOW "escaped pipe is argument text"      'echo foo\|BAR=1'
 check ALLOW "escaped parenthesis is argument text" 'echo foo\(BAR=1'
 check ALLOW "odd backslashes escape separator"  'echo foo\\\;BAR=1'
-check DENY  "even backslashes leave separator"  'echo foo\\;BAR=1 wc -l README.md'
-check DENY  "four backslashes leave separator"  'echo foo\\\\;BAR=1 wc -l README.md'
-check DENY  "real separator after escaped one"  'echo foo\;BAR=1; BAZ=2 wc -l README.md'
+check ALLOW "even backslashes are outside simple grammar" 'echo foo\\;BAR=1 wc -l README.md'
+check ALLOW "four backslashes are outside simple grammar" 'echo foo\\\\;BAR=1 wc -l README.md'
+check ALLOW "real prefix after escape abstains" 'echo foo\;BAR=1; BAZ=2 wc -l README.md'
 check ALLOW "escaped name is not assignment syntax" 'true; \FOO=1'
 check ALLOW "arithmetic assignment is not prefix" '((FOO=1))'
 check ALLOW "arithmetic bitwise assignment"     '((1 & FOO=1))'
@@ -1128,6 +1128,34 @@ check ALLOW "arithmetic composition abstains conservatively" '((FOO=1)); BAR=2 w
 check DENY  "leading prefix survives arithmetic abstention" 'FOO=1 echo ok; ((BAR=2))'
 check DENY  "floor survives arithmetic abstention" '((FOO=1)); git push origin main'
 check ALLOW "export remedy remains available" 'export FOO=1; echo ok'
+
+# Both sides of the new recognition boundary. No payload below is executed as a shell command.
+check DENY  "simple prefix after ||" 'true || BAR=1 wc -l README.md'
+check DENY  "simple prefix after &" 'true & BAR=1 wc -l README.md'
+check DENY  "simple subshell in composition" 'true; (BAR=1 wc -l README.md)'
+check DENY  "simple argument before separator" 'echo prose; BAR=1 wc -l README.md'
+check ALLOW "comment punctuation is not command position" 'echo ok #;BAR=1'
+check ALLOW "comment-only payload" '# ; BAR=1'
+check ALLOW "comment parenthesis is not command position" 'echo ok # prose (BAR=1)'
+check_agent ALLOW "" "heredoc body is not command position" $'cat <<EOF\n;BAR=1\nEOF'
+check_agent ALLOW "" "simple composition inside heredoc is not input grammar" $'cat <<EOF\ntrue; BAR=1\nEOF'
+# A quoted delimiter changes expansion semantics, not whether this body is command position.
+# These assertions read only the guard decision; they do not assert Claude executes either heredoc.
+check_agent ALLOW "" "single-quoted heredoc delimiter keeps body inert" $'cat <<\'EOF\'\n;BAR=1\nEOF'
+check_agent ALLOW "" "double-quoted heredoc delimiter keeps body inert" $'cat <<"EOF"\n;BAR=1\nEOF'
+check_agent ALLOW "" "simple composition inside quoted heredoc stays outside grammar" $'cat <<\'EOF\'\ntrue; BAR=1\nEOF'
+check_agent ALLOW "" "multiline comments do not expose a simple inner line" $'echo ok # first\ntrue; BAR=1\n# last'
+check_agent ALLOW "" "plain multiline is outside simple grammar" $'true\nBAR=1 wc -l README.md'
+check ALLOW "parameter expansion is outside simple grammar" 'echo ${FOO:-;BAR=1}'
+check ALLOW "extglob is outside simple grammar" 'echo @(BAR=1)'
+check ALLOW "array literal is outside simple grammar" 'true; values=(BAR=1)'
+check DENY  "leading array keeps original denial" 'values=(BAR=1)'
+check ALLOW "glob argument makes extension abstain" 'echo *.md; BAR=1 wc -l README.md'
+check ALLOW "quoted argument makes extension abstain" 'echo "ok"; BAR=1 wc -l README.md'
+check ALLOW "empty quoted argument is not a command start" 'echo ""; ""BAR=1'
+check ALLOW "nested subshell is outside simple grammar" '((echo ok); BAR=1 wc -l README.md)'
+check DENY  "leading check remains independent of comments" 'FOO=1 echo ok # comment'
+check DENY  "floor remains independent of simple grammar" 'echo "ok"; git push origin main'
 
 echo "--- rule 8's chain branch is REMOVED (#383 S2) — a chain now falls through ---"
 # Measured with the rule absent, verdicts confirmed on disk rather than from a model's report:
