@@ -5338,9 +5338,50 @@ claim or prove a universal subset. Those runtime results support the tested spel
 **Not "assignment anywhere", and the difference is not cosmetic.** An assignment token is an env
 prefix only where a command could start. Matching anywhere fires on ordinary arguments carrying an
 `=` — `terraform plan -var foo=bar`, `make FOO=1 target`, `npx playwright test --grep=smoke`, `gh pr
-view 1 --repo=o/r` — none of which is a prefix. **That
-mutation was run against the suite and reddened six arms, two of them pre-existing**, which is how the
-naive form is known to be wrong rather than merely suspected.
+view 1 --repo=o/r` — none of which is a prefix. That mutation was run against the suite and reddened
+six arms, ~~**two of them pre-existing**~~ — **THREE. Corrected 2026-09-10 during review, and struck
+rather than edited because a reviewer acted on the wrong figure.**
+
+**It is three, and it ships with the command this time.** *Pre-existing* is derived mechanically
+rather than read off a list: an arm is pre-existing if it is red at the **merge-base**, where none of
+#438's own arms exist yet. Extract the merge-base guard and suite, swap the predicate for the naive
+form, run:
+
+```
+BASE=$(git merge-base origin/main HEAD)        # 169461f3
+git show $BASE:hooks/scripts/permission-guard.sh      > <tmp>/permission-guard.sh
+git show $BASE:hooks/scripts/permission-guard.test.sh > <tmp>/permission-guard.test.sh
+# in <tmp>/permission-guard.sh replace
+#   grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*='
+# with the naive form
+#   grep -Eq '[A-Za-z_][A-Za-z0-9_]*='
+bash <tmp>/permission-guard.test.sh
+```
+
+```
+CONTROL (merge-base, unmutated)              -> 428 passed, 0 failed
+naive, spelling 1  '[A-Za-z_][A-Za-z0-9_]*=' -> 425 passed, 3 failed
+naive, spelling 2  with '[[:space:]]*'       -> 425 passed, 3 failed
+    --repo= attached
+    reviewer, --repo= attached
+    terraform plan
+RESTORED                                     -> 428 passed, 0 failed
+```
+
+**Both spellings of the naive form give the same three**, and the control-and-restore pair is what
+makes the 3 a measurement rather than a reading.
+
+**And it could not have been two, which is the part worth keeping.** Only **three** of #438's five new
+ALLOW arms can redden under the naive form at all — `git status; git diff` carries no `=`, and
+`git commit -m 'x=1'` is collapsed by `$bare` before any predicate sees it. So six total minus three
+new is three pre-existing, by arithmetic, with no run required.
+
+**The cause of the error, since it is a defect class rather than a slip:** the six-line red list was
+read and `--repo= attached` and `reviewer, --repo= attached` were counted as one, because they exercise
+the **same command spelling** under two different `agent_type` values. **Spellings were counted and
+*arms* were written.** The sentence then shipped **without the command that produced it** — into the
+floor's own record, as the falsifier for a rejected option — which is the one place this repository's
+own rule about publishing a number with its command is least survivable.
 
 **Quoted spans need no handling:** `$bare` has already collapsed them, which keeps `git commit -m
 "x=1"` out of reach.
@@ -5396,7 +5437,29 @@ record saying it was examined.**
 
 The independent gate at `0eb0b30cb2eab17ea4cdb84b63fcd837a0c09bcb` reproduced newly denied
 non-prefix forms: `echo foo\;BAR=1` (one argument) and `((FOO=1))` (Bash arithmetic). The guard
-misclassification was measured; **Claude runtime over-blocking on those forms was not measured**.
+misclassification was measured; ~~**Claude runtime over-blocking on those forms was not measured**~~.
+
+**STRUCK 2026-09-10 — IT IS MEASURED NOW, and the two forms come back on OPPOSITE sides**, which is
+why they must not be repaired as one class. Same rig as the widening's own: a probe plugin carrying
+this guard **minus** the whole rule-8 env-var block, the installed plugin disabled through
+`--settings`, build `2.1.267`, each verdict read from the tool result:
+
+```
+echo hello                     control       -> EXECUTED, printed "hello"
+echo foo\;BAR=1                ESCAPED       -> EXECUTED, printed "foo;BAR=1"
+echo foo;BAR=1 wc -l <f>       UNESCAPED     -> "…The following part requires approval:
+                                                 BAR=1 wc -l <f>"
+((FOO=1))                      ARITHMETIC    -> "Contains compound_statement"
+(wc -l <f>)                    PAREN CALIB   -> "This command uses shell operators that require
+                                                 approval for safety"
+```
+
+**So the escaped form WAS a genuine over-block** — the runtime runs it, the pre-repair guard denied
+it, and that is the one thing this rule's class may never do. **The arithmetic form was NOT**: the
+runtime stops `((FOO=1))` on its own, so denying it was a *misattributed message* and abstaining on it
+is a **subset**, never a hole. The control row is what makes the escaped row evidence rather than an
+absence, and the paren row is why the `(` position is a subset independently of any assignment: the
+runtime stops a plain subshell too.
 
 The WIDEN direction remains. The original leading predicate is retained unchanged. Only the added
 post-separator check consumes backslash-plus-character pairs into an inert non-name character, so an
@@ -5413,5 +5476,9 @@ has no runtime evidence to justify it.
 
 Run `bash hooks/scripts/permission-guard.test.sh` for the escaped/unescaped, odd/even-backslash,
 arithmetic, ordinary-argument and real-prefix controls. These assert guard JSON decisions rather than
-effective runtime permissions. The historic runtime results above were read, not repeated in this
-repair; they do not establish a universal subset, on that build or on another one.
+effective runtime permissions. ~~The historic runtime results above were read, not repeated in this
+repair~~ — **struck: the five rows in the block above were re-run on `2.1.267` for this repair, with a
+control and a calibration, rather than cited.** What survives untouched is the limit that sentence
+existed to state: **they do not establish a universal subset**, on that build or any other. A finite
+set of probes cannot, and the escaped-separator case is the proof — it was found *after* a set of
+probes that found no counterexample was published as though it settled the question.
