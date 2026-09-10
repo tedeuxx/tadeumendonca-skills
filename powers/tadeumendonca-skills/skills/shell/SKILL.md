@@ -79,13 +79,13 @@ rather than deleted because every persona here wrote its commands to it for mont
 **What still stops for a human, and is therefore still worth avoiding:**
 
 - **`$(...)` and backticks.** Flagged by name, whatever the command is.
-- **`VAR=x cmd` env-var prefixes, IN ANY POSITION — not only at the start of the command.** The
+- **`VAR=x cmd` env-var prefixes, including the measured post-statement form.** The
   prefix defeats the allow entry, which is a different mechanism from decomposition and the reason
   this bullet is separate. Prefer the repo's own scripts (`npm --prefix <app> run <script>`) over an
   inline env-prefixed command.
 
   **The position clause is #438's, and it was a measurement rather than a tightening of tone.** The
-  runtime decomposes the composition and stops the prefixed element wherever it sits, naming it —
+  runtime decomposes the tested composition and stops the prefixed element, naming it —
   measured on build 2.1.267 in a nested session carrying this platform's guard with its env-var branch
   removed, each verdict confirmed on disk or in the tool result:
 
@@ -96,9 +96,16 @@ rather than deleted because every persona here wrote its commands to it for mont
   true; touch <f>           calibration    -> EXECUTED  (the leading statement alone is harmless)
   ```
 
-  **An `=` in ARGUMENT position is a different thing and stops nothing** — `terraform plan -var
-  foo=bar`, `make FOO=1 target`, `npx playwright test --grep=smoke`. What makes it a prefix is that a
-  command could start there: string start, or after `;`, `&`, `|` or `(`.
+  **An `=` in ARGUMENT position is a different thing** — `terraform plan -var foo=bar`,
+  `make FOO=1 target`, `npx playwright test --grep=smoke`. These are not env prefixes.
+
+  **The guard recognizes a bounded set of positions, not shell grammar.** It retains its original
+  leading predicate and checks after `;`, `&`, `|` or `(` with escaped character pairs made inert.
+  An odd run of backslashes escapes the separator; an even run leaves it exposed. The added check
+  abstains when its normalized view contains `((`, so `((FOO=1))` is not mistaken for a prefix.
+  This also misses the real later prefix in `((FOO=1)); BAR=2 cmd`; the original leading check and
+  the other guard rules still run. Quoted spans remain handled by the existing quote collapse.
+  The suite measures these guard decisions; it does not prove a runtime subset for untested forms.
 
   **On this platform the enforcement matched the leading spelling only, until #438.** A rule whose
   incidence depends on how the author phrased the command rather than on the act is not a rule about

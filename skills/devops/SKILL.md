@@ -450,16 +450,20 @@ for a human is `$(...)`/backticks (flagged by name), a `VAR=x cmd` prefix (it de
 and a redirect that **creates a file** — and that last check is destination-aware, so `2>/dev/null`
 passes and `2>somefile` does not. `/shell` carries the payload table.
 
-**The env-var prefix is stopped in ANY position, and it is worth stating separately because a rule
+**The env-var prefix was also stopped in the tested post-statement position, while a rule
 built against it here was anchored to the leading one for months (#438).** Re-measured on build
 2.1.267 rather than carried from 2.1.261: `true; FOO=1 wc -l <f>` comes back *"This Bash command
 contains multiple operations. The following part requires approval: FOO=1 wc -l <f>"*, while `true;
-touch <f>` executes — so the decomposition names the prefixed element wherever it sits, and the
+touch <f>` executes — so the decomposition names that prefixed element, and the
 leading statement alone is harmless. **No case was found where an env-var prefix let a command
 through**: it defeated an allow entry, the working-directory sandbox, and the sandbox's auto-approval
 of an unlisted command alike (`cp <in-cwd> <in-cwd>` executed; `FOO=1 cp`, same paths, blocked).
-**That is what licenses a hook rule against this form to widen** — widened, it is still a subset of
-what the runtime stops for, which is the governing test one paragraph above.
+**That supports widening to the measured forms, not a universal subset claim.** Rule 8 retains its
+leading check and adds separator matching over a view with escaped pairs made inert; the added check
+abstains on arithmetic-containing text. `echo foo\;BAR=1` and `((FOO=1))` therefore abstain, while
+the tested real prefixes still deny. A later real prefix in `((FOO=1)); BAR=2 cmd` also abstains:
+the runtime decides that case. These are guard-suite results; Claude runtime over-blocking on the
+non-prefix forms was not measured. The governing subset constraint remains an obligation.
 
 ### An entry's `:*` is a TOKEN boundary, not a raw prefix — and it is why some rules cannot live here
 

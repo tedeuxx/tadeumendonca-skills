@@ -2027,22 +2027,21 @@ fi
 #                                                          harmless; the prefix is what stops it)
 #
 #    THE RUNTIME DECOMPOSES, AND IT NAMES THE ENV-PREFIXED ELEMENT IN NON-LEADING POSITION. So this
-#    branch's premise is true of both spellings and was implemented for one. Widening it to command
-#    position keeps it a SUBSET of what the runtime stops and removes the phrasing dependency.
+#    branch's premise was observed for the leading and post-statement probes. These finite results
+#    support widening to those forms; they do not prove a runtime subset for every shell spelling.
 #
-#    AND ONE CLAIM IN #438's BODY IS FALSIFIED BY THE SAME RIG, recorded here because it argued for
+#    ONE CLAIM IN #438's BODY WAS NOT REPRODUCED BY THE SAME RIG, recorded here because it argued for
 #    deletion: it read "it fires on MORE where spelled honestly and LESS where it is not", which would
 #    require a case where this branch denies and the runtime would have allowed. Four were sought and
 #    none was found — an env-var prefix defeated the allow entry (`FOO=1 wc -l`), the working-directory
 #    sandbox (`FOO=1 touch <in-cwd>`, `FOO=1 mkdir <in-cwd>`) and the sandbox's auto-approval of an
 #    UNLISTED command (`cp <in-cwd> <in-cwd>` EXECUTED; `FOO=1 cp` the same paths, BLOCKED). The branch
-#    fires on a strict subset in both its old form and its new one. "Less where it is not spelled
-#    honestly" was the true half, and it is what is repaired here.
+#    did not over-block those probes. That does not falsify the existence of an untested counterexample.
 #
 #    WHY COMMAND POSITION AND NOT "ANYWHERE". An assignment token is only an env prefix where a command
 #    could start: string start, or after `;`, `&`, `|` or `(`. Matching anywhere would fire on ordinary
 #    arguments that carry an `=` — `terraform plan -var foo=bar`, `docker run -e FOO=1`, `make FOO=1
-#    target`, `awk -F= …` — none of which is a prefix and none of which the runtime stops for. That
+#    target`, `awk -F= …` — none of which is a prefix. That
 #    would be the over-block this rule's class must never be. Quoted spans need no handling: `$bare`
 #    has already collapsed them, which is what keeps `git commit -m "x=1"` out of reach.
 #
@@ -2050,8 +2049,16 @@ fi
 #    separator this pattern does not carry — a `case` arm's `)`, a `then`/`do`/`else` keyword — is an
 #    ABSTENTION, not a claim. This file does not parse shell; where it cannot tell, the runtime decides,
 #    which is the outcome that is correct either way.
-if printf '%s' "$bare" | grep -Eq '(^|[;&|(])[[:space:]]*[A-Za-z_][A-Za-z0-9_]*='; then
-  deny "Blocked: env-var prefix (VAR=x cmd) hides the real command from the matcher and prompts the human — in any position, not only at the start of the command. Prefer an npm script that sets it, or export it in a dedicated call."
+#    #438 review: punctuation alone is not command position. Consume escape pairs so an escaped
+#    separator becomes inert, while an even run of backslashes leaves the separator exposed.
+#    Keep this view LOCAL to rule 8. For the added positions, abstain when arithmetic syntax occurs
+#    anywhere in the view: identifying its end would need more shell parsing. This deliberately also
+#    misses `((FOO=1)); BAR=2 cmd`. The original leading predicate still runs on the original view.
+env_prefix_probe="$(printf '%s' "$bare" | sed -E 's/\\./@/g')"
+if printf '%s' "$bare" | grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=' ||
+   { ! printf '%s' "$env_prefix_probe" | grep -Fq '((' &&
+     printf '%s' "$env_prefix_probe" | grep -Eq '[;&|(][[:space:]]*[A-Za-z_][A-Za-z0-9_]*='; }; then
+  deny "Blocked: env-var prefix (VAR=x cmd) at a leading or recognized post-statement position hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
 fi
 
 # 8b. Shell output redirection (`>` / `>>`) to create or overwrite a file. THIS IS A DIFFERENT ROOT

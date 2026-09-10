@@ -1091,15 +1091,15 @@ check DENY  "env-var prefix"                "E2E_ENV=local npx playwright test"
 # the post-statement form. It does, and it names the offending element: on build 2.1.267, in a nested
 # session carrying this guard minus the branch, `true; FOO=1 wc -l <f>` came back "This Bash command
 # contains multiple operations. The following part requires approval: FOO=1 wc -l <f>", while the same
-# chain without the prefix EXECUTED. So the widened form is still a SUBSET of what the runtime stops
-# for, which is the only thing this rule's class is allowed to be.
+# chain without the prefix EXECUTED. This supports those measured forms; it does not establish a
+# runtime subset for every spelling matched by the guard.
 check DENY  "env-var prefix after ;"        "true; E2E_ENV=local npx playwright test"
 check DENY  "env-var prefix after &&"       "git status && E2E_ENV=local npx playwright test"
 check DENY  "env-var prefix after |"        "ls | FOO=1 grep x"
 check DENY  "env-var prefix after ("        "(FOO=1 npx playwright test)"
 check DENY  "env-var prefix after export"   "export PATH=/usr/bin; C=/usr/bin/git; ls"
 # AND THE OTHER SIDE, WHICH IS WHAT KEEPS THE WIDENING FROM BECOMING AN OVER-BLOCK. An `=` in ARGUMENT
-# position is not an env prefix, the runtime does not stop for it, and this rule must not either. Each
+# position is not an env prefix, and this rule must not treat it as one. Each
 # of these is ALLOW against the widened guard and DENY under the naive "assignment anywhere" pattern
 # that was rejected for exactly this reason -- so they are the arms that pin WHICH widening landed,
 # not merely that one did.
@@ -1108,6 +1108,26 @@ check ALLOW "arg-position = after a flag"       "npx playwright test --grep=smok
 check ALLOW "make variable is an argument"      "make FOO=1 target"
 check ALLOW "quoted = is collapsed already"     "git commit -m 'x=1'"
 check ALLOW "chain with no assignment"          "git status; git diff"
+
+# #438 review: escaped punctuation is argument text, and ((...)) is arithmetic. Pair odd escapes
+# with even-escape controls: a literal backslash does not escape the separator that follows it.
+check ALLOW "escaped semicolon is argument text" 'echo foo\;BAR=1'
+check ALLOW "escaped ampersand is argument text" 'echo foo\&BAR=1'
+check ALLOW "escaped pipe is argument text"      'echo foo\|BAR=1'
+check ALLOW "escaped parenthesis is argument text" 'echo foo\(BAR=1'
+check ALLOW "odd backslashes escape separator"  'echo foo\\\;BAR=1'
+check DENY  "even backslashes leave separator"  'echo foo\\;BAR=1 wc -l README.md'
+check DENY  "four backslashes leave separator"  'echo foo\\\\;BAR=1 wc -l README.md'
+check DENY  "real separator after escaped one"  'echo foo\;BAR=1; BAZ=2 wc -l README.md'
+check ALLOW "escaped name is not assignment syntax" 'true; \FOO=1'
+check ALLOW "arithmetic assignment is not prefix" '((FOO=1))'
+check ALLOW "arithmetic bitwise assignment"     '((1 & FOO=1))'
+check ALLOW "nested arithmetic is not prefix"   '((FOO=(BAR=1)))'
+check ALLOW "post-statement arithmetic"         'true; ((FOO=1))'
+check ALLOW "arithmetic composition abstains conservatively" '((FOO=1)); BAR=2 wc -l README.md'
+check DENY  "leading prefix survives arithmetic abstention" 'FOO=1 echo ok; ((BAR=2))'
+check DENY  "floor survives arithmetic abstention" '((FOO=1)); git push origin main'
+check ALLOW "export remedy remains available" 'export FOO=1; echo ok'
 
 echo "--- rule 8's chain branch is REMOVED (#383 S2) — a chain now falls through ---"
 # Measured with the rule absent, verdicts confirmed on disk rather than from a model's report:

@@ -5313,18 +5313,23 @@ true; touch <f>                      calibration    -> EXECUTED
 calibration row is what makes the rest evidence: the leading statement alone is harmless, so the
 prefix is the variable.
 
-**A second claim of #438's is falsified by the same rig**, and it is recorded because it was the
+~~**A second claim of #438's is falsified by the same rig**~~, and it is recorded because it was the
 argument for deletion: the body read *"it fires on MORE where spelled honestly and LESS where it is
 not"*, which needs a case where the branch denies and the runtime would have allowed. Four routes to
 one were tried and none produced it — the prefix defeated an allow entry (`FOO=1 wc -l`), the
 working-directory sandbox (`FOO=1 touch <in-cwd>`, `FOO=1 mkdir <in-cwd>`) and the sandbox's
 auto-approval of an **unlisted** command (`cp <in-cwd> <in-cwd>` executed; `FOO=1 cp`, the same
-paths, blocked). **The branch fires on a strict subset in both its old form and its new one.** Only
-the *"less where it is not spelled honestly"* half was true.
+paths, blocked). ~~**The branch fires on a strict subset in both its old form and its new one.** Only
+the *"less where it is not spelled honestly"* half was true.~~
+
+**Struck during #438 review:** no counterexample in finite probes does not falsify an existential
+claim or prove a universal subset. Those runtime results support the tested spellings only.
 
 ### The decision
 
-**WIDEN, to COMMAND POSITION** — string start, or after `;`, `&`, `|` or `(`:
+~~**WIDEN, to COMMAND POSITION** — string start, or after `;`, `&`, `|` or `(`:~~
+
+**The first implementation, corrected by the review amendment below:**
 
 ```
 (^|[;&|(])[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=
@@ -5333,7 +5338,7 @@ the *"less where it is not spelled honestly"* half was true.
 **Not "assignment anywhere", and the difference is not cosmetic.** An assignment token is an env
 prefix only where a command could start. Matching anywhere fires on ordinary arguments carrying an
 `=` — `terraform plan -var foo=bar`, `make FOO=1 target`, `npx playwright test --grep=smoke`, `gh pr
-view 1 --repo=o/r` — none of which is a prefix and none of which the runtime stops for. **That
+view 1 --repo=o/r` — none of which is a prefix. **That
 mutation was run against the suite and reddened six arms, two of them pre-existing**, which is how the
 naive form is known to be wrong rather than merely suspected.
 
@@ -5369,12 +5374,15 @@ green.
 
 ### One question #438 left open is answered here, because it was one command
 
-*"Whether any other rule in the file is anchored the same way. Not swept."* It is swept: **no other
+*"Whether any other rule in the file is anchored the same way. Not swept."* ~~It is swept: **no other
 predicate in `permission-guard.sh` is anchored at string start.** Every other one uses the
 position-tolerant `(^|[^[:alnum:]_])` form or no anchor at all —
 `grep -nE "grep -Eq '\^" hooks/scripts/permission-guard.sh` returns nothing, against a denominator of
 **16** predicates in the file (`grep -cE "grep -Eq '" …`), so the zero is a real zero rather than a
-dead pattern.
+dead pattern.~~
+
+**Struck during #438 review:** this grep selects one textual spelling, not every predicate, and the
+corrected implementation again contains the original anchored check. It is not an exhaustive audit.
 
 ### Significance
 
@@ -5383,3 +5391,27 @@ it did not test the implementation against — and *sets a cross-cutting pattern
 **auditing whether a rule's PREMISE holds is a different act from auditing whether the rule IMPLEMENTS
 it, and an audit that does the first while sounding like it did both leaves the defect in place with a
 record saying it was examined.**
+
+### Review correction (2026-09-10) — punctuation is not command position
+
+The independent gate at `0eb0b30cb2eab17ea4cdb84b63fcd837a0c09bcb` reproduced newly denied
+non-prefix forms: `echo foo\;BAR=1` (one argument) and `((FOO=1))` (Bash arithmetic). The guard
+misclassification was measured; **Claude runtime over-blocking on those forms was not measured**.
+
+The WIDEN direction remains. The original leading predicate is retained unchanged. Only the added
+post-separator check consumes backslash-plus-character pairs into an inert non-name character, so an
+odd run escapes the following separator and an even run leaves it exposed. If that normalized view
+contains `((`, the added check abstains altogether; it does not attempt to find an arithmetic end.
+No other rule consumes this normalized view or exits early through that abstention.
+
+**Accepted cost, pinned by regression:** `((FOO=1)); BAR=2 wc -l README.md` now abstains despite its
+real later prefix. `FOO=1 echo ok; ((BAR=2))` still denies under the original leading predicate,
+and the trunk-push control after arithmetic still denies under its own rule. The runtime remains
+responsible for deciding abstained commands. Recovering every mixed arithmetic composition would
+require more parsing than this friction rule warrants; retaining the demonstrated misclassification
+has no runtime evidence to justify it.
+
+Run `bash hooks/scripts/permission-guard.test.sh` for the escaped/unescaped, odd/even-backslash,
+arithmetic, ordinary-argument and real-prefix controls. These assert guard JSON decisions rather than
+effective runtime permissions. The historic runtime results above were read, not repeated in this
+repair; they do not establish a universal subset, on that build or on another one.
