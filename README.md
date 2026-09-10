@@ -2210,6 +2210,15 @@ and the install carries **the whole tree**, `agents/` and `hooks/` included. The
 the precedent for the question; **its answer does not transfer**, and the useful part of this section
 is exactly where the two diverge.
 
+**A counting note, since #421's title says *fourth harness* and this section says *third distribution
+target*, and the artifact should not correct its own Issue silently.** Both are right about different
+sets. **Distribution targets are three** — Claude Code, Kiro, Codex — which is what this section and
+ADR-0005 count, because the record's subject is where the artifact is *published*. The Issue counts
+**harnesses that read something of this repository**, which includes one that reads a tracked file
+rather than the installed plugin (#419's `.codex/rules/`). **Neither number is wrong; they are
+denominators of different sets**, and this paragraph exists so a reader meeting both does not assume
+one of them is stale.
+
 **`#287` gave this repository the two words *transport* and *activation*. They are not enough here**,
 because activation is **partial by element** and the element that activated is not one anybody
 expected. Read the table as a **dated measurement of one build on one machine**, never as a property
@@ -2269,33 +2278,86 @@ grep -a -o -E '__ZN18codex_core_plugins[0-9]+[a-z_]+' \
 element classes — `plugin_skill_roots`, `plugin_mcp_config_paths`, `plugin_app_config_paths`,
 `load_plugin_hooks`. **The enumeration is its own positive control:** it finds `loader` and
 `skill_snapshots`, and skills demonstrably work, so a `plugins::agents` module would have shown had
-one existed.
+one existed. **The binary is not stripped**, so the absence is meaningful rather than an artifact of
+missing symbols, and broadening the charset to `[A-Za-z0-9_]+` returns the same 22 modules.
 
-**Activation** — the only proof that a tree was *read* is a resolved root pointing into it, so the
-selector is anchored on the install path rather than on a name:
+**One precision the table's `absent` cell owes, because the blunt reading is wrong — and because the
+obvious sharpening of it is FALSE.** It is tempting to write *"`agent` symbols exist in this binary but
+none under `codex_core_plugins`"*. **That does not survive its own check:**
 
 ```
-/Applications/ChatGPT.app/Contents/Resources/codex debug prompt-input   # then, over the rendered text:
-# skill roots resolved, total           : 28
-# skill roots resolved INTO this plugin : 15
-# declared skills WITH a resolved root  : 15      (declared but NOT resolved: [])
-# resolved roots by top-level directory : {'skills': 15}
-# path-anchored hits for skills         : 15      <- the in-command positive control
-# path-anchored hits for agents         : 0
-# path-anchored hits for hooks          : 0
-# path-anchored hits for commands       : 0
-# occurrences of 'hooks/hooks.json'     : 0
+grep -a -o -E '__ZN18codex_core_plugins[0-9]+[A-Za-z0-9_]+' \
+  /Applications/ChatGPT.app/Contents/Resources/codex | sed -E 's/.*plugins[0-9]+//' | sort -u | grep -i agent
+# -> loader24agent_plugin_mcp_overlay23apply_codex_env_overlay28_        (exactly one)
+```
+
+**There is one, and reading it is what makes the row precise rather than merely blunt: in this
+subsystem the word *agent* names the FORMAT — "Agent Plugins" — and never a persona directory.** That
+single symbol resolves an **MCP** overlay. So the accurate statement is *no plugin-sourced route walks
+`agents/`*, and the harness's own agent subsystem lives elsewhere (`codex_core`: `agent::registry`,
+`agents_md_manager`, `multi_agents`), reachable by nothing this plugin ships.
+
+**And the one in-plugin `agents/` path the harness does resolve is `agents/openai.yaml`**, an
+executor-capability descriptor this repository does not ship:
+
+```
+find /Users/tadeumen/.codex/plugins/cache/tadeumendonca -name openai.yaml | wc -l   # -> 0
+find /Users/tadeumen/.codex/skills/.system            -name openai.yaml | wc -l   # -> 6   <- calibration
+```
+
+**So the honest reason this row is inactive is *our file shape is not the one discovered*, not *the
+host has no agent subsystem*.** The outcome is unchanged and the `absent` cell stands; the reason is
+narrower than *"no loader exists"* reads on its own.
+
+**Activation** — the only proof that a tree was *read* is a resolved root pointing into it, so the
+selector is anchored on the install path rather than on a name. **Run it from a neutral cwd; `cwd` is a
+variable here and the naive counts below only reproduce from this repository's root:**
+
+```
+/Applications/ChatGPT.app/Contents/Resources/codex debug prompt-input | python3 -c '
+import sys, json, re
+R = "/Users/tadeumen/.codex/plugins/cache/tadeumendonca/tadeumendonca-skills/2.0.22"
+t = "".join(c.get("text","") for m in json.load(sys.stdin) for c in m.get("content",[]))
+roots = [l.split("=",1)[1].strip().strip("`") for l in t.splitlines() if re.match(r"^- `r\d+` = ", l)]
+mine  = [r for r in roots if r.startswith(R + "/")]
+print("roots INTO this plugin :", len(mine))
+print("by top-level directory :", sorted(set(r[len(R)+1:].split("/")[0] for r in mine)))
+declared = {p.rstrip("/").split("/")[-1] for p in json.load(open(R+"/.claude-plugin/plugin.json"))["skills"]}
+print("declared / resolved    :", len(declared), "/", len(declared & {r.rsplit("/",1)[1] for r in mine}))
+for sub in ("skills","agents","hooks","commands"):
+    print("path-anchored %-9s:" % sub, t.count(R + "/" + sub + "/"))
+print("hooks/hooks.json       :", t.count("hooks/hooks.json"))'
+# roots INTO this plugin : 15
+# by top-level directory : ['skills']
+# declared / resolved    : 15 / 15
+# path-anchored skills   : 15      <- the in-command positive control
+# path-anchored agents   : 0
+# path-anchored hooks    : 0
+# path-anchored commands : 0
+# hooks/hooks.json       : 0
 ```
 
 **Every zero is calibrated by the 15 beside it**, computed over the same rendered string, so a dead
 selector cannot read as an absence.
 
+**The selector is SHIPPED rather than described, and that was a defect until the merge gate named it.**
+This block first published its figures with the selector summarised in prose — including a *total*
+root count across every installed plugin, which a reader could not re-derive at all. **That is this
+repository's own rule failing in its softest form** — *a measured number ships with the command that
+produced it, inline and runnable, or not at all.* The cross-plugin total is **dropped rather than
+restated**: it counts other vendors' plugins, so it moves whenever anything else is installed or
+removed, and it was never load-bearing. **Only the figures the block above prints are published.**
+
 **A name-based selector gets this wrong, and it got it wrong here first.** Counting the eight persona
 *names* in that same text returns **8 of 8** — because `AGENTS.md` carries a roster table whose cells
-read `` `agents/agents-lead.md` `` and the like. A `permission-guard` count returns **2**, from a list
-in the same brief. A `sprint-planning` count returns **1**, from a *different vendor's* plugin. **All
-three are prose arriving through a file that genuinely loads, and none is evidence of a loader.** That
-is why the published selector is path-anchored and the name-based one is recorded here as the trap.
+read `` `agents/agents-lead.md` `` and the like. `permission-guard` matches a list in the same brief,
+and `sprint-planning` matches a **different vendor's** plugin. **All are prose arriving through a file
+that genuinely loads, and none is evidence of a loader.** **No count is given for those two
+deliberately: they are cwd- and environment-dependent** — a second reader got a different number for
+one of them, and a naive `agents/` count swings **0 → 11** on `AGENTS.md` prose alone depending on
+which directory the command runs in, while the path-anchored selector above returns the same
+`15 / 0 / 0 / 0` from either. **That invariance is the point, and it is why the trap is recorded here
+rather than only its corrected result.**
 
 ### `.mcp.json` is the live one, and the mechanism is DEFAULT DISCOVERY
 
@@ -2320,13 +2382,36 @@ why, in as many words:
 **A declaration is not what put it there; a default is.** That is the sentence to carry: on this
 harness, *not declaring* a component is not the same as *not shipping* it.
 
-### The four locks holding `hooks/` shut — and one of them is weaker than it looks
+### The four locks holding `hooks/` shut — and only ONE of them is established
 
 1. **A feature flag.** `codex features list` → `plugin_hooks  removed  false`, while the harness's
-   **own** hook layer reads `hooks  stable  true`. **A per-build value, not a property.**
+   **own** hook layer reads `hooks  stable  true`. **A per-build value, not a property** — but with the
+   flag off, no plugin hook loads regardless of path, which is why this lock alone establishes the
+   table's `gated` cell.
 2. **The schema path is `./hooks.json`, not `hooks/hooks.json`.** The manifest template in the binary
-   carries `"hooks": "./hooks.json"`, so even with the flag on, this repository's registration file
-   sits at a path the default would not reach.
+   carries `"hooks": "./hooks.json"`, so a plugin that declares nothing gets **that** default.
+   **Whether default discovery ALSO scans `hooks/hooks.json` is not established here, and the evidence
+   cuts against assuming it does not:**
+
+   ```
+   strings -a /Applications/ChatGPT.app/Contents/Resources/codex | grep -a -c -F 'hooks/hooks.json'
+   # -> 1   the literal EXISTS, in the plugin subsystem's own string region
+   strings -a /Applications/ChatGPT.app/Contents/Resources/codex | grep -a -c -F 'zzz-not-a-path.json'
+   # -> 0   calibration: the selector is not dead
+   ```
+
+   and the loader demonstrably reads the analogous **undeclared, Claude-shaped** default `.mcp.json`
+   from the plugin root, carrying its own guard strings for doing so
+   (*"Agent Plugins MCP config resolves outside the plugin root; disabling MCP"*). **Treat lock 2 as
+   *a default exists*, not as *this path is unreachable*.**
+
+   **This clause said the opposite until the gate refused it, and the correction is worth more than the
+   clause.** It inferred an unreachable path from a manifest **template default** — which says what a
+   *generated* plugin declares, never what the *loader scans for*. **That is precisely the distinction
+   this section's own headline finding establishes two headings above**, proved with `.mcp.json`. Locks
+   3 and 4 were hedged for exactly this reason and lock 2 was not, **and lock 2 was the one carrying the
+   safety weight.** A reader was told two independent locks held the floor shut when one was solid and
+   one was unproven.
 3. **A trust step exists.** The binary carries `trust_materialized_plugin_hooks` and
    `hook_trusted_hash_edit` — a hash-trust mechanism for plugin hooks. **Read from symbol names, not
    from behaviour**, so treat it as *a mechanism exists* and not as *it would stop anything*.
@@ -2348,9 +2433,12 @@ harness, *not declaring* a component is not the same as *not shipping* it.
    constrain an *ingested* one.** The spec asserts the two schemas match — *"the validator mirrors the
    workspace plugin ingestion schema"* — and that is a vendor claim, not a measurement.
 
-**Locks 1 and 2 are the load-bearing pair.** Both would have to change together, and **nothing in this
-repository observes either.** No gate can run `codex features list`, and building one would be a check
-on a machine CI does not have.
+**Lock 1 — the feature flag — is the load-bearing lock; 2, 3 and 4 are each unestablished in the
+direction that would matter.** ~~Locks 1 and 2 are the load-bearing pair. Both would have to change
+together~~ — **struck: lock 2 was never established, so there was never a pair, and the struck sentence
+is the one that told a reader two things held the floor shut.** What actually holds it is **one
+vendor-side flag**, and **nothing in this repository observes it.** No gate can run
+`codex features list`, and building one would be a check on a machine CI does not have.
 
 ### What this does NOT establish
 

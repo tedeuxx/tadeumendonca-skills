@@ -582,8 +582,13 @@ which is what the evidence actually supports.
 **Bad, and the first one is structural.** **Nothing in this repository observes any consumer's
 activated surface**, and nothing can: a gate here cannot run another vendor's CLI, and a plugin cannot
 see what a loader chose to enable. **The table's expiry mechanism is a person re-running six
-commands.** Both locks holding `hooks/` shut are the vendor's — a feature flag and a default path —
-and a build can flip either silently. **Eight persona briefs and thirty-four hook files sit inert in
+commands.** **What holds `hooks/` shut is ONE established lock — the vendor's feature flag — and a
+build can flip it silently.** The other three candidates are each unestablished in the direction that
+would matter, and the second of them was asserted as a lock in the first authoring of this amendment:
+it inferred an unreachable path from a manifest **template default**, which says what a *generated*
+plugin declares and never what the *loader scans for*. **That is this amendment's own §2 finding
+applied against itself**, refused at the merge gate, and it is recorded here rather than quietly
+corrected because *the analogy that disproves it is the one this record exists to establish.* **Eight persona briefs and thirty-four hook files sit inert in
 that install cache**, which is #287's own named failure shape (*a copied-but-never-read directory
 reads as installed*) arriving through a door this repository cannot close: unlike the Kiro export,
 this is not a shipping decision available here, because that installer excludes nothing —
