@@ -34,8 +34,8 @@ copy nothing, so the steps above can appear to work and leave you with an empty 
 **Ships:** the skills — 15 dense, project-agnostic engineering guides.
 
 **Does not ship:** the harness's persona briefs (`agents/`), its `PreToolUse` permission hooks
-(`hooks/`) or its merge gates. **This export carries the knowledge layer and not the enforcement layer
-BY CHOICE**, which is a fact about this package and needs no reading of anybody else's installer: the
+(`hooks/`), its **typed commands (`commands/`)** or its merge gates. **This export carries the
+knowledge layer and not the enforcement layer BY CHOICE**, which is a fact about this package and needs no reading of anybody else's installer: the
 enforcement layer is Claude-Code-shaped — `hooks.json`, `PreToolUse` matchers, `agent_type` — and
 porting it to another harness is work nobody has done, not a file anybody forgot to copy.
 
@@ -49,6 +49,20 @@ bundle built 2026-08-18):
 - **Activation — no.** The loader's filename constants are exactly `plugin.json`, `mcp.json`,
   `skills`/`SKILL.md` and `dev.kiro`. Nothing walks `agents/`, `hooks/` or `commands/`, and
   `~/.kiro/powers/` is never scanned for a persona or a hook.
+
+**`commands/` was absent from that list until 2026-09-10, and its absence was this section's own named
+failure shape arriving through the door this section exists to close** — silence reading as present.
+The skills below cite a typed command **34** times by identifier and a `commands/*.md` path **10**
+times more; every one of those citations is correct for a Claude Code reader and resolves to nothing
+inside this package. Re-derive both from the package root rather than trusting the digits, with
+`grep -rhoE '/(autonomy|blueprint|new-issue|sprint-planning|sprint-retrospective|sprint-review)' skills | wc -l`
+and `grep -rhoE 'commands/[a-z-]+\.md' skills | wc -l`, calibrated against
+`grep -rhoF /devops skills | wc -l` — a name that DOES resolve here, so a zero from the first two would
+be a real zero and not a dead pattern. **The citations are deliberately not swept out of the skill
+bodies:** they are right for the majority reader, and thinning fifteen skills for a minority target
+would spend content to buy a silence. **And nothing gates any of this** — the regeneration diff
+compares this file against the generator that wrote it, so both sides move together by construction,
+and no check anywhere counts a citation or asks whether a cited directory ships.
 
 **Keep those two words apart, because the gap between them is why omitting the enforcement layer is a
 reason and not only a preference.** A directory that is copied but never read sits next to skills that
