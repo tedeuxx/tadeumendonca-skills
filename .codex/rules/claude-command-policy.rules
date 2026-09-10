@@ -67,6 +67,8 @@ prefix_rule(pattern=["bash", "hooks/scripts/session-wip.test.sh"], decision="all
 prefix_rule(pattern=["bash", "hooks/scripts/skills-resolve.test.sh"], decision="allow")
 prefix_rule(pattern=["bash", "hooks/scripts/zombie-loop-detect.sh"], decision="allow")
 prefix_rule(pattern=["bash", "hooks/scripts/zombie-loop-detect.test.sh"], decision="allow")
+prefix_rule(pattern=["bash", "hooks/scripts/worktree-notice.sh"], decision="allow")
+prefix_rule(pattern=["bash", "hooks/scripts/worktree-notice.test.sh"], decision="allow")
 prefix_rule(pattern=["bump-my-version"], decision="allow")
 prefix_rule(pattern=["cat"], decision="allow")
 prefix_rule(pattern=["chmod"], decision="allow")
