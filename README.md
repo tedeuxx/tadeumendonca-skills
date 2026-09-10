@@ -2474,6 +2474,219 @@ files sit in that cache and nothing reads them. **Unlike the Kiro export, this i
 decision this repository can take** — it does not control that installer, and that installer excludes
 nothing.
 
+## The MCP grid — one declared server, three distribution targets, and a fourth kind of "no"
+
+<!-- claim id=0007 class=MEASURED -->
+
+**The section above measured one harness element by element. This one measures one ELEMENT across
+every harness**, and it exists because the Codex finding — *not declaring a component is not not
+shipping it* — is a statement about a **class** of consumer, and nobody had checked the class.
+
+**The grid is a product of two enumerated sets, and neither is typed into this page.** Set A is the
+servers this repository declares; set B is the distribution targets ADR-0005 owns. Both are derived
+below, so a server added or a target recorded cannot silently leave this table stale — it makes the
+denominator disagree with the command printed beside it.
+
+### The two denominators, derived at `main` `eb2d63ce`, 2026-09-10
+
+```
+git show eb2d63ce:.mcp.json | python3 -c "import json,sys;print(len(json.load(sys.stdin)['mcpServers']))"
+# -> 1                                   set A: chrome-devtools, and nothing else
+git grep -l -F 'mcpServers' eb2d63ce -- ':!README.md' ':!docs' ':!*.test.sh'
+# -> eb2d63ce:.mcp.json                  one file; the manifest declares no mcpServers key at all
+
+git show eb2d63ce:docs/adr/0005-plugin-auto-versions-on-merge.md | grep -cE '^## Amendment .* distribution target'
+# -> 2                                   the SECOND and THIRD targets, one amendment each
+git show eb2d63ce:docs/adr/0005-plugin-auto-versions-on-merge.md | grep -cE '^## Amendment'
+# -> 5                                   calibration: the selector is discriminating, not matching everything
+```
+
+**Set B is 2 amendments plus the record's own first target, so three.** The selector is deliberately
+structural — an amendment **heading** — rather than a prose phrase, because the phrase this Issue was
+filed against (*"Distribution targets are three — Claude Code, Kiro, Codex"*) lives in **this README**
+and not in ADR-0005 at all. Attributing it to the record would have made the enumeration cite the wrong
+owner; the headings are what the record actually carries.
+
+### The grid — transported · resolved · active, kept as three words
+
+| server × target | transported | resolved | active | the kind of "no" |
+|---|---|---|---|---|
+| `chrome-devtools` × **Claude Code** | **yes** — in the installed plugin cache | **yes** — as a *plugin* MCP source, keyed `plugin:<plugin>:<server>` | **YES** — connected | — |
+| `chrome-devtools` × **Kiro** | **NO** — the package root is `powers/tadeumendonca-skills/`, and `.mcp.json` is outside it | **n/a** — and the spelling would miss anyway | **no** | **not transported** — a FOURTH kind |
+| `chrome-devtools` × **Codex** | **yes** — `sparse_paths: []` | **yes** — `plugin_mcp_config_paths` | **YES** — `enabled: true`, this repository's exact argv | — |
+
+**The last column is why this is a grid and not a yes/no.** `#287` gave this repository *transport*
+and *activation*; `#433` split the negative into **gated**, **absent** and **migratory**. Kiro's MCP
+cell is none of those three: the loader exists, is switched on, and would read the file — **the file
+simply never arrives.** That is the one kind of "no" the earlier vocabulary could not express, and it
+is the only one this repository can change by itself.
+
+### Claude Code — and the measurement is cwd-dependent, which is the finding
+
+**Measured 2026-09-10, `claude` `2.1.267`.** The server resolves from the **installed plugin**, not
+from this repository's own project file — but you cannot see that from this repository's root, because
+the project-scoped entry **shadows** the plugin-scoped one. The identical selector, two directories:
+
+```
+# from the repository root
+claude --plugin-dir <probe> mcp list | grep -c -F 'plugin:tadeumendonca-skills:chrome-devtools'
+# -> 0
+# from a directory holding no .mcp.json
+cd <neutral-dir> && claude --plugin-dir <probe> mcp list | grep -c -F 'plugin:tadeumendonca-skills:chrome-devtools'
+# -> 1        <- calibration: the same selector returns non-zero, so the 0 above is shadowing, not a dead pattern
+```
+
+From the neutral directory the entry reads
+`plugin:tadeumendonca-skills:chrome-devtools: npx … - ✔ Connected`. **So the server travels to every
+consumer that installs this plugin, and measuring it from here reports the opposite source.**
+
+**It is SHADOWING by name, not plugin MCP being switched off — and the probe below is what separates
+the two.** From the repository root the probe's own `plugin:mcpprobe:zzprobeserver` still appears while
+`plugin:tadeumendonca-skills:chrome-devtools` does not, so plugin-sourced servers are being loaded and
+exactly the one whose name collides with a project entry is the one that disappears. Without that
+control the `0` above would equally support *"a project `.mcp.json` disables plugin MCP wholesale"*,
+which is a different and much larger claim.
+
+**The mechanism is confirmed against a probe rather than inferred**, because a plugin that also happens
+to be a project cannot distinguish the two by itself. A throwaway plugin declaring **no** `mcpServers`
+key in its manifest and carrying one server in a root `.mcp.json`:
+
+```
+claude --plugin-dir <probe> mcp list | grep -F 'zzprobeserver'
+# -> plugin:mcpprobe:zzprobeserver: /bin/cat  - ✘ Failed to connect — -32601: Method not found
+```
+
+**The failure to connect is the positive result**, not a problem: `/bin/cat` speaks no MCP, so a
+connection error proves the host **launched** it — resolution *and* activation, from a plugin-root
+`.mcp.json`, with nothing declaring it. The vendor's own enumeration says the same in words, and it
+lists the dotted spelling explicitly:
+
+```
+strings -a <claude-binary> | grep -a -F 'has no plugin content at its root'
+# -> … (expected .claude-plugin/ or a commands/, skills/, agents/, hooks/, themes/, output-styles/,
+#       monitors/, workflows/, SKILL.md, .mcp.json, or .lsp.json at the top level …)
+```
+
+### Kiro — both halves of the open question, answered
+
+**Measured 2026-09-10 against Kiro `1.0.437` (`quality: stable`, bundle dated `2026-09-01`).** Note
+that the Kiro section above was measured at `1.0.337`; this is a different build and the figures below
+were re-read rather than carried.
+
+**Half one — the package carries no MCP file**, re-derived at the pinned ref rather than in a working
+tree:
+
+```
+cd <pinned eb2d63ce> && find powers/tadeumendonca-skills -iname '*mcp*' | wc -l
+# -> 0
+cd <pinned eb2d63ce> && find powers/tadeumendonca-skills -name 'SKILL.md' | wc -l
+# -> 15       <- calibration: the same find, a live predicate
+```
+
+**Half two — the loader's constant is `mcp.json`, and the dotted spelling occurs nowhere.** Count
+**occurrences**, not lines: this bundle is 19,367 lines of minified JavaScript, so a `grep -c` over it
+answers a different question than most readers assume.
+
+```
+grep -a -o -F 'mcp.json'  <kiro-bundle> | wc -l     # -> 92   occurrences, across 30 lines
+grep -a -o -F '.mcp.json' <kiro-bundle> | wc -l     # -> 0    the dotted spelling, calibrated by the 92
+```
+
+**And the file WOULD be reached if the package carried one, under the undotted name.** Three
+independent paths in the same bundle, quoted rather than summarised:
+
+```
+grep -a -o -E 'Reading mcp\.json from installed power at: .{0,60}' <kiro-bundle>
+# -> Reading mcp.json from installed power at: ${e}`);let d=Inn.join(e,"mcp.json")
+grep -a -o -E 'jpp=\[[^]]*\],qpp=\[[^]]*\]' <kiro-bundle>
+# -> jpp=["POWER.md","mcp.json"],qpp=["steering"]
+grep -a -o -E 'LPr="mcp\.json"' <kiro-bundle>
+# -> LPr="mcp.json"
+```
+
+**So the Kiro cell is a double miss and only one of the two is about spelling.** The package boundary
+misses first — `powers/tadeumendonca-skills/` is a generated subtree and the repository-root
+`.mcp.json` is outside it, so the installer's `${pathInRepo}/mcp.json` fetch has nothing to fetch — and
+the dotted name would miss second even if the boundary did not. **Either one alone is sufficient**,
+which is worth stating because fixing one of them would change nothing.
+
+### Codex — re-derived, not carried
+
+**Measured 2026-09-10 on `26.825.51511` / `codex-cli 0.151.0-alpha.7.2`.** The installed cache is
+`2.0.22` while the pinned ref is `2.0.26`; the file measured is **byte-identical** across that skew,
+which is what licenses reading the older install for this claim and nothing wider:
+
+```
+diff ~/.codex/plugins/cache/tadeumendonca/tadeumendonca-skills/2.0.22/.mcp.json <pinned>/.mcp.json
+# -> (no output)
+```
+
+```
+python3 -c "import json;print(json.load(open('<cache>/.codex-marketplace-install.json'))['sparse_paths'])"
+# -> []                                    transport: the installer excludes nothing
+grep -a -o -E 'plugin_mcp_config_paths|plugin_skill_roots' <codex-binary> | sort | uniq -c
+# -> 1 plugin_mcp_config_paths / 2 plugin_skill_roots      resolution, with skills as the control
+cd <neutral-dir> && <codex> mcp list --json
+# -> 17 servers; chrome-devtools enabled: true, with this repository's exact argv
+#    calibration: two entries in the SAME listing read enabled: false, so the true is a real true
+grep -c -i 'chrome-devtools' ~/.codex/config.toml    # -> 0
+grep -c -i 'aws-api'         ~/.codex/config.toml    # -> 3   <- calibration
+```
+
+**Absent from the user configuration, present and enabled in the effective set — so the source is the
+installed plugin**, which is the same conclusion the section above reached and is re-derived here
+rather than cited.
+
+**One difference between the two live cells, recorded without a conclusion.** Claude Code namespaces a
+plugin server (`plugin:<plugin>:<server>`); Codex admits it to the **flat** name space alongside the
+user's own sixteen. And Codex's listing shows the `allowedUrlPattern` argument **unexpanded**, as the
+literal `${HARNESS_SWEEP_ORIGIN:-…}`. **Whether that host expands it at launch is NOT measured** — a
+listing reports configured argv, not process argv — so read this as an observation about two listings
+and not as a claim about either host's behaviour.
+
+### What this does NOT establish
+
+- **Nothing about what the server can DO on any host.** Every cell answers *does it resolve and start*.
+  Whether a tool from it is reachable by a given agent, and under what scoping, is a different question
+  and is deliberately not answered here.
+- **Nothing about Kiro from a live install.** `~/.kiro/powers/installed.json` carries
+  `"installedPowers": []` on this machine, so both Kiro rows are read from a shipped bundle and a
+  generated directory, and **no Power has ever been installed here.** A live install could disagree.
+- **Nothing about any other build, and the skews are named rather than smoothed.** Three hosts, three
+  build stamps, one machine, one day. The Claude Code and Codex figures come from installs at `2.0.22`
+  while the ref is `2.0.26`; the file they resolve is identical across that gap and nothing else about
+  the skew was checked.
+- **Nothing a gate can hold.** No arm in this tree can observe a foreign consumer's activated surface,
+  and none is proposed. The registry entry for this claim states the same limit; **a green here means
+  the section is dated and carries a fence, never that a row is still true.**
+- **No position on whether any cell OUGHT to read the way it does.** This section measures. What should
+  be declared, and where, is not decided here.
+
+### A fourth distribution target would be a new CELL, and two candidates are refused by name
+
+**Set B grows only through an ADR-0005 amendment**, which is what makes this grid re-derivable instead
+of a list somebody maintains. Two things on this machine look like fourth targets and are not:
+
+- **`.codex/rules/`** — a *tracked file in this repository*, read by a harness directly from the
+  checkout rather than from an installed artifact. It is a different object, measured under its own
+  Issue, and it distributes nothing.
+- **Any harness that merely reads `AGENTS.md`.** A brief consumer is not a distribution target; the
+  artifact it reads is not this plugin.
+
+**And no third harness holds this plugin on this machine**, which is the enumeration behind that
+refusal rather than an assertion:
+
+```
+find ~ -maxdepth 6 -name 'tadeumendonca-skills' -not -path '*/git-reps/*' -not -path '*/.Trash/*' \
+  | sed 's|.*/Users/[^/]*/||' | awk -F/ '{print $1}' | sort | uniq -c
+# -> 2 .claude
+# -> 2 .codex
+```
+
+**The depth is part of the selector, not tidiness.** The same command at `-maxdepth 4` returns
+**nothing at all** — the caches sit at depth 5 — and that empty result reads exactly like *"no other
+harness has it"*, which is the failure mode this whole section is written against.
+
 ## What travels if this design moves to another harness
 
 <!-- claim id=0002 class=VERIFIED -->
