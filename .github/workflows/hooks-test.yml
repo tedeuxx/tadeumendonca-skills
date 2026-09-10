@@ -168,6 +168,21 @@ jobs:
       - name: Run the cadence-notice suite
         run: bash hooks/scripts/cadence-notice.test.sh
 
+      # THE WORKTREE NOTICE IS ON THIS LIST FROM THE SLICE THAT CREATED IT, and the reason is the
+      # `dispatch-premise-guard` note immediately below: a hook whose suite lands in a later slice is
+      # a gate that reads as installed and runs nowhere.
+      #
+      # What it actually gates is not the report's prose — it is that the hook's classification and
+      # `git worktree remove`'s real behaviour still agree. Two of the suite's cases assert facts
+      # about GIT rather than about the script (an untracked file blocks a removal, an ignored file
+      # does not), and one of them runs the very command the hook recommended and requires it to
+      # SUCCEED. If a future git changes either, this goes red here rather than by someone losing a
+      # directory. The suite needs no network and no token — it builds real temporary worktrees and
+      # puts a RECORDER on PATH in place of `gh`, so "makes no tracker call" is read off a file that
+      # can be non-empty rather than off a binary that was removed.
+      - name: Run the worktree-notice suite
+        run: bash hooks/scripts/worktree-notice.test.sh
+
       # The `dispatch-premise-guard` step was removed 2026-09-04 (#383) with the hook and its suite.
       # Its comment argued that adding a hook and its CI step in different slices is how a gate ends up
       # installed-looking and inert; the converse is recorded here — removing a hook and leaving its
