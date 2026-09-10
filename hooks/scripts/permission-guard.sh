@@ -1995,8 +1995,75 @@ fi
 #    majority. It is not a floor change: every rule in this file matches a SUBSTRING of `$bare`
 #    (`(^|[^[:alnum:]_])rm…`, `(^|[^[:alnum:]_])gh…`), so prefixing a denied act with a harmless
 #    command does not walk past it — `echo x && gh pr merge 1` still meets rule 7b.
-if printf '%s' "$bare" | grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*='; then
-  deny "Blocked: env-var prefix (VAR=x cmd) hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
+#
+#    ── THE ENV-VAR BRANCH WAS ANCHORED AT STRING START AND IS WIDENED TO COMMAND POSITION (#438). ──
+#
+#    The predicate below read `^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=` against `$bare`, and `^` was the
+#    whole of it. Any statement in front of the assignment moved it off column zero and the branch
+#    stopped matching, so the rule caught the honest spelling and only the honest spelling:
+#
+#      C=/usr/bin/git; "$C" status                    -> DENIED by this branch
+#      export PATH="$PATH"; C=/usr/bin/git; "$C" …    -> ABSTAINED (the guard declined to decide)
+#      export PATH="$PATH"; git push origin main      -> DENIED by rule 7 (the calibration: the
+#                                                        identical prefix does not defeat the guard
+#                                                        generally, so the gap was rule-8-specific)
+#
+#    #438 LEFT THE DIRECTION OPEN — widen, narrow, or delete — ON ONE UNMEASURED PREMISE: whether the
+#    runtime stops the POST-STATEMENT form at all. If it does not, widening would put this hook above
+#    the layer beneath it, which this file's own governing test forbids (see 8b: fire on a SUBSET of
+#    what the runtime stops for, never on more). IT WAS MEASURED, and the answer is that it does.
+#
+#    Nested session, this guard MINUS this branch, loaded with `claude --plugin-dir` (the #182/#286
+#    probe-plugin method), the installed plugin disabled via `--settings`, build 2.1.267 — NOT the
+#    2.1.261 the rows above were taken on. Every verdict confirmed on disk or in the tool result:
+#
+#      wc -l <f>                          allowlisted   -> EXECUTED
+#      FOO=1 wc -l <f>                    same command  -> "This command requires approval"
+#      true; FOO=1 wc -l <f>              POST-STATEMENT-> "This Bash command contains multiple
+#                                                          operations. The following part requires
+#                                                          approval: FOO=1 wc -l <f>"
+#      true; export FOO=1; BAR=2 touch <f>              -> TWO parts require approval; file absent
+#      true; touch <f>                    calibration   -> EXECUTED (the leading statement alone is
+#                                                          harmless; the prefix is what stops it)
+#
+#    THE RUNTIME DECOMPOSES, AND IT NAMES THE ENV-PREFIXED ELEMENT IN NON-LEADING POSITION. So this
+#    branch's premise was observed for the leading and post-statement probes. These finite results
+#    support widening to those forms; they do not prove a runtime subset for every shell spelling.
+#
+#    ONE CLAIM IN #438's BODY WAS NOT REPRODUCED BY THE SAME RIG, recorded here because it argued for
+#    deletion: it read "it fires on MORE where spelled honestly and LESS where it is not", which would
+#    require a case where this branch denies and the runtime would have allowed. Four were sought and
+#    none was found — an env-var prefix defeated the allow entry (`FOO=1 wc -l`), the working-directory
+#    sandbox (`FOO=1 touch <in-cwd>`, `FOO=1 mkdir <in-cwd>`) and the sandbox's auto-approval of an
+#    UNLISTED command (`cp <in-cwd> <in-cwd>` EXECUTED; `FOO=1 cp` the same paths, BLOCKED). The branch
+#    did not over-block those probes. That does not falsify the existence of an untested counterexample.
+#
+#    WHY COMMAND POSITION AND NOT "ANYWHERE". An assignment token is only an env prefix where a command
+#    could start: string start, or after `;`, `&`, `|` or `(`. Matching anywhere would fire on ordinary
+#    arguments that carry an `=` — `terraform plan -var foo=bar`, `docker run -e FOO=1`, `make FOO=1
+#    target`, `awk -F= …` — none of which is a prefix. That
+#    would be the over-block this rule's class must never be. The original leading check uses `$bare`
+#    with quoted spans collapsed; the added check below recognizes the original string instead.
+#
+#    WHAT IS STILL NOT COVERED, NAMED RATHER THAN IMPLIED AWAY. An assignment reachable only through a
+#    separator this pattern does not carry — a `case` arm's `)`, a `then`/`do`/`else` keyword — is an
+#    ABSTENTION, not a claim. This file does not parse shell; where it cannot tell, the runtime decides,
+#    which is the outcome that is correct either way.
+#    #438 review: punctuation is also present in comments, heredocs, expansions and patterns. The
+#    added check therefore recognizes ONLY a complete, simple composition in the ORIGINAL command:
+#    ASCII words, blanks, simple subshells and the listed separators. No quotes, escapes, expansions,
+#    redirects, glob syntax or newlines enter this language. Bash =~ anchors the entire string;
+#    grep's line-wise ^...$ would wrongly accept a simple line INSIDE a heredoc. This is deliberately
+#    narrower than shell: even a real prefix after a quoted/escaped word abstains in the extension.
+#    The original leading predicate remains independent, and no other rule uses this recognition.
+env_prefix_word='[-A-Za-z0-9_./,:=+%]+'
+env_prefix_simple="$env_prefix_word([[:blank:]]+$env_prefix_word)*"
+env_prefix_element="($env_prefix_simple|\([[:blank:]]*$env_prefix_simple[[:blank:]]*\))"
+env_prefix_sequence="^[[:blank:]]*$env_prefix_element([[:blank:]]*(;|&&|\|\||\||&)[[:blank:]]*$env_prefix_element)*[[:blank:]]*;?[[:blank:]]*$"
+if printf '%s' "$bare" | grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=' ||
+   { [[ "$command" =~ $env_prefix_sequence ]] &&
+     printf '%s' "$command" | grep -Eq '[;&|(][[:space:]]*[A-Za-z_][A-Za-z0-9_]*='; }; then
+  deny "Blocked: env-var prefix (VAR=x cmd) at a leading position or in a recognized simple composition hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
 fi
 
 # 8b. Shell output redirection (`>` / `>>`) to create or overwrite a file. THIS IS A DIFFERENT ROOT

@@ -5262,3 +5262,374 @@ Arm: *alters a previously-recorded decision* — the 2026-08-30 amendment that b
 and the 2026-09-04 amendment's second fact loses a leg — and *sets a cross-cutting pattern others will
 follow*: **a removal justified partly by a sibling control must be re-priced when the sibling is
 audited, and the justification a rule ships with is a claim that ages like any other.**
+
+
+## Amendment (2026-09-10) — rule 8's env-var branch was anchored at string start, and the premise that decides widen-versus-delete is measured for the first time (#438)
+
+**Deciders:** the owner (decision), written by `agents-lead` (pre-implementation stress test and build
+by the same lens, per record 0015's Corollary 1).
+
+### Context
+
+The 2026-09-05 amendment above audited rule 8's three branches and kept two, the env-var prefix among
+them, *"on the measurement"*. **It ruled on the branch's PREMISE and never tested whether the branch
+IMPLEMENTS it.** #438 found that it does not, and filed the finding with no direction pre-decided —
+widen, narrow, or delete were each stated with the objection each had to clear.
+
+The predicate was `^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=` against `$bare`, and `^` was the whole of it.
+Any statement in front of the assignment moved it off column zero and the branch stopped matching:
+
+```
+C=/usr/bin/git; "$C" status                 -> DENIED
+export PATH="$PATH"; C=/usr/bin/git; "$C" … -> ABSTAINED
+export PATH="$PATH"; git push origin main   -> DENIED by rule 7  (the calibration — the identical
+                                               prefix does not defeat the guard generally, so the
+                                               gap was rule-8-specific rather than a property of it)
+```
+
+**#438 named ONE unmeasured premise as the thing that decides between widening and deleting:** whether
+the runtime stops the POST-STATEMENT form at all. If it does not, widening puts the hook above the
+layer beneath it, which the 2026-09-05 amendment's own governing test forbids — *fire on a subset of
+what the runtime stops for, never on more*.
+
+### The measurement
+
+Nested session carrying this guard **minus** the env-var branch, loaded with `claude --plugin-dir`
+(the #182/#286 probe-plugin method), the installed plugin disabled through `--settings`, **build
+2.1.267 — not the 2.1.261 the 2026-09-05 rows were taken on.** Every verdict confirmed on disk or in
+the tool result rather than taken from the nested model's report:
+
+```
+wc -l <f>                            allowlisted    -> EXECUTED
+FOO=1 wc -l <f>                      same command   -> "This command requires approval"
+true; FOO=1 wc -l <f>                POST-STATEMENT -> "This Bash command contains multiple
+                                                       operations. The following part requires
+                                                       approval: FOO=1 wc -l <f>"
+true; export FOO=1; BAR=2 touch <f>                 -> TWO parts require approval; file absent
+true; touch <f>                      calibration    -> EXECUTED
+```
+
+**The runtime decomposes, and it NAMES the env-prefixed element in non-leading position.** The
+calibration row is what makes the rest evidence: the leading statement alone is harmless, so the
+prefix is the variable.
+
+~~**A second claim of #438's is falsified by the same rig**~~, and it is recorded because it was the
+argument for deletion: the body read *"it fires on MORE where spelled honestly and LESS where it is
+not"*, which needs a case where the branch denies and the runtime would have allowed. Four routes to
+one were tried and none produced it — the prefix defeated an allow entry (`FOO=1 wc -l`), the
+working-directory sandbox (`FOO=1 touch <in-cwd>`, `FOO=1 mkdir <in-cwd>`) and the sandbox's
+auto-approval of an **unlisted** command (`cp <in-cwd> <in-cwd>` executed; `FOO=1 cp`, the same
+paths, blocked). ~~**The branch fires on a strict subset in both its old form and its new one.** Only
+the *"less where it is not spelled honestly"* half was true.~~
+
+**Struck during #438 review:** no counterexample in finite probes does not falsify an existential
+claim or prove a universal subset. Those runtime results support the tested spellings only.
+
+### The decision
+
+~~**WIDEN, to COMMAND POSITION** — string start, or after `;`, `&`, `|` or `(`:~~
+
+**The first implementation, corrected by the review amendment below:**
+
+```
+(^|[;&|(])[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=
+```
+
+**Not "assignment anywhere", and the difference is not cosmetic.** An assignment token is an env
+prefix only where a command could start. Matching anywhere fires on ordinary arguments carrying an
+`=` — `terraform plan -var foo=bar`, `make FOO=1 target`, `npx playwright test --grep=smoke`, `gh pr
+view 1 --repo=o/r` — none of which is a prefix. That mutation was run against the suite and reddened
+six arms, ~~**two of them pre-existing**~~ — **THREE. Corrected 2026-09-10 during review, and struck
+rather than edited because a reviewer acted on the wrong figure.**
+
+**It is three, and it ships with the command this time.** *Pre-existing* is derived mechanically
+rather than read off a list: an arm is pre-existing if it is red at the **merge-base**, where none of
+#438's own arms exist yet. Extract the merge-base guard and suite, swap the predicate for the naive
+form, run:
+
+```
+BASE=$(git merge-base origin/main HEAD)        # 169461f3
+git show $BASE:hooks/scripts/permission-guard.sh      > <tmp>/permission-guard.sh
+git show $BASE:hooks/scripts/permission-guard.test.sh > <tmp>/permission-guard.test.sh
+# in <tmp>/permission-guard.sh replace
+#   grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*='
+# with the naive form
+#   grep -Eq '[A-Za-z_][A-Za-z0-9_]*='
+bash <tmp>/permission-guard.test.sh
+```
+
+```
+CONTROL (merge-base, unmutated)              -> 428 passed, 0 failed
+naive, spelling 1  '[A-Za-z_][A-Za-z0-9_]*=' -> 425 passed, 3 failed
+naive, spelling 2  with '[[:space:]]*'       -> 425 passed, 3 failed
+    --repo= attached
+    reviewer, --repo= attached
+    terraform plan
+RESTORED                                     -> 428 passed, 0 failed
+```
+
+**Both spellings of the naive form give the same three**, and the control-and-restore pair is what
+makes the 3 a measurement rather than a reading.
+
+**And it could not have been two, which is the part worth keeping.** Only **three** of #438's five new
+ALLOW arms can redden under the naive form at all — `git status; git diff` carries no `=`, and
+`git commit -m 'x=1'` is collapsed by `$bare` before any predicate sees it. So six total minus three
+new is three pre-existing, by arithmetic, with no run required.
+
+**The cause of the error, since it is a defect class rather than a slip:** the six-line red list was
+read and `--repo= attached` and `reviewer, --repo= attached` were counted as one, because they exercise
+the **same command spelling** under two different `agent_type` values. **Spellings were counted and
+*arms* were written.** The sentence then shipped **without the command that produced it** — into the
+floor's own record, as the falsifier for a rejected option — which is the one place this repository's
+own rule about publishing a number with its command is least survivable.
+
+~~**Quoted spans need no handling:** `$bare` has already collapsed them, which keeps `git commit -m
+"x=1"` out of reach.~~ **Struck 2026-09-10 — true of the ORIGINAL LEADING predicate, and false of the
+extension that shipped.** The extension reads `$command`, the raw string, where quoted spans are
+*intact*; it handles them by abstaining on any string that contains one. Same outcome for
+`git commit -m "x=1"`, opposite mechanism, and the mechanism is what a later reader would have
+reimplemented from this sentence. See the second review correction at the end of this amendment.
+
+### Considered and rejected
+
+- **NARROW (keep the anchor).** It is the status quo, and it means the rule taxes the agent that
+  spells the command plainly while letting the same act through when it is spelled around. **A rule
+  whose incidence depends on the author's phrasing rather than on the act is not a rule about the
+  act.**
+- **DELETE the branch, as slice S2 deleted the chain branch.** Rejected on the measurement, and the
+  precedent does not transfer: the chain branch went because its premise was **false** — a chain of
+  allowlisted elements executed with no prompt — while this branch's premise is **true and was
+  incompletely implemented**. Deleting it would trade an actionable instruction for a stop the agent
+  cannot act on: in a dispatched subagent the runtime's refusal reads *"This command requires
+  approval"* and names no remedy, where the deny names one.
+- **Leave the branch and fix only the MESSAGE** (#438's fourth, unpriced option). Rejected: it makes
+  the rule honest about being phrase-dependent instead of making it independent of phrasing, at the
+  same review cost.
+
+### What this does NOT claim
+
+It does not claim the guard now catches every env prefix. An assignment reachable only through a
+separator the pattern does not carry — a `case` arm's `)`, a `then`/`do`/`else` keyword — is an
+**abstention**, not a claim; this file does not parse shell, and where it cannot tell the runtime
+decides, which is correct either way. It does not claim the branch holds anything irreversible: **rule
+8's object is FRICTION**, the act it refuses is already stopped by the runtime, and no option here
+touched the floor. And the build number is part of the claim — 2.1.267, one machine, and a vendor who
+changes the decomposition silently invalidates the widening's justification while every arm stays
+green.
+
+### One question #438 left open is answered here, because it was one command
+
+*"Whether any other rule in the file is anchored the same way. Not swept."* ~~It is swept: **no other
+predicate in `permission-guard.sh` is anchored at string start.** Every other one uses the
+position-tolerant `(^|[^[:alnum:]_])` form or no anchor at all —
+`grep -nE "grep -Eq '\^" hooks/scripts/permission-guard.sh` returns nothing, against a denominator of
+**16** predicates in the file (`grep -cE "grep -Eq '" …`), so the zero is a real zero rather than a
+dead pattern.~~
+
+**Struck during #438 review:** this grep selects one textual spelling, not every predicate, and the
+corrected implementation again contains the original anchored check. It is not an exhaustive audit.
+
+### Significance
+
+Arm: *alters a previously-recorded decision* — the 2026-09-05 amendment kept this branch on a premise
+it did not test the implementation against — and *sets a cross-cutting pattern others will follow*:
+**auditing whether a rule's PREMISE holds is a different act from auditing whether the rule IMPLEMENTS
+it, and an audit that does the first while sounding like it did both leaves the defect in place with a
+record saying it was examined.**
+
+### Review correction (2026-09-10) — punctuation is not command position
+
+The independent gate at `0eb0b30cb2eab17ea4cdb84b63fcd837a0c09bcb` reproduced newly denied
+non-prefix forms: `echo foo\;BAR=1` (one argument) and `((FOO=1))` (Bash arithmetic). The guard
+misclassification was measured; ~~**Claude runtime over-blocking on those forms was not measured**~~.
+
+**STRUCK 2026-09-10 — IT IS MEASURED NOW, and the two forms come back on OPPOSITE sides**, which is
+why they must not be repaired as one class. Same rig as the widening's own: a probe plugin carrying
+this guard **minus** the whole rule-8 env-var block, the installed plugin disabled through
+`--settings`, build `2.1.267`, each verdict read from the tool result:
+
+```
+echo hello                     control       -> EXECUTED, printed "hello"
+echo foo\;BAR=1                ESCAPED       -> EXECUTED, printed "foo;BAR=1"
+echo foo;BAR=1 wc -l <f>       UNESCAPED     -> "…The following part requires approval:
+                                                 BAR=1 wc -l <f>"
+((FOO=1))                      ARITHMETIC    -> "Contains compound_statement"
+(wc -l <f>)                    PAREN CALIB   -> "This command uses shell operators that require
+                                                 approval for safety"
+```
+
+**So the escaped form WAS a genuine over-block** — the runtime runs it, the pre-repair guard denied
+it, and that is the one thing this rule's class may never do. **The arithmetic form was NOT**: the
+runtime stops `((FOO=1))` on its own, so denying it was a *misattributed message* and abstaining on it
+is a **subset**, never a hole. The control row is what makes the escaped row evidence rather than an
+absence, and the paren row is why the `(` position is a subset independently of any assignment: the
+runtime stops a plain subshell too.
+
+~~The WIDEN direction remains. The original leading predicate is retained unchanged. Only the added
+post-separator check consumes backslash-plus-character pairs into an inert non-name character, so an
+odd run escapes the following separator and an even run leaves it exposed. If that normalized view
+contains `((`, the added check abstains altogether; it does not attempt to find an arithmetic end.
+No other rule consumes this normalized view or exits early through that abstention.~~
+
+**STRUCK 2026-09-10 — this describes a design that was superseded INSIDE ITS OWN SLICE, and only the
+first two sentences survive it.** The escape-normalized view and the arithmetic special-case were the
+repair at `94c1963a`; they are not in the tree. What shipped at `aca3a552` is described below. Struck
+rather than rewritten because it merged into this record's own text as the account of the repair, and
+a reader reimplementing rule 8 from it would build a normalizer this file no longer contains.
+
+**Accepted cost, pinned by regression:** `((FOO=1)); BAR=2 wc -l README.md` now abstains despite its
+real later prefix. `FOO=1 echo ok; ((BAR=2))` still denies under the original leading predicate,
+and the trunk-push control after arithmetic still denies under its own rule. The runtime remains
+responsible for deciding abstained commands. Recovering every mixed arithmetic composition would
+require more parsing than this friction rule warrants; retaining the demonstrated misclassification
+has no runtime evidence to justify it.
+
+Run `bash hooks/scripts/permission-guard.test.sh` for the escaped/unescaped, backslash-run,
+arithmetic, ordinary-argument and real-prefix controls. ~~odd/even-backslash~~ — **struck: the parity
+distinction was the normalizer's, and both parities now ALLOW** (they are outside the shipped
+grammar), which is the single most visible surface difference between the two designs. These assert guard JSON decisions rather than
+effective runtime permissions. ~~The historic runtime results above were read, not repeated in this
+repair~~ — **struck: the five rows in the block above were re-run on `2.1.267` for this repair, with a
+control and a calibration, rather than cited.** What survives untouched is the limit that sentence
+existed to state: **they do not establish a universal subset**, on that build or any other. A finite
+set of probes cannot, and the escaped-separator case is the proof — it was found *after* a set of
+probes that found no counterexample was published as though it settled the question.
+
+### Second review correction (2026-09-10) — what SHIPPED is a whole-command grammar, and the record described the design before it
+
+**The repair described above was itself superseded before this slice left the branch, and this record
+carried the superseded account.** That is the defect being fixed here, and it is worth naming as a
+class rather than as a slip: **a record written against the repair that was in the tree at the time
+goes stale when the same slice repairs the repair**, and nothing about it looks stale — it reads as a
+correct account of a design nobody can find. The strikes above mark where; this section is what
+replaces them.
+
+**What is in the tree at `aca3a552`.** The extension denies only when BOTH limbs hold:
+
+1. the **entire original command** matches a simple-composition grammar — ASCII words drawn from
+   `[-A-Za-z0-9_./,:=+%]`, blanks, at most one level of parenthesised subshell, and the separators
+   `;`, `&&`, `||`, `|`, `&`; and
+2. an assignment follows one of those separators or a `(`.
+
+**Three properties of that, each a deliberate ABSTENTION rather than coverage, and the file says so in
+its own words** (`hooks/scripts/permission-guard.sh`, rule 8: *"This is deliberately narrower than
+shell: even a real prefix after a quoted/escaped word abstains in the extension"*):
+
+- **A complex command abstains even when it contains a real later prefix.** `echo "ok"; BAR=2 wc -l
+  README.md` and `((FOO=1)); BAR=2 wc -l README.md` both receive **no decision from the extension**;
+  the runtime decides them. The abstention is the whole mechanism, not an edge of it — one quote, one
+  backslash, one `#`, one newline or one glob is enough to reach it.
+- **The check reads `$command`, not `$bare` and not `$cmd`, and both differences matter.** `$bare` has
+  quoted spans collapsed, which would make a quoted argument look simple; `$cmd` has newlines and tabs
+  flattened to spaces, which would flatten a multi-line payload — a heredoc body, a comment line — into
+  a single line that could match. Bash's `=~` anchors the whole string, where a line-wise
+  `grep -E` with `^...$` would accept a simple line *inside* a heredoc. This is why the arms below are
+  the ones that can fail.
+- **The extension therefore never sees the `bash -c` unwrap.** The payload is appended to `cmd`, not to
+  `command`, so `bash -c` carrying `…; FOO=1 wc -l x` abstains in the extension. The original leading
+  predicate still runs on `$bare` and still catches `FOO=x bash -c …`, which is the case the unwrap
+  comment upstream in the file exists to protect.
+
+**The escape/arithmetic runtime rows above are UNTOUCHED by this correction.** They measured the
+*runtime*, not the guard, and the shipped design keeps both on the same sides they landed on: the
+escaped form is allowed (no longer over-blocked), the arithmetic form abstains (a subset of a runtime
+that stops it anyway). What changed is *how* the guard reaches those two outcomes, and the how is the
+part a reimplementer copies.
+
+#### The recognizer is CALIBRATED — every arm was made to fail by mutating the SOURCE
+
+**The handoff for this repair validated by running the suite, which shows the arms pass and cannot
+show that any of them can fail.** Each row below mutates `hooks/scripts/permission-guard.sh` — the
+subject — and leaves the suite untouched. Control before every run: `479 passed, 0 failed`. Every row
+restored to `479 passed, 0 failed` with the file byte-identical to `HEAD` afterwards, asserted by
+comparison rather than by re-reading:
+
+| mutation applied to the SOURCE | reds | arms named (abbreviated) |
+|---|---|---|
+| backslash admitted to the word class | **7** | escaped separators, odd/even/four backslashes, real prefix after escape |
+| one more nesting level in the subshell element | **3** | arithmetic assignment, post-statement arithmetic, arithmetic composition |
+| `#` admitted to the word class | **2** | comment punctuation, comment-only payload |
+| `<` admitted, plus whitespace inside an element | **1** | simple composition inside heredoc |
+| the same, plus quote characters | **3** | inside heredoc, inside **quoted** heredoc, quoted argument |
+| the same, plus whitespace around separators | **2** | heredoc **body**, simple composition inside heredoc |
+| `$`, `{`, `}`, `*`, `@` admitted to the word class | **2** | parameter expansion, glob argument |
+| parentheses admitted to the word class | **8** | four arithmetic arms, extglob, array literal, nested subshell |
+| **maximal**: any run of non-separator, non-space characters is a word | **29** | every construct arm above at once |
+| maximal **plus** a position-free assignment grep | **42** | the above, plus the two arms the grep limb holds alone |
+
+**Two arms are held by the GREP limb and not by the grammar, which no grammar mutation could have
+shown**: *plain multiline is outside simple grammar* (there is no separator to find an assignment
+after) and *empty quoted argument is not a command start* (the separator is followed by a quote, not
+by a name). They redden only in the last row. **A calibration that had stopped at the grammar would
+have published two arms as covered by a mechanism that is not what holds them.**
+
+**Read the reds BY NAME and not by count.** The maximal row also reddens *query params, not fields*,
+an arm outside rule 8 entirely — the mutation is coarse enough to change another rule's input. A count
+from a coarse mutation is not a measurement of the arm you were aiming at.
+
+**One mutation in this campaign was INVALID and its reds were an artifact, which is the reason the
+restore column exists.** An early spelling of the expansion mutation put a `${` sequence inside a
+double-quoted assignment, so the guard aborted on a bad substitution and **27 arms went red in the
+ALLOW direction** — including redirect arms that have nothing to do with rule 8. A mutation that
+breaks the script does not test the arm; **the tell is reds pointing the wrong way** (`want=DENY
+got=ALLOW` from a mutation that was supposed to *widen* a deny), and it is why every row above is
+reported with its direction rather than only its count.
+
+**The shape of the harness, so this is re-runnable rather than reported.** It is a scratch script — it
+holds nothing a gate runs, so by this repository's own rule it is discarded rather than tracked — and
+what it does is: replace one assignment in the source, run `bash hooks/scripts/permission-guard.test.sh`,
+collect the `FAIL` lines, restore the original text, re-run, and assert the restored file is identical
+to what was read.
+
+#### The naive-mutation figure is RE-DERIVED here, at this head, rather than carried
+
+**The rejected *assignment anywhere* option is priced above at "six arms, three of them pre-existing".
+That figure was taken against a tree with none of this slice's arms in it and must not be read as
+current** — it is retained as the measurement that decided the option, on the head it was taken on.
+Re-derived at `aca3a552`, replacing the leading predicate's anchored form with the naive
+`[A-Za-z_][A-Za-z0-9_]*=`:
+
+```
+CONTROL  (head, unmutated)   -> 479 passed,  0 failed
+naive at head                -> 441 passed, 38 failed
+RESTORED                     -> 479 passed,  0 failed
+```
+
+**Three of those 38 are pre-existing, and *pre-existing* is derived rather than read off the list** —
+an arm is pre-existing if it is red at the merge-base, where none of this slice's arms exist. Re-run
+for this correction rather than cited, in both spellings, in an extracted copy that touches no tracked
+file:
+
+```
+BASE=$(git merge-base origin/main HEAD)        # 169461f3
+git show $BASE:hooks/scripts/permission-guard.sh      > <tmp>/permission-guard.sh
+git show $BASE:hooks/scripts/permission-guard.test.sh > <tmp>/permission-guard.test.sh
+# swap the leading predicate for the naive form, then: bash <tmp>/permission-guard.test.sh
+```
+
+```
+CONTROL (merge-base, unmutated)              -> 428 passed, 0 failed
+naive, spelling 1  '[A-Za-z_][A-Za-z0-9_]*=' -> 425 passed, 3 failed
+naive, spelling 2  with '[[:space:]]*'       -> 425 passed, 3 failed
+    --repo= attached · reviewer, --repo= attached · terraform plan
+RESTORED                                     -> 428 passed, 0 failed
+```
+
+**So the rejected option costs 35 new arms at this head and 3 pre-existing ones, and the three are the
+same three by name.** The control-and-restore pair on both runs is what makes each figure a
+measurement rather than a reading.
+
+#### What this correction does NOT measure
+
+**No Claude runtime measurement was taken for this repair.** Every figure above is a **guard JSON
+decision** or a suite total. In particular nothing here establishes what the runtime does with a
+quoted-delimiter heredoc, with `echo "ok"; BAR=2 cmd`, or with any other newly-abstaining form — and
+the governing constraint (*fire on a SUBSET of what the runtime stops for, never on more*) is
+**mechanically easier to satisfy after this change than before it**, since the extension now decides
+strictly fewer commands than the design it replaced. That is an argument about direction, not a proof,
+and it is the only claim this correction makes about the runtime.
+
+**And the abstention is the residual, stated rather than implied away:** a real env prefix spelled
+inside any non-simple command reaches the runtime with no instruction attached, which is the
+interruption rule 8 exists to convert into a corrected habit. **Rule 8's object is friction**; nothing
+here touches the floor, and the cost of every abstention is one prompt rather than one escape.

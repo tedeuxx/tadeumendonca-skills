@@ -450,6 +450,23 @@ for a human is `$(...)`/backticks (flagged by name), a `VAR=x cmd` prefix (it de
 and a redirect that **creates a file** — and that last check is destination-aware, so `2>/dev/null`
 passes and `2>somefile` does not. `/shell` carries the payload table.
 
+**The env-var prefix was also stopped in the tested post-statement position, while a rule
+built against it here was anchored to the leading one for months (#438).** Re-measured on build
+2.1.267 rather than carried from 2.1.261: `true; FOO=1 wc -l <f>` comes back *"This Bash command
+contains multiple operations. The following part requires approval: FOO=1 wc -l <f>"*, while `true;
+touch <f>` executes — so the decomposition names that prefixed element, and the
+leading statement alone is harmless. **No case was found where an env-var prefix let a command
+through**: it defeated an allow entry, the working-directory sandbox, and the sandbox's auto-approval
+of an unlisted command alike (`cp <in-cwd> <in-cwd>` executed; `FOO=1 cp`, same paths, blocked).
+**That supports widening to the measured forms, not a universal subset claim.** Rule 8 retains its
+original leading check. Its extension first recognizes the entire original string as a simple
+composition: plain ASCII words, blanks, simple subshells and separators. It abstains on strings with
+quotes, escapes, comments, newlines, redirections, expansions, globs, arrays or arithmetic. Thus both
+`echo ok #;BAR=1` and a real prefix in `echo "ok"; BAR=2 cmd` abstain in the extension; the runtime
+decides. The simple tested prefixes still deny, and the other rules remain independent. These are
+guard-suite results; they do not measure Claude's effective permissions for either quoted or unquoted
+heredocs. The governing subset constraint remains an obligation.
+
 ### An entry's `:*` is a TOKEN boundary, not a raw prefix — and it is why some rules cannot live here
 
 **The single most portable fact about this layer, and it decides which controls a settings file can

@@ -1086,6 +1086,77 @@ check DENY  "command substitution"          'echo $(date)'
 check DENY  "backticks"                     'echo `date`'
 check DENY  "env-var prefix"                "E2E_ENV=local npx playwright test"
 
+# #438: the branch was anchored at `^`, so it caught the honest spelling and only the honest spelling.
+# The direction was decided by measuring the premise nobody had measured -- whether the RUNTIME stops
+# the post-statement form. It does, and it names the offending element: on build 2.1.267, in a nested
+# session carrying this guard minus the branch, `true; FOO=1 wc -l <f>` came back "This Bash command
+# contains multiple operations. The following part requires approval: FOO=1 wc -l <f>", while the same
+# chain without the prefix EXECUTED. This supports those measured forms; it does not establish a
+# runtime subset for every spelling matched by the guard.
+check DENY  "env-var prefix after ;"        "true; E2E_ENV=local npx playwright test"
+check DENY  "env-var prefix after &&"       "git status && E2E_ENV=local npx playwright test"
+check DENY  "env-var prefix after |"        "ls | FOO=1 grep x"
+check DENY  "env-var prefix after ("        "(FOO=1 npx playwright test)"
+check DENY  "env-var prefix after export"   "export PATH=/usr/bin; C=/usr/bin/git; ls"
+# AND THE OTHER SIDE, WHICH IS WHAT KEEPS THE WIDENING FROM BECOMING AN OVER-BLOCK. An `=` in ARGUMENT
+# position is not an env prefix, and this rule must not treat it as one. Each
+# of these is ALLOW against the widened guard and DENY under the naive "assignment anywhere" pattern
+# that was rejected for exactly this reason -- so they are the arms that pin WHICH widening landed,
+# not merely that one did.
+check ALLOW "arg-position = is not a prefix"    "terraform plan -var foo=bar"
+check ALLOW "arg-position = after a flag"       "npx playwright test --grep=smoke"
+check ALLOW "make variable is an argument"      "make FOO=1 target"
+check ALLOW "quoted = is collapsed already"     "git commit -m 'x=1'"
+check ALLOW "chain with no assignment"          "git status; git diff"
+
+# #438 review: the extension recognizes a complete simple composition, not selected punctuation in
+# arbitrary shell text. Escapes of either parity are outside it; actual simple prefixes stay above.
+check ALLOW "escaped semicolon is argument text" 'echo foo\;BAR=1'
+check ALLOW "escaped ampersand is argument text" 'echo foo\&BAR=1'
+check ALLOW "escaped pipe is argument text"      'echo foo\|BAR=1'
+check ALLOW "escaped parenthesis is argument text" 'echo foo\(BAR=1'
+check ALLOW "odd backslashes escape separator"  'echo foo\\\;BAR=1'
+check ALLOW "even backslashes are outside simple grammar" 'echo foo\\;BAR=1 wc -l README.md'
+check ALLOW "four backslashes are outside simple grammar" 'echo foo\\\\;BAR=1 wc -l README.md'
+check ALLOW "real prefix after escape abstains" 'echo foo\;BAR=1; BAZ=2 wc -l README.md'
+check ALLOW "escaped name is not assignment syntax" 'true; \FOO=1'
+check ALLOW "arithmetic assignment is not prefix" '((FOO=1))'
+check ALLOW "arithmetic bitwise assignment"     '((1 & FOO=1))'
+check ALLOW "nested arithmetic is not prefix"   '((FOO=(BAR=1)))'
+check ALLOW "post-statement arithmetic"         'true; ((FOO=1))'
+check ALLOW "arithmetic composition abstains conservatively" '((FOO=1)); BAR=2 wc -l README.md'
+check DENY  "leading prefix survives arithmetic abstention" 'FOO=1 echo ok; ((BAR=2))'
+check DENY  "floor survives arithmetic abstention" '((FOO=1)); git push origin main'
+check ALLOW "export remedy remains available" 'export FOO=1; echo ok'
+
+# Both sides of the new recognition boundary. No payload below is executed as a shell command.
+check DENY  "simple prefix after ||" 'true || BAR=1 wc -l README.md'
+check DENY  "simple prefix after &" 'true & BAR=1 wc -l README.md'
+check DENY  "simple subshell in composition" 'true; (BAR=1 wc -l README.md)'
+check DENY  "simple argument before separator" 'echo prose; BAR=1 wc -l README.md'
+check ALLOW "comment punctuation is not command position" 'echo ok #;BAR=1'
+check ALLOW "comment-only payload" '# ; BAR=1'
+check ALLOW "comment parenthesis is not command position" 'echo ok # prose (BAR=1)'
+check_agent ALLOW "" "heredoc body is not command position" $'cat <<EOF\n;BAR=1\nEOF'
+check_agent ALLOW "" "simple composition inside heredoc is not input grammar" $'cat <<EOF\ntrue; BAR=1\nEOF'
+# A quoted delimiter changes expansion semantics, not whether this body is command position.
+# These assertions read only the guard decision; they do not assert Claude executes either heredoc.
+check_agent ALLOW "" "single-quoted heredoc delimiter keeps body inert" $'cat <<\'EOF\'\n;BAR=1\nEOF'
+check_agent ALLOW "" "double-quoted heredoc delimiter keeps body inert" $'cat <<"EOF"\n;BAR=1\nEOF'
+check_agent ALLOW "" "simple composition inside quoted heredoc stays outside grammar" $'cat <<\'EOF\'\ntrue; BAR=1\nEOF'
+check_agent ALLOW "" "multiline comments do not expose a simple inner line" $'echo ok # first\ntrue; BAR=1\n# last'
+check_agent ALLOW "" "plain multiline is outside simple grammar" $'true\nBAR=1 wc -l README.md'
+check ALLOW "parameter expansion is outside simple grammar" 'echo ${FOO:-;BAR=1}'
+check ALLOW "extglob is outside simple grammar" 'echo @(BAR=1)'
+check ALLOW "array literal is outside simple grammar" 'true; values=(BAR=1)'
+check DENY  "leading array keeps original denial" 'values=(BAR=1)'
+check ALLOW "glob argument makes extension abstain" 'echo *.md; BAR=1 wc -l README.md'
+check ALLOW "quoted argument makes extension abstain" 'echo "ok"; BAR=1 wc -l README.md'
+check ALLOW "empty quoted argument is not a command start" 'echo ""; ""BAR=1'
+check ALLOW "nested subshell is outside simple grammar" '((echo ok); BAR=1 wc -l README.md)'
+check DENY  "leading check remains independent of comments" 'FOO=1 echo ok # comment'
+check DENY  "floor remains independent of simple grammar" 'echo "ok"; git push origin main'
+
 echo "--- rule 8's chain branch is REMOVED (#383 S2) — a chain now falls through ---"
 # Measured with the rule absent, verdicts confirmed on disk rather than from a model's report:
 # two allowlisted commands joined by '&&' or ';' EXECUTED with no prompt, and a chain carrying a

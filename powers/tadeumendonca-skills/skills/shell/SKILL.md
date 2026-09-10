@@ -79,9 +79,40 @@ rather than deleted because every persona here wrote its commands to it for mont
 **What still stops for a human, and is therefore still worth avoiding:**
 
 - **`$(...)` and backticks.** Flagged by name, whatever the command is.
-- **`VAR=x cmd` env-var prefixes.** The prefix defeats the allow entry — a different mechanism from
-  decomposition, and the reason this bullet is separate. Prefer the repo's own scripts
-  (`npm --prefix <app> run <script>`) over an inline env-prefixed command.
+- **`VAR=x cmd` env-var prefixes, including the measured post-statement form.** The
+  prefix defeats the allow entry, which is a different mechanism from decomposition and the reason
+  this bullet is separate. Prefer the repo's own scripts (`npm --prefix <app> run <script>`) over an
+  inline env-prefixed command.
+
+  **The position clause is #438's, and it was a measurement rather than a tightening of tone.** The
+  runtime decomposes the tested composition and stops the prefixed element, naming it —
+  measured on build 2.1.267 in a nested session carrying this platform's guard with its env-var branch
+  removed, each verdict confirmed on disk or in the tool result:
+
+  ```
+  wc -l <f>                 allowlisted    -> EXECUTED
+  FOO=1 wc -l <f>           same command   -> "This command requires approval"
+  true; FOO=1 wc -l <f>     POST-STATEMENT -> "…The following part requires approval: FOO=1 wc -l <f>"
+  true; touch <f>           calibration    -> EXECUTED  (the leading statement alone is harmless)
+  ```
+
+  **An `=` in ARGUMENT position is a different thing** — `terraform plan -var foo=bar`,
+  `make FOO=1 target`, `npx playwright test --grep=smoke`. These are not env prefixes.
+
+  **The guard recognizes only a bounded language of simple compositions for the added check.** The
+  whole original string must contain only plain ASCII words, blanks, simple subshells and the listed
+  separators (`;`, `&&`, `||`, `|`, `&`). Quotes, escapes, comments, newlines, redirections, expansions,
+  globs, arrays and arithmetic are outside that language. It never searches a heredoc body or comment
+  for a command position. Even real later prefixes in `echo "ok"; BAR=2 cmd` or
+  `((FOO=1)); BAR=2 cmd` therefore abstain in the extension. The original leading predicate still
+  uses the existing quote collapse and remains independent; other rules still run. The suite measures
+  guard decisions, not a runtime subset for untested forms. Where the extension abstains, the runtime
+  decides and may still require a human.
+
+  **On this platform the enforcement matched the leading spelling only, until #438.** A rule whose
+  incidence depends on how the author phrased the command rather than on the act is not a rule about
+  the act — and on a harness with no such guard the whole bullet is an instruction anyway, so read the
+  position clause as a fact about the runtime and the enforcement note as a fact about here.
 - **A redirect that CREATES a file** — see the `>` rule below.
 
 **Prefer one atomic command per call anyway, and know that the reason changed.** It is now a
