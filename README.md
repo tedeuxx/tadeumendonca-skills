@@ -2200,6 +2200,192 @@ is unchanged in that legacy branch**, so the silent-empty-install failure did no
 applying to *this* package on a build new enough to recognise it. **Verify against your own Kiro
 version before relying on it** — that advice is the part of this caveat that did not age.
 
+## Run it in Codex — a THIRD distribution target, and three different kinds of "no"
+
+<!-- claim id=0006 class=MEASURED -->
+
+**This plugin is installed and enabled on Codex desktop, and until #421 nobody here had measured
+whether any of it runs there.** It got there the ordinary way — a marketplace entry and an install —
+and the install carries **the whole tree**, `agents/` and `hooks/` included. The Kiro section above is
+the precedent for the question; **its answer does not transfer**, and the useful part of this section
+is exactly where the two diverge.
+
+**`#287` gave this repository the two words *transport* and *activation*. They are not enough here**,
+because activation is **partial by element** and the element that activated is not one anybody
+expected. Read the table as a **dated measurement of one build on one machine**, never as a property
+of the vendor.
+
+### The table — transported · resolved · active, measured 2026-09-10
+
+Build stamp, both numbers, because the application and the CLI inside it version separately:
+
+```
+/usr/bin/defaults read /Applications/ChatGPT.app/Contents/Info.plist CFBundleShortVersionString
+# 26.825.51511
+/Applications/ChatGPT.app/Contents/Resources/codex --version
+# codex-cli 0.151.0-alpha.7.2
+```
+
+| element | transported | resolved by a loader | active | why not |
+|---|---|---|---|---|
+| `skills/` (15) | yes | **yes** | **YES** — 15 skill roots, namespaced `tadeumendonca-skills:<name>` | — |
+| `.mcp.json` | yes | **yes** | **YES** — the server is enabled, from a neutral cwd | — |
+| `AGENTS.md` | yes | **yes** | **YES** — loaded as the repository brief | — |
+| `hooks/` | yes | **a loader EXISTS and is switched off** | no | **gated** — see the four locks |
+| `agents/` (8) | yes | **no loader exists at any setting** | no | **absent** |
+| `commands/` (6) | yes | a one-way import path, disabled | no | **migratory** |
+
+**The last column is the finding.** Three elements are inactive and they are inactive for three
+*different* reasons, which a two-word answer flattens into one. `hooks/` is a capability the harness
+has and is holding shut; `agents/` is a capability it does not have; `commands/` exists only as a
+one-way conversion into something else. **Only the middle one is stable** — a flag flips, and a
+migration is run.
+
+### The commands, each producing one column
+
+**Transport** — the installer excludes nothing, and it says so in its own manifest:
+
+```
+cat ~/.codex/plugins/cache/tadeumendonca/tadeumendonca-skills/*/.codex-marketplace-install.json
+# {"source_type":"git", … ,"sparse_paths":[], … }
+```
+
+`sparse_paths` empty, and `.git` arrives too — **unlike Kiro, which excludes exactly `.git` and
+nothing else.** Both installers copy everything; they disagree only about that one directory.
+
+**Resolution** — the plugin subsystem's own module list is the whole answer, and it is enumerable:
+
+```
+grep -a -o -E '__ZN18codex_core_plugins[0-9]+[a-z_]+' \
+  /Applications/ChatGPT.app/Contents/Resources/codex | sed 's/.*plugins[0-9]*//' | sort -u
+# artifact_operation · command_migration · discoverable · executor_hooks · installed_marketplaces
+# loader · manager · manifest · marketplace · marketplace_add · marketplace_policy
+# marketplace_remove · plugin_metrics_sidecar · provider · remote · remote_bundle
+# remote_plugin_id_resolver · script_attribution · skill_snapshots · startup_sync · store
+# tool_suggest_metadata
+```
+
+**There is no `agents` module**, and the `loader` module's path-resolving functions name exactly four
+element classes — `plugin_skill_roots`, `plugin_mcp_config_paths`, `plugin_app_config_paths`,
+`load_plugin_hooks`. **The enumeration is its own positive control:** it finds `loader` and
+`skill_snapshots`, and skills demonstrably work, so a `plugins::agents` module would have shown had
+one existed.
+
+**Activation** — the only proof that a tree was *read* is a resolved root pointing into it, so the
+selector is anchored on the install path rather than on a name:
+
+```
+/Applications/ChatGPT.app/Contents/Resources/codex debug prompt-input   # then, over the rendered text:
+# skill roots resolved, total           : 28
+# skill roots resolved INTO this plugin : 15
+# declared skills WITH a resolved root  : 15      (declared but NOT resolved: [])
+# resolved roots by top-level directory : {'skills': 15}
+# path-anchored hits for skills         : 15      <- the in-command positive control
+# path-anchored hits for agents         : 0
+# path-anchored hits for hooks          : 0
+# path-anchored hits for commands       : 0
+# occurrences of 'hooks/hooks.json'     : 0
+```
+
+**Every zero is calibrated by the 15 beside it**, computed over the same rendered string, so a dead
+selector cannot read as an absence.
+
+**A name-based selector gets this wrong, and it got it wrong here first.** Counting the eight persona
+*names* in that same text returns **8 of 8** — because `AGENTS.md` carries a roster table whose cells
+read `` `agents/agents-lead.md` `` and the like. A `permission-guard` count returns **2**, from a list
+in the same brief. A `sprint-planning` count returns **1**, from a *different vendor's* plugin. **All
+three are prose arriving through a file that genuinely loads, and none is evidence of a loader.** That
+is why the published selector is path-anchored and the name-based one is recorded here as the trap.
+
+### `.mcp.json` is the live one, and the mechanism is DEFAULT DISCOVERY
+
+The element the intake expected to matter is inert; the one nobody enumerated is a **capability**:
+
+```
+/Applications/ChatGPT.app/Contents/Resources/codex mcp list --json   # from a cwd outside both repos
+# chrome-devtools · enabled: true · this repository's exact argv
+grep -c -i 'chrome-devtools' ~/.codex/config.toml   # -> 0
+grep -c -i 'aws-api'         ~/.codex/config.toml   # -> 3   <- calibration: the selector is not dead
+```
+
+**Absent from the user configuration, present in the effective set — so the source is the installed
+plugin.** And this manifest declares **no** `mcpServers` key (`author`, `description`, `homepage`,
+`license`, `name`, `repository`, `skills`, `version`, and nothing else). The vendor's own spec says
+why, in as many words:
+
+> *"`skills`, `hooks`, and string-valued `mcpServers` are supplemented on top of **default component
+> discovery**; they do not replace defaults."*
+> — `~/.codex/skills/.system/plugin-creator/references/plugin-json-spec.md`
+
+**A declaration is not what put it there; a default is.** That is the sentence to carry: on this
+harness, *not declaring* a component is not the same as *not shipping* it.
+
+### The four locks holding `hooks/` shut — and one of them is weaker than it looks
+
+1. **A feature flag.** `codex features list` → `plugin_hooks  removed  false`, while the harness's
+   **own** hook layer reads `hooks  stable  true`. **A per-build value, not a property.**
+2. **The schema path is `./hooks.json`, not `hooks/hooks.json`.** The manifest template in the binary
+   carries `"hooks": "./hooks.json"`, so even with the flag on, this repository's registration file
+   sits at a path the default would not reach.
+3. **A trust step exists.** The binary carries `trust_materialized_plugin_hooks` and
+   `hook_trusted_hash_edit` — a hash-trust mechanism for plugin hooks. **Read from symbol names, not
+   from behaviour**, so treat it as *a mechanism exists* and not as *it would stop anything*.
+4. **The shipped validator rejects the key**, and this is the one to be careful about. Mutating a copy
+   of this manifest and running the vendor's own script:
+
+   ```
+   python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py <copy>
+   # control (unmutated)  -> no rejection line
+   # + "hooks":    …      -> plugin.json field `hooks` is not accepted by plugin validation
+   # + "agents":   …      -> plugin.json field `agents` is not accepted by plugin validation
+   # + "commands": …      -> plugin.json field `commands` is not accepted by plugin validation
+   ```
+
+   **Calibrated in both directions** — the control is silent, each mutant reddens. **But the validator
+   reads `.codex-plugin/plugin.json` and this plugin loads from `.claude-plugin/plugin.json`.** The
+   first attempt at this mutation failed with `missing .codex-plugin/plugin.json` and never reached
+   the key check at all. **So lock 4 constrains a *generated* plugin and does not demonstrably
+   constrain an *ingested* one.** The spec asserts the two schemas match — *"the validator mirrors the
+   workspace plugin ingestion schema"* — and that is a vendor claim, not a measurement.
+
+**Locks 1 and 2 are the load-bearing pair.** Both would have to change together, and **nothing in this
+repository observes either.** No gate can run `codex features list`, and building one would be a check
+on a machine CI does not have.
+
+### What this does NOT establish
+
+- **Nothing about `agent_type`.** Question 2 of #421 was conditional on hooks being reached. **They are
+  not**, so no hook of this repository executes there and the payload-shape question has no subject.
+  The guard's behaviour under a foreign or absent `agent_type` was measured separately at intake and is
+  **fail-safe** — rule 7 never reads the field, rule 7b denies on its catch-all — which is recorded on
+  #421 and is a reason to leave the floor alone rather than to change it.
+- **Nothing about whether a skill BODY is read on invocation.** What is measured is the **index**: 15
+  roots, 15 descriptions, in the model-visible prompt. That is resolution, not use.
+- **Nothing about any other build.** One build, one machine, **control flow and feature flags read
+  rather than a live hook watched.** A vendor can change every row of the table silently, and the only
+  expiry mechanism this section has is a person re-running the commands in it.
+- **Nothing about `.codex/rules/`**, which is a *tracked file in this repository* rather than part of
+  the plugin — a different object, measured under #419, and its three probes say nothing about
+  anything above.
+
+### The ruling, and it is split because a single word would be wrong
+
+**The INSTALL is deliberate** — someone typed the marketplace entry. **The ACTIVATION SURFACE was an
+accident**, in the strict sense that nobody knew what it was: #421 enumerated `agents/` and `hooks/`
+and never named the two elements that actually activated.
+
+**Supported for the knowledge layer; undecided for the capability layer.** `skills/` and `AGENTS.md`
+arriving on another harness is the shape ADR-0005 already accepted for Kiro. **A browser-driving MCP
+server is a different object** — it is a tool grant, scoped here to one persona and one bounded origin
+by machinery that does not travel with it. **That decision is #423's and is deliberately not taken
+here.**
+
+**And `#287`'s finding governs the three inactive rows, unchanged:** *a missing directory announces
+itself, a copied-but-never-read one reads as installed.* Eight persona briefs and thirty-four hook
+files sit in that cache and nothing reads them. **Unlike the Kiro export, this is not a shipping
+decision this repository can take** — it does not control that installer, and that installer excludes
+nothing.
+
 ## What travels if this design moves to another harness
 
 <!-- claim id=0002 class=VERIFIED -->
