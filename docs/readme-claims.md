@@ -150,10 +150,14 @@ the last section produces.
 |---|---|---|
 | `readme-section` | every `## ` heading in `README.md` | partial |
 
-**What `partial` means here, exactly.** Five of the eighteen top-level sections carry a marker. The
-five were chosen to exercise all four classes and to sit on the two claims that were measurably false
-at `4ad4dfc` — not because they are the five most important sections. **Labelling the remaining
-thirteen is not this slice**, and padding the table to `complete` with thin `JUDGEMENT` markers would
+**What `partial` means here, exactly.** Six of the nineteen top-level sections carry a marker. The
+first five were chosen to exercise all four classes and to sit on the two claims that were measurably
+false at `4ad4dfc` — not because they are the five most important sections; **the sixth (`0006`) is
+there for a different reason and it is the reason this table's `partial` is honest**: the section it
+labels was authored as a dated measurement of a foreign machine, which is one of the three drift
+examples that justified this contract in the first place, so shipping it unlabelled would have
+reproduced the defect inside the slice that cites it. **Labelling the remaining thirteen is not this
+slice**, and padding the table to `complete` with thin `JUDGEMENT` markers would
 be the failure the class set exists to prevent: `JUDGEMENT` is a declaration that no falsifier exists,
 and using it to clear a coverage row makes it a declaration that nobody looked.
 
@@ -204,6 +208,13 @@ text in an entry — storing it here would rebuild the coupling the ids exist to
 
 - **class:** JUDGEMENT
 - **limit:** Unfalsifiable by construction, and that is the declaration rather than an apology for one. Whether trust is really the bottleneck, and whether these three failures are the ones that matter, is the owner's argument — a reader who disagrees has nothing to run, and should be told that plainly instead of being handed a number that looks like evidence for a claim it does not test.
+
+## 0006 · what a Codex install of this plugin actually activates, element by element
+
+- **class:** MEASURED
+- **command:** `/Applications/ChatGPT.app/Contents/Resources/codex debug prompt-input` — the activation column of the section's table, read through a path-anchored selector over the rendered prompt; the section's other fenced blocks stamp the build, read the install manifest, enumerate the plugin subsystem's modules out of the shipped binary, list the effective MCP servers, and run the vendor's own `validate_plugin.py` against a mutated copy of this manifest
+- **on:** 2026-09-10
+- **limit:** CI has no Codex install, so nothing here runs — the shape check asserts a date and a fence and **nothing about whether any row is still true**. Three further limits are specific to this claim and are worse than the usual staleness. **First, every "no" in the table is a `0`, and a `0` is what a broken selector also returns** — the section publishes the `15` computed over the same string as the in-command calibration, and a reader re-running it should check that number before trusting the zeros. **Second, the resolution column is read from compiled symbol names and a feature-flag listing, never from watching a hook fail to fire**; the strongest form of that evidence would be an activated hook that demonstrably does nothing, and it is unavailable by construction while the flag is off. **Third, the whole table is one build on one machine** — `26.825.51511` / `codex-cli 0.151.0-alpha.7.2` — and what holds `hooks/` shut is **one** established lock, a vendor's feature flag, **which this repository cannot observe changing.** (This limit read *"the two locks … a feature flag and a default path"* until the merge gate refused the second: a manifest template default says what a generated plugin declares, never what the loader scans for. **A limit section that overstates the protection is the worst place in the file for that error**, since it is the paragraph a reader consults precisely to find out how much the green is worth.) A green here means "dated and re-runnable by someone with the machine", and for this claim it means rather less than that: it means nobody has re-run it since the date above.
 
 ---
 

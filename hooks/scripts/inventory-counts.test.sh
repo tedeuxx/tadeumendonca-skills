@@ -4880,7 +4880,7 @@ RC_REG="$ROOT/docs/readme-claims.md"
 # The declared ceiling, same argument as ADR_HIGH_WATER and BP_HIGH_WATER above: derive it from the
 # entries that exist and an abandonment at the TOP of the sequence leaves no gap and frees the number
 # for reuse. Raising it is one line, in the same commit as the claim that needs it.
-RC_HIGH_WATER=5
+RC_HIGH_WATER=6
 
 RC_CLASSES="VERIFIED MEASURED DERIVED JUDGEMENT"
 

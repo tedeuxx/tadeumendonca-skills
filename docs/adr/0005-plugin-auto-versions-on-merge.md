@@ -504,3 +504,107 @@ amendment — the clause that licensed a PATCH for a break — without touching 
 supports. No deletion or fold question arises: the record is live, the decision is in force, and the
 convention inside a live record is *amend by appending, strike in place, never rewrite*. Authored by
 `agents-lead` per the domain split (#223); the subject is the harness's own install machinery.
+
+## Amendment (2026-09-10) — a THIRD distribution target, and *not declaring* a component is not *not shipping* it
+
+**Deciders:** the owner (selection of #421) · measurement, stress test and implementation by
+`agents-lead` · Issue #421. Filed against this record rather than a new one because it is the third
+instance of the question the 2026-08-21 amendment answered for the second: **where does this artifact
+run, and what of it runs there.**
+
+### 1 · What changed, and what did not
+
+Nothing about the versioning decision this record holds. **What changed is the count of harnesses that
+resolve this tree, from two to three** — Codex desktop installs and enables the plugin from the same
+`.claude-plugin/marketplace.json` Claude Code uses, and it reads `.claude-plugin/plugin.json` by
+design. No manifest change, no export directory, no second package root: **the third target consumes
+the first target's artifact unmodified.**
+
+### 2 · The finding that makes this an amendment rather than a note
+
+The 2026-08-21 amendment reasoned in two words — **transport** and **activation** — and concluded for
+Kiro that the whole tree arrives and only the knowledge layer runs. **That vocabulary is insufficient
+here**, and the insufficiency is the decision-relevant part:
+
+**Activation is partial by ELEMENT, and the three inactive elements are inactive for three different
+reasons.** `hooks/` — the loader exists and is switched off by a feature flag. `agents/` — no loader
+exists at any setting. `commands/` — reachable only through a disabled one-way import. **A single
+sentence saying "the enforcement layer does not run there" is true and flattens a stable absence
+together with a flag somebody can flip.**
+
+**And the element that activated is one neither this record nor #421 enumerated: `.mcp.json`.** It is a
+**capability**, not knowledge — a browser-driving MCP server, live from a working directory outside
+both repositories, carrying this repository's exact argv, **while this manifest declares no
+`mcpServers` key at all.**
+
+The mechanism is the vendor's, stated in its own shipped spec: *"`skills`, `hooks`, and string-valued
+`mcpServers` are supplemented on top of **default component discovery**; they do not replace
+defaults."*
+
+> **The transferable rule, and it is the reason this amendment exists: on a harness with default
+> component discovery, omitting a declaration does not withhold the component.** This repository has
+> reasoned repeatedly from the opposite premise — that an absent key is a statement, the shape
+> `scrum-master`'s explicit `tools: []` was written to honour. **That premise holds for the manifests
+> this repository authors and does not hold for a loader that discovers by default**, and the two look
+> identical from inside the tree.
+
+### 3 · What is decided here, and what is deliberately left open
+
+**Decided: supported for the knowledge layer, undecided for the capability layer.** `skills/` and
+`AGENTS.md` arriving on a third harness is the same trade this record already accepted for the second
+— the knowledge layer travels, the enforcement layer does not, **and the artifact says so.** The
+six-row measured table lives in `README.md` under claim `0006`, dated, with the command behind every
+column.
+
+**Not decided, and it is #423's:** whether a capability declaration belongs in a tree distributed to
+harnesses whose scoping layer this repository does not control. **Folding that in here would price two
+decisions as one** — this amendment records *what runs*; that Issue decides *what ought to*.
+
+**Also not decided: nothing is undone.** The install is deliberate, the plugin stays installed, and no
+change is made to `.mcp.json`, `.claude-plugin/plugin.json`, `powers/` or any hook.
+
+### 4 · The constraint this amendment must be read as reaffirming
+
+**`permission-guard.sh` is untouched, and the measurement is a reason to leave it alone rather than a
+reason to change it.** #421's body hypothesised that a foreign harness supplying no `agent_type` would
+present every call as the orchestrator. **That is false at head, in the safe direction** — rule 7 never
+reads the field, and rule 7b's `case` denies everything but one arm, so an absent or foreign value
+falls into the catch-all and denies. **No loosening was made and none is warranted**; the payload
+question has no subject in any case, because no hook of this repository executes on that harness.
+
+### 5 · Consequences
+
+**Good.** The question *where does this artifact run* now has a third answer with commands behind it
+rather than an assumption. The default-discovery rule is written down before it produces a second
+surprise. And the two words this repository has been reasoning with are replaced by three columns,
+which is what the evidence actually supports.
+
+**Bad, and the first one is structural.** **Nothing in this repository observes any consumer's
+activated surface**, and nothing can: a gate here cannot run another vendor's CLI, and a plugin cannot
+see what a loader chose to enable. **The table's expiry mechanism is a person re-running six
+commands.** **What holds `hooks/` shut is ONE established lock — the vendor's feature flag — and a
+build can flip it silently.** The other three candidates are each unestablished in the direction that
+would matter, and the second of them was asserted as a lock in the first authoring of this amendment:
+it inferred an unreachable path from a manifest **template default**, which says what a *generated*
+plugin declares and never what the *loader scans for*. **That is this amendment's own §2 finding
+applied against itself**, refused at the merge gate, and it is recorded here rather than quietly
+corrected because *the analogy that disproves it is the one this record exists to establish.* **Eight persona briefs and thirty-four hook files sit inert in
+that install cache**, which is #287's own named failure shape (*a copied-but-never-read directory
+reads as installed*) arriving through a door this repository cannot close: unlike the Kiro export,
+this is not a shipping decision available here, because that installer excludes nothing —
+`sparse_paths: []`, `.git` included.
+
+**And one lock is weaker than it first measured.** The vendor's validator does reject a `hooks` key —
+verified by mutating a copy of this manifest, control silent, mutant red — **but it reads
+`.codex-plugin/plugin.json`, while this plugin loads from `.claude-plugin/plugin.json`.** So that lock
+constrains a *generated* plugin and is not demonstrated to constrain an *ingested* one; the spec's
+claim that the two schemas match is a vendor assertion rather than a measurement here.
+
+### Significance
+
+Arm: **sets a cross-cutting pattern** — the default-discovery rule in section 2 governs every future
+manifest decision in this tree, not only this one. It is additive to the 2026-08-21 amendment and
+reverses nothing in it, so no deletion or fold question arises: the record is live, the decision is in
+force, and the convention inside a live record is *amend by appending, strike in place, never
+rewrite*. Authored by `agents-lead` per the domain split (#223); the subject is the harness's own
+distribution machinery.
