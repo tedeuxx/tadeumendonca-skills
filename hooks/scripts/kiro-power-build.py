@@ -369,7 +369,12 @@ inside this package. Re-derive both from the package root rather than trusting t
 `grep -rhoE '/(autonomy|blueprint|new-issue|sprint-planning|sprint-retrospective|sprint-review)' skills | wc -l`
 and `grep -rhoE 'commands/[a-z-]+\\.md' skills | wc -l`, calibrated against
 `grep -rhoF /devops skills | wc -l` — a name that DOES resolve here, so a zero from the first two would
-be a real zero and not a dead pattern. **The citations are deliberately not swept out of the skill
+be a real zero and not a dead pattern. **The first selector is an ENUMERATION of the six commands that
+existed when this file was generated, and it cannot be anything else from inside this package** — the
+directory it would derive them from is the directory this package does not ship. A seventh command
+would be cited here and counted by nothing, and the figure would go quietly low rather than wrong.
+The source-side check is `ls commands/*.md` in the repository, against the six names in the selector.
+**The citations are deliberately not swept out of the skill
 bodies:** they are right for the majority reader, and thinning fifteen skills for a minority target
 would spend content to buy a silence. **And nothing gates any of this** — the regeneration diff
 compares this file against the generator that wrote it, so both sides move together by construction,
