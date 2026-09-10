@@ -462,6 +462,134 @@ words. **Six rules, RANKED and not a checklist** — 1 is a gate the other five 
    a stop, a reversal — fully intact. *(The generator script's path is a fact about that repo and is
    cited in the brief of the persona that reads it; the rule here does not depend on the path.)*
 
+## The density ladder — a site piece is denser than a post and stops short of the HOW
+
+**The owner's direction, and it governs every surface rather than one piece:**
+
+> *«deveria ser algo um pouco mais denso do que x e linkedin posts, porem nao o suficiente para mostrar
+> todos detalhes pois objetivo final é motivar a pessoa a entrar em contato comigo sabe?»*
+> *«precisamos estabelecer essa diretriz geral para todos conteudos em todas areas no site.»*
+
+**It came out of the best piece the site has published, not the worst.** He read the most recent long
+article and called it *«mto bom mas é mto extenso e com muito conteudo visual»* — which is what makes
+this a **format** finding rather than a quality one. A reviewer applying it to a piece it admires is
+applying it correctly, and *"but this one is good"* is not an exemption.
+
+### The three rungs — each shows the shape, the next delivers the substance
+
+| rung | density | what it WITHHOLDS | what the reader does |
+|---|---|---|---|
+| the LinkedIn/X post | a digest — rule 8, below | **the turn** | reacts and comments **without clicking** |
+| **the site piece** | **900–1,300 words; ceiling 1,500. At most 6 sections.** | **the *how*** — mechanism, configuration, sequence | recognises the problem as their own |
+| the conversation | unbounded | nothing | **contacts him** |
+
+> **9. A site piece shows THAT he solved it and WHAT IT COST. It never shows HOW, in enough detail for
+> a reader to reproduce the result without talking to him.** The terminal event is contact, not
+> comprehension — a piece that completes the reader's understanding has spent the reason to reach him.
+
+**Numbered from 9 deliberately, and it is the only unambiguous span in this file.** Three other
+sequences here restart at 1 — the register rules (1–4), the title rules (1–6) and the post rules (1–8)
+— so *"rule 3"* names three different clauses and a repair citing it is not checkable. **9, 10 and 11
+occur once each, file-wide**, which is what makes them quotable in the sense `content-reviewer`'s
+repair ground requires. Falsifier, and it is the whole claim:
+
+```
+grep -cE '^> \*\*(9|10|11)\.|^(9|10|11)\. \*\*' <this file>   # -> 3, one apiece
+grep -cE '^> \*\*3\.|^3\. \*\*'                  <this file>   # -> 3, in three different sections
+grep -cE '^> \*\*99\.|^99\. \*\*'                <this file>   # -> 0, so the selector is alive
+```
+
+### Rule 10 — the ceiling is a SPLIT threshold, never a compression target
+
+> **10. A piece over the ceiling becomes a SERIES. It is not trimmed to fit.**
+
+**Cutting 4,270 words to 1,500 is not an edit that exists.** The two longest published pieces carry no
+2,700 words of fat — the length *is* the argument, and compressing it produces a piece that is both
+short and thin, which fails the middle rung from the other side. Splitting also feeds cadence: three
+pieces across three weeks rather than one piece across a month.
+
+**So a reviewer that recommends *"tighten this"* on a 4,000-word piece has misread rule 10.** The
+finding it licenses is *"this is two pieces, and the seam falls here"*.
+
+### Rule 11 — the section rate is INDEPENDENT of the word count
+
+> **11. At most 6 sections — headings at any level below the title — whatever the length.**
+
+**Not a corollary of rule 9, and the measurement is why.** The densest published piece breaks every
+~225 words: **19 headings across 4,275 words.** At that rate an argument becomes an index, and an index
+invites skipping — the reader arrives at the end having scanned. **A piece can sit inside the word
+ceiling and still fail this**, which is the whole reason it is a separate clause rather than a
+consequence of the first.
+
+**And the "visual" half of his complaint is NOT media.** Measured across every English edition in the
+consuming site's content directory, at the pinned ref this section was written against: **zero images,
+zero video embeds, zero fenced blocks and zero tables in body position**, in four of the five pieces,
+and one occurrence in the fifth. The density is **structural**. A reviewer that goes looking for images
+will find none and wrongly conclude the finding was already discharged.
+
+```
+git ls-tree -r --name-only <ref> -- <content-dir> | grep '\.en\.md$' \
+  | while read f; do printf '%s\t%s\n' "$f" \
+      "$(git show "<ref>:$f" | grep -cE '^!\[|^<VideoEmbed|^```|^\| ')"; done
+```
+
+*(The concrete content directory is a fact about the consuming repo and is cited in the brief of the
+persona that reads it; the rule here does not depend on the path.)*
+
+### Which edition the ceiling binds — the LONGER one, and never "the PT one"
+
+**Both editions are measured, and the ceiling binds whichever is longer.** The convenient shortcut —
+*the PT edition always runs longer, so measure that one* — is **false**, re-derived at the same ref:
+
+| piece (publication order) | EN | PT | Δ |
+|---|---:|---:|---:|
+| the launch piece | 445 | 459 | +3.1 % |
+| the badge article | 1,439 | 1,461 | +1.5 % |
+| the agents piece | 1,922 | 2,062 | +7.3 % |
+| the blast-radius piece | 4,275 | 4,334 | +1.4 % |
+| the loops piece | 4,269 | **4,242** | **−0.6 %** |
+
+**Four of five, not five of five.** A rule keyed on the language lets one piece in five through
+un-measured — and it is the piece nobody re-checks, because the rule already said which edition to
+read. **Measure both.**
+
+### Why this does NOT contradict the platform's own thesis
+
+The launch piece says, in the owner's own published words, *"Show the machine, not just the output.
+Everything here is public and reproducible — the code is the argument."* That reads as a direct
+contradiction of withholding the *how*. It is not one.
+
+**The repositories already ARE the complete detail, and they are public.** So a piece does not have to
+carry the proof — **it has to make a reader want to open it.** A piece that transcribes the mechanism is
+doing, worse, the job the code already does better. **The ladder is more faithful to that thesis rather
+than less**, and a reviewer meeting the two sentences together must be able to reconcile them here
+instead of picking one.
+
+### The evidence base is WEAK, and saying so is part of the rule
+
+**One supporting datum: the owner's own observation that the only post which ever earned reactions was
+the 445-word launch piece. n = 1, and confounded with launch novelty** — it was the site's first, so its
+audience and its recency are not comparable to anything published since.
+
+**What makes rules 9–11 quotable anyway is that they are a RATIFIED BENCHMARK, not a finding.** His
+words: *«de acordo. vamos usar essa configuracao como benchmark e vamos medindo retorno da audiencia com
+o analytics.»* A reviewer quoting them is quoting a decision he took; a reviewer arguing that the
+numbers are *correct* is arguing past the evidence, and this paragraph is why.
+
+### What makes it falsifiable — and the one honest bound
+
+**The completion instrument is live** — an end-of-article event with progress marks at 25/50/75 — so
+completion rate against word count is measurable across pieces on both sides of the ceiling. It is not a
+craft opinion for long.
+
+**The bound, written down rather than discovered later: the two pieces that would falsify the ceiling
+are the two already published above it, and their completion data begins mid-life, with their traffic
+already decayed.** The first clean test is the **next** piece written to the rule. **Nothing here builds
+the measurement** — this section sets the number the measurement will judge.
+
+**And an event declared in code is not a tool holding usable data.** Confirming the instrument is wired
+proves the wiring, never that a figure exists behind a login. Do not read one as the other.
+
 ## The social post — a DIGEST of the content, and the turn is what the click buys
 
 ~~## The teaser — a different artifact, and three lines cannot carry the article's argument~~

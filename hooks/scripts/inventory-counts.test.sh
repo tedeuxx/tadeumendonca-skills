@@ -2137,7 +2137,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------------------------------
-# THE CONTENT PAIR'S SHARED CONSTANTS (#317). Three arms, each its own verdict — the lesson #283's
+# THE CONTENT PAIR'S SHARED CONSTANTS (#317). One arm per shared constant, each its own verdict — the lesson #283's
 # re-sweep paid for twice is that a chained `elif` hides an assertion by never reaching it, and the
 # totals stay plausible while a check DISAPPEARS. Nothing here is chained.
 #
@@ -2234,6 +2234,57 @@ if [ -n "$cp_repair_missing" ]; then
       thirty-second amendment; change it in all four or in none."
 else
   ok "content pair — the repair rule's two grounds and criterion 10's content-lane shape are stated on all four surfaces that carry them"
+fi
+
+# ── ARM E: the density ladder's three clauses are PRESENT in the ruler (#405, 2026-09-10) ──────────
+# `content-reviewer` repairs a draft in place on exactly two grounds, and one of them is *it can quote a
+# clause of `published-voice`*. So a rule that is meant to BIND has to survive as a quotable clause, and
+# the ladder is the first rule in that file whose entire operative value is its quotability: rules 9-11
+# are what a reviewer cites when it shortens a piece, splits one, or cuts a heading.
+#
+# WHY THIS IS NOT COVERED BY ARM A, which is the objection to answer before reading the green. Arm A
+# asserts the two briefs preload the same skill NAME. It says nothing about that skill's CONTENT, so a
+# sweep, a consolidation or a rewrite could take rules 9-11 out of the ruler with arm A still green and
+# the pair still "reading the same sentences" — the same sentences, minus the one they were supposed to
+# repair against. That gap is what #433's gate found in a different file: no arm pinned the prose that
+# had just been repaired, so a regression would leave every gate green.
+#
+# WHAT THIS ARM DOES NOT MEAN, said in the ok line as well as here, because a gate arm asserting that a
+# sentence exists asserts ONLY that it is written down and never that it is true or obeyed (#435):
+#   * it cannot observe a draft. `hooks/hooks.json` registers `PreToolUse` on `Bash` and on `mcp__.*`
+#     only, so `Write` and `Edit` are observed by nothing and no layer can see a repair being made or
+#     skipped. The ladder is applied by the pair and by the owner reading the piece.
+#   * it cannot check a NUMBER against a draft. It pins the numbers as strings in the ruler; whether a
+#     piece is 1,400 or 4,200 words is not a fact this suite has access to.
+#   * it is a PRESENCE arm over ONE file, not an identity arm over several. Arms A-D exist because
+#     prose lived in more than one place; today the ladder lives in exactly one. When the consuming
+#     repo lands its own half (-io#605) the ladder will exist in two trees, and THAT identity is
+#     ungated by construction — pipelines are independent per repository, exactly as the three shared
+#     `CLAUDE.md` blocks already say of themselves.
+cp_ladder_missing=""
+for cp_lit in \
+  'It never shows HOW, in enough detail' \
+  'becomes a SERIES. It is not trimmed to fit' \
+  'At most 6 sections' \
+  '900–1,300 words; ceiling 1,500' \
+  ; do
+  grep -qF -- "$cp_lit" "$ROOT/skills/published-voice/SKILL.md" 2>/dev/null \
+    || cp_ladder_missing="$cp_ladder_missing \"$cp_lit\""
+done
+if [ -n "$cp_ladder_missing" ]; then
+  bad "content pair — a density-ladder clause is missing from the shared ruler
+      (skills/published-voice/SKILL.md):$cp_ladder_missing
+      Rules 9-11 are the ladder the owner ratified (#405): a site piece shows THAT and WHAT IT COST and
+      never HOW; a piece over the ceiling becomes a series rather than being compressed; the section
+      rate is capped independently of the word count. \`content-reviewer\` may repair a draft only on a
+      clause it can QUOTE, so a clause removed from this file is a repair ground the pair silently
+      loses — and arm A stays green, because it compares skill NAMES and never their contents.
+      If a number genuinely changes, change it here and say so; do not let it disappear."
+else
+  ok "content pair — the density ladder's three clauses (rules 9-11: the HOW bound, the split
+      threshold, the independent section cap) are present in the shared ruler. Presence only: this
+      asserts the ladder is WRITTEN, never that a draft obeys it and never that a repair was placed
+      under it — no layer observes an Edit, and no arm here can measure a piece"
 fi
 
 # ---------------------------------------------------------------------------------------------------
