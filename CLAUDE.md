@@ -1306,6 +1306,93 @@ rule is owed to `AGENTS.md` as an obligation, and nothing will say so.**
 
 ---
 
+<!-- dive-deep-orchestrator -->
+## A premise you assert in a dispatch brief BECOMES the design (tedeuxx/tadeumendonca-skills#426)
+
+**Fourth block in this file addressing the ORCHESTRATOR — the main session — and it is here for the
+reason the three above are.** `#410` landed *dive deep* as the twelfth principle in the
+`engineering-standards` skill, which all eight profiles preload. **The orchestrator preloads nothing**:
+`#409` measured, one nonce per candidate surface, that a skill body does not reach this context while a
+repo-root `CLAUDE.md` does. So the principle whose motivating failure was the orchestrator's own was
+readable by every context except that one.
+
+### The rule
+
+> **Do not assert in a dispatch brief a premise you have not measured. Measure it and carry the
+> command, or write it into the brief as a premise the dispatch must VERIFY — never as a fact it may
+> inherit.**
+
+**This is narrower than the skill's principle and must not be flattened back into it.** That one
+addresses a builder deciding how deep to investigate a symptom in code. This one addresses a single
+act: **composing a brief.** A dispatch brief is not a claim someone will later check — it is the
+specification the dispatch builds against, so a false premise in it is not a wrong answer, it is a
+wrong design, and the dispatch executes it faithfully.
+
+**The tell is the twelfth principle's own: an answer that is TRUE and closes the inquiry.** *"The
+failure was mine, no configuration causes it"* is the shape it takes in this context — always
+available, never falsifiable, and it ends the investigation exactly where the mechanism begins.
+
+### This carrier is WEAKER than the three above it, and the block says so rather than implying otherwise
+
+`#409` measured this file reaching the orchestrator's **context**. It did not measure it reaching the
+**turn**, and those are different claims: a brief is composed hundreds of turns after the file loaded.
+**The three blocks above at least attach to an act some layer can see** — a command string, a picker
+payload, a pool query. **This one attaches to text being composed, and no layer observes that.**
+`SubagentStart` carries `session_id`, `transcript_path`, `cwd`, `prompt_id`, `agent_id`, `agent_type`
+and `hook_event_name`, and **no prompt text** (`#209`, quoted in the metrics hook's own header).
+
+**Do not read that as *ungateable* — that is the same over-claim pointing the other way.** A dispatch
+is a tool call, so a `PreToolUse` matcher on it would see the brief's text; that is **available and
+unmeasured**, named here rather than claimed. What no layer reaches either way is the half that
+matters — **whether a premise inside the brief is TRUE** — which is not a string property, and a
+detector for it would fail open.
+
+**So this is an instruction, and it is the weakest of the four.** By this loop's own test — *would
+something stop me, or only my memory?* — nothing stops it. It lands anyway on `#393`'s argument: it
+removes the dependency on a fresh context happening to know the rule, and that dependency has now
+failed six times, every one caught by a dispatch or a gate and none by the orchestrator.
+
+### The two copies of this block must stay identical — and the falsifier ships with a CONTROL
+
+**Shared byte for byte between `CLAUDE.md` at the root of `tedeuxx/tadeumendonca-skills` and
+`CLAUDE.md` at the root of `tedeuxx/tadeumendonca-io`**, for the reason `#393`'s probe measured: a
+session rooted in one repository loads neither the other's root brief nor a sibling's, even with the
+sibling added as a working directory.
+
+**Run the CONTROL first. A `sed` range whose pattern matches nothing emits nothing, so an absent block
+and an identical one produce the same silent exit 0** — confirmed 2026-09-10 by running the diff below
+against a delimiter name present in neither file: no output, exit 0, indistinguishable from a pass.
+From a workspace holding both checkouts:
+
+```
+# CONTROL — both sides must report 2 (one opening and one closing delimiter).
+# A 0 or 1 on either side means the diff below CANNOT fail, whatever it prints.
+grep -c -E '^<!-- /?dive-deep-orchestrator -->$' \
+  tadeumendonca-skills/CLAUDE.md tadeumendonca-io/CLAUDE.md
+
+diff <(sed -n '/^<!-- dive-deep-orchestrator -->$/,/^<!-- \/dive-deep-orchestrator -->$/p' tadeumendonca-skills/CLAUDE.md) \
+     <(sed -n '/^<!-- dive-deep-orchestrator -->$/,/^<!-- \/dive-deep-orchestrator -->$/p' tadeumendonca-io/CLAUDE.md)
+```
+
+**The three blocks above publish their diff WITHOUT that control, so all three read green vacuously if
+a delimiter is ever renamed or dropped.** Verified 2026-09-10 that all three are genuinely identical at
+head — six delimiter lines in each file, every diff clean — so that is a defect in the published
+instrument, not a live drift. **Repairing those three is its own slice:** it edits three byte-identical
+spans in two files each, and a one-byte slip there breaks the falsifiers it exists to fix.
+
+**That is an OBLIGATION and not a claim about either copy's current state — nothing checks it, and
+nothing makes the two move together.** Pipelines are independent per repository, so a change to this
+block is a two-repository batch, and the command above is expected to print a difference in the window
+between the two merges.
+
+**`AGENTS.md` deliberately does NOT carry this block.** That brief states obligations addressed to an
+agent on machinery nobody here has measured; this one names `SubagentStart`, a payload field set and a
+tool matcher, which are descriptions of this harness's own enforcement layer. The obligation is
+portable; the enforcement analysis around it is not.
+<!-- /dive-deep-orchestrator -->
+
+---
+
 ## Scratch — the session scratchpad, not a repo directory (#245)
 
 **A repo-root `.scratch/` used to be the documented place for throwaway files. It is retired.** It was
