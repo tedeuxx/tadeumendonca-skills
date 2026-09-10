@@ -5262,3 +5262,124 @@ Arm: *alters a previously-recorded decision* — the 2026-08-30 amendment that b
 and the 2026-09-04 amendment's second fact loses a leg — and *sets a cross-cutting pattern others will
 follow*: **a removal justified partly by a sibling control must be re-priced when the sibling is
 audited, and the justification a rule ships with is a claim that ages like any other.**
+
+
+## Amendment (2026-09-10) — rule 8's env-var branch was anchored at string start, and the premise that decides widen-versus-delete is measured for the first time (#438)
+
+**Deciders:** the owner (decision), written by `agents-lead` (pre-implementation stress test and build
+by the same lens, per record 0015's Corollary 1).
+
+### Context
+
+The 2026-09-05 amendment above audited rule 8's three branches and kept two, the env-var prefix among
+them, *"on the measurement"*. **It ruled on the branch's PREMISE and never tested whether the branch
+IMPLEMENTS it.** #438 found that it does not, and filed the finding with no direction pre-decided —
+widen, narrow, or delete were each stated with the objection each had to clear.
+
+The predicate was `^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=` against `$bare`, and `^` was the whole of it.
+Any statement in front of the assignment moved it off column zero and the branch stopped matching:
+
+```
+C=/usr/bin/git; "$C" status                 -> DENIED
+export PATH="$PATH"; C=/usr/bin/git; "$C" … -> ABSTAINED
+export PATH="$PATH"; git push origin main   -> DENIED by rule 7  (the calibration — the identical
+                                               prefix does not defeat the guard generally, so the
+                                               gap was rule-8-specific rather than a property of it)
+```
+
+**#438 named ONE unmeasured premise as the thing that decides between widening and deleting:** whether
+the runtime stops the POST-STATEMENT form at all. If it does not, widening puts the hook above the
+layer beneath it, which the 2026-09-05 amendment's own governing test forbids — *fire on a subset of
+what the runtime stops for, never on more*.
+
+### The measurement
+
+Nested session carrying this guard **minus** the env-var branch, loaded with `claude --plugin-dir`
+(the #182/#286 probe-plugin method), the installed plugin disabled through `--settings`, **build
+2.1.267 — not the 2.1.261 the 2026-09-05 rows were taken on.** Every verdict confirmed on disk or in
+the tool result rather than taken from the nested model's report:
+
+```
+wc -l <f>                            allowlisted    -> EXECUTED
+FOO=1 wc -l <f>                      same command   -> "This command requires approval"
+true; FOO=1 wc -l <f>                POST-STATEMENT -> "This Bash command contains multiple
+                                                       operations. The following part requires
+                                                       approval: FOO=1 wc -l <f>"
+true; export FOO=1; BAR=2 touch <f>                 -> TWO parts require approval; file absent
+true; touch <f>                      calibration    -> EXECUTED
+```
+
+**The runtime decomposes, and it NAMES the env-prefixed element in non-leading position.** The
+calibration row is what makes the rest evidence: the leading statement alone is harmless, so the
+prefix is the variable.
+
+**A second claim of #438's is falsified by the same rig**, and it is recorded because it was the
+argument for deletion: the body read *"it fires on MORE where spelled honestly and LESS where it is
+not"*, which needs a case where the branch denies and the runtime would have allowed. Four routes to
+one were tried and none produced it — the prefix defeated an allow entry (`FOO=1 wc -l`), the
+working-directory sandbox (`FOO=1 touch <in-cwd>`, `FOO=1 mkdir <in-cwd>`) and the sandbox's
+auto-approval of an **unlisted** command (`cp <in-cwd> <in-cwd>` executed; `FOO=1 cp`, the same
+paths, blocked). **The branch fires on a strict subset in both its old form and its new one.** Only
+the *"less where it is not spelled honestly"* half was true.
+
+### The decision
+
+**WIDEN, to COMMAND POSITION** — string start, or after `;`, `&`, `|` or `(`:
+
+```
+(^|[;&|(])[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=
+```
+
+**Not "assignment anywhere", and the difference is not cosmetic.** An assignment token is an env
+prefix only where a command could start. Matching anywhere fires on ordinary arguments carrying an
+`=` — `terraform plan -var foo=bar`, `make FOO=1 target`, `npx playwright test --grep=smoke`, `gh pr
+view 1 --repo=o/r` — none of which is a prefix and none of which the runtime stops for. **That
+mutation was run against the suite and reddened six arms, two of them pre-existing**, which is how the
+naive form is known to be wrong rather than merely suspected.
+
+**Quoted spans need no handling:** `$bare` has already collapsed them, which keeps `git commit -m
+"x=1"` out of reach.
+
+### Considered and rejected
+
+- **NARROW (keep the anchor).** It is the status quo, and it means the rule taxes the agent that
+  spells the command plainly while letting the same act through when it is spelled around. **A rule
+  whose incidence depends on the author's phrasing rather than on the act is not a rule about the
+  act.**
+- **DELETE the branch, as slice S2 deleted the chain branch.** Rejected on the measurement, and the
+  precedent does not transfer: the chain branch went because its premise was **false** — a chain of
+  allowlisted elements executed with no prompt — while this branch's premise is **true and was
+  incompletely implemented**. Deleting it would trade an actionable instruction for a stop the agent
+  cannot act on: in a dispatched subagent the runtime's refusal reads *"This command requires
+  approval"* and names no remedy, where the deny names one.
+- **Leave the branch and fix only the MESSAGE** (#438's fourth, unpriced option). Rejected: it makes
+  the rule honest about being phrase-dependent instead of making it independent of phrasing, at the
+  same review cost.
+
+### What this does NOT claim
+
+It does not claim the guard now catches every env prefix. An assignment reachable only through a
+separator the pattern does not carry — a `case` arm's `)`, a `then`/`do`/`else` keyword — is an
+**abstention**, not a claim; this file does not parse shell, and where it cannot tell the runtime
+decides, which is correct either way. It does not claim the branch holds anything irreversible: **rule
+8's object is FRICTION**, the act it refuses is already stopped by the runtime, and no option here
+touched the floor. And the build number is part of the claim — 2.1.267, one machine, and a vendor who
+changes the decomposition silently invalidates the widening's justification while every arm stays
+green.
+
+### One question #438 left open is answered here, because it was one command
+
+*"Whether any other rule in the file is anchored the same way. Not swept."* It is swept: **no other
+predicate in `permission-guard.sh` is anchored at string start.** Every other one uses the
+position-tolerant `(^|[^[:alnum:]_])` form or no anchor at all —
+`grep -nE "grep -Eq '\^" hooks/scripts/permission-guard.sh` returns nothing, against a denominator of
+**16** predicates in the file (`grep -cE "grep -Eq '" …`), so the zero is a real zero rather than a
+dead pattern.
+
+### Significance
+
+Arm: *alters a previously-recorded decision* — the 2026-09-05 amendment kept this branch on a premise
+it did not test the implementation against — and *sets a cross-cutting pattern others will follow*:
+**auditing whether a rule's PREMISE holds is a different act from auditing whether the rule IMPLEMENTS
+it, and an audit that does the first while sounding like it did both leaves the defect in place with a
+record saying it was examined.**
