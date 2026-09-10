@@ -16,15 +16,32 @@
 # Hook-script allows are repo-relative literals, the same form this file already uses for
 # `git -C .` and `terraform -chdir=iac`. Whether the matcher compares a relative token
 # literally or canonicalises it first is NOT measured; either way the failure is a permission
-# prompt and never a hole, because every one of them is an allow. A script added or deleted
-# needs this list updated, and `hooks/scripts/codex-rules.test.sh` is what reddens if it is not.
+# prompt and never a hole, because every one of them is an allow.
+# ~~A script added or deleted needs this list updated, and `hooks/scripts/codex-rules.test.sh` is
+# what reddens if it is not.~~ STRUCK 2026-09-10 -- TRUE of DELETED, FALSE of ADDED, and struck
+# rather than corrected because it is a claim about a control, in the control's own file, and
+# whoever read it took the sync for mechanical. Arm 4 was rule->disk only: it catches a rule
+# outliving its file and sees nothing at all when a file arrives naming no rule. Measured at the
+# head that struck it, THREE tracked scripts were missing from this list with the suite green at
+# 8 passed, 0 failed -- `cadence-notice.sh`, `cadence-notice.test.sh`, and `codex-rules.test.sh`,
+# the last of them the very gate the struck sentence named.
+# WHAT IS TRUE NOW is two arms rather than one: `arm 4` asserts rule->disk (every path named here
+# resolves) and `arm 4b` asserts disk->rule (every tracked `*.sh` under `hooks/scripts/` is named
+# here). Each refuses to pass over an empty set rather than printing a zero as a green.
+# THE SCOPE IS THAT DIRECTORY AND NOT THE TREE, deliberately: `scripts/milestone-create.sh` is
+# tracked, is run with `bash`, and is named here by NOTHING on purpose -- its absence from every
+# allow layer is what leaves a permission prompt standing where the deleted rule 11 milestone
+# verification used to be. Do not add an allow for it to quiet a gate; no gate asks for one.
 # More restrictive matching rules win. Commands remain subject to AGENTS.md.
 prefix_rule(pattern=["actionlint"], decision="allow")
 prefix_rule(pattern=["awk"], decision="allow")
 prefix_rule(pattern=["basename"], decision="allow")
 prefix_rule(pattern=["bash", "hooks/scripts/agents-md.test.sh"], decision="allow")
+prefix_rule(pattern=["bash", "hooks/scripts/cadence-notice.sh"], decision="allow")
+prefix_rule(pattern=["bash", "hooks/scripts/cadence-notice.test.sh"], decision="allow")
 prefix_rule(pattern=["bash", "hooks/scripts/closure-artifact-guard.sh"], decision="allow")
 prefix_rule(pattern=["bash", "hooks/scripts/closure-artifact-guard.test.sh"], decision="allow")
+prefix_rule(pattern=["bash", "hooks/scripts/codex-rules.test.sh"], decision="allow")
 prefix_rule(pattern=["bash", "hooks/scripts/dispatch-metrics-start.sh"], decision="allow")
 prefix_rule(pattern=["bash", "hooks/scripts/dispatch-metrics-stop.sh"], decision="allow")
 prefix_rule(pattern=["bash", "hooks/scripts/dispatch-metrics-stop.test.sh"], decision="allow")
