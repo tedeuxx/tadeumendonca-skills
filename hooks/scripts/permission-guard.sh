@@ -767,6 +767,239 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   deny "Blocked: 'git clean -f' deletes UNTRACKED files — the one class git cannot restore, so it is as irreversible as 'rm -rf'. Remove the specific paths you mean, or use 'git clean -n' to see what it would take."
 fi
 
+# 4c. `git worktree remove` ONTO A DIRTY WORKTREE (#443). Third member of rules 4/4b's family and the
+#     one that had no rule at all: it deletes a working DIRECTORY whose uncommitted content exists
+#     nowhere else — not in the reflog, not on the remote, not in the index. That is the same sentence
+#     rule 3 uses to justify refusing `git reset --hard`, and until this rule the two acts got opposite
+#     answers. Measured against the live guard at 636fd983, with two working controls in the same run:
+#
+#       git worktree remove --force ../wt-probe  -> no output, exit 0   (NO DECISION)
+#       git worktree prune                       -> no output, exit 0   (NO DECISION)
+#       git push origin main                     -> deny                (control)
+#       git reset --hard HEAD~1                  -> deny                (control)
+#
+#     And `Bash(git worktree:*)` sits in `allow` in ALL THREE settings layers — the global floor
+#     included — with `deny` and `ask` empty in each. That is reason 4 of this file's own four
+#     (SHADOWED BY AN ALLOW): a token-bounded prefix on the subcommand tree covers every subcommand at
+#     once, so there is no per-subcommand entry left to reach. The act executed with no prompt and no
+#     record from any layer.
+#
+#     -- IT KEYS ON THE TARGET, NEVER ON THE FLAG, AND THAT IS THE WHOLE DESIGN --------------------
+#     Matching the force flag would be an enumeration claiming to be a language bound — #441's defect,
+#     and #446's, and #438's before them. Cited, not restated. What makes it avoidable here is that
+#     the flag set is measurably open-ended: all seven of `-f`, `--force`, `-ff`, `--force --force`,
+#     `--f`, `--fo` and `--forc` destroyed a tracked modification (rc 0, directory gone), because git
+#     accepts unambiguous long-option abbreviations. There is no finite list to write.
+#
+#     So the rule reads the TARGET, and no flag spelling appears anywhere in its executable part. A
+#     reader auditing this block can confirm that by grepping the code below for the flag and finding
+#     nothing.
+#
+#     -- THE PREDICATE IS GIT'S OWN REFUSAL, WHICH IS WIDER THAN #443'S BODY PROPOSED --------------
+#     #443 proposed *"deny when the target has tracked modifications"*. THAT PREDICATE IS TOO NARROW,
+#     and the Issue's own inventory is what falsifies it. Measured in a throwaway repo, bare
+#     `git worktree remove` against each state:
+#
+#       tracked-modified   rc=128 refused        `git status --porcelain` non-empty
+#       untracked          rc=128 refused        `git status --porcelain` non-empty
+#       ignored-only       rc=0   removed        `git status --porcelain` EMPTY (ignored excluded)
+#       clean              rc=0   removed        `git status --porcelain` empty
+#
+#     ~~The correspondence is exact across all four rows … So this rule denies exactly what git already
+#     denies, and permits exactly what git already permits.~~ **STRUCK 2026-09-11, ON THE GATE'S
+#     FINDING AT `bc6e6d0c`. THE TABLE IS RIGHT AND THE CONCLUSION DRAWN FROM IT IS FALSE**, and it is
+#     false in the direction that matters: the rule's permit set is a strict SUPERSET of git's while
+#     that sentence asserted equality. A justification reading narrower than the rule actually is, in a
+#     floor rule, is the same shape three other rules in this file were corrected for the day before.
+#
+#     **GIT HAS TWO INDEPENDENT REFUSALS, AND THIS RULE READS ONLY ONE.** The four-row table above
+#     varies DIRTINESS and holds LOCK constant at unlocked, so it cannot see the second. Re-measured
+#     across five states, guard-only (no removal beforehand, so no row is contaminated by the one
+#     before it), on `git version 2.50.1 (Apple Git-155)`:
+#
+#       state             `git status --porcelain`   git: bare / -f / -ff      rule 4c
+#       locked_clean      EMPTY                      128  / 128 / 0 (GONE)     ALLOW   <- THE GAP
+#       locked_ignored    EMPTY                      128  / 128 / 0 (GONE)     ALLOW   <- THE GAP
+#       locked_dirty      non-empty                  128  / 128 / 0 (GONE)     DENY
+#       unlocked_clean    EMPTY                      0 (GONE)                  ALLOW
+#       unlocked_dirty    non-empty                  128  / 0 (GONE)           DENY
+#
+#     **AND THE TWO REFUSALS HAVE DIFFERENT FORCE THRESHOLDS, which is sharper than the gate's own
+#     report and is the part to carry:** DIRTINESS yields to ONE `-f`; a LOCK needs TWO (`-ff`,
+#     `--force --force`, `-f -f` and `--forc --forc` all measured removing a locked worktree at rc 0,
+#     while every single-flag spelling left it at rc 128 with the directory intact).
+#
+#     SO, EXACTLY: **this rule's predicate covers DIRTINESS and does not cover LOCK.** Every worktree
+#     holding uncommitted work is denied in every flag spelling, locked or not — `locked_dirty` denies
+#     through the dirtiness limb, not through any lock awareness. What passes is a **locked worktree
+#     with NO uncommitted work**, removed with double force: git refuses it and this rule does not.
+#
+#     **WHAT THAT COSTS, AND WHY THE LOGIC IS NOT CHANGED.** No uncommitted work is reachable through
+#     the gap — by construction, the gap is the CLEAN half of the lock class. What is overridden is the
+#     DECLARATION: `git worktree lock` is git's own *somebody is using this* marker, and **it is not a
+#     defence this rule honours.** That sentence has a second reader — `worktree-notice.sh` prints
+#     `lock` as the declared opt-out from its own removable list, and 0 of 28 live worktrees have
+#     adopted it. Adding a lock limb would mean a second `git` call on every matched command to defend
+#     a marker nothing currently sets, so it is NOT built, and the gap is stated here rather than
+#     closed. If adoption ever makes that wrong, this paragraph is where to reopen it.
+#
+#     **BOUND ON THE STATE TABLE: one git build, one machine.** `git version 2.50.1 (Apple Git-155)`.
+#     The force thresholds and the porcelain/refusal correspondence are both git behaviour rather than
+#     documented contract here, and neither was checked on another version. A build that made a single
+#     `-f` override a lock would widen the gap above without reddening anything in the suite.
+#
+#     WHY THE NARROWER PREDICATE WOULD HAVE BEEN A GREEN THAT NEVER GOES RED. Against the live
+#     inventory in the sibling repository on 2026-09-10:
+#
+#       total worktrees 29 · dirty per `git status --porcelain` 1 · TRACKED-dirty 0 · ignored-carrying 26
+#
+#     The 26 is the calibration — the same walk that returns 0 for tracked-dirty returns 26 for
+#     ignored-carrying, so neither selector is dead. **A tracked-only predicate has 0 true positives
+#     today, and the ONE genuinely at-risk worktree is untracked-dirty — exactly the class it would
+#     have abstained on.** An untracked file is the more orphaned of the two: a tracked modification
+#     at least has a committed ancestor to diff against, and an untracked file has nothing anywhere.
+#     Rule 4b already denies `git clean -f` for that precise reason, and a floor that protects
+#     untracked files from one spelling and not the other is not a floor.
+#
+#     -- THE RESOLVER, AND ITS TWO HONEST HOLES ----------------------------------------------------
+#     `git worktree remove` takes exactly one positional and no value-taking option, so the positional
+#     is the one token in the argument span that does not begin with `-`. Everything else is
+#     recognized POSITIVELY and anything unrecognized is *unresolvable*, per #446's pattern: exactly
+#     one `git … worktree remove` invocation, exactly one positional, no construct that can move the
+#     working directory. A shape nobody has thought of lands in *unresolvable* by construction.
+#
+#     UNRESOLVABLE ABSTAINS HERE, AND #446 DENIES — the two rules decide the same state differently,
+#     on purpose, and that ruling is written into #446's own comment at rule 7 rather than invented
+#     here. The argument: #446 asks WHICH REPOSITORY a push lands in, where refusing to answer leaves
+#     a latching publish unclassified; this rule asks WHETHER A DIRECTORY HOLDS UNCOMMITTED WORK, and
+#     an unreadable answer to that is genuinely unknown. Denying on unknown would refuse every
+#     `git worktree remove` the resolver cannot parse, the clean ones included, which is a wedge on
+#     the loop's own cleanup path.
+#
+#     **SO THIS RULE FAILS OPEN AND SAYS SO.** Two holes, named rather than left to be discovered:
+#
+#       · AN UNRESOLVABLE TARGET PASSES. A chained form, a second invocation, a `cd`/`env` that moves
+#         the directory, or a target that resolves to nothing registered — all abstain. The act runs.
+#       · A RELATIVE TARGET IS RESOLVED AGAINST THE HOOK'S OWN CWD, not the caller's. This file never
+#         reads the payload's `cwd` field and deliberately still does not: whether a `PreToolUse`
+#         payload carries `cwd` AT ALL is UNMEASURED here — what is measured is that a `SubagentStart`
+#         payload does (`dispatch-metrics-start.sh`'s header, #209), a different event. Adopting a
+#         field whose presence is a hypothesis would make this limb resolve against an empty string on
+#         any build that omits it. This is the one sub-problem NEITHER #443 NOR #446 owns; it is a
+#         named residual in both. What would settle it: one registered probe hook echoing its stdin.
+#
+#     -- AND IT CLOSES NOTHING AGAINST A DELIBERATE ROUTE. SAY THIS BEFORE THE GREEN IMPLIES IT -----
+#     A wrapper, an alias, a shell function or a script file invoked by path reaches the same directory
+#     with this hook seeing only a name. And the obvious hand-spelled escape is not merely worse than
+#     the guarded route — it is OPEN. Measured in the same run as the probes above:
+#
+#       rm -rf ../wt-probe   -> deny  (rule 4)
+#       rm -r  ../wt-probe   -> NO DECISION,      and `Bash(rm:*)` sits in `allow` in both layers
+#
+#     `rm -r <worktree>` destroys the same bytes and is refused by nothing. **This rule raises the
+#     cost of the ACCIDENTAL destruction and closes nothing against a deliberate one.** Whether
+#     `rm -r` is itself a floor item is a separate irreversibility ruling and is NOT proposed here.
+#
+#     -- THE FALSE-POSITIVE DIRECTION, WHICH IS THE TEST THIS HAD TO PASS --------------------------
+#     The standing rule is that a preventive control whose false positives are invisible to the person
+#     it protects is worse than no control. A `PreToolUse` deny is the visible kind: the caller reads
+#     the reason string in the same turn and the message names three remedies. That is the opposite of
+#     the deleted `action-pendency-guard.sh`, whose errors landed before the owner saw anything. The
+#     false-positive rate is additionally 0 of 29 against the live inventory, since the rule permits
+#     everything git permits.
+#
+#     -- NO ADR, DECLARED RATHER THAN LEFT UNANSWERED -----------------------------------------------
+#     The significance test's five arms, walked: no `iac/`, no public contract or schema, no new
+#     dependency or tool-class, and no cross-cutting pattern — this is the THIRD member of an existing
+#     family (rules 4/4b), reusing their matcher shape and their irreparability argument rather than
+#     establishing anything for others to follow. The fourth arm, *alters a previously-recorded
+#     decision*, is the only one worth a second look and it does not fire either: ADR-0004's *which
+#     layer carries a control* is APPLIED here, not amended, and the answer it gives (this layer, as a
+#     deny) is the one that record already prescribes. **So: no ADR.** Declared because an unanswered
+#     significance test and a negative one look identical from outside, and this file's own header
+#     holds that absent is not a state.
+#
+#     -- ONE SPELLING HAZARD MEASURED AND FOUND NOT TO TRANSFER ------------------------------------
+#     #441 found `gh` accepting five spellings of its repo flag. `git` does not: `git -C<path> worktree
+#     remove -f z1` returns rc 129 — git's own usage error — so it never executes, and the spaced form
+#     is the only one this rule needs to read. This is a NEGATIVE result and it is recorded because
+#     #443's body drew a WIDER conclusion from it than it supports: it said rule 7's old extractor was
+#     therefore "complete for git". True of the SPELLING, false of the EXTRACTION, which #446 found
+#     greedy and unscoped. Do not reuse that line as a resolver; it never was one.
+if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+worktree[[:space:]]+remove([[:space:]]|$)'; then
+  # EVERY `grep` IN THIS BLOCK CARRIES `|| true`, AND THREE OF THE FIVE ARE LOAD-BEARING. This file
+  # runs under `set -euo pipefail`, so a grep that legitimately matches nothing exits 1, the pipeline
+  # inherits it, and the whole guard dies with no output. A hook that dies silently reads to the
+  # runtime as NO DECISION — that exact shape turned eight of rule 3b's force-push denials into silent
+  # allows once already, measured 471/8 against a 479/0 baseline. Removing `|| true` from the two
+  # greps that CAN match nothing reproduces it here: the target-flag grep (no `-C` on the invocation is
+  # the commonest shape there is) took the suite to 545/32, and the positional grep to 574/3.
+  #
+  # **AND TWO OF THE FIVE ARE UNREACHABLE, WHICH IS WORTH SAYING RATHER THAN LETTING THE SENTENCE
+  # ABOVE IMPLY OTHERWISE.** The `-oE` re-match on the next line and the `grep -c .` after it both run
+  # only inside an `if` whose condition just matched the SAME pattern, so neither can come back empty.
+  # Mutating each one's `|| true` away leaves the suite at 577/0 — no arm reddens, and none can. They
+  # are kept as insurance against the trigger pattern and the `-oE` pattern drifting apart in a later
+  # edit, which is a real hazard (they are duplicated literals) but is not a hazard any assertion here
+  # observes. This paragraph exists because the first draft of it claimed all five were load-bearing,
+  # and mutating the source is what falsified that.
+  wt_hits="$(printf '%s' "$bare" | grep -oE '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+worktree[[:space:]]+remove([[:space:]]|$)' || true)"
+  # `grep -o | grep -c .`, never `grep -co`: with -o, BSD grep counts MATCHES and GNU grep counts
+  # LINES, so `-co` would return different answers on a maintainer's macOS and in Ubuntu CI.
+  wt_n="$(printf '%s\n' "$wt_hits" | grep -c . || true)"
+  wt_dir=""
+  if [ "$wt_n" = "1" ] \
+     && ! printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_.-])(cd|pushd|popd|chdir|env)([[:space:]]|$)|\(|GIT_DIR=|GIT_WORK_TREE=|GIT_CEILING_DIRECTORIES='; then
+    wt_inv="$(printf '%s\n' "$wt_hits" | sed -n '1p')"
+    # The argument span: everything after the matched `remove`, cut at the first shell separator so a
+    # trailing `&& npm ci` contributes no tokens. Greedy `.*` is safe because wt_n is exactly 1.
+    wt_args="$(printf '%s' "$bare" | sed -E 's/^.*[[:space:]]+worktree[[:space:]]+remove//' | sed -E 's/[;&|].*$//')"
+    wt_pos_hits="$(printf '%s' "$wt_args" | tr ' ' '\n' | grep -vE '^-|^$' || true)"
+    wt_pos_n="$(printf '%s\n' "$wt_pos_hits" | grep -c . || true)"
+    # More than one target-naming flag on the invocation means guessing their precedence. Refuse to.
+    wt_tflags="$(printf '%s' "$wt_inv" | grep -oE '(-C[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+)' || true)"
+    wt_tn="$(printf '%s\n' "$wt_tflags" | grep -c . || true)"
+    if [ "$wt_pos_n" = "1" ] && [ "$wt_tn" -le 1 ] 2>/dev/null; then
+      wt_pos="$(printf '%s\n' "$wt_pos_hits" | sed -n '1p')"
+      wt_base="$(printf '%s' "$wt_inv" | sed -nE 's/.*[[:space:]]-C[[:space:]]+([^[:space:]]+).*/\1/p')"
+      [ -z "$wt_base" ] && wt_base="$(printf '%s' "$wt_inv" | sed -nE 's/.*--work-tree=([^[:space:]]+).*/\1/p')"
+      [ -z "$wt_base" ] && wt_base="."
+      case "$wt_pos" in
+        /*) wt_cand="$wt_pos" ;;
+        *)  wt_cand="$wt_base/$wt_pos" ;;
+      esac
+      wt_abs=""
+      [ -d "$wt_cand" ] && wt_abs="$(cd "$wt_cand" 2>/dev/null && pwd -P || true)"
+      # THE LOOKUP VERIFIES REGISTRATION, WHICH IS NOT DECORATION. Without it, a target that is a
+      # directory but NOT a worktree would have its CONTAINING repository's status read instead, and a
+      # dirty parent would produce a deny on a command git would have rejected anyway — a confidently
+      # wrong verdict, which this file already holds is worse than a missed one. The MAIN worktree is
+      # skipped for the same reason: git refuses to remove it, so a deny there would be noise. It is
+      # always the first entry of `worktree list --porcelain`.
+      wt_first=1
+      while IFS= read -r wt_p; do
+        [ -z "$wt_p" ] && continue
+        if [ "$wt_first" = "1" ]; then wt_first=0; continue; fi
+        wt_pabs="$(cd "$wt_p" 2>/dev/null && pwd -P || true)"
+        if { [ -n "$wt_abs" ] && [ "$wt_pabs" = "$wt_abs" ]; } || [ "${wt_p##*/}" = "$wt_pos" ]; then
+          wt_dir="$wt_p"; break
+        fi
+      done < <(git -C "$wt_base" worktree list --porcelain 2>/dev/null | sed -n 's/^worktree //p' || true)
+    fi
+  fi
+  if [ -n "$wt_dir" ]; then
+    # THE SENTINEL SEPARATES "CLEAN" FROM "UNREADABLE", WHICH A BARE `|| true` WOULD COLLAPSE. Both
+    # produce an empty string, and treating an unreadable worktree as clean is precisely the silent
+    # fail-open this rule exists to remove. A porcelain line can never BE the sentinel — every one of
+    # them begins with two status characters.
+    wt_status="$(git -C "$wt_dir" status --porcelain 2>/dev/null || printf '__WT_UNREADABLE__')"
+    case "$wt_status" in
+      "" | __WT_UNREADABLE__) : ;;
+      *) deny "Blocked: '$wt_dir' holds uncommitted work, and removing that worktree with force deletes it where it exists nowhere else — not in the reflog, not on the remote, not in the index. That is the same irreparability 'git reset --hard' is refused for. Note what this rule is NOT keyed on: it reads the TARGET, not the flag, so every abbreviation reaches it alike. Git refuses this removal without force for the same reason, and a clean worktree — or one carrying only ignored build output — still removes with a bare 'git worktree remove'. This rule reads only whether the target holds uncommitted work: it does NOT read 'git worktree lock', so a LOCKED but clean worktree is not protected here and double force removes it. Remedies, cheapest first: commit or 'git stash' inside '$wt_dir'; or run 'git -C $wt_dir status' to see what would be lost and delete those paths deliberately; then remove it unforced." ;;
+    esac
+  fi
+fi
+
 # 5. AWS secret writes — ~~DOWNGRADED TO `ask` 2026-09-05 (#383, slice S3)~~ **REVERTED TO `deny` the
 #    same day (#383, S3-revert, owner: «reverte os três»).**
 #

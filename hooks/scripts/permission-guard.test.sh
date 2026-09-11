@@ -1929,6 +1929,211 @@ check DENY  "5f: raw-API repo delete"          "gh api -X DELETE repos/owner/rep
 check DENY  "5f: -f alone makes it a POST"     "gh api repos/owner/repo/issues -f title=x"
 check ALLOW "5f: a read is still a read"       "gh api repos/owner/repo/issues/1/comments"
 
+# ── rule 4c (#443): `git worktree remove` onto a dirty worktree ─────────────────────────────────
+#
+# EVERY `ALLOW` ARM IN THIS SECTION CARRIES A LIVENESS WITNESS, AND WITHOUT ONE IT WOULD ASSERT
+# NOTHING. `verdict()` maps anything that is not a deny or an ask to ALLOW, and a guard that DIED
+# emits nothing — so a crashed guard is scored ALLOW by this harness, indistinguishably from a
+# deliberate abstention. Rule 4c sits at line ~770 with rules 5 through 8 behind it, so a crash in its
+# block would convert every later deny in the file into a silent allow. That is not hypothetical: the
+# identical shape turned eight of rule 3b's force-push denials into silent allows once, and it was a
+# `grep` matching nothing under `set -euo pipefail` that did it.
+#
+# TWO WITNESSES ARE USED, AND THEY WITNESS DIFFERENT THINGS.
+#   · `check_from_alive` asserts the verdict AND that the guard exited 0 — it catches the block dying.
+#   · The `downstream` arms append a payload a LATER rule denies and assert DENY — they catch the
+#     block exiting early or eating control flow without dying, which an rc check cannot see.
+check_from_alive() { # WANT <cwd> <desc> <cmd> — ALLOW plus "the guard was still alive to say so"
+  want="$1"; from="$2"; desc="$3"; cmd="$4"
+  out=$(printf '%s' "$cmd" | jq -R '{tool_input:{command:.}}' | (cd "$from" && bash "$GUARD" 2>/dev/null))
+  rc=$?
+  got=$(verdict "$out")
+  if [ "$got" = "$want" ] && [ "$rc" -eq 0 ]; then
+    pass=$((pass + 1)); printf 'ok    %-6s %s\n' "$got" "$desc"
+  else
+    fail=$((fail + 1))
+    printf 'FAIL  want=%s/alive got=%s/rc=%s  %s\n      cwd: %s\n      cmd: %s\n' \
+      "$want" "$got" "$rc" "$desc" "$from" "$cmd"
+  fi
+}
+
+# THE FIXTURE IS FOUR REAL WORKTREES IN FOUR REAL STATES, not four strings. This rule's predicate is
+# `git status --porcelain` against a resolved directory, so a string fixture would exercise the regex
+# and nothing else — and the regex is the half that was never in doubt.
+WT="$(mktemp -d)"; git init -q -b main "$WT/repo" 2>/dev/null
+git -C "$WT/repo" config user.email t@t; git -C "$WT/repo" config user.name t
+printf 'base\n' > "$WT/repo/f.txt"; printf 'ignored/\n' > "$WT/repo/.gitignore"
+git -C "$WT/repo" add -A >/dev/null 2>&1; git -C "$WT/repo" commit -qm init >/dev/null 2>&1
+for w in wtracked wuntracked wignored wclean; do
+  git -C "$WT/repo" worktree add -q -b "$w" "$WT/$w" >/dev/null 2>&1
+done
+printf 'changed\n' > "$WT/wtracked/f.txt"
+printf 'new\n' > "$WT/wuntracked/newfile"
+mkdir -p "$WT/wignored/ignored"; printf 'x\n' > "$WT/wignored/ignored/blob"
+# THE MAIN REPO IS DELIBERATELY LEFT DIRTY, AND THE NON-WORKTREE DIRECTORY SITS INSIDE IT. Both are
+# what make the two arms below DISCRIMINATING: against a CLEAN main repo, dropping the main-worktree
+# skip or dropping the registration lookup changes no verdict at all, so those arms would have
+# asserted nothing. Found by mutating the SOURCE, never by reading it — the first fixture here had a
+# clean main repo and a sibling directory, and both mutations stayed green through the whole suite.
+mkdir -p "$WT/repo/notaworktree"
+printf 'dirt\n' > "$WT/repo/untracked-probe"
+# A PRUNABLE WORKTREE: registered in the repo, directory gone from disk. `git -C <gone> status` FAILS,
+# and under `set -euo pipefail` a failing command substitution assigned to a variable kills the whole
+# guard — so this fixture is the only thing in the suite that exercises the unreadable sentinel.
+# TWO LOCKED WORKTREES, ONE CLEAN AND ONE DIRTY. `git worktree lock` is git's SECOND refusal and it
+# is independent of the first: the four-state table this rule was designed against varies dirtiness
+# and holds lock constant, so it could not see it. The pair below is what makes the gap ASSERTED
+# rather than described — one row pins that the floor does NOT honour a lock, the other pins that a
+# locked worktree carrying work is still denied, through the dirtiness limb rather than the lock.
+git -C "$WT/repo" worktree add -q -b wlockclean "$WT/wlockclean" >/dev/null 2>&1
+git -C "$WT/repo" worktree add -q -b wlockdirty "$WT/wlockdirty" >/dev/null 2>&1
+printf 'changed\n' > "$WT/wlockdirty/f.txt"
+git -C "$WT/repo" worktree lock "$WT/wlockclean" >/dev/null 2>&1
+git -C "$WT/repo" worktree lock "$WT/wlockdirty" >/dev/null 2>&1
+git -C "$WT/repo" worktree add -q -b wgone "$WT/wgone" >/dev/null 2>&1
+rm -rf "$WT/wgone"
+
+echo "--- rule 4c (#443): the flag set is OPEN, so the rule reads the TARGET and every spelling denies ---"
+# ALL SEVEN WERE MEASURED DESTROYING A TRACKED MODIFICATION (rc 0, directory gone), because git
+# accepts unambiguous long-option abbreviations. A rule keyed on the flag would need a list with no
+# last member; these arms exist to prove the rule is NOT keyed on one. Deleting the force token from
+# the guard's code would leave every row here green, which is the point — there is no token to delete.
+check_from DENY "$WT/repo" "4c: --force"           "git worktree remove --force $WT/wtracked"
+check_from DENY "$WT/repo" "4c: -f"                "git worktree remove -f $WT/wtracked"
+check_from DENY "$WT/repo" "4c: -ff"               "git worktree remove -ff $WT/wtracked"
+check_from DENY "$WT/repo" "4c: --force --force"   "git worktree remove --force --force $WT/wtracked"
+check_from DENY "$WT/repo" "4c: --f abbreviation"  "git worktree remove --f $WT/wtracked"
+check_from DENY "$WT/repo" "4c: --fo abbreviation" "git worktree remove --fo $WT/wtracked"
+check_from DENY "$WT/repo" "4c: --forc abbreviation" "git worktree remove --forc $WT/wtracked"
+# AND WITH NO FLAG AT ALL. Git already refuses this one, so the arm is not about blocking it — it is
+# the proof that the predicate is the TARGET's state and nothing else. If this row ever goes ALLOW
+# while the rows above stay DENY, the rule has silently acquired a flag dependency.
+check_from DENY "$WT/repo" "4c: no flag at all — the predicate is the target" "git worktree remove $WT/wtracked"
+
+echo "--- rule 4c (#443): the target resolves in every position and spelling git accepts ---"
+check_from DENY "$WT/repo" "4c: flag AFTER the positional"  "git worktree remove $WT/wtracked --force"
+check_from DENY "$WT/repo" "4c: a bare worktree NAME"       "git worktree remove -f wtracked"
+check_from DENY "$WT/repo" "4c: a relative path"            "git worktree remove -f ../wtracked"
+check_from DENY "$WT/repo" "4c: git -C names the base repo" "git -C $WT/repo worktree remove -f ../wtracked"
+# UNTRACKED IS DENIED TOO, AND #443'S OWN BODY PROPOSED A PREDICATE THAT WOULD NOT HAVE. It asked for
+# "tracked modifications"; against the live inventory that has 0 true positives and the one at-risk
+# worktree is untracked-dirty. An untracked file is the MORE orphaned of the two — a tracked
+# modification has a committed ancestor, an untracked file has nothing anywhere — which is the same
+# sentence rule 4b already denies `git clean -f` with.
+check_from DENY "$WT/repo" "4c: an UNTRACKED file is uncommitted work too" "git worktree remove -f $WT/wuntracked"
+check_from DENY "$WT/repo" "4c: untracked, bare name"                      "git worktree remove -f wuntracked"
+
+echo "--- rule 4c (#443): the deny names the target and the two things a caller needs ---"
+# VERDICT-ONLY ARMS CANNOT SEE A MESSAGE REWRITTEN INTO UNUSABILITY, and this rule's whole
+# false-positive defence is that its error is VISIBLE and SELF-CORRECTING. These pin the parts that
+# make it so: which directory, and what to do instead.
+check_from_reason DENY "$WT/repo" "4c: the deny NAMES the worktree"     "$WT/wtracked" "git worktree remove -f $WT/wtracked"
+check_from_reason DENY "$WT/repo" "4c: the deny carries the remedy"     "git stash"    "git worktree remove -f $WT/wtracked"
+check_from_reason DENY "$WT/repo" "4c: the deny says it is not the flag" "TARGET, not the flag" "git worktree remove -f $WT/wtracked"
+
+echo "--- rule 4c (#443): behaviour-neutral against everything git itself permits (ALLOW + liveness) ---"
+# THE CORRESPONDENCE THIS ASSERTS: `git status --porcelain` is non-empty in precisely the two states
+# bare `git worktree remove` refuses (tracked-modified, untracked) and empty in the two it permits
+# (clean, ignored-only). So these rows are not a courtesy — they are the claim that this rule denies
+# exactly what git denies. IGNORED-ONLY IS THE LOAD-BEARING ONE: 26 of 29 live worktrees carry ignored
+# build output and nothing else, so a rule that reddened here would wedge the loop's own cleanup path.
+check_from_alive ALLOW "$WT/repo" "4c: ignored-only removes, even forced"  "git worktree remove --force $WT/wignored"
+check_from_alive ALLOW "$WT/repo" "4c: ignored-only removes unforced"      "git worktree remove $WT/wignored"
+check_from_alive ALLOW "$WT/repo" "4c: a clean worktree, forced"           "git worktree remove -f $WT/wclean"
+check_from_alive ALLOW "$WT/repo" "4c: a clean worktree, unforced"         "git worktree remove $WT/wclean"
+check_from_alive ALLOW "$WT/repo" "4c: the other subcommands are untouched — list"  "git worktree list"
+check_from_alive ALLOW "$WT/repo" "4c: the other subcommands are untouched — prune" "git worktree prune"
+check_from_alive ALLOW "$WT/repo" "4c: the other subcommands are untouched — add"   "git worktree add -b z $WT/z"
+check_from_alive ALLOW "$WT/repo" "4c: the other subcommands are untouched — lock"  "git worktree lock $WT/wtracked"
+
+echo "--- rule 4c (#443): unresolvable ABSTAINS — the fail-open holes, asserted rather than described ---"
+# THESE ARE THE RULE'S HOLES AND THEY ARE PINNED ON PURPOSE. #446's rule 7 denies its own unresolvable
+# state; this one abstains, and that divergence is a RULING written into rule 7's comment, not an
+# oversight. Pinning it means a later slice that flips 4c to deny-on-unknown must come here and change
+# an assertion, which is the only place the trade gets re-argued deliberately.
+check_from_alive ALLOW "$WT/repo" "4c: two invocations — more than one target" "git worktree remove -f $WT/wclean && git worktree remove -f $WT/wtracked"
+check_from_alive ALLOW "$WT/repo" "4c: a cd can move the directory"            "cd $WT && git worktree remove -f wtracked"
+check_from_alive ALLOW "$WT/repo" "4c: a subshell can move the directory"      "(cd $WT; git worktree remove -f wtracked)"
+check_from_alive ALLOW "$WT/repo" "4c: a target registered nowhere"            "git worktree remove -f $WT/nosuchworktree"
+# A DIRECTORY THAT IS NOT A WORKTREE MUST NOT BE READ AS ITS CONTAINING REPO. Without the registration
+# lookup, `git -C <notaworktree> status` reports the PARENT repository's state, so a dirty parent would
+# produce a deny on a command git rejects anyway — a confidently wrong verdict, which this file holds
+# is worse than a missed one. The fixture repo is dirty here (four worktrees' worth of nothing, plus
+# the untracked probe files), so this row would go DENY if the lookup were removed.
+check_from_alive ALLOW "$WT/repo" "4c: a plain directory is not a worktree"    "git worktree remove -f $WT/repo/notaworktree"
+# THE MAIN WORKTREE IS SKIPPED. Git refuses to remove it, so a deny there is noise on a command that
+# cannot run — and the fixture's main repo is dirty, so this row proves the skip rather than assuming it.
+check_from_alive ALLOW "$WT/repo" "4c: the MAIN worktree is not this rule's object" "git worktree remove -f $WT/repo"
+
+# THE UNREADABLE TARGET: registered, directory gone. It must ABSTAIN, and the guard must SURVIVE
+# saying so. Without the sentinel the failing `git status` assignment kills the guard under `set -e`,
+# and every rule behind 4c becomes a silent allow — which `verdict()` would score ALLOW here too, so
+# the rc half of this helper is the entire assertion.
+check_from_alive ALLOW "$WT/repo" "4c: a REGISTERED worktree whose directory is gone abstains, alive" "git worktree remove -f wgone"
+# TWO POSITIONALS, DIRTY ONE FIRST. Git rejects this outright; the arm exists so that dropping the
+# single-positional bound (which would resolve the first token and deny) reddens by name.
+check_from_alive ALLOW "$WT/repo" "4c: two positionals is not one target" "git worktree remove -f wtracked wclean"
+
+echo "--- rule 4c (#443): git's SECOND refusal — the lock — is NOT covered, and that is asserted ---"
+# THE GATE'S BLOCKING FINDING AT bc6e6d0c, TURNED INTO TWO ARMS. Re-measured guard-only across five
+# states on `git version 2.50.1 (Apple Git-155)`: a LOCKED CLEAN worktree has an EMPTY
+# `git status --porcelain` and git still refuses to remove it (rc 128), so this rule's permit set is
+# a strict SUPERSET of git's rather than equal to it. The artifact claimed equality in three places
+# including the caller-facing deny string; the LOGIC is unchanged and the CLAIM is corrected.
+#
+# SHARPER THAN A VERDICT PAIR WOULD SHOW, AND MEASURED RATHER THAN INFERRED: the two refusals have
+# DIFFERENT force thresholds. Dirtiness yields to ONE `-f`; a lock needs TWO (`-ff`, `--force
+# --force`, `-f -f` and `--forc --forc` all removed a locked worktree at rc 0, while every
+# single-flag spelling left it at rc 128, directory intact).
+#
+# NO UNCOMMITTED WORK IS REACHABLE THROUGH THE GAP — it is by construction the CLEAN half of the
+# lock class. What is overridden is the DECLARATION, and `worktree-notice.sh` prints `lock` as its
+# declared opt-out with 0 of 28 live worktrees adopting it. This arm is deliberately an ALLOW: it
+# pins a known, argued hole, so a later slice adding a lock limb must come here and change it.
+# THESE TWO ALLOW ARMS ARE PINNED BY MUTATION, NOT BY ASSERTION ALONE: making the rule lock-aware
+# (a limb setting the status to LOCKED when the worktree's git-dir holds a `locked` file) reddens
+# both, 579/2. So they assert the gap rather than merely tolerating it.
+#
+# AND THAT MUTATION LIED ONCE BEFORE IT WORKED — A FOURTH WAY, AFTER THE INVALID ONE, THE WEAK
+# FIXTURE AND THE INEFFECTIVE-BY-ANCHOR ONE THE GATE NAMED AT #451. Its first form tested the lock
+# file with `grep -qs .` — non-EMPTY content — and returned 0 reds at 1 applied site, syntactically
+# valid and semantically inert. Measured cause: `git worktree lock` with no `--reason` writes a
+# ZERO-BYTE `locked` file (7 bytes with a reason), so the mutation never fired at all. **A detector
+# correct in SHAPE and wrong about the artifact's REPRESENTATION scores exactly like a dead
+# assertion.** Presence (`[ -e … ]`) is the right test; the porcelain `locked` line is the other.
+check_from_alive ALLOW "$WT/repo" "4c: a LOCKED CLEAN worktree is NOT protected — git refuses, this rule does not" "git worktree remove -ff $WT/wlockclean"
+check_from_alive ALLOW "$WT/repo" "4c: the same gap under a single force spelling"                                  "git worktree remove --force $WT/wlockclean"
+# AND THE OTHER HALF OF THE LOCK CLASS IS COVERED — through DIRTINESS, not through lock awareness.
+# Without this row the section above would read as "locks are simply out of scope", which is weaker
+# and wrong: a locked worktree holding work is denied in every spelling.
+check_from DENY "$WT/repo" "4c: a LOCKED DIRTY worktree is still denied, via the dirtiness limb" "git worktree remove -ff $WT/wlockdirty"
+check_from_reason DENY "$WT/repo" "4c: the deny states the lock is not read" "does NOT read 'git worktree lock'" "git worktree remove -ff $WT/wlockdirty"
+
+echo "--- rule 4c (#443): the block did not eat control flow — rules BEHIND it still answer ---"
+# THE STRONGEST WITNESS IN THIS SECTION, AND THE ONE AN rc CHECK CANNOT GIVE. Rules 5 through 8 sit
+# behind 4c. If its block exited early, or swallowed the rest of the file without dying, every arm
+# above would still read exactly as it does now and every later deny in this file would have become a
+# silent allow. Each row pairs a 4c payload with a payload a LATER rule denies, and asserts the later
+# rule still answered.
+check_from DENY "$WT/repo" "4c-downstream: rule 4 (rm -rf) still fires behind it"  "git worktree remove -f $WT/wclean && rm -rf /x"
+check_from DENY "$WT/repo" "4c-downstream: rule 4b (git clean -f) still fires"     "git worktree remove -f $WT/wclean ; git clean -fd"
+check_from DENY "$WT/repo" "4c-downstream: rule 5f (gh api write) still fires"     "git worktree remove -f $WT/wclean && gh api -X DELETE repos/owner/repo"
+check_from DENY "$WT/repo" "4c-downstream: rule 8 (composition) still fires"       "git worktree remove -f \$(basename /x/y)"
+# AND FROM THE OTHER SIDE: a payload that reaches 4c through a rule that fires FIRST must keep that
+# rule's verdict, not acquire 4c's. Rule 4 sits above 4c, so it answers.
+check_from_reason DENY "$WT/repo" "4c: an earlier rule still owns its own payload" "recursive force delete" "rm -rf $WT/wtracked"
+
+echo "--- rule 4c (#443): degenerate token streams do not kill the guard ---"
+# A `grep` MATCHING NOTHING UNDER `set -euo pipefail` IS WHAT KILLED THIS GUARD BEFORE. Every grep in
+# 4c's block carries `|| true`; these payloads are the ones that make each of them match nothing.
+for c in "git worktree remove" "git worktree remove -f" "git worktree remove --" \
+         "git worktree remove -- $WT/wtracked" "git worktree remove -f wtracked wclean" "git worktree" \
+         "git worktree remove -f ''" "git -C $WT/repo -C $WT/repo worktree remove -f ../wtracked"; do
+  check_agent_ran "4c: the guard SURVIVES '$c'" "$c"
+done
+
+rm -rf "$WT"
+
 rm -rf "$FEAT"
 rm -rf "$GH_STUB_DIR"
 
