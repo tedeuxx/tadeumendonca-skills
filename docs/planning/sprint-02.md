@@ -52,6 +52,41 @@ eligible: 6 · awaiting the owner: 4 · content (not drained): 37, of which 11 r
 proposals read from docs/retrospective/sprint-01/: 14 findings across 7 persona files
 ```
 
+~~`content (not drained): 37, of which 11 ready`~~ — **STRUCK on review, and the defect is that it was
+published WITHOUT ITS FALSIFIER, not that the digits were wrong.** Three of the four figures on those two
+lines reproduce exactly; this one reproduces under no selector I could construct. **It sat eight lines
+above two blind-spot zeroes that do ship their commands, so this block demonstrates the
+number-with-its-command rule and breaks it in the same breath.** That is the finding. The digits are
+downstream of it.
+
+**The measurement, with the selector, and with what it excludes stated rather than implied:**
+
+```
+gh issue list --repo tedeuxx/tadeumendonca-io --state open --limit 300 --json number,labels,milestone --jq '
+ {content_open:              [.[]|select(.labels|map(.name)|index("content"))]|length,
+  content_open_ready:        [.[]|select((.labels|map(.name)|index("content"))
+                                    and (.labels|map(.name)|index("ready")))]|length,
+  content_unmilestoned:      [.[]|select((.labels|map(.name)|index("content")) and .milestone==null)]|length,
+  content_unmilestoned_ready:[.[]|select((.labels|map(.name)|index("content")) and .milestone==null
+                                    and (.labels|map(.name)|index("ready")))]|length}'
+# -> {"content_open":40,"content_open_ready":13,
+#     "content_unmilestoned":39,"content_unmilestoned_ready":12}
+```
+
+**Both readings are published because the admission of `#259` moved the count during this rite**, and
+naming only one would hide which side of that event the number is on: **40 / 13** counts every open
+`content` Issue including the one this iteration admitted; **39 / 12** counts what remains unselected
+after it. *Not drained* is the second. The scope is `tedeuxx/tadeumendonca-io` alone —
+`tedeuxx/tadeumendonca-skills` carries **0** `content` Issues — and no `content` Issue is `blocked`, so
+that filter changes nothing either way.
+
+**No content Issue was filed on 2026-09-11**, so this is a wrong figure rather than drift: the newest
+open `content` Issue is `#633`, created 2026-09-10.
+
+*What reproduced, checked rather than assumed:* `eligible: 6` ✓ · `awaiting the owner: 4` →
+`[635, 597, 575, 456]` ✓ · `14 findings across 7 persona files` → exactly 14 `## Finding` headings across
+exactly 7 persona files, `00-scope.md` correctly excluded ✓.
+
 **Two blind-spot predicates were run rather than assumed, and both returned real zeroes** over live
 corpora of 4 and 47 open Issues:
 
@@ -166,6 +201,33 @@ item lacks an estimate, so **this composition will refuse the first drain**, and
 is the named next act. **This rite admits and does not estimate** — reporting the pendency rather than
 resolving it is the rule, and the alternative is a surprise at the drain's door.
 
+## This rite ran its steps OUT OF ORDER, and the rite itself names why that matters
+
+**Step 5 prescribes the order: *"write and commit the pool, the ranking, the proposed composition and the
+activation log BEFORE step 4 runs"*. It ran inverted.** The tracker writes landed first and the artifact
+was committed after:
+
+```
+# the two closes that recomposed the pool, and the only step-4 timestamps this loop can read:
+gh issue view 580 --repo tedeuxx/tadeumendonca-io --json number,state,closedAt   # 2026-09-11T21:33:20Z
+gh issue view 611 --repo tedeuxx/tadeumendonca-io --json number,state,closedAt   # 2026-09-11T21:33:18Z
+git log -1 --format=%cI -- docs/planning/sprint-02.md                            # 2026-09-11T18:45:08-03:00
+#                                                                                # = 21:45:08Z
+```
+
+**So the exposure step 5 warns about is real and is live right now: the milestone exists in both
+repositories and six items carry it, while the only record that this rite ran sits in an unmerged PR.**
+If that PR is rejected, the tracker state stands and the record does not. `--remove-milestone` is the
+corrective act and it is the owner's.
+
+**This is recorded HERE, and the reason is step 5's own words.** It calls this file *"the only durable
+record that this rite ran"*. The inversion was disclosed in the merge request body — which is a record of
+the **review**, not of the **rite**, and a reader reconstructing what happened at this planning reads the
+artifact. **A failure disclosed only where the artifact is not is disclosed to the wrong reader.**
+
+**Not repaired, because it is not repairable after the fact** — the writes were live when they happened
+and no ordering can be retrofitted. What is owed is a retrospective finding, not an edit here.
+
 ## What could not be assembled, as a bound on everything above
 
 - **The 14 retrospective findings were counted, never read.** `scrum-master` was told they exist and how
@@ -180,5 +242,28 @@ resolving it is the rule, and the alternative is a surprise at the drain's door.
   whether every `tools: []` profile in this roster is currently ungated.**
 - **No estimator could run the suite.** No worktree carried `node_modules`, so `#636`'s `1382/1382` green
   is taken on trust; `developer` said so rather than estimating around it.
-- **Nothing reads this file.** No hook, no gate, no command. By this loop's own test — *would something
-  stop me, or only my memory?* — this artifact is a record, not a control.
+- ~~**Nothing reads this file.** No hook, no gate, no command.~~ **Corrected on review: the first limb is
+  FALSE, and the distinction it was missing is worth more than the correction.** **Nothing reads this
+  file's CONTENT** — no hook, no gate and no command parses a word of it, and the conclusion below is
+  untouched. **But a registered hook reads its PATH'S COMMIT DATE**, so merging this file has an effect
+  the sentence denied. `docs/loop-cadence.md` declares the root at column 0:
+
+  ```
+  cadence-rite: docs/planning /sprint-planning here
+  ```
+
+  and `hooks/scripts/cadence-notice.sh` — registered on `SessionStart` — takes each rite's clock from
+  `git log -1 --format=%cI -- <that root>`, which its own header shows returning empty for this one.
+  **So this commit starts the `/sprint-planning` cadence clock, for the first time that root has ever
+  carried one.** It is also why `docs/iteration-sweep` is reported as never having moved: the same hook,
+  the same mechanism, a root that does not exist.
+
+  **The one gate arm naming this path asserts less than it looks like.**
+  `hooks/scripts/inventory-counts.test.sh` checks that `commands/sprint-planning.md` and
+  `agents/scrum-master.md` name the same `docs/planning/<iteration>.md` string. That is two prose
+  documents agreeing with each other; **no arm opens a file under this root**, so *no gate* stands.
+
+  **The conclusion is unchanged and is now load-bearing rather than decorative.** By this loop's own
+  test — *would something stop me, or only my memory?* — this artifact is a record, not a control. **A
+  clock that advances because a file landed is not a reader of what the file says**, and nothing
+  anywhere can tell a planning that ran from a file that was committed.
