@@ -58,6 +58,51 @@
 # an observer it was — see the block below. Read the `?` class as the standing admission that it still
 # is one, just not silently.
 #
+# ── THE MCP ARM (#399): WHAT IT COVERS, AND THE HALF IT CANNOT SEE ────────────────────────────
+# The owner ruled on 2026-09-10 that the ORCHESTRATOR publishes to the networks — «O orquestrador,
+# exceção registrada» — and named this hook's W arm as the whole of the accountability, in the text
+# he answered: *"The only accountability is the census's `W` arm — which reports after the act and
+# blocks nothing. The whole containment becomes a URL pattern plus a human in the chair."*
+#
+# Measured before the arm was written, at 2ec9fa39, by exercising `classify()` directly with W, R
+# and `?` all reachable in the same run as calibration:
+#
+#   mcp__linkedin__create_post          -> ?        mcp__chrome-devtools__click      -> ?
+#   mcp__chrome-devtools__fill_form     -> ?        Write -> W   Read -> R   Bash "git commit" -> W
+#
+# and `?` triggers nothing: the notice fires on `write_count` alone (`[ "$write_count" -lt $((last +
+# CENSUS_THRESHOLD)) ] && exit 0`), while `unknown_count` only decides whether the unclassified block
+# is PRINTED inside a notice that already fired. So the named accountability reported zero on the one
+# act it was named for.
+#
+# WHY A VERB-PATTERN LIST HERE, WHEN THIS FILE ARGUES AGAINST HEURISTIC MATCHING EVERYWHERE ELSE.
+# The lesson above is about matching substrings anywhere in a FREE-TEXT command string — a `cat`
+# heredoc whose BODY contained a mutating word was classified as a write. An MCP tool name is not
+# free text: it is a machine-generated identifier, `mcp__<server>__<verb>`, and `${name##*__}` is the
+# verb segment exactly. There is no body for a pattern to collide with. The explicit-list decision is
+# untouched for `Bash`, where the subject really is free text.
+#
+# WHAT IS LEFT UNMATCHED IS `?`, NEVER `R` — the same rule the rest of this function follows, and it
+# matters more here: nobody has enumerated any MCP server's tools, so a read-shaped verb that is
+# actually a write must degrade into an admission and not into an assertion.
+#
+# ── THE TWO THINGS THIS ARM IS NOT ────────────────────────────────────────────────────────────
+# 1. IT GATES NOTHING AND FIRES AFTER THE ACT. This is a `Stop` hook; every exit path is `exit 0`.
+#    The post has already landed when the notice is composed. Nothing here refuses a publish, and
+#    nothing anywhere else does either — `mcp-guard.sh` exits WITHOUT A DECISION on an empty
+#    `agent_type`, which is the orchestrator, by design (measured at 2ec9fa39: every persona gets
+#    `deny` on `mcp__linkedin__create_post`; the orchestrator gets no decision at all).
+# 2. IT COVERS THE MCP ROUTE AND NOTHING OF A BROWSER-EXTENSION SESSION. The act that actually ran,
+#    on 2026-09-04, went through Claude in Chrome. That is a different product; this hook reads the
+#    Claude Code transcript, and no matcher in this plugin observes an extension act at all — the
+#    only two matchers registered are `Bash` (a command string) and `mcp__.*` (a tool name).
+#    **Whether an extension act appears in this transcript in any form is a HYPOTHESIS, in those
+#    words, and it is not measured here:** the expectation is that it produces no entry, so the
+#    census is structurally blind rather than merely silent. What would settle it is one
+#    extension-driven act followed by a read of that session's transcript for a corresponding
+#    `tool_use`. Until that is run, do not read this arm as covering the route that has actually
+#    published.
+#
 # ── WHERE THE DEBOUNCE STATE LIVES ─────────────────────────────────────────────────────────────
 # Under the checkout's own `.git/` directory, keyed by `session_id` — the same choice, for the same
 # three reasons, as `zombie-loop-detect.sh`: never git-tracked so it cannot leak into a diff, already
@@ -249,6 +294,24 @@ classify() { # name · command  ->  "W<TAB>label" | "R<TAB>label" | "?<TAB>label
     Read|Grep|Glob|Task|Agent|TodoWrite|WebFetch|WebSearch|BashOutput|KillShell|\
     SlashCommand|ExitPlanMode|NotebookRead|ListMcpResources|ReadMcpResource)
       printf 'R\t%s\n' "$name"; return ;;
+    # ── MCP (#399) ──────────────────────────────────────────────────────────────────────────
+    # An MCP tool name is `mcp__<server>__<verb>` (or `mcp__plugin_<plugin>_<server>__<verb>`), so
+    # the segment after the LAST `__` is the verb and nothing else. Before this arm every MCP call
+    # of every shape fell into the catch-all below as `?` — and `?` triggers no notice, so a turn
+    # that published to a public network in the owner's name produced a census of exactly nothing.
+    # That is the inverse of what `?` was built for: it exists to make a gap VISIBLE, and on this
+    # one surface it made the most irreversible act in the loop silent.
+    mcp__*)
+      case "${name##*__}" in
+        create*|post*|send*|publish*|share*|submit*|upload*|insert*|append*|add_*|set_*|\
+        update*|edit*|modify*|patch*|write*|replace*|\
+        delete*|remove*|clear*|archive*|trash*|move*|rename*|\
+        invite*|connect*|reply*|comment*|react*|like*|follow*|subscribe*|\
+        fill|fill_form|type_text|drag|click|handle_dialog|\
+        evaluate_script|run_script|execute*|navigate*)
+          printf 'W\t%s\n' "$name"; return ;;
+        *) printf '?\t%s\n' "$name"; return ;;
+      esac ;;
     *) printf '?\t%s\n' "$name"; return ;;
   esac
 

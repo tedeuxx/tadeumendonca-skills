@@ -125,6 +125,52 @@ case "$wp" in
 esac
 teardown
 
+echo '--- an MCP publish is in the WRITE/POST class, and a read-shaped MCP verb is not (#399) ---'
+# MUTATION-CHECKED BY BREAKING THE SOURCE, NOT THE TEST. Deleting the `mcp__*)` arm from
+# orchestrator-tool-census.sh sends every name below back to `?`, which reddens the three positive
+# assertions here AND removes the notice's trigger entirely — so the block is additionally protected
+# by `ctx_or_die`. Confirmed red, then restored and confirmed green again.
+#
+# The negative arm is the one that can rot silently: it asserts a read-shaped verb is ABSENT from the
+# write/post block, and an absent-shaped assertion passes against an empty string. That is why the
+# three MCP writes below are what carries this block over the threshold — the notice cannot be empty
+# while the positive arms hold.
+setup
+add_noise
+add_call mcp__linkedin__create_post
+add_call mcp__chrome-devtools__fill_form
+add_call mcp__chrome-devtools__evaluate_script
+add_call mcp__linkedin__get_profile
+add_call mcp__chrome-devtools__take_screenshot
+out="$(run_hook)"
+ctx="$(notice "$out")"
+if ctx_or_die 'a notice was emitted for the MCP block' "$ctx"; then
+  case "$ctx" in
+    *"write/post (3)"*) ok 'three write-shaped MCP calls count as write/post' ;;
+    *) bad 'three write-shaped MCP calls count as write/post' "got: $ctx" ;;
+  esac
+  wp="$(printf '%s' "$ctx" | sed -n '/^write\/post/,/^read (/p')"
+  case "$wp" in
+    *"mcp__linkedin__create_post x1"*) ok 'an MCP publish is labelled by its full tool name in write/post' ;;
+    *) bad 'an MCP publish is in the write/post block' "write/post block was: $wp" ;;
+  esac
+  case "$wp" in
+    *"mcp__chrome-devtools__fill_form x1"*) ok 'an input-carrying browser tool is in write/post' ;;
+    *) bad 'an input-carrying browser tool is in write/post' "write/post block was: $wp" ;;
+  esac
+  # the negative half: a read-shaped verb must NOT be asserted as a write
+  case "$wp" in
+    *"get_profile"*|*"take_screenshot"*) bad 'a read-shaped MCP verb stays out of write/post' "write/post block was: $wp" ;;
+    *) ok 'a read-shaped MCP verb stays out of write/post' ;;
+  esac
+  # and it must land in `?` rather than being ASSERTED as a read — the admission/assertion rule
+  case "$ctx" in
+    *"unclassified (2)"*) ok 'an unmatched MCP verb is unclassified, never asserted as a read' ;;
+    *) bad 'an unmatched MCP verb is unclassified' "got: $ctx" ;;
+  esac
+fi
+teardown
+
 echo '--- a subagent dispatch is one Agent entry, and never the subagent own calls ---'
 setup
 for _ in 1 2 3; do add_call Agent; done
