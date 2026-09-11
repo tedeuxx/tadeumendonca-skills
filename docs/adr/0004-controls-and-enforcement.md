@@ -5633,3 +5633,204 @@ and it is the only claim this correction makes about the runtime.
 inside any non-simple command reaches the runtime with no instruction attached, which is the
 interruption rule 8 exists to convert into a corrected habit. **Rule 8's object is friction**; nothing
 here touches the floor, and the cost of every abstention is one prompt rather than one escape.
+
+## Amendment (2026-09-11) — the ORCHESTRATOR publishes to the public networks, as a recorded exception, and nothing contains it (#399)
+
+**This is the amendment the Issue's acceptance criterion 4 asked for, and it is an amendment to this
+capability document rather than a new record. The deviation is deliberate and is stated here so the
+owner can reverse it cheaply.** The Issue named a new record `0022` and the ceiling that permits it —
+written in the **bare** form here and throughout, because a prose `ADR-nnnn` token naming a record that
+does not exist is a citation to the gate, and it would redden this file. Measured at
+`2ec9fa39`, this library is **exactly 1:1** — seven live records, seven distinct declared capabilities,
+seven rows in the closed set:
+
+```
+for f in docs/adr/0*.md; do sed -n 's/^- \*\*Capability:\*\* *\([a-z][a-z0-9-]*\)[[:space:]]*$/\1/p' "$f"; done | sort -u | wc -l
+ls docs/adr/0*.md | wc -l
+sed -n '/^## Capabilities/,/^## The records/p' docs/adr/README.md | grep -cE '^\| `[a-z][a-z0-9-]*` \|'
+# -> 7, 7, 7
+# calibration, same selectors, same run: grep -lE '^- \*\*Capability:\*\* controls-and-enforcement$' docs/adr/0*.md
+#   returns exactly 1 file, and a nonexistent capability name returns 0 — so neither figure is a dead pattern.
+```
+
+A new record declaring `controls-and-enforcement` would be the **second** document in that capability,
+which is precisely the arrangement [#283](https://github.com/tedeuxx/tadeumendonca-skills/issues/283)'s
+reconciliation removed — and **no gate would catch it**: the collision arm that would is named in
+`hooks/scripts/inventory-counts.test.sh`'s own comment as a residual that "ships in the closing slice",
+and it does not exist. The precedent for a genuinely new record is 0021, which arrived **with a new
+capability name added to the closed set in the same diff**. *Who may publish in the owner's name, and
+under what containment* needs no new capability: it is this one's subject in this one's own words —
+*whether an act may be performed at all, and by what*. **`ADR_HIGH_WATER` is therefore unchanged at 21.**
+
+### The decision
+
+> **«O orquestrador, exceção registrada»** — the owner, 2026-09-10.
+
+**The orchestrator — the main session — performs the publish act to LinkedIn and X, in the owner's
+voice.** Not a persona, and not a text handed to him to paste: a draft he has to post himself is not
+delivery (`harness-orchestrates-delivery-to-audience`, and the standing ask *«o harness deve orquestrar
+fim a fim a entrega de conteúdo para audiência»*).
+
+**It is an exception, and to this document's own rule.** The orchestrator dispatches and does not
+execute. What this amendment records is that on one act it does — because every alternative is closed
+and the act has to happen somewhere.
+
+### It is already the practice. This records a mechanism that RAN, not one that is proposed
+
+The August article's LinkedIn + X pair was posted by the orchestrator through **Claude in Chrome** on
+2026-09-04, both confirmed live with the card unfurling, **undocumented**. That matters for one reason
+beyond provenance: the route that actually ran is the **browser-extension** route, and it is the one
+this harness cannot observe at all.
+
+### What contains it: NOTHING. The ruling says so in its own words
+
+The cost was stated in the option he answered and is the ruling's operative half rather than a caveat
+on it:
+
+> The only accountability is the census's `W` arm — which reports **after** the act and blocks nothing.
+> The whole containment becomes *a URL pattern plus a human in the chair*, and the text has to **say**
+> that rather than imply there is a lock.
+
+**Measured 2026-09-11 at `2ec9fa39`, not read.** `mcp-guard.sh` is deny-by-default for subagents and
+exits without a decision for the orchestrator, by design, in its own header's words:
+
+```
+printf '{"tool_name":"mcp__linkedin__create_post","agent_type":"<T>"}' | bash hooks/scripts/mcp-guard.sh
+# <T>=tadeumendonca-skills:product-lead     -> deny
+# <T>=tadeumendonca-skills:content-writer   -> deny
+# <T>=tadeumendonca-skills:content-reviewer -> deny
+# <T>=tadeumendonca-skills:agents-lead      -> deny
+# <T>=""  (the orchestrator)                -> NO DECISION, exit 0
+# calibration, same hook, same run: chrome-devtools take_screenshot for product-lead -> no decision;
+# chrome-devtools fill_form for the same persona -> deny. Three distinct answers, so no arm is dead.
+```
+
+**Every persona is contained; the one actor named as publisher is not.** And the *other* route is worse
+than uncontained — it is unobservable. Re-derived at the same ref:
+
+```
+jq -r '[.hooks|to_entries[]|.value[]|.matcher // "none"]|unique|join(" ")' hooks/hooks.json   # -> Bash mcp__.* none
+jq -r '[.hooks|to_entries[]|.value[]|.hooks[]]|length' hooks/hooks.json                       # -> 15
+```
+
+**Two matchers across fifteen registrations: `Bash` sees a command string, `mcp__.*` sees a tool name.
+Neither is a browser-extension act.** (The Issue's body printed `PreToolUse Agent` and `PreToolUse
+AskUserQuestion`; neither is registered, and a falsifier that matches nothing reads as *nothing to worry
+about*. Re-derived rather than carried.)
+
+### Which layer carries this control — the standing question, answered
+
+**None, and this is one of the cases where the honest answer is that no layer can carry it for the
+route that matters.**
+
+| layer | can it refuse a publish by the orchestrator? |
+|---|---|
+| `settings.json` deny | **no** — its matcher has no notion of *who* is asking, and the orchestrator must keep its MCP servers |
+| `permission-guard.sh` (`PreToolUse`/`Bash`) | **no** — it reads `.tool_input.command`; an MCP call has none, and a browser-extension act is not a `Bash` call at all |
+| `mcp-guard.sh` (`PreToolUse`/`mcp__.*`) | **could, for the MCP route only** — and deliberately does not: `agent_type` is empty for the main session and the hook exits there by design |
+| a `Stop` hook | **detection, one turn late**, and only on the MCP route — which is what was built |
+| anything at all | **no, for the browser-extension route.** It is a different product; no matcher in this plugin sees it |
+
+**So the one mechanism this Issue builds is detection, after the act, on the route that has NOT yet been
+used to publish.** `hooks/scripts/orchestrator-tool-census.sh` now classifies write-shaped MCP tool
+names as `W`; before it, every MCP name fell into `?`, and `?` triggers no notice, so the named
+accountability reported **zero** on the act it was named for. Its header states both limits and carries,
+in those words, the **hypothesis** that a browser-extension act produces no Claude Code transcript entry
+at all — unmeasured, and what would settle it is one extension-driven act followed by a read of that
+session's transcript.
+
+### The option NOT taken, and why
+
+**One persona granted a narrow named publish subset in `mcp-guard.sh`.** He was shown it in the same
+activation and did not take it. It was mechanical on the MCP half and **nothing** on the browser half —
+so it would have bought a lock on the route nobody publishes through while leaving the route that has
+published untouched, at the price of putting a public-write grant into a persona's brief permanently.
+
+**The chosen option is nothing on both routes, deliberately, and says so.** That is the trade: a
+containment that reads as real on one of two routes was judged worse than no containment stated plainly
+on both — this repository's own named failure shape, *a copied-but-never-read directory reads as
+installed*, one domain over.
+
+**A third option — be shown the Issue before ruling — was offered and not taken.**
+
+**Not considered: a new persona.** This was a missing owner for an act, not a missing viewpoint, and
+adding a reviewer to fix a problem caused by who-may-act is the shape to be most suspicious of.
+
+### The MCP server stays on `@latest` — a reasoned choice, NOT an accepted risk
+
+> **«nao tem problema acompanhar o latest»** · **«acho que o maior risco na verdade seria nao
+> acompanhar o latest»** — the owner, 2026-09-11.
+
+**The Issue's acceptance criterion 5 asked for a pin. It is discharged by this record instead of by a
+diff, and the reasoning is what generalises.** A scraper is coupled to a surface that changes without
+notice and without versioning — LinkedIn's own — so pinning does not freeze the risk, it **reverses its
+direction**: a pinned version decays against a moving target and its failure mode is *a silent no-op
+reporting success*, which is the exact defect this Issue exists to close.
+
+**The general form, worth keeping past this record: pinning a dependency whose job is to track someone
+else's unversioned surface converts a visible risk into an invisible one.** The usual supply-chain
+argument for pinning assumes the dependency's contract is stable and the index is the moving part. Here
+it is the opposite.
+
+**And the risk he ranks highest is abandonment, not change** — *«mcps depreciados para mim tem maior
+risco»*. So **the thing worth watching on this dependency is the package's LIVENESS, not its version.**
+`@latest` on a live project delivers the maintainer's repairs; `@latest` on a dead one delivers exactly
+what a pin would, with the difference that nobody knows it froze.
+
+**The declaration, read 2026-09-11 with calibration in the same run:**
+
+```
+jq -r '.projects | to_entries[] | select(.value.mcpServers.linkedin != null)
+       | "\(.key)  ->  \(.value.mcpServers.linkedin.command) \(.value.mcpServers.linkedin.args|join(" "))"' ~/.claude.json
+# -> <the consumer checkout>  ->  uvx linkedin-scraper-mcp@latest
+# calibration: `[.projects[].mcpServers // {} | keys[]] | unique` returns more than one server name,
+# and the same selector for a name that does not exist returns 0.
+```
+
+**`~/.claude.json` is outside every repository. It rides no pull request, no gate reads it, and nothing
+in this plugin can observe the resolved version, notice a major bump, or tell anyone the package went
+quiet.** The measured liveness signal at the time of the ruling — a single maintainer, no declared
+licence, 43 releases across four majors between 2026-02-01 and 2026-06-10, and **nothing published
+since** — is a reason to watch, and no watcher exists.
+
+**Unmeasured and carried as such: whether the server exposes a publish tool today.** The declaration was
+read; the server was not launched.
+
+### What this does not claim
+
+- **It does not claim the publish act is contained.** It claims the opposite, twice, in the ruling's own
+  words and in the layer table above.
+- **It does not claim the census covers the act.** It covers the MCP route. The route that has published
+  is the browser extension, and that the census is *structurally blind* to it rather than merely silent
+  is a **labelled hypothesis**, not a measurement.
+- **It does not widen `mcp-guard.sh`.** The ruling chose the option that adds no persona grant, and that
+  hook's polarity, its orchestrator exemption and `product-lead`'s read-only browser grant are all
+  unchanged and all correct for the problems they were built for.
+- **It does not touch the Definition of Done's criteria.** A posting criterion would put an obligation on
+  the gatekeeper it cannot check, on every lane, to cover one. What landed is a **disclosure** in
+  `/definition-of-done`'s seam section, and the remainder stays in the lane's own document.
+- **It does not claim the two 2026-09-04 posts carry their campaign tags.** They do not, and whether the
+  tagged form unfurls identically to the bare one is unmeasured — which is why the tagging step ships as
+  a precondition to verify rather than as a mandatory step.
+
+### What nothing enforces — per decision, because flattened it is false in the permissive direction
+
+| decision | what actually holds it |
+|---|---|
+| the orchestrator is the only publisher | **nothing.** `mcp-guard.sh` exits without a decision on an empty `agent_type`, by design; the extension route has no matcher |
+| a post is preceded by the card check | **an instruction.** No layer sees page state, and a `Stop` hook is one turn late with the pin already taken |
+| both halves of the pair shipped | **nothing at post time.** After the fact, a campaign query that is a **lower bound** and cannot separate *nobody posted* from *nobody clicked* |
+| the publish act is accounted for | **the census `W` arm — after the act, gating nothing, MCP route only** |
+| the MCP server's liveness is watched | **nothing.** It is outside every repository |
+| this record keeps saying the containment is nothing | **review.** A string-drift arm could assert the sentence exists; it cannot assert it is true |
+
+**By this loop's own test — *would something stop me, or only my memory?* — nothing decided here is
+engineered.** That is the ruling's accepted cost, written down rather than implied.
+
+### Significance
+
+It crosses the *alters a previously-recorded decision* arm: this document's own separation between an
+actor that dispatches and an actor that executes now carries one named exception. It is recorded here
+rather than in the roster capability because what is decided is **whether an act may be performed at all
+and by what**, which is this capability's subject; *who exists in the loop* did not change, and no
+persona was added.
