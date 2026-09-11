@@ -6198,7 +6198,7 @@ else
     '**It is a MAY. Nothing composes a batch automatically, nothing forbids the per-item shape, and no gate' \
     '#### More than one batch per iteration is NORMAL, and the model must say so' \
     '#### Deliberately DEFERRED, not dropped: the derived commit ↔ issue coverage check' \
-    'is a PRESENCE check, not a HEAD check' \
+    'STRUCK AND REPAIRED 2026-09-11 (#385)' \
     '#### Nothing gates this either, and the arm says only that it is written'
   do
     grep -qF -- "$loopbatch_needle" "$LOOPBATCH_SKILL" || loopbatch_skill_missing="$loopbatch_skill_missing
@@ -6212,8 +6212,17 @@ else
       positively. The DEFERRED needle keeps the derived commit-to-issue coverage check visible as a
       deliberate omission rather than an oversight — it is the only enforceable clause in the whole
       specification. The PRESENCE-not-HEAD needle is the residual a batch makes expensive: rule 7c
-      head-scopes the GATEKEEPER's verdict and nothing head-scopes this persona's, so on a long-lived
-      branch a first-commit marker satisfies hold 2 for everything after it. The NOTHING-GATES needle is
+      head-scoped the GATEKEEPER's verdict and nothing head-scoped this persona's, so on a long-lived
+      branch a first-commit marker satisfied hold 2 for everything after it.
+      ~~The PRESENCE-not-HEAD needle is the residual a batch makes expensive~~ — THE NEEDLE MOVED AT
+      #385, and it moved because the residual was REPAIRED rather than reworded. It used to pin the
+      sentence 'is a PRESENCE check, not a HEAD check'. That sentence is now struck in the skill, and
+      a struck sentence still CONTAINS its own substring — so the old needle would have stayed green
+      over a claim the repo had just reversed, which is a gate observing a string rather than a state.
+      It now pins the repair's own header instead, so reverting the repair (deleting the struck block
+      and the correction with it) reddens, while keeping the struck history green. What it still
+      cannot assert is that hold 2 in agents/quality-assurance.md actually reads the head — that is
+      the gate persona's discipline and no arm here reaches it. The NOTHING-GATES needle is
       what stops a reader inferring enforcement from a rule found in a file full of mechanisms.
       If this is a deliberate rewording, update the needles in this file in the same commit."
   else

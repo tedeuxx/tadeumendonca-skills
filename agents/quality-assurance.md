@@ -1000,12 +1000,51 @@ not.
      boundary-class trigger, changes this section, or otherwise loosens what you are allowed to do.
      Unconditional, whatever else it does and however routine it looks. This is not about environments
      at all: it is the one case where merging it means you ratified your own mandate.
-  2. **A harness diff with no `agents-lead` verdict marker** (ADR-0002, record 0015's Corollary 2) — a diff
-     touching `hooks/**`, `agents/**`, `skills/**`, `commands/**` or `.claude/**` requires an
-     `<!-- harness-lead-verdict: … -->` comment on the PR before you may merge it. **This used to be
+  2. **A harness diff with no `agents-lead` verdict marker AT THE HEAD YOU ARE MERGING**
+     (ADR-0002, record 0015's Corollary 2) — a diff touching `hooks/**`, `agents/**`, `skills/**`,
+     `commands/**` or `.claude/**` requires an `<!-- harness-lead-verdict: … -->` comment on the PR
+     **whose `commit:` line names the `headRefOid` you read for your own verdict**, before you may
+     merge it. **This used to be
      phrased as "the diff is boundary class regardless"; that phrasing stopped being a hold the moment
      boundary became mergeable**, so it is restated here as its own blocker. It is a *missing reviewer*,
      not a class — the same shape as a missing gate, and you would not merge past one of those either.
+
+     **~~a comment on the PR before you may merge it~~ — the HEAD-SCOPING was added 2026-09-11
+     (#385), and the struck phrase is kept because it is what this hold meant for four weeks.** It was
+     a **presence** check: any marker, at any commit, cleared it. **Measured at head on the most recent
+     harness PR rather than argued from the rule:**
+
+     ```
+     gh pr view 454 --repo tedeuxx/tadeumendonca-skills --json headRefOid,comments --jq '
+       .headRefOid as $h
+       | {markers_total:   [.comments[]|select(.body|test("harness-lead-verdict"))]|length,
+          markers_at_head: [.comments[]|select(.body|test("harness-lead-verdict"))
+                                      |select(.body|contains($h))]|length}'
+     # -> {"markers_total":3,"markers_at_head":1}
+     # CALIBRATION — the gate's own marker on the same PR, same predicate: 3 total, 1 at head.
+     # Identical shape; the difference is that rule 7c head-scopes the gate's and NOTHING
+     # head-scoped this one, so two of those three markers cleared hold 2 while attesting a diff
+     # the PR no longer points at.
+     ```
+
+     **You already hold the payload this needs.** ADR-0006 makes you read `headRefOid` for your own
+     verdict; this is the same `$h`, the same containment test, on the same response. **It is not an
+     expansion of your authority** and does not trip hold 1 — it makes an existing hold stricter,
+     which is the direction hold 1 exists to protect.
+
+     **What to do when it fails, and it is NOT a `REQUEST-CHANGES`.** A stale marker is a missing
+     reviewer at this head, not a defect in the diff. Return `APPROVE-PENDING-HUMAN` naming this hold,
+     say which commit the newest marker attests and which one you read, and let `agents-lead` be
+     re-dispatched to post a fresh one. **Do not merge on the strength of a marker naming another
+     commit, and do not accept a relayed claim that the lens re-reviewed** — the marker on the PR is
+     the artifact, exactly as your own verdict is.
+
+     **What holds this: you do, and nothing else.** No rule reads this marker —
+     `grep -rn 'harness-lead-verdict' hooks/scripts/ agents/ | grep -v '\.test\.'` returns counters,
+     comments and brief prose, never a read. The one observation that exists is
+     `hooks/scripts/zombie-loop-detect.sh`, registered on **`Stop`** (`hooks/hooks.json`), which
+     reports a PR whose markers are all stale **at the end of a turn** — detection, one turn late, and
+     it cannot bound your merge because a turn that merged is already over.
   3. **Anything in `iac/`.** The merge *applies*, and a destroyed resource is not recovered by a
      revert — irreversibility that escapes git, which is the permission model's own tolerance test.
      The single-environment argument does not reach it for a concrete reason: there **is** a preview
