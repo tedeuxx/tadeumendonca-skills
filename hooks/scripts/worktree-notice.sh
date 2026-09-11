@@ -80,9 +80,17 @@
 # ── WHAT IT DELIBERATELY DOES NOT DO ─────────────────────────────────────────────────────────────
 #
 #   * It never prints --force, and a worktree git refuses is listed with what is blocking it.
-#     `--force` overrides limbs 1 and 3 at once — it removes a locked
+#     `--force` overrides limbs 1 and 3 — it removes a locked
 #     worktree and destroys uncommitted tracked work. A notice that offered it would be handing the
-#     reader the one command that turns this hook's safe advice into an unrecoverable act. A worktree
+#     reader the one command that turns this hook's safe advice into an unrecoverable act.
+#
+#     ~~at once~~ — **STRUCK 2026-09-11 (#443): MEASURED FALSE, and the correction cuts in this
+#     hook's favour rather than against it.** The two refusals have different thresholds on
+#     `git version 2.50.1 (Apple Git-155)`: **dirtiness yields to ONE `-f`; a LOCK needs TWO.**
+#     `-ff`, `--force --force`, `-f -f` and `--forc --forc` all removed a locked worktree at rc 0,
+#     while every single-flag spelling left it at rc 128 with the directory intact. So a single
+#     `--force` does NOT defeat a lock, and limb 1 is a stronger declaration than this comment
+#     claimed. One git build, one machine — not checked on another version. A worktree
 #     that plain `remove` refuses is reported WITH WHAT IS BLOCKING IT, so the decision is the
 #     human's with the evidence in front of them.
 #
@@ -97,11 +105,15 @@
 #     covers one spelling of the act, this notice covers the reader's intent, and neither substitutes
 #     for the other.
 #
-#     THE TWO AGREE ON THE PREDICATE, WHICH IS WHY THEY COMPOSE RATHER THAN OVERLAP. Limb 3 here and
-#     rule 4c both reduce to `git status --porcelain` being non-empty, and both were measured against
-#     the same four states independently — untracked BLOCKS a bare remove, ignored does NOT. The
-#     class this hook reports as MERGED BUT NOT CLEAN is exactly the class 4c denies the forced
-#     removal of.
+#     THEY AGREE ON LIMB 3 AND DIVERGE ON LIMB 1, WHICH IS THE WHOLE OF HOW THEY COMPOSE. Limb 3
+#     here and rule 4c both reduce to `git status --porcelain` being non-empty — measured
+#     independently against the same states, untracked BLOCKS a bare remove and ignored does NOT — so
+#     the class this hook reports as MERGED BUT NOT CLEAN is exactly the class 4c denies the forced
+#     removal of. **Limb 1 has no counterpart there: 4c does not read `git worktree lock` at all**,
+#     so a LOCKED but clean worktree is reported by this hook as never-removable and is passed by the
+#     floor. That asymmetry is why this notice's own lock advice is not redundant — for the locked
+#     class it is the ONLY thing standing anywhere, and 0 of 28 live worktrees have adopted the
+#     marker it recommends.
 #   * IT KEYS ON NO DIRECTORY NAME. `#437` forbids it and the forbidding is right: four naming
 #     conventions are already in use and a fifth costs nothing to invent. Every classification here
 #     comes from git's registry or from git's own answer about a path.
@@ -303,11 +315,12 @@ LOCKED — declared in use with 'git worktree lock'. Never reported as removable
 
 body="$body
 NOTHING HERE REMOVES ANYTHING, and no command above carries --force. --force overrides both of
-git's own refusals at once — it deletes a locked worktree and destroys uncommitted work — so it is
-never printed here, and a worktree git refuses is listed with what is blocking it instead. Since
-#443 the permission floor also refuses the forced removal of a worktree holding uncommitted work,
-keyed on the target rather than the flag; that covers one spelling and not the class, so it is a
-second layer under this advice and not a replacement for it. This is a NOTICE and never a control; nothing obliges anyone to act on it, and nothing
+git's own refusals — it deletes a locked worktree and destroys uncommitted work — so it is never
+printed here, and a worktree git refuses is listed with what is blocking it instead. It takes TWO
+force flags to defeat a lock and one to defeat dirtiness. Since #443 the permission floor refuses
+the forced removal of a worktree holding uncommitted work, keyed on the target rather than the flag
+— but it does NOT read locks, so for a LOCKED clean worktree the advice above is the only thing
+there is. This is a NOTICE and never a control; nothing obliges anyone to act on it, and nothing
 here can tell a finished worktree from one somebody is about to use. Declare that with
 'git worktree lock <path> --reason \"<why>\"' when you open one for live work. Reported once per UTC
 day per repository, so silence tomorrow is the debounce and not a repair."
