@@ -153,6 +153,55 @@ hook selects a `--label` or a `--milestone`**, so no layer can derive an eligibl
 objects in two repositories. By this loop's own test — *would something stop me, or only my memory?* —
 **this rite is not engineered**, and it must not be described as if it were.
 
+## Step 0 — read the LOOP MODE from its record, in BOTH repositories, before assembling anything
+
+**Added 2026-09-11 after `sprint-02`'s planning changed the mode with no step telling it to.** Until then
+this rite named the mode nowhere — `grep -c 'loop-mode' commands/sprint-planning.md` returned **0** — so
+the field belonged to no step, inherited no checklist, and the two-repository obligation its own record
+states three times was never on one. `-skills` was switched to `scrum`; `-io` was left on `kanban`. **That
+is not an oversight that happened to co-occur with the gap; it is what the gap produces.**
+
+**Read the value. Never infer it from what a pool query returns** — that is the one place in this design
+where a wrong guess is silent, because the `scrum` derivation prints nothing and exits 0 over an empty
+set, exactly like a drained iteration.
+
+```
+grep -m1 '^loop-mode: ' docs/loop-mode.md
+grep -m1 '^loop-mode: ' ../<sibling-repo>/docs/loop-mode.md
+```
+
+**Run it in BOTH trees and stop on a disagreement**, naming which repository says what. A mode is a
+**workspace** property and the record is a **repository** object, so the copies can disagree; the drain
+already makes this comparison at entry (`commands/autonomy.md`) and **halts** on a mismatch, before the
+pool predicate. A planning that composes an iteration under a mode the sibling does not share has
+produced a composition the drain will refuse to enter.
+
+**An unrecognised or missing value is refused BY NAME.** Do not default to `scrum` because it is the
+older mode, and do not default to `kanban` because it is what the queue happens to look like.
+
+### If this planning CHANGES the mode, the switch is a TWO-REPOSITORY act in the same batch
+
+**A mode switch is not complete when one record is edited.** Both copies carry the value and **nothing
+mechanical checks that they agree** — no registered hook reads either file, deliberately. The only reader
+is the drain, and its response to a disagreement is to stop.
+
+So a switch at planning owes, in the same sitting:
+
+- **both** `docs/loop-mode.md` declaration lines — `loop-mode:` and `loop-mode-since:`;
+- **prose in each copy that the new value falsifies**, struck in place rather than rewritten. The two
+  copies are **not** byte-identical by design — each carries its own measurements and its own derivation
+  — so this is a per-file read, never a copy;
+- **`loop-mode-since` dated by the KIND of switch.** An **act** — a ruling, landed with a composition —
+  is dated to the day it lands. An **omission** — a mode that lapsed because nothing recorded it — is
+  back-dated to a derived lower bound. **Back-dating exists because an omission cannot be dated, not
+  because records prefer older dates**, and applying it to an act publishes a mode as having started
+  before the decision that started it.
+
+**Nothing enforces any of this.** No hook reads the record, no gate asserts the two copies agree, and
+this step is an instruction in a rite nothing fires. By this loop's own test — *would something stop me,
+or only my memory?* — **this is memory, now written where the act happens.** What it removes is the
+dependency on a fresh context happening to know the obligation, which is the dependency that failed.
+
 ## Step 1 — assemble the pool, from BOTH repositories, enumerated and never named
 
 **Never type a milestone title into a query** (`/agents-configuration`, rule 1: a milestone name that

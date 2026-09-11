@@ -17,8 +17,8 @@ literally — the same positional shape
 `invocable:` and `purpose:` already use in this repository, chosen for the same reason: a declaration a
 reader can find with an anchored `grep` rather than by reading prose around it.
 
-loop-mode: kanban
-loop-mode-since: 2026-08-30
+loop-mode: scrum
+loop-mode-since: 2026-09-11
 loop-mode-enum: scrum kanban
 loop-mode-repos: tedeuxx/tadeumendonca-skills tedeuxx/tadeumendonca-io
 wip: 2
@@ -31,7 +31,27 @@ inherited because the two are different enums (see *A naming collision* below).
 
 ---
 
-## Why the date is `2026-08-30`, and what that date is NOT
+## Why the date is what it is — and an ACT dates differently from an OMISSION
+
+**Read this section before reading the strike inside it.** `loop-mode-since` has carried two values for
+two different reasons, and the rule that produced the first one **does not apply** to the second. The
+strike below is not the back-dating rule being waived; it is the rule meeting a case it was never about.
+
+| the switch | how it is dated | why |
+|---|---|---|
+| `scrum` → `kanban` | **back-dated**, to `2026-08-30` | an **OMISSION**. Nobody decided it; the container simply stopped carrying anything, and an omission has no timestamp — so the only honest date is derived from an artifact, as a lower bound |
+| `kanban` → `scrum` (2026-09-11) | **dated to the day it lands**, `2026-09-11` | an **ACT**. The owner ruled it, a composition landed with it, and the rite that carried it is `docs/planning/sprint-02.md`. An act has a timestamp, so deriving one would be inventing a lower bound for a moment that is already known |
+
+**The one sentence to carry: back-dating exists because an omission cannot be dated, not because records
+prefer older dates.** Applying it to an act would publish a mode as having started before the decision
+that started it — which is the same class of false claim the rule was written to prevent, pointing the
+other way.
+
+~~## Why the date is `2026-08-30`, and what that date is NOT~~ — **struck 2026-09-11 with the switch to
+`scrum`.** Struck rather than deleted because the derivation below is a real measurement about the period
+it measured, and because a reader meeting `loop-mode-since: 2026-09-11` under a heading naming
+`2026-08-30` would conclude the file was simply stale. **What follows is the `kanban` period's
+derivation, kept as history and no longer describing the value above.**
 
 **It is DERIVED from an artifact, and it is a lower bound on the switch rather than the switch itself.**
 Nothing recorded a mode change, because until this file there was nothing to record one in. What is
@@ -45,10 +65,12 @@ gh issue list --repo tedeuxx/tadeumendonca-skills --state all --limit 300 \
 ```
 
 **So the last item of the last iteration closed on 2026-08-30, and every item since was worked with no
-container, no ranking and no rite.** The record is back-dated to that day rather than to the day this
-file lands, because a record written as though today were the first day of the mode it names is a false
-claim on a surface whose whole thesis is rigor. **What it cannot say is the hour or the intent** — the
-switch was an omission, not an act, and an omission has no timestamp.
+container, no ranking and no rite.** ~~The record is back-dated to that day rather than to the day this
+file lands~~ — **true of the `kanban` value and NOT of the current one; see the table above** — because a
+record written as though today were the first day of the mode it names is a false claim on a surface
+whose whole thesis is rigor. **What it cannot say is the hour or the intent** — that switch was an
+omission, not an act, and an omission has no timestamp. **The 2026-09-11 switch back to `scrum` is the
+opposite case in both halves: it has an hour and it has an intent.**
 
 **The proportion is available from version history over one path, with no ceremony in the chain** —
 which is the whole reason the record is a tracked file rather than a field on the container the lighter
@@ -364,10 +386,29 @@ reads both trees, so it compares the two records at entry and stops on a disagre
 remains:** every context that is *not* the drain — a rite, an ad-hoc session, a dispatched persona — sees
 one repository's record and has no way to know the other disagrees.
 
-**And the sibling copy of this file is OWED and does not exist yet.** `tedeuxx/tadeumendonca-io` carries
+~~**And the sibling copy of this file is OWED and does not exist yet.** `tedeuxx/tadeumendonca-io` carries
 neither this record nor the contract block at the time this lands; both are that repository's own merge
 request, and every sentence crossing the repository boundary is true on the day **its own** repository
-merges, never on the day this one does.
+merges, never on the day this one does.~~
+
+**STRUCK 2026-09-11 — FALSE at head, and it is struck rather than deleted because it is the sentence that
+would tell a reader there is no second copy to keep in step.** `tedeuxx/tadeumendonca-io` carries **both**:
+its own `docs/loop-mode.md` (tracked, with its own measurements and its own history — deliberately not
+byte-identical to this one) and the `<!-- loop-mode-contract -->` block. Falsified in one command, from a
+workspace holding both checkouts:
+
+```
+git -C ../tadeumendonca-io ls-files --error-unmatch docs/loop-mode.md   # -> docs/loop-mode.md, exit 0
+grep -c -E '^<!-- /?loop-mode-contract -->$' ../tadeumendonca-io/CLAUDE.md   # -> 2
+```
+
+**So the obligation is live rather than owed, and it bites on every value change**: the two copies must
+agree on the **value**, nothing mechanical checks that they do, and the only reader that compares them is
+the drain — which **stops** on a disagreement (`commands/autonomy.md`, *"stop on a disagreement and say
+which repository says what"*). **A value edited here and not there does not drift quietly; it halts the
+next `/autonomy on` at the mode read, before the pool predicate.** That is the loud failure. The silent
+one is every other context — a rite, an ad-hoc session, a dispatched persona — which reads one record and
+cannot know the other disagrees.
 
 ---
 
@@ -394,6 +435,28 @@ above select the same cadence behaviour. **What it does not do is fire a rite.**
 so *"the three rites have never fired in either mode"* is unchanged by it; what changed is that the
 elapsed time is now **said out loud** instead of known by nobody.
 
-**What it does change is measured above and is not small:** under `scrum` the pool is empty in both
-repositories at head, and under `kanban` it is four items. **A mode nobody had recorded was already
-selecting which of those two answers the loop got.**
+~~**What it does change is measured above and is not small:** under `scrum` the pool is empty in both
+repositories at head, and under `kanban` it is four items.~~ **STRUCK 2026-09-11 — both halves are false
+at head, and the sentence says "at head" rather than naming a date, so it cannot be read as a dated
+measurement the way the block above it can.** It described the tracker state on 2026-09-09, when no open
+Issue carried a milestone. `sprint-02` was composed on 2026-09-11 and six items now carry one, so the
+`scrum` derivation resolves in both trees and the `kanban` partition has moved with them. Re-derived at
+head with this file's own two published predicates:
+
+```
+# the scrum derivation -> the active milestone NUMBER
+tedeuxx/tadeumendonca-skills -> 4          tedeuxx/tadeumendonca-io -> 2
+# the kanban predicate -> the ordered partition
+tedeuxx/tadeumendonca-skills -> loop #399 | loop #401 | loop #453 | loop #455
+tedeuxx/tadeumendonca-io     -> product #636
+```
+
+**The lesson that survives its own numbers, which is why the sentence is struck and then restated rather
+than edited in place: a measurement written as "at head" expires silently, while the same measurement
+written with its date expires loudly.** The block above survived this switch intact for exactly that
+reason; this one did not.
+
+**What the comparison still shows is the point it was making:** one tracker state, read under two modes,
+returns two different pools — and **a mode nobody had recorded was already selecting which of them the
+loop got.** That claim never depended on the pools being empty and four; it depends on them differing,
+which they still do.
