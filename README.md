@@ -2204,6 +2204,12 @@ version before relying on it** — that advice is the part of this caveat that d
 
 ## Run it in Codex — a THIRD distribution target, and three different kinds of "no"
 
+**Native persona activation added in #452 (2026-09-11):** the dated table below describes direct
+plugin discovery. A deterministic adapter now loads the canonical briefs and their full declared
+preloads through explicit native Codex role registration. See [Native Codex personas](docs/codex-native-personas.md)
+for the builder, session launcher, ignored-project installation, source checks and measured limits.
+This does not establish tool containment or activate hooks.
+
 <!-- claim id=0006 class=MEASURED -->
 
 **This plugin is installed and enabled on Codex desktop, and until #421 nobody here had measured
@@ -2242,15 +2248,16 @@ Build stamp, both numbers, because the application and the CLI inside it version
 | `skills/` (15) | yes | **yes** | **YES** — 15 skill roots, namespaced `tadeumendonca-skills:<name>` | — |
 | `.mcp.json` | yes | **yes** | **YES** — the server is enabled, from a neutral cwd | — |
 | `AGENTS.md` | yes | **yes** | **YES** — loaded as the repository brief | — |
-| `hooks/` | yes | **a loader EXISTS and is switched off** | no | **gated** — see the four locks |
-| `agents/` (8) | yes | **no loader exists at any setting** | no | **absent** |
+| `hooks/` | yes | ~~**a loader EXISTS and is switched off**~~ — **2026-09-11: `hooks/list` discovers enabled plugin entries with `trustStatus=untrusted`** | execution not established by that metadata | trust and execution remain separate |
+| `agents/` (8) | yes | ~~**no loader exists at any setting**~~ — **#452: direct plugin discovery remains distinct from explicit native profile registration, which now works** | no through the measured direct discovery; explicit adapter available | file-shape adaptation |
 | `commands/` (6) | yes | a one-way import path, disabled | no | **migratory** |
 
 **The last column is the finding.** Three elements are inactive and they are inactive for three
 *different* reasons, which a two-word answer flattens into one. `hooks/` is a capability the harness
-has and is holding shut; `agents/` is a capability it does not have; `commands/` exists only as a
-one-way conversion into something else. **Only the middle one is stable** — a flag flips, and a
-migration is run.
+has and is holding shut; ~~`agents/` is a capability it does not have~~ — **struck by #452's native
+selection measurement**; `commands/` exists only as a one-way conversion into something else.
+~~**Only the middle one is stable**~~ — **the distinction was plugin discovery versus native profile
+configuration, not a permanent absence of native agents**.
 
 ### The commands, each producing one column
 
@@ -2297,7 +2304,8 @@ grep -a -o -E '__ZN18codex_core_plugins[0-9]+[A-Za-z0-9_]+' \
 subsystem the word *agent* names the FORMAT — "Agent Plugins" — and never a persona directory.** That
 single symbol resolves an **MCP** overlay. So the accurate statement is *no plugin-sourced route walks
 `agents/`*, and the harness's own agent subsystem lives elsewhere (`codex_core`: `agent::registry`,
-`agents_md_manager`, `multi_agents`), reachable by nothing this plugin ships.
+`agents_md_manager`, `multi_agents`), ~~reachable by nothing this plugin ships~~ — **struck by #452:
+the shipped builder now projects canonical sources into explicitly registered native profiles**.
 
 **And the one in-plugin `agents/` path the harness does resolve is `agents/openai.yaml`**, an
 executor-capability descriptor this repository does not ship:
@@ -2388,8 +2396,12 @@ harness, *not declaring* a component is not the same as *not shipping* it.
 
 1. **A feature flag.** `codex features list` → `plugin_hooks  removed  false`, while the harness's
    **own** hook layer reads `hooks  stable  true`. **A per-build value, not a property** — but with the
-   flag off, no plugin hook loads regardless of path, which is why this lock alone establishes the
-   table's `gated` cell.
+   ~~flag off, no plugin hook loads regardless of path, which is why this lock alone establishes the
+   table's `gated` cell~~. **Struck 2026-09-11 during #452: the same desktop build's native
+   `hooks/list` returned installed plugin entries with `source=plugin`, `enabled=true` and
+   `trustStatus=untrusted` while that flag still read `removed false`. This establishes discovery,
+   not execution, and invalidates the flag as a sole proof of no discovery. No hook was trusted or
+   activated by the persona adapter.**
 2. **The schema path is `./hooks.json`, not `hooks/hooks.json`.** The manifest template in the binary
    carries `"hooks": "./hooks.json"`, so a plugin that declares nothing gets **that** default.
    **Whether default discovery ALSO scans `hooks/hooks.json` is not established here, and the evidence
@@ -2471,8 +2483,10 @@ by machinery that does not travel with it. **That decision is #423's and is deli
 here.**
 
 **And `#287`'s finding governs the three inactive rows, unchanged:** *a missing directory announces
-itself, a copied-but-never-read one reads as installed.* Eight persona briefs and thirty-four hook
-files sit in that cache and nothing reads them. **Unlike the Kiro export, this is not a shipping
+itself, a copied-but-never-read one reads as installed.* ~~Eight persona briefs and thirty-four hook
+files sit in that cache and nothing reads them.~~ **The 2026-09-10 observation described direct
+discovery. Since #452, explicitly selected canonical persona sources can be loaded by the native
+adapter; hook execution remains a separate measurement.** **Unlike the Kiro export, this is not a shipping
 decision this repository can take** — it does not control that installer, and that installer excludes
 nothing.
 

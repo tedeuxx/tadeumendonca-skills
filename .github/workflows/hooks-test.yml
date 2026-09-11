@@ -97,6 +97,9 @@ on:
       # avoided here only because the header made it the first question asked.
       - ".codex/**"
       - ".claude/settings.json"
+      # Native persona generation reads the roster, full resolution inventory and
+      # VERSION (covered above), and its own builder. Exercise changes to either.
+      - "scripts/codex-agent*"
 
 permissions:
   contents: read
@@ -244,6 +247,9 @@ jobs:
       # nothing about behaviour — the suite's own header says at length what it cannot see.
       - name: Run the codex-rules suite
         run: bash hooks/scripts/codex-rules.test.sh
+
+      - name: Check native Codex persona generation and activation contracts
+        run: python3 scripts/codex-agent-build.test.py
 
       - name: Assert every hook script is committed executable
         run: bash hooks/scripts/hooks-executable.test.sh

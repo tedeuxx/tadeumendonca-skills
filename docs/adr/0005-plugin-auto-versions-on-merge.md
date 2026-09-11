@@ -527,8 +527,11 @@ Kiro that the whole tree arrives and only the knowledge layer runs. **That vocab
 here**, and the insufficiency is the decision-relevant part:
 
 **Activation is partial by ELEMENT, and the three inactive elements are inactive for three different
-reasons.** `hooks/` — the loader exists and is switched off by a feature flag. `agents/` — no loader
-exists at any setting. `commands/` — reachable only through a disabled one-way import. **A single
+reasons.** `hooks/` — ~~the loader exists and is switched off by a feature flag~~ **struck 2026-09-11:
+native `hooks/list` discovers enabled but untrusted installed plugin entries on that build; discovery
+is not execution and the flag is not a sole proof of absence**. `agents/` — ~~no loader
+exists at any setting~~ **struck by #452: direct plugin discovery was measured, while explicit native
+profile registration was not; the latter now activates generated profiles**. `commands/` — reachable only through a disabled one-way import. **A single
 sentence saying "the enforcement layer does not run there" is true and flattens a stable absence
 together with a flag somebody can flip.**
 
@@ -585,14 +588,17 @@ which is what the evidence actually supports.
 **Bad, and the first one is structural.** **Nothing in this repository observes any consumer's
 activated surface**, and nothing can: a gate here cannot run another vendor's CLI, and a plugin cannot
 see what a loader chose to enable. **The table's expiry mechanism is a person re-running six
-commands.** **What holds `hooks/` shut is ONE established lock — the vendor's feature flag — and a
-build can flip it silently.** The other three candidates are each unestablished in the direction that
+commands.** ~~**What holds `hooks/` shut is ONE established lock — the vendor's feature flag — and a
+build can flip it silently.**~~ **Struck 2026-09-11: `hooks/list` returned installed entries with
+`enabled=true` and `trustStatus=untrusted` despite the unchanged removed/false flag. This metadata
+proves discovery only. Hook execution and activation remain outside #452.** The other three candidates are each unestablished in the direction that
 would matter, and the second of them was asserted as a lock in the first authoring of this amendment:
 it inferred an unreachable path from a manifest **template default**, which says what a *generated*
 plugin declares and never what the *loader scans for*. **That is this amendment's own §2 finding
 applied against itself**, refused at the merge gate, and it is recorded here rather than quietly
-corrected because *the analogy that disproves it is the one this record exists to establish.* **Eight persona briefs and thirty-four hook files sit inert in
-that install cache**, which is #287's own named failure shape (*a copied-but-never-read directory
+corrected because *the analogy that disproves it is the one this record exists to establish.* ~~**Eight persona briefs and thirty-four hook files sit inert in
+that install cache**~~ — **#452 adds explicit native loading for the canonical persona sources;
+this older observation concerned direct plugin discovery**, which is #287's own named failure shape (*a copied-but-never-read directory
 reads as installed*) arriving through a door this repository cannot close: unlike the Kiro export,
 this is not a shipping decision available here, because that installer excludes nothing —
 `sparse_paths: []`, `.git` included.
@@ -878,3 +884,76 @@ surface. The capability-layer question left open in the preceding amendment is s
 DECLARE ruling. This amendment records that decision in the same change as its manifest declaration.
 It does not reverse the default-discovery
 finding, expand the distribution targets, or alter the release and adoption policy.
+
+## 2026-09-11 amendment — native persona projection is explicit activation (#452)
+
+### Context and decision
+
+The earlier observation that the plugin loader did not walk canonical `agents/*.md` was stretched
+into a permanent absence of native persona support. That conclusion did not follow from the
+measurement. Both installed Codex executables accept an explicit `agents.<role>.config_file`
+registration and select the configured native child. The owner's existing compatibility goal admits
+this adapter without changing the canonical roster, its rules, Claude Code behavior or Kiro's export.
+
+Ship `scripts/codex-agent-build.py` with the original library. It derives namespaced native roles from
+the canonical roster, embeds each complete brief and all declared preload bodies verbatim, and emits
+local profiles, explicit registration and a source manifest. Resolve skills and command-backed
+preloads using the existing unique-resolution contract; reject missing, ambiguous, duplicate or
+unsupported input. Retain the original authoring surface and make drift a loud failure.
+
+Activation is explicit. A checked session launcher supplies the registrations without editing any
+configuration. An optional installer targets an existing ignored consumer project configuration,
+preserves original bytes and unrelated parsed values, refuses namespace collisions, and requires a
+private backup before replacing its checksummed managed block. Neither route changes trust or enables
+hooks. The tracked library operating entry stays portable and carries no generated machine paths.
+
+### Alternatives and costs
+
+Manually loading the brief and its skills remains possible but cannot establish native profile
+selection. Copying hand-maintained native personas would add a second authored roster. Committing
+generated full-text profiles would duplicate large knowledge bodies and make the release's own
+version change invalidate provenance on every merge. Local reproducible snapshots avoid those costs;
+the accepted cost is explicit rebuild, check and activation after source changes, plus keeping any
+snapshot still referenced by a session or project.
+
+Automatic standalone `.codex/agents` discovery was not disproved: the temporary project's
+configuration was disabled by project trust, including its positive control. Explicit native
+registration is the path measured and shipped here. There is no inference from an untrusted fixture's
+empty discovery result. A marketplace update and adoption of a generated snapshot remain different
+acts, under the existing distribution and release decision.
+
+### Verification and its limits
+
+The source suite and CI exercise the full roster and resolution inventory, exact body preservation,
+drift, installed/exported source roots, namespace collisions, backups and preservation of consumer
+settings. The opt-in `scripts/codex-agent-probe.py` executes an actual native child against a loopback
+Responses stand-in. Its fresh case requires the complete profile at the model-input boundary and
+absence of a private parent-history marker. Unknown-role rejection and inherited-history presence
+calibrate the two assertions. Reproduction commands are in
+[Native Codex personas](../codex-native-personas.md).
+
+On 2026-09-11 the full canonical roster reached that boundary on both executables reported by:
+
+```sh
+codex --version
+/Applications/ChatGPT.app/Contents/Resources/codex --version
+```
+
+The results were shell `0.153.4` and desktop `0.151.0-alpha.7.2`. Separately, an actual model selected a
+configured diagnostic native role and returned its private marker from the child. App-server thread
+metadata identified the configured `agentRole`, the parent thread and the native spawn source. That
+establishes profile selection and response provenance; it does not prove every instruction is obeyed.
+The wire captures establish complete input delivery for the measured profiles and builds, not a
+universal context budget. Synthetic stand-in replies are not model judgments or independent QA.
+
+Canonical `tools:` fields remain text, not an enforced Codex allowlist. Native child metadata does
+not establish the authorization fields consumed by Claude hooks. No tool-less scrum-master guarantee,
+MCP containment, hook translation, observer activation or command-carrier compatibility is claimed.
+Fresh gate contexts retain the canonical criteria and author/merger separation. This is a completed
+persona activation slice within the larger compatibility goal, not a claim of whole-loop parity.
+
+### Significance
+
+Arm: **sets a cross-cutting pattern** — the same canonical personas now have an explicit generated
+native activation route from either a checkout or an installed plugin root. This amends the earlier
+runtime conclusion and records the source-preservation boundary in the change that implements it.
