@@ -745,6 +745,86 @@ STUB
 chmod +x "$GH_STUB_DIR/gh"
 write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE"
 
+echo "--- rule 7c: a FLAG BEFORE THE REFERENCE denies, because the subject cannot be attributed (#441) ---"
+# A WITNESS THAT THE GUARD SURVIVED THE CALL, AND IT EXISTS BECAUSE `check_agent ALLOW` CANNOT SEE A
+# CRASH. `verdict()` above maps anything that is not `"deny"` or `"ask"` to ALLOW — and a guard that
+# DIED emits nothing, so it is scored ALLOW, indistinguishable from a guard that deliberately
+# abstained. Measured while building this section: deleting the `|| true` from the new rule's `grep`
+# makes `grep -v` exit 1 on an all-flag token stream, `set -euo pipefail` kills the whole file, and the
+# three no-reference ALLOW cases below STAYED GREEN against a guard that was not running. That is the
+# crash class this repository has already paid for once — eight force-push denials became silent
+# allows the same way. This helper is the smallest thing that closes it for the arms it is used on.
+#
+# IT IS NOT A GENERAL FIX AND IS NOT PRESENTED AS ONE: every other `check_agent ALLOW` in this file is
+# still blind in exactly this way, which is a finding about the harness rather than about rule 7c, and
+# is not this slice's to take.
+# THE WITNESS IS THE EXIT CODE AND NOTHING ELSE, and the first version of this helper got that wrong
+# in a way worth recording: it also required the output to be parseable JSON, which is FALSE on the
+# very path it was written to protect. A guard that ALLOWS emits NOTHING and exits 0 — the abstain is
+# silence — so `jq -e .` failed on the three legitimate cases and the helper went red against a
+# perfectly healthy guard. Both `deny()` and the abstain path `exit 0`; only a crash exits non-zero.
+check_agent_ran() { # description · command — asserts the guard did not DIE while reaching its verdict
+  jq -n --arg c "$2" --arg a 'tadeumendonca-skills:quality-assurance' \
+    '{tool_input:{command:$c}, agent_type:$a}' | bash "$GUARD" >/dev/null 2>&1
+  rc=$?
+  if [ "$rc" -eq 0 ]; then
+    pass=$((pass + 1)); printf 'ok    ALIVE  %s\n' "$1"
+  else
+    fail=$((fail + 1)); printf 'FAIL  ALIVE  %s\n      guard exited %s (a crash is scored ALLOW by verdict())\n' "$1" "$rc"
+  fi
+}
+# THE FIXTURE IN FORCE HERE IS THE CLEAN ONE — `APPROVE-AND-MERGE` at `stubbed-head` — and the stub
+# above serves it for ANY arguments. That is what makes this section discriminating rather than
+# decorative: a DENY below cannot have come from the verdict, because the verdict clears. It can only
+# have come from the new rule. Measured before the fix with a ref-aware stub, every DENY case here
+# came back ALLOW with `gh saw` carrying NO reference at all — the reference was erased and the
+# CURRENT BRANCH's PR was read in its place, silently, with `Bash(gh pr merge:*)` allowlisted in both
+# settings layers.
+#
+# THE CLASS IS ANY LEADING `-` TOKEN, NOT "A VALUE-TAKING FLAG" — which is what the guard's own
+# residual comment claimed until this slice. The four flags below take NO value and each reproduced
+# the fail-open on its own, which is why they lead this section rather than the `-t`/`-b` family.
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "7c/#441: --merge before the ref (the floor's OWN remedy string, plus a ref)" "gh pr merge --merge 999999"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "7c/#441: --auto before the ref"                      "gh pr merge --auto 999999 --merge"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "7c/#441: --admin before the ref"                     "gh pr merge --admin 999999 --merge"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "7c/#441: --delete-branch before the ref"             "gh pr merge --delete-branch 999999 --merge"
+# AND THE VALUE-TAKING FAMILY, in the attached spellings too — `gh` accepts `-t x`, `-t=x` and `-tx`
+# alike, and a rule that caught only the spaced form would be off for two spellings out of three.
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "7c/#441: -t <value> before the ref"                  "gh pr merge -t subjecttext 999999 --merge"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "7c/#441: -t=<value> before the ref"                  "gh pr merge -t=subjecttext 999999 --merge"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "7c/#441: -t<value> attached, before the ref"         "gh pr merge -tsubjecttext 999999 --merge"
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "7c/#441: --body-file <path> before the ref"          "gh pr merge --body-file /dev/null 999999 --merge"
+# THE DENY NAMES THE UNATTRIBUTABLE TOKEN AND THE REMEDY. A floor that refuses without saying which
+# spelling it can read trains the caller to retry at random; this one is self-correcting.
+check_agent_reason DENY "tadeumendonca-skills:quality-assurance" "7c/#441: the deny names the token it could not attribute" "'999999' here could be either one" "gh pr merge --merge 999999"
+check_agent_reason DENY "tadeumendonca-skills:quality-assurance" "7c/#441: the deny carries the working spelling"           "Put the reference FIRST"              "gh pr merge --auto 999999 --merge"
+#
+# THE FALSE-POSITIVE BOUND, AND IT IS THE HALF THAT DECIDES WHETHER THIS RULE IS A WEDGE. `gh pr
+# merge` with NO reference is legal, common and CORRECT: it merges the current branch's PR, the
+# fallback read is the right read, and 7c reads that PR's verdict. The discriminator is therefore not
+# "is the reference empty" — it is "was there a reference we failed to read". These four say so.
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "7c/#441: no ref at all is untouched — the current branch's PR"      "gh pr merge"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "7c/#441: --merge with no ref is untouched"                          "gh pr merge --merge"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "7c/#441: several boolean flags, still no ref, still untouched"      "gh pr merge --admin --merge"
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "7c/#441: the repo flag is stripped BEFORE this rule, so it is not a stray" "gh pr merge --repo=owner/repo --merge"
+# THE SAME THREE, ASKED WHETHER THE GUARD WAS ALIVE WHEN IT SAID SO. These are the token streams that
+# are ALL FLAGS after the repo strip — the exact input on which the rule's `grep -v` matches nothing —
+# so they are the three cases where an ALLOW could be a corpse rather than a decision.
+check_agent_ran "7c/#441: the guard SURVIVES an all-flag token stream (--merge)"        "gh pr merge --merge"
+check_agent_ran "7c/#441: the guard SURVIVES an all-flag token stream (--admin --merge)" "gh pr merge --admin --merge"
+check_agent_ran "7c/#441: the guard SURVIVES an all-flag token stream (--repo= --merge)" "gh pr merge --repo=owner/repo --merge"
+# THE CONTROL THAT SAYS THE RULE IS ABOUT POSITION AND NOT ABOUT THE FLAG. The same flag AFTER the
+# reference leaves the reference readable, so 7c resolves it and rules on the verdict — which here
+# CLEARS. Without this row the whole section would pass equally well on a rule that denied any
+# `gh pr merge` carrying a flag, which is a different and much worse rule.
+check_agent ALLOW "tadeumendonca-skills:quality-assurance" "7c/#441 control: the same flags AFTER the ref still resolve and clear" "gh pr merge 999999 --merge -t subjecttext"
+# AND THE PRICED OVER-BLOCK, ASSERTED RATHER THAN LEFT TO BE DISCOVERED. A legal no-reference merge
+# carrying a value-taking flag denies, because the flag's VALUE is a bare token and nothing here can
+# tell a value from a reference without enumerating which flags take one — the enumeration this slice
+# rejected. This case is RED-BY-DESIGN as user-facing behaviour and green as an assertion: it is the
+# cost, written down where a later reader will meet it rather than rediscover it.
+check_agent DENY  "tadeumendonca-skills:quality-assurance" "7c/#441 PRICED COST: a no-ref merge with -t denies (its value is indistinguishable from a ref)" "gh pr merge -t subjecttext"
+
 echo "--- rule 7d: REMOVED (#383, S4) — the removal is asserted, not merely undone ---"
 # 7d compared the forge's resolved `closingIssuesReferences` against the `^closes:` lines of the
 # head-scoped verdict and denied a merge that would close an undeclared Issue. It was removed under the
