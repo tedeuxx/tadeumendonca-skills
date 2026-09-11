@@ -17,8 +17,8 @@ literally — the same positional shape
 `invocable:` and `purpose:` already use in this repository, chosen for the same reason: a declaration a
 reader can find with an anchored `grep` rather than by reading prose around it.
 
-loop-mode: kanban
-loop-mode-since: 2026-08-30
+loop-mode: scrum
+loop-mode-since: 2026-09-11
 loop-mode-enum: scrum kanban
 loop-mode-repos: tedeuxx/tadeumendonca-skills tedeuxx/tadeumendonca-io
 wip: 2
