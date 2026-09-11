@@ -1774,7 +1774,13 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
   # who would run it. The standing rule is a real merge commit, never a squash: per-commit history is
   # the record of how a change was reached, and squashing discards it irreversibly on the trunk.
   if printf '%s' "$bare" | grep -Eq '[[:space:]](--squash|-s[[:space:]=]*squash)([[:space:]]|$)'; then
-    deny "Blocked: never squash-merge. Use a real merge commit ('gh pr merge --merge') — per-commit history is the record of how the change was reached, and a squash discards it irreversibly once it is on the trunk."
+    # THE REFERENCE IS IN THE REMEDY, AND ITS POSITION IS LOAD-BEARING (#441). This string used to read
+    # `gh pr merge --merge`. A caller who followed it and appended the PR they were merging produced
+    # `gh pr merge --merge 479` — flag first — which rule 7c below could not read, so the merge floor
+    # abstained and the act executed silently. The remedy a floor prints must be a spelling the floor
+    # can read; 7c denies the flag-first order now, so an unqualified `--merge` here would hand the
+    # caller a second deny in a row.
+    deny "Blocked: never squash-merge. Use a real merge commit ('gh pr merge <number> --merge', reference first) — per-commit history is the record of how the change was reached, and a squash discards it irreversibly once it is on the trunk."
   fi
   case "$agent_type" in
     *:quality-assurance)
@@ -1876,14 +1882,79 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
       # subcommand, `gh pr merge --repo owner/repo 479` would otherwise hand `--repo` to the ref
       # extractor, which drops it and silently reads the CURRENT BRANCH's PR instead of 479. Removing
       # the flag/value pair first cannot make any other spelling worse.
-      # NAMED RESIDUAL, not fixed here: any OTHER value-taking flag placed before the positional ref
+      # ~~NAMED RESIDUAL, not fixed here: any OTHER value-taking flag placed before the positional ref
       # (`gh pr merge -t "subject" 479`) still misdirects the ref the same way. Its blast radius is
       # much smaller than the repo case — it falls back to the current branch's PR, which under WIP=1
       # is almost always the PR being merged — and a general fix is a token-level argv parser, not a
-      # regex. It is a finding for the owner, not a silent gap.
-      qa_ref="$(printf '%s' "$bare" | sed -E -e 's/[[:space:]](-R[[:space:]=]*|--repo[[:space:]=]*)[^[:space:]]+/ /g' -e 's/^.*[[:space:]]pr[[:space:]]+merge[[:space:]]*//')"
-      qa_ref="${qa_ref%% *}"
-      case "$qa_ref" in -*|'') qa_ref="" ;; esac
+      # regex. It is a finding for the owner, not a silent gap.~~
+      #
+      # STRUCK AND FIXED 2026-09-10 (#441), struck rather than rewritten because a reader took the
+      # blast-radius pricing from it and BOTH HALVES OF THAT PRICING WERE WRONG:
+      #
+      #   1. THE CLASS IS NOT "value-taking flag". It is ANY first token beginning with `-`. The
+      #      mechanism was the `case ... in -*|'') qa_ref="" ;;` line alone: `--repo` was stripped BY
+      #      NAME one line above, every other flag survived, became the first token, matched `-*`, and
+      #      set the reference to the empty string. `--merge`, `--auto`, `--admin` and
+      #      `--delete-branch` take no value at all and each reproduced it on its own.
+      #   2. "ALMOST ALWAYS THE PR BEING MERGED" priced the fallback against WIP=1, which is a property
+      #      of how the loop happens to be run, not of this rule. #385 is open to end WIP=1.
+      #
+      # THE SHARPEST INSTANCE WAS THE FLOOR'S OWN REMEDY STRING. The squash deny above printed "Use a
+      # real merge commit ('gh pr merge --merge')". A caller who followed that instruction and appended
+      # the PR they were merging typed `gh pr merge --merge 479` — flag first — and the reference was
+      # erased in silence. `Bash(gh pr merge:*)` is allowlisted in BOTH settings layers, so this hook
+      # abstaining is SILENT EXECUTION and not a prompt. That message now carries the reference in the
+      # position this rule can read.
+      #
+      # THE DIRECTION IS B — DENY WHAT CANNOT BE PARSED — and A was rejected on a measurement rather
+      # than on taste. A is "parse the argv", which requires knowing which flags take a value.
+      # `gh help pr merge` IS readable from here (`gh pr merge --help` is not: rule 7b's prefix catches
+      # it, and that spelling difference is the whole reason the enumeration was thought unavailable),
+      # so the list exists: value-taking are -A/--author-email, -b/--body, -F/--body-file,
+      # --match-head-commit and -t/--subject; the rest are boolean. A WOULD HAVE WORKED TODAY. It was
+      # rejected because the list is read off one installed `gh`, a release adding a value-taking flag
+      # re-opens the hole in silence with a green suite, and — the deciding measurement — the
+      # enumeration buys correct handling only for spellings this loop never types. The one prescribed
+      # form is `gh pr merge --merge` (`agents/quality-assurance.md`, its "merge the safe class"
+      # clause); no brief, skill or record in this tree puts -t, -b, -F, -A or --match-head-commit on a
+      # merge. An enumeration claiming to be a rule, bought for zero real invocations, is the shape
+      # this repository has already paid for twice.
+      #
+      # SO THE DISCRIMINATOR IS NOT "IS `qa_ref` EMPTY" — that would wedge everyday work. `gh pr merge`
+      # and `gh pr merge --merge` carry NO reference on purpose: they merge the current branch's PR,
+      # the fallback is the correct read, and both stay ALLOW. The question asked here is the narrower
+      # one: WAS THERE A REFERENCE WE FAILED TO READ? A flag leads and a bare token follows it, so `gh`
+      # will bind the reference to some token and this hook cannot prove which. It denies.
+      #
+      # WHAT IT COSTS, PRICED RATHER THAN ABSORBED: a legal no-reference invocation carrying a
+      # value-taking flag (`gh pr merge -t "subject"`, `gh pr merge --body-file /tmp/x`) now denies,
+      # because the flag's VALUE is a bare token and nothing here can tell a value from a reference
+      # without the enumeration just rejected. The error runs toward DENIAL, which the caller reads,
+      # and the remedy is in the message and always works: put the reference first.
+      #
+      # WHAT STAYS OPEN, so the repair is not read as closing the class. A SCRIPT FILE — `sh
+      # ./merge-it.sh` — reaches the merge untouched, because neither settings matcher nor any rule in
+      # this file looks inside one; the same blindness `agents-configuration` records for
+      # `scripts/milestone-create.sh`, reached from the other side. A BROWSER MERGE is unreachable from
+      # any hook, as 7c's own comment already states. Measured for #441 and already closed, so nobody
+      # re-walks them: an absolute path, `command gh`, `xargs -I{}` and `gh api -X PUT .../merge`
+      # (rule 5f) all deny at head.
+      qa_rest="$(printf '%s' "$bare" | sed -E -e 's/[[:space:]](-R[[:space:]=]*|--repo[[:space:]=]*)[^[:space:]]+/ /g' -e 's/^.*[[:space:]]pr[[:space:]]+merge[[:space:]]*//')"
+      qa_ref="${qa_rest%% *}"
+      case "$qa_ref" in
+        -*)
+          qa_ref=""
+          # A flag leads. If ANY bare token follows it, a reference is present and unattributable.
+          # `|| true` is load-bearing: `grep -v` matching nothing exits 1, and under this file's
+          # `set -euo pipefail` that would kill the whole guard — the crash class that turned eight
+          # force-push denials into silent allows once already.
+          qa_stray="$(printf '%s' "$qa_rest" | tr -s '[:space:]' '\n' | grep -vE '^-|^$' | head -n 1 || true)"
+          if [ -n "$qa_stray" ]; then
+            deny "Blocked: this merge command puts a flag before the pull-request reference, so this hook cannot prove WHICH pull request 'gh' will merge — and the merge floor may not clear a merge whose subject it could not read (#341: no readable verdict, no merge). 'gh pr merge' takes the reference as a positional argument and some of its flags take a value, so '${qa_stray}' here could be either one. Put the reference FIRST and every flag after it: 'gh pr merge <number> --merge'. A merge with NO reference at all ('gh pr merge --merge') is untouched — that one deliberately merges the current branch's PR, and this hook reads that PR's verdict."
+          fi
+          ;;
+        '') qa_ref="" ;;
+      esac
       qa_repo="$(printf '%s' "$bare" | sed -nE 's/.*[[:space:]](-R[[:space:]=]*|--repo[[:space:]=]*)([^[:space:]]+).*/\2/p')"
       qa_pr_json=""
       qa_err=""
