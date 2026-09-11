@@ -12,7 +12,8 @@ one place in this design where a wrong guess is silent, and the reason is measur
 
 ## The declaration
 
-Four lines, each at column 0, each a parsing contract read literally — the same positional shape
+~~Four lines~~ **FIVE lines since 2026-09-11 (#385)**, each at column 0, each a parsing contract read
+literally — the same positional shape
 `invocable:` and `purpose:` already use in this repository, chosen for the same reason: a declaration a
 reader can find with an anchored `grep` rather than by reading prose around it.
 
@@ -20,6 +21,7 @@ loop-mode: kanban
 loop-mode-since: 2026-08-30
 loop-mode-enum: scrum kanban
 loop-mode-repos: tedeuxx/tadeumendonca-skills tedeuxx/tadeumendonca-io
+wip: 2
 
 **`loop-mode-enum` is closed at two, and an unrecognised value is refused BY NAME rather than defaulted.**
 A mode selects a pool predicate and a ceremony set; a session that cannot resolve the value has no
@@ -198,6 +200,82 @@ happens before it is written, not after.**
 and is deliberately not added here: `#406` slice B was scoped to the enum and its carrier, and a check
 is its own decision with its own calibration.
 
+
+---
+
+## `wip: 2` — the value, its basis, and what it does NOT bound (#385)
+
+**`#406` declared the SLOT and deliberately decided no value. `#385` decides the value, and the owner
+authorised it as part of that slice.** It is `2`.
+
+**`absent` was NOT an option, and that is the sharpest reason this line exists at all.** Before this
+slice the field was missing, and a missing `wip` does not mean one — **it means UNBOUNDED**, which is
+the state `#385` exists to end. `hooks/scripts/wip-guard.sh` was deleted at `e145cd0f` (#383) and
+nothing replaced it; `gh pr create` is allowlisted in **both** settings layers, so a second concurrent
+merge request already executed silently. **This is ADR-0004's own "absent is not a state", on the one
+field where the absent reading was the most permissive one available.**
+
+### The basis — Amdahl's law with a measured fraction
+
+**The only instrument that can size this is `hooks/scripts/dispatch-metrics-stop.sh`**, which writes a
+structured record per dispatch onto the Issue it worked. Aggregated over the 33 records on `#406`:
+
+```
+gh issue view 406 --repo tedeuxx/tadeumendonca-skills --json comments --jq '
+  [.comments[]?|select((.body//"")|contains("dispatch-metrics:"))|.body]
+  | map((capture("agent_type:\\s*(?<a>[^\\n]+)")?.a // "unknown") as $a
+      | (capture("duration_seconds:\\s*(?<d>[0-9.]+)")?.d // "0"|tonumber) as $d
+      | {a:($a|gsub("^\\s+|\\s+$|`";"")), d:$d})
+  | group_by(.a) | map({agent:.[0].a, n:length, hours:((map(.d)|add)/3600*100|round/100)})'
+
+# agents-lead        n=14   8.67 h   55.8%
+# quality-assurance  n=15   5.15 h   33.1%
+# developer          n=4    1.72 h   11.1%   <- the only share parallel DEVELOPMENT touches
+#                    ALL   15.54 h
+```
+
+**The builder is 11% of dispatch time.** Owner ruling 1 keeps the **gate** serial, and the lens is
+serial too, so `wip` parallelises that 11% while 89% stays serial. **`wip: 2` is where that stops
+paying**; a larger value buys queueing at the gate, not throughput.
+
+### Bound the figure hard — it is TWO Issues, and one of them argues DOWN
+
+**Re-derived 2026-09-11 across fourteen recent Issues, only two carry dispatch records at all:**
+
+```
+for n in 454 452 446 443 441 439 437 436 431 430 427 424 406 385; do
+  gh issue view $n --repo tedeuxx/tadeumendonca-skills --json comments \
+    --jq '[.comments[]?|select((.body//"")|contains("dispatch-metrics:"))]|length'
+done
+# -> 0 0 0 0 0 0 3 0 0 0 0 0 33 0
+# calibration: the same selector returns 33 on #406, so the zeros are real zeros and not a dead
+# pattern. TWO of fourteen Issues carry the instrument; twelve carry nothing.
+```
+
+**`#437`'s split is the second data point and it LOWERS the builder's share rather than raising it** —
+`agents-lead` 0.63 h over 2 dispatches, `quality-assurance` 0.23 h over 1, and **zero `developer`
+dispatches at all.** A `loop` Issue can complete with no builder time whatsoever.
+
+**So the honest statement of the basis: one Issue with a full trace and one with a partial one, both
+`loop`-typed.** A `product` Issue runs one lens pass and a `content` Issue runs no `agents-lead` at
+all, so the builder's share is larger there and **`wip: 2` is conservative for those lanes rather than
+tuned to them**. **Nothing can size `wip` from data until the instrument is written on most work**, and
+fixing that is not this slice.
+
+### What `wip: 2` does NOT bound — read this before citing the number
+
+- **It does not bound merge requests.** Nothing enforces it. `gh pr create` is allowlisted in both
+  settings layers, `wip-guard.sh` is deleted, and no registered hook reads this file — so an
+  (N+1)th concurrent PR executes with no prompt, no denial and no record.
+- **It does not relax the GATE.** Review stays serial at any value of `wip` (owner ruling 1, stated in
+  `CLAUDE.md`'s `loop-mode-contract` block). `wip` is a ceiling on **development**, never on review.
+- **It is not a target.** `scrum-master` may return fewer than `wip` selections, and on a `loop`-heavy
+  pool it usually should — the collision base rate over `v2.0.0..origin/main` puts seven distinct
+  Issues on `hooks/scripts/inventory-counts.test.sh` alone.
+- **It is a parameter, not a constant of the loop.** The owner's own framing before `#406` was filed:
+  *«hoje o nosso scrum trabalha em wip=1 devido a necessidade de apurar o modelo antes de paralelizar a
+  camada de developers»* · *«mas nao tem intuito de seguir assim»*. Raising it later is a value change
+  in this line, not a redesign.
 ---
 
 ## The two repositories, and the residual this inherits
