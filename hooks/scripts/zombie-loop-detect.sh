@@ -50,14 +50,57 @@
 # between the two readers is a defect a future reviewer can catch by diffing the two test files,
 # not a silent divergence.
 #
-# THIS READS ONLY THE `gatekeeper-verdict` MARKER, NOT `harness-lead-verdict`, DELIBERATELY. The
+# ~~THIS READS ONLY THE `gatekeeper-verdict` MARKER, NOT `harness-lead-verdict`, DELIBERATELY. The
 # intake brief's own prose names both, but only `gatekeeper-verdict` carries the closed
 # closed literal enumeration (`agents/quality-assurance.md`, "Your verdict — exactly one of"); the
 # `harness-lead-verdict` marker (ADR-0002's "agents-lead implements the harness it reviews"
 # section, absorbed record 0015) carries a free-text headline conclusion, not one of the three
 # literals, and per that same section's Corollary 2 it is `quality-assurance` that posts the
 # actual `gatekeeper-verdict` gating a `loop`-typed PR — the agents-lead marker is an input to
-# that verdict, not a second gate this hook needs to read independently.
+# that verdict, not a second gate this hook needs to read independently.~~
+#
+# AMENDED 2026-09-11 (#385), struck in place rather than rewritten because the paragraph above is
+# a DELIBERATE design decision a reader took a boundary from. **Its reasoning stands and its
+# conclusion no longer follows, because this hook now asks the harness marker a different
+# question.** The paragraph argues that the harness marker carries no closed literal enumeration,
+# so its CONTENT cannot be read as a verdict. True, and untouched: nothing below reads a literal
+# out of it, and this hook still classifies no harness verdict and still holds no gate.
+#
+# WHAT IS READ IS THE MARKER'S HEAD-SCOPING, WHICH IS NOT CONTENT AT ALL. `agents/agents-lead.md`
+# requires every marker to name the commit it reviewed and requires a fresh one when the head
+# moves ("When the head moves, post a new marker at the new head"). That is a property of the
+# comment set against `headRefOid` — the SAME predicate this file already runs for the gate's
+# marker, on the SAME payload, at zero additional network cost.
+#
+# THE MEASUREMENT THAT MADE IT WORTH ADDING, taken at head on the most recent harness PR rather
+# than reasoned from the rule:
+#
+#   gh pr view 454 --repo tedeuxx/tadeumendonca-skills --json headRefOid,comments --jq '
+#     .headRefOid as $h
+#     | {markers_total:   [.comments[]|select(.body|test("harness-lead-verdict"))]|length,
+#        markers_at_head: [.comments[]|select(.body|test("harness-lead-verdict"))
+#                                    |select(.body|contains($h))]|length}'
+#   -> {"markers_total":3,"markers_at_head":1}
+#
+# THREE MARKERS, ONE AT THE HEAD. `agents/quality-assurance.md`'s hold 2 is satisfied by
+# PRESENCE, so two of those three would satisfy it while attesting a diff the PR no longer points
+# at. The calibration is the gate's own marker on the same PR under the same predicate — 3 total,
+# 1 at head — and the difference is that rule 7c head-scopes the gate's and NOTHING head-scopes
+# this one.
+#
+# THIS ARM IS DETECTION AND CANNOT BOUND THE MERGE, which is the half to keep saying out loud. It
+# fires at the END of a turn. A turn in which the gate is dispatched AND merges is over before
+# this runs, so the notice lands after the act. What it does reach is the far commoner window:
+# the turn that ends with a harness PR open and its lens marker stale, BEFORE the gate is
+# dispatched — which is where re-posting is still free.
+#
+# IT NEEDS NO DIFF CLASSIFICATION, and that is why it is buildable here when a `PreToolUse` deny
+# is not. Hold 2's trigger is a path predicate (`hooks/**`, `agents/**`, `skills/**`,
+# `commands/**`, `.claude/**`), so a preventive rule would have to read the PR's file list to know
+# whether the hold applies — and `gh pr view --json files` pages at 100, so a large harness diff
+# would classify as non-harness and FAIL OPEN, inert exactly where it is most needed. This arm
+# sidesteps the question entirely: it fires only when a marker is PRESENT and stale, so a diff
+# that carries no marker is invisible to it and no misclassification is possible.
 #
 # ── DEBOUNCE, AND WHERE THE MARKER FILE LIVES ───────────────────────────────────────────────────
 # Fire at most once per (pr_number, headRefOid) per session — a parked PR the owner is reading
@@ -196,14 +239,50 @@ verdict="$(printf '%s' "$pr_view" | jq -r --arg m "$MARKER" '
 # here, because that state is a race (verdict, then merge seconds later) and cannot be told apart from
 # a strand at any single instant. The fifth literal exists precisely so the strand stops having to be
 # inferred from a clearance that stayed open.
+verdict_due=""
 case "$verdict" in
-  REQUEST-CHANGES|APPROVE-PENDING-HUMAN|APPROVE-EXECUTOR-BLOCKED) : ;;
-  *) exit 0 ;;
+  REQUEST-CHANGES|APPROVE-PENDING-HUMAN|APPROVE-EXECUTOR-BLOCKED) verdict_due="$verdict" ;;
 esac
 
+# ── second signal (#385): a harness lens marker that is PRESENT and names no current head ──────
+# Same payload, same author filter, no extra network call. The predicate is deliberately
+# three-valued rather than two, and the middle value is what keeps it false-positive-free:
+#
+#   no marker at all          -> "" (silent). Whether one is OWED is hold 2's question, and hold 2
+#                                is a path predicate over the diff that this hook does not read.
+#                                A non-harness PR must never produce a notice here.
+#   a marker names the head   -> "" (silent). The lens re-posted, which is the documented practice.
+#   markers exist, none fresh -> "stale". Hold 2 would be satisfied by presence, and every marker
+#                                on the PR attests a commit the PR no longer points at.
+#
+# `select(contains($h))` matches the FULL 40-character head SHA anywhere in the body, which is the
+# same containment test rule 7c and session-wip.sh already use for the gate's marker — the marker
+# template puts it on a `commit:` line, and matching the body rather than that line means a lens
+# that also quotes the SHA in prose still reads as fresh. That is the permissive direction, chosen
+# on purpose: this arm must never cry stale at a lens that did re-review.
+harness_stale="$(printf '%s' "$pr_view" | jq -r '
+  (.headRefOid // "") as $h
+  | if $h == "" then ""
+    else [ .comments[]?
+           | select((.authorAssociation // "") as $a
+                    | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
+           | .body // ""
+           | select(contains("harness-lead-verdict")) ] as $m
+         | if ($m | length) == 0 then ""
+           elif ($m | map(select(contains($h))) | length) > 0 then ""
+           else "stale" end
+    end' 2>/dev/null || true)"
+
+# Nothing to say -> silent, and the debounce is NOT armed (unchanged behaviour: only a firing run
+# arms it, so a verdict landing later at this same head is still reported).
+[ -z "$verdict_due" ] && [ -z "$harness_stale" ] && exit 0
+
 # ── emit the notice, and arm the debounce ───────────────────────────────────────────────────────
-context="Turn ended with an outstanding quality-assurance verdict on PR #${pr_number} (branch
-${branch}, head ${head_sha}): ${verdict}.
+context=""
+
+if [ -n "$verdict_due" ]; then
+  context="Turn ended with an outstanding quality-assurance verdict on PR #${pr_number} (branch
+${branch}, head ${head_sha}): ${verdict_due}.
 
 This is zombie-loop-detect.sh (#294), a Stop hook — it caught this because loop state (a
 gatekeeper-verdict comment against the PR's CURRENT head) says a review outcome has not been
@@ -219,6 +298,35 @@ gate hoping for a different result, and do not reach for another route to the me
 
 This notice fires at most once per (PR, head SHA) per session — it will not repeat for this
 exact state, and re-arms only if the head moves or a new verdict lands."
+fi
+
+if [ -n "$harness_stale" ]; then
+  context="${context}${context:+
+
+}Turn ended with a STALE agents-lead verdict marker on PR #${pr_number} (branch ${branch}, head
+${head_sha}): the PR carries at least one '<!-- harness-lead-verdict: ... -->' comment and NOT ONE
+of them names the current head.
+
+This is the #385 arm of zombie-loop-detect.sh, and it is DETECTION ONLY — it holds nothing, denies
+nothing, and this hook never blocks. It says what it can see: a marker exists, so a harness lens
+ran at some point, and every marker on this PR attests a commit the PR no longer points at.
+
+Why that matters: 'agents/quality-assurance.md' hold 2 requires a marker on the PR before a
+harness diff may be merged, and since #385 it requires one that names the head being merged. Until
+#385 it was satisfied by PRESENCE, so a stale marker cleared the hold while attesting a diff
+nobody reviewed. NOTHING MECHANICAL ENFORCES THE HEAD-SCOPING — no rule reads this marker, rule 7c
+head-scopes only the gatekeeper's. This notice is the only observation of it that exists.
+
+The remedy is the lens's own documented one and it is cheap: re-dispatch 'agents-lead' at this
+head and have it post a fresh marker saying the earlier one refers to a moved head. Do NOT edit
+the stale marker. If the lens genuinely has nothing new to find, the fresh marker says that and
+closes.
+
+WHAT THIS DOES NOT SAY: whether a marker is OWED at all. Hold 2's trigger is a path predicate over
+the diff and this hook does not read the diff — it fires only because a marker is already there.
+And it cannot bound the merge: it runs at the END of a turn, so a turn that dispatched the gate
+and merged is already over."
+fi
 
 printf '%s' "$context" > "$marker_file" 2>/dev/null || true
 
