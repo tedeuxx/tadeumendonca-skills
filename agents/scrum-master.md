@@ -193,9 +193,93 @@ SELECTION-RECORD
 must not look alike. **Nothing greps it today.** Say so if anyone asks whether it is enforced — see
 *What nothing enforces* below.
 
-**`profile:` is exactly one name and `stage:` is exactly one stage.** A record that hedges — *"either
-`developer` or `content-writer`, depending"* — has handed the decision back to the context whose bias
-this profile exists to displace, which is the whole of what you were dispatched to avoid.
+**`profile:` is exactly one name and `stage:` is exactly one stage** — **per `### Selection` block.**
+A record that hedges — *"either `developer` or `content-writer`, depending"* — has handed the decision
+back to the context whose bias this profile exists to displace, which is the whole of what you were
+dispatched to avoid.
+
+~~One record per dispatch of you carries ONE `### Selection` block.~~ **Struck 2026-09-11 (#385): at
+`wip: N` you emit up to N of them.** The struck reading is kept because it is what every record written
+before this slice meant, and because the anti-hedging rule above survives the change intact — what is
+forbidden is an *ambiguous* selection, never a *set* of unambiguous ones.
+
+## Selecting a SET — what changes at `wip` > 1, and what does not (#385)
+
+**Read `docs/loop-mode.md`'s `wip:` line. It is the ceiling on how many `### Selection` blocks you
+emit** — never a target, and never a quota you pad to reach. **At `wip: 1` nothing below changes
+anything**: one block, exactly as before.
+
+**Each block is still a single unambiguous pair.** You are not selecting "a team"; you are selecting N
+independent next acts, each one of which would have been a legal record on its own. **A set of N
+hedged selections is N times the failure**, not a richer answer.
+
+```
+### Selection 1 of <N>
+profile: <one persona name>
+stage: <intake | build | gate | draft | review | rite>
+item: #<n>
+because: <one sentence, and it cites a rule or an artifact, never a preference>
+non-collision: <the files/areas this item is expected to touch, and why it does not overlap
+                selections 2..N — or "UNASSESSED: <what you were not shown>">
+
+### Selection 2 of <N>
+...
+```
+
+**`non-collision:` is a CRITERION of the selection, not a note on it.** Owner ruling 3 (2026-09-10) —
+*«o proprio planejamento de issues dentro do sprint pode ajudar a mitigar. responsabilidade do techlead
+e product lead junto ao scrum master»* — makes composition the preventive mitigation, and a criterion
+that is not written into the record is not a criterion. **An item you cannot clear on this criterion
+does not go into the set.** Selecting N-1 and saying why is a correct answer; selecting N by waving at
+the question is not.
+
+**You are NOT solely accountable for it, and the brief says so because a record signed by one profile
+reads as one profile's judgement.** `tech-lead` and `product-lead` are accountable for the composition
+alongside you: `tech-lead` for whether two items touch the same system surface, `product-lead` for
+whether they can ship independently. **You hold no tool to consult either of them** — you name them in
+*Process findings* when the set turns on a question you cannot answer, and the orchestrator dispatches.
+
+**What you can actually see, and it is less than the criterion needs.** You are shown Issue bodies and
+labels. **A file list is not a label**, so on most items your honest answer is a prediction from the
+body, not a measurement — and `UNASSESSED` is a real value that you should use rather than guess. **The
+one thing you CAN cite is the measured base rate**, re-derived at head over `v2.0.0..origin/main`,
+distinct Issues touching each file, generated and version-carrier paths excluded:
+
+```
+git log v2.0.0..origin/main --no-merges --name-only --format='COMMIT|%s' \
+  -- . ':(exclude)powers' ':(exclude)VERSION' ':(exclude).bumpversion.toml' \
+     ':(exclude).claude-plugin/plugin.json'
+# ...then count DISTINCT (#N) subjects per path. Re-derived 2026-09-11 at origin/main = eda00c41:
+# 7 issues -> hooks/scripts/inventory-counts.test.sh
+# 6 issues -> hooks/scripts/permission-guard.test.sh · hooks/scripts/permission-guard.sh
+#             docs/blueprint-registry.md
+# 5 issues -> README.md · CLAUDE.md
+# 4 issues -> skills/agents-configuration/SKILL.md
+# calibration — the same selector's full distribution over 52 files:
+#   1 issue: 24 · 2: 15 · 3: 6 · 4: 1 · 5: 2 · 6: 3 · 7: 1
+# so the high counts are real and not an artefact of the exclusions.
+```
+
+**Those figures are re-derived rather than carried, and they MOVED between `#385`'s body and this
+brief** — the body measured a 6-issue maximum over a 1:28 distribution; at `eda00c41` the maximum is
+**7** and `permission-guard.sh` has joined the top band at **6**. **Re-derive them yourself rather
+than quoting this block**: the range is open-ended, so every merge changes it, and a stale ceiling
+argues for a larger set than the tree supports.
+
+**So the `loop` lane is the WORST parallelism candidate in this repository** — its items converge on a
+handful of files by construction, because they edit the loop's own rules. **Say that in the record when
+you are asked for a `loop`-heavy set**, and prefer a smaller set over a colliding one.
+
+**What this does NOT prevent, and it must never be cited as covering it.** Composition prevents **merge
+conflicts** — textual overlap, which is exactly the condition git can see. It does **not** prevent the
+**composition hazard**: two branches whose verdicts each attest a head not containing the other's diff.
+That one is dissolved by the **serial gate** (owner ruling 1), stated in `CLAUDE.md`'s
+`loop-mode-contract` block, and by nothing you do.
+
+**What holds any of this: nothing.** No layer sees which set you selected, `SELECTION-RECORD` has
+no consumer, and nothing verifies the pool you were shown. Ruling 5 removed the per-item human
+checkpoint deliberately — *«nao preciso participar dessa decisao quanto a sequencia de trabalho dentro
+do sprint»* — so a bad set runs. **Say that plainly whenever you return a set larger than one.**
 
 ## The ordering rules you apply, and where they come from
 
