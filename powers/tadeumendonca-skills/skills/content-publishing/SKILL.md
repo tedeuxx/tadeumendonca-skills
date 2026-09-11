@@ -71,6 +71,13 @@ and read any iteration report accordingly.
 Each step names its state: **AFK** (runs unattended), **HITL** (waits on the owner), or **UNBUILT**
 (nothing carries it; a person does it or it does not happen).
 
+**Step 10's second half is none of the three, and the legend says so rather than rounding it to the
+nearest one (#399).** Since the 2026-09-10 ruling the post is performed by the **harness**, in a session
+the owner is present for — it does not wait on him, so it is not HITL, and his presence is the entire
+containment, so calling it AFK would delete the only thing standing behind the act. A three-value legend
+that cannot express *the harness acts and a human being there is the control* would force the one step
+with no containment to be labelled like the steps that have one.
+
 **No step below is UNBUILT, and the label is in the legend so that answer is stated rather than
 inferred from its absence.** Every step of this lane exists. What does not exist is anything that
 *fires* them in sequence — see *What nothing enforces*, which is a different claim and the one that
@@ -327,7 +334,14 @@ against a wall clock makes the same commit build differently tomorrow, and break
 that differs from a build, not an error. A commit is strictly more auditable and is the honest
 replacement.
 
-### 10 · The social pair, in the same batch · **AFK to draft, HITL to post**
+### 10 · The social pair, in the same batch · **AFK to draft · the post is the HARNESS's, in an attended session**
+
+**The label on the second half is not AFK and not HITL, and forcing it into either is what makes this
+step read wrongly (#399).** The legend above defines HITL as *waits on the owner*, and since the
+2026-09-10 ruling the post does not: **the orchestrator performs it.** But it is not AFK either — the
+owner's presence in the session is not a convenience, it is **the whole containment**, in the ruling's
+own words. So the honest label is the third thing: *the harness acts, and a human being in the chair is
+the only thing standing behind it.*
 
 **A publication is not done until it exists on both networks the platform publishes to.** Same batch as
 the release — not "later", which in practice means one of the two never ships.
@@ -504,8 +518,11 @@ this repository blocks on a mechanism presented as stronger than it is.**
   control.
 - **Nothing checks a held piece was actually read before release.** The promotion edit is one word; no
   artifact records that anyone opened the URL.
-- **Nothing verifies the social pair shipped.** The generator writes drafts; posting is manual and leaves
-  no trace any gate reads.
+- **Nothing verifies the social pair shipped.** The generator writes drafts; ~~posting is manual~~
+  **posting is the orchestrator's (#399)** and leaves no trace any gate reads. **Do not read the
+  correction as a tightening** — it is the opposite: the act moved from a human's hands into the
+  harness's, and the only thing watching it is a `Stop` hook that fires after the fact, covers the MCP
+  route and is blind to the browser-extension route that has actually published.
 - **Nothing observes a dispatch.** A piece drafted with no review round is indistinguishable from one
   whose rounds were clear until you open the branch's file list.
 - **Nothing stops a held piece from being published by an edit to one word**, which is precisely why a
@@ -534,7 +551,9 @@ Everything else is an instruction. Say so when you describe it.
   one step over rather than closing.
 - **No world-check runs on this lane at all** since the copy veto left it: cross-surface staleness,
   evidence proximity, the machine/ATS read and durability reach the owner unread.
-- The social fan-out is manual by decision; nothing catches a publication that shipped to one network.
+- ~~The social fan-out is manual by decision~~ — **the fan-out is the harness's act since the
+  2026-09-10 ruling, and NOTHING contains it** on either route; nothing catches a publication that
+  shipped to one network, and nothing refuses one that should not have shipped at all.
 
 ## Using this skill
 
