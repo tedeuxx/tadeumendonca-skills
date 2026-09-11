@@ -264,6 +264,26 @@ The consequence runs in both directions, and the second one is the one that gets
 file inherits the gates' authority, so *"CI is green"* silently reads as *"the DoD is met"*. It is not,
 it never was, and the table above is the cheapest form of saying so.
 
+#### A second seam, on one lane only: a met DoD is not a delivered PIECE (#399)
+
+**This is a DISCLOSURE, not a tenth row, and the distinction is the whole of it.** The DoD governs a
+**diff and its Issue**. On the content lane the *piece* keeps travelling after the merge — promotion,
+then the social pair on both networks — and **nothing carries that remainder**: no criterion, no gate,
+no hook, and no artifact that says it happened. So on that lane the DoD's exit gate is the **merge**,
+and the merge is not the audience.
+
+**Do not close this by adding a posting criterion.** It would put an obligation on the gatekeeper that
+it cannot check, on **every** lane, to cover one — and a criterion with no ruler behind it is the exact
+shape this file spends its length arguing against. Row 9 (*Reach*) already carries the nearest
+obligation the DoD can honestly hold, and its column already reads `no, and it cannot be`. **The
+remainder belongs to the lane's own document** (`/content-publishing`, its steps 9 and 10), which
+names it step by step and states there, in its own table, that nothing enforces any of it.
+
+**Why it is written here anyway:** a reader who meets the nine rows and the seam table above, and
+nothing else, concludes that a green pipeline plus a reviewer's read is the whole distance to done.
+On eight of nine lanes-worth of work that is true. On this one it stops one step short of the reader,
+and the gap is invisible from inside the list.
+
 ### The regression invariant — 100% functional coverage
 
 The regression suite must **functionally cover 100% of the repo's implemented features** — not a
