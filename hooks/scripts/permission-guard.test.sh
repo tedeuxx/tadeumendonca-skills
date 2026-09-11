@@ -1980,6 +1980,16 @@ printf 'dirt\n' > "$WT/repo/untracked-probe"
 # A PRUNABLE WORKTREE: registered in the repo, directory gone from disk. `git -C <gone> status` FAILS,
 # and under `set -euo pipefail` a failing command substitution assigned to a variable kills the whole
 # guard — so this fixture is the only thing in the suite that exercises the unreadable sentinel.
+# TWO LOCKED WORKTREES, ONE CLEAN AND ONE DIRTY. `git worktree lock` is git's SECOND refusal and it
+# is independent of the first: the four-state table this rule was designed against varies dirtiness
+# and holds lock constant, so it could not see it. The pair below is what makes the gap ASSERTED
+# rather than described — one row pins that the floor does NOT honour a lock, the other pins that a
+# locked worktree carrying work is still denied, through the dirtiness limb rather than the lock.
+git -C "$WT/repo" worktree add -q -b wlockclean "$WT/wlockclean" >/dev/null 2>&1
+git -C "$WT/repo" worktree add -q -b wlockdirty "$WT/wlockdirty" >/dev/null 2>&1
+printf 'changed\n' > "$WT/wlockdirty/f.txt"
+git -C "$WT/repo" worktree lock "$WT/wlockclean" >/dev/null 2>&1
+git -C "$WT/repo" worktree lock "$WT/wlockdirty" >/dev/null 2>&1
 git -C "$WT/repo" worktree add -q -b wgone "$WT/wgone" >/dev/null 2>&1
 rm -rf "$WT/wgone"
 
@@ -2063,6 +2073,41 @@ check_from_alive ALLOW "$WT/repo" "4c: a REGISTERED worktree whose directory is 
 # TWO POSITIONALS, DIRTY ONE FIRST. Git rejects this outright; the arm exists so that dropping the
 # single-positional bound (which would resolve the first token and deny) reddens by name.
 check_from_alive ALLOW "$WT/repo" "4c: two positionals is not one target" "git worktree remove -f wtracked wclean"
+
+echo "--- rule 4c (#443): git's SECOND refusal — the lock — is NOT covered, and that is asserted ---"
+# THE GATE'S BLOCKING FINDING AT bc6e6d0c, TURNED INTO TWO ARMS. Re-measured guard-only across five
+# states on `git version 2.50.1 (Apple Git-155)`: a LOCKED CLEAN worktree has an EMPTY
+# `git status --porcelain` and git still refuses to remove it (rc 128), so this rule's permit set is
+# a strict SUPERSET of git's rather than equal to it. The artifact claimed equality in three places
+# including the caller-facing deny string; the LOGIC is unchanged and the CLAIM is corrected.
+#
+# SHARPER THAN A VERDICT PAIR WOULD SHOW, AND MEASURED RATHER THAN INFERRED: the two refusals have
+# DIFFERENT force thresholds. Dirtiness yields to ONE `-f`; a lock needs TWO (`-ff`, `--force
+# --force`, `-f -f` and `--forc --forc` all removed a locked worktree at rc 0, while every
+# single-flag spelling left it at rc 128, directory intact).
+#
+# NO UNCOMMITTED WORK IS REACHABLE THROUGH THE GAP — it is by construction the CLEAN half of the
+# lock class. What is overridden is the DECLARATION, and `worktree-notice.sh` prints `lock` as its
+# declared opt-out with 0 of 28 live worktrees adopting it. This arm is deliberately an ALLOW: it
+# pins a known, argued hole, so a later slice adding a lock limb must come here and change it.
+# THESE TWO ALLOW ARMS ARE PINNED BY MUTATION, NOT BY ASSERTION ALONE: making the rule lock-aware
+# (a limb setting the status to LOCKED when the worktree's git-dir holds a `locked` file) reddens
+# both, 579/2. So they assert the gap rather than merely tolerating it.
+#
+# AND THAT MUTATION LIED ONCE BEFORE IT WORKED — A FOURTH WAY, AFTER THE INVALID ONE, THE WEAK
+# FIXTURE AND THE INEFFECTIVE-BY-ANCHOR ONE THE GATE NAMED AT #451. Its first form tested the lock
+# file with `grep -qs .` — non-EMPTY content — and returned 0 reds at 1 applied site, syntactically
+# valid and semantically inert. Measured cause: `git worktree lock` with no `--reason` writes a
+# ZERO-BYTE `locked` file (7 bytes with a reason), so the mutation never fired at all. **A detector
+# correct in SHAPE and wrong about the artifact's REPRESENTATION scores exactly like a dead
+# assertion.** Presence (`[ -e … ]`) is the right test; the porcelain `locked` line is the other.
+check_from_alive ALLOW "$WT/repo" "4c: a LOCKED CLEAN worktree is NOT protected — git refuses, this rule does not" "git worktree remove -ff $WT/wlockclean"
+check_from_alive ALLOW "$WT/repo" "4c: the same gap under a single force spelling"                                  "git worktree remove --force $WT/wlockclean"
+# AND THE OTHER HALF OF THE LOCK CLASS IS COVERED — through DIRTINESS, not through lock awareness.
+# Without this row the section above would read as "locks are simply out of scope", which is weaker
+# and wrong: a locked worktree holding work is denied in every spelling.
+check_from DENY "$WT/repo" "4c: a LOCKED DIRTY worktree is still denied, via the dirtiness limb" "git worktree remove -ff $WT/wlockdirty"
+check_from_reason DENY "$WT/repo" "4c: the deny states the lock is not read" "does NOT read 'git worktree lock'" "git worktree remove -ff $WT/wlockdirty"
 
 echo "--- rule 4c (#443): the block did not eat control flow — rules BEHIND it still answer ---"
 # THE STRONGEST WITNESS IN THIS SECTION, AND THE ONE AN rc CHECK CANNOT GIVE. Rules 5 through 8 sit
