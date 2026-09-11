@@ -550,15 +550,18 @@ defaults."*
 
 ### 3 · What is decided here, and what is deliberately left open
 
-**Decided: supported for the knowledge layer, undecided for the capability layer.** `skills/` and
+**Decided: supported for the knowledge layer, ~~undecided for the capability layer~~.**
+**Struck by #423: the owner selected DECLARE; the amendment "declare the existing MCP surface without
+treating declaration as containment" below records the decision and its limits.** `skills/` and
 `AGENTS.md` arriving on a third harness is the same trade this record already accepted for the second
 — the knowledge layer travels, the enforcement layer does not, **and the artifact says so.** The
 six-row measured table lives in `README.md` under claim `0006`, dated, with the command behind every
 column.
 
-**Not decided, and it is #423's:** whether a capability declaration belongs in a tree distributed to
-harnesses whose scoping layer this repository does not control. **Folding that in here would price two
-decisions as one** — this amendment records *what runs*; that Issue decides *what ought to*.
+~~**Not decided, and it is #423's:** whether a capability declaration belongs in a tree distributed to
+harnesses whose scoping layer this repository does not control.~~ **Struck by #423's DECLARE ruling,
+recorded in the amendment below.** **Folding that in here would price two decisions as one** — this
+amendment records *what runs*; that Issue decides *what ought to*.
 
 **Also not decided: nothing is undone.** The install is deliberate, the plugin stays installed, and no
 change is made to `.mcp.json`, `.claude-plugin/plugin.json`, `powers/` or any hook.
@@ -608,3 +611,270 @@ reverses nothing in it, so no deletion or fold question arises: the record is li
 force, and the convention inside a live record is *amend by appending, strike in place, never
 rewrite*. Authored by `agents-lead` per the domain split (#223); the subject is the harness's own
 distribution machinery.
+
+## Amendment (2026-09-10) — declare the existing MCP surface without treating declaration as containment
+
+**Deciders:** the owner, [DECLARE ruling on #423](https://github.com/tedeuxx/tadeumendonca-skills/issues/423#issuecomment-5620707315).
+Implementation and record by `agents-lead`; [closed intake](https://github.com/tedeuxx/tadeumendonca-skills/issues/423#issuecomment-5627161701).
+
+### Context and decision drivers
+
+The preceding amendment left the capability-layer decision to #423. The owner has now made it:
+declare the server already distributed to Claude Code and Codex. The measurement in #434 is complete;
+its artifact remains in `README.md` under "The MCP grid — one declared server, three distribution
+targets, and a fourth kind of \"no\"". It measures what traveled, not what ought to travel.
+
+The prior finding remains true: omitting `mcpServers` does not withhold a component discovered by
+default. The declaration must therefore express intent without claiming to provide containment, and
+must preserve the existing consumers and server configuration.
+
+### Considered options and outcome
+
+- **Declare the existing file** — chosen. `.claude-plugin/plugin.json` adds
+  `"mcpServers": "./.mcp.json"`. The companion file remains the source of server configuration;
+  no server definition or argument is copied into the manifest. The cost is that an explicit
+  declaration can look like a control although the loader still performs default discovery.
+- **Leave the declaration absent and record why** — rejected by the owner. Omission would keep
+  intent implicit without preventing the capability from being discovered.
+- **Remove the server through the host's own configuration** — rejected by the owner. That would
+  change availability, whereas this decision records the existing intended availability.
+
+An inline object is also accepted by the measured loaders. The path representation avoids maintaining
+the same server configuration in two places; it implements DECLARE without introducing a second source.
+
+### Evidence and its boundary
+
+The intake fixtures were derived from source `54fac687df7bfbb99f19fbbd0fbde506f2a82d47`.
+The executable identities were obtained with:
+
+```sh
+/Applications/ChatGPT.app/Contents/Resources/codex --version
+codex --version
+claude --version
+```
+
+They reported desktop `codex-cli 0.151.0-alpha.7.2`, shell CLI `codex-cli 0.153.4`, and Claude Code
+`2.1.268`. Both Codex executables were exercised separately against the same fixtures.
+
+The Codex probe calls the actual app-server `plugin/read` method against temporary marketplaces
+whose plugins use `.claude-plugin/plugin.json`, rather than validating only `.codex-plugin`:
+
+```sh
+python3 /private/tmp/codex-harness-audit-8Rmc2rcj/mcp423-probe/read-loader.py
+python3 /private/tmp/codex-harness-audit-8Rmc2rcj/mcp423-probe/read-loader.py codex
+```
+
+The baseline and explicit-path fixtures resolve the same MCP server names and skill names on both
+Codex executables.
+Declared-only controls remove the default companion: an inline declaration resolves
+`mcp423-inline-probe`, and a nondefault declared file resolves `mcp423-path-probe`. An invalid integer
+declaration without the default companion resolves neither. With the default companion restored,
+that same invalid declaration resolves `chrome-devtools`: discovery can mask an invalid declaration,
+so a populated listing alone would not establish that the key was consumed.
+
+Claude's manifest validator accepts the chosen representation and rejects the integer control:
+
+```sh
+claude plugin validate /private/tmp/codex-harness-audit-8Rmc2rcj/mcp423-probe/path/tadeumendonca-skills --json
+claude plugin validate /private/tmp/codex-harness-audit-8Rmc2rcj/mcp423-probe/invalid/tadeumendonca-skills --json
+```
+
+Claude resolution was also exercised from a neutral directory without a project `.mcp.json`:
+
+```sh
+python3 /private/tmp/codex-harness-audit-8Rmc2rcj/mcp423-probe/read-claude.py
+```
+
+With normal network access, baseline and explicit-path fixtures both report the same plugin-scoped
+server as connected, with identical configured arguments. Earlier sandbox runs timed out; their
+results are retained separately rather than relabelled successful. This proves the tested Claude
+resolution and connection, not unrestricted tool access or equivalent launch behavior in Codex.
+
+The shipped Kiro generator was run against both fixture trees. These comparisons, from the repository
+root, returned no differences against the committed export:
+
+```sh
+diff -r /private/tmp/codex-harness-audit-8Rmc2rcj/mcp423-probe/kiro-absent powers/tadeumendonca-skills
+diff -r /private/tmp/codex-harness-audit-8Rmc2rcj/mcp423-probe/kiro-path powers/tadeumendonca-skills
+```
+
+These commands reference retained, machine-local intake fixtures; a repository clone alone does not
+contain them. The issue records the probe matrix and results. Codex loader metadata does not prove
+successful MCP connection, process-argument expansion or tool access by a persona. No authenticated
+Kiro installation was exercised. The separate Codex vendor validator could not import because its
+Python environment lacked PyYAML; no successful run of that validator is claimed.
+
+### Reproducing from a clone
+
+The following Python 3.12+ program creates its own fixtures and retains its raw responses in a new
+system temporary directory. Save it outside the checkout as `probe.py`. It reads a committed source
+ref, defaults to the clone's `HEAD`, prints that SHA and the companion file's digest, and removes the
+manifest key only in the baseline fixtures so the comparison still works after DECLARE merges.
+It does not install a plugin, start a model turn, call an MCP tool, or modify host configuration.
+
+```python
+"""Python 3.12+; usage: python3 probe.py CODEX_EXECUTABLE REPO [SOURCE_REF]."""
+import hashlib
+import io
+import json
+from pathlib import Path
+import queue
+import shutil
+import subprocess
+import sys
+import tarfile
+import tempfile
+import threading
+
+binary, repo = sys.argv[1:3]
+ref = sys.argv[3] if len(sys.argv) > 3 else "HEAD"
+binary = shutil.which(binary) or str(Path(binary).resolve())
+repo = str(Path(repo).resolve())
+sha = subprocess.check_output(["git", "-C", repo, "rev-parse", ref + "^{commit}"], text=True).strip()
+version = subprocess.check_output([binary, "--version"], text=True).strip()
+work = Path(tempfile.mkdtemp(prefix="mcp423-reproduce-"))
+source = work / "source"
+source.mkdir()
+archive = subprocess.check_output(["git", "-C", repo, "archive", sha, "--",
+    ".claude-plugin/plugin.json", ".mcp.json", "skills",
+    "hooks/scripts/kiro-power-build.py", "powers/tadeumendonca-skills"])
+with tarfile.open(fileobj=io.BytesIO(archive)) as bundle:
+    bundle.extractall(source, filter="data")
+original = json.loads((source / ".claude-plugin/plugin.json").read_text())
+original.pop("mcpServers", None)  # Recreate omission even after DECLARE has merged.
+mcp = json.loads((source / ".mcp.json").read_text())
+names = sorted(mcp["mcpServers"])
+name = original["name"]
+cases = ["absent", "path", "object", "invalid", "inline-only", "custom-path", "invalid-no-default"]
+expected = [names, names, names, names, ["mcp423-inline-probe"], ["mcp423-path-probe"], []]
+
+def write_json(path, value):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(value, indent=2) + "\n")
+
+for case in cases:
+    root = work / case / name
+    shutil.copytree(source, root)
+    manifest = dict(original)
+    if case == "path":
+        manifest["mcpServers"] = "./.mcp.json"
+    elif case == "object":
+        manifest["mcpServers"] = mcp["mcpServers"]
+    elif case.startswith("invalid"):
+        manifest["mcpServers"] = 37
+    elif case == "inline-only":
+        manifest["mcpServers"] = {"mcp423-inline-probe": {"command": "/bin/cat"}}
+    elif case == "custom-path":
+        manifest["mcpServers"] = "./probe-mcp.json"
+        write_json(root / "probe-mcp.json", {"mcpServers": {"mcp423-path-probe": {"command": "/bin/cat"}}})
+    if case in ("inline-only", "custom-path", "invalid-no-default"):
+        (root / ".mcp.json").unlink()
+    write_json(root / ".claude-plugin/plugin.json", manifest)
+    write_json(work / case / ".claude-plugin/marketplace.json", {
+        "name": "mcp423-" + case, "owner": {"name": "Probe"},
+        "plugins": [{"name": name, "source": "./" + name}]})
+
+print(json.dumps({"executable": binary, "version": version, "source": sha,
+    "mcp_sha256": hashlib.sha256((source / ".mcp.json").read_bytes()).hexdigest(),
+    "artifacts": str(work)}), flush=True)
+(work / "neutral").mkdir()
+messages = queue.Queue()
+with (work / "app-server.stderr").open("w") as stderr:
+    process = subprocess.Popen([binary, "app-server", "--stdio", "-c",
+        "sqlite_home=" + json.dumps(str(work / "state"))], cwd=work / "neutral",
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, text=True)
+
+    def reader():
+        try:
+            for line in process.stdout:
+                messages.put(json.loads(line))
+        finally:
+            messages.put(None)
+
+    threading.Thread(target=reader, daemon=True).start()
+
+    def call(ident, method, params):
+        process.stdin.write(json.dumps({"id": ident, "method": method, "params": params}) + "\n")
+        process.stdin.flush()
+        while True:
+            message = messages.get(timeout=30)
+            if message is None:
+                raise RuntimeError("app-server exited; inspect app-server.stderr")
+            if message.get("id") == ident:
+                write_json(work / (str(ident) + "-response.json"), message)
+                if "error" in message:
+                    raise RuntimeError(message["error"])
+                return message["result"]
+
+    try:
+        call(1, "initialize", {"clientInfo": {"name": "mcp423-reproduce", "version": "1.0"},
+            "capabilities": {"experimentalApi": True}})
+        baseline_skills = None
+        for ident, (case, wanted) in enumerate(zip(cases, expected), 2):
+            detail = call(ident, "plugin/read", {"marketplacePath": str(work / case / ".claude-plugin/marketplace.json"),
+                "pluginName": name})["plugin"]
+            actual = sorted(detail["mcpServers"])
+            skills = sorted(skill["name"] for skill in detail["skills"])
+            if baseline_skills is None:
+                baseline_skills = skills
+                assert skills, "Empty skill baseline cannot calibrate preservation"
+            assert actual == wanted, (case, actual, wanted)
+            assert skills == baseline_skills, (case, "skill names changed")
+            print(json.dumps({"case": case, "mcpServers": actual, "skills_unchanged": True}), flush=True)
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+```
+
+Run it from any directory, supplying the clone and executable explicitly. The final argument pins the
+original observation; omit it to measure the clone's current committed version instead.
+
+```sh
+python3 /path/outside/checkout/probe.py /Applications/ChatGPT.app/Contents/Resources/codex /path/to/clone 54fac687df7bfbb99f19fbbd0fbde506f2a82d47
+python3 /path/outside/checkout/probe.py codex /path/to/clone 54fac687df7bfbb99f19fbbd0fbde506f2a82d47
+```
+
+For the remaining checks, replace `<artifacts>` below with the printed temporary directory. The source
+snapshot and all fixture inputs are retained there. Run the Claude listing commands with that
+snapshot's `neutral/` directory as the working directory; normal network access is needed for the
+connection result. The invalid manifest validator is expected to fail.
+
+```sh
+claude plugin validate <artifacts>/path/tadeumendonca-skills --json
+claude plugin validate <artifacts>/invalid/tadeumendonca-skills --json
+claude --plugin-dir <artifacts>/absent/tadeumendonca-skills mcp list
+claude --plugin-dir <artifacts>/path/tadeumendonca-skills mcp list
+python3 <artifacts>/absent/tadeumendonca-skills/hooks/scripts/kiro-power-build.py <artifacts>/kiro-absent
+python3 <artifacts>/path/tadeumendonca-skills/hooks/scripts/kiro-power-build.py <artifacts>/kiro-path
+diff -r <artifacts>/kiro-absent <artifacts>/source/powers/tadeumendonca-skills
+diff -r <artifacts>/kiro-path <artifacts>/source/powers/tadeumendonca-skills
+```
+
+Compare the plugin-scoped `chrome-devtools` entry across the Claude listings, including configured
+arguments and connection status. A timeout is not a successful connection. The Kiro comparisons must
+be silent successes; they compare generated bytes, not behavior in a Kiro session. These are manual,
+local reproduction commands, not additions to the repository's CI.
+
+### Consequences and unchanged boundaries
+
+Intent is now explicit and the server configuration retains a single source. Default discovery remains
+in force. No capability is removed, no permission is widened, and no user-level configuration changes.
+The Kiro package remains the knowledge-only export already decided; this declaration does not add an
+MCP file to that package. No hook, persona, command, shared brief or enforcement rule changes.
+
+The inventory suite's manifest arm resolves `skills`; it does not validate `mcpServers`. The targeted
+declaration and path checks are local acceptance evidence, not new CI enforcement. Neither those checks
+nor the existing inventory suite observes a foreign consumer's continuing activated surface. The cost
+remains a dated compatibility observation that must be remeasured when its runtime changes.
+
+### Significance
+
+Arm: **changes a public contract / schema** — the published manifest now explicitly declares its MCP
+surface. The capability-layer question left open in the preceding amendment is settled by the owner's
+DECLARE ruling. This amendment records that decision in the same change as its manifest declaration.
+It does not reverse the default-discovery
+finding, expand the distribution targets, or alter the release and adoption policy.

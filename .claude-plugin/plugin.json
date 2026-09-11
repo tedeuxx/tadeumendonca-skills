@@ -8,6 +8,7 @@
   "homepage": "https://tadeumendonca.io",
   "repository": "https://github.com/tedeuxx/tadeumendonca-skills",
   "license": "MIT",
+  "mcpServers": "./.mcp.json",
   "skills": [
     "./skills/backend",
     "./skills/frontend",
