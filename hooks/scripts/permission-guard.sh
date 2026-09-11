@@ -805,11 +805,48 @@ fi
 #       ignored-only       rc=0   removed        `git status --porcelain` EMPTY (ignored excluded)
 #       clean              rc=0   removed        `git status --porcelain` empty
 #
-#     The correspondence is exact across all four rows: **`git status --porcelain` is non-empty in
-#     precisely the two states git itself refuses to remove.** So this rule denies exactly what git
-#     already denies and permits exactly what git already permits — behaviour-neutral against the
-#     non-forced form by construction rather than by testing. The only thing it changes is that force
-#     no longer overrides the refusal.
+#     ~~The correspondence is exact across all four rows … So this rule denies exactly what git already
+#     denies, and permits exactly what git already permits.~~ **STRUCK 2026-09-11, ON THE GATE'S
+#     FINDING AT `bc6e6d0c`. THE TABLE IS RIGHT AND THE CONCLUSION DRAWN FROM IT IS FALSE**, and it is
+#     false in the direction that matters: the rule's permit set is a strict SUPERSET of git's while
+#     that sentence asserted equality. A justification reading narrower than the rule actually is, in a
+#     floor rule, is the same shape three other rules in this file were corrected for the day before.
+#
+#     **GIT HAS TWO INDEPENDENT REFUSALS, AND THIS RULE READS ONLY ONE.** The four-row table above
+#     varies DIRTINESS and holds LOCK constant at unlocked, so it cannot see the second. Re-measured
+#     across five states, guard-only (no removal beforehand, so no row is contaminated by the one
+#     before it), on `git version 2.50.1 (Apple Git-155)`:
+#
+#       state             `git status --porcelain`   git: bare / -f / -ff      rule 4c
+#       locked_clean      EMPTY                      128  / 128 / 0 (GONE)     ALLOW   <- THE GAP
+#       locked_ignored    EMPTY                      128  / 128 / 0 (GONE)     ALLOW   <- THE GAP
+#       locked_dirty      non-empty                  128  / 128 / 0 (GONE)     DENY
+#       unlocked_clean    EMPTY                      0 (GONE)                  ALLOW
+#       unlocked_dirty    non-empty                  128  / 0 (GONE)           DENY
+#
+#     **AND THE TWO REFUSALS HAVE DIFFERENT FORCE THRESHOLDS, which is sharper than the gate's own
+#     report and is the part to carry:** DIRTINESS yields to ONE `-f`; a LOCK needs TWO (`-ff`,
+#     `--force --force`, `-f -f` and `--forc --forc` all measured removing a locked worktree at rc 0,
+#     while every single-flag spelling left it at rc 128 with the directory intact).
+#
+#     SO, EXACTLY: **this rule's predicate covers DIRTINESS and does not cover LOCK.** Every worktree
+#     holding uncommitted work is denied in every flag spelling, locked or not — `locked_dirty` denies
+#     through the dirtiness limb, not through any lock awareness. What passes is a **locked worktree
+#     with NO uncommitted work**, removed with double force: git refuses it and this rule does not.
+#
+#     **WHAT THAT COSTS, AND WHY THE LOGIC IS NOT CHANGED.** No uncommitted work is reachable through
+#     the gap — by construction, the gap is the CLEAN half of the lock class. What is overridden is the
+#     DECLARATION: `git worktree lock` is git's own *somebody is using this* marker, and **it is not a
+#     defence this rule honours.** That sentence has a second reader — `worktree-notice.sh` prints
+#     `lock` as the declared opt-out from its own removable list, and 0 of 28 live worktrees have
+#     adopted it. Adding a lock limb would mean a second `git` call on every matched command to defend
+#     a marker nothing currently sets, so it is NOT built, and the gap is stated here rather than
+#     closed. If adoption ever makes that wrong, this paragraph is where to reopen it.
+#
+#     **BOUND ON THE STATE TABLE: one git build, one machine.** `git version 2.50.1 (Apple Git-155)`.
+#     The force thresholds and the porcelain/refusal correspondence are both git behaviour rather than
+#     documented contract here, and neither was checked on another version. A build that made a single
+#     `-f` override a lock would widen the gap above without reddening anything in the suite.
 #
 #     WHY THE NARROWER PREDICATE WOULD HAVE BEEN A GREEN THAT NEVER GOES RED. Against the live
 #     inventory in the sibling repository on 2026-09-10:
@@ -870,6 +907,17 @@ fi
 #     the deleted `action-pendency-guard.sh`, whose errors landed before the owner saw anything. The
 #     false-positive rate is additionally 0 of 29 against the live inventory, since the rule permits
 #     everything git permits.
+#
+#     -- NO ADR, DECLARED RATHER THAN LEFT UNANSWERED -----------------------------------------------
+#     The significance test's five arms, walked: no `iac/`, no public contract or schema, no new
+#     dependency or tool-class, and no cross-cutting pattern — this is the THIRD member of an existing
+#     family (rules 4/4b), reusing their matcher shape and their irreparability argument rather than
+#     establishing anything for others to follow. The fourth arm, *alters a previously-recorded
+#     decision*, is the only one worth a second look and it does not fire either: ADR-0004's *which
+#     layer carries a control* is APPLIED here, not amended, and the answer it gives (this layer, as a
+#     deny) is the one that record already prescribes. **So: no ADR.** Declared because an unanswered
+#     significance test and a negative one look identical from outside, and this file's own header
+#     holds that absent is not a state.
 #
 #     -- ONE SPELLING HAZARD MEASURED AND FOUND NOT TO TRANSFER ------------------------------------
 #     #441 found `gh` accepting five spellings of its repo flag. `git` does not: `git -C<path> worktree
@@ -947,7 +995,7 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
     wt_status="$(git -C "$wt_dir" status --porcelain 2>/dev/null || printf '__WT_UNREADABLE__')"
     case "$wt_status" in
       "" | __WT_UNREADABLE__) : ;;
-      *) deny "Blocked: '$wt_dir' holds uncommitted work, and removing that worktree with force deletes it where it exists nowhere else — not in the reflog, not on the remote, not in the index. That is the same irreparability 'git reset --hard' is refused for. Note what this rule is NOT keyed on: it reads the TARGET, not the flag, so every abbreviation reaches it alike. Git itself refuses this removal unforced, and this rule denies exactly what git denies — a clean worktree, or one carrying only ignored build output, still removes with a bare 'git worktree remove'. Remedies, cheapest first: commit or 'git stash' inside '$wt_dir'; or run 'git -C $wt_dir status' to see what would be lost and delete those paths deliberately; then remove it unforced." ;;
+      *) deny "Blocked: '$wt_dir' holds uncommitted work, and removing that worktree with force deletes it where it exists nowhere else — not in the reflog, not on the remote, not in the index. That is the same irreparability 'git reset --hard' is refused for. Note what this rule is NOT keyed on: it reads the TARGET, not the flag, so every abbreviation reaches it alike. Git refuses this removal without force for the same reason, and a clean worktree — or one carrying only ignored build output — still removes with a bare 'git worktree remove'. This rule reads only whether the target holds uncommitted work: it does NOT read 'git worktree lock', so a LOCKED but clean worktree is not protected here and double force removes it. Remedies, cheapest first: commit or 'git stash' inside '$wt_dir'; or run 'git -C $wt_dir status' to see what would be lost and delete those paths deliberately; then remove it unforced." ;;
     esac
   fi
 fi
