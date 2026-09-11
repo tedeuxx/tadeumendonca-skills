@@ -263,6 +263,122 @@ check_agent DENY  "tadeumendonca-skills:quality-assurance" "rule 7 denies the GA
 check_agent DENY  "tadeumendonca-skills:developer"         "rule 7 denies the builder the same act, same reason"              "git push origin main"
 check_agent DENY  "not-a-persona-of-this-roster"           "rule 7 denies a foreign agent_type too"                           "git push origin main"
 
+# ── #446: rule 7 resolves the push's TARGET, and an unresolvable target denies ──────────────────────
+#
+# WHY THESE ARMS NEED A HELPER NOBODY ELSE NEEDS. Every other arm in this file asks *what does the
+# guard say about this string*; these ask *does the guard still say the same thing when the RUNNER
+# stands somewhere else*. Until #446 the answer was no — the branch limb read `git -C . symbolic-ref`,
+# so the verdict on a payload naming a repository elsewhere was a function of the suite's own working
+# directory. The section above says so in its own words and works around it by writing `-C` into every
+# arm. That workaround is exactly the shape the defect hid behind, so these arms vary the cwd on
+# purpose instead.
+check_from() { # check_from WANT <cwd> <desc> <cmd>
+  want="$1"; from="$2"; desc="$3"; cmd="$4"
+  out=$(printf '%s' "$cmd" | jq -R '{tool_input:{command:.}}' | (cd "$from" && bash "$GUARD"))
+  got=$(verdict "$out")
+  if [ "$got" = "$want" ]; then
+    pass=$((pass + 1)); printf 'ok    %-6s %s\n' "$got" "$desc"
+  else
+    fail=$((fail + 1))
+    printf 'FAIL  want=%s got=%s  %s\n      cwd: %s\n      cmd: %s\n' "$want" "$got" "$desc" "$from" "$cmd"
+  fi
+}
+check_from_reason() { # check_from_reason WANT <cwd> <desc> <needle> <cmd>
+  want="$1"; from="$2"; desc="$3"; needle="$4"; cmd="$5"
+  out=$(printf '%s' "$cmd" | jq -R '{tool_input:{command:.}}' | (cd "$from" && bash "$GUARD"))
+  got=$(verdict "$out")
+  reason=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""')
+  if [ "$got" = "$want" ] && printf '%s' "$reason" | grep -qF "$needle"; then
+    pass=$((pass + 1)); printf 'ok    %-6s %s\n' "$got" "$desc"
+  else
+    fail=$((fail + 1))
+    printf 'FAIL  want=%s/%s got=%s  %s\n      cwd: %s\n      cmd: %s\n      reason: %s\n' \
+      "$want" "$needle" "$got" "$desc" "$from" "$cmd" "$reason"
+  fi
+}
+
+TMAIN="$(mktemp -d)"; git init -q -b main "$TMAIN"
+TFEAT="$(mktemp -d)"; git init -q -b feat/x "$TFEAT"
+
+echo "--- rule 7 (#446): a target on the trunk denies from EITHER cwd, in every spelling ---"
+# CRITERION 1. Each shape is asserted TWICE — once from a checkout on a feature branch, once from a
+# checkout on the trunk — and the pair is the assertion. On the pinned guard the `--git-dir=` and
+# `--work-tree=` rows came out ABSTAIN from the feature cwd and DENY from the trunk cwd: the same
+# payload, two verdicts, decided by where the runner stood.
+for FROM in "$TFEAT" "$TMAIN"; do
+  check_from DENY "$FROM" "-C names a trunk checkout"          "git -C $TMAIN push"
+  check_from DENY "$FROM" "--git-dir= names a trunk checkout"  "git --git-dir=$TMAIN/.git push"
+  check_from DENY "$FROM" "--work-tree= names a trunk checkout" "git --work-tree=$TMAIN push"
+  check_from DENY "$FROM" "a cd chain hides the target"        "cd $TMAIN && git push"
+  check_from DENY "$FROM" "a subshell hides the target"        "(cd $TMAIN; git push)"
+done
+# The two spellings deny for DIFFERENT reasons, and a verdict-only arm cannot see that. A flag that
+# NAMES the repository is read and the branch is reported; a `cd` is refused as unreadable. Collapsing
+# the second into the first would be the whole point of this slice lost while every arm stayed green.
+check_from_reason DENY "$TFEAT" "a named target reports the BRANCH"    "lands on the trunk"            "git --git-dir=$TMAIN/.git push"
+check_from_reason DENY "$TFEAT" "an unreadable target says so INSTEAD" "could not resolve which repository" "cd $TMAIN && git push"
+check_from_reason DENY "$TMAIN" "a subshell is unreadable, not trunk"  "could not resolve which repository" "(cd $TFEAT; git push)"
+
+echo "--- rule 7 (#446): a -C belonging to ANOTHER command changes nothing, in either position ---"
+# CRITERION 2. On the pinned guard the extractor was greedy and unscoped, so it took the LAST `-C` in
+# the string whatever command owned it. The first row is this Issue's sharpest payload: a correct DENY
+# reversed into an abstention by APPENDING a read-only `git status`, with both elements allowlisted in
+# both settings layers — a trunk push reaching the floor with no decision from any layer.
+check_from DENY  "$TFEAT" "trailing -C does not reverse the deny"  "git -C $TMAIN push ; git -C $TFEAT status"
+check_from DENY  "$TMAIN" "a tar -C after the push is not a target" "git push && tar -C /nonexistent -xf a.tar"
+check_from ALLOW "$TFEAT" "a tar -C before the push is not a target" "tar -C $TMAIN -xf a.tar && git push"
+check_from ALLOW "$TFEAT" "a git -C on a NON-push is not a target"   "git -C $TMAIN log && git push"
+
+echo "--- rule 7 (#446): env -C chdirs before exec — the gate's blocking finding on PR #448 ---"
+# THIS IS A REGRESSION ARM, NOT A COVERAGE ARM, AND THE DIFFERENCE IS THE WHOLE REASON IT EXISTS.
+# The PINNED extractor caught `env -C <trunk> git push` BY ACCIDENT — it took the last `-C` anywhere
+# in the string, whatever command owned it. Scoping target flags to the push invocation is correct
+# and is exactly what removed the accident, so this shape went deny -> ABSTAIN across the first
+# commit of this slice: a real trunk push losing a deny it used to get, which that commit's own
+# record asserted in bold could not happen.
+#
+# BEHAVIOURAL, NOT LEXICAL: `env -C "$TMAIN" git symbolic-ref --short HEAD` returns `main` from a
+# feature checkout, so these payloads are trunk pushes rather than strings that look like one.
+check_from DENY "$TFEAT" "env -C names a trunk checkout"        "env -C $TMAIN git push"
+# THIS ARM WAS `check_from DENY "$TMAIN" … "env -C $TMAIN git push"` AND COULD NOT FAIL. From a trunk
+# cwd that payload denies whether or not `env` is in the alternation — with `env` absent it falls to
+# `dir="."`, which IS the trunk, so it denies for the wrong reason and the arm stays green. Caught by
+# mutation E1 reddening four of five env arms and leaving that one alone. Re-pointed at a FEATURE
+# target from a TRUNK cwd and asserted on the reason, which is the form that discriminates: without
+# `env` the verdict is still DENY, but the reason becomes "lands on the trunk" and this goes red.
+check_from_reason DENY "$TMAIN" "env -C, judged from a trunk cwd"  "could not resolve which repository" "env -C $TFEAT git push"
+# `env` is a WHOLE TOKEN. Nothing asserted that until mutation E4 — matching it as a bare substring
+# was invisible to the whole suite — so a command merely containing the letters must stay readable.
+check_from ALLOW "$TFEAT" "envsubst is not env"                 "envsubst < t.tpl && git push"
+check_from DENY  "$TMAIN" "…and still resolves the cwd normally" "envsubst < t.tpl && git push"
+check_from DENY "$TFEAT" "env's long spelling --chdir="         "env --chdir=$TMAIN git push"
+check_from DENY "$TFEAT" "a wrapper still carrying the token"   "nice env -C $TMAIN git push"
+check_from_reason DENY "$TFEAT" "env is unresolvable, not trunk" "could not resolve which repository" "env -C $TMAIN git push"
+# THE CLASS IS OPEN AND THESE ARMS SAY SO OUT LOUD. Adding `env` closes the regression and three
+# spellings around it; it does NOT close a program that chdirs under another name. These two are
+# asserted ALLOW deliberately — they are a named residual pinned as a fact, so that a later slice
+# that closes them turns this red and has to come here and say so, rather than the record quietly
+# claiming a bound it never had. The PINNED guard missed both too, so neither is a regression.
+check_from ALLOW "$TFEAT" "RESIDUAL: systemd-run --working-directory" "systemd-run --working-directory=$TMAIN git push"
+check_from ALLOW "$TFEAT" "RESIDUAL: chroot before the push"          "chroot / git push"
+
+echo "--- rule 7 (#446): the ordinary shapes must survive the new deny ---"
+# The deny is only worth its cost if it lands on unreadable commands and not on the daily ones. A
+# chain with no directory move is READABLE — the push inherits the runner's cwd — so the commonest
+# multi-step shape in this loop keeps its old verdict on both sides.
+check_from ALLOW "$TFEAT" "add+commit+push from a feature checkout" "git add -A && git commit -m x && git push"
+check_from DENY  "$TMAIN" "add+commit+push from the trunk still denies" "git add -A && git commit -m x && git push"
+check_from ALLOW "$TFEAT" "bare push, cwd is the feature checkout"  "git push"
+check_from DENY  "$TMAIN" "bare push, cwd is the trunk checkout"    "git push"
+check_from ALLOW "$TMAIN" "-C names a feature checkout"             "git -C $TFEAT push origin feat/x"
+check_from ALLOW "$TMAIN" "a push-less git command never triggers"  "git log --oneline main..HEAD"
+# `push` followed by shell punctuation must reach the rule at all. On the pinned guard the trigger's
+# trailing class was `([[:space:]]|$)`, so `push)` and `push;` did not fire rule 7 in ANY limb — the
+# subshell row above was abstaining because the rule never ran, not because it misread the target.
+check_from_reason DENY "$TFEAT" "push; still reaches the refspec limb" "pushing to the trunk" "git push origin main ; echo done"
+
+rm -rf "$TMAIN" "$TFEAT"
+
 echo "--- rule 7b: merging a PR is the quality-assurance's act alone ---"
 check       DENY  "main agent (no agent_type) cannot merge"          "gh pr merge 149 --merge"
 check_agent DENY  ""                                     "empty agent_type = main agent, denied"      "gh pr merge 149 --merge"

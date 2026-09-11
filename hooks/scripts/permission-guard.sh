@@ -1503,7 +1503,14 @@ fi
 #      · a brief or a skill — an instruction, and the act is one keystroke from a context that has the
 #        credential. By this loop's own test that is memory, not a mechanism.
 #    KEEP.
-if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+push([[:space:]]|$)'; then
+#
+#    THE TRIGGER'S TRAILING CLASS WIDENED AT #446, and it is a widening rather than a rewrite. It read
+#    `push([[:space:]]|$)`, so `push` followed by any shell punctuation did not fire the rule AT ALL —
+#    measured on the pinned blob, `(cd <repo-on-main>; git push)` came out ABSTAIN not because the
+#    branch limb misread the target but because rule 7 never ran. `push($|[^[:alnum:]_./-])` fires on
+#    `push)`, `push;`, `push|` and `push&` while still declining `git push-something`. It can only ever
+#    make this rule fire on MORE, never on less, so it adds no path from DENY to ALLOW.
+if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+push($|[^[:alnum:]_./-])'; then
   # Any refspec landing on the trunk: `main`, `refs/heads/main`, `HEAD:main`, `+main`.
   if printf '%s' "$bare" | grep -Eq '[[:space:]]\+?([^[:space:]:]+:)?(refs/heads/)?(main|master)([[:space:]]|$)'; then
     deny "Blocked: pushing to the trunk. Merging to main is the deploy and the human's go/no-go — it is never an agent action. Push your feature branch and open a PR."
@@ -1520,14 +1527,162 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   if printf '%s' "$bare" | grep -Eq '[[:space:]](--tags|--follow-tags)([[:space:]]|$)'; then
     deny "Blocked: pushing tags publishes a Release. The deploy workflow's 'release' job owns tagging — it bumps VERSION, tags and publishes in one pass, and a hand-pushed tag desynchronises the three. Push the branch alone."
   fi
-  # A bare `git push` inherits HEAD — resolve it instead of guessing from the string.
-  dir="$(printf '%s' "$bare" | sed -nE 's/.*[[:space:]]-C[[:space:]]+([^[:space:]]+).*/\1/p')"
-  [ -z "$dir" ] && dir="."
+  # ── TARGET RESOLUTION (#446). A bare `git push` inherits HEAD, so this limb has to name the
+  #    repository the push will land in. Until #446 it did that by taking the LAST `-C` anywhere in
+  #    the string and falling back to `.`, and all three properties of those four lines were wrong:
+  #
+  #      1. `dir` defaulted to `.` — the HOOK's cwd, not the cwd the command will run in — with no
+  #         concept of *unresolvable* at all. On an unnameable target the rule reported whatever the
+  #         ambient directory happened to say: **guess-by-default**, neither deny- nor abstain-by-
+  #         default, and both directions of error below are that guess.
+  #      2. The TRIGGER above enumerates `-C`, `-c`, `--git-dir=` and `--work-tree=`; the extractor
+  #         knew `-C` alone. The rule fired on a command whose target it then refused to read.
+  #      3. The extractor was greedy and unscoped, so it took the last `-C` in the string whether or
+  #         not that `-C` belonged to the push — or to `git` at all. Measured on the pinned blob:
+  #         `git -C <main-repo> push ; git -C <feat-repo> status` came out ABSTAIN. **A correct deny
+  #         reversed into an abstention by appending a read-only `git status`**, with both elements in
+  #         `allow` in both settings layers, so that trunk push reached the floor with no decision
+  #         from any layer.
+  #
+  #    WHY THIS IS NOT A FIFTH FLAG ADDED TO THE LIST. `-C`, then `--git-dir=`, then `--work-tree=`,
+  #    then `cd`, then a subshell is a search over spellings, and #438 already paid for that shape
+  #    twice (escape, arithmetic, comment, heredoc — four constructs answered one at a time, and a
+  #    fifth existed each time until a RECOGNIZER replaced the list). So this limb recognizes the
+  #    SIMPLE case positively and calls everything else unresolvable: exactly one `git … push`
+  #    invocation, carrying at most one target-naming flag OF ITS OWN, in a command that contains no
+  #    construct able to move the working directory out from under it. A sixth shape nobody has
+  #    thought of falls into *unresolvable* by construction rather than by omission, which is the
+  #    fail-safe direction.
+  #
+  #    UNRESOLVABLE DENIES, AND THAT CHOICE IS THE WHOLE OF THIS SLICE'S RISK. The alternative — an
+  #    explicit abstention — returns the same verdict today's guess returns on those rows, stated
+  #    rather than accidental, and leaves the floor silent on a command that may well be a trunk
+  #    push. This rule's own re-justification above keeps it on the ground that its predicate is
+  #    COEXTENSIVE WITH A LATCHING ACT (`version-main.yml` triggers on push-to-main, bumps, tags and
+  #    publishes a Release a consumer can already have pulled). A silent false negative on that
+  #    predicate is the mirror of the standing rule about invisible false POSITIVES, and it is worse
+  #    in one specific way: a suppressed decision costs a round, a permitted publish costs a
+  #    consumer's disk.
+  #
+  #    AND THE DENY INVERTS THE PATHOLOGY RATHER THAN RESTATING IT. Under the old rule the noisy
+  #    half (a wrong deny) had a documented workaround — `git -C <dir> push` — which is precisely the
+  #    shape that HID the silent half, so the workaround recruited callers into the blind spot. Under
+  #    this rule the same workaround is the shape that resolves CORRECTLY, so the remedy the message
+  #    prescribes is the fix rather than the mask. The denied shape (`cd X && git push`) is already
+  #    forbidden in prose by the `shell` skill every persona preloads — *`git -C <dir>`, never
+  #    `cd X && …`* — so what lands here is a mechanism under an instruction that already existed.
+  #
+  #    WHAT IT STILL DOES NOT SEE, said here rather than left to be discovered. A `git push` inside a
+  #    script invoked by path, or behind a shell alias or function, reaches the act with this hook
+  #    seeing only the script's name; no wording of a string-reading rule closes that class. And the
+  #    no-flag case still resolves against the HOOK's own cwd, which is the caller's cwd in the
+  #    ordinary case and is NOT in a worktree or an additional working directory.
+  #
+  #    THE PAYLOAD'S OWN `cwd` IS DELIBERATELY NOT ADOPTED, AND THAT IS A DEFERRAL RATHER THAN A
+  #    JUDGEMENT. Whether a `PreToolUse` payload carries `cwd` at all is UNMEASURED here: what is
+  #    measured is that a `SubagentStart` payload does (`dispatch-metrics-start.sh`'s header, #209),
+  #    which is suggestive and is not the same event. Adopting a field whose presence is a hypothesis
+  #    would make this limb resolve against an empty string on any build that omits it — silently
+  #    widening the very hole this slice closes. What would settle it is one registered probe hook on
+  #    `PreToolUse` echoing its stdin, which is its own slice.
+  #
+  #    THE SEAM WITH #443, RULED HERE AND WRITTEN INTO BOTH BODIES. #443 keys on `git worktree remove`
+  #    and needs to resolve a POSITIONAL PATH; this rule resolves WHICH REPOSITORY a `git` invocation
+  #    acts on. Those are two different objects, so nothing is extracted into a shared helper — a
+  #    helper generalised over one consumer is a guess. What #443 consumes from here is a CORRECTION
+  #    and a PATTERN, not code: its body asserts that this rule's old line 1524 was *"complete for
+  #    `git`"* and that it *"inherits no defect from that line"*, which is true of the flag SPELLING
+  #    (git rejects the attached `-C<path>` form, rc 129) and FALSE of the extraction, which was
+  #    greedy, unscoped and blind to two flags its own trigger enumerated. The pattern is: recognize
+  #    the simple case positively, give *unresolvable* an explicit state, and decide that state's
+  #    verdict deliberately. **The two rules decide it differently and that is intended** — #443's
+  #    predicate asks whether a directory holds uncommitted work, so an unreadable answer there is
+  #    genuinely unknown; this rule's asks which repository a push lands in, and refusing to answer
+  #    would leave a publish unclassified. The one sub-problem NEITHER Issue owns is the payload-`cwd`
+  #    question above; it is named as a residual in both rather than half-claimed by either.
+  # `grep -o | wc -l`, never `grep -co`: with -o, BSD grep counts MATCHES and GNU grep counts LINES,
+  # so on this one-line payload `-co` returns 2 on a maintainer's macOS and 1 in Ubuntu CI. That
+  # divergence would have made the two-invocation arm below green locally and dead in the pipeline —
+  # the same platform-split class this file's own rule-7 fixture comment already warns about.
+  # EVERY `grep` HERE CARRIES `|| true`, AND THAT IS LOAD-BEARING RATHER THAN DEFENSIVE. This file
+  # runs under `set -euo pipefail`, so a grep that legitimately matches nothing (a push carrying no
+  # target flag — the commonest shape there is) exits 1, fails the pipeline, and kills the whole
+  # guard with no output. A hook that dies silently reads to the runtime as NO DECISION, so the
+  # first form of this block turned eight of rule 3b's force-push denials into silent allows —
+  # measured, 471/8 against a 479/0 baseline. A guard that abstains by crashing is the worst member
+  # of the fail-open family, because nothing anywhere says it happened.
+  push_matches="$(printf '%s' "$bare" | grep -oE '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+push($|[^[:alnum:]_./-])' || true)"
+  push_hits="$(printf '%s\n' "$push_matches" | grep -c . || true)"
+  push_inv="$(printf '%s\n' "$push_matches" | sed -n '1p')"
+  # Only these three name a TARGET. `-c` sets a config key and is tolerated inside the invocation
+  # without contributing one, which is why the trigger enumerates it and this count does not.
+  push_tflag_hits="$(printf '%s' "$push_inv" | grep -oE '(-C[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+)' || true)"
+  push_tflags="$(printf '%s\n' "$push_tflag_hits" | grep -c . || true)"
+  target_unresolvable=""
+  git_dir_flag=""
+  dir=""
+  if [ "$push_hits" != "1" ]; then
+    target_unresolvable="the command carries more than one 'git … push' invocation, so it has more than one target"
+  elif [ "$push_tflags" -gt 1 ] 2>/dev/null; then
+    target_unresolvable="the 'git push' invocation carries more than one target-naming flag (-C / --git-dir= / --work-tree=), and this rule will not guess their precedence"
+  elif [ "$push_tflags" = "1" ]; then
+    dir="$(printf '%s' "$push_inv" | sed -nE 's/.*[[:space:]]-C[[:space:]]+([^[:space:]]+).*/\1/p')"
+    [ -z "$dir" ] && dir="$(printf '%s' "$push_inv" | sed -nE 's/.*--work-tree=([^[:space:]]+).*/\1/p')"
+    if [ -z "$dir" ]; then
+      git_dir_flag="$(printf '%s' "$push_inv" | sed -nE 's/.*--git-dir=([^[:space:]]+).*/\1/p')"
+    fi
+  else
+    # No target flag on the invocation, so the target is the working directory at the moment the
+    # push runs. That is knowable only if nothing in the command can move it.
+    #
+    # ── THIS BRANCH IS AN ENUMERATION AND IT IS NOT BOUNDED. SAYING SO IS THE POINT. ──────────────
+    # The first version of this comment claimed the list was "the SHELL's own directory-changing
+    # surface, bounded by the language rather than by anyone's imagination", and that ANY miss
+    # "lands back on today's behaviour rather than on something worse". **Both halves were false and
+    # the gate falsified them at review**, with `env -C <trunk-checkout> git push`:
+    #
+    #   · FALSE that it is bounded — `env -C` is an EXTERNAL PROGRAM that chdirs before it execs, and
+    #     so are `chroot`, `systemd-run --working-directory=`, a shell function and a script file.
+    #     Any program may do this. The language does not bound the set; nothing does.
+    #   · FALSE that a miss is never worse — and this is the deeper error. The PINNED extractor caught
+    #     `env -C` BY ACCIDENT, because it took the last `-C` anywhere in the string whatever command
+    #     owned it. Scoping target flags to the push invocation is CORRECT and it is exactly what
+    #     removed the accident. So a miss here is not neutral: it can be a REGRESSION against the very
+    #     defect this slice fixes. Measured, cwd on a feature checkout, `env -C <main-repo> git push`:
+    #     bd8dfa9e -> deny, 75b0c726 -> ABSTAIN. `env` is added below because of that regression.
+    #
+    # WHAT ADDING `env` CLOSES AND WHAT IT DOES NOT. It closes the regression, `env`'s long spelling
+    # (`env --chdir=<dir>`, which the pinned guard never caught either), and the wrapper forms that
+    # still contain the token (`nice env -C …`, `setarch … env -C …`) — all four measured. It does
+    # NOT close `chroot`, `systemd-run --working-directory=`, a shell alias or function, a script file
+    # invoked by path, or the next program nobody has thought of. **Adding one token to an open
+    # enumeration and calling it complete would repeat this defect inside its own fix**, so the class
+    # is recorded here as open rather than as handled.
+    #
+    # WHY NOT A POSITIVE RECOGNIZER HERE, since that is what the flag branch above uses. The only one
+    # available is "a single simple invocation, no chaining at all", and it would deny
+    # `git add -A && git commit -m x && git push` — the commonest multi-step shape in this loop, on a
+    # command that moves no directory. That trade is worse than the residual. And note what a shared
+    # target/subject resolver would NOT have bought: this is not an incomplete git-flag alternation,
+    # it is that *which directory will this command run in* is unanswerable from a command string.
+    if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_.-])(cd|pushd|popd|chdir|env)([[:space:]]|$)|\(|GIT_DIR=|GIT_WORK_TREE=|GIT_CEILING_DIRECTORIES='; then
+      target_unresolvable="the command can move the working directory before the push runs (a 'cd'/'pushd'/'popd', an 'env' that chdirs, a subshell, or a GIT_DIR/GIT_WORK_TREE environment assignment), so which repository it lands in is not readable from the command string"
+    else
+      dir="."
+    fi
+  fi
+  if [ -n "$target_unresolvable" ]; then
+    deny "Blocked: this rule could not resolve which repository your 'git push' targets, and a push it cannot classify is refused rather than waved through — ${target_unresolvable}. A push to the trunk fires version-main.yml, which bumps, tags and publishes a Release a consumer can already have pulled, so an unreadable target is denied on the same ground the trunk itself is. The remedy is one edit and it is the shape this harness already asks for: name the repository on the push invocation itself, as 'git -C <dir> push …', in its own Bash call rather than chained behind a 'cd' or another command. That form is read exactly and a feature branch passes."
+  fi
   # symbolic-ref, not rev-parse: it reports the checked-out branch even when HEAD is
   # unborn (a fresh repo with no commits), where rev-parse fails and would silently
   # skip this check. On a detached HEAD it fails too, which is correct — there is no
   # branch to land on.
-  branch="$(git -C "$dir" symbolic-ref --short HEAD 2>/dev/null || true)"
+  if [ -n "$git_dir_flag" ]; then
+    branch="$(git --git-dir="$git_dir_flag" symbolic-ref --short HEAD 2>/dev/null || true)"
+  else
+    branch="$(git -C "$dir" symbolic-ref --short HEAD 2>/dev/null || true)"
+  fi
   case "$branch" in
     main|master)
       deny "Blocked: HEAD is '$branch', so this push lands on the trunk. Merging to main is the deploy and the human's go/no-go. Branch first, then push the branch." ;;
