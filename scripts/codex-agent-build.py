@@ -312,40 +312,68 @@ def install_config(config, backup, generated):
     return True
 
 
-def inspect_session_roles(command, generated):
-    """Read effective native settings before adding session role overrides."""
-    overrides = []
+def session_arguments(command):
+    """Identify the native active override bucket without rearranging caller argv.
+
+    Only the measured session grammar is supported. Native exec/app-server use
+    their own nonempty config bucket instead of the root bucket, not on top of it.
+    """
+    buckets = [[], []]
+    subcommand_index = None
+    root_prompt = False
+    child_prompt = False
     cwd = Path.cwd()
-    arguments = iter(command[1:])
-    for argument in arguments:
+    values = {"-m", "--model", "-s", "--sandbox", "-a", "--ask-for-approval", "--add-dir", "--local-provider", "--thread-source", "--output-schema", "--color", "-o", "--output-last-message", "--listen"}
+    switches = {"--oss", "--approve-for-me", "--search", "--no-alt-screen", "--skip-git-repo-check", "--ephemeral", "--json", "--stdio", "--strict-config", "-h", "--help", "-V", "--version"}
+    unsupported_commands = {"agents", "review", "login", "logout", "mcp", "plugin", "mcp-server", "remote-control", "app", "completion", "update", "doctor", "sandbox", "debug", "apply", "a", "resume", "queue", "archive", "delete", "migrate-rollouts", "unarchive", "fork", "cloud", "exec-server", "features", "help"}
+    index = 1
+    while index < len(command):
+        argument = command[index]
         if argument == "--":
             break
         if argument in ("-p", "--profile") or argument.startswith("--profile=") or (argument.startswith("-p") and not argument.startswith("--")):
             raise BuildError("--exec does not inspect named configuration profiles; use explicit project registration for --profile")
-        if argument in ("-c", "--config", "-C", "--cd"):
-            value = next(arguments, None)
-            if value is None:
-                raise BuildError(f"missing value for {argument}")
-            if argument in ("-C", "--cd"):
-                cwd = Path(value).resolve()
+        key, separator, attached = argument.partition("=")
+        if argument.startswith("-") and not argument.startswith("--") and len(argument) > 2 and argument[:2] in values | {"-c", "-C"}:
+            key, separator, attached = argument[:2], "attached", argument[2:]
+        if key in values | {"-c", "--config", "-C", "--cd"}:
+            if separator:
+                value = attached
             else:
-                overrides.extend(["-c", value])
-        elif argument.startswith("--config="):
-            overrides.extend(["-c", argument.split("=", 1)[1]])
-        elif argument.startswith("-c") and not argument.startswith("--"):
-            overrides.extend(["-c", argument[2:]])
-        elif argument.startswith("--cd="):
-            cwd = Path(argument.split("=", 1)[1]).resolve()
-        elif argument.startswith("-C") and not argument.startswith("--"):
-            cwd = Path(argument[2:]).resolve()
-    for override in overrides[1::2]:
-        # Codex applies CLI overrides in order. Its whole-table assignment
-        # replaces, rather than merges, the previously generated role entries.
-        # Inspecting the caller's settings alone cannot observe that deletion.
+                index += 1
+                if index >= len(command):
+                    raise BuildError(f"missing value for {key}")
+                value = command[index]
+            if key in ("-c", "--config"):
+                buckets[subcommand_index is not None].extend(["-c", value])
+            elif key in ("-C", "--cd"):
+                cwd = Path(value).resolve()
+        elif argument in switches:
+            pass
+        elif argument.startswith("-") and argument != "-":
+            raise BuildError(f"unmeasured launcher option {argument}; use explicit project registration for this CLI form")
+        elif subcommand_index is None and not root_prompt:
+            if argument in ("exec", "e", "app-server"):
+                subcommand_index = index
+            elif argument in unsupported_commands:
+                raise BuildError(f"unmeasured launcher command {argument}; use explicit project registration")
+            else:
+                root_prompt = True
+        elif subcommand_index is not None and not child_prompt:
+            if command[subcommand_index] == "app-server" or argument in {"resume", "fork", "review", "help"}:
+                raise BuildError(f"unmeasured nested launcher command {argument}; use explicit project registration")
+            child_prompt = True
+        index += 1
+    active = buckets[1] if buckets[1] else buckets[0]
+    for override in active[1::2]:
         if override.partition("=")[0].strip() == "agents":
             raise BuildError("whole agents table replacement would erase generated personas; use individual agents.<setting> overrides")
-    expected = tomllib.loads(generated["registration.toml"].decode())["agents"]
-    process = subprocess.Popen([command[0], "app-server", "--stdio", *overrides], cwd=cwd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    insertion = subcommand_index + 1 if buckets[1] else 1
+    return active, insertion, cwd
+
+
+def read_native_config(binary, overrides, cwd):
+    process = subprocess.Popen([binary, "app-server", "--stdio", *overrides], cwd=cwd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
     messages = queue.Queue()
 
     def receive():
@@ -382,14 +410,7 @@ def inspect_session_roles(command, generated):
         result = call(2, "config/read", {"cwd": str(cwd), "includeLayers": False})
         if not isinstance(result.get("config"), dict):
             raise BuildError("native config/read returned no effective configuration; no session launched")
-        roles = result["config"].get("agents") or {}
-        if not isinstance(roles, dict):
-            raise BuildError("native config/read returned an unsupported agents shape; no session launched")
-        for role, settings in roles.items():
-            if not role.startswith("tadeumendonca_"):
-                continue
-            if role not in expected or not isinstance(settings, dict) or any(settings.get(key) != value for key, value in expected[role].items()):
-                raise BuildError(f"effective native role collision: {role}; choose the intended project registration before launching")
+        return result["config"]
     finally:
         process.terminate()
         try:
@@ -399,6 +420,40 @@ def inspect_session_roles(command, generated):
             process.wait()
         process.stdin.close()
         process.stdout.close()
+
+
+def inspect_session_roles(command, generated):
+    """Verify final role presence and preservation against the native baseline."""
+    overrides, insertion, cwd = session_arguments(command)
+    expected = tomllib.loads(generated["registration.toml"].decode())["agents"]
+    baseline = read_native_config(command[0], overrides, cwd)
+    roles = baseline.get("agents") or {}
+    if not isinstance(roles, dict):
+        raise BuildError("native config/read returned an unsupported agents shape; no session launched")
+    for role, settings in roles.items():
+        if not role.startswith("tadeumendonca_"):
+            continue
+        if role not in expected or not isinstance(settings, dict) or any(settings.get(key) != value for key, value in expected[role].items()):
+            raise BuildError(f"effective native role collision: {role}; choose the intended project registration before launching")
+    flags = config_flags(generated)
+    final = read_native_config(command[0], flags + overrides, cwd)
+    final_roles = final.get("agents") or {}
+    for role, settings in expected.items():
+        if not isinstance(final_roles.get(role), dict) or any(final_roles[role].get(key) != value for key, value in settings.items()):
+            raise BuildError(f"final native registration is missing or changed: {role}; no session launched")
+    for configuration in (baseline, final):
+        if isinstance(configuration.get("agents"), dict):
+            # Native config/read materializes optional agent defaults as null
+            # when the first role creates the table. Null is unset, not a new
+            # effective setting; preserve and compare every non-null value.
+            configuration["agents"] = {key: value for key, value in configuration["agents"].items() if key not in expected and value is not None}
+            if not configuration["agents"]:
+                del configuration["agents"]
+        elif configuration.get("agents") is None:
+            configuration.pop("agents", None)
+    if final != baseline:
+        raise BuildError("native registration would change unrelated effective configuration; no session launched")
+    return command[:insertion] + flags + command[insertion:]
 
 
 def main(argv=None):
@@ -432,12 +487,8 @@ def main(argv=None):
         if args.command is not None:
             if not args.command:
                 raise BuildError("--exec requires the Codex executable and optional arguments")
-            # Namespaced registrations are explicit session overrides. Refuse a
-            # caller-supplied override of this namespace rather than masking it.
-            if any("agents.tadeumendonca_" in argument for argument in args.command[1:]):
-                raise BuildError("caller arguments collide with the generated agents.tadeumendonca_ namespace")
-            inspect_session_roles(args.command, generated)
-            return subprocess.run([args.command[0], *config_flags(generated), *args.command[1:]], check=False).returncode
+            command = inspect_session_roles(args.command, generated)
+            return subprocess.run(command, check=False).returncode
         print(f"{'Checked' if args.check else 'Built'} {len(tomllib.loads(generated['registration.toml'].decode())['agents'])} native profiles: {output}")
         return 0
     except (BuildError, OSError, tomllib.TOMLDecodeError) as error:

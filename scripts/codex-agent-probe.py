@@ -23,13 +23,19 @@ def main():
     parser.add_argument("profile", type=Path, help="generated native profile TOML")
     parser.add_argument("mode", choices=("fresh", "inherit", "unknown"), nargs="?", default="fresh")
     parser.add_argument("--cwd", type=Path, default=Path.cwd(), help="explicit project directory for the diagnostic")
+    parser.add_argument("--launcher-source", type=Path, help="exercise the shipped launcher from this source instead of direct role flags")
+    parser.add_argument("--launcher-output", type=Path, help="checked snapshot for --launcher-source")
     args = parser.parse_args()
+    if bool(args.launcher_source) != bool(args.launcher_output):
+        parser.error("--launcher-source and --launcher-output are required together")
     binary = shutil.which(args.binary) or args.binary
     profile = args.profile.resolve()
     data = tomllib.loads(profile.read_text())
     role, instructions = data["name"], data["developer_instructions"]
     if not instructions or not role.startswith("tadeumendonca_"):
         parser.error("use a nonempty generated tadeumendonca_ profile")
+    if args.launcher_output and profile != (args.launcher_output / "profiles" / f"{role}.toml").resolve():
+        parser.error("profile must belong to the launcher snapshot")
     work = Path(tempfile.mkdtemp(prefix="codex-input-capture-")).resolve()
     requests, observations = [], []
     child_seen = threading.Event()
@@ -72,6 +78,9 @@ def main():
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     overrides = ['model_provider="compat_capture"', 'model_providers.compat_capture.name="Local capture diagnostic"', "model_providers.compat_capture.base_url=" + json.dumps(f"http://127.0.0.1:{server.server_port}/v1"), 'model_providers.compat_capture.wire_api="responses"', 'model_providers.compat_capture.requires_openai_auth=false', 'developer_instructions="This is a local input-capture diagnostic. Only one harmless native delegation is authorized."', "agents." + role + '.description="Diagnostic reader"', "agents." + role + ".config_file=" + json.dumps(str(profile))]
+    if args.launcher_source:
+        # Direct role flags would hide a broken launcher, so none are retained.
+        overrides = [setting for setting in overrides if not setting.startswith("agents.")]
     command = [binary, "exec", "--json", "--sandbox", "read-only", "--cd", str(args.cwd.resolve())]
     # A positive inherited-history control needs a durable native parent thread;
     # these builds cannot fork history from an ephemeral parent. All other runs
@@ -81,6 +90,9 @@ def main():
     for setting in overrides:
         command.extend(["-c", setting])
     command.append("Delegate one child to the configured profile, then finish. Do not pass this parent-only history marker to the child: " + parent_marker)
+    if args.launcher_source:
+        import sys
+        command = [sys.executable, str(args.launcher_source.resolve() / "scripts/codex-agent-build.py"), "--source", str(args.launcher_source.resolve()), "--output", str(args.launcher_output.resolve()), "--exec", *command]
     print(json.dumps({"artifacts": str(work), "binary": binary}), flush=True)
     try:
         version = subprocess.run([binary, "--version"], text=True, capture_output=True, timeout=10, check=True).stdout.strip()

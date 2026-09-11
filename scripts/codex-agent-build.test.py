@@ -9,6 +9,7 @@ import sys
 import tempfile
 import tomllib
 import unittest
+from unittest.mock import patch
 
 
 sys.dont_write_bytecode = True
@@ -149,7 +150,24 @@ class Profiles(unittest.TestCase):
         original = b'# Keep whitespace and comments.\n[mcp_servers.example]\ncommand = "original"\n[agents.other]\ndescription = "keep"\n'
         config.write_bytes(original)
         fake = self.base / "capture-codex"
-        fake.write_text(f"#!{sys.executable}\nimport json, sys, pathlib, tomllib\nif 'app-server' in sys.argv:\n for line in sys.stdin:\n  request=json.loads(line)\n  result={{}} if request['id']==1 else {{'config':tomllib.loads(pathlib.Path('.codex/config.toml').read_text())}}\n  print(json.dumps({{'id':request['id'],'result':result}}),flush=True)\nelse:\n print(json.dumps(sys.argv[1:]))\n")
+        fake.write_text(f"#!{sys.executable}\n" + '''import json, sys, pathlib, tomllib
+if 'app-server' in sys.argv:
+ config=tomllib.loads(pathlib.Path('.codex/config.toml').read_text())
+ arguments=iter(sys.argv[1:])
+ for argument in arguments:
+  if argument=='-c':
+   key,raw=next(arguments).split('=',1)
+   target=config
+   parts=key.strip().split('.')
+   for part in parts[:-1]: target=target.setdefault(part,{})
+   target[parts[-1]]=tomllib.loads('value='+raw)['value']
+ for line in sys.stdin:
+  request=json.loads(line)
+  result={} if request['id']==1 else {'config':config}
+  print(json.dumps({'id':request['id'],'result':result}),flush=True)
+else:
+ print(json.dumps(sys.argv[1:]))
+''')
         fake.chmod(0o700)
         command = [sys.executable, str(ROOT / "scripts/codex-agent-build.py"), "--source", str(self.source), "--output", str(self.output), "--exec", str(fake), "exec", "--sandbox", "read-only", "message"]
         result = subprocess.run(command, cwd=consumer, capture_output=True, text=True, check=True)
@@ -158,9 +176,9 @@ class Profiles(unittest.TestCase):
         self.assertEqual(arguments[-4:], ["exec", "--sandbox", "read-only", "message"])
         self.assertEqual(config.read_bytes(), original)
         self.assertEqual(self.snapshot(), generated)
-        result = subprocess.run(command + ["-c", 'agents.tadeumendonca_reader.description="collision"'], capture_output=True, text=True)
+        result = subprocess.run(command + ["-c", 'agents.tadeumendonca_reader.description="collision"'], cwd=consumer, capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("collide", result.stderr)
+        self.assertIn("collision", result.stderr)
         config.write_bytes(original + b'\n[agents.tadeumendonca_reader]\nconfig_file="other.toml"\ndescription="user-owned"\n')
         result = subprocess.run(command, cwd=consumer, capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0)
@@ -180,6 +198,40 @@ class Profiles(unittest.TestCase):
         # usable rather than refusing every argument beginning with agents.
         result = subprocess.run(command + ["--config=agents.max_depth=2"], cwd=consumer, capture_output=True, text=True, check=True)
         self.assertIn("--config=agents.max_depth=2", json.loads(result.stdout))
+        result = subprocess.run(command[:-1] + ["Explain agents.tadeumendonca_reader"], cwd=consumer, capture_output=True, text=True, check=True)
+        self.assertIn("Explain agents.tadeumendonca_reader", json.loads(result.stdout))
+
+    def test_native_bucket_selection_keeps_original_order_and_scope(self):
+        root = ['-c', 'sandbox_mode="read-only"']
+        leaf = ['--config=agents.max_depth=2']
+        for subcommand in ('exec', 'e', 'app-server'):
+            command = ['codex', *root, subcommand, *leaf]
+            overrides, insertion, unused = BUILDER.session_arguments(command)
+            self.assertEqual(overrides, ['-c', 'agents.max_depth=2'])
+            self.assertEqual(insertion, command.index(subcommand) + 1)
+            overrides, insertion, unused = BUILDER.session_arguments(['codex', *root, subcommand])
+            self.assertEqual(overrides, root)
+            self.assertEqual(insertion, 1)
+        # A prompt that names the configuration is still a prompt; -- ends
+        # option parsing and must not cause a second config bucket to appear.
+        command = ['codex', 'exec', '--', '-c', 'agents={}']
+        self.assertEqual(BUILDER.session_arguments(command)[:2], ([], 1))
+        self.assertEqual(BUILDER.session_arguments(['codex', '-m', 'exec', 'prompt'])[:2], ([], 1))
+        for arguments in (['exec', 'resume'], ['app-server', 'proxy'], ['mcp'], ['exec', '--ignore-user-config'], ['--new-unknown-flag']):
+            with self.subTest(arguments=arguments), self.assertRaisesRegex(BUILDER.BuildError, 'unmeasured'):
+                BUILDER.session_arguments(['codex', *arguments])
+
+    def test_final_effective_config_requires_roles_and_preserves_non_null_settings(self):
+        generated = self.snapshot()
+        expected = tomllib.loads(generated['registration.toml'].decode())['agents']
+        baseline = {'agents': None, 'sandbox_mode': 'read-only'}
+        final = {'agents': {'max_depth': None, **expected}, 'sandbox_mode': 'read-only'}
+        with patch.object(BUILDER, 'read_native_config', side_effect=[baseline, final]):
+            command = BUILDER.inspect_session_roles(['codex', 'exec'], generated)
+            self.assertEqual(command[1:3], ['-c', 'agents.tadeumendonca_reader.config_file=' + json.dumps(str(self.output.resolve() / 'profiles/tadeumendonca_reader.toml'))])
+        for final in ({'agents': {'max_depth': 2, **expected}, 'sandbox_mode': 'read-only'}, {'agents': {}, 'sandbox_mode': 'read-only'}, {'agents': expected, 'sandbox_mode': 'workspace-write'}):
+            with self.subTest(final=final), patch.object(BUILDER, 'read_native_config', side_effect=[{'agents': None, 'sandbox_mode': 'read-only'}, final]), self.assertRaisesRegex(BUILDER.BuildError, 'missing or changed|unrelated effective'):
+                BUILDER.inspect_session_roles(['codex', 'exec'], generated)
 
     def test_cli_check_does_not_create_missing_snapshot(self):
         status = BUILDER.main(["--source", str(self.source), "--output", str(self.output), "--check"])

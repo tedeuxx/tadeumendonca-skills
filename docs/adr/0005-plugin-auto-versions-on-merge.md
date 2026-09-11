@@ -907,6 +907,13 @@ preserves original bytes and unrelated parsed values, refuses namespace collisio
 private backup before replacing its checksummed managed block. Neither route changes trust or enables
 hooks. The tracked library operating entry stays portable and carries no generated machine paths.
 
+Native CLI argument composition is part of activation. A populated `exec` or `app-server` override
+bucket replaces the root bucket on the measured builds. The launcher therefore preserves the caller's
+bucket selection and argument order, verifies final role presence, and compares unrelated effective
+configuration before and after registration. Moving every flag into one bucket would change the
+caller's native semantics. The runtime probe can run through the launcher with its own direct role
+flags removed, so a working direct profile no longer masks a broken launch path.
+
 ### Alternatives and costs
 
 Manually loading the brief and its skills remains possible but cannot establish native profile

@@ -46,19 +46,34 @@ python3 /path/to/library/scripts/codex-agent-build.py --source /path/to/library 
 ```
 
 The launcher checks the snapshot and reads the native effective configuration through `config/read`
-before supplying explicit native session configuration flags. A conflicting role in its namespace
-causes refusal; an identical existing registration is allowed. It keeps
+before and after adding explicit native registration. It requires every generated role to be present
+and every unrelated effective value to remain equal. Native optional agent defaults materialized as
+`null` are treated as unset. A conflicting role in its namespace causes refusal; an identical existing
+registration is allowed. It keeps
 the caller's working directory and arguments. It writes no user or project configuration, changes no
 MCP settings or permission settings, and adds no hook trust. The same command works with an explicitly
 selected installed plugin root as `--source` and the builder shipped in that version. The source may
 be outside the consuming repository. Existing profiles in other namespaces are unaffected;
 `tadeumendonca_` is this adapter's reserved role namespace. Caller flags attempting to overwrite that
-namespace are refused. Session registration is limited to the session launched this way. `-c`/`--config`
-and `-C`/`--cd` are included in the effective-configuration inspection. Named configuration selection
-through `-p`/`--profile` is refused by the launcher because that selection is not inspected here;
-use explicit project registration for those sessions. A failed native inspection launches no session.
-Whole-table overrides such as `-c 'agents={}'` are refused: Codex applies caller flags after generated
-flags, so a table replacement would erase the newly registered personas. Individual settings such as
+namespace are refused when they are effective configuration assignments; a prompt discussing a setting
+is still a prompt. Session registration is limited to the session launched this way. `-c`/`--config`
+and `-C`/`--cd` are included in the effective-configuration inspection.
+
+The measured native CLI uses a nonempty `exec` or `app-server` configuration bucket **instead of** the
+root bucket. The launcher leaves caller arguments in their original order and inserts registrations
+into the bucket already selected by that rule, using the root bucket when the subcommand has no
+overrides. It neither merges buckets nor activates a previously empty subcommand bucket. Thus it
+preserves the caller's native precedence, including root settings that native Codex itself ignores when
+the caller already supplied subcommand overrides. The inspection follows that same selected bucket.
+
+The supported grammar is interactive Codex, `exec`/`e`, and `app-server` without nested commands, with
+the ordinary scalar model/sandbox/output/directory options recognized by the builder. Unmeasured
+options and nested commands fail explicitly. Named configuration selection (`-p`/`--profile`),
+configuration-loading variants such as `--ignore-user-config`, feature toggles, remote connection
+options and image-list arguments are not interpreted by this launcher; use explicit project
+registration for those forms. A failed native inspection launches no session.
+Whole-table overrides such as `-c 'agents={}'` in the selected bucket are refused: a caller's later
+table replacement would erase the newly registered personas. Individual settings such as
 `-c 'agents.max_depth=2'` remain supported, subject to effective role collision checks.
 
 Select a native role through the actual runtime selector, for example
@@ -96,14 +111,16 @@ output drift, command-backed inputs and configuration preservation:
 python3 scripts/codex-agent-build.test.py
 ```
 
-The opt-in transport probe uses an installed executable and a generated profile. Its fresh case
+The opt-in transport probe uses an installed executable and a generated profile. Exercise the real
+launcher with the paired source/output arguments below; this removes the probe's own role overrides
+so they cannot hide a broken registration path. Its fresh case
 requires the full profile and no parent history; its unknown-role case requires a native rejection
 and no child; its inherited-history control requires the parent marker to reach the child:
 
 ```sh
-python3 scripts/codex-agent-probe.py codex /path/to/local-storage/personas-v1/profiles/tadeumendonca_quality_assurance.toml fresh --cwd /path/to/project
-python3 scripts/codex-agent-probe.py codex /path/to/local-storage/personas-v1/profiles/tadeumendonca_quality_assurance.toml unknown --cwd /path/to/project
-python3 scripts/codex-agent-probe.py codex /path/to/local-storage/personas-v1/profiles/tadeumendonca_quality_assurance.toml inherit --cwd /path/to/project
+python3 scripts/codex-agent-probe.py codex /path/to/local-storage/personas-v1/profiles/tadeumendonca_quality_assurance.toml fresh --cwd /path/to/project --launcher-source /path/to/library --launcher-output /path/to/local-storage/personas-v1
+python3 scripts/codex-agent-probe.py codex /path/to/local-storage/personas-v1/profiles/tadeumendonca_quality_assurance.toml unknown --cwd /path/to/project --launcher-source /path/to/library --launcher-output /path/to/local-storage/personas-v1
+python3 scripts/codex-agent-probe.py codex /path/to/local-storage/personas-v1/profiles/tadeumendonca_quality_assurance.toml inherit --cwd /path/to/project --launcher-source /path/to/library --launcher-output /path/to/local-storage/personas-v1
 ```
 
 Repeat with the other installed executable and every generated profile for a full transport matrix.
@@ -111,6 +128,8 @@ Each run prints its temporary artifact directory and returns nonzero when its ex
 The inherited-history control creates a durable diagnostic thread because the measured builds cannot
 fork an ephemeral parent's history. Other cases are ephemeral. Request captures remain local; they
 can include the project's loaded instructions and should be reviewed before sharing.
+Omitting the launcher arguments tests direct native registration only; that mode cannot verify the
+launcher's argument composition. The summary records the actual executed wrapper command when used.
 
 Native integration measurements are distinct from these fixtures. A local Responses stand-in can
 capture the actual child model request and check that the complete profile reaches its input, and
