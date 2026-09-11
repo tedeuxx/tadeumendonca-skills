@@ -263,17 +263,30 @@ if [ -z "$second" ]; then ok 'second call on the SAME state is silent'; else bad
 teardown
 
 echo '--- DEBOUNCE bounds cost too: the repeat call skips the heavier pr-view read ---'
+# REWRITTEN 2026-09-11 (#385 round 2), and this assertion is the one that had to CHANGE rather than
+# be preserved — so it is worth saying exactly what moved and why.
+#
+# It used to drive a fixture with an outstanding verdict and NO harness marker, and assert ONE
+# `pr view` across two turns. That held while a single key covered every signal. Per-signal keys
+# make it false for that fixture BY DESIGN: only the verdict key gets armed, so the second turn has
+# a signal it has never evaluated and must fetch to evaluate it.
+#
+# THE PROPERTY IS NOT DROPPED, IT IS SPLIT IN TWO, and the second half is new. The strong form —
+# nothing more to say means nothing more to fetch — is asserted below on a fixture where BOTH
+# signals have fired. The priced cost is asserted immediately after, as a cost, so that collapsing
+# the keys back into one (which is what caused the #294 regression) turns it RED instead of reading
+# as an optimisation.
 setup
 checkout_branch feat/x
 open_pr 150 abc123
-view_with_verdict abc123 REQUEST-CHANGES
-run_hook >/dev/null   # arms the debounce
-run_hook >/dev/null   # should short-circuit before the second gh call
+view_gate_and_harness abc123 REQUEST-CHANGES oldbbb   # BOTH signals fire on turn 1
+run_hook >/dev/null   # arms both keys
+run_hook >/dev/null   # both armed -> must short-circuit before the second gh call
 view_calls="$(call_count 'pr view')"
 if [ "$view_calls" = "1" ]; then
-  ok 'the debounced repeat makes no additional "pr view" call'
+  ok 'with BOTH signals reported, the debounced repeat makes no additional "pr view" call'
 else
-  bad 'the debounced repeat makes no additional "pr view" call' "pr view calls: $view_calls"
+  bad 'with BOTH signals reported, the debounced repeat makes no additional "pr view" call' "pr view calls: $view_calls"
 fi
 teardown
 
@@ -503,6 +516,98 @@ case "$out" in
   *'STALE agents-lead verdict marker'*) ok 'a moved head re-arms the stale-marker notice' ;;
   *) bad 'a moved head re-arms the stale-marker notice' "got: ${out:-<silence>}" ;;
 esac
+teardown
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# #385 ROUND 2 — THE REGRESSION THE GATE FOUND, AND THE ARMS THAT WOULD HAVE CAUGHT IT
+#
+# The first delivery keyed the debounce on (session, PR, head) with no record of WHICH signal
+# fired, so a turn that reported only a stale marker consumed the slot and the NEXT turn's
+# outstanding REQUEST-CHANGES went silent — a regression in #294, which is the loop's ONLY
+# observation of an outstanding verdict.
+#
+# THE SUITE PASSED 37/0 WITH THAT DEFECT PRESENT, and the reason generalises: every debounce case
+# above drives two turns in the SAME state, so it can only ever observe "silence repeated". A
+# suppression bug is invisible to a same-state repeat by construction — it needs two turns whose
+# signals DIFFER. That is the shape below, in both orders.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+echo '--- #385 R2: a stale-marker turn must NOT silence a verdict landing later at the same head ---'
+setup
+checkout_branch loop/x
+open_pr 385 headaaa
+view_gate_and_harness headaaa APPROVE-AND-MERGE oldbbb   # turn 1: clearance + stale marker
+first="$(run_hook)"
+view_gate_and_harness headaaa REQUEST-CHANGES oldbbb     # turn 2: same head, now outstanding
+second="$(run_hook)"
+case "$first" in
+  *'STALE agents-lead verdict marker'*)
+    case "$second" in
+      *'outstanding quality-assurance verdict'*)
+        ok 'a stale-marker turn does not consume the verdict signal debounce (#294 preserved)' ;;
+      *) bad 'a stale-marker turn does not consume the verdict signal debounce (#294 preserved)' \
+             "turn 2 said: ${second:-<SILENCE — the outstanding verdict was suppressed>}" ;;
+    esac ;;
+  *) bad 'a stale-marker turn does not consume the verdict signal debounce (#294 preserved)' \
+         "turn 1 did not fire the stale-marker notice: ${first:-<silence>}" ;;
+esac
+teardown
+
+echo '--- #385 R2: and the mirror — a verdict turn must not silence a marker going stale ---'
+# The mirror matters less (an advisory notice rather than #294) and is asserted anyway, because a
+# one-directional fix is how the same defect comes back wearing the other hat.
+setup
+checkout_branch loop/x
+open_pr 385 headaaa
+view_gate_and_harness headaaa REQUEST-CHANGES headaaa    # turn 1: verdict fires, marker is FRESH
+first="$(run_hook)"
+view_gate_and_harness headaaa REQUEST-CHANGES oldbbb     # turn 2: same head, marker now stale
+second="$(run_hook)"
+case "$first" in
+  *'outstanding quality-assurance verdict'*)
+    case "$second" in
+      *'STALE agents-lead verdict marker'*)
+        ok 'a verdict turn does not consume the stale-marker signal debounce' ;;
+      *) bad 'a verdict turn does not consume the stale-marker signal debounce' \
+             "turn 2 said: ${second:-<silence>}" ;;
+    esac ;;
+  *) bad 'a verdict turn does not consume the stale-marker signal debounce' \
+         "turn 1 did not fire the verdict notice: ${first:-<silence>}" ;;
+esac
+teardown
+
+echo '--- #385 R2: each signal is still debounced against ITSELF (the fix must not remove that) ---'
+setup
+checkout_branch loop/x
+open_pr 385 headaaa
+view_gate_and_harness headaaa REQUEST-CHANGES oldbbb
+run_hook >/dev/null                                       # both fire, both keys armed
+again="$(run_hook)"
+if [ -z "$again" ]; then
+  ok 'both signals stay debounced on a repeat turn at the same head'
+else
+  bad 'both signals stay debounced on a repeat turn at the same head' "got: $again"
+fi
+teardown
+
+echo '--- #385 R2: the PRICE of per-signal keys, asserted AS a price so it cannot be undone quietly ---'
+# One signal fires, the other never does, so only one key is armed and the repeat turn MUST fetch
+# again to evaluate the unreported one. This is a real cost and it is asserted deliberately:
+# collapsing the two keys back into one would make this read 1 and turn this arm RED, which is
+# exactly the alarm the first delivery did not have.
+setup
+checkout_branch feat/x
+open_pr 150 abc123
+view_with_verdict abc123 REQUEST-CHANGES                  # verdict only; no harness marker ever
+run_hook >/dev/null
+run_hook >/dev/null
+view_calls="$(call_count 'pr view')"
+if [ "$view_calls" = "2" ]; then
+  ok 'with only ONE signal reported, the repeat turn pays a second `pr view` — the priced cost of per-signal keys'
+else
+  bad 'with only ONE signal reported, the repeat turn pays a second `pr view` — the priced cost of per-signal keys' \
+      "pr view calls: $view_calls (1 means the keys were merged again, which reintroduces the #294 regression)"
+fi
 teardown
 
 echo

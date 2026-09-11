@@ -118,6 +118,20 @@
 # `session_id` because the debounce is explicitly PER SESSION (a second session picking up the
 # same stalled PR should still be told once).
 #
+# SINCE #385 THE KEY ALSO NAMES THE SIGNAL — there are two marker files per (session, PR, head),
+# one per signal, and the early exit above fires only when both exist. See the block at that exit
+# for what the single undifferentiated key cost and why the cheaper property it bought was not
+# worth keeping.
+#
+# WHAT THAT COSTS, MEASURED RATHER THAN WAVED AT. The early exit now needs BOTH keys, so a PR on
+# which only one signal ever fires pays the second `gh pr view` on every turn instead of once. The
+# case is narrower than it sounds: origin/main ALREADY paid that call every turn whenever the
+# verdict arm did not fire, because a non-outstanding verdict never armed anything either. The only
+# genuinely new cost is a PR carrying an outstanding verdict AND no stale marker — one extra
+# `pr view` per turn end, against a signal this loop's own #294 exists to keep loud. Priced and
+# accepted; the suite asserts the call count in both directions so a future change cannot quietly
+# make it worse.
+#
 # ── COST BOUNDING — local-only precondition before any network call ────────────────────────────
 # `git branch --show-current` is checked FIRST, with no `gh` call at all when there is no current
 # branch (detached HEAD, not a repo, or an unreadable `cwd`) — the network cost is paid only when
@@ -193,8 +207,36 @@ head_sha="$(printf '%s' "$pr_json" | jq -r '.[0].headRefOid // empty' 2>/dev/nul
 [ -z "$head_sha" ] && exit 0
 
 # ── debounce, checked BEFORE the heavier second call ────────────────────────────────────────────
+# ONE KEY PER SIGNAL, NOT ONE PER (session, PR, head) — corrected 2026-09-11 (#385 round 2) after
+# the gate proved the single key was a REGRESSION IN #294, which is the defect this file exists to
+# prevent, produced by this file.
+#
+# WHAT WENT WRONG, because it is the more transferable half. Until the stale-marker arm landed,
+# only ONE signal could arm this file, so "already notified at this (session, PR, head)" and
+# "already notified ABOUT THIS THING" were the same statement and the key could be silent about
+# which. Adding a second signal broke that identity WITHOUT CHANGING THE KEY, so a turn that fired
+# only the stale-marker notice consumed the slot and the NEXT turn's outstanding REQUEST-CHANGES
+# was suppressed. Reproduced by toggle against an origin/main baseline on an unchanged fixture:
+#
+#   TURN 1 (clearance + STALE marker) -> stale-marker notice fires, debounce ARMED
+#   TURN 2 (same session/PR/head, REQUEST-CHANGES now outstanding) -> SILENT   <- the regression
+#   CONTROL (same state, fresh session id) -> reported, so the fixture IS reportable
+#   BASELINE (the same probe against origin/main) -> TURN 2 reported
+#
+# THE SUITE PASSED 37/0 WITH THAT DEFECT PRESENT. A debounce is a suppression mechanism, so its
+# failure mode is SILENCE — nothing to assert against unless a test drives two turns whose signals
+# DIFFER. The regression arms at the end of this file's suite do exactly that, and they are the
+# arms that would have caught it.
+#
+# THE GENERAL RULE, worth more than this fix: a debounce key must name WHAT was reported, not only
+# WHEN. A key that is silent about the signal is correct exactly while there is one signal, and it
+# fails the moment a second one is added — silently, and in the direction of suppressing the older
+# and more important one.
 marker_file="$debounce_dir/${session_id:-nosession}-${pr_number}-${head_sha}"
-[ -f "$marker_file" ] && exit 0
+marker_file_harness="${marker_file}-harness"
+# Exit early ONLY when BOTH signals are already reported for this key. If either is still
+# unreported, the heavier call must run — there is something this turn might have to say.
+[ -f "$marker_file" ] && [ -f "$marker_file_harness" ] && exit 0
 
 # ── second network call: read the gatekeeper-verdict marker at the current head ────────────────
 # Same extraction as session-wip.sh's verdict_suffix(): last match wins (a re-review posts a
@@ -273,8 +315,15 @@ harness_stale="$(printf '%s' "$pr_view" | jq -r '
            else "stale" end
     end' 2>/dev/null || true)"
 
-# Nothing to say -> silent, and the debounce is NOT armed (unchanged behaviour: only a firing run
-# arms it, so a verdict landing later at this same head is still reported).
+# ── per-signal suppression, applied AFTER both signals are computed ────────────────────────────
+# This is where the debounce actually takes effect now. Reaching here means at least one signal was
+# unreported, so the payload was fetched; each signal is then dropped individually if its OWN key is
+# already armed. A signal can never suppress the other one.
+[ -f "$marker_file" ]         && verdict_due=""
+[ -f "$marker_file_harness" ] && harness_stale=""
+
+# Nothing to say -> silent, and NEITHER key is armed (unchanged behaviour: only a firing run arms,
+# so a verdict landing later at this same head is still reported).
 [ -z "$verdict_due" ] && [ -z "$harness_stale" ] && exit 0
 
 # ── emit the notice, and arm the debounce ───────────────────────────────────────────────────────
@@ -328,7 +377,11 @@ And it cannot bound the merge: it runs at the END of a turn, so a turn that disp
 and merged is already over."
 fi
 
-printf '%s' "$context" > "$marker_file" 2>/dev/null || true
+# Arm ONLY the keys whose signals actually fired this turn. Writing both here would recreate the
+# defect in the opposite direction: a turn that reported a stale marker would mark the verdict
+# signal as "already reported" without ever having reported it.
+[ -n "$verdict_due" ]   && { printf '%s' "$context" > "$marker_file"         2>/dev/null || true; }
+[ -n "$harness_stale" ] && { printf '%s' "$context" > "$marker_file_harness" 2>/dev/null || true; }
 
 jq -n --arg c "$context" '{
   hookSpecificOutput: {
