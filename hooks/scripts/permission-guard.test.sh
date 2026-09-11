@@ -329,6 +329,39 @@ check_from DENY  "$TMAIN" "a tar -C after the push is not a target" "git push &&
 check_from ALLOW "$TFEAT" "a tar -C before the push is not a target" "tar -C $TMAIN -xf a.tar && git push"
 check_from ALLOW "$TFEAT" "a git -C on a NON-push is not a target"   "git -C $TMAIN log && git push"
 
+echo "--- rule 7 (#446): env -C chdirs before exec — the gate's blocking finding on PR #448 ---"
+# THIS IS A REGRESSION ARM, NOT A COVERAGE ARM, AND THE DIFFERENCE IS THE WHOLE REASON IT EXISTS.
+# The PINNED extractor caught `env -C <trunk> git push` BY ACCIDENT — it took the last `-C` anywhere
+# in the string, whatever command owned it. Scoping target flags to the push invocation is correct
+# and is exactly what removed the accident, so this shape went deny -> ABSTAIN across the first
+# commit of this slice: a real trunk push losing a deny it used to get, which that commit's own
+# record asserted in bold could not happen.
+#
+# BEHAVIOURAL, NOT LEXICAL: `env -C "$TMAIN" git symbolic-ref --short HEAD` returns `main` from a
+# feature checkout, so these payloads are trunk pushes rather than strings that look like one.
+check_from DENY "$TFEAT" "env -C names a trunk checkout"        "env -C $TMAIN git push"
+# THIS ARM WAS `check_from DENY "$TMAIN" … "env -C $TMAIN git push"` AND COULD NOT FAIL. From a trunk
+# cwd that payload denies whether or not `env` is in the alternation — with `env` absent it falls to
+# `dir="."`, which IS the trunk, so it denies for the wrong reason and the arm stays green. Caught by
+# mutation E1 reddening four of five env arms and leaving that one alone. Re-pointed at a FEATURE
+# target from a TRUNK cwd and asserted on the reason, which is the form that discriminates: without
+# `env` the verdict is still DENY, but the reason becomes "lands on the trunk" and this goes red.
+check_from_reason DENY "$TMAIN" "env -C, judged from a trunk cwd"  "could not resolve which repository" "env -C $TFEAT git push"
+# `env` is a WHOLE TOKEN. Nothing asserted that until mutation E4 — matching it as a bare substring
+# was invisible to the whole suite — so a command merely containing the letters must stay readable.
+check_from ALLOW "$TFEAT" "envsubst is not env"                 "envsubst < t.tpl && git push"
+check_from DENY  "$TMAIN" "…and still resolves the cwd normally" "envsubst < t.tpl && git push"
+check_from DENY "$TFEAT" "env's long spelling --chdir="         "env --chdir=$TMAIN git push"
+check_from DENY "$TFEAT" "a wrapper still carrying the token"   "nice env -C $TMAIN git push"
+check_from_reason DENY "$TFEAT" "env is unresolvable, not trunk" "could not resolve which repository" "env -C $TMAIN git push"
+# THE CLASS IS OPEN AND THESE ARMS SAY SO OUT LOUD. Adding `env` closes the regression and three
+# spellings around it; it does NOT close a program that chdirs under another name. These two are
+# asserted ALLOW deliberately — they are a named residual pinned as a fact, so that a later slice
+# that closes them turns this red and has to come here and say so, rather than the record quietly
+# claiming a bound it never had. The PINNED guard missed both too, so neither is a regression.
+check_from ALLOW "$TFEAT" "RESIDUAL: systemd-run --working-directory" "systemd-run --working-directory=$TMAIN git push"
+check_from ALLOW "$TFEAT" "RESIDUAL: chroot before the push"          "chroot / git push"
+
 echo "--- rule 7 (#446): the ordinary shapes must survive the new deny ---"
 # The deny is only worth its cost if it lands on unreadable commands and not on the daily ones. A
 # chain with no directory move is READABLE — the push inherits the runner's cwd — so the commonest

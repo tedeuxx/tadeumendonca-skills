@@ -1633,12 +1633,40 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
     fi
   else
     # No target flag on the invocation, so the target is the working directory at the moment the
-    # push runs. That is knowable only if nothing in the command can move it. This list is the
-    # SHELL's own directory-changing surface, not a list of git spellings — bounded by the language
-    # rather than by anyone's imagination — and anything it misses lands back on today's behaviour
-    # rather than on something worse.
-    if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_.-])(cd|pushd|popd|chdir)([[:space:]]|$)|\(|GIT_DIR=|GIT_WORK_TREE=|GIT_CEILING_DIRECTORIES='; then
-      target_unresolvable="the command can move the working directory before the push runs (a 'cd'/'pushd'/'popd', a subshell, or a GIT_DIR/GIT_WORK_TREE environment assignment), so which repository it lands in is not readable from the command string"
+    # push runs. That is knowable only if nothing in the command can move it.
+    #
+    # ── THIS BRANCH IS AN ENUMERATION AND IT IS NOT BOUNDED. SAYING SO IS THE POINT. ──────────────
+    # The first version of this comment claimed the list was "the SHELL's own directory-changing
+    # surface, bounded by the language rather than by anyone's imagination", and that ANY miss
+    # "lands back on today's behaviour rather than on something worse". **Both halves were false and
+    # the gate falsified them at review**, with `env -C <trunk-checkout> git push`:
+    #
+    #   · FALSE that it is bounded — `env -C` is an EXTERNAL PROGRAM that chdirs before it execs, and
+    #     so are `chroot`, `systemd-run --working-directory=`, a shell function and a script file.
+    #     Any program may do this. The language does not bound the set; nothing does.
+    #   · FALSE that a miss is never worse — and this is the deeper error. The PINNED extractor caught
+    #     `env -C` BY ACCIDENT, because it took the last `-C` anywhere in the string whatever command
+    #     owned it. Scoping target flags to the push invocation is CORRECT and it is exactly what
+    #     removed the accident. So a miss here is not neutral: it can be a REGRESSION against the very
+    #     defect this slice fixes. Measured, cwd on a feature checkout, `env -C <main-repo> git push`:
+    #     bd8dfa9e -> deny, 75b0c726 -> ABSTAIN. `env` is added below because of that regression.
+    #
+    # WHAT ADDING `env` CLOSES AND WHAT IT DOES NOT. It closes the regression, `env`'s long spelling
+    # (`env --chdir=<dir>`, which the pinned guard never caught either), and the wrapper forms that
+    # still contain the token (`nice env -C …`, `setarch … env -C …`) — all four measured. It does
+    # NOT close `chroot`, `systemd-run --working-directory=`, a shell alias or function, a script file
+    # invoked by path, or the next program nobody has thought of. **Adding one token to an open
+    # enumeration and calling it complete would repeat this defect inside its own fix**, so the class
+    # is recorded here as open rather than as handled.
+    #
+    # WHY NOT A POSITIVE RECOGNIZER HERE, since that is what the flag branch above uses. The only one
+    # available is "a single simple invocation, no chaining at all", and it would deny
+    # `git add -A && git commit -m x && git push` — the commonest multi-step shape in this loop, on a
+    # command that moves no directory. That trade is worse than the residual. And note what a shared
+    # target/subject resolver would NOT have bought: this is not an incomplete git-flag alternation,
+    # it is that *which directory will this command run in* is unanswerable from a command string.
+    if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_.-])(cd|pushd|popd|chdir|env)([[:space:]]|$)|\(|GIT_DIR=|GIT_WORK_TREE=|GIT_CEILING_DIRECTORIES='; then
+      target_unresolvable="the command can move the working directory before the push runs (a 'cd'/'pushd'/'popd', an 'env' that chdirs, a subshell, or a GIT_DIR/GIT_WORK_TREE environment assignment), so which repository it lands in is not readable from the command string"
     else
       dir="."
     fi
