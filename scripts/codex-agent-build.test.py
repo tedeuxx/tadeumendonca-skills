@@ -169,6 +169,17 @@ class Profiles(unittest.TestCase):
         result = subprocess.run(command + ["--profile=other"], cwd=consumer, capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("named configuration profiles", result.stderr)
+        for override in (["-c", "agents={}"], ["--config", 'agents = {unrelated={description="keep"}}'], ["--config=agents={}"], ["-cagents={}"], ["-c", " agents = {}"]):
+            with self.subTest(override=override):
+                result = subprocess.run(command + override, cwd=consumer, capture_output=True, text=True)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("whole agents table replacement", result.stderr)
+                self.assertEqual(result.stdout, "", "the fake native session must never launch")
+                self.assertEqual(config.read_bytes(), original)
+        # A leaf setting does not replace the table; keep ordinary settings
+        # usable rather than refusing every argument beginning with agents.
+        result = subprocess.run(command + ["--config=agents.max_depth=2"], cwd=consumer, capture_output=True, text=True, check=True)
+        self.assertIn("--config=agents.max_depth=2", json.loads(result.stdout))
 
     def test_cli_check_does_not_create_missing_snapshot(self):
         status = BUILDER.main(["--source", str(self.source), "--output", str(self.output), "--check"])

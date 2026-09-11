@@ -338,6 +338,12 @@ def inspect_session_roles(command, generated):
             cwd = Path(argument.split("=", 1)[1]).resolve()
         elif argument.startswith("-C") and not argument.startswith("--"):
             cwd = Path(argument[2:]).resolve()
+    for override in overrides[1::2]:
+        # Codex applies CLI overrides in order. Its whole-table assignment
+        # replaces, rather than merges, the previously generated role entries.
+        # Inspecting the caller's settings alone cannot observe that deletion.
+        if override.partition("=")[0].strip() == "agents":
+            raise BuildError("whole agents table replacement would erase generated personas; use individual agents.<setting> overrides")
     expected = tomllib.loads(generated["registration.toml"].decode())["agents"]
     process = subprocess.Popen([command[0], "app-server", "--stdio", *overrides], cwd=cwd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
     messages = queue.Queue()

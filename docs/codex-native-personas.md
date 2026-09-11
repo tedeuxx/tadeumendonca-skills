@@ -57,6 +57,9 @@ namespace are refused. Session registration is limited to the session launched t
 and `-C`/`--cd` are included in the effective-configuration inspection. Named configuration selection
 through `-p`/`--profile` is refused by the launcher because that selection is not inspected here;
 use explicit project registration for those sessions. A failed native inspection launches no session.
+Whole-table overrides such as `-c 'agents={}'` are refused: Codex applies caller flags after generated
+flags, so a table replacement would erase the newly registered personas. Individual settings such as
+`-c 'agents.max_depth=2'` remain supported, subject to effective role collision checks.
 
 Select a native role through the actual runtime selector, for example
 `agent_type="tadeumendonca_quality_assurance"`. A task title or a generic child asked to impersonate
