@@ -1057,19 +1057,53 @@ formed**, which is the clearest sign it is a separate item.
 
 #### Two named residuals — neither is fixed here, and both touch other people's floors
 
-**1 · The `agents-lead` verdict marker is a PRESENCE check, not a HEAD check.** `permission-guard.sh`
+~~**1 · The `agents-lead` verdict marker is a PRESENCE check, not a HEAD check.** `permission-guard.sh`
 rule 7c head-scopes the **gatekeeper's** verdict — it fetches `headRefOid` and the comment list in one
 call, and since #341 an unreadable head **denies**. Nothing does the equivalent for the harness marker:
 `grep -rln "harness-lead-verdict"` returns two briefs, two records, the string-identity arm in
 `inventory-counts.test.sh`, a **counter** in `dispatch-metrics-stop.sh`, and a comment in
 `zombie-loop-detect.sh` stating in its own words that it reads only `gatekeeper-verdict`. Hold 2 in
-`agents/quality-assurance.md` reads *"a comment on the PR before you may merge it"* — **presence.**
+`agents/quality-assurance.md` reads *"a comment on the PR before you may merge it"* — **presence.**~~
 
-**On a per-item slice that asymmetry costs at most one slice's diff, and re-posting on a moved head
+~~**On a per-item slice that asymmetry costs at most one slice's diff, and re-posting on a moved head
 covers it in practice. On a branch that lives a whole iteration it does not:** a marker posted at the
 first commit satisfies hold 2 for everything that lands after it. **That is a real consequence of this
 model, and it is recorded rather than repaired** — the repair is an added condition inside rule 7c,
-which is the floor, and the floor is its own change.
+which is the floor, and the floor is its own change.~~
+
+**STRUCK AND REPAIRED 2026-09-11 (#385), and the strike lands HERE FIRST because this file is loaded
+on every dispatch** — a persona that read *"presence check"* would believe hold 2 still clears on any
+marker. **Hold 2 is HEAD-SCOPED now:** `agents/quality-assurance.md` requires a marker whose `commit:`
+line names the `headRefOid` the gate read for its own verdict.
+
+**The repair is NOT the one this paragraph predicted, and the difference is the finding.** It said the
+repair was *"an added condition inside rule 7c, which is the floor"*. **It is not in the floor, and a
+floor rule was rejected on a measurement rather than deferred on cost:** hold 2's trigger is a path
+predicate over the diff, so a `PreToolUse` deny would have to read the PR's file list to know whether
+the hold applies — and `gh pr view --json files` pages at 100, so a large harness diff classifies as
+non-harness and the rule **fails open**, inert exactly where it is most needed. A control that reads as
+enforcement and abstains on the biggest diffs is the shape this loop exists to catch.
+
+**What the repair actually is, in two layers, neither of which is a bound on the merge:**
+
+- **The rule** is in the gate's own brief, held by the gate, using a payload ADR-0006 already makes it
+  fetch — zero new network calls and no classification, because the gate reads the diff anyway.
+- **The observation** is `hooks/scripts/zombie-loop-detect.sh`, registered on **`Stop`**
+  (`hooks/hooks.json`), which reports a PR carrying harness markers of which **none** names the current
+  head. It needs no classification either, and that is why it is buildable where a deny is not: it
+  fires only when a marker is PRESENT and stale, so a diff carrying no marker is invisible to it and no
+  misclassification is possible. **It is detection, one turn late**, and it cannot bound a merge — a
+  turn that dispatched the gate and merged is over before it runs.
+
+**The measurement that made it worth doing, taken at head rather than reasoned from the rule:** PR #454
+carried **three** harness markers and **one** named the current head, so two of three cleared hold 2
+while attesting a diff the PR no longer pointed at. The calibration is the gate's own marker on the
+same PR under the same predicate — also 3 and 1 — which is what shows the asymmetry is in the *reading*
+and not in how the two personas post.
+
+**By this loop's own test — *would something stop me, or only my memory?* — hold 2 is still memory.**
+Nothing denies a merge on a stale marker. What changed is that the loop now has one observation of the
+failure where it had none, and that the rule the gate follows says *at this head* instead of *at all*.
 
 **2 · The active iteration is derived per repository and nothing checks the two derivations agree.** The
 pool predicate takes `--repo` and returns a milestone **number**; the numbers differ (1 and 2), so the
@@ -1684,9 +1718,18 @@ action before ending the turn, or say plainly that there is none.
    autonomously on in-pattern implementation.
 2. **One thin vertical slice at a time**, end-to-end and reviewable. Keep it surgical; adjacent debt
    is **named, not refactored inline and not filed** — see *Review does not open work*.
-   **WIP=1 — one worktree, one in-flight branch, one open PR at a time, full stop, until formally
+   ~~**WIP=1 — one worktree, one in-flight branch, one open PR at a time, full stop, until formally
    reversed** (owner correction, 2026-08-13; see *WIP=1* below for the struck predecessor rule and
-   why). **Integrate `main` before requesting review** if `main` has moved.
+   why).~~ **REVERSED 2026-09-11 (#385) — this is the formal reversal that clause was waiting for**,
+   and the strike lands here because this is the operative sentence a builder reads on every dispatch.
+   **The bound is now `wip:` in `docs/loop-mode.md`, read from the record and never assumed** — it is
+   `2` at the time of writing, and a value read from a file is the point. **Development parallelises;
+   THE REVIEW GATE DOES NOT** — at most one merge request is in review at a time, whatever `wip` says
+   (owner ruling 1, stated in `CLAUDE.md`'s `loop-mode-contract` block, which is the surface that
+   reaches the orchestrator). **Isolation is a `git worktree` per slice**, which is what ruling 4
+   re-permits. **Nothing enforces any of it**: `wip-guard.sh` is deleted and `gh pr create` is
+   allowlisted in both settings layers, so an (N+1)th PR executes silently.
+   **Integrate `main` before requesting review** if `main` has moved.
 3. **Develop locally**, against whatever backing services the repo actually has — see `/devops`.
 4. **Validate locally**: run the repo's **functional regression** and self-verify the gates (lint,
    typecheck, coverage). Report with the real output, never a claim.
@@ -1805,7 +1848,20 @@ cite `wip-guard.sh`, this repository's own PRs and two dated incidents. So the p
 there once and the rule is stated here once, and neither file says *see the other one* for its own
 half.
 
-## WIP=1 — the struck exception, and why
+## WIP=1 — the struck exception, and why — ~~and the rule that replaced it~~ **REVERSED 2026-09-11 (#385)**
+
+**READ THIS BEFORE THE SECTION: WIP=1 NO LONGER HOLDS.** The bound is `wip:` in `docs/loop-mode.md`
+(`2` at the time of writing), development parallelises on `git worktree`, and **the review gate stays
+serial at any value** (ADR-0002's thirty-fourth amendment; owner rulings, 2026-09-10). **Everything
+below is kept because it is the record of how the rule got there and what it was protecting**, and two
+parts of it outlived the reversal and are still load-bearing:
+
+- **the failure class it caught** — two slices in ONE checkout, and an uncommitted probe left applied
+  to a shared tree — which is precisely what **a worktree per slice** now prevents by construction
+  rather than by discipline. **The reversal does not reopen it; it closes it a different way.**
+- **the finding that nothing ever enforced WIP=1** (*`wip-guard.sh` did NOT enforce WIP=1*, below).
+  That is why the reversal cost nothing to execute — there was no mechanism to dismantle — and it is
+  equally true of the new bound.
 
 `engineering-standards`' principle #3 used to read, and this project's own struck-not-deleted
 convention keeps the old text visible rather than erasing it:
@@ -1821,8 +1877,9 @@ owner corrected it on sight: *"nao temos intencionalidade de trabalhar assim por
 no intention of working that way for now"). The written rule and current intent disagreed, and intent
 wins.
 
-**State plainly, in its place: one worktree, one in-flight branch, one open PR at a time — full stop,
-until this is formally reversed.** The worktree mechanism itself — a separate checkout sharing the
+~~**State plainly, in its place: one worktree, one in-flight branch, one open PR at a time — full stop,
+until this is formally reversed.**~~ **THAT REVERSAL HAPPENED — 2026-09-11, #385, by the exact route
+this sentence named: an explicit owner decision, recorded the same way.** The worktree mechanism itself — a separate checkout sharing the
 same repo's history, removed after merge — is **not** struck; it remains the correct isolation tool
 for a single build. Only the license to run two of them at once is struck. A future session may
 reverse this by the same route: an explicit owner decision, recorded the same way.

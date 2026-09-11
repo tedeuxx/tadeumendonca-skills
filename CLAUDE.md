@@ -1196,22 +1196,274 @@ hard-coded it would bake the scaffolding into the configuration.
 `/definition-of-ready`'s named flagship failure occurring live between two individually well-formed
 Issues.
 
+**THE VALUE IS `wip: 2`, decided 2026-09-11 (#385) and recorded in `docs/loop-mode.md`, not here.** The
+contract owns the slot; the record owns the value, exactly as it owns `loop-mode:` — a value published
+in two places is two sources of truth for one fact. **The basis:** the only instrument that can size
+this is `hooks/scripts/dispatch-metrics-stop.sh`, and over the 40 most recent Issues — 23 of which carry
+records, 286 records, 198.16 h — the **builder is 2.5% of dispatch time** (`developer` 4.88 h;
+`agents-lead` 129.78 h, `quality-assurance` 59.67 h). Ruling 1 keeps the gate serial and the lens is
+serial too, so parallelism is applied to that 2.5% while the rest stays serial — **Amdahl's law with a
+measured fraction, and `wip: 2` is where it stops paying.** The command is in `docs/loop-mode.md`
+beside the figure, with the window-by-window table showing the conclusion does not depend on the
+corpus chosen.
+
+~~aggregated over the 33 records on `#406` the **builder is 11% of dispatch time**~~ — **struck
+2026-09-11: TRUE of that one Issue and published as though it were the basis.** `#406`'s own figure
+reproduces exactly and is kept, scoped to `#406`, in the record. The corpus-wide number is **lower**,
+so the correction moves the argument in its own favour — which is the only reason it is safe to make
+in the same slice that relies on it.
+
+~~**Bound that figure hard: it is TWO Issues, not a sample.** Re-derived across fourteen recent Issues,
+**two** carry dispatch records at all (`#406` with 33, `#437` with 3) and twelve carry none — and
+`#437`'s split has **zero** builder dispatches, so it lowers the builder's share rather than raising
+it. **Nothing can size `wip` from data until the instrument is written on most work**, and fixing that
+is not this slice.~~
+
+**STRUCK 2026-09-11 — FALSE, it shipped without the command that produced it, and its error ran in the
+direction that excused this slice's own scope.** The gate falsified it: over the fourteen most recent
+**closed** Issues, **nine** carry dispatch records, not two. Re-derived here rather than accepted —
+that window reproduces exactly (`#438` 8 · `#437` 3 · `#434` 3 · `#426` 1 · `#423` 1 · `#421` 5 ·
+`#419` 3 · `#416` 6 · `#413` 12 = **42 records**). **The instrument is written on most work, and the
+sentence claiming otherwise was propping up a convenient conclusion.**
+
+**The corrected basis, with the command that produced it, over the widest corpus that can be
+enumerated in one pass:**
+
+```
+python3 -c '
+import subprocess, json, re, collections
+R = "tedeuxx/tadeumendonca-skills"
+g = lambda *a: subprocess.check_output(["gh"] + list(a), text=True)
+nums = json.loads(g("issue","list","--repo",R,"--state","all","--limit","40",
+                    "--json","number","--jq","[.[].number]"))
+agg, cnt, carry = collections.Counter(), collections.Counter(), 0
+for n in nums:
+    bodies = json.loads(g("issue","view",str(n),"--repo",R,"--json","comments","--jq",
+        "[.comments[]|select(.body|contains(\"dispatch-metrics:\"))|.body]"))
+    if bodies: carry += 1
+    for b in bodies:
+        for a, d in zip(re.findall(r"agent_type:\s*([^\n]+)", b),
+                        re.findall(r"duration_seconds:\s*([0-9.]+)", b)):
+            k = a.strip().strip("`"); agg[k] += float(d); cnt[k] += 1
+t = sum(agg.values())
+print("issues=%d carrying=%d records=%d total=%.2fh" % (len(nums), carry, sum(cnt.values()), t/3600))
+for k in sorted(agg, key=lambda x: -agg[x]):
+    print("  %-40s n=%-4d %7.2fh %5.1f%%" % (k, cnt[k], agg[k]/3600, 100*agg[k]/t))
+'
+# issues=40 carrying=23 records=286 total=198.16h
+#   agents-lead        n=154  129.78h  65.5%
+#   quality-assurance  n=84    59.67h  30.1%
+#   developer          n=18     4.88h   2.5%   <- the only share parallel DEVELOPMENT touches
+#   product-lead       n=20     2.95h   1.5%
+#   tech-lead          n=6      0.82h   0.4%
+```
+
+**The builder is 2.5% of dispatch time over that corpus** — not 11.07%, and **lower**, which is why
+the conclusion survives its own correction: parallelising the builder pays *less* than the first
+delivery claimed, so **`wip: 2` is conservative rather than aggressive.**
+
+**The conclusion does not depend on the window, and that is worth more than any single figure.** Every
+corpus that can be constructed here puts the builder at or below the original 11.07%:
+
+| corpus | issues carrying records | records | builder share |
+|---|---|---|---|
+| `#406` alone | 1 | 33 | **11.07%** |
+| 14 most recent **all-state** | 7 | 24 | **0.0%** |
+| 14 most recent **closed** (the gate's window) | 9 | 42 | **4.4%** |
+| 40 most recent **all-state** | 23 | 286 | **2.5%** |
+
+**One disagreement recorded rather than absorbed.** The gate's finding is correct on the half that
+blocks — *"nine of fourteen, not two"* — and I reproduce that exactly. Its **replacement aggregate does
+not reproduce**: it published *"across all nine … 89 records, 30.48 h … 9.6%"*, while the nine Issues
+it itself lists sum to **42** records and **12.61 h**, giving **4.4%**. I could not construct any
+window that returns 89. **The direction is identical and every window agrees with it**, so nothing
+downstream changes; the figures above are mine, with the command, and the gate's are cited as its own.
+
+**What is still true, and it is the part the struck sentence buried:** `#406`'s own 11.07% is sound and
+is kept **scoped to one Issue**, where it was measured. `loop`-typed Issues run heavy lens work, so the
+builder's share is smaller there than on `product` or `content` — which is the one direction that would
+argue `wip` **up**, and it is bounded by the 2.5% corpus above, which already mixes the lanes.
+
 **What breaks FIRST at WIP > 1, priced here because it is a contract input — and it is not the gate.**
 `permission-guard.sh` rule 7c head-scopes the **gatekeeper's** verdict per PR: it fetches `headRefOid`
 and the comment list in one call, and an unreadable head denies. **It is the `agents-lead` verdict
 marker**, which every reader treats as presence-only. Measured at head — every occurrence of the
 literal outside a test file is a **counter** (`hooks/scripts/dispatch-metrics-stop.sh`), a **comment**
 (`hooks/scripts/zombie-loop-detect.sh`, `hooks/scripts/permission-guard.sh`) or the prose of hold 2 in
-`agents/quality-assurance.md`, which reads *"a comment on the PR before you may merge it"*:
+`agents/quality-assurance.md`:
 
 ```
 grep -rn 'harness-lead-verdict' hooks/scripts/ agents/ | grep -v '\.test\.'
 ```
 
-**No rule reads it.** On a serialised loop that costs at most one slice's diff, and re-posting on a
-moved head covers it in practice. **At WIP > 1 two concurrent harness diffs would each satisfy hold 2
-with the other's marker.** That is the check to run **before** relaxing WIP, in either mode; it is a
-named residual today and parallelism is what makes it live.
+**No rule reads it, and that is still true at head.**
+
+~~**At WIP > 1 two concurrent harness diffs would each satisfy hold 2 with the other's marker.** That
+is the check to run **before** relaxing WIP, in either mode; it is a named residual today and
+parallelism is what makes it live.~~
+
+**STRUCK 2026-09-11 (#385) — IT IS MECHANICALLY IMPOSSIBLE, and the strike is kept because this
+sentence is the one a reader would have taken the whole hazard from.** A marker is a **comment on one
+pull request**, and two pull requests share no comment thread, so no marker of PR A is ever visible to
+a read scoped to PR B. Re-derived at head:
+
+```
+for n in 454 439 436; do gh pr view $n --repo tedeuxx/tadeumendonca-skills --json comments \
+  --jq '[.comments[]|select(.body|test("harness-lead-verdict"))]|length'; done
+# -> 3, 1, 1      each PR carries its own
+# calibration — total comments per PR: 6, 2, 2, so a zero would have been readable
+```
+
+**What is real, and the struck sentence was pointing near it, is STALENESS WITHIN ONE PR.** Hold 2 was
+satisfied by **presence**, so a marker posted at an early commit cleared it for everything that landed
+after. **Measured on the same PR, and it is live rather than hypothetical:**
+
+```
+gh pr view 454 --repo tedeuxx/tadeumendonca-skills --json headRefOid,comments --jq '
+  .headRefOid as $h
+  | {markers_total:   [.comments[]|select(.body|test("harness-lead-verdict"))]|length,
+     markers_at_head: [.comments[]|select(.body|test("harness-lead-verdict"))
+                                 |select(.body|contains($h))]|length}'
+# -> {"markers_total":3,"markers_at_head":1}
+# calibration — the GATE's marker on the same PR under the same predicate is also 3 and 1. The
+# shape is identical; the difference is that rule 7c head-scopes the gate's and nothing head-scoped
+# this one.
+```
+
+**THIS IS NOT A PARALLELISM DEFECT AND MUST NOT BE SOLD AS ONE.** It bites identically at `wip: 1`.
+What `wip` > 1 changes is the **rate**: a serial gate queues merge requests, so a PR sits open longer
+between its lens pass and its merge, and heads move more in that window.
+
+**The repair, landed in this slice:** hold 2 now requires a marker **naming the head being merged**
+(`agents/quality-assurance.md`), and `hooks/scripts/zombie-loop-detect.sh` — registered on **`Stop`**
+in `hooks/hooks.json` — reports a PR whose markers are **all** stale at the end of a turn. **Neither is
+a bound.** The rule is the gate persona's discipline; the notice is detection one turn late and cannot
+reach a turn that already merged. **A `PreToolUse` deny was rejected on a measurement, not deferred on
+cost:** hold 2's trigger is a path predicate over the diff, `gh pr view --json files` pages at 100, and
+a large harness diff would therefore classify as non-harness and fail open — inert exactly where it is
+most needed.
+
+### The REVIEW GATE IS SERIAL, and that is what makes parallel development safe (#385, owner ruling 1)
+
+**Development parallelises. The gate does not.** The owner's words, 2026-09-10: *«o gate de revisao ser
+serial acho que simplifica. o que me incomoda mais é paralelismo de desenvolvimento»* — so **at most one
+merge request is in review at a time, whatever `wip` says**, and the next one is not dispatched to
+`quality-assurance` until the previous one has merged or been sent back.
+
+**This rule is HERE rather than in a brief, and the reason is mechanical.** Selecting a review chain is
+the **orchestrator's** act; the orchestrator preloads nothing and is dispatched by nobody, so a skill
+body and an agent brief both fail to reach it — measured in the two blocks above, which this block
+cites rather than re-deriving. **Every persona that could read a brief is a dispatchee, and a
+dispatchee cannot select its own dispatch.**
+
+**What seriality BUYS is the composition hazard, and it buys it by construction rather than by care.**
+The hazard at `wip` > 1 is not two markers on one PR — it is that each verdict attests a head that does
+**not** contain the other branch's diff, so merging both yields a configuration no reviewer ever read.
+Under a serial gate the second merge request is always read against a trunk already containing the
+first. **Measured on two real consecutive merges:**
+
+```
+gh pr view 451 --repo tedeuxx/tadeumendonca-skills --json headRefOid,mergeCommit,mergedAt
+gh pr view 454 --repo tedeuxx/tadeumendonca-skills --json headRefOid,mergeCommit,mergedAt
+git merge-base --is-ancestor 6dd54992 c0ed67d9 && echo CONTAINED
+# -> CONTAINED        #454's REVIEWED head already carried #451's merge commit
+git merge-base --is-ancestor e44c8de3 ed1c751e || echo "NOT CONTAINED (expected)"
+# -> NOT CONTAINED (expected)   the inverse, so the predicate can answer both ways
+```
+
+**Composition does NOT cover this, and must never be cited as covering it.** Planning for disjoint
+files prevents **merge conflicts** — textual disjointness is precisely the condition under which git
+stays silent — while the composition hazard is **semantic** and invisible to git. **Ruling 1 covers it
+alone.**
+
+**Conflicts are resolved at MR time by the slice's author** (owner ruling 2 — *«os conflitos deveriam
+ser resolvidos em tempo de MR»*), and seriality changes when that happens: the second author rebases
+onto a trunk that **already moved**, so *"at MR time"* means after the first merge lands, not at
+PR-open.
+
+**The sequence inside an iteration is the machine's** (owner ruling 5 — *«nao preciso participar dessa
+decisao quanto a sequencia de trabalho dentro do sprint»*). `scrum-master` proposes the set, the
+orchestrator opens the worktrees and dispatches, and **there is no per-item approval**. **That removes
+the one human checkpoint that would have caught a bad set, and he took it knowingly** — recorded here
+so nobody re-derives it later as an oversight. The deliberate contrast with the `content` lane, which
+is selected one piece at a time and never drained, is design rather than inconsistency.
+
+**Isolation is `git worktree`** (owner ruling 4), reversing the 2026-08-13 rule that permitted only one.
+**The hook layer is already worktree-ready and that was measured rather than assumed:**
+
+```
+jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json   | sed 's|.*/hooks/scripts/|hooks/scripts/|' | sort -u | xargs grep -l 'rev-parse --git-dir'
+# -> 6 of the 14 registered hooks key their state on the worktree's OWN git dir, so two worktrees
+#    never share a debounce namespace:
+#    cadence-notice - closure-artifact-guard - orchestrator-tool-census
+#    owed-pr-link-detect - premature-pr-link-detect - zombie-loop-detect
+
+# and NOT ONE registered hook walks for a `.git` DIRECTORY, which is the class #439 repaired
+# (in a linked worktree `.git` is a FILE, so such a walk runs off the top of the tree):
+... | xargs grep -nE '\-d "[^"]*\.git"'
+# -> no output
+# calibration - the denominator is non-empty: the same pipeline without a grep lists 14 scripts.
+```
+
+**`#385`'s own body said *seven of thirteen*; at `eda00c41` the criterion above returns SIX of
+FOURTEEN.** Both the numerator and the denominator moved, so the figure is re-derived here with the
+selector that produced it rather than carried. **The conclusion is unchanged and does not rest on the
+count**: the hooks that keep per-checkout state already scope it per worktree, and none of the other
+eight keeps any.
+
+**What holds ANY of the five rulings: nothing.** No layer observes which chain a dispatch ran, no
+artifact records a dispatch, and `gh pr create` is allowlisted in **both** settings layers, so a second
+concurrent merge request executes silently. By this loop's own test — *would something stop me, or only
+my memory?* — **every one of the five is an instruction**, and that is why each is written where the
+actor who must obey it actually reads.
+
+### Rule 7c's ref residual, RE-PRICED at `wip` > 1 — the old hole is closed and a new one is named (#385)
+
+**This is the one part of `#385` that touches the irreversible floor, and the re-pricing is owed
+because the residual's published cost was stated AS A FUNCTION OF WIP=1.** The guard's own comment
+priced it *"almost always the PR being merged"* — a property of how the loop happened to be run, not of
+the rule.
+
+**The flag-before-ref hole is CLOSED, and the check was re-run at head rather than inherited.** `#441`
+(`dc480e16`, 2026-09-10) repaired it, and `#385`'s own body measured the pre-repair behaviour. Fed to
+the guard with a namespaced `agent_type` so rule 7b does not short-circuit:
+
+| payload | verdict at `eda00c41` |
+|---|---|
+| `gh pr merge 999999 --merge` | **deny** — names no pull request (the control) |
+| `gh pr merge -t subjecttext 999999 --merge` | **deny** — *"puts a flag before the pull-request reference … cannot prove WHICH pull request"* |
+| `gh pr merge --merge` | reaches the verdict read, and denies on it (the no-ref form is untouched) |
+
+**`#385`'s body measured the middle row as ALLOW. It is DENY now.** The three verdicts differ by
+message, not only by outcome, so the rows are distinguishable rather than collapsed into one — which is
+what makes this a check rather than a coincidence. **The three priced options in the body — extend the
+flag strip, write an argv parser, or accept it — are all moot: `#441` chose a fourth, "deny what cannot
+be parsed", and it closes the class rather than enumerating it.**
+
+**What `wip` > 1 DOES make live, and it is a different residual that nobody had named.** `gh pr merge`
+with **no reference** merges *the current branch's PR*, and rule 7c reads that same PR's verdict — so
+guard and act agree, which is why the no-ref form is correctly left alone. **But "the current branch"
+is a property of the CWD**, and under one worktree per slice the cwd is no longer unique. Measured from
+this slice's own linked worktree:
+
+```
+git -C <worktree> branch --show-current   # -> loop/wip-parallel-385
+git -C <primary>  branch --show-current   # -> main
+# `gh pr merge --merge` evaluated with cwd = the worktree resolves against the WORKTREE's branch:
+# -> "this command carries NO --repo, so 'gh' resolve[d]" against that branch's PR, and denied
+#    because that branch has none.
+```
+
+**So at `wip` > 1 a no-ref merge issued from the wrong checkout merges a DIFFERENT slice's pull
+request, and rule 7c validates it consistently** — it reads the verdict of the PR `gh` will actually
+merge, so the floor is not bypassed and nothing fails open. **The failure is a correct merge of the
+wrong thing**, which no layer can detect because both halves agree.
+
+**The mitigation is an instruction and it is cheap: a gate dispatch names the PR number positionally,
+first.** `gh pr merge <number> --merge`. **What holds it: nothing** — the no-ref form is a legal,
+allowlisted invocation that this floor deliberately permits, and making it deny would break the
+single-checkout case the loop still uses. **Accepted with its cost stated**, which is the honest form
+when there is no cheap mitigation.
 
 ### What nothing enforces — per decision, because "nothing enforces this" flattened is false
 
@@ -1222,7 +1474,11 @@ named residual today and parallelism is what makes it live.
 | the two repositories agree on the mode | ~~**nothing.**~~ **Narrowed 2026-09-09 (slice B): an instruction, in one context only.** The drain already reads both trees, so it compares the two records at entry and stops on a disagreement. **Every other context — a rite, an ad-hoc session, a dispatched persona — still has nothing**, and a hook cannot close it: it receives one `cwd`, so it would have to guess where the sibling tree is in order to compare a string, which is assuming what it checks |
 | loop-first survives in either mode | **the ordered artifact, and awkwardness.** #339 already measured this ungateable at every layer |
 | the rites run at all | **nothing today, in either mode** |
-| `wip` is honoured | **nothing.** `wip-guard.sh` was deleted at #383 and nothing bounds work in progress |
+| `wip` is honoured | **nothing.** `wip-guard.sh` was deleted at #383 and nothing bounds work in progress. **Unchanged by #385 giving `wip` a value** — `gh pr create` is allowlisted in both settings layers, so an (N+1)th concurrent merge request executes silently, with no prompt and no record |
+| the review gate stays serial | **an instruction, in this block** (#385, owner ruling 1). Nothing observes how many reviews are in flight: a dispatch leaves no artifact, and the one lens whose participation would be visible on a PR posts nothing at all — rule 5e denies `product-lead` the comment subcommands |
+| the composed set does not collide | **nothing.** `scrum-master` holds `tools: []`, `SELECTION-RECORD` has no consumer, and nothing verifies the pool it was shown. Ruling 5 removed the per-item human checkpoint deliberately, so a bad set runs |
+| the `agents-lead` marker names the head being merged | **the gate persona, plus one detector.** `agents/quality-assurance.md`'s hold 2 requires it and nothing denies on it; `hooks/scripts/zombie-loop-detect.sh`, registered on **`Stop`**, REPORTS a PR whose markers are all stale — one turn late, and never a bound on the merge |
+| worktrees are cleaned up after merge | **nothing mechanical.** `#437` closed the lifecycle question and `hooks/scripts/worktree-notice.sh` REPORTS; it removes nothing. Re-derived 2026-09-11: `-io` carried 28 linked worktrees and `-skills` 5, before this slice added one to each |
 | a cadence trigger keys on the CLOCK and not on the pool being empty | ~~**nothing — and the carrier is not built yet, so this is a rule written before its object**~~ — **the object exists since 2026-09-09 (#406 slice C), and the row splits.** *For the carrier that exists:* it is held by **construction plus a test** — `hooks/scripts/cadence-notice.sh` makes no tracker call at all, and its suite asserts that with a recorder on `PATH` in place of `gh` rather than by removing `gh`, so the zero is a real zero. *For any FUTURE trigger:* still **nothing**. No layer reads a hook's intent, and a second carrier keyed on emptiness would be caught by review or by nobody |
 
 ~~**Six of seven are instructions and one is a report.**~~ **Struck 2026-09-09 (slice B): the tally is

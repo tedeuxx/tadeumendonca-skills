@@ -3144,8 +3144,13 @@ corrects the twelfth amendment's claim about the other half.
 
 ### The decision
 
-1. **WIP=1 stands, unchanged: one worktree, one in-flight branch, one open PR.** No reversal, and the
-   `ready` label was withheld on the reversal at the time the owner answered.
+1. ~~**WIP=1 stands, unchanged: one worktree, one in-flight branch, one open PR.** No reversal, and the
+   `ready` label was withheld on the reversal at the time the owner answered.~~ **REVERSED 2026-09-11
+   by the thirty-fourth amendment (#385).** Struck in place, not rewritten: this clause is what every
+   reader between 2026-08-29 and 2026-09-11 took the bound from, and the reversal is by the exact route
+   the twelfth amendment named — *"an explicit owner decision, recorded the same way"*. **Clauses 2–5
+   are UNTOUCHED and remain true**; in particular clause 3's finding that nothing enforced WIP=1 is
+   what made the reversal cheap, because there was no mechanism to dismantle.
 2. **What the rule protects is recorded** in `skills/agents-configuration/SKILL.md`, section *What
    WIP=1 is PROTECTING*, in **three separated layers** — the owner's quoted words, the measured
    failure, and what is still unrecorded — because they are not equally strong and blending them turns
@@ -5105,6 +5110,139 @@ considered and refused rather than overlooked.
   that the clause's object is now a repo-local tracker item rather than one logical container
   represented as two tracker objects in two repositories — so *whether a loop is running* is at least
   no less queryable than it was, which is a smaller claim than a control.
+
+## Amendment (2026-09-11, thirty-fourth) — WIP=1 is REVERSED: development parallelises on worktrees at `wip: 2`, the review gate stays serial, and the harness marker becomes head-scoped (#385)
+
+**Why this is an amendment and not a new record.** Same reasoning the twenty-fifth gave and the
+twentieth and twenty-fourth before it: WIP is the delivery discipline of *the shape a unit of work
+takes*, which is this capability's own index entry, and #283's design is one document per capability
+name. **Written by `agents-lead`** — the #223 domain split puts a pure loop/machinery decision here.
+
+**What the owner decided, and the five rulings are his (interview, 2026-09-10):**
+
+1. **The review gate stays SERIAL; development is what parallelises** — *«o gate de revisao ser serial
+   acho que simplifica. o que me incomoda mais é paralelismo de desenvolvimento»*.
+2. **Conflicts are resolved at MR time, by the slice's author** — *«os conflitos deveriam ser
+   resolvidos em tempo de MR»*.
+3. **Iteration composition is the preventive mitigation, with named owners** — *«o proprio planejamento
+   de issues dentro do sprint pode ajudar a mitigar. responsabilidade do techlead e product lead junto
+   ao scrum master»*.
+4. **Isolation is `git worktree`**, reversing the standing rule of 2026-08-13.
+5. **The sequence inside an iteration is the machine's** — *«nao preciso participar dessa decisao
+   quanto a sequencia de trabalho dentro do sprint»*.
+
+### The decision
+
+1. **The twenty-fifth amendment's decision 1 is REVERSED and struck in place.** WIP=1 no longer
+   stands. **`wip: 2`**, recorded in `docs/loop-mode.md` in **both** repositories — the slot is
+   `#406`'s, the value is this one's.
+2. **The REVIEW GATE IS SERIAL at any value of `wip`**, and the rule lands in `CLAUDE.md`'s
+   `loop-mode-contract` block in both repositories rather than in a brief. **The carrier is not a
+   preference:** selecting a review chain is the orchestrator's act, the orchestrator preloads nothing,
+   and a nonce probe (#409, re-measured #393) shows a skill body does not reach it while a root
+   `CLAUDE.md` does.
+3. **`scrum-master` selects a SET of up to `wip` profile+stage+item triples**, with **`non-collision:`
+   as a written criterion of the selection rather than a note on it**, and `tech-lead` and
+   `product-lead` accountable for the composition alongside it (ruling 3). It holds `tools: []`, so it
+   **names** them and the orchestrator dispatches.
+4. **Hold 2 of the merge gate becomes HEAD-SCOPED.** A harness diff now requires an
+   `<!-- harness-lead-verdict: … -->` comment whose `commit:` line names the `headRefOid` the gate read
+   for its own verdict — not merely a marker that exists.
+5. **`hooks/scripts/zombie-loop-detect.sh` gains a second signal**, on the `Stop` event it is already
+   registered on: a PR carrying harness markers of which **none** names the current head is reported at
+   turn end. **Detection only. It holds nothing and it cannot bound a merge.**
+
+### The premise this reverses was FALSE, and saying which half is the point
+
+**`#385`'s original body argued that WIP=1 was *enforced* and that abolishing it meant retiring a
+hook.** Both halves were false at head, in the permissive direction:
+
+```
+git log origin/main --diff-filter=D --format='%h %ad %s' --date=short -- hooks/scripts/wip-guard.sh
+# -> e145cd0f 2026-09-04 fix(hooks): delete wip-guard — it never reached the failure WIP=1 exists for
+# calibration: the same selector against a file that still exists returns nothing.
+grep -rn 'gh pr create' ~/.claude/settings.json .claude/settings.json
+# -> allowlisted in BOTH layers
+```
+
+**So the status quo was never the safe option — the status quo was UNBOUNDED**, and this amendment
+ratifies a state that already existed rather than loosening one that did not. The twenty-fifth
+amendment's clause 3 had already measured exactly this and is why the reversal costs nothing to
+execute.
+
+### The hazard that justified head-scoping is REAL, and it is NOT the one that was written down
+
+**The claim in circulation was that two concurrent harness diffs would each satisfy hold 2 with the
+other's marker. That is mechanically impossible** — a marker is a comment on one pull request, and two
+pull requests share no comment thread. It is struck at all three sites that carried it (`CLAUDE.md` in
+both repositories, `docs/prompts/loop-mode-contract.md`).
+
+**What is real is staleness WITHIN one pull request, and it was measured at head rather than reasoned
+about:**
+
+```
+gh pr view 454 --repo tedeuxx/tadeumendonca-skills --json headRefOid,comments --jq '
+  .headRefOid as $h
+  | {markers_total:   [.comments[]|select(.body|test("harness-lead-verdict"))]|length,
+     markers_at_head: [.comments[]|select(.body|test("harness-lead-verdict"))
+                                 |select(.body|contains($h))]|length}'
+# -> {"markers_total":3,"markers_at_head":1}
+# calibration — the GATE's own marker on the same PR under the same predicate: also 3 and 1.
+```
+
+**Three markers, one at the head.** Under presence-only, two of three cleared hold 2 while attesting a
+diff the PR no longer pointed at. **This bites identically at WIP=1 and is therefore NOT a parallelism
+defect** — what `wip` > 1 changes is the rate, because a serial gate queues merge requests and heads
+move more in the widened window. **Pricing it as parallelism-only is what would have deferred it with
+the parallelism.**
+
+### Considered options for the head-scoping, and why the floor was REJECTED on a measurement
+
+- **A `permission-guard.sh` rule 7c arm (a `PreToolUse` deny) — REJECTED.** 7c already fetches
+  `headRefOid` and the comment list in one call, so the marker check itself would be free. **It is the
+  CLASSIFICATION that fails.** Hold 2's trigger is a path predicate (`hooks/**`, `agents/**`,
+  `skills/**`, `commands/**`, `.claude/**`), so the rule must read the PR's file list — and
+  `gh pr view --json files` pages at 100, so a large harness diff classifies as non-harness and the
+  rule **fails open**, inert exactly where it is most needed. A control that reads as enforcement and
+  abstains on the biggest diffs is this repository's own named failure shape. It would also have been
+  an addition to the irreversible floor, which is the owner's decision rather than a build's.
+- **The gate's own brief plus a `Stop` detector — CHOSEN.** The rule sits with the persona that holds
+  hold 2 and already fetches the payload it needs (ADR-0006 makes it read `headRefOid`), so it costs no
+  network call and needs no classification. The detector needs no classification either, **and that is
+  why it is buildable where the deny is not**: it fires only when a marker is PRESENT and stale, so a
+  diff carrying no marker is invisible to it and misclassification cannot occur.
+- **Doing nothing — REJECTED**, on the measurement above: the failure is live on the most recent
+  harness PR, not hypothetical.
+
+### What this does NOT do
+
+- **It does not make WIP enforceable.** Nothing bounds concurrent merge requests. `gh pr create` is
+  allowlisted in both settings layers and no registered hook reads `docs/loop-mode.md`, so an (N+1)th
+  PR executes with no prompt, no denial and no record.
+- **It does not bound the merge on a stale marker.** Hold 2 is the gate persona's discipline; the
+  detector fires at the END of a turn, so a turn that dispatched the gate and merged is already over.
+- **It does not touch the permission floor.** No rule of `permission-guard.sh` changed. The floor
+  remains what a mode may never vary, per the `loop-mode-contract` block's untouchable list.
+- **It does not close rule 7c's ref residual — `#441` already did**, on 2026-09-10 (`dc480e16`), and
+  re-measured at this amendment's head the class is closed: `gh pr merge -t subjecttext 999999 --merge`
+  now **denies** naming the unattributable reference, where the plain control denies on the unreadable
+  verdict and `gh pr merge --merge` is untouched. **The residual's own blast-radius argument was keyed
+  on WIP=1 in the guard's comment, and that pricing is moot rather than repaired here.**
+
+### What nothing enforces — per ruling, because flattened it is false
+
+| ruling | what actually holds it |
+|---|---|
+| the gate stays serial | **an instruction in `CLAUDE.md`.** Nothing observes how many reviews are in flight; a dispatch leaves no artifact, and `product-lead` posts nothing at all (rule 5e) |
+| conflicts resolved at MR time by the author | **git, and awkwardness.** A conflict is self-announcing; who resolves it is not observable |
+| the composed set does not collide | **nothing.** `scrum-master` holds `tools: []`, `SELECTION-RECORD` has no consumer, nothing verifies the pool it was shown |
+| isolation is a worktree | **nothing.** Ruling 5 removed the per-item checkpoint deliberately, so a bad set runs |
+| the marker names the head being merged | **the gate persona, plus one `Stop` detector.** Reported one turn late; never a bound |
+| `wip: 2` is honoured | **nothing.** `wip-guard.sh` is deleted and `gh pr create` is allowlisted in both layers |
+
+**By this loop's own test — *would something stop me, or only my memory?* — all five rulings are
+instructions, and the head-scoping is an instruction with one observation behind it.** That is the
+honest state, and it is why each rule is written where the actor who must obey it actually reads.
 
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now

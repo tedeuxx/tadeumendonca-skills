@@ -212,12 +212,31 @@ artifact your gate requires before it will accept a change: **is that artifact s
 revision it reviewed, or merely PRESENT?**
 
 In the loop this came from, the gate's own verdict was head-scoped and safe. **A second required
-artifact — a specialist reviewer's marker — was presence-only, and nothing read it at all.** At WIP=1
-that costs at most one change's diff. **At WIP > 1, two concurrent changes each satisfy the requirement
-with the other's marker.** The failure is silent and it looks exactly like compliance.
+artifact — a specialist reviewer's marker — was presence-only, and nothing read it at all.**
+
+~~At WIP=1 that costs at most one change's diff. **At WIP > 1, two concurrent changes each satisfy the
+requirement with the other's marker.** The failure is silent and it looks exactly like compliance.~~
+
+**STRUCK 2026-09-11 — the cross-satisfaction claim was FALSE in the loop it was reported from, and it
+is struck rather than deleted because it is the concrete example a reader would have carried away.** In
+that loop the marker is a comment **on one merge request**, and two merge requests share no comment
+thread, so no artifact of one is ever visible to a check scoped to the other. **If you adopt this
+check, work out where YOUR artifact lives before you copy the failure mode**: a marker in a shared
+store, a label, or a file on a shared branch genuinely can cross-satisfy; a per-request comment cannot.
+
+**What was REAL there, and it is the better example because it bites at every WIP value:** three
+markers on one merge request, **one** of them naming the current revision. The requirement counted
+presence, so two of the three cleared it while attesting a diff the request no longer pointed at.
+
+**So restate the WIP relationship honestly, because getting this backwards is what the strike is
+for: presence-versus-revision is NOT a parallelism defect.** It is equally broken at WIP=1. What
+raising WIP changes is the **rate** — a serial gate queues requests, so each one sits open longer
+between its review and its merge, and revisions move more in that window. **A defect sold as
+parallelism-only gets deferred with the parallelism; the same defect priced honestly gets fixed now.**
 
 **Generalise it:** parallelism does not break the checks that name a revision. It breaks the checks
-that count.
+that count — **and the checks that count were already broken; parallelism only raises how often you
+meet it.**
 
 ---
 

@@ -75,6 +75,38 @@ view_no_comments() { # head_sha
   jq -n --arg h "$1" '{headRefOid:$h, comments:[]}' > "$root/fix/view.json"
 }
 
+# ── #385 fixtures: the agents-lead marker, at whatever heads the caller names ──────────────
+# Each marker is a SEPARATE comment object, built by `jq` from positional arguments. The first
+# version of these builders concatenated the bodies and asked `jq` to `split("\u0000")` on a
+# separator that was never a NUL byte, so every marker arrived as ONE comment — and two cases
+# passed anyway, for the wrong reason, because a single blob containing both a stale marker and
+# the head SHA reads as fresh. That is this repo's own "a check whose positive result is
+# unconditional is not a check", found by a case that failed rather than by re-reading.
+#
+# `marker_heads` is the variable under test: the arm asks whether ANY marker names the CURRENT head.
+view_with_harness_markers() { # head_sha · marker_heads... (may be empty)
+  vh="$1"; shift
+  jq -n --arg h "$vh" '
+    {headRefOid: $h,
+     comments: ($ARGS.positional
+                | map({body: ("<!-- harness-lead-verdict: reviewed -->\ncommit: " + .),
+                       authorAssociation: "OWNER"}))}
+  ' --args "$@" > "$root/fix/view.json"
+}
+
+# Both markers on one PR, as separate comments, so the two signals can be exercised independently.
+view_gate_and_harness() { # head_sha · gate_verdict · marker_heads...
+  vh="$1"; gv="$2"; shift 2
+  jq -n --arg h "$vh" --arg g "$gv" '
+    {headRefOid: $h,
+     comments: ([{body: ("<!-- gatekeeper-verdict: quality-assurance -->\n" + $g + "\nhead: " + $h),
+                  authorAssociation: "OWNER"}]
+                + ($ARGS.positional
+                   | map({body: ("<!-- harness-lead-verdict: reviewed -->\ncommit: " + .),
+                          authorAssociation: "OWNER"})))}
+  ' --args "$@" > "$root/fix/view.json"
+}
+
 run_hook() {
   payload="$(jq -n --arg cwd "$repo" --arg sid "sess-1" '{cwd:$cwd, session_id:$sid}')"
   ( export PATH="$root/bin:/usr/bin:/bin"
@@ -231,17 +263,30 @@ if [ -z "$second" ]; then ok 'second call on the SAME state is silent'; else bad
 teardown
 
 echo '--- DEBOUNCE bounds cost too: the repeat call skips the heavier pr-view read ---'
+# REWRITTEN 2026-09-11 (#385 round 2), and this assertion is the one that had to CHANGE rather than
+# be preserved — so it is worth saying exactly what moved and why.
+#
+# It used to drive a fixture with an outstanding verdict and NO harness marker, and assert ONE
+# `pr view` across two turns. That held while a single key covered every signal. Per-signal keys
+# make it false for that fixture BY DESIGN: only the verdict key gets armed, so the second turn has
+# a signal it has never evaluated and must fetch to evaluate it.
+#
+# THE PROPERTY IS NOT DROPPED, IT IS SPLIT IN TWO, and the second half is new. The strong form —
+# nothing more to say means nothing more to fetch — is asserted below on a fixture where BOTH
+# signals have fired. The priced cost is asserted immediately after, as a cost, so that collapsing
+# the keys back into one (which is what caused the #294 regression) turns it RED instead of reading
+# as an optimisation.
 setup
 checkout_branch feat/x
 open_pr 150 abc123
-view_with_verdict abc123 REQUEST-CHANGES
-run_hook >/dev/null   # arms the debounce
-run_hook >/dev/null   # should short-circuit before the second gh call
+view_gate_and_harness abc123 REQUEST-CHANGES oldbbb   # BOTH signals fire on turn 1
+run_hook >/dev/null   # arms both keys
+run_hook >/dev/null   # both armed -> must short-circuit before the second gh call
 view_calls="$(call_count 'pr view')"
 if [ "$view_calls" = "1" ]; then
-  ok 'the debounced repeat makes no additional "pr view" call'
+  ok 'with BOTH signals reported, the debounced repeat makes no additional "pr view" call'
 else
-  bad 'the debounced repeat makes no additional "pr view" call' "pr view calls: $view_calls"
+  bad 'with BOTH signals reported, the debounced repeat makes no additional "pr view" call' "pr view calls: $view_calls"
 fi
 teardown
 
@@ -326,6 +371,243 @@ case "$out" in
   *RC:0) ok 'exits 0 regardless of gh availability on a minimal PATH' ;;
   *) bad 'exits 0 on a minimal PATH' "got: $out" ;;
 esac
+teardown
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# #385 — THE STALE agents-lead MARKER ARM
+#
+# Every case below was mutation-checked against the SOURCE (`zombie-loop-detect.sh`), never against
+# this file, per `engineering-standards`' "break it on purpose" rule. The two mutations used, and
+# what each turned red, are recorded in the PR body; the shape that matters is that the arm's
+# THREE-VALUED predicate has a case for each value and each case can fail on its own.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+echo '--- #385: the failure this arm exists for — markers present, none at the head ---'
+setup
+checkout_branch loop/x
+open_pr 385 headaaa
+view_with_harness_markers headaaa oldbbb oldccc
+out="$(run_hook)"
+case "$out" in
+  *'STALE agents-lead verdict marker'*) ok 'fires when every harness marker names a moved head' ;;
+  *) bad 'fires when every harness marker names a moved head' "got: ${out:-<silence>}" ;;
+esac
+teardown
+
+echo '--- #385: silent when ONE marker names the current head (the re-post practice) ---'
+setup
+checkout_branch loop/x
+open_pr 385 headaaa
+view_with_harness_markers headaaa oldbbb headaaa
+out="$(run_hook)"
+case "$out" in
+  *'STALE agents-lead verdict marker'*) bad 'silent when a marker names the current head' "got: $out" ;;
+  *) ok 'silent when a marker names the current head — a re-posted marker is not stale' ;;
+esac
+teardown
+
+echo '--- #385: silent when there is NO harness marker at all (hold 2 is not this hook question) ---'
+# THE FALSE-POSITIVE GUARD. A `product` or `content` PR carries no harness marker and must produce
+# no notice — this arm never asks whether a marker is OWED, only whether a present one is fresh.
+setup
+checkout_branch feat/x
+open_pr 385 headaaa
+view_with_harness_markers headaaa
+out="$(run_hook)"
+case "$out" in
+  *'STALE agents-lead verdict marker'*) bad 'silent with no harness marker' "got: $out" ;;
+  *) ok 'silent with no harness marker — it never asks whether one is OWED' ;;
+esac
+teardown
+
+echo '--- #385: a non-OWNER stale marker is ignored, same author filter as the gate marker ---'
+setup
+checkout_branch loop/x
+open_pr 385 headaaa
+jq -n --arg h headaaa --arg b '<!-- harness-lead-verdict: reviewed -->
+commit: oldbbb' '{headRefOid:$h, comments:[{body:$b, authorAssociation:"NONE"}]}' > "$root/fix/view.json"
+out="$(run_hook)"
+case "$out" in
+  *'STALE agents-lead verdict marker'*) bad 'ignores a marker from an unprivileged author' "got: $out" ;;
+  *) ok 'ignores a marker from an unprivileged author — same filter as the gate marker' ;;
+esac
+teardown
+
+echo '--- #385: the two signals are INDEPENDENT — a stale marker fires under a CLEARED gate ---'
+# The pre-#385 control flow exited at `*) exit 0` on any non-outstanding verdict, so this case is
+# the one that proves the restructure actually reaches the new arm rather than riding on the old
+# one. APPROVE-AND-MERGE is a clearance: the gate signal is correctly silent here.
+setup
+checkout_branch loop/x
+open_pr 385 headaaa
+view_gate_and_harness headaaa APPROVE-AND-MERGE oldbbb
+out="$(run_hook)"
+case "$out" in
+  *'outstanding quality-assurance verdict'*) bad 'a cleared gate verdict stays silent' "got: $out" ;;
+esac
+case "$out" in
+  *'STALE agents-lead verdict marker'*) ok 'a stale marker fires even when the gate verdict is a clearance' ;;
+  *) bad 'a stale marker fires even when the gate verdict is a clearance' "got: ${out:-<silence>}" ;;
+esac
+teardown
+
+echo '--- #385: both signals in ONE notice, and the gate signal is unchanged ---'
+setup
+checkout_branch loop/x
+open_pr 385 headaaa
+view_gate_and_harness headaaa REQUEST-CHANGES oldbbb
+out="$(run_hook)"
+case "$out" in
+  *'outstanding quality-assurance verdict'*)
+    case "$out" in
+      *'STALE agents-lead verdict marker'*) ok 'both signals are carried in one notice' ;;
+      *) bad 'both signals are carried in one notice' "harness half missing: $out" ;;
+    esac ;;
+  *) bad 'both signals are carried in one notice' "gate half missing: ${out:-<silence>}" ;;
+esac
+teardown
+
+echo '--- #385: the new arm still never blocks, and still costs no extra network call ---'
+setup
+checkout_branch loop/x
+open_pr 385 headaaa
+view_with_harness_markers headaaa oldbbb
+out="$(run_hook)"
+case "$out" in
+  *'"decision"'*|*'permissionDecision'*) bad 'the stale-marker notice never blocks' "got: $out" ;;
+  *) ok 'the stale-marker notice never blocks' ;;
+esac
+# ONE `pr view`, not two: the arm reads the payload the gate signal already fetched.
+n="$(call_count 'pr view')"
+if [ "$n" = "1" ]; then
+  ok 'the stale-marker arm adds no second `pr view` call'
+else
+  bad 'the stale-marker arm adds no second `pr view` call' "pr view called $n time(s)"
+fi
+teardown
+
+echo '--- #385: debounce covers the new signal too — one notice per (PR, head) per session ---'
+setup
+checkout_branch loop/x
+open_pr 385 headaaa
+view_with_harness_markers headaaa oldbbb
+first="$(run_hook)"
+second="$(run_hook)"
+case "$first" in
+  *'STALE agents-lead verdict marker'*)
+    case "$second" in
+      '') ok 'the stale-marker notice is debounced on the second turn at the same head' ;;
+      *)  bad 'the stale-marker notice is debounced on the second turn at the same head' "got: $second" ;;
+    esac ;;
+  *) bad 'the stale-marker notice is debounced on the second turn at the same head' "first did not fire: ${first:-<silence>}" ;;
+esac
+teardown
+
+echo '--- #385: a MOVED head re-arms — the notice is per (PR, head), not per PR ---'
+setup
+checkout_branch loop/x
+open_pr 385 headaaa
+view_with_harness_markers headaaa oldbbb
+run_hook >/dev/null
+open_pr 385 headzzz
+view_with_harness_markers headzzz oldbbb
+out="$(run_hook)"
+case "$out" in
+  *'STALE agents-lead verdict marker'*) ok 'a moved head re-arms the stale-marker notice' ;;
+  *) bad 'a moved head re-arms the stale-marker notice' "got: ${out:-<silence>}" ;;
+esac
+teardown
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# #385 ROUND 2 — THE REGRESSION THE GATE FOUND, AND THE ARMS THAT WOULD HAVE CAUGHT IT
+#
+# The first delivery keyed the debounce on (session, PR, head) with no record of WHICH signal
+# fired, so a turn that reported only a stale marker consumed the slot and the NEXT turn's
+# outstanding REQUEST-CHANGES went silent — a regression in #294, which is the loop's ONLY
+# observation of an outstanding verdict.
+#
+# THE SUITE PASSED 37/0 WITH THAT DEFECT PRESENT, and the reason generalises: every debounce case
+# above drives two turns in the SAME state, so it can only ever observe "silence repeated". A
+# suppression bug is invisible to a same-state repeat by construction — it needs two turns whose
+# signals DIFFER. That is the shape below, in both orders.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+echo '--- #385 R2: a stale-marker turn must NOT silence a verdict landing later at the same head ---'
+setup
+checkout_branch loop/x
+open_pr 385 headaaa
+view_gate_and_harness headaaa APPROVE-AND-MERGE oldbbb   # turn 1: clearance + stale marker
+first="$(run_hook)"
+view_gate_and_harness headaaa REQUEST-CHANGES oldbbb     # turn 2: same head, now outstanding
+second="$(run_hook)"
+case "$first" in
+  *'STALE agents-lead verdict marker'*)
+    case "$second" in
+      *'outstanding quality-assurance verdict'*)
+        ok 'a stale-marker turn does not consume the verdict signal debounce (#294 preserved)' ;;
+      *) bad 'a stale-marker turn does not consume the verdict signal debounce (#294 preserved)' \
+             "turn 2 said: ${second:-<SILENCE — the outstanding verdict was suppressed>}" ;;
+    esac ;;
+  *) bad 'a stale-marker turn does not consume the verdict signal debounce (#294 preserved)' \
+         "turn 1 did not fire the stale-marker notice: ${first:-<silence>}" ;;
+esac
+teardown
+
+echo '--- #385 R2: and the mirror — a verdict turn must not silence a marker going stale ---'
+# The mirror matters less (an advisory notice rather than #294) and is asserted anyway, because a
+# one-directional fix is how the same defect comes back wearing the other hat.
+setup
+checkout_branch loop/x
+open_pr 385 headaaa
+view_gate_and_harness headaaa REQUEST-CHANGES headaaa    # turn 1: verdict fires, marker is FRESH
+first="$(run_hook)"
+view_gate_and_harness headaaa REQUEST-CHANGES oldbbb     # turn 2: same head, marker now stale
+second="$(run_hook)"
+case "$first" in
+  *'outstanding quality-assurance verdict'*)
+    case "$second" in
+      *'STALE agents-lead verdict marker'*)
+        ok 'a verdict turn does not consume the stale-marker signal debounce' ;;
+      *) bad 'a verdict turn does not consume the stale-marker signal debounce' \
+             "turn 2 said: ${second:-<silence>}" ;;
+    esac ;;
+  *) bad 'a verdict turn does not consume the stale-marker signal debounce' \
+         "turn 1 did not fire the verdict notice: ${first:-<silence>}" ;;
+esac
+teardown
+
+echo '--- #385 R2: each signal is still debounced against ITSELF (the fix must not remove that) ---'
+setup
+checkout_branch loop/x
+open_pr 385 headaaa
+view_gate_and_harness headaaa REQUEST-CHANGES oldbbb
+run_hook >/dev/null                                       # both fire, both keys armed
+again="$(run_hook)"
+if [ -z "$again" ]; then
+  ok 'both signals stay debounced on a repeat turn at the same head'
+else
+  bad 'both signals stay debounced on a repeat turn at the same head' "got: $again"
+fi
+teardown
+
+echo '--- #385 R2: the PRICE of per-signal keys, asserted AS a price so it cannot be undone quietly ---'
+# One signal fires, the other never does, so only one key is armed and the repeat turn MUST fetch
+# again to evaluate the unreported one. This is a real cost and it is asserted deliberately:
+# collapsing the two keys back into one would make this read 1 and turn this arm RED, which is
+# exactly the alarm the first delivery did not have.
+setup
+checkout_branch feat/x
+open_pr 150 abc123
+view_with_verdict abc123 REQUEST-CHANGES                  # verdict only; no harness marker ever
+run_hook >/dev/null
+run_hook >/dev/null
+view_calls="$(call_count 'pr view')"
+if [ "$view_calls" = "2" ]; then
+  ok 'with only ONE signal reported, the repeat turn pays a second `pr view` — the priced cost of per-signal keys'
+else
+  bad 'with only ONE signal reported, the repeat turn pays a second `pr view` — the priced cost of per-signal keys' \
+      "pr view calls: $view_calls (1 means the keys were merged again, which reintroduces the #294 regression)"
+fi
 teardown
 
 echo
