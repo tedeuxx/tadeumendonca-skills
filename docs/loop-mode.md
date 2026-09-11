@@ -238,9 +238,9 @@ gh issue view 406 --repo tedeuxx/tadeumendonca-skills --json comments --jq '
 serial too, so `wip` parallelises that 11% while 89% stays serial. **`wip: 2` is where that stops
 paying**; a larger value buys queueing at the gate, not throughput.
 
-### Bound the figure hard — it is TWO Issues, and one of them argues DOWN
+### Bound the figure hard — the first published basis was WRONG, and the corpus is why
 
-**Re-derived 2026-09-11 across fourteen recent Issues, only two carry dispatch records at all:**
+~~**Re-derived 2026-09-11 across fourteen recent Issues, only two carry dispatch records at all:**
 
 ```
 for n in 454 452 446 443 441 439 437 436 431 430 427 424 406 385; do
@@ -260,7 +260,70 @@ dispatches at all.** A `loop` Issue can complete with no builder time whatsoever
 `loop`-typed.** A `product` Issue runs one lens pass and a `content` Issue runs no `agents-lead` at
 all, so the builder's share is larger there and **`wip: 2` is conservative for those lanes rather than
 tuned to them**. **Nothing can size `wip` from data until the instrument is written on most work**, and
-fixing that is not this slice.
+fixing that is not this slice.~~
+
+**STRUCK 2026-09-11 — FALSE, and the defect was the CORPUS, not the selector.** The window above was
+**hand-typed**, and what I typed was dominated by Issues too recent to have been worked — so the
+selector was right and it was pointed at the wrong fourteen. The gate falsified it: over the fourteen
+most recent **closed** Issues, **nine** carry dispatch records, not two. That reproduces exactly here
+(`#438` 8 · `#437` 3 · `#434` 3 · `#426` 1 · `#423` 1 · `#421` 5 · `#419` 3 · `#416` 6 · `#413` 12 =
+**42 records**).
+
+**The transferable half: a corpus you typed is a claim you did not measure.** Deriving the window with
+the same command that reads it is what closes this class, which is why the replacement below enumerates
+rather than lists.
+
+**The corrected basis, with the command that produced it:**
+
+```
+python3 -c '
+import subprocess, json, re, collections
+R = "tedeuxx/tadeumendonca-skills"
+g = lambda *a: subprocess.check_output(["gh"] + list(a), text=True)
+nums = json.loads(g("issue","list","--repo",R,"--state","all","--limit","40",
+                    "--json","number","--jq","[.[].number]"))
+agg, cnt, carry = collections.Counter(), collections.Counter(), 0
+for n in nums:
+    bodies = json.loads(g("issue","view",str(n),"--repo",R,"--json","comments","--jq",
+        "[.comments[]|select(.body|contains(\"dispatch-metrics:\"))|.body]"))
+    if bodies: carry += 1
+    for b in bodies:
+        for a, d in zip(re.findall(r"agent_type:\s*([^\n]+)", b),
+                        re.findall(r"duration_seconds:\s*([0-9.]+)", b)):
+            k = a.strip().strip("`"); agg[k] += float(d); cnt[k] += 1
+t = sum(agg.values())
+print("issues=%d carrying=%d records=%d total=%.2fh" % (len(nums), carry, sum(cnt.values()), t/3600))
+for k in sorted(agg, key=lambda x: -agg[x]):
+    print("  %-40s n=%-4d %7.2fh %5.1f%%" % (k, cnt[k], agg[k]/3600, 100*agg[k]/t))
+'
+# issues=40 carrying=23 records=286 total=198.16h
+#   agents-lead        n=154  129.78h  65.5%
+#   quality-assurance  n=84    59.67h  30.1%
+#   developer          n=18     4.88h   2.5%   <- the only share parallel DEVELOPMENT touches
+#   product-lead       n=20     2.95h   1.5%
+#   tech-lead          n=6      0.82h   0.4%
+```
+
+**The builder is 2.5% over that corpus — LOWER than the 11.07% first published, so the conclusion
+survives its own correction: parallelising the builder pays less, and `wip: 2` is conservative.**
+
+**The conclusion does not depend on the window, which is worth more than any one figure.** Every corpus
+constructible here puts the builder at or below 11.07%:
+
+| corpus | issues carrying records | records | builder share |
+|---|---|---|---|
+| `#406` alone | 1 | 33 | **11.07%** |
+| 14 most recent **all-state** | 7 | 24 | **0.0%** |
+| 14 most recent **closed** | 9 | 42 | **4.4%** |
+| 40 most recent **all-state** | 23 | 286 | **2.5%** |
+
+**One disagreement recorded rather than absorbed.** The gate is right on the half that blocks — *nine of
+fourteen, not two* — and I reproduce that exactly. Its **replacement aggregate does not reproduce**: it
+published *"across all nine … 89 records, 30.48 h … 9.6%"*, while the nine Issues it lists sum to **42**
+records and **12.61 h** → **4.4%**. No window I could construct returns 89. **The direction is identical
+and every window agrees**, so nothing downstream moves; the figures here are mine, with the command.
+
+**`#406`'s own 11.07% is sound and is kept scoped to the one Issue where it was measured.**
 
 ### What `wip: 2` does NOT bound — read this before citing the number
 

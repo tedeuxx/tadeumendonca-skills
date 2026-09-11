@@ -1198,18 +1198,91 @@ Issues.
 
 **THE VALUE IS `wip: 2`, decided 2026-09-11 (#385) and recorded in `docs/loop-mode.md`, not here.** The
 contract owns the slot; the record owns the value, exactly as it owns `loop-mode:` — a value published
-in two places is two sources of truth for one fact. **The basis, re-derived at head rather than
-carried:** the only instrument that can size this is `hooks/scripts/dispatch-metrics-stop.sh`, and
-aggregated over the 33 records on `#406` the **builder is 11% of dispatch time** (`developer` 1.72 h of
-15.54 h; `agents-lead` 8.67 h, `quality-assurance` 5.15 h). Ruling 1 keeps the gate serial and the lens
-is serial too, so parallelism is applied to that 11% while 89% stays serial — **Amdahl's law with a
-measured fraction, and `wip: 2` is where it stops paying.**
+in two places is two sources of truth for one fact. **The basis:** the only instrument that can size
+this is `hooks/scripts/dispatch-metrics-stop.sh`, and over the 40 most recent Issues — 23 of which carry
+records, 286 records, 198.16 h — the **builder is 2.5% of dispatch time** (`developer` 4.88 h;
+`agents-lead` 129.78 h, `quality-assurance` 59.67 h). Ruling 1 keeps the gate serial and the lens is
+serial too, so parallelism is applied to that 2.5% while the rest stays serial — **Amdahl's law with a
+measured fraction, and `wip: 2` is where it stops paying.** The command is in `docs/loop-mode.md`
+beside the figure, with the window-by-window table showing the conclusion does not depend on the
+corpus chosen.
 
-**Bound that figure hard: it is TWO Issues, not a sample.** Re-derived across fourteen recent Issues,
+~~aggregated over the 33 records on `#406` the **builder is 11% of dispatch time**~~ — **struck
+2026-09-11: TRUE of that one Issue and published as though it were the basis.** `#406`'s own figure
+reproduces exactly and is kept, scoped to `#406`, in the record. The corpus-wide number is **lower**,
+so the correction moves the argument in its own favour — which is the only reason it is safe to make
+in the same slice that relies on it.
+
+~~**Bound that figure hard: it is TWO Issues, not a sample.** Re-derived across fourteen recent Issues,
 **two** carry dispatch records at all (`#406` with 33, `#437` with 3) and twelve carry none — and
 `#437`'s split has **zero** builder dispatches, so it lowers the builder's share rather than raising
 it. **Nothing can size `wip` from data until the instrument is written on most work**, and fixing that
-is not this slice.
+is not this slice.~~
+
+**STRUCK 2026-09-11 — FALSE, it shipped without the command that produced it, and its error ran in the
+direction that excused this slice's own scope.** The gate falsified it: over the fourteen most recent
+**closed** Issues, **nine** carry dispatch records, not two. Re-derived here rather than accepted —
+that window reproduces exactly (`#438` 8 · `#437` 3 · `#434` 3 · `#426` 1 · `#423` 1 · `#421` 5 ·
+`#419` 3 · `#416` 6 · `#413` 12 = **42 records**). **The instrument is written on most work, and the
+sentence claiming otherwise was propping up a convenient conclusion.**
+
+**The corrected basis, with the command that produced it, over the widest corpus that can be
+enumerated in one pass:**
+
+```
+python3 -c '
+import subprocess, json, re, collections
+R = "tedeuxx/tadeumendonca-skills"
+g = lambda *a: subprocess.check_output(["gh"] + list(a), text=True)
+nums = json.loads(g("issue","list","--repo",R,"--state","all","--limit","40",
+                    "--json","number","--jq","[.[].number]"))
+agg, cnt, carry = collections.Counter(), collections.Counter(), 0
+for n in nums:
+    bodies = json.loads(g("issue","view",str(n),"--repo",R,"--json","comments","--jq",
+        "[.comments[]|select(.body|contains(\"dispatch-metrics:\"))|.body]"))
+    if bodies: carry += 1
+    for b in bodies:
+        for a, d in zip(re.findall(r"agent_type:\s*([^\n]+)", b),
+                        re.findall(r"duration_seconds:\s*([0-9.]+)", b)):
+            k = a.strip().strip("`"); agg[k] += float(d); cnt[k] += 1
+t = sum(agg.values())
+print("issues=%d carrying=%d records=%d total=%.2fh" % (len(nums), carry, sum(cnt.values()), t/3600))
+for k in sorted(agg, key=lambda x: -agg[x]):
+    print("  %-40s n=%-4d %7.2fh %5.1f%%" % (k, cnt[k], agg[k]/3600, 100*agg[k]/t))
+'
+# issues=40 carrying=23 records=286 total=198.16h
+#   agents-lead        n=154  129.78h  65.5%
+#   quality-assurance  n=84    59.67h  30.1%
+#   developer          n=18     4.88h   2.5%   <- the only share parallel DEVELOPMENT touches
+#   product-lead       n=20     2.95h   1.5%
+#   tech-lead          n=6      0.82h   0.4%
+```
+
+**The builder is 2.5% of dispatch time over that corpus** — not 11.07%, and **lower**, which is why
+the conclusion survives its own correction: parallelising the builder pays *less* than the first
+delivery claimed, so **`wip: 2` is conservative rather than aggressive.**
+
+**The conclusion does not depend on the window, and that is worth more than any single figure.** Every
+corpus that can be constructed here puts the builder at or below the original 11.07%:
+
+| corpus | issues carrying records | records | builder share |
+|---|---|---|---|
+| `#406` alone | 1 | 33 | **11.07%** |
+| 14 most recent **all-state** | 7 | 24 | **0.0%** |
+| 14 most recent **closed** (the gate's window) | 9 | 42 | **4.4%** |
+| 40 most recent **all-state** | 23 | 286 | **2.5%** |
+
+**One disagreement recorded rather than absorbed.** The gate's finding is correct on the half that
+blocks — *"nine of fourteen, not two"* — and I reproduce that exactly. Its **replacement aggregate does
+not reproduce**: it published *"across all nine … 89 records, 30.48 h … 9.6%"*, while the nine Issues
+it itself lists sum to **42** records and **12.61 h**, giving **4.4%**. I could not construct any
+window that returns 89. **The direction is identical and every window agrees with it**, so nothing
+downstream changes; the figures above are mine, with the command, and the gate's are cited as its own.
+
+**What is still true, and it is the part the struck sentence buried:** `#406`'s own 11.07% is sound and
+is kept **scoped to one Issue**, where it was measured. `loop`-typed Issues run heavy lens work, so the
+builder's share is smaller there than on `product` or `content` — which is the one direction that would
+argue `wip` **up**, and it is bounded by the 2.5% corpus above, which already mixes the lanes.
 
 **What breaks FIRST at WIP > 1, priced here because it is a contract input — and it is not the gate.**
 `permission-guard.sh` rule 7c head-scopes the **gatekeeper's** verdict per PR: it fetches `headRefOid`
