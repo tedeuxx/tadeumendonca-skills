@@ -5244,6 +5244,82 @@ the parallelism.**
 instructions, and the head-scoping is an instruction with one observation behind it.** That is the
 honest state, and it is why each rule is written where the actor who must obey it actually reads.
 
+## Amendment (2026-09-11, thirty-fifth) — a FOURTH rite reads the audience, anchored to the retrospective rather than to a clock, and its two silences print different words (#401)
+
+**Deciders:** the owner — two rulings, quoted below. Written by `agents-lead`, which is this lane's
+intake and, since #223, the author of loop/machinery records. Stress-tested pre-implementation by the
+same lens, which is the asymmetry #401 ran under and is named here rather than implied: on a `loop`
+diff the reviewing lens and the building lens are one context, and what compensates is the gate's own
+fresh review, not a second opinion inside the slice.
+
+**What is decided.**
+
+1. **`commands/funnel-review.md` is a fourth rite.** It reads one period's published funnel end to end
+   — reach, click, read, share, contact — against the pieces published in that period, and returns at
+   most **two** findings. Driver: `product-lead`, for the reason the thirtieth amendment already
+   settled for `/sprint-review` — it holds the reader's and the market's side, and the owner named that
+   view for exactly this work.
+2. **Its cadence is the retrospective's, not a clock of its own.** Owner ruling, verbatim: *«a
+   avaliacao de metricas considerando que deveriamos estar trabalhando em sprints de 1 semana deveria
+   ser feita no momento da sprint retrospective acho.»* The iteration length he named is one week. The
+   order becomes `/sprint-review` → `/funnel-review` → `/sprint-retrospective` → `/sprint-planning`,
+   on the thirtieth amendment's own argument: the retrospective feeds each consulted persona its own
+   artifacts, so a report produced after the consultation is evidence the consultation cannot read.
+3. **The Scrum naming set is NOT reopened.** The thirtieth amendment recorded it complete at three,
+   and that stands: Scrum has no event for reading an audience, so this rite carries no Scrum name and
+   imports no Scrum expectation. **A fourth rite is not a fourth ceremony**, and everything the mode
+   contract says about *"the three rites"* at a container boundary is unchanged — this one runs where
+   the retrospective runs and inherits that answer rather than adding a case to it.
+4. **No credential is held, and none is owed.** Owner ruling, verbatim: *«hoje o chrome do host esta
+   autenticado. o claude in chrome consegue acessar.»* He was offered a harness-held read credential
+   and an attended paste, and took **neither** — the incomplete option set is recorded rather than
+   smoothed over. Nothing is stored and nothing is granted to this plugin, so the credential-surface
+   examination the rejected option would have owed is **not owed**.
+5. **The rite's two silences print different literals.** Ruling 4's consequence is that the rite is
+   **conditionally collectable**: with no authenticated session it reads nothing. So
+   `FUNNEL-REVIEW-NOT-COLLECTED` is printed with **no findings section at all**, and
+   `FUNNEL-REVIEW-RAN` with one that may say it is empty. Neither literal is a substring of the other;
+   one suite runs both branches in one pass, and every arm was calibrated by mutating the source.
+
+**Why a separate rite rather than a section of the retrospective.** That rite's mechanism is that each
+consulted persona reasons from **its own** artifacts, and the funnel is nobody's artifact — folding an
+audience reading into it would put evidence in the consultation that no consulted context produced.
+The same argument the thirtieth amendment made for keeping the product sweep separate, applied to a
+third class of finding.
+
+**Options rejected, each on a measurement rather than a preference.**
+
+- **A harness-held GA4/LinkedIn read credential** — the owner's ruling. It is the only option that
+  would have made the rite unconditionally fireable, and the price was a stored secret and a new
+  surface to audit.
+- **A clock of its own, as a fifth `cadence-interval-days` axis** — rejected: a per-rite interval field
+  with one member is a configuration surface with no reader. The record gains one `cadence-rite:` line
+  instead, which gives the store a clock without a second axis.
+- **Deriving *not collected* from *no figures*** — rejected, and this is the sharpest rejection in the
+  slice. An empty period and an unread period produce the same absence of data, so the declaration has
+  to be made by the only actor that can observe the condition (the collector) and has to **win** over
+  anything else in the file. A collection file declaring `collected: no` with figures beneath it
+  prints none of them; the suite asserts exactly that, because otherwise the declaration is decoration.
+- **A gate, a verdict, or a threshold on any figure** — rejected on this loop's own rule: audience
+  judgement has no ruler, and a gate with no ruler grades taste. The suite asserts that neither the
+  rite nor its script carries a verdict literal or a decision field.
+
+**What nothing enforces, per decision.**
+
+| decision | what actually holds it |
+|---|---|
+| the rite runs at all | **nothing.** The retrospective names the moment; that is an instruction in a command file. The clock carrier **notices** that the report is stale and cannot dispatch |
+| anything was actually read | **nothing, and no layer could.** The browser route reaches neither registered matcher (`Bash`, `mcp__.*`), so a fabricated collection file is byte-identical to a real one |
+| a report is paired with its collection | **nothing** |
+| the two-finding cap | **`scripts/funnel-review.test.sh`, over LANDED artifacts only** — a period nobody reported is invisible to it, and no shell can count findings in prose |
+| every figure carries its n and its ceiling | **the script, by construction** — a figure without a numeric sample size is printed as unusable rather than as a figure, and the suite calibrates that by mutating the source |
+| the two literals stay distinct | **the suite**, running both branches in one pass |
+
+**By this loop's own test — *would something stop me, or only my memory?* — the rite is an
+instruction.** What changed is narrower and is the whole of the claim: the analysis is repeatable with
+no network and no credential, the baseline has a tracked home where none existed, and two states that
+used to look identical now print different words.
+
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
   [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) · the DoD is

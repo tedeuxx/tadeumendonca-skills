@@ -91,6 +91,28 @@ loop-first detector and called *"a heuristic and the weakest part"*. **The artif
 second firing idempotent rather than duplicative**: step 4's files already exist, so the second run
 finds them and appends nothing.
 
+## `/funnel-review` runs at THIS moment — the owner anchored it here (#401)
+
+**Owner ruling, 2026-09-11, verbatim:** *«a avaliacao de metricas considerando que deveriamos estar
+trabalhando em sprints de 1 semana deveria ser feita no momento da sprint retrospective acho.»*
+
+**It is a separate rite, not a step of this one, and the distinction is load-bearing.** This rite
+consults the contexts that ran about the **method**; `/funnel-review` reads the **audience** — one
+period's published funnel, end to end, against the pieces published in it. Folding it in would put an
+audience reading inside a consultation whose whole mechanism is that each persona reasons from its own
+artifacts, and the funnel is nobody's artifact.
+
+**Run it BEFORE the consultation**, for the reason `/sprint-review` already runs before it: its report
+is evidence step 3 can feed back, and a report produced after the consultation is evidence the
+consultation could not read. The full order is `/sprint-review` → `/funnel-review` →
+`/sprint-retrospective` → `/sprint-planning`.
+
+**Nothing fires it either, and its collection step can fail in a way this rite's cannot.** It reads
+through the owner's own already-authenticated browser (owner ruling, 2026-09-10) — no credential is
+held by the harness — so with no authenticated session it reads nothing and says so in a distinct
+literal. **A funnel report reading `FUNNEL-REVIEW-NOT-COLLECTED` is not a finding about the funnel and
+must not be fed to step 3 as one.**
+
 ## Step 1 — the scope record, written before any consultation
 
 **`agents-lead` writes `docs/retrospective/<iteration>/00-scope.md` first**, and it contains **query

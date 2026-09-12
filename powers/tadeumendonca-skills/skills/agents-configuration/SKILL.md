@@ -1246,15 +1246,27 @@ condition; it is stated once, there, rather than twice.
 file every persona carries always-on** — a persona that read *"one built and one owed"* would not reach
 for a rite that exists, which is the same damage the struck planning sentence did below.
 
-**The closing ceremonies are two, and they are complementary rather than overlapping.**
+~~**The closing ceremonies are two, and they are complementary rather than overlapping.**~~ **Three
+since #401, and the sentence is struck rather than edited because this is the always-on file: a
+persona that read *"two"* would not reach for the third.**
 `/sprint-retrospective` is the **method** half — the personas that ran, consulted alone, each reasoning
 from its own artifacts. `/sprint-review` (#379) is the **product** half — a bounded sweep of the running
-site, driven by `product-lead`, the only persona holding a browser. **Each finds none of the other's
-class**, which is why the split is two rites and not two sections of one.
+site, driven by `product-lead`, the only persona holding a browser. **`/funnel-review` (#401) is the
+AUDIENCE half** — one period's published funnel read end to end, against the pieces published in it,
+driven by the same persona and capped at two findings. **Each finds none of the others' class**, which
+is why these are three rites and not sections of one.
 
-**The order is `/sprint-review` → `/sprint-retrospective` → `/sprint-planning`** — Scrum's own, which is
-the point of the names, and mechanically right for one more reason: the retrospective feeds each
-consulted persona its own artifacts and the sweep's report is one of them.
+**The order is `/sprint-review` → `/funnel-review` → `/sprint-retrospective` → `/sprint-planning`** —
+Scrum's own for the three that carry Scrum names, and mechanically right for one more reason: the
+retrospective feeds each consulted persona its own artifacts, and both earlier reports are among them.
+
+**`/funnel-review` is a fourth RITE and not a fourth SCRUM CEREMONY, and the two must not be
+collapsed.** The Scrum naming set is complete at three (ADR-0002's thirtieth amendment); Scrum has no
+event for reading an audience, so this one carries no Scrum name and imports no Scrum expectation. It
+is anchored to the retrospective's moment by the owner's ruling (2026-09-11) rather than to a clock of
+its own. **Everything the mode contract says about *"the three rites"* at a container boundary is
+unchanged by it** — this rite runs where the retrospective runs, so it inherits that answer rather than
+adding a case to it.
 
 **What the plural does NOT now mean.** The sweep declares itself a **lower bound** — routes are derived
 from the product's own generator and assets are read off the page, but viewports are enumerated and an

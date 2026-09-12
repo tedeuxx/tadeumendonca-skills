@@ -21,6 +21,7 @@ cadence-interval-days:
 cadence-rite: docs/retrospective /sprint-retrospective here
 cadence-rite: docs/planning /sprint-planning here
 cadence-rite: docs/iteration-sweep /sprint-review sibling
+cadence-rite: docs/funnel-review /funnel-review here
 
 **`cadence-interval-days` is UNDECLARED, and that is the state this file ships in.** The owner
 authorised the carrier — *«Constrói o gatilho por relógio»*, 2026-09-09, #406 — and **was not asked for
@@ -56,9 +57,50 @@ way to make it quiet is to declare a value, in one line, in a commit.
   carrier lie in the direction of alarm.
 
 **Why the set is declared here rather than written into the hook.** The rite set moves — the product
-sweep was added at #379 — and a carrier that needs editing when a rite is added is a carrier that goes
-stale silently. Declaring it puts the observed scope in one place, in a diff, beside the interval it is
-used with.
+sweep was added at #379, the funnel review at #401 — and a carrier that needs editing when a rite is
+added is a carrier that goes stale silently. Declaring it puts the observed scope in one place, in a
+diff, beside the interval it is used with. **The funnel review is the first rite added since that
+sentence was written, and it cost the carrier nothing: one line here, no edit to
+`hooks/scripts/cadence-notice.sh`.** That is the property being claimed, now exercised once.
+
+### `/funnel-review` has NO interval of its own — the owner anchored it to the retrospective
+
+**Owner ruling, 2026-09-11, verbatim:** *«a avaliacao de metricas considerando que deveriamos estar
+trabalhando em sprints de 1 semana deveria ser feita no momento da sprint retrospective acho.»* So the
+rite's cadence is the retrospective's, and the iteration length he named is **one week**. There is no
+per-rite interval field in this record and none is added — a second interval axis for one rite would
+be a configuration surface with one member and no reader.
+
+**Then why declare it here at all, if the clock is someone else's?** For one thing the retrospective's
+own line cannot say: **whether the funnel half actually ran.** The two roots move independently, so a
+retrospective that landed while the funnel read was skipped — which is exactly what happens when the
+browser is not authenticated — shows as one fresh root and one stale one in the same notice. That
+divergence is the only observable this loop has for a rite whose collection route nothing can watch.
+
+**The limit, because the line is weaker than it looks — and the masking is SYMMETRICAL.** `newest` in
+the carrier is a **maximum over every `here` root**, and the elapsed-interval arm compares that single
+maximum against the declared interval. So once an interval is declared:
+
+| the roots | the notice |
+|---|---|
+| funnel 90d stale · retrospective 1d fresh | **silent** |
+| funnel 1d fresh · retrospective 90d stale | **silent** |
+| both stale | fires |
+
+**Measured by firing the hook rather than by reading it** (#459's gate, on the diff that added this
+line). The second row is the one worth reading twice, and it is what the first form of this paragraph
+got wrong by describing the masking one-directionally: **any root can mask any other, so declaring a
+third `here` rite adds a masking source for the two that were already declared.** That is a cost this
+slice imposes on `/sprint-retrospective` and `/sprint-planning`, not only a limit it inherits.
+
+**Today the interval is undeclared, so the undeclared-interval arm prints every per-rite line once a
+day and no masking occurs.** Declaring a number makes the carrier quieter, not louder — which is the
+opposite of what declaring a threshold usually means, and is why it is written here rather than left
+to be discovered by whoever declares one.
+
+**The repair is a per-rite comparison inside the hook, and it is not this slice.** That hook's
+mode-blindness is load-bearing for the mode contract's central measurement, so touching it is a review
+that has to happen before it is written. **Named here as a known bound rather than a discovery.**
 
 **Measured at the time this file landed**, and it is the argument for the carrier rather than a detail:
 
@@ -88,7 +130,25 @@ returned nothing** — the debounce — and `git status --porcelain` stayed empt
 in `.git/cadence-notice/` and never in the tracked tree. **The numbers move with the calendar; the
 shape does not, and the command above is what re-derives both.**
 
-**Two of the three rite artifact roots have never existed in this tree.** The rites' only other trigger
+**Re-derived on 2026-09-11 (#401), against a set that is now FOUR**, because a dated measurement
+beside a set that has grown reads as current:
+
+```
+for p in docs/retrospective docs/planning docs/iteration-sweep docs/funnel-review; do
+  printf '%s -> ' "$p"; git log -1 --format=%cI -- "$p"; echo
+done
+# docs/retrospective   -> 2026-08-31T11:26:12-03:00
+# docs/planning        -> 2026-09-11T19:05:23-03:00
+# docs/iteration-sweep -> (empty)
+# docs/funnel-review   -> (empty, at the commit this line was written; the store lands in this slice)
+```
+
+**`docs/planning` moved from never-written to written**, which is the carrier reporting a real change
+rather than a fixed picture — and it is the reason the figures above are re-derived here rather than
+carried. **`docs/iteration-sweep` is declared `sibling`** and is reported as unobservable from this
+tree whatever that date says, so its emptiness here is not evidence about that rite at all.
+
+**Two of the three rite artifact roots had never existed in this tree when the carrier landed.** The rites' only other trigger
 is a drain reaching exhaustion of its entry snapshot, which by this loop's own test is an instruction
 and not a mechanism — **so the honest comparison for this carrier is CLOCK VERSUS NOTHING, never clock
 versus boundary**, and it is the comparison the owner was given in the option he answered.
