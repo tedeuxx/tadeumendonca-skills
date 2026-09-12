@@ -86,6 +86,21 @@
 # matters more here: nobody has enumerated any MCP server's tools, so a read-shaped verb that is
 # actually a write must degrade into an admission and not into an assertion.
 #
+# AND SAY THE REST OF THAT SENTENCE, BECAUSE THE HALF ABOVE READS AS A GUARANTEE AND IS NOT ONE: a
+# write-shaped verb this list does not spell lands in `?`, and `?` STILL FIRES NOTHING. So for every
+# name outside the patterns below the original defect survives exactly as it was — the call is
+# reported only if some OTHER call already crossed the threshold, and a turn holding nothing but
+# unspelled MCP writes is as silent as it was before this arm existed. The degradation is honest; it
+# is not coverage.
+#
+# ONE COUPLING NOBODY KEEPS IN SYNC, AND IT IS WORTH KNOWING BEFORE EITHER LIST IS EDITED. The `W`
+# patterns below are today a SUPERSET of `mcp-guard.sh`'s own input-carrying deny list
+# (`evaluate_script`, `fill`, `fill_form`, `type_text`, `upload_file`, `handle_dialog`, `drag`) plus
+# `click`. That agreement is real and was verified on review — and NOTHING HOLDS IT. A tool added to
+# that hook's deny list is invisible here, and a verb added here is invisible there, with both suites
+# green. Same shape, and the same remedy, as the `permission-guard.sh` note further down: the two
+# files are a checklist for each other, held by review and by nothing else.
+#
 # ── THE TWO THINGS THIS ARM IS NOT ────────────────────────────────────────────────────────────
 # 1. IT GATES NOTHING AND FIRES AFTER THE ACT. This is a `Stop` hook; every exit path is `exit 0`.
 #    The post has already landed when the notice is composed. Nothing here refuses a publish, and

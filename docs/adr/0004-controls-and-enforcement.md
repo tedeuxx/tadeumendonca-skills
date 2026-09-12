@@ -5789,12 +5789,102 @@ jq -r '.projects | to_entries[] | select(.value.mcpServers.linkedin != null)
 
 **`~/.claude.json` is outside every repository. It rides no pull request, no gate reads it, and nothing
 in this plugin can observe the resolved version, notice a major bump, or tell anyone the package went
-quiet.** The measured liveness signal at the time of the ruling — a single maintainer, no declared
-licence, 43 releases across four majors between 2026-02-01 and 2026-06-10, and **nothing published
-since** — is a reason to watch, and no watcher exists.
+quiet.** The measured liveness signal at the time of the ruling — a single maintainer, **43 releases
+across three majors (2, 3 and 4) between 2026-02-01 and 2026-06-10, and nothing published since** — is
+a reason to watch, and no watcher exists.
+
+```
+python3 -c "
+import json, urllib.request
+d = json.load(urllib.request.urlopen('https://pypi.org/pypi/linkedin-scraper-mcp/json'))
+rel, info = d['releases'], d['info']
+dates = sorted(f['upload_time_iso_8601'] for v in rel for f in rel[v])
+print('releases', len(rel), '| file-less', [v for v, f in rel.items() if not f])
+print('majors  ', sorted({v.split('.')[0] for v in rel}))
+print('window  ', dates[0][:10], '->', dates[-1][:10])
+print('license ', repr(info.get('license')), '| license_expression', repr(info.get('license_expression')),
+      '| License classifiers', len([c for c in info.get('classifiers', []) if c.startswith('License')]))
+"
+# releases 43 | file-less []            <- no file-less 1.x hides behind the count
+# majors   ['2', '3', '4']
+# window   2026-02-01 -> 2026-06-10
+# license  None | license_expression 'Apache-2.0' | License classifiers 0
+```
+
+**Both calibrations, because a figure with no calibration is an anecdote about its own members.** The
+majors selector is not capped at three — the same expression returns **6** for `django` and **2** for
+`boto3`. And the licence question is a **three-field** one: `requests` returns
+`license='Apache-2.0'`, `license_expression=None`, **1** License classifier — the exact inverse of this
+package on two of the three fields.
+
+### Correction (2026-09-11) — two values in the sentence above were published false, and the owner ruled having been told one of them
+
+**Struck rather than silently edited, because a decision was taken while one of them was on the table.**
+
+- ~~*"four majors"*~~ — **three**: 2, 3 and 4. All 43 releases carry files, so nothing hides behind the
+  count.
+- ~~*"no declared licence"*~~ — **Apache-2.0**, declared through PyPI's `license_expression` field
+  (PEP 639). The reading that produced the error took the **deprecated `license` key**, which is `null`
+  for this package.
+
+**The transferable half, and it is why this correction is a paragraph rather than two words: a licence
+on PyPI has THREE surfaces and this package populates exactly one of them.** `license` (deprecated),
+`license_expression` (PEP 639), and the `License ::` trove classifiers. Two of the three return nothing
+here — so *"no declared licence"* was not a careless read of one field, it was a correct read of two
+fields out of three. **No single field is a safe read in either direction**, which the `requests`
+calibration above demonstrates from the opposite side.
+
+**What does NOT change: the ruling stands.** He ruled on **liveness** — *«mcps depreciados para mim tem
+maior risco»* — and on the direction of the pinning risk. Neither turns on a licence or on a major
+count, and correcting these does not reopen *«nao tem problema acompanhar o latest»*.
+
+**What he is entitled to know, recorded here rather than left in a comment thread: he was told "no
+declared licence" when he ruled, and the package is Apache-2.0.** The figures originate in the
+2026-09-11 ruling comment on the Issue and are wrong there too. **That comment is not rewritten** — it
+records what he was told on the day, which is itself the fact — and this record is the artifact a later
+reader loads, so this is where it has to be true.
+
+**How the defect got here, because the mechanism is the point and the true-and-closing answer is
+available:** *"a dispatch carried a figure it did not measure"* is true and explains nothing. The
+mechanism is that the figures arrived **inside a dispatch brief, asserted, and without the command that
+produced them** — which is the exact failure the root brief's own *a premise you assert in a dispatch
+brief BECOMES the design* block names, and the exact case this repository's *publish the number with its
+command* rule exists to make impossible. Had either value shipped with the `python3 -c` above beside it,
+the first reader to run it would have seen the mismatch. **The repair is not "check figures harder"; it
+is that the falsifier now ships in the same paragraph**, which is why the block above is inline and
+runnable rather than described.
 
 **Unmeasured and carried as such: whether the server exposes a publish tool today.** The declaration was
 read; the server was not launched.
+
+### Which end state this was built for — the extension route, answered rather than left hanging
+
+**The question, raised by the gate on the round that reviewed this: is the end state *the extension
+route settled by one deliberate post plus a transcript read*, or *nothing on both routes, stated
+plainly*?**
+
+**It was built for the second, and that is the end state.** The ruling chose the option that is nothing
+on both routes, deliberately. The `W` arm does not change that: it makes **one** route observable
+**after** the act, in a hook that gates nothing. So the containment is the same with the arm as without
+it — *a URL pattern plus a human in the chair* — and any reading in which this slice closed a gap is
+wrong.
+
+**The probe is still worth running, and it must not be sold as containment.** One deliberate
+extension-driven post, then a read of that session's transcript for a corresponding `tool_use`, settles
+whether the census is **silent** on that route or **structurally blind** to it. **Those two have
+different remedies and the difference is invisible from the notice**: if the act appears, a future arm
+can reach it; if it does not, no arm ever can and the only honest thing to write is that the route is
+unobservable by construction.
+
+**What the probe would NOT buy, stated so the next reader does not over-read it:** even if the act does
+appear in the transcript, the census still fires at `Stop`, still gates nothing, and still reports after
+the post has landed. **The probe upgrades a hypothesis to a fact about what is KNOWABLE. It changes
+nothing about what is CONTAINED**, and nothing in this capability can, for an act performed by a
+product this harness does not observe.
+
+**So it is its own item, not a follow-up owed by this one** — and by the standing rule that only the
+owner opens work, whether it is worth a deliberate public post in his name is his call and not this
+record's.
 
 ### What this does not claim
 
