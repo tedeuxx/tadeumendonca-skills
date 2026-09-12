@@ -1743,7 +1743,11 @@ check ALLOW "boundary: quoted arg stays inert" "npm run finish -c 'git push orig
 echo "--- the pre-existing floor still holds ---"
 check DENY  "terraform apply"               "terraform apply -auto-approve"
 check DENY  "terraform destroy"             "terraform -chdir=iac destroy"
-check DENY  "force push (3b, reverted #383)"  "git push --force origin feat/x"
+# DECLARED CWD, NOT INHERITED (#453). Rule 7 sits ABOVE 3b and its HEAD limb answers any `git push`
+# whose target resolves to a trunk checkout, whatever refspec the command names. So on a runner
+# standing on `main` -- which under `trunk-single-env` is the branch this loop tells you to be on --
+# rule 7 answered this payload and 3b never ran, while the arm stayed green because both rules deny.
+check_from DENY "$TFEAT" "force push (3b, reverted #383)"  "git push --force origin feat/x"
 check DENY  "reset --hard"                  "git reset --hard HEAD~1"
 check DENY  "rm -rf"                        "rm -rf build"
 check DENY  "skip-permissions bypass"       "claude --dangerously-skip-permissions"
@@ -1800,12 +1804,20 @@ echo "--- 3a/3b: BOTH halves DENY again (#383 S3-revert); the split survives in 
 # collapsed rule lands, not a property of the collapse. Every verdict arm stays green in both.
 check DENY  "3a: reset --hard, no other copy"  "git reset --hard HEAD~1"
 check DENY  "3a: reset --hard behind -C"       "git -C /some/repo reset --hard origin/main"
-check DENY  "3b: --force"                      "git push --force"
-check DENY  "3b: --force-with-lease"           "git push --force-with-lease origin feat/x"
-check DENY  "3b: short -f"                     "git push -f origin feat/x"
+# THESE THREE DECLARE THEIR CWD (#453), AND THE DECLARATION IS THE ASSERTION. An arm that says
+# "3b answers this" is only asserting that while rule 7 abstains, and rule 7 abstains only when the
+# push's target resolves to a non-trunk branch. Inheriting the runner's HEAD left that precondition
+# ambient: from a `main` checkout all three were answered by rule 7's HEAD limb and stayed green,
+# because 3b and rule 7 agree on the verdict and a `check` sees nothing else. Measured at
+# 783faaf0, mutating the SOURCE (3b's `deny` commented out) and diffing each runner's own failing
+# arm names rather than subtracting totals: 11 arms redden from a feature runner, 3 from `main`.
+# `$TFEAT` is the fixture at the top of this file, now alive for the whole suite.
+check_from DENY "$TFEAT" "3b: --force"                      "git push --force"
+check_from DENY "$TFEAT" "3b: --force-with-lease"           "git push --force-with-lease origin feat/x"
+check_from DENY "$TFEAT" "3b: short -f"                     "git push -f origin feat/x"
 # The split itself, asserted where a verdict cannot see it.
 check_reason DENY "3a still speaks about uncommitted work" "no other copy"  "git reset --hard HEAD~1"
-check_reason DENY "3b still speaks about a rewritten ref"  "force-push"     "git push --force origin feat/x"
+check_from_reason DENY "$TFEAT" "3b still speaks about a rewritten ref"  "force-push" "git push --force origin feat/x"
 # The spelling NO settings entry can express, because `:*` is a TOKEN boundary (measured #383 S3): the
 # `git -C` prefix, which is itself allowlisted. That is the whole reason 3b is an ASK rather than a
 # removal — removed, it would execute in silence.
@@ -1816,7 +1828,9 @@ check_reason DENY "3b still speaks about a rewritten ref"  "force-push"     "git
 # `Bash(git push origin main:*)` is in both deny lists and a token boundary matches an entry plus any
 # trailing tokens, measured 2026-09-05.)
 check DENY  "3b: behind an allowlisted -C"     "git -C /some/repo push --force origin feat/x"
-check ALLOW "3: a plain push is neither half"  "git push origin feat/x"
+# THE ONE ARM WHOSE VERDICT MOVED, not just its reason: inherited, it read ALLOW from a feature
+# runner and DENY from `main`, so it was one of the three visible reds a local run produced.
+check_from ALLOW "$TFEAT" "3: a plain push is neither half"  "git push origin feat/x"
 check ALLOW "3: --soft is not --hard"          "git reset --soft HEAD~1"
 # KNOWN DEFECT, PRE-EXISTING, ASSERTED AS IT IS RATHER THAN AS IT SHOULD BE. Rule 3 matches `$cmd`,
 # not `$bare`, so a commit message ABOUT the act is treated as the act — the same false positive the
@@ -1867,13 +1881,47 @@ check DENY  "7 wins: short -f, trunk"          "git push -f origin master"
 # The non-trunk side. These are 3b's, and they are DENY again since the S3-revert — if any of them
 # returns ASK, the downgrade has come back; if any returns ALLOW, 3b has been removed rather than
 # reverted, and `git -C <dir> push --force` executes in silence.
-check DENY  "3b keeps: non-trunk ref"          "git push origin feature-x --force"
+# TWO OF THESE THREE DECLARE THEIR CWD AND THE MIDDLE ONE DOES NOT, WHICH IS THE WHOLE SHAPE OF THIS
+# SLICE IN THREE LINES. `git -C /some/repo` names a target that does not resolve, so rule 7 reports
+# no branch and abstains on every runner -- it was already hermetic, by accident of carrying the
+# very form #446 prescribes. Its two neighbours named no target, inherited the runner's HEAD, and
+# were answered by rule 7 from a `main` checkout. Left as it is rather than converted for
+# symmetry: its payload is the assertion, and rewriting it to declare a cwd would delete the one
+# arm in this block that shows the `-C` form doing the work.
+check_from DENY "$TFEAT" "3b keeps: non-trunk ref"          "git push origin feature-x --force"
 check DENY  "3b keeps: non-trunk behind -C"    "git -C /some/repo push --force origin feature-x"
-check DENY  "3b keeps: 'maintenance' is not 'main'" "git push origin maintenance --force"
+check_from DENY "$TFEAT" "3b keeps: 'maintenance' is not 'main'" "git push origin maintenance --force"
 # THE ORDERING ITSELF. Rule 7's message prescribes branching and opening a PR; 3b's prescribes not
 # rewriting a pushed ref. Both are correct advice for their own act and wrong for the other's.
 check_reason DENY "7 answers the TRUNK force-push"     "pushing to the trunk" "git -C /some/repo push --force origin main"
-check_reason DENY "3b answers the NON-TRUNK force-push" "force-push"        "git push origin feature-x --force"
+check_from_reason DENY "$TFEAT" "3b answers the NON-TRUNK force-push" "force-push" "git push origin feature-x --force"
+
+# ── #453: the collision those nine arms were standing on, asserted instead of inherited ───────────
+#
+# WHAT MAKES THE `$TFEAT` ABOVE LOAD-BEARING RATHER THAN DECORATIVE. Every converted arm asserts "3b
+# answers this", and 3b only gets to answer because rule 7 abstained. These two arms assert the other
+# side of that precondition: the SAME payloads, from a checkout on the trunk, are answered by rule 7
+# instead. Without them the declaration is invisible -- dropping `"$TFEAT"` from any arm above leaves
+# the suite green on a feature runner and silently restores the defect this slice removed.
+#
+# THEY ASSERT A KNOWN OVER-BLOCK AS IT IS, NOT AS IT SHOULD BE -- the convention rule 3's own
+# "KNOWN DEFECT" arms use, 60 lines up. Both payloads name an EXPLICIT non-trunk refspec, so neither
+# push can land on the trunk whatever HEAD says; rule 7's HEAD limb denies them anyway, because it
+# runs whenever the refspec limb did not fire and reads no refspec of its own. Measured at 783faaf0
+# against the fixtures below this file's own `check_from`:
+#
+#   payload                            cwd=$TFEAT            cwd=$TMAIN
+#   git push --force origin feat/x     deny, rule 3b         deny, rule 7 HEAD limb
+#   git push origin feat/x             ALLOW (no rule)       deny, rule 7 HEAD limb
+#
+# WHOSE QUESTION THAT IS, AND IT IS NOT THIS ONE'S. #446 merged with a named residual -- whether rule
+# 7 should resolve a bare push from a cwd at all -- and this is that residual's neighbour rather than
+# this Issue's object. #453 is about the INSTRUMENT: whether the suite's answer depends on where it
+# was run. Narrowing rule 7's HEAD limb is a change to the FLOOR, with its own probe battery and its
+# own review. When someone makes it, the second arm flips to ALLOW and the first to "force-push",
+# and these comments are how they will know the flip was intended.
+check_from_reason DENY "$TMAIN" "KNOWN OVER-BLOCK: 7's HEAD limb pre-empts 3b" "lands on the trunk" "git push --force origin feat/x"
+check_from        DENY "$TMAIN" "KNOWN OVER-BLOCK: and it denies an explicit feature refspec"        "git push origin feat/x"
 
 echo "--- rule 5: AWS secret writes DENY again (#383 S3-revert); the gh sibling never moved ---"
 # S3 made these ASK on the reparability argument; the revert made them DENY again, because a hook
