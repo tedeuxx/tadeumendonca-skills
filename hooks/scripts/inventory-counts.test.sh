@@ -474,6 +474,12 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # Then 5 → 6 on #379, when `commands/sprint-review.md` shipped the sprint review rite — the third and
 # last of the Scrum-named ceremonies. Typed for the same reason as the other two rites: the fallback
 # route for an iteration worked by hand is a human naming it, and a name is an argument.
+# Then 6 → 7 on #401, when `commands/funnel-review.md` shipped the content-funnel rite. It is NOT a
+# fourth Scrum-named ceremony and the sentence above is not falsified by it — the Scrum naming set is
+# complete and this rite carries no Scrum name, because Scrum has no event for reading an audience.
+# Typed for the same reason the three rites are (a period worked by hand is named by a human), and for
+# one more: its collection step needs an authenticated browser, so the human who has one is the one
+# who knows the rite can run at all.
 #
 # THE ASSERTION IS NOT WEAKER FOR HAVING BEEN BUMPED, and that is the whole reason it is a pinned
 # literal rather than a `-ge`. It exists to catch the ACCIDENTAL root command — a skill dropped one
@@ -489,10 +495,10 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # So the failure this now catches is a LIBRARY SKILL LANDING IN `commands/` — where it is typed-only,
 # never matched, and absent from every count and table in this file.
 root_cmds=$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
-if [ "$root_cmds" -eq 6 ]; then
-  ok "commands/ root — exactly six owner-typed commands (autonomy, new-issue, blueprint, sprint-review, sprint-retrospective, sprint-planning), as the docs enumerate"
+if [ "$root_cmds" -eq 7 ]; then
+  ok "commands/ root — exactly seven owner-typed commands (autonomy, new-issue, blueprint, sprint-review, sprint-retrospective, sprint-planning, funnel-review), as the docs enumerate"
 else
-  bad "commands/ root — $root_cmds file(s); the docs enumerate six owner-typed commands (autonomy, new-issue, blueprint, sprint-review, sprint-retrospective, sprint-planning).
+  bad "commands/ root — $root_cmds file(s); the docs enumerate seven owner-typed commands (autonomy, new-issue, blueprint, sprint-review, sprint-retrospective, sprint-planning, funnel-review).
       A library skill belongs in skills/<name>/SKILL.md — under commands/ it is absent from every count
       and table here, and from the per-family breakdown a reader actually opens."
 fi
@@ -2401,7 +2407,7 @@ skill_stem() {
   esac
 }
 
-ARG_HINT_ALLOWED="autonomy new-issue blueprint sprint-review sprint-retrospective sprint-planning"   # the six the OWNER types; a model-invoked skill has no typed argument
+ARG_HINT_ALLOWED="autonomy new-issue blueprint sprint-review sprint-retrospective sprint-planning funnel-review"   # the seven the OWNER types; a model-invoked skill has no typed argument
 
 # The frontmatter block, exclusive of its `---` fences. Empty for a file that has none, which is what
 # the presence assertion below reads.
@@ -4088,7 +4094,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=54
+BP_HIGH_WATER=55
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
