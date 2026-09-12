@@ -45,6 +45,30 @@ that could not read writes `collected: no <reason>`, and the report prints
 repository's rule is that a number ships with what bounds it or not at all; dropping the malformed
 line instead would hide that a collection run came back wrong.
 
+### `<surface>` is a CLOSED vocabulary, and an unknown one is refused rather than described
+
+| surface | the ceiling that rides with every one of its figures |
+|---|---|
+| `ga4` · `site` | consenting sessions only — this site's banner gates its analytics, so a reader who declined is invisible by design |
+| `linkedin` · `x` | the banner gates nothing there; the figure is platform-reported, with the platform's own unstated sampling |
+| anything else | **`UNDECLARED`** — nothing here knows whether a consent gate applies, so nothing here says |
+
+**The default refuses rather than asserting, and that is a repair rather than a design choice.** The
+first form gave the site's clause to two names and told **every** other string that the consent banner
+gates nothing there — false for `ga`, `site-analytics` or `gsc`, all plausible spellings of a
+site-side surface. A default that asserts a bound it cannot know is worse than one that declines,
+because only the first is quotable. **Adding a surface means adding a row here and a case in
+`scripts/funnel-review.sh`, in the same change**; until then its figures print as unbounded.
+
+### A `*`, `?` or bracket class in any field is a plain character
+
+The analysis script sets `set -f` before it splits a line, so a field is never replaced by filenames
+in whatever directory the script happened to run from. **This is not a defence against an attacker** —
+it is that a `*` in an analytics page path or a campaign name is **ordinary**, and without it the
+published figure was a function of the working directory, with both paths exiting 0 and nothing
+warning. `scripts/funnel-review.test.sh` asserts it from a directory seeded with files that **do**
+match, and proves the trap is live with a control split before reading the script's output.
+
 ## What nothing here enforces
 
 | decision | what actually holds it |
@@ -67,6 +91,6 @@ collected name lexically below this one — lexical rather than chronological on
 date parser here would be a second contract nobody declared. `sprint-02` and `2026-09` both work;
 mixing the two conventions in one store does not, and nothing stops you.
 
-**`2000-01`, `2000-02` and `2000-03` are reserved** — they are the synthetic fixtures under
+**`2000-01` through `2000-05` are reserved** — they are the synthetic fixtures under
 `scripts/fixtures/funnel-review/`, and they are deliberately outside this directory so that a test
 period can never be mistaken for a reading of the real funnel.

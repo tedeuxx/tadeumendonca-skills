@@ -77,14 +77,30 @@ retrospective that landed while the funnel read was skipped — which is exactly
 browser is not authenticated — shows as one fresh root and one stale one in the same notice. That
 divergence is the only observable this loop has for a rite whose collection route nothing can watch.
 
-**The limit, because the line is weaker than it looks.** `newest` in the carrier is a **maximum over
-every `here` root**, and the elapsed-interval arm compares that maximum against the declared interval.
-So once an interval is declared, a funnel root ninety days stale sitting beside a fresh retrospective
-root **cannot fire the notice** — it is visible only in the per-rite body lines, which print whenever
-some arm fires for some other reason. Today the interval is undeclared, so the undeclared-interval arm
-prints those lines once a day and the divergence is visible daily; declaring a number would make it
-quieter, not louder. **Read that as a property of the carrier this rite inherits, not as something
-#401 decided** — changing it means a per-rite comparison inside the hook, which is its own slice.
+**The limit, because the line is weaker than it looks — and the masking is SYMMETRICAL.** `newest` in
+the carrier is a **maximum over every `here` root**, and the elapsed-interval arm compares that single
+maximum against the declared interval. So once an interval is declared:
+
+| the roots | the notice |
+|---|---|
+| funnel 90d stale · retrospective 1d fresh | **silent** |
+| funnel 1d fresh · retrospective 90d stale | **silent** |
+| both stale | fires |
+
+**Measured by firing the hook rather than by reading it** (#459's gate, on the diff that added this
+line). The second row is the one worth reading twice, and it is what the first form of this paragraph
+got wrong by describing the masking one-directionally: **any root can mask any other, so declaring a
+third `here` rite adds a masking source for the two that were already declared.** That is a cost this
+slice imposes on `/sprint-retrospective` and `/sprint-planning`, not only a limit it inherits.
+
+**Today the interval is undeclared, so the undeclared-interval arm prints every per-rite line once a
+day and no masking occurs.** Declaring a number makes the carrier quieter, not louder — which is the
+opposite of what declaring a threshold usually means, and is why it is written here rather than left
+to be discovered by whoever declares one.
+
+**The repair is a per-rite comparison inside the hook, and it is not this slice.** That hook's
+mode-blindness is load-bearing for the mode contract's central measurement, so touching it is a review
+that has to happen before it is written. **Named here as a known bound rather than a discovery.**
 
 **Measured at the time this file landed**, and it is the argument for the carrier rather than a detail:
 

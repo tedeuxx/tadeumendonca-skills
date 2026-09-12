@@ -63,12 +63,22 @@ MAX_FINDINGS=2
 # checkable half — and its TEXT states the bound that actually applies to that surface. A true clause
 # on the wrong surface is a false bound wearing the right word, which is worse than a missing one
 # because it reads as having been thought about.
+#
+# THE VOCABULARY IS CLOSED AND THE DEFAULT REFUSES — both, and the second is the one that matters.
+# The first form of this function gave the site's clause to two names and asserted "the consent banner
+# gates nothing there" for EVERY other string, which is a **fail-open default**: `ga`, `site-analytics`
+# and `gsc` are all plausible spellings of a site-side surface, and each of them would have been
+# published with a positive claim that no consent gate applies. Found by the gate on #459. A default
+# that asserts a bound it cannot know is worse than one that declines to state a bound, because only
+# the first is quotable.
 ceiling_for() {
   case "$1" in
     ga4|site)
       printf 'consent-ceiling: consenting sessions only — the consent banner gates analytics on this site, so a reader who declined is invisible by design' ;;
-    *)
+    linkedin|x)
       printf 'consent-ceiling: does not apply to %s — this figure is platform-reported, the consent banner gates nothing there, and the platform'"'"'s own sampling is unstated and unverifiable from here' "$1" ;;
+    *)
+      printf 'consent-ceiling: UNDECLARED for surface %s — it is not in this store'"'"'s closed surface vocabulary, so nothing here knows whether a consent gate applies to it. Read the figure as unbounded, and declare the surface before quoting it' "$1" ;;
   esac
 }
 
@@ -160,6 +170,23 @@ for f in "$COLLECTED_DIR"/*.tsv; do
   fi
 done
 
+# ── PATHNAME EXPANSION OFF, FROM HERE TO THE END OF THE SCRIPT ───────────────────────────────────
+# The two `set --` splits below are how a `figure:` line is cut into fields, and `set -- $rest` does
+# TWO things in bash, not one: word splitting, which is wanted, and pathname expansion, which is not.
+# A field containing `*`, `?` or a bracket class is replaced by whatever filenames happen to match in
+# the process's working directory — so the published figure becomes a function of where the script was
+# run from, both paths exit 0, and nothing warns.
+#
+# THIS NEEDS NO ATTACKER, which is why it is a defect and not a hypothetical: a `*` in an analytics
+# page path or a campaign name is ordinary, and this collection file is authored by whoever read those
+# surfaces. Found by the gate on #459; the disable comment that used to sit on those two lines is the
+# tell it named — the splitting was decided and the globbing was not, which is an unconscious fail-open
+# rather than a trade.
+#
+# `set -f` must come AFTER the prior-period loop above, which needs its glob, and it stays on to the
+# end because nothing below expands a path.
+set -f
+
 printf '## Figures\n\n'
 
 figures=0
@@ -167,7 +194,7 @@ unusable=""
 while IFS= read -r line; do
   [ -z "$line" ] && continue
   rest="${line#figure: }"
-  # shellcheck disable=SC2086
+  # shellcheck disable=SC2086   # splitting is wanted; globbing is off (`set -f` above)
   set -- $rest
   if [ "$#" -lt 4 ]; then
     unusable="$unusable
@@ -182,7 +209,7 @@ while IFS= read -r line; do
   if [ -n "$prior" ]; then
     pv="$(sed -nE "s/^figure:[[:space:]]+$surface[[:space:]]+$metric[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+).*$/\1 \2/p" "$COLLECTED_DIR/$prior.tsv" 2>/dev/null | head -1)"
     if [ -n "$pv" ]; then
-      # shellcheck disable=SC2086
+      # shellcheck disable=SC2086   # splitting is wanted; globbing is off (`set -f` above)
       set -- $pv
       delta="prior $prior = $1 (n=$2)"
     else

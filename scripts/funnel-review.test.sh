@@ -60,6 +60,17 @@ nc_out="$(run 2000-03)"
 absent_out="$(run 2999-99)"
 first_out="$(run 2000-01)"
 
+# The glob probe's run happens HERE, with the other four, so that the no-network assertion below
+# covers it too — it is the run most likely to reach for something, since it is the only one executed
+# from a foreign working directory. Its own assertions are arms 11 and 12, further down.
+trap_dir="$work/trap"
+mkdir -p "$trap_dir"
+: > "$trap_dir/12345"
+: > "$trap_dir/345"
+ctl_star="$( cd "$trap_dir" && bash -c 'set -- 12*; printf %s "$1"' )"
+ctl_qmark="$( cd "$trap_dir" && bash -c 'set -- 34?; printf %s "$1"' )"
+glob_out="$( cd "$trap_dir" && export PATH="$work/bin:$PATH"; bash "$SCRIPT" 2000-05 --root "$work/root" 2>&1 )"
+
 # ── 1 · the two literals, and a run of each in the same suite ─────────────────────────────────────
 # This is #401's criterion 2 and it is the criterion that matters most: a rite that silently does
 # nothing is indistinguishable from one that ran and found nothing unless the two print DIFFERENT
@@ -201,7 +212,7 @@ fi
 if [ -n "$net_problems" ]; then
   bad "no network — the analysis half reached an external surface" "$net_problems"
 elif [ -s "$work/calls" ]; then
-  ok "no network — four runs made zero calls to curl/wget/gh/nc/ssh/open/osascript (recorder proven live by a direct invocation)"
+  ok "no network — five runs, one of them from a foreign working directory, made zero calls to curl/wget/gh/nc/ssh/open/osascript (recorder proven live by a direct invocation)"
 else
   bad "no network — the recorder never records" "the emptiness above proves nothing; this is the vacuity case, not a pass"
 fi
@@ -258,6 +269,62 @@ elif [ -z "$verdict_problems" ]; then
   ok "no verdict — neither the script nor the rite declares a verdict literal or a decision field"
 else
   bad "no verdict — this rite is emitting something a gate would read:$verdict_problems" "marketing judgement has no ruler, and a gate with no ruler grades taste"
+fi
+
+# ── 11 · a glob metacharacter in a collected field is printed LITERALLY ────────────────────────────
+# The blocker the gate found on #459, and the input class no arm here pointed at: `set -- $rest` does
+# word splitting AND pathname expansion, so a field carrying `*`, `?` or a bracket class was replaced
+# by whatever filenames matched in the process's working directory. The published figure became a
+# function of where the script ran from, both paths exited 0, and nothing warned.
+#
+# THE TRAP IS PROVEN LIVE BEFORE THE INVARIANCE IS CLAIMED. Running from a directory with no matching
+# file would pass whether or not the script is protected — the same vacuity as a check whose pattern is
+# dead. So the probe directory is seeded with files that DO match, and a control split in that
+# directory is asserted to expand, before the script's own output is read.
+glob_problems=""
+if [ "$ctl_star" != "12345" ] || [ "$ctl_qmark" != "345" ]; then
+  bad "glob metacharacters — the probe directory does NOT expand a bare glob (control: '$ctl_star' '$ctl_qmark')" \
+      "the trap is not live, so any invariance below would be vacuous; this assertion did NOT run"
+else
+  printf '%s' "$glob_out" | grep -q 'click-through-rate = 34?' \
+    || glob_problems="$glob_problems
+    the CURRENT period's value was not printed literally (the 'set -- \$rest' split)"
+  printf '%s' "$glob_out" | grep -q 'prior 2000-04 = 12\*' \
+    || glob_problems="$glob_problems
+    the PRIOR period's value was not printed literally (the 'set -- \$pv' split)"
+  printf '%s' "$glob_out" | grep -qE '(= |prior 2000-04 = )(12345|345)( |$)' \
+    && glob_problems="$glob_problems
+    a filename from the working directory was published as a figure"
+  if [ -z "$glob_problems" ]; then
+    ok "glob metacharacters — a '*' and a '?' in collected fields survive both splits verbatim, run from a directory where both DO expand (control proven)"
+  else
+    bad "glob metacharacters — the published figure is a function of the working directory:$glob_problems" \
+        "no attacker is needed: a '*' in an analytics page path or a campaign name is ordinary, and the collection file is authored by whoever read those surfaces"
+  fi
+fi
+
+# ── 12 · an unknown surface's ceiling REFUSES rather than asserting ────────────────────────────────
+# The second defect the gate found: the ceiling default gave every unrecognised surface a positive
+# claim — "the consent banner gates nothing there" — which is false for any site-side spelling outside
+# the two the vocabulary knew. A default that asserts a bound it cannot know is worse than one that
+# declines, because only the first is quotable.
+unk_problems=""
+printf '%s' "$glob_out" | grep -q 'gsc · clicks' \
+  || unk_problems="$unk_problems
+    the unknown-surface figure was not printed at all, so nothing was judged"
+printf '%s' "$glob_out" | grep 'gsc · clicks' | grep -q 'consent-ceiling: UNDECLARED' \
+  || unk_problems="$unk_problems
+    an unrecognised surface did not get the UNDECLARED ceiling"
+printf '%s' "$glob_out" | grep 'gsc · clicks' | grep -q 'gates nothing there' \
+  && unk_problems="$unk_problems
+    an unrecognised surface was told the consent banner gates nothing there, which nothing here knows"
+printf '%s' "$glob_out" | grep 'ga4 · click-through-rate' | grep -q 'consenting sessions only' \
+  || unk_problems="$unk_problems
+    a KNOWN site-side surface lost its true clause, so the refusal was bought by weakening the vocabulary"
+if [ -z "$unk_problems" ]; then
+  ok "ceiling default — the surface vocabulary is closed, a known surface keeps its true clause, and an unknown one gets UNDECLARED rather than a claim"
+else
+  bad "ceiling default — it asserts a bound it cannot know:$unk_problems" "a fail-open default publishes a positive claim about a surface nothing here recognises"
 fi
 
 # ── 10 · the cadence carrier NAMES this rite — fired, not read ────────────────────────────────────
