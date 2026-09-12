@@ -964,3 +964,67 @@ persona activation slice within the larger compatibility goal, not a claim of wh
 Arm: **sets a cross-cutting pattern** — the same canonical personas now have an explicit generated
 native activation route from either a checkout or an installed plugin root. This amends the earlier
 runtime conclusion and records the source-preservation boundary in the change that implements it.
+
+## 2026-09-11 amendment — the hook seam is measured; nothing yet carries a control on it (#455)
+
+### Context
+
+The persona amendment above closed native profile selection and named hook translation as a
+distinct, unclaimed surface. This amendment records what that surface actually is, measured rather
+than inferred, and records that the slice which measured it deliberately shipped **no bridge**.
+
+### What was measured
+
+On the desktop executable reporting `codex-cli 0.151.0-alpha.7.2`, via the read-only app-server:
+
+- A `.codex-plugin/plugin.json` whose `hooks` value names an existing file **replaces** the Claude
+  registry entirely. A named file that is absent registers **nothing**. A `hooks` value of the wrong
+  **type**, and a manifest with **no** `hooks` key, both fall back to the full Claude registry.
+- A registration carries a `currentHash`, and executes only when a matching `trusted_hash` sits
+  under the `[hooks.state."<key>"]` table in the user's `config.toml`. A present-but-different hash
+  yields a third state, `modified`, distinct from `untrusted`.
+- **No method is NAMED for trust, and trust is nonetheless not a human hold.** None of the 93 the
+  server enumerates is a trust call, but `config/value/write` with a `hooks.state` keyPath grants it
+  outright and the registration reports `trusted` on the next read. Trust is **file state**: anything
+  able to write the user's `config.toml` can confer it. Whether a model inside a turn can reach that
+  method, or write that file past the sandbox, is unmeasured — what is settled is that **the mechanism
+  authenticates nobody**, so a design may not treat it as a human checkpoint.
+- Every registration this repository ships is **already discovered** by Codex from the installed
+  plugin cache, `enabled`, and **untrusted**.
+- With a hook in the `trusted` state, `command/exec` calls that **succeed** fire **no** `PreToolUse`
+  hook. The route that does fire one is a model tool call.
+- The accepted config schema carries **twelve PascalCase events**, a superset of the six registered
+  here. The snake_case in trust keys is key normalisation and **not** the config spelling; a config
+  written in the key form registers zero hooks and prints nothing.
+
+### Decision
+
+Ship the instrument and the record, not the bridge. `scripts/codex-hook-probe.py` reproduces every
+statement above with pinned expectations and a nonzero exit; `scripts/codex-hook-probe.test.py`
+gates the instrument in CI, where no Codex executable exists.
+[The native Codex hook seam](../codex-hook-bridge.md) carries the detail.
+
+**The reason is a sequencing one, and it is the Issue's own.** An adapter's event and output mapping
+must be chosen from observed payloads. No read-only route reaches a payload, so the mapping, the
+blocking behaviour and any caller identity are unmeasured — and a caller-dependent exemption written
+against an assumed identity field is the one error in this class that cannot be seen from outside.
+
+### Consequences, including the bad ones
+
+No control is added and none is removed. Claude Code and Kiro behaviour are untouched; no persona,
+command, skill, shared brief, permission rule or existing hook changes. The Claude registry stays
+discovered-and-untrusted in Codex, which is the state it was already in.
+
+The costs are real and are recorded rather than absorbed. **A green from the offline suite is not
+evidence about Codex** — it is evidence that the instrument is well formed, and the suite says so in
+its own header. **The runtime claims are dated observations of a vendor surface**, taken on one
+executable on one machine; the shell CLI was not on that machine's `PATH`, so nothing here is a
+both-binaries claim. And **the fallback rows are a standing hazard for whoever ships the carrier**:
+a malformed `hooks` value restores the registry the carrier existed to replace, silently, so the
+carrier needs a gate asserting its own well-formedness and not merely a file.
+
+### Significance
+
+Arm: **sets a cross-cutting pattern** — how a vendor enforcement seam is established here, namely
+that the measurement and its instrument land before anything claims to sit on it. It does not
+reverse the persona amendment, add a distribution target, or alter release and adoption policy.

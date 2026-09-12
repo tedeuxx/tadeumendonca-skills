@@ -100,6 +100,12 @@ on:
       # Native persona generation reads the roster, full resolution inventory and
       # VERSION (covered above), and its own builder. Exercise changes to either.
       - "scripts/codex-agent*"
+      # The Codex hook-seam probe and its offline suite. The suite reads `hooks/hooks.json`
+      # (covered above) to assert every event this repo registers is expressible in Codex's
+      # own vocabulary, so EITHER side falsifies it — the same union rule the `.codex/**`
+      # entry states. Naming only the probe would start no gate on the half that moves more
+      # often, which is the hook registry.
+      - "scripts/codex-hook-probe*"
 
 permissions:
   contents: read
@@ -250,6 +256,15 @@ jobs:
 
       - name: Check native Codex persona generation and activation contracts
         run: python3 scripts/codex-agent-build.test.py
+
+      # Added in the SAME slice as the artifact it gates (#455). It gates the INSTRUMENT and
+      # not the runtime: no Codex executable exists on a CI runner, so this step never starts
+      # one. What it asserts is that the probe's expectation table still discriminates its
+      # three outcomes, that its fixtures are built as documented, and that every event
+      # `hooks/hooks.json` registers is expressible in Codex's own vocabulary. A green here is
+      # NOT evidence about Codex — `docs/codex-hook-bridge.md` says so at its own head.
+      - name: Check the Codex hook-seam probe instrument
+        run: python3 scripts/codex-hook-probe.test.py
 
       - name: Assert every hook script is committed executable
         run: bash hooks/scripts/hooks-executable.test.sh
