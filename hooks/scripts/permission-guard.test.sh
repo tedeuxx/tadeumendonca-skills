@@ -377,7 +377,11 @@ check_from ALLOW "$TMAIN" "a push-less git command never triggers"  "git log --o
 # subshell row above was abstaining because the rule never ran, not because it misread the target.
 check_from_reason DENY "$TFEAT" "push; still reaches the refspec limb" "pushing to the trunk" "git push origin main ; echo done"
 
-rm -rf "$TMAIN" "$TFEAT"
+# THE FIXTURES ARE NOT TORN DOWN HERE, AND THE MOVE IS LOAD-BEARING RATHER THAN TIDY. They used to be
+# removed on this line, which put every arm below line 380 out of reach of `check_from` — so the nine
+# rule-3b arms 1,400 lines down inherited the runner's HEAD because the only fixtures that could have
+# replaced it had already been deleted, not because anybody chose ambient state. The teardown is at
+# the end of the file now, beside the other fixtures'. See "--- 3b and rule 3: the cwd is DECLARED".
 
 echo "--- rule 7b: merging a PR is the quality-assurance's act alone ---"
 check       DENY  "main agent (no agent_type) cannot merge"          "gh pr merge 149 --merge"
@@ -2135,6 +2139,7 @@ done
 rm -rf "$WT"
 
 rm -rf "$FEAT"
+rm -rf "$TMAIN" "$TFEAT"
 rm -rf "$GH_STUB_DIR"
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
