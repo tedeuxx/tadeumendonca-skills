@@ -71,6 +71,13 @@ and read any iteration report accordingly.
 Each step names its state: **AFK** (runs unattended), **HITL** (waits on the owner), or **UNBUILT**
 (nothing carries it; a person does it or it does not happen).
 
+**Step 10's second half is none of the three, and the legend says so rather than rounding it to the
+nearest one (#399).** Since the 2026-09-10 ruling the post is performed by the **harness**, in a session
+the owner is present for — it does not wait on him, so it is not HITL, and his presence is the entire
+containment, so calling it AFK would delete the only thing standing behind the act. A three-value legend
+that cannot express *the harness acts and a human being there is the control* would force the one step
+with no containment to be labelled like the steps that have one.
+
 **No step below is UNBUILT, and the label is in the legend so that answer is stated rather than
 inferred from its absence.** Every step of this lane exists. What does not exist is anything that
 *fires* them in sequence — see *What nothing enforces*, which is a different claim and the one that
@@ -327,23 +334,118 @@ against a wall clock makes the same commit build differently tomorrow, and break
 that differs from a build, not an error. A commit is strictly more auditable and is the honest
 replacement.
 
-### 10 · The social pair, in the same batch · **AFK to draft, HITL to post**
+### 10 · The social pair, in the same batch · **AFK to draft · the post is the HARNESS's, in an attended session**
+
+**The label on the second half is not AFK and not HITL, and forcing it into either is what makes this
+step read wrongly (#399).** The legend above defines HITL as *waits on the owner*, and since the
+2026-09-10 ruling the post does not: **the orchestrator performs it.** But it is not AFK either — the
+owner's presence in the session is not a convenience, it is **the whole containment**, in the ruling's
+own words. So the honest label is the third thing: *the harness acts, and a human being in the chair is
+the only thing standing behind it.*
 
 **A publication is not done until it exists on both networks the platform publishes to.** Same batch as
 the release — not "later", which in practice means one of the two never ships.
 
-**The fan-out is deliberately NOT automated**, and the reason is worth carrying rather than rediscovering:
-automating it means holding credentials for a class of unattended public writes. What is automated is the
-**cost the manual route actually has** — a generator scaffolds both drafts from the piece's own
-frontmatter and **resolves the share URL by lookup in the route enumeration, failing when no prerendered
-route matches**. Construction would produce a plausible string for a page that does not exist; lookup
-refuses it.
+~~**The fan-out is deliberately NOT automated**, and the reason is worth carrying rather than
+rediscovering: automating it means holding credentials for a class of unattended public writes.~~
+**Struck 2026-09-11 (#399, owner's ruling 2026-09-10 — «O orquestrador, exceção registrada»).** Struck
+rather than deleted because it is the sentence a reader took the containment from, and because it had
+already been false for six days when it was struck: **the act ran on 2026-09-04**, through a browser,
+posting to both networks in the owner's name. A rule describing a practice that has already been
+reversed is worse than no rule — it reads as a live constraint.
+
+**What is true instead, and it is three separate facts that must not be collapsed into one.**
+
+1. **WHO. The orchestrator posts** — the main session, not a persona, not a text handed to the owner
+   to paste. Every alternative is closed by construction: `permission-guard.sh` rule 5e denies the
+   public comment routes to `content-writer`, `content-reviewer` and `product-lead`, and
+   `mcp-guard.sh` denies every MCP server to every persona. Measured 2026-09-11, exercising
+   `mcp-guard.sh` directly against `mcp__linkedin__create_post`, with calibration in the same run:
+
+   ```
+   printf '{"tool_name":"mcp__linkedin__create_post","agent_type":"<T>"}' | bash hooks/scripts/mcp-guard.sh
+   # <T> = tadeumendonca-skills:product-lead      -> deny
+   # <T> = tadeumendonca-skills:content-writer    -> deny
+   # <T> = tadeumendonca-skills:content-reviewer  -> deny
+   # <T> = tadeumendonca-skills:agents-lead       -> deny
+   # <T> = ""   (the orchestrator)                -> NO DECISION, exit 0
+   # calibration, same hook, same run: chrome-devtools take_screenshot for product-lead -> no decision,
+   # and chrome-devtools fill_form for the same persona -> deny. The hook can answer three ways.
+   ```
+
+2. **WHICH HARNESS. The act has run through Claude in Chrome — a browser extension — and not through
+   MCP.** The two have different containments and one of them has none. **No matcher in this plugin
+   observes an extension act at all.** Re-derived 2026-09-11:
+
+   ```
+   jq -r '[.hooks|to_entries[]|.value[]|.matcher // "none"]|unique|join(" ")' hooks/hooks.json
+   # -> Bash mcp__.* none
+   jq -r '[.hooks|to_entries[]|.value[]|.hooks[]]|length' hooks/hooks.json
+   # -> 15      (the denominator, so "two matchers" is read against a non-empty set)
+   ```
+
+   `Bash` sees a command string and `mcp__.*` sees a tool name. Neither is a browser-extension act.
+
+3. **WHAT CONTAINS IT: nothing, and the ruling says so in its own words.** The accepted cost, quoted
+   rather than paraphrased: *"The only accountability is the census's `W` arm — which reports **after**
+   the act and blocks nothing. The whole containment becomes **a URL pattern plus a human in the
+   chair**."* The `W` arm exists since #399 (`hooks/scripts/orchestrator-tool-census.sh`, registered on
+   `Stop`) and it covers the **MCP route only** — it reads the Claude Code transcript, so it is silent
+   on the route that has actually published, and every exit path in it is `exit 0`. **There is no layer
+   anywhere that refuses a bad post.**
+
+What is automated is the **cost the manual route actually has** — a generator scaffolds both drafts from
+the piece's own frontmatter and **resolves the share URL by lookup in the route enumeration, failing when
+no prerendered route matches**. Construction would produce a plausible string for a page that does not
+exist; lookup refuses it.
+
+~~Posting is his.~~ **Struck 2026-09-11 (#399): posting is the HARNESS's, by the ruling above.** The
+second half is untouched and is now one of four things nothing verifies — see the table at the end of
+this section.
+
+**Three steps the lane carries, and each is labelled with what holds it.**
+
+- **The share URL is tagged.** Build it with `withShareUtm(url, source, AUTHOR_CAMPAIGN)` —
+  `utm_source` per network — and put the tagged URL in the post body on **both** networks. The
+  instrument exists and was not used: the 2026-09-04 pair carried no UTM at all, so that publication is
+  attributable to neither of the two buckets the loop compares. **This is a LOWER BOUND and must be
+  read as one** — a tagged URL is observed only when somebody clicks, so no rows means *nobody clicked*
+  **or** *nobody posted*, and nothing separates the two. **Precondition, not a follow-up:** confirm the
+  tagged form unfurls with the correct card **before** this step is mandatory. A query-tagged URL may be
+  scraped as a distinct URL, which lands on the pinning surface below, and getting that wrong pins a
+  wrong card permanently. *Held by: an instruction. Nothing reads the post.*
+- **The OG card is checked BEFORE the post, not after.** One request: fetch the canonical URL and assert
+  the `og:image` it declares returns 200 and is the per-article card. The failure this prevents is the
+  least reversible act on this platform — **a scraper pins the card it first fetches, so a wrong card
+  outlives the merge that fixed it.** *Held by: an instruction, and nothing else can hold it.* A
+  `PreToolUse` hook on `Bash` never sees a browser act; the `mcp__.*` matcher sees a tool name and not
+  page state; a `Stop` hook is one turn late with the pin already taken. **Written precondition at
+  worst, detection at best, and there is no third option** — do not build something that reads as a
+  refusal.
+- **The drain's `content` exclusion bounds who SELECTS a piece; it does not bound who can POST.**
+  `/autonomy on`'s pool is `(product OR loop) AND ready AND active-iteration`, so this lane is out **by
+  predicate rather than by exception** — which is the better design and is not the containment anyone
+  should be crediting. **Nothing binds the publish act to a `content` Issue at all:** no lane check, no
+  label check, no Issue check, on either route. The route into an unattended post is **any session**,
+  not the drain, so admitting `content` to the drain is not what would open it.
 
 **The drafts are written to a private, ignored location**, because pre-publication copy in a public
-repository lets anyone read tomorrow's post today. **Existing files are never overwritten** — the prose is
-hand-voiced after generation, and regenerating over it at this cadence buys nothing.
+repository lets anyone read tomorrow's post today. **Existing files are never overwritten** — the prose
+is hand-voiced after generation, and regenerating over it at this cadence buys nothing.
 
-Posting is his. **Nothing verifies that both halves of the pair shipped.**
+### What nothing enforces on this step — per decision, because flattened it reads as false
+
+| decision | what actually holds it |
+|---|---|
+| the orchestrator is the only publisher | **nothing.** `mcp-guard.sh` exits without a decision on an empty `agent_type`, by design; the browser-extension route has no matcher at all |
+| a post is preceded by the OG-card check | **an instruction.** No layer in this plugin sees page state |
+| the share URL carries its campaign | **an instruction**, measurable after the fact as a lower bound only |
+| both halves of the pair shipped | **nothing at post time.** Unchanged by any of this |
+| the publish act is accounted for | **`orchestrator-tool-census.sh`'s `W` arm — after the act, gating nothing, and on the MCP route only.** Blind to the route that has actually published |
+
+**By this loop's own test — *would something stop me, or only my memory?* — nothing on this step is
+engineered**, and the one mechanism that exists is detection, one turn late, on one of two routes. That
+is the ruling's accepted cost, written down rather than implied.
 
 ## The guarantee that must not be softened: ISOLATION is not PRIVACY
 
@@ -416,8 +518,11 @@ this repository blocks on a mechanism presented as stronger than it is.**
   control.
 - **Nothing checks a held piece was actually read before release.** The promotion edit is one word; no
   artifact records that anyone opened the URL.
-- **Nothing verifies the social pair shipped.** The generator writes drafts; posting is manual and leaves
-  no trace any gate reads.
+- **Nothing verifies the social pair shipped.** The generator writes drafts; ~~posting is manual~~
+  **posting is the orchestrator's (#399)** and leaves no trace any gate reads. **Do not read the
+  correction as a tightening** — it is the opposite: the act moved from a human's hands into the
+  harness's, and the only thing watching it is a `Stop` hook that fires after the fact, covers the MCP
+  route and is blind to the browser-extension route that has actually published.
 - **Nothing observes a dispatch.** A piece drafted with no review round is indistinguishable from one
   whose rounds were clear until you open the branch's file list.
 - **Nothing stops a held piece from being published by an edit to one word**, which is precisely why a
@@ -446,7 +551,9 @@ Everything else is an instruction. Say so when you describe it.
   one step over rather than closing.
 - **No world-check runs on this lane at all** since the copy veto left it: cross-surface staleness,
   evidence proximity, the machine/ATS read and durability reach the owner unread.
-- The social fan-out is manual by decision; nothing catches a publication that shipped to one network.
+- ~~The social fan-out is manual by decision~~ — **the fan-out is the harness's act since the
+  2026-09-10 ruling, and NOTHING contains it** on either route; nothing catches a publication that
+  shipped to one network, and nothing refuses one that should not have shipped at all.
 
 ## Using this skill
 
