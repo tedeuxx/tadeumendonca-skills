@@ -172,6 +172,14 @@ jobs:
       # the tokens on a declared list.
       - name: Assert the harness-neutral root brief holds its properties
         run: bash hooks/scripts/agents-md.test.sh
+      # The funnel rite's analysis half lives in `scripts/`, not `hooks/scripts/`, because nothing
+      # registers it in hooks.json — the same reason `scripts/milestone-create.sh` states in its own
+      # header. It runs HERE rather than in hooks-test because its subject is `scripts/**` and
+      # `docs/**`, and this workflow's paths: filter already covers both; hooks-test's does not, so a
+      # report landing under docs/funnel-review/ would not start that job at all and the cap arm
+      # would be green by never running.
+      - name: Assert the funnel rite distinguishes did-not-run from ran-and-found-nothing
+        run: bash scripts/funnel-review.test.sh
 
       # THE CAVEAT GOES WHERE THE GREEN IS READ, and until this step existed it did not. The two arms
       # of this job surface to a human as a check name and a tick; what that tick does NOT mean lived

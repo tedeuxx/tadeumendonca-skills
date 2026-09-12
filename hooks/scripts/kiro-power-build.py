@@ -363,17 +363,21 @@ bundle built 2026-08-18):
 
 **`commands/` was absent from that list until 2026-09-10, and its absence was this section's own named
 failure shape arriving through the door this section exists to close** — silence reading as present.
-The skills below cite a typed command **34** times by identifier and a `commands/*.md` path **10**
+The skills below cite a typed command **37** times by identifier and a `commands/*.md` path **10**
 times more; every one of those citations is correct for a Claude Code reader and resolves to nothing
 inside this package. Re-derive both from the package root rather than trusting the digits, with
-`grep -rhoE '/(autonomy|blueprint|new-issue|sprint-planning|sprint-retrospective|sprint-review)' skills | wc -l`
+`grep -rhoE '/(autonomy|blueprint|funnel-review|new-issue|sprint-planning|sprint-retrospective|sprint-review)' skills | wc -l`
 and `grep -rhoE 'commands/[a-z-]+\\.md' skills | wc -l`, calibrated against
 `grep -rhoF /devops skills | wc -l` — a name that DOES resolve here, so a zero from the first two would
-be a real zero and not a dead pattern. **The first selector is an ENUMERATION of the six commands that
-existed when this file was generated, and it cannot be anything else from inside this package** — the
-directory it would derive them from is the directory this package does not ship. A seventh command
-would be cited here and counted by nothing, and the figure would go quietly low rather than wrong.
-The source-side check is `ls commands/*.md` in the repository, against the six names in the selector.
+be a real zero and not a dead pattern. **The first selector is an ENUMERATION of the seven commands
+that existed when this file was generated, and it cannot be anything else from inside this package** —
+the directory it would derive them from is the directory this package does not ship. **The seventh
+arrived at #401, and the sentence that stood here predicted exactly what would have happened if
+nobody had touched this line: it would have been cited here and counted by nothing, and the figure
+would have gone quietly low rather than wrong.** It is 34 under the old selector and 37 under this
+one, over the same tree — that gap is the whole of the failure mode, made visible once.
+An eighth command has the same exposure and nothing will announce it.
+The source-side check is `ls commands/*.md` in the repository, against the seven names in the selector.
 **The citations are deliberately not swept out of the skill
 bodies:** they are right for the majority reader, and thinning fifteen skills for a minority target
 would spend content to buy a silence. **And nothing gates any of this** — the regeneration diff
