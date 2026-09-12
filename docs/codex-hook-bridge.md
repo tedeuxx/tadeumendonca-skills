@@ -55,10 +55,29 @@ The third is a distinct state, not a synonym for untrusted, and the probe assert
 only compared against `trusted` would pass while measuring the presence of the key rather than the
 match.
 
-**There is no app-server method that grants trust.** The server enumerates its methods in the error
-it returns for an unknown one; across **93** methods there is no trust call. `hooks/list` reads
-state and `config/value/write` edits configuration, but the activation itself is a human act
-against the user's own file.
+**No method is NAMED for trust — and trust is still not a human hold.** The server enumerates its
+methods in the error it returns for an unknown one; across **93** methods none is a trust call. It
+does not follow that activation is a human act, and the probe asserts the opposite because the
+comfortable reading is the one a bridge design would lean on:
+
+```
+config/value/write  keyPath="hooks.state"  mergeStrategy="replace"
+                    value={<registration key>: {trusted_hash: <currentHash>}}
+→ {"status": "ok"}   and the registration reports `trusted` on the next hooks/list
+```
+
+**Trust is file state.** Anything that can write the user's `config.toml` can grant it — that
+method, or an ordinary shell redirect, since a Codex agent's shell runs as the user. The probe's
+trust phase fails if this ever stops working, so the claim cannot quietly go stale in the
+permissive direction.
+
+**What this does NOT establish, stated because the gap is the interesting part.** It was done over
+the app-server surface, which is the *client's*, not the model's. Whether a model inside a turn can
+reach `config/value/write`, and whether the runtime sandbox refuses a shell write to
+`~/.codex/config.toml`, are both **unmeasured here**. The sandbox did refuse writes elsewhere, so
+that question is live rather than rhetorical. What is settled is narrower and still load-bearing:
+**a design may not treat hook trust as an authenticated human checkpoint**, because nothing in the
+mechanism authenticates anybody.
 
 ```sh
 # the enumeration is the discovery channel: ask for a method that cannot exist

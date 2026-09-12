@@ -344,10 +344,43 @@ def phase_trust(binary, work, report):
         raise Failure("a non-matching trusted_hash conferred trust; the hash is not "
                       "being compared")
 
+    # Trust is FILE STATE, not an authenticated human action. Anything that can write
+    # the user's config.toml can grant it — including the app-server's own
+    # `config/value/write`. Measured rather than assumed, because the opposite
+    # assumption (trust is a human hold) is the one a bridge design would lean on.
+    config.write_text(trust_config(project, recorder))
+    server = AppServer(binary, project, disposable_env(home), work / "trust-d.stderr")
+    try:
+        server.initialize()
+        listed = server.call("hooks/list")
+        record = listed["data"][0]["hooks"][0]
+        if record["trustStatus"] != "untrusted":
+            raise Failure("the self-trust arm needs an untrusted starting state")
+        written = server.call("config/value/write", {
+            "keyPath": "hooks.state",
+            "value": {record["key"]: {"trusted_hash": record["currentHash"]}},
+            "mergeStrategy": "replace"})
+        api_granted = isinstance(written, dict) and written.get("status") == "ok"
+        after = server.call("hooks/list")["data"][0]["hooks"][0]["trustStatus"]
+    finally:
+        server.close()
+
     report["trust"] = {"key": key, "current_hash": current,
                        "untrusted_by_default": True,
                        "matching_hash_trusts": True,
-                       "wrong_hash_rejected": wrong[0]["trustStatus"]}
+                       "wrong_hash_rejected": wrong[0]["trustStatus"],
+                       "api_write_accepted": api_granted,
+                       "trust_after_api_write": after,
+                       "finding": ("trust is file state: config/value/write grants it "
+                                   "with no human action"
+                                   if after == "trusted" else
+                                   "config/value/write did NOT grant trust — the "
+                                   "recorded finding has changed")}
+    if not api_granted or after != "trusted":
+        raise Failure("config/value/write no longer grants hook trust (status=%r, "
+                      "trustStatus=%r); docs/codex-hook-bridge.md section 2 records "
+                      "that it does and must be corrected"
+                      % (written, after))
 
 
 # ---------------------------------------------------------------------------

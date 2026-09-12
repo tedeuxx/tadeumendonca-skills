@@ -983,8 +983,12 @@ On the desktop executable reporting `codex-cli 0.151.0-alpha.7.2`, via the read-
 - A registration carries a `currentHash`, and executes only when a matching `trusted_hash` sits
   under the `[hooks.state."<key>"]` table in the user's `config.toml`. A present-but-different hash
   yields a third state, `modified`, distinct from `untrusted`.
-- **No app-server method grants trust.** The server enumerates its methods in the error returned for
-  an unknown one; none of the 93 is a trust call. Activation is a human act on the user's own file.
+- **No method is NAMED for trust, and trust is nonetheless not a human hold.** None of the 93 the
+  server enumerates is a trust call, but `config/value/write` with a `hooks.state` keyPath grants it
+  outright and the registration reports `trusted` on the next read. Trust is **file state**: anything
+  able to write the user's `config.toml` can confer it. Whether a model inside a turn can reach that
+  method, or write that file past the sandbox, is unmeasured — what is settled is that **the mechanism
+  authenticates nobody**, so a design may not treat it as a human checkpoint.
 - Every registration this repository ships is **already discovered** by Codex from the installed
   plugin cache, `enabled`, and **untrusted**.
 - With a hook in the `trusted` state, `command/exec` calls that **succeed** fire **no** `PreToolUse`
