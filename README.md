@@ -2210,6 +2210,15 @@ preloads through explicit native Codex role registration. See [Native Codex pers
 for the builder, session launcher, ignored-project installation, source checks and measured limits.
 This does not establish tool containment or activate hooks.
 
+**The hook half was measured in #455 (2026-09-11), and it still does not activate anything.** The
+seam a bridge would sit on is now recorded rather than assumed: a `.codex-plugin` manifest replaces
+the Claude hook registry, a malformed `hooks` value silently restores it, trust is a hash in the
+user's own `config.toml` with no API behind it, and this repository's hooks are already discovered
+there and untrusted. **No adapter shipped**, because no read-only route reaches a hook payload, and
+an adapter written against an assumed payload is the error in this class nobody can see from
+outside. See [The native Codex hook seam](docs/codex-hook-bridge.md) for the measurements, the
+instrument that reproduces them, and the list of what remains unmeasured.
+
 <!-- claim id=0006 class=MEASURED -->
 
 **This plugin is installed and enabled on Codex desktop, and until #421 nobody here had measured
