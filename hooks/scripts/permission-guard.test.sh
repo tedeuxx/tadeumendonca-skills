@@ -377,7 +377,11 @@ check_from ALLOW "$TMAIN" "a push-less git command never triggers"  "git log --o
 # subshell row above was abstaining because the rule never ran, not because it misread the target.
 check_from_reason DENY "$TFEAT" "push; still reaches the refspec limb" "pushing to the trunk" "git push origin main ; echo done"
 
-rm -rf "$TMAIN" "$TFEAT"
+# THE FIXTURES ARE NOT TORN DOWN HERE, AND THE MOVE IS LOAD-BEARING RATHER THAN TIDY. They used to be
+# removed on this line, which put every arm below line 380 out of reach of `check_from` — so the nine
+# rule-3b arms 1,400 lines down inherited the runner's HEAD because the only fixtures that could have
+# replaced it had already been deleted, not because anybody chose ambient state. The teardown is at
+# the end of the file now, beside the other fixtures'. See "--- 3b and rule 3: the cwd is DECLARED".
 
 echo "--- rule 7b: merging a PR is the quality-assurance's act alone ---"
 check       DENY  "main agent (no agent_type) cannot merge"          "gh pr merge 149 --merge"
@@ -1739,7 +1743,11 @@ check ALLOW "boundary: quoted arg stays inert" "npm run finish -c 'git push orig
 echo "--- the pre-existing floor still holds ---"
 check DENY  "terraform apply"               "terraform apply -auto-approve"
 check DENY  "terraform destroy"             "terraform -chdir=iac destroy"
-check DENY  "force push (3b, reverted #383)"  "git push --force origin feat/x"
+# DECLARED CWD, NOT INHERITED (#453). Rule 7 sits ABOVE 3b and its HEAD limb answers any `git push`
+# whose target resolves to a trunk checkout, whatever refspec the command names. So on a runner
+# standing on `main` -- which under `trunk-single-env` is the branch this loop tells you to be on --
+# rule 7 answered this payload and 3b never ran, while the arm stayed green because both rules deny.
+check_from DENY "$TFEAT" "force push (3b, reverted #383)"  "git push --force origin feat/x"
 check DENY  "reset --hard"                  "git reset --hard HEAD~1"
 check DENY  "rm -rf"                        "rm -rf build"
 check DENY  "skip-permissions bypass"       "claude --dangerously-skip-permissions"
@@ -1784,24 +1792,44 @@ echo "--- 3a/3b: BOTH halves DENY again (#383 S3-revert); the split survives in 
 # assertion that cannot fail. The `check_reason` arms below are what still discriminate: collapse 3a
 # and 3b back into one rule with one message and they redden, while every verdict arm stays green.
 #
-# THE TOTAL IS PLACEMENT-DEPENDENT, so re-run it rather than quoting a number from memory. Measured
-# 2026-09-05 (#383, gate round 1) on a copy with the suite untouched, collapsing into one regex with
-# one generic message carrying neither half's needle:
-#   collapsed at 3b's site (BELOW rule 7) -> 424 passed, 3 failed
+# THE TOTAL IS PLACEMENT-DEPENDENT, so re-run it rather than quoting a number from memory.
+#
+# ~~424 passed, 3 failed · 423 passed, 4 failed~~ — RE-DERIVED AT 783faaf0 (#453), and the reason the
+# old pair had to go is not that the file grew. Those figures were taken on a runner whose branch
+# nobody recorded, from a suite that inherited it, so they were not reproducible from what was
+# published beside them: this same mutation returned DIFFERENT totals depending on where it was run.
+# The arm names survived that; the numbers did not. Re-derived below on the hermetic suite, where the
+# runner no longer enters the answer — each row measured from BOTH a feature and a trunk checkout and
+# identical on both, which is the property this slice bought and the reason the runner is now stated
+# once rather than per row.
+#
+# Collapse into one regex with one generic message carrying neither half's needle:
+#   collapsed at 3b's site (BELOW rule 7) -> 580 passed, 3 failed
 #     3a still speaks about uncommitted work · 3b still speaks about a rewritten ref
 #     · 3b answers the NON-TRUNK force-push
-#   collapsed at 3a's site (ABOVE rule 7) -> 423 passed, 4 failed  (the three above, plus
-#     `7 answers the TRUNK force-push`, because the widened rule now pre-empts rule 7 on the trunk)
-# The invariant across both is THREE arms; the fourth is an ordering side effect of where the
-# collapsed rule lands, not a property of the collapse. Every verdict arm stays green in both.
+#   collapsed at 3a's site (ABOVE rule 7) -> 578 passed, 5 failed  (the three above, plus
+#     `7 answers the TRUNK force-push` AND `KNOWN OVER-BLOCK: 7's HEAD limb pre-empts 3b`, because
+#     the widened rule now pre-empts rule 7 on the trunk and both ordering arms see it)
+# The invariant across both is still THREE arms; the extra two are an ordering side effect of where
+# the collapsed rule lands, not a property of the collapse. The published count of those side-effect
+# arms moved from one to two because #453 added the second ordering arm, not because the behaviour
+# changed. Every verdict arm stays green in both.
 check DENY  "3a: reset --hard, no other copy"  "git reset --hard HEAD~1"
 check DENY  "3a: reset --hard behind -C"       "git -C /some/repo reset --hard origin/main"
-check DENY  "3b: --force"                      "git push --force"
-check DENY  "3b: --force-with-lease"           "git push --force-with-lease origin feat/x"
-check DENY  "3b: short -f"                     "git push -f origin feat/x"
+# THESE THREE DECLARE THEIR CWD (#453), AND THE DECLARATION IS THE ASSERTION. An arm that says
+# "3b answers this" is only asserting that while rule 7 abstains, and rule 7 abstains only when the
+# push's target resolves to a non-trunk branch. Inheriting the runner's HEAD left that precondition
+# ambient: from a `main` checkout all three were answered by rule 7's HEAD limb and stayed green,
+# because 3b and rule 7 agree on the verdict and a `check` sees nothing else. Measured at
+# 783faaf0, mutating the SOURCE (3b's `deny` commented out) and diffing each runner's own failing
+# arm names rather than subtracting totals: 11 arms redden from a feature runner, 3 from `main`.
+# `$TFEAT` is the fixture at the top of this file, now alive for the whole suite.
+check_from DENY "$TFEAT" "3b: --force"                      "git push --force"
+check_from DENY "$TFEAT" "3b: --force-with-lease"           "git push --force-with-lease origin feat/x"
+check_from DENY "$TFEAT" "3b: short -f"                     "git push -f origin feat/x"
 # The split itself, asserted where a verdict cannot see it.
 check_reason DENY "3a still speaks about uncommitted work" "no other copy"  "git reset --hard HEAD~1"
-check_reason DENY "3b still speaks about a rewritten ref"  "force-push"     "git push --force origin feat/x"
+check_from_reason DENY "$TFEAT" "3b still speaks about a rewritten ref"  "force-push" "git push --force origin feat/x"
 # The spelling NO settings entry can express, because `:*` is a TOKEN boundary (measured #383 S3): the
 # `git -C` prefix, which is itself allowlisted. That is the whole reason 3b is an ASK rather than a
 # removal — removed, it would execute in silence.
@@ -1812,7 +1840,9 @@ check_reason DENY "3b still speaks about a rewritten ref"  "force-push"     "git
 # `Bash(git push origin main:*)` is in both deny lists and a token boundary matches an entry plus any
 # trailing tokens, measured 2026-09-05.)
 check DENY  "3b: behind an allowlisted -C"     "git -C /some/repo push --force origin feat/x"
-check ALLOW "3: a plain push is neither half"  "git push origin feat/x"
+# THE ONE ARM WHOSE VERDICT MOVED, not just its reason: inherited, it read ALLOW from a feature
+# runner and DENY from `main`, so it was one of the three visible reds a local run produced.
+check_from ALLOW "$TFEAT" "3: a plain push is neither half"  "git push origin feat/x"
 check ALLOW "3: --soft is not --hard"          "git reset --soft HEAD~1"
 # KNOWN DEFECT, PRE-EXISTING, ASSERTED AS IT IS RATHER THAN AS IT SHOULD BE. Rule 3 matches `$cmd`,
 # not `$bare`, so a commit message ABOUT the act is treated as the act — the same false positive the
@@ -1838,23 +1868,48 @@ echo "--- 3b x rule 7: the ORDERING survives the revert, and it is now a claim a
 # verdict. They no longer disagree. A verdict-only battery is now green under BOTH orderings, so the
 # ordering is asserted by REASON below.
 #
-# EXACTLY ONE ARM CAN SEE A REORDER, AND SAYING WHICH IS THE POINT OF THIS PARAGRAPH. Move 3b back
-# above rule 7 and `7 answers the TRUNK force-push` reddens ALONE — 426 passed, 1 failed — while all
-# eight verdict arms stay green; that gap is the whole reason the helper exists. Its sibling,
-# `3b answers the NON-TRUNK force-push`, is STRUCTURALLY INCAPABLE of reddening here: rule 7 does not
-# match a non-trunk refspec at all, so 3b answers that payload under either ordering. It is in this
-# block to catch 3b's REMOVAL, not a reorder, and reading it as ordering cover is how someone deletes
-# the one arm that does the work and still believes the comment.
+# TWO ARMS CAN SEE A REORDER, AND SAYING WHICH IS THE POINT OF THIS PARAGRAPH. Move 3b back above
+# rule 7 and `7 answers the TRUNK force-push` reddens, together with `KNOWN OVER-BLOCK: 7's HEAD limb
+# pre-empts 3b` below — 581 passed, 2 failed — while every verdict arm stays green; that gap is the
+# whole reason the reason-helpers exist.
+#
+# ~~EXACTLY ONE ARM … 426 passed, 1 failed~~ — struck 2026-09-11 (#453). The count moved because this
+# slice ADDED the second ordering arm, and the total moved because the suite grew; neither is a
+# behaviour change. The figure is re-derived below with the runner stated.
+#
+# ~~Its sibling, `3b answers the NON-TRUNK force-push`, is STRUCTURALLY INCAPABLE of reddening here:
+# rule 7 does not match a non-trunk refspec at all, so 3b answers that payload under either
+# ordering.~~ — STRUCK 2026-09-11 (#453), AND THE CORRECTION IS SHARPER THAN A WRONG FACT. The
+# sentence stated a property of the RULE (`rule 7 does not match a non-trunk refspec at all`) and it
+# was false: rule 7's refspec limb does not match one, but its HEAD limb then runs and denies from
+# the target's branch, whatever refspec the command named. So on a runner standing on `main` — the
+# branch this loop tells you to be on — rule 7 DID answer that payload, and the arm was reddening on
+# a local run while this comment said it could not.
+#
+# IT IS TRUE AGAIN AT THIS HEAD, AND ONLY BECAUSE THE ARM NOW DECLARES `$TFEAT`. That is the thing to
+# carry, not the fact: an `INCAPABLE` claim about an arm whose cwd is ambient is a claim about a
+# runner state nobody wrote down. Re-derived below on both placements — the arm does not appear in
+# either fail set, from either runner. Its job is still to catch 3b's REMOVAL rather than a reorder;
+# reading it as ordering cover is how someone deletes an arm that does work and still believes the
+# comment.
 #
 # ~~the two `check_reason` arms redden~~ — struck 2026-09-05 (#383, gate round 1). It was published
 # with this block and it does not reproduce; the arms are right and the sentence about them was not.
 # Re-run it like this, on a COPY of this directory, with the suite left untouched — cut 3b's `if`
 # block out of the source and paste it back in at each of the two plausible placements, then
 #   bash <copy>/permission-guard.test.sh | grep -E '^FAIL|passed,'
-#   placement 1, immediately above rule 7's comment      -> 426 passed, 1 failed
-#   placement 2, back beside 3a (the 9aca9d4 position)   -> 426 passed, 1 failed
-#   restored                                             -> 427 passed, 0 failed
-# Both placements fail the SAME single arm, `7 answers the TRUNK force-push`.
+#   placement 1, immediately above rule 7's comment      -> 581 passed, 2 failed
+#   placement 2, back beside 3a (the 9aca9d4 position)   -> 581 passed, 2 failed
+#   restored                                             -> 583 passed, 0 failed
+# Both placements fail the SAME two arms, `7 answers the TRUNK force-push` and
+# `KNOWN OVER-BLOCK: 7's HEAD limb pre-empts 3b`.
+#
+# ~~426/1 · 426/1 · 427/0~~ — re-derived 2026-09-11 (#453) at 783faaf0. THE RUNNER IS NO LONGER PART
+# OF THE ANSWER, and stating that is the whole of what changed: every row above was measured from a
+# checkout on `feature/probe` AND from one on `main`, and each returned the same pair of numbers and
+# the same two arm names. The struck figures were taken from an unrecorded runner on a suite that
+# read one, so re-running them on a differently-checked-out tree returned different numbers with
+# nothing to say why.
 check DENY  "7 wins: -C, trunk, --force"       "git -C /some/repo push --force origin main"
 check DENY  "7 wins: flag after the refspec"   "git push origin main --force"
 check DENY  "7 wins: --force before the ref"   "git push --force origin main"
@@ -1863,13 +1918,47 @@ check DENY  "7 wins: short -f, trunk"          "git push -f origin master"
 # The non-trunk side. These are 3b's, and they are DENY again since the S3-revert — if any of them
 # returns ASK, the downgrade has come back; if any returns ALLOW, 3b has been removed rather than
 # reverted, and `git -C <dir> push --force` executes in silence.
-check DENY  "3b keeps: non-trunk ref"          "git push origin feature-x --force"
+# TWO OF THESE THREE DECLARE THEIR CWD AND THE MIDDLE ONE DOES NOT, WHICH IS THE WHOLE SHAPE OF THIS
+# SLICE IN THREE LINES. `git -C /some/repo` names a target that does not resolve, so rule 7 reports
+# no branch and abstains on every runner -- it was already hermetic, by accident of carrying the
+# very form #446 prescribes. Its two neighbours named no target, inherited the runner's HEAD, and
+# were answered by rule 7 from a `main` checkout. Left as it is rather than converted for
+# symmetry: its payload is the assertion, and rewriting it to declare a cwd would delete the one
+# arm in this block that shows the `-C` form doing the work.
+check_from DENY "$TFEAT" "3b keeps: non-trunk ref"          "git push origin feature-x --force"
 check DENY  "3b keeps: non-trunk behind -C"    "git -C /some/repo push --force origin feature-x"
-check DENY  "3b keeps: 'maintenance' is not 'main'" "git push origin maintenance --force"
+check_from DENY "$TFEAT" "3b keeps: 'maintenance' is not 'main'" "git push origin maintenance --force"
 # THE ORDERING ITSELF. Rule 7's message prescribes branching and opening a PR; 3b's prescribes not
 # rewriting a pushed ref. Both are correct advice for their own act and wrong for the other's.
 check_reason DENY "7 answers the TRUNK force-push"     "pushing to the trunk" "git -C /some/repo push --force origin main"
-check_reason DENY "3b answers the NON-TRUNK force-push" "force-push"        "git push origin feature-x --force"
+check_from_reason DENY "$TFEAT" "3b answers the NON-TRUNK force-push" "force-push" "git push origin feature-x --force"
+
+# ── #453: the collision those nine arms were standing on, asserted instead of inherited ───────────
+#
+# WHAT MAKES THE `$TFEAT` ABOVE LOAD-BEARING RATHER THAN DECORATIVE. Every converted arm asserts "3b
+# answers this", and 3b only gets to answer because rule 7 abstained. These two arms assert the other
+# side of that precondition: the SAME payloads, from a checkout on the trunk, are answered by rule 7
+# instead. Without them the declaration is invisible -- dropping `"$TFEAT"` from any arm above leaves
+# the suite green on a feature runner and silently restores the defect this slice removed.
+#
+# THEY ASSERT A KNOWN OVER-BLOCK AS IT IS, NOT AS IT SHOULD BE -- the convention rule 3's own
+# "KNOWN DEFECT" arms use, 60 lines up. Both payloads name an EXPLICIT non-trunk refspec, so neither
+# push can land on the trunk whatever HEAD says; rule 7's HEAD limb denies them anyway, because it
+# runs whenever the refspec limb did not fire and reads no refspec of its own. Measured at 783faaf0
+# against the fixtures below this file's own `check_from`:
+#
+#   payload                            cwd=$TFEAT            cwd=$TMAIN
+#   git push --force origin feat/x     deny, rule 3b         deny, rule 7 HEAD limb
+#   git push origin feat/x             ALLOW (no rule)       deny, rule 7 HEAD limb
+#
+# WHOSE QUESTION THAT IS, AND IT IS NOT THIS ONE'S. #446 merged with a named residual -- whether rule
+# 7 should resolve a bare push from a cwd at all -- and this is that residual's neighbour rather than
+# this Issue's object. #453 is about the INSTRUMENT: whether the suite's answer depends on where it
+# was run. Narrowing rule 7's HEAD limb is a change to the FLOOR, with its own probe battery and its
+# own review. When someone makes it, the second arm flips to ALLOW and the first to "force-push",
+# and these comments are how they will know the flip was intended.
+check_from_reason DENY "$TMAIN" "KNOWN OVER-BLOCK: 7's HEAD limb pre-empts 3b" "lands on the trunk" "git push --force origin feat/x"
+check_from        DENY "$TMAIN" "KNOWN OVER-BLOCK: and it denies an explicit feature refspec"        "git push origin feat/x"
 
 echo "--- rule 5: AWS secret writes DENY again (#383 S3-revert); the gh sibling never moved ---"
 # S3 made these ASK on the reparability argument; the revert made them DENY again, because a hook
@@ -2135,6 +2224,7 @@ done
 rm -rf "$WT"
 
 rm -rf "$FEAT"
+rm -rf "$TMAIN" "$TFEAT"
 rm -rf "$GH_STUB_DIR"
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
