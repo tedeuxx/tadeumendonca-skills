@@ -15,6 +15,15 @@ python3 scripts/codex-hook-probe.py /Applications/ChatGPT.app/Contents/Resources
 Every phase builds its own disposable `CODEX_HOME` in a new temporary directory. The probe reads no
 credential, starts no model turn, and never writes to the invoking user's real `~/.codex`.
 
+**That containment is a property of the design, and it has been checked by someone other than its
+author.** The independent gate on this change ran the vendor binary on the owner's machine **six
+times** and checksummed `~/.codex/config.toml` before and after: **byte-identical**. It matters
+because the trust phase deliberately writes a `trusted_hash` — the one write in this probe that would
+be dangerous outside a disposable home — so *"it did not touch the real config"* is the difference
+between an instrument and a live mutation. **Keep it true in any phase added later**: a phase that
+reaches for the ambient `CODEX_HOME` instead of its own is the failure this paragraph exists to make
+visible, and nothing mechanical prevents it.
+
 ## 1 · The carrier seam — a `.codex-plugin` manifest replaces the Claude hook set
 
 A plugin may ship a second manifest at `.codex-plugin/plugin.json`. Its `hooks` value selects which
@@ -40,7 +49,7 @@ with a typed-wrong `hooks` value would read as installed and behave as absent �
 own named failure shape. Row three is the mirror: a path pointing at nothing registers nothing, also
 silently.
 
-## 2 · Trust — a hash written into the user's own `config.toml`, and there is no API for it
+## 2 · Trust — a hash in the user's own `config.toml`, and anything that can write it confers trust
 
 Every registration carries a `currentHash`. A hook executes only when a matching `trusted_hash` is
 recorded under `[hooks.state."<key>"]` in `config.toml`. Three states were observed:
@@ -80,7 +89,9 @@ that question is live rather than rhetorical. What is settled is narrower and st
 mechanism authenticates anybody.
 
 ```sh
-# the enumeration is the discovery channel: ask for a method that cannot exist
+# reproduces all four trust findings: the default, the match, the `modified` state,
+# and the config/value/write grant. The 93-method enumeration is read separately, by
+# asking the server for a method that cannot exist — its error names every one it has.
 python3 scripts/codex-hook-probe.py <codex-executable> --phase trust
 ```
 
@@ -135,6 +146,35 @@ from them writes a file that looks right, parses, and does nothing.
 | caller identity at the decision point | same | any caller-dependent exemption |
 | later `write_stdin` / PTY input | same | the claim that intercepting a command covers what follows it |
 | the shell CLI `0.153.4` | not present on this machine's `PATH`; only the desktop binary resolved | any "both binaries" claim |
+| whether `currentHash` covers the SCRIPT BYTES or only the registration | the composition resisted reversal — see below | whether trust needs revalidating when a script changes |
+
+### The `currentHash` unknown, stated separately because it has an exploit shape
+
+**What is established.** `currentHash` is per-**registration**, not per-script: `preflight.sh` is
+registered twice with byte-identical command strings and receives **two different hashes**, so the
+value covers at least the event and matcher. Attempts to reverse its exact composition — field
+permutations, separator and JSON serialisations of every subset up to five fields — matched nothing,
+so what else it covers is **unknown rather than excluded**.
+
+**Why it is not merely untidy.** If the hash covers only the registration, then **a trusted
+registration keeps executing after its script is rewritten.** Trust would bind *"this event runs that
+path"* and not *"this event runs those bytes"* — and since section 2 establishes that anything able
+to write the user's `config.toml` can confer trust in the first place, a bridge would be relying on a
+checkpoint that is neither authenticated nor content-bound. **This is the one unknown in this
+document that could make a shipped carrier less safe than no carrier**, rather than merely
+unfinished.
+
+**What would settle it, and it is cheap.** Trust a registration in a disposable `CODEX_HOME`,
+confirm `trusted`, then rewrite the hook script's bytes **without touching the config**, and read
+`hooks/list` again. A `currentHash` that moves — or a `trustStatus` that becomes `modified` — means
+the bytes are covered. An unchanged `trusted` means they are not. Both outcomes are a single
+`hooks/list` apart and neither needs a model turn, so **this is measurable in the next slice and does
+not wait on slice B.**
+
+**What it costs if the bytes are not covered.** Slice C owes a revalidation step rather than a
+one-time activation: the carrier's own gate would have to assert that a script change invalidates
+trust, and where the runtime does not do that, the honest disclosure is that Codex-side hook trust
+does not survive an update of the thing it trusts.
 
 **Nothing above may be filled in by analogy with the Claude payloads.** The event vocabulary is
 already a superset with different names, and the config spelling already diverges from the key
