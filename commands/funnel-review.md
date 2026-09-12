@@ -191,9 +191,9 @@ period"* under the heading is a result, where a deleted heading is a step that s
 ### 4 · The output is a PROPOSAL, and the owner opens whatever becomes work
 
 Nothing here files an Issue and nothing here changes anything. **Only the owner opens work** — and
-this is already mechanical rather than promised: `permission-guard.sh` rule 5c denies `gh issue
-create` to every subagent but `developer`, and rule 5e denies this rite's driver three subcommands by
-name. Read that as three subcommands, not as *"every public surface"*: `gh pr create`, `gh pr edit`
+this is already mechanical rather than promised: `hooks/scripts/permission-guard.sh`, registered on
+`PreToolUse` against the `Bash` matcher, denies `gh issue create` to every subagent but `developer`
+(rule 5c), and denies this rite's driver three subcommands by name (rule 5e). Read that as three subcommands, not as *"every public surface"*: `gh pr create`, `gh pr edit`
 and a `git push` are untouched by it.
 
 ## The questions this rite answers — the corpus, and what it costs

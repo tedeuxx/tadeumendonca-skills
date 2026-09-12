@@ -56,8 +56,9 @@ line instead would hide that a collection run came back wrong.
 | the store's two halves stay paired | **nothing.** A report with no collection file beside it passes every check here |
 
 **By this loop's own test — *would something stop me, or only my memory?* — this store is a record
-and not a control.** `hooks/scripts/cadence-notice.sh` reports how long since a report last landed
-here, which is **noticing** and never **firing**: a hook cannot dispatch a rite.
+and not a control.** `hooks/scripts/cadence-notice.sh`, registered on **`SessionStart`**, reports how
+long since a report last landed here — which is **noticing** and never **firing**: a `SessionStart`
+hook returns context, not a dispatch, and nothing in this harness can run a rite.
 
 ## The period name
 
