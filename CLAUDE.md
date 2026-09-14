@@ -1036,8 +1036,10 @@ selector that NAMES the duplicate is what shows the 15-versus-14 gap is real rat
 **AND NONE OF THESE COMMANDS RUNS IN `tadeumendonca-io` — which this block has never said, while the
 sibling's own mode record has had to say it since 2026-09-09.** The block is byte-identical across the
 two repositories and every selector in this section is **repo-relative**, but `-io` carries no `hooks/`
-directory at all: `ls hooks/` there returns *"No such file or directory"*, and each `jq` above exits 1
-with *"Could not open file hooks/hooks.json"* and **no stdout**. In that copy the commands are
+directory at all: `ls hooks/` there returns *"No such file or directory"*, and each **pipeline** above
+produces **no stdout and exit 1**. Say *pipeline*, not `jq`: the `jq` itself exits **2**, with
+*"Could not open file hooks/hooks.json"* on stderr — but a pipeline's status is its last stage's, and
+what a reader sees is exit 1 and an empty result. In that copy the commands are
 indistinguishable, on stdout and on exit code, from commands that ran and found nothing — which is this
 platform's own named worst shape, a falsifier that fails open. `tedeuxx/tadeumendonca-io`'s
 `docs/loop-mode.md` records exactly that, in its own words: *"here it means nothing was scanned."*
@@ -1097,12 +1099,16 @@ jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
   | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort -u \
   | xargs grep -nE -- '--milestone|--label|--json [^|"]*(headRefOid|comments)' \
   | grep -vE ':[0-9]+:[[:space:]]*#'
-# -> 10 lines, across 7 files
-#    ~~across 6 files~~ — struck 2026-09-14 (#463). Re-derived over the script set as it stood at the
-#    head that published it (85e23b43), this selector returned 10 lines across SEVEN files there too,
-#    so the file half was WRONG WHEN PUBLISHED rather than gone stale since. The line count was right.
-#    That is the third time this one parenthetical has shipped a wrong number while explaining why
-#    numbers here must be published with the command that produced them.
+# -> 10 lines, across 6 files
+#
+#    THE FILE COUNT IS A PROPERTY OF THE FILTERED RUN, and re-deriving it without the filter gives 7.
+#    Both figures published in full, because a described mutation of a command is not a command:
+#      as written above, ending in `grep -vE ':[0-9]+:[[:space:]]*#'`   -> 10 lines, 6 files
+#      the same selector with that final `grep -vE` removed              -> 14 lines, 7 files
+#    The 7th file is `cadence-notice.sh`, whose single match is a comment quoting this very selector —
+#    exactly what the filter exists to remove. So a reader who reaches for `grep -l` (which lists a
+#    file on ANY match, comments included) gets 7 and concludes the 6 is stale. It is not, at either
+#    head this figure has been checked against. Re-derive with the pipeline as printed, filter and all.
 
 # calibration B — the second command with its `deny "` filter removed:
 jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
