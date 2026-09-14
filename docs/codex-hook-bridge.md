@@ -257,10 +257,44 @@ a role registered as `[agents.probe_child]`. Four payloads, one turn:
 | 3 | `Bash` (the child's act) | **`probe_child`** | present |
 
 **ABSENT is not EMPTY, and an adapter that conflates them inverts this repository's own
-floor.** `permission-guard.sh` reads an *empty* `agent_type` as the orchestrator and grants it
-the orchestrator's position in rules 7 and 7b. A translation that defaults a missing key to
-`""` hands the parent thread that position by accident — the Issue names this hazard, and this
-is the measurement that makes it concrete rather than anticipated.
+floor.** A translation that defaults a missing key to `""` hands the Codex parent thread the
+orchestrator's exemptions by accident — the Issue names this hazard, and this is the
+measurement that makes it concrete rather than anticipated.
+
+~~`permission-guard.sh` reads an *empty* `agent_type` as the orchestrator and grants it the
+orchestrator's position in rules 7 and 7b.~~ **Struck: the ruling is right and the evidence was
+INVERTED, in the permissive direction.** In 7 and 7b an empty value is what **denies** — it is
+the *orchestrator* those two rules exist to refuse. The exemptions live in **5c/5d** (opening
+work) and **5e** (posting to a public surface), and an adapter author who checked the cited
+rules would have found them denying and concluded the hazard was theoretical. **It is larger
+than the struck sentence said, not smaller**, because the two acts actually exempted are
+*opening work* and *publishing*.
+
+Measured against the live guard — four acts, four caller values, the verdict read off the
+hook's own JSON:
+
+| act | rule | `""` | `agents-lead` | `plugin:agents-lead` | `plugin:developer` |
+|---|---|---|---|---|---|
+| `gh pr merge 999999 --merge --repo …` | 7b | **deny** | deny | deny | deny |
+| `git push origin main` | 7 | **deny** | deny | deny | deny |
+| `gh issue create --repo … --title x --body-file /dev/null` | 5c/5d | **abstains** | deny | deny | **abstains** |
+| `gh issue comment 999999 --repo … --body-file /dev/null` | 5e | **abstains** | deny | **abstains** | abstains |
+
+```sh
+# each payload is {"hook_event_name":"PreToolUse","tool_name":"Bash",
+#                  "tool_input":{"command":<act>},"agent_type":<caller>,"cwd":<cwd>}
+# piped to: bash hooks/scripts/permission-guard.sh
+```
+
+Every act names a nonexistent pull request or Issue, so nothing executed. **The two right-hand
+columns are the calibration**: `plugin:developer` abstaining on 5d and `plugin:agents-lead`
+abstaining on 5e show these rules are caller-keyed rather than uniformly denying, so the
+`""` column is a real exemption and not a hook that abstains on everything.
+
+**One detail an adapter would trip on.** The bare spelling `agents-lead` is **denied** by 5e
+while `plugin:agents-lead` abstains, because the allowlist matches the namespaced form. So a
+synthesised identity fails on its spelling as well as on its authority — one more reason the
+answer is *do not synthesise one*.
 
 **And identity here is a SELECTION, not an authority.** Payload 1 shows why: the parent's own
 `tool_input` carries `{"agent_type": "probe_child", "task_name": …}`. **The parent names the
@@ -424,3 +458,16 @@ anywhere else under `~/.codex` — a session rollout, a cache, `auth.json` — p
 credential itself is **read** from the real home by every turn phase, which is a deliberate
 exception stated in the probe's own docstring and struck through the sentence that used to
 deny it.
+
+**The copy is removed, and that is a repair rather than a property it always had.** The turn
+phases write a credential copy into each disposable home, and the first delivery of this slice
+left them there — **15** across the scratch rounds and the instrument's own runs, found by
+`find <tmp> -maxdepth 4 -name auth.json -path '*codex*'`. Mode `0600` inside a `0700` per-user
+root, so the exposure is low and no marginal privilege is gained; it is still a credential copy
+accumulating in a directory nobody sweeps. **Every copy the probe makes is now removed at the
+end of the run, on the failing path too**, the made/removed counts are reported, and a copy
+that cannot be removed **fails the run** rather than being noted. The 15 were deleted; the same
+`find` returns **0**, against a selector that had just returned 15, so the zero is a real zero.
+
+**The fixture trees are still left behind on purpose** — they are the artifacts an operator
+inspects. A credential copy is not one of them, which is the whole of the distinction.

@@ -32,6 +32,9 @@ TWO CLASSES OF PHASE, and the second one SPENDS THE OPERATOR'S TOKENS.
 CREDENTIAL HANDLING, because the turn phases need one. `~/.codex/auth.json` is COPIED
 into the disposable home. That is a READ of the real Codex home and never a write, and
 the probe asserts the real `config.toml` is byte-identical before and after every run.
+Every copy it makes is REMOVED at the end of the run, on the failing path too, and the
+count is reported — the fixture trees are artifacts worth inspecting and a credential
+copy is not. Failing to remove one fails the run.
 
 WHAT A GREEN OFFLINE RUN DOES NOT MEAN. It does not mean a hook executed against a model
 tool call, that a decision blocked an act, or that any caller identity was authenticated.
@@ -542,6 +545,15 @@ def real_config_digest():
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+# Every disposable home this run seeded with a credential. The probe leaves its fixture
+# trees behind on purpose — they are the artifacts an operator inspects — but a COPY OF A
+# CREDENTIAL is not an artifact worth inspecting, and leaving one behind per phase per run
+# accumulates silently in a directory nobody sweeps. They are removed at the end of the
+# run, on every path, and the count is reported so the removal is visible rather than
+# assumed.
+SEEDED_HOMES = []
+
+
 def seed_credential(home):
     """Copy the operator's auth into the DISPOSABLE home. A read, never a write."""
     source = REAL_CODEX_HOME / "auth.json"
@@ -549,6 +561,24 @@ def seed_credential(home):
         raise Failure("no %s: a turn phase needs the operator's own credential, and "
                       "this probe will not create one" % source)
     shutil.copy2(str(source), str(home / "auth.json"))
+    SEEDED_HOMES.append(home)
+
+
+def shred_credentials():
+    """Remove every credential copy this run made. Returns (removed, left_behind)."""
+    removed, remaining = 0, []
+    for home in SEEDED_HOMES:
+        path = home / "auth.json"
+        try:
+            path.unlink()
+            removed += 1
+        except FileNotFoundError:
+            pass
+        except OSError:
+            remaining.append(str(path))
+        if path.exists():
+            remaining.append(str(path))
+    return removed, remaining
 
 
 def turn_config(project, registrations, state="", agents=None):
@@ -1016,6 +1046,19 @@ def main():
     # ambient Codex home is the failure this probe's own document says nothing
     # mechanical prevents — so it is checked here, on every path, including the
     # failing one, where a half-finished phase is most likely to have left a write.
+    # Before the containment reading, and on every path including the failing one: the
+    # credential copies this run made are removed. A phase that aborted mid-way is exactly
+    # where one would otherwise be left.
+    shredded, left = shred_credentials()
+    report["credential_copies_made"] = len(SEEDED_HOMES)
+    report["credential_copies_removed"] = shredded
+    report["credential_copies_left_behind"] = left
+    if left:
+        report["result"] = "FAIL"
+        report["failure"] = ("could not remove %d credential copy/copies: %s"
+                             % (len(left), ", ".join(left)))
+        status = 1
+
     report["real_config_sha256_after"] = real_config_digest()
     report["real_config_unchanged"] = (
         report["real_config_sha256_after"] == config_before)

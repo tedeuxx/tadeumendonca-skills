@@ -222,6 +222,41 @@ roles = probe.turn_config(Path("/probe/project"), [(None, Path("/probe/hook.sh")
                           agents=[("probe_child", Path("/probe/role.toml"), "d")])
 check("a declared role reaches the config", "[agents.probe_child]" in roles)
 
+# --- arm 7: the credential copies a turn phase makes are removed ---------------
+# Exercised against real files, without touching the operator's home: the tracking list
+# is seeded by hand and the shredder is asked to clear it. A copy of a credential is not
+# an artifact worth leaving in a directory nobody sweeps, and an unremovable one must
+# fail the run rather than be reported and shrugged at.
+probe.SEEDED_HOMES.clear()
+fake_homes = []
+for index in range(3):
+    home = work / ("cred-home-%d" % index)
+    home.mkdir()
+    (home / "auth.json").write_text('{"probe": "not a credential"}')
+    fake_homes.append(home)
+    probe.SEEDED_HOMES.append(home)
+check("the fixture homes each carry a file to remove",
+      all((h / "auth.json").exists() for h in fake_homes))
+removed, left = probe.shred_credentials()
+check("every tracked credential copy is removed", removed == 3, str(removed))
+check("nothing is reported left behind", left == [], str(left))
+check("the files are gone from disk, not merely counted",
+      not any((h / "auth.json").exists() for h in fake_homes))
+# Calibration: the shredder must tolerate a home whose copy is already gone, or a
+# re-run after a partial failure would report a phantom.
+probe.SEEDED_HOMES.clear()
+probe.SEEDED_HOMES.append(fake_homes[0])
+removed_again, left_again = probe.shred_credentials()
+check("an already-removed copy is not double-counted and is not an error",
+      removed_again == 0 and left_again == [],
+      "%d %s" % (removed_again, left_again))
+probe.SEEDED_HOMES.clear()
+check("seed_credential is what appends to the tracking list, so no phase can copy "
+      "without being tracked",
+      "SEEDED_HOMES.append" in
+      (ROOT / "scripts" / "codex-hook-probe.py").read_text().split(
+          "def seed_credential")[1].split("def ")[0])
+
 print("\n%d passed, %d failed" % (passed, failed))
 if passed == 0:
     print("VACUITY: the suite asserted nothing")

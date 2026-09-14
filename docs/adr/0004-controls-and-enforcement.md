@@ -5972,10 +5972,70 @@ act to every caller* is implementable; *this is a child* is implementable; *whic
 any sense a floor may rest on. #455's own AC5 already required exactly this and is satisfied by
 refusal rather than by construction.
 
-**And ABSENT is not EMPTY.** `hooks/scripts/permission-guard.sh` reads an empty `agent_type` as the
-orchestrator and grants it that position in rules 7 and 7b. **An adapter that defaults a missing key
-to `""` hands the Codex parent thread the orchestrator's exemptions by accident.** The hazard was
-anticipated in #455's body; this is the measurement that makes it concrete.
+**And ABSENT is not EMPTY.** **An adapter that defaults a missing key to `""` hands the Codex parent
+thread the orchestrator's exemptions by accident.** The hazard was anticipated in #455's body; this
+is the measurement that makes it concrete.
+
+~~`hooks/scripts/permission-guard.sh` reads an empty `agent_type` as the orchestrator and grants it
+that position in rules 7 and 7b.~~ **Struck within this slice, on the gate's finding: the ruling is
+right and the evidence was INVERTED, in the permissive direction.** In rules 7 and 7b an empty value
+is what **denies** — the orchestrator is precisely who those two refuse. **The exemptions are in
+5c/5d and 5e**, and an adapter author who checked the cited rules would have found them denying and
+concluded the hazard was theoretical.
+
+**The correction makes the hazard LARGER rather than smaller, which is why it is worth the
+paragraph.** The two acts actually exempted for an empty caller are **opening work** (5c/5d) and
+**posting to a public surface** (5e) — not merge and not trunk push. A Codex parent thread handed an
+empty `agent_type` by a careless default would acquire the right to file Issues and to publish
+comments, in a harness whose own rule is *only the owner opens work*.
+
+**Measured against the live guard rather than inherited.** Four acts × four caller values, each
+payload `{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":<act>},
+"agent_type":<caller>,"cwd":<cwd>}` piped to `bash hooks/scripts/permission-guard.sh`, verdict read
+from the hook's own JSON. Every act names a nonexistent pull request or Issue, so nothing executed:
+
+| act | rule | `""` | `agents-lead` | `plugin:agents-lead` | `plugin:developer` |
+|---|---|---|---|---|---|
+| `gh pr merge 999999 --merge --repo …` | 7b | **deny** | deny | deny | deny |
+| `git push origin main` | 7 | **deny** | deny | deny | deny |
+| `gh issue create --repo … --title x --body-file /dev/null` | 5c/5d | **abstains** | deny | deny | **abstains** |
+| `gh issue comment 999999 --repo … --body-file /dev/null` | 5e | **abstains** | deny | **abstains** | abstains |
+
+**The two right-hand columns are the calibration, not decoration.** `plugin:developer` abstaining on
+5d and `plugin:agents-lead` abstaining on 5e show both rules are caller-keyed rather than uniformly
+denying — so the `""` column is a real exemption rather than a hook that abstains on everything.
+
+**`CLAUDE.md` had it right the whole time** — *"rules 7 (trunk push) and 7b (merge) fire against that
+empty value"*, in a paragraph about what is **enforced**. This record and
+`docs/codex-hook-bridge.md` turned *fires against* into *grants*. **The inversion was swept for
+before either site was repaired**, because a partial catch-up is the shape this repository keeps
+paying for. **14 occurrences tracked tree-wide, 2 of them the inversion — both in this slice's own
+diff, both struck above — and 12 correct**, every one reading *refuse*, *deny*, *fire against* or
+*unreach*; `docs/adr/0021` separately states the 5c/5d exemption correctly. **Two sites, both
+repaired here, none elsewhere.**
+
+**The sweep is WRAP-INSENSITIVE, and that is not tidiness — a line-oriented `grep` gets this one
+wrong.** The struck sentence above breaks between *grants it* and *that position*, so a
+line-oriented count of the claim returns **zero** occurrences of the defect at head while both are
+still on disk. The command that produced the figures:
+
+```sh
+git ls-files -z | xargs -0 python3 -c '
+import re, sys
+pat = re.compile(r"(.{90})rules? 7,? (?:7b|and 7b)", re.I)
+for p in sys.argv[1:]:
+    if p.startswith("powers/"): continue
+    try: body = re.sub(r"\s+", " ", open(p, encoding="utf-8").read())
+    except Exception: continue
+    for m in pat.finditer(body):
+        print(("GRANTS" if re.search(r"grants? it", m.group(1), re.I) else "other"), p)
+'
+```
+
+**A count is not what holds this, and no arm is added for it.** The verb that would have to be
+matched is ordinary English, the correct sites use four different ones, and both defective sites now
+**quote** the wrong claim in order to strike it — so an absence check would demand deleting the
+correction. It is held by review, like every other citation in this library.
 
 ### The three holes, and the second one is structural
 
@@ -6087,6 +6147,7 @@ context, so **no "both binaries" claim is available** and AC1 stays open on that
 | claim | what actually holds it |
 |---|---|
 | the probe never writes the real Codex home | **the probe itself, on every run including the failing path** — one path only; a write elsewhere under `~/.codex` passes |
+| the credential copies a turn phase makes are removed | **the probe itself**, before the containment reading and on the failing path too, with the counts reported and an unremovable copy failing the run. Offline arms cover the shredder; two source mutations redden them |
 | the turn phases are not run by accident | **`--allow-model-turn`**, a flag with no default |
 | the pinned payload/identity/refusal shapes still match the runtime | **re-running the probe on a machine with the binary.** CI has none, so `scripts/codex-hook-probe.test.py` gates the instrument and says nothing about the runtime |
 | the carrier fixture's matcher stays the measured value | **an offline gate arm**, pinned to the constant rather than to a literal |

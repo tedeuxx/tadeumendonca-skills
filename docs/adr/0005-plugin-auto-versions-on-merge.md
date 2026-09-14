@@ -1107,9 +1107,17 @@ shell CLI `0.153.4` is still not on this machine's `PATH`, so **no both-binaries
 and the amendment above's own bound on that is unchanged.
 
 **A cost specific to this slice: it spends the owner's tokens.** Six model turns were run to produce
-these figures, plus one deliberate mutation run to confirm a pinned expectation can redden. The
-`--allow-model-turn` flag exists so that the next run of this instrument is a decision rather than a
-side effect.
+these figures, plus one deliberate mutation run to confirm a pinned expectation can redden, plus one
+to verify the credential cleanup below. The `--allow-model-turn` flag exists so that the next run of
+this instrument is a decision rather than a side effect.
+
+**And it copies a credential, which the first delivery left on disk.** The turn phases seed each
+disposable home from `~/.codex/auth.json`, and fifteen copies were sitting under the temporary root
+before the merge gate raised it. Graded **exposure, low** — `0600` inside a `0700` per-user root, no
+marginal privilege — and repaired rather than accepted: **every copy is removed at the end of a run,
+on the failing path too**, the counts are reported, and an unremovable copy fails the run. The
+fifteen were deleted. This is the one property of the probe that was a promise in prose and is now a
+check, alongside the config digest.
 
 ### Significance
 
