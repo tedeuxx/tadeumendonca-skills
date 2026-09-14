@@ -6167,3 +6167,158 @@ exemptions) may not be carried there at all. It also discharges the unmeasured r
 record published as blocking, which were recorded in ADR-0005's 2026-09-11 amendment; those rows are
 struck in `docs/codex-hook-bridge.md` rather than deleted, because slice A published them as the
 reason no adapter could be written.
+
+## Amendment (2026-09-14) — the floor is TRANSLATED onto Codex, and one gap is left open with the owner's ruling as a single constant (#455, slice C)
+
+Slice B measured what the Codex hook layer can carry. This one carries it: a carrier
+(`.codex-plugin/plugin.json` plus `codex-hooks.json`) and a translator
+(`scripts/codex-hook-adapter.py`) that maps a native `PreToolUse` payload onto
+`hooks/scripts/permission-guard.sh` and maps its verdict back into Codex's own refusal verb.
+
+**The decision that is NOT taken here is named as such**: whether to refuse interactive session
+startup, which is the only enforceable point on the `write_stdin` route. Both branches are
+implemented and both are gated; a module constant selects one, so the owner's ruling is a
+one-clause edit rather than a rewrite.
+
+### The decision
+
+1. **One authored floor, two carriers.** The adapter contains no rule. Every verdict it emits
+   came out of the guard. A rule in the adapter would be a second floor drifting from the first
+   with nothing watching, which is the failure this repository names most often.
+2. **A caller-dependent exemption is unavailable on Codex, to every caller.** Slice B ruled that
+   `agent_type` may not carry authority; this implements the ruling by mapping any unusable
+   identity to a non-empty sentinel (`codex-unidentified`, deliberately without a colon so it
+   cannot match the guard's namespaced allowlists) and passing a real child role through bare.
+   Opening work and posting to a public surface are therefore refused to every Codex caller,
+   including one whose `agent_type` reads `quality-assurance`. **That is a boundary limitation,
+   not a new merge executor**, and the way to lift it is native authenticated caller binding,
+   which does not exist.
+3. **The naive mapping is the SAFE one, and this is the sentence an adapter author gets
+   backwards.** Absence must not normalise to `""`. Measured against the live guard, and
+   re-derived by the suite on every run rather than quoted:
+
+   | caller sent to the guard | opening work (5c/5d) | posting (5e) |
+   |---|---|---|
+   | key absent | **abstains** | **abstains** |
+   | `""` | **abstains** | **abstains** |
+   | `codex-unidentified` | deny | deny |
+   | `agents-lead` (bare) | deny | deny |
+   | `tadeumendonca-skills:agents-lead` | deny | **abstains** |
+
+   The last row is the calibration. A BARE name fails **closed** because the allowlists match the
+   namespaced form, and Codex's own value is bare — so pass-through is simultaneously the simplest
+   mapping and the conservative one.
+4. **Fail open on degradation, preserving the guard's own fail-closed exception by
+   construction.** A missing interpreter, an unreadable guard, a malformed payload, a timeout and
+   an unreadable verdict all abstain and write one line to stderr saying the act was **NOT
+   judged**. Rule 7c's merge lookup stays fail-closed because the adapter forwards a verdict
+   rather than interpreting a rule.
+5. **No matcher in the carrier.** `matcher` is compared against `tool_name` and `shell` matches
+   nothing; an absent matcher observes every route and dispatch happens in the adapter, where a
+   wrong value is a visible branch rather than a silent non-registration.
+
+### The measurement this slice added, and it changes how a hook must be invoked
+
+**The guard's verdict follows the PROCESS working directory and ignores the payload's `cwd`.** It
+resolves a bare `git push`'s branch with `git -C "." symbolic-ref`. Two fixture repositories, one
+on `main` and one on a feature branch:
+
+```
+process cwd=main     payload cwd=feature  ->  deny
+process cwd=feature  payload cwd=main     ->  abstain
+process cwd=main     payload cwd=main     ->  deny      (control)
+process cwd=feature  payload cwd=feature  ->  abstain   (control)
+```
+
+Both controls behaved, so the mismatched rows are the finding. The adapter chdirs to the payload's
+`cwd`; without it the trunk rule reads whichever tree the host launched the hook from, and **the
+error runs in both directions** — a real trunk push abstaining is the expensive one. On Claude
+this has never bitten because the host happens to launch hooks in the session's directory, which
+is a property of that host and not of the rule.
+
+**A second one, smaller and load-bearing for `--selfcheck`:** with a broken `jq` on `PATH` the
+guard returns exit `0` and empty stdout on `terraform apply`. The whole floor fails open, silently.
+With a real `jq` the same payload denies.
+
+### The gap left OPEN, and the recommendation
+
+`write_stdin` defeats a command-string floor: a bare interpreter is observed once, carrying four
+characters, and everything fed in afterwards is invisible to the hook layer and to the runtime's
+own item stream. Two answers:
+
+| | **`False` — ship and state the gap** *(shipped)* | **`True` — refuse interactive session startup** |
+|---|---|---|
+| direction of the error | toward **letting something through** | toward **refusing something real** |
+| who SEES an error | **nobody, by construction** — an unjudged act leaves no artifact anywhere | the operator, at the moment it binds, as a `block` with a reason naming the alternative |
+| legitimate work refused | none | a REPL, a local `psql`, `sqlite3`, interactive `python3` — the exploratory loop |
+| reversible | **yes, one constant**, both branches gated | yes, the same constant |
+
+**Recommended: `False`, and the reason is that `True` does not close the class.** It closes one
+spelling of it — an enumeration over interpreter names, which is precisely the search-over-spellings
+that `action-pendency-guard.sh` was deleted for — while a model reaches the same bypass by writing
+a script file, and `bash -c` with a payload the floor already reads is not a bypass at all. It
+would trade a large amount of visible friction for a control that a second reviewer would find a
+fourth way around.
+
+**What `False` costs, recorded rather than absorbed:** the coverage claim is genuinely narrower
+than *"the shell"*, the narrowing is carried only by prose, and nothing observes an unjudged act.
+If the owner's read is that an unobservable gap is worse than visible friction, `True` is the
+honest answer.
+
+**The third option is refused and is not a middle path:** shipping the command-string floor and
+describing it as shell coverage.
+
+### Considered and rejected
+
+- **Re-authoring the floor's rules in Python for Codex.** Two floors, one review, and the drift is
+  invisible until the two disagree in front of an agent. Rejected on the Issue's own words: *do
+  not duplicate a second authored permission policy*.
+- **Synthesising an identity so the loop keeps flowing** — mapping the parent to `""`, or to a
+  namespaced persona. Both were measured working, which is the problem: `""` reproduces the
+  orchestrator's exemptions on a thread the model controls, and a namespaced value is an exemption
+  a model obtains by asking. Rejected, and both are mutation controls in the suite.
+- **Declaring a `timeout` key in `codex-hooks.json`.** Not measured to be accepted; an
+  unrecognised key risks a parse this repository has already measured failing **silently** (row
+  four of the carrier table). The adapter's own bound is what exists.
+- **Translating `apply_patch`.** The floor is a command guard; a patch envelope is a different
+  grammar and translating it would be inventing a rule rather than carrying one. The route abstains
+  and names itself on stderr.
+
+### What this does NOT claim
+
+**No claim that the floor is ACTIVE on Codex.** Three things stand between this and that, and all
+three are runtime facts no gate here can reach:
+
+1. **Trust.** A registration executes only against a matching `trusted_hash` in the invoking user's
+   own `config.toml`, and this repository's registrations are all `untrusted`. Shipping the carrier
+   turns nothing on.
+2. **Whether a plugin-carrier hook command resolves a RELATIVE path, and against what.** Slice A's
+   fixture used the relative spelling and `plugin/read` reported a registration; every turn phase
+   registered an **absolute** path. So *the manifest is read* is measured and *the command is
+   found* is not. **This blocks the activation claim** and one trusted turn settles it.
+3. **The route ceiling, which no build can lift here.** `command/exec`, `process/spawn` and
+   `thread/shellCommand` fire no hook. The floor covers the model's tool calls and nothing else.
+
+### What nothing enforces
+
+| claim | what actually holds it |
+|---|---|
+| the adapter contains no rule of its own | **review.** No gate can tell a translation from a policy |
+| absence does not map to `""` | **`codex-hook-adapter.test.py`**, re-deriving the guard's own verdicts on every run; two source mutations redden it |
+| the carrier is not the silent-fallback shape | **the same suite** — a wrong `hooks` type and a dangling path are both mutation controls |
+| a mechanism in the second carrier declares a `purpose:` | **`inventory-counts.test.sh`**, whose forward arm reads `codex-hooks.json` from this slice on. It was derived from `hooks/hooks.json` alone and was therefore blind to the second carrier |
+| the coverage sentence is stated as *the model's tool calls* | **one gate arm asserting the words are in the document.** It cannot assert anyone read them |
+| the shipped branch is the one the owner ruled | **a gate arm pinned to `False`**, which turns a flip into a deliberate edit of the suite as well. It cannot know what was ruled |
+| the registered command is ever invoked | **nothing, and nothing here can.** See *What this does NOT claim* |
+
+**By this loop's own test — *would something stop me, or only my memory?* — the floor is now
+MECHANICAL on Codex for the model's tool calls, conditional on trust and on the unmeasured path
+resolution, and every other claim in this amendment is an instruction.**
+
+### Significance
+
+*Sets a cross-cutting pattern* and *alters a previously-recorded decision*. It establishes that a
+second harness carries this floor by **translation onto the authored guard** rather than by a port,
+which is the shape any third harness should copy; and it discharges the last row of slice B's own
+*what nothing enforces* table — *"an adapter does not map a missing `agent_type` to `""` — nothing
+yet"* — which is now a gated mutation control rather than an intention.

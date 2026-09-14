@@ -25,3 +25,14 @@ replace = '"version": "{new_version}"'
 filename = "powers/tadeumendonca-skills/plugin.json"
 search = '"version": "{current_version}"'
 replace = '"version": "{new_version}"'
+
+# The Codex carrier's own manifest — a THIRD distribution surface, and the same argument the Kiro
+# entry above makes, arriving one harness later. Codex reads `.codex-plugin/plugin.json` out of a
+# clone, so the version it advertises is not derived from `VERSION` at install time. Left off this
+# list, a release would bump the other three and leave the Codex package naming a version that no
+# longer exists, with every other gate green. `codex-hook-adapter.test.py` asserts both halves: that
+# this entry exists, and that the two versions agree.
+[[tool.bumpversion.files]]
+filename = ".codex-plugin/plugin.json"
+search = '"version": "{current_version}"'
+replace = '"version": "{new_version}"'

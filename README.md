@@ -2223,6 +2223,28 @@ measurement the Issue's own sequencing rule demands before it. See
 [The native Codex hook seam](docs/codex-hook-bridge.md) for the measurements, the
 instrument that reproduces them, and the list of what remains unmeasured.
 
+~~**No adapter shipped**~~ — **struck a second time, 2026-09-14 (#455 slice C): one shipped.**
+`.codex-plugin/plugin.json` plus `codex-hooks.json` carry `scripts/codex-hook-adapter.py`, which is
+a **translator and not a second floor** — it maps a native payload onto
+`hooks/scripts/permission-guard.sh` and maps that guard's verdict back into Codex's `block` verb, so
+the floor stays authored in exactly one place.
+
+**Shipping it turns nothing on, and the distinction is the whole of what this paragraph is for.** A
+registration executes only against a matching `trusted_hash` in the invoking user's own
+`config.toml`, and this repository's are all `untrusted`. **Two claims are additionally NOT
+available**: whether a plugin-carrier hook command resolves a *relative* path is unmeasured (slice
+A's fixture used one and `plugin/read` reported a registration; every turn phase registered an
+absolute path), and the route ceiling above is unliftable — the floor covers **the model's tool
+calls** and nothing else. *"The shell is guarded"* is false on this runtime.
+
+**Two consequences an operator meets immediately.** No Codex caller receives a caller-dependent
+exemption — opening work and posting to a public surface are refused to **every** caller, because
+`agent_type` routes and never authenticates. And the `write_stdin` gap is **open by decision**: the
+adapter ships permitting interactive session startup, with the alternative implemented behind one
+constant (`REFUSE_INTERACTIVE_SESSION_STARTUP`) and both branches gated. The bridge document prices
+both. Run `python3 scripts/codex-hook-adapter.py --selfcheck` to see which is in force and what the
+floor cannot see — every hook here fails open, so an inert floor looks exactly like a holding one.
+
 **What the turn found, and two of the three are bypasses no adapter can close.** A hook decision
 **does** refuse an act before its effect — `{"decision": "block", "reason": …}`, the verb `block`
 rather than Claude's `deny`. **Only a MODEL tool call fires a hook**: `command/exec`,
