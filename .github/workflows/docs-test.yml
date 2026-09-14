@@ -54,6 +54,19 @@ on:
       # the suite caught it only because the same PR also changed `agents/` and `README.md`. Remove
       # those two coincidences and it ships. Identical in shape to the `hooks/**` note above.
       - ".claude-plugin/**"
+      # `.codex-plugin/**` and `codex-hooks.json` — the SECOND carrier (#455 slice C), and the same
+      # reason as the entry above, one harness later. `inventory-counts.test.sh` scans both files:
+      # they are tracked, so the floor-claim and gate-coverage arms read them, and the purpose arm
+      # now derives part of its mechanism set from `codex-hooks.json` directly. Without these lines
+      # a PR touching only the Codex carrier could deregister the floor adapter — or restore the
+      # silent-fallback shape — and start no gate at all.
+      #
+      # THIS ENTRY WAS ADDED BECAUSE THE INSTRUMENT WENT RED, not because anyone remembered. The
+      # gate-coverage arm named both files by path on the slice that created them, which is the
+      # behaviour the long enumeration below was built for and the second time it has fired before
+      # a PR rather than after one.
+      - ".codex-plugin/**"
+      - "codex-hooks.json"
       # `docs/**`, for the third time and the same reason. The suite's floor-claim assertion scans
       # every tracked `.md`/`.sh`, and that now includes `docs/adr/**` — which is the ONLY layer the
       # stale-claim defect was actually left in (the hook header had already been re-tensed; the ADRs
