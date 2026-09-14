@@ -1,6 +1,6 @@
 {
   "name": "tadeumendonca-skills",
-  "version": "2.0.45",
+  "version": "2.0.46",
   "description": "The Codex carrier for this harness: the irreversible-floor adapter, the skill library and the MCP declaration. It REPLACES the Claude hook registry for Codex — see docs/codex-hook-bridge.md for what that covers and what it does not.",
   "hooks": "./codex-hooks.json",
   "skills": "./skills/",
