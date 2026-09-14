@@ -1007,9 +1007,49 @@ mode selects a predicate and a ceremony set; it never selects a permission rule.
 surface that can reach the irreversible floor is a hole with a nice name.**
 
 **Today that separation is structural rather than merely intended, and this is the command that says
-so.** Across all **fourteen** hook registrations, every occurrence of the mode vocabulary is a comment
-or a deny-message string, and **no registered hook selects a `milestone` or a `labels` field or passes
-a `--milestone`/`--label` flag**:
+so.** Across all **15** registrations in `hooks/hooks.json` — resolving to **14** distinct script
+files, because `preflight.sh` is registered twice — every occurrence of the mode vocabulary is a
+comment or a deny-message string, and **no registered hook selects a `milestone` or a `labels` field
+or passes a `--milestone`/`--label` flag**:
+
+~~Across all **fourteen** hook registrations~~ — **struck 2026-09-14 (#463), and the strike is worth
+more than the digit.** It was **true when it landed** (14 registrations of 13 scripts) and went false
+on 2026-09-11, when `worktree-notice.sh` was registered and the pair moved to 15 of 14. **It went
+false INTO a coincidence, which is what made it survive a green suite and two reviews:** *fourteen* is
+now exactly the count of distinct **scripts** — the object the commands below actually iterate, since
+each ends in `sort -u` — so the stale sentence reads as a correct claim about the wrong noun, and a
+reader who checks it against the pipeline beneath it is told it holds. **Both nouns are stated from
+here on, and each is derived separately rather than as one figure:**
+
+```
+jq '[.hooks|to_entries[]|.value[]|.hooks[]]|length' hooks/hooks.json                  # -> 15 registrations
+jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
+  | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort -u | wc -l               # -> 14 scripts
+jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
+  | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort | uniq -d                # -> preflight.sh
+```
+
+**The third command is the calibration and it is not decoration:** the first two agreeing at some
+future head would prove nothing on its own — a duplicate is exactly what makes them differ, so the
+selector that NAMES the duplicate is what shows the 15-versus-14 gap is real rather than arithmetic.
+
+**AND NONE OF THESE COMMANDS RUNS IN `tadeumendonca-io` — which this block has never said, while the
+sibling's own mode record has had to say it since 2026-09-09.** The block is byte-identical across the
+two repositories and every selector in this section is **repo-relative**, but `-io` carries no `hooks/`
+directory at all: `ls hooks/` there returns *"No such file or directory"*, and each **pipeline** above
+produces **no stdout and exit 1**. Say *pipeline*, not `jq`: the `jq` itself exits **2**, with
+*"Could not open file hooks/hooks.json"* on stderr — but a pipeline's status is its last stage's, and
+what a reader sees is exit 1 and an empty result. In that copy the commands are
+indistinguishable, on stdout and on exit code, from commands that ran and found nothing — which is this
+platform's own named worst shape, a falsifier that fails open. `tedeuxx/tadeumendonca-io`'s
+`docs/loop-mode.md` records exactly that, in its own words: *"here it means nothing was scanned."*
+**That note is `-io`-only, so a reader of the `-skills` copy of this block had nowhere to learn it**,
+which is why the fact is stated here rather than left to one repository.
+
+**Every figure in this section is a fact about the `-skills` tree, quoted verbatim in the sibling.**
+Measured 2026-09-14; **not repaired here**, because the repair is either a per-repository divergence
+inside a block whose only instrument is `diff`, or a sentence in `-io` saying its own falsifiers are
+inert. That is its own decision and it is the owner's.
 
 ```
 jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
@@ -1028,8 +1068,14 @@ jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
 jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
   | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort -u \
   | xargs grep -hcE 'milestone|iteration|sprint' | paste -sd+ - | bc
-# -> 25        (23 comments + the 2 deny strings the filter above excluded)
+# -> 28        (26 comments + the 2 deny strings the filter above excluded)
 ```
+
+~~`# -> 25        (23 comments + the 2 deny strings the filter above excluded)`~~ — **struck
+2026-09-14 (#463), and the delta is fully accounted rather than merely re-measured:** `permission-guard.sh`
+gained one comment line (15 → 16) and the newly-registered `worktree-notice.sh` brought two. **Both
+zeroes above are unchanged, re-derived at this head** — which is the only thing the denominator exists
+to make readable, and it is why the figure moving is not a finding while the zeroes moving would be.
 
 ~~`# -> 22        (20 comments + the 2 deny strings the filter above excluded)`~~ — **struck 2026-09-09
 (#406 slice C), and the STRIKE is worth more than the new figure.** The denominator moved because the
@@ -1054,6 +1100,15 @@ jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
   | xargs grep -nE -- '--milestone|--label|--json [^|"]*(headRefOid|comments)' \
   | grep -vE ':[0-9]+:[[:space:]]*#'
 # -> 10 lines, across 6 files
+#
+#    THE FILE COUNT IS A PROPERTY OF THE FILTERED RUN, and re-deriving it without the filter gives 7.
+#    Both figures published in full, because a described mutation of a command is not a command:
+#      as written above, ending in `grep -vE ':[0-9]+:[[:space:]]*#'`   -> 10 lines, 6 files
+#      the same selector with that final `grep -vE` removed              -> 14 lines, 7 files
+#    The 7th file is `cadence-notice.sh`, whose single match is a comment quoting this very selector —
+#    exactly what the filter exists to remove. So a reader who reaches for `grep -l` (which lists a
+#    file on ANY match, comments included) gets 7 and concludes the 6 is stale. It is not, at either
+#    head this figure has been checked against. Re-derive with the pipeline as printed, filter and all.
 
 # calibration B — the second command with its `deny "` filter removed:
 jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
@@ -1394,7 +1449,8 @@ is selected one piece at a time and never drained, is design rather than inconsi
 
 ```
 jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json   | sed 's|.*/hooks/scripts/|hooks/scripts/|' | sort -u | xargs grep -l 'rev-parse --git-dir'
-# -> 6 of the 14 registered hooks key their state on the worktree's OWN git dir, so two worktrees
+# -> 6 of the 14 distinct SCRIPTS behind those 15 registrations key their state on the worktree's
+#    OWN git dir (the pipeline ends in `sort -u`, so scripts is the noun), so two worktrees
 #    never share a debounce namespace:
 #    cadence-notice - closure-artifact-guard - orchestrator-tool-census
 #    owed-pr-link-detect - premature-pr-link-detect - zombie-loop-detect
