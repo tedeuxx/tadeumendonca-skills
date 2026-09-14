@@ -471,3 +471,168 @@ that cannot be removed **fails the run** rather than being noted. The 15 were de
 
 **The fixture trees are still left behind on purpose** — they are the artifacts an operator
 inspects. A credential copy is not one of them, which is the whole of the distinction.
+
+## 12 · The adapter — what slice C ships, and the one decision it does not take
+
+**`scripts/codex-hook-adapter.py` is a TRANSLATOR, not a second floor.**
+`hooks/scripts/permission-guard.sh` remains the only authored policy in this repository; the
+adapter reads a native Codex payload, maps the caller, runs that guard, and translates its
+verdict into Codex's own refusal verb. There is no rule in it. A rule there would be a second
+floor drifting from the first with nothing watching.
+
+The carrier is two files: `.codex-plugin/plugin.json` (the manifest measured in section 1 to
+replace the Claude registry) and `codex-hooks.json` (one `PreToolUse` registration, **no
+matcher**, per section 8's finding that `shell` matches nothing and an absent matcher observes
+every route).
+
+**Shipping it changes nothing until the operator trusts it.** Section 2's states are the whole
+mechanism: a registration executes only when a matching `trusted_hash` sits in the invoking
+user's own `config.toml`, and this repository's registrations are all `untrusted` today. So this
+slice makes a floor *available* on Codex; it does not turn one on, and no sentence anywhere may
+say it did.
+
+### The coverage sentence, and it is the one to copy rather than paraphrase
+
+> **The floor covers the MODEL's tool calls. It does not cover the client surface, and it does
+> not cover input delivered into a running session.**
+
+Both halves are measured. `command/exec`, `process/spawn` and `thread/shellCommand` fired
+**zero** hooks against a trusted registration, all three succeeding (section 3); `write_stdin`
+was observed once, carrying the four characters `bash`, with the later input invisible to the
+hook layer *and* to the runtime's own item stream (section 7). *"The shell is guarded"* is false
+on this runtime and must not be written.
+
+### What no Codex caller gets, stated as an operational restriction rather than buried
+
+**No caller-dependent exemption is available on Codex, to anybody.** Opening work and posting to
+a public surface are refused to every Codex caller, including one whose `agent_type` reads
+`quality-assurance`. `agent_type` is a **selection**, not a credential — section 6 — so binding
+an exemption to it would hand the exemption to whoever asked for the role.
+
+The mapping that produces this is the one an adapter author gets backwards, so it is written out:
+
+| what the payload carries | what the adapter sends | why |
+|---|---|---|
+| a child's role, e.g. `probe_child` | **the same value, verbatim and bare** | the guard's allowlists match the namespaced `<plugin>:<persona>` form, so a bare name fails **closed** |
+| **no `agent_type` key** (the parent) | **`codex-unidentified`** | a non-empty sentinel with no colon, denied by every caller-keyed rule's catch-all |
+| `""`, `null`, or a non-string | **`codex-unidentified`** | ABSENT is not EMPTY |
+
+**The defensive-looking move is the dangerous one, and this is the measurement that says so.**
+Re-derived by `scripts/codex-hook-adapter.test.py` on every run rather than quoted from here:
+
+| caller value sent to the guard | opening work (5c/5d) | posting (5e) |
+|---|---|---|
+| key absent | **abstains** | **abstains** |
+| `""` | **abstains** | **abstains** |
+| `codex-unidentified` | deny | deny |
+| `agents-lead` (bare) | deny | deny |
+| `tadeumendonca-skills:agents-lead` | deny | **abstains** |
+
+The last row is the calibration: these rules are caller-keyed rather than uniformly denying, so
+the two abstentions at the top are a real exemption and not a guard that abstains on everything.
+
+### The process working directory is load-bearing and the payload's `cwd` field is not
+
+The guard resolves a bare `git push`'s branch with `git -C "." symbolic-ref`, so **its verdict
+follows the process working directory and ignores the payload's `cwd` entirely.** Measured on two
+fixture repositories, one on `main` and one on a feature branch:
+
+```
+process cwd=main     payload cwd=feature  ->  deny
+process cwd=feature  payload cwd=main     ->  abstain
+process cwd=main     payload cwd=main     ->  deny      (control)
+process cwd=feature  payload cwd=feature  ->  abstain   (control)
+```
+
+Both controls behaved, so the two mismatched rows are the finding. The adapter therefore
+**chdirs to the payload's `cwd`** before invoking the guard. Without that the trunk rule reads
+whichever tree the host happened to launch the hook from, and the error runs in **both**
+directions — a genuine trunk push abstaining is the expensive one. The suite asserts the
+adapter's behaviour *and* the guard's cwd-dependence, so the chdir cannot become decoration.
+
+### Failure posture, and why `--selfcheck` exists
+
+Every degradation **abstains** and writes one line to stderr saying the act was **NOT judged**:
+an unparseable payload, a missing guard, a missing `bash`, a timeout, an unreadable verdict. That
+matches the guard's own general contract. Its one fail-closed exception — rule 7c, the merge
+verdict lookup — is preserved by construction, because the adapter forwards a verdict rather than
+interpreting a rule.
+
+**A floor that is absent is indistinguishable from a floor that is holding**, and that is not
+rhetorical here. Measured: with a broken `jq` on `PATH`, `terraform apply` returns exit `0` and
+**empty stdout** — the whole floor fails open, silently. With a real `jq` the same payload returns
+a `deny`. So:
+
+```sh
+python3 scripts/codex-hook-adapter.py --selfcheck
+```
+
+reports the blocking conditions and prints, every time, the four things a green does **not** mean.
+It is a report and never a control: it changes no trust state and writes nothing.
+
+### <a id="branch-point"></a>THE DECISION THIS SLICE DOES NOT TAKE — `REFUSE_INTERACTIVE_SESSION_STARTUP`
+
+Section 7's gap has two defensible answers and the owner holds the choice. **Both are
+implemented.** The constant at the top of the adapter selects one; the suite exercises both, so
+the unselected branch cannot rot.
+
+**Shipped: `False` — ship the bridge and state the gap.**
+
+| | `False` — ship and state the gap *(shipped)* | `True` — refuse interactive session startup |
+|---|---|---|
+| **which way do errors run** | **toward letting something through.** A model that wants an unjudged shell opens `bash` and feeds it lines | **toward refusing something real.** An enumeration over interpreter spellings, which is the shape a deleted hook here already failed at |
+| **who SEES an error** | **nobody, by construction.** An unjudged act leaves no artifact — section 7 measured the runtime's own item stream carrying no `commandExecution` at all | **the operator, immediately.** A refusal is a visible `block` with a reason naming the alternative (`bash -c '<payload>'`) |
+| **what legitimate work stops** | none | opening a REPL to try something, `psql` against a local database, `sqlite3`, an interactive `python3` — the ordinary exploratory loop |
+| **what a reader of the bridge learns** | the coverage sentence above, **if they read it.** The suite forces it to exist in this document; nothing forces anyone to reach it | the limit announces itself at the moment it binds, to the person it binds |
+| **reversible?** | **yes, one constant.** Both branches are tested, so flipping it is an edit and a re-run rather than a design | **yes, the same constant.** The cost of having chosen wrongly is friction, not damage |
+
+**The recommendation, and the reason is the direction of the error rather than the size of the
+gap.** Ship `False`. Not because the gap is small — it is total on that route — but because
+`True` is a **preventive control whose false positives are visible and whose true positives are
+not**, which is the inverted form of this repository's own rule: it would refuse a great deal of
+legitimate interactive work in exchange for stopping a bypass that a model reaches just as easily
+by writing a script file and running it, or by `bash -c` with a payload the floor already reads.
+**`True` does not close the class; it closes one spelling of it**, and the enumeration in
+`INTERACTIVE_PROGRAMS` is the same search-over-spellings that `action-pendency-guard.sh` was
+deleted for.
+
+**What `False` costs, said plainly rather than absorbed:** the floor's coverage claim is
+genuinely narrower than *"the shell"*, the narrowing is carried only by prose, and **nothing
+observes an unjudged act.** If the owner's read is that an unobservable gap is worse than visible
+friction, `True` is the honest answer and flipping the constant is the whole change.
+
+**The third option is refused and is not a middle path:** shipping the command-string floor and
+describing it as shell coverage. That is the failure this repository names most often — a control
+that reads as installed and behaves as absent — and no amount of qualifying prose converts it
+into a position.
+
+### What this slice does NOT settle, and what it would take
+
+- **Whether a plugin-carrier hook command resolves a RELATIVE path, and against what.** The
+  carrier registers `python3 scripts/codex-hook-adapter.py`, which is the spelling slice A's
+  fixture used and `plugin/read` reported as a registration — but slice A never ran it, and every
+  turn phase registered an **absolute** path. So *the manifest is read* is measured and *the
+  command is found* is not. **This blocks any claim the floor is active on Codex.** One trusted
+  turn against a carrier-registered relative command settles it; this slice is not authorised for
+  a model turn.
+- **Whether the host imposes a hook timeout, and what it is.** `codex-hooks.json` declares none —
+  an unrecognised key risks a parse that this repository has already measured failing silently, so
+  nothing speculative is written into it. The adapter's own 4-second bound is what exists, chosen
+  under the Claude registration's 5.
+- **Whether a model can grant its own hook trust** (section 2's open question) — which decides
+  whether the checkpoint is weak or absent. Not settled here and not this slice's to settle.
+- **Whether `matcher` accepts a regex** (section 8) — the adapter needs no answer, because it
+  ships no matcher.
+
+### What holds this section
+
+`scripts/codex-hook-adapter.test.py`, in CI. It **never starts a Codex process**, so a green is
+not evidence about the runtime. What it asserts: the refusal vocabulary is Codex's and not
+Claude's; the identity table above, re-derived against the **live** guard on every run rather than
+read from this page; the cwd dependence and the adapter's chdir; every degradation abstaining with
+a trace; both settings of the branch point; and the carrier being the shape measured to *replace*
+rather than either shape measured to fail **silently** (a wrong `hooks` type falls back to the
+Claude bundle, a missing path registers zero).
+
+**What no gate here can see:** whether Codex ever invokes the command, whether the registration is
+trusted, and whether any of this document's prose is true.
