@@ -2215,10 +2215,25 @@ seam a bridge would sit on is now recorded rather than assumed: a `.codex-plugin
 the Claude hook registry, a malformed `hooks` value silently restores it, trust is a hash in the
 user's own `config.toml` that **anything able to write that file can confer** — including the
 app-server's own `config/value/write`, so it is not a human checkpoint — and this repository's hooks
-are already discovered there and untrusted. **No adapter shipped**, because no read-only route reaches a hook payload, and
+are already discovered there and untrusted. **No adapter shipped**, ~~because no read-only route reaches a hook payload, and
 an adapter written against an assumed payload is the error in this class nobody can see from
-outside. See [The native Codex hook seam](docs/codex-hook-bridge.md) for the measurements, the
+outside~~ — **struck 2026-09-14: the owner authorised the model turn, and the payload is now
+measured. No adapter shipped anyway**, because writing one is the next slice and this one is the
+measurement the Issue's own sequencing rule demands before it. See
+[The native Codex hook seam](docs/codex-hook-bridge.md) for the measurements, the
 instrument that reproduces them, and the list of what remains unmeasured.
+
+**What the turn found, and two of the three are bypasses no adapter can close.** A hook decision
+**does** refuse an act before its effect — `{"decision": "block", "reason": …}`, the verb `block`
+rather than Claude's `deny`. **Only a MODEL tool call fires a hook**: `command/exec`,
+`process/spawn` and `thread/shellCommand` all fire zero, and the third of those runs inside a thread
+and emits the runtime's own `turn/started`, so *"a turn is running"* is not a test for coverage.
+**A bare `bash` session defeats a command-string floor**: the hook sees the four characters `bash`,
+and everything fed into that session afterwards is invisible to the hook layer and to the runtime's
+own item stream alike. **Caller identity exists and is not an authority** — `agent_type` carries a
+native child's role name and is absent on the parent, but the parent NAMES that role in its own
+spawn call, so it routes and never authenticates. And the trust checkpoint is proven to bind a path
+rather than content: rewritten bytes stay `trusted` **and execute**.
 
 <!-- claim id=0006 class=MEASURED -->
 
