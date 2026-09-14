@@ -139,6 +139,124 @@ subprocess.run([str(recorder)], input='{"t":1}', text=True, check=True)
 check("the recorder writes a payload when invoked, so a zero delta is a real zero",
       len(list(capture.glob("payload-*"))) == 1)
 
+# --- arm 6: the turn phases are gated, and their pinned shapes are coherent ---
+# The gate is the point: a probe that can start a paid model turn by default is one
+# nobody can run to check the offline claims. CI has no Codex binary, so this suite can
+# assert the PARTITION and never the behaviour behind it.
+check("the offline and turn phase sets are disjoint",
+      not (set(probe.OFFLINE_PHASES) & set(probe.TURN_PHASES)),
+      str(sorted(set(probe.OFFLINE_PHASES) & set(probe.TURN_PHASES))))
+check("every phase belongs to exactly one set",
+      set(probe.PHASES) == set(probe.OFFLINE_PHASES) | set(probe.TURN_PHASES))
+check("the three offline phases are the ones that cost nothing",
+      set(probe.OFFLINE_PHASES) == {"carrier", "trust", "routes"},
+      str(sorted(probe.OFFLINE_PHASES)))
+check("the five turn phases are named",
+      set(probe.TURN_PHASES) == {"payload", "block", "identity", "stdin", "matcher"},
+      str(sorted(probe.TURN_PHASES)))
+
+# The carrier fixture's matcher must be the measured tool_name. It read "shell" until
+# 2026-09-14, when three registrations differing only in this value showed "shell"
+# observing zero invocations — a carrier with that spelling reads as installed and
+# fires never, which is this repository's own named failure shape.
+fixture_matchers = [entry.get("matcher")
+                    for group in probe.CODEX_HOOKS_FIXTURE["hooks"].values()
+                    for entry in group]
+check("the carrier fixture's matcher is the measured shell tool_name",
+      fixture_matchers == [probe.TOOL_NAME_SHELL],
+      "%s, but tool_name is %r" % (fixture_matchers, probe.TOOL_NAME_SHELL))
+check("the shell and edit routes are distinguishable by tool_name",
+      probe.TOOL_NAME_SHELL != probe.TOOL_NAME_EDIT)
+
+# Absence versus presence is the whole of the identity finding. If a child-only field
+# ever appeared in the parent list, an adapter reading this file would conclude the
+# parent is identified.
+check("no child-only field is listed as a parent field",
+      not (set(probe.CHILD_ONLY_FIELDS) & set(probe.PRETOOLUSE_PARENT_FIELDS)),
+      str(sorted(set(probe.CHILD_ONLY_FIELDS) & set(probe.PRETOOLUSE_PARENT_FIELDS))))
+check("agent_type is recorded as child-only", "agent_type" in probe.CHILD_ONLY_FIELDS)
+check("the parent field list carries the fields an adapter dispatches on",
+      {"tool_name", "tool_input", "hook_event_name"} <= set(probe.PRETOOLUSE_PARENT_FIELDS))
+check("the parent field list is sorted and unique, so a shape comparison is stable",
+      probe.PRETOOLUSE_PARENT_FIELDS == sorted(set(probe.PRETOOLUSE_PARENT_FIELDS)))
+
+# A refusal without a reason is rejected by the runtime in its own words ("hook returned
+# decision:block without a non-empty reason"), so an empty reason here would ship a
+# bridge that refuses and cannot say why.
+check("the block decision uses the runtime's own verb",
+      probe.BLOCK_DECISION.get("decision") == "block", str(probe.BLOCK_DECISION))
+check("the block decision carries a non-empty reason",
+      bool((probe.BLOCK_DECISION.get("reason") or "").strip()))
+check("the blocked status the runtime reports is pinned",
+      probe.BLOCKED_STATUS == "blocked")
+
+# The hook builder must emit the decision on STDOUT when one is asked for, and nothing
+# when it is not — the block phase attributes a refusal to those bytes.
+recording = probe.make_hook(work / "arm6-recorder.sh", capture)
+refusing = probe.make_hook(work / "arm6-blocker.sh", capture,
+                           stdout_json=probe.BLOCK_DECISION)
+check("a recorder emits no decision", '"decision"' not in recording.read_text())
+check("a blocker emits the decision", '"decision"' in refusing.read_text())
+check("both hooks are executable",
+      (recording.stat().st_mode & 0o111) and (refusing.stat().st_mode & 0o111))
+blocked = subprocess.run([str(refusing)], input='{"t":1}', text=True,
+                         capture_output=True)
+check("the blocker's stdout parses as the pinned decision",
+      json.loads(blocked.stdout) == probe.BLOCK_DECISION, blocked.stdout[:200])
+check("the blocker exits zero, so the refusal rides the decision and not the status",
+      blocked.returncode == 0, str(blocked.returncode))
+
+# The config writer must place a matcher only when one is given. An always-present
+# matcher would make the `nomatcher` control in the matcher phase unreachable.
+with_matcher = probe.turn_config(Path("/probe/project"),
+                                 [("Bash", Path("/probe/hook.sh"))])
+without_matcher = probe.turn_config(Path("/probe/project"),
+                                    [(None, Path("/probe/hook.sh"))])
+check("a declared matcher is written", 'matcher = "Bash"' in with_matcher)
+check("an absent matcher writes no matcher line", "matcher =" not in without_matcher)
+check("both configs declare a PreToolUse registration",
+      "[[hooks.PreToolUse]]" in with_matcher and "[[hooks.PreToolUse]]" in without_matcher)
+check("the PascalCase event spelling is used, not the snake_case trust-key form",
+      "hooks.pre_tool_use" not in with_matcher)
+roles = probe.turn_config(Path("/probe/project"), [(None, Path("/probe/hook.sh"))],
+                          agents=[("probe_child", Path("/probe/role.toml"), "d")])
+check("a declared role reaches the config", "[agents.probe_child]" in roles)
+
+# --- arm 7: the credential copies a turn phase makes are removed ---------------
+# Exercised against real files, without touching the operator's home: the tracking list
+# is seeded by hand and the shredder is asked to clear it. A copy of a credential is not
+# an artifact worth leaving in a directory nobody sweeps, and an unremovable one must
+# fail the run rather than be reported and shrugged at.
+probe.SEEDED_HOMES.clear()
+fake_homes = []
+for index in range(3):
+    home = work / ("cred-home-%d" % index)
+    home.mkdir()
+    (home / "auth.json").write_text('{"probe": "not a credential"}')
+    fake_homes.append(home)
+    probe.SEEDED_HOMES.append(home)
+check("the fixture homes each carry a file to remove",
+      all((h / "auth.json").exists() for h in fake_homes))
+removed, left = probe.shred_credentials()
+check("every tracked credential copy is removed", removed == 3, str(removed))
+check("nothing is reported left behind", left == [], str(left))
+check("the files are gone from disk, not merely counted",
+      not any((h / "auth.json").exists() for h in fake_homes))
+# Calibration: the shredder must tolerate a home whose copy is already gone, or a
+# re-run after a partial failure would report a phantom.
+probe.SEEDED_HOMES.clear()
+probe.SEEDED_HOMES.append(fake_homes[0])
+removed_again, left_again = probe.shred_credentials()
+check("an already-removed copy is not double-counted and is not an error",
+      removed_again == 0 and left_again == [],
+      "%d %s" % (removed_again, left_again))
+probe.SEEDED_HOMES.clear()
+check("seed_credential is what appends to the tracking list, so no phase can copy "
+      "without being tracked",
+      "SEEDED_HOMES.append" in
+      (ROOT / "scripts" / "codex-hook-probe.py").read_text().split(
+          "def seed_credential")[1].split("def ")[0])
+
 print("\n%d passed, %d failed" % (passed, failed))
 if passed == 0:
     print("VACUITY: the suite asserted nothing")

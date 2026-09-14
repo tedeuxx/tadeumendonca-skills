@@ -1028,3 +1028,100 @@ carrier needs a gate asserting its own well-formedness and not merely a file.
 Arm: **sets a cross-cutting pattern** — how a vendor enforcement seam is established here, namely
 that the measurement and its instrument land before anything claims to sit on it. It does not
 reverse the persona amendment, add a distribution target, or alter release and adoption policy.
+
+## 2026-09-14 amendment — the unmeasured list is discharged by an AUTHORISED model turn, and one sentence above it is corrected (#455, slice B)
+
+### Context
+
+The amendment above shipped the instrument and not the bridge, on a sequencing reason it stated in
+full: an adapter's event and output mapping must be chosen from observed payloads, and **no
+read-only route reaches a payload**. That was correct and it was a dependency rather than a refusal.
+**The owner authorised the model turn on 2026-09-14**, on this Issue, and this amendment records
+that the dependency is discharged.
+
+**What still does not change: no bridge ships here either.** `invocable:
+scripts/codex-hook-adapter.py` remains unmet and #455 stays open. This amendment is the correction
+of a dated vendor observation and the discharge of a published blocking list — which is exactly what
+this record's own rule asks for, rather than a new decision about distribution.
+
+### What the turn measured
+
+Same executable, `codex-cli 0.151.0-alpha.7.2`, 2026-09-14, against `gpt-5.6-sol`. Reproduced by
+`scripts/codex-hook-probe.py … --phase turn --allow-model-turn`; the detail, the tables and the
+positive controls are in [The native Codex hook seam](../codex-hook-bridge.md), sections 3 to 8.
+
+- **A hook decision BLOCKS.** `{"decision": "block", "reason": …}` on stdout with exit `0` stops the
+  act before its effect; the runtime reports `status: "blocked"` and carries the reason back as a
+  feedback entry. **The verb is `block`, not `deny`**, and there is no `hookSpecificOutput`
+  envelope — so the shell floor's decision half is portable and its output half is a translation.
+- **Caller identity exists for a native child and not for the parent.** `agent_type` carries the
+  registered role name on a child's payload; the parent's payload does not carry the key **at all**.
+  But the parent's own spawn call passes that role name as an argument, so the field says *which
+  role was selected* and never *that the selector was entitled to select it*.
+- **`write_stdin` is a general bypass.** The model opened a bare `bash` session — one payload, the
+  observed command being the four characters `bash` — and then delivered a command into it that ran,
+  with **no** further payload and **no** `commandExecution` item anywhere in the turn.
+- **The `currentHash` exploit completes.** Rewritten bytes keep `trusted` with the hash unmoved
+  **and they execute**, with full authority to refuse or permit.
+- **The payload's field names are the Claude ones** for the seven load-bearing keys, plus `turn_id`,
+  `model` and `permission_mode`. A measured coincidence on one build, not a contract.
+
+### The correction this record owes
+
+**The amendment above reads: *"With a hook in the `trusted` state, `command/exec` calls that succeed
+fire no `PreToolUse` hook."* That is true and it is narrower than the property.** Three more
+client-driven routes were exercised — `process/spawn`, `thread/shellCommand`, and `command/exec`
+against an interactive target — and every one fired **zero**, each against a positive control in the
+same session. **The rule is that only a MODEL tool call fires a hook.**
+
+`thread/shellCommand` is the row that makes the correction worth appending rather than leaving to be
+inferred: it runs **inside a thread** and emits `turn/started` … `turn/completed`, so a design that
+keyed on *"is a turn running"* would conclude it is covered, and it is not.
+
+### Decision
+
+Record the measurements; ship no carrier and no adapter. The instrument grows the five turn phases
+that produced them, gated behind `--allow-model-turn` so that a paid turn is never the default, and
+it now asserts its own containment — the invoking user's `~/.codex/config.toml` is checksummed
+before and after every run and any difference fails the run, on the error path too.
+
+**Two design rules follow and are recorded in [ADR-0004](0004-controls-and-enforcement.md)'s
+2026-09-14 amendment rather than here**, because what they decide is whether a layer may carry a
+control: a caller-dependent exemption may not be bound to `agent_type`, and an adapter ships no
+`matcher` and dispatches on `tool_name`.
+
+### Consequences, including the bad ones
+
+**Good.** The sequencing dependency this record published is discharged with reproducible evidence,
+so slice C is specifiable. The refusal path is proven to stop an act, which is what decides whether
+a Codex carrier is a control or a report. One dead matcher spelling was found **inside this
+repository** — `scripts/codex-hook-probe.py`'s carrier fixture carried `"matcher": "shell"`, which
+matches nothing — before any carrier was designed from it. It is a probe fixture and shipped no
+enforcement.
+
+**Bad.** The coverage a Codex carrier can honestly claim is narrower than the Claude floor's in
+three places, and two of them — the client routes and `write_stdin` — cannot be closed by better
+code at this layer. The trust checkpoint is proven to bind a path and not content, so the carrier's
+integrity rests on file permissions. And this remains **one build, one machine, one model**: the
+shell CLI `0.153.4` is still not on this machine's `PATH`, so **no both-binaries claim is available**
+and the amendment above's own bound on that is unchanged.
+
+**A cost specific to this slice: it spends the owner's tokens.** Six model turns were run to produce
+these figures, plus one deliberate mutation run to confirm a pinned expectation can redden, plus one
+to verify the credential cleanup below. The `--allow-model-turn` flag exists so that the next run of
+this instrument is a decision rather than a side effect.
+
+**And it copies a credential, which the first delivery left on disk.** The turn phases seed each
+disposable home from `~/.codex/auth.json`, and fifteen copies were sitting under the temporary root
+before the merge gate raised it. Graded **exposure, low** — `0600` inside a `0700` per-user root, no
+marginal privilege — and repaired rather than accepted: **every copy is removed at the end of a run,
+on the failing path too**, the counts are reported, and an unremovable copy fails the run. The
+fifteen were deleted. This is the one property of the probe that was a promise in prose and is now a
+check, alongside the config digest.
+
+### Significance
+
+Arm: **alters a previously-recorded decision** — the amendment above recorded a list as blocking and
+one route conclusion as the property; both are corrected here, by appending, with the originals left
+standing. It does not add a distribution target, change release or adoption policy, or reverse the
+persona amendment.

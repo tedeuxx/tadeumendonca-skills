@@ -5924,3 +5924,246 @@ actor that dispatches and an actor that executes now carries one named exception
 rather than in the roster capability because what is decided is **whether an act may be performed at all
 and by what**, which is this capability's subject; *who exists in the loop* did not change, and no
 persona was added.
+
+## Amendment (2026-09-14) — the Codex hook layer CAN refuse, and three measurements bound what it may be asked to carry (#455, slice B)
+
+**The owner authorised a model turn on this Issue**, which is the one thing slice A could not buy
+itself: no read-only route fires a `PreToolUse` hook, so the payload, the refusal vocabulary, caller
+identity and the later-input surface were all unreachable without spending his tokens. This
+amendment records what the turn measured. **It builds no adapter and changes no rule of this
+harness's own floor** — `invocable: scripts/codex-hook-adapter.py` remains unmet and #455 remains
+open, deliberately.
+
+**Measured on `codex-cli 0.151.0-alpha.7.2` (the desktop bundle's executable), 2026-09-14, against
+`gpt-5.6-sol`.** One build, one machine, one model. Every figure below is reproduced by
+`scripts/codex-hook-probe.py … --phase turn --allow-model-turn`, and the containment discipline is
+in the probe: the invoking user's `~/.codex/config.toml` is checksummed before and after every run
+and any difference is a failure. It read `324c9839ad6c1ece3c5082c6515ed98f1bc8e60ccf4be1f18c41fc125c2b1aa2`
+on both sides of every run in this slice.
+
+### This capability's standing question, answered for one layer on one harness
+
+*Which layer carries a control, and can that layer hold it?* For Codex the answer is now specific
+rather than open, and it is **yes with three named holes** rather than a yes or a no.
+
+**It can hold a refusal.** A trusted `PreToolUse` hook that writes
+`{"decision": "block", "reason": "…"}` to stdout and exits `0` **stops the act before its effect**:
+the fixture file the command would have created was absent, the runtime reported
+`hook/completed` with `status: "blocked"`, and the reason came back as
+`entries: [{"kind": "feedback", "text": …}]`. **The verb is `block`, not `deny`**, there is no
+`hookSpecificOutput` envelope and no exit-code channel in what was measured, and a reason-less
+refusal is rejected by the runtime in its own words. **So the shell floor's DECISION half is
+portable and its OUTPUT half is not** — a translation, not a copy.
+
+**It cannot hold anything about a caller.** `agent_type` exists on a native child's payload and
+carries the registered role name; the parent's payload does **not carry the key at all**. But the
+parent's own `collaborationspawn_agent` call carries `{"agent_type": "<role>", …}` as an argument —
+**the parent NAMES the child's identity.** So the field authenticates *which role config was
+selected* and never *that the selector was entitled to select it*.
+
+> **Ruling, and it is this capability's rule rather than a Codex detail: a caller-dependent
+> exemption may not be bound to `agent_type` on that harness.** The direction of its error is the
+> wrong one. The value a bridge would most want to trust is exactly the one a model would name to
+> obtain the exemption, and the error is invisible — the exemption simply applies.
+
+**What that leaves usable is not nothing, and the distinction is worth keeping.** The **absence** of
+the key is not model-chosen, since a parent cannot make itself a child. *Deny every caller-dependent
+act to every caller* is implementable; *this is a child* is implementable; *which child* is not, in
+any sense a floor may rest on. #455's own AC5 already required exactly this and is satisfied by
+refusal rather than by construction.
+
+**And ABSENT is not EMPTY.** **An adapter that defaults a missing key to `""` hands the Codex parent
+thread the orchestrator's exemptions by accident.** The hazard was anticipated in #455's body; this
+is the measurement that makes it concrete.
+
+~~`hooks/scripts/permission-guard.sh` reads an empty `agent_type` as the orchestrator and grants it
+that position in rules 7 and 7b.~~ **Struck within this slice, on the gate's finding: the ruling is
+right and the evidence was INVERTED, in the permissive direction.** In rules 7 and 7b an empty value
+is what **denies** — the orchestrator is precisely who those two refuse. **The exemptions are in
+5c/5d and 5e**, and an adapter author who checked the cited rules would have found them denying and
+concluded the hazard was theoretical.
+
+**The correction makes the hazard LARGER rather than smaller, which is why it is worth the
+paragraph.** The two acts actually exempted for an empty caller are **opening work** (5c/5d) and
+**posting to a public surface** (5e) — not merge and not trunk push. A Codex parent thread handed an
+empty `agent_type` by a careless default would acquire the right to file Issues and to publish
+comments, in a harness whose own rule is *only the owner opens work*.
+
+**Measured against the live guard rather than inherited.** Four acts × four caller values, each
+payload `{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":<act>},
+"agent_type":<caller>,"cwd":<cwd>}` piped to `bash hooks/scripts/permission-guard.sh`, verdict read
+from the hook's own JSON. Every act names a nonexistent pull request or Issue, so nothing executed:
+
+| act | rule | `""` | `agents-lead` | `plugin:agents-lead` | `plugin:developer` |
+|---|---|---|---|---|---|
+| `gh pr merge 999999 --merge --repo …` | 7b | **deny** | deny | deny | deny |
+| `git push origin main` | 7 | **deny** | deny | deny | deny |
+| `gh issue create --repo … --title x --body-file /dev/null` | 5c/5d | **abstains** | deny | deny | **abstains** |
+| `gh issue comment 999999 --repo … --body-file /dev/null` | 5e | **abstains** | deny | **abstains** | abstains |
+
+**The two right-hand columns are the calibration, not decoration.** `plugin:developer` abstaining on
+5d and `plugin:agents-lead` abstaining on 5e show both rules are caller-keyed rather than uniformly
+denying — so the `""` column is a real exemption rather than a hook that abstains on everything.
+
+**`CLAUDE.md` had it right the whole time** — *"rules 7 (trunk push) and 7b (merge) fire against that
+empty value"*, in a paragraph about what is **enforced**. This record and
+`docs/codex-hook-bridge.md` turned *fires against* into *grants*. **The inversion was swept for
+before either site was repaired**, because a partial catch-up is the shape this repository keeps
+paying for. **14 occurrences tracked tree-wide, 2 of them the inversion — both in this slice's own
+diff, both struck above — and 12 correct**, every one reading *refuse*, *deny*, *fire against* or
+*unreach*; `docs/adr/0021` separately states the 5c/5d exemption correctly. **Two sites, both
+repaired here, none elsewhere.**
+
+**The sweep is WRAP-INSENSITIVE, and that is not tidiness — a line-oriented `grep` gets this one
+wrong.** The struck sentence above breaks between *grants it* and *that position*, so a
+line-oriented count of the claim returns **zero** occurrences of the defect at head while both are
+still on disk. The command that produced the figures:
+
+```sh
+git ls-files -z | xargs -0 python3 -c '
+import re, sys
+pat = re.compile(r"(.{90})rules? 7,? (?:7b|and 7b)", re.I)
+for p in sys.argv[1:]:
+    if p.startswith("powers/"): continue
+    try: body = re.sub(r"\s+", " ", open(p, encoding="utf-8").read())
+    except Exception: continue
+    for m in pat.finditer(body):
+        print(("GRANTS" if re.search(r"grants? it", m.group(1), re.I) else "other"), p)
+'
+```
+
+**A count is not what holds this, and no arm is added for it.** The verb that would have to be
+matched is ordinary English, the correct sites use four different ones, and both defective sites now
+**quote** the wrong claim in order to strike it — so an absence check would demand deleting the
+correction. It is held by review, like every other citation in this library.
+
+### The three holes, and the second one is structural
+
+**1 · Only a MODEL tool call fires a hook.** Four client-driven routes were exercised against a
+trusted registration, all succeeding, none observed: `command/exec`, `process/spawn`,
+`thread/shellCommand`, and `command/exec` with an interactive target — **zero invocations each**,
+against **one** for the model route in the same session shape. `thread/shellCommand` is the trap: it
+runs inside a thread and emits `turn/started` … `turn/completed`, so a design keyed on *"is a turn
+running"* concludes it is covered.
+
+**A Codex carrier covers the model and only the model.** Whatever else reaches that shell — the
+host's own terminal, any caller of the app-server — passes no hook. Say it in those words; *"the
+shell is guarded"* is false on this runtime.
+
+**2 · Intercepting a command does not cover what is fed to it afterwards.** The model opened a
+persistent interactive session and then delivered `touch <marker>` into it as a separate call. The
+file **exists**. The hook saw **one** payload whose `tool_input.command` was the four characters
+`bash`, and the runtime's own item stream contained **no `commandExecution` item at all** for the
+later input.
+
+**This is structural and no work at this layer fixes it.** The only enforceable point is the startup
+command string, which carries no information about what the session will run. So a bridge picks one
+of two, and the third option is the one to refuse:
+
+- refuse interactive session startup — a real control with a real cost; or
+- **state the gap** — the floor covers commands issued as tool calls and not input delivered into a
+  running session.
+
+Shipping the command-string floor and calling it shell coverage is the option this capability's own
+*a green that proves nothing is worse than a red* forbids.
+
+**3 · Trust binds a PATH, never CONTENT, and the exploit is now confirmed end to end.** Slice A's
+review established that rewriting a trusted hook script leaves `currentHash` unmoved and
+`trustStatus: trusted`. The turn establishes the half that was still open: **the rewritten bytes
+EXECUTE, with full authority to refuse or permit.** A recorder was rewritten in place into a
+blocker, with the config untouched and no re-trust, and the next turn was blocked by the new bytes.
+
+Combined with slice A's other finding — `config/value/write` with `keyPath="hooks.state"` grants
+trust outright, so anything that can write the user's `config.toml` confers it — **Codex hook trust
+authenticates nobody and pins nothing.** A design may not describe it as a human checkpoint. The
+favourable half is real and must not be taken silently: it is what makes a carrier *updatable*
+without re-trusting, which is convenience bought with the integrity of the checkpoint.
+
+### A control that reads as installed and fires never, reachable through one string
+
+`matcher` is compared against `tool_name`, and the shell route's `tool_name` is **`Bash`**. Three
+registrations differing only in that value, one turn: `"shell"` → **0** invocations, `"Bash"` → 1,
+absent → 2 (the shell call and an `apply_patch` file edit). A registration with the dead spelling is
+reported by `hooks/list` as present, enabled and trusted, and never fires.
+
+**It was live in this repository.** `scripts/codex-hook-probe.py`'s carrier fixture carried
+`"matcher": "shell"` from slice A until this measurement. **It is a probe fixture and shipped no
+enforcement**, so nothing was unguarded; what it would have cost is a carrier designed from a
+fixture that could not fire. It now reads the measured value and the offline suite pins it to
+`TOOL_NAME_SHELL` rather than to a literal, so the two cannot drift apart.
+
+**The ruling that follows: an adapter ships NO matcher and dispatches on `tool_name` itself.** A
+wrong value is then a visible branch rather than a silent non-registration — the same reasoning this
+capability applies to a permission entry, where *absent* is not one of the three states.
+
+### The payload, and why its familiarity is a hazard rather than a relief
+
+A parent-thread shell call carries ten keys: `session_id`, `turn_id`, `transcript_path`, `cwd`,
+`hook_event_name`, `model`, `permission_mode`, `tool_name`, `tool_input`, `tool_use_id`. **Seven are
+the Claude spellings**, so the shell half of an existing guard needs no field translation.
+
+**That is a measured coincidence on one vendor build and it is not a contract**, and the probe
+re-derives the whole key set on every run rather than checking only the fields it uses. The
+divergences already measured on this same surface are the argument: the event vocabulary is a
+superset with different names, the config spelling diverges from the trust-key spelling, one event
+now has **three** spellings (`PreToolUse` in the payload, `preToolUse` on the notification,
+`pre_tool_use` in the trust key), and the refusal verb is `block` rather than `deny`. **A field-name
+match is one more dated observation, never a licence to stop measuring.**
+
+**`permission_mode` read `default` on a turn started with `permissions: ":workspace"`**, so it is
+not a readback of the requested profile and nothing may branch on it.
+
+### Considered and rejected
+
+- **Bind a QA or orchestrator exemption to `agent_type` and ship the bridge with the loop flowing.**
+  Rejected on the measurement above: the parent names the role, so the exemption is available to
+  anything that can call the spawn tool. #455's AC3 and AC5 both forbid it, and the decisive
+  argument is this capability's own — a control whose false negatives are invisible to the person it
+  protects is worse than no control.
+- **Synthesise an identity from the task name, a prompt, an environment variable or a role file.**
+  Same defect one layer down: every one of them is model-writable or parent-chosen.
+- **Call the command-string floor "shell coverage" and record the `write_stdin` gap as a
+  limitation.** Rejected. The gap is not a rough edge at the margin; it is a general bypass
+  reachable by typing `bash`.
+- **Build the adapter in this slice.** Rejected by #455's own sequencing rule, which is what this
+  slice exists to satisfy: *before source edits choose the adapter's exact event/output mapping from
+  actual payloads.* The mapping is now chosen from payloads; writing it is slice C.
+
+### Consequences
+
+**Good.** The mapping an adapter needs is measured rather than assumed, with a reproducible
+instrument and a token-spending gate on it. The refusal path is proven to stop an act before its
+effect, which is the one thing that decides whether a Codex bridge is a control or a report. Two
+bypasses and one dead matcher spelling are known before anything is built rather than after.
+
+**Bad.** The honest coverage claim a Codex carrier can make is narrower than the Claude floor's, in
+three places at once, and two of them cannot be closed by better code. The `currentHash` finding
+means the carrier's own integrity rests on file permissions and nothing else. And every figure here
+is one build, one machine, one model: the shell CLI `0.153.4` is still unreachable from a dispatched
+context, so **no "both binaries" claim is available** and AC1 stays open on that limb.
+
+### What nothing enforces
+
+| claim | what actually holds it |
+|---|---|
+| the probe never writes the real Codex home | **the probe itself, on every run including the failing path** — one path only; a write elsewhere under `~/.codex` passes |
+| the credential copies a turn phase makes are removed | **the probe itself**, before the containment reading and on the failing path too, with the counts reported and an unremovable copy failing the run. Offline arms cover the shredder; two source mutations redden them |
+| the turn phases are not run by accident | **`--allow-model-turn`**, a flag with no default |
+| the pinned payload/identity/refusal shapes still match the runtime | **re-running the probe on a machine with the binary.** CI has none, so `scripts/codex-hook-probe.test.py` gates the instrument and says nothing about the runtime |
+| the carrier fixture's matcher stays the measured value | **an offline gate arm**, pinned to the constant rather than to a literal |
+| an adapter does not bind an exemption to `agent_type` | **nothing. This record and review.** No layer reads an adapter's intent |
+| an adapter does not map a missing `agent_type` to `""` | **nothing yet.** It is a one-line defect with an invisible effect, and it is slice C's first mutation control |
+
+**By this loop's own test — *would something stop me, or only my memory?* — every ruling in this
+amendment is an instruction.** The measurements are reproducible; the design rules they imply are
+held by whoever reviews slice C.
+
+### Significance
+
+It crosses the *alters a previously-recorded decision* arm twice. The 2026-09-08 amendment recorded
+that a Codex permission layer exists and declares a scope ceiling; this one measures what the layer
+beneath it — the hook — can and cannot carry, and rules that one class of control (caller-dependent
+exemptions) may not be carried there at all. It also discharges the unmeasured rows slice A's own
+record published as blocking, which were recorded in ADR-0005's 2026-09-11 amendment; those rows are
+struck in `docs/codex-hook-bridge.md` rather than deleted, because slice A published them as the
+reason no adapter could be written.
