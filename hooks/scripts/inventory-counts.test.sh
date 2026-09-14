@@ -138,6 +138,42 @@ expect_in() {
   fi
 }
 
+# ── helpers for the COUNT-FAMILY block at the end of this file (#464) ──────────────
+CF_NUMWORD='zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|[0-9]+'
+
+# `ev_word_to_int` further up is the same map with a narrower domain; it now delegates here rather
+# than carrying a second copy, because two closed maps of the same thing is the arrangement this
+# repository's own gate exists because it rots.
+cf_word_to_int() {
+  case "$1" in
+    zero) printf '0' ;;       one) printf '1' ;;        two) printf '2' ;;
+    three) printf '3' ;;      four) printf '4' ;;       five) printf '5' ;;
+    six) printf '6' ;;        seven) printf '7' ;;      eight) printf '8' ;;
+    nine) printf '9' ;;       ten) printf '10' ;;       eleven) printf '11' ;;
+    twelve) printf '12' ;;    thirteen) printf '13' ;;  fourteen) printf '14' ;;
+    fifteen) printf '15' ;;   sixteen) printf '16' ;;   seventeen) printf '17' ;;
+    eighteen) printf '18' ;;  nineteen) printf '19' ;;  twenty) printf '20' ;;
+    twenty-one) printf '21' ;;   twenty-two) printf '22' ;;   twenty-three) printf '23' ;;
+    twenty-four) printf '24' ;;  twenty-five) printf '25' ;;  twenty-six) printf '26' ;;
+    twenty-seven) printf '27' ;; twenty-eight) printf '28' ;; twenty-nine) printf '29' ;;
+    ''|*[!0-9]*) printf '' ;;
+    *) printf '%s' "$1" ;;
+  esac
+}
+
+# The flattened, emphasis-stripped, strike-stripped view of a document.
+#   $2 = 'keep-ticks' leaves backticks in place, which the LIST scan needs as delimiters.
+cf_flat() {
+  local strip='*`'
+  [ "${2:-}" = keep-ticks ] && strip='*'
+  tr -d "$strip" < "$1" | tr '\n' ' ' | sed -e 's/~~[^~]*~~//g' -e 's/  */ /g'
+}
+
+# Figures stated BEFORE a phrase ("seven command files") and AFTER one ("commands/ holds 7").
+cf_before() { printf '%s' "$1" | grep -oE "(^| )($CF_NUMWORD) $2" | awk '{print $1}'; }
+cf_after()  { printf '%s' "$1" | grep -oE "$2 ($CF_NUMWORD)( |\$)" | awk '{print $NF}'; }
+
+
 # --- personas -------------------------------------------------------------------------------
 agents=$(find "$ROOT/agents" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
 expect_in "$README" "$agents subagent personas" "agents/"
@@ -569,19 +605,13 @@ else
   # NUMBER WORDS, NOT DIGITS, because that is how this README writes counts and a gate should not
   # force a house style. The map is a closed set; a figure outside it fails loudly rather than
   # silently reading as zero.
-  ev_word_to_int() {
-    case "$1" in
-      zero) printf '0' ;;      one) printf '1' ;;        two) printf '2' ;;
-      three) printf '3' ;;     four) printf '4' ;;       five) printf '5' ;;
-      six) printf '6' ;;       seven) printf '7' ;;      eight) printf '8' ;;
-      nine) printf '9' ;;      ten) printf '10' ;;       eleven) printf '11' ;;
-      twelve) printf '12' ;;
-      twenty-one) printf '21' ;;   twenty-two) printf '22' ;;   twenty-three) printf '23' ;;
-      twenty-four) printf '24' ;;  twenty-five) printf '25' ;;  twenty-six) printf '26' ;;
-      twenty-seven) printf '27' ;; twenty-eight) printf '28' ;; twenty-nine) printf '29' ;;
-      *) printf '' ;;
-    esac
-  }
+  # DELEGATES to `cf_word_to_int`, defined with the count-family block at the end of this file
+  # (#464). It was a second, narrower copy of the same closed map until then, and two closed maps of
+  # one thing is the arrangement this file exists because it rots. The domain WIDENS in the move —
+  # thirteen..twenty become readable where they previously returned the empty string — which cannot
+  # loosen this arm: an unreadable word here is a FAIL ("outside the closed set"), never a pass, so
+  # widening the map can only turn a false failure into a real comparison.
+  ev_word_to_int() { cf_word_to_int "$1"; }
 
   ev_actual="$(jq -r '.hooks | keys | length' "$HOOKS_JSON" 2>/dev/null || printf '')"
   ev_total_claimed="$(sed -nE 's/.*\*\*([0-9]+) hook events\*\*.*/\1/p' "$README" | head -1)"
@@ -8961,6 +8991,313 @@ elif [ -n "$wp_bare" ]; then
       strike markers or the word 'false' within 120 characters of it, as every other site does."
 else
   ok "write-path clause — $wp_total occurrence(s) tree-wide, every one repudiated (tree-wide, case-insensitive, comment-prefix- and wrap-insensitive; it cannot judge whether a corrected site's NEW reason is true)"
+fi
+
+
+# ══ THE FOUR COUNT FAMILIES, ENUMERATED — AND THE TWO THIS BLOCK ADDS (#462 · #463 · #464) ═══════
+#
+# THIS FILE PINNED TWO OF FOUR COUNT FAMILIES IN PROSE AND LEFT TWO UNPINNED, AND BOTH LIVE FALSE
+# NUMBERS FOUND ON 2026-09-11/12 WERE IN THE UNPINNED PAIR. That is the measurement that made #464
+# worth filing rather than just repairing the lines #462 and #463 name:
+#
+#   family               derived from            pinned in PROSE before this block
+#   ------------------   ---------------------   ------------------------------------------------
+#   personas             ls agents/*.md          YES — `check_every_occurrence '… subagent personas'`
+#   skills               plugin.json + skills/   YES — `check_every_occurrence '… skills'` + the table
+#   commands             ls commands/*.md        NO  <- added here
+#   hook registrations   hooks/hooks.json        NO  <- added here
+#
+# The two "NO" rows were not unguarded — they were guarded against the WRONG SUBJECT. `root_cmds`
+# pins the FILE COUNT against a literal `7` in this file; the hooks block pins REGISTRATIONS against
+# the README's Mermaid NODE COUNT. Neither reads a sentence. So `#401` shipped `funnel-review.md`,
+# every arm stayed green, and four published sentences went false across two repositories.
+#
+# THE ENUMERATION IS THE POINT OF THE TABLE, not the four rows. A fifth family added without a row
+# here is added by accident; a fifth family added WITH one is a decision someone took. That is the
+# only thing standing between this file and the state it was just in.
+#
+# ── WHAT REMAINS UNPINNED AFTER THIS BLOCK, SO A GREEN IS NOT READ AS "THE PROSE IS CHECKED" ─────
+#
+#   - NON-HELP TYPED FORMS (`autonomy on`, `blueprint export`, …). NOT derivable from the tree: it is
+#     files PLUS per-file modes, and the modes live in prose tables inside each command file. The arm
+#     below pins only that the two documents AGREE WITH EACH OTHER on it. They did not — README said
+#     8 and CLAUDE.md said nine — which is why an agreement arm is worth more than nothing and is
+#     labelled for exactly what it is. IT CANNOT SAY EITHER IS TRUE.
+#   - SCOPE IS TWO DOCUMENTS. These arms read README.md and CLAUDE.md only. `docs/adr/**` carries
+#     historical figures that are correct ABOUT THEIR OWN DATE (`ls commands/` → 2 files, in ADR-0005)
+#     and a tree-wide arm would redden on records this repo's own practice forbids rewriting.
+#     A false command count in a skill body or an agent brief is caught by NOTHING.
+#   - THE PROSE AROUND THE NUMBER. Unchanged from this file's own header: a document describing the
+#     wrong thing in the right quantity passes every arm here.
+#   - WHETHER THE TWO REPOSITORIES AGREE. The hook figures below live inside CLAUDE.md's
+#     `<!-- loop-mode-contract -->` block, which is declared byte-identical with `tadeumendonca-io`'s
+#     copy and is held by a `diff` somebody has to remember to run. NOTHING here reaches the sibling
+#     tree, and a hook could not: it receives one `cwd`. See that block's own closing section.
+#
+# ── THE INSTRUMENT, AND WHY IT IS NOT A LINE-ORIENTED grep ───────────────────────────────────────
+#
+# Three properties, each of which this repository has been bitten by in the last week:
+#
+#   1. WRAP-INSENSITIVE. `README.md:31` wraps "the **six** command files in `commands/` (`ls
+#      commands/` → `autonomy.md …" across four source lines. A line-oriented `grep` for the claim
+#      returns nothing and reads as clean. Every scan below flattens the document first.
+#   2. EMPHASIS-INSENSITIVE. The live forms are `**six** command files`, `**seven command files**`
+#      and `6 command **files**` — the bold markers fall in three different places, and a literal
+#      needle matches one of the three. `*` and `` ` `` are stripped before matching.
+#   3. STRIKE-AWARE. This repo corrects by striking in place, so the false sentence STAYS in the file
+#      inside `~~…~~`. An arm that matched it would redden on the correction and the only way green
+#      would be to delete the history. Struck spans are removed before matching.
+#
+# ── AND EVERY ARM CARRIES AN ANTI-VACUITY PRECONDITION ───────────────────────────────────────────
+#
+# A selector that matches nothing must report DID NOT RUN, never PASS. This is not defensive tidiness:
+# the #406 slice D sweep, the `wp_total` arm at the end of this file, and the `ev_wired` empty-operand
+# guard 200 lines up are three instances in this one file of a plausible-and-empty command reading as
+# a clean result. Each arm below therefore checks that its own pattern found sites, and each names its
+# own subject in its verdict rather than reddening the suite anonymously.
+#
+# ── THE CALIBRATION, BY MUTATING THE SOURCE — RECORDED SO NOBODY RE-WALKS IT ─────────────────────
+#
+# Ten cases, each planting ONE defect in the SOURCE (documents, commands/, hooks.json) and never in
+# the checker, run against these arms EXTRACTED FROM THIS FILE rather than from an authoring draft,
+# each restored and the control re-greened afterwards. Every case reddened, and each reddened the arm
+# that names its own subject:
+#
+#   C1  an 8th command file really appears        -> count RED (6 figures) and list RED
+#   C2  README says six, tree says seven          -> count RED ('six'), list green
+#   C3  a published ls list drops one name        -> list RED, COUNT STILL GREEN  <- the #462 shape
+#   C4  CLAUDE.md drops both recognised forms     -> coverage RED "DID NOT RUN"
+#   C5  preflight de-duplicated (14 regs/14 scr)  -> registrations RED, SCRIPTS GREEN
+#   C6  a 16th registration of a new script       -> registrations RED and scripts RED, separately
+#   C7  the two docs disagree on typed forms      -> agreement RED, naming both values
+#   C8  the struck false sentence is UN-STRUCK    -> registrations RED ('fourteen')
+#   C9  hooks.json unreadable                     -> derivation RED + both arms "UNCOMPUTABLE"
+#   C10 CLAUDE.md emptied                         -> flatten RED + coverage RED + scripts RED
+#
+# C3 AND C5 ARE THE TWO THAT JUSTIFY THE SHAPE. C3 shows the count arm and the list arm are genuinely
+# independent — the count stays green while the falsifier beside it is wrong, which is exactly the
+# state `README.md:31` shipped in. C5 shows the registration arm and the script arm are independent —
+# a change that makes the two numbers EQUAL reddens one and not the other, which is the conflation
+# #463 is about.
+#
+# C8 IS THE ONE THAT PROVES THE STRIKE-AWARENESS RUNS IN BOTH DIRECTIONS: the control is green with
+# `~~Across all **fourteen** hook registrations~~` sitting in CLAUDE.md, and removing only the two
+# strike markers turns it red. Without that, correcting a number the way this repo corrects numbers
+# would redden the gate and the only way back to green would be deleting the history.
+#
+# WHAT C10 DID NOT CATCH, said because the calibration is only worth what it admits: with CLAUDE.md
+# empty the CORRECTNESS arm stayed green, because README alone still yields six figures and all six
+# are right. Only the COVERAGE arm noticed. That is the division of labour on purpose — correctness
+# cannot distinguish "no sites in this document" from "no sites anywhere" — and it is why coverage is
+# a separate arm rather than a clause inside the other one.
+#
+# AND ONE BLINDNESS THIS FILE ALREADY DOCUMENTS ELSEWHERE, arriving here from a new direction: these
+# arms cannot tell a CITATION from a DISCUSSION of the citation. A paragraph that quotes a false
+# figure in order to explain why it was false reddens exactly like one that asserts it, unless the
+# quote sits inside a strike. So text teaching this rule must not spell a live-looking figure — which
+# is why the sentence above writes the phrase only inside the strike markers it is describing.
+
+CF_README_FLAT="$(cf_flat "$README")"
+CF_CLAUDE_FLAT="$(cf_flat "$CLAUDE")"
+
+# The flatteners are themselves capable of silently producing nothing — an unreadable file, a `tr`
+# that ate the document, a `sed` strike-strip that swallowed it between two unbalanced markers. None
+# of the arms below could tell that from a document that stopped publishing counts, so it is checked
+# ONCE, here, and every arm's own vacuity guard then means what it says.
+if [ -z "$CF_README_FLAT" ] || [ -z "$CF_CLAUDE_FLAT" ]; then
+  bad "count families — the flattened view of README.md or CLAUDE.md is EMPTY, so every count-family
+      arm below is checking nothing and none of them is passing. README=${#CF_README_FLAT} bytes,
+      CLAUDE=${#CF_CLAUDE_FLAT} bytes. Either a file is unreadable or the strike-strip consumed the
+      document (an unbalanced '~~' would do it)."
+else
+  ok "count families — flattened views built (README ${#CF_README_FLAT} B, CLAUDE ${#CF_CLAUDE_FLAT} B)"
+fi
+
+# --- family 3 · COMMANDS, pinned in PROSE ---------------------------------------------------------
+#
+# Three recognised forms, because the two documents genuinely use three and an enumeration that
+# claims to be a rule is the failure this file exists to prevent:
+#   "**seven** command files"            README:31, CLAUDE:196, README:656, README(Kiro table)
+#   "`commands/` holds 7"                CLAUDE:270
+#   "**7 files** (`autonomy`, …)"        README(resource table)
+# A FOURTH phrasing is invisible to this, and the coverage arm below is what makes that visible
+# rather than silent: it requires each document to contribute at least one recognised site.
+cf_cmd_actual="$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')"
+
+cf_cmd_r="$( { cf_before "$CF_README_FLAT" 'command files?'
+               cf_after  "$CF_README_FLAT" 'commands/ holds'
+               cf_before "$CF_README_FLAT" 'files \(autonomy'; } | grep -v '^$' )"
+cf_cmd_c="$( { cf_before "$CF_CLAUDE_FLAT" 'command files?'
+               cf_after  "$CF_CLAUDE_FLAT" 'commands/ holds'
+               cf_before "$CF_CLAUDE_FLAT" 'files \(autonomy'; } | grep -v '^$' )"
+
+if [ -z "$cf_cmd_r" ] || [ -z "$cf_cmd_c" ]; then
+  bad "commands in prose (coverage) — DID NOT RUN against one of the two documents: README matched
+      $(printf '%s' "$cf_cmd_r" | grep -c . || true) site(s), CLAUDE.md matched
+      $(printf '%s' "$cf_cmd_c" | grep -c . || true). Both publish the command count today, so a zero
+      means the phrasing moved out of the three recognised forms, not that the claim is gone. Add the
+      form to cf_cmd_* above — do NOT leave a published count that no arm can read."
+else
+  ok "commands in prose (coverage) — README $(printf '%s' "$cf_cmd_r" | grep -c .) site(s), CLAUDE.md $(printf '%s' "$cf_cmd_c" | grep -c .)"
+fi
+
+cf_cmd_wrong=""
+for cf_f in $(printf '%s\n%s\n' "$cf_cmd_r" "$cf_cmd_c" | grep -v '^$'); do
+  cf_v="$(cf_word_to_int "$cf_f")"
+  [ "$cf_v" = "$cf_cmd_actual" ] || cf_cmd_wrong="$cf_cmd_wrong '$cf_f'"
+done
+cf_cmd_n="$(printf '%s\n%s\n' "$cf_cmd_r" "$cf_cmd_c" | grep -c . || true)"
+if [ "$cf_cmd_n" -eq 0 ]; then
+  bad "commands in prose — the scan found NO command-count figure in either document, which is
+      vacuous rather than clean. \`ls commands/*.md\` returns $cf_cmd_actual."
+elif [ -n "$cf_cmd_wrong" ]; then
+  bad "commands in prose — \`ls commands/*.md\` returns $cf_cmd_actual; these published figures disagree:$cf_cmd_wrong
+      ($cf_cmd_n site(s) scanned across README.md and CLAUDE.md, wrap- and emphasis-insensitive,
+      struck spans excluded.) This is #462: adding commands/funnel-review.md on #401 falsified four
+      sentences and nothing here read one of them."
+else
+  ok "commands in prose — all $cf_cmd_n published figure(s) across README.md and CLAUDE.md read $cf_cmd_actual"
+fi
+
+# --- family 3b · THE INLINE `ls commands/` LIST IS RUN, NOT TRANSCRIBED ---------------------------
+#
+# THIS IS THE SHARP HALF OF #462 AND IT IS A DIFFERENT ASSERTION FROM THE COUNT. `README.md:31`
+# published "the **six** command files" beside an inline falsifier that HAND-LISTED six filenames and
+# omitted `funnel-review.md`. The sentence and the command beside it were wrong TOGETHER, so a reader
+# who ran the published command was told the claim holds. A count arm cannot see that: both halves
+# agreed. What is asserted here is that the published list equals what `ls commands/` actually emits.
+cf_ls_actual="$(cd "$ROOT/commands" && ls *.md 2>/dev/null | tr '\n' ' ' | sed -e 's/  */ /g' -e 's/ $//')"
+
+cf_ls_published() {
+  # `ls commands/` → `a.md b.md …`  — the arrow form only. The resource table's bare
+  # "derived from `ls commands/`" carries no list and is correctly not selected.
+  printf '%s' "$1" | grep -oE 'ls commands/. → .[a-z0-9.| -]+\.md.' \
+    | sed -E 's/^ls commands\/. → .//; s/.$//' \
+    | sed -e 's/  */ /g' -e 's/ $//'
+}
+
+cf_ls_sites="$( { cf_ls_published "$(cf_flat "$README" keep-ticks)"
+                  cf_ls_published "$(cf_flat "$CLAUDE" keep-ticks)"; } | grep -v '^$' )"
+cf_ls_n="$(printf '%s' "$cf_ls_sites" | grep -c . || true)"
+cf_ls_wrong="$(printf '%s\n' "$cf_ls_sites" | grep -v '^$' | grep -vxF "$cf_ls_actual" || true)"
+
+if [ -z "$cf_ls_actual" ]; then
+  bad "commands list — \`ls commands/\` produced NOTHING, so the arm below has no expectation to
+      compare against and is not passing. commands/ is missing or empty."
+elif [ "$cf_ls_n" -eq 0 ]; then
+  bad "commands list — no published '\`ls commands/\` → …' list was found in either document, which is
+      vacuous rather than clean: both documents carry one today. The pattern died, or the form moved."
+elif [ -n "$cf_ls_wrong" ]; then
+  bad "commands list — a published inline falsifier does not equal what \`ls commands/\` emits.
+      actual:    $cf_ls_actual
+      published: $(printf '%s' "$cf_ls_wrong" | tr '\n' '/')
+      RUN the command and paste its output; do not transcribe it. A hand-list that agrees with a wrong
+      count is worse than no falsifier, because checking it confirms the error (#462)."
+else
+  ok "commands list — all $cf_ls_n published '\`ls commands/\` → …' list(s) equal the real output"
+fi
+
+# --- family 4 · HOOK REGISTRATIONS, pinned in PROSE, AND THE NOUN IS HALF THE ASSERTION -----------
+#
+# THE LIVE DEFECT WAS NOT A WRONG DIGIT. `CLAUDE.md` read "Across all **fourteen** hook registrations"
+# — TRUE when it landed (14 registrations of 13 scripts) and false from 2026-09-11, when
+# `worktree-notice.sh` was registered and the pair moved to 15 of 14. It went false INTO A
+# COINCIDENCE: *fourteen* is now exactly the SCRIPT count, which is the object the commands beneath
+# that sentence iterate (each ends in `sort -u`). So it read as a correct claim about the wrong noun,
+# survived a green suite and two reviews, and a reader checking it against the pipeline was told it
+# held. BOTH NOUNS ARE THEREFORE ASSERTED SEPARATELY. Pinning one of them would leave the conflation
+# exactly where it was.
+cf_hj="$ROOT/hooks/hooks.json"
+cf_reg_actual=""
+cf_scr_actual=""
+if [ -f "$cf_hj" ] && jq -e . "$cf_hj" >/dev/null 2>&1; then
+  cf_reg_actual="$(jq '[.hooks|to_entries[]|.value[]|.hooks[]]|length' "$cf_hj")"
+  cf_scr_actual="$(jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' "$cf_hj" \
+                    | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort -u | wc -l | tr -d ' ')"
+fi
+
+if [ -z "$cf_reg_actual" ] || [ -z "$cf_scr_actual" ] || [ "$cf_reg_actual" = "0" ]; then
+  bad "hook counts — hooks/hooks.json is absent or not parseable by jq, so NEITHER of the two arms
+      below computed anything and neither is passing. Every prose claim about how many hooks are
+      registered is unchecked."
+else
+  ok "hook counts — derived from hooks.json: $cf_reg_actual registration(s) over $cf_scr_actual distinct script(s)"
+fi
+
+cf_reg_figs="$( { cf_before "$CF_README_FLAT" 'hook registrations?'
+                  cf_before "$CF_CLAUDE_FLAT" 'hook registrations?'
+                  cf_before "$CF_README_FLAT" 'registrations in hooks.hooks.json'
+                  cf_before "$CF_CLAUDE_FLAT" 'registrations in hooks.hooks.json'
+                  cf_after  "$CF_README_FLAT" 'hooks.json registers'
+                  cf_after  "$CF_CLAUDE_FLAT" 'hooks.json registers'; } | grep -v '^$' )"
+cf_reg_n="$(printf '%s' "$cf_reg_figs" | grep -c . || true)"
+cf_reg_wrong=""
+for cf_f in $cf_reg_figs; do
+  cf_v="$(cf_word_to_int "$cf_f")"
+  [ "$cf_v" = "$cf_reg_actual" ] || cf_reg_wrong="$cf_reg_wrong '$cf_f'"
+done
+if [ -z "$cf_reg_actual" ]; then
+  bad "hook registrations in prose — UNCOMPUTABLE: hooks.json yielded no registration count, so this
+      arm is not passing. Reported separately from the derivation guard above so no verdict is silent."
+elif [ "$cf_reg_n" -eq 0 ]; then
+  bad "hook registrations in prose — no REGISTRATION figure was found in either document, which is
+      vacuous rather than clean: CLAUDE.md states one inside the loop-mode-contract block and README.md
+      states one in its resource table. The phrasing moved out of the recognised forms."
+elif [ -n "$cf_reg_wrong" ]; then
+  bad "hook registrations in prose — hooks.json registers $cf_reg_actual; these published figures disagree:$cf_reg_wrong
+      DO NOT fix this by counting script FILES ($cf_scr_actual of them) — that is the conflation #463
+      is about, and the number being arithmetically right about the other object is exactly why it
+      survived. preflight.sh is registered twice."
+else
+  ok "hook registrations in prose — all $cf_reg_n published figure(s) read $cf_reg_actual"
+fi
+
+cf_scr_figs="$( { cf_before "$CF_README_FLAT" 'distinct script files'
+                  cf_before "$CF_CLAUDE_FLAT" 'distinct script files'; } | grep -v '^$' )"
+cf_scr_n="$(printf '%s' "$cf_scr_figs" | grep -c . || true)"
+cf_scr_wrong=""
+for cf_f in $cf_scr_figs; do
+  cf_v="$(cf_word_to_int "$cf_f")"
+  [ "$cf_v" = "$cf_scr_actual" ] || cf_scr_wrong="$cf_scr_wrong '$cf_f'"
+done
+if [ -z "$cf_scr_actual" ]; then
+  bad "hook SCRIPTS in prose — UNCOMPUTABLE: hooks.json yielded no distinct-script count, so this arm
+      is not passing. Reported separately so no verdict disappears into a neighbour's failure."
+elif [ "$cf_scr_n" -eq 0 ]; then
+  bad "hook SCRIPTS in prose — the distinct-script figure is published NOWHERE, so the registration
+      figure above stands alone and the conflation #463 is about has nothing separating it. hooks.json
+      registers $cf_reg_actual over $cf_scr_actual distinct scripts; state both, or the next reader
+      re-derives one of them and attaches it to the other noun."
+elif [ -n "$cf_scr_wrong" ]; then
+  bad "hook SCRIPTS in prose — hooks.json resolves to $cf_scr_actual distinct script(s); published:$cf_scr_wrong"
+else
+  ok "hook SCRIPTS in prose — all $cf_scr_n published figure(s) read $cf_scr_actual, stated separately from the $cf_reg_actual registration(s)"
+fi
+
+# --- the FIFTH family, pinned only for AGREEMENT — and the label is the assertion -----------------
+#
+# NON-HELP TYPED FORMS is a real published count and is NOT DERIVABLE HERE: it is the file count plus
+# the per-file modes, and the modes live in prose tables inside each command file. So this arm makes
+# the weaker claim it can make honestly — the two documents must agree with each other — and says so
+# in its own verdict, because a PASS line that reads like a derivation is how a green becomes a
+# belief. It was RED when written: README said 8 and CLAUDE.md said nine, both about `#401`.
+cf_tf="$( { cf_before "$CF_README_FLAT" 'non-help typed forms'
+            cf_before "$CF_CLAUDE_FLAT" 'non-help typed forms'; } | grep -v '^$' )"
+cf_tf_n="$(printf '%s' "$cf_tf" | grep -c . || true)"
+cf_tf_vals=""
+for cf_f in $cf_tf; do cf_tf_vals="$cf_tf_vals $(cf_word_to_int "$cf_f")"; done
+cf_tf_uniq="$(printf '%s\n' $cf_tf_vals | grep -v '^$' | sort -u | paste -sd',' -)"
+if [ "$cf_tf_n" -lt 2 ]; then
+  bad "typed forms (agreement only) — found $cf_tf_n site(s); this arm compares the two documents
+      against EACH OTHER and needs at least one in each to mean anything. Fewer than two is vacuous,
+      not clean. Both documents state this count today."
+elif [ "$(printf '%s\n' $cf_tf_vals | grep -v '^$' | sort -u | grep -c .)" -ne 1 ]; then
+  bad "typed forms (agreement only) — README.md and CLAUDE.md disagree: $cf_tf_uniq.
+      NOTHING HERE SAYS WHICH IS RIGHT — the count is not derivable from the tree. Count the forms by
+      hand (one per non-help dispatch row across commands/*.md) and make both documents say it."
+else
+  ok "typed forms — the $cf_tf_n published figure(s) AGREE at $cf_tf_uniq. This is an AGREEMENT check,
+      not a derivation: both documents could be wrong together and this arm would still pass"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
