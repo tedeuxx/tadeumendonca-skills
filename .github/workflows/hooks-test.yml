@@ -106,6 +106,22 @@ on:
       # entry states. Naming only the probe would start no gate on the half that moves more
       # often, which is the hook registry.
       - "scripts/codex-hook-probe*"
+      # The Codex floor adapter, its carrier and its suite (#455 slice C) — and the union rule
+      # this header states matters more here than anywhere else on the list, because this suite
+      # reads FIVE trees and only one of them is named by this entry. The other four are already
+      # covered above and are listed so the next reader does not have to re-derive them:
+      #   * `hooks/**`          — it pipes payloads into the LIVE permission guard, so a change to
+      #                           the guard's caller rules must start this job. That is the sharp
+      #                           one: editing 5c/5d/5e silently changes what Codex is exempted
+      #                           from, and this suite is the only thing that would say so.
+      #   * `.bumpversion.toml` — it asserts the carrier is on the release wiring.
+      #   * `VERSION`           — it asserts the carrier's version matches.
+      #   * `docs/**`           — it asserts the bridge document carries the coverage sentence and
+      #                           names the branch point. NOT covered above, so it is added below.
+      - "scripts/codex-hook-adapter*"
+      - ".codex-plugin/**"
+      - "codex-hooks.json"
+      - "docs/codex-hook-bridge.md"
 
 permissions:
   contents: read
@@ -265,6 +281,18 @@ jobs:
       # NOT evidence about Codex — `docs/codex-hook-bridge.md` says so at its own head.
       - name: Check the Codex hook-seam probe instrument
         run: python3 scripts/codex-hook-probe.test.py
+
+      # Added in the SAME slice as the artifact it gates (#455 slice C), which is the rule the
+      # comments above all state. It differs from the probe suite one step up in a way worth
+      # naming: that one gates an INSTRUMENT and touches no control, while this one pipes real
+      # payloads into the LIVE permission guard and asserts what Codex is and is not exempted
+      # from. A regression here is a hole in the irreversible floor on a second harness — the
+      # sharpest form being an adapter that maps a missing `agent_type` to the empty string,
+      # which hands the Codex PARENT THREAD the orchestrator's exemptions and is a one-line
+      # defect with no visible effect. It still starts no Codex process: no runner has one, and
+      # `docs/codex-hook-bridge.md` says at its own head what a green here does not mean.
+      - name: Check the Codex floor adapter and its carrier
+        run: python3 scripts/codex-hook-adapter.test.py
 
       - name: Assert every hook script is committed executable
         run: bash hooks/scripts/hooks-executable.test.sh

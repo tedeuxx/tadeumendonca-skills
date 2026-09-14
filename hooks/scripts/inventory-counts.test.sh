@@ -6900,7 +6900,20 @@ purpose_fm() { awk 'NR==1 && $0 != "---" { exit } NR==1 { infm=1; next } infm &&
 
 # The mechanism set, derived from FOUR independent sources and never from the purpose scan itself —
 # deriving it from what carries a purpose would assert `grep` against `grep`.
-purpose_hooks="$(grep -oE 'hooks/scripts/[a-z0-9-]+\.sh' "$ROOT/hooks/hooks.json" 2>/dev/null | sort -u || true)"
+# THE SECOND CARRIER IS READ TOO, AND IT WAS NOT UNTIL #455 SLICE C. This set was derived from
+# `hooks/hooks.json` alone, which was complete while that file was the only registry this plugin
+# shipped. `.codex-plugin/plugin.json` now names `codex-hooks.json` as a SECOND one for Codex, so a
+# mechanism registered there was outside the forward arm entirely: it could ship with no `purpose:`
+# at all and nothing here would say so. That is the same shape this arm exists to catch, one carrier
+# later. Both spellings are read because the Codex registration invokes an explicit interpreter
+# (`python3 scripts/<name>.py`) rather than a bare path, which is deliberate — it takes the exec bit
+# out of the load-bearing set — and a `.sh`-only selector would therefore have matched nothing and
+# read as covered.
+purpose_hooks="$(
+  grep -oE 'hooks/scripts/[a-z0-9-]+\.sh' "$ROOT/hooks/hooks.json" 2>/dev/null || true
+  grep -oE 'scripts/[a-z0-9-]+\.(sh|py)' "$ROOT/codex-hooks.json" 2>/dev/null || true
+)"
+purpose_hooks="$(printf '%s\n' "$purpose_hooks" | grep . | sort -u || true)"
 purpose_md="$(
   find "$ROOT/agents"   -maxdepth 1 -name '*.md' -type f 2>/dev/null | sed "s|^$ROOT/||"
   find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f 2>/dev/null | sed "s|^$ROOT/||"
