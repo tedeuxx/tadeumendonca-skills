@@ -8,6 +8,11 @@ below as *this is what the runtime does*, never as *this is what the harness now
 The measurements were taken on **`codex-cli 0.151.0-alpha.7.2`**, the executable inside the
 desktop application bundle. Re-run the probe rather than inheriting any number here.
 
+**Section 13 is the exception and it is a THIRD build.** The owner's native run of 2026-09-15 was
+**`codex-cli 0.154.0-alpha.6.2`**, running as the VS Code extension's app-server — a different
+version, a different bundle and a different host process from everything above. Read its findings
+as evidence about a runtime no other section exercised, never as confirmation of one.
+
 **The phases split in two, and the second half spends the operator's own tokens.** The offline
 phases — `carrier`, `trust`, `routes` — cost nothing and are what a bare invocation runs. The turn
 phases — `payload`, `block`, `identity`, `stdin`, `matcher` — each start a real model turn and are
@@ -608,13 +613,17 @@ into a position.
 
 ### What this slice does NOT settle, and what it would take
 
-- **Whether a plugin-carrier hook command resolves a RELATIVE path, and against what.** The
+- ~~**Whether a plugin-carrier hook command resolves a RELATIVE path, and against what.** The
   carrier registers `python3 scripts/codex-hook-adapter.py`, which is the spelling slice A's
   fixture used and `plugin/read` reported as a registration — but slice A never ran it, and every
   turn phase registered an **absolute** path. So *the manifest is read* is measured and *the
   command is found* is not. **This blocks any claim the floor is active on Codex.** One trusted
   turn against a carrier-registered relative command settles it; this slice is not authorised for
-  a model turn.
+  a model turn.~~ **SETTLED 2026-09-15 by the owner's native run, and it resolved against the
+  SESSION's working directory.** The hook was found, trusted and executed; `git push origin main`
+  was blocked by `PreToolUse` upstream of Git, the remote and branch protection. **Struck rather
+  than deleted because it is the sentence that told a reader the floor's activity was unknown, and
+  what replaced it is narrower than *active*:** see section 13. The turn it asked for happened.
 - **Whether the host imposes a hook timeout, and what it is.** `codex-hooks.json` declares none —
   an unrecognised key risks a parse that this repository has already measured failing silently, so
   nothing speculative is written into it. The adapter's own 4-second bound is what exists, chosen
@@ -636,3 +645,171 @@ Claude bundle, a missing path registers zero).
 
 **What no gate here can see:** whether Codex ever invokes the command, whether the registration is
 trusted, and whether any of this document's prose is true.
+
+## 13 · The carrier's command is CWD-BOUND — the floor is active in ONE directory, and fails closed elsewhere
+
+**The wording, and it must not drift in either direction: the floor is ACTIVE for a session rooted
+in this checkout.** Not *available* — that understates a measured execution. Not a bare *active* —
+that overstates its scope to every session, which is exactly what is false.
+
+### What the owner's native run established, and it is the affirmative half
+
+Measured 2026-09-15 on `codex-cli 0.154.0-alpha.6.2` (the VS Code extension's app-server). The hook
+declared by `codex-hooks.json` was **found**, **trusted** and **executed**.
+
+- **Control** — an ordinary permitted tool call: `PreToolUse` fired, produced no decision, the call
+  succeeded.
+- **Block** — `git push origin main`: refused by `PreToolUse` **before** reaching Git, the remote,
+  authentication or server-side branch protection.
+
+**That ordering is what makes the refusal attributable.** A hook that never fires and a floor that
+permits everything are indistinguishable from inside a successful command; and a refusal could
+otherwise have come from a missing remote or a protected branch. Neither reading survives: the
+permitted call fired the hook and passed, and the denied call was stopped upstream of every
+alternative explanation.
+
+Trust was written by a `config/batchWrite` call with **no human prompt** — slice A's fixture
+finding, now reproduced on a real install. **A bridge must not treat Codex hook trust as a human
+checkpoint.** The owner removed the trust entry afterwards; `~/.codex/config.toml` is byte-identical
+to its pre-run digest `d3d390731089c913042141cf9ec2e3c305fb4954cc3d890c44cdf756357d23bf`.
+
+### The defect
+
+`codex-hooks.json` registers `python3 scripts/codex-hook-adapter.py`. **That relative path resolves
+against the SESSION's working directory, not against the plugin's installed root.**
+
+- In this checkout it finds this checkout's adapter — **a structural coincidence, not a design.**
+- In a directory without that file the hook **fails visibly and blocks the call.**
+
+The plugin is installed once, globally, and enabled for every session. So a Codex session rooted in
+`tadeumendonca-io` — which ships no `scripts/codex-hook-adapter.py` — has **every model tool call
+blocked**.
+
+**One resolution case remains unexercised and it is the sharp one.** The run covered *the file is
+there* and *the file is absent*. It did **not** cover a **different** file at that same relative
+path: any directory containing a `scripts/codex-hook-adapter.py` would have **its own copy**
+executed as the permission floor. Named as unexercised, not claimed as a result.
+
+### Codex offers NO way to reference a plugin's own installed root — measured, both directions
+
+This is the question the repair turns on, and the answer is no. Four independent readings, each
+with the command that produced it, taken against **the build the owner ran** rather than the one
+the rest of this document measures.
+
+**1 · The hook handler's own schema carries no path-base field of any kind.** Read out of the
+shipped binary's serde field list:
+
+```sh
+strings -a ~/.vscode/extensions/openai.chatgpt-26.908.40401-darwin-arm64/bin/macos-aarch64/codex \
+  | grep -aoE '.{110}internally tagged enum HookHandlerConfig.{40}' | head -1
+# -> …typecommandcommandWindowstimeoutasyncstatusMessageadditionalContextLimitserverinputpromptagent
+#    internally tagged enum HookHandlerConfigstatematcherhooksHookStateTomlenabledtru…
+```
+
+The complete field set is `type` · `command` · `commandWindows` · `timeout` · `async` ·
+`statusMessage` · `additionalContextLimit` · `server` · `input` · `prompt` · `agent`. **No `cwd`,
+no `root`, no `basePath`.**
+
+**2 · Codex HAS the concept and spells it explicitly — on MCP servers, not on hooks.** This is the
+calibration that makes reading 1 a finding rather than an absence of evidence: a schema that *does*
+carry a plugin-root-relative idiom exists in the same binary, and every bundled plugin that ships
+an MCP server uses it — **4 of 4, unanimously**:
+
+```sh
+cd ~/.codex/.tmp/bundled-marketplaces/openai-bundled/plugins && \
+  for f in */.mcp.json; do echo "### $f"; cat "$f"; done
+# -> all four declare  "command": "./bin/computer-use-client-launcher"  WITH  "cwd": "."
+```
+
+So the pairing `relative command + explicit cwd` is Codex's own supported idiom for *"resolve
+against my package"*. **The hooks schema does not carry the second half of it.**
+
+**3 · No plugin-root environment variable exists.** The selector ships with its calibration,
+because a grep that matches nothing reads as *nothing to worry about*:
+
+```sh
+strings -a ~/.vscode/extensions/openai.chatgpt-26.908.40401-darwin-arm64/bin/macos-aarch64/codex \
+  | grep -aoE 'CODEX_PLUGIN[A-Za-z_]*' | sort -u
+# -> CODEX_PLUGIN_METRICS_OUTPUT…   (three variants, all the same token; a metrics sink, not a root)
+
+# CALIBRATION — the same selector against a token known to be present:
+strings -a ~/.vscode/extensions/openai.chatgpt-26.908.40401-darwin-arm64/bin/macos-aarch64/codex \
+  | grep -aoE 'CODEX_HOME' | sort -u
+# -> CODEX_HOME
+```
+
+**4 · There is no corpus of hook command spellings to copy, because no bundled plugin ships hooks
+at all.** Stated so the silence is not read as agreement with anything:
+
+```sh
+cd ~/.codex/.tmp/bundled-marketplaces/openai-bundled/plugins && \
+  jq -r 'select(.hooks != null) | input_filename' */.codex-plugin/plugin.json
+# -> no output, exit 0 — ZERO of the 10 bundled plugins declare a `hooks` key
+# CALIBRATION — the same selector on a key they DO declare, so the zero is a real zero:
+jq -r 'select(.skills != null) | input_filename' */.codex-plugin/plugin.json | wc -l
+# -> 8
+# the denominator, so "zero" is read against a non-empty set:
+ls -d */ | wc -l
+# -> 10
+```
+
+**Bound these four exactly.** They are one machine, one build, and **control flow and data read out
+of a shipped bundle rather than a hook watched resolving a path**. A vendor may add a field in the
+next alpha and nothing here would say so. What they are *not* is an inference from the Claude
+schema — section 10 already records these two harnesses disagreeing on exactly this kind of detail.
+
+### Why a hardcoded absolute path is not the escape either
+
+The installed root is **version-stamped**, so any absolute path rots on every release:
+
+```sh
+ls -d ~/.codex/plugins/cache/tadeumendonca/tadeumendonca-skills/*/
+# -> …/tadeumendonca-skills/2.0.47/
+```
+
+**And the tree does arrive intact** — the adapter is present at that root, so the only thing
+missing is a way to *name* it:
+
+```sh
+find ~/.codex/plugins/cache/tadeumendonca -name 'codex-hook-adapter.py'
+# -> …/tadeumendonca-skills/2.0.47/scripts/codex-hook-adapter.py
+```
+
+That is worth stating plainly: **the defect is one unresolvable string, not a missing file.** Once
+the adapter runs at all it locates everything else correctly, because it resolves the guard from
+its own `__file__` (`REPO_ROOT = Path(__file__).resolve().parent.parent`) and not from the cwd.
+
+### The decision: state the limitation, build no wrapper
+
+**No shim, and this is the reason rather than a preference.** A wrapper that searched for the
+adapter would convert a **visible, fail-closed** failure into a guess — and on reading 3's
+unexercised case it would be a guess that could execute *a different repository's file as the
+permission floor*. The fail-closed property is the best thing this bridge currently has, and it is
+the direction this platform's failures usually run the other way.
+
+**So the limitation is written where it binds, and accepted with its cost stated:**
+
+| | |
+|---|---|
+| a session rooted in **this checkout** | the floor is **active** — measured |
+| a session rooted **anywhere else** | **every model tool call is blocked**, visibly |
+| the cost | the Codex bridge is not portable to a second repository, and `tadeumendonca-io` cannot run a Codex session at all while this plugin is enabled |
+| what would remove it | a `cwd` field on the hook handler schema, or a plugin-root variable — **neither exists on `0.154.0-alpha.6.2`**, and both are the vendor's to add |
+
+### Why this limitation is NOT written into `codex-hooks.json` itself
+
+**JSON carries no comments, and an unrecognised sibling key is the one thing this document already
+measured failing silently.** Section 1's row four: a carrier whose `hooks` value is typed wrong
+does not fail closed, it restores the Claude bundle with nothing saying so. Adding a speculative
+`_comment` key to the registry to hold a warning would be spending the exact risk this bridge was
+built to avoid, to hold a sentence. **It is carried by `.codex-plugin/plugin.json`'s `description`
+— which a reader meets first and which the loader already reads — by this section, and by
+`--selfcheck`, which is the surface an operator actually runs.**
+
+### What holds this section
+
+**Nothing.** No gate can observe which directory a Codex session was started in, and none of the
+four readings above is re-derived by CI — they are reads of a vendor bundle on one machine, and a
+test asserting their output would be pinning another product's build. `--selfcheck` reports the
+constraint; it cannot detect a violation of it, because by the time the adapter is running the
+resolution already succeeded. **The failing case never reaches any code this repository ships.**

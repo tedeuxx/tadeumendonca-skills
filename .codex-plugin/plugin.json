@@ -1,7 +1,7 @@
 {
   "name": "tadeumendonca-skills",
   "version": "2.0.47",
-  "description": "The Codex carrier for this harness: the irreversible-floor adapter, the skill library and the MCP declaration. It REPLACES the Claude hook registry for Codex — see docs/codex-hook-bridge.md for what that covers and what it does not.",
+  "description": "The Codex carrier for this harness: the irreversible-floor adapter, the skill library and the MCP declaration. It REPLACES the Claude hook registry for Codex — see docs/codex-hook-bridge.md for what that covers and what it does not. LIMITATION, measured 2026-09-15 on codex-cli 0.154.0-alpha.6.2: the hook command is a RELATIVE path resolved against the SESSION's working directory, not against this plugin's installed root, and Codex offers no field or variable that names that root. So the floor is ACTIVE only for a session rooted in a tadeumendonca-skills checkout; started anywhere else the hook is not found and BLOCKS every model tool call — visibly, and failing closed. Section 13 of that document carries the measurement and the cost.",
   "hooks": "./codex-hooks.json",
   "skills": "./skills/",
   "mcpServers": "./.mcp.json"
