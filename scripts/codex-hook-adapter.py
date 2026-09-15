@@ -359,6 +359,15 @@ def selfcheck():
         "CALLER: no Codex caller receives a caller-dependent exemption. Opening work and "
         "posting to a public surface are refused to every caller on this harness.")
     notes.append(
+        "CWD-BOUND REGISTRATION: codex-hooks.json registers a RELATIVE command, which Codex "
+        "resolves against the SESSION's working directory and not against this plugin's "
+        "installed root. Measured 2026-09-15 on codex-cli 0.154.0-alpha.6.2, and no field or "
+        "variable naming that root exists on that build. So the floor is ACTIVE only for a "
+        "session rooted in a checkout of this repository; started anywhere else the hook is "
+        "not found and BLOCKS every model tool call. THIS CHECK CANNOT DETECT THAT CASE: if "
+        "you are reading this line the adapter was already found, so the failing case never "
+        "reaches this code. See docs/codex-hook-bridge.md section 13.")
+    notes.append(
         "INTERACTIVE SESSION STARTUP: %s"
         % ("REFUSED" if REFUSE_INTERACTIVE_SESSION_STARTUP else
            "permitted, and the write_stdin gap is therefore OPEN"))
