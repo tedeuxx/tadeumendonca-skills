@@ -359,14 +359,17 @@ def selfcheck():
         "CALLER: no Codex caller receives a caller-dependent exemption. Opening work and "
         "posting to a public surface are refused to every caller on this harness.")
     notes.append(
-        "CWD-BOUND REGISTRATION: codex-hooks.json registers a RELATIVE command, which Codex "
-        "resolves against the SESSION's working directory and not against this plugin's "
-        "installed root. Measured 2026-09-15 on codex-cli 0.154.0-alpha.6.2, and no field or "
-        "variable naming that root exists on that build. So the floor is ACTIVE only for a "
-        "session rooted in a checkout of this repository; started anywhere else the hook is "
-        "not found and BLOCKS every model tool call. THIS CHECK CANNOT DETECT THAT CASE: if "
-        "you are reading this line the adapter was already found, so the failing case never "
-        "reaches this code. See docs/codex-hook-bridge.md section 13.")
+        "FIRING IS UNPROVEN, AND THIS CHECK IS NOT EVIDENCE OF IT. A native run on 2026-09-16 "
+        "(codex-cli 0.154.0-alpha.6.2) found a REGISTERED and TRUSTED PreToolUse hook not "
+        "acting on a shell tool call, in this repository's own checkout, with the adapter "
+        "present and returning `block` for that same payload when fed it directly. What is "
+        "measured is that the carrier is DISCOVERED and can be TRUSTED — by an API call with "
+        "NO human prompt, so Codex hook trust is not a human checkpoint. What is NOT measured "
+        "is that Codex ever calls this file. THIS CHECK CANNOT CLOSE THAT GAP: if you are "
+        "reading this line the adapter was found and run by YOU, which says nothing about "
+        "whether the runtime does. Standing hypothesis, labelled as one: command/exec, "
+        "process/spawn and thread/shellCommand fire ZERO hooks (section 3), so the leading "
+        "explanation is an unhooked route. See docs/codex-hook-bridge.md sections 13 and 14.")
     notes.append(
         "INTERACTIVE SESSION STARTUP: %s"
         % ("REFUSED" if REFUSE_INTERACTIVE_SESSION_STARTUP else
