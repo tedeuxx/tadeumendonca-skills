@@ -8,6 +8,29 @@ below as *this is what the runtime does*, never as *this is what the harness now
 The measurements were taken on **`codex-cli 0.151.0-alpha.7.2`**, the executable inside the
 desktop application bundle. Re-run the probe rather than inheriting any number here.
 
+**Sections 13 and 14 are the exception and they are a THIRD build.** The owner's two native runs —
+2026-09-15 and 2026-09-16 — were **`codex-cli 0.154.0-alpha.6.2`**, running as the VS Code
+extension's app-server: a different version, a different bundle and a different host process from
+everything above. Read their findings as evidence about a runtime no other section exercised,
+never as confirmation of one.
+
+**The version is published with the command that reads it**, because it was asserted on three
+surfaces and verified on none until a third party ran it:
+
+```sh
+~/.vscode/extensions/openai.chatgpt-26.908.40401-darwin-arm64/bin/macos-aarch64/codex --version
+# -> codex-cli 0.154.0-alpha.6.2
+```
+
+**One machine, one install, and the extension directory is version-stamped** — so this path rots
+on the next extension update while the string it prints is what identifies the build. Re-run it
+rather than trusting the number here.
+
+**Read section 13's strike list before quoting anything about Codex activation from this page.**
+The first run's findings were **written on this branch and withdrawn by the second before either
+reached `main`**; what survives is discovery and promptless trust, and **no claim that the floor
+fires on Codex survives at all.**
+
 **The phases split in two, and the second half spends the operator's own tokens.** The offline
 phases — `carrier`, `trust`, `routes` — cost nothing and are what a bare invocation runs. The turn
 phases — `payload`, `block`, `identity`, `stdin`, `matcher` — each start a real model turn and are
@@ -612,9 +635,29 @@ into a position.
   carrier registers `python3 scripts/codex-hook-adapter.py`, which is the spelling slice A's
   fixture used and `plugin/read` reported as a registration — but slice A never ran it, and every
   turn phase registered an **absolute** path. So *the manifest is read* is measured and *the
-  command is found* is not. **This blocks any claim the floor is active on Codex.** One trusted
+  command is found* is not. **This blocks any claim the floor is active on Codex.** ~~One trusted
   turn against a carrier-registered relative command settles it; this slice is not authorised for
-  a model turn.
+  a model turn.~~
+
+  **The REMEDY is struck 2026-09-16 as KNOWN-INSUFFICIENT, while the question above stands OPEN.**
+  Two such turns have now been run and neither settled it: the first appeared to and was
+  withdrawn, the second probed where this harness's two Codex layers disagree and found the floor
+  not acting at all. **A third turn buys nothing, and a standing sentence saying otherwise sends
+  the next reader to spend one.** What would settle it is in section 13 and is a **build** rather
+  than a turn — the adapter recording its own invocations, so *"the hook did not fire"* stops
+  being the same observation as *"the hook fired and abstained"*.
+
+  ~~**SETTLED 2026-09-15 by the owner's native run, and it resolved against the SESSION's working
+  directory.** The hook was found, trusted and executed; `git push origin main` was blocked by
+  `PreToolUse` upstream of Git, the remote and branch protection.~~ **THAT DISCHARGE IS WITHDRAWN
+  2026-09-16 and the bullet above stands OPEN again.** A second native run found that the command
+  the first one used to prove the hook — `git push origin main` — is forbidden by this
+  repository's *other* Codex containment layer, so the refusal was never attributable; re-probed
+  with a command the two layers disagree on, the floor did **not** act. **The strike is kept
+  visible rather than deleted because it was this branch's own earlier head** — `a0d9fd46`, which
+  never reached `main` — **and a reader of this merge request's history meets it there.** It is
+  not kept because it was published; it was not. **Section 13 carries what survives; section 14
+  carries why the first run could not have seen what it claimed to see.**
 - **Whether the host imposes a hook timeout, and what it is.** `codex-hooks.json` declares none —
   an unrecognised key risks a parse that this repository has already measured failing silently, so
   nothing speculative is written into it. The adapter's own 4-second bound is what exists, chosen
@@ -636,3 +679,326 @@ Claude bundle, a missing path registers zero).
 
 **What no gate here can see:** whether Codex ever invokes the command, whether the registration is
 trusted, and whether any of this document's prose is true.
+
+## 13 · What the two native runs established — and what the second one WITHDREW
+
+**This section was rewritten on 2026-09-16 and it is not an edit of what stood here.** The version
+written at this branch's earlier head asserted that the carrier's hook was *found, trusted and
+executed*, that the floor was *active for a session rooted in this checkout*, and that a session
+started elsewhere *fails closed*. **A second native run falsified all three.**
+
+**They are struck below in place rather than deleted, and the reason is narrower than it first
+read here.** These claims were authored on this branch and **never merged** — they reached neither
+`main` nor any published plugin version:
+
+```sh
+git merge-base --is-ancestor a0d9fd46 origin/main   # -> exit 1, NOT an ancestor
+git grep -c 'SETTLED 2026-09-15' origin/main -- docs/codex-hook-bridge.md   # -> no match, exit 1
+git grep -c 'SETTLED 2026-09-15' v2.0.47   -- docs/codex-hook-bridge.md   # -> no match, exit 1
+# CALIBRATION — the same selector at the head that carried them, so the two zeros are real:
+git grep -c 'SETTLED 2026-09-15' a0d9fd46  -- docs/codex-hook-bridge.md   # -> 1
+```
+
+So the strike is kept for the reason that actually applies: **this merge request's own history
+carries `a0d9fd46`, a reviewer walks it, and a claim that vanishes between two heads of one branch
+is harder to audit than one struck in place.**
+
+**Earlier drafts of THIS SECTION AND OF THIS DOCUMENT'S HEADER justified the strike by saying the
+claims had *"shipped in a published plugin version"* and been *"published here"*. They had not,
+and the error ran in the flattering direction** — inventing a publication makes the correction
+look more consequential than it was, which is the exact bias the strike list below warns about two
+screens down, pointed at the author instead of at the system. It is recorded here rather than
+quietly fixed, because a page about withdrawn claims is the worst possible place to withdraw one
+silently.
+
+**And HOW the header's copy survived the first repair is worth more than the repair.** That sweep
+searched for the **phrasings** already known to be wrong — `merged commit`, `published plugin
+version`, `marketplace-published` — and the header used none of them. Swept for the **claim**
+instead, every `publish` form in the file, it was the only survivor:
+
+```sh
+git grep -n -iE 'publish' -- docs/codex-hook-bridge.md
+# CALIBRATION — an absent selector over the same object, so the set above is a real set:
+git grep -n -iE 'zzznotpresent' -- docs/codex-hook-bridge.md   # -> no match, exit 1
+```
+
+**An enumeration of known-bad spellings is not a sweep for a claim**, and two independent readers
+made that identical instrument error on this document one round apart. It is the same shape this
+repository has recorded before at a different grain — a selector that was correct about the sample
+its author had in mind and wrong about the class.
+
+**Both runs are the owner's, on `codex-cli 0.154.0-alpha.6.2` running as the VS Code extension's
+app-server** — a different version, bundle and host process from every other section of this
+document. Read section 14 first if you only read one: it is why the first run could not have
+observed what it reported, and it is the transferable part.
+
+### What STANDS — reproduced on two separate days, by two different write endpoints
+
+**1 · The carrier is DISCOVERED.** Codex reads `.codex-plugin/plugin.json` and resolves its
+`hooks` value `./codex-hooks.json`; a `[hooks.state…]` entry keyed on that carrier is written for
+it. Measured first against a disposable `CODEX_HOME` in slice A, then twice on the live install.
+
+**2 · Trust is granted by an API call with NO human prompt.** This is the best-supported finding
+on `#455` and the one with the most consequence for anyone building a bridge on this runtime. Two
+days, two endpoints — `config/batchWrite` and `config/value/write` — no prompt shown, no human
+confirmation, and the runtime reported `trustStatus: "trusted"` afterwards. The entry both times:
+
+```
+[hooks.state."tadeumendonca-skills@tadeumendonca:codex-hooks.json:pre_tool_use:0:0"]
+trusted_hash = "sha256:bf622f99b01e22b3df393094f5b959d28c590a9f4753777ed4808ebd04dbac92"
+```
+
+**The hash is byte-identical across the two registrations**, which is consistent with slice A's
+separate finding that **Codex hook trust binds a PATH, not a FILE** — rewriting the script's bytes
+afterwards leaves the hash unmoved, the status `trusted`, and the rewritten script executing.
+
+> **The rule that follows, and it is not a Codex detail: a bridge must not treat Codex hook trust
+> as a human checkpoint.** `AC2` of `#455` was written on the premise that it is one. That premise
+> was falsified against a fixture and has now reproduced on a real install twice.
+
+**The owner removed the trust entry after each run.** `~/.codex/config.toml` is at its pre-run
+digest and carries no entry for this carrier — verified 2026-09-16 rather than asserted:
+
+```sh
+shasum -a 256 ~/.codex/config.toml
+# -> d3d390731089c913042141cf9ec2e3c305fb4954cc3d890c44cdf756357d23bf
+grep -c 'tadeumendonca-skills@tadeumendonca:codex-hooks.json' ~/.codex/config.toml
+# -> 0   (exit 1)
+```
+
+### What FELL — withdrawn, not merely qualified
+
+- ~~**"execution: ran."**~~ **Registration and trust are not firing.** No run has shown the
+  carrier's hook acting on a tool call.
+- ~~**"`git push origin main` was blocked by `PreToolUse` before reaching Git."**~~ **The same
+  command is refused by this repository's execpolicy, which names itself in the refusal.** See
+  section 14; the attribution cannot be sustained.
+- ~~**"The control fired and returned no decision."**~~ **An executed command is indistinguishable
+  from an unhooked one.** That was the hazard the measurement was designed around, and the block
+  half — the only half that could discriminate — turned out to be the other layer.
+- ~~**"The floor is ACTIVE for a session rooted in this checkout."**~~ **No wording asserting
+  activity is supportable today**, in any scope. *Available* is what the carrier and the adapter
+  support; *active* is not.
+- ~~**"The hook command is a relative path resolved against the SESSION's working directory, and a
+  session started elsewhere fails closed."**~~ **BOTH HALVES WITHDRAWN.** The affirmative half
+  rested on the withdrawn execution claim. The fail-closed half came from a session in
+  `tadeumendonca-io` that ran with **no hook registered at all** — the trust key was absent and
+  `~/.codex/config.toml` sat at the digest above — so that run measured the **no-hook** case, not
+  the **not-found** case. **Not-found behaviour is UNMEASURED IN BOTH DIRECTIONS**, and no claim
+  about portability to a second repository follows from anything here.
+
+**This last one is the strike worth pausing on, because it was the more attractive of the two
+claims.** *"It fails closed"* is the direction this platform's failures usually do not run, so it
+read as the reassuring half of a defect report — and it was the half with no evidence behind it at
+all. **A finding that flatters the system it describes deserves the same probe as one that does
+not.**
+
+### The FIRING question is OPEN, and the standing explanation is a HYPOTHESIS
+
+**Why a registered and trusted `PreToolUse` hook did not act on a `Bash`-shaped tool call, in the
+plugin's own checkout, is not answered here and is not guessed at.**
+
+**The standing hypothesis, labelled as one:** the adapter's own header records the structural gap
+this document measured in section 3 — `command/exec`, `process/spawn` and `thread/shellCommand`
+each fired **zero** hooks against a trusted registration, all three succeeding. So the leading
+explanation is that the runtime ran these commands through one of those unhooked routes rather
+than through the hooked one. **Nothing here tests that.**
+
+**What would settle it, and it is a build rather than a measurement:** the adapter recording its
+own invocations, so *"the hook did not fire"* and *"the hook fired and abstained"* stop being the
+same observation from outside. **That instrument is deliberately not built in this slice** — it
+is a mechanism with its own predicate, its own test file and its own decision about where a
+side-effecting log may live, and folding it into a correction of this page would price two
+decisions as one.
+
+### What the ADAPTER does, which is a different claim and still holds
+
+**Fed a native Codex `PreToolUse` payload directly, the adapter decides correctly.** That is a
+fact about this repository's own code and it survives every strike above — what is unproven is
+that Codex ever hands it a payload. Re-derived at this head rather than pasted:
+
+Save this as a file and run it with `python3 <file> <repo-root>`. **It is deliberately NOT written
+as a heredoc**: its payload strings name acts this repository's own floor refuses, and the guard
+does not parse shell — a heredoc body carrying `git push origin main` is denied as the act, which
+is the friction this document would otherwise publish as a command nobody can run.
+
+```python
+import json, subprocess, sys
+REPO = sys.argv[1]
+for command in ["git status --short", "git push origin main",
+                "gh pr merge 999999 --merge", "ls -la"]:
+    payload = {"hook_event_name": "PreToolUse", "tool_name": "Bash",
+               "tool_input": {"command": command},
+               "agent_type": "codex-unidentified", "cwd": REPO}
+    p = subprocess.run([sys.executable, REPO + "/scripts/codex-hook-adapter.py"],
+                       input=json.dumps(payload), capture_output=True, text=True, cwd=REPO)
+    out = (p.stdout or "").strip()
+    print(command, "exit=%d" % p.returncode,
+          json.loads(out)["decision"] if out else "(none)")
+# git status --short           exit=0 (none)
+# git push origin main         exit=0 block    "Blocked: pushing to the trunk…"
+# gh pr merge 999999 --merge   exit=0 block    "Blocked: merging a PR is the deploy…"
+# ls -la                       exit=0 (none)
+```
+
+**The two abstentions are a real zero and not a dead selector** — the same harness, the same
+payload shape and the same caller return `block` on the other two. And `999999` is not a pull
+request, so nothing could have been merged either way.
+
+### What holds any of this
+
+**Nothing.** No gate in this repository can observe a Codex session, which directory it started
+in, whether a registration was trusted, or whether a hook fired. `scripts/codex-hook-adapter.py
+--selfcheck` reports that the adapter can be found and run; **it says nothing about whether Codex
+ever calls it**, and by construction it cannot — if the check is executing, the resolution it
+would be reporting on already succeeded.
+
+## 14 · TWO containment layers ship here for Codex, the cheaper one answers first, and that is why the first run was wrong
+
+**This is the most reusable thing on this page and it is not about Codex.** It is about probing a
+system that has more than one layer covering the same act.
+
+### The two layers, and neither document mentions the other
+
+| layer | file | verb | what it reads |
+|---|---|---|---|
+| **execpolicy** | `.codex/rules/claude-command-policy.rules` | `forbidden` / `allow` | literal argv prefixes, `argv[0]` onwards |
+| **hook bridge** | `.codex-plugin/plugin.json` → `codex-hooks.json` → `scripts/codex-hook-adapter.py` → `hooks/scripts/permission-guard.sh` | `block` | the whole command string, plus caller identity |
+
+**Nothing in this repository documented them as coexisting layers, and that is measured rather
+than asserted.** **The commands below are pinned to `origin/main` on purpose**, because this
+section is itself the change that moves the figure — a number whose base sits inside its own diff
+is not a measurement of anything. At that base, of the ten tracked files naming either mechanism,
+**one** names both, and inside it the occurrences are ~1,160 lines apart in amendments written six
+days apart, neither referencing the other:
+
+```sh
+git grep -l 'claude-command-policy' origin/main -- . | grep -v ':powers/'
+# -> origin/main:docs/adr/0004-controls-and-enforcement.md
+#    origin/main:hooks/scripts/codex-rules.test.sh        (the gate, which names no adapter)
+git grep -n 'claude-command-policy' origin/main -- docs/adr/0004-controls-and-enforcement.md
+# -> 5015        (the #419 amendment, 2026-09-08)
+git grep -n 'codex-hook-adapter'   origin/main -- docs/adr/0004-controls-and-enforcement.md
+# -> 5934 6175 6307                                       (the #455 amendments, 2026-09-14)
+
+# CALIBRATION — the denominator, so "one of ten" is read against a non-empty set:
+git grep -l 'claude-command-policy\|codex-hook-adapter' origin/main -- . | grep -v ':powers/' | wc -l
+# -> 10
+```
+
+**And this page named the execpolicy ZERO times at that base** —
+`git grep -c 'claude-command-policy' origin/main -- docs/codex-hook-bridge.md` emits nothing and
+exits 1. **This section is what changes that**, and it is the whole of the change: nothing here
+makes the two layers move together, and no gate asserts that either document still mentions the
+other.
+
+### The overlap is BROAD — 61 of 64, measured rather than estimated
+
+Every `prefix_rule` in the execpolicy, with the command its pattern names fed to the adapter as a
+native `PreToolUse` payload:
+
+```sh
+python3 scratch/overlap-sweep.py <repo-root> codex-unidentified   # the script is below
+```
+
+|  | floor says **block** | floor **abstains** |
+|---|---|---|
+| execpolicy **`forbidden`** (64) | **61 — OVERLAP** | 3 |
+| execpolicy **`allow`** (230) | **3 — DISAGREEMENT** | 227 |
+
+```sh
+# the denominators, each derived separately:
+grep -c 'decision="forbidden"' .codex/rules/claude-command-policy.rules   # -> 64
+grep -c 'decision="allow"'     .codex/rules/claude-command-policy.rules   # -> 230
+grep -c '^prefix_rule'         .codex/rules/claude-command-policy.rules   # -> 294
+```
+
+**Both off-diagonal cells are non-empty, which is what makes the two large cells readable rather
+than arithmetic:**
+
+- **execpolicy only (3):** `claude mcp` · `gh api` · `npm run e2e:production`. The floor abstains
+  on all three.
+- **DISAGREEMENT — `allow` in the execpolicy, `block` in the floor (3):** `gh pr merge` ·
+  `gh pr comment` · `gh issue comment`. **These are the only probes on this harness that can see
+  the hook layer at all**, and the set is caller-robust: re-running the sweep with `agents-lead`
+  in place of `codex-unidentified` returns the same three.
+
+**The 61 are every irreversible act this floor exists to refuse** — trunk push in all four
+spellings, force-push, tag push, `git clean -f`, `git reset --hard`, `rm -rf` in six spellings,
+`terraform apply`/`destroy`, secret writes, `gh repo delete`/`archive`/`rename`, release
+create/delete, `gh workflow run`, `--dangerously-skip-permissions`. **Every one of them is
+untestable through the hook, by construction.**
+
+### The rule this yields
+
+> **A probe inside the overlap cannot observe the layer it is testing — and it does not return a
+> null result, it returns a CONFIDENT POSITIVE, which is strictly worse.** The act is refused, the
+> refusal looks like proof, and the layer that actually answered is the one nobody was testing.
+>
+> **So: pick the probe where the layers DISAGREE, and make the disagreement visible in the refusal
+> text.** A refusal that names its own layer is what turned this from a belief into a measurement.
+
+The first run picked `git push origin main` — line 317 of the execpolicy, `forbidden`, and
+therefore the single most over-covered act in the whole matrix. Re-run, Codex refused it and
+**named the layer**: *"rejected: policy forbids commands starting with `git push origin main`"*,
+explicitly *"Refused by Codex policy, not by a hook."*
+
+```sh
+grep -n 'push", "origin", "main"' .codex/rules/claude-command-policy.rules   # -> 317: forbidden
+grep -n 'pattern=\["gh", "pr", "merge"\]' .codex/rules/claude-command-policy.rules
+# -> 99: allow      <- the disagreement the second run probed with
+```
+
+**A sharper sub-case, because it shows the trap is finer than one command:** `gh pr merge` sits in
+the disagreement cell, and `gh pr merge --squash` sits in the **overlap** — the execpolicy
+forbids the squash spelling and the floor blocks it too. **The same subcommand straddles both
+cells depending on a flag.** A probe is not chosen by naming an act; it is chosen by checking the
+act's exact spelling against both layers.
+
+### The sweep instrument
+
+It is not a gate and is not committed as one — it reads a vendor-independent pair of this
+repository's own files and answers one question, which is the shape this repository's own rule
+says to discard rather than persist. Reproduced here so the numbers above are re-derivable:
+
+```python
+import json, re, subprocess, sys
+from collections import Counter
+REPO, CALLER = sys.argv[1], (sys.argv[2] if len(sys.argv) > 2 else "agents-lead")
+RULE = re.compile(r'^prefix_rule\(pattern=\[(.*?)\],\s*decision="(\w+)"\)')
+rows = []
+for line in open(REPO + "/.codex/rules/claude-command-policy.rules", encoding="utf-8"):
+    m = RULE.match(line.strip())
+    if m:
+        rows.append((" ".join(re.findall(r'"([^"]*)"', m.group(1))), m.group(2)))
+cells = Counter()
+for command, decision in rows:
+    payload = {"hook_event_name": "PreToolUse", "tool_name": "Bash",
+               "tool_input": {"command": command}, "agent_type": CALLER, "cwd": REPO}
+    p = subprocess.run([sys.executable, REPO + "/scripts/codex-hook-adapter.py"],
+                       input=json.dumps(payload), capture_output=True, text=True, cwd=REPO)
+    out = (p.stdout or "").strip()
+    cells[decision + "/" + (json.loads(out)["decision"] if out else "none")] += 1
+print(len(rows), dict(cells))
+# -> 294 {'allow/none': 227, 'forbidden/block': 61, 'allow/block': 3, 'forbidden/none': 3}
+```
+
+### One stale sentence found by the sweep and NOT repaired here
+
+The execpolicy's own header, written 2026-09-08, says of this harness's hook layer that *"the
+whole-command-string guard that backs the Claude floor was simply never written for it."* **That
+is false at head** — `scripts/codex-hook-adapter.py` landed 2026-09-14 and is exactly that. It
+errs by **understating** coverage, which is the safe direction for a floor, and repairing it means
+editing a tracked permission layer under its own gate for a prose reason. **Named here rather than
+fixed, and it is a finding rather than a note:** the file that a Codex operator would read to
+learn what contains them says the other containment layer does not exist.
+
+### What holds sections 13 and 14
+
+**Nothing mechanical, and the shape of the gap differs between them.** Section 13's claims are
+about a runtime no gate here can reach. Section 14's two figures — the overlap matrix and the
+one-file coexistence count — are re-derivable from this repository's own tracked files by the
+commands printed beside them, **and no gate re-derives either**, so both go stale silently the
+next time a rule is added to the execpolicy or a rule is added to the guard. That is stated rather
+than mitigated: an arm pinning the matrix would pin two files' current contents against each
+other and redden on honest work in either.

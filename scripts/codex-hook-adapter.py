@@ -359,6 +359,18 @@ def selfcheck():
         "CALLER: no Codex caller receives a caller-dependent exemption. Opening work and "
         "posting to a public surface are refused to every caller on this harness.")
     notes.append(
+        "FIRING IS UNPROVEN, AND THIS CHECK IS NOT EVIDENCE OF IT. A native run on 2026-09-16 "
+        "(codex-cli 0.154.0-alpha.6.2) found a REGISTERED and TRUSTED PreToolUse hook not "
+        "acting on a shell tool call, in this repository's own checkout, with the adapter "
+        "present and returning `block` for that same payload when fed it directly. What is "
+        "measured is that the carrier is DISCOVERED and can be TRUSTED — by an API call with "
+        "NO human prompt, so Codex hook trust is not a human checkpoint. What is NOT measured "
+        "is that Codex ever calls this file. THIS CHECK CANNOT CLOSE THAT GAP: if you are "
+        "reading this line the adapter was found and run by YOU, which says nothing about "
+        "whether the runtime does. Standing hypothesis, labelled as one: command/exec, "
+        "process/spawn and thread/shellCommand fire ZERO hooks (section 3), so the leading "
+        "explanation is an unhooked route. See docs/codex-hook-bridge.md sections 13 and 14.")
+    notes.append(
         "INTERACTIVE SESSION STARTUP: %s"
         % ("REFUSED" if REFUSE_INTERACTIVE_SESSION_STARTUP else
            "permitted, and the write_stdin gap is therefore OPEN"))
