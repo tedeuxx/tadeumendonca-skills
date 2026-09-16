@@ -443,11 +443,22 @@ were rejected outright —
 
 > *«ta uma merda as propostas. precisa ser algo que aproxime da realidade do meu publico alvo»*
 
-**Every one of the three had the AUTHOR as its grammatical subject** — *I am*, *mine*, *I run*:
+**Every one of the three has the author — or something held as his — as the grammatical subject of one
+of its sentences**, and the three take three different forms, which is why the test below reads a
+position rather than a word: a first-person verb with the pronoun elided, a possessive standing alone
+as the subject, and a bare first-person pronoun.
 
-- *"Sou uma empresa AI-native de uma pessoa só. E eu não lembro como ela funciona — eu leio."* — **Sou**
-- *"Uma empresa AI-native precisa de um cérebro. O meu cabe num arquivo."* — **O meu**
-- *"O pitch era sobre empresas. Eu rodo a mesma arquitetura sozinho."* — **Eu rodo**
+- *"Sou uma empresa AI-native de uma pessoa só. E eu não lembro como ela funciona — eu leio."* —
+  **first** sentence, subject *(eu)* elided before **Sou**
+- *"Uma empresa AI-native precisa de um cérebro. O meu cabe num arquivo."* — **second** sentence,
+  subject **O meu**. The first sentence's subject is *"Uma empresa AI-native"*, which passes
+- *"O pitch era sobre empresas. Eu rodo a mesma arquitetura sozinho."* — **second** sentence, subject
+  **Eu**. The first sentence's subject is *"O pitch"*, which passes
+
+**Two of the three fail on their SECOND sentence, and that is not a curiosity — it is why the test
+below reads every sentence.** Rule 3 mandates the two-sentence shape, so a two-sentence title is the
+normal case in this ruler rather than an edge one, and a test that reads *the* sentence passes two of
+the three candidates this gate exists to reject.
 
 Each has a subject, a stake, a setup and a turn. **Each scores well on the six and addresses nobody**,
 and that is the whole argument for a gate rather than a seventh criterion: a criterion is something a
@@ -457,8 +468,12 @@ strong candidate can outweigh, and none of these three may be outweighed.
 
 1. **The subject is the READER's situation, never the author's identity** — *«precisa ser algo que
    aproxime da realidade do meu publico alvo»*. **A self-identification has already failed however it
-   scores.** The test is grammatical before it is editorial: find the subject of the title's own
-   sentence, and if it is the author, stop.
+   scores.** The test is grammatical before it is editorial: **find the subject of EACH of the title's
+   sentences, and if ANY of them is the author or something held as his, stop.** Both quantifiers are
+   load-bearing. *Each*, because rule 3 mandates a two-sentence shape, and in two of the three
+   candidates above the failing subject sits in the SECOND sentence — so a test reading only *the*
+   sentence passes both of them. *Or something held as his*, because a possessive standing as the subject
+   (*O meu*) puts his thing in the reader's place exactly as a pronoun puts him there.
 2. **It must not be so constructed that it stops connecting** with what the professional is living now
    — *«nao pode ser complicado ao ponto de nao conectar o titulo com a dinamica atual do
    profissional»*. **Note the tension and read it as a property of the six rather than an accident:
