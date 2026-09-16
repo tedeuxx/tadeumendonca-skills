@@ -431,6 +431,73 @@ never what the piece is about. A draft whose subject is him has misread this cal
 
 **Not a fourth topic**: the goal, the sourcing constraint and the truth rules all land at once, on eight
 words. **Six rules, RANKED and not a checklist** — 1 is a gate the other five never buy their way past.
+**And the six are not the first thing a candidate meets: a gate of three clauses runs AHEAD of them,
+immediately below.**
+
+### The gate that runs BEFORE the six — three clauses, ratified 2026-09-16
+
+**The six measure the sentence's CONSTRUCTION. Not one of them asks whose situation the sentence is
+about**, which is how a candidate wins on all six and addresses nobody. That is not a hypothetical: a
+batch was ranked honestly against the six, the ranking was correct on its own terms, and the top three
+were rejected outright —
+
+> *«ta uma merda as propostas. precisa ser algo que aproxime da realidade do meu publico alvo»*
+
+**Every one of the three had the AUTHOR as its grammatical subject** — *I am*, *mine*, *I run*:
+
+- *"Sou uma empresa AI-native de uma pessoa só. E eu não lembro como ela funciona — eu leio."* — **Sou**
+- *"Uma empresa AI-native precisa de um cérebro. O meu cabe num arquivo."* — **O meu**
+- *"O pitch era sobre empresas. Eu rodo a mesma arquitetura sozinho."* — **Eu rodo**
+
+Each has a subject, a stake, a setup and a turn. **Each scores well on the six and addresses nobody**,
+and that is the whole argument for a gate rather than a seventh criterion: a criterion is something a
+strong candidate can outweigh, and none of these three may be outweighed.
+
+**So these run FIRST, and a candidate failing any of them never reaches the six.**
+
+1. **The subject is the READER's situation, never the author's identity** — *«precisa ser algo que
+   aproxime da realidade do meu publico alvo»*. **A self-identification has already failed however it
+   scores.** The test is grammatical before it is editorial: find the subject of the title's own
+   sentence, and if it is the author, stop.
+2. **It must not be so constructed that it stops connecting** with what the professional is living now
+   — *«nao pode ser complicado ao ponto de nao conectar o titulo com a dinamica atual do
+   profissional»*. **Note the tension and read it as a property of the six rather than an accident:
+   rule 3 REWARDS construction.** A setup, a full stop and a turn landing against the first half is a
+   built sentence, and a sentence built enough to earn a punchline is a sentence built enough to stop
+   landing. **Simplicity is therefore not a low score on the six — it is a separate gate, and it comes
+   first**, which is why this cannot be folded in as a seventh rule the other six trade against.
+3. **It must make the reader want to RUN AN EXPERIMENT** — *«tem que ser algo que torne o leitor
+   interessado em fazer um experimento»*. **The operational test: what would the reader go and DO after
+   reading this?** If the honest answer is *nod*, it fails.
+
+**Clause 3 is what makes 1 and 2 checkable rather than tasteful, and that is the reason it is worth
+its place.** A title about the author gives the reader nothing to try — there is no experiment inside
+somebody else's identity, only agreement or indifference. A title too constructed gives a **puzzle**
+instead of an experiment: the reader's next act is *work out what this means*, which is work done on
+the title rather than work done on their own machine. So where 1 and 2 read as taste, ask 3 and both
+resolve into something observable.
+
+**Clause 1 is NOT new to this file — it is an existing rule arriving at the title for the first time,
+and that is why nothing above contradicts it.** *The subject is bounded* already says *«o tom pessoal e
+a minha cara tornam o conteúdo humano, mas não eh o foco»* and closes with **a draft whose subject is
+him has misread this calibration**; the goal/filter section already says **if a passage only earns its
+place because it positions him, it does not earn its place**. Both were written about the **body**.
+Neither was ever applied to the eight words that reach a reader first, which are the only words most
+readers see — so the gap the three rejected candidates found was one of REACH, not of principle.
+
+**And it is not a restatement of rule 1 below, which is the objection to settle before using either.**
+Rule 1 asks *does the title disclose what is in the piece* — all three rejected candidates disclose it
+plainly, and one of them names the artifact outright. Clause 1 asks *whose situation is disclosed*.
+A title can pass either and fail the other, which is what makes them two rules; **run this one first,
+because a title about the author is not repaired by disclosing more of him.**
+
+**The ratification:** *«essa a calibracao dos titulos que quero ancorar no nosso harness.»*
+
+**And the practice that produced these three clauses, because the MOVE is worth more than the result:
+when a batch is rejected, do not answer with another batch.** Ask what the reader is doing at that
+moment. A second batch ranked against the same criteria reproduces the same failure in new words —
+the criteria were never what was wrong. The interview is what surfaced the criterion the criteria were
+missing, and it is the only thing that could have.
 
 1. **The reader knows from the title what they will find** — *"o leitor precisa pelo título saber o que
    vai encontrar"*. This is *"o foco é o que tem valor para as personas alvo"* applied at the title: a
