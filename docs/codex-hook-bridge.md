@@ -622,9 +622,17 @@ into a position.
   carrier registers `python3 scripts/codex-hook-adapter.py`, which is the spelling slice A's
   fixture used and `plugin/read` reported as a registration — but slice A never ran it, and every
   turn phase registered an **absolute** path. So *the manifest is read* is measured and *the
-  command is found* is not. **This blocks any claim the floor is active on Codex.** One trusted
+  command is found* is not. **This blocks any claim the floor is active on Codex.** ~~One trusted
   turn against a carrier-registered relative command settles it; this slice is not authorised for
-  a model turn.
+  a model turn.~~
+
+  **The REMEDY is struck 2026-09-16 as KNOWN-INSUFFICIENT, while the question above stands OPEN.**
+  Two such turns have now been run and neither settled it: the first appeared to and was
+  withdrawn, the second probed where this harness's two Codex layers disagree and found the floor
+  not acting at all. **A third turn buys nothing, and a standing sentence saying otherwise sends
+  the next reader to spend one.** What would settle it is in section 13 and is a **build** rather
+  than a turn — the adapter recording its own invocations, so *"the hook did not fire"* stops
+  being the same observation as *"the hook fired and abstained"*.
 
   ~~**SETTLED 2026-09-15 by the owner's native run, and it resolved against the SESSION's working
   directory.** The hook was found, trusted and executed; `git push origin main` was blocked by
@@ -632,10 +640,11 @@ into a position.
   2026-09-16 and the bullet above stands OPEN again.** A second native run found that the command
   the first one used to prove the hook — `git push origin main` — is forbidden by this
   repository's *other* Codex containment layer, so the refusal was never attributable; re-probed
-  with a command the two layers disagree on, the floor did **not** act. The strike is kept visible
-  rather than deleted because it stood on this page, in a merged commit, and anyone who read it
-  took *"the floor is active"* from it. **Section 13 carries what survives; section 14 carries why
-  the first run could not have seen what it claimed to see.**
+  with a command the two layers disagree on, the floor did **not** act. **The strike is kept
+  visible rather than deleted because it was this branch's own earlier head** — `a0d9fd46`, which
+  never reached `main` — **and a reader of this merge request's history meets it there.** It is
+  not kept because it was published; it was not. **Section 13 carries what survives; section 14
+  carries why the first run could not have seen what it claimed to see.**
 - **Whether the host imposes a hook timeout, and what it is.** `codex-hooks.json` declares none —
   an unrecognised key risks a parse that this repository has already measured failing silently, so
   nothing speculative is written into it. The adapter's own 4-second bound is what exists, chosen
@@ -661,11 +670,32 @@ trusted, and whether any of this document's prose is true.
 ## 13 · What the two native runs established — and what the second one WITHDREW
 
 **This section was rewritten on 2026-09-16 and it is not an edit of what stood here.** The version
-merged into this page asserted that the carrier's hook was *found, trusted and executed*, that the
-floor was *active for a session rooted in this checkout*, and that a session started elsewhere
-*fails closed*. **A second native run falsified all three.** They are struck below in place, per
-this repository's convention, because this page shipped in a published plugin version and a reader
-who took *"the floor is active"* from it must find out it changed rather than find it gone.
+written at this branch's earlier head asserted that the carrier's hook was *found, trusted and
+executed*, that the floor was *active for a session rooted in this checkout*, and that a session
+started elsewhere *fails closed*. **A second native run falsified all three.**
+
+**They are struck below in place rather than deleted, and the reason is narrower than it first
+read here.** These claims were authored on this branch and **never merged** — they reached neither
+`main` nor any published plugin version:
+
+```sh
+git merge-base --is-ancestor a0d9fd46 origin/main   # -> exit 1, NOT an ancestor
+git grep -c 'SETTLED 2026-09-15' origin/main -- docs/codex-hook-bridge.md   # -> no match, exit 1
+git grep -c 'SETTLED 2026-09-15' v2.0.47   -- docs/codex-hook-bridge.md   # -> no match, exit 1
+# CALIBRATION — the same selector at the head that carried them, so the two zeros are real:
+git grep -c 'SETTLED 2026-09-15' a0d9fd46  -- docs/codex-hook-bridge.md   # -> 1
+```
+
+So the strike is kept for the reason that actually applies: **this merge request's own history
+carries `a0d9fd46`, a reviewer walks it, and a claim that vanishes between two heads of one branch
+is harder to audit than one struck in place.**
+
+**An earlier draft of this paragraph justified the strike by saying the claims had *"shipped in a
+published plugin version"*. They had not, and the error ran in the flattering direction** —
+inventing a publication makes the correction look more consequential than it was, which is the
+exact bias the strike list below warns about two screens down. It is recorded here rather than
+quietly fixed, because a page about withdrawn claims is the worst possible place to withdraw one
+silently.
 
 **Both runs are the owner's, on `codex-cli 0.154.0-alpha.6.2` running as the VS Code extension's
 app-server** — a different version, bundle and host process from every other section of this

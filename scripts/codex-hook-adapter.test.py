@@ -412,6 +412,14 @@ for needle, why in [
     ("COVERAGE:", "it states the route limit"),
     ("CALLER:", "it states that no caller is exempt"),
     ("INTERACTIVE SESSION STARTUP:", "it states which branch is in force"),
+    # Added 2026-09-16. This was the only note of the set left unpinned, which made it
+    # the one a later edit could delete in silence — and it is the note carrying the
+    # single most misreadable fact about this bridge: that a green here is not evidence
+    # the hook ever fires. What this arm asserts is that the sentence is PRESENT. It
+    # cannot assert the sentence is true, and no arm here could: firing is a property of
+    # a runtime this suite never starts.
+    ("FIRING IS UNPROVEN", "it states that firing is unproven, which is this bridge's"
+                           " most misreadable fact"),
 ]:
     check(needle in p.stdout, "selfcheck — %s" % why)
 check("does not say a hook FIRED" in p.stdout,
