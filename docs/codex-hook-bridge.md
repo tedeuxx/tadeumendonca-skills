@@ -14,9 +14,22 @@ extension's app-server: a different version, a different bundle and a different 
 everything above. Read their findings as evidence about a runtime no other section exercised,
 never as confirmation of one.
 
+**The version is published with the command that reads it**, because it was asserted on three
+surfaces and verified on none until a third party ran it:
+
+```sh
+~/.vscode/extensions/openai.chatgpt-26.908.40401-darwin-arm64/bin/macos-aarch64/codex --version
+# -> codex-cli 0.154.0-alpha.6.2
+```
+
+**One machine, one install, and the extension directory is version-stamped** — so this path rots
+on the next extension update while the string it prints is what identifies the build. Re-run it
+rather than trusting the number here.
+
 **Read section 13's strike list before quoting anything about Codex activation from this page.**
-The first run's findings were published here and **withdrawn by the second**; what survives is
-discovery and promptless trust, and **no claim that the floor fires on Codex survives at all.**
+The first run's findings were **written on this branch and withdrawn by the second before either
+reached `main`**; what survives is discovery and promptless trust, and **no claim that the floor
+fires on Codex survives at all.**
 
 **The phases split in two, and the second half spends the operator's own tokens.** The offline
 phases — `carrier`, `trust`, `routes` — cost nothing and are what a bare invocation runs. The turn
@@ -690,12 +703,29 @@ So the strike is kept for the reason that actually applies: **this merge request
 carries `a0d9fd46`, a reviewer walks it, and a claim that vanishes between two heads of one branch
 is harder to audit than one struck in place.**
 
-**An earlier draft of this paragraph justified the strike by saying the claims had *"shipped in a
-published plugin version"*. They had not, and the error ran in the flattering direction** —
-inventing a publication makes the correction look more consequential than it was, which is the
-exact bias the strike list below warns about two screens down. It is recorded here rather than
+**Earlier drafts of THIS SECTION AND OF THIS DOCUMENT'S HEADER justified the strike by saying the
+claims had *"shipped in a published plugin version"* and been *"published here"*. They had not,
+and the error ran in the flattering direction** — inventing a publication makes the correction
+look more consequential than it was, which is the exact bias the strike list below warns about two
+screens down, pointed at the author instead of at the system. It is recorded here rather than
 quietly fixed, because a page about withdrawn claims is the worst possible place to withdraw one
 silently.
+
+**And HOW the header's copy survived the first repair is worth more than the repair.** That sweep
+searched for the **phrasings** already known to be wrong — `merged commit`, `published plugin
+version`, `marketplace-published` — and the header used none of them. Swept for the **claim**
+instead, every `publish` form in the file, it was the only survivor:
+
+```sh
+git grep -n -iE 'publish' -- docs/codex-hook-bridge.md
+# CALIBRATION — an absent selector over the same object, so the set above is a real set:
+git grep -n -iE 'zzznotpresent' -- docs/codex-hook-bridge.md   # -> no match, exit 1
+```
+
+**An enumeration of known-bad spellings is not a sweep for a claim**, and two independent readers
+made that identical instrument error on this document one round apart. It is the same shape this
+repository has recorded before at a different grain — a selector that was correct about the sample
+its author had in mind and wrong about the class.
 
 **Both runs are the owner's, on `codex-cli 0.154.0-alpha.6.2` running as the VS Code extension's
 app-server** — a different version, bundle and host process from every other section of this
