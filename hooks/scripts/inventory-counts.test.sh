@@ -2323,6 +2323,50 @@ else
       under it — no layer observes an Edit, and no arm here can measure a piece"
 fi
 
+# ── ARM F: the title GATE's three clauses are PRESENT in the ruler, and so is its ORDERING ──────────
+# Same argument as arm E and deliberately built on its shape rather than a new one: `content-reviewer`
+# repairs on a clause it can QUOTE, so a rule meant to bind has to survive as a quotable clause. The
+# title gate (ratified 2026-09-16) is the clearest case in the file, because its whole substance is an
+# ORDERING — it runs ahead of the six ranked criteria, and a candidate failing it never reaches them.
+#
+# WHY THE ORDERING LITERAL IS PINNED SEPARATELY FROM THE THREE CLAUSES, which is the one thing this arm
+# does that arm E does not. The three clauses could survive a rewrite that demoted them to a seventh
+# criterion — every word still present, the binding gone, because a criterion is something a strong
+# candidate outweighs and a gate is not. The clauses alone would stay green through exactly that edit.
+#
+# WHAT IT DOES NOT MEAN, said here and in the ok line: it cannot read a title. No layer observes an
+# `Edit`, so whether a candidate was run through the gate at all is invisible to this suite and to every
+# other. It asserts the gate is WRITTEN and ordered ahead of the six — never that anyone applied it.
+cp_gate_missing=""
+for cp_lit in \
+  'a gate of three clauses runs AHEAD of them' \
+  'The subject is the READER'"'"'s situation, never the author'"'"'s identity' \
+  'stops connecting' \
+  'RUN AN EXPERIMENT' \
+  'it is a separate gate, and it comes' \
+  ; do
+  grep -qF -- "$cp_lit" "$ROOT/skills/published-voice/SKILL.md" 2>/dev/null \
+    || cp_gate_missing="$cp_gate_missing \"$cp_lit\""
+done
+if [ -n "$cp_gate_missing" ]; then
+  bad "content pair — a title-gate clause is missing from the shared ruler
+      (skills/published-voice/SKILL.md):$cp_gate_missing
+      The gate the owner ratified 2026-09-16 runs BEFORE the six ranked title criteria: the subject is
+      the reader's situation and never the author's identity; the title must not be so constructed that
+      it stops connecting with what the professional is living now; and it must make the reader want to
+      run an experiment. The six measure CONSTRUCTION and never ask whose situation the sentence is
+      about, which is how a candidate wins on all six and addresses nobody — that is the gap this gate
+      closes. \`content-reviewer\` may repair only on a clause it can QUOTE, so a clause removed here is
+      a repair ground the pair silently loses, and arm A stays green because it compares skill NAMES.
+      If the ORDERING literal is the one missing, check that the gate was not demoted to a seventh
+      criterion: every clause can survive that edit while the binding does not."
+else
+  ok "content pair — the title gate's three clauses and its ordering ahead of the six ranked criteria
+      are present in the shared ruler. Presence only: this asserts the gate is WRITTEN and ordered,
+      never that a candidate was run through it — no layer observes an Edit, and no arm here can read
+      a title"
+fi
+
 # ---------------------------------------------------------------------------------------------------
 # THE `content` INTERVIEW'S OWNER-TAKE MARKER IS A CLOSED SET OF TWO.
 #
