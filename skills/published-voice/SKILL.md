@@ -604,11 +604,11 @@ re-derived — so the published selector returned **4** while the text beside it
 before this slice. The claim the figure supports gets **stronger**, which is exactly why nobody
 re-ran it: *"rule 3"* now names **four** different clauses, one of them a gate.
 
-**9 through 17 occur once each, file-wide**, which is what makes them quotable in the sense
+**9 through 18 occur once each, file-wide**, which is what makes them quotable in the sense
 `content-reviewer`'s repair ground requires. Falsifier, and it is the whole claim:
 
 ```
-grep -cE '^> \*\*(9|1[0-7])\.|^(9|1[0-7])\. \*\*' <this file>  # -> 9, one apiece
+grep -cE '^> \*\*(9|1[0-8])\.|^(9|1[0-8])\. \*\*' <this file>  # -> 10, one apiece
 grep -cE '^> \*\*3\.|^3\. \*\*'                    <this file>  # -> 4, in four sections
 grep -cE '^> \*\*99\.|^99\. \*\*'                  <this file>  # -> 0, the selector is alive
 ```
@@ -758,7 +758,7 @@ the measurement** — this section sets the number the measurement will judge.
 **And an event declared in code is not a tool holding usable data.** Confirming the instrument is wired
 proves the wiring, never that a figure exists behind a login. Do not read one as the other.
 
-## The body — rules 12–17, and they are the reader-facing gate reaching PROSE
+## The body — rules 12–18, and they are the reader-facing gate reaching PROSE
 
 **The gate above governs EIGHT WORDS. Everything under it was ungoverned, and one piece produced six
 separate rejections to prove it.** All six are the owner's, all on one article, all in one review
@@ -776,7 +776,7 @@ form already — *The subject is bounded*, and the goal/filter test. Its clause 
 stops connecting*) has no instance in this corpus. **Only clause 3 — *what would the reader go and
 DO* — has no body counterpart, and it is the clause four of these six fail against.** So this section
 is not the three clauses restated one layer down; it is the one of them that never reached prose, plus
-two defects that are not gate clauses at all. **Do not read rules 12–17 as a second copy of the gate.**
+two defects that are not gate clauses at all. **Do not read rules 12–18 as a second copy of the gate.**
 **Rule 15 is a fifth thing again** — it came out of the same episode but not out of a rejection
 sentence, and it is about which SURFACE carries the piece rather than about the prose.
 
@@ -1024,7 +1024,95 @@ reviewer meeting a piece it is unsure about should raise the question rather tha
 the reciprocal reader-take loop and how much of a sharer's post the site may write. **Nothing in rule
 17 reaches it or implies anything about it.**
 
-### What rules 12–17 collide with, and it is NOT repaired here
+### Rule 18 — a quotation gets the visual block, and the block carries the author's name
+
+> **18. A VERBATIM quotation from an external source is set as a quotation block, and the block carries
+> the author's name.** Attribution in the surrounding prose alone does not discharge it — the name goes
+> **on the element**.
+
+**The owner's ruling, verbatim:** *«bota nas citacoes o nome do autor tbm (garry tan)»* ·
+*«isso deveria ser um padrao para elemento visual de citacao enforcado nos skills e agentes de
+editorial»*. **He named the carriers himself**, as he did for rules 16 and 17, which is why this lives
+in the shared ruler rather than in either brief.
+
+**The rejection:** the piece carried two blockquoted external citations with **no name on either
+block**, attributed only in the prose lead-ins. **Four review rounds and two gate passes did not raise
+it, because no clause existed to raise it with** — the same shape as the takeaways and the signature.
+
+**And it is sharper than it was a week ago:** the transcript link left the piece two rounds ago on his
+own ruling, so **the prose attribution is now the reader's only signal of whose words those are.** The
+name on the block is doing work it would not have had to do before.
+
+#### The word VERBATIM is load-bearing, and applying this rule without it PRODUCES a false claim
+
+**Measured on the piece itself.** Its blockquote is introduced *"his argument, my sentence"* and reads
+*"Retrieval is easy. Being worth retrieving from is the product."* **That is the owner's wording
+carrying someone else's idea — a rendering, not a quotation.** Putting the source's name on that block
+attributes the owner's sentence to him.
+
+> **So rule 18 fires on a VERBATIM span and on nothing else. A rendered or paraphrased idea is
+> attributed in the PROSE, where the relation can be stated — and if the relation cannot be stated in
+> the block, the block is the wrong device for it.**
+
+**This is the one clause in this file where obeying the rule mechanically makes a piece less true**, and
+it is written first for that reason.
+
+#### The name is the PAGE speaking — state it, because this rule creates the exposure
+
+The existing discipline on a quotation block is that **lead-ins and trailers stay outside it and no
+word of the page's own goes inside**, so a reader can take everything between the rules as the source's.
+**The attribution line is the first thing that deliberately puts page-voice INSIDE the block.**
+
+> **A reader must never be able to read the name as part of what was said.** Set it off as its own line
+> at the end of the block, marked as attribution rather than as continuing speech.
+
+#### The device, and what the corpus actually shows — which is NOT what it was briefed as
+
+**The device is the platform's and is not invented:** the markdown renderer is react-markdown with
+GFM and registers no quotation component; the site's stylesheet styles `blockquote` with a
+primary-colour left rule. **That is the whole of what is available** — see rule 16's table.
+
+**Two corrections from reading the corpus rather than describing it, both against the briefing premise
+this rule arrived with:**
+
+1. **The bilingual gloss is a SEPARATE adjacent block, not one block.** The precedent sets the original
+   in one quotation block and the parenthesised italic translation in **its own block immediately
+   below**, blank line between. **And it appears in the EN edition only** — the PT edition carries the
+   original alone, because there the original is already in the reader's language. A rule written for
+   *"the gloss inside the block"* would describe a form the site has never used.
+2. **There is NO attributing precedent at all.** Every existing quotation block in the corpus is either
+   the owner's own prompt or generated text, so **not one of them names an external author.** The
+   briefing's expectation that the precedent would show a form was correct to test and the answer is
+   that it has none.
+
+**So the form is stated as a recommendation with its reason, and it is OWED rather than settled:**
+
+> **Recommended: the name goes on the ORIGINAL's block, as its own final line. The gloss block carries
+> no name** — it is the page's translation of an already-attributed span, and repeating the name there
+> attributes the *translation* to the source, which is the same defect the verbatim clause above
+> guards.
+
+**The concrete rendering — a dash form, a small-caps line, a `—Name` — is not decided here** and is the
+owner's or the article slice's. **Do not treat the recommendation's shape as ratified**; treat the
+obligation as ratified and the typography as open.
+
+#### How it composes with the rule UPSTREAM of it
+
+**Rule 18 does not decide whether a span should be quoted at all.** That is this file's existing
+sourcing judgement — *quote only where the wording is the artifact* — which on this piece cut
+seventeen quoted spans to five. **That rule runs FIRST**: it selects what is quoted; rule 18 governs
+how what survives is presented. **A reviewer reaching for rule 18 on a span that should not have been
+quoted is repairing the wrong layer.**
+
+#### What rule 18 CANNOT do
+
+It can require the block and require the name. **It cannot tell whether the quotation earns being
+quoted** — upstream, above. **It cannot verify the name is the right one**, which is the sourcing
+constraint's second repair ground and needs the source. **It cannot tell a verbatim span from a
+rendered one by looking** — only the drafter's own material says which, so a reviewer that cannot tell
+must ask rather than attribute. **And nothing fires it:** no layer reads a draft.
+
+### What rules 12–18 collide with, and it is NOT repaired here
 
 **Rule 12 costs words, and the number is rule 9's.** Every delivery is sentences: a claim stated, a
 pair shown, a before written. On the piece these rejections came from, the PT edition sat at **1,498**

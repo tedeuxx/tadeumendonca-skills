@@ -221,12 +221,12 @@ reading the diff. And unchanged from before: **nothing mechanical distinguishes 
 from a third round wearing a new heading number, because the terminal condition is a section count and
 the section count is authored by the persona the bound constrains.**
 
-#### Four checks the rounds now run, and every one is a RULER clause finally reaching the lane
+#### Five checks the rounds now run, and every one is a RULER clause finally reaching the lane
 
 **Not one is a new judgement. Each is an existing ratified clause that had no step where anybody asked
-it**, which is why all four were missed on a piece that passed two rounds clear and then four owner
-read-throughs. **Two of them — 3 and 4 — are clauses the ruler did not carry AT ALL until 2026-09-18**,
-so no reviewer could have raised them however carefully it read.
+it**, which is why all five were missed on a piece that passed two rounds clear and then four owner
+read-throughs. **Three of them — 3, 4 and 5 — are clauses the ruler did not carry AT ALL until
+2026-09-18**, so no reviewer could have raised them however carefully it read.
 
 1. **Do the SPINE SURFACES name the same article as the body?** Title, excerpt and takeaway are the
    three most-read surfaces and the only ones that travel without the body — an index row, an OG card,
@@ -252,7 +252,15 @@ so no reviewer could have raised them however carefully it read.
    on this list** — a missing final line is an edit in place rather than authorship — and it is the one
    the pair has been dropping silently, because no clause existed to raise it with.
 
-**What none of these checks can do.** All four are reader-side judgements about **presence**, so a
+5. **Does every VERBATIM external quotation carry the author's name ON the block?** The ruler's rule
+   18, on his ruling — *«bota nas citacoes o nome do autor tbm»*. **Attribution in the prose lead-in
+   does not discharge it**, and it matters more on a piece whose source link has been removed, because
+   the prose is then the reader's only signal. **The word VERBATIM is the whole safety of this check:**
+   a rendered or paraphrased idea attributed on the block puts the owner's sentence in someone else's
+   mouth, which is a false claim manufactured by obeying a rule. **A reviewer that cannot tell which it
+   is must ask, never attribute.**
+
+**What none of these checks can do.** All five are reader-side judgements about **presence**, so a
 reviewer can
 say a concept is missing and cannot say the pairing is *good*. Both are run by a persona reading a
 draft, and **no layer observes a draft being read** — `PreToolUse` is registered on `Bash` and on the

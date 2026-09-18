@@ -2375,7 +2375,7 @@ else
       a title"
 fi
 
-# ── ARM G: the BODY rules 12-17 are PRESENT in the ruler, and their SPAN is still unambiguous ───────
+# ── ARM G: the BODY rules 12-18 are PRESENT in the ruler, and their SPAN is still unambiguous ───────
 # Same argument as arms E and F and built on their shape: `content-reviewer` repairs on a clause it can
 # QUOTE, so a rule meant to bind has to survive as a quotable clause. Rules 12-15 came out of six owner
 # rejections on ONE article (`-io#259`), where the ranked six and the three-clause gate were both intact
@@ -2401,7 +2401,9 @@ for cp_lit in \
   'it survives being read by someone who skipped the body' \
   'ends with the signature' \
   'Isso é o que eu penso.' \
-  '9 through 17 occur once each, file-wide' \
+  'is set as a quotation block, and the block carries' \
+  'A reader must never be able to read the name as part of what was said' \
+  '9 through 18 occur once each, file-wide' \
   ; do
   grep -qF -- "$cp_lit" "$ROOT/skills/published-voice/SKILL.md" 2>/dev/null \
     || cp_body_missing="$cp_body_missing \"$cp_lit\""
@@ -2409,25 +2411,29 @@ done
 if [ -n "$cp_body_missing" ]; then
   bad "content pair — a BODY-rule clause is missing from the shared ruler
       (skills/published-voice/SKILL.md):$cp_body_missing
-      Rules 12-17 are the reader-facing gate reaching PROSE, and each ships with the owner rejection
+      Rules 12-18 are the reader-facing gate reaching PROSE, and each ships with the owner rejection
       or ruling that produced it: an assertion is not on the page until its instance is (12, with the
       four-beat form he accepted); a mechanism sentence must not survive its own negation (13); the
       close names one act (14); the spine surfaces name the same article as the body (15); every
       article states its takeaways explicitly, reinforced visually, and a takeaway is NOT a summary
       (16); a themed article ends with the signature (17, ratified 2026-07-30 and named nowhere in
-      this harness until then). \`content-reviewer\`
+      this harness until then); a VERBATIM external quotation is set as a block carrying the author's
+      name (18). \`content-reviewer\`
       may repair only on a clause it can QUOTE, so a clause removed here is a repair ground the pair
       silently loses — and arm A stays green, because it compares skill NAMES and never contents.
       If the SUMMARY-TEST literal is the one missing, the takeaways rule has lost the boundary that
       keeps it from re-authorising the close he personally cut for being a summary.
       If the PT SIGNATURE literal is missing, rule 17 has lost the only wording he fixed — the EN is
       deliberately not pinned, because its tense is his creative call.
+      If the PAGE-VOICE literal is missing, rule 18 has lost the boundary it creates the exposure for:
+      an attribution line is the first thing that deliberately puts the page's own voice INSIDE a
+      quotation block, and a reader must not be able to take it as part of what was said.
       If the SPAN literal is the one missing, check that no rule was renumbered and that no later
       section restarted at 12: the clauses survive that edit and their citability does not."
 else
-  ok "content pair — the body rules 12-17 (name-then-deliver, the negation test, the single closing
-      act, the spine-surface pairing, explicit takeaways with the summary boundary, the signature) and
-      the 9-17 span literal that keeps them citable are present in
+  ok "content pair — the body rules 12-18 (name-then-deliver, the negation test, the single closing
+      act, the spine-surface pairing, explicit takeaways with the summary boundary, the signature, the
+      attributed quotation block) and the 9-18 span literal that keeps them citable are present in
       the shared ruler. Presence only: this asserts the rules are WRITTEN, never that a draft obeys
       them and never that a repair was placed under one — no layer observes an Edit"
 fi
