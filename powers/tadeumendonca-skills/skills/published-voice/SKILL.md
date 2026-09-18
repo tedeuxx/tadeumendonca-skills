@@ -514,6 +514,33 @@ moment. A second batch ranked against the same criteria reproduces the same fail
 the criteria were never what was wrong. The interview is what surfaced the criterion the criteria were
 missing, and it is the only thing that could have.
 
+**And the interview alone is NOT sufficient — a SECOND batch was rejected after the gate above was
+ratified, and recording that is what keeps this paragraph honest.** Four candidates, all passing the
+three clauses, ranked against the six, with the reader's moment derived exactly as the practice
+prescribes:
+
+> *«todos pessimos. nao conecta com leitor»*
+
+**What worked was a pass forbidden from producing a batch at all.** The rule that came out of it:
+
+> **Where the owner has already supplied a sentence and said it has punch, that sentence is the SHAPE
+> to match — not a candidate to rank against the others.**
+
+He handed it over in his first message on the piece — *«o titulo poderia ser algo Como voce pode usar o
+Claude Code como uma AI-Native Company»* · *«acho que tem punch»* — **and two batches were spent
+correcting it instead of matching it.** The ruled title is his own sentence with one verb changed, one
+possessive added and one softener dropped: *«Como rodar o seu Claude Code como uma empresa
+AI-native»* — **shorter than all eight candidates the two batches produced.** The possessive is the
+only change that repairs anything: it moves the company from the product to the reader's own
+configuration, which is what the piece proves, and closes a rule-5 defect his original carried.
+
+**What this rule CANNOT do, and the bound is real.** It is checkable by a reviewer — *did he supply a
+sentence, and is this candidate a match for it or a replacement of it?* — only where his sentence is on
+the Issue. Where it lived in a session and nowhere else, nothing distinguishes a matched pass from a
+fresh one. **And nothing observes whether a pass produced a batch**; no layer sees a draft being
+composed. The record for the two rejections above is `-io#259`'s title-pass comments, which is why
+capturing his sentence on the artifact is the precondition for the rule being applicable at all.
+
 1. **The reader knows from the title what they will find** — *"o leitor precisa pelo título saber o que
    vai encontrar"*. This is *"o foco é o que tem valor para as personas alvo"* applied at the title: a
    reader scanning an index cannot judge value from a title that withholds what is in the piece. *Que é
@@ -562,36 +589,84 @@ applying it correctly, and *"but this one is good"* is not an exemption.
 | rung | density | what it WITHHOLDS | what the reader does |
 |---|---|---|---|
 | the LinkedIn/X post | a digest — rule 8, below | **the turn** | reacts and comments **without clicking** |
-| **the site piece** | **900–1,300 words; ceiling 1,500. At most 6 sections.** | **the *how*** — mechanism, configuration, sequence | recognises the problem as their own |
+| **the site piece** | **900–1,300 words, and 1,500 is a TARGET rather than a hard limit. At most 6 sections.** | **the *how*** — mechanism, configuration, sequence | recognises the problem as their own |
 | the conversation | unbounded | nothing | **contacts him** |
 
 > **9. A site piece shows THAT he solved it and WHAT IT COST. It never shows HOW, in enough detail for
 > a reader to reproduce the result without talking to him.** The terminal event is contact, not
 > comprehension — a piece that completes the reader's understanding has spent the reason to reach him.
 
-**Numbered from 9 deliberately, and it is the only unambiguous span in this file.** Three other
-sequences here restart at 1 — the register rules (1–4), the title rules (1–6) and the post rules (1–8)
-— so *"rule 3"* names three different clauses and a repair citing it is not checkable. **9, 10 and 11
-occur once each, file-wide**, which is what makes them quotable in the sense `content-reviewer`'s
-repair ground requires. Falsifier, and it is the whole claim:
+**Numbered from 9 deliberately, and it is the only unambiguous span in this file.** ~~Three other
+sequences here restart at 1 — the register rules (1–4), the title rules (1–6) and the post rules
+(1–8)~~ — **struck: there are FOUR, and the fourth is the one most likely to be cited.** The title
+**gate** ratified 2026-09-16 restarts at 1 for its three clauses, and the sentence beneath it was never
+re-derived — so the published selector returned **4** while the text beside it claimed 3, at head and
+before this slice. The claim the figure supports gets **stronger**, which is exactly why nobody
+re-ran it: *"rule 3"* now names **four** different clauses, one of them a gate.
+
+**9 through 15 occur once each, file-wide**, which is what makes them quotable in the sense
+`content-reviewer`'s repair ground requires. Falsifier, and it is the whole claim:
 
 ```
-grep -cE '^> \*\*(9|10|11)\.|^(9|10|11)\. \*\*' <this file>   # -> 3, one apiece
-grep -cE '^> \*\*3\.|^3\. \*\*'                  <this file>   # -> 3, in three different sections
-grep -cE '^> \*\*99\.|^99\. \*\*'                <this file>   # -> 0, so the selector is alive
+grep -cE '^> \*\*(9|1[0-5])\.|^(9|1[0-5])\. \*\*' <this file>  # -> 7, one apiece
+grep -cE '^> \*\*3\.|^3\. \*\*'                    <this file>  # -> 4, in four sections
+grep -cE '^> \*\*99\.|^99\. \*\*'                  <this file>  # -> 0, the selector is alive
 ```
 
-### Rule 10 — the ceiling is a SPLIT threshold, never a compression target
+**The third line is the calibration and it is not decoration:** a selector returning 6 proves nothing
+on its own if it can only ever return a non-zero number. `99` is absent from the file, so the same
+pattern shape demonstrably reaches zero.
 
-> **10. A piece over the ceiling becomes a SERIES. It is not trimmed to fit.**
+### Rule 10 — a count is a PROMPT TO CHECK, never a verdict
 
-**Cutting 4,270 words to 1,500 is not an edit that exists.** The two longest published pieces carry no
-2,700 words of fat — the length *is* the argument, and compressing it produces a piece that is both
-short and thin, which fails the middle rung from the other side. Splitting also feeds cadence: three
-pieces across three weeks rather than one piece across a month.
+~~### Rule 10 — the ceiling is a SPLIT threshold, never a compression target~~ ·
+~~**10. A piece over the ceiling becomes a SERIES. It is not trimmed to fit.**~~
 
-**So a reviewer that recommends *"tighten this"* on a 4,000-word piece has misread rule 10.** The
-finding it licenses is *"this is two pieces, and the seam falls here"*.
+**Struck 2026-09-18 on the owner's ruling — *«essa meta nao deveria ser um hard limit»*.** Struck
+rather than rewritten in place because the old clause is what a reviewer cited to force a split, and a
+reader who took *"becomes a SERIES"* as mandatory needs to see that the compulsion went rather than
+find it quietly absent.
+
+> **10. A piece over the target owes a REASON, stated. A series is one answer to that and is never the
+> mandated one. Compressing to reach the number is still the wrong answer.**
+
+**What the ruling changed and what it did not.** It removed the number's power to FORCE an outcome. It
+did **not** withdraw the band, did not say length stopped mattering, and did not retire the series —
+which is still the right call whenever a piece is genuinely two arguments. **Do not over-read it into
+any of those**, and do not replace the number with a larger one: a second hard limit is the same defect
+with a bigger digit.
+
+**The episode that produced it, because the arithmetic is what makes this more than a preference.** A
+piece was re-spined on his own direction into two announced concepts with a joining conclusion, then
+rewritten from the source's own transcript once the transcript was found. It landed at **PT 1,969 /
+EN 1,742** — **31% and 16% over**. Roughly **400 of the new PT words are quotation and its Portuguese
+gloss**, which is the cost of being able to quote the source at all and is the entire thing the rewrite
+existed to buy.
+
+**So the old rule's two available remedies each undid work he had just ruled:** cutting to 1,500 meant
+**dropping quotes** — returning to the reported-speech state that caused the rewrite — or **dropping
+the joining conclusion**, which he had explicitly asked for. **A rule whose only remedies reverse the
+decisions above it is not a ruler, it is a collision.**
+
+**The failure to record is not the number, it is the CALIBRATION drift.** 1,500 was set against a
+**one-thesis** piece. The article became a two-concept piece with a join — a different object — and the
+number bound it anyway, **silently, because nothing mechanical enforces it**, so it bit only at the
+end, as a blocker, after the work was done.
+
+**What rule 10 CANNOT do, and it is the same either way.** Nothing in this tree counts words. Measured
+2026-09-18 over every registered hook script, comments excluded:
+
+```
+grep -rniE 'wc -w|word.?count' hooks/scripts/*.sh | grep -v '\.test\.'   # -> no output
+grep -rncE 'wc -l|grep -c'     hooks/scripts/inventory-counts.test.sh    # -> 119, the selector is alive
+```
+
+**So this was guidance before the ruling and is guidance after it**; what changed is what the guidance
+says, not what holds it. A reviewer may raise the count as a finding and may not treat it as a verdict.
+
+**And one counting question stays OPEN and is his** — whether a screen-reader-only description counts
+against a number about what a *reader* meets. It is recorded in the consuming repository's own decision
+library and is not answered here. The ruling above makes it less urgent; it does not resolve it.
 
 ### Rule 11 — the section rate is INDEPENDENT of the word count
 
@@ -618,9 +693,9 @@ git ls-tree -r --name-only <ref> -- <content-dir> | grep '\.en\.md$' \
 *(The concrete content directory is a fact about the consuming repo and is cited in the brief of the
 persona that reads it; the rule here does not depend on the path.)*
 
-### Which edition the ceiling binds — the LONGER one, and never "the PT one"
+### Which edition the number is read against — the LONGER one, and never "the PT one"
 
-**Both editions are measured, and the ceiling binds whichever is longer.** The convenient shortcut —
+**Both editions are measured, and the number is read against whichever is longer.** The convenient shortcut —
 *the PT edition always runs longer, so measure that one* — is **false**, re-derived at the same ref:
 
 | piece (publication order) | EN | PT | Δ |
@@ -653,6 +728,17 @@ instead of picking one.
 the 445-word launch piece. n = 1, and confounded with launch novelty** — it was the site's first, so its
 audience and its recency are not comparable to anything published since.
 
+**A ratified number carries WHAT IT WAS CALIBRATED AGAINST, beside the number, or it silently binds a
+different object.** The 1,500 was set against a **one-thesis** piece. A later piece became two concepts
+with a joining conclusion — a different object — and the number bound it anyway, invisibly, until it
+was the blocker at **1,498 with no fat left**. **Nothing mechanical enforces it**, so nothing announced
+the mismatch: the first signal was a piece that could not be finished. That is the shape to watch for
+wherever a ratified figure appears in this file — the figure survives, its subject drifts, and only the
+person who set it can say whether the drift matters.
+
+**Here he said so, and the drift is the reason the rule changed rather than the number** — see rule 10.
+The band above is unchanged and is his; what went is its power to force an outcome.
+
 **What makes rules 9–11 quotable anyway is that they are a RATIFIED BENCHMARK, not a finding.** His
 words: *«de acordo. vamos usar essa configuracao como benchmark e vamos medindo retorno da audiencia com
 o analytics.»* A reviewer quoting them is quoting a decision he took; a reviewer arguing that the
@@ -671,6 +757,150 @@ the measurement** — this section sets the number the measurement will judge.
 
 **And an event declared in code is not a tool holding usable data.** Confirming the instrument is wired
 proves the wiring, never that a figure exists behind a login. Do not read one as the other.
+
+## The body — rules 12–15, and they are the reader-facing gate reaching PROSE
+
+**The gate above governs EIGHT WORDS. Everything under it was ungoverned, and one piece produced six
+separate rejections to prove it.** All six are the owner's, all on one article, all in one review
+window. The ranked six and the three clauses were both intact and both silent, because neither has a
+subject below the title.
+
+**The pattern, and it is one defect rather than six: the piece NAMES a thing instead of DELIVERING
+it.** An external work arrives by its title and never by its claim. A distinction is announced and
+never drawn. An equivalence is asserted and never shown. A principle is stated and never consequenced.
+Four of the six are that shape. The fifth is a mechanism named in words that admit the opposite
+reading; the sixth is a close that names nothing at all.
+
+**Why the gate above could not have caught any of them.** Its clause 1 (*whose situation*) has a body
+form already — *The subject is bounded*, and the goal/filter test. Its clause 2 (*not so constructed it
+stops connecting*) has no instance in this corpus. **Only clause 3 — *what would the reader go and
+DO* — has no body counterpart, and it is the clause four of these six fail against.** So this section
+is not the three clauses restated one layer down; it is the one of them that never reached prose, plus
+two defects that are not gate clauses at all. **Do not read rules 12–15 as a second copy of the gate.**
+**Rule 15 is a fifth thing again** — it came out of the same episode but not out of a rejection
+sentence, and it is about which SURFACE carries the piece rather than about the prose.
+
+**Provenance, stated because half of it is weaker than the other half — and a rule quoting a rejection
+is only as good as the record behind it.** Four of the six are on `-io#259`, in the read-through
+comment of 2026-09-18, **together with the repairs he accepted**: the *pitch* rejection, the
+*sourcing-paragraph* rejection, the *two-decisions* rejection, and the *«gancho ao final»* placement
+ruling. That comment is the primary record and is what a reviewer should open.
+
+**Three reached this file through a dispatch brief and sit in no artifact I can cite** — *«o link … ta
+mto fraco»* on the equivalence, *«o CTA tbm nao esta claro»* on the close, and *«esta ambiguo»* on the
+mechanism sentence. They are quoted here as his because the brief quoted them as his, which is a weaker
+claim than the four above carry. **Say so if one of them is ever the sole ground for a repair**, and
+put it on the Issue if it is going to be relied on. **Rules 13 and 14 rest partly on this weaker
+half**, and that is the one thing about them a reviewer should know before citing either.
+
+### Rule 12 — an assertion is not on the page until its instance is
+
+> **12. Whenever the piece names a thing the reader is expected to hold — an external work's argument,
+> a distinction it announces, an equivalence it asserts, a decision or principle it states —**
+> **the thing that makes it true is on the page, in the same section, before the next heading.**
+> Naming is not delivering.
+
+| the shape | his rejection | what DELIVERY is | the check a reviewer runs |
+|---|---|---|---|
+| an external work is **named** | *«nao diz o que é do que se trata o pitch, pessimo»* — four sentences about the **word**, none about the claim | a sentence stating **what it argues**, in the piece's own words | find the named work; find the sentence that says what it claims. Absent → finding |
+| a distinction is **announced** | *«nao fez sentido»* — the sourcing paragraph opened *"este texto gira em torno da diferença entre um recibo e uma lembrança"*, a thesis the article never delivers | each term **bound to its referent**, so the reader can say which half is which — here, which half they cannot check | the announced terms recur, bound, below the announcement |
+| an equivalence is **asserted** | *«o link … ta mto fraco»* — the ontology section held X and Y equivalent and never showed the pair | **the concrete pair, both halves named** in the reader's own objects | the sentence after the equivalence names both sides, not one |
+| a decision or principle is **stated** | *«precisa ser melhor estruturado e mais claro quais sao as duas decisoes e o que elas tem de impacto. nao é mensuravel para pessoas sem experiencia na pratica, ainda esta mto distante do publico alvo»* | **four beats, in this order: the decision · the BEFORE · what changed · what it left** | count the beats |
+
+**The four-beat form is HIS accepted repair, not a scheme invented here.** It is what the two decisions
+were rebuilt to after that rejection, and it shipped: *«I started with one agent per subject … most of
+them never ran … Now a persona only gets in if it produces a disagreement somebody needs to hear.
+Arriving at that cost me most of what I had built.»* Read the same four beats in the second decision,
+one paragraph down, and the twenty-two-findings example moved out of a mid-paragraph aside into the
+consequence clause.
+
+**The BEFORE is the beat that carries the rejection, and it is where clause 1 finally reaches the
+body.** *«nao é mensuravel para pessoas sem experiencia na pratica»* is not a request for more
+evidence — a reader who has not lived the thing cannot measure a principle against anything, so the
+**before** has to be a state that reader is probably in **right now**. Three agent configs and no
+memory of why. **A before drawn from his history and not from the reader's present satisfies the beat
+count and fails the rejection**, which is the failure mode to expect from a rule stated as a count.
+
+**What rule 12 CANNOT do.** It cannot tell whether the delivered instance is **true** — a claim can be
+perfectly delivered and false against the source, which is the sourcing constraint's job and the
+reviewer's second repair ground, not this rule's. It cannot tell whether the *right* assertion was
+made. And it is **the rule most in tension with the word band** — see below.
+
+### Rule 13 — a mechanism sentence must not survive its own negation
+
+> **13. Write the opposite-meaning paraphrase of the sentence using the same words. If one can be
+> built, the sentence is ambiguous** — and the reader takes whichever reading they arrived with.
+
+His rejection: *«esta ambiguo»*, on a mechanism described in words that admitted the opposite reading.
+
+**It is a construction test rather than a taste one, which is why it is quotable.** The reviewer does
+not judge whether a sentence *feels* clear; it attempts the inverted paraphrase and either succeeds or
+does not. A success is the finding, and it comes with its own evidence attached — the paraphrase.
+
+**What rule 13 CANNOT do.** A sentence can be unambiguous and **wrong**; nothing here reads it against
+the source. It says nothing about sentences that are not describing a mechanism — a register line, an
+image, a sign-off are outside it, and applying it to them produces flattening, which the register
+section already forbids.
+
+### Rule 14 — the close names ONE act, and only one thing closes the piece
+
+> **14. The close names exactly one act the reader can perform, and it is the last substantive beat —
+> with the sign-off, if there is one, standing alone after it.**
+
+Two rejections, both his: *«o CTA tbm nao esta claro»*, and *«deveria ser um gancho ao final do
+artigo»* on a pointer that had been sitting mid-piece, deflating the sharpest beat of the section it
+was in.
+
+**This is where a clause-3-passing title gets cashed.** The gate above requires the title to make the
+reader want to run an experiment; the title pass on `-io#259` found the body contained none, and every
+clause-3-passing candidate therefore wrote a cheque the piece did not cover. **A title rule with no
+body counterpart produces exactly that**, which is the second reason this section exists.
+
+**What rule 14 CANNOT do.** It cannot make the named act **worth running** — an act can be named
+crisply and be trivial, and no clause here detects that. And **the corpus already closes on a warm
+sign-off in most pieces**; rule 14 does not displace it, it orders it — act last among the substantive
+beats, sign-off alone after.
+
+### Rule 15 — the SPINE SURFACES name the same article as the body
+
+> **15. Title, `excerpt` and `takeaway` name the same article the body delivers.** They are the three
+> surfaces that travel **without** the body — an index row, an OG card, a social unfurl — so a
+> mismatch is not an inconsistency, it is a different article reaching most readers.
+
+**The episode, and it is not a rejection sentence but an owner saying the same thing twice.** A
+re-spine landed in the body and the three fields kept describing the piece that preceded it, for days.
+It surfaced because he said **twice** that the title did not make the structure clear — the spine
+surface reporting the mismatch from its own side. **Nothing in the ruler or the lane paired them.**
+
+**The check: read the three fields, read the body's section headings, name any concept present in one
+and absent in the other.** On that piece the fields mentioned no profiles, no workflow, no
+rearrangement and no ontology, while the body's direction was all four.
+
+**What rule 15 CANNOT do — and this one matters more than the others.** It is a **presence** test, so
+it says a concept is missing and never that the pairing is good. **And the reviewer usually cannot
+repair it**: aligning the fields to a body that moved is editing three fields, but aligning a body to
+its fields is a re-spine, and a re-spine is **authorship**, which rule 10 already tells this pair is
+not a repair in place. **So rule 15's normal output is a finding the owner rules on, not an edit** —
+the same shape as an over-target piece, for the same reason.
+
+### What rules 12–15 collide with, and it is NOT repaired here
+
+**Rule 12 costs words, and the number is rule 9's.** Every delivery is sentences: a claim stated, a
+pair shown, a before written. On the piece these rejections came from, the PT edition sat at **1,498**
+against a **1,500** target with the deliveries already made, and a further restructure was measured at
+**+220 to +330 PT words**. So rule 12 and the band are in tension by construction, and a drafter
+obeying both on a two-concept piece has no slack at all.
+
+**That tension was the live blocker on this piece, and the owner resolved it rather than this file
+resolving it:** *«essa meta nao deveria ser um hard limit»*. **Rule 10 now says a piece over the target
+owes a reason rather than a split**, so the collision stops being a deadlock — **and rule 12 is not
+thereby licensed to sprawl.** The reason is owed, in the round, and *"delivering the assertions cost
+N words"* is exactly the shape of a good one.
+
+**What must still never happen: a reviewer meeting an over-target piece whose assertions are
+undelivered must not resolve it by cutting the deliveries.** That produces the abstraction rule 12
+exists to stop, arriving through the number's door — and it is the one move the ruling did **not**
+make cheaper.
 
 ## The social post — a DIGEST of the content, and the turn is what the click buys
 
