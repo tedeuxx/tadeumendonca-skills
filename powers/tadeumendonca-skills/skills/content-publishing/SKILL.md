@@ -221,10 +221,12 @@ reading the diff. And unchanged from before: **nothing mechanical distinguishes 
 from a third round wearing a new heading number, because the terminal condition is a section count and
 the section count is authored by the persona the bound constrains.**
 
-#### Two checks the rounds now run, and both are a RULER clause finally reaching the lane
+#### Four checks the rounds now run, and every one is a RULER clause finally reaching the lane
 
-**Neither is a new judgement. Each is an existing ratified clause that had no step where anybody asked
-it**, which is why both were missed on a piece that passed two rounds clear.
+**Not one is a new judgement. Each is an existing ratified clause that had no step where anybody asked
+it**, which is why all four were missed on a piece that passed two rounds clear and then four owner
+read-throughs. **Two of them — 3 and 4 — are clauses the ruler did not carry AT ALL until 2026-09-18**,
+so no reviewer could have raised them however carefully it read.
 
 1. **Do the SPINE SURFACES name the same article as the body?** Title, excerpt and takeaway are the
    three most-read surfaces and the only ones that travel without the body — an index row, an OG card,
@@ -239,8 +241,19 @@ it**, which is why both were missed on a piece that passed two rounds clear.
    body contains one.** On this piece it did not, so every gate-passing candidate wrote a cheque the
    article never covered. The check is the ruler's own close clause, read against the body rather than
    against the title.
+3. **Does the piece state its TAKEAWAYS explicitly, with one of them reinforced visually?** The ruler's
+   rule 16, on his ruling — *«todo artigo tem que ter takeaways explicitos, algum elemento visual para
+   reforço»*. **The check has a boundary that is easy to lose:** a takeaway is not a summary, and the
+   test is *read the candidate alone with the article covered — if nothing is left, it is a summary*.
+   **The frontmatter `takeaway` field does NOT discharge this** — it renders on the index card, not in
+   the article, so a reader meets it before the piece and never inside it.
+4. **Does the piece end with the SIGNATURE, in both editions?** The ruler's rule 17, ratified
+   2026-07-30 and named nowhere in this harness until 2026-09-18. **It is the most repairable finding
+   on this list** — a missing final line is an edit in place rather than authorship — and it is the one
+   the pair has been dropping silently, because no clause existed to raise it with.
 
-**What neither check can do.** Both are reader-side judgements about **presence**, so a reviewer can
+**What none of these checks can do.** All four are reader-side judgements about **presence**, so a
+reviewer can
 say a concept is missing and cannot say the pairing is *good*. Both are run by a persona reading a
 draft, and **no layer observes a draft being read** — `PreToolUse` is registered on `Bash` and on the
 MCP matcher only, so `Write` and `Edit` are seen by nothing and neither check can ever be more than an

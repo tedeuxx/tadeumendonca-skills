@@ -604,11 +604,11 @@ re-derived — so the published selector returned **4** while the text beside it
 before this slice. The claim the figure supports gets **stronger**, which is exactly why nobody
 re-ran it: *"rule 3"* now names **four** different clauses, one of them a gate.
 
-**9 through 15 occur once each, file-wide**, which is what makes them quotable in the sense
+**9 through 17 occur once each, file-wide**, which is what makes them quotable in the sense
 `content-reviewer`'s repair ground requires. Falsifier, and it is the whole claim:
 
 ```
-grep -cE '^> \*\*(9|1[0-5])\.|^(9|1[0-5])\. \*\*' <this file>  # -> 7, one apiece
+grep -cE '^> \*\*(9|1[0-7])\.|^(9|1[0-7])\. \*\*' <this file>  # -> 9, one apiece
 grep -cE '^> \*\*3\.|^3\. \*\*'                    <this file>  # -> 4, in four sections
 grep -cE '^> \*\*99\.|^99\. \*\*'                  <this file>  # -> 0, the selector is alive
 ```
@@ -758,7 +758,7 @@ the measurement** — this section sets the number the measurement will judge.
 **And an event declared in code is not a tool holding usable data.** Confirming the instrument is wired
 proves the wiring, never that a figure exists behind a login. Do not read one as the other.
 
-## The body — rules 12–15, and they are the reader-facing gate reaching PROSE
+## The body — rules 12–17, and they are the reader-facing gate reaching PROSE
 
 **The gate above governs EIGHT WORDS. Everything under it was ungoverned, and one piece produced six
 separate rejections to prove it.** All six are the owner's, all on one article, all in one review
@@ -776,7 +776,7 @@ form already — *The subject is bounded*, and the goal/filter test. Its clause 
 stops connecting*) has no instance in this corpus. **Only clause 3 — *what would the reader go and
 DO* — has no body counterpart, and it is the clause four of these six fail against.** So this section
 is not the three clauses restated one layer down; it is the one of them that never reached prose, plus
-two defects that are not gate clauses at all. **Do not read rules 12–15 as a second copy of the gate.**
+two defects that are not gate clauses at all. **Do not read rules 12–17 as a second copy of the gate.**
 **Rule 15 is a fifth thing again** — it came out of the same episode but not out of a rejection
 sentence, and it is about which SURFACE carries the piece rather than about the prose.
 
@@ -883,7 +883,148 @@ its fields is a re-spine, and a re-spine is **authorship**, which rule 10 alread
 not a repair in place. **So rule 15's normal output is a finding the owner rules on, not an edit** —
 the same shape as an over-target piece, for the same reason.
 
-### What rules 12–15 collide with, and it is NOT repaired here
+### Rule 16 — explicit takeaways, reinforced visually, and the boundary against rule 14
+
+> **16. Every article carries its takeaways EXPLICITLY, and at least one of them is reinforced by a
+> visual element.** Not implied, not left for the reader to extract. **A takeaway is what the reader
+> carries OUT; it is never a restatement of what they just read.**
+
+**The owner's ruling, verbatim:** *«todo artigo tem que ter takeaways explicitos, algum elemento visual
+para reforço. é algo que vale enforçar nos skills e perfis de editorial.»* **He named the carriers
+himself** — the skills *and* the editorial profiles — which is why the clause lives here, in the ruler
+both personas read, rather than in either brief.
+
+**The failure it came from, and it is not the one it looks like.** The piece these rules came out of
+reached its conclusion carrying an argument, a limit, a withheld admission, a pointer and a wish — and
+**no explicit takeaway anywhere.** **Four rounds of review did not raise it, because no clause existed
+to raise it with.** That is the finding: not that a piece lacked them, but that the ruler could not
+ask.
+
+**And the evidence that they were available the whole time:** asked what the conclusion was missing, he
+named it in one sentence — the usefulness of conflict between agents, **by stage** — and added
+*«sao 2 takeways so nisso»*. **The takeaways the piece most needed were ones its author could state in
+a breath and the draft had never surfaced.**
+
+#### The boundary against rule 14, which is where this rule fails if nobody writes it down
+
+**Rule 14's close instructs or wishes; it does not summarise — and the owner personally cut a
+three-habit close from this same piece FOR BEING A SUMMARY.** A rule that lands *"explicit takeaways"*
+without that boundary re-authorises exactly what he rejected. So:
+
+| | a SUMMARY | a TAKEAWAY |
+|---|---|---|
+| what it contains | the propositions the piece already made, in the piece's own order | what the reader does differently, in the reader's own objects |
+| the test | **every sentence maps to a section above it** | **it survives being read by someone who skipped the body** — a summary is meaningless without the piece; a takeaway is not |
+| where it points | backwards, at the article | forwards, at work the article never described |
+
+**The second row is the operative test and it is the one to apply**, because the first is satisfiable
+by a well-written summary that merely reorders. **Read the candidate takeaway alone, with the article
+covered. If nothing is left, it is a summary.**
+
+**This does not make rule 14 optional and does not make it a second close.** Rule 14 governs **the last
+substantive beat**; rule 16 governs **whether the piece states what the reader carries out**, wherever
+it states it. A piece can satisfy 16 in the middle and still owe 14 an act at the end.
+
+#### The visual element — what the platform ACTUALLY supports, measured rather than specified
+
+**Do not prescribe a device the platform may not have.** Measured 2026-09-18 in the consuming
+repository, at head:
+
+| device | present? | evidence |
+|---|---|---|
+| **blockquote, styled distinctly** | **yes** — a primary-coloured left rule and muted text | a `.markdown blockquote` rule in the site's own stylesheet |
+| **already used in a published article** | **yes** | `grep -cE '^> ' <content-dir>/*.en.md` → **40** in one piece, 1 in another, 0 in four |
+| **bold, inline** | yes, always | — |
+| **a dedicated callout or pull-quote component** | **no** | no such handler is registered in the markdown renderer, and no typography plugin is configured |
+| **a body image treated as a figure** | **opt-in only** | the renderer's own header states it registers no `img` handler; the figure treatment is a facade on a lone-image paragraph |
+
+*(The concrete stylesheet and content directory are facts about the consuming repo and are cited in the brief of the persona that reads it; the rule here does not depend on either path.)*
+
+**So the obligation is satisfiable today and the device is a BLOCKQUOTE or bold** — a blockquote being
+the only one the site styles as distinct emphasis. **A pull-quote is not available and must not be
+asked for.**
+
+**One thing the measurement found that changes how this rule reads: the `takeaway` frontmatter field
+already exists and renders on the INDEX CARD, not in the article.** So a reader meets one takeaway
+line **before** the piece and none inside it. **Rule 16 is about the body**, and a filled frontmatter
+field does not discharge it — which is exactly the shape rule 15 warns about, a spine surface standing
+in for something the body never delivers.
+
+#### What rule 16 CANNOT do
+
+**It reaches PRESENCE and FORM, never WORTH.** A reviewer can cite that the piece states no takeaway,
+that a candidate collapses to nothing when read alone, or that no visual device reinforces one. **It
+cannot say a takeaway is worth carrying**, and no clause here can — that judgement is the owner's at
+the held preview, exactly as rule 15's pairing quality is.
+
+**And it reaches no mechanism.** Nothing counts takeaways, nothing reads a draft, and the frontmatter
+field it is most likely to be confused with is the one thing on this list a machine *could* check and
+the one thing that does not satisfy it. **Held by the pair and by review.**
+
+### Rule 17 — the SIGNATURE, and the ruler did not name it at all until now
+
+> **17. A themed article ends with the signature — his trademark closing line, in both editions.** PT
+> is fixed: **«Isso é o que eu penso.»** **The EN wording, including its tense, is his creative call**
+> and is not frozen here; what is published today is *"This is what I think."*
+
+**This is not a preference being introduced. It is a decision he took on 2026-07-30**, recorded on
+`-io#271` — *"**The signature** — a closing line on each themed article: «Isso é o
+que eu penso» / «This is what I think»"* — **and the drafting has been dropping it**, in his words,
+generally rather than once.
+
+**I checked the ruler before writing this, and the answer is the finding.** The signature appears
+**nowhere** in this harness — not in this file, not in either content brief, not in any command:
+
+```
+grep -rni 'this is what i think|isso é o que eu penso|assinatura' skills/ agents/ commands/ --include='*.md'
+# -> only unrelated senses of "signature" (a function signature, a WAF rule signature, and the
+#    2026-08-22 clause that self-deprecation is NOT his signature). Zero hits for the closing line.
+```
+
+**So the failure is not a reviewer that could not cite it or a drafter that did not read it. There was
+nothing to read.** This is the clearest instance in the corpus of the shape the word-target finding
+already names one layer down — and it generalises:
+
+> **A ratified NUMBER carries what it was calibrated against, or it silently binds the wrong object.
+> A ratified ELEMENT carries where it is enforced, or it is not enforced.**
+
+**The drop rate, measured rather than asserted.** Of the five published articles in the consuming
+repository, **one** carries the signature:
+
+```
+grep -rilE 'isso é o que eu penso|this is what i think' <content-dir>/
+# -> one article's two editions, and nothing else
+```
+
+**And the same measurement settles the ordering question, so it is sourced rather than legislated.** In
+that article the close runs: **the act** (*"Go and look at what your loops actually did last month…"*)
+→ **the warm sign-off** (*"A hug, and see you next time."*) → **the signature, alone, last.**
+
+> **The signature FOLLOWS the warm sign-off and does not replace it.**
+
+**Bound that honestly: n = 1.** It is the only published instance, so this is the corpus's answer and
+not a rule with evidence behind it in any stronger sense. **If he wants the two ordered differently, or
+the sign-off dropped where the signature lands, that is his** — and nothing here forecloses it.
+
+**How it composes with rules 14 and 16, since three clauses now touch the end of a piece.** Rule 14
+governs **the last substantive beat** — the act. Rule 16 governs **whether the takeaways are stated at
+all**. Rule 17 governs **the final line**. They stack in that order and none of them is the others:
+a piece can name an act, state its takeaways, and still end without the signature, which is precisely
+what happened.
+
+**What rule 17 CANNOT do.** It reaches **presence**, which is the half `content-reviewer` can cite —
+and that makes it the most repairable clause in this file, since adding a missing final line is an edit
+in place rather than authorship. **It cannot decide the EN wording**, which is his. **It cannot decide
+what counts as a *themed* article** — the record says *themed*, nothing here defines the set, and a
+reviewer meeting a piece it is unsure about should raise the question rather than assume either way.
+**And nothing fires it:** no layer reads a draft, and the one published counter-measurement above is a
+`grep` a human ran, not a gate.
+
+**One thing deliberately NOT touched: `-io#271` is OPEN, and its open half is a different object** —
+the reciprocal reader-take loop and how much of a sharer's post the site may write. **Nothing in rule
+17 reaches it or implies anything about it.**
+
+### What rules 12–17 collide with, and it is NOT repaired here
 
 **Rule 12 costs words, and the number is rule 9's.** Every delivery is sentences: a claim stated, a
 pair shown, a before written. On the piece these rejections came from, the PT edition sat at **1,498**
