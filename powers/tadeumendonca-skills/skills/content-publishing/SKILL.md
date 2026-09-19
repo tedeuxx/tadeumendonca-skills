@@ -96,6 +96,46 @@ here.** One rule from it is worth carrying because it decides whether this step 
 stop still opens the Issue.** An interview that costs him a sitting is one he routes around within a
 week, and then there is no interview at all.
 
+#### The SOURCE TEST — asked at capture, never discovered at the tenth edit
+
+**Where a piece is built on an EXTERNAL source — a talk, a paper, someone else's argument — the
+interview answers one more question before the Issue is filed:**
+
+> **Is the source reachable by whoever will draft, in a form that can be quoted?** Transcript, paper,
+> published text — or nothing. **Record the answer, and record it as a dated absence when it is
+> nothing.**
+
+**This step did not exist, and its absence cost three days on one piece.** The primary source was a
+talk with no transcript indexed anywhere and no reachable route to one; every attribution was the
+owner's recollection. **Three review rounds recorded that as a PUBLICATION RISK — a truth question —
+and not one of them named it as a CONSTRUCTION constraint, which is what it actually was.** Each time
+the draft needed substance from the talk it had one remembered sentence and filled the rest with the
+only material within reach: the owner's own repositories. His verdict on the result, verbatim:
+
+> *«nao decompunha os conceitos do video»* · *«nao conectava com nosso publico alvo»*
+
+**The failure is structural and no amount of editing reaches it.** A piece whose spine is an external
+argument, drafted against one remembered sentence, becomes a piece about the drafter's own material
+wearing the source's title — and every repair round edits the symptom.
+
+**What the answer CHANGES, which is why it belongs at capture rather than in a review round:**
+
+| the source is | what the piece may be |
+|---|---|
+| **reachable and quotable** | a piece that decomposes the source's argument, quoting it |
+| **unreachable** | a piece where the source is the **trigger** and the owner's own material is the **subject** — stated as that at capture, so the spine is designed for it rather than discovered fighting it |
+
+**The second row is not a lesser piece.** It is the piece this lane can actually build, and the whole
+cost of the episode was spending ten edits arriving at it instead of one question.
+
+**What this test CANNOT do.** It cannot tell whether a *reachable* source was read, or read correctly
+— the sourcing constraint and the reviewer's second repair ground govern that. It cannot judge whether
+the owner's recollection is **accurate**, which stays a publication risk exactly as before; this test
+is about what may be BUILT, and the two questions are independent. **And nothing fires it:** no hook
+in this plugin reads an Issue body for a source field, capture is an interview rather than a tool call,
+and no layer observes either. It is an instruction, held by whoever runs the interview and by the lens
+that closes the description.
+
 ### 2 · Description closed, `ready` applied · **AFK — and the label here is the LEAD's, not the owner's**
 
 **Do not carry the machinery lane's rule across.** On a loop-typed item `ready` is the owner's
@@ -180,6 +220,66 @@ things absorb it and neither is an instrument — the owner reading the held pre
 reading the diff. And unchanged from before: **nothing mechanical distinguishes a legitimate re-open
 from a third round wearing a new heading number, because the terminal condition is a section count and
 the section count is authored by the persona the bound constrains.**
+
+#### Five checks the rounds now run, and every one is a RULER clause finally reaching the lane
+
+**Not one is a new judgement. Each is an existing ratified clause that had no step where anybody asked
+it**, which is why all five were missed on a piece that passed two rounds clear and then four owner
+read-throughs. **Three of them — 3, 4 and 5 — are clauses the ruler did not carry AT ALL until
+2026-09-18**, so no reviewer could have raised them however carefully it read.
+
+1. **Do the SPINE SURFACES name the same article as the body?** Title, excerpt and takeaway are the
+   three most-read surfaces and the only ones that travel without the body — an index row, an OG card,
+   a social unfurl. On the piece these findings came from, a re-spine left all three describing a
+   different article from its body **for days**, and it surfaced only because the owner said twice that
+   the title did not carry the structure. **Nothing pairs them**, so the check is: read the three
+   fields, then read the body's section headings, and name any concept present in one and absent in the
+   other. **A mismatch is a ground-1 finding the reviewer may raise and usually CANNOT repair** — a
+   re-spine is authorship, not a repair in place, exactly as a split is.
+2. **Does the BODY contain the act the title promises?** The ruler's title gate requires the title to
+   make the reader want to run an experiment; **the lane had no step where anyone asked whether the
+   body contains one.** On this piece it did not, so every gate-passing candidate wrote a cheque the
+   article never covered. The check is the ruler's own close clause, read against the body rather than
+   against the title.
+3. **Does the piece state its TAKEAWAYS explicitly, with one of them reinforced visually?** The ruler's
+   rule 16, on his ruling — *«todo artigo tem que ter takeaways explicitos, algum elemento visual para
+   reforço»*. **The check has a boundary that is easy to lose:** a takeaway is not a summary, and the
+   test is *read the candidate alone with the article covered — if nothing is left, it is a summary*.
+   **The frontmatter `takeaway` field does NOT discharge this** — it renders on the index card, not in
+   the article, so a reader meets it before the piece and never inside it.
+4. **Does the piece end with the SIGNATURE, in both editions?** The ruler's rule 17, ratified
+   2026-07-30 and named nowhere in this harness until 2026-09-18. **It is the most repairable finding
+   on this list** — a missing final line is an edit in place rather than authorship — and it is the one
+   the pair has been dropping silently, because no clause existed to raise it with.
+
+5. **Does every VERBATIM external quotation carry the author's name ON the block?** The ruler's rule
+   18, on his ruling — *«bota nas citacoes o nome do autor tbm»*. **Attribution in the prose lead-in
+   does not discharge it**, and it matters more on a piece whose source link has been removed, because
+   the prose is then the reader's only signal. **The word VERBATIM is the whole safety of this check:**
+   a rendered or paraphrased idea attributed on the block puts the owner's sentence in someone else's
+   mouth, which is a false claim manufactured by obeying a rule. **A reviewer that cannot tell which it
+   is must ask, never attribute.**
+
+**What none of these checks can do.** All five are reader-side judgements about **presence**, so a
+reviewer can
+say a concept is missing and cannot say the pairing is *good*. Both are run by a persona reading a
+draft, and **no layer observes a draft being read** — `PreToolUse` is registered on `Bash` and on the
+MCP matcher only, so `Write` and `Edit` are seen by nothing and neither check can ever be more than an
+instruction.
+
+#### OPEN, not resolved here: the two-round bound can be reset by the party it constrains
+
+**The bound's terminal condition is a section count in a file the reviewing persona authors.** On this
+piece the counter was reset by the **orchestrator** after five owner rulings had replaced the artifact
+rounds 1 and 2 had read, and the merge gate accepted the reset for that diff **while pushing back on
+the rule** — its objection is the one to carry: *a bound that can be reset by the party it constrains
+is not a bound.*
+
+**Both readings are defensible and that is the problem.** Rounds spent on an artifact that no longer
+exists are not rounds spent on this draft; equally, *"the piece changed"* is available on every piece
+and turns a bound into a formality. **This is with the owner and unanswered. It is recorded here and
+deliberately not decided** — the lane does not get to settle its own stopping rule, and nothing in this
+skill changes the bound.
 
 **When the rounds terminate, the TEXT is closed and the piece is NOT finished.** By the owner's rule
 above, the next act is the first deploy — steps 6 and 7 — not a message to him carrying the words. **Do
@@ -525,6 +625,15 @@ this repository blocks on a mechanism presented as stronger than it is.**
   route and is blind to the browser-extension route that has actually published.
 - **Nothing observes a dispatch.** A piece drafted with no review round is indistinguishable from one
   whose rounds were clear until you open the branch's file list.
+- **Nothing asks whether the SOURCE exists.** The source test above is an interview question; no hook
+  reads an Issue body for it, and a piece can travel the whole lane built on one remembered sentence,
+  as one did — the failure only becomes visible as prose the owner rejects, ten edits in.
+- **Nothing pairs the frontmatter with the body.** Title, `excerpt` and `takeaway` can describe a
+  different article from the one below them indefinitely; nothing in this tree reads the three fields
+  against the section headings, and on the piece that produced these rules nothing did for days.
+- **Nothing bounds the rounds against a party that can reset the counter.** The terminal condition is
+  a section count in a file the reviewing persona authors, and the reset on the one piece where it
+  mattered came from the orchestrator. That is open with the owner and is not decided here.
 - **Nothing stops a held piece from being published by an edit to one word**, which is precisely why a
   committed fixture exists in the consuming product and every hold assertion runs against it.
 

@@ -2297,12 +2297,19 @@ fi
 #     repo lands its own half (-io#605) the ladder will exist in two trees, and THAT identity is
 #     ungated by construction — pipelines are independent per repository, exactly as the three shared
 #     `CLAUDE.md` blocks already say of themselves.
+# RULE 10's LITERAL CHANGED ON 2026-09-18, and the arm moved with it rather than being relaxed. The
+# owner ruled the word target is not a hard limit (*«essa meta nao deveria ser um hard limit»*), so the
+# old pin — 'becomes a SERIES. It is not trimmed to fit' — names a compulsion the rule no longer
+# carries. What is pinned instead is the clause that REPLACED it, which is the half a later sweep could
+# quietly drop: *a piece over the target owes a REASON*. Pinning only the band would leave a number in
+# the file with nothing saying what a piece over it owes, which is the state that produced the ruling.
 cp_ladder_missing=""
 for cp_lit in \
   'It never shows HOW, in enough detail' \
-  'becomes a SERIES. It is not trimmed to fit' \
+  'A piece over the target owes a REASON, stated' \
+  'Compressing to reach the number is still the wrong answer' \
   'At most 6 sections' \
-  '900–1,300 words; ceiling 1,500' \
+  '900–1,300 words, and 1,500 is a TARGET rather than a hard limit' \
   ; do
   grep -qF -- "$cp_lit" "$ROOT/skills/published-voice/SKILL.md" 2>/dev/null \
     || cp_ladder_missing="$cp_ladder_missing \"$cp_lit\""
@@ -2310,9 +2317,10 @@ done
 if [ -n "$cp_ladder_missing" ]; then
   bad "content pair — a density-ladder clause is missing from the shared ruler
       (skills/published-voice/SKILL.md):$cp_ladder_missing
-      Rules 9-11 are the ladder the owner ratified (#405): a site piece shows THAT and WHAT IT COST and
-      never HOW; a piece over the ceiling becomes a series rather than being compressed; the section
-      rate is capped independently of the word count. \`content-reviewer\` may repair a draft only on a
+      Rules 9-11 are the ladder the owner ratified (#405) and re-ruled 2026-09-18: a site piece shows
+      THAT and WHAT IT COST and never HOW; the word figure is a TARGET, and a piece over it owes a
+      stated reason rather than a mandatory split; the section rate is capped independently of the word
+      count. \`content-reviewer\` may repair a draft only on a
       clause it can QUOTE, so a clause removed from this file is a repair ground the pair silently
       loses — and arm A stays green, because it compares skill NAMES and never their contents.
       If a number genuinely changes, change it here and say so; do not let it disappear."
@@ -2365,6 +2373,69 @@ else
       are present in the shared ruler. Presence only: this asserts the gate is WRITTEN and ordered,
       never that a candidate was run through it — no layer observes an Edit, and no arm here can read
       a title"
+fi
+
+# ── ARM G: the BODY rules 12-18 are PRESENT in the ruler, and their SPAN is still unambiguous ───────
+# Same argument as arms E and F and built on their shape: `content-reviewer` repairs on a clause it can
+# QUOTE, so a rule meant to bind has to survive as a quotable clause. Rules 12-15 came out of six owner
+# rejections on ONE article (`-io#259`), where the ranked six and the three-clause gate were both intact
+# and both silent, because neither has a subject below the title.
+#
+# WHY THE SPAN LITERAL IS PINNED ALONGSIDE THE CLAUSES, which is this arm's own move. The file numbers
+# four other sequences from 1 (register 1-4, title 1-6, title-gate 1-3, post 1-8), so "rule 3" names four
+# different clauses and a repair citing it is not checkable. What makes 9-15 citable is that each occurs
+# ONCE, file-wide — and that property is destroyed by a later section restarting at 12 or by a rule being
+# renumbered, with every clause still present. The clause literals alone stay green through exactly that.
+#
+# WHAT IT DOES NOT MEAN, in the ok line as well as here: it cannot read a draft. `hooks/hooks.json`
+# registers `PreToolUse` on `Bash` and on the MCP matcher only, so `Write` and `Edit` are observed by
+# nothing and no layer can see a body rule applied or skipped. It asserts the rules are WRITTEN.
+cp_body_missing=""
+for cp_lit in \
+  'the thing that makes it true is on the page, in the same section' \
+  'the decision · the BEFORE · what changed · what it left' \
+  'Write the opposite-meaning paraphrase of the sentence using the same words' \
+  'The close names exactly one act the reader can perform' \
+  'name the same article the body delivers' \
+  'carries its takeaways EXPLICITLY' \
+  'it survives being read by someone who skipped the body' \
+  'ends with the signature' \
+  'Isso é o que eu penso.' \
+  'is set as a quotation block, and the block carries' \
+  'A reader must never be able to read the name as part of what was said' \
+  '9 through 18 occur once each, file-wide' \
+  ; do
+  grep -qF -- "$cp_lit" "$ROOT/skills/published-voice/SKILL.md" 2>/dev/null \
+    || cp_body_missing="$cp_body_missing \"$cp_lit\""
+done
+if [ -n "$cp_body_missing" ]; then
+  bad "content pair — a BODY-rule clause is missing from the shared ruler
+      (skills/published-voice/SKILL.md):$cp_body_missing
+      Rules 12-18 are the reader-facing gate reaching PROSE, and each ships with the owner rejection
+      or ruling that produced it: an assertion is not on the page until its instance is (12, with the
+      four-beat form he accepted); a mechanism sentence must not survive its own negation (13); the
+      close names one act (14); the spine surfaces name the same article as the body (15); every
+      article states its takeaways explicitly, reinforced visually, and a takeaway is NOT a summary
+      (16); a themed article ends with the signature (17, ratified 2026-07-30 and named nowhere in
+      this harness until then); a VERBATIM external quotation is set as a block carrying the author's
+      name (18). \`content-reviewer\`
+      may repair only on a clause it can QUOTE, so a clause removed here is a repair ground the pair
+      silently loses — and arm A stays green, because it compares skill NAMES and never contents.
+      If the SUMMARY-TEST literal is the one missing, the takeaways rule has lost the boundary that
+      keeps it from re-authorising the close he personally cut for being a summary.
+      If the PT SIGNATURE literal is missing, rule 17 has lost the only wording he fixed — the EN is
+      deliberately not pinned, because its tense is his creative call.
+      If the PAGE-VOICE literal is missing, rule 18 has lost the boundary it creates the exposure for:
+      an attribution line is the first thing that deliberately puts the page's own voice INSIDE a
+      quotation block, and a reader must not be able to take it as part of what was said.
+      If the SPAN literal is the one missing, check that no rule was renumbered and that no later
+      section restarted at 12: the clauses survive that edit and their citability does not."
+else
+  ok "content pair — the body rules 12-18 (name-then-deliver, the negation test, the single closing
+      act, the spine-surface pairing, explicit takeaways with the summary boundary, the signature, the
+      attributed quotation block) and the 9-18 span literal that keeps them citable are present in
+      the shared ruler. Presence only: this asserts the rules are WRITTEN, never that a draft obeys
+      them and never that a repair was placed under one — no layer observes an Edit"
 fi
 
 # ---------------------------------------------------------------------------------------------------
