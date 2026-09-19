@@ -2,6 +2,20 @@
 .claude/settings.local.json
 .claude/worktrees/
 
+# personal-brand strategy layer — the owner's private positioning source. Its documented home is
+# `tadeumendonca-io`, which has ignored it since that repo was stood up; THIS repo did not, and
+# `CLAUDE.md`'s scratch taxonomy stated the consequence in its own words while nothing enforced it —
+# "writing private material to `.brand/` here puts it in a tracked path in a public repo". Preventive:
+# no `.brand/` has ever existed in this tree (`git ls-files | grep -i brand` -> no output at the
+# commit that added this line), so this un-tracks nothing and repairs nothing.
+#
+# What it does NOT do, stated because the entry invites the wider reading: it does not stop `git add
+# -f`, it does not reach a paste into a comment or a PR body (which is how private text has actually
+# reached a public surface here), and it removes the one signal that used to exist — an untracked
+# `.brand/` showed up in `git status` and now will not. The guard's errors all run toward refusing a
+# commit; the lost signal runs the other way, and nobody sees it.
+.brand/
+
 # The ONE place for scratch files, and it does not survive a session — `session-scratch.sh` empties
 # it at SessionStart. Ignored rather than absent so a scratch write lands somewhere named instead of
 # somewhere random: the failure this replaces was an agent leaving `dist-old-qa/` at a repo path that
