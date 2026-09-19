@@ -1697,7 +1697,7 @@ The owner's ruling, 2026-09-19:
 > *«isso é um erro»* · *«quando abro ele carrega em ingles para mim ao inves de portugues»* · *«acho que isso pode estar fazendo as pessoas nao lerem os artigos»* · *«isso deveria se aplicar tanto ao link compartilhado no post do x como do linkedin»*
 
 **This one REVERSES a ratified decision, which is what makes it different from 19 and 20.** The
-standing convention was his own call of 2026-08-17 — *«o link deveria ser em inglês ao compartilhar
+standing convention was his own call of 2026-08-16 — *«o link deveria ser em inglês ao compartilhar
 nessas redes»* — recorded in the consuming product's distribution record, which **already named this
 exact cost in its own words** (*"a real friction for exactly the audience the Portuguese half was
 written for"*). **So this is not a drafting slip being corrected. The convention was applied correctly
