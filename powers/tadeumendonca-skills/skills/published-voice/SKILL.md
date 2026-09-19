@@ -1080,21 +1080,75 @@ this rule arrived with:**
    below**, blank line between. **And it appears in the EN edition only** — the PT edition carries the
    original alone, because there the original is already in the reader's language. A rule written for
    *"the gloss inside the block"* would describe a form the site has never used.
-2. **There is NO attributing precedent at all.** Every existing quotation block in the corpus is either
-   the owner's own prompt or generated text, so **not one of them names an external author.** The
-   briefing's expectation that the precedent would show a form was correct to test and the answer is
-   that it has none.
+2. **No attributing precedent in the BLOG corpus — and exactly ONE outside it, which settles the
+   typography this section was about to leave open.** ~~There is NO attributing precedent at all.~~
+   **Struck, and struck rather than silently rewritten because the merge gate quoted it verbatim on
+   the pull request, so it has a reader.** The measurement behind it was right and its SCOPE was not:
+   it was taken over the blog and published over *the corpus*, and the conclusion drawn on the
+   unscoped reading is false about the object rule 18 actually governs.
 
-**So the form is stated as a recommendation with its reason, and it is OWED rather than settled:**
+   **State the denominator, because leaving it implicit is what produced the error.** This file's
+   published quotation-block figure runs `grep -cE '^> ' <content-dir>/*.en.md`, and `<content-dir>`
+   is the **blog** directory — re-derived by running it against both candidates rather than assumed:
+   the blog returns `40, 1, 0, 0, 0, 0` across six files, which is the published shape exactly, and
+   the content **root** returns `3` and `1` across two, which matches nothing. **Within the blog the
+   struck claim holds** — every quotation block there is the owner's own prompt, its gloss or
+   generated text, and not one names an external author.
 
-> **Recommended: the name goes on the ORIGINAL's block, as its own final line. The gloss block carries
+   **But rule 18's subject is *a VERBATIM quotation from an external source*, with no blog
+   restriction**, so the blog is not the corpus that answers it. **The non-blog published pages carry
+   one attributed instance, live in BOTH editions since 2026-08-09** — a verbatim external quotation
+   set as a quotation block, then a blank quoted line, then the author's name alone on the block's
+   final quoted line, in the form `— Name, year`. Falsifier, with the control that makes it a check
+   rather than a sighting:
+
+   ```
+   # in the consuming repo. <content-dir> is the blog directory; <content-root> is its parent.
+   python3 -c "
+   import glob
+   for p in sorted(glob.glob('<content-root>/*.md')) + sorted(glob.glob('<content-dir>/*.md')):
+       for i, l in enumerate(open(p, encoding='utf-8'), 1):
+           if l.startswith('> —'): print(p, i, l.strip())"
+   # -> both editions of the architecture page, same line number, the same attribution line
+   # CONTROL: the <content-dir> half returns NOTHING, which is why the blog-scoped claim above is
+   #          also true — one selector produces both halves of this correction.
+   ```
+
+   *(The concrete content paths are facts about the consuming repo and are cited in the brief of the
+   persona that reads it; the rule here depends on neither.)*
+
+   **And the second edition does NOT translate the quoted span** — it carries the original wording and
+   the same attribution line, unchanged. That is the VERBATIM clause above, already applied on the page
+   before any clause existed to ask for it.
+
+   **One tension this exposes, stated rather than resolved: that block carries NO gloss in either
+   edition**, although in one of them the original is not in the reader's language — which is the
+   condition correction 1 describes the blog precedent adding a gloss block for. **The two published
+   forms therefore disagree**, and this file does not settle which is right: the gloss is the owner's
+   call per piece, and a reviewer meeting an un-glossed foreign-language quotation has a question to
+   raise, not a repair ground to act on.
+
+**So the form is stated as a recommendation with its reason, and the typography MATCHES A HOUSE FORM
+THAT ALREADY EXISTS rather than being owed:**
+
+> **Recommended: the name goes on the ORIGINAL's block, as its own final line, in the shape the
+> published pages already use — a blank quoted line, then `— Name, year` alone. The gloss block carries
 > no name** — it is the page's translation of an already-attributed span, and repeating the name there
 > attributes the *translation* to the source, which is the same defect the verbatim clause above
 > guards.
 
-**The concrete rendering — a dash form, a small-caps line, a `—Name` — is not decided here** and is the
-owner's or the article slice's. **Do not treat the recommendation's shape as ratified**; treat the
-obligation as ratified and the typography as open.
+~~**The concrete rendering — a dash form, a small-caps line, a `—Name` — is not decided here** and is
+the owner's or the article slice's.~~ **Struck: the FIRST of those three is the house form, and it was
+published on 2026-08-09, before this rule was drafted.** What is still the owner's or the slice's is a
+**deviation** from it, not a choice among three. **Treat the obligation as ratified and the typography
+as matching the existing page** — a reviewer applying rule 18 to a new article and a reader meeting the
+architecture page must not find two different attribution shapes, which is the cross-surface coherence
+this ruler exists to hold.
+
+**What this does NOT settle, so the correction is not over-read:** the house form is ONE instance, on
+one page, in two editions, and **nothing gates it** — no layer reads a draft, and no arm pins the
+attribution shape. It is a precedent to match, not a measured convention; if the owner rules a
+different shape, the page is what moves with it.
 
 #### How it composes with the rule UPSTREAM of it
 
