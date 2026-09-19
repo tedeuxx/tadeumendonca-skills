@@ -503,7 +503,9 @@ exist; lookup refuses it.
 second half is untouched and is now one of four things nothing verifies — see the table at the end of
 this section.
 
-**Three steps the lane carries, and each is labelled with what holds it.**
+**Four steps the lane carries, and each is labelled with what holds it.** ~~Three~~ — the fourth
+landed 2026-09-19 with rules 19 and 20; the count is stated here rather than left to be counted,
+because a reader who takes *three* from the sentence stops at the third bullet.
 
 - **The share URL is tagged.** Build it with `withShareUtm(url, source, AUTHOR_CAMPAIGN)` —
   `utm_source` per network — and put the tagged URL in the post body on **both** networks. The
@@ -528,6 +530,19 @@ this section.
   should be crediting. **Nothing binds the publish act to a `content` Issue at all:** no lane check, no
   label check, no Issue check, on either route. The route into an unattended post is **any session**,
   not the drain, so admitting `content` to the drain is not what would open it.
+- **A bilingual post is READ for its two language hints and for its length, BEFORE it is posted.**
+  `published-voice`'s rule 19 — a one-line hint at the top in the language of the block it points at,
+  a matching one-line marker immediately above the trailing block, a flag emoji on both — and its
+  rule 20, the target that is not the 3,000-character ceiling, read per language block. **Both are
+  counted, not judged**, which is what makes this a step rather than an opinion: the two markers are
+  either in the draft or they are not, and the block lengths are a character count. **The reason it is
+  a step at all is that rule 19's element has been shipped correctly exactly once and dropped on every
+  post since** — it is the signature defect one surface over, and the owner caught it on the live post
+  rather than in a round. *Held by: an instruction, and nothing else.* `Write` and `Edit` are observed
+  by no matcher in this plugin, and the post itself goes out through a browser extension that no
+  matcher sees at all — so this cannot be more than a written precondition, exactly like the OG-card
+  check above. **Neither rule is a merge hold**: no copy hold reaches this lane (step 6), so a post
+  missing its hints ships unless somebody reads for it here.
 
 **The drafts are written to a private, ignored location**, because pre-publication copy in a public
 repository lets anyone read tomorrow's post today. **Existing files are never overwritten** — the prose
@@ -541,6 +556,7 @@ is hand-voiced after generation, and regenerating over it at this cadence buys n
 | a post is preceded by the OG-card check | **an instruction.** No layer in this plugin sees page state |
 | the share URL carries its campaign | **an instruction**, measurable after the fact as a lower bound only |
 | both halves of the pair shipped | **nothing at post time.** Unchanged by any of this |
+| a bilingual post carries its two language hints, and sits under the length target | **an instruction** (`published-voice` rules 19–20, 2026-09-19). The gate arm asserts the clauses are WRITTEN; nothing reads a draft, and no copy hold reaches this lane to refuse a post that dropped them |
 | the publish act is accounted for | **`orchestrator-tool-census.sh`'s `W` arm — after the act, gating nothing, and on the MCP route only.** Blind to the route that has actually published |
 
 **By this loop's own test — *would something stop me, or only my memory?* — nothing on this step is
