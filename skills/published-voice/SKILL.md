@@ -244,6 +244,12 @@ produces a text neither finishes.
   **explanatory paragraph**: a second version of the point, written for the other reader. One is a wink;
   the other is a toll booth.
 
+**Since 2026-09-19 this section has two RULE NUMBERS downstream of it, and neither is restated here.**
+**Rule 22** names the SHAPE this resolution produces — the layered piece, as the default rather than a
+technique available inside one — and **rule 23** makes both tiers plural in gender and age, per
+edition. They are numbered rather than written into this section because `content-reviewer` repairs on
+a clause it can CITE, and this section's own bullets carry no numbers.
+
 ### One register across BOTH tracks, and it binds hardest where it feels least necessary
 
 **His clarification the same day: the register applies whether a piece is tagged `pessoal` or
@@ -256,6 +262,11 @@ personal track a config, a prompt, or a before/after with a number all satisfy c
 nothing opens, it is testimony, and testimony gets marked as testimony.** That is the same discipline
 *The sourcing constraint* applies to a claim, applied to the evidence a paragraph is standing on.
 
+**Since 2026-09-19 the same argument runs on a SECOND axis, and it is rule 25 rather than a sentence
+here: DEPTH.** This section is about rigor — whether the claims hold. Rule 25 is about whether the
+piece went past the first true answer, on every subject including the `pessoal` track, and the two are
+not the same property. Cited rather than restated, for the reason rule 22 and 23 are.
+
 ### The edit that must never happen
 
 **No name for the habit. No coined term. No numbered framework.** A register this consistent is one
@@ -266,6 +277,12 @@ else's.
 
 **Repeat this check whenever he is pleased with a piece, which is exactly when the temptation peaks.**
 Poetry for developers works while it stays a report.
+
+**This absolute acquired its sharpest live pressure on 2026-09-19, and the clause that meets it is rule
+24.** He ruled that a philosophical register is welcome and named three reflective authorities as its
+tone. **The tone is borrowable and the POSITION is not** — that clause is rule 24's, not restated here,
+and this absolute is unchanged by it. **Where the two appear to disagree, this absolute wins**, which
+is what rule 24 itself says.
 
 ### Open, and deliberately NOT resolved here: whose byline a diary entry carries
 
@@ -604,17 +621,18 @@ re-derived — so the published selector returned **4** while the text beside it
 before this slice. The claim the figure supports gets **stronger**, which is exactly why nobody
 re-ran it: *"rule 3"* now names **four** different clauses, one of them a gate.
 
-**9 through 21 occur once each, file-wide**, which is what makes them quotable in the sense
+**9 through 25 occur once each, file-wide**, which is what makes them quotable in the sense
 `content-reviewer`'s repair ground requires. Falsifier, and it is the whole claim:
 
 ```
-grep -cE '^> \*\*(9|1[0-9]|2[01])\.|^(9|1[0-9]|2[01])\. \*\*' <this file>  # -> 13, one apiece
-grep -cE '^> \*\*3\.|^3\. \*\*'                                <this file>  # -> 4, in four sections
-grep -cE '^> \*\*99\.|^99\. \*\*'                              <this file>  # -> 0, the selector is alive
+grep -cE '^> \*\*(9|1[0-9]|2[0-5])\.|^(9|1[0-9]|2[0-5])\. \*\*' <this file>  # -> 17, one apiece
+grep -cE '^> \*\*3\.|^3\. \*\*'                                  <this file>  # -> 4, in four sections
+grep -cE '^> \*\*99\.|^99\. \*\*'                                <this file>  # -> 0, the selector is alive
 ```
 
-~~`9 through 18` · `-> 10`~~ ~~`9 through 20` · `-> 12`~~ — **struck 2026-09-19, twice in one day, as
-the span grew to 20 and then to 21.** Struck rather than edited silently, because the number is the
+~~`9 through 18` · `-> 10`~~ ~~`9 through 20` · `-> 12`~~ ~~`9 through 21` · `-> 13`~~ — **struck
+2026-09-19, three times in one day, as the span grew to 20, then 21, then 25.** Struck rather than
+edited silently, because the number is the
 claim and a reader who ran an old selector at this head would get a smaller, correct-looking count from
 a pattern that no longer covers the span its own sentence names. **A stale selector here fails in the
 permissive direction** — it returns a number rather than nothing, so it reads as a passing check.
@@ -626,6 +644,13 @@ end of this file, not to the body section — **and they joined this span rather
 sequence at 9 for one reason: `content-reviewer` repairs on a clause it can QUOTE, and a second "rule
 9" would have made the existing one uncitable.** The post sequence 1–8 is frozen at 8 for the same
 reason: it is one of the four sequences that restart at 1, and it does not grow.
+
+**Rules 22–25 are the second application of that same reasoning, and the third domain in the span.**
+They are REGISTER and AUDIENCE rules — they belong, by subject, to the sections near the top of this
+file rather than to the article body or to the social post — **and they joined the span for citability
+and for nothing else.** The register's own 1–4 and the title's 1–6 are two of the four sequences that
+restart at 1, so a new register clause numbered 5 would have been uncitable the moment it was written.
+**The span now spells out what it always was: the numbers are addresses, not a taxonomy.**
 
 **The third line is the calibration and it is not decoration:** a selector returning 6 proves nothing
 on its own if it can only ever return a non-zero number. `99` is absent from the file, so the same
@@ -1792,3 +1817,262 @@ rule 20 governs how long the prose runs, which is the same object rules 10 and 1
 rung up the density ladder. **Rule 21 is the closest to the line and is on the voice side for a stated
 reason:** it governs *which resource the reader is sent to*, which is a claim the post makes to its
 reader about what they will get — not *where the link sits in the body*, which stays a mechanic.
+
+## Rules 22–25 — four rulings of 2026-09-19, and two of them pull against each other
+
+**These four were made in one conversation and they land together because they are one object: what a
+piece is SHAPED like, who it is addressed to, what register it may reach for, and how deep it has to
+go.** They are additive. Nothing in rules 16–21, the title gate, the 900–1,300 band, rule 20's
+number-free shape or the register's four ratified constraints moves.
+
+**They sit after rule 21 for numbering and not for domain**, which is the same move rules 19–21 already
+made and is recorded one section up: the span is a **citability** device — `content-reviewer` repairs
+on a clause it can QUOTE, and a second *"rule 9"* would make the existing one uncitable. Rules 22–25
+belong, by subject, to the register and audience sections near the top of this file; those sections
+carry a pointer to them by number rather than a second copy of the clause.
+
+**The paragraph immediately above closes the SOCIAL-POST section, not this file.** It scopes rules
+19–21 against the distribution mechanics; nothing in it reaches rules 22–25, and rules 22–25 do not
+touch which language goes on which network.
+
+**And two of the four pull against each other on purpose — rule 22 asks for an accessible surface and
+rule 25 forbids a shallow one.** That is not a defect to resolve. It is stated from both sides, in rule
+22's *entry, never the ceiling* clause and again in rule 25's own boundary paragraph, because the cheap
+resolution — simplify until it is accessible — satisfies 22's letter and destroys 25.
+
+### Rule 22 — a piece is LAYERED, and that is the THIRD shape
+
+> **22. A piece is LAYERED: an accessible surface a curious non-engineer can read end to end, with the
+> detail and the references underneath it for whoever chooses to descend. The surface is the ENTRY,
+> never the CEILING. Layering is not averaging — averaging flattens to one register, layering keeps
+> both present and lets the reader pick the depth.**
+
+The owner's ruling, 2026-09-19:
+
+> *«entao de alguma forma nosso conteudo precisa ser acessivel por pessoas curiosas fora da area da industria de ti, porem com detalhes e referencias que possam mostrar profundidade para aqueles que desejarem se aprofundar nos conteudos.»*
+
+**This is a third shape, and the ruler offered two.** `agents/content-writer.md` reads *"Where a piece
+must choose a primary audience, say so in the draft's own framing; never silently average the two into
+something that serves neither"* — serve one tier and declare it, or average, with averaging forbidden.
+**He is describing neither.** Both tiers are served by one text, at two depths, and the reader chooses.
+
+**The MECHANISM is already ratified and this ruling names the SHAPE it produces.** *Two audiences, one
+text* above states it: *"The sentence carries the story; the link carries the proof."* **That is the
+layer.** What rule 22 changes is that it becomes the **default shape of a piece** rather than a
+technique available inside one — which makes the per-piece primary-tier declaration the exception it
+was written as, not the common case. **That declaration is not withdrawn**: a piece that genuinely must
+choose still says so, and rule 22 is what makes choosing rare rather than free.
+
+#### What layering is NOT, and each of these is already forbidden elsewhere
+
+- **Not the explanatory paragraph.** *Two audiences, one text* rules out *"a second version of the
+  point, written for the other reader"*. A layer is the same sentence read at two depths; a second
+  version is two texts stapled together, and it bores the engineer while slowing the lay reader.
+- **Not a simplified surface.** See rule 25, which exists for exactly this failure.
+- **Not the HOW.** **This is the composition a drafter will get wrong, so it is stated rather than
+  inferred:** rule 9 says a site piece shows THAT he solved it and WHAT IT COST, never HOW in enough
+  detail to reproduce without talking to him. *"Detalhes e referencias"* is satisfied by a link to the
+  repository, a decision named, a number with its command — **references that let a reader descend into
+  the artifact**, not a transcription of the mechanism into the piece. A piece that answers the descent
+  inside itself has spent rule 9's terminal event.
+
+#### What rule 22 CANNOT do
+
+It is a shape rule and no layer reads a draft — `hooks/hooks.json` registers `PreToolUse` on `Bash` and
+on the MCP matcher only, so `Write` and `Edit` are observed by nothing. **It also cannot tell a LAYER
+from a GAP.** A piece with an accessible surface and no depth underneath reads, at the surface, exactly
+like one with depth a reader declined to open — the difference is whether the references are there, and
+that is a reviewer's read of the links rather than of the prose. The gate asserts this rule is WRITTEN.
+
+### Rule 23 — the audience is PLURAL in gender and age, and the clause is written PER EDITION
+
+> **23. Both audience tiers are plural in gender and in age. The obligation lands on different words in
+> each edition: in Portuguese, where the grammar genders the reader, the address must not default to
+> the masculine; in English, where it does not, it lands on the PROTAGONISTS of the lived cases and on
+> the CULTURAL REFERENCES. Neither edition is exempt — one of them is just harder to break silently.**
+
+The owner's ruling, 2026-09-19:
+
+> *«o publico precisa ser plural quanto a genero e idade»*
+>
+> *«tambem»*
+
+**Neither tier is a demographic today, and that reads as neutral without being neutral.** The two tiers
+in `agents/content-writer.md` are *the AI-curious, from their personal life* and *software engineers* —
+both defined by what they want from a piece and neither by who they are. **An unstated default fills
+in**, and in this industry it fills in as a young man.
+
+#### Why this is PER EDITION, and it is the same asymmetry rule 19 hit
+
+**Portuguese genders by grammar where English does not** — *o leitor*, *o desenvolvedor*, *aquele que*.
+A clause written only in the English ruler is obeyed in one edition and broken silently in the other,
+and *silently* is the operative word: the English edition can be checked by reading it, and the
+Portuguese one goes wrong in agreement markers nobody is looking at.
+
+**The precedent for writing a clause per edition is in this file twice already.** Rule 19 fixes which
+language each hint is written in, by role rather than by language name. Rule 17 pins the Portuguese
+signature verbatim and deliberately leaves the English one to him. **Neither is a translation rule;
+both are clauses whose subject differs by edition**, which is what this one is.
+
+**In Portuguese the repair is the plural or the impersonal, not the doubled form** — *quem lê*, *a
+pessoa que*, *você*, *a gente*. **That preference is DERIVED, not ruled:** he ruled that the audience is
+plural and said nothing about spelling, and the doubled form (*o/a leitor(a)*) collides with the
+register's own polish brake — *short sentences, no exclamation marks, no emoji* — which is a constraint
+about clutter. **If he wants the doubled form, it is his call and nothing here forecloses it.**
+
+#### The two findings this makes raisable, and neither was raisable before
+
+- ***"Every lived case in this piece has the same protagonist."*** A corpus where every anecdote's
+  subject is the same kind of person addresses that person whatever the prose claims, and *The journey
+  rule* already makes lived cases the load-bearing device.
+- ***"This reference only lands for one age bracket."*** A cultural reference is a door for one
+  generation and a wall for the others. **This corpus already leans on them, and the sharpest instance
+  is published:** an entire article is built on a 1995 Oasis song, and the piece itself opens by saying
+  the song is thirty-one years old.
+
+  ```
+  grep -c -i 'oasis' <content-dir>/blog/blast-radius-supernova.en.md   # -> 4, in the consuming repo
+  grep -c -i 'oasis' <content-dir>/blog/*.en.md | grep -v ':0'          # -> that one file, and no other
+  ```
+
+  **Read that as evidence that the axis is live, never as a verdict on that piece.** It names its
+  borrowing three times over and its subject is the borrowing itself, so the reference is the article
+  rather than a door into it. **What rule 23 raises is the reference used as a door** — the aside that
+  assumes the reader shares a decade.
+
+#### What rule 23 CANNOT do
+
+**It cannot count, and nothing here can.** There is no demographic instrument on this platform, the
+site's own instrumentation begins at the click and is consent-gated, and *who read this* is not a
+question any artifact in either repository answers. **So this rule is a read of the TEXT and never of
+the audience** — a reviewer raises a protagonist pattern or a dated reference, and nobody can say
+whether either one cost a reader. **The corpus half is weaker still:** a same-protagonist pattern is
+visible only across pieces, and five published articles is not a corpus. And no layer reads a draft.
+
+### Rule 24 — the philosophical turn arrives AFTER the concrete, and borrows the TONE, never the POSITION
+
+> **24. A philosophical register is permitted and arrives AFTER the concrete, as a reading of what just
+> happened — never before it and never instead of it. It borrows the reflective register's TONE and
+> never its POSITION: the voice stays a peer reporting on what he built, never an authority on a stage.**
+
+The owner's ruling, 2026-09-19:
+
+> *«uma mensagem tom nivel filosofico as vezes acharia divertido, pois tem a ver com a minha paixao com a arte de computacao»*
+>
+> *«poderia sim ter um tom de karnal, cortella e clovis minhas reflexoes de computacao e ia.»*
+>
+> *«acho que isso tornaria divertido o conteudo.»*
+
+**The passion is real and it is already anchored on the surface, which is why this is a ruling and not a
+style preference.** The consuming site's architecture page has carried, in **both** editions since
+2026-08-09, Knuth's *"Computer programming is an art…"* over his name and the year. The philosophical
+reading of computing is not being introduced here; it is the oldest quotation on the site.
+
+```
+git -C <consuming-repo> log --format='%h %ad %s' --date=short -1 -S 'Donald Knuth' \
+  -- <content-dir>/architecture.en.md
+# -> ee6c4f7 2026-08-09 content(architecture): the trip arc, and the quotation in type before the wall
+# the same command against architecture.pt.md returns the same commit — one change, both editions
+```
+
+#### The named enemy, and it is ALREADY the register's one absolute
+
+***The edit that must never happen*** states it without qualification: **"No name for the habit. No
+coined term. No numbered framework."** It is guarded by the peer-not-authority pillar — *"não quero
+estabelecer autoridade"* — and by two further constraints in his private positioning source, which are
+**stated here and deliberately not quoted**: reposition without becoming a guru, and never the polished
+thought-leadership register. **That source is private and gitignored in the consuming repository and is
+NOT gitignored in this one**, so its wording stays there and only its effect travels.
+
+**A philosophical register is the shortest path to exactly that failure.** The three names he reached
+for are **authorities speaking from a stage**; the ratified voice is a **peer reporting**. The tone is
+borrowable. The position is not.
+
+**Precedence, stated here so no reviewer has to derive it: where rule 24 and that absolute appear to
+disagree, THE ABSOLUTE WINS.** Rule 24 permits a register; it does not license a coined term, a named
+habit or a numbered framework, and a philosophical passage that produces one has not stretched rule 24
+— it has broken a clause rule 24 never reached.
+
+#### The craft rule that separates them, and it follows from clauses already ratified
+
+**After the concrete, it is a fact being reframed.** The reader has the thing in hand and is handed a
+second way to see it — which is the actual move the three names make, and it is the ratified engine
+(*the dry gap between what was claimed and what was there*) pointed at meaning instead of at a failing
+test.
+
+**Before the concrete, it is an aphorism with nothing underneath — and the register already carries the
+falsifier for that:** *"if the sentence could appear in a LinkedIn carousel, cut it."*
+
+**Three existing brakes hold this honest without modification, and none of them is relaxed here:**
+
+- **Constraint 1 — every claim resolves to a file the reader can open.** A philosophical sentence need
+  not open a file itself, but it must be **about** something that did. That is what keeps the
+  reflection attached to a repository rather than floating.
+- **The humour boundary — the joke lands on the writer or the machinery, never on a third party who
+  cannot answer.** So an observation about how people work lands on **him and his agents**, never on an
+  unnamed *"engineers today"*, which is the guru register's favourite subject.
+- **Rule 18 — a VERBATIM external quotation is set as a block carrying the author's name.** A
+  philosophical register is where a half-remembered quotation is most tempting, and rule 18 is what
+  makes it a false claim rather than a flourish.
+
+#### What rule 24 CANNOT do
+
+**It reaches PLACEMENT and not quality.** *After the concrete* is checkable by reading the paragraph
+above the sentence; *is this reflection worth reading* is not, and no clause in this file makes it so.
+**It also cannot decide how often.** He said *«as vezes»*, which is a direction and not a dose — no
+figure is written here, because a threshold nobody set would be a green over an invention and it would
+go red the day he names one. And no layer reads a draft.
+
+### Rule 25 — depth is an EDITORIAL MARK, on every subject, and it is NOT rigor
+
+> **25. Depth of analysis is an editorial mark and it applies on every subject, including the `pessoal`
+> track. A piece may satisfy every other rule in this file and still be a surface reading of its
+> subject — and that is now a finding. *Nada nivel trend*: a piece whose subject is dated by the news
+> cycle, and whose thesis does not survive it, has failed this rule.**
+
+The owner's ruling, 2026-09-19:
+
+> *«gosto de analises profundas sobre temas, sejam eles quais forem. essa precisa ser uma marca editorial. nada muito superficial nivel trend.»*
+
+***«Sejam eles quais forem»* is the operative half.** Depth is not reserved for the engineer tier or for
+`engenharia`-tracked pieces. It is the mark, on every subject, **including the `pessoal` track that has
+never shipped**.
+
+#### Depth is a DIFFERENT AXIS from rigor, and the register already made this argument about rigor
+
+***One register across BOTH tracks*** says the personal track is the on-ramp a lay reader meets first,
+so if it is the loose one the surface teaches, at first contact, that the **rigor** is optional. **Rule
+25 says the same about DEPTH, and they are not the same property.** A piece can be fully rigorous —
+every claim opening a file, every limit stated first — and still be shallow, because it never asks
+**why the thing is as it is**. Rigor is about whether the claims hold. Depth is about whether the piece
+went past the first true answer.
+
+#### The boundary against rule 22, which is where this fails if nobody writes it down
+
+**Rule 22 asks for an accessible surface. ACCESSIBLE IS NOT SHALLOW.** The surface is the **entry**, not
+the **ceiling**: a curious non-engineer gets a door, not a simplified version of the piece. **A piece
+that is accessible and shallow satisfies rule 22's letter and destroys rule 25**, and that is the cheap
+resolution a drafter reaches for under length pressure.
+
+**This is the same shape as rule 16's boundary against rule 14** — two clauses touching one property
+from opposite sides, where the failure is always resolving one by spending the other. Both sides are
+written down, in both rules, for that reason.
+
+#### What makes *«nada nivel trend»* checkable, and it is the register's OWN falsifier
+
+**A trend piece opens no file, cites no decision, and costs the author nothing.** Those are constraints
+1 and 2 of the register — *every claim resolves to a file the reader can open* and *admissions cost the
+author* — so most of this is already caught. **What rule 25 adds is the residual: a piece may clear all
+four constraints and still be a surface reading**, and until now that was not a finding anybody could
+raise.
+
+#### What rule 25 CANNOT do
+
+**This is the least mechanical clause in the file, and saying so is part of the rule.** *Deep* is a
+judgement with no instrument behind it — no count, no threshold, no command. A reviewer raising it
+should be able to name **the question the piece did not ask**, which is the closest thing to a
+falsifier this rule has; *"this feels thin"* is not a repair ground, because
+`content-reviewer` repairs on a clause it can quote and a quoted clause still needs a stated instance.
+**And it cannot define the `pessoal` track's evidence bar** — *One register across BOTH tracks* already
+answers that for rigor (*"if nothing opens, it is testimony, and testimony gets marked as testimony"*)
+and nothing here changes it. No layer reads a draft.

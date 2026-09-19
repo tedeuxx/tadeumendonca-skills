@@ -2403,7 +2403,7 @@ for cp_lit in \
   'Isso é o que eu penso.' \
   'is set as a quotation block, and the block carries' \
   'A reader must never be able to read the name as part of what was said' \
-  '9 through 21 occur once each, file-wide' \
+  '9 through 25 occur once each, file-wide' \
   ; do
   grep -qF -- "$cp_lit" "$ROOT/skills/published-voice/SKILL.md" 2>/dev/null \
     || cp_body_missing="$cp_body_missing \"$cp_lit\""
@@ -2430,9 +2430,10 @@ if [ -n "$cp_body_missing" ]; then
       quotation block, and a reader must not be able to take it as part of what was said.
       If the SPAN literal is the one missing, check that no rule was renumbered and that no later
       section restarted at 12: the clauses survive that edit and their citability does not. THE SPAN
-      ENDS AT 21 SINCE 2026-09-19 — rules 19-21 are POST rules that joined the span for citability
-      rather than by domain, so a sweep that 'corrects' the literal back to 18 or 20 breaks arm H's
-      clauses as well as this one."
+      ENDS AT 25 SINCE 2026-09-19 — rules 19-21 are POST rules and rules 22-25 are REGISTER AND
+      AUDIENCE rules, and all seven joined the span for citability rather than by domain, so a sweep
+      that 'corrects' the literal back to 18, 20 or 21 breaks arm H's and arm I's clauses as well as
+      this one."
 else
   ok "content pair — the body rules 12-18 (name-then-deliver, the negation test, the single closing
       act, the spine-surface pairing, explicit takeaways with the summary boundary, the signature, the
@@ -2541,6 +2542,101 @@ else
       asserts the rules are WRITTEN, never that a post obeys them — no layer observes a draft, and the
       publish act runs through a browser extension no matcher in this plugin sees. No FIGURE is
       pinned: rule 20 carries no number, because he asked for a direction rather than a threshold"
+fi
+
+# ── ARM I: the REGISTER/AUDIENCE rules 22-25 are PRESENT in the ruler, and reach the writer ─────────
+# Same argument as arms E, F, G and H and built on their shape: `content-reviewer` repairs a draft on a
+# clause it can QUOTE, so a rule meant to bind has to survive as a quotable clause. Four owner rulings
+# made in one conversation on 2026-09-19, and they land together because they are one object: what a
+# piece is SHAPED like (22), who it is addressed to (23), what register it may reach for (24), and how
+# deep it has to go (25).
+#
+# WHY EACH RULING IS PINNED IN HIS OWN PORTUGUESE AS WELL AS IN THE ENGLISH CLAUSE. Three of the four
+# are re-readings of clauses this file ALREADY carried — 22 of the two-audiences resolution, 24 of the
+# register's absolute, 25 of the one-register-across-both-tracks argument — so an English paraphrase
+# alone is indistinguishable from the sentence that was already there, and a sweep that "tidies" it
+# back into the older wording leaves the arm green over a ruling that has been dissolved.
+#
+# THE TWO CLAUSES THAT PULL AGAINST EACH OTHER ARE BOTH PINNED, ON PURPOSE. Rule 22 asks for an
+# accessible surface and rule 25 forbids a shallow one, and the cheap resolution — simplify until it is
+# accessible — satisfies 22's letter and destroys 25. So ENTRY-NOT-CEILING and ACCESSIBLE-IS-NOT-SHALLOW
+# are pinned as a PAIR: either one alone reads as settled, and the tension is the finding.
+#
+# AND THE DATED ANCHOR IS PINNED AS A VALUE, not as a date somewhere in the file. Rule 24 rests on the
+# Knuth quotation having been on the site in both editions since before the ruling — it is what makes
+# the philosophical reading of computing something the surface already claims rather than something
+# introduced here — so the commit line is pinned whole and a WRONG sha or a WRONG date is raisable, not
+# only a missing one. That is the same move arm H makes for the flags.
+#
+# WHAT IT DOES NOT MEAN: `hooks/hooks.json` registers `PreToolUse` on `Bash` and on the MCP matcher
+# only, so `Write` and `Edit` are observed by nothing and no layer can see a draft. It asserts the
+# rules are WRITTEN and that the writer's brief names the shape. Depth in particular is a judgement
+# with no instrument anywhere — see the rule's own closing paragraph, which says so.
+cp_voice_missing=""
+for cp_lit in \
+  'an accessible surface a curious non-engineer can read end to end' \
+  'never the CEILING. Layering is not averaging' \
+  'porem com detalhes e referencias que possam mostrar profundidade' \
+  'references that let a reader descend into' \
+  'Both audience tiers are plural in gender and in age' \
+  'o publico precisa ser plural quanto a genero e idade' \
+  'the grammar genders the reader, the address must not default to' \
+  'Neither edition is exempt' \
+  'A philosophical register is permitted and arrives AFTER the concrete' \
+  'never its POSITION: the voice stays a peer reporting' \
+  'poderia sim ter um tom de karnal, cortella e clovis' \
+  'THE ABSOLUTE WINS' \
+  'ee6c4f7 2026-08-09 content(architecture)' \
+  'Depth of analysis is an editorial mark and it applies on every subject' \
+  'gosto de analises profundas sobre temas, sejam eles quais forem' \
+  'ACCESSIBLE IS NOT SHALLOW' \
+  'a piece whose subject is dated by the news' \
+  ; do
+  grep -qF -- "$cp_lit" "$ROOT/skills/published-voice/SKILL.md" 2>/dev/null \
+    || cp_voice_missing="$cp_voice_missing ruler:\"$cp_lit\""
+done
+for cp_lit in \
+  'averaging is still forbidden, in those words' \
+  'plural in gender and in age' \
+  ; do
+  grep -qF -- "$cp_lit" "$CP_W" 2>/dev/null \
+    || cp_voice_missing="$cp_voice_missing writer:\"$cp_lit\""
+done
+if [ -n "$cp_voice_missing" ]; then
+  bad "content pair — a REGISTER/AUDIENCE-rule clause is missing:$cp_voice_missing
+      Rules 22-25 are the owner's four rulings of 2026-09-19, each with the wording he used. Rule 22:
+      a piece is LAYERED — an accessible surface with the detail and references underneath, the
+      surface being the ENTRY and never the CEILING. Rule 23: both tiers are plural in gender and
+      age, written PER EDITION because Portuguese genders by grammar and English does not. Rule 24:
+      a philosophical register arrives AFTER the concrete and borrows the reflective register's TONE,
+      never its POSITION. Rule 25: depth is an editorial mark on every subject, and a piece may clear
+      every other rule here and still be a surface reading.
+      \`content-reviewer\` may repair only on a clause it can QUOTE, so a clause removed here is a
+      repair ground the pair silently loses — and arm A stays green, because it compares skill NAMES
+      and never contents.
+      If the ENTRY-NOT-CEILING or the ACCESSIBLE-IS-NOT-SHALLOW literal is missing, the tension
+      between 22 and 25 has been resolved by deletion rather than stated — and it resolves the way
+      that destroys 25, because simplifying until a piece is accessible satisfies 22's letter.
+      If the PER-EDITION literal is missing, rule 23 has become an English-only clause: it would then
+      be obeyed in one edition and broken silently in the other, in agreement markers nobody reads.
+      That is the asymmetry rule 19 already hit and the reason this one is written by edition.
+      If the POSITION literal is missing, rule 24 has become permission for the register with nothing
+      separating a peer reporting from an authority on a stage — which is the failure the register's
+      own absolute (no name for the habit, no coined term, no numbered framework) exists to prevent,
+      and THE ABSOLUTE WINS is the precedence clause that says so when the two appear to disagree.
+      If the KNUTH COMMIT literal is missing or altered, rule 24 has lost the anchor that makes it a
+      ruling about something the surface already carried rather than a new register being introduced.
+      Re-derive it before changing it; do not 'correct' it from memory.
+      If a WRITER literal is missing, the ruler has the clause and \`agents/content-writer.md\` still
+      offers two shapes where the owner ruled a third — which is exactly the gap rule 22 closes."
+else
+  ok "content pair — the register/audience rules 22-25 (the layered piece with the surface as entry
+      and not ceiling, the plural audience written per edition, the philosophical turn after the
+      concrete borrowing tone and not position, and depth as an editorial mark on every subject) are
+      present in the shared ruler WITH the owner's own Portuguese for each ruling, the 22/25 tension
+      pinned from both sides, the dated anchor pinned as a value, and the writer's brief carrying the
+      third shape. Presence only: this asserts the rules are WRITTEN, never that a draft obeys them —
+      no layer observes an Edit, and DEPTH has no instrument anywhere in this repo"
 fi
 
 # ---------------------------------------------------------------------------------------------------

@@ -55,15 +55,33 @@ edit, not an assumption you make silently.
   spark curiosity** — a demonstration of judgment, not a tutorial. **Higher-level is not distant**, and his
   own peer-facing writing failed by reading the two as the same thing.
 
+**Neither tier is a demographic, and since 2026-09-19 that is a defect rather than a neutrality** —
+both are **plural in gender and in age**, and the obligation lands on different words in each edition.
+The clause is `published-voice`'s **rule 23** and it is not restated here, for the reason the whole
+ruler was extracted: you and the reviewer judge against the same sentences.
+
 **The objective both serve is `published-voice`'s, not this brief's** — *"focar em conexão com as duas
 personas alvo"*, and the three directives, the value filter and the relevance byproduct are stated
 there. Read them there.
 
 **How connection is actually produced is measured in `published-voice`'s corpus section — read it there
 rather than re-deriving it:** direct questions to the reader, lived cases accumulated before the thesis,
-a warm close that wishes or instructs rather than summarising. Where a piece must choose a primary
+a warm close that wishes or instructs rather than summarising. ~~Where a piece must choose a primary
 audience, say so in the draft's own framing; never silently average the two into something that serves
-neither.
+neither.~~
+
+**Struck 2026-09-19 in its READING, not in its content — every word of it still binds, and there is now
+a THIRD shape it does not name.** It is struck rather than extended in place because a reader took a
+design decision from it: two options, declare or average, with averaging forbidden — so the declared
+single tier read as the default whenever one text would not stretch. **The owner ruled a third and made
+it the default: a piece is LAYERED** — an accessible surface with the detail and the references
+underneath for whoever descends. That is `published-voice`'s **rule 22**, and it is stated there rather
+than here.
+
+**What survives verbatim:** averaging is still forbidden, in those words, and **layering is not
+averaging** — averaging flattens to one register, layering keeps both present. And a piece that
+genuinely must choose a primary audience still **says so in the draft's own framing**; rule 22 makes
+that the exception it was written as rather than something to reach for.
 
 ## The anchor page, and the limit that is a fact about the consuming repo
 
