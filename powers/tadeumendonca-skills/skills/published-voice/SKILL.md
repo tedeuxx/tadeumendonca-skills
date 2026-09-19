@@ -604,24 +604,25 @@ re-derived — so the published selector returned **4** while the text beside it
 before this slice. The claim the figure supports gets **stronger**, which is exactly why nobody
 re-ran it: *"rule 3"* now names **four** different clauses, one of them a gate.
 
-**9 through 20 occur once each, file-wide**, which is what makes them quotable in the sense
+**9 through 21 occur once each, file-wide**, which is what makes them quotable in the sense
 `content-reviewer`'s repair ground requires. Falsifier, and it is the whole claim:
 
 ```
-grep -cE '^> \*\*(9|1[0-9]|20)\.|^(9|1[0-9]|20)\. \*\*' <this file>  # -> 12, one apiece
-grep -cE '^> \*\*3\.|^3\. \*\*'                          <this file>  # -> 4, in four sections
-grep -cE '^> \*\*99\.|^99\. \*\*'                        <this file>  # -> 0, the selector is alive
+grep -cE '^> \*\*(9|1[0-9]|2[01])\.|^(9|1[0-9]|2[01])\. \*\*' <this file>  # -> 13, one apiece
+grep -cE '^> \*\*3\.|^3\. \*\*'                                <this file>  # -> 4, in four sections
+grep -cE '^> \*\*99\.|^99\. \*\*'                              <this file>  # -> 0, the selector is alive
 ```
 
-~~`9 through 18` · `-> 10`~~ — **struck 2026-09-19: the span grew to 20 and the figure with it.**
-Struck rather than edited silently, because the number is the claim and a reader who ran the old
-selector at this head would get 10 from a pattern that no longer covers the span its own sentence
-names.
+~~`9 through 18` · `-> 10`~~ ~~`9 through 20` · `-> 12`~~ — **struck 2026-09-19, twice in one day, as
+the span grew to 20 and then to 21.** Struck rather than edited silently, because the number is the
+claim and a reader who ran an old selector at this head would get a smaller, correct-looking count from
+a pattern that no longer covers the span its own sentence names. **A stale selector here fails in the
+permissive direction** — it returns a number rather than nothing, so it reads as a passing check.
 
-**The span is a CITABILITY device and not a domain, and rules 19–20 are what make that explicit.**
+**The span is a CITABILITY device and not a domain, and rules 19–21 are what make that explicit.**
 9 through 18 are all article rules, so the span and the domain coincided and nobody had to say which
-one the numbering was for. **19 and 20 are POST rules** — they belong to the social section at the end
-of this file, not to the body section — **and they joined this span rather than continuing the post
+one the numbering was for. **19, 20 and 21 are POST rules** — they belong to the social section at the
+end of this file, not to the body section — **and they joined this span rather than continuing the post
 sequence at 9 for one reason: `content-reviewer` repairs on a clause it can QUOTE, and a second "rule
 9" would have made the existing one uncitable.** The post sequence 1–8 is frozen at 8 for the same
 reason: it is one of the four sequences that restart at 1, and it does not grow.
@@ -1503,8 +1504,8 @@ because it is a real scoping gap in this section and it should not be discovered
 
 > **19. A bilingual post opens with a one-line hint, written in the language of the block it points AT,
 > naming where that block is. The trailing block carries a matching one-line marker immediately above
-> it. Both carry a flag emoji standing for the language, and both are ONE LINE that does not explain
-> itself.**
+> it. Both carry a flag emoji standing for the language — **🇧🇷 for Portuguese, 🇺🇸 for English** — and
+> both are ONE LINE that does not explain itself.**
 
 The owner's ruling, 2026-09-19, made while reading a post this loop had published minutes earlier:
 
@@ -1544,15 +1545,22 @@ precedent I can point at.
 
 **3 · It does NOT depend on which language leads, and the rule is written by ROLE to make that
 structural.** *Leading block* and *trailing block*, never *the Portuguese one*. A rule phrased in
-language names would have had to be re-derived the first time the order flipped, and the order has
-already flipped once inside this corpus.
+language names would have to be re-derived the first time the order flipped. **The recorded corpus is
+Portuguese-first throughout and has never flipped** — `grep '^## .*LinkedIn' docs/social/*.md` returns
+two headings, both *"Portuguese first"*, and both leading blocks open in Portuguese — so this clause is
+written against a case that has not occurred, deliberately, rather than against one that has.
 
-**4 · The flag stands for the LANGUAGE, and the English flag is NOT settled here.** 🇧🇷 for Portuguese
-is his own ruling plus the one precedent. **For English the corpus cannot settle it and no choice here
-is neutral** — 🇬🇧 and 🇺🇸 are both nationality standing in for a language, and they say different
-things about who the post is addressed to. **That is his call and it is recorded as open rather than
-invented.** Until he makes it, the rule binds on *a flag standing for the language* and a reviewer may
-raise a missing flag and may not raise which flag.
+**4 · The flags are DECIDED, and they are 🇧🇷 for Portuguese and 🇺🇸 for English.** 🇧🇷 is his own
+ruling plus the one precedent. **🇺🇸 is his ruling of 2026-09-19**, taken against 🇬🇧 and against
+carrying no flag at all, with the trade-off stated: neither flag is neutral, because both are a
+nationality standing in for a language and they say different things about who the post is addressed
+to. **He was shown that and chose 🇺🇸.**
+
+~~**the English flag is NOT settled here** … the rule binds on *a flag standing for the language* and a
+reviewer may raise a missing flag and may not raise which flag~~ — **struck the same day it was
+written: he ruled within the hour.** Struck rather than deleted because it is the sentence that told a
+reviewer it could not raise a wrong flag, and that is exactly what it may now do. **A reviewer may
+raise a missing flag AND a wrong one.**
 
 #### The corpus this was derived from is ONE record, and the precedent is NOT in it
 
@@ -1672,10 +1680,115 @@ target. **That is a real limit and not a phrasing choice** — it is what *«um 
 also a character count, which measures nothing about whether the post is any good, and it is checked by
 the same nothing rule 19 is: no layer observes a draft.
 
+### Rule 21 — the shared link is the LOCALE-NEUTRAL URL, and today it does not resolve
+
+> **21. The URL in a social post is the locale-neutral one, on EVERY surface. The reader's own
+> language decides what they land on — the post's language does not, and neither does the network's.**
+>
+> **PRECONDITION, stated first because the rule is unusable without it: that URL must resolve to the ARTICLE.**
+> **Where it does not, the localized URL stays and the post ships with the friction.** A link that
+> lands nobody on the piece is strictly worse than a link that lands the wrong half of the audience on
+> it in the wrong language.
+
+The owner's ruling, 2026-09-19:
+
+> *«todo post de rede social tem que ser feito com a url nao regionalizada»*
+
+> *«isso é um erro»* · *«quando abro ele carrega em ingles para mim ao inves de portugues»* · *«acho que isso pode estar fazendo as pessoas nao lerem os artigos»* · *«isso deveria se aplicar tanto ao link compartilhado no post do x como do linkedin»*
+
+**This one REVERSES a ratified decision, which is what makes it different from 19 and 20.** The
+standing convention was his own call of 2026-08-17 — *«o link deveria ser em inglês ao compartilhar
+nessas redes»* — recorded in the consuming product's distribution record, which **already named this
+exact cost in its own words** (*"a real friction for exactly the audience the Portuguese half was
+written for"*). **So this is not a drafting slip being corrected. The convention was applied correctly
+and he has ruled its effect an error.**
+
+**BOTH surfaces, and the English-language post is the one to get wrong.** An English post makes an
+English link look correct; it is not. That audience is not English-only, and the reader who follows a
+link is entitled to the same resolution whichever network they came from.
+
+#### The precondition is live, and status codes cannot see it
+
+**Measured against production, 2026-09-19, and re-derived rather than inherited:**
+
+```
+curl -s -o /dev/null -w '%{http_code}\n' https://<apex>/blog/<en-slug>       # -> 200
+curl -s -o /dev/null -w '%{http_code}\n' https://<apex>/blog/zzz-not-a-page  # -> 200   <- the calibration
+curl -s https://<apex>/blog/<en-slug>      | grep -oE 'rel="canonical" href="[^"]*"'
+# -> rel="canonical" href="https://<apex>/en"          the English LANDING page
+curl -s https://<apex>/blog/zzz-not-a-page | grep -oE 'rel="canonical" href="[^"]*"'
+# -> rel="canonical" href="https://<apex>/en"          IDENTICAL — a soft-404
+curl -s https://<apex>/en/blog/<en-slug>   | grep -oE 'rel="canonical" href="[^"]*"'
+# -> rel="canonical" href="https://<apex>/en/blog/<en-slug>"   the article, only under the locale
+```
+
+**The neutral URL and a URL that was never a page are byte-identical in both instruments.** The second
+line is the calibration and it is the whole of why this paragraph exists: a status check here has a
+positive result that is **unconditional**, so *"I fetched it and it worked"* is true of an address
+nobody can open. **The discrimination that works is comparing the SERVED CANONICAL against the
+REQUESTED PATH** — see *Before you trust a green, break it on purpose* in `/engineering-standards`,
+which names this exact shape.
+
+**One objection is closed before it is raised: the article measured is PUBLISHED, in both editions.**
+Re-run 2026-09-19 against a piece that is live rather than held — the neutral form of BOTH its slugs
+serves the landing page while both localized forms serve the article — so the precondition is a
+property of the routing and not an artifact of a draft that was never prerendered. **That matters
+because the cheapest wrong reading here is *"it only fails for held pieces"*, which would make the
+rule look immediately usable and send a drafter to a dead link.**
+
+#### Why the fix is bigger than dropping a segment — the two editions have DIFFERENT SLUGS
+
+**There is no one slug for the locale segment to be dropped from.** Article slugs are localized by a
+ratified decision in the consuming product, so the two editions of one piece are different strings, and
+the Portuguese slug is a soft-404 in neutral form exactly as the English one is:
+
+```
+curl -s https://<apex>/pt/blog/<pt-slug> | grep -oE 'rel="canonical" href="[^"]*"'   # -> the article
+curl -s https://<apex>/blog/<pt-slug>    | grep -oE 'rel="canonical" href="[^"]*"'   # -> /en, soft-404
+```
+
+**So the neutral form has to be keyed on something the two editions share, and choosing what is a
+design decision rather than a repair.** It is tracked in the consuming product's own queue, which
+records the same tension and explicitly leaves it open.
+
+#### What a drafter does TODAY — forced by the measurement, not chosen here
+
+**Ship the localized URL, as before.** That is not a preference and it is not a softening of his
+ruling: the measurement above leaves no third option, because the neutral URL currently resolves to
+the landing page. **The rule takes effect the moment the neutral form resolves**, and a drafter does
+not assume that day has come — **run the canonical comparison above, not a status check.**
+
+**The interim is genuinely OPEN, and it is not mine.** Whether the neutral form is a prerendered route
+or an edge redirect, what it is keyed on, and whether the share convention's record is amended are all
+the owner's, in the consuming product. **This clause carries the obligation and the precondition; it
+does not decide the mechanism.**
+
+**One ordering constraint worth carrying, because it is irreversible:** changing what a URL *serves* is
+safe; changing the URL in a post that is *already live* is a different act — a scraper has pinned that
+post's card, and editing a published link is not a retroactive fix.
+
+#### Why this is in the ruler and not only in the product's record
+
+**`content-reviewer` repairs only on a clause it can QUOTE, and no clause of that record is quotable
+from this repository.** A share-link rule living only in the consuming repo is a rule the reviewing
+half of the pair cannot cite — the same argument that put rules 16 through 20 here. The record is owed
+its own amendment and that amendment is the product's, not this file's.
+
+#### What rule 21 CANNOT do
+
+It is a check on one string in a draft, plus a fetch. It cannot tell whether the reader's language was
+actually honoured after the click — that happens on the network and in a browser, and this loop's
+site instrumentation begins at the click and is consent-gated besides. **And the owner's hypothesis
+that the English link is why people are not reading is a HYPOTHESIS, in those words** — the defect is
+measured, its cost is not. What would settle it is clicks per post paired with the language of the
+page each click resolved to, which nobody here holds.
+
 **What is deliberately not here:** the per-medium distribution conventions (which language on which
 network, where the canonical link sits, hashtags, where a draft is stored). Those are mechanics of
 publishing, not of voice, and they belong with the persona or the repo that performs the distribution.
-This file is what a draft is judged against. **Rules 19 and 20 sit on this line and stay on the voice
-side of it** — rule 19 governs the text of two lines a reader reads and not which language leads; rule
-20 governs how long the prose runs, which is the same object rules 10 and 11 already govern one rung up
-the density ladder.
+This file is what a draft is judged against. **Rules 19, 20 and 21 sit on this line and stay on the
+voice side of it** — rule 19 governs the text of two lines a reader reads and not which language leads;
+rule 20 governs how long the prose runs, which is the same object rules 10 and 11 already govern one
+rung up the density ladder. **Rule 21 is the closest to the line and is on the voice side for a stated
+reason:** it governs *which resource the reader is sent to*, which is a claim the post makes to its
+reader about what they will get — not *where the link sits in the body*, which stays a mechanic.
