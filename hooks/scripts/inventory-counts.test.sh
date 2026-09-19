@@ -2403,7 +2403,7 @@ for cp_lit in \
   'Isso é o que eu penso.' \
   'is set as a quotation block, and the block carries' \
   'A reader must never be able to read the name as part of what was said' \
-  '9 through 18 occur once each, file-wide' \
+  '9 through 21 occur once each, file-wide' \
   ; do
   grep -qF -- "$cp_lit" "$ROOT/skills/published-voice/SKILL.md" 2>/dev/null \
     || cp_body_missing="$cp_body_missing \"$cp_lit\""
@@ -2429,13 +2429,118 @@ if [ -n "$cp_body_missing" ]; then
       an attribution line is the first thing that deliberately puts the page's own voice INSIDE a
       quotation block, and a reader must not be able to take it as part of what was said.
       If the SPAN literal is the one missing, check that no rule was renumbered and that no later
-      section restarted at 12: the clauses survive that edit and their citability does not."
+      section restarted at 12: the clauses survive that edit and their citability does not. THE SPAN
+      ENDS AT 21 SINCE 2026-09-19 — rules 19-21 are POST rules that joined the span for citability
+      rather than by domain, so a sweep that 'corrects' the literal back to 18 or 20 breaks arm H's
+      clauses as well as this one."
 else
   ok "content pair — the body rules 12-18 (name-then-deliver, the negation test, the single closing
       act, the spine-surface pairing, explicit takeaways with the summary boundary, the signature, the
-      attributed quotation block) and the 9-18 span literal that keeps them citable are present in
+      attributed quotation block) and the 9-21 span literal that keeps them citable are present in
       the shared ruler. Presence only: this asserts the rules are WRITTEN, never that a draft obeys
       them and never that a repair was placed under one — no layer observes an Edit"
+fi
+
+# ── ARM H: the POST rules 19-20 are PRESENT in the ruler AND reach the LANE (2026-09-19) ────────────
+# Same argument as arms E, F and G: `content-reviewer` repairs on a clause it can QUOTE, so a rule
+# meant to bind has to survive as a quotable clause. Two owner rulings, made in one sitting while he
+# read a post this loop had published minutes earlier, and they are INDEPENDENT of each other — the
+# bilingual language hints (19) and the LinkedIn length target (20). They are pinned together because
+# they landed together, never because either implies the other.
+#
+# WHY THIS ARM ALSO READS content-publishing, which arms E-G do not. Rules 19 and 20 are the first
+# clauses in this file whose defect was caught on a LIVE post rather than in a review round, and the
+# reason is that the lane had no step where anybody read a social draft for anything. A clause in the
+# ruler with no step in the lane is what produced rule 17's signature defect; pinning only the ruler
+# half here would reproduce it knowingly.
+#
+# WHAT IS DELIBERATELY NOT PINNED, and it is the half a later reader will reach for: no FIGURE. Rule
+# 20 carries no number, because the owner asked for "um pouco" smaller, which is a direction and not a
+# threshold. An arm asserting a threshold nobody set would be a green over an invention, and it would
+# go red the day he names one — which is the wrong way round.
+#
+# THE TWO FLAGS ARE PINNED, AND THAT IS NOT AN EXCEPTION TO THE PARAGRAPH ABOVE. A flag is a decided
+# VALUE with no in-between; a length is a threshold he has not set. 🇺🇸 was ruled on 2026-09-19,
+# against 🇬🇧 and against no flag at all, so a reviewer may now raise a WRONG flag and not only a
+# missing one — which is precisely what an unpinned value could not support. His form ruling is pinned
+# in his own Portuguese as well as in the English clause: the flag half ("emoji de bandeiras remetendo
+# a idiomas") and the restraint half ("algo direto que nao polua em texto") are one sentence and a
+# clause carrying only the second reads as a plain-text rule.
+#
+# WHAT IT DOES NOT MEAN: `hooks/hooks.json` registers `PreToolUse` on `Bash` and on the MCP matcher
+# only, so `Write` and `Edit` are observed by nothing and the post itself ships through a browser
+# extension no matcher sees. This asserts the rules are WRITTEN and that the lane names them.
+cp_post_missing=""
+for cp_lit in \
+  'a bilingual post says WHERE the other language is' \
+  'written in the language of the block it points AT' \
+  'a flag emoji standing for the language' \
+  'emoji de bandeiras remetendo a idiomas' \
+  '🇧🇷 for Portuguese, 🇺🇸 for English' \
+  'é fundamental para o formato de post bilingue ter esses hints' \
+  'algo direto que nao polua em texto' \
+  'the 3,000-character ceiling is never the target' \
+  'read PER LANGUAGE BLOCK, because a reader consumes one block and not both' \
+  'podem ser menores acho um pouco tbm' \
+  'a target well below a real ceiling' \
+  'todo post de rede social tem que ser feito com a url nao regionalizada' \
+  'The URL in a social post is the locale-neutral one, on EVERY surface' \
+  'that URL must resolve to the ARTICLE' \
+  ; do
+  grep -qF -- "$cp_lit" "$ROOT/skills/published-voice/SKILL.md" 2>/dev/null \
+    || cp_post_missing="$cp_post_missing ruler:\"$cp_lit\""
+done
+for cp_lit in \
+  'A bilingual post is READ for its two language hints and for its length, BEFORE it is posted' \
+  'The share URL is FORMED locale-neutral, and only then tagged' \
+  ; do
+  grep -qF -- "$cp_lit" "$ROOT/skills/content-publishing/SKILL.md" 2>/dev/null \
+    || cp_post_missing="$cp_post_missing lane:\"$cp_lit\""
+done
+if [ -n "$cp_post_missing" ]; then
+  bad "content pair — a POST-rule clause is missing:$cp_post_missing
+      Rules 19-20 are the owner's two rulings of 2026-09-19, each with the wording he used. Rule 19:
+      a bilingual post opens with a one-line hint in the language of the block it points AT, the
+      trailing block carries a matching marker, both carry the flag he ruled for that language
+      (BR for Portuguese, US for English), and neither explains itself.
+      Rule 20: a LinkedIn post is drafted to a TARGET and the 3,000-character
+      ceiling is never it, read per language block because a reader consumes one block.
+      \`content-reviewer\` may repair only on a clause it can QUOTE, so a clause removed here is a
+      repair ground the pair silently loses — and arm A stays green, because it compares skill NAMES
+      and never contents.
+      If the POINTS-AT literal is missing, rule 19 has lost the only thing that makes the hint reach
+      the reader it was added for: a hint written in the LEADING language is invisible to exactly the
+      reader who cannot read the leading block.
+      If the TARGET literal is missing, rule 20 has become a hard limit — which is what the owner
+      STRUCK on the article lane one day earlier (\"essa meta nao deveria ser um hard limit\"), so
+      re-installing it here would reverse his ruling on a different surface.
+      If the PER-BLOCK literal is missing, the rule has started describing a thing no reader
+      experiences: a bilingual post is two posts nobody reads together.
+      If the LANE literal is the one missing, the ruler has a clause and the lane has no step that
+      asks it — which is exactly how rule 17's signature went missing from every shipped piece.
+      If either FLAG literal is missing, rule 19 has gone back to binding on 'a flag' — which lets a
+      reviewer raise a MISSING flag and not a WRONG one, and he ruled the value on 2026-09-19. Do not
+      'fix' this by generalising the clause: the generalisation is the thing his ruling replaced.
+      If the PORTUGUESE FORM literal is missing, his one sentence has been pinned in half: the flag
+      half and the restraint half were ruled together, and the restraint half alone reads as a
+      plain-text rule.
+      If the PRECONDITION literal is missing, rule 21 has become 'use the neutral URL' with nothing
+      in front of it — and the neutral URL is a SOFT-404 at the time of writing, so the rule would
+      instruct a drafter to ship a link that lands nobody on the article. THAT IS THE ONE FAILURE
+      MODE HERE THAT IS WORSE THAN THE DEFECT IT REPLACES, and it is why the precondition is stated
+      before the obligation in the rule's own text rather than after it.
+      If the FORMATION literal is missing, rule 21 has lost the step where it binds at all. Do not
+      repair that by pointing it at step 7's formation section: that one governs the PREVIEW link and
+      is locale-PREFIXED on purpose, because a held piece is prerendered in no edition. The two are
+      opposite and both are correct."
+else
+  ok "content pair — the post rules 19-21 (the bilingual language hints, their points-at-language
+      condition and the two flags he ruled; the LinkedIn target that is not the ceiling, read per
+      language block; the locale-neutral share URL WITH the precondition that gates it) are present in the shared ruler WITH the owner's own wording on both halves of
+      his form ruling, and the lane carries the step that reads a draft for them. Presence only: this
+      asserts the rules are WRITTEN, never that a post obeys them — no layer observes a draft, and the
+      publish act runs through a browser extension no matcher in this plugin sees. No FIGURE is
+      pinned: rule 20 carries no number, because he asked for a direction rather than a threshold"
 fi
 
 # ---------------------------------------------------------------------------------------------------

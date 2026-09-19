@@ -332,6 +332,14 @@ it there.**
 **formation**, applied at the moment the URL is composed — not a verification performed afterwards,
 because on this architecture the verification that would rescue a wrongly-composed URL does not exist.
 
+**SCOPE, and it must be read before the rule or the rule looks reversed.** This governs **the PREVIEW
+link sent to the owner at this step** — not the SHARE link in a social post, which is step 10's and is
+governed by `published-voice`'s rule 21. **The two are opposite on purpose and neither is a drift.**
+The preview link is locale-prefixed **because he reviews one edition at a time** and because a held
+piece is prerendered in no edition at all, so there is nothing for a neutral form to resolve to here.
+The share link is neutral because its reader's own language should decide. **Do not "reconcile" them:
+a sweep that made this section neutral would send him a link to a page that does not exist.**
+
 **IS:** every segment is read out of the artifact. The **locale prefix** of the edition you are
 sending, and the **slug from that edition's own front matter**. Each edition declares its own slug, and
 the two are different strings — translating a title translates its slug with it.
@@ -503,8 +511,21 @@ exist; lookup refuses it.
 second half is untouched and is now one of four things nothing verifies — see the table at the end of
 this section.
 
-**Three steps the lane carries, and each is labelled with what holds it.**
+**Five steps the lane carries, and each is labelled with what holds it.** ~~Three~~ ~~Four~~ — the
+fourth and fifth both landed 2026-09-19, with rules 19–20 and rule 21; the count is stated here rather
+than left to be counted, because a reader who takes a stale number from this sentence stops at that
+bullet. **It has now moved twice in one day, which is the argument for stating it rather than for
+dropping it.**
 
+- **The share URL is FORMED locale-neutral, and only then tagged.** This is where
+  `published-voice`'s rule 21 binds — **at formation, textually, before anything is posted**, which is
+  the cheapest layer that can hold it and the same move step 7 makes for the preview link. **The two
+  formation rules are opposite and both are right**: step 7 is locale-prefixed because the owner
+  reviews one edition, this one is neutral because the reader's own language should decide. **Until
+  the neutral form resolves to the ARTICLE the localized URL stays** — rule 21 states that precondition
+  first, and a drafter checks it by comparing the SERVED CANONICAL against the REQUESTED PATH, never by
+  a status code, because the catch-all rewrite answers `200` for a path that was never a page. *Held
+  by: an instruction, at the moment the string is composed.*
 - **The share URL is tagged.** Build it with `withShareUtm(url, source, AUTHOR_CAMPAIGN)` —
   `utm_source` per network — and put the tagged URL in the post body on **both** networks. The
   instrument exists and was not used: the 2026-09-04 pair carried no UTM at all, so that publication is
@@ -518,16 +539,49 @@ this section.
   the `og:image` it declares returns 200 and is the per-article card. The failure this prevents is the
   least reversible act on this platform — **a scraper pins the card it first fetches, so a wrong card
   outlives the merge that fixed it.** *Held by: an instruction, and nothing else can hold it.* A
-  `PreToolUse` hook on `Bash` never sees a browser act; the `mcp__.*` matcher sees a tool name and not
-  page state; a `Stop` hook is one turn late with the pin already taken. **Written precondition at
-  worst, detection at best, and there is no third option** — do not build something that reads as a
-  refusal.
+  `PreToolUse` hook on `Bash` never sees a browser act; ~~the `mcp__.*` matcher sees a tool name and not
+  page state~~ **the `mcp__.*` matcher receives the full `tool_input`, so it sees the TYPED TEXT of the
+  call — including a URL — and does NOT see PAGE STATE**; a `Stop` hook is one turn late with the pin
+  already taken. **Written precondition at worst, detection at best, and there is no third option** —
+  do not build something that reads as a refusal.
+
+  **The strike is narrow and the conclusion above it is UNCHANGED**, which is the point of correcting
+  it rather than deleting it. The OG card genuinely is page state — what a scraper fetched, what the
+  page declares once rendered — so *"written precondition at worst, detection at best"* is correct for
+  **this** bullet. **What the old wording was false about is the INPUT, and the input is where a URL
+  lives** — so a reader who took *"the hook cannot see the text"* from it would close the inquiry for
+  every clause on this lane that is about a typed string, which is a different and much larger class.
+  **That is principle 12's named failure in its most expensive form: an answer that is TRUE and ends
+  the investigation.**
+
+  **Provenance, stated because it decides how much the correction is worth.** The payload shape was
+  measured against build `2.1.278` with a probe plugin, one MCP call forced, the hook's stdin captured
+  and its `deny` honoured — the captured stdin carried `tool_input` in full, with a nonce URL inside
+  it, plus an `mcp_server` field. **That measurement is RELAYED here and was not re-derived in this
+  slice.** What *is* checkable from this tree corroborates it rather than proving it:
+  `hooks/scripts/mcp-guard.sh`'s own header says only that an MCP call has no `.tool_input.command` —
+  **it never claimed `tool_input` itself was absent**, so nothing in this repository ever asserted the
+  stronger thing the struck clause asserted.
 - **The drain's `content` exclusion bounds who SELECTS a piece; it does not bound who can POST.**
   `/autonomy on`'s pool is `(product OR loop) AND ready AND active-iteration`, so this lane is out **by
   predicate rather than by exception** — which is the better design and is not the containment anyone
   should be crediting. **Nothing binds the publish act to a `content` Issue at all:** no lane check, no
   label check, no Issue check, on either route. The route into an unattended post is **any session**,
   not the drain, so admitting `content` to the drain is not what would open it.
+- **A bilingual post is READ for its two language hints and for its length, BEFORE it is posted.**
+  `published-voice`'s rule 19 — a one-line hint at the top in the language of the block it points at,
+  a matching one-line marker immediately above the trailing block, 🇧🇷 on the Portuguese one and 🇺🇸 on
+  the English one — and its
+  rule 20, the target that is not the 3,000-character ceiling, read per language block. **Both are
+  counted, not judged**, which is what makes this a step rather than an opinion: the two markers are
+  either in the draft or they are not, and the block lengths are a character count. **The reason it is
+  a step at all is that rule 19's element has been shipped correctly exactly once and dropped on every
+  post since** — it is the signature defect one surface over, and the owner caught it on the live post
+  rather than in a round. *Held by: an instruction, and nothing else.* `Write` and `Edit` are observed
+  by no matcher in this plugin, and the post itself goes out through a browser extension that no
+  matcher sees at all — so this cannot be more than a written precondition, exactly like the OG-card
+  check above. **Neither rule is a merge hold**: no copy hold reaches this lane (step 6), so a post
+  missing its hints ships unless somebody reads for it here.
 
 **The drafts are written to a private, ignored location**, because pre-publication copy in a public
 repository lets anyone read tomorrow's post today. **Existing files are never overwritten** — the prose
@@ -541,6 +595,8 @@ is hand-voiced after generation, and regenerating over it at this cadence buys n
 | a post is preceded by the OG-card check | **an instruction.** No layer in this plugin sees page state |
 | the share URL carries its campaign | **an instruction**, measurable after the fact as a lower bound only |
 | both halves of the pair shipped | **nothing at post time.** Unchanged by any of this |
+| a bilingual post carries its two language hints, and sits under the length target | **an instruction** (`published-voice` rules 19–20, 2026-09-19). The gate arm asserts the clauses are WRITTEN; nothing reads a draft, and no copy hold reaches this lane to refuse a post that dropped them |
+| the share URL is locale-neutral | **an instruction** (rule 21, 2026-09-19), and it is **inert until the neutral form resolves** — so today what holds it is the precondition the rule states first. The `mcp__.*` matcher DOES receive the typed URL, which makes a detector conceivable on that route and on no other; nothing is built, and the route that has actually published is the browser extension no matcher sees |
 | the publish act is accounted for | **`orchestrator-tool-census.sh`'s `W` arm — after the act, gating nothing, and on the MCP route only.** Blind to the route that has actually published |
 
 **By this loop's own test — *would something stop me, or only my memory?* — nothing on this step is
