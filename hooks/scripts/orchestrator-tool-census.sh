@@ -101,6 +101,49 @@
 # green. Same shape, and the same remedy, as the `permission-guard.sh` note further down: the two
 # files are a checklist for each other, held by review and by nothing else.
 #
+# ── #478: FIVE ADDITIONS TO W, AND THE ONE THAT DELIBERATELY OVER-REPORTS ─────────────────────
+# Owner's ruling, 2026-09-20: `mcp__claude-in-chrome__computer`, `git worktree`, `git apply`,
+# `git checkout` and `gh api` all join the W list. Re-derived at head over this machine's own main
+# session transcript rather than carried from the Issue, by running THIS hook against it:
+#
+#   jq -n --arg t <main-session .jsonl> --arg c <a scratch git repo> \
+#     '{transcript_path:$t, session_id:"derive1", cwd:$c, stop_hook_active:false}' \
+#     | bash hooks/scripts/orchestrator-tool-census.sh \
+#     | jq -r '.hookSpecificOutput.additionalContext'
+#   # unclassified, before this change:  computer x179 · git worktree x15
+#   #                                    gh api x1 · git checkout x1 · git apply x1
+#
+# THE INCIDENT: on the day this loop published an article to two social networks, edited a public
+# review comment and changed a setting in the owner's analytics property, the census recorded every
+# one of those acts as UNRECOGNISED — while recording the `navigate` calls that merely opened the
+# pages as write/post. The `?` class fires no notice, so the loop's only irreversible public acts
+# were the quietest thing in the report.
+#
+# `computer` OVER-REPORTS, AND THAT IS THE ACCEPTED COST RATHER THAN A DEFECT TO FIX LATER. Most of
+# those 179 calls are `screenshot`, `scroll` and `left_click` on a page being read; the typing and
+# the two Post clicks were a handful. **A reader who meets a screenshot in the write column has found
+# the intended behaviour, not a bug.** The reason the error is taken in this direction and not the
+# other: this hook GATES NOTHING and only reports, so an inflated write count costs attention, while
+# a missing one costs visibility of an irreversible act. Over-reporting is the survivable error here.
+# The same tie-break is what moves `gh api` out of `?`: nothing in a two-word label can tell
+# `gh api -X POST` from a `--jq` read, and the class whose error is survivable wins.
+#
+# SUBCLASSIFYING `computer` BY ITS `action` WAS PRICED AND IS NOT ADOPTED — the ruling was the blunt
+# form. The field IS reachable: every one of the 179 entries carries `.input.action`
+# (`left_click` 89 · `screenshot` 61 · `type` 14 · `wait` 5 · `scroll` 5 · `left_click_drag` 3 ·
+# `scroll_to` 1 · `key` 1). **What kills it is that the action names an INPUT MODALITY, not an
+# EFFECT.** `left_click` is half the corpus and holds both the link-clicks that merely navigate and
+# the two Post clicks that published — so the split would move 72 of 179 calls into R while leaving
+# the irreversible act indistinguishable inside the remaining 107. It would also widen the
+# extraction's `@tsv` to a third field and change `classify()`'s signature, which every fixture in
+# the suite carries. **A partial classifier that looks precise is worse than a blunt one that says
+# it is blunt**, which is why this paragraph is here rather than a patch.
+#
+# WHAT THIS DOES NOT FIX, AND THE HEADER KEEPS SAYING IT. This is a `Stop` hook; it fires after the
+# act, and nothing here becomes preventive. A subagent's calls are still invisible — a dispatch
+# appears only as `Agent`. And the W list remains a checklist against `mcp-guard.sh`, held by review
+# and by nothing else: five new entries are five new places the two files can drift apart in silence.
+#
 # ── THE TWO THINGS THIS ARM IS NOT ────────────────────────────────────────────────────────────
 # 1. IT GATES NOTHING AND FIRES AFTER THE ACT. This is a `Stop` hook; every exit path is `exit 0`.
 #    The post has already landed when the notice is composed. Nothing here refuses a publish, and
@@ -323,7 +366,13 @@ classify() { # name · command  ->  "W<TAB>label" | "R<TAB>label" | "?<TAB>label
         delete*|remove*|clear*|archive*|trash*|move*|rename*|\
         invite*|connect*|reply*|comment*|react*|like*|follow*|subscribe*|\
         fill|fill_form|type_text|drag|click|handle_dialog|\
-        evaluate_script|run_script|execute*|navigate*)
+        evaluate_script|run_script|execute*|navigate*|\
+        computer)
+          # `computer` (#478) is the one entry here that is NOT a verb. It is a MULTIPLEXER whose
+          # real act lives in `.input.action`, which this arm deliberately does not read — see the
+          # #478 header block for the pricing. It is listed as W because the two Post clicks that
+          # published to two public networks went through it, and W over-reporting is survivable
+          # here where a miss is not.
           printf 'W\t%s\n' "$name"; return ;;
         *) printf '?\t%s\n' "$name"; return ;;
       esac ;;
@@ -344,8 +393,11 @@ classify() { # name · command  ->  "W<TAB>label" | "R<TAB>label" | "?<TAB>label
     gh)
       case "$rest" in
         # `gh api <endpoint>` takes a URL path as its third word, so the three-word rule produced one
-        # label per endpoint and no W entry could ever match it. Capped at two words. It stays
-        # UNCLASSIFIED rather than R: `gh api -X POST` writes, and nothing in a label can tell.
+        # label per endpoint and no W entry could ever match it. Capped at two words.
+        # ~~It stays UNCLASSIFIED rather than R: `gh api -X POST` writes, and nothing in a label can
+        # tell.~~ STRUCK 2026-09-20 (#478): it is W now. The reasoning is unchanged and the CONCLUSION
+        # reversed — nothing in a label can tell a read endpoint from a write one, and the tie is
+        # broken toward the class whose error is survivable. See the #478 block in the header.
         api*) label="gh api" ;;
         *)    label="gh $(printf '%s' "$rest" | awk '{print $1, $2}')" ;;
       esac ;;
@@ -364,10 +416,12 @@ classify() { # name · command  ->  "W<TAB>label" | "R<TAB>label" | "?<TAB>label
     "gh pr edit"|"gh issue edit"|"gh issue close"|"gh pr close"|\
     "gh pr merge"|"gh pr ready"|"gh label create"|"gh label edit"|"gh label delete"|\
     "gh release create"|"gh release delete"|"gh secret set"|"gh secret delete"|\
-    "gh workflow run"|"gh repo delete")
+    "gh workflow run"|"gh repo delete"|\
+    "gh api")
       class=W ;;
     "git commit"|"git push"|"git add"|"git merge"|"git rebase"|"git reset"|\
-    "git rm"|"git mv"|"git tag"|"git cherry-pick"|"git restore"|"git stash")
+    "git rm"|"git mv"|"git tag"|"git cherry-pick"|"git restore"|"git stash"|\
+    "git worktree"|"git apply"|"git checkout")
       class=W ;;
     # The motivating case (#371): it rewrites the install registry, which decides which briefs and
     # hooks every project runs. Reachable for the first time now that the wrapper strip lands first.
@@ -390,7 +444,9 @@ classify() { # name · command  ->  "W<TAB>label" | "R<TAB>label" | "?<TAB>label
       case " $cmd " in *" -i"*|*" --in-place"*) class=W ;; *) class=R ;; esac ;;
     # ── R: the explicit readers, which is what keeps `?` from filling with noise ──────────────
     # Bounded on purpose. A subcommand that is not listed here lands in `?`, which is the honest
-    # answer for `git config` (writes with `--global`), `git checkout`, `git fetch` and `git clone`.
+    # answer for `git config` (writes with `--global`), `git fetch` and `git clone`.
+    # ~~`git checkout`~~ — struck 2026-09-20 (#478): it is W now, not `?`. It mutates the working
+    # tree, and `git checkout <file>` destroys uncommitted work outright.
     "git status"|"git log"|"git diff"|"git show"|"git rev-parse"|"git branch"|"git remote"|\
     "git ls-files"|"git ls-remote"|"git ls-tree"|"git merge-base"|"git describe"|"git blame"|\
     "git shortlog"|"git cat-file"|"git for-each-ref"|"git grep"|"git rev-list"|"git symbolic-ref"|\

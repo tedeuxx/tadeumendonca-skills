@@ -8,6 +8,14 @@
 #   * drop the state-file write            -> the debounce assertions go red
 #   * classify every Bash call as W        -> the read-classification assertions go red
 #   * label a `git -C` command unstripped  -> the label assertion goes red
+#   * #478, one W entry at a time, on a COPY of the hook, each with `cmp` against a snapshot taken
+#     immediately before and the changed line printed — because a mutation that silently no-ops
+#     produces a vacuous green, and nothing else would say so. Control 69/0; restore 69/0. Each
+#     deletion reddened exactly the arm(s) named, and `gh api` reddens FOUR rather than two because
+#     the older #371 block asserts it as well, which is the coupling working rather than noise:
+#       computer     -> 'a browser computer call is write/post, screenshots and all (#478)'   2 red
+#       "gh api"     -> + 'gh api lands in write/post' / 'gh api leaves the unclassified class' 4 red
+#       "git worktree" / "git apply" / "git checkout" -> their own arm, and only theirs         2 red each
 #
 # The transcript is a REAL JSONL fixture in the shape the harness writes, and the repository is a REAL
 # temporary git repo — the hook resolves `rev-parse --git-dir` for its debounce state, so a stub would
@@ -325,8 +333,11 @@ teardown
 
 echo '--- #371: gh api gets a bounded label, and is NOT called a read ---'
 # The three-word rule took a URL path as its third word, so `gh api` produced one label per endpoint and
-# no W entry could ever match it. `gh api -X POST` writes and nothing in a label can tell, so the
-# honest class is neither W nor R.
+# no W entry could ever match it. `gh api -X POST` writes and nothing in a label can tell.
+# ~~so the honest class is neither W nor R.~~ CHANGED 2026-09-20 (#478): the premise holds and the
+# CONCLUSION is reversed — the tie is now broken toward W, because this hook reports rather than
+# gates, so an over-report costs attention and a miss costs visibility of an irreversible act. The
+# label cap and the not-a-read arm below are untouched; only the class moved.
 setup
 add_call Bash "gh api repos/o/r/contents/VERSION"
 add_call Bash "gh api repos/o/r/pulls/1 --jq .head.sha"
@@ -340,15 +351,102 @@ case "$ctx" in
   *"Bash: gh api x2"*) ok 'two endpoints collapse to one bounded label' ;;
   *) bad 'gh api is capped at two words' "got: ${ctx:-<empty>}" ;;
 esac
+wp="$(printf '%s' "$ctx" | sed -n '/^write\/post/,/^read (/p')"
+case "$wp" in
+  *"Bash: gh api x2"*) ok 'gh api lands in the write/post class (#478)' ;;
+  *) bad 'gh api lands in write/post' "write/post block was: $wp" ;;
+esac
 case "$ctx" in
-  *"unclassified (2)"*) ok 'gh api lands in the unclassified class, not in read' ;;
-  *) bad 'gh api lands in unclassified' "got: $ctx" ;;
+  *"unclassified (0)"*|*"write/post (5)"*) ok 'and nothing is left in the unclassified class for it' ;;
+  *) bad 'gh api leaves the unclassified class' "got: $ctx" ;;
 esac
 rd="$(printf '%s' "$ctx" | sed -n '/^read (/,/^unclassified (/p')"
 case "$rd" in
   *"gh api"*) bad 'gh api is not reported as a read' "read block was: $rd" ;;
   *) ok 'gh api is not reported as a read' ;;
 esac
+teardown
+
+echo '--- #478: the five acts the census recorded as unrecognised are write/post now ---'
+# THE INCIDENT THIS BLOCK EXISTS FOR: on the day this loop published an article to two public
+# networks, edited a public review comment and changed a setting in the owner's analytics property,
+# the census reported every one of those as UNRECOGNISED — while reporting the `navigate` calls that
+# merely opened the pages as write/post. Re-derived at head over this machine's own main-session
+# transcript by running the hook against it: `computer` x179, `git worktree` x15, `gh api` x1,
+# `git checkout` x1, `git apply` x1, all in the `?` block.
+#
+# ONE ARM PER ENTRY, DELIBERATELY, so a mutation names WHICH entry it broke rather than a count.
+# Each fixture carries three `Write` calls, so `ctx_or_die` can never be satisfied by the entry under
+# test — the notice fires whatever the classifier does with it.
+#
+# MUTATION-CHECKED BY BREAKING THE SOURCE, ONE ENTRY AT A TIME, on a copy of the hook, with the
+# edited line printed and `cmp` confirming the copy actually differs from the pre-edit snapshot —
+# because a mutation that silently no-ops produces a vacuous green. Each deletion reddened EXACTLY
+# the arm named beside it and nothing else, and each entry returned to the `?` class rather than to
+# `R`, which is the half that matters: `?` is an admission and `R` is an assertion.
+#   delete `computer` from the mcp__* verb alternation -> 'a browser computer call is write/post'
+#   delete `"gh api"` from the gh W list               -> 'gh api lands in the write/post class'
+#   delete `"git worktree"` from the git W list        -> 'git worktree is write/post'
+#   delete `"git apply"`    from the git W list        -> 'git apply is write/post'
+#   delete `"git checkout"` from the git W list        -> 'git checkout is write/post'
+#
+# The `computer` arm asserts the BLUNT behaviour on purpose: a `screenshot` action is reported as a
+# write. That is the owner's ruling and the accepted cost (#478) — this hook gates nothing, so an
+# inflated write count costs attention while a miss costs visibility of an irreversible act. An arm
+# that let a screenshot fall out of W would be asserting the classifier the ruling rejected.
+while IFS='|' read -r arm tool cmd want; do
+  [ -z "$arm" ] && continue
+  setup
+  add_noise
+  add_call Write; add_call Write; add_call Write
+  if [ "$tool" = Bash ]; then add_call Bash "$cmd"; else add_call "$tool"; fi
+  out="$(run_hook)"
+  ctx="$(notice "$out")"
+  if ctx_or_die "a notice was emitted for: $arm" "$ctx"; then
+    wp="$(printf '%s' "$ctx" | sed -n '/^write\/post/,/^read (/p')"
+    case "$wp" in
+      *"$want x1"*) ok "$arm" ;;
+      *) bad "$arm" "write/post block was: $wp" ;;
+    esac
+    case "$ctx" in
+      *"unclassified (0)"*|*"write/post (4)"*) : ;;
+      *) bad "$arm — and leaves nothing in the unclassified class" "got: $ctx" ;;
+    esac
+  fi
+  teardown
+done <<'CASES'
+a browser computer call is write/post, screenshots and all (#478)|mcp__claude-in-chrome__computer||mcp__claude-in-chrome__computer
+git worktree is write/post|Bash|git -C /tmp/r worktree add /tmp/wt br|Bash: git worktree
+git apply is write/post|Bash|git apply /tmp/p.diff|Bash: git apply
+git checkout is write/post|Bash|git checkout -- src/file.ts|Bash: git checkout
+gh api is write/post|Bash|gh api repos/o/r/pulls/comments/1 -X PATCH -f body=x|Bash: gh api
+CASES
+
+echo '--- #478: the negative half — the five did not become a blanket class ---'
+# The mirror of every W addition in this file: a neighbouring read-shaped spelling must stay out of
+# write/post, or the fix has traded a miss for a rumour. `git worktree list` is the sharp one — it is
+# a pure read and it IS classified W here, because the label stops at the subcommand. That is a KNOWN
+# over-report of the same shape the `computer` entry accepts deliberately, and it is asserted rather
+# than left to be discovered: the arm below pins that `git status` and `gh issue view` are unaffected,
+# never that `git worktree list` is exempt.
+setup
+add_noise
+add_call Write; add_call Write; add_call Write
+add_call Bash "git -C /tmp/r status --porcelain"
+add_call Bash "gh issue view 478 --repo o/r --json body"
+out="$(run_hook)"
+ctx="$(notice "$out")"
+if ctx_or_die 'a notice was emitted for the negative half' "$ctx"; then
+  wp="$(printf '%s' "$ctx" | sed -n '/^write\/post/,/^read (/p')"
+  case "$wp" in
+    *"git status"*|*"gh issue view"*) bad 'neighbouring readers stay out of write/post' "write/post block was: $wp" ;;
+    *) ok 'neighbouring readers stay out of write/post' ;;
+  esac
+  case "$ctx" in
+    *"read (2)"*) ok 'and they are still asserted as reads' ;;
+    *) bad 'neighbouring readers are still reads' "got: $ctx" ;;
+  esac
+fi
 teardown
 
 echo '--- #371: the third class — unrecognised is NOT measured-as-a-read ---'
