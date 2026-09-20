@@ -128,16 +128,68 @@
 # The same tie-break is what moves `gh api` out of `?`: nothing in a two-word label can tell
 # `gh api -X POST` from a `--jq` read, and the class whose error is survivable wins.
 #
+# `git worktree` OVER-REPORTS TOO, AND THIS PARAGRAPH EXISTS BECAUSE THE ONE ABOVE NAMED ONLY
+# `computer` (#479). The label is `git <first word after the program>`, so every `git worktree`
+# subcommand collapses to one entry and the whole entry is W. Re-derived at head over this machine's
+# own main-session transcript, with the same invocation printed above, and the subcommand counted off
+# the command string the extraction already carries:
+#
+#   git worktree, 16 calls:  remove 7 · unlock 5 · add 3 · list 1
+#
+# **So exactly one of those sixteen is a READ ASSERTED AS A WRITE** — `git worktree list` — and the
+# other fifteen genuinely mutate (`remove` deletes a checkout, `add` creates one, `unlock` rewrites
+# the administrative file that stops it being pruned). That is a far smaller inflation than
+# `computer`'s, and it is disclosed for the same reason rather than fixed: splitting it would need a
+# per-subcommand label for one program, which is the hand-maintained-list shape this file argues
+# against everywhere else. **Read a `git worktree` entry in the write column as "at most one of these
+# was a read", not as sixteen mutations.**
+#
+# THE ATTENTION COST OF THE FIVE ADDITIONS IS A NUMBER, AND IT IS PUBLISHED RATHER THAN CALLED
+# "some noise". `CENSUS_THRESHOLD` is keyed on the WRITE count alone, so a notice is due roughly
+# every three write/post calls and the additions multiply the notices directly. Both figures off the
+# same transcript, the head one read from this hook's own output and the before one from the same
+# output minus the five new labels (`computer` 179 · `git worktree` 16 · `gh api` 1 · `git checkout`
+# 1 · `git apply` 1 = 198):
+#
+#   write/post BEFORE #478 : 263      notices ~ 263/3 =  87
+#   write/post AT HEAD     : 461      notices ~ 461/3 = 153      (+198, +75%)
+#
+# **A 75% increase, concentrated in exactly the browser-heavy sessions where the census matters
+# most** — and it cannot be damped selectively, because **the debounce is per-session and keyed on one
+# counter**: the 61 screenshots and the two Post clicks pass through the same threshold, so raising it
+# to quieten the first hides the second. The owner took the inflation knowingly (#478); this paragraph
+# says what it costs at the till, so that a later reader tempted to raise `CENSUS_THRESHOLD` knows
+# which signal that buys and which it spends.
+#
 # SUBCLASSIFYING `computer` BY ITS `action` WAS PRICED AND IS NOT ADOPTED — the ruling was the blunt
 # form. The field IS reachable: every one of the 179 entries carries `.input.action`
 # (`left_click` 89 · `screenshot` 61 · `type` 14 · `wait` 5 · `scroll` 5 · `left_click_drag` 3 ·
-# `scroll_to` 1 · `key` 1). **What kills it is that the action names an INPUT MODALITY, not an
-# EFFECT.** `left_click` is half the corpus and holds both the link-clicks that merely navigate and
-# the two Post clicks that published — so the split would move 72 of 179 calls into R while leaving
-# the irreversible act indistinguishable inside the remaining 107. It would also widen the
-# extraction's `@tsv` to a third field and change `classify()`'s signature, which every fixture in
-# the suite carries. **A partial classifier that looks precise is worse than a blunt one that says
-# it is blunt**, which is why this paragraph is here rather than a patch.
+# `scroll_to` 1 · `key` 1). The diagnosis is that the action names an INPUT MODALITY, not an EFFECT:
+# `left_click` is half the corpus and holds both the link-clicks that merely navigate and the two
+# Post clicks that published.
+#
+# ~~so the split would move 72 of 179 calls into R while leaving the irreversible act
+# indistinguishable inside the remaining 107~~ — **STRUCK 2026-09-20 (#479): the diagnosis is right
+# and that clause is not an argument against the split.** The blunt classifier leaves the same
+# irreversible act indistinguishable inside 179, which is strictly worse, so *"still
+# indistinguishable"* is a property the split does not make worse and the sentence read as though it
+# did. What the split actually is, stated correctly:
+#
+#   * **Strictly safe on the measured corpus.** Every publishing act went through `type` or
+#     `left_click`, and both stay W. The 72 that would move — `screenshot` 61 · `wait` 5 · `scroll` 5
+#     · `scroll_to` 1 — are modalities that cannot mutate a page at all. **Zero coverage loss.**
+#   * **It would cut the `computer` entry by 40%** (72 of 179), which is 15.6% of the whole write
+#     column at head (72 of 461) — a real reduction in the attention cost priced above.
+#   * **And any action name the split did not spell would have to degrade to W, not R** — the inverse
+#     of the `?` rule everywhere else in this file, because here a miss is the expensive direction.
+#
+# **So it is rejected on the RULING plus the implementation cost, not on "it would not help".** The
+# owner ruled the blunt form (#478). The cost is real and is the reason nobody should pick this up
+# casually: it widens the extraction's `@tsv` to a third field and changes `classify()`'s signature,
+# and the suite's `add_call` helper emits `{input:{command:$c}}` for every fixture in the file, so
+# every arm moves with it. **A partial classifier that looks precise is worse than a blunt one that
+# says it is blunt** — which is why the blunt one says so, here and in the suite's own `computer`
+# arm, rather than being quietly replaced.
 #
 # WHAT THIS DOES NOT FIX, AND THE HEADER KEEPS SAYING IT. This is a `Stop` hook; it fires after the
 # act, and nothing here becomes preventive. A subagent's calls are still invisible — a dispatch

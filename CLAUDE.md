@@ -1730,6 +1730,40 @@ sweep hook to maintain: the harness owns that lifecycle, not this plugin.
 | a measurement instrument | **a repo script with a test, if and only if a gate will run it.** Otherwise discard. "It worked once" is not "it must persist". |
 | an isolated checkout | **not a scratch class.** Use the repo — WIP=1 already serialises — or a git worktree with its own install. |
 
+### `.brand/` — THIS section is the canonical home of that fact, and the other four are pointers (#479)
+
+**The fact, stated once and completely: `.brand/` is the owner's private positioning source, and it is
+gitignored in BOTH repositories** — in `tadeumendonca-io` since that repo was stood up, and here since
+#477 (`.gitignore:17`). Its documented home is still `tadeumendonca-io`; this repo ignores it
+preventively and has never held one.
+
+**Why it needed a ruling: the fact lived in five places and two of them disagreed.** On 2026-09-20
+`README.md` listed `.brand/` among this repo's gitignored paths — **false until #477 merged**, hours
+earlier — while the taxonomy row above said the opposite and was right. **Neither noticed the other,
+and the false one was the PERMISSIVE one**, claiming a protection that did not exist.
+
+**Why the canonical home is here, and the second reason is mechanical.** The scratch taxonomy above
+already owns this fact — it is the table that says where raw source material goes. And **this is the
+only brief that reaches the ORCHESTRATOR**: #409 measured, one nonce per candidate surface, that a
+repo-root `CLAUDE.md` reaches that context while a skill body does not and `AGENTS.md` does not. The
+context that pasted private material onto a public surface was the orchestrator. **A canonical
+statement the leaking context cannot read is not canonical for the failure it exists to prevent.**
+
+**The four pointers — `README.md`, `agents/product-lead.md`, `.gitignore`'s own comment, and `-io`'s
+side — and one of them cannot be a bare pointer.** **`-io` does not load this file**: #393 measured
+that a session rooted in one repository loads neither the other's root brief nor a sibling's, **even
+with the sibling added as a working directory**. So `-io`'s statement must stand on its own as a
+complete sentence rather than as *"see the plugin repo"*. **That is a pointer in intent and a
+restatement in fact**, said here rather than papered over — and **no fifth hand-maintained
+two-repository block is created for it**, because four is already a cost this file names in its own
+words.
+
+**What enforces any of this: nothing, and no gate arm is added.** An arm asserting that one sentence
+exists in one file is a green that has never been red, and the failure it would have to catch — two
+surfaces disagreeing about one fact — is a cross-file consistency check nothing here has the shape
+for. **And the ignore stops a COMMIT, not a PASTE**, which the row above already says and which is the
+route by which private text has actually reached public GitHub.
+
 **What this drops, and why it's safe to drop.** `session-scratch.sh` (a `SessionStart` hook that swept
 `<repo-root>/.scratch/`, plus its test suite) is deleted outright rather than repointed — it existed
 only because the scratch lived inside the tracked tree, where nothing else would ever clean it up. The
