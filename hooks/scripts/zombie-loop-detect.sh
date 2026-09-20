@@ -82,6 +82,11 @@
 #                                    |select(.body|contains($h))]|length}'
 #   -> {"markers_total":3,"markers_at_head":1}
 #
+# THAT COMMAND IS THE LOOSE `test()` PREDICATE THIS HOOK NO LONGER SHIPS (#475 narrowed it to a
+# line-anchored, non-gate envelope — see "WHAT COUNTS AS A MARKER" below). It is left as written
+# because it is the measurement AS TAKEN, and re-running #454 under the shipped predicate returns
+# the SAME {3,1}, so nothing above rests on the difference. Do not copy it as the rule.
+#
 # THREE MARKERS, ONE AT THE HEAD. `agents/quality-assurance.md`'s hold 2 is satisfied by
 # PRESENCE, so two of those three would satisfy it while attesting a diff the PR no longer points
 # at. The calibration is the gate's own marker on the same PR under the same predicate — 3 total,
@@ -302,14 +307,55 @@ esac
 # template puts it on a `commit:` line, and matching the body rather than that line means a lens
 # that also quotes the SHA in prose still reads as fresh. That is the permissive direction, chosen
 # on purpose: this arm must never cry stale at a lens that did re-review.
-harness_stale="$(printf '%s' "$pr_view" | jq -r '
+#
+# ── WHAT COUNTS AS A MARKER (#475) ─────────────────────────────────────────────────────────────
+# This limb was `select(contains("harness-lead-verdict"))` — a SUBSTRING test, where every real
+# marker is an ENVELOPE THAT OPENS A LINE. The error ran toward SILENCE, which is the bad
+# direction here: the merge gate quotes the literal whenever it discusses hold 2, and ADR-0006
+# makes its verdict carry `head: <sha>`, so the gate's own comment entered $m, matched $h, and the
+# arm read FRESH over a stale lens marker. The detector was quietest exactly when a merge was
+# closest. Re-derived 2026-09-20 by feeding this jq a control pair: a stale marker alone returns
+# "stale"; the same marker plus a gate verdict quoting the literal returns "".
+#
+# The predicate is now two limbs: the envelope OPENS A LINE, and the comment does not itself open
+# with the gate's envelope. Both were measured rather than reasoned, over every PR comment in BOTH
+# repositories carrying the literal and passing the author filter (386: 350 in -skills, 36 in -io):
+#
+#   contains          (the defect)  386 matched — 139 are NOT markers (137 gate verdicts, 2 notes)
+#   startswith on the whole body    245 matched — drops 2 GENUINE markers, because a marker is not
+#                                                 always its comment's first line: -skills#340 puts
+#                                                 the `agents-lead-verdict` spelling above it, and
+#                                                 -skills#305 closes a long build comment with it
+#   line-anchored alone             248 matched — keeps 1 gate verdict (-skills#303), which quotes
+#                                                 the envelope at column 0
+#   line-anchored AND not a gate    247 matched — ZERO errors either direction across all 386
+#   verdict  (what ships here)
+#
+# So the fix #475 prescribed (`startswith` on the body) is deliberately NOT the one shipped, and
+# the difference is a measurement rather than a preference: it drops two real markers.
+#
+# WHAT IT STILL CANNOT SEE, the same blindness one notch narrower: a marker that does not open a
+# line (indented, or inside a blockquote) is invisible, and a comment that opens a line with the
+# lens envelope while opening its own body with neither envelope would still enter $m. Neither
+# occurs in 386 comments; neither is prevented.
+#
+# THE GATE-ENVELOPE LIMB IS DERIVED FROM `MARKER`, and it was two independently typed literals 91
+# lines apart until this line was written. The predicate was CORRECT either way at that head —
+# `<!-- gatekeeper-verdict` is a true prefix of `MARKER` — so what was defective was the RECORD:
+# the comment here told its next editor that a drift between them was impossible when it was the
+# only thing that was possible. Change the gate envelope's spelling at line ~247 and a typed `$g`
+# stops excluding gate verdicts, which is #475 returning with this comment asserting it cannot.
+# `${MARKER%%:*}` strips from the first colon, so it expands byte-identically to the literal it
+# replaced (23 bytes, verified with `od -c`) and now MOVES WITH `MARKER` rather than beside it.
+harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-verdict' --arg g "${MARKER%%:*}" '
   (.headRefOid // "") as $h
   | if $h == "" then ""
     else [ .comments[]?
            | select((.authorAssociation // "") as $a
                     | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
            | .body // ""
-           | select(contains("harness-lead-verdict")) ] as $m
+           | select(startswith($g) | not)
+           | select(split("\n") | map(startswith($lens)) | any) ] as $m
          | if ($m | length) == 0 then ""
            elif ($m | map(select(contains($h))) | length) > 0 then ""
            else "stale" end
