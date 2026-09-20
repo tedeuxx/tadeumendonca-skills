@@ -82,6 +82,11 @@
 #                                    |select(.body|contains($h))]|length}'
 #   -> {"markers_total":3,"markers_at_head":1}
 #
+# THAT COMMAND IS THE LOOSE `test()` PREDICATE THIS HOOK NO LONGER SHIPS (#475 narrowed it to a
+# line-anchored, non-gate envelope — see "WHAT COUNTS AS A MARKER" below). It is left as written
+# because it is the measurement AS TAKEN, and re-running #454 under the shipped predicate returns
+# the SAME {3,1}, so nothing above rests on the difference. Do not copy it as the rule.
+#
 # THREE MARKERS, ONE AT THE HEAD. `agents/quality-assurance.md`'s hold 2 is satisfied by
 # PRESENCE, so two of those three would satisfy it while attesting a diff the PR no longer points
 # at. The calibration is the gate's own marker on the same PR under the same predicate — 3 total,
@@ -332,10 +337,17 @@ esac
 # WHAT IT STILL CANNOT SEE, the same blindness one notch narrower: a marker that does not open a
 # line (indented, or inside a blockquote) is invisible, and a comment that opens a line with the
 # lens envelope while opening its own body with neither envelope would still enter $m. Neither
-# occurs in 386 comments; neither is prevented. The gate-envelope limb reads `$g` — the same
-# literal `MARKER` is built from, minus the persona — so the two cannot drift to different
-# spellings inside this file.
-harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-verdict' --arg g '<!-- gatekeeper-verdict' '
+# occurs in 386 comments; neither is prevented.
+#
+# THE GATE-ENVELOPE LIMB IS DERIVED FROM `MARKER`, and it was two independently typed literals 91
+# lines apart until this line was written. The predicate was CORRECT either way at that head —
+# `<!-- gatekeeper-verdict` is a true prefix of `MARKER` — so what was defective was the RECORD:
+# the comment here told its next editor that a drift between them was impossible when it was the
+# only thing that was possible. Change the gate envelope's spelling at line ~247 and a typed `$g`
+# stops excluding gate verdicts, which is #475 returning with this comment asserting it cannot.
+# `${MARKER%%:*}` strips from the first colon, so it expands byte-identically to the literal it
+# replaced (23 bytes, verified with `od -c`) and now MOVES WITH `MARKER` rather than beside it.
+harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-verdict' --arg g "${MARKER%%:*}" '
   (.headRefOid // "") as $h
   | if $h == "" then ""
     else [ .comments[]?
