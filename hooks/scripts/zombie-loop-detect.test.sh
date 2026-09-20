@@ -467,6 +467,106 @@ case "$out" in
 esac
 teardown
 
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# #475 — WHAT COUNTS AS A MARKER. Three arms, and none of them is redundant:
+#   1. a comment that merely QUOTES the literal must NOT silence the arm  (the filed defect)
+#   2. a real marker that does not OPEN its comment must still be seen when STALE (it fires)
+#   3. the same marker shape at the CURRENT head must silence the arm     (it is read as fresh)
+# Arm 3 alone proves nothing — silence is ambiguous between "recognised and fresh" and "not
+# recognised at all", which is exactly how the pre-#475 predicate looked healthy. Arm 2 is what
+# disambiguates it, so the pair must be read together.
+#
+# SELF-REFERENTIAL TRAP, named because it is easy to trip: these fixtures contain the marker
+# literal, and so does the hook under test. Nothing here greps the TREE for the literal, so the
+# fixtures cannot satisfy an assertion about the source; a later arm that does grep the tree must
+# exclude this file, or it will pass on its own test data.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+echo '--- #475: a gate verdict QUOTING the literal at head does not silence a stale marker ---'
+setup
+checkout_branch loop/x
+open_pr 475 headaaa
+jq -n --arg h headaaa '
+  {headRefOid:$h,
+   comments:[{authorAssociation:"OWNER",
+              body:"<!-- harness-lead-verdict: reviewed -->\ncommit: oldbbb"},
+             {authorAssociation:"OWNER",
+              body:("<!-- gatekeeper-verdict: quality-assurance -->\nAPPROVE-AND-MERGE\nhead: "
+                    + $h
+                    + "\n\nHold 2: the PR carries a harness-lead-verdict marker, so it is satisfied."
+                    + "\nQuoted for context: `<!-- harness-lead-verdict: reviewed -->` at an older head."
+                    )}]}
+' > "$root/fix/view.json"
+out="$(run_hook)"
+case "$out" in
+  *'STALE agents-lead verdict marker'*)
+    ok 'a gate verdict quoting harness-lead-verdict is not counted as a marker' ;;
+  *) bad 'a gate verdict quoting harness-lead-verdict is not counted as a marker' \
+         "expected the stale signal, got: ${out:-<silence>}" ;;
+esac
+teardown
+
+echo '--- #475: a gate verdict quoting the envelope AT COLUMN 0 does not silence either ---'
+# The -skills#303 shape, and the one arm the line-anchor limb alone does not cover: the gate put
+# `<!-- harness-lead-verdict …` at the start of a line inside its own verdict. Only the
+# gate-envelope exclusion catches it.
+setup
+checkout_branch loop/x
+open_pr 475 headaaa
+jq -n --arg h headaaa '
+  {headRefOid:$h,
+   comments:[{authorAssociation:"OWNER",
+              body:"<!-- harness-lead-verdict: reviewed -->\ncommit: oldbbb"},
+             {authorAssociation:"OWNER",
+              body:("<!-- gatekeeper-verdict: quality-assurance -->\nAPPROVE-AND-MERGE\nhead: "
+                    + $h
+                    + "\n\n<!-- harness-lead-verdict quoted for context, not re-graded -->\n")}]}
+' > "$root/fix/view.json"
+out="$(run_hook)"
+case "$out" in
+  *'STALE agents-lead verdict marker'*)
+    ok 'a gate verdict quoting the envelope at column 0 is not counted as a marker' ;;
+  *) bad 'a gate verdict quoting the envelope at column 0 is not counted as a marker' \
+         "expected the stale signal, got: ${out:-<silence>}" ;;
+esac
+teardown
+
+echo '--- #475: a real marker below other prose is still SEEN — stale fires ---'
+setup
+checkout_branch loop/x
+open_pr 475 headaaa
+jq -n --arg h headaaa '
+  {headRefOid:$h,
+   comments:[{authorAssociation:"OWNER",
+              body:("<!-- agents-lead-verdict: both spellings posted deliberately -->\n"
+                    + "<!-- harness-lead-verdict: reviewed -->\ncommit: oldbbb")}]}
+' > "$root/fix/view.json"
+out="$(run_hook)"
+case "$out" in
+  *'STALE agents-lead verdict marker'*)
+    ok 'a marker that does not open its comment is still recognised (stale fires)' ;;
+  *) bad 'a marker that does not open its comment is still recognised (stale fires)' \
+         "expected the stale signal, got: ${out:-<silence>}" ;;
+esac
+teardown
+
+echo '--- #475: the same marker shape AT HEAD is read as fresh — silent ---'
+setup
+checkout_branch loop/x
+open_pr 475 headaaa
+jq -n --arg h headaaa '
+  {headRefOid:$h,
+   comments:[{authorAssociation:"OWNER",
+              body:("<!-- agents-lead-verdict: both spellings posted deliberately -->\n"
+                    + "<!-- harness-lead-verdict: reviewed -->\ncommit: " + $h)}]}
+' > "$root/fix/view.json"
+out="$(run_hook)"
+case "$out" in
+  *'STALE agents-lead verdict marker'*)
+    bad 'a marker below other prose, at head, is read as fresh' "got: $out" ;;
+  *) ok 'a marker below other prose, at head, is read as fresh' ;;
+esac
+teardown
+
 echo '--- #385: the new arm still never blocks, and still costs no extra network call ---'
 setup
 checkout_branch loop/x
