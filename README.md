@@ -1793,8 +1793,14 @@ is not packaged *by* the plugin, it is what a consumer commits to *turn the plug
 
 **Versioned-and-shared is not the same set as versioned.** `.claude/settings.json` above is the row that
 matters here, and it is committed; `.claude/settings.local.json` and `.brand/` are the deliberate
-counter-example — local, gitignored, changing behaviour on one machine only, never in this table because
-they are never in this repo's git history.
+counter-example — local and gitignored, never in this table because
+they are never in this repo's git history. ~~changing behaviour on one machine only~~ — **struck #479:
+true of the settings overlay, never of `.brand/`, which changes no behaviour here and has never existed
+in this tree.** **And the gitignored half was FALSE of `.brand/` until #477 merged on 2026-09-19** —
+this line asserted a protection this repo did not have, while `CLAUDE.md` said the opposite and was
+right, with nothing comparing the two. Struck rather than rewritten because a reader took the
+permissive claim from it. **The canonical statement of what `.brand/` is and where it is ignored is
+`CLAUDE.md`'s scratch taxonomy section; this line points there rather than restating it** (#479).
 
 **Shipped is not the same claim as exported, and `docs/` is the case that proves it.** The methodology
 ADR library lives at `docs/adr/`, is tracked in git, and travels with every clone — a human reading this

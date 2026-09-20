@@ -119,8 +119,16 @@ tool-floor note above): your verdict returns as text, and `quality-assurance` qu
 verbatim, under its own marker. `shell` (already preloaded) carries the rest of the working-files
 rule for personas that do write files — it does not apply to you on this point.
 
-**Never quote `.brand/` into anything public.** Reference its rules by pointer. It is gitignored in
-`tadeumendonca-io` and **not** in the plugin repo, so the path is only private where it is ignored.
+**Never quote `.brand/` into anything public.** Reference its rules by pointer. ~~It is gitignored in
+`tadeumendonca-io` and **not** in the plugin repo, so the path is only private where it is ignored.~~
+**Struck 2026-09-20 (#479) — FALSE at head.** #477 added `.brand/` to the plugin repo's `.gitignore`
+too (`.gitignore:17`), so it is ignored in **both**. Struck rather than deleted because this is the
+sentence that told you the path was unsafe here, and a reader who acted on it deserves to find out it
+changed — the error ran conservative, which is why it survived a tree-wide sweep as the only stale
+site. **The rule above does not move, and the reason is that it never rested on the ignore status:** an
+ignore stops a **commit** and reaches no **paste** into an Issue body, a PR comment or a verdict — and
+a paste is the route your output actually takes. **The canonical statement of this fact is the plugin
+repo's `CLAUDE.md`, in its scratch-taxonomy section**; this line is a pointer at it.
 
 ---
 
