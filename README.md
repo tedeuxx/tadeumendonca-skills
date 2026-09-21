@@ -2260,14 +2260,32 @@ does settle is that the standing hypothesis — *the runtime used an unhooked ro
 explain it as stated**, since a model tool call fired every registration on this build. Two readings
 survive where there were three. Section 15 of the bridge document carries the commands.
 
-**And the three CONVENIENCE refusals are no longer forwarded (AC7).** Command substitution, an
-env-var prefix and a stdout redirect are friction rules that exist to turn a Claude *prompt* into a
-self-correcting instruction; measured on the same build, Codex's own layer stops **none** of them,
-against a calibration that does stop an act (the same plain command under `:read-only`). Firing on
-more than the runtime stops inverts the rule those three were written under, so the guard now marks
-them with `deny_convenience()` — **exactly three call sites, and the count is an arm** — and the
-adapter declines to ask for them. **Every irreversible rule is forwarded unchanged**, and the Claude
-path is byte-identical because nothing sets the variable there.
+**And TWO of the three CONVENIENCE refusals are no longer forwarded (AC7).** An env-var prefix and
+a stdout redirect are friction rules that exist to turn a Claude *prompt* into a self-correcting
+instruction; measured on the same build, Codex's own layer stops **neither**, against a calibration
+that does stop an act (the same plain command under `:read-only`). Firing on more than the runtime
+stops inverts the rule they were written under, so the guard marks them with `deny_convenience()` —
+**exactly two call sites, and the count is an arm** — and the adapter declines to ask for them.
+**Every irreversible rule is forwarded unchanged**, and the Claude path is byte-identical because
+nothing sets the variable there.
+
+**The third, command substitution, is FORWARDED despite the same reading, and that correction is
+worth more than the narrowing.** It was routed through the helper for one round and the merge gate
+blocked it: **a substitution MANUFACTURES the token every floor rule matches on**, so with the
+branch abstaining an irreversible act whose floor-matching word is the substitution's output was
+seen by nothing. **13 of 20 fixtures flipped `deny → ABSTAIN`** — `rm -rf`, IaC mutation,
+`gh secret set`, `gh repo delete`, `git reset --hard`, a trunk push — against six plain-spelling
+controls that denied in both columns. The execpolicy does not cover it either: it forbids token
+*sequences*, which a manufactured token does not produce. **A sound measurement can still lose**;
+the row is kept rather than deleted, and the cost is stated as a cost — on Codex this refusal now
+fires on more than the runtime stops, which is the safe direction and the same over-block posture
+this floor already accepts elsewhere.
+
+**The arm that should have caught it was green for a reason unrelated to its name**, and that is the
+transferable half: it used the `$( )` spelling, which rule 7 rescues through its own fail-closed
+limb, and **that rescue does not reach a backtick**. Every arm over this class now asserts both
+spellings and calibrates each separately — re-planting the defect reddens **6 of 6 backtick arms and
+5 of 6 dollar arms**, the survivor being exactly the trunk-push row.
 
 **Two consequences an operator meets immediately.** No Codex caller receives a caller-dependent
 exemption — opening work and posting to a public surface are refused to **every** caller, because

@@ -1138,16 +1138,78 @@ vocabulary has one refusal verb and no prompt rung — so there is no prompt for
 avoiding. `/shell`'s own governing rule says a friction rule *"must fire on a SUBSET of what the
 runtime stops for, never on more"*; on Codex these fired on **more**.
 
-**So the three are narrowed out of the Codex path, and the classification lives in the GUARD.**
-`deny_convenience()` in `hooks/scripts/permission-guard.sh` wraps exactly three call sites —
-rule 3 (command substitution), rule 8 (env-var prefix) and rule 8b (redirection). The adapter
-sets `PERMISSION_GUARD_CONVENIENCE_RULES=off` and **authors no rule of its own**, which is the
-whole of its thesis.
+~~**So the three are narrowed out of the Codex path, and the classification lives in the GUARD.**
+`deny_convenience()` … wraps exactly three call sites — rule 3 (command substitution), rule 8
+(env-var prefix) and rule 8b (redirection).~~
+
+**STRUCK 2026-09-21, in the same slice, on the merge gate's BLOCKING finding — and the strike is
+worth more than the correction.** Two things were wrong and they compound:
+
+- **"rule 3" named a FLOOR rule.** Rule 3 in that file is irreversible git history and ref
+  rewrites. The substitution branch never had a number of its own; it is a branch of rule 8.
+  **A comment misnaming a floor rule as a convenience rule, inside the helper whose whole
+  purpose is that distinction.**
+- **The substitution branch must not be switchable at all**, and routing it through the helper
+  opened the floor.
+
+### Why the substitution branch is different in kind — it MANUFACTURES a token
+
+**Every floor rule in that file matches on tokens.** A substitution produces a token that is not
+in the string the guard reads, so where the floor-matching word is the substitution's *output*,
+**there is nothing left for those rules to recognise** — and this branch was the only thing
+catching it. Measured at the blocked head, both spellings, against plain-spelling controls:
+
+| | `on` | `off` |
+|---|---|---|
+| `rm -rf /some/dir` · IaC mutation · `gh secret set …` · `gh repo delete …` · `git reset --hard …` (plain) | deny | **deny** |
+| the same six with the matching token manufactured — `` `echo rm` -rf /some/dir ``, `terraform $(echo apply)`, ``gh `echo secret` set …`` | deny | **ABSTAIN** |
+
+**13 of 20 fixtures flipped, against six plain-spelling controls that denied in both columns.**
+**The execpolicy does not cover it either** — it forbids token *sequences*, which a manufactured
+token does not produce.
+
+**So: `deny_convenience()` wraps TWO call sites — rule 8's env-var branch and rule 8b.** The
+adapter sets `PERMISSION_GUARD_CONVENIENCE_RULES=off` and **authors no rule of its own**, which is
+the whole of its thesis.
 
 | | `on` (unset, and every other value) | `off` |
 |---|---|---|
-| `echo $(date)` · `FOO=1 ls` · `ls > out.txt` | **deny** | **abstain** |
-| `terraform apply` · a trunk push | **deny** | **deny** |
+| `FOO=1 ls` · `ls > out.txt` | **deny** | **abstain** |
+| `echo $(date)` · ``echo `date` `` | **deny** | **deny** — not switchable |
+| an IaC mutation · a trunk push, plain **or manufactured**, either spelling | **deny** | **deny** |
+
+**The two survivors are measured, not reasoned.** Neither manufactures anything: both sit *beside*
+a command whose own tokens are intact. **Seventy wrapped floor acts** — ten irreparable commands
+across four env-var wrappers and three redirect wrappers — **released ZERO under `off`**, with all
+seven wrappers confirmed flipping on a harmless command so the zero is a real zero.
+
+### The native measurement is KEPT, and it LOST
+
+**Codex stops the substitution spelling no more than the other two** — the table above is unchanged
+and the row is not deleted. What changed is that it is **outweighed**: switching the branch off
+opens the floor on the harness this repository actually runs, which costs more than an over-block
+on the harness it is being ported to. **A measurement can be sound and still not carry the
+decision.** Deleting the row would hide that trade; reading it as licence to re-route the branch
+would repeat it.
+
+**The cost, stated as a cost rather than as a win:** on Codex the substitution refusal fires on more
+than the runtime was measured stopping — the very thing AC7 forbids. It is the same over-block
+posture this floor already accepts for rule 8's `VAR=x` case on the Claude side, and it is the safe
+direction.
+
+### The arm that should have caught this was GREEN, and that is the transferable part
+
+The blocked round carried `off: a trunk push carrying a substitution is STILL a trunk push`, using
+the **`$( )`** spelling — which rule 7 rescues through its own fail-closed *"could not resolve which
+repository"* limb. **That limb does not match a backtick, and no other floor rule has an
+equivalent.** So the arm passed **for a reason unrelated to its name**, on the one spelling in the
+class that has a rescue, while asserting a property that did not hold.
+
+**Not vacuous, not crashing — green for the wrong reason**, which is the hardest of the three to
+see. Re-planting the defect against the repaired arms shows the asymmetry directly: **6 of 6
+backtick arms redden and only 5 of 6 dollar arms do**, the survivor being exactly the trunk-push
+row. **Every arm involving a substitution now asserts both spellings and calibrates each
+separately.**
 
 **The Claude path is byte-identical, envelope included** — nothing sets the variable there.
 **A model cannot reach it**: a hook's environment is inherited from the host process, and a `Bash`
@@ -1156,9 +1218,26 @@ tool call is a fresh shell whose exports do not survive it.
 **AC7 also requires these measurements be kept SEPARATE from the mandatory floor assertions, and
 they are.** The friction phase's fixtures touch no floor rule; the floor arms live in
 `permission-guard.test.sh` under `deny_convenience` and assert the opposite direction — ten
-irreparable acts still denying under `off`, plus two spelled *with* a friction construct (a trunk
-push whose branch name is a substitution, and an env-var-prefixed `terraform apply`) which are
-**still denied**, because the narrowing is about the rule and never about the spelling.
+irreparable acts still denying under `off`, **twelve manufactured-token acts** (six commands ×
+two spellings) still denying, and representative env-var and redirect wrappers on floor acts still
+denying. **The narrowing is about the rule and never about the spelling**, which is precisely the
+sentence the blocked round asserted and did not hold.
+
+### One positional dependency, which nothing asserts
+
+**`deny_convenience` abstains with `exit 0`, so it is safe only while every floor rule runs BEFORE
+its call sites.** They do today — the floor occupies the `# 1.` through `# 7b.` blocks and both
+remaining call sites are in rules 8 and 8b at the end of the file. **A floor rule added BELOW them
+would be silently unreachable under `off`, with every arm still green**, because the arms check
+verdicts for acts spelled today rather than the ordering. Recorded in the helper's own header;
+**no gate holds it.**
+
+### An advisory, recorded and not repaired here
+
+`scripts/codex-hook-adapter.test.py` reads a log file without guarding the path in one arm, so a
+defect that stops the file being created kills the suite before its summary prints. **The suite
+exits 1, so it reads as RED rather than as a false green** — an unreadable red, not a hole, which
+is why it is named rather than fixed in a slice about the floor.
 
 ### What holds section 15
 

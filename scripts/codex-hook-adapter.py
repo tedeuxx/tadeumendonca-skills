@@ -64,13 +64,17 @@ The guard's own fail-closed exception (rule 7c, the merge verdict lookup) is pre
 by construction: this file does not interpret the guard's rules, it forwards a verdict.
 
 ── WHAT THE FLOOR DOES *NOT* CARRY ONTO CODEX (AC7, 2026-09-21) ──────────────────────
-The guard's three CONVENIENCE rules — command substitution, an env-var prefix, a stdout
-redirect — are not forwarded. They exist on Claude to turn a PROMPT into a
-self-correcting instruction, and `/shell`'s own rule is that such a rule must fire on a
-SUBSET of what the runtime stops for. Measured on codex-cli 0.151.0-alpha.7.2: the native
-layer stops NONE of the three, and Codex's hook vocabulary has no prompt rung — so there
-they fired on MORE. See CONVENIENCE_ENV below and section 15.3 of the bridge document.
-**Every irreversible rule is forwarded unchanged.**
+TWO of the guard's convenience rules — an env-var prefix and a stdout redirect — are not
+forwarded. They exist on Claude to turn a PROMPT into a self-correcting instruction, and
+`/shell`'s own rule is that such a rule must fire on a SUBSET of what the runtime stops
+for. Measured on codex-cli 0.151.0-alpha.7.2 the native layer stops neither, and Codex's
+hook vocabulary has no prompt rung — so there they fired on MORE.
+
+**THE THIRD, COMMAND SUBSTITUTION, IS FORWARDED, and the same measurement says it should
+not be.** It is a floor rule in disguise: a substitution MANUFACTURES the token every
+other rule matches on, so omitting it made thirteen irreversible acts reachable. The
+measurement is sound and it LOST. See CONVENIENCE_ENV below and section 15.3 of the
+bridge document. **Every irreversible rule is forwarded unchanged.**
 
 ── AND HOW TO TELL AN ABSENT FLOOR FROM A HOLDING ONE ────────────────────────────────
 `CODEX_HOOK_ADAPTER_LOG`, off by default, absolute paths only. It is the only artifact
@@ -186,34 +190,49 @@ NON_INTERACTIVE_FLAGS = ("-c", "-m", "-e", "--command", "--eval", "-s", "--stdin
 # a floor that stops judging because it could not append a line is a worse floor than
 # one with no log at all. This is the one place in this file where a bare `except` is
 # correct, and it is written out rather than narrowed so the reason is visible.
-# ── THE THREE CONVENIENCE REFUSALS ARE NOT FORWARDED — AC7, and the evidence is native ─
+# ── TWO OF THE THREE CONVENIENCE REFUSALS ARE NOT FORWARDED — AC7, and the third is a ──
+# ── MEASUREMENT THAT LOST ────────────────────────────────────────────────────────────
 #
-# The guard's rules 3, 8 and the redirection rule are FRICTION, not floor: they exist so
-# that an act the HOST would stop for a human arrives as an instruction the agent can
-# correct itself on. AC7 of this Issue requires each translated convenience refusal to
-# ship "only after positive/negative native permission-mode evidence demonstrates the
-# same stopped subset", and until 2026-09-21 that evidence did not exist while this
-# adapter forwarded the whole guard — the one place in this bridge that was on the WRONG
-# SIDE of a criterion rather than merely short of it.
+# ~~THE THREE CONVENIENCE REFUSALS ARE NOT FORWARDED~~ · ~~The guard's rules 3, 8 and the
+# redirection rule~~ — **STRUCK 2026-09-21 (#455), on the merge gate's blocking finding,
+# re-derived here before accepting it.** Both halves were wrong. The count is TWO, and
+# "rule 3" named a FLOOR rule: rule 3 in that file is irreversible git history and ref
+# rewrites. The substitution branch never had a number; it is a branch of rule 8.
 #
-# THE EVIDENCE, taken on codex-cli 0.151.0-alpha.7.2 by `codex-hook-probe.py --phase
-# friction`, one turn, a recorder that refuses nothing, every fixture harmless:
-# a command substitution, an env-var prefix and a stdout redirect ALL COMPLETED under
-# `permissions: ":workspace"`, and the calibration — the same plain `touch` under
-# `:read-only` — was observed by the hook and did NOT complete. So the layer was in force
-# and stopped none of the three. **The stopped subset is EMPTY on this runtime**, and
-# Codex's measured hook vocabulary has one refusal verb and no prompt rung, so there is
-# no prompt for these to be avoiding.
+# WHAT IS FORWARDED AGAIN, AND WHY IT HAD TO BE. Rule 8's SUBSTITUTION branch is a plain
+# `deny` once more. A substitution MANUFACTURES A TOKEN, and every floor rule in that file
+# matches on tokens — so with the branch abstaining, an irreversible act whose
+# floor-matching word is the substitution's output was seen by NOTHING. Measured at the
+# blocked head: 13 of 20 fixtures flipped `deny -> ABSTAIN`, against six plain-spelling
+# controls that denied in both columns, reaching `rm -rf`, IaC mutation, `gh secret set`,
+# `gh repo delete`, `git reset --hard` and a trunk push. THE EXECPOLICY DOES NOT COVER IT
+# EITHER: it forbids token sequences, which a manufactured token does not produce.
+#
+# WHAT STAYS OMITTED, and it is measured rather than reasoned: rule 8's ENV-VAR PREFIX
+# branch and rule 8b, REDIRECTION. Neither manufactures anything — both sit BESIDE a
+# command whose own tokens are intact, so the floor rules still see the act. Seventy
+# wrapped floor acts (ten irreparable commands across four env-var wrappers and three
+# redirect wrappers): ZERO released under `off`, with all seven wrappers confirmed
+# flipping on a harmless command, so the zero is a real zero.
+#
+# THE NATIVE EVIDENCE STILL SAYS WHAT IT SAID, and the substitution row is kept rather
+# than deleted. On codex-cli 0.151.0-alpha.7.2 (`codex-hook-probe.py --phase friction`,
+# one turn, a recorder that refuses nothing) all three classes COMPLETED under
+# `permissions: ":workspace"`, against a calibration — the same plain `touch` under
+# `:read-only` — that was observed by the hook and did NOT complete. **That measurement is
+# sound and it LOST.** Switching the substitution branch off opens the floor on the
+# harness this repository actually runs, which costs more than an over-block on the
+# harness it is being ported to. A measurement can be right and still not carry the
+# decision; deleting the row would hide that trade.
+#
+# THE COST, stated as a cost rather than as a win: on Codex the substitution refusal now
+# fires on more than the runtime was measured stopping — the very thing AC7 forbids. It is
+# the same over-block posture this floor already accepts for rule 8's `VAR=x` case on the
+# Claude side, and it is the safe direction.
 #
 # The classification lives in the GUARD, not here — `deny_convenience` in
 # `hooks/scripts/permission-guard.sh` — because which rules are friction is a property of
 # the rules and this file authors none. All this line does is decline to ask for them.
-#
-# WHAT THIS DOES NOT TOUCH, and it is the sentence to read twice: every irreversible rule
-# is forwarded unchanged. Re-derived at this head under both settings — `terraform apply`
-# and `git push origin main` deny either way, while the three above abstain only under
-# `off`. AC7 also requires these measurements be kept SEPARATE from the mandatory floor
-# assertions, and they are: the friction phase's own fixtures never touch a floor rule.
 CONVENIENCE_ENV = "PERMISSION_GUARD_CONVENIENCE_RULES"
 
 LOG_ENV = "CODEX_HOOK_ADAPTER_LOG"
@@ -490,12 +509,15 @@ def selfcheck():
         "CALLER: no Codex caller receives a caller-dependent exemption. Opening work and "
         "posting to a public surface are refused to every caller on this harness.")
     notes.append(
-        "CONVENIENCE REFUSALS ARE NOT FORWARDED (%s=off). Command substitution, an "
-        "env-var prefix and a stdout redirect are FRICTION rules on the Claude path and "
-        "are omitted here: measured 2026-09-21 on codex-cli 0.151.0-alpha.7.2, all three "
+        "TWO CONVENIENCE REFUSALS ARE NOT FORWARDED (%s=off): an env-var prefix and a "
+        "stdout redirect. Measured 2026-09-21 on codex-cli 0.151.0-alpha.7.2, both "
         "COMPLETED under permissions=':workspace' while the same plain command under "
         "':read-only' was observed and did NOT complete, so the layer was in force and "
-        "stopped none of them. EVERY IRREVERSIBLE RULE IS FORWARDED UNCHANGED."
+        "stopped neither. COMMAND SUBSTITUTION IS FORWARDED DESPITE THE SAME READING: it "
+        "MANUFACTURES the token every other rule matches on, so omitting it made 13 of 20 "
+        "irreversible fixtures reachable (rm -rf, IaC mutation, secret write, repo delete, "
+        "hard reset, trunk push) against six plain-spelling controls that denied. A sound "
+        "measurement can still lose. EVERY IRREVERSIBLE RULE IS FORWARDED UNCHANGED."
         % CONVENIENCE_ENV)
     notes.append(
         "FIRING DEPENDS ON THE BUILD AND ON THE REGISTRATION ROUTE, AND THIS CHECK IS NOT "

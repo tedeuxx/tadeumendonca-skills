@@ -6331,10 +6331,20 @@ turns on `codex-cli 0.151.0-alpha.7.2`.
 ### The decision
 
 **`hooks/scripts/permission-guard.sh` now distinguishes two kinds of `deny` in its own source.**
-A new helper, `deny_convenience()`, wraps exactly three call sites — rule 3 (command substitution),
-rule 8 (env-var prefix) and rule 8b (redirection). With `PERMISSION_GUARD_CONVENIENCE_RULES=off`
-those three **abstain**; unset, or any other value, they **deny exactly as before**. Nothing else in
-the file is reachable through the variable.
+A new helper, `deny_convenience()`, wraps **exactly two** call sites — **rule 8's env-var-prefix
+branch and rule 8b, redirection**. With `PERMISSION_GUARD_CONVENIENCE_RULES=off` those two
+**abstain**; unset, or any other value, they **deny exactly as before**. Nothing else in the file is
+reachable through the variable.
+
+~~wraps exactly three call sites — rule 3 (command substitution), rule 8 (env-var prefix) and rule
+8b (redirection)~~ — **STRUCK in the same slice, on the merge gate's BLOCKING finding, re-derived
+independently before acceptance.** Two errors, and they compound:
+
+- **"rule 3" named a FLOOR rule.** Rule 3 in that file is irreversible git history and ref rewrites.
+  The substitution branch never had a number; it is a branch of rule 8. **A comment misnaming a
+  floor rule as a convenience rule, inside the helper whose entire purpose is that distinction** —
+  and the call-site *count* arm could not have caught it, because the count would not have moved.
+- **The substitution branch must not be switchable**, for the reason in the next section.
 
 ### Why the distinction had to become mechanical rather than stay editorial
 
@@ -6393,25 +6403,59 @@ to fix a second harness would take a working control off the first.
 
 **A model cannot set it.** A hook's environment is inherited from the host process, and a `Bash`
 tool call is a fresh shell whose exports do not survive it — so `export` inside a model's own
-command does not change what a later hook process sees. **And the blast radius is bounded by
-construction even if that were wrong**: the acts the variable releases are a substitution, a
-variable prefix and a redirect, each of which still meets every other rule in the file on the way
-past. The two arms that pin this are deliberately the *floor* ones — a trunk push whose branch name
-is a substitution, and an env-var-prefixed `terraform apply`, both **still denied** under `off`.
+command does not change what a later hook process sees.
+
+~~**And the blast radius is bounded by construction even if that were wrong**: the acts the variable
+releases are a substitution, a variable prefix and a redirect, each of which still meets every other
+rule in the file on the way past. The two arms that pin this are deliberately the *floor* ones — a
+trunk push whose branch name is a substitution, and an env-var-prefixed `terraform apply`, both
+**still denied** under `off`.~~
+
+**STRUCK — THIS IS THE PARAGRAPH THAT JUSTIFIED THE DEFECT, and it is struck rather than rewritten
+because a reader took a guarantee from the words *by construction*.**
+
+**The premise needs the other rules to RECOGNISE the act, and they match on TOKENS.** A command
+substitution **manufactures** a token, so where the floor-matching word is the substitution's
+output there is nothing left to recognise — and the substitution branch was the only thing catching
+it. Measured: **13 of 20 fixtures flipped `deny → ABSTAIN`**, against six plain-spelling controls
+that denied in both columns, reaching `rm -rf`, IaC mutation, `gh secret set`, `gh repo delete`,
+`git reset --hard` and a trunk push. **The execpolicy does not cover it either** — it forbids token
+*sequences*, which a manufactured token does not produce.
+
+**The corrected property, for the two that remain, is MEASURED rather than constructed.** An
+env-var prefix and a redirect sit *beside* a command whose own tokens are intact, so every floor
+rule still sees the act: **seventy wrapped floor acts, zero released under `off`**, with all seven
+wrapper classes confirmed flipping on a harmless command so the zero is a real zero.
+
+**And the second half of that paragraph was worse than the first.** Its two pinning arms were
+supposed to be the safety net, and the substitution one used the **`$( )`** spelling — which rule 7
+rescues through its own fail-closed *"could not resolve which repository"* limb. **That limb does
+not match a backtick and no other floor rule has an equivalent**, so the arm was green **for a
+reason unrelated to its name**, on the one spelling in the class that has a rescue. Re-planting the
+defect against the repaired arms shows it directly: **6 of 6 backtick arms redden, 5 of 6 dollar
+arms do**, the survivor being exactly that trunk-push row.
+
+**The generalisable rule: an arm asserting a property of a CLASS must exercise every spelling the
+class has, and each spelling must be calibrated separately.** A single-spelling arm over a class
+with an uneven rescue is the third and hardest defective-arm shape — not vacuous, not crashing,
+**green for the wrong reason.**
 
 ### What nothing enforces
 
 | claim | what actually holds it |
 |---|---|
-| only the three friction rules are switchable | **`permission-guard.test.sh`**, asserting `deny_convenience` has exactly three call sites, plus ten irreparable acts still denying under `off`. Mutation-checked in both directions — welded shut reddens three arms, welded open reddens 41 |
+| only the two friction rules are switchable | **`permission-guard.test.sh`**, asserting `deny_convenience` has exactly two call sites and that the substitution branch is a plain `deny`, plus ten irreparable acts and **twelve manufactured-token acts (six commands × two spellings)** still denying under `off`. Mutation-checked: routing the substitution branch back through the helper reddens 13 arms |
 | the Claude path is unchanged | **the same suite's other 583 arms**, which never set the variable and did not move |
 | a model cannot reach the variable | **nothing.** It is a property of how the host launches a hook, re-derivable but not gated |
-| the three classes really are unstopped on Codex | **re-running the `friction` phase on a machine with a binary.** No CI runner has one, and the phase spends the operator's tokens |
-| the classification is honest — that a fourth rule added later is genuinely friction | **review.** No gate can tell a friction rule from a floor rule; it can only count them |
+| **every floor rule runs BEFORE the two call sites** | **NOTHING, and this is positional.** `deny_convenience` abstains with `exit 0`, so a floor rule added *below* rule 8 would be silently unreachable under `off` with every arm still green. Named in the helper's header; no gate holds it |
+| the classes really are unstopped on Codex | **re-running the `friction` phase on a machine with a binary.** No CI runner has one, and the phase spends the operator's tokens |
+| the classification is honest — that a rule added later is genuinely friction | **review.** No gate can tell a friction rule from a floor rule; it can only count them. **This slice is the proof**: the count arm was green while a floor-opening rule was routed through the helper |
 
 **By this loop's own test — *would something stop me, or only my memory?* — the COUNT is
-engineered and the CLASSIFICATION is not.** That asymmetry is the one to carry: what a gate can
-hold here is *how many rules are switchable*, never *whether they should be*.
+engineered, the CLASSIFICATION is not, and the ORDERING is not.** That is the asymmetry to carry:
+what a gate can hold here is *how many rules are switchable*, never *whether they should be* and
+never *where they sit*. **The count arm's green during the blocked round is the evidence for that
+sentence rather than an illustration of it.**
 
 ### Significance
 

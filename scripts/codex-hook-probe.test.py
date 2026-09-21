@@ -243,10 +243,29 @@ check("the calibration turn's failure to terminate is NON-FATAL, which is what t
 guard_src = (ROOT / "hooks" / "scripts" / "permission-guard.sh").read_text()
 check("the guard authors the friction/floor classification itself, via one helper",
       "deny_convenience()" in guard_src)
-check("and exactly THREE rules use it — the count is the property, since a fourth call "
-      "site would silently widen what an operator can switch off",
-      guard_src.count("\n  deny_convenience \"") == 3,
+# TWO, and it was THREE for one round. Rule 8's substitution branch was reverted to a
+# plain `deny` on the merge gate's blocking finding: a substitution MANUFACTURES the token
+# every floor rule matches on, so routing it here made 13 of 20 irreversible fixtures
+# reachable under `off`. The count arm could not have caught that — three was the number
+# it was told to expect — which is why the arms that DO catch it live in
+# `permission-guard.test.sh` and assert verdicts for manufactured tokens in both spellings.
+check("exactly TWO rules use it — the count is the property, since an extra call site "
+      "would silently widen what an operator can switch off",
+      guard_src.count("\n  deny_convenience \"") == 2,
       str(guard_src.count("\n  deny_convenience \"")))
+check("and the SUBSTITUTION branch is NOT one of them: it is a plain `deny`, because it "
+      "manufactures the token every other rule matches on",
+      'grep -Eq \'(\\$\\(|`)\'' in guard_src
+      and guard_src.split('grep -Eq \'(\\$\\(|`)\'')[1].lstrip().startswith("; then\n  deny \""),
+      "the substitution branch's call is not a plain deny")
+# The companion arms are in the guard's own suite, and BOTH SPELLINGS is the property
+# that makes them able to fail — `$( )` is rescued on the trunk-push case by rule 7's
+# fail-closed limb and the backtick is not, so a single-spelling arm is green for a reason
+# unrelated to its name. Asserted here so the pairing cannot be dropped from that file.
+gt = (ROOT / "hooks" / "scripts" / "permission-guard.test.sh").read_text()
+check("the guard suite asserts manufactured floor tokens in BOTH spellings",
+      "off/$spelling" in gt and "'DOLLAR' 'BACKTICK'" in gt,
+      "the both-spellings loop is missing from permission-guard.test.sh")
 adapter_src = (ROOT / "scripts" / "codex-hook-adapter.py").read_text()
 check("the adapter declines to ask for them rather than authoring a rule of its own",
       'env[CONVENIENCE_ENV] = "off"' in adapter_src)

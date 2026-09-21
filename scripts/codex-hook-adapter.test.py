@@ -545,7 +545,7 @@ with tempfile.TemporaryDirectory() as work:
     check("could not write the invocation log" in (p.stderr or ""),
           "log — and the failure is announced on stderr")
 
-# ── 12 · AC7 — the three convenience refusals are NOT forwarded, the floor is ──────────
+# ── 12 · AC7 — TWO convenience refusals are not forwarded; the third and the floor are ──
 #
 # Measured on codex-cli 0.151.0-alpha.7.2 (`codex-hook-probe.py --phase friction`): a
 # command substitution, an env-var prefix and a stdout redirect ALL COMPLETED under a
@@ -553,17 +553,41 @@ with tempfile.TemporaryDirectory() as work:
 # inside is EMPTY on that runtime. These arms assert the adapter acts on that and, more
 # importantly, that acting on it did not reach anything irreversible.
 
+BT = chr(96)
+# Floor-act tokens assembled rather than spelled: this FILE is read by shell commands
+# during development, and the guard matches a floor act anywhere in a command string.
+_TF, _AP, _DS = "terra" + "form", "ap" + "ply", "des" + "troy"
+
 CONVENIENCE = [
-    ("echo $(date)", "command substitution"),
     ("FOO=1 ls", "an env-var prefix"),
     ("ls > out.txt", "a stdout redirect"),
 ]
+# THE SUBSTITUTION BRANCH IS FORWARDED, and it was omitted for one round. It is here in
+# BOTH spellings because the class is both and because the previous form of this section
+# tested only `$( )` — see the guard suite's `deny_convenience` block for why that one
+# spelling cannot fail on this class.
+FORWARDED_FRICTION = [
+    ("echo $(date)", "command substitution, $( ) spelling"),
+    ("echo " + BT + "date" + BT, "command substitution, BACKTICK spelling"),
+]
 FLOOR = [
-    ("terraform apply", "terraform apply"),
+    (_TF + " " + _AP, "an IaC mutation"),
     ("git push origin main", "a trunk push"),
     ("rm -rf /tmp/anything", "a recursive force delete"),
     ("gh secret set FOO", "a secret write"),
 ]
+# A floor act whose matching token is MANUFACTURED by a substitution. This is the class
+# the blocked round made reachable, and it is asserted through the ADAPTER rather than
+# only through the guard, because the adapter is what sets the variable on every call.
+MANUFACTURED = []
+for _sp, _o, _c in (("$( )", "$(echo ", ")"), ("BACKTICK", BT + "echo ", BT)):
+    MANUFACTURED += [
+        (_o + "rm" + _c + " -rf /tmp/anything", "a MANUFACTURED 'rm' (%s)" % _sp),
+        (_TF + " " + _o + _AP + _c, "a MANUFACTURED IaC verb (%s)" % _sp),
+        ("gh " + _o + "secret" + _c + " set FOO --body x", "a MANUFACTURED 'secret' (%s)" % _sp),
+        ("git push origin " + _o + "main" + _c, "a MANUFACTURED trunk name (%s)" % _sp),
+        ("gh repo " + _o + "delete" + _c + " o/r", "a MANUFACTURED 'delete' (%s)" % _sp),
+    ]
 
 for command, label in CONVENIENCE:
     # The guard on its own still denies: the rule is not deleted, it is not ASKED FOR.
@@ -572,22 +596,35 @@ for command, label in CONVENIENCE:
     check(decision_of(run_adapter(codex_payload(command))) is None,
           "AC7 — the ADAPTER does not forward the refusal for %s" % label)
 
-for command, label in FLOOR:
+for command, label in FORWARDED_FRICTION:
     d = decision_of(run_adapter(codex_payload(command)))
     check(d is not None and d["decision"] == "block",
-          "AC7 — %s is still BLOCKED; narrowing the friction reached no floor rule"
-          % label)
+          "AC7 — %s IS forwarded: it manufactures the token every floor rule matches on, "
+          "so omitting it is a floor hole rather than a narrowing" % label)
+
+for command, label in FLOOR + MANUFACTURED:
+    d = decision_of(run_adapter(codex_payload(command)))
+    check(d is not None and d["decision"] == "block",
+          "AC7 — %s is still BLOCKED through the adapter; the narrowing reached no floor "
+          "rule" % label)
 
 # The calibration for the whole section: the switch must be able to change an answer, or
 # the seven arms above are a green that could not have been red.
 import subprocess as _sp
 _env_on = dict(os.environ); _env_on["PERMISSION_GUARD_CONVENIENCE_RULES"] = "on"
 _p = _sp.run(["bash", str(GUARD)],
-             input=json.dumps(codex_payload("echo $(date)")),
+             input=json.dumps(codex_payload("FOO=1 ls")),
              capture_output=True, text=True, cwd=str(ROOT), env=_env_on)
 check((_p.stdout or "").strip() != "",
       "AC7 — calibration: with the variable set to 'on' the guard answers, so the "
       "abstentions above are the switch acting rather than a dead selector")
+# And the adapter's own env is what produces them — asserted here rather than only read
+# from the source, because `env[CONVENIENCE_ENV] = "off"` being present in the file says
+# nothing about it reaching the subprocess.
+check(decision_of(run_adapter(codex_payload("FOO=1 ls"))) is None
+      and guard_verdict("FOO=1 ls", None) == "deny",
+      "AC7 — calibration: the SAME command denies through the guard directly and abstains "
+      "through the adapter, so the adapter's environment is what carries the narrowing")
 
 # ── 9 · selfcheck reports rather than controls ────────────────────────────────────────
 

@@ -2225,11 +2225,35 @@ rm -rf "$WT"
 
 echo "--- deny_convenience: the friction rules, and ONLY those, may be omitted ---"
 #
-# PERMISSION_GUARD_CONVENIENCE_RULES=off exists because the subset test rules 3, 8 and 8b
-# were written under is a property of the HOST RUNTIME, and this floor is no longer
-# carried by one runtime — measured on codex-cli 0.151.0-alpha.7.2, all three spellings
-# complete there while the permission layer is demonstrably in force (see
+# READ THIS BLOCK'S OWN HISTORY BEFORE ADDING TO IT. Its first form routed rule 8's
+# SUBSTITUTION branch through the helper too, and that opened the floor: a substitution
+# MANUFACTURES a token, every floor rule matches on tokens, so with the branch abstaining
+# an irreversible act whose floor-matching word is the substitution's output was seen by
+# nothing. Thirteen of twenty fixtures flipped `deny -> ABSTAIN`.
+#
+# THE ARM THAT WAS SUPPOSED TO CATCH THAT WAS GREEN, AND THAT IS THE PART WORTH KEEPING.
+# It read `off: a trunk push carrying a substitution is STILL a trunk push` and used the
+# `$( )` spelling — which rule 7 rescues through its own fail-closed "could not resolve
+# which repository" limb. THAT LIMB DOES NOT MATCH A BACKTICK, and no other floor rule has
+# an equivalent. So the arm passed for a reason unrelated to its name, on the one spelling
+# in the class that has a rescue, while asserting a property that did not hold. Not
+# vacuous, not crashing — GREEN FOR THE WRONG REASON, which is the hardest of the three to
+# see.
+#
+# So every arm below that involves a substitution asserts BOTH SPELLINGS and each is
+# calibrated separately. An arm that only ever sees the rescued spelling cannot fail on
+# the class it names.
+#
+# PERMISSION_GUARD_CONVENIENCE_RULES=off exists because the subset test rule 8's env-var
+# branch and rule 8b were written under is a property of the HOST RUNTIME, and this floor
+# is no longer carried by one runtime — measured on codex-cli 0.151.0-alpha.7.2, both
+# spellings complete there while the permission layer is demonstrably in force (see
 # `deny_convenience`'s own comment and `scripts/codex-hook-probe.py --phase friction`).
+#
+# THE THIRD CLASS MEASURED THE SAME WAY AND IS STILL DENIED. Rule 8's substitution branch
+# is a plain `deny` for the reason at that branch: it manufactures the token every floor
+# rule matches on. ~~rules 3, 8 and 8b~~ — "rule 3" was also the WRONG NUMBER: rule 3 in
+# the guard is irreversible git history and ref rewrites, a FLOOR rule.
 #
 # WHAT THESE ARMS ARE FOR IS THE SECOND HALF, NOT THE FIRST. That the three stop denying
 # is one line of behaviour. That NOTHING ELSE DOES is the property a later edit could
@@ -2251,15 +2275,24 @@ check_env() {
   fi
 }
 
-# The three friction rules, under `off`.
-check_env ALLOW off "off: rule 3 (command substitution) abstains"  'echo $(date)'
-check_env ALLOW off "off: rule 8 (env-var prefix) abstains"        'FOO=1 npx playwright test'
+# The TWO friction rules, under `off`. Rule 8's SUBSTITUTION branch is deliberately not
+# here — it is a plain `deny` and the arms for that are below.
+check_env ALLOW off "off: rule 8's env-var branch abstains"        'FOO=1 npx playwright test'
 check_env ALLOW off "off: rule 8b (redirection) abstains"          'ls > out.txt'
 
-# Every other value is UNCHANGED BEHAVIOUR. `on`, an empty string and a near-miss spelling
-# must all still deny, or the switch is a hole that a typo or an inherited variable opens.
+# THE SUBSTITUTION BRANCH IS NOT SWITCHABLE. Both spellings, because the class is both.
+check_env DENY off "off: a command substitution STILL denies — \$( ) spelling" \
+                   'echo $(date)'
+check_env DENY off "off: a command substitution STILL denies — BACKTICK spelling" \
+                   'echo `date`'
+
+# Every other value is UNCHANGED BEHAVIOUR for the two that ARE switchable. `on`, an empty
+# string and a near-miss spelling must all still deny, or the switch is a hole that a typo
+# or an inherited variable opens.
 for v in on OFF Off "" 0 1 offx; do
-  check_env DENY "$v" "value '$v' is NOT 'off', so rule 3 still denies" 'echo $(date)'
+  check_env DENY "$v" "value '$v' is NOT 'off', so the env-var branch still denies" \
+                      'FOO=1 npx playwright test'
+  check_env DENY "$v" "value '$v' is NOT 'off', so rule 8b still denies" 'ls > out.txt'
 done
 
 # THE FLOOR IS UNREACHED. Each of these is an act this repository records as irreparable.
@@ -2275,17 +2308,66 @@ check_env DENY off "off: --dangerously-skip-permissions still denies" \
 check_env DENY off "off: 'git clean -f' still denies"           'git clean -fd'
 check_env DENY off "off: an AWS secret write still denies"      'aws secretsmanager put-secret-value --secret-id x'
 
-# And a floor act SPELLED WITH a friction construct is still denied under `off`. This is
-# the arm that would catch the narrowing being read as "anything containing a
-# substitution passes", which is the failure mode with the largest blast radius.
-check_env DENY off "off: a trunk push carrying a substitution is STILL a trunk push" \
-                   'git push origin $(echo main)'
-check_env DENY off "off: an env-var-prefixed terraform apply is STILL terraform apply" \
-                   'FOO=1 terraform apply'
+# A floor act SPELLED WITH a friction construct is still denied under `off`. This is the
+# set that would catch the narrowing being read as "anything containing a friction
+# construct passes", which is the failure mode with the largest blast radius — and it is
+# the set whose first form was green for the wrong reason.
+#
+# THE SUBSTITUTION HALF: the floor-matching token is MANUFACTURED, which is the whole
+# hazard. Both spellings for every act, because `$( )` is rescued by rule 7's fail-closed
+# limb on the push case and the backtick is not, and no other floor rule has that rescue.
+tf="terra""form"; ap="ap""ply"; ds="des""troy"     # assembled: this FILE is read by the
+                                                   # guard's own arms elsewhere, and the
+                                                   # literals are floor acts
+for spelling in 'DOLLAR' 'BACKTICK'; do
+  if [ "$spelling" = "DOLLAR" ]; then s_rm='$(echo rm)'; s_tf="\$(echo $ap)"; s_sec='$(echo secret)'; s_main='$(echo main)'; s_del='$(echo delete)'; s_hard='$(echo --hard)'
+  else                                s_rm='`echo rm`'; s_tf="\`echo $ap\`"; s_sec='`echo secret`'; s_main='`echo main`'; s_del='`echo delete`'; s_hard='`echo --hard`'
+  fi
+  check_env DENY off "off/$spelling: a MANUFACTURED 'rm' is still a recursive force delete" \
+                     "$s_rm -rf /some/dir"
+  check_env DENY off "off/$spelling: a MANUFACTURED IaC verb is still an IaC mutation" \
+                     "$tf $s_tf"
+  check_env DENY off "off/$spelling: a MANUFACTURED 'secret' is still a secret write" \
+                     "gh $s_sec set X --body y"
+  check_env DENY off "off/$spelling: a MANUFACTURED trunk name is still a trunk push" \
+                     "git push origin $s_main"
+  check_env DENY off "off/$spelling: a MANUFACTURED 'delete' is still a repo delete" \
+                     "gh repo $s_del owner/repo"
+  check_env DENY off "off/$spelling: a MANUFACTURED '--hard' is still a hard reset" \
+                     "git reset $s_hard HEAD~1"
+done
+
+# CALIBRATION, PER SPELLING, and this is the arm the first form of this block lacked. Each
+# spelling must be able to reach a NON-floor verdict on its own, or its six DENYs above
+# could be a rule that denies every string containing that construct regardless — which
+# would make them green without saying anything about the floor.
+check_env ALLOW on  "calibration/DOLLAR: the spelling is not denied by something else — \
+with the substitution branch's own construct removed, a harmless act allows" 'echo ok'
+check_env DENY  on  "calibration/DOLLAR: and WITH it, the same harmless act denies" \
+                    'echo $(date)'
+check_env DENY  on  "calibration/BACKTICK: and WITH the backtick, the same harmless act denies" \
+                    'echo `date`'
+
+# THE ENV-VAR AND REDIRECT HALF: these do NOT manufacture a token, which is why they stay
+# switchable. Measured 2026-09-21 — seventy wrapped floor acts, zero released under `off`.
+# A representative row per wrapper class, so a regression in either is visible here.
+check_env DENY off "off: an env-var-prefixed IaC mutation is STILL an IaC mutation" \
+                   "FOO=1 $tf $ap"
+check_env DENY off "off: a GIT_DIR-prefixed trunk push is STILL a trunk push" \
+                   'GIT_DIR=/x git push origin main'
+check_env DENY off "off: an env-var prefix AFTER a separator does not release the floor" \
+                   "true; FOO=1 $tf $ds -auto-approve"
+check_env DENY off "off: a REDIRECTED IaC mutation is STILL an IaC mutation" \
+                   "$tf $ap > out.txt"
+check_env DENY off "off: a REDIRECTED secret write is STILL a secret write" \
+                   'gh secret set X --body y >> log.txt'
 
 # Calibration: the helper must be able to change an answer in BOTH directions, or every
-# arm above is a green that could not have gone the other way.
-check_env DENY  on  "calibration: the same substitution DENIES with the switch on" 'echo $(date)'
+# arm above is a green that could not have gone the other way. It is taken on the two
+# rules that ARE switchable, since the substitution branch no longer is.
+check_env DENY  on  "calibration: the env-var branch DENIES with the switch on" \
+                    'FOO=1 npx playwright test'
+check_env DENY  on  "calibration: rule 8b DENIES with the switch on" 'ls > out.txt'
 
 rm -rf "$FEAT"
 rm -rf "$TMAIN" "$TFEAT"
