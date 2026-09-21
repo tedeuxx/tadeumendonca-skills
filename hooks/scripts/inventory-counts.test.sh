@@ -2475,6 +2475,7 @@ cp_post_missing=""
 for cp_lit in \
   'a bilingual post says WHERE the other language is' \
   'written in the language of the block it points AT' \
+  'the English block LEADS and the Portuguese block TRAILS' \
   'a flag emoji standing for the language' \
   'emoji de bandeiras remetendo a idiomas' \
   '🇧🇷 for Portuguese, 🇺🇸 for English' \
@@ -2493,6 +2494,7 @@ for cp_lit in \
 done
 for cp_lit in \
   'A bilingual post is READ for its two language hints and for its length, BEFORE it is posted' \
+  'the English block LEADS and the Portuguese block TRAILS' \
   'The share URL is FORMED locale-neutral, and only then tagged' \
   ; do
   grep -qF -- "$cp_lit" "$ROOT/skills/content-publishing/SKILL.md" 2>/dev/null \
@@ -2512,6 +2514,16 @@ if [ -n "$cp_post_missing" ]; then
       If the POINTS-AT literal is missing, rule 19 has lost the only thing that makes the hint reach
       the reader it was added for: a hint written in the LEADING language is invisible to exactly the
       reader who cannot read the leading block.
+      If the ORDER literal is missing — in the RULER or in the LANE, and it is pinned in both — rule
+      19 has gone back to being silent on which language leads, which is what it was for 23 days
+      while the owner's 2026-08-28 ruling sat unimplemented. It is pinned as a SUBSTITUTION target
+      rather than a presence one: the failure this catches is a sweep rewriting the order the other
+      way round, not a deletion, so a post that leads in Portuguese must stay a CITABLE finding and
+      not merely an unmentioned one. Do not 'fix' this by generalising it back to role wording: the
+      role framing is still there beside it, deliberately, and the order is the half he ruled.
+      Note the 🇺🇸 pin is KEPT and UNREACHABLE under this order, never deleted — the English flag is
+      never rendered on a bilingual post once English leads, and the clause binds again the moment a
+      monolingual English piece carries a Portuguese gloss.
       If the TARGET literal is missing, rule 20 has become a hard limit — which is what the owner
       STRUCK on the article lane one day earlier (\"essa meta nao deveria ser um hard limit\"), so
       re-installing it here would reverse his ruling on a different surface.
@@ -2536,7 +2548,9 @@ if [ -n "$cp_post_missing" ]; then
       opposite and both are correct."
 else
   ok "content pair — the post rules 19-21 (the bilingual language hints, their points-at-language
-      condition and the two flags he ruled; the LinkedIn target that is not the ceiling, read per
+      condition, the fixed English-leads order pinned in BOTH the ruler and the lane, and the two
+      flags he ruled — of which the English one is kept with no live subject under that order; the
+      LinkedIn target that is not the ceiling, read per
       language block; the locale-neutral share URL WITH the precondition that gates it) are present in the shared ruler WITH the owner's own wording on both halves of
       his form ruling, and the lane carries the step that reads a draft for them. Presence only: this
       asserts the rules are WRITTEN, never that a post obeys them — no layer observes a draft, and the

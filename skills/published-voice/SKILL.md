@@ -1530,7 +1530,10 @@ because it is a real scoping gap in this section and it should not be discovered
 > **19. A bilingual post opens with a one-line hint, written in the language of the block it points AT,
 > naming where that block is. The trailing block carries a matching one-line marker immediately above
 > it. Both carry a flag emoji standing for the language — **🇧🇷 for Portuguese, 🇺🇸 for English** — and
-> both are ONE LINE that does not explain itself.**
+> both are ONE LINE that does not explain itself. And the order is fixed (2026-09-20):
+> **the English block LEADS and the Portuguese block TRAILS**, so the opening hint is always the
+> Portuguese one, and a post that leads in Portuguese is a citable finding rather than a stylistic
+> preference.**
 
 The owner's ruling, 2026-09-19, made while reading a post this loop had published minutes earlier:
 
@@ -1568,12 +1571,24 @@ an English-first post opens in Portuguese. **This is the one answer I could not 
 artifact** — see the corpus note below — and it is carried on that reasoning rather than on a
 precedent I can point at.
 
-**3 · It does NOT depend on which language leads, and the rule is written by ROLE to make that
-structural.** *Leading block* and *trailing block*, never *the Portuguese one*. A rule phrased in
-language names would have to be re-derived the first time the order flipped. **The recorded corpus is
+**3 · The rule is written by ROLE, and the role framing is what survives the order being fixed.**
+*Leading block* and *trailing block*, never *the Portuguese one*. A rule phrased in language names
+would have to be re-derived the first time the order flipped. **The recorded corpus is
 Portuguese-first throughout and has never flipped** — `grep '^## .*LinkedIn' docs/social/*.md` returns
-two headings, both *"Portuguese first"*, and both leading blocks open in Portuguese — so this clause is
-written against a case that has not occurred, deliberately, rather than against one that has.
+two headings, both *"Portuguese first"*, and both leading blocks open in Portuguese.
+
+~~**It does NOT depend on which language leads** … so this clause is written against a case that has
+not occurred, deliberately, rather than against one that has.~~ **Struck 2026-09-20 — the order is
+FIXED, and the case this clause called *not occurred* was ruled on 23 days before the clause was
+written.** The context that wrote it did not know the ruling existed — it was filed 2026-08-28 in the
+consuming repository's own tracker, where the `content` lane's Issues live rather than beside this
+ruler, **which is the searchable surface a drafter has to be told to check and is the whole reason it
+sat for 23 days.** Struck rather than deleted because a reviewer who read
+it took from it that order was an open axis and that a Portuguese-first post could not be raised —
+which is exactly what it may now be raised as. **What the strike does NOT touch is the role framing
+above it**, which is still the right shape and is the reason this section needed one added clause
+rather than a rewrite: a future monolingual piece carrying a gloss, or a later reversal of the order,
+moves one sentence instead of the whole rule.
 
 **4 · The flags are DECIDED, and they are 🇧🇷 for Portuguese and 🇺🇸 for English.** 🇧🇷 is his own
 ruling plus the one precedent. **🇺🇸 is his ruling of 2026-09-19**, taken against 🇬🇧 and against
@@ -1586,6 +1601,82 @@ reviewer may raise a missing flag and may not raise which flag~~ — **struck th
 written: he ruled within the hour.** Struck rather than deleted because it is the sentence that told a
 reviewer it could not raise a wrong flag, and that is exactly what it may now do. **A reviewer may
 raise a missing flag AND a wrong one.**
+
+**🇺🇸 is KEPT and has NO LIVE SUBJECT under the order below, which is a different state from wrong.**
+If English always leads, the hint only ever points AT Portuguese, so the English flag is never
+rendered on a bilingual post and the 🇬🇧-versus-🇺🇸 question is unreachable rather than resolved.
+**Do not delete the pin.** It binds the moment a piece is monolingual English and carries a
+Portuguese gloss, and re-deriving a nationality-for-a-language decision he has already taken would
+cost an escalation to recover a value that is written down. **Read it as a dormant clause with its
+reason attached, and raise a wrong flag under it only where a block actually points at English.**
+
+#### The ORDER — English leads, and this is rule 19 getting SMALLER
+
+**Owner ruling, 2026-09-20, re-taking his own ruling of 2026-08-28** (filed in the consuming
+repository's tracker, where this lane's Issues live)**:**
+
+> *«eu acho que faz sentido mostrar o ingles primeiro, depois portugues, com a primeira linha sendo a
+> bandeirinha do brasil indicando conteudo em portugues na segunda metade do post. assim aproveitamos
+> para driblar a bandeirinha us/uk tbm»*
+
+**It was put back to him rather than resolved by assumption, because the evidence pointed both ways:**
+the 2026-08-28 ruling said English-first and sat unimplemented for 23 days, while on 2026-09-19 he
+read a Portuguese-first post, edited it by hand and did **not** reorder it. Behaviour and ruling
+disagreed, and a loop that picks the convenient half of that pair is inventing a decision.
+
+**His reason for the order is audience fit** — LinkedIn is the surface where the repositioning is
+read, and its audience is the one the English edition is written for. **The observation the
+Portuguese-first convention rested on is not denied**: only the first language is read without a
+click. The order trades on it deliberately — the position goes to English, and Portuguese gets a
+signpost instead, so a Portuguese reader learns in line one that their version exists and where.
+
+**The second consequence is HIS and nobody in this loop had seen it: it makes the ruler smaller.**
+Fixing the order does not add a constraint on top of the flag question — it removes the flag
+question's object. **That is the shape worth recognising**, and it is the same one the loop-mode
+contract records twice, where `sp:N` and the iteration number each removed an axis a mode could vary.
+A rule with fewer axes has fewer places to drift.
+
+**What it costs, said rather than absorbed.** The order is now a fact about language names inside a
+rule that is otherwise written by role, so the two framings sit in one clause and a later reader can
+read the order as the rule's shape. It is written as one sentence appended to the rule, for exactly
+that reason: reversing the order is a one-sentence edit and does not reach the role wording.
+
+~~**And the live post for the current article is out of conformance on both counts** — it leads in
+Portuguese and carries no signpost at all. That is a finding about a published artifact, not about
+this rule, and repairing it is the owner's act on a surface no context in this loop can reach.~~
+
+**STRUCK 2026-09-20 — all three of its claims are false at head, and it went false DURING the slice
+that wrote it.** Struck rather than deleted because it is the sentence that told a reader this rule
+had a live counter-example, and someone who read it took the rule's urgency from it. **The general
+clause is untouched: a post that leads in Portuguese is still a citable finding.** What dies is the
+claim that one specific live post is currently one.
+
+- **It CONFORMS.** Edited in place and saved 2026-09-20: English leads, and the first line is
+  `🇧🇷 Versão em português na segunda metade.`
+- **It was NOT the owner's act.** The loop performed the edit.
+- **The surface IS reachable** — see the clause below, which is the half worth getting right.
+
+**Why the sentence was written that way, recorded rather than filed as an authoring error:** it was
+sourced to a dated comment and was true when that comment was written. **A claim about a live
+external surface has a shelf life, and this one expired inside a single working day.** The rule that
+survives is the one this file already applies to its own corpus figures — *a claim about a mutable
+artifact ships with its date and its reader is told it may have moved*, not *check harder*.
+
+#### Which surface a published defect can be REPAIRED on, and the two answers differ
+
+**A LinkedIn post body is editable in place, by a context in this loop, and that was demonstrated
+rather than argued** — the edit above preserved the post's reactions, comments and impressions, and
+the owner's own hand-edits to the Portuguese block survived it verbatim. **So a rule-19 defect on
+LinkedIn is a repair, not a loss.**
+
+**X is not editable at all.** The repair there is **delete-and-repost**, which destroys the post's
+engagement and its impression history. **That is a genuine trade and it is the constraint a reviewer
+has to price** before recommending a fix to anything already published on that surface.
+
+**The consequence for this rule specifically:** rule 19 has no subject on X, which ships monolingual,
+so this asymmetry never bites rule 19 itself. It bites every other published-copy rule that can be
+violated on both surfaces, which is why it is stated here as a property of the surfaces rather than
+inside the order clause.
 
 #### The corpus this was derived from is ONE record, and the precedent is NOT in it
 
@@ -1607,8 +1698,22 @@ citing — an English-first piece whose first line pointed forward to a Portugue
 in `docs/social/`, and a history search for its hint string returns only the *article* files. Five
 articles are published and **one** of them has a social record at all. **So the precedent is real
 because he read it live, and this file cannot cite it**; the shape above is reconstructed from his own
-description of it in the ruling. **Say so if that shape is ever the sole ground for a repair.** The
-falsifier is cheap and someone should run it: open the live post.
+description of it in the ruling. **Say so if that shape is ever the sole ground for a repair.**
+
+~~The falsifier is cheap and someone should run it: open the live post.~~ **DISCHARGED 2026-09-20 —
+it was run, by the loop, through a browser.** It is struck rather than left standing because an
+invitation to run a check that has an answer sends the next reader to re-derive it. **What it
+returned** does not recover the missing precedent: the post opened was the **current** article's, not
+the one he cited, and opening it is what produced the repair recorded above rather than a record of
+the precedent. **So the precedent is still uncitable from this tree**, and the paragraph above is
+unchanged by the discharge.
+
+**The corpus figure is unchanged too, re-derived at the sibling's `origin/main` on 2026-09-20 rather
+than carried** — `git -C <consumer> ls-tree --name-only origin/main docs/social/` returns **one**
+file, and it is for a different article than the one repaired. **Four of five published pieces still
+ship their social pair with nothing written down**, so no corpus reading about post craft is better
+than n=1, and a repair performed on a live surface leaves no record here at all. That is the finding
+the discharge exposes rather than closes.
 
 **And the missing records are a finding about the lane rather than about this rule.** Four of five
 published pieces shipped their social pair with nothing written down, so no corpus reading about post
@@ -1619,7 +1724,11 @@ craft can be better than n=1 until that changes. This rule does not repair it.
 The closing paragraph of this section puts *which language on which network* outside this file, as a
 distribution mechanic. **Rule 19 does not touch that and must not be read as touching it.** It governs
 a line of text a reader reads, in the owner's voice, on a post that has **already** been decided to be
-bilingual. *Whether* a post is bilingual, and which language leads, stay where they were.
+bilingual. ~~*Whether* a post is bilingual, and which language leads, stay where they were.~~
+**Struck 2026-09-20 in its second half only: WHICH LANGUAGE LEADS is now inside this rule**, by the
+owner's ruling above, and it is here rather than in the distribution mechanic because he ruled it
+*as* the first line a reader reads. **The first half is untouched** — whether a post is bilingual at
+all is still not this file's question.
 
 #### What rule 19 CANNOT do
 
