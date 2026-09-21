@@ -1,6 +1,6 @@
 {
   "name": "tadeumendonca-skills",
-  "version": "2.0.60",
+  "version": "2.0.61",
   "description": "The Codex carrier for this harness: the irreversible-floor adapter, the skill library and the MCP declaration. It REPLACES the Claude hook registry for Codex - see docs/codex-hook-bridge.md for what that covers and what it does not. WHAT IS MEASURED, and the BUILD is part of every claim: on codex-cli 0.151.0-alpha.7.2 (2026-09-21, section 15) a trusted PreToolUse registration was FOUND, INVOKED, DECIDED and its refusal TOOK EFFECT, and a relative command resolved against the session's cwd. On codex-cli 0.154.0-alpha.6.2 (2026-09-16, section 13) a trusted registration was found NOT acting; that was measured through the PLUGIN CARRIER while section 15 measured a config registration, so the two differ in BUILD and in ROUTE and neither overturns the other. Hook trust is granted by an API call with NO human prompt on both - never treat it as a human checkpoint. TWO convenience refusals are omitted on this path (env-var prefix, redirection) because the native layer stops neither; the THIRD, command substitution, is FORWARDED despite the same reading, because it manufactures the token every floor rule matches on - see section 15.3. So: the floor is ACTIVE for a model tool call on 0.151 via a config registration, and the carrier's own route is still unproven. Do not flatten that into either 'available' or 'active'.",
   "hooks": "./codex-hooks.json",
   "skills": "./skills/",
