@@ -2243,6 +2243,50 @@ A's fixture used one and `plugin/read` reported a registration; every turn phase
 absolute path), and the route ceiling above is unliftable — the floor covers **the model's tool
 calls** and nothing else. *"The shell is guarded"* is false on this runtime.
 
+**AMENDED 2026-09-21 (#455): the hook FIRES, on the build this machine has, and the paragraph above
+is narrowed rather than struck because every clause of it is still true of the route it names.** One
+turn on **`codex-cli 0.151.0-alpha.7.2`** with three trusted `PreToolUse` registrations — an
+absolute recorder as the control, a **relative** one, and the real adapter — put all three at
+**one invocation each**: the relative command **resolved**, against the **session's cwd**; the
+adapter was invoked, decided `block`, and **the act did not happen**. The act was chosen where this
+harness's two Codex layers disagree (`gh pr merge` is `allow` in the execpolicy, `deny` in the
+guard), so the refusal is attributable to the hook and not to the cheaper layer.
+
+**What that does and does not settle.** It registers through `config.toml`, not through the plugin
+carrier, so the carrier's **own** route stays unmeasured and *"available, never active"* remains the
+right wording for it. And it does **not** overturn the 2026-09-16 non-firing on
+`0.154.0-alpha.6.2`: the two runs differ in **build** and in **registration route** at once. What it
+does settle is that the standing hypothesis — *the runtime used an unhooked route* — **does not
+explain it as stated**, since a model tool call fired every registration on this build. Two readings
+survive where there were three. Section 15 of the bridge document carries the commands.
+
+**And TWO of the three CONVENIENCE refusals are no longer forwarded (AC7).** An env-var prefix and
+a stdout redirect are friction rules that exist to turn a Claude *prompt* into a self-correcting
+instruction; measured on the same build, Codex's own layer stops **neither**, against a calibration
+that does stop an act (the same plain command under `:read-only`). Firing on more than the runtime
+stops inverts the rule they were written under, so the guard marks them with `deny_convenience()` —
+**exactly two call sites, and the count is an arm** — and the adapter declines to ask for them.
+**Every irreversible rule is forwarded unchanged**, and the Claude path is byte-identical because
+nothing sets the variable there.
+
+**The third, command substitution, is FORWARDED despite the same reading, and that correction is
+worth more than the narrowing.** It was routed through the helper for one round and the merge gate
+blocked it: **a substitution MANUFACTURES the token every floor rule matches on**, so with the
+branch abstaining an irreversible act whose floor-matching word is the substitution's output was
+seen by nothing. **13 of 20 fixtures flipped `deny → ABSTAIN`** — `rm -rf`, IaC mutation,
+`gh secret set`, `gh repo delete`, `git reset --hard`, a trunk push — against six plain-spelling
+controls that denied in both columns. The execpolicy does not cover it either: it forbids token
+*sequences*, which a manufactured token does not produce. **A sound measurement can still lose**;
+the row is kept rather than deleted, and the cost is stated as a cost — on Codex this refusal now
+fires on more than the runtime stops, which is the safe direction and the same over-block posture
+this floor already accepts elsewhere.
+
+**The arm that should have caught it was green for a reason unrelated to its name**, and that is the
+transferable half: it used the `$( )` spelling, which rule 7 rescues through its own fail-closed
+limb, and **that rescue does not reach a backtick**. Every arm over this class now asserts both
+spellings and calibrates each separately — re-planting the defect reddens **6 of 6 backtick arms and
+5 of 6 dollar arms**, the survivor being exactly the trunk-push row.
+
 **Two consequences an operator meets immediately.** No Codex caller receives a caller-dependent
 exemption — opening work and posting to a public surface are refused to **every** caller, because
 `agent_type` routes and never authenticates. And the `write_stdin` gap is **open by decision**: the

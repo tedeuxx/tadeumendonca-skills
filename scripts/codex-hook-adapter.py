@@ -71,6 +71,24 @@ mis-set knob distinguishable from an unset one, which is the whole requirement �
 The guard's own fail-closed exception (rule 7c, the merge verdict lookup) is preserved
 by construction: this file does not interpret the guard's rules, it forwards a verdict.
 
+── WHAT THE FLOOR DOES *NOT* CARRY ONTO CODEX (AC7, 2026-09-21) ──────────────────────
+TWO of the guard's convenience rules — an env-var prefix and a stdout redirect — are not
+forwarded. They exist on Claude to turn a PROMPT into a self-correcting instruction, and
+`/shell`'s own rule is that such a rule must fire on a SUBSET of what the runtime stops
+for. Measured on codex-cli 0.151.0-alpha.7.2 the native layer stops neither, and Codex's
+hook vocabulary has no prompt rung — so there they fired on MORE.
+
+**THE THIRD, COMMAND SUBSTITUTION, IS FORWARDED, and the same measurement says it should
+not be.** It is a floor rule in disguise: a substitution MANUFACTURES the token every
+other rule matches on, so omitting it made thirteen irreversible acts reachable. The
+measurement is sound and it LOST. See CONVENIENCE_ENV below and section 15.3 of the
+bridge document. **Every irreversible rule is forwarded unchanged.**
+
+── AND HOW TO TELL AN ABSENT FLOOR FROM A HOLDING ONE ────────────────────────────────
+`CODEX_HOOK_ADAPTER_LOG`, off by default, absolute paths only. It is the only artifact
+that separates "the runtime never called this file" from "it called it and the decision
+was discarded" — the pair that left the firing question open for five days. See LOG_ENV.
+
 Usage:
 
     python3 scripts/codex-hook-adapter.py            # hook mode: payload on stdin
@@ -213,6 +231,131 @@ INTERACTIVE_PROGRAMS = (
 # a script file. Anything else, and the invocation opens a session.
 NON_INTERACTIVE_FLAGS = ("-c", "-m", "-e", "--command", "--eval", "-s", "--stdin")
 
+# ── THE INVOCATION LOG — opt-in, ABSOLUTE-ONLY, and best-effort by construction ───────
+#
+# WHY IT EXISTS. A floor that fails open is indistinguishable from a floor that is
+# holding, and the specific question this Issue could not answer is one layer worse than
+# that: a registered, trusted hook did not act, and NOTHING anywhere could say whether
+# the adapter ran and its decision was discarded, whether it failed to launch, or
+# whether the runtime never called it. `--selfcheck` cannot close that — if you are
+# reading its output the adapter was run by YOU. Only a record the adapter writes when
+# the RUNTIME calls it can tell the three apart.
+#
+# WHY IT IS AN ENV VAR NAMING AN ABSOLUTE PATH, and this is a decision rather than a
+# default. Three constraints pick the design and each one eliminates the obvious answer:
+#
+#   * a fixed repo-relative path is the DEFECT THIS ISSUE FOUND, one layer down. The
+#     adapter's own command is resolved against the session's cwd, which is why the
+#     carrier works in one checkout by structural coincidence. A log resolved the same
+#     way would scatter files into whatever tree the operator happened to open, and a
+#     relative path is therefore REFUSED rather than resolved — see `log_target`.
+#   * a fixed absolute path under the repo root would write into a TRACKED tree on every
+#     tool call, which is a new side effect of a preventive control that nobody asked
+#     for. `.gitignore`-ing it would hide the side effect rather than remove it.
+#   * a default-on log of every command a model runs is a TRANSCRIPT. This adapter sits
+#     on the one route that sees every shell act, so writing one by default would make
+#     the floor a surveillance surface as a side effect of being a floor. It is off
+#     unless an operator names a destination, and nothing in this repository sets it.
+#
+# WHAT IT MUST NEVER DO. A logging failure must not change a verdict. Every write is
+# wrapped and every failure is swallowed to stderr: the floor's job is the decision, and
+# a floor that stops judging because it could not append a line is a worse floor than
+# one with no log at all. This is the one place in this file where a bare `except` is
+# correct, and it is written out rather than narrowed so the reason is visible.
+# ── TWO OF THE THREE CONVENIENCE REFUSALS ARE NOT FORWARDED — AC7, and the third is a ──
+# ── MEASUREMENT THAT LOST ────────────────────────────────────────────────────────────
+#
+# ~~THE THREE CONVENIENCE REFUSALS ARE NOT FORWARDED~~ · ~~The guard's rules 3, 8 and the
+# redirection rule~~ — **STRUCK 2026-09-21 (#455), on the merge gate's blocking finding,
+# re-derived here before accepting it.** Both halves were wrong. The count is TWO, and
+# "rule 3" named a FLOOR rule: rule 3 in that file is irreversible git history and ref
+# rewrites. The substitution branch never had a number; it is a branch of rule 8.
+#
+# WHAT IS FORWARDED AGAIN, AND WHY IT HAD TO BE. Rule 8's SUBSTITUTION branch is a plain
+# `deny` once more. A substitution MANUFACTURES A TOKEN, and every floor rule in that file
+# matches on tokens — so with the branch abstaining, an irreversible act whose
+# floor-matching word is the substitution's output was seen by NOTHING. Measured at the
+# blocked head: 13 of 20 fixtures flipped `deny -> ABSTAIN`, against six plain-spelling
+# controls that denied in both columns, reaching `rm -rf`, IaC mutation, `gh secret set`,
+# `gh repo delete`, `git reset --hard` and a trunk push. THE EXECPOLICY DOES NOT COVER IT
+# EITHER: it forbids token sequences, which a manufactured token does not produce.
+#
+# WHAT STAYS OMITTED, and it is measured rather than reasoned: rule 8's ENV-VAR PREFIX
+# branch and rule 8b, REDIRECTION. Neither manufactures anything — both sit BESIDE a
+# command whose own tokens are intact, so the floor rules still see the act. Seventy
+# wrapped floor acts (ten irreparable commands across four env-var wrappers and three
+# redirect wrappers): ZERO released under `off`, with all seven wrappers confirmed
+# flipping on a harmless command, so the zero is a real zero.
+#
+# THE NATIVE EVIDENCE STILL SAYS WHAT IT SAID, and the substitution row is kept rather
+# than deleted. On codex-cli 0.151.0-alpha.7.2 (`codex-hook-probe.py --phase friction`,
+# one turn, a recorder that refuses nothing) all three classes COMPLETED under
+# `permissions: ":workspace"`, against a calibration — the same plain `touch` under
+# `:read-only` — that was observed by the hook and did NOT complete. **That measurement is
+# sound and it LOST.** Switching the substitution branch off opens the floor on the
+# harness this repository actually runs, which costs more than an over-block on the
+# harness it is being ported to. A measurement can be right and still not carry the
+# decision; deleting the row would hide that trade.
+#
+# THE COST, stated as a cost rather than as a win: on Codex the substitution refusal now
+# fires on more than the runtime was measured stopping — the very thing AC7 forbids. It is
+# the same over-block posture this floor already accepts for rule 8's `VAR=x` case on the
+# Claude side, and it is the safe direction.
+#
+# The classification lives in the GUARD, not here — `deny_convenience` in
+# `hooks/scripts/permission-guard.sh` — because which rules are friction is a property of
+# the rules and this file authors none. All this line does is decline to ask for them.
+CONVENIENCE_ENV = "PERMISSION_GUARD_CONVENIENCE_RULES"
+
+LOG_ENV = "CODEX_HOOK_ADAPTER_LOG"
+# Schema version, so a reader of an old file is not guessing which fields were present.
+LOG_SCHEMA = 1
+
+# What this invocation decided, filled in by `emit_block`/`abstain` and read only by the
+# logger. It is deliberately NOT a return value: the two emitters are called from six
+# places and threading an outcome through all of them would put logging plumbing into
+# the decision path, which is the path that must stay readable.
+OUTCOME = {"decision": "__unreached__"}
+
+
+def log_target():
+    """The configured destination, or None. A RELATIVE path is refused, not resolved."""
+    raw = os.environ.get(LOG_ENV)
+    if not raw or not raw.strip():
+        return None
+    path = raw.strip()
+    if not os.path.isabs(path):
+        return ("", "%s=%r is not an absolute path; refusing to resolve it against the "
+                    "session's working directory, which is the resolution defect this "
+                    "bridge already carries one layer down. Nothing was logged."
+                    % (LOG_ENV, path))
+    return (path, None)
+
+
+def log_invocation(record):
+    """Append one JSON object per line. Best effort, and never a verdict."""
+    target = log_target()
+    if target is None:
+        return
+    path, refusal = target
+    if refusal:
+        sys.stderr.write("codex-hook-adapter: %s\n" % refusal)
+        return
+    record = dict(record)
+    record["schema"] = LOG_SCHEMA
+    record["pid"] = os.getpid()
+    record["adapter"] = str(Path(__file__).resolve())
+    record["process_cwd"] = os.getcwd()
+    try:
+        parent = os.path.dirname(path)
+        if parent and not os.path.isdir(parent):
+            os.makedirs(parent, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as handle:
+            handle.write(json.dumps(record, sort_keys=True) + "\n")
+    except Exception as exc:                          # noqa: BLE001 — see the block above
+        sys.stderr.write("codex-hook-adapter: could not write the invocation log (%s); "
+                         "the DECISION is unaffected\n" % exc)
+
 
 def emit_block(reason):
     """Codex's refusal vocabulary, measured in section 5 of the bridge document: a JSON
@@ -225,6 +368,8 @@ def emit_block(reason):
                   "no reason text; see hooks/scripts/permission-guard.sh.")
     sys.stdout.write(json.dumps({"decision": "block", "reason": reason}))
     sys.stdout.write("\n")
+    OUTCOME["decision"] = "block"
+    OUTCOME["reason"] = reason
     return 0
 
 
@@ -233,6 +378,8 @@ def abstain(note=None):
     and printing an `allow` this harness never authored would be inventing one."""
     if note:
         sys.stderr.write("codex-hook-adapter: %s\n" % note)
+    OUTCOME["decision"] = None
+    OUTCOME["note"] = note
     return 0
 
 
@@ -301,6 +448,8 @@ def run_guard(command, caller, cwd):
         "cwd": cwd,
     }
     workdir = cwd if cwd and os.path.isdir(cwd) else str(REPO_ROOT)
+    env = dict(os.environ)
+    env[CONVENIENCE_ENV] = "off"
     try:
         completed = subprocess.run(
             ["bash", str(GUARD)],
@@ -308,6 +457,7 @@ def run_guard(command, caller, cwd):
             capture_output=True,
             text=True,
             cwd=workdir,
+            env=env,
             timeout=GUARD_TIMEOUT,
         )
     except subprocess.TimeoutExpired:
@@ -448,17 +598,50 @@ def selfcheck():
         "CALLER: no Codex caller receives a caller-dependent exemption. Opening work and "
         "posting to a public surface are refused to every caller on this harness.")
     notes.append(
-        "FIRING IS UNPROVEN, AND THIS CHECK IS NOT EVIDENCE OF IT. A native run on 2026-09-16 "
-        "(codex-cli 0.154.0-alpha.6.2) found a REGISTERED and TRUSTED PreToolUse hook not "
-        "acting on a shell tool call, in this repository's own checkout, with the adapter "
-        "present and returning `block` for that same payload when fed it directly. What is "
-        "measured is that the carrier is DISCOVERED and can be TRUSTED — by an API call with "
-        "NO human prompt, so Codex hook trust is not a human checkpoint. What is NOT measured "
-        "is that Codex ever calls this file. THIS CHECK CANNOT CLOSE THAT GAP: if you are "
-        "reading this line the adapter was found and run by YOU, which says nothing about "
-        "whether the runtime does. Standing hypothesis, labelled as one: command/exec, "
-        "process/spawn and thread/shellCommand fire ZERO hooks (section 3), so the leading "
-        "explanation is an unhooked route. See docs/codex-hook-bridge.md sections 13 and 14.")
+        "TWO CONVENIENCE REFUSALS ARE NOT FORWARDED (%s=off): an env-var prefix and a "
+        "stdout redirect. Measured 2026-09-21 on codex-cli 0.151.0-alpha.7.2, both "
+        "COMPLETED under permissions=':workspace' while the same plain command under "
+        "':read-only' was observed and did NOT complete, so the layer was in force and "
+        "stopped neither. COMMAND SUBSTITUTION IS FORWARDED DESPITE THE SAME READING: it "
+        "MANUFACTURES the token every other rule matches on, so omitting it made 13 of 20 "
+        "irreversible fixtures reachable (rm -rf, IaC mutation, secret write, repo delete, "
+        "hard reset, trunk push) against six plain-spelling controls that denied. A sound "
+        "measurement can still lose. EVERY IRREVERSIBLE RULE IS FORWARDED UNCHANGED."
+        % CONVENIENCE_ENV)
+    notes.append(
+        "FIRING DEPENDS ON THE BUILD AND ON THE REGISTRATION ROUTE, AND THIS CHECK IS NOT "
+        "EVIDENCE OF EITHER. Two native runs disagree and BOTH are on the record. PROVEN "
+        "2026-09-21 on codex-cli 0.151.0-alpha.7.2, via a [[hooks.PreToolUse]] registration "
+        "in config.toml: the hook was invoked, this adapter decided `block`, the act did not "
+        "happen, and the guard's reason reached the runtime — a relative command resolved "
+        "too, against the SESSION's cwd. NOT REPRODUCED 2026-09-16 on codex-cli "
+        "0.154.0-alpha.6.2, via the PLUGIN CARRIER: a registered, trusted hook did not act. "
+        "The two differ in build AND in route and neither overturns the other, so the "
+        "carrier's OWN route is still unproven — do not flatten this into 'active'. What is "
+        "measured on both: the carrier is DISCOVERED and can be TRUSTED by an API call with "
+        "NO human prompt, so Codex hook trust is not a human checkpoint. THIS CHECK CANNOT "
+        "SETTLE ANY OF IT: if you are reading this line the adapter was found and run by "
+        "YOU. To tell 'never called' from 'decision discarded' on your own machine, set the "
+        "invocation log below. See docs/codex-hook-bridge.md sections 13, 14 and 15.")
+    target = log_target()
+    if target is None:
+        log_state = ("OFF. Nothing is written. Set it to an ABSOLUTE path to record one "
+                     "JSON line per invocation — that record is the ONLY way to tell "
+                     "'the runtime never called this file' from 'it called it and the "
+                     "decision was discarded', which is the question this bridge could "
+                     "not answer. A relative value is REFUSED, not resolved.")
+    elif target[1]:
+        log_state = "MISCONFIGURED — " + target[1]
+    else:
+        log_state = ("ON, appending to %s. A logging failure never changes a verdict."
+                     % target[0])
+    notes.append("INVOCATION LOG (%s): %s" % (LOG_ENV, log_state))
+    notes.append(
+        "TUNABLES THAT CAN AFFECT THIS FLOOR: %s (guard timeout, currently %ss) and %s "
+        "(the invocation log). NAMED HERE BECAUSE AN UNSET ONE IS INVISIBLE: an "
+        "operator reading this check should be able to see every knob that changes what "
+        "the floor does, and the timeout was previously reported by nothing."
+        % ("CODEX_HOOK_ADAPTER_TIMEOUT", GUARD_TIMEOUT, LOG_ENV))
     notes.append(
         "INTERACTIVE SESSION STARTUP: %s"
         % ("REFUSED" if REFUSE_INTERACTIVE_SESSION_STARTUP else
@@ -487,13 +670,47 @@ def main(argv):
     if "--selfcheck" in argv:
         return selfcheck()
     raw = sys.stdin.read()
+    payload = None
     try:
-        payload = json.loads(raw)
-    except ValueError:
-        return abstain("payload did not parse; this act was NOT judged")
-    if not isinstance(payload, dict):
-        return abstain("payload is not an object; this act was NOT judged")
-    return translate(payload)
+        try:
+            payload = json.loads(raw)
+        except ValueError:
+            return abstain("payload did not parse; this act was NOT judged")
+        if not isinstance(payload, dict):
+            return abstain("payload is not an object; this act was NOT judged")
+        return translate(payload)
+    finally:
+        # In a `finally` so that a CRASH still leaves a record. The three states this
+        # log exists to tell apart are "the runtime never called this file", "it called
+        # it and the process died" and "it called it and the decision was discarded" —
+        # and the second is exactly the one a log written on the success path would
+        # lose. The fields are what a reader needs to attribute a decision to an act:
+        # the command, the identity used, the two working directories (they differ, and
+        # the guard follows the process one), and the outcome.
+        if isinstance(payload, dict):
+            tool_input = payload.get("tool_input")
+            command = (tool_input.get("command")
+                       if isinstance(tool_input, dict) else None)
+            log_invocation({
+                "event": payload.get("hook_event_name"),
+                "tool_name": payload.get("tool_name"),
+                "command": command,
+                "agent_type_raw": payload.get("agent_type"),
+                "agent_type_sent": map_caller(payload),
+                "payload_cwd": payload.get("cwd"),
+                "permission_mode": payload.get("permission_mode"),
+                "session_id": payload.get("session_id"),
+                "turn_id": payload.get("turn_id"),
+                "tool_use_id": payload.get("tool_use_id"),
+                "outcome": OUTCOME.get("decision"),
+                "reason": OUTCOME.get("reason"),
+                "note": OUTCOME.get("note"),
+            })
+        else:
+            log_invocation({"event": None, "tool_name": None, "command": None,
+                            "unparsed_stdin_bytes": len(raw or ""),
+                            "outcome": OUTCOME.get("decision"),
+                            "note": OUTCOME.get("note")})
 
 
 if __name__ == "__main__":

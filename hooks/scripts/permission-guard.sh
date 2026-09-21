@@ -222,6 +222,103 @@ ask() {
   exit 0
 }
 
+# ── deny_convenience: the TWO refusals that are friction, not floor ────────────────────
+#
+# ~~the THREE refusals~~ · ~~Rules 3, 8 and the redirection rule~~ — **STRUCK 2026-09-21
+# (#455), and BOTH halves were wrong in ways that compound.** The count was three and is
+# two: rule 8's SUBSTITUTION branch was reverted to a plain `deny` on the merge gate's
+# blocking finding, for the reason written at that branch. And "rule 3" NAMED THE WRONG
+# RULE — rule 3 in this file is irreversible git history and ref rewrites, at the `# 3.`
+# comment below, which is a FLOOR rule. The substitution branch never had a number of its
+# own; it is a branch of rule 8, which is where the env-var branch lives too.
+#
+# THAT MISNAMING IS THE EXACT CONFUSION THIS HELPER EXISTS TO PREVENT, appearing inside
+# the helper. A comment calling a floor rule a convenience rule is one careless edit away
+# from a floor rule being routed through here, and the arm that counts call sites would
+# have stayed green because the count would not have moved.
+#
+# WHAT THE TWO ARE: rule 8's ENV-VAR PREFIX branch and rule 8b, REDIRECTION.
+#
+# WHAT SEPARATES THEM FROM EVERY OTHER `deny` IN THIS FILE. They do not stop an
+# irreversible act. They exist because the HOST RUNTIME stops those spellings for a human,
+# and an agent that is denied with an instruction can correct itself where an agent that is
+# prompted cannot. `/shell` states the governing rule in its own words: such a rule "must
+# fire on a SUBSET of what the runtime stops for, never on more. Where it cannot tell, it
+# should abstain and let the layer that parses shell decide."
+#
+# WHY THE SUBSET TEST IS NOT A CONSTANT — and this is the whole reason this helper exists.
+# The subset is a property of the RUNTIME, and this floor is no longer carried by one
+# runtime. MEASURED 2026-09-21 on codex-cli 0.151.0-alpha.7.2, one turn, a recorder hook
+# that refuses nothing, every fixture harmless and inside a disposable project:
+#
+#     touch <proj>/F-CONTROL                    -> completed   (positive control)
+#     touch <proj>/F-SUBST-$(echo ok)           -> COMPLETED   command substitution
+#     FOO=1 touch <proj>/F-ENVVAR               -> COMPLETED   env-var prefix
+#     echo hi > <proj>/F-REDIR                  -> COMPLETED   stdout redirection
+#
+#   calibration, so the three COMPLETEDs are a reading about those classes rather than
+#   about a permission layer that was not in force: the same plain `touch`, under
+#   `permissions: ":read-only"`, was OBSERVED BY THE HOOK and did NOT complete.
+#
+# THE SUBSTITUTION ROW IS KEPT AND IS NOT ACTED ON, which is the honest shape rather than
+# a deletion. The measurement stands — Codex does not stop that spelling — and it is now
+# OUTWEIGHED rather than refuted: switching that branch off opens the floor here, and a
+# floor hole on the harness this repository actually runs costs more than an over-block on
+# the harness it is being ported to. **A measurement can be sound and still lose.** Deleting
+# the row would hide that trade; reading it as licence to re-route the branch would repeat
+# it.
+#
+# So on that runtime the three are stopped by NOTHING, and there is no prompt rung to
+# avoid: Codex's measured hook vocabulary has one refusal verb and no prompt. Denying them
+# there is not a smaller floor than the host's — it is a LARGER one, refusing acts the
+# runtime allows, with nothing behind it. That inverts the rule these three were written
+# under, which is why the answer is to omit them on that path rather than to reword them.
+#
+# THE CONTRACT. Unset, or any value but the literal `off`, is UNCHANGED BEHAVIOUR — the
+# Claude path never sets it and its output is byte-identical, envelope included. Exactly
+# `off` makes the two ABSTAIN.
+#
+# ~~Nothing irreversible is reachable through this variable by construction: the acts it
+# releases are a substitution, a variable prefix and a redirect, each of which still meets
+# every other rule in this file on the way past.~~
+#
+# **STRUCK 2026-09-21 (#455) — FALSE AS WRITTEN, and it is the sentence that justified
+# routing the substitution branch through here.** The premise needs the other rules to
+# RECOGNISE the act, and they match on tokens. A substitution MANUFACTURES a token, so
+# where the floor-matching word is the substitution's output there is nothing left to
+# recognise it — and this branch was the only thing catching that. Struck rather than
+# rewritten in place because a reader who took "by construction" from it took a guarantee.
+#
+# WHAT IS TRUE OF THE TWO THAT REMAIN, and it is a measurement rather than a construction
+# argument: an env-var prefix and a redirect sit BESIDE a command whose own tokens are
+# intact, so every floor rule still sees the act. Measured 2026-09-21 — seventy wrapped
+# floor acts (ten irreparable commands across four env-var wrappers and three redirect
+# wrappers), **zero released under `off`**, with all seven wrappers confirmed flipping on a
+# harmless command so the zero is a real zero. The probe is
+# `scripts/codex-hook-probe.py --phase friction`'s sibling reasoning; the arms below are
+# the standing version of it.
+#
+# AND IT IS POSITIONAL, WHICH NOTHING ASSERTS. `deny_convenience` abstains with `exit 0`,
+# so it is safe only while every floor rule runs BEFORE its call sites. They do today —
+# the floor rules occupy the `# 1.` through `# 7b.` blocks above and both remaining call
+# sites are in rules 8 and 8b, at the end of the file. **A rule added BELOW them would be
+# silently unreachable under `off`**, with every arm here still green, because the arms
+# check verdicts for acts spelled today and not the ordering. Add new floor rules above
+# rule 8, and read `# 8.`'s own note on why a removed rule leaves a tombstone rather than
+# a gap someone later fills.
+#
+# A MODEL CANNOT REACH IT. A hook's environment is inherited from the host process, and a
+# `Bash` tool call is a fresh shell whose exports do not survive it — so `export` in a
+# model's own command does not change what a later hook process sees. That is the property
+# that makes an env var acceptable here and it is stated so a later reader checks it rather
+# than assuming it.
+deny_convenience() {
+  if [ "${PERMISSION_GUARD_CONVENIENCE_RULES:-on}" = "off" ]; then
+    exit 0
+  fi
+  deny "$1"
+}
+
 # For the class where the thing that makes an act right or wrong is NOT visible in the command, and
 # the owner is the only one who can see it. `deny` would be a lie there — it says "never", when the
 # truth is "not unless the owner agrees" — and a denial the owner has to work around by typing the
@@ -2439,6 +2536,27 @@ fi
 #    and an env-var prefix defeats the allow entry rather than the decomposition.
 #
 #    Pipes are deliberately NOT blocked: the matcher handles them.
+#
+#    THIS BRANCH IS NOT SWITCHABLE, AND IT WAS FOR ONE ROUND — reverted 2026-09-21 (#455) on the
+#    merge gate's blocking finding, re-derived independently before accepting it. It is a plain
+#    `deny` and `deny_convenience` must never be reached for it. THE REASON IS THE ONE PROPERTY
+#    THAT SEPARATES THIS BRANCH FROM THE OTHER TWO: a substitution MANUFACTURES A TOKEN, and every
+#    floor rule in this file matches on tokens. So with this branch abstaining, an irreversible act
+#    whose floor-matching word is produced by the substitution is seen by NOTHING — the rule that
+#    would have caught it cannot recognise an act whose name has not been written yet. Measured at
+#    that head, 13 of 20 fixtures flipped `deny -> ABSTAIN`, against six plain-spelling controls
+#    that denied in both columns. `rm`, this file's rule 2 verb, `gh secret`, `gh repo delete` and
+#    `git reset --hard` were all reachable in both spellings.
+#
+#    Rules 8's env-var branch and 8b stay switchable BECAUSE THEY DO NOT MANUFACTURE ANYTHING: they
+#    sit beside a command whose own tokens are intact, so the floor rules still see them. Measured
+#    rather than reasoned — seventy wrapped floor acts (ten irreparable commands under four env-var
+#    wrappers and three redirect wrappers), ZERO released under `off`, with all seven wrappers
+#    confirmed flipping on a harmless command so the zero is a real zero.
+#
+#    THE COST OF REVERTING, stated as a cost rather than as a win: on Codex this branch now fires
+#    on more than the runtime was measured stopping, which is the very thing AC7 forbids. It is the
+#    same over-block posture this file already accepts elsewhere, and it is the safe direction.
 if printf '%s' "$bare" | grep -Eq '(\$\(|`)'; then
   deny "Blocked: command substitution (\$(...) or backticks) forces a permission prompt even for allowlisted tools, because the matcher cannot expand it. Run the inner command as its own call and use the literal result."
 fi
@@ -2594,7 +2712,7 @@ env_prefix_sequence="^[[:blank:]]*$env_prefix_element([[:blank:]]*(;|&&|\|\||\||
 if printf '%s' "$bare" | grep -Eq "$env_prefix_lead" ||
    { [[ "$command" =~ $env_prefix_sequence ]] &&
      printf '%s' "$command" | grep -Eq '[;&|(][[:space:]]*[A-Za-z_][A-Za-z0-9_]*='; }; then
-  deny "Blocked: env-var prefix (VAR=x cmd) at a leading position or in a recognized simple composition hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
+  deny_convenience "Blocked: env-var prefix (VAR=x cmd) at a leading position or in a recognized simple composition hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
 fi
 
 # 8b. Shell output redirection (`>` / `>>`) to create or overwrite a file. THIS IS A DIFFERENT ROOT
@@ -2724,7 +2842,7 @@ fi
 redirect_probe="$(printf '%s' "$bare" | sed -E 's%(^|[;&|(){}!]|(^|[[:space:]])(if|while|until|elif|then|else|do))[[:space:]]*\[\[[^]]*\]\]%\1%g')"
 redirect_probe="$(printf '%s' "$redirect_probe" | sed -E 's%[0-9]?>{1,2}[[:space:]]*/dev/null([[:space:];&|)}]|$)%\1%g')"
 if printf '%s' "$redirect_probe" | grep -Eq '>{1,2}([^&]|$)'; then
-  deny "Blocked: shell output redirection ('>' or '>>') to create or overwrite a file. Content you are composing yourself goes through the Write tool, never a heredoc piped into '>'. Content that is a command's own stdout: run the command WITHOUT the redirect (its output returns to you) and Write it from there if it needs to persist. (If this fired on a heredoc body containing a literal '>' rather than an actual redirect: rephrase without it — this floor does not parse shell and cannot tell the two apart. '[[ a > b ]]' string comparison and a '/dev/null' target are exempt since #383 and should not reach you.)"
+  deny_convenience "Blocked: shell output redirection ('>' or '>>') to create or overwrite a file. Content you are composing yourself goes through the Write tool, never a heredoc piped into '>'. Content that is a command's own stdout: run the command WITHOUT the redirect (its output returns to you) and Write it from there if it needs to persist. (If this fired on a heredoc body containing a literal '>' rather than an actual redirect: rephrase without it — this floor does not parse shell and cannot tell the two apart. '[[ a > b ]]' string comparison and a '/dev/null' target are exempt since #383 and should not reach you.)"
 fi
 
 # 9. REMOVED 2026-09-04 (#383, slice S1). THE NUMBER IS LEFT VACANT DELIBERATELY — a rule list that

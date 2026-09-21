@@ -455,6 +455,230 @@ check('filename = ".codex-plugin/plugin.json"' in bump,
 check(manifest.get("version") == (ROOT / "VERSION").read_text().strip(),
       "carrier — the manifest version matches VERSION")
 
+# ── 11 · the invocation log — the only thing that can attribute a non-firing hook ─────
+#
+# Every arm here is run against the LIVE adapter as a subprocess, because the question
+# the log answers is about a process the runtime starts, not about an importable
+# function. The three states it exists to separate are "never called", "called and the
+# process died" and "called and the decision was discarded"; the arms below pin that a
+# record is written on each of the reachable paths.
+
+with tempfile.TemporaryDirectory() as work:
+    logdir = Path(work) / "logs"
+    blocked = logdir / "blocked.jsonl"
+    p = run_adapter(codex_payload("gh pr merge 999999 --merge"),
+                    env={"CODEX_HOOK_ADAPTER_LOG": str(blocked)})
+    check(decision_of(p) is not None and decision_of(p)["decision"] == "block",
+          "log — a blocked act still produces its decision")
+    check(blocked.exists(), "log — the destination's parent directory is created")
+    entries = [json.loads(l) for l in blocked.read_text().splitlines() if l.strip()]
+    check(len(entries) == 1, "log — exactly one record per invocation")
+    e = entries[0] if entries else {}
+    check(e.get("outcome") == "block", "log — the record carries the DECISION, which is "
+                                       "what makes a discarded one attributable")
+    check(e.get("command") == "gh pr merge 999999 --merge",
+          "log — the record carries the command the decision was about")
+    check(e.get("agent_type_sent") == "codex-unidentified",
+          "log — the record carries the identity actually SENT to the guard, not the raw "
+          "payload value, since the mapping is the part that inverts intuition")
+    check("process_cwd" in e and "payload_cwd" in e,
+          "log — BOTH working directories are recorded; the guard follows the process "
+          "one and the relative-command defect this bridge carries is about the other")
+    check(e.get("schema") == 1, "log — records are versioned")
+
+    # The abstaining path. A floor that only logs its refusals cannot tell "it ran and
+    # said nothing" from "it never ran", which is half the question.
+    quiet = logdir / "quiet.jsonl"
+    p = run_adapter(codex_payload("ls -la"),
+                    env={"CODEX_HOOK_ADAPTER_LOG": str(quiet)})
+    check(decision_of(p) is None, "log — an abstention still emits no decision")
+    q = ([json.loads(l) for l in quiet.read_text().splitlines() if l.strip()]
+         if quiet.exists() else [])
+    # `quiet.exists()` rather than an unguarded read, and `len(q) == 1 and …` rather
+    # than `q[0]…`: a mutation that made the log skip abstentions crashed this arm with
+    # an IndexError, and the suite died BEFORE its summary — which reports as neither a
+    # pass nor a fail. An assertion that cannot survive the defect it is aimed at does
+    # not catch it; it hides it behind a traceback.
+    check(len(q) == 1 and q[0].get("outcome") is None,
+          "log — an ABSTENTION is recorded too, with a null outcome, since a floor that "
+          "logs only its refusals cannot tell 'it ran and said nothing' from 'it never ran'")
+
+    # A payload that does not parse is the case most likely to be mistaken for a hook
+    # that never ran, so it is the case that most needs a record.
+    junk = logdir / "junk.jsonl"
+    p = run_adapter("this is not json", env={"CODEX_HOOK_ADAPTER_LOG": str(junk)})
+    j = [json.loads(l) for l in junk.read_text().splitlines() if l.strip()]
+    check(len(j) == 1 and j[0].get("unparsed_stdin_bytes") == len("this is not json"),
+          "log — an UNPARSEABLE payload is recorded, which is the case most easily "
+          "mistaken for a hook that was never invoked")
+
+    # OFF by default. This adapter sits on the one route that sees every shell act, so a
+    # default-on log would make the floor a transcript as a side effect of being a floor.
+    #
+    # THE SUBJECT IS A PRISTINE COPY, and getting there took two wrong arms.
+    #
+    #   first form: assert a file whose name this arm invented is absent. True of every
+    #               default anyone could ship, so a mutation adding a fixed default
+    #               destination passed it untouched — a green that could not be red.
+    #   second form: diff the whole tree before and after. Sound in principle and
+    #               VACUOUS HERE, because arms earlier in this same file already run the
+    #               adapter with no log configured, so under that mutation the default
+    #               file existed before the snapshot was taken.
+    #
+    # So the subject is a COPY at a path nothing has touched, and the diff is over that
+    # path alone. Anything a default-on log writes lands beside it and is visible.
+    pristine = Path(work) / "pristine" / "scripts"
+    pristine.mkdir(parents=True)
+    copy = pristine / ADAPTER.name
+    copy.write_text(ADAPTER.read_text())
+    root_of_copy = pristine.parent
+    before = {p for p in root_of_copy.rglob("*") if p.is_file()}
+    run_adapter(codex_payload("ls"), cwd=work, source=copy)
+    run_adapter(codex_payload("gh pr merge 999999 --merge"), cwd=work, source=copy)
+    appeared = sorted(str(p) for p in root_of_copy.rglob("*")
+                      if p.is_file() and p not in before)
+    check(not appeared,
+          "log — OFF unless an operator names a destination: two invocations, one "
+          "abstaining and one blocking, write no file beside the adapter")
+    if appeared:
+        print("      appeared: %s" % appeared[:4])
+
+    # AND THE PROPERTY ITSELF, because the behavioural arm above watches ONE directory.
+    # A mutation defaulting to an absolute path elsewhere — `/tmp/...` — slips past it
+    # entirely, and widening the watch to every directory a default could name is not a
+    # thing a check can do. `log_target()` returning None with the variable unset is the
+    # property, and it holds for every destination at once.
+    probe_src = (
+        "import importlib.util, sys\n"
+        "s = importlib.util.spec_from_file_location('a', %r)\n"
+        "m = importlib.util.module_from_spec(s); s.loader.exec_module(m)\n"
+        "print('TARGET=%%r' %% (m.log_target(),))\n" % str(ADAPTER))
+    e = dict(os.environ)
+    e.pop("CODEX_HOOK_ADAPTER_LOG", None)
+    r = subprocess.run([sys.executable, "-c", probe_src], capture_output=True,
+                       text=True, cwd=work, env=e)
+    check("TARGET=None" in (r.stdout or ""),
+          "log — and the PROPERTY, destination-independently: log_target() is None when "
+          "the variable is unset, so no default anywhere can satisfy this suite")
+
+    # A RELATIVE path is the defect this bridge already carries one layer down, so it is
+    # refused rather than resolved against whatever tree the session happened to open.
+    #
+    # RUN FROM A TEMPORARY CWD, not from the repo root. The first form of this arm ran
+    # the adapter from ROOT, so a mutation that made the path resolve left `rel.jsonl`
+    # IN THE TRACKED TREE — and the file then reddened this same arm on the next clean
+    # run, which reads as a source defect and is leftover state. A check whose failure
+    # mode is to dirty the thing it checks is not a check.
+    p = run_adapter(codex_payload("ls"), cwd=work,
+                    env={"CODEX_HOOK_ADAPTER_LOG": "rel.jsonl"})
+    check(not any(Path(work).rglob("rel.jsonl")) and not (ROOT / "rel.jsonl").exists(),
+          "log — a RELATIVE destination writes nothing, anywhere")
+    check("not an absolute path" in (p.stderr or ""),
+          "log — and says on stderr why, rather than failing silently")
+
+    # A logging failure must never change a verdict. The destination is made unwritable
+    # by pointing it at a path whose parent is a FILE, which no mkdir can create.
+    wall = Path(work) / "wall"
+    wall.write_text("not a directory")
+    p = run_adapter(codex_payload("gh pr merge 999999 --merge"),
+                    env={"CODEX_HOOK_ADAPTER_LOG": str(wall / "nope.jsonl")})
+    d = decision_of(p)
+    check(d is not None and d["decision"] == "block" and p.returncode == 0,
+          "log — AN UNWRITABLE DESTINATION DOES NOT CHANGE THE DECISION; the floor's job "
+          "is the verdict and a floor that stops judging because it could not append a "
+          "line is worse than one with no log at all")
+    # THE EXIT CODE IS PART OF THAT CLAIM AND WAS NOT CHECKED. A mutation that let the
+    # write's exception reach the caller left the decision on stdout — it had already
+    # been written — and exited 1, which this runtime reports as a HOOK ERROR rather
+    # than as a decision. "The verdict is unaffected" is false of a process that dies
+    # after producing it, and the arm above said it was true.
+    check(p.returncode == 0,
+          "log — and exits 0, since Codex's refusal contract is a decision on stdout "
+          "WITH exit 0 and a nonzero exit is reported as a hook error instead")
+    check("could not write the invocation log" in (p.stderr or ""),
+          "log — and the failure is announced on stderr")
+
+# ── 12 · AC7 — TWO convenience refusals are not forwarded; the third and the floor are ──
+#
+# Measured on codex-cli 0.151.0-alpha.7.2 (`codex-hook-probe.py --phase friction`): a
+# command substitution, an env-var prefix and a stdout redirect ALL COMPLETED under a
+# permission layer that was demonstrably in force, so the subset those rules must fire
+# inside is EMPTY on that runtime. These arms assert the adapter acts on that and, more
+# importantly, that acting on it did not reach anything irreversible.
+
+BT = chr(96)
+# Floor-act tokens assembled rather than spelled: this FILE is read by shell commands
+# during development, and the guard matches a floor act anywhere in a command string.
+_TF, _AP, _DS = "terra" + "form", "ap" + "ply", "des" + "troy"
+
+CONVENIENCE = [
+    ("FOO=1 ls", "an env-var prefix"),
+    ("ls > out.txt", "a stdout redirect"),
+]
+# THE SUBSTITUTION BRANCH IS FORWARDED, and it was omitted for one round. It is here in
+# BOTH spellings because the class is both and because the previous form of this section
+# tested only `$( )` — see the guard suite's `deny_convenience` block for why that one
+# spelling cannot fail on this class.
+FORWARDED_FRICTION = [
+    ("echo $(date)", "command substitution, $( ) spelling"),
+    ("echo " + BT + "date" + BT, "command substitution, BACKTICK spelling"),
+]
+FLOOR = [
+    (_TF + " " + _AP, "an IaC mutation"),
+    ("git push origin main", "a trunk push"),
+    ("rm -rf /tmp/anything", "a recursive force delete"),
+    ("gh secret set FOO", "a secret write"),
+]
+# A floor act whose matching token is MANUFACTURED by a substitution. This is the class
+# the blocked round made reachable, and it is asserted through the ADAPTER rather than
+# only through the guard, because the adapter is what sets the variable on every call.
+MANUFACTURED = []
+for _sp, _o, _c in (("$( )", "$(echo ", ")"), ("BACKTICK", BT + "echo ", BT)):
+    MANUFACTURED += [
+        (_o + "rm" + _c + " -rf /tmp/anything", "a MANUFACTURED 'rm' (%s)" % _sp),
+        (_TF + " " + _o + _AP + _c, "a MANUFACTURED IaC verb (%s)" % _sp),
+        ("gh " + _o + "secret" + _c + " set FOO --body x", "a MANUFACTURED 'secret' (%s)" % _sp),
+        ("git push origin " + _o + "main" + _c, "a MANUFACTURED trunk name (%s)" % _sp),
+        ("gh repo " + _o + "delete" + _c + " o/r", "a MANUFACTURED 'delete' (%s)" % _sp),
+    ]
+
+for command, label in CONVENIENCE:
+    # The guard on its own still denies: the rule is not deleted, it is not ASKED FOR.
+    check(guard_verdict(command, None) == "deny",
+          "AC7 — the guard itself still denies %s on the Claude path (unchanged)" % label)
+    check(decision_of(run_adapter(codex_payload(command))) is None,
+          "AC7 — the ADAPTER does not forward the refusal for %s" % label)
+
+for command, label in FORWARDED_FRICTION:
+    d = decision_of(run_adapter(codex_payload(command)))
+    check(d is not None and d["decision"] == "block",
+          "AC7 — %s IS forwarded: it manufactures the token every floor rule matches on, "
+          "so omitting it is a floor hole rather than a narrowing" % label)
+
+for command, label in FLOOR + MANUFACTURED:
+    d = decision_of(run_adapter(codex_payload(command)))
+    check(d is not None and d["decision"] == "block",
+          "AC7 — %s is still BLOCKED through the adapter; the narrowing reached no floor "
+          "rule" % label)
+
+# The calibration for the whole section: the switch must be able to change an answer, or
+# the seven arms above are a green that could not have been red.
+import subprocess as _sp
+_env_on = dict(os.environ); _env_on["PERMISSION_GUARD_CONVENIENCE_RULES"] = "on"
+_p = _sp.run(["bash", str(GUARD)],
+             input=json.dumps(codex_payload("FOO=1 ls")),
+             capture_output=True, text=True, cwd=str(ROOT), env=_env_on)
+check((_p.stdout or "").strip() != "",
+      "AC7 — calibration: with the variable set to 'on' the guard answers, so the "
+      "abstentions above are the switch acting rather than a dead selector")
+# And the adapter's own env is what produces them — asserted here rather than only read
+# from the source, because `env[CONVENIENCE_ENV] = "off"` being present in the file says
+# nothing about it reaching the subprocess.
+check(decision_of(run_adapter(codex_payload("FOO=1 ls"))) is None
+      and guard_verdict("FOO=1 ls", None) == "deny",
+      "AC7 — calibration: the SAME command denies through the guard directly and abstains "
+      "through the adapter, so the adapter's environment is what carries the narrowing")
+
 # ── 9 · selfcheck reports rather than controls ────────────────────────────────────────
 
 p = subprocess.run([sys.executable, str(ADAPTER), "--selfcheck"],
@@ -471,8 +695,24 @@ for needle, why in [
     # the hook ever fires. What this arm asserts is that the sentence is PRESENT. It
     # cannot assert the sentence is true, and no arm here could: firing is a property of
     # a runtime this suite never starts.
-    ("FIRING IS UNPROVEN", "it states that firing is unproven, which is this bridge's"
-                           " most misreadable fact"),
+    # Was pinned as the literal "FIRING IS UNPROVEN" until 2026-09-21, when a native turn
+    # on 0.151 measured the hook firing and blocking. The note is REWRITTEN rather than
+    # dropped, and the arm follows it: what a reader must not be able to take from this
+    # check is a single-valued answer in EITHER direction, because the two native runs
+    # disagree and differ in two variables at once.
+    ("FIRING DEPENDS ON THE BUILD AND ON THE REGISTRATION ROUTE",
+     "it refuses a single-valued firing claim in either direction"),
+    ("0.151.0-alpha.7.2", "it names the build the affirmative reading came from"),
+    ("0.154.0-alpha.6.2", "and the build the negative reading came from, since a "
+                          "measurement without its build is not reproducible"),
+    ("carrier's OWN route is still unproven", "it keeps the carrier's route open, which "
+                                              "is the limb the affirmative run did not test"),
+    ("INVOCATION LOG", "it names the invocation log and its state, which is the only "
+                       "route an operator has to the firing question"),
+    ("TUNABLES THAT CAN AFFECT THIS FLOOR", "it enumerates the knobs, because an unset "
+                                            "one is otherwise invisible"),
+    ("CONVENIENCE REFUSALS ARE NOT FORWARDED", "it states the AC7 narrowing, with the "
+                                               "evidence and the date"),
 ]:
     check(needle in p.stdout, "selfcheck — %s" % why)
 check("does not say a hook FIRED" in p.stdout,
