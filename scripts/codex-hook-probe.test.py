@@ -151,9 +151,9 @@ check("every phase belongs to exactly one set",
 check("the three offline phases are the ones that cost nothing",
       set(probe.OFFLINE_PHASES) == {"carrier", "trust", "routes"},
       str(sorted(probe.OFFLINE_PHASES)))
-check("the seven turn phases are named",
+check("the eight turn phases are named",
       set(probe.TURN_PHASES) == {"payload", "block", "identity", "stdin", "matcher",
-                                 "firing", "friction"},
+                                 "firing", "friction", "carrierfire"},
       str(sorted(probe.TURN_PHASES)))
 
 # --- arm 6b: the `firing` phase's instrument, which is the one that must discriminate ---
@@ -373,6 +373,99 @@ check("seed_credential is what appends to the tracking list, so no phase can cop
       "SEEDED_HOMES.append" in
       (ROOT / "scripts" / "codex-hook-probe.py").read_text().split(
           "def seed_credential")[1].split("def ")[0])
+
+# --- arm 8: the carrier-route phase (`carrierfire`) ---------------------------
+# It starts a model turn, so the first thing to pin is that it cannot be reached by the
+# unpaid default. `--phase all` runs OFFLINE_PHASES; a paid phase leaking into that set
+# spends the operator's tokens on a run nobody authorised.
+check("carrierfire is a TURN phase, so --phase all cannot reach it",
+      "carrierfire" in probe.TURN_PHASES and "carrierfire" not in probe.OFFLINE_PHASES)
+check("carrierfire is reachable by name",
+      probe.PHASES.get("carrierfire") is probe.phase_carrierfire)
+
+# The fixture package exists to separate `the carrier route did not fire` from `it fired
+# and its RELATIVE command was not found`. That separation survives only while the
+# fixture's own command is ABSOLUTE — if it ever becomes relative, both registrations
+# share one failure mode and the phase can no longer tell them apart.
+shape_root = work / "carrierfire-market"
+(shape_root / ".claude-plugin").mkdir(parents=True)
+shape_capture = work / "carrierfire-capture"
+shape_capture.mkdir()
+shape_name = probe.build_shape_package(shape_root, shape_capture)
+shape_manifest = json.loads(
+    (shape_root / shape_name / ".codex-plugin" / "plugin.json").read_text())
+shape_hooks = json.loads((shape_root / shape_name / "codex-hooks.json").read_text())
+shape_command = shape_hooks["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
+check("the fixture declares the shipped carrier's manifest shape",
+      shape_manifest.get("hooks") == "./codex-hooks.json", str(shape_manifest))
+check("the fixture registers exactly one PreToolUse handler",
+      len(shape_hooks["hooks"]["PreToolUse"][0]["hooks"]) == 1)
+check("the fixture's command is ABSOLUTE, so a silent carrier route and an unresolvable "
+      "relative command stay distinguishable",
+      Path(shape_command).is_absolute(), shape_command)
+check("the fixture's recorder exists and is executable",
+      Path(shape_command).exists() and Path(shape_command).stat().st_mode & 0o111)
+check("the fixture ships a skill, so a zero hook count cannot be a broken package",
+      (shape_root / shape_name / "skills" / "probeshape" / "SKILL.md").exists())
+
+# The trust block is APPENDED to the config the installer wrote. `plugin/install` records
+# `[plugins."<id>"] enabled = true` there, and dropping that key removes the carrier's
+# hooks from `hooks/list` entirely — no error, an empty list. A block that did not begin
+# on its own line would corrupt whatever it was appended to instead.
+records = [{"key": "a@m:codex-hooks.json:pre_tool_use:0:0", "currentHash": "sha256:aa"},
+           {"key": "b@m:codex-hooks.json:pre_tool_use:0:0", "currentHash": "sha256:bb"}]
+block = probe.carrier_state_block(records)
+check("the trust block opens on a fresh line, so appending cannot corrupt the "
+      "enablement table above it", block.startswith("\n"), repr(block[:3]))
+check("one hooks.state table is emitted per record",
+      block.count("[hooks.state.") == 2, str(block.count("[hooks.state.")))
+check("each record's own hash is written, not a shared one",
+      'trusted_hash = "sha256:aa"' in block and 'trusted_hash = "sha256:bb"' in block)
+check("the emitted key is the record's key verbatim",
+      '[hooks.state."a@m:codex-hooks.json:pre_tool_use:0:0"]' in block)
+check("an empty record set emits nothing rather than a malformed table",
+      probe.carrier_state_block([]) == "")
+
+# The phase must keep the installer's enablement. Asserted on the SOURCE, because the
+# behaviour needs the vendor binary and this suite has none — so this arm is a drift
+# check over a string and is not evidence that a run preserved anything.
+phase_src = (ROOT / "scripts" / "codex-hook-probe.py").read_text().split(
+    "def phase_carrierfire")[1].split("\nOFFLINE_PHASES")[0]
+check("the phase refuses to continue when the installer wrote no enablement block",
+      "[plugins." in phase_src and "wrote no [plugins" in phase_src)
+check("the trust write APPENDS to the installer-written config rather than replacing it",
+      "enablement" in phase_src and "base + carrier_state_block" in phase_src)
+check("the phase re-lists after the trust write and compares the REGISTRATION COUNT, "
+      "which is what a dropped enablement key changes",
+      "changed the REGISTRATION COUNT" in phase_src)
+check("the config-route control is pinned by its source name rather than by "
+      "'not plugin'", 'by_source.get("user")' in phase_src)
+# The phase must not raise on the carrier route being silent: that is the measurement it
+# exists to take, and an assertion in either direction would make it conclude what it was
+# written to observe. Checked by naming the two raises it IS allowed to carry, so a third
+# one added later reddens here rather than quietly deciding the answer.
+CONTROLS_MARKER = "the controls, in the order that makes a zero readable"
+check("the phase's control block is findable by the marker this arm splits on",
+      phase_src.count(CONTROLS_MARKER) == 1,
+      "found %d" % phase_src.count(CONTROLS_MARKER))
+controls = phase_src.split(CONTROLS_MARKER)[-1]
+check("the phase does NOT assert the carrier route fired, which is the measurement it "
+      "exists to take",
+      not any("shape_payloads" in line or "carrier_route" in line
+              for line in controls.splitlines()),
+      controls[:200])
+check("the phase reports the carrier route's own count rather than asserting it",
+      '"carrier_route_invocations": len(shape_payloads)' in phase_src)
+check("the phase raises when the config-route control is silent, so a zero from the "
+      "carrier cannot be read as a finding",
+      "THE CONFIG-ROUTE CONTROL DID NOT FIRE" in phase_src)
+check("the phase raises when the act completed while the adapter logged a block",
+      "not honoured" in phase_src)
+check("the phase reuses the firing act, where the two Codex layers disagree",
+      "FIRING_COMMAND_TEMPLATE" in phase_src)
+check("the phase installs through the vendor's installer rather than hand-placing a "
+      "tree", "plugin/install" in probe.install_plugin.__code__.co_consts
+      or any("plugin/install" == c for c in probe.install_plugin.__code__.co_consts))
 
 print("\n%d passed, %d failed" % (passed, failed))
 if passed == 0:

@@ -1265,11 +1265,258 @@ def phase_friction(binary, work, report):
     # here would make this phase assert the conclusion it exists to measure.
 
 
+# ---------------------------------------------------------------------------
+# Phase: carrierfire — the PLUGIN-CARRIER registration route, on this build
+# ---------------------------------------------------------------------------
+#
+# WHAT THIS PHASE VARIES, and it is exactly one thing. The `firing` phase established
+# that on `codex-cli 0.151.0-alpha.7.2` a trusted `PreToolUse` hook registered through
+# `config.toml` is found, invoked, and its refusal takes effect. The 2026-09-16 run
+# found a trusted registration NOT acting, and it differed in TWO dimensions at once:
+# the BUILD (`0.154.0-alpha.6.2`) and the REGISTRATION ROUTE (the plugin carrier).
+# This phase holds the build fixed at what is actually installed here and moves the
+# route, which is the only one of the two that this machine can move.
+#
+# WHAT A RESULT HERE CAN AND CANNOT CLOSE, said before the code so it is not inferred
+# from a green. If the carrier route fires on 0.151, the route is NOT the cause ON THIS
+# BUILD, and BUILD survives as the only remaining explanation for 09-16 — UNVERIFIED,
+# because the build that produced that measurement is not on this machine. If the
+# carrier route does NOT fire while the config route does in the SAME TURN, the route is
+# implicated on this build and 09-16 has a candidate cause that does not need the build
+# at all. Neither outcome reproduces 09-16 and neither refutes it.
+#
+# THE INSTALL PATH. `plugin/install` is a real method in this binary's dispatch table
+# and takes `{marketplacePath, pluginName}` — the same parameter shape `plugin/read`
+# already uses. It COPIES the package into `<CODEX_HOME>/plugins/cache/<market>/<name>/
+# <version>/`, so this phase exercises the installed source rather than the checkout,
+# and nothing is hand-placed: every file the runtime reads was put there by the vendor's
+# own installer.
+#
+# THE ENABLEMENT TRAP, which cost this phase its first two runs and is the reason the
+# config is APPENDED to rather than written. `plugin/install` writes
+# `[plugins."<id>"] enabled = true` into the disposable `config.toml`. Overwriting that
+# file to add a trust hash removes the key, and the carrier's hooks then vanish from
+# `hooks/list` ENTIRELY — no error, no warning, an empty list indistinguishable from a
+# package that was never installed. A probe that rewrote the config would have measured
+# a disabled plugin and reported it as a non-firing route.
+
+CARRIER_FIXTURE_NAME = "carrierprobeshape"
+CARRIER_MARKET_NAME = "carrierprobe-market"
+
+# The package the phase installs as the REAL article: this checkout, whose
+# `.codex-plugin/plugin.json` and `codex-hooks.json` are the shipped carrier.
+CARRIER_REAL_NAME = "tadeumendonca-skills"
+
+
+def build_shape_package(market_root, capture):
+    """A package with the SHIPPED CARRIER'S SHAPE registering an ABSOLUTE recorder.
+
+    It exists so that `the carrier route does not fire` and `the carrier fired and its
+    RELATIVE command could not be found` are different observations rather than one.
+    The shipped carrier registers `python3 scripts/codex-hook-adapter.py`, a relative
+    command; this one registers an absolute path and nothing else differs.
+    """
+    pkg = market_root / CARRIER_FIXTURE_NAME
+    (pkg / "scripts").mkdir(parents=True)
+    (pkg / "skills" / "probeshape").mkdir(parents=True)
+    (pkg / "skills" / "probeshape" / "SKILL.md").write_text(
+        "---\nname: probeshape\ndescription: Use when probing the carrier route.\n---\n"
+        "Fixture body.\n")
+    recorder = make_hook(pkg / "scripts" / "shape-rec.sh", capture)
+    write_json(pkg / ".codex-plugin" / "plugin.json", {
+        "name": CARRIER_FIXTURE_NAME, "version": "0.0.1",
+        "description": "Carrier-route probe fixture. Not distributable.",
+        "hooks": "./codex-hooks.json", "skills": "./skills/"})
+    write_json(pkg / "codex-hooks.json", {
+        "hooks": {"PreToolUse": [{"hooks": [
+            {"type": "command", "command": str(recorder)}]}]}})
+    return CARRIER_FIXTURE_NAME
+
+
+def install_plugin(server, marketplace, name):
+    result = server.call("plugin/install", {"marketplacePath": str(marketplace),
+                                            "pluginName": name}, timeout=240)
+    if "__error__" in result:
+        raise Failure("plugin/install failed for %s: %s" % (name, result["__error__"]))
+    return result
+
+
+def carrier_state_block(records):
+    body = ""
+    for record in records:
+        body += ('\n[hooks.state."' + record["key"] + '"]\n'
+                 'trusted_hash = "' + record["currentHash"] + '"\n')
+    return body
+
+
+def phase_carrierfire(binary, work, report):
+    """One turn, three registrations, differing in ROUTE and in nothing else."""
+    capture_config = work / "carrierfire-capture-config"; capture_config.mkdir()
+    capture_shape = work / "carrierfire-capture-shape"; capture_shape.mkdir()
+    log = work / "carrierfire-adapter-log.jsonl"
+
+    home = work / "carrierfire-home"; home.mkdir()
+    project = work / "carrierfire-project"; project.mkdir()
+    seed_credential(home)
+
+    market_root = work / "carrierfire-market"
+    (market_root / ".claude-plugin").mkdir(parents=True)
+    shape_name = build_shape_package(market_root, capture_shape)
+    # The real package is reached by a symlink so that nothing is copied by this probe:
+    # the installer is what copies, which is the property being measured.
+    repo_root = ADAPTER_PATH.parent.parent
+    (market_root / CARRIER_REAL_NAME).symlink_to(repo_root)
+    marketplace = market_root / ".claude-plugin" / "marketplace.json"
+    write_json(marketplace, {
+        "name": CARRIER_MARKET_NAME, "owner": {"name": "Probe"},
+        "plugins": [{"name": shape_name, "source": "./" + shape_name},
+                    {"name": CARRIER_REAL_NAME,
+                     "source": "./" + CARRIER_REAL_NAME}]})
+
+    # ── install, through the vendor's own installer ────────────────────────────────
+    installer = AppServer(binary, project, disposable_env(home),
+                          work / "carrierfire-install.stderr")
+    installs = {}
+    try:
+        installer.initialize()
+        for name in (shape_name, CARRIER_REAL_NAME):
+            installs[name] = install_plugin(installer, marketplace, name)
+    finally:
+        installer.close()
+
+    config = home / "config.toml"
+    enablement = config.read_text() if config.exists() else ""
+    if "[plugins." not in enablement:
+        raise Failure(
+            "plugin/install wrote no [plugins.…] enablement into the disposable "
+            "config (%r). This phase APPENDS to that block; if the installer stopped "
+            "writing it the append is preserving nothing and the trust write below "
+            "would silently disable the carrier instead." % enablement[:200])
+
+    cache = home / "plugins" / "cache"
+    installed_files = sorted(
+        str(p.relative_to(cache)) for p in cache.rglob("*") if p.is_file())
+    installed_adapter = cache / CARRIER_MARKET_NAME / CARRIER_REAL_NAME
+    adapter_copies = sorted(str(p) for p in installed_adapter.rglob(
+        "scripts/codex-hook-adapter.py"))
+    guard_copies = sorted(str(p) for p in installed_adapter.rglob(
+        "hooks/scripts/permission-guard.sh"))
+
+    # ── declare the CONFIG-route control beside the two installed carriers ─────────
+    config_recorder = make_hook(work / "carrierfire-config-rec.sh", capture_config)
+    base = (enablement
+            + '\n[projects."' + str(project) + '"]\ntrust_level = "trusted"\n'
+            + '\n[[hooks.PreToolUse]]\n'
+            + '\n[[hooks.PreToolUse.hooks]]\ntype = "command"\ncommand = '
+            + json.dumps(str(config_recorder)) + "\n")
+    config.write_text(base)
+
+    records = list_hooks(binary, home, project, work / "carrierfire-list.stderr")
+    by_source = {}
+    for record in records:
+        by_source.setdefault(record.get("source"), []).append(record)
+    if len(by_source.get("plugin", [])) != 2:
+        raise Failure(
+            "expected exactly two plugin-sourced registrations after installing two "
+            "carriers; got %s. The route this phase measures is not present, so a "
+            "zero from it below would not be a reading about firing."
+            % [(r.get("source"), r.get("command")) for r in records])
+    # The config-declared registration reports source `user` — the config file is the
+    # USER layer. Pinned by name rather than by "not plugin": a third source appearing
+    # later must redden here rather than be silently counted as the control.
+    if not by_source.get("user"):
+        raise Failure(
+            "the config-route control did not register (%s). Without it a zero from "
+            "the carrier route cannot be told apart from a turn that hooked nothing."
+            % [(r.get("source"), r.get("command")) for r in records])
+    if any(r["trustStatus"] != "untrusted" for r in records):
+        raise Failure("a freshly declared registration was not untrusted; the trust "
+                      "state carried over from somewhere and this home is not clean")
+
+    config.write_text(base + carrier_state_block(records))
+    trusted = list_hooks(binary, home, project, work / "carrierfire-list2.stderr")
+    if len(trusted) != len(records):
+        raise Failure(
+            "the trust write changed the REGISTRATION COUNT (%d -> %d). The enablement "
+            "key this phase appends to was not preserved, so what follows would measure "
+            "a disabled plugin rather than a route."
+            % (len(records), len(trusted)))
+    if any(r["trustStatus"] != "trusted" for r in trusted):
+        raise Failure("not every registration reached trusted: %s"
+                      % [(r.get("source"), r["trustStatus"]) for r in trusted])
+
+    # ── one turn, one act ──────────────────────────────────────────────────────────
+    marker = project / "CARRIER_MARKER"
+    env = disposable_env(home)
+    env["CODEX_HOOK_ADAPTER_LOG"] = str(log)
+    server = AppServer(binary, project, env, work / "carrierfire-turn.stderr")
+    try:
+        server.initialize()
+        turn = run_turn(server, project,
+                        "Run exactly one shell command and nothing else, exactly as "
+                        "written: " + (FIRING_COMMAND_TEMPLATE % marker)
+                        + " -- then reply with the single word DONE.")
+    finally:
+        server.close()
+
+    config_payloads = read_payloads(capture_config)
+    shape_payloads = read_payloads(capture_shape)
+    log_lines = []
+    if log.exists():
+        for line in log.read_text().splitlines():
+            if line.strip():
+                try:
+                    log_lines.append(json.loads(line))
+                except ValueError:
+                    log_lines.append({"__unparsed__": line[:400]})
+    runs = turn["hook_runs"]
+    report["carrierfire"] = {
+        "install_results": installs,
+        "installed_file_count": len(installed_files),
+        "installed_adapter_paths": adapter_copies,
+        "installed_guard_paths": guard_copies,
+        "enablement_written_by_installer": enablement.strip(),
+        "registrations": [(r.get("source"), r.get("command"), r.get("pluginId"))
+                          for r in trusted],
+        "hook_run_count": len(runs),
+        "hook_run_statuses": [r["status"] for r in runs],
+        "config_route_invocations": len(config_payloads),
+        "carrier_route_invocations": len(shape_payloads),
+        "adapter_log_entries": len(log_lines),
+        "adapter_log": log_lines,
+        "adapter_decisions": [e.get("outcome") for e in log_lines
+                              if isinstance(e, dict)],
+        "marker_created": marker.exists(),
+        "project": str(project),
+        "feedback_entries": [e for r in runs for e in (r.get("entries") or [])],
+        "terminal": turn["terminal"],
+    }
+
+    # ── the controls, in the order that makes a zero readable ──────────────────────
+    #
+    # NOTE WHAT IS NOT ASSERTED HERE. This phase does not raise on the carrier route
+    # being silent: that is the measurement it exists to take, and an assertion in
+    # either direction would make the phase conclude what it was written to observe.
+    # It raises only where the RESULT IS UNINTERPRETABLE, or where the observed state
+    # is strictly worse than either candidate answer.
+    if not config_payloads:
+        raise Failure(
+            "THE CONFIG-ROUTE CONTROL DID NOT FIRE. The route already measured firing "
+            "on this build observed zero invocations, so this turn hooked nothing at "
+            "all and the carrier route's own count says nothing about the carrier.")
+    if marker.exists() and "block" in [e.get("outcome") for e in log_lines
+                                       if isinstance(e, dict)]:
+        raise Failure(
+            "the act COMPLETED while the adapter's own log records a block. A decision "
+            "was produced through the carrier route and not honoured, which is worse "
+            "than an uninvoked hook and must not pass.")
+
+
 OFFLINE_PHASES = {"carrier": phase_carrier, "trust": phase_trust, "routes": phase_routes}
 TURN_PHASES = {"payload": phase_payload, "block": phase_block,
                "identity": phase_identity, "stdin": phase_stdin,
                "matcher": phase_matcher, "firing": phase_firing,
-               "friction": phase_friction}
+               "friction": phase_friction, "carrierfire": phase_carrierfire}
 PHASES = dict(OFFLINE_PHASES)
 PHASES.update(TURN_PHASES)
 
