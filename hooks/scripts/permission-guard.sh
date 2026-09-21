@@ -2547,12 +2547,39 @@ fi
 #      · the #438 extension below, which is untouched. It already abstains on `VAR=/path; cmd "$VAR"`
 #        for its own reason — quotes and `$` are outside its simple-composition language — so the
 #        exemption and the extension do not overlap on this payload.
-#    IT IS ONE PREDICATE, NOT A PREDICATE PLUS A NEGATED ONE, AND THAT IS A CORRECTNESS REQUIREMENT
-#    RATHER THAN A STYLE CHOICE. `grep` matches LINE-WISE while `$bare` may carry newlines, so a pair
-#    of independent greps correlates nothing: a first line reading `VAR=1;` would have satisfied an
-#    exemption grep and suppressed the branch for a SECOND line reading `FOO=2 terraform apply`. That
-#    is a real prefix reaching ALLOW, which is the loosening this edit must not buy. Written as one
-#    regex, both halves are evaluated against the same line.
+#    IT IS ONE PREDICATE RATHER THAN A PREDICATE PLUS A NEGATED ONE. The justification first published
+#    here was FALSE and is corrected rather than quietly dropped, because this is a floor file and a
+#    maintainer reasons from a mechanism sentence in it:
+#
+#      ~~`grep` matches LINE-WISE while `$bare` may carry newlines, so a pair of independent greps
+#      correlates nothing: a first line reading `VAR=1;` would have satisfied an exemption grep and
+#      suppressed the branch for a SECOND line reading `FOO=2 terraform apply`.~~
+#
+#    `$bare` CANNOT CARRY A NEWLINE. `cmd` is flattened by `tr '\n\t' '  '` about 2,200 lines above
+#    this one, and `bare` is derived from `cmd`, so every payload reaching here is one line and the
+#    two-grep form would have correlated fine. The hazard described was not reachable.
+#
+#    THE REAL REASON TO KEEP ONE PREDICATE IS SMALLER AND IS NOT A CORRECTNESS CLAIM: two greps state
+#    the same rule twice, in complementary spellings, and a later edit to one of them is a silent
+#    disagreement between them. One regex has one place to be wrong. That is a maintenance argument,
+#    and calling it a correctness requirement was the defect.
+#
+#    WHAT THE FLATTENING DOES COST, MEASURED RATHER THAN INFERRED FROM THE CORRECTED SENTENCE. A
+#    multi-line payload becomes one line, so a leading assignment STATEMENT on line 1 now sits in
+#    front of whatever line 2 holds, and this branch reads the two together:
+#
+#      `VAR=1;` + newline + `FOO=2 wc -l README.md`   -> DENY before this edit, ALLOW after it
+#
+#    That is a real under-fire and it is LEFT, deliberately, on this file's own governing test: a rule
+#    of this class must fire on a SUBSET of what the runtime stops for, never on more. It is NOT a
+#    floor hole — every floor act in the same shape still denies, because every floor rule matches a
+#    SUBSTRING of `bare` and none of them is anchored:
+#
+#      `VAR=1;` + newline + `terraform apply` / `git push origin main` / `rm -rf …` / `gh secret set …`
+#                                                     -> DENY at both heads
+#
+#    So what is lost is this rule's INSTRUCTION on one composed spelling, never a block. Closing it
+#    behaviourally is legitimate and widens the slice; it is recorded here instead.
 #
 #    The two alternatives are the two non-separator continuations an assignment can have:
 #      `[[:blank:]]+[^[:space:];&|]`  a COMMAND WORD follows -> prefix form, denied (the object)
