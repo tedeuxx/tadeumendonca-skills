@@ -60,6 +60,14 @@ and write one line to stderr. A floor that is absent is indistinguishable from a
 that is holding, which is why `--selfcheck` exists and why activation instructions must
 send an operator through it.
 
+A MALFORMED TUNABLE IS NOT IN THAT LIST, AND THE DIFFERENCE IS DELIBERATE (#455). A bad
+`CODEX_HOOK_ADAPTER_TIMEOUT` does not abstain: the floor keeps running at the built-in
+default, and the DEFECT is reported on stderr on every invocation and as a `--selfcheck`
+note. Abstaining would turn an operator's typo into a silent floor outage; blocking would
+turn it into a session outage. Reporting is the only one of the three that keeps a
+mis-set knob distinguishable from an unset one, which is the whole requirement — see
+`resolve_guard_timeout` for the three options and why the other two were refused.
+
 The guard's own fail-closed exception (rule 7c, the merge verdict lookup) is preserved
 by construction: this file does not interpret the guard's rules, it forwards a verdict.
 
@@ -70,6 +78,7 @@ Usage:
 """
 
 import json
+import math
 import os
 import shutil
 import subprocess
@@ -108,7 +117,70 @@ UNIDENTIFIED_CALLER = "codex-unidentified"
 # Seconds. The carrier declares its own host-side timeout; this one is deliberately
 # shorter so a slow guard returns an abstention WITH a stderr line rather than being
 # killed silently by the host, which is the same outcome with no trace.
-GUARD_TIMEOUT = float(os.environ.get("CODEX_HOOK_ADAPTER_TIMEOUT", "4.0"))
+#
+# ── A MALFORMED TUNABLE IS A CONFIGURATION DEFECT, NOT A CRASH (#455, AC6) ────────────
+#
+# This read was `float(os.environ.get(...))` at module scope, so `CODEX_HOOK_ADAPTER_
+# TIMEOUT=notanumber` raised a ValueError before `main` was reached: a traceback, exit 1
+# and NOTHING on stdout — which this runtime reports as a hook error rather than as the
+# documented abstention AC6 requires. It failed in both modes, `--selfcheck` included,
+# so the one route an operator has to tell an inert floor from a holding one was the
+# route that crashed.
+#
+# WHAT A MALFORMED VALUE MEANS HERE, DECIDED RATHER THAN DEFAULTED. Three answers were
+# available and the middle one is taken:
+#
+#   · SILENTLY fall back to the default. REFUSED. A floor whose timeout was mis-set to
+#     `notanumber` is a floor somebody believed they had configured, and a silent
+#     fallback makes a mis-set knob indistinguishable from an unset one — this file's
+#     own named worst shape, an absence that reads as a presence.
+#   · BLOCK every call. REFUSED, and AC6 forbids it in as many words: do not convert an
+#     observer failure into a blanket session denial. The tunable is not the act's
+#     fault, the floor still runs at the default, and a hook that wedges the session
+#     over an env var teaches an operator to unregister it.
+#   · FALL BACK TO THE DEFAULT AND SAY SO, EVERY TIME. Taken. The floor keeps running at
+#     4.0s, and the defect is reported on stderr on every invocation and as a `note:` in
+#     `--selfcheck`. An UNSET knob is silent; a MIS-SET one is loud. That is the
+#     distinction the operator needs, and it is carried by presence-of-a-line rather
+#     than by anything they have to go and read.
+#
+# It is a `note:` and NOT a `BLOCK:` in the selfcheck: `BLOCK` means the floor cannot
+# run, and it can — reporting NOT ACTIVE over a working floor is a false claim in the
+# alarming direction, which trains an operator to discount the next one.
+#
+# NON-POSITIVE AND NON-FINITE VALUES ARE MALFORMED TOO, and that half matters more than
+# the crash. `subprocess.run(timeout=0)` and a negative timeout raise TimeoutExpired
+# immediately, so the adapter abstains on EVERY call — the whole floor off, silently,
+# with a value that parses. An infinite timeout is the opposite failure and defeats the
+# reason this constant exists: the host kills the process instead, which is the same
+# outcome with no trace, which the paragraph above says is what the short value avoids.
+DEFAULT_GUARD_TIMEOUT = 4.0
+
+
+def resolve_guard_timeout(raw):
+    """(seconds, defect-sentence-or-None). Never raises, for any value of `raw`."""
+    if raw is None:
+        return DEFAULT_GUARD_TIMEOUT, None
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        reason = "is not a number"
+    else:
+        if not math.isfinite(value):
+            reason = "is not a finite number"
+        elif value <= 0:
+            reason = ("is not positive, and a non-positive timeout makes the guard "
+                      "time out on EVERY call — the floor off, silently")
+        else:
+            return value, None
+    return DEFAULT_GUARD_TIMEOUT, (
+        "CODEX_HOOK_ADAPTER_TIMEOUT=%r %s. Falling back to the %.1fs default, so the "
+        "floor still runs — but this knob is MIS-SET, which is a different state from "
+        "unset and is why you are reading this line." % (raw, reason, DEFAULT_GUARD_TIMEOUT))
+
+
+GUARD_TIMEOUT, GUARD_TIMEOUT_DEFECT = resolve_guard_timeout(
+    os.environ.get("CODEX_HOOK_ADAPTER_TIMEOUT"))
 
 # ── THE BRANCH POINT — the owner's ruling is this one constant ────────────────────────
 #
@@ -309,6 +381,23 @@ def selfcheck():
     blocking = []
     notes = []
 
+    # The tunable is NAMED here whether or not it is set, so an operator reading this
+    # report learns that the knob exists and what value is actually in force — which is
+    # the half a stderr line cannot carry, because a correctly-set knob prints nothing.
+    if GUARD_TIMEOUT_DEFECT:
+        # A note and NOT a block: the floor runs at the default, so reporting NOT ACTIVE
+        # would be a false claim in the alarming direction.
+        notes.append("GUARD TIMEOUT MIS-SET: %s" % GUARD_TIMEOUT_DEFECT)
+    else:
+        notes.append(
+            "GUARD TIMEOUT: %.1fs, from %s. A malformed, non-positive or non-finite "
+            "CODEX_HOOK_ADAPTER_TIMEOUT falls back to the %.1fs default and says so here "
+            "and on stderr — it does not crash and does not block (#455)."
+            % (GUARD_TIMEOUT,
+               "CODEX_HOOK_ADAPTER_TIMEOUT" if os.environ.get("CODEX_HOOK_ADAPTER_TIMEOUT")
+               else "the built-in default (the variable is unset)",
+               DEFAULT_GUARD_TIMEOUT))
+
     if shutil.which("bash") is None:
         blocking.append("bash is not on PATH — the guard cannot run")
     if shutil.which("jq") is None:
@@ -389,6 +478,12 @@ def selfcheck():
 
 
 def main(argv):
+    # A MIS-SET tunable is reported on EVERY invocation, before anything else runs, and
+    # that repetition is the point rather than an oversight: an unset knob is silent, so
+    # the presence of this line is itself the signal. The floor is NOT stopped — it runs
+    # at the default — which is why this is a stderr line and not a block.
+    if GUARD_TIMEOUT_DEFECT:
+        sys.stderr.write("codex-hook-adapter: %s\n" % GUARD_TIMEOUT_DEFECT)
     if "--selfcheck" in argv:
         return selfcheck()
     raw = sys.stdin.read()

@@ -1309,6 +1309,40 @@ check ALLOW "make variable is an argument"      "make FOO=1 target"
 check ALLOW "quoted = is collapsed already"     "git commit -m 'x=1'"
 check ALLOW "chain with no assignment"          "git status; git diff"
 
+# #455: the LEADING branch was "the string begins with an assignment", which also matched an
+# assignment STATEMENT terminated by a separator, after which a separate, fully visible command
+# follows. Nothing is hidden there -- the matcher decomposes the composition and evaluates the second
+# command on its own -- so the refusal stopped something this rule was never written to stop. It bit a
+# dispatched persona inside its own authorised work. The separation is syntactic: after an
+# assignment's value a COMMAND WORD follows (prefix) or a SEPARATOR does (statement), and shell
+# requires them to differ, so no prefix form can reach the new exemption.
+check ALLOW "assignment statement then ;"       'VAR=/path; cmd "$VAR"'
+check ALLOW "assignment statement then &&"      "VAR=/tmp/x && wc -l README.md"
+check ALLOW "assignment statement then ||"      "VAR=/tmp/x || wc -l README.md"
+check ALLOW "assignment statement then |"       "VAR=/tmp/x | wc -l"
+check ALLOW "assignment statement, spaced ;"    "VAR=/tmp/x ; wc -l README.md"
+# THE OTHER DIRECTION, which is what stops the exemption from becoming a hole in the prefix case.
+check DENY  "prefix with a later separator"     "FOO=1 terraform apply; echo done"
+check DENY  "prefix, empty value"               "FOO= terraform apply"
+check DENY  "stacked prefixes"                  "FOO=1 VAR=2 terraform apply"
+check DENY  "prefix with a quoted value"        'FOO="a b" terraform apply'
+# LINE-WISE CORRELATION. `grep` matches per LINE and `bare` may carry newlines, so an exemption
+# expressed as a SECOND, independent grep would let a first line reading `VAR=1;` suppress the branch
+# for a second line carrying a real prefix. The predicate is therefore one regex, and this is the arm
+# that says so.
+check DENY  "statement line does not exempt a prefix line" $'VAR=1;\nFOO=2 terraform apply'
+# The residual, asserted rather than left implicit: an assignment with NOTHING after it is a statement
+# too and hides nothing, and it is deliberately still denied -- over-block in the safe direction,
+# outside the reported friction, and `values=(BAR=1)` above depends on it.
+check DENY  "bare assignment is still denied"   "FOO=1"
+# AND THE FLOOR IS UNTOUCHED BY THE EXEMPTION. Every rule here matches a SUBSTRING of `bare`, so an
+# exempted leading statement does not walk a floor act past its own rule. Each of these is denied by
+# the floor rule named, never by rule 8.
+check DENY  "exempted statement, floor act: terraform" "VAR=1; terraform apply"
+check DENY  "exempted statement, floor act: trunk push" "VAR=1; git push origin main"
+check DENY  "exempted statement, floor act: rm -rf"    "VAR=1; rm -rf /"
+check DENY  "exempted statement, floor act: secret"    "VAR=1; gh secret set X"
+
 # #438 review: the extension recognizes a complete simple composition, not selected punctuation in
 # arbitrary shell text. Escapes of either parity are outside it; actual simple prefixes stay above.
 check ALLOW "escaped semicolon is argument text" 'echo foo\;BAR=1'

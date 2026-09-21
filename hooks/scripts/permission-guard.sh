@@ -2515,11 +2515,56 @@ fi
 #    grep's line-wise ^...$ would wrongly accept a simple line INSIDE a heredoc. This is deliberately
 #    narrower than shell: even a real prefix after a quoted/escaped word abstains in the extension.
 #    The original leading predicate remains independent, and no other rule uses this recognition.
+#    ── THE LEADING BRANCH REFUSED A BARE ASSIGNMENT STATEMENT, AND THAT IS A DIFFERENT SHAPE (#455). ──
+#
+#    This branch's object is an env-var PREFIX: an assignment that CHANGES HOW THE NEXT COMMAND RUNS,
+#    which is what defeats the allow entry — `FOO=1 terraform apply`, `GIT_DIR=… git push`. It was
+#    written as "the string begins with an assignment", and that predicate also matches an assignment
+#    STATEMENT terminated by a separator, after which a separate, fully visible command follows:
+#
+#      VAR=/path; cmd "$VAR"      -> DENIED, although nothing is hidden: `cmd` is in plain text, the
+#                                   matcher decomposes the composition (see the S2 rows above), and it
+#                                   evaluates `cmd` on its own exactly as it would without the leading
+#                                   statement. There is no allow entry for the assignment to defeat.
+#
+#    It bit a dispatched persona inside its own authorised work, so the cost is live rather than
+#    hypothetical. It is the mirror of the class the rows above measured: a refusal that stops
+#    something this rule was never written to stop.
+#
+#    THE SEPARATION IS SYNTACTIC, NOT A JUDGEMENT, WHICH IS WHY IT CAN BE MADE WITHOUT LOOSENING THE
+#    PREFIX CASE. After an assignment's value token, exactly one of two things follows, and shell
+#    requires them to differ: a COMMAND WORD (prefix form — and a prefix cannot be spelled without a
+#    blank there, since `FOO=1cmd` is one assignment with the value `1cmd`), or a SEPARATOR (statement
+#    form). So the exemption below fires only where a separator follows, and no prefix form can reach
+#    it. It is written as a separate, narrowly-anchored predicate rather than as an edit to the
+#    predicate beneath it, so the original check stays readable and independent as its own comment
+#    above already claims.
+#
+#    DELIBERATELY NOT EXEMPTED, so the change is the smallest one that answers the report:
+#      · an assignment with NOTHING after it (`FOO=1`, `values=(BAR=1)`) — it is a statement too and
+#        hides nothing, but it was not the reported friction and it is over-block in the safe
+#        direction. Named as a residual rather than fixed in the same edit.
+#      · the #438 extension below, which is untouched. It already abstains on `VAR=/path; cmd "$VAR"`
+#        for its own reason — quotes and `$` are outside its simple-composition language — so the
+#        exemption and the extension do not overlap on this payload.
+#    IT IS ONE PREDICATE, NOT A PREDICATE PLUS A NEGATED ONE, AND THAT IS A CORRECTNESS REQUIREMENT
+#    RATHER THAN A STYLE CHOICE. `grep` matches LINE-WISE while `$bare` may carry newlines, so a pair
+#    of independent greps correlates nothing: a first line reading `VAR=1;` would have satisfied an
+#    exemption grep and suppressed the branch for a SECOND line reading `FOO=2 terraform apply`. That
+#    is a real prefix reaching ALLOW, which is the loosening this edit must not buy. Written as one
+#    regex, both halves are evaluated against the same line.
+#
+#    The two alternatives are the two non-separator continuations an assignment can have:
+#      `[[:blank:]]+[^[:space:];&|]`  a COMMAND WORD follows -> prefix form, denied (the object)
+#      `[[:blank:]]*$`               nothing follows        -> bare assignment, denied (status quo,
+#                                                              see the residual note above)
+#    A separator following the value matches neither, which is the statement form this exempts.
+env_prefix_lead='^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=[^[:space:];&|]*([[:blank:]]+[^[:space:];&|]|[[:blank:]]*$)'
 env_prefix_word='[-A-Za-z0-9_./,:=+%]+'
 env_prefix_simple="$env_prefix_word([[:blank:]]+$env_prefix_word)*"
 env_prefix_element="($env_prefix_simple|\([[:blank:]]*$env_prefix_simple[[:blank:]]*\))"
 env_prefix_sequence="^[[:blank:]]*$env_prefix_element([[:blank:]]*(;|&&|\|\||\||&)[[:blank:]]*$env_prefix_element)*[[:blank:]]*;?[[:blank:]]*$"
-if printf '%s' "$bare" | grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=' ||
+if printf '%s' "$bare" | grep -Eq "$env_prefix_lead" ||
    { [[ "$command" =~ $env_prefix_sequence ]] &&
      printf '%s' "$command" | grep -Eq '[;&|(][[:space:]]*[A-Za-z_][A-Za-z0-9_]*='; }; then
   deny "Blocked: env-var prefix (VAR=x cmd) at a leading position or in a recognized simple composition hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
