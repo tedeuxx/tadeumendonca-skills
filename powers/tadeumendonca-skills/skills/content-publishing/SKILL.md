@@ -578,9 +578,13 @@ dropping it.**
   rule 20, the target that is not the 3,000-character ceiling, read per language block. **Both are
   counted, not judged**, which is what makes this a step rather than an opinion: the two markers are
   either in the draft or they are not, and the block lengths are a character count. **The reason it is
-  a step at all is that rule 19's element has been shipped correctly exactly once and dropped on every
+  a step at all is that rule 19's element has been DRAFTED correctly exactly once and dropped on every
   post since** — it is the signature defect one surface over, and the owner caught it on the live post
-  rather than in a round. *Held by: an instruction, and nothing else.* `Write` and `Edit` are observed
+  rather than in a round. **Read that as a claim about DRAFTING, not about the live corpus**: one post
+  was brought into conformance on 2026-09-20 by editing the live body, which is a repair after the
+  fact and is exactly what this step exists to make unnecessary. **A live surface repaired leaves no
+  record in `docs/social/`**, so the corpus a later reading is derived from does not move when one
+  happens. *Held by: an instruction, and nothing else.* `Write` and `Edit` are observed
   by no matcher in this plugin, and the post itself goes out through a browser extension that no
   matcher sees at all — so this cannot be more than a written precondition, exactly like the OG-card
   check above. **Neither rule is a merge hold**: no copy hold reaches this lane (step 6), so a post

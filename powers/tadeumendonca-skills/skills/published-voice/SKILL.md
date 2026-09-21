@@ -1641,9 +1641,42 @@ rule that is otherwise written by role, so the two framings sit in one clause an
 read the order as the rule's shape. It is written as one sentence appended to the rule, for exactly
 that reason: reversing the order is a one-sentence edit and does not reach the role wording.
 
-**And the live post for the current article is out of conformance on both counts** — it leads in
+~~**And the live post for the current article is out of conformance on both counts** — it leads in
 Portuguese and carries no signpost at all. That is a finding about a published artifact, not about
-this rule, and repairing it is the owner's act on a surface no context in this loop can reach.
+this rule, and repairing it is the owner's act on a surface no context in this loop can reach.~~
+
+**STRUCK 2026-09-20 — all three of its claims are false at head, and it went false DURING the slice
+that wrote it.** Struck rather than deleted because it is the sentence that told a reader this rule
+had a live counter-example, and someone who read it took the rule's urgency from it. **The general
+clause is untouched: a post that leads in Portuguese is still a citable finding.** What dies is the
+claim that one specific live post is currently one.
+
+- **It CONFORMS.** Edited in place and saved 2026-09-20: English leads, and the first line is
+  `🇧🇷 Versão em português na segunda metade.`
+- **It was NOT the owner's act.** The loop performed the edit.
+- **The surface IS reachable** — see the clause below, which is the half worth getting right.
+
+**Why the sentence was written that way, recorded rather than filed as an authoring error:** it was
+sourced to a dated comment and was true when that comment was written. **A claim about a live
+external surface has a shelf life, and this one expired inside a single working day.** The rule that
+survives is the one this file already applies to its own corpus figures — *a claim about a mutable
+artifact ships with its date and its reader is told it may have moved*, not *check harder*.
+
+#### Which surface a published defect can be REPAIRED on, and the two answers differ
+
+**A LinkedIn post body is editable in place, by a context in this loop, and that was demonstrated
+rather than argued** — the edit above preserved the post's reactions, comments and impressions, and
+the owner's own hand-edits to the Portuguese block survived it verbatim. **So a rule-19 defect on
+LinkedIn is a repair, not a loss.**
+
+**X is not editable at all.** The repair there is **delete-and-repost**, which destroys the post's
+engagement and its impression history. **That is a genuine trade and it is the constraint a reviewer
+has to price** before recommending a fix to anything already published on that surface.
+
+**The consequence for this rule specifically:** rule 19 has no subject on X, which ships monolingual,
+so this asymmetry never bites rule 19 itself. It bites every other published-copy rule that can be
+violated on both surfaces, which is why it is stated here as a property of the surfaces rather than
+inside the order clause.
 
 #### The corpus this was derived from is ONE record, and the precedent is NOT in it
 
@@ -1665,8 +1698,22 @@ citing — an English-first piece whose first line pointed forward to a Portugue
 in `docs/social/`, and a history search for its hint string returns only the *article* files. Five
 articles are published and **one** of them has a social record at all. **So the precedent is real
 because he read it live, and this file cannot cite it**; the shape above is reconstructed from his own
-description of it in the ruling. **Say so if that shape is ever the sole ground for a repair.** The
-falsifier is cheap and someone should run it: open the live post.
+description of it in the ruling. **Say so if that shape is ever the sole ground for a repair.**
+
+~~The falsifier is cheap and someone should run it: open the live post.~~ **DISCHARGED 2026-09-20 —
+it was run, by the loop, through a browser.** It is struck rather than left standing because an
+invitation to run a check that has an answer sends the next reader to re-derive it. **What it
+returned** does not recover the missing precedent: the post opened was the **current** article's, not
+the one he cited, and opening it is what produced the repair recorded above rather than a record of
+the precedent. **So the precedent is still uncitable from this tree**, and the paragraph above is
+unchanged by the discharge.
+
+**The corpus figure is unchanged too, re-derived at the sibling's `origin/main` on 2026-09-20 rather
+than carried** — `git -C <consumer> ls-tree --name-only origin/main docs/social/` returns **one**
+file, and it is for a different article than the one repaired. **Four of five published pieces still
+ship their social pair with nothing written down**, so no corpus reading about post craft is better
+than n=1, and a repair performed on a live surface leaves no record here at all. That is the finding
+the discharge exposes rather than closes.
 
 **And the missing records are a finding about the lane rather than about this rule.** Four of five
 published pieces shipped their social pair with nothing written down, so no corpus reading about post
