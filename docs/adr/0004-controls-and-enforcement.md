@@ -6322,3 +6322,102 @@ second harness carries this floor by **translation onto the authored guard** rat
 which is the shape any third harness should copy; and it discharges the last row of slice B's own
 *what nothing enforces* table — *"an adapter does not map a missing `agent_type` to `""` — nothing
 yet"* — which is now a gated mutation control rather than an intention.
+
+## Amendment (2026-09-21) — the floor gains a SWITCHABLE class, because the subset test that justifies a friction rule is a property of the RUNTIME (#455, slice D)
+
+**Deciders:** owner (authorised the spend), written by `agents-lead`, measured by two native model
+turns on `codex-cli 0.151.0-alpha.7.2`.
+
+### The decision
+
+**`hooks/scripts/permission-guard.sh` now distinguishes two kinds of `deny` in its own source.**
+A new helper, `deny_convenience()`, wraps exactly three call sites — rule 3 (command substitution),
+rule 8 (env-var prefix) and rule 8b (redirection). With `PERMISSION_GUARD_CONVENIENCE_RULES=off`
+those three **abstain**; unset, or any other value, they **deny exactly as before**. Nothing else in
+the file is reachable through the variable.
+
+### Why the distinction had to become mechanical rather than stay editorial
+
+**Those three rules are not floor rules and never were.** They stop nothing irreversible. They
+exist because the HOST RUNTIME stops those three spellings for a human, and an agent that is denied
+with an instruction corrects itself where an agent that is prompted cannot. `/shell` states the
+governing rule in its own words: such a rule *"must fire on a SUBSET of what the runtime stops for,
+never on more. Where it cannot tell, it should abstain and let the layer that parses shell decide."*
+
+**The subset is a property of the runtime, and since #419 this floor is carried by more than one.**
+That is the whole of the argument. A rule whose justification is *"the host would have prompted"*
+has no justification on a host that does not prompt — and Codex's measured hook vocabulary has one
+refusal verb and **no prompt rung at all**. There, the three fire on **more** than the runtime
+stops, which inverts the rule they were written under.
+
+### The measurement
+
+`scripts/codex-hook-probe.py --phase friction`, one turn, a hook that is a pure recorder so nothing
+observed is attributable to this harness, every fixture harmless and inside a disposable project:
+
+| fixture | completed? |
+|---|---|
+| `touch <proj>/F-CONTROL` — the positive control | **yes** |
+| `touch <proj>/F-SUBST-$(echo ok)` | **yes** |
+| `FOO=1 touch <proj>/F-ENVVAR` | **yes** |
+| `echo hi > <proj>/F-REDIR` | **yes** |
+| the same plain `touch` under `permissions: ":read-only"` — **the calibration** | **NO**, observed by the hook and never executed |
+
+**The calibration is what makes the four `yes` a reading about those classes rather than about a
+permission layer that was not in force.** The stopped subset is **empty** on that runtime.
+
+**`permission_mode` is settled in the negative at the same time.** It reads `"default"` under both
+`:workspace` and `:read-only`, while the parameter itself IS validated — an unknown preset returns
+`-32600 … unknown built-in profile`. So the field is not a readback of the requested profile, its
+observed domain on this build is one value, and **no control may branch on it.**
+
+### Which layer carries it, which is this record's standing question
+
+**The GUARD classifies; the ADAPTER declines to ask.** Putting the classification in
+`scripts/codex-hook-adapter.py` was the obvious move and is wrong: which rules are friction is a
+property **of the rules**, and that adapter's whole thesis is that it authors none. Putting it in
+the adapter would also have required it to recognise the three by their reason text, which is an
+enumeration over spellings — the shape `action-pendency-guard.sh` was deleted for, in this record.
+
+**Rejected: an additive field on the verdict envelope.** `permissionDecisionClass` beside
+`permissionDecision` would have been cleaner to read and rests on an **unmeasured premise** —
+whether the Claude runtime tolerates an unknown key in `hookSpecificOutput`. That premise lands on
+the production floor of the harness this repository actually runs, and there was no cheap way to
+measure it. An env var changes no byte of any envelope.
+
+**Rejected: deleting the three rules.** They are correct on Claude, where the runtime does stop all
+three — re-derived in this slice, with the payload table in `/shell` as the source. Deleting them
+to fix a second harness would take a working control off the first.
+
+### What a model cannot do, stated because an env-var switch invites the question
+
+**A model cannot set it.** A hook's environment is inherited from the host process, and a `Bash`
+tool call is a fresh shell whose exports do not survive it — so `export` inside a model's own
+command does not change what a later hook process sees. **And the blast radius is bounded by
+construction even if that were wrong**: the acts the variable releases are a substitution, a
+variable prefix and a redirect, each of which still meets every other rule in the file on the way
+past. The two arms that pin this are deliberately the *floor* ones — a trunk push whose branch name
+is a substitution, and an env-var-prefixed `terraform apply`, both **still denied** under `off`.
+
+### What nothing enforces
+
+| claim | what actually holds it |
+|---|---|
+| only the three friction rules are switchable | **`permission-guard.test.sh`**, asserting `deny_convenience` has exactly three call sites, plus ten irreparable acts still denying under `off`. Mutation-checked in both directions — welded shut reddens three arms, welded open reddens 41 |
+| the Claude path is unchanged | **the same suite's other 583 arms**, which never set the variable and did not move |
+| a model cannot reach the variable | **nothing.** It is a property of how the host launches a hook, re-derivable but not gated |
+| the three classes really are unstopped on Codex | **re-running the `friction` phase on a machine with a binary.** No CI runner has one, and the phase spends the operator's tokens |
+| the classification is honest — that a fourth rule added later is genuinely friction | **review.** No gate can tell a friction rule from a floor rule; it can only count them |
+
+**By this loop's own test — *would something stop me, or only my memory?* — the COUNT is
+engineered and the CLASSIFICATION is not.** That asymmetry is the one to carry: what a gate can
+hold here is *how many rules are switchable*, never *whether they should be*.
+
+### Significance
+
+*Sets a cross-cutting pattern* and *alters a previously-recorded decision*. The pattern: **a
+multi-harness floor has to separate the rules that are irreversibility from the rules that are
+host-specific friction, and the separation has to be in the source rather than in a reader's head.**
+The altered decision is this record's own *UX amendment* — *"friction refusals may cover only a
+subset of what the current runtime actually stops"* — which is now conditional on **which** runtime,
+and has a mechanism behind it rather than a sentence.

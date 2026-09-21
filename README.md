@@ -2243,6 +2243,32 @@ A's fixture used one and `plugin/read` reported a registration; every turn phase
 absolute path), and the route ceiling above is unliftable — the floor covers **the model's tool
 calls** and nothing else. *"The shell is guarded"* is false on this runtime.
 
+**AMENDED 2026-09-21 (#455): the hook FIRES, on the build this machine has, and the paragraph above
+is narrowed rather than struck because every clause of it is still true of the route it names.** One
+turn on **`codex-cli 0.151.0-alpha.7.2`** with three trusted `PreToolUse` registrations — an
+absolute recorder as the control, a **relative** one, and the real adapter — put all three at
+**one invocation each**: the relative command **resolved**, against the **session's cwd**; the
+adapter was invoked, decided `block`, and **the act did not happen**. The act was chosen where this
+harness's two Codex layers disagree (`gh pr merge` is `allow` in the execpolicy, `deny` in the
+guard), so the refusal is attributable to the hook and not to the cheaper layer.
+
+**What that does and does not settle.** It registers through `config.toml`, not through the plugin
+carrier, so the carrier's **own** route stays unmeasured and *"available, never active"* remains the
+right wording for it. And it does **not** overturn the 2026-09-16 non-firing on
+`0.154.0-alpha.6.2`: the two runs differ in **build** and in **registration route** at once. What it
+does settle is that the standing hypothesis — *the runtime used an unhooked route* — **does not
+explain it as stated**, since a model tool call fired every registration on this build. Two readings
+survive where there were three. Section 15 of the bridge document carries the commands.
+
+**And the three CONVENIENCE refusals are no longer forwarded (AC7).** Command substitution, an
+env-var prefix and a stdout redirect are friction rules that exist to turn a Claude *prompt* into a
+self-correcting instruction; measured on the same build, Codex's own layer stops **none** of them,
+against a calibration that does stop an act (the same plain command under `:read-only`). Firing on
+more than the runtime stops inverts the rule those three were written under, so the guard now marks
+them with `deny_convenience()` — **exactly three call sites, and the count is an arm** — and the
+adapter declines to ask for them. **Every irreversible rule is forwarded unchanged**, and the Claude
+path is byte-identical because nothing sets the variable there.
+
 **Two consequences an operator meets immediately.** No Codex caller receives a caller-dependent
 exemption — opening work and posting to a public surface are refused to **every** caller, because
 `agent_type` routes and never authenticates. And the `write_stdin` gap is **open by decision**: the

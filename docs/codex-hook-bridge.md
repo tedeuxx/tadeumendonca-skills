@@ -430,7 +430,7 @@ from them writes a file that looks right, parses, and does nothing.
 |---|---|---|
 | the shell CLI `0.153.4` | not present on this machine's `PATH`; only the desktop binary resolved | any "both binaries" claim |
 | whether `matcher` accepts a regex or alternation | one turn per hypothesis, and an absent matcher makes it unnecessary | a multi-route matcher spelling |
-| whether `permission_mode` ever reads anything but `default` | it read `default` under `:workspace`, so the field's domain is unknown | any branch on the permission mode |
+| ~~whether `permission_mode` ever reads anything but `default`~~ | **MEASURED 2026-09-21 on `0.151.0-alpha.7.2`, section 15.3: it reads `default` under `:workspace` AND under `:read-only`, while the parameter itself IS validated. The field is not a readback of the requested profile and nothing may branch on it.** Struck rather than deleted: this row is what told a reader the domain was open, and the answer is a negative one that a blank line would not carry | ~~any branch on the permission mode~~ — **nothing, and that IS the answer** |
 | whether a model can reach `config/value/write`, or write `~/.codex/config.toml` through its shell | the app-server surface is the client's, not the model's | whether a model can grant its own hook trust |
 | grandchild delegation, and `agent_type` at depth 2 | one role, one depth exercised | any claim about nested caller identity |
 | `PostToolUse`, `SessionStart`, `SubagentStart` payloads | only `PreToolUse` was exercised | translating the observer half of this harness |
@@ -793,23 +793,29 @@ read as the reassuring half of a defect report — and it was the half with no e
 all. **A finding that flatters the system it describes deserves the same probe as one that does
 not.**
 
-### The FIRING question is OPEN, and the standing explanation is a HYPOTHESIS
+### ~~The FIRING question is OPEN, and the standing explanation is a HYPOTHESIS~~
 
-**Why a registered and trusted `PreToolUse` hook did not act on a `Bash`-shaped tool call, in the
-plugin's own checkout, is not answered here and is not guessed at.**
+~~**Why a registered and trusted `PreToolUse` hook did not act on a `Bash`-shaped tool call, in the
+plugin's own checkout, is not answered here and is not guessed at.**~~
 
-**The standing hypothesis, labelled as one:** the adapter's own header records the structural gap
+~~**The standing hypothesis, labelled as one:** the adapter's own header records the structural gap
 this document measured in section 3 — `command/exec`, `process/spawn` and `thread/shellCommand`
 each fired **zero** hooks against a trusted registration, all three succeeding. So the leading
 explanation is that the runtime ran these commands through one of those unhooked routes rather
-than through the hooked one. **Nothing here tests that.**
+than through the hooked one. **Nothing here tests that.**~~
 
-**What would settle it, and it is a build rather than a measurement:** the adapter recording its
+~~**What would settle it, and it is a build rather than a measurement:** the adapter recording its
 own invocations, so *"the hook did not fire"* and *"the hook fired and abstained"* stop being the
 same observation from outside. **That instrument is deliberately not built in this slice** — it
 is a mechanism with its own predicate, its own test file and its own decision about where a
 side-effecting log may live, and folding it into a correction of this page would price two
-decisions as one.
+decisions as one.~~
+
+**STRUCK 2026-09-21. The instrument was built, the turn was run, and THE HOOK FIRES — see
+section 15.** Struck rather than deleted because this paragraph is what told every reader the
+question was open and named the hypothesis they would have reasoned from; the hypothesis is
+**narrowed rather than confirmed**, and a reader who arrives at it deserves to find what
+narrowed it rather than an absence.
 
 ### What the ADAPTER does, which is a different claim and still holds
 
@@ -1002,3 +1008,168 @@ commands printed beside them, **and no gate re-derives either**, so both go stal
 next time a rule is added to the execpolicy or a rule is added to the guard. That is stated rather
 than mitigated: an arm pinning the matrix would pin two files' current contents against each
 other and redden on honest work in either.
+
+## 15 · THE HOOK FIRES — measured 2026-09-21 on `0.151.0-alpha.7.2`, and AC7's evidence with it
+
+**Two turns, on the build this machine actually has. Both phases are in
+`scripts/codex-hook-probe.py` and both require `--allow-model-turn`, because both spend the
+operator's own tokens.**
+
+**Read the version first, because it is the whole frame.** Section 13's withdrawn claims were
+taken on **`codex-cli 0.154.0-alpha.6.2`**, and the shell CLI **`0.153.4`** named in AC1 has never
+been present here. The binary at `/Applications/ChatGPT.app/Contents/Resources/codex` reports
+**`0.151.0-alpha.7.2`**. So **everything below is a measurement on a third build**, and where it
+disagrees with section 13 the honest reading is *does not reproduce on 0.151*, never *section 13
+was false*. Dated negative measurements are not permanent vendor limits, and that cuts both ways.
+
+### 15.1 · The firing question — THREE readings, separated in one turn
+
+```
+python3 scripts/codex-hook-probe.py \
+  /Applications/ChatGPT.app/Contents/Resources/codex --phase firing --allow-model-turn
+```
+
+Three `PreToolUse` registrations in one `config.toml`, all trusted, differing in exactly the
+dimensions the three candidate readings differed in; one model tool call; the act chosen where
+**this harness's two Codex layers disagree** (`gh pr merge` is `allow` in the execpolicy and
+`deny` in the guard), so a refusal can only have come from the hook. The `touch` is a chained
+head, not decoration: the guard refuses the whole composition, so the marker is a crisp binary.
+
+| registration | invocations | what it settles |
+|---|---|---|
+| an **absolute** recorder | **1** | this route IS hooked — the positive control |
+| `bash scripts/firing-rel.sh`, **relative** | **1** | a relative command **resolves**, and against the **session's cwd** |
+| `python3 <abs>/codex-hook-adapter.py` | **1**, logged by the adapter itself | the floor was **invoked** and **decided** |
+
+```
+hook_run_count      3
+hook_run_statuses   ["completed", "completed", "blocked"]
+adapter_decisions   ["block"]
+marker_created      false          <- the act did NOT happen
+feedback_entries    the guard's own reason text, verbatim, reaching the runtime
+```
+
+**So on this build: the carrier's floor is FOUND, INVOKED, DECIDES, and the DECISION TAKES
+EFFECT.** All three hooks ran even though one blocked.
+
+**What this does NOT say, and the discipline matters more than the result.** It does **not**
+overturn the 2026-09-16 non-firing. Two differences survive between that run and this one and
+neither is tested here:
+
+- **the build** — `0.154.0-alpha.6.2` there, `0.151.0-alpha.7.2` here;
+- **the registration route** — that run registered through the **plugin carrier**
+  (`.codex-plugin/plugin.json` → `codex-hooks.json`, trust key
+  `tadeumendonca-skills@tadeumendonca:codex-hooks.json:pre_tool_use:0:0`); this one registers
+  `[[hooks.PreToolUse]]` directly in a disposable `config.toml`.
+
+**What IS settled is that the standing hypothesis does not explain it as stated.** *"The runtime
+ran the command through an unhooked route"* is refuted **for a model tool call on this build** —
+the model's tool call fired every registration. The hypothesis survives only in the narrower form
+*that particular act was not a model tool call*, which is a claim about how the 09-16 command was
+issued and is not recorded anywhere. **Three readings became two, and the surviving pair is
+`build` versus `registration route`.**
+
+**And a third thing falls out that nobody had measured: a relative command RESOLVES, against the
+session's cwd.** The adapter's own log records
+`process_cwd = <the project the session was started in>`. AC1's un-struck limb — *the manifest is
+read* is measured, *the command is found* is not — is **met for a config registration** and still
+open for a plugin-carrier one. The cwd-binding consequence #468 documents is therefore **supported
+as a mechanism** on this build, by a route that is not the carrier's.
+
+### 15.2 · The invocation log — where a side-effecting write inside a preventive floor may live
+
+**`CODEX_HOOK_ADAPTER_LOG`. Off unless an operator names an ABSOLUTE path; one JSON object per
+line; a write failure never changes a verdict.** The three constraints that picked that design,
+each eliminating the obvious answer, are written out in the adapter's own source rather than here.
+The short form:
+
+- **a repo-relative default is the defect this Issue found, one layer down** — so a relative value
+  is **refused, not resolved**;
+- **a fixed absolute default under the repo root writes into a tracked tree on every tool call**,
+  which is a new side effect of a preventive control nobody asked for;
+- **a default-on log of every command a model runs is a TRANSCRIPT.** This adapter sits on the one
+  route that sees every shell act, so writing one by default would make the floor a surveillance
+  surface as a side effect of being a floor.
+
+**It records the ABSTENTIONS and the unparseable payloads too**, which is half the point: a floor
+that logs only its refusals cannot tell *"it ran and said nothing"* from *"it never ran"*, and that
+is exactly the pair this Issue could not separate.
+
+### 15.3 · AC7 — the native permission evidence, and what it changed
+
+```
+python3 scripts/codex-hook-probe.py \
+  /Applications/ChatGPT.app/Contents/Resources/codex --phase friction --allow-model-turn
+```
+
+One turn, a hook that is a **pure recorder** — it refuses nothing, so nothing observed is
+attributable to this harness. Every fixture harmless and inside a disposable project.
+
+| fixture | class | act completed? |
+|---|---|---|
+| `touch <proj>/F-CONTROL` | control | **yes** |
+| `touch <proj>/F-SUBST-$(echo ok)` | command substitution | **yes** |
+| `FOO=1 touch <proj>/F-ENVVAR` | env-var prefix | **yes** |
+| `echo hi > <proj>/F-REDIR` | stdout redirection | **yes** |
+| `touch <disposable-home>/F-OUTSIDE` | outside the workspace | **yes** |
+| **`touch <proj>/F-SECOND` under `permissions: ":read-only"`** | **calibration** | **NO** — observed by the hook, never executed |
+
+**The calibration is what makes the five `yes` readable.** Under `:read-only` an identical plain
+`touch` was seen by the recorder and did not happen, so a permission layer was in force and *can*
+stop an act. **It stopped none of the three convenience classes.**
+
+**`permission_mode` read `"default"` under BOTH `:workspace` and `:read-only`** — the field does
+not move. And the parameter **is** validated: `permissions: ":not-a-real-preset"` returns
+`-32600 failed to load configuration: default_permissions refers to unknown built-in profile`.
+So the field is **not a readback of the requested profile**, its observed domain on this build is
+the single value `default`, and **nothing may branch on it.** Section 10's row is discharged in
+the negative rather than in the affirmative, which is a smaller answer than it looks and is the
+one that is true.
+
+**One reading nobody had recorded: `:workspace` did not confine the write.** `F-OUTSIDE` landed in
+the disposable home, outside the project. That is a fact about this build and is reported rather
+than built on.
+
+#### What was DONE about it, because AC7 is a criterion and not a question
+
+AC7 requires each translated convenience refusal to ship **only after** evidence shows the same
+stopped subset. **The stopped subset is EMPTY on this runtime**, and Codex's measured hook
+vocabulary has one refusal verb and no prompt rung — so there is no prompt for these rules to be
+avoiding. `/shell`'s own governing rule says a friction rule *"must fire on a SUBSET of what the
+runtime stops for, never on more"*; on Codex these fired on **more**.
+
+**So the three are narrowed out of the Codex path, and the classification lives in the GUARD.**
+`deny_convenience()` in `hooks/scripts/permission-guard.sh` wraps exactly three call sites —
+rule 3 (command substitution), rule 8 (env-var prefix) and rule 8b (redirection). The adapter
+sets `PERMISSION_GUARD_CONVENIENCE_RULES=off` and **authors no rule of its own**, which is the
+whole of its thesis.
+
+| | `on` (unset, and every other value) | `off` |
+|---|---|---|
+| `echo $(date)` · `FOO=1 ls` · `ls > out.txt` | **deny** | **abstain** |
+| `terraform apply` · a trunk push | **deny** | **deny** |
+
+**The Claude path is byte-identical, envelope included** — nothing sets the variable there.
+**A model cannot reach it**: a hook's environment is inherited from the host process, and a `Bash`
+tool call is a fresh shell whose exports do not survive it.
+
+**AC7 also requires these measurements be kept SEPARATE from the mandatory floor assertions, and
+they are.** The friction phase's fixtures touch no floor rule; the floor arms live in
+`permission-guard.test.sh` under `deny_convenience` and assert the opposite direction — ten
+irreparable acts still denying under `off`, plus two spelled *with* a friction construct (a trunk
+push whose branch name is a substitution, and an env-var-prefixed `terraform apply`) which are
+**still denied**, because the narrowing is about the rule and never about the spelling.
+
+### What holds section 15
+
+**The same nothing that holds sections 13 and 14, and one thing more.** No gate here starts a
+Codex process, so 15.1 and 15.3's runtime readings are held by **re-running the two phases on a
+machine that has a binary** — and *which* binary is now part of the claim rather than a footnote.
+What CI does hold is the **instruments**: `codex-hook-probe.test.py` gates that both phases
+discriminate (their controls, their calibrations, and that the friction phase does not assert the
+conclusion it measures), `codex-hook-adapter.test.py` gates the log's behaviour on every reachable
+path including the unwritable one, and `permission-guard.test.sh` gates that exactly three rules
+are switchable and that the floor is not.
+
+**The count of three is itself an arm**, because a fourth call site is how this narrowing would
+widen in silence.

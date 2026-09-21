@@ -151,9 +151,107 @@ check("every phase belongs to exactly one set",
 check("the three offline phases are the ones that cost nothing",
       set(probe.OFFLINE_PHASES) == {"carrier", "trust", "routes"},
       str(sorted(probe.OFFLINE_PHASES)))
-check("the five turn phases are named",
-      set(probe.TURN_PHASES) == {"payload", "block", "identity", "stdin", "matcher"},
+check("the seven turn phases are named",
+      set(probe.TURN_PHASES) == {"payload", "block", "identity", "stdin", "matcher",
+                                 "firing", "friction"},
       str(sorted(probe.TURN_PHASES)))
+
+# --- arm 6b: the `firing` phase's instrument, which is the one that must discriminate ---
+#
+# This phase exists because three readings fitted one observation — the route was never
+# hooked, the hook was invoked and its decision discarded, or the command failed to
+# launch — and nothing separated them. What makes it an instrument rather than a hope is
+# that its three registrations differ in exactly the dimensions those readings differ in.
+check("the firing phase registers the REAL adapter rather than a stand-in, since the "
+      "open question is about that file",
+      probe.ADAPTER_PATH.name == "codex-hook-adapter.py" and probe.ADAPTER_PATH.is_file(),
+      str(probe.ADAPTER_PATH))
+firing_src = (ROOT / "scripts" / "codex-hook-probe.py").read_text().split(
+    "def phase_firing")[1].split("\ndef ")[0]
+check("the firing phase registers a RELATIVE command, which is the shape the shipped "
+      "carrier uses and the limb AC1 leaves open",
+      '"bash scripts/firing-rel.sh"' in firing_src)
+check("and an ABSOLUTE control beside it, so a zero from the relative one is a reading "
+      "about resolution rather than about an unhooked route",
+      "str(abs_recorder)" in firing_src)
+check("the firing phase turns the adapter's invocation log ON, which is the only thing "
+      "that can distinguish 'never called' from 'decision discarded'",
+      'env["CODEX_HOOK_ADAPTER_LOG"]' in firing_src)
+check("the firing phase FAILS when its control does not fire, so a silent zero over an "
+      "unhooked route is not reachable",
+      "THE CONTROL DID NOT FIRE" in firing_src)
+check("the firing phase FAILS when the act completes despite a logged decision, which "
+      "is a strictly worse state than an uninvoked hook",
+      "the act COMPLETED with the adapter invoked" in firing_src)
+check("the firing act is chosen where this harness's TWO Codex layers disagree — the "
+      "execpolicy allows `gh pr merge` and the guard denies it — so a refusal is "
+      "attributable to the hook rather than to the cheaper layer",
+      "gh pr merge 999999 --merge" in probe.FIRING_COMMAND_TEMPLATE
+      and "%s" in probe.FIRING_COMMAND_TEMPLATE)
+policy = (ROOT / ".codex" / "rules" / "claude-command-policy.rules").read_text()
+# Re-derived from the execpolicy rather than quoted from a comment, and re-derived
+# against THE PROBE'S OWN COMMAND rather than against the subcommand: `gh pr merge` is
+# `allow` while `gh pr merge --squash` is `forbidden`, so "the two layers disagree" is
+# true of the fixture and false of a neighbouring spelling. An arm that asked only
+# whether the subcommand appears beside `forbidden` anywhere would have reported the
+# disagreement gone, which is how this arm first read.
+import re as _re
+_words = probe.FIRING_COMMAND_TEMPLATE.split("&&")[1].split()
+_rules = _re.findall(r'prefix_rule\(pattern=\[([^\]]*)\],\s*decision="(\w+)"', policy)
+_matching = [(p, d) for p, d in _rules
+             if [w.strip().strip('"') for w in p.split(",")]
+             == _words[:len([w for w in p.split(",")])]]
+check("the probe's own firing command is `allow` in the execpolicy, so a refusal of it "
+      "can only have come from the hook layer",
+      _matching and all(d == "allow" for _, d in _matching),
+      str(_matching))
+check("calibration: the execpolicy CAN forbid a neighbouring spelling of the same "
+      "subcommand, so the `allow` above is a real allow rather than an absent rule",
+      any('"gh", "pr", "merge", "--squash"' in p and d == "forbidden"
+          for p, d in _rules))
+
+# --- arm 6c: the `friction` phase's instrument — AC7's evidence, and its calibration ---
+check("every friction fixture is harmless: each is a touch or an echo, and none names "
+      "an act this floor calls irreparable",
+      all(t.split()[0] in ("touch", "echo", "FOO=1")
+          for _, _, t, _ in probe.FRICTION_FIXTURES),
+      str([t for _, _, t, _ in probe.FRICTION_FIXTURES]))
+check("the friction fixtures cover the three convenience classes plus a control",
+      {k for _, k, _, _ in probe.FRICTION_FIXTURES} == {"control", "convenience"}
+      and len([1 for _, k, _, _ in probe.FRICTION_FIXTURES if k == "convenience"]) == 3,
+      str(probe.FRICTION_FIXTURES))
+friction_src = (ROOT / "scripts" / "codex-hook-probe.py").read_text().split(
+    "def phase_friction")[1].split("\ndef ")[0]
+check("the friction phase's hook is a pure RECORDER — it passes no stdout_json, so "
+      "nothing it observes is attributable to this harness",
+      "stdout_json" not in friction_src)
+check("the friction phase FAILS when its `:read-only` calibration does not stop the "
+      "act, because zeros from a layer that was not in force are not evidence",
+      "THE CALIBRATION FAILED" in friction_src)
+check("and FAILS when the calibration turn produced no payload, because an unattempted "
+      "act is not a refused one",
+      "An unattempted act is not a refused one." in friction_src)
+check("the friction phase does NOT assert what the three convenience classes do, since "
+      "pinning either answer would make it assert the conclusion it measures",
+      "REPORTED rather than asserted" in friction_src)
+check("the calibration turn's failure to terminate is NON-FATAL, which is what the "
+      "first run of this phase got wrong: a refusal leaves the turn waiting on an "
+      "approval nobody answers while the reading is already on disk",
+      "except Failure as exc:" in friction_src and "second_note = str(exc)" in friction_src)
+
+# --- arm 6d: AC7's narrowing is wired end to end, floor side and adapter side ---
+guard_src = (ROOT / "hooks" / "scripts" / "permission-guard.sh").read_text()
+check("the guard authors the friction/floor classification itself, via one helper",
+      "deny_convenience()" in guard_src)
+check("and exactly THREE rules use it — the count is the property, since a fourth call "
+      "site would silently widen what an operator can switch off",
+      guard_src.count("\n  deny_convenience \"") == 3,
+      str(guard_src.count("\n  deny_convenience \"")))
+adapter_src = (ROOT / "scripts" / "codex-hook-adapter.py").read_text()
+check("the adapter declines to ask for them rather than authoring a rule of its own",
+      'env[CONVENIENCE_ENV] = "off"' in adapter_src)
+check("the switch's default is UNCHANGED behaviour: only the exact literal `off` acts",
+      'PERMISSION_GUARD_CONVENIENCE_RULES:-on}\" = \"off\"' in guard_src)
 
 # The carrier fixture's matcher must be the measured tool_name. It read "shell" until
 # 2026-09-14, when three registrations differing only in this value showed "shell"

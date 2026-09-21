@@ -222,6 +222,54 @@ ask() {
   exit 0
 }
 
+# ── deny_convenience: the THREE refusals that are friction, not floor ──────────────────
+#
+# WHAT SEPARATES THEM FROM EVERY OTHER `deny` IN THIS FILE. Rules 3, 8 and the redirection
+# rule do not stop an irreversible act. They exist because the HOST RUNTIME stops those
+# three spellings for a human, and an agent that is denied with an instruction can correct
+# itself where an agent that is prompted cannot. `/shell` states the governing rule in its
+# own words: such a rule "must fire on a SUBSET of what the runtime stops for, never on
+# more. Where it cannot tell, it should abstain and let the layer that parses shell
+# decide."
+#
+# WHY THE SUBSET TEST IS NOT A CONSTANT — and this is the whole reason this helper exists.
+# The subset is a property of the RUNTIME, and this floor is no longer carried by one
+# runtime. MEASURED 2026-09-21 on codex-cli 0.151.0-alpha.7.2, one turn, a recorder hook
+# that refuses nothing, every fixture harmless and inside a disposable project:
+#
+#     touch <proj>/F-CONTROL                    -> completed   (positive control)
+#     touch <proj>/F-SUBST-$(echo ok)           -> COMPLETED   command substitution
+#     FOO=1 touch <proj>/F-ENVVAR               -> COMPLETED   env-var prefix
+#     echo hi > <proj>/F-REDIR                  -> COMPLETED   stdout redirection
+#
+#   calibration, so the three COMPLETEDs are a reading about those classes rather than
+#   about a permission layer that was not in force: the same plain `touch`, under
+#   `permissions: ":read-only"`, was OBSERVED BY THE HOOK and did NOT complete.
+#
+# So on that runtime the three are stopped by NOTHING, and there is no prompt rung to
+# avoid: Codex's measured hook vocabulary has one refusal verb and no prompt. Denying them
+# there is not a smaller floor than the host's — it is a LARGER one, refusing acts the
+# runtime allows, with nothing behind it. That inverts the rule these three were written
+# under, which is why the answer is to omit them on that path rather than to reword them.
+#
+# THE CONTRACT. Unset, or any value but the literal `off`, is UNCHANGED BEHAVIOUR — the
+# Claude path never sets it and its output is byte-identical, envelope included. Exactly
+# `off` makes the three ABSTAIN. Nothing irreversible is reachable through this variable
+# by construction: the acts it releases are a substitution, a variable prefix and a
+# redirect, each of which still meets every other rule in this file on the way past.
+#
+# A MODEL CANNOT REACH IT. A hook's environment is inherited from the host process, and a
+# `Bash` tool call is a fresh shell whose exports do not survive it — so `export` in a
+# model's own command does not change what a later hook process sees. That is the property
+# that makes an env var acceptable here and it is stated so a later reader checks it rather
+# than assuming it.
+deny_convenience() {
+  if [ "${PERMISSION_GUARD_CONVENIENCE_RULES:-on}" = "off" ]; then
+    exit 0
+  fi
+  deny "$1"
+}
+
 # For the class where the thing that makes an act right or wrong is NOT visible in the command, and
 # the owner is the only one who can see it. `deny` would be a lie there — it says "never", when the
 # truth is "not unless the owner agrees" — and a denial the owner has to work around by typing the
@@ -2440,7 +2488,7 @@ fi
 #
 #    Pipes are deliberately NOT blocked: the matcher handles them.
 if printf '%s' "$bare" | grep -Eq '(\$\(|`)'; then
-  deny "Blocked: command substitution (\$(...) or backticks) forces a permission prompt even for allowlisted tools, because the matcher cannot expand it. Run the inner command as its own call and use the literal result."
+  deny_convenience "Blocked: command substitution (\$(...) or backticks) forces a permission prompt even for allowlisted tools, because the matcher cannot expand it. Run the inner command as its own call and use the literal result."
 fi
 # 8-chain. REMOVED 2026-09-05 (#383, slice S2). It denied `&&`, `||` and `;` on the premise struck
 #    above, and that premise was false for every form reachable with the rule absent. It is not
@@ -2522,7 +2570,7 @@ env_prefix_sequence="^[[:blank:]]*$env_prefix_element([[:blank:]]*(;|&&|\|\||\||
 if printf '%s' "$bare" | grep -Eq '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=' ||
    { [[ "$command" =~ $env_prefix_sequence ]] &&
      printf '%s' "$command" | grep -Eq '[;&|(][[:space:]]*[A-Za-z_][A-Za-z0-9_]*='; }; then
-  deny "Blocked: env-var prefix (VAR=x cmd) at a leading position or in a recognized simple composition hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
+  deny_convenience "Blocked: env-var prefix (VAR=x cmd) at a leading position or in a recognized simple composition hides the real command from the matcher and prompts the human. Prefer an npm script that sets it, or export it in a dedicated call."
 fi
 
 # 8b. Shell output redirection (`>` / `>>`) to create or overwrite a file. THIS IS A DIFFERENT ROOT
@@ -2652,7 +2700,7 @@ fi
 redirect_probe="$(printf '%s' "$bare" | sed -E 's%(^|[;&|(){}!]|(^|[[:space:]])(if|while|until|elif|then|else|do))[[:space:]]*\[\[[^]]*\]\]%\1%g')"
 redirect_probe="$(printf '%s' "$redirect_probe" | sed -E 's%[0-9]?>{1,2}[[:space:]]*/dev/null([[:space:];&|)}]|$)%\1%g')"
 if printf '%s' "$redirect_probe" | grep -Eq '>{1,2}([^&]|$)'; then
-  deny "Blocked: shell output redirection ('>' or '>>') to create or overwrite a file. Content you are composing yourself goes through the Write tool, never a heredoc piped into '>'. Content that is a command's own stdout: run the command WITHOUT the redirect (its output returns to you) and Write it from there if it needs to persist. (If this fired on a heredoc body containing a literal '>' rather than an actual redirect: rephrase without it — this floor does not parse shell and cannot tell the two apart. '[[ a > b ]]' string comparison and a '/dev/null' target are exempt since #383 and should not reach you.)"
+  deny_convenience "Blocked: shell output redirection ('>' or '>>') to create or overwrite a file. Content you are composing yourself goes through the Write tool, never a heredoc piped into '>'. Content that is a command's own stdout: run the command WITHOUT the redirect (its output returns to you) and Write it from there if it needs to persist. (If this fired on a heredoc body containing a literal '>' rather than an actual redirect: rephrase without it — this floor does not parse shell and cannot tell the two apart. '[[ a > b ]]' string comparison and a '/dev/null' target are exempt since #383 and should not reach you.)"
 fi
 
 # 9. REMOVED 2026-09-04 (#383, slice S1). THE NUMBER IS LEFT VACANT DELIBERATELY — a rule list that

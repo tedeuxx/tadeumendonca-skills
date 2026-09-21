@@ -2223,6 +2223,70 @@ done
 
 rm -rf "$WT"
 
+echo "--- deny_convenience: the friction rules, and ONLY those, may be omitted ---"
+#
+# PERMISSION_GUARD_CONVENIENCE_RULES=off exists because the subset test rules 3, 8 and 8b
+# were written under is a property of the HOST RUNTIME, and this floor is no longer
+# carried by one runtime — measured on codex-cli 0.151.0-alpha.7.2, all three spellings
+# complete there while the permission layer is demonstrably in force (see
+# `deny_convenience`'s own comment and `scripts/codex-hook-probe.py --phase friction`).
+#
+# WHAT THESE ARMS ARE FOR IS THE SECOND HALF, NOT THE FIRST. That the three stop denying
+# is one line of behaviour. That NOTHING ELSE DOES is the property a later edit could
+# break silently, by reaching for the helper at a fourth site — so the floor cases below
+# outnumber the friction cases deliberately, and each one is an act this repository calls
+# irreparable.
+
+check_env() {
+  want="$1"; value="$2"; desc="$3"; cmd="$4"
+  out=$(printf '%s' "$cmd" | jq -R '{tool_input:{command:.}}' \
+        | PERMISSION_GUARD_CONVENIENCE_RULES="$value" bash "$GUARD")
+  got=$(verdict "$out")
+  if [ "$got" = "$want" ]; then
+    pass=$((pass + 1))
+    printf 'ok    %-6s %s\n' "$got" "$desc"
+  else
+    fail=$((fail + 1))
+    printf 'FAIL  want=%s got=%s  %s\n      cmd: %s\n' "$want" "$got" "$desc" "$cmd"
+  fi
+}
+
+# The three friction rules, under `off`.
+check_env ALLOW off "off: rule 3 (command substitution) abstains"  'echo $(date)'
+check_env ALLOW off "off: rule 8 (env-var prefix) abstains"        'FOO=1 npx playwright test'
+check_env ALLOW off "off: rule 8b (redirection) abstains"          'ls > out.txt'
+
+# Every other value is UNCHANGED BEHAVIOUR. `on`, an empty string and a near-miss spelling
+# must all still deny, or the switch is a hole that a typo or an inherited variable opens.
+for v in on OFF Off "" 0 1 offx; do
+  check_env DENY "$v" "value '$v' is NOT 'off', so rule 3 still denies" 'echo $(date)'
+done
+
+# THE FLOOR IS UNREACHED. Each of these is an act this repository records as irreparable.
+check_env DENY off "off: 'terraform apply' still denies"        'terraform apply'
+check_env DENY off "off: a trunk push still denies"             'git push origin main'
+check_env DENY off "off: 'git reset --hard' still denies"       'git reset --hard HEAD~1'
+check_env DENY off "off: 'rm -rf' still denies"                 'rm -rf /tmp/whatever'
+check_env DENY off "off: a repo delete still denies"            'gh repo delete owner/repo'
+check_env DENY off "off: a secret write still denies"           'gh secret set FOO --body x'
+check_env DENY off "off: force-push still denies"               'git push --force origin feature/x'
+check_env DENY off "off: --dangerously-skip-permissions still denies" \
+                                                                'claude --dangerously-skip-permissions'
+check_env DENY off "off: 'git clean -f' still denies"           'git clean -fd'
+check_env DENY off "off: an AWS secret write still denies"      'aws secretsmanager put-secret-value --secret-id x'
+
+# And a floor act SPELLED WITH a friction construct is still denied under `off`. This is
+# the arm that would catch the narrowing being read as "anything containing a
+# substitution passes", which is the failure mode with the largest blast radius.
+check_env DENY off "off: a trunk push carrying a substitution is STILL a trunk push" \
+                   'git push origin $(echo main)'
+check_env DENY off "off: an env-var-prefixed terraform apply is STILL terraform apply" \
+                   'FOO=1 terraform apply'
+
+# Calibration: the helper must be able to change an answer in BOTH directions, or every
+# arm above is a green that could not have gone the other way.
+check_env DENY  on  "calibration: the same substitution DENIES with the switch on" 'echo $(date)'
+
 rm -rf "$FEAT"
 rm -rf "$TMAIN" "$TFEAT"
 rm -rf "$GH_STUB_DIR"

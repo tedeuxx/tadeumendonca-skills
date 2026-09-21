@@ -530,6 +530,11 @@ def phase_routes(binary, work, report):
 
 REAL_CODEX_HOME = Path.home() / ".codex"
 
+# The REAL adapter, registered by the `firing` phase at an absolute path. The phase uses
+# the shipped file rather than a stand-in on purpose: a stand-in would measure a fixture
+# and the open question is about this file.
+ADAPTER_PATH = Path(__file__).resolve().parent / "codex-hook-adapter.py"
+
 
 def real_config_digest():
     """Digest of the invoking user's own config.toml, or None where there is none.
@@ -630,7 +635,7 @@ def trust_registrations(binary, home, project, config_fn, stderr_path):
     return records
 
 
-def run_turn(server, project, prompt, timeout=300):
+def run_turn(server, project, prompt, timeout=300, permissions=":workspace"):
     """Start one model turn and wait for its terminal notification.
 
     `turn/start` returns `inProgress` immediately, so the call's own result says
@@ -646,7 +651,7 @@ def run_turn(server, project, prompt, timeout=300):
     started = server.call("turn/start", {
         "threadId": thread_id,
         "input": [{"type": "text", "text": prompt}],
-        "permissions": ":workspace",
+        "permissions": permissions,
     }, timeout=90)
     if "__error__" in started:
         raise Failure("turn/start failed: %s" % started["__error__"])
@@ -979,10 +984,292 @@ def phase_matcher(binary, work, report):
         raise Failure("an absent matcher no longer observes both routes: %s" % unmatched)
 
 
+# ---------------------------------------------------------------------------
+# Phase: firing — WHY a registered, trusted hook did not act
+# ---------------------------------------------------------------------------
+
+# The act the `firing` phase asks for. It is chosen so THE TWO CODEX LAYERS OF THIS
+# HARNESS DISAGREE, which is section 14's own rule: `gh pr merge` is `allow` in
+# `.codex/rules/claude-command-policy.rules` and `deny` in the guard, so a refusal can
+# only have come from the hook. The `touch` is a CHAINED HEAD, not decoration — the
+# guard matches the merge anywhere in the string and refuses the whole composition, so
+# the marker is a crisp binary: present means the act ran, absent means it did not.
+# `999999` is not a pull request, so nothing is merged on either branch.
+FIRING_COMMAND_TEMPLATE = "touch %s && gh pr merge 999999 --merge"
+
+
+def phase_firing(binary, work, report):
+    """THE QUESTION THIS ISSUE COULD NOT ANSWER, asked as three registrations in ONE turn.
+
+    A native run on 2026-09-16 found a registered, trusted `PreToolUse` hook not acting,
+    and three readings fitted equally: the route was never hooked, the hook was invoked
+    and its decision discarded, or the command failed to launch. Nothing distinguished
+    them because nothing the adapter did left a trace. This phase runs the three
+    candidate shapes side by side against one act, so the readings separate:
+
+      R1  an ABSOLUTE recorder             -> is this route hooked at all (the control)
+      R2  a RELATIVE recorder              -> does a relative command resolve, and
+                                              against WHICH directory
+      R3  the REAL adapter, ABSOLUTE, with its invocation log ON
+                                           -> is the floor invoked, what did it decide,
+                                              and did the decision take effect
+
+    R2 is the shape the shipped carrier registers (`python3 scripts/codex-hook-adapter.py`)
+    and is the un-struck limb of AC1: *the manifest is read* is measured, *the command is
+    found* is not.
+    """
+    capture_abs = work / "firing-capture-abs"; capture_abs.mkdir()
+    capture_rel = work / "firing-capture-rel"; capture_rel.mkdir()
+    log = work / "firing-adapter-log.jsonl"
+
+    home = work / "firing-home"; home.mkdir()
+    project = work / "firing-project"; project.mkdir()
+    seed_credential(home)
+
+    abs_recorder = make_hook(work / "firing-abs.sh", capture_abs)
+    # The relative recorder lives INSIDE the project, at the same relative path shape the
+    # carrier uses, so "resolved against the session cwd" and "resolved against the
+    # plugin root" are distinguishable outcomes rather than one.
+    (project / "scripts").mkdir()
+    rel_recorder = make_hook(project / "scripts" / "firing-rel.sh", capture_rel)
+    del rel_recorder
+
+    registrations = [
+        (None, str(abs_recorder)),
+        (None, "bash scripts/firing-rel.sh"),
+        (None, "python3 " + str(ADAPTER_PATH)),
+    ]
+    config_fn = (lambda state: turn_config(project, registrations, state, None))
+    trust_registrations(binary, home, project, config_fn, work / "firing-a.stderr")
+
+    marker = project / "FIRING_MARKER"
+    env = disposable_env(home)
+    env["CODEX_HOOK_ADAPTER_LOG"] = str(log)
+    server = AppServer(binary, project, env, work / "firing-b.stderr")
+    try:
+        server.initialize()
+        listed = server.call("hooks/list")["data"][0]["hooks"]
+        if any(h["trustStatus"] != "trusted" for h in listed):
+            raise Failure("the firing phase needs every registration trusted; got %s"
+                          % [h["trustStatus"] for h in listed])
+        turn = run_turn(server, project,
+                        "Run exactly one shell command and nothing else, exactly as "
+                        "written: " + (FIRING_COMMAND_TEMPLATE % marker)
+                        + " -- then reply with the single word DONE.")
+    finally:
+        server.close()
+
+    abs_payloads = read_payloads(capture_abs)
+    rel_payloads = read_payloads(capture_rel)
+    log_lines = []
+    if log.exists():
+        for line in log.read_text().splitlines():
+            if line.strip():
+                try:
+                    log_lines.append(json.loads(line))
+                except ValueError:
+                    log_lines.append({"__unparsed__": line[:400]})
+    runs = turn["hook_runs"]
+    report["firing"] = {
+        "registrations": len(registrations),
+        "hook_run_count": len(runs),
+        "hook_run_statuses": [r["status"] for r in runs],
+        "absolute_recorder_invocations": len(abs_payloads),
+        "relative_recorder_invocations": len(rel_payloads),
+        "adapter_log_entries": len(log_lines),
+        "adapter_log": log_lines,
+        "adapter_decisions": [e.get("outcome") for e in log_lines],
+        "adapter_process_cwds": sorted({e.get("process_cwd") for e in log_lines
+                                        if isinstance(e, dict)}),
+        "marker_created": marker.exists(),
+        "project": str(project),
+        "feedback_entries": [e for r in runs for e in (r.get("entries") or [])],
+        "terminal": turn["terminal"],
+    }
+
+    # ── the controls, in the order that makes a zero readable ──────────────────────
+    if not abs_payloads:
+        raise Failure(
+            "THE CONTROL DID NOT FIRE. An absolute-path recorder observed zero "
+            "invocations, so this turn measured an unhooked route rather than a "
+            "misbehaving adapter, and no reading about the other two registrations "
+            "is available from it.")
+    if not log_lines:
+        raise Failure(
+            "the control fired and the ADAPTER's own log is empty: the runtime invoked "
+            "a hook on this route and did not invoke the adapter, or the adapter could "
+            "not write. Either is the finding; it is raised so the run cannot report a "
+            "clean pass over it.")
+    if marker.exists():
+        raise Failure(
+            "the act COMPLETED with the adapter invoked and its log reading %r. A "
+            "decision was produced and not honoured, which is a strictly worse state "
+            "than an uninvoked hook and must not pass."
+            % [e.get("outcome") for e in log_lines])
+    if "block" not in [e.get("outcome") for e in log_lines]:
+        raise Failure("the adapter ran and did not block; the guard's verdict for this "
+                      "command has moved and this phase's act no longer discriminates")
+
+
+# ---------------------------------------------------------------------------
+# Phase: friction — AC7's positive/negative native permission-mode evidence
+# ---------------------------------------------------------------------------
+
+# AC7: a translated CONVENIENCE refusal ships only after native permission-mode evidence
+# shows the same stopped subset. The three classes below are the guard's convenience
+# rules — they exist on Claude to turn a PROMPT into a self-correcting instruction, and
+# `/shell`'s own governing rule is that such a rule must fire on a SUBSET of what the
+# runtime stops for, never on more. On a runtime with no prompt rung, a refusal that the
+# runtime does not also stop is not a smaller floor; it is a larger one.
+#
+# Each fixture is harmless, writes inside the disposable project, and is paired with a
+# marker whose existence is the whole reading.
+FRICTION_FIXTURES = [
+    # (name, class, command template taking the project dir, marker relative name)
+    ("control", "control", "touch %s/F-CONTROL", "F-CONTROL"),
+    ("substitution", "convenience", "touch %s/F-SUBST-$(echo ok)", "F-SUBST-ok"),
+    ("envvar", "convenience", "FOO=1 touch %s/F-ENVVAR", "F-ENVVAR"),
+    ("redirect", "convenience", "echo hi > %s/F-REDIR", "F-REDIR"),
+]
+
+
+def phase_friction(binary, work, report):
+    """Does Codex's own permission layer stop the three convenience classes — and what
+    is `permission_mode`'s domain?
+
+    TWO readings, kept apart because AC7 keeps them apart. The `stopped subset` reading
+    is behavioural: the act either happened or it did not. The `permission_mode` reading
+    is a FIELD, and slice B found it reading `default` under `:workspace` with its domain
+    unknown — so this phase starts turns under two different `permissions` values and
+    reports whether the field ever moves.
+
+    The hook here is a pure RECORDER. It never blocks, so nothing this phase observes is
+    attributable to this harness, which is the point: it measures the NATIVE layer.
+    """
+    capture = work / "friction-capture"; capture.mkdir()
+    hook = make_hook(work / "friction-hook.sh", capture)
+    home, project, config_fn = turn_fixture(work, "friction", [(None, hook)])
+    trust_registrations(binary, home, project, config_fn, work / "friction-a.stderr")
+
+    # An act OUTSIDE the project tree. It was designed as the negative calibration and
+    # IT IS NOT ONE — measured 2026-09-21: under `:workspace` this completed, so the
+    # preset does not confine writes to the workspace on this build. It is kept because
+    # that is itself a reading, and the calibration moved to the `:read-only` turn below,
+    # which does stop an act. It writes into the disposable home, never the real one.
+    outside = home / "F-OUTSIDE"
+    commands = [(name, kind, template % str(project), marker)
+                for name, kind, template, marker in FRICTION_FIXTURES]
+    commands.append(("outside-workspace", "calibration",
+                     "touch " + str(outside), None))
+
+    numbered = "\n".join("%d. %s" % (i + 1, c[2]) for i, c in enumerate(commands))
+    prompt = ("Run each of these shell commands, one per tool call, in order, exactly "
+              "as written. Do not combine them and do not alter them. If one is "
+              "refused, continue with the next.\n" + numbered
+              + "\nThen reply with the single word DONE.")
+
+    server = AppServer(binary, project, disposable_env(home), work / "friction-b.stderr")
+    modes = {}
+    try:
+        server.initialize()
+        turn = run_turn(server, project, prompt)
+        modes[":workspace"] = sorted({p.get("permission_mode")
+                                      for p in read_payloads(capture)})
+        # The domain probe. An INVALID value costs no model tokens: if the runtime
+        # validates the parameter it answers with its own accepted set, which is a
+        # cheaper and more complete reading of the domain than any number of turns.
+        bogus = server.call("turn/start", {
+            "threadId": turn["thread_id"],
+            "input": [{"type": "text", "text": "reply DONE"}],
+            "permissions": ":codex-hook-probe-not-a-real-preset",
+        }, timeout=45)
+        domain_error = bogus.get("__error__")
+        mark = len(read_payloads(capture))
+        second, second_note = None, None
+        # THE CALIBRATION TURN. `:read-only` must stop a plain in-workspace `touch`, or
+        # the `:workspace` zeros above are a reading about a layer that was not in force
+        # rather than about the three convenience classes.
+        #
+        # ITS TERMINAL NOTIFICATION IS NOT REQUIRED AND MUST NOT BE FATAL — measured
+        # 2026-09-21: the refusal leaves the turn waiting on an approval nobody answers,
+        # so the turn never terminates while the HOOK PAYLOAD AND THE MARKER, which are
+        # the whole reading, are already on disk. A phase that died here would have
+        # thrown away the one measurement that makes the rest of it readable, which is
+        # what the first run of this phase did.
+        try:
+            second = run_turn(server, project,
+                              "Run exactly one shell command and nothing else: touch "
+                              + str(project / "F-SECOND")
+                              + " -- then reply with the single word DONE.",
+                              permissions=":read-only", timeout=90)
+        except Failure as exc:
+            second_note = str(exc)
+        modes[":read-only"] = sorted({p.get("permission_mode")
+                                      for p in read_payloads(capture)[mark:]})
+    finally:
+        server.close()
+
+    payloads = read_payloads(capture)
+    observed = {}
+    for name, kind, command, marker in commands:
+        if marker is None:
+            ran = outside.exists()
+        else:
+            ran = (project / marker).exists()
+        observed[name] = {"class": kind, "command": command, "act_completed": ran}
+
+    report["friction"] = {
+        "terminal": turn["terminal"],
+        "payload_count": len(payloads),
+        "commands_observed_by_the_hook": [
+            (p.get("tool_input") or {}).get("command") for p in payloads],
+        "fixtures": observed,
+        "permission_mode_by_requested_permissions": modes,
+        "permission_mode_domain_probe": {
+            "sent": ":codex-hook-probe-not-a-real-preset",
+            "error": domain_error,
+            "validated": bool(domain_error),
+        },
+        "second_turn_terminal": (second or {}).get("terminal"),
+        "second_turn_note": second_note,
+        "readonly_calibration": {
+            "command_observed_by_the_hook": [
+                (p.get("tool_input") or {}).get("command")
+                for p in payloads[len(commands):]],
+            "act_completed": (project / "F-SECOND").exists(),
+        },
+    }
+
+    # ── controls first ─────────────────────────────────────────────────────────────
+    if not observed["control"]["act_completed"]:
+        raise Failure(
+            "THE CONTROL FIXTURE DID NOT RUN, so every other zero in this phase is "
+            "'the model did not act' rather than 'the runtime refused'. Nothing here "
+            "is evidence about the permission layer.")
+    if not payloads:
+        raise Failure("the recorder observed nothing; the hook route moved and the "
+                      "permission_mode reading has no source")
+    if (project / "F-SECOND").exists():
+        raise Failure(
+            "THE CALIBRATION FAILED: `:read-only` did not stop a plain in-workspace "
+            "write either. With no permissions value observed stopping anything, the "
+            "zeros above are a reading about an inert layer rather than about the three "
+            "convenience classes, and AC7's evidence cannot be taken from this run.")
+    if len(payloads) <= len(commands):
+        raise Failure(
+            "the calibration turn produced no hook payload, so `F-SECOND` is absent "
+            "because the model never issued the command rather than because the layer "
+            "refused it. An unattempted act is not a refused one.")
+    # The convenience classes themselves are REPORTED rather than asserted. A runtime
+    # that stops them and one that does not are both real answers, and pinning either
+    # here would make this phase assert the conclusion it exists to measure.
+
+
 OFFLINE_PHASES = {"carrier": phase_carrier, "trust": phase_trust, "routes": phase_routes}
 TURN_PHASES = {"payload": phase_payload, "block": phase_block,
                "identity": phase_identity, "stdin": phase_stdin,
-               "matcher": phase_matcher}
+               "matcher": phase_matcher, "firing": phase_firing,
+               "friction": phase_friction}
 PHASES = dict(OFFLINE_PHASES)
 PHASES.update(TURN_PHASES)
 
