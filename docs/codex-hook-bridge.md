@@ -1252,3 +1252,219 @@ are switchable and that the floor is not.
 
 **The count of three is itself an arm**, because a fourth call site is how this narrowing would
 widen in silence.
+
+## 16 · THE CARRIER ROUTE — installed, trusted, FIRING, and the shipped registration still does not run
+
+**One turn, on `codex-cli 0.151.0-alpha.7.2`, through the vendor's own installer.**
+
+```
+python3 scripts/codex-hook-probe.py \
+  /Applications/ChatGPT.app/Contents/Resources/codex --phase carrierfire --allow-model-turn
+```
+
+**What this phase varies is exactly one thing.** Section 15 measured a `config.toml`
+registration firing on this build. Section 13's non-firing differed in **two** dimensions at
+once — the **build** (`0.154.0-alpha.6.2`) and the **registration route** (the plugin carrier).
+This phase holds the build at what is installed here and moves the route, which is the only one
+of the two this machine can move.
+
+### 16.1 · The install path EXISTS and is reachable — the earlier read was about READ-ONLY reachability
+
+**`plugin/install` is a real method in this binary's own dispatch table**, and it takes the same
+parameter shape `plugin/read` already uses:
+
+```
+strings -a /Applications/ChatGPT.app/Contents/Resources/codex \
+  | grep -oE 'plugin/[a-zA-Z_/-]{2,30}' | sort -u | grep -E 'install|uninstall'
+# plugin/install
+# plugin/installed
+# plugin/installedfs/readDirectoryplugi      <- a run-on, not a method
+# plugin/installturn/startturn/settings      <- a run-on
+# plugin/installturn/startturn/steertur      <- a run-on
+# plugin/share/deleteapp/installedfs/re      <- a run-on
+# plugin/uninstall
+```
+
+**The output is printed in full, including the run-ons, because the method table is one
+unseparated string run in this binary and `strings` cannot see the boundaries.** Four of the
+seven lines are adjacent methods glued together. **The method names are therefore read out of
+the run rather than off these lines** — and the one that matters is not inferred from strings at
+all: `plugin/install` was **called** below, and it returned a result.
+
+It is **not** an emulation and nothing is hand-placed: the call copies the package into
+`<CODEX_HOME>/plugins/cache/<marketplace>/<plugin>/<version>/`, and every file the runtime then
+reads was put there by the vendor's installer. Measured on this run, installing **this
+checkout** as the package:
+
+```
+installed_file_count        157
+installed_adapter_paths     …/plugins/cache/carrierprobe-market/tadeumendonca-skills/2.0.65/scripts/codex-hook-adapter.py
+installed_guard_paths       …/plugins/cache/carrierprobe-market/tadeumendonca-skills/2.0.65/hooks/scripts/permission-guard.sh
+```
+
+**The guard travels with the adapter**, so the adapter's `REPO_ROOT = Path(__file__).parent.parent`
+resolution is satisfied from the installed cache. That limb of AC1 is closed.
+
+**Two mechanical notes an operator needs and no other surface carries.** A marketplace entry's
+`source` is resolved **relative to the marketplace file**, so an absolute `source` is rejected with
+*"plugin … was not found in marketplace"* — the probe reaches this checkout through a symlinked
+sibling. And the package's `.git` is copied when it is a **file** (a linked worktree's pointer);
+no `.git/` directory was copied.
+
+### 16.2 · THE ENABLEMENT TRAP — a config rewrite silently disables the carrier
+
+**`plugin/install` writes the plugin's enablement into the disposable `config.toml`:**
+
+```
+[plugins."tadeumendonca-skills@carrierprobe-market"]
+enabled = true
+```
+
+Granting hook trust means writing a `[hooks.state."<key>"] trusted_hash = …` table into that same
+file. **Overwriting it to add the trust block removes the enablement key, and the carrier's hooks
+then vanish from `hooks/list` entirely** — no error, no warning, an empty list **indistinguishable
+from a package that was never installed**. Measured directly, four states on one home:
+
+| `config.toml` | `hooks/list` |
+|---|---|
+| as the installer left it | the registration, **untrusted** |
+| installer's block **+ appended** trust | the registration, **trusted** |
+| trust block only, **enablement dropped** | **empty** |
+| restored | the registration, **trusted** |
+
+**The third row is the calibration and it is the finding.** A probe that rewrote the config would
+have measured a **disabled** plugin and reported it as a **non-firing route** — the same
+right-answer-wrong-reason trap this document already records for the execpolicy layer, one layer
+further out. The phase therefore appends, and refuses to continue if the installer wrote no
+enablement block at all.
+
+### 16.3 · The result — the route fires, and the shipped command is not found
+
+Three registrations, one turn, one act, differing in **route** and in nothing else. The act is
+section 15's: `touch <marker> && gh pr merge 999999 --merge`, chosen where **this harness's two
+Codex layers disagree**, so a refusal is attributable to the hook rather than to the execpolicy.
+
+| # | route | command | invocations |
+|---|---|---|---|
+| R1 | **`config.toml`** (`source: user`) | an **absolute** recorder | **1** — the positive control |
+| R2 | **plugin carrier** (`source: plugin`) | an **absolute** recorder | **1** |
+| R3 | **plugin carrier** — *the shipped registration* | `python3 scripts/codex-hook-adapter.py` | **0** |
+
+```
+hook_run_count      3
+hook_run_statuses   ["completed", "completed", "blocked"]
+adapter_log_entries 0          <- the adapter NEVER RAN
+adapter_decisions   []
+marker_created      false      <- and yet the act did NOT happen
+feedback_entries    "/Library/Developer/CommandLineTools/usr/bin/python3: can't open file
+                     '<PROJECT>/scripts/codex-hook-adapter.py': [Errno 2] No such file or directory"
+```
+
+**R2 is what settles the route question: a registration carried by an INSTALLED PLUGIN fires on
+this build.** So *"the plugin carrier route is not hooked"* is **refuted on 0.151**, and the route
+is not the cause here.
+
+**R3 is the defect.** The shipped carrier's **relative** command resolves against the **session's
+cwd**, exactly as section 15 measured for a config-registered relative command — and for an
+**installed** plugin that is the wrong directory by construction: the adapter sits in the plugin
+cache, and the runtime looked for it under the project. The payload the carrier's own hook captured
+confirms which directory that is:
+
+```
+"cwd": "<PROJECT>"        not the plugin root
+```
+
+### 16.4 · The trap in the result — `marker_created false` is NOT the floor working
+
+**Read that line and stop, and you conclude the carrier blocked the act. The guard never ran.**
+
+`hook_run_statuses` reads `blocked` for R3, and it reads `blocked` in section 15.1 too — where the
+adapter genuinely decided. **The status field does not discriminate a floor decision from a hook
+whose command could not be launched.** The only thing that separates them is the adapter's own
+invocation log: **one** entry in 15.1, **zero** here. That is precisely the pair section 13 could
+not separate, and it is the argument for the log having been built at all.
+
+**Two consequences, and the second is the one that outlives this slice.**
+
+- **On this route a broken registration DENIES rather than abstains.** ADR-0004's general contract
+  is that guard failure is deliberately **fail-open**; here the failure is one layer above the
+  guard, in the runtime, and it is **fail-closed** — and since a `PreToolUse` hook sees every model
+  tool call, an unresolvable command is a **blanket session denial**. AC6 names that shape by name:
+  *do not convert an observer failure into a blanket session denial, or claim silent hook failure
+  as enforcement.* **No ADR amendment is owed for it** — no decision changed; this is a measured
+  property of a vendor runtime, and its home is this document.
+- **It fails in the SAFE direction, which is why it survived.** Nothing escapes; the session simply
+  stops. An operator sees a refusal and a python error in feedback, and the refusal looks like the
+  floor doing its job.
+
+### 16.5 · What this closes, and what it explicitly does not
+
+**Closed:** the install path is reachable and is the vendor's own · the installed package carries
+both the adapter and the guard · a plugin-carrier registration **fires** on `0.151` · the shipped
+carrier's registration **does not execute**, for a named and reproducible reason · a config rewrite
+silently disables an installed carrier.
+
+**NOT closed, and none of it is inferred from the above.** This does **not** reproduce the
+2026-09-16 run and does not refute it: that measurement is attributed to
+`0.154.0-alpha.6.2`, which is not on this machine, and the honest form is *does not reproduce on
+0.151*. **Because the carrier route fires here, ROUTE is eliminated as the cause on this build —
+which leaves BUILD as the surviving explanation for 09-16 and leaves it UNVERIFIED.** Nor does R3
+explain 09-16 by itself: that session ran in the library working directory, where a relative
+`scripts/codex-hook-adapter.py` **would** have resolved. Two things are now known to be able to
+produce a silent floor on this carrier, and which one produced 09-16 is not decided here.
+
+**So *available, never active* remains the right wording for the carrier's own route** — and for a
+**measured** reason now rather than an unproven one. Nothing in this section licenses dropping it.
+
+### 16.6 · The mitigation, named and NOT measured
+
+The obvious repair is to stop registering a relative command. The bundle carries a token group that
+looks like the intended mechanism:
+
+```
+strings -a /Applications/ChatGPT.app/Contents/Resources/codex \
+  | grep -oE 'PLUGIN_ROOT[A-Z_]*|CLAUDE_PLUGIN_ROOT|PLUGIN_DATA[A-Z_]*' | sort -u
+# PLUGIN_DATA
+# PLUGIN_ROOT
+# PLUGIN_ROOTCLAUDE_PLUGIN_ROOTPLUGIN_DATACLAUDE_PLUGIN_DATA   <- a run-on of four names
+# PLUGIN_ROOTPLUGIN_DATAA                                      <- a run-on
+```
+
+**Printed in full, and the run-ons are why this is weaker than it looks.** `CLAUDE_PLUGIN_ROOT`
+occurs **only inside a concatenated run**, never as a line of its own, so what is established is
+that these four names exist **somewhere in the binary's string table** — not that any of them is
+an environment variable, not that any is a substitution token, and not that a hook process ever
+sees one.
+
+**That is a read of strings in a binary and NOTHING MORE.** Whether the runtime exposes them as
+environment variables to a hook process, as `${…}` substitution inside a registered command, or in
+neither form, **is not measured** — and the difference decides whether the repair is one character
+of `codex-hooks.json` or a bootstrap script. **What would settle it: one turn with a carrier-
+registered recorder that dumps its own environment and its argv**, which is a second measurement and
+is deliberately not taken here.
+
+### 16.7 · Containment
+
+```
+real_config_sha256_before  d3d390731089c913042141cf9ec2e3c305fb4954cc3d890c44cdf756357d23bf
+real_config_sha256_after   d3d390731089c913042141cf9ec2e3c305fb4954cc3d890c44cdf756357d23bf
+real_config_unchanged      true
+credential_copies_made 1 · removed 1 · left_behind []
+```
+
+Every install, every trust write and the turn itself ran against a **disposable `CODEX_HOME`**. **No
+global permission was changed and nothing was marked trusted outside that home.** The act is a
+`touch` in a temporary directory chained to `gh pr merge 999999`, which names a pull request that
+does not exist; no real destructive command, private content, secret store, infrastructure change or
+forge publication was a test effect.
+
+### 16.8 · What holds section 16
+
+**Nothing in CI starts a Codex process**, so 16.3's readings are held by re-running the phase on a
+machine that has a binary, and **which** binary is part of the claim. What CI holds is the
+**instrument**: `codex-hook-probe.test.py` gates that the phase is a paid phase unreachable from
+`--phase all`, that its fixture's command stays **absolute** (the property that keeps *the route was
+silent* and *the command was not found* two observations rather than one), that the trust block
+appends rather than replaces, that the config control is pinned by source **name**, and — the arm
+that matters most — **that the phase does not assert the carrier route fired**, which is the
+measurement it exists to take.
