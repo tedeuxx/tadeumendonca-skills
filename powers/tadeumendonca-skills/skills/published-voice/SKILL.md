@@ -1683,11 +1683,19 @@ artifact ships with its date and its reader is told it may have moved*, not *che
 **The standard, and it is a criterion rather than one more example to pattern-match: the signpost
 says the other block is THERE and BELOW, and never measures the post.** *Half*, *second half*, a
 fraction, a count of paragraphs — each names a mechanical position, and each is the defect he
-ruled on. `abaixo` names direction, costs two syllables, and is the exemplar:
+ruled on. `abaixo` names direction, and is the exemplar:
 
 ```
 🇧🇷 Versão em português abaixo.
 ```
+
+~~`abaixo` names direction, **costs two syllables**, and is the exemplar~~ — **the middle clause is
+struck 2026-09-21: a-bai-xo is THREE.** Struck rather than silently corrected, because the count was
+published as *a reason the word is good* — inside the ruler that judges published prose, about the
+owner's native language — so a reader took it as part of the argument rather than as decoration.
+**No corrected count replaces it, deliberately:** *names direction* is the whole of what makes the
+word right, and the criterion one paragraph above is **softness**, not length. A number that does no
+work in an argument is a number that can only be wrong.
 
 **Why a criterion and not only a replacement string.** The superseded line was itself a conforming
 exemplar under every clause rule 19 carried — one line, the right flag, the language of the block it
@@ -1702,11 +1710,25 @@ that a wording naming the block without that framing would read better. **He kep
 «na segunda metade» instead.** So the defect was the **mechanical half, not the word** — and
 re-deriving the «Versão» proposal as an improvement is re-opening something he already closed.
 
-**One live precedent, cited for SHAPE and not as a wording authority.** The `blast-radius-supernova`
-LinkedIn post opens `🇧🇷 A versão em português está no final deste post.` — English-first,
-signposted, and already avoiding *metade*. **Its exact wording could not be verified from here**: that
-network is unreachable from a dispatched context, the same limit the gate on the sibling record
-recorded. So it is evidence that the shape predates the ruling, never evidence about which words to
+**One precedent, cited for SHAPE and not as a wording authority — and it is a DATED record, never a
+claim about today.** ~~The `blast-radius-supernova` LinkedIn post **opens** `🇧🇷 A versão em
+português está no final deste post.`~~ **The present tense is struck 2026-09-21, the day it was
+published.** As published here on that date, that post was described as opening with that line —
+English-first, signposted, and already avoiding *metade*. **It was NOT verified from a dispatched
+context then and is not verifiable from one now**: the network is unreachable from here, the same
+limit the gate on the sibling record recorded. **Its provenance is not recorded, so it cannot be
+dated to anything earlier than its own publication.** Read it as a claim about 2026-09-21 and nothing
+later — the rule this file already applies to its own corpus figures, and the one it had to apply to
+the dated bullet above when that bullet's wording expired inside a single working day.
+
+**One thing this dating does not settle, and it is named rather than resolved:** the bullet eight
+lines above records that the first line **saved** to that same post on 2026-09-20 was
+`🇧🇷 Versão em português na segunda metade.` Both cannot describe the same state. **Nothing in this
+tree can decide which is current** — only opening the post can, and no context in this slice reached
+it. Both are left standing with their dates rather than one being deleted to make the file read
+consistently.
+
+So it is evidence that the shape predates the ruling, never evidence about which words to
 use — the words are the ruling above.
 
 **What this does NOT touch.** The order, the two flags, the points-at-language condition, the
