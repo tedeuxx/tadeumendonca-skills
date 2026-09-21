@@ -1412,11 +1412,28 @@ body and an agent brief both fail to reach it — measured in the two blocks abo
 cites rather than re-deriving. **Every persona that could read a brief is a dispatchee, and a
 dispatchee cannot select its own dispatch.**
 
-**What seriality BUYS is the composition hazard, and it buys it by construction rather than by care.**
-The hazard at `wip` > 1 is not two markers on one PR — it is that each verdict attests a head that does
-**not** contain the other branch's diff, so merging both yields a configuration no reviewer ever read.
-Under a serial gate the second merge request is always read against a trunk already containing the
-first. **Measured on two real consecutive merges:**
+**What seriality BUYS is the composition hazard, and it buys it CONDITIONALLY rather than by
+construction.** The hazard at `wip` > 1 is not two markers on one PR — it is that each verdict attests
+a head that does **not** contain the other branch's diff, so merging both yields a configuration no
+reviewer ever read.
+
+~~Under a serial gate the second merge request is always read against a trunk already containing the
+first.~~ **STRUCK 2026-09-21 — FALSE, and it is struck in place rather than edited away because it is
+the sentence the parallel-development design rests on.** A reader who took *by construction* from it
+concluded that ruling 1 alone closes the hazard, and it does not. **Seriality guarantees the
+composition property ONLY when the second branch is rebased onto the trunk after the first merge
+lands, and nothing enforces that rebase** — a branch cut from an older trunk is reviewed, attested and
+merged with every check green.
+
+**Note the shape of the defect rather than only the word.** The struck sentence shipped WITH a
+measurement, and the measurement is sound: the 451/454 check below genuinely returns CONTAINED. **A
+true measurement of two cases was published as an unconditional property of the mechanism**, and the
+falsifier passed every time it was run because it was only ever run against the cases it came from.
+Read a published command as testing the SCOPE it was taken on, never the claim it sits beside.
+
+**The two measurements below are one TRUE case and one FALSE case, and the second is why *always* had
+to go.** The first is unchanged, re-derived at head, and scoped to what it measured — two consecutive
+merges where the rebase happened to have been done:
 
 ```
 gh pr view 451 --repo tedeuxx/tadeumendonca-skills --json headRefOid,mergeCommit,mergedAt
@@ -1427,10 +1444,40 @@ git merge-base --is-ancestor e44c8de3 ed1c751e || echo "NOT CONTAINED (expected)
 # -> NOT CONTAINED (expected)   the inverse, so the predicate can answer both ways
 ```
 
+**The counter-example is on this repository's own history, under a serial gate, eleven minutes apart
+— re-derived 2026-09-21:**
+
+```
+gh pr view 484 --repo tedeuxx/tadeumendonca-skills --json mergedAt,mergeCommit
+# -> merged 2026-09-21T15:33:44Z, merge commit 01e11d74
+gh pr view 488 --repo tedeuxx/tadeumendonca-skills --json createdAt,headRefOid
+# -> opened 2026-09-21T15:44:26Z — AFTER 484 merged — reviewed head 41f1a954
+git merge-base --is-ancestor 01e11d74 41f1a954 || echo "NOT CONTAINED"
+# -> NOT CONTAINED               the gate attested a head that did not carry #484
+git merge-base --is-ancestor 959e8470 41f1a954 && echo "CONTAINED (calibration)"
+# -> CONTAINED (calibration)     an older trunk commit IS an ancestor, so the predicate answers both ways
+git log -1 --format='%p' 37a3da04
+# -> e824507f 41f1a954            the merge's parents: trunk tip, and the reviewed head that lacked it
+```
+
+**#488's branch was cut from an older trunk and never rebased**, so the two diffs were composed at
+merge with no reviewer having read them together — **in the same two files**
+(`hooks/scripts/permission-guard.sh` and its suite). It came out clean, and the gate verified that
+**after** the irreversible act.
+
+**The operative check is the transferable half, and it is not the one that was run: *has the trunk
+moved since the head I attested?*, never *does the named concurrent branch overlap?*** #488's gate
+verified the named concurrent branch, found zero overlap, and missed the trunk entirely — **the trunk
+is not a branch anybody names in a dispatch**, so a check phrased over concurrent branches is blind by
+construction to the one commit that actually composed.
+
 **Composition does NOT cover this, and must never be cited as covering it.** Planning for disjoint
 files prevents **merge conflicts** — textual disjointness is precisely the condition under which git
-stays silent — while the composition hazard is **semantic** and invisible to git. **Ruling 1 covers it
-alone.**
+stays silent — while the composition hazard is **semantic** and invisible to git. ~~**Ruling 1 covers
+it alone.**~~ **Struck with the sentence above and for the same reason: ruling 1 PLUS the rebase is
+what covers it, and ruling 1 is the only half anybody has ruled on.** Nothing here weakens ruling 1 —
+the serial gate stands as the owner decided it, and what is corrected is a claim about what it buys
+unaided.
 
 **Conflicts are resolved at MR time by the slice's author** (owner ruling 2 — *«os conflitos deveriam
 ser resolvidos em tempo de MR»*), and seriality changes when that happens: the second author rebases
@@ -1533,6 +1580,7 @@ when there is no cheap mitigation.
 | the rites run at all | **nothing today, in either mode** |
 | `wip` is honoured | **nothing.** `wip-guard.sh` was deleted at #383 and nothing bounds work in progress. **Unchanged by #385 giving `wip` a value** — `gh pr create` is allowlisted in both settings layers, so an (N+1)th concurrent merge request executes silently, with no prompt and no record |
 | the review gate stays serial | **an instruction, in this block** (#385, owner ruling 1). Nothing observes how many reviews are in flight: a dispatch leaves no artifact, and the one lens whose participation would be visible on a PR posts nothing at all — rule 5e denies `product-lead` the comment subcommands |
+| a branch is rebased onto the trunk before its gate dispatch | **nothing, and this is a NAMED RESIDUAL since 2026-09-21 rather than a property of the serial gate.** Seriality composes safely only across a rebase, and no layer observes one: a branch cut from an older trunk is reviewed, attested and merged with every check green — measured on `#484`/`#488`, eleven minutes apart, in the same two files. The operative question is *has the trunk moved since the head I attested?*, which no dispatch phrased over concurrent branches reaches |
 | the composed set does not collide | **nothing.** `scrum-master` holds `tools: []`, `SELECTION-RECORD` has no consumer, and nothing verifies the pool it was shown. Ruling 5 removed the per-item human checkpoint deliberately, so a bad set runs |
 | the `agents-lead` marker names the head being merged | **the gate persona, plus one detector.** `agents/quality-assurance.md`'s hold 2 requires it and nothing denies on it; `hooks/scripts/zombie-loop-detect.sh`, registered on **`Stop`**, REPORTS a PR whose markers are all stale — one turn late, and never a bound on the merge |
 | worktrees are cleaned up after merge | **nothing mechanical.** `#437` closed the lifecycle question and `hooks/scripts/worktree-notice.sh` REPORTS; it removes nothing. Re-derived 2026-09-11: `-io` carried 28 linked worktrees and `-skills` 5, before this slice added one to each |
