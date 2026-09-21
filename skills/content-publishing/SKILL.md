@@ -571,7 +571,10 @@ dropping it.**
 - **A bilingual post is READ for its two language hints and for its length, BEFORE it is posted.**
   `published-voice`'s rule 19 — a one-line hint at the top in the language of the block it points at,
   a matching one-line marker immediately above the trailing block, 🇧🇷 on the Portuguese one and 🇺🇸 on
-  the English one — and its
+  the English one. **Since 2026-09-20 the English block LEADS and the Portuguese block TRAILS**, so on
+  a bilingual post the opening hint is always the Portuguese one and the 🇺🇸 half of that clause has no
+  live subject here — **a post that leads in Portuguese is a finding this step raises**, and it is as
+  countable as the two markers are. And its
   rule 20, the target that is not the 3,000-character ceiling, read per language block. **Both are
   counted, not judged**, which is what makes this a step rather than an opinion: the two markers are
   either in the draft or they are not, and the block lengths are a character count. **The reason it is
