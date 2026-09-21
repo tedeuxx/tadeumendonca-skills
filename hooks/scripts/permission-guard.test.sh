@@ -2262,6 +2262,119 @@ for c in "git worktree remove" "git worktree remove -f" "git worktree remove --"
   check_agent_ran "4c: the guard SURVIVES '$c'" "$c"
 done
 
+echo "--- #487: a floor act with a SEPARATOR immediately after it — the trailing class, per site ---"
+# THE DEFECT. Eleven live predicates ended their match `([[:space:]]|$)`, which excludes every shell
+# separator, so `terraform apply` denied and `terraform apply;` ABSTAINED. Rule 8b had already met and
+# fixed this class once (`the trailing class therefore carries '; & | ) }' as well`) at ONE site; it
+# was never swept. Eight sites are widened here to 8b's class; three are deliberately left and are
+# asserted as left at the bottom of this section.
+#
+# EVERY ARM HERE ASSERTS THE REASON, NOT THE VERDICT, AND THAT IS NOT STYLE. Measured before the fix:
+# `gh pr merge 1 --squash;` came back DENY — carried by rule 7c's fail-closed verdict read, not by the
+# squash limb, which had gone silent. A verdict-only battery reads that site as healthy. The needle is
+# what tells "denied" from "denied BY THE RULE UNDER TEST".
+#
+# AND EVERY PUSH ARM RUNS FROM A FEATURE-BRANCH cwd ($TFEAT), WHICH IS THE OPERATIVE CONDITION. Rule
+# 7's branch limb denies a bare push from a trunk checkout, so a suite standing on `main` would show
+# these rows green while the protection is absent everywhere a slice is actually built.
+#
+# NEWLINE IS NOT IN THE ADDED CLASS AND DOES NOT NEED TO BE: the guard feeds `$cmd` to a line-oriented
+# `grep`, so a newline after the act ends the line and `$` already anchors it; `$bare` flattens
+# newlines upstream. The last arm of each triple is the witness.
+
+# rule 2 — terraform (FLOOR: convention 5, IaC mutation is pipeline-only)
+check_reason DENY "487/r2: terraform apply plain (control)"        "pipeline-only" "terraform apply"
+check_reason DENY "487/r2: terraform apply;"                       "pipeline-only" "terraform apply;"
+check_reason DENY "487/r2: terraform destroy;"                     "pipeline-only" "terraform destroy;"
+check_reason DENY "487/r2: terraform apply& "                      "pipeline-only" "terraform apply&"
+check_reason DENY "487/r2: terraform apply|"                       "pipeline-only" "terraform apply|"
+check_reason DENY "487/r2: (terraform apply) subshell close"       "pipeline-only" "(terraform apply)"
+check_reason DENY "487/r2: { terraform apply; } brace close"       "pipeline-only" "{ terraform apply;}"
+check_reason DENY "487/r2: newline was ALREADY covered by \$"       "pipeline-only" "terraform apply
+echo done"
+check        ALLOW "487/r2: must not blanket — plan with a separator"        "terraform plan;"
+
+# rule 4b — git clean -f (FLOOR: deletes untracked files, which git cannot restore)
+check_reason DENY "487/r4b: git clean -fd plain (control)"         "UNTRACKED"    "git clean -fd"
+check_reason DENY "487/r4b: git clean -fd;"                        "UNTRACKED"    "git clean -fd;"
+check_reason DENY "487/r4b: git clean -fd&"                        "UNTRACKED"    "git clean -fd&"
+check_reason DENY "487/r4b: (git clean -fd)"                       "UNTRACKED"    "(git clean -fd)"
+check        ALLOW "487/r4b: must not blanket — the dry run still passes"    "git clean -n;"
+
+# rule 7 — the trunk refspec (FLOOR: merge to main is the deploy)
+check_from_reason DENY "$TFEAT" "487/r7: origin main plain (control)"  "pushing to the trunk" "git push origin main"
+check_from_reason DENY "$TFEAT" "487/r7: origin main;"                 "pushing to the trunk" "git push origin main;"
+check_from_reason DENY "$TFEAT" "487/r7: origin main&"                 "pushing to the trunk" "git push origin main&"
+check_from_reason DENY "$TFEAT" "487/r7: origin main|"                 "pushing to the trunk" "git push origin main|"
+check_from_reason DENY "$TFEAT" "487/r7: (git push origin main)"       "pushing to the trunk" "(git push origin main)"
+check_from_reason DENY "$TFEAT" "487/r7: origin HEAD:main;"            "pushing to the trunk" "git push origin HEAD:main;"
+check_from_reason DENY "$TFEAT" "487/r7: origin refs/heads/master;"    "pushing to the trunk" "git push origin refs/heads/master;"
+check_from        ALLOW "$TFEAT" "487/r7: must not blanket — a feature ref with a separator" "git push origin feature/x;"
+check_from        ALLOW "$TFEAT" "487/r7: must not blanket — 'maintenance' is not 'main'"    "git push origin maintenance;"
+
+# rule 7 — --all / --mirror (FLOOR: sweeps every ref, trunk included)
+# THE FLAG MUST BE THE LAST TOKEN. `git push --all origin;` denies on the PINNED guard too, because the
+# separator lands after `origin` and the rule matched on the space. #487's own body probes it that way,
+# which is why its table reports this site as unaffected. It is not.
+check_from_reason DENY "$TFEAT" "487/r7: origin --all plain (control)" "every ref" "git push origin --all"
+check_from_reason DENY "$TFEAT" "487/r7: origin --all;"                "every ref" "git push origin --all;"
+check_from_reason DENY "$TFEAT" "487/r7: origin --mirror;"             "every ref" "git push origin --mirror;"
+check_from_reason DENY "$TFEAT" "487/r7: origin --mirror&"             "every ref" "git push origin --mirror&"
+check_from        ALLOW "$TFEAT" "487/r7: must not blanket — --atomic is not --all"  "git push origin --atomic;"
+
+# rule 7 — --tags / --follow-tags (FLOOR: a hand-pushed tag publishes a Release)
+check_from_reason DENY "$TFEAT" "487/r7: origin --tags plain (control)" "publishes a Release" "git push origin --tags"
+check_from_reason DENY "$TFEAT" "487/r7: origin --tags;"                "publishes a Release" "git push origin --tags;"
+check_from_reason DENY "$TFEAT" "487/r7: origin --follow-tags;"         "publishes a Release" "git push origin --follow-tags;"
+check_from_reason DENY "$TFEAT" "487/r7: origin --tags)"                "publishes a Release" "(git push origin --tags)"
+check_from        ALLOW "$TFEAT" "487/r7: must not blanket — --no-follow-tags is the opposite act" "git push origin --no-follow-tags;"
+
+# rule 7 — the directory-move RECOGNIZER. Widening it makes the rule fire on MORE: an unrecognized
+# `cd` leaves `dir='.'` and the branch is read from the HOOK's cwd, which on a feature checkout
+# abstains. Unresolvable denies, so this is the fail-safe direction.
+check_from_reason DENY "$TFEAT" "487/r7: a bare 'cd;' is a directory move"   "could not resolve" "cd; git push"
+check_from_reason DENY "$TFEAT" "487/r7: a bare 'env;' is one too"           "could not resolve" "env; git push"
+check_from_reason DENY "$TFEAT" "487/r7: 'cd /x;' already was (control)"     "could not resolve" "cd /x; git push"
+check_from        ALLOW "$TFEAT" "487/r7: must not blanket — 'cdrom' is not 'cd'" "git push origin cdrom"
+
+# rule 3b — force-push (FLOOR: reverted to deny #383 S3-revert; `ask` is auto-answered here)
+check_reason DENY "487/r3b: --force plain (control)"               "force-push rewrites" "git push --force"
+check_reason DENY "487/r3b: --force;"                              "force-push rewrites" "git push --force;"
+check_reason DENY "487/r3b: --force-with-lease;"                   "force-push rewrites" "git push --force-with-lease;"
+check_reason DENY "487/r3b: -f;"                                   "force-push rewrites" "git push origin feat -f;"
+check_reason DENY "487/r3b: --force) with no opening paren"        "force-push rewrites" "git push --force)"
+check_reason DENY "487/r3b: --force} with no opening brace"        "force-push rewrites" "git push --force}"
+# AND THE ORDERING, PINNED RATHER THAN ASSUMED. `(git push --force)` is NOT 3b's: the opening
+# paren makes rule 7 call the target unresolvable, and rule 7 runs first. Both deny, so a
+# verdict-only arm cannot see which — this one asserts the reason, and it is how the arm above
+# was found asserting the wrong rule.
+check_from_reason DENY "$TFEAT" "487/r3b: a SUBSHELL force-push is rule 7's, not 3b's" "could not resolve" "(git push --force)"
+check_from        ALLOW "$TFEAT" "487/r3b: must not blanket — a plain branch push with a separator" "git push origin feat;"
+
+# rule 7b — squash. THE SITE THAT WAS CARRIED BY A NEIGHBOUR. Before the fix `gh pr merge 1 --squash;`
+# denied under rule 7c's "could not READ your gate verdict" — right verdict, wrong rule, wrong remedy.
+check_agent_reason DENY "x:quality-assurance" "487/r7b: --squash plain (control)" "never squash-merge" "gh pr merge 1 --squash"
+check_agent_reason DENY "x:quality-assurance" "487/r7b: --squash;"                "never squash-merge" "gh pr merge 1 --squash;"
+check_agent_reason DENY "x:quality-assurance" "487/r7b: --squash&"                "never squash-merge" "gh pr merge 1 --squash&"
+check_agent_reason DENY "x:quality-assurance" "487/r7b: (gh pr merge 1 --squash)" "never squash-merge" "(gh pr merge 1 --squash)"
+
+# ── THE THREE SITES DELIBERATELY LEFT, ASSERTED AS LEFT ──────────────────────────────────────────
+# Sweeping all eleven for symmetry is what the Issue warns against, so the three non-widenings are
+# pinned rather than merely explained — a later sweep that "finishes the job" turns these red.
+#
+#   4c trigger + its `-oE` twin: `worktree remove` is only reachable with a POSITIONAL target, so the
+#   separator can only land after the path (already covered by the space). `remove` as the last token
+#   abstains for a reason that is not the separator class — there is no target to resolve — and it
+#   abstains identically with and without one. Widening buys nothing and would desynchronise the two
+#   duplicated literals, which the guard's own comment names as a live hazard.
+check ALLOW "487/4c: 'remove' last token abstains — no target (control)" "git worktree remove"
+check ALLOW "487/4c: ...and identically with a separator"                "git worktree remove;"
+#
+#   4c's directory-move recognizer: widening it runs the OPPOSITE way to rule 7's. There, unresolvable
+#   denies; here, an unrecognized move means resolution is SKIPPED and the rule abstains. Widening it
+#   would make 4c fire LESS. Left, and the asymmetry is the reason.
+check ALLOW "487/4c: a recognized 'cd /x;' already skips resolution" "cd /x; git worktree remove -f w1"
+
 rm -rf "$WT"
 
 rm -rf "$FEAT"

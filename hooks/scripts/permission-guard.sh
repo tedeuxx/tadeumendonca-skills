@@ -545,6 +545,60 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 # than write its own.
 gh_repo_flag='([[:space:]]+(-R[[:space:]=]*|--repo[[:space:]=]*)[^[:space:]]+)?'
 
+# ── #487: THE TRAILING CLASS. A SEPARATOR IMMEDIATELY AFTER A FLOOR ACT TURNED ITS RULE OFF. ───────
+#
+# Eleven live predicates in this file ended their match `([[:space:]]|$)`, which excludes every shell
+# separator. So `terraform apply` denied and `terraform apply;` ABSTAINED — no substitution, no
+# assignment, no wrapper, the plainest spelling plus one character. Rule 8b had already met this exact
+# class and written the repair down in its own comment ("the trailing class therefore carries
+# `; & | ) }` as well"), at ONE site. It was never swept. This is the sweep.
+#
+# WIDENED TO 8b's CLASS — EIGHT SITES, EACH CALIBRATED SEPARATELY rather than by one file-wide
+# replace, which is how a floor rule goes quiet:
+#   rule 2   terraform apply/destroy          rule 7   trunk refspec (main/master)
+#   rule 4b  git clean -f                     rule 7   --all / --mirror
+#   rule 3b  force-push                       rule 7   --tags / --follow-tags
+#   rule 7b  gh pr merge --squash             rule 7   the cd/pushd/env directory-move recognizer
+#
+# LEFT ALONE — THREE SITES, AND THE NON-SWEEP IS AS DELIBERATE AS THE SWEEP:
+#   · rule 4c's trigger and its `-oE` twin. `worktree remove` is only reachable with a POSITIONAL
+#     target, so a separator can only land after the path, where the space already anchors it.
+#     `remove` as the last token abstains because there is no target — identically with and without a
+#     separator. Widening buys nothing and would desynchronise two duplicated literals this rule's own
+#     comment names as a live drift hazard.
+#   · rule 4c's directory-move recognizer, which runs the OPPOSITE way to rule 7's. In rule 7 an
+#     unresolvable target DENIES, so recognizing more `cd`s makes the rule fire more. In 4c an
+#     unrecognized move means resolution is SKIPPED and the rule abstains, so widening it would make
+#     4c fire LESS. Same three lines of regex, opposite sign. Widening it would have been a loosening.
+#
+# WHAT THE ISSUE'S OWN TABLE MISSED, AND WHY — worth keeping, because the probe shape is the lesson.
+#   · Six acts, not five: `git clean -fd;` was not on it.
+#   · `--all`/`--mirror`/`--tags` were reported UNAFFECTED because the probe wrote `git push --all
+#     origin;`, putting the separator after `origin` where the space still matched. The flag has to be
+#     the LAST token for the trailing class to bite. A probe that does not put the character where the
+#     predicate ends measures nothing.
+#   · `gh pr merge <n> --squash;` was not on it at all, and it is the worst of the set. With a CLEAN
+#     gate verdict already on the PR — the state every merge is actually issued in — the pinned guard
+#     returned ALLOW. `Bash(gh pr merge:*)` is allowlisted in both settings layers, so it executed with
+#     no decision from any layer, and a squash on the trunk destroys per-commit history irreversibly.
+#     A probe with an EMPTY `gh` stub masks it as a DENY, because rule 7c then fail-closes on the
+#     unreadable verdict — right verdict, wrong rule. Every arm added for this slice asserts the
+#     REASON for exactly that reason.
+#
+# NEWLINE IS NOT ADDED AND DOES NOT NEED TO BE. `$cmd` is fed to a line-oriented `grep`, so a newline
+# after the act ends the line and `$` already anchors it; `$bare` flattens newlines upstream. Asserted.
+#
+# THE DIRECTION OF THIS CHANGE IS DENY-ONLY. Adding characters to a trailing alternation can only make
+# a predicate match MORE strings; no path from DENY to ALLOW is created at any of the eight. The
+# over-block risk is the real one and each site carries an ALLOW arm against a same-shaped benign
+# payload (`terraform plan;`, `git clean -n;`, `git push origin maintenance;`, `--atomic;`,
+# `--no-follow-tags;`, `cdrom`) so the widening cannot silently become a blanket.
+#
+# NOT DONE HERE, DELIBERATELY: the eight predicates now repeat one literal, and a shared variable
+# (the way `gh_repo_flag` is shared) is the obvious next move. It is not made here — a refactor of the
+# floor's matching layer is its own slice with its own review, and doing it inside the repair would
+# mean the sweep and the refactor share one calibration.
+
 # 1. Never bypass the permission system.
 case "$cmd" in
   *--dangerously-skip-permissions*)
@@ -552,7 +606,7 @@ case "$cmd" in
 esac
 
 # 2. IaC is pipeline-only — terraform never mutates from a laptop.
-if printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])terraform([[:space:]].*)?[[:space:]](apply|destroy)([[:space:]]|$)'; then
+if printf '%s' "$cmd" | grep -Eq '(^|[^[:alnum:]_])terraform([[:space:]].*)?[[:space:]](apply|destroy)([[:space:];&|)}]|$)'; then
   deny "Blocked: 'terraform apply/destroy' is pipeline-only — IaC mutations run in CI, never locally. Use 'terraform plan' to inspect."
 fi
 
@@ -763,7 +817,7 @@ fi
 #     way rule 7 is, because that is precisely how the bypass was spelled. `-x`/`-X`/`-d` combine with
 #     `-f` in any order or cluster, so the force flag is matched as a SET member the way rule 4 does,
 #     rather than as a fixed token.
-if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+clean([[:space:]]+(--[[:alpha:]][[:alpha:]-]*|-[[:alnum:]]+))*[[:space:]]*(--force|-[[:alnum:]]*f[[:alnum:]]*)([[:space:]]|$)'; then
+if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+clean([[:space:]]+(--[[:alpha:]][[:alpha:]-]*|-[[:alnum:]]+))*[[:space:]]*(--force|-[[:alnum:]]*f[[:alnum:]]*)([[:space:];&|)}]|$)'; then
   deny "Blocked: 'git clean -f' deletes UNTRACKED files — the one class git cannot restore, so it is as irreversible as 'rm -rf'. Remove the specific paths you mean, or use 'git clean -n' to see what it would take."
 fi
 
@@ -1745,11 +1799,11 @@ fi
 #    make this rule fire on MORE, never on less, so it adds no path from DENY to ALLOW.
 if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+push($|[^[:alnum:]_./-])'; then
   # Any refspec landing on the trunk: `main`, `refs/heads/main`, `HEAD:main`, `+main`.
-  if printf '%s' "$bare" | grep -Eq '[[:space:]]\+?([^[:space:]:]+:)?(refs/heads/)?(main|master)([[:space:]]|$)'; then
+  if printf '%s' "$bare" | grep -Eq '[[:space:]]\+?([^[:space:]:]+:)?(refs/heads/)?(main|master)([[:space:];&|)}]|$)'; then
     deny "Blocked: pushing to the trunk. Merging to main is the deploy and the human's go/no-go — it is never an agent action. Push your feature branch and open a PR."
   fi
   # --all / --mirror sweep every ref, trunk included.
-  if printf '%s' "$bare" | grep -Eq '[[:space:]](--all|--mirror)([[:space:]]|$)'; then
+  if printf '%s' "$bare" | grep -Eq '[[:space:]](--all|--mirror)([[:space:];&|)}]|$)'; then
     deny "Blocked: 'git push --all/--mirror' pushes every ref, the trunk included. Push one named branch instead."
   fi
   # --tags / --follow-tags PUBLISH. Both are in the floor's `deny` and neither was matched here, so
@@ -1757,7 +1811,7 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   # layer, the same bypass shape as the `gh -R` finding. A tag in this workspace is not a label: the
   # deploy's `release` job creates it, and pushing one by hand publishes a Release and desynchronises
   # it from VERSION.
-  if printf '%s' "$bare" | grep -Eq '[[:space:]](--tags|--follow-tags)([[:space:]]|$)'; then
+  if printf '%s' "$bare" | grep -Eq '[[:space:]](--tags|--follow-tags)([[:space:];&|)}]|$)'; then
     deny "Blocked: pushing tags publishes a Release. The deploy workflow's 'release' job owns tagging — it bumps VERSION, tags and publishes in one pass, and a hand-pushed tag desynchronises the three. Push the branch alone."
   fi
   # ── TARGET RESOLUTION (#446). A bare `git push` inherits HEAD, so this limb has to name the
@@ -1898,7 +1952,7 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
     # command that moves no directory. That trade is worse than the residual. And note what a shared
     # target/subject resolver would NOT have bought: this is not an incomplete git-flag alternation,
     # it is that *which directory will this command run in* is unanswerable from a command string.
-    if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_.-])(cd|pushd|popd|chdir|env)([[:space:]]|$)|\(|GIT_DIR=|GIT_WORK_TREE=|GIT_CEILING_DIRECTORIES='; then
+    if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_.-])(cd|pushd|popd|chdir|env)([[:space:];&|)}]|$)|\(|GIT_DIR=|GIT_WORK_TREE=|GIT_CEILING_DIRECTORIES='; then
       target_unresolvable="the command can move the working directory before the push runs (a 'cd'/'pushd'/'popd', an 'env' that chdirs, a subshell, or a GIT_DIR/GIT_WORK_TREE environment assignment), so which repository it lands in is not readable from the command string"
     else
       dir="."
@@ -1934,7 +1988,7 @@ fi
 #     ordering is kept, the verdict-only arms can no longer see it, and `check_reason` arms are what
 #     pin it now. Moving this block back above rule 7 no longer opens a hole; it silently swaps the
 #     advice the caller gets, which is why it is still asserted rather than left to habit.
-if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*push([[:space:]].*)?([[:space:]](--force|--force-with-lease|-f)([[:space:]]|$))'; then
+if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*push([[:space:]].*)?([[:space:]](--force|--force-with-lease|-f)([[:space:];&|)}]|$))'; then
   deny "Blocked: force-push rewrites a ref that others may already have pulled. It was briefly an 'ask' (#383 S3) on the argument that it is REPARABLE — the pre-push tip survives in your reflog and in the remote's unreachable objects — and that argument is still true. What failed is the remedy: a hook 'ask' is answered automatically in this harness's auto mode, measured in the owner's own session, so the downgrade produced silent execution rather than a prompt. Until an auto mode exists that excludes hook 'ask', a reparable-but-serious act has no rung between deny and nothing. Use a safe alternative: push a new branch, or rebase-then-push without --force. If the force-push is genuinely right, it is the human's own act."
 fi
 
@@ -2006,7 +2060,7 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
   # around that entry like every other, and the reviewer — the one caller 7b lets through — is exactly
   # who would run it. The standing rule is a real merge commit, never a squash: per-commit history is
   # the record of how a change was reached, and squashing discards it irreversibly on the trunk.
-  if printf '%s' "$bare" | grep -Eq '[[:space:]](--squash|-s[[:space:]=]*squash)([[:space:]]|$)'; then
+  if printf '%s' "$bare" | grep -Eq '[[:space:]](--squash|-s[[:space:]=]*squash)([[:space:];&|)}]|$)'; then
     # THE REFERENCE IS IN THE REMEDY, AND ITS POSITION IS LOAD-BEARING (#441). This string used to read
     # `gh pr merge --merge`. A caller who followed it and appended the PR they were merging produced
     # `gh pr merge --merge 479` — flag first — which rule 7c below could not read, so the merge floor
