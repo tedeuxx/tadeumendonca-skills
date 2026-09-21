@@ -1534,6 +1534,10 @@ because it is a real scoping gap in this section and it should not be discovered
 > **the English block LEADS and the Portuguese block TRAILS**, so the opening hint is always the
 > Portuguese one, and a post that leads in Portuguese is a citable finding rather than a stylistic
 > preference.**
+>
+> **And the signpost POINTS SOFTLY (2026-09-21): it names that the other block is there and below,
+> never by MECHANICAL POSITION.** `abaixo` is the form he ruled works; a signpost that measures the
+> post — *half*, *second half*, a fraction, a count of paragraphs — is a citable finding.
 
 The owner's ruling, 2026-09-19, made while reading a post this loop had published minutes earlier:
 
@@ -1651,8 +1655,14 @@ had a live counter-example, and someone who read it took the rule's urgency from
 clause is untouched: a post that leads in Portuguese is still a citable finding.** What dies is the
 claim that one specific live post is currently one.
 
-- **It CONFORMS.** Edited in place and saved 2026-09-20: English leads, and the first line is
-  `🇧🇷 Versão em português na segunda metade.`
+- **It CONFORMS on the ORDER.** Edited in place and saved 2026-09-20: English leads, and the first
+  line saved that day was ~~`🇧🇷 Versão em português na segunda metade.`~~ — **struck 2026-09-21 as
+  the EXEMPLAR, not as the record.** That wording is superseded by the softness standard below and is
+  not the string to copy; the exemplar is `🇧🇷 Versão em português abaixo.` The old string stays
+  visible because this bullet is a **dated record of what was saved**, and a record is not falsified
+  by a later ruling. **Whether the live post still carries it is unverifiable from this tree** — no
+  context in this slice reached that surface — so read this bullet as a claim about 2026-09-20 and
+  nothing later.
 - **It was NOT the owner's act.** The loop performed the edit.
 - **The surface IS reachable** — see the clause below, which is the half worth getting right.
 
@@ -1661,6 +1671,48 @@ sourced to a dated comment and was true when that comment was written. **A claim
 external surface has a shelf life, and this one expired inside a single working day.** The rule that
 survives is the one this file already applies to its own corpus figures — *a claim about a mutable
 artifact ships with its date and its reader is told it may have moved*, not *check harder*.
+
+#### The SIGNPOST WORDING — it points SOFTLY, never by mechanical position (2026-09-21)
+
+**Owner ruling, reading the line that had shipped the day before:**
+
+> *«"🇧🇷 Versão em português na segunda metade." essa frase ficou ruim»* ·
+> *«o padrao deveria ser algo mais soft e elegante do que metade»* ·
+> *«"🇧🇷 Versão em português abaixo." funciona»*
+
+**The standard, and it is a criterion rather than one more example to pattern-match: the signpost
+says the other block is THERE and BELOW, and never measures the post.** *Half*, *second half*, a
+fraction, a count of paragraphs — each names a mechanical position, and each is the defect he
+ruled on. `abaixo` names direction, costs two syllables, and is the exemplar:
+
+```
+🇧🇷 Versão em português abaixo.
+```
+
+**Why a criterion and not only a replacement string.** The superseded line was itself a conforming
+exemplar under every clause rule 19 carried — one line, the right flag, the language of the block it
+points at, no self-explanation — and it still read badly. A rule that ships an example and no
+criterion answers the next wording question with *"copy this"*, which is how a superseded exemplar
+survives a ruling: nobody can say what property it failed. **The property is softness of the
+pointer**, and it is now quotable, which is the only form a repair can be raised on.
+
+**What he did NOT change, recorded because a proposal was made and REJECTED.** It was put to him that
+«Versão» frames the Portuguese as a derivative of the English rather than as his own writing, and
+that a wording naming the block without that framing would read better. **He kept «Versão» and cut
+«na segunda metade» instead.** So the defect was the **mechanical half, not the word** — and
+re-deriving the «Versão» proposal as an improvement is re-opening something he already closed.
+
+**One live precedent, cited for SHAPE and not as a wording authority.** The `blast-radius-supernova`
+LinkedIn post opens `🇧🇷 A versão em português está no final deste post.` — English-first,
+signposted, and already avoiding *metade*. **Its exact wording could not be verified from here**: that
+network is unreachable from a dispatched context, the same limit the gate on the sibling record
+recorded. So it is evidence that the shape predates the ruling, never evidence about which words to
+use — the words are the ruling above.
+
+**What this does NOT touch.** The order, the two flags, the points-at-language condition, the
+trailing marker and the one-line restraint are all unchanged; this ruling narrows the WORDING of a
+signpost that already had to exist. And the second-🇧🇷 question is untouched and deliberately
+unsettled — one flag is the current answer.
 
 #### Which surface a published defect can be REPAIRED on, and the two answers differ
 

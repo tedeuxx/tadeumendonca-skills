@@ -2476,6 +2476,8 @@ for cp_lit in \
   'a bilingual post says WHERE the other language is' \
   'written in the language of the block it points AT' \
   'the English block LEADS and the Portuguese block TRAILS' \
+  'never by MECHANICAL POSITION' \
+  'o padrao deveria ser algo mais soft e elegante do que metade' \
   'a flag emoji standing for the language' \
   'emoji de bandeiras remetendo a idiomas' \
   '🇧🇷 for Portuguese, 🇺🇸 for English' \
@@ -2521,6 +2523,15 @@ if [ -n "$cp_post_missing" ]; then
       way round, not a deletion, so a post that leads in Portuguese must stay a CITABLE finding and
       not merely an unmentioned one. Do not 'fix' this by generalising it back to role wording: the
       role framing is still there beside it, deliberately, and the order is the half he ruled.
+      If the SOFTNESS literal is missing — the English criterion or his own Portuguese, and both are
+      pinned — rule 19 is back to shipping an EXEMPLAR with no criterion behind it, which is the exact
+      state that let a superseded signpost survive his 2026-09-21 ruling: the old line satisfied every
+      other clause rule 19 carried, so nobody could say what property it failed. The property is that
+      the signpost names DIRECTION and never measures the post. Do not 'fix' a red here by pinning the
+      example string instead: an example is what this clause exists to stop a drafter copying, and a
+      pinned example would go red the day he rewords a conforming signpost. Note the wording he did
+      NOT change is «Versão» — a proposal to cut it was put to him and REJECTED, so a sweep that
+      'improves' it is re-opening a closed decision.
       Note the 🇺🇸 pin is KEPT and UNREACHABLE under this order, never deleted — the English flag is
       never rendered on a bilingual post once English leads, and the clause binds again the moment a
       monolingual English piece carries a Portuguese gloss.
