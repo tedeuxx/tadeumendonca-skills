@@ -288,6 +288,59 @@ check((p.stdout or "").strip() == "" and "did not answer" in p.stderr,
       "failure — a guard that does not answer in time abstains WITH a trace, rather than "
       "being killed by the host and leaving none")
 
+# ── 5b · A MALFORMED TUNABLE IS A CONFIGURATION DEFECT, NOT A CRASH (#455, AC6) ───────
+# The read was `float(os.environ.get(...))` at module scope, so a non-numeric value raised
+# before `main` was reached: a traceback, exit 1, and NOTHING on stdout — which this
+# runtime reports as a hook ERROR rather than as the abstention AC6 names. It failed in
+# BOTH modes, `--selfcheck` included, so the one route an operator has to tell an inert
+# floor from a holding one was itself the route that crashed.
+#
+# The three malformed classes are asserted separately because they fail differently, and
+# the two that PARSE are the dangerous ones: a non-positive value makes `subprocess.run`
+# time out on EVERY call, which is the whole floor off SILENTLY with a value that looks
+# deliberate; an infinite one defeats the reason the constant is short in the first place.
+for badval, why in (("notanumber", "non-numeric"), ("", "empty"), ("0", "zero"),
+                 ("-1", "negative"), ("nan", "NaN"), ("inf", "infinite")):
+    p = run_adapter(codex_payload("wc -l README.md"),
+                    env={"CODEX_HOOK_ADAPTER_TIMEOUT": badval})
+    check(p.returncode == 0 and "Traceback" not in p.stderr
+          and (p.stdout or "").strip() == "" and "MIS-SET" in p.stderr,
+          "timeout tunable — a %s CODEX_HOOK_ADAPTER_TIMEOUT abstains and reports the "
+          "knob as MIS-SET, rather than crashing with a traceback and no decision" % why)
+
+    # Selfcheck mode is asserted separately because the crash was identical in both and a
+    # fix landing in only one of them would still read as a fix.
+    p = subprocess.run([sys.executable, str(ADAPTER), "--selfcheck"],
+                       capture_output=True, text=True, cwd=str(ROOT),
+                       env=dict(os.environ, CODEX_HOOK_ADAPTER_TIMEOUT=badval))
+    check("Traceback" not in p.stderr and "MIS-SET" in p.stdout,
+          "timeout tunable — `--selfcheck` reports a %s value as a MIS-SET note rather "
+          "than crashing" % why)
+    # It is a NOTE and never a BLOCK: the floor runs at the default, so reporting NOT
+    # ACTIVE over a working floor would be a false claim in the alarming direction.
+    check("BLOCK: GUARD TIMEOUT" not in p.stdout,
+          "timeout tunable — a %s value is a selfcheck NOTE, never a BLOCK, because the "
+          "floor still runs at the default" % why)
+
+    # AND THE FLOOR IS STILL CARRIED. The fallback must RUN the guard, not merely avoid
+    # crashing — a fix that abstained on everything would pass every arm above.
+    p = run_adapter(codex_payload("terraform apply"),
+                    env={"CODEX_HOOK_ADAPTER_TIMEOUT": badval})
+    d = decision_of(p)
+    check(d is not None and d.get("decision") == "block",
+          "timeout tunable — under a %s value the floor STILL blocks, so the fallback "
+          "runs the guard rather than degrading into a blanket abstention" % why)
+
+# The UNSET control, so "reports MIS-SET" is not a constant: a correctly-set knob and an
+# unset one must both be SILENT on stderr, which is what makes the line above a signal.
+for good in (None, "2.5"):
+    env = {"CODEX_HOOK_ADAPTER_TIMEOUT": good} if good else {}
+    p = run_adapter(codex_payload("wc -l README.md"), env=env)
+    check("MIS-SET" not in p.stderr,
+          "timeout tunable — a %s knob is SILENT on stderr, which is what makes the "
+          "mis-set line distinguishable from an unset one"
+          % ("valid" if good else "an unset"))
+
 # ── 6 · `ask` becomes a block, because Codex has no prompt rung ───────────────────────
 # Unreachable at head — the guard defines ask() and has zero call sites — so it is
 # exercised against a STUB guard rather than left untested until the day it fires.

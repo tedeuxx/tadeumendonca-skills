@@ -1309,6 +1309,47 @@ check ALLOW "make variable is an argument"      "make FOO=1 target"
 check ALLOW "quoted = is collapsed already"     "git commit -m 'x=1'"
 check ALLOW "chain with no assignment"          "git status; git diff"
 
+# #455: the LEADING branch was "the string begins with an assignment", which also matched an
+# assignment STATEMENT terminated by a separator, after which a separate, fully visible command
+# follows. Nothing is hidden there -- the matcher decomposes the composition and evaluates the second
+# command on its own -- so the refusal stopped something this rule was never written to stop. It bit a
+# dispatched persona inside its own authorised work. The separation is syntactic: after an
+# assignment's value a COMMAND WORD follows (prefix) or a SEPARATOR does (statement), and shell
+# requires them to differ, so no prefix form can reach the new exemption.
+check ALLOW "assignment statement then ;"       'VAR=/path; cmd "$VAR"'
+check ALLOW "assignment statement then &&"      "VAR=/tmp/x && wc -l README.md"
+check ALLOW "assignment statement then ||"      "VAR=/tmp/x || wc -l README.md"
+check ALLOW "assignment statement then |"       "VAR=/tmp/x | wc -l"
+check ALLOW "assignment statement, spaced ;"    "VAR=/tmp/x ; wc -l README.md"
+# THE OTHER DIRECTION, which is what stops the exemption from becoming a hole in the prefix case.
+check DENY  "prefix with a later separator"     "FOO=1 terraform apply; echo done"
+check DENY  "prefix, empty value"               "FOO= terraform apply"
+check DENY  "stacked prefixes"                  "FOO=1 VAR=2 terraform apply"
+check DENY  "prefix with a quoted value"        'FOO="a b" terraform apply'
+# A STATEMENT MUST NOT EXEMPT A REAL PREFIX LATER IN THE SAME COMMAND, and this pair is REBUILT
+# (#455, round 2). The arm first written here used `terraform apply` as its tail, so it was carried by
+# the IaC FLOOR rule and not by rule 8 at all: swap the tail for a harmless command and the same shape
+# returned ALLOW, which means the arm could not fail for the reason its name gave. That is the fourth
+# defective-arm finding on this slice and it is the same diagnosis this file already records three
+# times a few lines above -- caught there, then reproduced here.
+#
+# The rebuilt pair uses a tail NO floor rule touches, and it is a PAIR because one row alone proves
+# nothing: the second row is what shows the DENY in the first is caused by the `FOO=2` prefix rather
+# than by the leading `VAR=1;` that both rows share.
+check DENY  "statement does not exempt a later prefix"  "VAR=1; FOO=2 wc -l README.md"
+check ALLOW "…and the shared statement alone is exempt" "VAR=1; wc -l README.md"
+# The residual, asserted rather than left implicit: an assignment with NOTHING after it is a statement
+# too and hides nothing, and it is deliberately still denied -- over-block in the safe direction,
+# outside the reported friction, and `values=(BAR=1)` above depends on it.
+check DENY  "bare assignment is still denied"   "FOO=1"
+# AND THE FLOOR IS UNTOUCHED BY THE EXEMPTION. Every rule here matches a SUBSTRING of `bare`, so an
+# exempted leading statement does not walk a floor act past its own rule. Each of these is denied by
+# the floor rule named, never by rule 8.
+check DENY  "exempted statement, floor act: terraform" "VAR=1; terraform apply"
+check DENY  "exempted statement, floor act: trunk push" "VAR=1; git push origin main"
+check DENY  "exempted statement, floor act: rm -rf"    "VAR=1; rm -rf /"
+check DENY  "exempted statement, floor act: secret"    "VAR=1; gh secret set X"
+
 # #438 review: the extension recognizes a complete simple composition, not selected punctuation in
 # arbitrary shell text. Escapes of either parity are outside it; actual simple prefixes stay above.
 check ALLOW "escaped semicolon is argument text" 'echo foo\;BAR=1'
