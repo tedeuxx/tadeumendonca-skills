@@ -2247,10 +2247,11 @@ the floor stays authored in exactly one place.
 
 **Shipping it turns nothing on, and the distinction is the whole of what this paragraph is for.** A
 registration executes only against a matching `trusted_hash` in the invoking user's own
-`config.toml`, and this repository's are all `untrusted`. **Two claims are additionally NOT
+`config.toml`, and this repository's are all `untrusted`. ~~**Two claims are additionally NOT
 available**: whether a plugin-carrier hook command resolves a *relative* path is unmeasured (slice
 A's fixture used one and `plugin/read` reported a registration; every turn phase registered an
-absolute path), and the route ceiling above is unliftable — the floor covers **the model's tool
+absolute path)~~ — **the first half is STRUCK, see the 2026-09-22 amendment below** — and the
+route ceiling above is unliftable — the floor covers **the model's tool
 calls** and nothing else. *"The shell is guarded"* is false on this runtime.
 
 **AMENDED 2026-09-21 (#455): the hook FIRES, on the build this machine has, and the paragraph above
@@ -2316,6 +2317,40 @@ own item stream alike. **Caller identity exists and is not an authority** — `a
 native child's role name and is absent on the parent, but the parent NAMES that role in its own
 spawn call, so it routes and never authenticates. And the trust checkpoint is proven to bind a path
 rather than content: rewritten bytes stay `trusted` **and execute**.
+
+**AMENDED 2026-09-22 (#455): the relative path WAS resolved, against the wrong directory — and the
+carrier is repaired.** The struck clause above stood for a day after the measurement that falsified
+it, which is why it is struck rather than edited: it is the sentence that told a reader the question
+was open.
+
+**What was measured, on the same `0.151.0-alpha.7.2`, through the vendor's own installer.** Three
+trusted registrations, one turn, differing in route and in nothing else: a config-registered
+absolute recorder fired, a **plugin-carrier** registered absolute recorder fired — so the carrier
+route is not the problem — and the **shipped** registration, whose command was relative, produced
+**zero** adapter invocations. A relative command resolves against the **session's** cwd, and for an
+installed plugin the adapter is in the plugin cache, not under the project.
+
+**The dangerous half is what that failure LOOKS like.** When the command cannot be launched this
+runtime denies one layer *above* the guard — a blanket session denial whose status is the **same
+status a real floor decision produces**. So a broken carrier reads, to anyone watching, exactly like
+the floor working correctly. It fails in the safe direction and is invisible, which is this
+repository's own named worst shape occurring in the layer that is supposed to be the floor.
+
+**The repair, and it is a token rather than a bootstrap script.** A second turn dumped a
+carrier-registered hook's own environment and argv: four names are injected as environment variables
+on the plugin route (**none** on the config route), the same names **expand** inside the declared
+command, the values are **per plugin**, and `CODEX_PLUGIN_ROOT` — the spelling a reader invents —
+**does not exist** under either mechanism. `codex-hooks.json` now registers
+`python3 ${PLUGIN_ROOT}/scripts/codex-hook-adapter.py`. `PLUGIN_ROOT` rather than the Claude-shaped
+name because a config addressed to other machinery names no harness-specific token; **unquoted**
+because expansion here word-splits and whether a quoted token survives is **not measured**.
+
+**This turns nothing on, and the paragraph above the strike is untouched on that point.** The
+registration still needs a `trusted_hash` in the invoking user's own `config.toml`, the Codex-side
+plugin still has to be updated before the repair is even present there, and whether the repaired
+command launches is **unverified** — no turn was run for it. Section 17 of
+[the bridge document](docs/codex-hook-bridge.md) carries the readings, the repair and what it does
+not make true.
 
 <!-- claim id=0006 class=MEASURED -->
 
